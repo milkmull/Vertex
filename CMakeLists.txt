@@ -1,0 +1,46 @@
+cmake_minimum_required(VERSION 3.12)
+
+project(Vertex VERSION 1.0.0 LANGUAGES CXX)
+
+set(VX_MAIN_PROJECT OFF)
+if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
+    set(VX_MAIN_PROJECT ON)
+endif()
+
+# Global values
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Global compile flags
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -MTd -W3 -external:W0 -Od -Ob0     -D _UNICODE")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MT  -W4 -external:W0 -O2 -Ob2 -GF -D _UNICODE -D NDEBUG")
+
+# Global defines
+add_compile_definitions($<$<CONFIG:Debug>:VX_DEBUG>)
+add_compile_definitions($<$<CONFIG:Release>:VX_RELEASE>)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_compile_definitions(VX_PLATFORM_WINDOWS)
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_compile_definitions(VX_PLATFORM_LINUX)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    add_compile_definitions(VX_PLATFORM_MACOS)
+endif()
+
+# Configuration options
+set(VX_BUILD_SANDBOX ${VX_MAIN_PROJECT} CACHE BOOL "Build Sandbox")
+
+# Output
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/lib/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/bin/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${CMAKE_SOURCE_DIR}/lib/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
+
+# Subdirectories
+add_subdirectory(${CMAKE_SOURCE_DIR}/vertex)
+if (VX_BUILD_SANDBOX)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/sandbox)
+endif()
