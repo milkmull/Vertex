@@ -2,8 +2,9 @@
 
 #include <cmath>
 #include <algorithm>
-#include <cassert>
 #include <type_traits>
+
+#include "../../setup.h"
 
 namespace vx {
 namespace math {
