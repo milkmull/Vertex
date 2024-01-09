@@ -9,7 +9,7 @@ namespace math {
 namespace detail {
 
 template <typename T>
-struct vec<3, T, vec_t::vec, val_t::integral>
+struct vec<4, T, vec_t::vec, val_t::integral>
 {
     static_assert(std::is_integral<T>::value, "type T must be integral type");
 
@@ -24,8 +24,8 @@ public:
     using value_type = T;
     using float_value_type = FT;
 
-    using type = vec<3, T, vec_t::vec, val_t::integral>;
-    using float_type = vec<3, FT, vec_t::vec, val_t::floating_point>;
+    using type = vec<4, T, vec_t::vec, val_t::integral>;
+    using float_type = vec<4, FT, vec_t::vec, val_t::floating_point>;
 
     using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
     using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
@@ -36,7 +36,7 @@ public:
 
     // =============== data ===============
 
-    T x, y, z;
+    T x, y, z, w;
 
     // =============== implicit constructors ===============
 
@@ -47,24 +47,30 @@ public:
     // =============== explicit constructors ===============
 
     inline constexpr explicit vec(T scaler) noexcept;
-    inline constexpr vec(T x, T y, T z) noexcept;
+    inline constexpr vec(T x, T y, T z, T w) noexcept;
 
     // =============== conversion vector constructors ===============
 
     template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
-    inline constexpr vec(U scaler);
+    inline constexpr explicit vec(U scaler);
 
     template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
-    inline constexpr vec(U x, U y, U z);
+    inline constexpr vec(U x, U y, U z, U w);
 
     template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
-    inline constexpr vec(const vecx<2, U>& vxy, U z);
+    inline constexpr vec(const vecx<2, U>& vxy, U z, U w);
 
     template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
-    inline constexpr vec(U x, const vecx<2, U>& vyz);
+    inline constexpr vec(U x, U y, const vecx<2, U>& vzw);
+
+    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    inline constexpr vec(const vecx<3, U>& vxyz, U w);
+
+    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    inline constexpr vec(U x, const vecx<3, U>& vyzw);
 
     template <typename U>
-    inline constexpr explicit vec(const vecx<3, U>& v);
+    inline constexpr vec(const vecx<2, U>& vxy, const vecx<2, U>& vzw);
 
     template <typename U>
     inline constexpr explicit vec(const vecx<4, U>& v);
@@ -92,7 +98,7 @@ public:
 
     // =============== incrememnt and decrement operators ===============
 
-    // increment (++)
+    // incrememnt (++)
 
     inline constexpr type& operator++();
     inline constexpr type operator++(int);
@@ -184,8 +190,8 @@ public:
 
     // =============== comparison and testing ===============
 
-    inline constexpr void set(T nxyz);
-    inline constexpr void set(T nx, T ny, T nz);
+    inline constexpr void set(T nxyzw);
+    inline constexpr void set(T nx, T ny, T nz, T nw);
 
     inline constexpr T min() const;
     inline constexpr T max() const;
@@ -204,158 +210,149 @@ public:
     static inline constexpr type ZERO();
     static inline constexpr type ONE();
 
-    static inline constexpr type RIGHT();
-    static inline constexpr type LEFT();
-
-    static inline constexpr type UP();
-    static inline constexpr type DOWN();
-
-    static inline constexpr type FORWARD();
-    static inline constexpr type BACK();
-
 };
 
-// =============== comparison operators ===============
+// =============== boolean operators ===============
 
 template <typename T>
-inline constexpr bool operator==(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator==(const veci<4, T>& v1, const veci<4, T>& v2);
 
 template <typename T>
-inline constexpr bool operator!=(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator!=(const veci<4, T>& v1, const veci<4, T>& v2);
 
 template <typename T>
-inline constexpr bool operator<(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator<(const veci<4, T>& v1, const veci<4, T>& v2);
 
 template <typename T>
-inline constexpr bool operator>(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator>(const veci<4, T>& v1, const veci<4, T>& v2);
 
 template <typename T>
-inline constexpr bool operator<=(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator<=(const veci<4, T>& v1, const veci<4, T>& v2);
 
 template <typename T>
-inline constexpr bool operator>=(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr bool operator>=(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // =============== binary arithmetic operators ===============
 
 // addition (+)
 
 template <typename T>
-inline constexpr veci<3, T> operator+(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator+(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator+(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator+(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator+(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator+(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // subtraction (-)
 
 template <typename T>
-inline constexpr veci<3, T> operator-(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator-(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator-(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator-(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator-(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator-(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // multiplication (*)
 
 template <typename T>
-inline constexpr veci<3, T> operator*(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator*(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator*(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator*(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator*(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator*(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // division (/)
 
 template <typename T>
-inline constexpr veci<3, T> operator/(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator/(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator/(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator/(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator/(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator/(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // modulo (%)
 
 template <typename T>
-inline constexpr veci<3, T> operator%(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator%(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator%(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator%(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator%(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator%(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // =============== binary bit operators ===============
 
 // and (&)
 
 template <typename T>
-inline constexpr veci<3, T> operator&(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator&(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator&(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator&(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator&(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator&(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // or (|)
 
 template <typename T>
-inline constexpr veci<3, T> operator|(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator|(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator|(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator|(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator|(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator|(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // xor (^)
 
 template <typename T>
-inline constexpr veci<3, T> operator^(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator^(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator^(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator^(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator^(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator^(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // left shift (<<)
 
 template <typename T>
-inline constexpr veci<3, T> operator<<(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator<<(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator<<(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator<<(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator<<(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator<<(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // right shift (>>)
 
 template <typename T>
-inline constexpr veci<3, T> operator>>(const veci<3, T>& v, T scaler);
+inline constexpr veci<4, T> operator>>(const veci<4, T>& v, T scaler);
 
 template <typename T>
-inline constexpr veci<3, T> operator>>(T scaler, const veci<3, T>& v);
+inline constexpr veci<4, T> operator>>(T scaler, const veci<4, T>& v);
 
 template <typename T>
-inline constexpr veci<3, T> operator>>(const veci<3, T>& v1, const veci<3, T>& v2);
+inline constexpr veci<4, T> operator>>(const veci<4, T>& v1, const veci<4, T>& v2);
 
 // not (~)
 
 template <typename T>
-inline constexpr veci<3, T> operator~(const veci<3, T>& v);
+inline constexpr veci<4, T> operator~(const veci<4, T>& v);
 
 }
 }
 }
 
-#include "_impl/vec3i_type.inl"
+#include "_impl/vec4i_type.inl"

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../base_type_defs.h"
+#include "../setup.h"
+#include "../../fn_common.h"
 #include "../../fn_exponential.h"
 #include "../../fn_trigonometric.h"
 
