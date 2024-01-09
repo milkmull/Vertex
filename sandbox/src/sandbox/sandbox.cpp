@@ -1,14 +1,14 @@
 #include <iostream>
 
-#include "vertex/math/math/vec2.h"
+#include "vertex/math/math/vec3.h"
 
 #ifdef VX_PLATFORM_WINDOWS
 
 int main()
 {
-    vx::vec2i vi(1, 2);
-    vx::vec2f vf(1, 2);
-    std::cout << vi.magnitude() << ' ' << vf.magnitude() << std::endl;
+    vx::vec3i vi(1, 2, 3);
+    vx::vec3f vf(1, 2, 3);
+    std::cout << vi.size() << std::endl;
     return 0;
 }
 

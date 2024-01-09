@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 #include "base_type_defs.h"
 
 namespace vx {

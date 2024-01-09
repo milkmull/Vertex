@@ -1,7 +1,5 @@
 #pragma once
 
-#include <sstream>
-
 #include "../../fn_common.h"
 #include "../../fn_comparison.h"
 #include "../../fn_exponential.h"
@@ -16,7 +14,7 @@ namespace detail {
 template <typename T>
 inline constexpr typename vecf<2, T>::size_type vecf<2, T>::size() noexcept
 {
-    return 2;
+    return static_cast<typename vecf<2, T>::size_type>(2);
 }
 
 // =============== implicit constructors ===============
