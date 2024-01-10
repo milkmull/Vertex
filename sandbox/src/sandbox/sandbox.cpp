@@ -1,14 +1,17 @@
 #include <iostream>
 
-#include "vertex/math/math/vec4.h"
+#include "vertex/math/math/quaternion.h"
 
 #ifdef VX_PLATFORM_WINDOWS
 
 int main()
 {
-    vx::vec4i vi(1, 2, 3, 4);
-    vx::vec4f vf(1, 2, 3, 4);
-    std::cout << vi.magnitude() << std::endl;
+    using namespace vx;
+
+    quaternion q;
+
+    std::cout << q.to_string() << std::endl;
+
     return 0;
 }
 
