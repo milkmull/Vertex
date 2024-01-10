@@ -2,6 +2,9 @@
 
 #include "detail/mat4x4_type.h"
 
+#include "mat_fn_comparison.h"
+#include "mat_fn_projection.h"
+
 namespace vx {
 
 typedef math::detail::mat<4, 4, float> mat4;

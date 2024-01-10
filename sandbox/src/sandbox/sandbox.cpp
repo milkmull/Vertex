@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "vertex/math/math/quaternion.h"
+#include "vertex/math/math.h"
 
 #ifdef VX_PLATFORM_WINDOWS
 
