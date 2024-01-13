@@ -3,6 +3,7 @@
 bin/
 lib/
 build/
+tools/
 
 # Files
 *.user
