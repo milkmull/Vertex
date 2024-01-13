@@ -17,10 +17,16 @@ namespace math {
  * @param y The exponent value.
  * @return The result of raising `x` to the power of `y`.
  */
-template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 inline constexpr T pow(T x, T y)
 {
     return std::pow(x, y);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type pow(T x, T y)
+{
+    return static_cast<detail::int_float_type>(std::pow(x, y));
 }
 
 // =============== exp ===============
@@ -30,7 +36,7 @@ inline constexpr T pow(T x, T y)
  *
  * This template function calculates the exponential of the input value `x`.
  *
- * @tparam T The data type for which the exponential is calculated (must be floating-point).
+ * @tparam T The data type for which the exponential is calculated.
  * @param x The input value.
  * @return The result of the exponential function e^x.
  */
@@ -40,6 +46,12 @@ inline constexpr T exp(T x)
     return std::exp(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type exp(T x)
+{
+    return static_cast<detail::int_float_type>(std::exp(x));
+}
+
 // =============== exp2 ===============
 
 /**
@@ -47,7 +59,7 @@ inline constexpr T exp(T x)
  *
  * This template function calculates 2 raised to the power of the input value `x`.
  *
- * @tparam T The data type for which the base-2 exponential is calculated (must be floating-point).
+ * @tparam T The data type for which the base-2 exponential is calculated.
  * @param x The input value.
  * @return The result of 2^x.
  */
@@ -57,6 +69,12 @@ inline constexpr T exp2(T x)
     return std::exp2(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type exp2(T x)
+{
+    return static_cast<detail::int_float_type>(std::exp2(x));
+}
+
 // =============== log ===============
 
 /**
@@ -64,7 +82,7 @@ inline constexpr T exp2(T x)
  *
  * This template function calculates the natural logarithm of the input value `x`.
  *
- * @tparam T The data type for which the natural logarithm is calculated (must be floating-point).
+ * @tparam T The data type for which the natural logarithm is calculated.
  * @param x The input value.
  * @return The natural logarithm of `x`.
  */
@@ -74,6 +92,12 @@ inline constexpr T log(T x)
     return std::log(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type log(T x)
+{
+    return static_cast<detail::int_float_type>(std::log(x));
+}
+
 // =============== log2 ===============
 
 /**
@@ -81,7 +105,7 @@ inline constexpr T log(T x)
  *
  * This template function calculates the base-2 logarithm of the input value `x`.
  *
- * @tparam T The data type for which the base-2 logarithm is calculated (must be floating-point).
+ * @tparam T The data type for which the base-2 logarithm is calculated.
  * @param x The input value.
  * @return The base-2 logarithm of `x`.
  */
@@ -91,6 +115,12 @@ inline constexpr T log2(T x)
     return std::log2(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type log2(T x)
+{
+    return static_cast<detail::int_float_type>(std::log2(x));
+}
+
 // =============== sqrt ===============
 
 /**
@@ -98,7 +128,7 @@ inline constexpr T log2(T x)
  *
  * This template function calculates the square root of the input value `x`.
  *
- * @tparam T The data type for which the square root is calculated (must be floating-point).
+ * @tparam T The data type for which the square root is calculated.
  * @param x The input value.
  * @return The square root of `x`.
  */
@@ -108,6 +138,12 @@ inline constexpr T sqrt(T x)
     return std::sqrt(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type sqrt(T x)
+{
+    return static_cast<detail::int_float_type>(std::sqrt(x));
+}
+
 // =============== inverse_sqrt ===============
 
 /**
@@ -115,7 +151,7 @@ inline constexpr T sqrt(T x)
  *
  * This template function calculates the inverse square root of the input value `x`.
  *
- * @tparam T The data type for which the inverse square root is calculated (must be floating-point).
+ * @tparam T The data type for which the inverse square root is calculated.
  * @param x The input value.
  * @return The result of 1/sqrt(x).
  */
@@ -123,6 +159,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T inverse_sqrt(T x)
 {
     return static_cast<T>(1) / std::sqrt(x);
+}
+
+template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+inline constexpr detail::int_float_type inverse_sqrt(T x)
+{
+    return static_cast<detail::int_float_type>(1) / static_cast<detail::int_float_type>(std::sqrt(x));
 }
 
 }
