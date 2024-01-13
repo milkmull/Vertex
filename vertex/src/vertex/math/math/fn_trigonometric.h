@@ -12,7 +12,7 @@ namespace math {
  *
  * This template function converts degrees to radians.
  *
- * @tparam T The data type for which the conversion is performed (must be floating-point).
+ * @tparam T The data type for which the conversion is performed.
  * @param deg The angle in degrees.
  * @return The equivalent angle in radians.
  */
@@ -23,20 +23,10 @@ inline constexpr T radians(T deg)
     return deg * r;
 }
 
-/**
- * @brief Convert degrees to radians (integral version).
- *
- * This template function converts degrees to radians for integral types.
- *
- * @tparam T The integral data type for which the conversion is performed.
- * @param deg The angle in degrees.
- * @return The equivalent angle in radians.
- */
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr auto radians(T deg)
+inline constexpr detail::int_float_type radians(T deg)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return math::radians(static_cast<FT>(deg));
+    return math::radians(static_cast<detail::int_float_type>(deg));
 }
 
 // =============== degrees ===============
@@ -46,7 +36,7 @@ inline constexpr auto radians(T deg)
  *
  * This template function converts radians to degrees.
  *
- * @tparam T The data type for which the conversion is performed (must be floating-point).
+ * @tparam T The data type for which the conversion is performed.
  * @param rad The angle in radians.
  * @return The equivalent angle in degrees.
  */
@@ -57,20 +47,10 @@ inline constexpr T degrees(T rad)
     return rad * r;
 }
 
-/**
- * @brief Convert radians to degrees (integral version).
- *
- * This template function converts radians to degrees for integral types.
- *
- * @tparam T The integral data type for which the conversion is performed.
- * @param rad The angle in radians.
- * @return The equivalent angle in degrees.
- */
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr auto degrees(T rad)
+inline constexpr detail::int_float_type degrees(T rad)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return math::degrees(static_cast<FT>(rad));
+    return math::degrees(static_cast<detail::int_float_type>(rad));
 }
 
 // =============== sin ===============
@@ -80,7 +60,7 @@ inline constexpr auto degrees(T rad)
  *
  * This template function computes the sine of the given angle.
  *
- * @tparam T The data type for which the sine is computed (must be floating-point).
+ * @tparam T The data type for which the sine is computed.
  * @param x The angle in radians.
  * @return The sine of the angle.
  */
@@ -90,6 +70,12 @@ inline constexpr T sin(T x)
     return std::sin(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type sin(T x)
+{
+    return std::sin(static_cast<detail::int_float_type>(x));
+}
+
 // =============== cos ===============
 
 /**
@@ -97,7 +83,7 @@ inline constexpr T sin(T x)
  *
  * This template function computes the cosine of the given angle.
  *
- * @tparam T The data type for which the cosine is computed (must be floating-point).
+ * @tparam T The data type for which the cosine is computed.
  * @param x The angle in radians.
  * @return The cosine of the angle.
  */
@@ -107,6 +93,12 @@ inline constexpr T cos(T x)
     return std::cos(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type cos(T x)
+{
+    return std::cos(static_cast<detail::int_float_type>(x));
+}
+
 // =============== tan ===============
 
 /**
@@ -114,7 +106,7 @@ inline constexpr T cos(T x)
  *
  * This template function computes the tangent of the given angle.
  *
- * @tparam T The data type for which the tangent is computed (must be floating-point).
+ * @tparam T The data type for which the tangent is computed.
  * @param x The angle in radians.
  * @return The tangent of the angle.
  */
@@ -122,6 +114,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T tan(T x)
 {
     return std::tan(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type tan(T x)
+{
+    return std::tan(static_cast<detail::int_float_type>(x));
 }
 
 // =============== asin ===============
@@ -134,7 +132,7 @@ inline constexpr T tan(T x)
  * @note The input value should be in the range [-1, 1].
  * @note The output is in the range [-pi/2, pi/2].
  *
- * @tparam T The data type for which the arcsine is computed (must be floating-point).
+ * @tparam T The data type for which the arcsine is computed.
  * @param x The input value, should be in the range [-1, 1].
  * @return The arcsine of the input value, in radians.
  */
@@ -142,6 +140,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T asin(T x)
 {
     return std::asin(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type asin(T x)
+{
+    return std::asin(static_cast<detail::int_float_type>(x));
 }
 
 /**
@@ -159,21 +163,33 @@ inline constexpr T asin_clamped(T x)
     return math::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type asin_clamped(T x)
+{
+    return math::asin_clamped(static_cast<detail::int_float_type>(x));
+}
+
 // =============== acos ===============
 
 /**
- * @brief Calculates the arccosine of the given value within the clamped range [-1, 1].
+ * @brief Compute the arccosine of a value.
  *
- * This function computes the arccosine of the input value 'x' and ensures that the input is clamped
- * to the valid range [-1, 1]. The result is in the range [0, pi].
+ * This template function computes the arccosine of the given value.
  *
- * @param x The input value to compute the arccosine for, clamped to the range [-1, 1].
- * @return The arccosine of the clamped input value in the range [0, pi].
+ * @tparam T The data type for which the arccosine is computed.
+ * @param x The input value, within the range [-1, 1].
+ * @return The arccosine of the input value, in radians.
  */
 template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
 inline constexpr T acos(T x)
 {
     return std::acos(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type acos(T x)
+{
+    return std::acos(static_cast<detail::int_float_type>(x));
 }
 
 /**
@@ -191,6 +207,12 @@ inline constexpr T acos_clamped(T x)
     return math::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type acos_clamped(T x)
+{
+    return math::acos_clamped(static_cast<detail::int_float_type>(x));
+}
+
 // =============== atan ===============
 
 /**
@@ -206,6 +228,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T atan(T x)
 {
     return std::atan(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type atan(T x)
+{
+    return std::atan(static_cast<detail::int_float_type>(x));
 }
 
 // =============== atan2 ===============
@@ -226,21 +254,13 @@ inline constexpr T atan2(T x, T y)
     return std::atan2(x, y);
 }
 
-/**
- * @brief Calculates the arctangent of the quotient of its arguments.
- *
- * This function computes the four-quadrant arctangent of the ratio 'x/y', returning
- * the angle in radians whose tangent is the quotient 'x/y'. The result is in the range [-pi, pi].
- *
- * @param x Numerator of the ratio for which to compute the arctangent.
- * @param y Denominator of the ratio for which to compute the arctangent.
- * @return The arctangent of 'x/y' in the range [-pi, pi].
- */
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr auto atan2(T x, T y)
+inline constexpr detail::int_float_type atan2(T x, T y)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return std::atan2(static_cast<FT>(x), static_cast<FT>(y));
+    return std::atan2(
+        static_cast<detail::int_float_type>(x),
+        static_cast<detail::int_float_type>(y)
+    );
 }
 
 // =============== sinh ===============
@@ -259,6 +279,12 @@ inline constexpr T sinh(T x)
     return std::sinh(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type sinh(T x)
+{
+    return std::sinh(static_cast<detail::int_float_type>(x));
+}
+
 // =============== cosh ===============
 
 /**
@@ -273,6 +299,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T cosh(T x)
 {
     return std::cosh(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type cosh(T x)
+{
+    return std::cosh(static_cast<detail::int_float_type>(x));
 }
 
 // =============== tanh ===============
@@ -291,6 +323,12 @@ inline constexpr T tanh(T x)
     return std::tanh(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type tanh(T x)
+{
+    return std::tanh(static_cast<detail::int_float_type>(x));
+}
+
 // =============== asinh ===============
 
 /**
@@ -305,6 +343,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T asinh(T x)
 {
     return std::asinh(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type asinh(T x)
+{
+    return std::asinh(static_cast<detail::int_float_type>(x));
 }
 
 // =============== acosh ===============
@@ -324,6 +368,12 @@ inline constexpr T acosh(T x)
     return std::acosh(x);
 }
 
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type acosh(T x)
+{
+    return std::acosh(static_cast<detail::int_float_type>(x));
+}
+
 // =============== atanh ===============
 
 /**
@@ -339,6 +389,12 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T atanh(T x)
 {
     return std::atanh(x);
+}
+
+template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+inline constexpr detail::int_float_type atanh(T x)
+{
+    return std::atanh(static_cast<detail::int_float_type>(x));
 }
 
 }
