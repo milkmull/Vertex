@@ -188,8 +188,8 @@ inline constexpr detail::vecf<L, T, Q> slerp(
     T t
 )
 {
-    assert(math::is_equal_approx(math::magnitude(x), 1));
-    assert(math::is_equal_approx(math::magnitude(y), 1));
+    assert(math::is_equal_approx(math::length_squared(x), static_cast<T>(1)));
+    assert(math::is_equal_approx(math::length_squared(y), static_cast<T>(1)));
 
     T cos_alpha = math::dot(x, y);
 

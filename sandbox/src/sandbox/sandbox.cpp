@@ -9,10 +9,9 @@ int main()
 {
     using namespace vx;
 
-    vec3 v3;
-    vec3i v3i;
+    quaternion q;
 
-    std::cout << math::dot(v3, v3);
+    std::cout << math::slerp(q, q, 0.1f).to_string();
 
     return 0;
 }

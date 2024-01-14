@@ -11,6 +11,16 @@ namespace math {
 
 // the dot product of 2 quaternions gives cos(t / 2)
 
+/**
+ * @brief Calculates the dot product of two quaternions.
+ *
+ * This function computes the dot product between two quaternions 'q1' and 'q2'.
+ *
+ * @tparam T Element type of the quaternions.
+ * @param q1 The first quaternion.
+ * @param q2 The second quaternion.
+ * @return The dot product of the two quaternions.
+ */
 template <typename T>
 inline constexpr T dot(
     const detail::quat<T>& q1,
@@ -20,6 +30,16 @@ inline constexpr T dot(
     return (q1.w * q2.w) + (q1.x * q2.x) + (q1.y * q2.y) + (q1.z * q2.z);
 }
 
+/**
+ * @brief Calculates the normalized dot product of two quaternions.
+ *
+ * This function computes the dot product between two quaternions 'q1' and 'q2' after normalizing them.
+ *
+ * @tparam T Element type of the quaternions.
+ * @param v The first quaternion to be normalized and used in the dot product.
+ * @param u The second quaternion to be normalized and used in the dot product.
+ * @return The normalized dot product of the two quaternions.
+ */
 template <typename T>
 inline constexpr T normalized_dot(
     const detail::quat<T>& q1,
@@ -31,10 +51,20 @@ inline constexpr T normalized_dot(
 
 // =============== scale ===============
 
-template <typename T, typename U>
+/**
+ * @brief Scales a quaternion by a scalar.
+ *
+ * This function scales the input quaternion 'q' by the specified scalar value.
+ *
+ * @tparam T Element type of the quaternion.
+ * @param q The quaternion to be scaled.
+ * @param scaler The scalar value to scale the quaternion by.
+ * @return The resulting scaled quaternion.
+ */
+template <typename T>
 inline constexpr detail::quat<T> scale(
     const detail::quat<T>& q,
-    U scaler
+    T scaler
 )
 {
     return q * scaler;
@@ -42,12 +72,30 @@ inline constexpr detail::quat<T> scale(
 
 // =============== length ===============
 
+/**
+ * @brief Calculates the squared length of a quaternion.
+ *
+ * This function computes the squared length of the input quaternion 'q'.
+ *
+ * @tparam T Element type of the quaternion.
+ * @param q The quaternion for which to calculate the squared length.
+ * @return The squared length of the quaternion.
+ */
 template <typename T>
 inline constexpr T length_squared(const detail::quat<T>& q)
 {
     return dot(q, q);
 }
 
+/**
+ * @brief Calculates the length of a quaternion.
+ *
+ * This function computes the length of the input quaternion 'q'.
+ *
+ * @tparam T Element type of the quaternion.
+ * @param q The quaternion for which to calculate the length.
+ * @return The length of the quaternion.
+ */
 template <typename T>
 inline constexpr T length(const detail::quat<T>& q)
 {
@@ -56,6 +104,16 @@ inline constexpr T length(const detail::quat<T>& q)
 
 // =============== normalize ===============
 
+/**
+ * @brief Normalizes a quaternion.
+ *
+ * This function normalizes the input quaternion 'q'.
+ *
+ * @tparam T Element type of the quaternion.
+ * @param q The quaternion to be normalized.
+ * @return The normalized quaternion. If the length of the input quaternion is 0,
+ * the unit quaternion will be returned.
+ */
 template <typename T>
 inline constexpr auto normalize(const detail::quat<T>& q)
 {
@@ -66,6 +124,16 @@ inline constexpr auto normalize(const detail::quat<T>& q)
 
 // =============== angle ===============
 
+/**
+ * @brief Calculates the angle between two quaternions.
+ *
+ * This function computes the angle (in radians) between two quaternions 'from' and 'to'.
+ *
+ * @tparam T Element type of the quaternions.
+ * @param from The first quaternion.
+ * @param to The second quaternion.
+ * @return The angle (in radians) between the two quaternions.
+ */
 template <typename T>
 static inline constexpr T angle(
     const detail::quat<T>& from,
@@ -79,6 +147,16 @@ static inline constexpr T angle(
     return math::acos_clamped(d * d * static_cast<T>(2) - static_cast<T>(1));
 }
 
+/**
+ * @brief Calculates the signed angle between two quaternions.
+ *
+ * This function computes the signed angle (in radians) between two quaternions 'from' and 'to'.
+ *
+ * @tparam T Element type of the quaternions.
+ * @param from The first quaternion.
+ * @param to The second quaternion.
+ * @return The signed angle (in radians) between the two quaternions.
+ */
 template <typename T>
 static inline constexpr T signed_angle(
     const detail::quat<T>& from,
