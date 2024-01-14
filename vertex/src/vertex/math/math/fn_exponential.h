@@ -23,12 +23,6 @@ inline constexpr T pow(T x, T y)
     return std::pow(x, y);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type pow(T x, T y)
-{
-    return static_cast<detail::int_float_type>(std::pow(x, y));
-}
-
 // =============== exp ===============
 
 /**
@@ -44,12 +38,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T exp(T x)
 {
     return std::exp(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type exp(T x)
-{
-    return static_cast<detail::int_float_type>(std::exp(x));
 }
 
 // =============== exp2 ===============
@@ -69,12 +57,6 @@ inline constexpr T exp2(T x)
     return std::exp2(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type exp2(T x)
-{
-    return static_cast<detail::int_float_type>(std::exp2(x));
-}
-
 // =============== log ===============
 
 /**
@@ -90,12 +72,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T log(T x)
 {
     return std::log(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type log(T x)
-{
-    return static_cast<detail::int_float_type>(std::log(x));
 }
 
 // =============== log2 ===============
@@ -115,12 +91,6 @@ inline constexpr T log2(T x)
     return std::log2(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type log2(T x)
-{
-    return static_cast<detail::int_float_type>(std::log2(x));
-}
-
 // =============== sqrt ===============
 
 /**
@@ -138,12 +108,6 @@ inline constexpr T sqrt(T x)
     return std::sqrt(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type sqrt(T x)
-{
-    return static_cast<detail::int_float_type>(std::sqrt(x));
-}
-
 // =============== inverse_sqrt ===============
 
 /**
@@ -159,12 +123,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T inverse_sqrt(T x)
 {
     return static_cast<T>(1) / std::sqrt(x);
-}
-
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-inline constexpr detail::int_float_type inverse_sqrt(T x)
-{
-    return static_cast<detail::int_float_type>(1) / static_cast<detail::int_float_type>(std::sqrt(x));
 }
 
 }

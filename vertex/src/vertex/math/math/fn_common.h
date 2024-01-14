@@ -111,12 +111,6 @@ inline constexpr T round(T x)
     return std::round(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type round(T x)
-{
-    return static_cast<detail::int_float_type>(x);
-}
-
 // =============== trunc ===============
 
 /**
@@ -133,12 +127,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T trunc(T x)
 {
     return std::trunc(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type trunc(T x)
-{
-    return static_cast<detail::int_float_type>(x);
 }
 
 // =============== floor ===============
@@ -159,12 +147,6 @@ inline constexpr T floor(T x)
     return std::floor(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type floor(T x)
-{
-    return static_cast<detail::int_float_type>(x);
-}
-
 // =============== ceil ===============
 
 /**
@@ -181,12 +163,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T ceil(T x)
 {
     return std::ceil(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type ceil(T x)
-{
-    return static_cast<detail::int_float_type>(x);
 }
 
 // =============== sign ===============
@@ -227,12 +203,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T fmod(T x, T y)
 {
     return x - y * std::trunc(x / y);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type fmod(T x, T y)
-{
-    return static_cast<detail::int_float_type>(x % y);
 }
 
 // =============== mod ===============
@@ -282,12 +252,6 @@ inline constexpr T fract(T x)
     return x - std::floor(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type fract(T x)
-{
-    return static_cast<detail::int_float_type>(0);
-}
-
 // =============== modf ===============
 
 /**
@@ -308,13 +272,6 @@ inline constexpr T modf(T x, T& intpart)
     return std::modf(x, &intpart);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type modf(T x, detail::int_float_type& intpart)
-{
-    intpart = static_cast<detail::int_float_type>(x);
-    return static_cast<detail::int_float_type>(0) * intpart;
-}
-
 // =============== frexp ===============
 
 /**
@@ -333,19 +290,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T frexp(T x, int& exp)
 {
     return std::frexp(x, &exp);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type frexp(T x, int& exp)
-{
-    if (x == static_cast<detail::int_float_type>(0))
-    {
-        exp = 0;
-        return static_cast<detail::int_float_type>(0);
-    }
-
-    exp = static_cast<int>(std::log2(std::abs(x))) + 1;
-    return x / static_cast<detail::int_float_type>(std::pow(2, exp));
 }
 
 // =============== snap ===============

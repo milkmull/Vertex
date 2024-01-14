@@ -9,8 +9,10 @@ int main()
 {
     using namespace vx;
 
-    std::cout << math::snap(-1234.0, -25.0) << std::endl;
-    std::cout << math::snap(-1234, -25) << std::endl;
+    vec2 v2;
+    vec2i v2i;
+
+    std::cout << math::round(v2i);
 
     return 0;
 }

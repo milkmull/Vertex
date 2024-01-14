@@ -70,12 +70,6 @@ inline constexpr T sin(T x)
     return std::sin(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type sin(T x)
-{
-    return std::sin(static_cast<detail::int_float_type>(x));
-}
-
 // =============== cos ===============
 
 /**
@@ -93,12 +87,6 @@ inline constexpr T cos(T x)
     return std::cos(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type cos(T x)
-{
-    return std::cos(static_cast<detail::int_float_type>(x));
-}
-
 // =============== tan ===============
 
 /**
@@ -114,12 +102,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T tan(T x)
 {
     return std::tan(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type tan(T x)
-{
-    return std::tan(static_cast<detail::int_float_type>(x));
 }
 
 // =============== asin ===============
@@ -142,12 +124,6 @@ inline constexpr T asin(T x)
     return std::asin(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type asin(T x)
-{
-    return std::asin(static_cast<detail::int_float_type>(x));
-}
-
 /**
  * @brief Calculates the arcsine of the given value within the clamped range [-1, 1].
  *
@@ -161,12 +137,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T asin_clamped(T x)
 {
     return math::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type asin_clamped(T x)
-{
-    return math::asin_clamped(static_cast<detail::int_float_type>(x));
 }
 
 // =============== acos ===============
@@ -186,12 +156,6 @@ inline constexpr T acos(T x)
     return std::acos(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type acos(T x)
-{
-    return std::acos(static_cast<detail::int_float_type>(x));
-}
-
 /**
  * @brief Calculates the arccosine of the given value within the clamped range [-1, 1].
  *
@@ -205,12 +169,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T acos_clamped(T x)
 {
     return math::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type acos_clamped(T x)
-{
-    return math::acos_clamped(static_cast<detail::int_float_type>(x));
 }
 
 // =============== atan ===============
@@ -228,12 +186,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T atan(T x)
 {
     return std::atan(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type atan(T x)
-{
-    return std::atan(static_cast<detail::int_float_type>(x));
 }
 
 // =============== atan2 ===============
@@ -279,12 +231,6 @@ inline constexpr T sinh(T x)
     return std::sinh(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type sinh(T x)
-{
-    return std::sinh(static_cast<detail::int_float_type>(x));
-}
-
 // =============== cosh ===============
 
 /**
@@ -299,12 +245,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T cosh(T x)
 {
     return std::cosh(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type cosh(T x)
-{
-    return std::cosh(static_cast<detail::int_float_type>(x));
 }
 
 // =============== tanh ===============
@@ -323,12 +263,6 @@ inline constexpr T tanh(T x)
     return std::tanh(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type tanh(T x)
-{
-    return std::tanh(static_cast<detail::int_float_type>(x));
-}
-
 // =============== asinh ===============
 
 /**
@@ -343,12 +277,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T asinh(T x)
 {
     return std::asinh(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type asinh(T x)
-{
-    return std::asinh(static_cast<detail::int_float_type>(x));
 }
 
 // =============== acosh ===============
@@ -368,12 +296,6 @@ inline constexpr T acosh(T x)
     return std::acosh(x);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type acosh(T x)
-{
-    return std::acosh(static_cast<detail::int_float_type>(x));
-}
-
 // =============== atanh ===============
 
 /**
@@ -389,12 +311,6 @@ template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> =
 inline constexpr T atanh(T x)
 {
     return std::atanh(x);
-}
-
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-inline constexpr detail::int_float_type atanh(T x)
-{
-    return std::atanh(static_cast<detail::int_float_type>(x));
 }
 
 }
