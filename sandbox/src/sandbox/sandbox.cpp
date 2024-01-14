@@ -9,10 +9,10 @@ int main()
 {
     using namespace vx;
 
-    vec2 v2;
-    vec2i v2i;
+    vec3 v3;
+    vec3i v3i;
 
-    std::cout << math::round(v2i);
+    std::cout << math::dot(v3, v3);
 
     return 0;
 }

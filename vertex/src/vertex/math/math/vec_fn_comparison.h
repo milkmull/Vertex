@@ -10,8 +10,8 @@ namespace math {
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecx<2, T>& v1,
-    const detail::vecx<2, T>& v2,
+    const detail::vecf<2, T>& v1,
+    const detail::vecf<2, T>& v2,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -21,8 +21,8 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecx<3, T>& v1,
-    const detail::vecx<3, T>& v2,
+    const detail::vecf<3, T>& v1,
+    const detail::vecf<3, T>& v2,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -33,8 +33,8 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecx<4, T>& v1,
-    const detail::vecx<4, T>& v2,
+    const detail::vecf<4, T>& v1,
+    const detail::vecf<4, T>& v2,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -61,7 +61,7 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecx<2, T>& v,
+    const detail::vecf<2, T>& v,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -71,7 +71,7 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecx<3, T>& v,
+    const detail::vecf<3, T>& v,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -82,7 +82,7 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecx<4, T>& v,
+    const detail::vecf<4, T>& v,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -217,7 +217,7 @@ inline constexpr auto round_if_close(
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::vecx<2, T>(
+    return detail::vecf<2, T>(
         math::round_if_close(v.x, epsilon),
         math::round_if_close(v.y, epsilon)
     );
@@ -229,7 +229,7 @@ inline constexpr auto round_if_close(
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::vecx<3, T>(
+    return detail::vecf<3, T>(
         math::round_if_close(v.x, epsilon),
         math::round_if_close(v.y, epsilon),
         math::round_if_close(v.z, epsilon)
@@ -242,7 +242,7 @@ inline constexpr auto round_if_close(
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::vecx<4, T>(
+    return detail::vecf<4, T>(
         math::round_if_close(v.x, epsilon),
         math::round_if_close(v.y, epsilon),
         math::round_if_close(v.z, epsilon),

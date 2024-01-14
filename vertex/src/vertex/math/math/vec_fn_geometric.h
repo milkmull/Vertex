@@ -10,6 +10,17 @@ namespace math {
 
 // =============== to_float ===============
 
+/**
+ * @brief Converts an integral vector to a floating-point vector.
+ *
+ * This function converts an integral vector 'v' to a floating-point vector.
+ *
+ * @tparam T Element type of the vector.
+ * @param v The integral vector to be converted.
+ * @return The resulting floating-point vector.
+ *
+ * @note This function is applicable for vectors of type 'veci'.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr typename auto to_float(const detail::veci<L, T, Q>& v)
 {
@@ -18,6 +29,16 @@ inline constexpr typename auto to_float(const detail::veci<L, T, Q>& v)
 
 // =============== dot ===============
 
+/**
+ * @brief Calculates the dot product of two vectors.
+ *
+ * This function computes the dot product between two vectors 'v' and 'u'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param v The first vector.
+ * @param u The second vector.
+ * @return The dot product of the two vectors.
+ */
 template <typename T>
 inline constexpr T dot(
     const detail::vecx<2, T>& v,
@@ -54,6 +75,16 @@ inline constexpr T dot(
     return (v.r * u.r) + (v.g * u.g) + (v.b * u.b) + (v.a * u.a);
 }
 
+/**
+ * @brief Calculates the normalized dot product of two vectors.
+ *
+ * This function computes the dot product between two vectors 'v' and 'u' after normalizing them.
+ *
+ * @tparam T Element type of the vectors.
+ * @param v The first vector to be normalized and used in the dot product.
+ * @param u The second vector to be normalized and used in the dot product.
+ * @return The normalized dot product of the two vectors.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr T normalized_dot(
     const detail::vecf<L, T, Q>& v,
@@ -65,6 +96,16 @@ inline constexpr T normalized_dot(
 
 // =============== cross ===============
 
+/**
+ * @brief Calculates the cross product of two 2D vectors.
+ *
+ * This function computes the cross product between two 2D vectors 'v' and 'u'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param v The first 2D vector.
+ * @param u The second 2D vector.
+ * @return The cross product of the two 2D vectors.
+ */
 template <typename T>
 inline constexpr T cross(
     const detail::vecx<2, T>& v,
@@ -74,6 +115,16 @@ inline constexpr T cross(
     return (v.x * u.y) - (v.y * u.x);
 }
 
+/**
+ * @brief Calculates the cross product of two 3D vectors.
+ *
+ * This function computes the cross product between two 3D vectors 'v' and 'u'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param v The first 3D vector.
+ * @param u The second 3D vector.
+ * @return The cross product of the two 3D vectors.
+ */
 template <typename T>
 inline constexpr detail::vecx<3, T> cross(
     const detail::vecx<3, T>& v,
@@ -89,19 +140,29 @@ inline constexpr detail::vecx<3, T> cross(
 
 // =============== scale ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q, typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+/**
+ * @brief Scales a vector by a scalar.
+ *
+ * This function scales the input vector 'v' by the specified scalar value.
+ *
+ * @tparam T Element type of the vector.
+ * @param v The vector to be scaled.
+ * @param scaler The scalar value to scale the vector by.
+ * @return The resulting scaled vector.
+ */
+template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vec<L, T, Q> scale(
     const detail::vec<L, T, Q>& v,
-    U scaler
+    T scaler
 )
 {
     return v * scaler;
 }
 
-template <detail::length_type L, typename T, detail::vec_t Q, typename U>
+template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vec<L, T, Q> scale(
     const detail::vec<L, T, Q>& v,
-    const detail::vec<L, U, Q>& scaler
+    const detail::vec<L, T, Q>& scaler
 )
 {
     return v * scaler;
@@ -109,6 +170,15 @@ inline constexpr detail::vec<L, T, Q> scale(
 
 // =============== length ===============
 
+/**
+ * @brief Calculates the squared length of a vector.
+ *
+ * This function computes the squared length of the input vector 'v'.
+ *
+ * @tparam T Element type of the vector.
+ * @param v The vector for which to calculate the squared length.
+ * @return The squared length of the vector.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto length_squared(const detail::vecf<L, T, Q>& v)
 {
@@ -122,6 +192,15 @@ inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
     return static_cast<FT>(dot(v, v));
 }
 
+/**
+ * @brief Calculates the length of a vector.
+ *
+ * This function computes the length of the input vector 'v'.
+ *
+ * @tparam T Element type of the vector.
+ * @param v The vector for which to calculate the length.
+ * @return The length of the vector.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto length(const detail::vec<L, T, Q>& v)
 {
@@ -130,6 +209,16 @@ inline constexpr auto length(const detail::vec<L, T, Q>& v)
 
 // =============== distance ===============
 
+/**
+ * @brief Calculates the squared distance between two vectors.
+ *
+ * This function computes the squared distance between two vectors 'p0' and 'p1'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param p0 The first vector.
+ * @param p1 The second vector.
+ * @return The squared distance between the two vectors.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto distance_squared(
     const detail::vec<L, T, Q>& p0,
@@ -139,6 +228,16 @@ inline constexpr auto distance_squared(
     return length_squared(p1 - p0);
 }
 
+/**
+ * @brief Calculates the distance between two vectors.
+ *
+ * This function computes the distance between two vectors 'p0' and 'p1'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param p0 The first vector.
+ * @param p1 The second vector.
+ * @return The distance between the two vectors.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto distance(
     const detail::vec<L, T, Q>& p0,
@@ -150,16 +249,36 @@ inline constexpr auto distance(
 
 // =============== normalize ===============
 
+/**
+ * @brief Normalizes a vector.
+ *
+ * This function normalizes the input vector 'v'.
+ *
+ * @tparam T Element type of the vector.
+ * @param v The vector to be normalized.
+ * @return The normalized vector. If the length of the input vector is 0,
+ * a zero vector will be returned.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
 {
     const T magsq = length_squared(v);
-    if (magsq < math::epsilon<T>) return detail::vecf<L, T, Q>();
+    if (magsq < math::epsilon<T>) return detail::vecf<L, T, Q>(0);
     return v * inverse_sqrt(magsq);
 }
 
 // =============== angle ===============
 
+/**
+ * @brief Calculates the angle between two 2D vectors.
+ *
+ * This function computes the angle (in radians) between two 2D vectors 'from' and 'to'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param from The first 2D vector.
+ * @param to The second 2D vector.
+ * @return The angle (in radians) between the two 2D vectors.
+ */
 template <typename T>
 static inline constexpr T angle(
     const detail::vecf<2, T>& from,
@@ -169,6 +288,17 @@ static inline constexpr T angle(
     return math::acos(normalized_dot(from, to));
 }
 
+/**
+ * @brief Calculates the signed angle between two 2D vectors.
+ *
+ * This function computes the signed angle (in radians) between two 2D vectors 'from' and 'to'.
+ * The sign indicates the direction of rotation from 'from' to 'to'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param from The first 2D vector.
+ * @param to The second 2D vector.
+ * @return The signed angle (in radians) between the two 2D vectors.
+ */
 template <typename T>
 static inline constexpr T signed_angle(
     const detail::vecf<2, T>& from,
@@ -181,6 +311,16 @@ static inline constexpr T signed_angle(
 
 // =============== project ===============
 
+/**
+ * @brief Projects a vector onto another vector.
+ *
+ * This function projects the input vector 'i' onto the direction of the vector 'n'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param i The vector to be projected.
+ * @param n The vector onto which 'i' is projected.
+ * @return The vector 'i' projected onto the direction of 'n'.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> project(
     const detail::vecf<L, T, Q>& i,
@@ -192,28 +332,73 @@ inline constexpr detail::vecf<L, T, Q> project(
 
 // =============== reflect ===============
 
+/**
+ * @brief Reflects a vector based on a normalized normal vector.
+ *
+ * This function reflects the input vector 'i' based on the normalized normal vector 'n'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param i The vector to be reflected.
+ * @param n The normalized normal vector used for reflection.
+ * @return The vector 'i' reflected based on the normalized normal vector 'n'.
+ *
+ * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> reflect(
     const detail::vecf<L, T, Q>& i,
     const detail::vecf<L, T, Q>& n
 )
 {
-    return i - static_cast<T>(2) * normalized_dot(n, i) * n;
+    assert(math::is_equal_approx(length(i), 1));
+    assert(math::is_equal_approx(length(n), 1));
+
+    return i - static_cast<T>(2) * dot(n, i) * n;
 }
 
 // =============== bounce ===============
 
+/**
+ * @brief Bounces a vector off a surface defined by a normalized normal vector.
+ *
+ * This function calculates the bounce vector of the input vector 'i' off a surface
+ * defined by the normalized normal vector 'n'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param i The incident vector.
+ * @param n The normalized normal vector of the surface.
+ * @return The bounce vector of the incident vector off the surface.
+ * 
+ * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> bounce(
     const detail::vecf<L, T, Q>& i,
     const detail::vecf<L, T, Q>& n
 )
 {
+    assert(math::is_equal_approx(length(i), 1));
+    assert(math::is_equal_approx(length(n), 1));
+
     return -reflect(i, n);
 }
 
 // =============== refract ===============
 
+/**
+ * @brief Refracts a vector based on a normalized normal vector and a refraction index.
+ *
+ * This function refracts the input vector 'i' based on the normalized normal vector 'n'
+ * and a refraction index 'eta'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param i The incident vector.
+ * @param n The normalized normal vector.
+ * @param eta The refraction index.
+ * @return The refracted vector.
+ *
+ * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> refract(
     const detail::vecf<L, T, Q>& i,
@@ -221,7 +406,10 @@ inline constexpr detail::vecf<L, T, Q> refract(
     T eta
 )
 {
-    const T d = normalized_dot(n, i);
+    assert(math::is_equal_approx(length(i), 1));
+    assert(math::is_equal_approx(length(n), 1));
+
+    const T d = dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
 
     if (k < math::epsilon<T>) return detail::vec<L, T, Q>(0);
@@ -230,6 +418,20 @@ inline constexpr detail::vecf<L, T, Q> refract(
 
 // =============== face_forward ===============
 
+/**
+ * @brief Ensures the correct orientation of a normal vector relative to an incident vector.
+ *
+ * This function ensures that the input normal vector 'n' has the correct orientation
+ * relative to the incident vector 'i' based on the reference normal vector 'nref'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param n The normal vector to be adjusted.
+ * @param i The incident vector.
+ * @param nref The reference normal vector.
+ * @return The adjusted normal vector.
+ *
+ * @note It is expected that the input vectors 'i' and 'nref' are normalized (length approximately 1).
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> face_forward(
     const detail::vecf<L, T, Q>& n,
@@ -237,11 +439,28 @@ inline constexpr detail::vecf<L, T, Q> face_forward(
     const detail::vecf<L, T, Q>& nref
 )
 {
-    return (normalized_dot(nref, i) < static_cast<T>(0)) ? n : -n;
+    assert(math::is_equal_approx(length(i), 1));
+    assert(math::is_equal_approx(length(nref), 1));
+
+    return (dot(nref, i) < static_cast<T>(0)) ? n : -n;
 }
 
 // =============== move_toward ===============
 
+/**
+ * @brief Moves a vector towards a target vector by a specified delta.
+ *
+ * This function moves the input vector 'from' towards the target vector 'to'
+ * by a specified delta distance. If the current distance between 'from' and 'to'
+ * is less than or equal to the delta, the target vector 'to' is returned.
+ * Otherwise, the vector 'from' is moved towards 'to' by the delta distance.
+ *
+ * @tparam T Element type of the vectors.
+ * @param from The starting vector.
+ * @param to The target vector.
+ * @param delta The distance to move towards the target.
+ * @return The resulting vector after moving towards the target.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> move_toward(
     const detail::vecf<L, T, Q>& from,
@@ -251,7 +470,7 @@ inline constexpr detail::vecf<L, T, Q> move_toward(
 {
     const detail::vecf<L, T, Q> vd(to - from);
     const T d = length(vd);
-    return (d <= delta || d < math::epsilon<T>) ? to : (from + (vd / d * delta));
+    return (d <= delta) ? to : (from + (vd / d * delta));
 }
 
 }

@@ -98,7 +98,7 @@ inline constexpr auto sign(const detail::vec<L, T, Q>& x)
 
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto fmod(
-    const detail::vec<L, T, Q>& x,
+    const detail::vecf<L, T, Q>& x,
     T y
 )
 {
@@ -107,8 +107,8 @@ inline constexpr auto fmod(
 
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto fmod(
-    const detail::vec<L, T, Q>& x,
-    const detail::vec<L, T, Q>& y
+    const detail::vecf<L, T, Q>& x,
+    const detail::vecf<L, T, Q>& y
 )
 {
     return detail::vec_binary<L, T, Q, T>::call<math::fmod<T>>(x, y);
@@ -122,7 +122,8 @@ inline constexpr auto mod(
     T y
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::mod<T>>(x, y);
+    using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
+    return detail::vec_scaler_binary<L, T, Q, R>::call<math::mod<T>>(x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -131,7 +132,8 @@ inline constexpr auto mod(
     const detail::vec<L, T, Q>& y
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::mod<T>>(x, y);
+    using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
+    return detail::vec_binary<L, T, Q, R>::call<math::mod<T>>(x, y);
 }
 
 // =============== fract ===============
@@ -202,7 +204,7 @@ inline constexpr auto modf(
 template <typename T>
 inline constexpr auto frexp(
     const detail::vecf<2, T>& x,
-    detail::vecf<2, T>& exp
+    detail::veci<2, int>& exp
 )
 {
     return detail::vecf<2, T>(
@@ -214,7 +216,7 @@ inline constexpr auto frexp(
 template <typename T>
 inline constexpr auto frexp(
     const detail::vecf<3, T>& x,
-    detail::vecf<3, T>& exp
+    detail::veci<3, int>& exp
 )
 {
     return detail::vecf<3, T>(
@@ -227,7 +229,7 @@ inline constexpr auto frexp(
 template <typename T>
 inline constexpr auto frexp(
     const detail::vecf<4, T>& x,
-    detail::vecf<4, T>& exp
+    detail::veci<4, int>& exp
 )
 {
     return detail::vecf<4, T>(
@@ -241,7 +243,7 @@ inline constexpr auto frexp(
 template <typename T>
 inline constexpr auto frexp(
     const detail::col<T>& x,
-    detail::col<T>& exp
+    detail::veci<4, int>& exp
 )
 {
     return detail::col<T>(

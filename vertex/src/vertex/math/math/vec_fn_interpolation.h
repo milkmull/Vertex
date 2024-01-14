@@ -163,6 +163,24 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
 
 // =============== slerp ===============
 
+/**
+ * @brief Performs spherical linear interpolation ('slerp') between two normalized vectors.
+ *
+ * This function calculates the slerp interpolation between two normalized vectors 'x' and 'y'
+ * based on the interpolation parameter 't'.
+ *
+ * @tparam T Element type of the vectors.
+ * @param x The starting normalized vector.
+ * @param y The target normalized vector.
+ * @param t Interpolation parameter in the range [0, 1].
+ * @return The slerp interpolated vector.
+ *
+ *
+ * @note If the angle between the vectors is very small, linear interpolation
+ * is used as an optimization to avoid numerical instability.
+ *
+ * @note The vectors 'x' and 'y' are assumed to be normalized before calling this function.
+ */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> slerp(
     const detail::vecf<L, T, Q>& x,
@@ -170,7 +188,10 @@ inline constexpr detail::vecf<L, T, Q> slerp(
     T t
 )
 {
-    T cos_alpha = math::normalized_dot(x, y);
+    assert(math::is_equal_approx(math::magnitude(x), 1));
+    assert(math::is_equal_approx(math::magnitude(y), 1));
+
+    T cos_alpha = math::dot(x, y);
 
     if (cos_alpha > static_cast<T>(1) - epsilon<T>)
     {
