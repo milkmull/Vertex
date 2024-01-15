@@ -175,11 +175,12 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
  * @param t Interpolation parameter in the range [0, 1].
  * @return The slerp interpolated vector.
  *
- *
  * @note If the angle between the vectors is very small, linear interpolation
  * is used as an optimization to avoid numerical instability.
  *
  * @note The vectors 'x' and 'y' are assumed to be normalized before calling this function.
+ * 
+ * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> slerp(
@@ -188,8 +189,8 @@ inline constexpr detail::vecf<L, T, Q> slerp(
     T t
 )
 {
-    assert(math::is_equal_approx(math::length_squared(x), static_cast<T>(1)));
-    assert(math::is_equal_approx(math::length_squared(y), static_cast<T>(1)));
+    assert(math::is_normalized(x));
+    assert(math::is_normalized(y));
 
     T cos_alpha = math::dot(x, y);
 

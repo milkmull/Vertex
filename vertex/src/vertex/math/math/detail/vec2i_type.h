@@ -645,18 +645,47 @@ public:
     inline constexpr void set(T nxy) { x = y = nxy; }
     inline constexpr void set(T nx, T ny) { x = nx; y = ny; }
 
+    /**
+     * @brief Get the minimum component value of the vector.
+     *
+     * This function returns the minimum value between the x and y components of the vector.
+     *
+     * @return The minimum component value.
+     */
     inline constexpr T min() const { return math::min(x, y); }
+
+    /**
+     * @brief Get the maximum component value of the vector.
+     *
+     * This function returns the maximum value between the x and y components of the vector.
+     *
+     * @return The maximum component value.
+     */
     inline constexpr T max() const { return math::max(x, y); }
 
     inline constexpr T width() const { return x; }
     inline constexpr T height() const { return y; }
 
+    /**
+     * @brief Calculate the aspect ratio of the vector.
+     *
+     * This function computes the aspect ratio by dividing the x component by the y component.
+     * If the y component is approximately zero, the function returns 0 to avoid division by zero.
+     *
+     * @return The aspect ratio of the vector.
+     */
     inline constexpr FT aspect() const
     {
-        if (math::is_zero_approx(y)) return static_cast<FT>(0);
-        return (static_cast<FT>(x) / static_cast<FT>(y));
+        return math::is_zero_approx(y) ? static_cast<FT>(0) : (static_cast<FT>(x) / static_cast<FT>(y));
     }
 
+    /**
+     * @brief Calculate the angle of the vector.
+     *
+     * This function computes the angle (in radians) of the vector using the arctangent of the y and x components.
+     *
+     * @return The angle of the vector in radians.
+     */
     inline constexpr FT angle() const
     {
         return math::atan2(static_cast<FT>(y), static_cast<FT>(x));
@@ -664,7 +693,22 @@ public:
 
     // =============== magnitude ===============
 
+    /**
+     * @brief Calculates the squared magnitude of the vector.
+     *
+     * This function computes the squared magnitude of the vector.
+     *
+     * @return The squared length of the vector.
+     */
     inline constexpr FT magnitude_squared() const { return static_cast<FT>((x * x) + (y * y)); }
+
+    /**
+     * @brief Calculates the magnitude of the vector.
+     *
+     * This function computes the magnitude of the vector.
+     *
+     * @return The magnitude of the vector.
+     */
     inline constexpr FT magnitude() const { return math::sqrt(static_cast<FT>((x * x) + (y * y))); }
 
     // =============== constants ===============

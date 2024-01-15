@@ -188,8 +188,7 @@ inline constexpr auto length_squared(const detail::vecf<L, T, Q>& v)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
 {
-    using FT = typename detail::veci<L, T, Q>::float_value_type;
-    return static_cast<FT>(dot(v, v));
+    return static_cast<detail::int_float_type>(dot(v, v));
 }
 
 /**
@@ -263,8 +262,59 @@ template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
 {
     const T magsq = length_squared(v);
-    if (magsq < math::epsilon<T>) return detail::vecf<L, T, Q>(0);
+    if (magsq < math::epsilon<T>)
+        return detail::vecf<L, T, Q>(0);
     return v * inverse_sqrt(magsq);
+}
+
+/**
+ * @brief Check if a vector is normalized.
+ *
+ * This function takes a vector and checks if it is normalized,
+ * meaning its magnitude (length) is approximately equal to 1.
+ *
+ * @tparam T The type of the vector components.
+ * @param v The vector to be checked for normalization.
+ * @return True if the vector is normalized, false otherwise.
+ */
+template <detail::length_type L, typename T, detail::vec_t Q>
+inline constexpr bool is_normalized(const detail::vecf<L, T, Q>& v)
+{
+    return math::is_equal_approx(length_squared(v), static_cast<T>(1));
+}
+
+// =============== clamp_magnitude ===============
+
+/**
+ * @brief Clamp the magnitude of the vector within a specified range.
+ *
+ * This function clamps the magnitude of the vector to be within the specified minimum and maximum values.
+ * If the magnitude is below a small epsilon value, the function returns a zero vector.
+ *
+ * @tparam T Element type of the vector.
+ * @param min The minimum magnitude allowed.
+ * @param max The maximum magnitude allowed.
+ * @return A new vector with the clamped magnitude.
+ */
+template <detail::length_type L, typename T, detail::vec_t Q>
+inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
+    const detail::vecf<L, T, Q>& v,
+    T min,
+    T max
+)
+{
+    const T mag = length(v);
+
+    if (mag < math::epsilon<T>)
+        return detail::vecf<L, T, Q>(0);
+
+    const T new_mag = math::clamp(
+        mag,
+        static_cast<T>(min),
+        static_cast<T>(max)
+    );
+
+    return (v * (static_cast<T>(1) / mag)) * new_mag;
 }
 
 // =============== angle ===============
@@ -309,6 +359,140 @@ static inline constexpr T signed_angle(
     return (cross(from, to) < static_cast<T>(0)) ? -a : a;
 }
 
+// =============== rotate ===============
+
+/**
+ * @brief Rotate a 2D vector by a specified angle.
+ *
+ * This function rotates the given 2D vector by the specified angle using
+ * cosine and sine trigonometric functions.
+ *
+ * @tparam T The type of the vector components.
+ * @param v The 2D vector to be rotated.
+ * @param angle The rotation angle in radians.
+ * @return A new 2D vector representing the rotated vector.
+ */
+template <typename T>
+inline constexpr detail::vecf<2, T> rotate(const detail::vecf<2, T>& v, T angle)
+{
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return detail::vecf<2, T>(
+        (v.x * cosa) - (v.y * sina),
+        (v.x * sina) + (v.y * cosa)
+    );
+}
+
+/**
+ * @brief Rotate a 3D vector around a specified axis by a specified angle.
+ *
+ * This function takes a 3D vector, a normalized rotation axis, and a rotation angle, and applies
+ * the rotation using Rodrigues' rotation formula. The formula combines cosine and sine trigonometric
+ * functions to compute the rotated vector, ensuring accurate and efficient 3D rotations.
+ *
+ * @param v The original 3D vector to be rotated.
+ * @param axis The normalized rotation axis around which the rotation occurs.
+ * @param angle The rotation angle in radians.
+ * @return The rotated 3D vector.
+ *
+ * @note Ensure that the rotation axis is normalized for accurate results.
+ * 
+ * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+ */
+template <typename T>
+inline constexpr detail::vecf<3, T> rotate(
+    const detail::vecf<3, T>& v, 
+    const detail::vecf<3, T>& axis, 
+    T angle
+)
+{
+    assert(is_normalized(axis));
+
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return v * cosa + cross(axis, v) * sina + axis * dot(axis, v) * (static_cast<T>(1) - cosa);
+}
+
+/**
+ * @brief Rotate a 3D vector around the X-axis.
+ *
+ * This function takes a 3D vector and rotates it around the X-axis by a specified angle.
+ * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
+ *
+ * @param v The original 3D vector to be rotated.
+ * @param angle The rotation angle in radians.
+ * @return The rotated 3D vector.
+ */
+template <typename T>
+inline constexpr detail::vecf<3, T> rotate_x(
+    const detail::vecf<3, T>& v,
+    T angle
+)
+{
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return detail::vecf<3, T>(
+        v.x,
+        (v.y * cosa) - (v.z * sina),
+        (v.y * sina) + (v.z * cosa)
+    );
+}
+
+/**
+ * @brief Rotate a 3D vector around the Y-axis.
+ *
+ * This function takes a 3D vector and rotates it around the Y-axis by a specified angle.
+ * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
+ *
+ * @param v The original 3D vector to be rotated.
+ * @param angle The rotation angle in radians.
+ * @return The rotated 3D vector.
+ */
+template <typename T>
+inline constexpr detail::vecf<3, T> rotate_y(
+    const detail::vecf<3, T>& v,
+    T angle
+)
+{
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return detail::vecf<3, T>(
+        (v.x * cosa) + (v.z * sina),
+        v.y,
+        -(v.x * sina) + (v.z * cosa)
+    );
+}
+
+/**
+ * @brief Rotate a 3D vector around the Z-axis.
+ *
+ * This function takes a 3D vector and rotates it around the Z-axis by a specified angle.
+ * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
+ *
+ * @param v The original 3D vector to be rotated.
+ * @param angle The rotation angle in radians.
+ * @return The rotated 3D vector.
+ */
+template <typename T>
+inline constexpr detail::vecf<3, T> rotate_z(
+    const detail::vecf<3, T>& v,
+    T angle
+)
+{
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return detail::vecf<3, T>(
+        (v.x * cosa) - (v.y * sina),
+        (v.x * sina) + (v.y * cosa),
+        v.z
+    );
+}
+
 // =============== project ===============
 
 /**
@@ -350,8 +534,8 @@ inline constexpr detail::vecf<L, T, Q> reflect(
     const detail::vecf<L, T, Q>& n
 )
 {
-    assert(math::is_equal_approx(length(i), 1));
-    assert(math::is_equal_approx(length(n), 1));
+    assert(is_normalized(i));
+    assert(is_normalized(n));
 
     return i - static_cast<T>(2) * dot(n, i) * n;
 }
@@ -377,8 +561,8 @@ inline constexpr detail::vecf<L, T, Q> bounce(
     const detail::vecf<L, T, Q>& n
 )
 {
-    assert(math::is_equal_approx(length(i), 1));
-    assert(math::is_equal_approx(length(n), 1));
+    assert(is_normalized(i));
+    assert(is_normalized(n));
 
     return -reflect(i, n);
 }
@@ -406,13 +590,15 @@ inline constexpr detail::vecf<L, T, Q> refract(
     T eta
 )
 {
-    assert(math::is_equal_approx(length(i), 1));
-    assert(math::is_equal_approx(length(n), 1));
+    assert(is_normalized(i));
+    assert(is_normalized(n));
 
     const T d = dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
 
-    if (k < math::epsilon<T>) return detail::vec<L, T, Q>(0);
+    if (k < math::epsilon<T>)
+        return detail::vec<L, T, Q>(0);
+
     return eta * i - (eta * d + sqrt(k)) * n;
 }
 
@@ -439,8 +625,8 @@ inline constexpr detail::vecf<L, T, Q> face_forward(
     const detail::vecf<L, T, Q>& nref
 )
 {
-    assert(math::is_equal_approx(length(i), 1));
-    assert(math::is_equal_approx(length(nref), 1));
+    assert(is_normalized(i));
+    assert(is_normalized(nref));
 
     return (dot(nref, i) < static_cast<T>(0)) ? n : -n;
 }

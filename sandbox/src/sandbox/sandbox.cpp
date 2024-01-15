@@ -9,9 +9,10 @@ int main()
 {
     using namespace vx;
 
-    quaternion q;
+    vec3 v3(2, 0, 0);
+    vec3 axis = vec3(0, 0, 1.5);
 
-    std::cout << math::slerp(q, q, 0.1f).to_string();
+    std::cout << math::rotate(v3, axis, (float)math::radians(90)).to_string(true);
 
     return 0;
 }

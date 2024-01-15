@@ -444,18 +444,47 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
     inline constexpr void set(T nxy) { x = y = nxy; }
     inline constexpr void set(T nx, T ny) { x = nx; y = ny; }
 
+    /**
+     * @brief Get the minimum component value of the vector.
+     *
+     * This function returns the minimum value between the x and y components of the vector.
+     *
+     * @return The minimum component value.
+     */
     inline constexpr T min() const { return math::min(x, y); }
+
+    /**
+     * @brief Get the maximum component value of the vector.
+     *
+     * This function returns the maximum value between the x and y components of the vector.
+     *
+     * @return The maximum component value.
+     */
     inline constexpr T max() const { return math::max(x, y); }
 
     inline constexpr T width() const { return x; }
     inline constexpr T height() const { return y; }
 
+    /**
+     * @brief Calculate the aspect ratio of the vector.
+     *
+     * This function computes the aspect ratio by dividing the x component by the y component.
+     * If the y component is approximately zero, the function returns 0 to avoid division by zero.
+     *
+     * @return The aspect ratio of the vector.
+     */
     inline constexpr T aspect() const
     {
-        if (math::is_zero_approx(y)) return static_cast<T>(0);
-        return (x / y);
+        return math::is_zero_approx(y) ? static_cast<T>(0) : (x / y);
     }
 
+    /**
+     * @brief Calculate the angle of the vector.
+     *
+     * This function computes the angle (in radians) of the vector using the arctangent of the y and x components.
+     *
+     * @return The angle of the vector in radians.
+     */
     inline constexpr T angle() const
     {
         return math::atan2(y, x);
@@ -463,51 +492,68 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // =============== magnitude ===============
 
+    /**
+     * @brief Calculates the squared magnitude of the vector.
+     *
+     * This function computes the squared magnitude of the vector.
+     *
+     * @return The squared length of the vector.
+     */
     inline constexpr T magnitude_squared() const { return (x * x) + (y * y); }
+
+    /**
+     * @brief Calculates the magnitude of the vector.
+     *
+     * This function computes the magnitude of the vector.
+     *
+     * @return The magnitude of the vector.
+     */
     inline constexpr T magnitude() const { return math::sqrt((x * x) + (y * y)); }
 
+    /**
+     * @brief Normalizes the vector.
+     *
+     * This function normalizes the vector.
+     *
+     * @return The normalized vector. If the length of the vector is 0,
+     * a zero vector will be returned.
+     */
     inline constexpr type normalize() const
     {
         const T magsq = magnitude_squared();
-        if (magsq < math::epsilon<T>) return type();
+        if (magsq < math::epsilon<T>)
+            return type();
         return (*this) * math::inverse_sqrt(magsq);
-    }
-
-    inline constexpr type clamp_magnitude(T min, T max) const
-    {
-        const T mag = magnitude();
-        if (mag < math::epsilon<T>) return type();
-
-        const T new_mag = math::clamp(
-            mag,
-            static_cast<T>(min),
-            static_cast<T>(max)
-        );
-
-        return ((*this) * (static_cast<T>(1) / mag)) * new_mag;
     }
 
     // =============== direction and orientation ===============
 
+    /**
+     * @brief Create a vector from a given angle.
+     *
+     * This static function creates a vector with components calculated from the
+     * cosine and sine of the specified angle.
+     *
+     * @param angle The angle in radians.
+     * @return A new vector created from the given angle.
+     */
     static inline constexpr type from_angle(T angle)
     {
         return type(math::cos(angle), math::sin(angle));
     }
 
+    /**
+     * @brief Create a vector that is orthogonal (perpendicular) to the given vector.
+     *
+     * This static function returns a new vector that is orthogonal to the provided vector.
+     * The orthogonal vector is obtained by swapping the x and y components and negating the new y component.
+     *
+     * @param v The input vector.
+     * @return A new vector orthogonal to the input vector.
+     */
     static inline constexpr type orthogonal(const type& v)
     {
         return type(v.y, -v.x);
-    }
-
-    inline constexpr type rotate(T angle) const
-    {
-        const T cosa = math::cos(angle);
-        const T sina = math::sin(angle);
-
-        return type(
-            (x * cosa) - (y * sina),
-            (x * sina) + (y * cosa)
-        );
     }
 
     // =============== constants ===============

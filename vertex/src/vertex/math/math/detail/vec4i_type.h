@@ -731,7 +731,22 @@ public:
     inline constexpr void set(T nxyzw) { x = y = z = w = nxyzw; }
     inline constexpr void set(T nx, T ny, T nz, T nw) { x = nx; y = ny; z = nz; w = nw; }
 
+    /**
+     * @brief Get the minimum component value of the vector.
+     *
+     * This function returns the minimum value between the x and y components of the vector.
+     *
+     * @return The minimum component value.
+     */
     inline constexpr T min() const { return math::min({ x, y, z, w }); }
+
+    /**
+     * @brief Get the maximum component value of the vector.
+     *
+     * This function returns the maximum value between the x and y components of the vector.
+     *
+     * @return The maximum component value.
+     */
     inline constexpr T max() const { return math::max({ x, y, z, w }); }
 
     inline constexpr T width() const { return x; }
@@ -740,7 +755,22 @@ public:
 
     // =============== magnitude ===============
 
+    /**
+     * @brief Calculates the squared magnitude of the vector.
+     *
+     * This function computes the squared magnitude of the vector.
+     *
+     * @return The squared length of the vector.
+     */
     inline constexpr FT magnitude_squared() const { return static_cast<FT>((x * x) + (y * y) + (z * z) + (w * w)); }
+    
+    /**
+     * @brief Calculates the magnitude of the vector.
+     *
+     * This function computes the magnitude of the vector.
+     *
+     * @return The magnitude of the vector.
+     */
     inline constexpr FT magnitude() const { return math::sqrt(static_cast<FT>((x * x) + (y * y) + (z * z) + (w * w))); }
 
     // =============== constants ===============

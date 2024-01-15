@@ -478,7 +478,22 @@ struct vec<3, T, vec_t::vec, val_t::floating_point>
     inline constexpr void set(T nxyz) { x = y = z = nxyz; }
     inline constexpr void set(T nx, T ny, T nz) { x = nx; y = ny; z = nz; }
 
+    /**
+     * @brief Get the minimum component value of the vector.
+     *
+     * This function returns the minimum value between the x and y components of the vector.
+     *
+     * @return The minimum component value.
+     */
     inline constexpr T min() const { return math::min({ x, y, z }); }
+
+    /**
+     * @brief Get the maximum component value of the vector.
+     *
+     * This function returns the maximum value between the x and y components of the vector.
+     *
+     * @return The maximum component value.
+     */
     inline constexpr T max() const { return math::max({ x, y, z }); }
 
     inline constexpr T width() const { return x; }
@@ -487,71 +502,38 @@ struct vec<3, T, vec_t::vec, val_t::floating_point>
 
     // =============== magnitude ===============
 
+    /**
+     * @brief Calculates the squared magnitude of the vector.
+     *
+     * This function computes the squared magnitude of the vector.
+     *
+     * @return The squared length of the vector.
+     */
     inline constexpr T magnitude_squared() const { return (x * x) + (y * y) + (z * z); }
+
+    /**
+     * @brief Calculates the magnitude of the vector.
+     *
+     * This function computes the magnitude of the vector.
+     *
+     * @return The magnitude of the vector.
+     */
     inline constexpr T magnitude() const { return math::sqrt((x * x) + (y * y) + (z * z)); }
 
+    /**
+     * @brief Normalizes the vector.
+     *
+     * This function normalizes the vector.
+     *
+     * @return The normalized vector. If the length of the vector is 0,
+     * a zero vector will be returned.
+     */
     inline constexpr type normalize() const
     {
         const T magsq = magnitude_squared();
-        if (magsq < math::epsilon<T>) return type();
+        if (magsq < math::epsilon<T>)
+            return type();
         return (*this) * math::inverse_sqrt(magsq);
-    }
-
-    inline constexpr type clamp_magnitude(T min, T max) const
-    {
-        const T mag = magnitude();
-        if (mag < math::epsilon<T>) return type();
-
-        const T new_mag = math::clamp(
-            mag,
-            static_cast<T>(min),
-            static_cast<T>(max)
-        );
-
-        return ((*this) * (static_cast<T>(1) / mag)) * new_mag;
-    }
-
-    // =============== direction and orientation ===============
-
-    inline constexpr type rotate(const type& axis, T angle) const
-    {
-        return detail::mat<3, 3, T>::from_axis_angle(axis, angle) * (*this);
-    }
-
-    inline constexpr type rotate_x(T angle) const
-    {
-        const T cosa = math::cos(angle);
-        const T sina = math::sin(angle);
-
-        return type(
-            x,
-            y * cosa - z * sina,
-            y * sina + z * cosa
-        );
-    }
-
-    inline constexpr type rotate_y(T angle) const
-    {
-        const T cosa = math::cos(angle);
-        const T sina = math::sin(angle);
-
-        return type(
-            x * cosa + z * sina,
-            y,
-            -x * sina + z * cosa
-        );
-    }
-
-    inline constexpr type rotate_z(T angle) const
-    {
-        const T cosa = math::cos(angle);
-        const T sina = math::sin(angle);
-
-        return type(
-            x * cosa - y * sina,
-            x * sina + y * cosa,
-            z
-        );
     }
 
     // =============== constants ===============

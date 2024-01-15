@@ -122,6 +122,22 @@ inline constexpr auto normalize(const detail::quat<T>& q)
     return q * math::inverse_sqrt(magsq);
 }
 
+/**
+ * @brief Check if a quaternion is normalized.
+ *
+ * This function takes a quaternion and checks if it is normalized,
+ * meaning its magnitude (length) is approximately equal to 1.
+ *
+ * @tparam T The type of the quaternion components.
+ * @param q The quaternion to be checked for normalization.
+ * @return True if the quaternion is normalized, false otherwise.
+ */
+template <typename T>
+inline constexpr bool is_normalized(const detail::quat<T>& q)
+{
+    return math::is_equal_approx(length_squared(q), static_cast<T>(1));
+}
+
 // =============== angle ===============
 
 /**

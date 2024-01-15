@@ -37,11 +37,12 @@ inline constexpr detail::quat<T> lerp(
  * @param t Interpolation parameter in the range [0, 1].
  * @return The slerp interpolated quaternion.
  *
- *
  * @note If the angle between the quaternions is very small, linear interpolation
  * is used as an optimization to avoid numerical instability.
  *
  * @note The quaternions 'x' and 'y' are assumed to be normalized before calling this function.
+ * 
+ * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <typename T>
 inline constexpr detail::quat<T> slerp(
@@ -50,8 +51,8 @@ inline constexpr detail::quat<T> slerp(
     T t
 )
 {
-    assert(math::is_equal_approx(math::length_squared(x), static_cast<T>(1)));
-    assert(math::is_equal_approx(math::length_squared(y), static_cast<T>(1)));
+    assert(math::is_normalized(x));
+    assert(math::is_normalized(y));
 
     T cos_alpha = math::normalized_dot(x, y);
     T xsign = static_cast<T>(1);
