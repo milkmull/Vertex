@@ -189,10 +189,7 @@ inline constexpr detail::vecf<L, T, Q> slerp(
     T t
 )
 {
-    assert(math::is_normalized(x));
-    assert(math::is_normalized(y));
-
-    T cos_alpha = math::dot(x, y);
+    const T cos_alpha = math::normalized_dot(x, y);
 
     if (cos_alpha > static_cast<T>(1) - epsilon<T>)
     {

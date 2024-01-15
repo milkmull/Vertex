@@ -79,16 +79,18 @@ struct quat
 
     // =============== conversion matrix constructors ===============
 
-    /**
-     * @brief Constructs a quaternion from a 3x3 matrix.
-     *
-     * This constructor initializes a quaternion from the rotational part of the specified 3x3 matrix @p m.
-     * The matrix is assumed to be a rotation matrix, and the quaternion represents the same rotation.
-     *
-     * @param[in] m The 3x3 matrix containing the rotational part.
-     *
-     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-     */
+     /**
+      * @brief Explicit constructor from a 3x3 matrix.
+      * @param m The 3x3 matrix to convert into a quaternion.
+      *
+      * This constructor creates a quaternion from a 3x3 matrix. The matrix is assumed to be a rotation matrix,
+      * and the quaternion represents the rotation. The matrix is used to determine the rotation axis and angle.
+      * The resulting quaternion is normalized.
+      *
+      * @param m The 3x3 matrix representing a rotation.
+      * 
+      * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+      */
     inline constexpr explicit quat(const mat3_type& m)
     {
         const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
@@ -136,12 +138,13 @@ struct quat
     }
 
     /**
-     * @brief Constructs a quaternion from a 4x4 matrix.
+     * @brief Explicit constructor from a 4x4 matrix.
      *
-     * This constructor initializes a quaternion from the rotational part of the specified 4x4 matrix @p m.
-     * The matrix is assumed to be a rotation matrix, and the quaternion represents the same rotation.
+     * This constructor creates a quaternion from a 4x4 matrix. The matrix is assumed to be a rotation matrix,
+     * and the quaternion represents the rotation. The rotation is extracted from the upper-left 3x3 submatrix of the
+     * 4x4 matrix, and the resulting quaternion is normalized.
      *
-     * @param[in] m The 4x4 matrix containing the rotational part.
+     * @param m The 4x4 matrix representing a rotation.
      */
     inline constexpr explicit quat(const mat4_type& m)
         : quat(mat3_type(m)) {}
@@ -234,18 +237,18 @@ struct quat
         return type(q1) *= q2;
     }
 
-    /**
-     * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
-     *
-     * This function represents the operation of rotating a 3D vector @p v by the quaternion @p q.
-     * The resulting vector is obtained by applying the quaternion rotation to the original 3D vector.
-     *
-     * @param[in] q The quaternion representing the rotation.
-     * @param[in] v The 3D vector to be rotated.
-     * @return The rotated 3D vector after quaternion multiplication.
-     *
-     * https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
-     */
+     /**
+      * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
+      *
+      * This function performs the multiplication of a quaternion and a 3D vector. The result is a new
+      * vector representing the input vector after rotation by the quaternion.
+      *
+      * @param q The quaternion.
+      * @param v The 3D vector to be rotated.
+      * @return The resulting 3D vector after rotation.
+      * 
+      * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
+      */
     friend inline constexpr vec3_type operator*(const type& q, const vec3_type& v)
     {
         const vec3_type qv(q.x, q.y, q.z);
@@ -255,16 +258,6 @@ struct quat
         return v + ((uv * q.w) + uuv) * static_cast<T>(2);
     }
 
-    /**
-     * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
-     *
-     * This function represents the operation of rotating a 3D vector @p v by the invert of the quaternion @p q.
-     * The resulting vector is obtained by applying the invert quaternion rotation to the original 3D vector.
-     *
-     * @param[in] v The 3D vector to be rotated.
-     * @param[in] q The quaternion representing the invert rotation.
-     * @return The rotated 3D vector after invert quaternion multiplication.
-     */
     friend inline constexpr vec3_type operator*(const vec3_type& v, const type& q)
     {
         return q.invert() * v;
@@ -312,21 +305,21 @@ struct quat
         return *this;
     }
 
-    /**
-     * @brief Multiplies this quaternion by another quaternion in place.
-     *
-     * This method performs quaternion multiplication in place by multiplying this quaternion
-     * by the quaternion @p q. The result is stored in this quaternion.
-     *
-     * @param[in] q The quaternion to multiply with.
-     * @return A reference to this quaternion after multiplication.
-     *
-     * @note Quaternion multiplication is used to compose multiple rotations together.
-     * The operation follows the Hamilton product formula and updates the components of this quaternion
-     * based on the components of the current quaternion and the specified quaternion.
-     *
-     * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
-     */
+     /**
+      * @brief Multiplies this quaternion by another quaternion in-place.
+      *
+      * This operator performs quaternion multiplication and updates the current quaternion
+      * with the result.
+      *
+      * @param q The quaternion to multiply with.
+      * @return A reference to the updated quaternion after multiplication.
+      * 
+      * @note Quaternion multiplication is used to compose multiple rotations together.
+      * The operation follows the Hamilton product formula and updates the components of this quaternion
+      * based on the components of the current quaternion and the specified quaternion.
+      * 
+      * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
+      */
     inline constexpr type& operator*=(const type& q)
     {
         const type p(*this);
@@ -441,16 +434,37 @@ struct quat
 
     // =============== operations ===============
 
+    /**
+     * @brief Calculates the conjugate of this quaternion.
+     *
+     * The conjugate of a quaternion is obtained by negating the imaginary components
+     * (x, y, z) while keeping the real component (w) unchanged.
+     *
+     * @return The conjugate of this quaternion.
+     */
     inline constexpr type conjugate() const
     {
         return type(w, -x, -y, -z);
     }
 
+    /**
+     * @brief Calculates the inverse of this quaternion.
+     *
+     * @return The inverse of this quaternion.
+     */
     inline constexpr type invert() const
     {
         return conjugate() / magnitude_squared();
     }
 
+    /**
+     * @brief Retrieves the vector part of this quaternion.
+     *
+     * This function returns a 3D vector containing the x, y, and z components
+     * of this quaternion. It discards the scalar (w) component.
+     *
+     * @return A 3D vector representing the vector part of this quaternion.
+     */
     inline constexpr vec3_type vec() const { return vec3_type(x, y, z); }
 
     // =============== comparison and testing ===============
@@ -469,19 +483,35 @@ struct quat
     inline constexpr type normalize() const
     {
         const T magsq = magnitude_squared();
-        if (magsq < math::epsilon<T>) return type();
+        if (magsq < math::epsilon<T>)
+            return type();
         return (*this) * math::inverse_sqrt(magsq);
     }
 
     // =============== direction and orientation ===============
 
-    // https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
-    // https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
-
+    /**
+     * @brief Creates a quaternion representing the rotation from one vector to another.
+     *
+     * Given two normalized 3D vectors 'from' and 'to', this function calculates a
+     * quaternion that represents the rotation needed to align the 'from' vector with
+     * the 'to' vector.
+     *
+     * If the vectors are nearly parallel, it returns the identity quaternion (no rotation).
+     * If the vectors are nearly antiparallel, it chooses an arbitrary axis and rotates by pi radians.
+     * Otherwise, it calculates the rotation axis and angle to create the quaternion.
+     *
+     * @param from The normalized starting vector.
+     * @param to The normalized target vector.
+     * @return The quaternion representing the rotation from the 'from' vector to the 'to' vector.
+     * 
+     * @ref https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
+     * @ref https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
+     */
     static inline constexpr type from_to(const vec3_type& from, const vec3_type& to)
     {
-        const vec3_type fn = from.normalize();
-        const vec3_type tn = to.normalize();
+        const vec3_type fn = math::normalize(from);
+        const vec3_type tn = math::normalize(to);
 
         const T cosa = dot(fn, tn);
 
@@ -493,7 +523,7 @@ struct quat
             return type(1, 0, 0, 0);
         }
 
-        const vec3_type axis = math::cross(fn, tn).normalize();
+        const vec3_type axis = math::normalize(math::cross(fn, tn));
 
         if (cosa < static_cast<T>(-1) + math::epsilon<T>)
         {
@@ -518,6 +548,17 @@ struct quat
 
     // =============== look at ===============
 
+    /**
+     * @brief Creates a quaternion representing a left-handed look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a quaternion representing a left-handed look-at rotation.
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The quaternion representing the left-handed look-at rotation.
+     */
     static inline constexpr type make_look_at_rotation_lh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -527,6 +568,17 @@ struct quat
         return type(mat3::make_look_at_lh(eye, target, up));
     }
 
+    /**
+     * @brief Creates a quaternion representing a right-handed look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a quaternion representing a right-handed look-at rotation.
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The quaternion representing the right-handed look-at rotation.
+     */
     static inline constexpr type make_look_at_rotation_rh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -536,6 +588,18 @@ struct quat
         return type(mat3::make_look_at_rh(eye, target, up));
     }
 
+    /**
+     * @brief Creates a quaternion representing a look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a quaternion representing a look-at rotation based on
+     * the configured clip control (left-handed or right-handed).
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The quaternion representing the look-at rotation.
+     */
     static inline constexpr type make_look_at_rotation(
         const vec3_type& eye,
         const vec3_type& target,
@@ -551,9 +615,18 @@ struct quat
 
     // =============== axis angle ===============
 
-    // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-    // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
-
+    /**
+     * @brief Retrieves the rotation axis of this quaternion.
+     *
+     * This function calculates and returns the 3D vector representing the rotation axis
+     * of this normalized quaternion. If the quaternion represents no rotation (angle is 0),
+     * it returns the positive y-axis.
+     *
+     * @return The rotation axis of this quaternion.
+     * 
+     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+     * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
+     */
     inline constexpr vec3_type axis() const
     {
         const type qn(normalize());
@@ -574,14 +647,33 @@ struct quat
         );
     }
 
+    /**
+     * @brief Retrieves the rotation angle of this quaternion.
+     *
+     * This function calculates and returns the rotation angle (in radians) represented
+     * by this normalized quaternion. The angle is twice the arccosine of the scalar (w)
+     * component of the quaternion.
+     *
+     * @return The rotation angle of this quaternion in radians.
+     */
     inline constexpr T angle() const
     {
         return static_cast<T>(2) * math::acos_clamped(normalize().w);
     }
 
+    /**
+     * @brief Creates a quaternion from an axis and an angle.
+     *
+     * Given a normalized 3D vector 'axis' and an angle in radians, this function
+     * computes a quaternion representing the rotation around the specified axis.
+     *
+     * @param axis The normalized rotation axis.
+     * @param angle The rotation angle in radians.
+     * @return The quaternion representing the rotation around the specified axis.
+     */
     static inline constexpr type from_axis_angle(const vec3_type& axis, T angle)
     {
-        const vec3_type naxis = axis.normalize();
+        const vec3_type naxis = math::normalize(axis);
 
         const T sina2 = math::sin(angle * static_cast<T>(0.5));
         const T cosa2 = math::cos(angle * static_cast<T>(0.5));
@@ -591,6 +683,15 @@ struct quat
 
     // =============== vector transformations ===============
 
+    /**
+     * @brief Rotates a 3D vector using this quaternion.
+     *
+     * Given a 3D vector 'v', this function rotates the vector using this quaternion.
+     * The rotation is performed by quaternion multiplication.
+     *
+     * @param v The 3D vector to be rotated.
+     * @return The rotated 3D vector.
+     */
     inline constexpr vec3_type rotate(const vec3_type& v) const
     {
         return (*this) * v;

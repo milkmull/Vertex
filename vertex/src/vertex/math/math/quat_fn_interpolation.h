@@ -26,22 +26,20 @@ inline constexpr detail::quat<T> lerp(
 // qm = { qx * sin((1 - t) * theta) + qy * sin(t * theta) } / sin(theta)
 
 /**
- * @brief Performs spherical linear interpolation ('slerp') between two normalized quaternions.
+ * @brief Performs spherical linear interpolation ('slerp') between two quaternions.
  *
- * This function calculates the slerp interpolation between two normalized quaternions 'x' and 'y'
+ * This function calculates the slerp interpolation between two quaternions 'x' and 'y'
  * based on the interpolation parameter 't'.
  *
  * @tparam T Element type of the quaternions.
- * @param x The starting normalized quaternion.
- * @param y The target normalized quaternion.
+ * @param x The starting quaternion.
+ * @param y The target quaternion.
  * @param t Interpolation parameter in the range [0, 1].
  * @return The slerp interpolated quaternion.
  *
  * @note If the angle between the quaternions is very small, linear interpolation
  * is used as an optimization to avoid numerical instability.
  *
- * @note The quaternions 'x' and 'y' are assumed to be normalized before calling this function.
- * 
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <typename T>
@@ -51,9 +49,6 @@ inline constexpr detail::quat<T> slerp(
     T t
 )
 {
-    assert(math::is_normalized(x));
-    assert(math::is_normalized(y));
-
     T cos_alpha = math::normalized_dot(x, y);
     T xsign = static_cast<T>(1);
 

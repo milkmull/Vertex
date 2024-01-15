@@ -387,17 +387,15 @@ inline constexpr detail::vecf<2, T> rotate(const detail::vecf<2, T>& v, T angle)
 /**
  * @brief Rotate a 3D vector around a specified axis by a specified angle.
  *
- * This function takes a 3D vector, a normalized rotation axis, and a rotation angle, and applies
+ * This function takes a 3D vector, a rotation axis, and a rotation angle, and applies
  * the rotation using Rodrigues' rotation formula. The formula combines cosine and sine trigonometric
  * functions to compute the rotated vector, ensuring accurate and efficient 3D rotations.
  *
  * @param v The original 3D vector to be rotated.
- * @param axis The normalized rotation axis around which the rotation occurs.
+ * @param axis The rotation axis around which the rotation occurs.
  * @param angle The rotation angle in radians.
  * @return The rotated 3D vector.
  *
- * @note Ensure that the rotation axis is normalized for accurate results.
- * 
  * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  */
 template <typename T>
@@ -407,12 +405,12 @@ inline constexpr detail::vecf<3, T> rotate(
     T angle
 )
 {
-    assert(is_normalized(axis));
+    const detail::vecf<3, T> naxis(normalize(axis));
 
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
 
-    return v * cosa + cross(axis, v) * sina + axis * dot(axis, v) * (static_cast<T>(1) - cosa);
+    return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
 }
 
 /**
@@ -517,16 +515,14 @@ inline constexpr detail::vecf<L, T, Q> project(
 // =============== reflect ===============
 
 /**
- * @brief Reflects a vector based on a normalized normal vector.
+ * @brief Reflects a vector based on a normal vector.
  *
- * This function reflects the input vector 'i' based on the normalized normal vector 'n'.
+ * This function reflects the input vector 'i' based on the normal vector 'n'.
  *
  * @tparam T Element type of the vectors.
  * @param i The vector to be reflected.
- * @param n The normalized normal vector used for reflection.
- * @return The vector 'i' reflected based on the normalized normal vector 'n'.
- *
- * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
+ * @param n The normal vector used for reflection.
+ * @return The vector 'i' reflected based on the normal vector 'n'.
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> reflect(
@@ -534,26 +530,21 @@ inline constexpr detail::vecf<L, T, Q> reflect(
     const detail::vecf<L, T, Q>& n
 )
 {
-    assert(is_normalized(i));
-    assert(is_normalized(n));
-
-    return i - static_cast<T>(2) * dot(n, i) * n;
+    return i - static_cast<T>(2) * normalized_dot(n, i) * n;
 }
 
 // =============== bounce ===============
 
 /**
- * @brief Bounces a vector off a surface defined by a normalized normal vector.
+ * @brief Bounces a vector off a surface defined by a normal vector.
  *
  * This function calculates the bounce vector of the input vector 'i' off a surface
- * defined by the normalized normal vector 'n'.
+ * defined by the normal vector 'n'.
  *
  * @tparam T Element type of the vectors.
  * @param i The incident vector.
- * @param n The normalized normal vector of the surface.
+ * @param n The normal vector of the surface.
  * @return The bounce vector of the incident vector off the surface.
- * 
- * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> bounce(
@@ -561,27 +552,22 @@ inline constexpr detail::vecf<L, T, Q> bounce(
     const detail::vecf<L, T, Q>& n
 )
 {
-    assert(is_normalized(i));
-    assert(is_normalized(n));
-
     return -reflect(i, n);
 }
 
 // =============== refract ===============
 
 /**
- * @brief Refracts a vector based on a normalized normal vector and a refraction index.
+ * @brief Refracts a vector based on a normal vector and a refraction index.
  *
- * This function refracts the input vector 'i' based on the normalized normal vector 'n'
+ * This function refracts the input vector 'i' based on the normal vector 'n'
  * and a refraction index 'eta'.
  *
  * @tparam T Element type of the vectors.
  * @param i The incident vector.
- * @param n The normalized normal vector.
+ * @param n The normal vector.
  * @param eta The refraction index.
  * @return The refracted vector.
- *
- * @note It is expected that the input vectors 'i' and 'n' are normalized (length approximately 1).
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> refract(
@@ -590,10 +576,7 @@ inline constexpr detail::vecf<L, T, Q> refract(
     T eta
 )
 {
-    assert(is_normalized(i));
-    assert(is_normalized(n));
-
-    const T d = dot(n, i);
+    const T d = normalized_dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
 
     if (k < math::epsilon<T>)
@@ -615,8 +598,6 @@ inline constexpr detail::vecf<L, T, Q> refract(
  * @param i The incident vector.
  * @param nref The reference normal vector.
  * @return The adjusted normal vector.
- *
- * @note It is expected that the input vectors 'i' and 'nref' are normalized (length approximately 1).
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr detail::vecf<L, T, Q> face_forward(
@@ -625,10 +606,7 @@ inline constexpr detail::vecf<L, T, Q> face_forward(
     const detail::vecf<L, T, Q>& nref
 )
 {
-    assert(is_normalized(i));
-    assert(is_normalized(nref));
-
-    return (dot(nref, i) < static_cast<T>(0)) ? n : -n;
+    return (normalized_dot(nref, i) < static_cast<T>(0)) ? n : -n;
 }
 
 // =============== move_toward ===============
