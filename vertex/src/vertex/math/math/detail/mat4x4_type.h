@@ -707,6 +707,14 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Computes the inverse of the 4x4 matrix.
+     *
+     * This function calculates the inverse matrix for the 4x4 matrix if it exists.
+     * If the matrix is not invertible (determinant is approximately zero), it returns a matrix with zeros.
+     *
+     * @return The inverted 4x4 matrix if invertible, otherwise a matrix with zeros.
+     */
     inline constexpr type invert() const
     {
         const T coef00 = (columns[2].z * columns[3].w) - (columns[3].z * columns[2].w);
@@ -740,7 +748,7 @@ struct mat<4, 4, T>
             -(columns[0].w * ((columns[1].x * coef02) - (columns[1].y * coef04) + (columns[1].z * coef05)))
         );
 
-        if (math::is_equal_approx(det, static_cast<T>(0)))
+        if (math::is_zero_approx(det))
         {
             return type(static_cast<T>(0));
         }
@@ -832,6 +840,14 @@ struct mat<4, 4, T>
 
     // =============== translation ===============
 
+    /**
+     * @brief Creates a 4x4 translation matrix.
+     *
+     * This function generates a 4x4 translation matrix based on the specified translation vector in 3D space.
+     *
+     * @param translation The translation vector in 3D space.
+     * @return The 4x4 translation matrix.
+     */
     static inline constexpr type make_translation(const vec3_type& translation)
     {
         return type(
@@ -842,6 +858,13 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Retrieves the translation vector from the 4x4 matrix.
+     *
+     * This function extracts the translation vector from the 4x4 matrix.
+     *
+     * @return The translation vector in 3D space.
+     */
     inline constexpr vec3_type get_translation() const
     {
         return vec3_type(columns[3].x, columns[3].y, columns[3].z);
@@ -913,6 +936,17 @@ struct mat<4, 4, T>
 
     // =============== transform ===============
 
+    /**
+     * @brief Creates a 4x4 transformation matrix combining translation, rotation, and scaling.
+     *
+     * This function generates a 4x4 transformation matrix by combining translation, rotation, and scaling.
+     *
+     * @param translation The translation vector in 3D space.
+     * @param axis The axis of rotation.
+     * @param angle The angle of rotation in radians.
+     * @param scale The scaling factors along the x, y, and z axes.
+     * @return The 4x4 transformation matrix.
+     */
     static inline constexpr type make_trs(
         const vec3_type& translation,
         const vec3_type& axis, T angle,
@@ -948,6 +982,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a 4x4 transformation matrix combining translation, rotation, and scaling using a quaternion.
+     *
+     * This function generates a 4x4 transformation matrix by combining translation, rotation represented by a quaternion,
+     * and scaling.
+     *
+     * @param translation The translation vector in 3D space.
+     * @param rotation The quaternion representing the rotation.
+     * @param scale The scaling factors along the x, y, and z axes.
+     * @return The 4x4 transformation matrix.
+     */
     static inline constexpr type make_trs(
         const vec3_type& translation,
         const quat_type& rotation,
@@ -989,6 +1034,14 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Inverts the affine transformation matrix.
+     *
+     * This function calculates the inverse of the affine transformation matrix, assuming it is an affine transformation.
+     * Affine transformations include translation, rotation, scaling, and their combinations.
+     *
+     * @return The inverted affine transformation matrix.
+     */
     inline constexpr type affine_invert() const
     {
         const mat3_type inv(mat3_type(*this).invert());
@@ -1099,6 +1152,17 @@ struct mat<4, 4, T>
 
     // =============== ortho ===============
 
+    /**
+     * @brief Creates a left-handed orthographic projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_lh_zo(
         T left, T right,
         T top, T bottom,
@@ -1128,6 +1192,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a left-handed orthographic projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_lh_no(
         T left, T right,
         T top, T bottom,
@@ -1157,6 +1232,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed orthographic projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_rh_zo(
         T left, T right,
         T top, T bottom,
@@ -1186,6 +1272,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed orthographic projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_rh_no(
         T left, T right,
         T top, T bottom,
@@ -1215,6 +1312,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates an orthographic projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_zo(
         T left, T right,
         T top, T bottom,
@@ -1228,6 +1336,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates an orthographic projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_no(
         T left, T right,
         T top, T bottom,
@@ -1241,6 +1360,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a left-handed orthographic projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_lh(
         T left, T right,
         T top, T bottom,
@@ -1254,6 +1384,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a right-handed orthographic projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho_rh(
         T left, T right,
         T top, T bottom,
@@ -1267,6 +1408,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates an orthographic projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting orthographic projection matrix.
+     */
     static inline constexpr type ortho(
         T left, T right,
         T top, T bottom,
@@ -1286,6 +1438,17 @@ struct mat<4, 4, T>
 
     // =============== frustrum ===============
 
+    /**
+     * @brief Creates a left-handed frustum projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_lh_zo(
         T left, T right,
         T top, T bottom,
@@ -1315,6 +1478,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a left-handed frustum projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_lh_no(
         T left, T right,
         T top, T bottom,
@@ -1344,6 +1518,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed frustum projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_rh_zo(
         T left, T right,
         T top, T bottom,
@@ -1373,6 +1558,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed frustum projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_rh_no(
         T left, T right,
         T top, T bottom,
@@ -1402,6 +1598,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a frustum projection matrix with a depth range of 0 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_zo(
         T left, T right,
         T top, T bottom,
@@ -1415,6 +1622,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a frustum projection matrix with a depth range of -1 to 1.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_no(
         T left, T right,
         T top, T bottom,
@@ -1428,6 +1646,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a left-handed frustum projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_lh(
         T left, T right,
         T top, T bottom,
@@ -1441,6 +1670,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a right-handed frustum projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum_rh(
         T left, T right,
         T top, T bottom,
@@ -1454,6 +1694,17 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a frustum projection matrix based on the specified clip control configuration.
+     *
+     * @param left   The left clipping plane coordinate.
+     * @param right  The right clipping plane coordinate.
+     * @param top    The top clipping plane coordinate.
+     * @param bottom The bottom clipping plane coordinate.
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     * @return The resulting frustum projection matrix.
+     */
     static inline constexpr type frustrum(
         T left, T right,
         T top, T bottom,
@@ -1473,6 +1724,16 @@ struct mat<4, 4, T>
 
     // =============== perspective ===============
 
+    /**
+     * @brief Creates a left-handed perspective projection matrix with a depth range of 0 to 1.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_lh_zo(
         T fovy, T aspect,
         T znear, T zfar
@@ -1505,6 +1766,16 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a left-handed perspective projection matrix with a depth range of -1 to 1.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_lh_no(
         T fovy, T aspect,
         T znear, T zfar
@@ -1537,6 +1808,16 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed perspective projection matrix with a depth range of 0 to 1.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_rh_zo(
         T fovy, T aspect,
         T znear, T zfar
@@ -1569,6 +1850,16 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a right-handed perspective projection matrix with a depth range of -1 to 1.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_rh_no(
         T fovy, T aspect,
         T znear, T zfar
@@ -1601,6 +1892,16 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a perspective projection matrix with a depth range of 0 to 1 based on the specified clip control configuration.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_zo(
         T fovy, T aspect,
         T znear, T zfar
@@ -1613,6 +1914,16 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a perspective projection matrix with a depth range of -1 to 1 based on the specified clip control configuration.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_no(
         T fovy, T aspect,
         T znear, T zfar
@@ -1625,6 +1936,16 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a left-handed perspective projection matrix based on the specified clip control configuration.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_lh(
         T fovy, T aspect,
         T znear, T zfar
@@ -1637,6 +1958,16 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a right-handed perspective projection matrix based on the specified clip control configuration.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective_rh(
         T fovy, T aspect,
         T znear, T zfar
@@ -1649,6 +1980,16 @@ struct mat<4, 4, T>
 #	endif
     }
 
+    /**
+     * @brief Creates a perspective projection matrix based on the specified clip control configuration.
+     *
+     * @param fovy   The vertical field of view angle in radians.
+     * @param aspect The aspect ratio of the viewport (width / height).
+     * @param znear  The near depth clipping plane.
+     * @param zfar   The far depth clipping plane.
+     *
+     * @return The resulting perspective projection matrix.
+     */
     static inline constexpr type perspective(
         T fovy, T aspect,
         T znear, T zfar
@@ -1667,6 +2008,17 @@ struct mat<4, 4, T>
 
     // =============== projection ===============
 
+    /**
+     * @brief Projects a 3D vector using the current matrix, resulting in a normalized device coordinates (NDC) vector.
+     *
+     * This function takes a 3D vector as input, transforms it using the current matrix, and returns the resulting vector
+     * in normalized device coordinates (NDC). The NDC vector represents the position of the input vector after perspective
+     * division, ensuring it is within the viewing volume.
+     *
+     * @param v The 3D vector to be projected.
+     *
+     * @return The resulting normalized device coordinates (NDC) vector.
+     */
     inline constexpr vec3_type project(const vec3_type& v) const
     {
         vec4_type v4(v, static_cast<T>(1));
@@ -1675,6 +2027,17 @@ struct mat<4, 4, T>
         return vec3_type(v4.x * invw, v4.y * invw, v4.z * invw);
     }
 
+    /**
+     * @brief Unprojects a 3D vector using the inverse of the current matrix, converting from normalized device coordinates (NDC) to world space.
+     *
+     * This function takes a 3D vector in normalized device coordinates (NDC), applies the inverse of the current matrix,
+     * and returns the resulting vector in world space. It reverses the process of projecting a vector to NDC, allowing for
+     * conversion from screen space back to the original world coordinates.
+     *
+     * @param v The 3D vector in normalized device coordinates (NDC) to be unprojected.
+     *
+     * @return The resulting vector in world space.
+     */
     inline constexpr vec3_type unproject(const vec3_type& v) const
     {
         vec4_type v4(v, static_cast<T>(1));
@@ -1685,6 +2048,7 @@ struct mat<4, 4, T>
 
     // =============== constants ===============
 
+    static inline constexpr type IDENTITY() { return type(static_cast<T>(0)); }
     static inline constexpr type ZERO() { return type(static_cast<T>(0)); }
 
 };

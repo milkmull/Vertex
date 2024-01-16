@@ -471,11 +471,25 @@ struct mat<2, 2, T>
 
     // =============== operations ===============
 
+    /**
+     * @brief Computes the determinant of the 2x2 matrix.
+     *
+     * This function calculates the determinant of the 2x2 matrix.
+     *
+     * @return The determinant of the matrix.
+     */
     inline constexpr T determinant() const
     {
         return (columns[0].x * columns[1].y) - (columns[1].x * columns[0].y);
     }
 
+    /**
+     * @brief Computes the transpose of the 2x2 matrix.
+     *
+     * This function calculates the transpose of the 2x2 matrix.
+     *
+     * @return The transposed 2x2 matrix.
+     */
     inline constexpr type transpose() const
     {
         return type(
@@ -484,6 +498,14 @@ struct mat<2, 2, T>
         );
     }
 
+    /**
+     * @brief Computes the inverse of the 2x2 matrix.
+     *
+     * This function calculates the inverse matrix for the 2x2 matrix if it exists.
+     * If the matrix is not invertible (determinant is approximately zero), it returns a matrix with zeros.
+     *
+     * @return The inverted 2x2 matrix if invertible, otherwise a matrix with zeros.
+     */
     inline constexpr type invert() const
     {
         const T det = determinant();
@@ -542,6 +564,14 @@ struct mat<2, 2, T>
 
     // =============== matrix transform ===============
 
+    /**
+     * @brief Creates a 2x2 rotation matrix.
+     *
+     * This function generates a 2x2 rotation matrix based on the specified angle (in radians).
+     *
+     * @param angle The angle of rotation in radians.
+     * @return The 2x2 rotation matrix.
+     */
     static inline constexpr type make_rotation(T angle)
     {
         const T cosa = math::cos(angle);
@@ -550,11 +580,26 @@ struct mat<2, 2, T>
         return type(cosa, sina, -sina, cosa);
     }
 
+    /**
+     * @brief Retrieves the rotation angle from the 2x2 matrix.
+     *
+     * This function calculates the rotation angle (in radians) from the 2x2 rotation matrix.
+     *
+     * @return The rotation angle.
+     */
     inline constexpr T get_rotation() const
     {
         return math::atan2(columns[0].y, columns[0].x);
     }
 
+    /**
+     * @brief Creates a 2x2 scaling matrix.
+     *
+     * This function generates a 2x2 scaling matrix based on the specified scaling factors along the x and y axes.
+     *
+     * @param scale The scaling factors along the x and y axes.
+     * @return The 2x2 scaling matrix.
+     */
     static inline constexpr type make_scale(const vec2_type& scale)
     {
         return type(
@@ -563,6 +608,13 @@ struct mat<2, 2, T>
         );
     }
 
+    /**
+     * @brief Retrieves the 2D scaling factors from the 2x2 matrix.
+     *
+     * This function calculates the scaling factors along the x and y axes from the 2x2 matrix.
+     *
+     * @return The 2D scaling factors.
+     */
     inline constexpr vec2_type get_scale() const
     {
         return vec2_type(
@@ -573,6 +625,7 @@ struct mat<2, 2, T>
 
     // =============== constants ===============
 
+    static inline constexpr type IDENTITY() { return type(); }
     static inline constexpr type ZERO() { return type(static_cast<T>(0)); }
 
 };

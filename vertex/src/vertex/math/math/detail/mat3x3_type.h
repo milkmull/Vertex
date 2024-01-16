@@ -120,8 +120,16 @@ struct mat<3, 3, T>
                    col_type(m.columns[1]),
                    col_type(m.columns[2]) } {}
 
-    // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
-
+    /**
+     * @brief Constructs a 3x3 matrix from a quaternion.
+     *
+     * This function initializes the matrix using the rotational part of the provided quaternion.
+     * The resulting matrix represents the rotation encoded by the quaternion.
+     *
+     * @param q The quaternion to convert into a rotation matrix.
+     * 
+     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
+     */
     inline constexpr explicit mat(const quat_type& q)
     {
         const quat_type qn = q.normalize();
@@ -575,6 +583,13 @@ struct mat<3, 3, T>
 
     // =============== operations ===============
 
+    /**
+     * @brief Calculates the determinant of the 3x3 matrix.
+     *
+     * This function computes the determinant of the matrix using the expansion by minors method.
+     *
+     * @return The determinant of the matrix.
+     */
     inline constexpr T determinant() const
     {
         return +columns[0].x * ((columns[1].y * columns[2].z) - (columns[2].y * columns[1].z))
@@ -582,6 +597,13 @@ struct mat<3, 3, T>
                +columns[2].x * ((columns[0].y * columns[1].z) - (columns[1].y * columns[0].z));
     }
 
+    /**
+     * @brief Computes the transpose of the 3x3 matrix.
+     *
+     * This function returns a new matrix where the rows become columns and vice versa.
+     *
+     * @return The transposed matrix.
+     */
     inline constexpr type transpose() const
     {
         return type(
@@ -591,6 +613,14 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Computes the inverse of the 3x3 matrix.
+     *
+     * This function calculates the inverse matrix if it exists, otherwise, it returns a matrix with zeros.
+     * The inverse is computed using the determinant and adjugate matrix.
+     *
+     * @return The inverted matrix if the determinant is non-zero, otherwise a matrix with zeros.
+     */
     inline constexpr type invert() const
     {
         const T det = determinant();
@@ -664,6 +694,15 @@ struct mat<3, 3, T>
 
     // =============== rotation ===============
 
+    /**
+     * @brief Creates a 3x3 matrix from an axis and an angle.
+     *
+     * This function generates a rotation matrix representing a rotation around the specified axis by the given angle.
+     *
+     * @param axis The axis of rotation (must be normalized).
+     * @param angle The angle of rotation in radians.
+     * @return The rotation matrix.
+     */
     static inline constexpr type from_axis_angle(const vec3_type& axis, T angle)
     {
         const vec3_type naxis(axis.normalize());
@@ -687,11 +726,26 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Creates a 3x3 rotation matrix from a quaternion.
+     *
+     * This function constructs a rotation matrix using the rotational part of the provided quaternion.
+     *
+     * @param rotation The quaternion representing the rotation.
+     * @return The rotation matrix.
+     */
     static inline constexpr type make_rotation(const quat_type& rotation)
     {
         return type(rotation);
     }
 
+    /**
+     * @brief Retrieves the rotation quaternion from the 3x3 matrix.
+     *
+     * This function extracts the rotation quaternion representing the orientation encoded in the matrix.
+     *
+     * @return The rotation quaternion.
+     */
     inline constexpr quat_type get_rotation() const
     {
         return quat_type(*this);
@@ -699,6 +753,14 @@ struct mat<3, 3, T>
 
     // =============== scale ===============
 
+    /**
+     * @brief Creates a 3x3 scaling matrix.
+     *
+     * This function generates a scaling matrix based on the specified scaling factors along each axis.
+     *
+     * @param scale The scaling factors along the x, y, and z axes.
+     * @return The scaling matrix.
+     */
     static inline constexpr type make_scale(const vec3_type& scale)
     {
         return type(
@@ -708,6 +770,13 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Retrieves the scaling factors from the 3x3 matrix.
+     *
+     * This function calculates the scaling factors along the x, y, and z axes from the matrix.
+     *
+     * @return The vector representing the scaling factors along each axis.
+     */
     inline constexpr vec3_type get_scale() const
     {
         return vec3_type(
@@ -721,6 +790,16 @@ struct mat<3, 3, T>
 
     // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
 
+    /**
+     * @brief Creates a left-handed view matrix for a given camera transformation.
+     *
+     * This function generates a left-handed view matrix based on the camera's eye, target, and up vectors.
+     *
+     * @param eye The position of the camera.
+     * @param target The target point the camera is looking at.
+     * @param up The up vector for the camera (default is the positive y-axis).
+     * @return The left-handed view matrix.
+     */
     static inline constexpr type make_look_at_lh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -734,6 +813,16 @@ struct mat<3, 3, T>
         return type(x, y, z);
     }
 
+    /**
+     * @brief Creates a right-handed view matrix for a given camera transformation.
+     *
+     * This function generates a right-handed view matrix based on the camera's eye, target, and up vectors.
+     *
+     * @param eye The position of the camera.
+     * @param target The target point the camera is looking at.
+     * @param up The up vector for the camera (default is the positive y-axis).
+     * @return The right-handed view matrix.
+     */
     static inline constexpr type make_look_at_rh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -747,6 +836,16 @@ struct mat<3, 3, T>
         return type(x, y, z);
     }
 
+    /**
+     * @brief Creates a view matrix for a given camera transformation.
+     *
+     * This function automatically selects between left-handed and right-handed view matrix creation based on configuration.
+     *
+     * @param eye The position of the camera.
+     * @param target The target point the camera is looking at.
+     * @param up The up vector for the camera (default is the positive y-axis).
+     * @return The view matrix.
+     */
     static inline constexpr type make_look_at(
         const vec3_type& eye,
         const vec3_type& target,
@@ -762,6 +861,14 @@ struct mat<3, 3, T>
 
     // =============== affine ===============
 
+    /**
+     * @brief Creates a 3x3 affine translation matrix.
+     *
+     * This function generates an affine translation matrix based on the specified 2D translation vector.
+     *
+     * @param translation The 2D translation vector.
+     * @return The affine translation matrix.
+     */
     static inline constexpr type make_affine_translation(const vec2_type& translation)
     {
         return type(
@@ -771,11 +878,26 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Retrieves the 2D translation vector from the 3x3 affine matrix.
+     *
+     * This function extracts the translation vector from the 3x3 affine matrix.
+     *
+     * @return The 2D translation vector.
+     */
     inline constexpr vec2_type get_affine_translation() const
     {
         return vec2_type(columns[2].x, columns[2].y);
     }
 
+    /**
+     * @brief Creates a 3x3 affine rotation matrix.
+     *
+     * This function generates an affine rotation matrix based on the specified angle (in radians).
+     *
+     * @param angle The angle of rotation in radians.
+     * @return The affine rotation matrix.
+     */
     static inline constexpr type make_affine_rotation(T angle)
     {
         const T cosa = math::cos(angle);
@@ -788,11 +910,26 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Retrieves the rotation angle from the 3x3 affine matrix.
+     *
+     * This function calculates the rotation angle (in radians) from the 3x3 affine rotation matrix.
+     *
+     * @return The rotation angle.
+     */
     inline constexpr T get_affine_rotation() const
     {
         return math::atan2(columns[0].y, columns[0].x);
     }
 
+    /**
+     * @brief Creates a 3x3 affine scaling matrix.
+     *
+     * This function generates an affine scaling matrix based on the specified 2D scaling factors.
+     *
+     * @param scale The 2D scaling factors along the x and y axes.
+     * @return The affine scaling matrix.
+     */
     static inline constexpr type make_affine_scale(const vec2_type& scale)
     {
         return type(
@@ -802,6 +939,13 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Retrieves the 2D scaling factors from the 3x3 affine matrix.
+     *
+     * This function calculates the scaling factors along the x and y axes from the 3x3 affine matrix.
+     *
+     * @return The 2D scaling factors.
+     */
     inline constexpr vec2_type get_affine_scale() const
     {
         return vec2_type(
@@ -810,6 +954,16 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Creates a 3x3 affine transformation matrix combining translation, rotation, and scaling.
+     *
+     * This function generates an affine transformation matrix combining translation, rotation, and scaling.
+     *
+     * @param translation The 2D translation vector.
+     * @param angle The angle of rotation in radians.
+     * @param scale The 2D scaling factors along the x and y axes.
+     * @return The combined affine transformation matrix.
+     */
     static inline constexpr type make_affine_trs(const vec2_type& translation, T angle, vec2_type& scale)
     {
         const T cosa = math::cos(angle);
@@ -822,6 +976,14 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Computes the inverse of the 3x3 affine transformation matrix, effectively reversing applied transformations.
+     *
+     * This function calculates the inverse matrix for an affine transformation matrix, providing a matrix that undoes
+     * the original transformations.
+     *
+     * @return The inverted affine transformation matrix if invertible, otherwise a matrix with zeros.
+     */
     inline constexpr type affine_invert() const
     {
         const mat2_type ibasis(mat2_type(*this).invert());
@@ -833,6 +995,14 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Transforms a 2D vector using the 3x3 matrix.
+     *
+     * This function applies the 3x3 matrix transformation to a 2D vector.
+     *
+     * @param v The 2D vector to be transformed.
+     * @return The transformed 2D vector.
+     */
     inline constexpr vec2_type transform(const vec2_type& v) const
     {
         return (*this) * v;
@@ -840,6 +1010,7 @@ struct mat<3, 3, T>
 
     // =============== constants ===============
 
+    static inline constexpr type IDENTITY() { return type(); }
     static inline constexpr type ZERO() { return type(static_cast<T>(0)); }
 
 };
