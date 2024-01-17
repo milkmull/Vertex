@@ -727,7 +727,7 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Creates a 3x3 rotation matrix from a quaternion.
+     * @brief Creates a rotation matrix from a quaternion.
      *
      * This function constructs a rotation matrix using the rotational part of the provided quaternion.
      *
@@ -740,7 +740,7 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Retrieves the rotation quaternion from the 3x3 matrix.
+     * @brief Retrieves the rotation quaternion from the matrix.
      *
      * This function extracts the rotation quaternion representing the orientation encoded in the matrix.
      *
@@ -754,7 +754,7 @@ struct mat<3, 3, T>
     // =============== scale ===============
 
     /**
-     * @brief Creates a 3x3 scaling matrix.
+     * @brief Creates a scaling matrix.
      *
      * This function generates a scaling matrix based on the specified scaling factors along each axis.
      *
@@ -764,14 +764,22 @@ struct mat<3, 3, T>
     static inline constexpr type make_scale(const vec3_type& scale)
     {
         return type(
-            scale.x,		   static_cast<T>(0), static_cast<T>(0),
-            static_cast<T>(0), scale.y,			  static_cast<T>(0),
-            static_cast<T>(0), static_cast<T>(0), scale.z
+            scale.x,
+            static_cast<T>(0),
+            static_cast<T>(0),
+
+            static_cast<T>(0),
+            scale.y,
+            static_cast<T>(0),
+
+            static_cast<T>(0),
+            static_cast<T>(0),
+            scale.z
         );
     }
 
     /**
-     * @brief Retrieves the scaling factors from the 3x3 matrix.
+     * @brief Retrieves the scaling factors from the matrix.
      *
      * This function calculates the scaling factors along the x, y, and z axes from the matrix.
      *
@@ -862,12 +870,12 @@ struct mat<3, 3, T>
     // =============== affine ===============
 
     /**
-     * @brief Creates a 3x3 affine translation matrix.
+     * @brief Creates a 2D translation matrix.
      *
-     * This function generates an affine translation matrix based on the specified 2D translation vector.
+     * This function generates a 2D translation matrix based on the specified 2D translation vector.
      *
      * @param translation The 2D translation vector.
-     * @return The affine translation matrix.
+     * @return The translation matrix.
      */
     static inline constexpr type make_affine_translation(const vec2_type& translation)
     {
@@ -879,9 +887,9 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Retrieves the 2D translation vector from the 3x3 affine matrix.
+     * @brief Retrieves the 2D translation vector from the matrix.
      *
-     * This function extracts the translation vector from the 3x3 affine matrix.
+     * This function extracts the translation vector from the matrix.
      *
      * @return The 2D translation vector.
      */
@@ -891,12 +899,12 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Creates a 3x3 affine rotation matrix.
+     * @brief Creates a 2D rotation matrix.
      *
-     * This function generates an affine rotation matrix based on the specified angle (in radians).
+     * This function generates a 2D rotation matrix based on the specified angle (in radians).
      *
      * @param angle The angle of rotation in radians.
-     * @return The affine rotation matrix.
+     * @return The rotation matrix.
      */
     static inline constexpr type make_affine_rotation(T angle)
     {
@@ -911,9 +919,9 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Retrieves the rotation angle from the 3x3 affine matrix.
+     * @brief Retrieves the 2D rotation angle from the matrix.
      *
-     * This function calculates the rotation angle (in radians) from the 3x3 affine rotation matrix.
+     * This function calculates the rotation angle (in radians) from the 2D rotation matrix.
      *
      * @return The rotation angle.
      */
@@ -923,12 +931,12 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Creates a 3x3 affine scaling matrix.
+     * @brief Creates a 2D scaling matrix.
      *
-     * This function generates an affine scaling matrix based on the specified 2D scaling factors.
+     * This function generates a 2D scaling matrix based on the specified 2D scaling factors.
      *
      * @param scale The 2D scaling factors along the x and y axes.
-     * @return The affine scaling matrix.
+     * @return The scaling matrix.
      */
     static inline constexpr type make_affine_scale(const vec2_type& scale)
     {
@@ -940,9 +948,9 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Retrieves the 2D scaling factors from the 3x3 affine matrix.
+     * @brief Retrieves the 2D scaling factors from the matrix.
      *
-     * This function calculates the scaling factors along the x and y axes from the 3x3 affine matrix.
+     * This function calculates the scaling factors along the x and y axes from the matrix.
      *
      * @return The 2D scaling factors.
      */
@@ -955,14 +963,14 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Creates a 3x3 affine transformation matrix combining translation, rotation, and scaling.
+     * @brief Creates a 2D transformation matrix combining translation, rotation, and scaling.
      *
-     * This function generates an affine transformation matrix combining translation, rotation, and scaling.
+     * This function generates a 2D transformation matrix combining translation, rotation, and scaling.
      *
      * @param translation The 2D translation vector.
      * @param angle The angle of rotation in radians.
      * @param scale The 2D scaling factors along the x and y axes.
-     * @return The combined affine transformation matrix.
+     * @return The combined transformation matrix.
      */
     static inline constexpr type make_affine_trs(const vec2_type& translation, T angle, vec2_type& scale)
     {
@@ -977,12 +985,12 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Computes the inverse of the 3x3 affine transformation matrix, effectively reversing applied transformations.
+     * @brief Computes the inverse of the 2D transformation matrix, effectively reversing applied transformations.
      *
-     * This function calculates the inverse matrix for an affine transformation matrix, providing a matrix that undoes
+     * This function calculates the inverse matrix for an 2D transformation matrix, providing a matrix that undoes
      * the original transformations.
      *
-     * @return The inverted affine transformation matrix if invertible, otherwise a matrix with zeros.
+     * @return The inverted 2D transformation matrix.
      */
     inline constexpr type affine_invert() const
     {
@@ -996,9 +1004,9 @@ struct mat<3, 3, T>
     }
 
     /**
-     * @brief Transforms a 2D vector using the 3x3 matrix.
+     * @brief Transforms a 2D vector using the matrix.
      *
-     * This function applies the 3x3 matrix transformation to a 2D vector.
+     * This function applies the matrix transformation to a 2D vector.
      *
      * @param v The 2D vector to be transformed.
      * @return The transformed 2D vector.

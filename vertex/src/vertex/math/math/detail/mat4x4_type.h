@@ -680,6 +680,13 @@ struct mat<4, 4, T>
 
     // =============== operations ===============
 
+    /**
+     * @brief Calculates the determinant of the 4x4 matrix.
+     *
+     * This function computes the determinant of the matrix using the expansion by minors method.
+     *
+     * @return The determinant of the matrix.
+     */
     inline constexpr T determinant() const
     {
         const T subfac00 = (columns[2].z * columns[3].w) - (columns[2].w * columns[3].z);
@@ -697,6 +704,13 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Computes the transpose of the 4x4 matrix.
+     *
+     * This function returns a new matrix where the rows become columns and vice versa.
+     *
+     * @return The transposed matrix.
+     */
     inline constexpr type transpose() const
     {
         return type(
@@ -841,12 +855,12 @@ struct mat<4, 4, T>
     // =============== translation ===============
 
     /**
-     * @brief Creates a 4x4 translation matrix.
+     * @brief Creates a translation matrix.
      *
-     * This function generates a 4x4 translation matrix based on the specified translation vector in 3D space.
+     * This function generates a translation matrix based on the specified translation vector in 3D space.
      *
      * @param translation The translation vector in 3D space.
-     * @return The 4x4 translation matrix.
+     * @return The 3D translation matrix.
      */
     static inline constexpr type make_translation(const vec3_type& translation)
     {
@@ -859,9 +873,9 @@ struct mat<4, 4, T>
     }
 
     /**
-     * @brief Retrieves the translation vector from the 4x4 matrix.
+     * @brief Retrieves the translation vector from the matrix.
      *
-     * This function extracts the translation vector from the 4x4 matrix.
+     * This function extracts the translation vector from the matrix.
      *
      * @return The translation vector in 3D space.
      */
@@ -872,6 +886,15 @@ struct mat<4, 4, T>
 
     // =============== rotation ===============
 
+    /**
+     * @brief Creates a rotation matrix from an axis and an angle.
+     *
+     * This function generates a rotation matrix representing a rotation around the specified axis by the given angle.
+     *
+     * @param axis The axis of rotation (must be normalized).
+     * @param angle The angle of rotation in radians.
+     * @return The rotation matrix.
+     */
     static inline constexpr type from_axis_angle(const vec3_type& axis, T angle)
     {
         const vec3_type naxis(axis.normalize());
@@ -903,11 +926,26 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a rotation matrix from a quaternion.
+     *
+     * This function constructs a rotation matrix using the rotational part of the provided quaternion.
+     *
+     * @param rotation The quaternion representing the rotation.
+     * @return The rotation matrix.
+     */
     static inline constexpr type make_rotation(const quat_type& rotation)
     {
         return type(rotation);
     }
 
+    /**
+     * @brief Retrieves the rotation quaternion from the matrix.
+     *
+     * This function extracts the rotation quaternion representing the orientation encoded in the matrix.
+     *
+     * @return The rotation quaternion.
+     */
     inline constexpr quat_type get_rotation() const
     {
         return quat_type(*this);
@@ -915,16 +953,46 @@ struct mat<4, 4, T>
 
     // =============== scale ===============
 
+    /**
+     * @brief Creates a scaling matrix.
+     *
+     * This function generates a scaling matrix based on the specified scaling factors along each axis.
+     *
+     * @param scale The scaling factors along the x, y, and z axes.
+     * @return The scaling matrix.
+     */
     static inline constexpr type make_scale(const vec3_type& scale)
     {
         return type(
-            scale.x,           static_cast<T>(0), static_cast<T>(0), static_cast<T>(0),
-            static_cast<T>(0), scale.y,           static_cast<T>(0), static_cast<T>(0),
-            static_cast<T>(0), static_cast<T>(0), scale.z,           static_cast<T>(0),
-            static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)
+            scale.x,
+            static_cast<T>(0),
+            static_cast<T>(0),
+            static_cast<T>(0),
+
+            static_cast<T>(0),
+            scale.y,
+            static_cast<T>(0),
+            static_cast<T>(0),
+
+            static_cast<T>(0),
+            static_cast<T>(0),
+            scale.z,
+            static_cast<T>(0),
+
+            static_cast<T>(0),
+            static_cast<T>(0),
+            static_cast<T>(0),
+            static_cast<T>(1)
         );
     }
 
+    /**
+     * @brief Retrieves the scaling factors from the matrix.
+     *
+     * This function calculates the scaling factors along the x, y, and z axes from the matrix.
+     *
+     * @return The vector representing the scaling factors along each axis.
+     */
     inline constexpr vec3_type get_scale() const
     {
         return vec3_type(
@@ -937,15 +1005,15 @@ struct mat<4, 4, T>
     // =============== transform ===============
 
     /**
-     * @brief Creates a 4x4 transformation matrix combining translation, rotation, and scaling.
+     * @brief Creates a transformation matrix combining translation, rotation, and scaling.
      *
-     * This function generates a 4x4 transformation matrix by combining translation, rotation, and scaling.
+     * This function generates a transformation matrix by combining translation, rotation, and scaling.
      *
      * @param translation The translation vector in 3D space.
      * @param axis The axis of rotation.
      * @param angle The angle of rotation in radians.
      * @param scale The scaling factors along the x, y, and z axes.
-     * @return The 4x4 transformation matrix.
+     * @return The transformation matrix.
      */
     static inline constexpr type make_trs(
         const vec3_type& translation,
@@ -983,15 +1051,14 @@ struct mat<4, 4, T>
     }
 
     /**
-     * @brief Creates a 4x4 transformation matrix combining translation, rotation, and scaling using a quaternion.
+     * @brief Creates a transformation matrix combining translation, rotation, and scaling.
      *
-     * This function generates a 4x4 transformation matrix by combining translation, rotation represented by a quaternion,
-     * and scaling.
+     * This function generates a transformation matrix by combining translation, rotation, and scaling.
      *
      * @param translation The translation vector in 3D space.
      * @param rotation The quaternion representing the rotation.
      * @param scale The scaling factors along the x, y, and z axes.
-     * @return The 4x4 transformation matrix.
+     * @return The transformation matrix.
      */
     static inline constexpr type make_trs(
         const vec3_type& translation,
@@ -1035,12 +1102,12 @@ struct mat<4, 4, T>
     }
 
     /**
-     * @brief Inverts the affine transformation matrix.
+     * @brief Computes the inverse of the transformation matrix, effectively reversing applied transformations.
      *
-     * This function calculates the inverse of the affine transformation matrix, assuming it is an affine transformation.
-     * Affine transformations include translation, rotation, scaling, and their combinations.
+     * This function calculates the inverse matrix for a transformation matrix, providing a matrix that undoes
+     * the original transformations.
      *
-     * @return The inverted affine transformation matrix.
+     * @return The inverted transformation matrix.
      */
     inline constexpr type affine_invert() const
     {
@@ -1054,6 +1121,14 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Transforms a 3D vector using the matrix.
+     *
+     * This function applies the matrix transformation to a 3D vector.
+     *
+     * @param v The 3D vector to be transformed.
+     * @return The transformed 3D vector.
+     */
     inline constexpr vec3_type transform(const vec3_type& v) const
     {
         return (*this) * v;
@@ -1068,6 +1143,17 @@ struct mat<4, 4, T>
     // https://webglfundamentals.org/webgl/lessons/webgl-3d-camera.html
     // https://stackoverflow.com/questions/31040378/whats-the-difference-between-these-two-ways-of-computing-a-lookat-matrix
 
+    /**
+     * @brief Creates a matrix representing a left-handed look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a matrix representing a left-handed look-at rotation.
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The matrix representing the left-handed look-at rotation.
+     */
     static inline constexpr type make_look_at_lh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -1101,6 +1187,17 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a matrix representing a right-handed look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a matrix representing a right-handed look-at rotation.
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The matrix representing the right-handed look-at rotation.
+     */
     static inline constexpr type make_look_at_rh(
         const vec3_type& eye,
         const vec3_type& target,
@@ -1137,6 +1234,18 @@ struct mat<4, 4, T>
         );
     }
 
+    /**
+     * @brief Creates a matrix representing a look-at rotation.
+     *
+     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
+     * this function computes a quaternion representing a look-at rotation based on
+     * the configured clip control (left-handed or right-handed).
+     *
+     * @param eye The position of the viewer's eye.
+     * @param target The position the viewer is looking at.
+     * @param up The up vector (default is positive y-axis).
+     * @return The quaternion representing the look-at rotation.
+     */
     static inline constexpr type make_look_at(
         const vec3_type& eye,
         const vec3_type& target,
@@ -1731,7 +1840,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_lh_zo(
@@ -1773,7 +1881,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_lh_no(
@@ -1857,7 +1964,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_rh_no(
@@ -1899,7 +2005,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_zo(
@@ -1921,7 +2026,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_no(
@@ -1943,7 +2047,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_lh(
@@ -1965,7 +2068,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective_rh(
@@ -1987,7 +2089,6 @@ struct mat<4, 4, T>
      * @param aspect The aspect ratio of the viewport (width / height).
      * @param znear  The near depth clipping plane.
      * @param zfar   The far depth clipping plane.
-     *
      * @return The resulting perspective projection matrix.
      */
     static inline constexpr type perspective(
@@ -2035,7 +2136,6 @@ struct mat<4, 4, T>
      * conversion from screen space back to the original world coordinates.
      *
      * @param v The 3D vector in normalized device coordinates (NDC) to be unprojected.
-     *
      * @return The resulting vector in world space.
      */
     inline constexpr vec3_type unproject(const vec3_type& v) const
