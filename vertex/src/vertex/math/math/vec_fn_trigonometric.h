@@ -6,6 +6,24 @@
 namespace vx {
 namespace math {
 
+// =============== radians ===============
+
+template <detail::length_type L, typename T, detail::vec_t Q>
+inline constexpr auto radians(const detail::vec<L, T, Q>& x)
+{
+    using R = decltype(math::radians(std::declval<T>()));
+    return detail::vec_unary<L, T, Q, R>::call<math::radians<T>>(x);
+}
+
+// =============== degrees ===============
+
+template <detail::length_type L, typename T, detail::vec_t Q>
+inline constexpr auto degrees(const detail::vec<L, T, Q>& x)
+{
+    using R = decltype(math::degrees(std::declval<T>()));
+    return detail::vec_unary<L, T, Q, R>::call<math::degrees<T>>(x);
+}
+
 // =============== sin ===============
 
 template <detail::length_type L, typename T, detail::vec_t Q>

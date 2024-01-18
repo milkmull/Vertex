@@ -15,11 +15,8 @@ namespace math {
  *
  * This function converts an integral vector 'v' to a floating-point vector.
  *
- * @tparam T Element type of the vector.
  * @param v The integral vector to be converted.
  * @return The resulting floating-point vector.
- *
- * @note This function is applicable for vectors of type 'veci'.
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr typename auto to_float(const detail::veci<L, T, Q>& v)
@@ -34,7 +31,6 @@ inline constexpr typename auto to_float(const detail::veci<L, T, Q>& v)
  *
  * This function computes the dot product between two vectors 'v' and 'u'.
  *
- * @tparam T Element type of the vectors.
  * @param v The first vector.
  * @param u The second vector.
  * @return The dot product of the two vectors.
@@ -80,7 +76,6 @@ inline constexpr T dot(
  *
  * This function computes the dot product between two vectors 'v' and 'u' after normalizing them.
  *
- * @tparam T Element type of the vectors.
  * @param v The first vector to be normalized and used in the dot product.
  * @param u The second vector to be normalized and used in the dot product.
  * @return The normalized dot product of the two vectors.
@@ -101,7 +96,6 @@ inline constexpr T normalized_dot(
  *
  * This function computes the cross product between two 2D vectors 'v' and 'u'.
  *
- * @tparam T Element type of the vectors.
  * @param v The first 2D vector.
  * @param u The second 2D vector.
  * @return The cross product of the two 2D vectors.
@@ -120,7 +114,6 @@ inline constexpr T cross(
  *
  * This function computes the cross product between two 3D vectors 'v' and 'u'.
  *
- * @tparam T Element type of the vectors.
  * @param v The first 3D vector.
  * @param u The second 3D vector.
  * @return The cross product of the two 3D vectors.
@@ -145,7 +138,6 @@ inline constexpr detail::vecx<3, T> cross(
  *
  * This function scales the input vector 'v' by the specified scalar value.
  *
- * @tparam T Element type of the vector.
  * @param v The vector to be scaled.
  * @param scaler The scalar value to scale the vector by.
  * @return The resulting scaled vector.
@@ -175,7 +167,6 @@ inline constexpr detail::vec<L, T, Q> scale(
  *
  * This function computes the squared length of the input vector 'v'.
  *
- * @tparam T Element type of the vector.
  * @param v The vector for which to calculate the squared length.
  * @return The squared length of the vector.
  */
@@ -196,7 +187,6 @@ inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
  *
  * This function computes the length of the input vector 'v'.
  *
- * @tparam T Element type of the vector.
  * @param v The vector for which to calculate the length.
  * @return The length of the vector.
  */
@@ -213,7 +203,6 @@ inline constexpr auto length(const detail::vec<L, T, Q>& v)
  *
  * This function computes the squared distance between two vectors 'p0' and 'p1'.
  *
- * @tparam T Element type of the vectors.
  * @param p0 The first vector.
  * @param p1 The second vector.
  * @return The squared distance between the two vectors.
@@ -232,7 +221,6 @@ inline constexpr auto distance_squared(
  *
  * This function computes the distance between two vectors 'p0' and 'p1'.
  *
- * @tparam T Element type of the vectors.
  * @param p0 The first vector.
  * @param p1 The second vector.
  * @return The distance between the two vectors.
@@ -253,7 +241,6 @@ inline constexpr auto distance(
  *
  * This function normalizes the input vector 'v'.
  *
- * @tparam T Element type of the vector.
  * @param v The vector to be normalized.
  * @return The normalized vector. If the length of the input vector is 0,
  * a zero vector will be returned.
@@ -273,7 +260,6 @@ inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
  * This function takes a vector and checks if it is normalized,
  * meaning its magnitude (length) is approximately equal to 1.
  *
- * @tparam T The type of the vector components.
  * @param v The vector to be checked for normalization.
  * @return True if the vector is normalized, false otherwise.
  */
@@ -291,7 +277,6 @@ inline constexpr bool is_normalized(const detail::vecf<L, T, Q>& v)
  * This function clamps the magnitude of the vector to be within the specified minimum and maximum values.
  * If the magnitude is below a small epsilon value, the function returns a zero vector.
  *
- * @tparam T Element type of the vector.
  * @param min The minimum magnitude allowed.
  * @param max The maximum magnitude allowed.
  * @return A new vector with the clamped magnitude.
@@ -306,7 +291,9 @@ inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
     const T mag = length(v);
 
     if (mag < math::epsilon<T>)
+    {
         return detail::vecf<L, T, Q>(0);
+    }
 
     const T new_mag = math::clamp(
         mag,
@@ -324,7 +311,6 @@ inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
  *
  * This function computes the angle (in radians) between two 2D vectors 'from' and 'to'.
  *
- * @tparam T Element type of the vectors.
  * @param from The first 2D vector.
  * @param to The second 2D vector.
  * @return The angle (in radians) between the two 2D vectors.
@@ -344,7 +330,6 @@ static inline constexpr T angle(
  * This function computes the signed angle (in radians) between two 2D vectors 'from' and 'to'.
  * The sign indicates the direction of rotation from 'from' to 'to'.
  *
- * @tparam T Element type of the vectors.
  * @param from The first 2D vector.
  * @param to The second 2D vector.
  * @return The signed angle (in radians) between the two 2D vectors.
@@ -367,7 +352,6 @@ static inline constexpr T signed_angle(
  * This function rotates the given 2D vector by the specified angle using
  * cosine and sine trigonometric functions.
  *
- * @tparam T The type of the vector components.
  * @param v The 2D vector to be rotated.
  * @param angle The rotation angle in radians.
  * @return A new 2D vector representing the rotated vector.
@@ -498,7 +482,6 @@ inline constexpr detail::vecf<3, T> rotate_z(
  *
  * This function projects the input vector 'i' onto the direction of the vector 'n'.
  *
- * @tparam T Element type of the vectors.
  * @param i The vector to be projected.
  * @param n The vector onto which 'i' is projected.
  * @return The vector 'i' projected onto the direction of 'n'.
@@ -519,7 +502,6 @@ inline constexpr detail::vecf<L, T, Q> project(
  *
  * This function reflects the input vector 'i' based on the normal vector 'n'.
  *
- * @tparam T Element type of the vectors.
  * @param i The vector to be reflected.
  * @param n The normal vector used for reflection.
  * @return The vector 'i' reflected based on the normal vector 'n'.
@@ -541,7 +523,6 @@ inline constexpr detail::vecf<L, T, Q> reflect(
  * This function calculates the bounce vector of the input vector 'i' off a surface
  * defined by the normal vector 'n'.
  *
- * @tparam T Element type of the vectors.
  * @param i The incident vector.
  * @param n The normal vector of the surface.
  * @return The bounce vector of the incident vector off the surface.
@@ -563,7 +544,6 @@ inline constexpr detail::vecf<L, T, Q> bounce(
  * This function refracts the input vector 'i' based on the normal vector 'n'
  * and a refraction index 'eta'.
  *
- * @tparam T Element type of the vectors.
  * @param i The incident vector.
  * @param n The normal vector.
  * @param eta The refraction index.
@@ -580,7 +560,9 @@ inline constexpr detail::vecf<L, T, Q> refract(
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
 
     if (k < math::epsilon<T>)
+    {
         return detail::vec<L, T, Q>(0);
+    }
 
     return eta * i - (eta * d + sqrt(k)) * n;
 }
@@ -593,7 +575,6 @@ inline constexpr detail::vecf<L, T, Q> refract(
  * This function ensures that the input normal vector 'n' has the correct orientation
  * relative to the incident vector 'i' based on the reference normal vector 'nref'.
  *
- * @tparam T Element type of the vectors.
  * @param n The normal vector to be adjusted.
  * @param i The incident vector.
  * @param nref The reference normal vector.
@@ -619,7 +600,6 @@ inline constexpr detail::vecf<L, T, Q> face_forward(
  * is less than or equal to the delta, the target vector 'to' is returned.
  * Otherwise, the vector 'from' is moved towards 'to' by the delta distance.
  *
- * @tparam T Element type of the vectors.
  * @param from The starting vector.
  * @param to The target vector.
  * @param delta The distance to move towards the target.

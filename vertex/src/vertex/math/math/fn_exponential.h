@@ -10,9 +10,8 @@ namespace math {
 /**
  * @brief Power function.
  *
- * This template function calculates the value of 'x' raised to the power of 'y'.
+ * This function calculates the value of 'x' raised to the power of 'y'.
  *
- * @tparam T The data type for which the power is calculated.
  * @param x The base value.
  * @param y The exponent value.
  * @return The result of raising 'x' to the power of 'y'.
@@ -28,9 +27,8 @@ inline constexpr T pow(T x, T y)
 /**
  * @brief Exponential function.
  *
- * This template function calculates the exponential of the input value 'x'.
+ * This function calculates the exponential of the input value 'x'.
  *
- * @tparam T The data type for which the exponential is calculated.
  * @param x The input value.
  * @return The result of the exponential function e^x.
  */
@@ -45,9 +43,8 @@ inline constexpr T exp(T x)
 /**
  * @brief Base-2 exponential function.
  *
- * This template function calculates 2 raised to the power of the input value 'x'.
+ * This function calculates 2 raised to the power of the input value 'x'.
  *
- * @tparam T The data type for which the base-2 exponential is calculated.
  * @param x The input value.
  * @return The result of 2^x.
  */
@@ -62,9 +59,8 @@ inline constexpr T exp2(T x)
 /**
  * @brief Natural logarithm function.
  *
- * This template function calculates the natural logarithm of the input value 'x'.
+ * This function calculates the natural logarithm of the input value 'x'.
  *
- * @tparam T The data type for which the natural logarithm is calculated.
  * @param x The input value.
  * @return The natural logarithm of 'x'.
  */
@@ -79,9 +75,8 @@ inline constexpr T log(T x)
 /**
  * @brief Base-2 logarithm function.
  *
- * This template function calculates the base-2 logarithm of the input value 'x'.
+ * This function calculates the base-2 logarithm of the input value 'x'.
  *
- * @tparam T The data type for which the base-2 logarithm is calculated.
  * @param x The input value.
  * @return The base-2 logarithm of 'x'.
  */
@@ -96,9 +91,8 @@ inline constexpr T log2(T x)
 /**
  * @brief Square root function.
  *
- * This template function calculates the square root of the input value 'x'.
+ * This function calculates the square root of the input value 'x'.
  *
- * @tparam T The data type for which the square root is calculated.
  * @param x The input value.
  * @return The square root of 'x'.
  */
@@ -113,9 +107,8 @@ inline constexpr T sqrt(T x)
 /**
  * @brief Inverse square root function.
  *
- * This template function calculates the inverse square root of the input value 'x'.
+ * This function calculates the inverse square root of the input value 'x'.
  *
- * @tparam T The data type for which the inverse square root is calculated.
  * @param x The input value.
  * @return The result of 1/sqrt(x).
  */

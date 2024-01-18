@@ -1,7 +1,9 @@
 #pragma once
 
 #include "detail/vectorize.h"
+#include "fn_trigonometric.h"
 #include "fn_interpolation.h"
+#include "vec_fn_common.h"
 
 namespace vx {
 namespace math {
@@ -83,7 +85,7 @@ inline constexpr auto step(
     );
 }
 
-template <typename T, bool I>
+template <typename T>
 inline constexpr auto step(
     const detail::vecx<2, T>& edge,
     const detail::vecx<2, T>& x
@@ -95,7 +97,7 @@ inline constexpr auto step(
     );
 }
 
-template <typename T, bool I>
+template <typename T>
 inline constexpr auto step(
     const detail::vecx<3, T>& edge,
     const detail::vecx<3, T>& x
@@ -108,7 +110,7 @@ inline constexpr auto step(
     );
 }
 
-template <typename T, bool I>
+template <typename T>
 inline constexpr auto step(
     const detail::vecx<4, T>& edge,
     const detail::vecx<4, T>& x
@@ -122,7 +124,7 @@ inline constexpr auto step(
     );
 }
 
-template <typename T, bool I>
+template <typename T>
 inline constexpr auto step(
     const detail::col<T>& edge,
     const detail::col<T>& x
@@ -145,7 +147,7 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
     const detail::vecf<L, T, Q>& x)
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const T t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
@@ -157,7 +159,7 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
 )
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const T t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
@@ -169,7 +171,6 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
  * This function calculates the slerp interpolation between two normalized vectors 'x' and 'y'
  * based on the interpolation parameter 't'.
  *
- * @tparam T Element type of the vectors.
  * @param x The starting normalized vector.
  * @param y The target normalized vector.
  * @param t Interpolation parameter in the range [0, 1].

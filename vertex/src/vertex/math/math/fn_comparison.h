@@ -10,10 +10,9 @@ namespace math {
 /**
  * @brief Check if a value is approximately zero.
  *
- * This template function checks if the given value is approximately zero
+ * This function checks if the given value is approximately zero
  * within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param x The input value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
  * @return True if the value is approximately zero, false otherwise.
@@ -29,10 +28,9 @@ inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
 /**
  * @brief Check if two values are approximately equal.
  *
- * This template function checks if two values are approximately equal
+ * This function checks if two values are approximately equal
  * within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -49,10 +47,9 @@ inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<
 /**
  * @brief Check if two values are not approximately equal.
  *
- * This template function checks if two values are not approximately equal
+ * This function checks if two values are not approximately equal
  * within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -69,10 +66,9 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
 /**
  * @brief Check if a value is greater than another approximately.
  *
- * This template function checks if the first value is greater than
+ * This function checks if the first value is greater than
  * the second approximately within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -89,10 +85,9 @@ inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilo
 /**
  * @brief Check if a value is greater than or equal to another approximately.
  *
- * This template function checks if the first value is greater than or equal
+ * This function checks if the first value is greater than or equal
  * to the second approximately within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -109,10 +104,9 @@ inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = mat
 /**
  * @brief Check if a value is less than another approximately.
  *
- * This template function checks if the first value is less than the
+ * This function checks if the first value is less than the
  * second approximately within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -129,10 +123,9 @@ inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T
 /**
  * @brief Check if a value is less than or equal to another approximately.
  *
- * This template function checks if the first value is less than or equal
+ * This function checks if the first value is less than or equal
  * to the second approximately within a specified epsilon range.
  *
- * @tparam T The data type for which the check is performed.
  * @param a The first value.
  * @param b The second value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
@@ -149,10 +142,8 @@ inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::
 /**
  * @brief Check if a value is finite.
  *
- * This template function checks if the given value is finite.
+ * This function checks if the given value is finite.
  *
- *
- * @tparam T The data type for which the check is performed.
  * @param x The input value.
  * @return True if the value is finite, false otherwise.
  */
@@ -167,10 +158,8 @@ inline constexpr bool is_finite(T x)
 /**
  * @brief Check if a value is infinite.
  *
- * This template function checks if the given value is infinite.
+ * This function checks if the given value is infinite.
  *
- *
- * @tparam T The data type for which the check is performed.
  * @param x The input value.
  * @return True if the value is infinite, false otherwise.
  */
@@ -185,10 +174,8 @@ inline constexpr bool is_infinite(T x)
 /**
  * @brief Check if a value is NaN (Not a Number).
  *
- * This template function checks if the given value is NaN.
+ * This function checks if the given value is NaN.
  *
- *
- * @tparam T The data type for which the check is performed.
  * @param x The input value.
  * @return True if the value is NaN, false otherwise.
  */
@@ -203,11 +190,10 @@ inline constexpr bool is_nan(T x)
 /**
  * @brief Round a value if it is close to an integer.
  *
- * This template function rounds the given value to the nearest integer
+ * This function rounds the given value to the nearest integer
  * if it is close enough (within a specified epsilon range). If the value is not close
  * to an integer, it returns the original value.
  *
- * @tparam T The data type for which the rounding is performed.
  * @param x The input value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
  * @return The rounded value if close to an integer, otherwise the original value.
@@ -224,12 +210,10 @@ inline constexpr T round_if_close(T x, const T epsilon = math::epsilon<T>)
 /**
  * @brief Make a value "pretty" by rounding if close to an integer.
  *
- * This template function makes the given value "pretty" by rounding
+ * This function makes the given value "pretty" by rounding
  * it to the nearest integer if it is close enough (within a specified epsilon range).
  * If the rounded value is zero, it returns the absolute value of the input value.
  *
- *
- * @tparam T The data type for which the operation is performed.
  * @param x The input value.
  * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
  * @return The "pretty" value.

@@ -20,7 +20,7 @@ struct vec<2, T, vec_t::vec, val_t::integral>
 
 private:
 
-    using FT = typename detail::to_float_type<T>::type;
+    using FT = detail::int_float_type;
 
 public:
 

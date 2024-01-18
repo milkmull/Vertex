@@ -14,10 +14,9 @@ namespace math {
 /**
  * @brief Linear easing function.
  *
- * This template function represents a linear easing function, where the output
+ * This function represents a linear easing function, where the output
  * is equal to the input. It provides a simple linear transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The linearly eased output value.
  */
@@ -32,11 +31,10 @@ inline constexpr T ease_linear(T x)
 /**
  * @brief Quadratic easing function (ease-in).
  *
- * This template function represents a quadratic easing function (ease-in),
+ * This function represents a quadratic easing function (ease-in),
  * where the output is proportional to the square of the input. It provides
  * a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quadratically eased output value.
  */
@@ -49,11 +47,10 @@ inline constexpr T ease_in_quad(T x)
 /**
  * @brief Quadratic easing function (ease-out).
  *
- * This template function represents a quadratic easing function (ease-out),
+ * This function represents a quadratic easing function (ease-out),
  * where the output is obtained by subtracting the square of the inverted input
  * from 2. It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quadratically eased output value.
  */
@@ -66,12 +63,11 @@ inline constexpr T ease_out_quad(T x)
 /**
  * @brief Quadratic easing function (ease-in-out).
  *
- * This template function represents a quadratic easing function (ease-in-out),
+ * This function represents a quadratic easing function (ease-in-out),
  * where the output is a combination of the ease-in and ease-out behavior. It
  * provides a smooth acceleration at the beginning and a smooth deceleration at
  * the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quadratically eased output value.
  */
@@ -94,11 +90,10 @@ inline constexpr T ease_in_out_quad(T x)
 /**
  * @brief Cubic easing function (ease-in).
  *
- * This template function represents a cubic easing function (ease-in), where the
+ * This function represents a cubic easing function (ease-in), where the
  * output is proportional to the cube of the input. It provides a smooth acceleration
  * at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The cubicly eased output value.
  */
@@ -111,11 +106,10 @@ inline constexpr T ease_in_cubic(T x)
 /**
  * @brief Cubic easing function (ease-out).
  *
- * This template function represents a cubic easing function (ease-out), where the
+ * This function represents a cubic easing function (ease-out), where the
  * output is obtained by subtracting the cube of the inverted input from 1. It
  * provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The cubicly eased output value.
  */
@@ -129,11 +123,10 @@ inline constexpr T ease_out_cubic(T x)
 /**
  * @brief Cubic easing function (ease-in-out).
  *
- * This template function represents a cubic easing function (ease-in-out), where the
+ * This function represents a cubic easing function (ease-in-out), where the
  * output is a combination of the ease-in and ease-out behavior. It provides a smooth
  * acceleration at the beginning and a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The cubicly eased output value.
  */
@@ -156,11 +149,10 @@ inline constexpr T ease_in_out_cubic(T x)
 /**
  * @brief Quartic easing function (ease-in).
  *
- * This template function represents a quartic easing function (ease-in), where the
+ * This function represents a quartic easing function (ease-in), where the
  * output is proportional to the fourth power of the input. It provides a smooth
  * acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quartically eased output value.
  */
@@ -173,11 +165,10 @@ inline constexpr T ease_in_quart(T x)
 /**
  * @brief Quartic easing function (ease-out).
  *
- * This template function represents a quartic easing function (ease-out), where the
+ * This function represents a quartic easing function (ease-out), where the
  * output is obtained by subtracting the fourth power of the inverted input from 1.
  * It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quartically eased output value.
  */
@@ -191,12 +182,11 @@ inline constexpr T ease_out_quart(T x)
 /**
  * @brief Quartic easing function (ease-in-out).
  *
- * This template function represents a quartic easing function (ease-in-out), where
+ * This function represents a quartic easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quartically eased output value.
  */
@@ -219,11 +209,10 @@ inline constexpr T ease_in_out_quart(T x)
 /**
  * @brief Quintic easing function (ease-in).
  *
- * This template function represents a quintic easing function (ease-in), where
+ * This function represents a quintic easing function (ease-in), where
  * the output is proportional to the fifth power of the input. It provides a
  * smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quintically eased output value.
  */
@@ -236,11 +225,10 @@ inline constexpr T ease_in_quint(T x)
 /**
  * @brief Quintic easing function (ease-out).
  *
- * This template function represents a quintic easing function (ease-out), where
+ * This function represents a quintic easing function (ease-out), where
  * the output is obtained by subtracting the fifth power of the inverted input from 1.
  * It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quintically eased output value.
  */
@@ -254,12 +242,11 @@ inline constexpr T ease_out_quint(T x)
 /**
  * @brief Quintic easing function (ease-in-out).
  *
- * This template function represents a quintic easing function (ease-in-out), where
+ * This function represents a quintic easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The quintically eased output value.
  */
@@ -282,11 +269,10 @@ inline constexpr T ease_in_out_quint(T x)
 /**
  * @brief Sine easing function (ease-in).
  *
- * This template function represents a sine easing function (ease-in), where
+ * This function represents a sine easing function (ease-in), where
  * the output is obtained by subtracting the cosine of the input multiplied by
  * pi/2 from 1. It provides a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The sine-eased output value.
  */
@@ -299,11 +285,10 @@ inline constexpr T ease_in_sine(T x)
 /**
  * @brief Sine easing function (ease-out).
  *
- * This template function represents a sine easing function (ease-out), where
+ * This function represents a sine easing function (ease-out), where
  * the output is obtained by taking the sine of the input multiplied by pi/2.
  * It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The sine-eased output value.
  */
@@ -316,12 +301,11 @@ inline constexpr T ease_out_sine(T x)
 /**
  * @brief Sine easing function (ease-in-out).
  *
- * This template function represents a sine easing function (ease-in-out), where
+ * This function represents a sine easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The sine-eased output value.
  */
@@ -336,12 +320,11 @@ inline constexpr T ease_in_out_sine(T x)
 /**
  * @brief Exponential easing function (ease-in).
  *
- * This template function represents an exponential easing function (ease-in), where
+ * This function represents an exponential easing function (ease-in), where
  * the output is obtained by raising 2 to the power of (10 * x - 10) for positive x,
  * and 0 for non-positive x. It provides a smooth acceleration at the beginning of
  * the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The exponentially eased output value.
  */
@@ -362,12 +345,11 @@ inline constexpr T ease_in_expo(T x)
 /**
  * @brief Exponential easing function (ease-out).
  *
- * This template function represents an exponential easing function (ease-out), where
+ * This function represents an exponential easing function (ease-out), where
  * the output is obtained by subtracting 2 to the power of (-10 * x) from 1 for x in
  * the range [0, 1], and 1 for x greater than or equal to 1. It provides a smooth
  * deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The exponentially eased output value.
  */
@@ -388,12 +370,11 @@ inline constexpr T ease_out_expo(T x)
 /**
  * @brief Exponential easing function (ease-in-out).
  *
- * This template function represents an exponential easing function (ease-in-out),
+ * This function represents an exponential easing function (ease-in-out),
  * where the output is a combination of the ease-in and ease-out behavior. It provides
  * a smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The exponentially eased output value.
  */
@@ -425,11 +406,10 @@ inline constexpr T ease_in_out_expo(T x)
 /**
  * @brief Circular easing function (ease-in).
  *
- * This template function represents a circular easing function (ease-in), where
+ * This function represents a circular easing function (ease-in), where
  * the output is obtained by subtracting the square root of (1 - x^2) from 1.
  * It provides a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The circularly eased output value.
  */
@@ -442,11 +422,10 @@ inline constexpr T ease_in_circ(T x)
 /**
  * @brief Circular easing function (ease-out).
  *
- * This template function represents a circular easing function (ease-out), where
+ * This function represents a circular easing function (ease-out), where
  * the output is obtained by taking the square root of (x * (2 - x)). It provides
  * a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The circularly eased output value.
  */
@@ -459,12 +438,11 @@ inline constexpr T ease_out_circ(T x)
 /**
  * @brief Circular easing function (ease-in-out).
  *
- * This template function represents a circular easing function (ease-in-out), where
+ * This function represents a circular easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The circularly eased output value.
  */
@@ -488,11 +466,10 @@ inline constexpr T ease_in_out_circ(T x)
 /**
  * @brief Back easing function (ease-in).
  *
- * This template function represents a back easing function (ease-in), where
+ * This function represents a back easing function (ease-in), where
  * the output is obtained by applying a cubic function with specific constants.
  * It provides a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The back-eased output value.
  */
@@ -508,11 +485,10 @@ inline constexpr T ease_in_back(T x)
 /**
  * @brief Back easing function (ease-out).
  *
- * This template function represents a back easing function (ease-out), where
+ * This function represents a back easing function (ease-out), where
  * the output is obtained by applying a cubic function with specific constants.
  * It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The back-eased output value.
  */
@@ -529,12 +505,11 @@ inline constexpr T ease_out_back(T x)
 /**
  * @brief Back easing function (ease-in-out).
  *
- * This template function represents a back easing function (ease-in-out), where
+ * This function represents a back easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The back-eased output value.
  */
@@ -561,11 +536,10 @@ inline constexpr T ease_in_out_back(T x)
 /**
  * @brief Elastic easing function (ease-in).
  *
- * This template function represents an elastic easing function (ease-in), where
+ * This function represents an elastic easing function (ease-in), where
  * the output is obtained by applying an elastic function with specific constants.
  * It provides a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The elastically eased output value.
  */
@@ -592,11 +566,10 @@ inline constexpr T ease_in_elastic(T x)
 /**
  * @brief Elastic easing function (ease-out).
  *
- * This template function represents an elastic easing function (ease-out), where
+ * This function represents an elastic easing function (ease-out), where
  * the output is obtained by applying an elastic function with specific constants.
  * It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The elastically eased output value.
  */
@@ -623,12 +596,11 @@ inline constexpr T ease_out_elastic(T x)
 /**
  * @brief Elastic easing function (ease-in-out).
  *
- * This template function represents an elastic easing function (ease-in-out), where
+ * This function represents an elastic easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The elastically eased output value.
  */
@@ -662,11 +634,10 @@ inline constexpr T ease_in_out_elastic(T x)
 /**
  * @brief Bounce easing function (ease-in).
  *
- * This template function represents a bounce easing function (ease-in), where
+ * This function represents a bounce easing function (ease-in), where
  * the output is obtained by subtracting the ease-out-bounce value from 1. It
  * provides a smooth acceleration at the beginning of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The bounced-eased output value.
  */
@@ -679,11 +650,10 @@ inline constexpr T ease_in_bounce(T x)
 /**
  * @brief Bounce easing function (ease-out).
  *
- * This template function represents a bounce easing function (ease-out), where
+ * This function represents a bounce easing function (ease-out), where
  * the output is obtained by applying a piecewise quadratic function with specific
  * constants. It provides a smooth deceleration at the end of the transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The bounced-eased output value.
  */
@@ -718,12 +688,11 @@ inline constexpr T ease_out_bounce(T x)
 /**
  * @brief Bounce easing function (ease-in-out).
  *
- * This template function represents a bounce easing function (ease-in-out), where
+ * This function represents a bounce easing function (ease-in-out), where
  * the output is a combination of the ease-in and ease-out behavior. It provides a
  * smooth acceleration at the beginning and a smooth deceleration at the end of the
  * transition.
  *
- * @tparam T The data type for which the easing is applied.
  * @param x The input value.
  * @return The bounced-eased output value.
  */

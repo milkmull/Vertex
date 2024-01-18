@@ -9,10 +9,11 @@ int main()
 {
     using namespace vx;
 
-    vec3 v3(2, 0, 0);
-    vec3 axis = vec3(0, 0, 1.5);
+    vec3f v3f(math::radians(30), math::radians(60), math::radians(90));
+    vec3i v3i;
+    vec3i v3i2(v3f);
 
-    std::cout << math::is_equal_approx(v3, v3)
+    std::cout << math::degrees(v3i2).to_string() << std::endl;
 
     return 0;
 }

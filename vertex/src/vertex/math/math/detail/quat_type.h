@@ -449,6 +449,9 @@ struct quat
 
     /**
      * @brief Calculates the inverse of this quaternion.
+     * 
+     * This function returns the inverse of this quaternion, effectively
+     * reversing the encoded rotation.
      *
      * @return The inverse of this quaternion.
      */

@@ -10,9 +10,8 @@ namespace math {
 /**
  * @brief Convert degrees to radians.
  *
- * This template function converts degrees to radians.
+ * This function converts degrees to radians.
  *
- * @tparam T The data type for which the conversion is performed.
  * @param deg The angle in degrees.
  * @return The equivalent angle in radians.
  */
@@ -26,7 +25,7 @@ inline constexpr T radians(T deg)
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
 inline constexpr detail::int_float_type radians(T deg)
 {
-    return math::radians(static_cast<detail::int_float_type>(deg));
+    return radians(static_cast<detail::int_float_type>(deg));
 }
 
 // =============== degrees ===============
@@ -34,9 +33,8 @@ inline constexpr detail::int_float_type radians(T deg)
 /**
  * @brief Convert radians to degrees.
  *
- * This template function converts radians to degrees.
+ * This function converts radians to degrees.
  *
- * @tparam T The data type for which the conversion is performed.
  * @param rad The angle in radians.
  * @return The equivalent angle in degrees.
  */
@@ -50,7 +48,7 @@ inline constexpr T degrees(T rad)
 template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
 inline constexpr detail::int_float_type degrees(T rad)
 {
-    return math::degrees(static_cast<detail::int_float_type>(rad));
+    return degrees(static_cast<detail::int_float_type>(rad));
 }
 
 // =============== sin ===============
@@ -58,9 +56,8 @@ inline constexpr detail::int_float_type degrees(T rad)
 /**
  * @brief Compute the sine of an angle.
  *
- * This template function computes the sine of the given angle.
+ * This function computes the sine of the given angle.
  *
- * @tparam T The data type for which the sine is computed.
  * @param x The angle in radians.
  * @return The sine of the angle.
  */
@@ -75,9 +72,8 @@ inline constexpr T sin(T x)
 /**
  * @brief Compute the cosine of an angle.
  *
- * This template function computes the cosine of the given angle.
+ * This function computes the cosine of the given angle.
  *
- * @tparam T The data type for which the cosine is computed.
  * @param x The angle in radians.
  * @return The cosine of the angle.
  */
@@ -92,9 +88,8 @@ inline constexpr T cos(T x)
 /**
  * @brief Compute the tangent of an angle.
  *
- * This template function computes the tangent of the given angle.
+ * This function computes the tangent of the given angle.
  *
- * @tparam T The data type for which the tangent is computed.
  * @param x The angle in radians.
  * @return The tangent of the angle.
  */
@@ -109,12 +104,11 @@ inline constexpr T tan(T x)
 /**
  * @brief Compute the arcsine of a value.
  *
- * This template function computes the arcsine of the given value.
+ * This function computes the arcsine of the given value.
  *
  * @note The input value should be in the range [-1, 1].
  * @note The output is in the range [-pi/2, pi/2].
  *
- * @tparam T The data type for which the arcsine is computed.
  * @param x The input value, should be in the range [-1, 1].
  * @return The arcsine of the input value, in radians.
  */
@@ -144,9 +138,8 @@ inline constexpr T asin_clamped(T x)
 /**
  * @brief Compute the arccosine of a value.
  *
- * This template function computes the arccosine of the given value.
+ * This function computes the arccosine of the given value.
  *
- * @tparam T The data type for which the arccosine is computed.
  * @param x The input value, within the range [-1, 1].
  * @return The arccosine of the input value, in radians.
  */

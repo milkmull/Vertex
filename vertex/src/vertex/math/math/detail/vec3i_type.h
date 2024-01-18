@@ -18,7 +18,7 @@ struct vec<3, T, vec_t::vec, val_t::integral>
 
 private:
 
-    using FT = typename detail::to_float_type<T>::type;
+    using FT = detail::int_float_type;
 
 public:
 
@@ -85,8 +85,8 @@ public:
         , y(static_cast<T>(vyz.x))
         , z(static_cast<T>(vyz.y)) {}
 
-    template <typename U>
-    inline constexpr explicit vec(const vecx<3, U>& v)
+    template <typename U, vec_t Q, val_t V>
+    inline constexpr explicit vec(const vec<3, U, Q, V>& v)
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}
