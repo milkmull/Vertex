@@ -10,257 +10,257 @@ namespace math {
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecf<2, T>& v1,
-    const detail::vecf<2, T>& v2,
+    const detail::vecf<2, T>& a,
+    const detail::vecf<2, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(v1.x, v2.x, epsilon)
-        && math::is_equal_approx(v1.y, v2.y, epsilon);
+    return math::is_equal_approx(a.x, b.x, epsilon)
+        && math::is_equal_approx(a.y, b.y, epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecf<3, T>& v1,
-    const detail::vecf<3, T>& v2,
+    const detail::vecf<3, T>& a,
+    const detail::vecf<3, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(v1.x, v2.x, epsilon)
-        && math::is_equal_approx(v1.y, v2.y, epsilon)
-        && math::is_equal_approx(v1.z, v2.z, epsilon);
+    return math::is_equal_approx(a.x, b.x, epsilon)
+        && math::is_equal_approx(a.y, b.y, epsilon)
+        && math::is_equal_approx(a.z, b.z, epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::vecf<4, T>& v1,
-    const detail::vecf<4, T>& v2,
+    const detail::vecf<4, T>& a,
+    const detail::vecf<4, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(v1.x, v2.x, epsilon)
-        && math::is_equal_approx(v1.y, v2.y, epsilon)
-        && math::is_equal_approx(v1.z, v2.z, epsilon)
-        && math::is_equal_approx(v1.w, v2.w, epsilon);
+    return math::is_equal_approx(a.x, b.x, epsilon)
+        && math::is_equal_approx(a.y, b.y, epsilon)
+        && math::is_equal_approx(a.z, b.z, epsilon)
+        && math::is_equal_approx(a.w, b.w, epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::col<T>& v1,
-    const detail::col<T>& v2,
+    const detail::col<T>& a,
+    const detail::col<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(v1.r, v2.r, epsilon)
-        && math::is_equal_approx(v1.g, v2.g, epsilon)
-        && math::is_equal_approx(v1.b, v2.b, epsilon)
-        && math::is_equal_approx(v1.a, v2.a, epsilon);
+    return math::is_equal_approx(a.r, b.r, epsilon)
+        && math::is_equal_approx(a.g, b.g, epsilon)
+        && math::is_equal_approx(a.b, b.b, epsilon)
+        && math::is_equal_approx(a.a, b.a, epsilon);
 }
 
 // =============== is_zero_approx ===============
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecf<2, T>& v,
+    const detail::vecf<2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_zero_approx(v.x, epsilon)
-        && math::is_zero_approx(v.y, epsilon);
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecf<3, T>& v,
+    const detail::vecf<3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_zero_approx(v.x, epsilon)
-        && math::is_zero_approx(v.y, epsilon)
-        && math::is_zero_approx(v.z, epsilon);
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon)
+        && math::is_zero_approx(x.z, epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::vecf<4, T>& v,
+    const detail::vecf<4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_zero_approx(v.x, , epsilon)
-        && math::is_zero_approx(v.y, , epsilon)
-        && math::is_zero_approx(v.z, , epsilon)
-        && math::is_zero_approx(v.w, , epsilon);
+    return math::is_zero_approx(x.x, , epsilon)
+        && math::is_zero_approx(x.y, , epsilon)
+        && math::is_zero_approx(x.z, , epsilon)
+        && math::is_zero_approx(x.w, , epsilon);
 }
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::col<T>& v,
+    const detail::col<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_zero_approx(v.r, epsilon)
-        && math::is_zero_approx(v.g, epsilon)
-        && math::is_zero_approx(v.b, epsilon)
-        && math::is_zero_approx(v.a, epsilon);
+    return math::is_zero_approx(x.r, epsilon)
+        && math::is_zero_approx(x.g, epsilon)
+        && math::is_zero_approx(x.b, epsilon)
+        && math::is_zero_approx(x.a, epsilon);
 }
 
 // =============== is_finite ===============
 
 template <typename T>
-inline constexpr bool is_finite(const detail::vecf<2, T>& v)
+inline constexpr bool is_finite(const detail::vecf<2, T>& x)
 {
-    return math::is_finite(v.x)
-        && math::is_finite(v.y);
+    return math::is_finite(x.x)
+        && math::is_finite(x.y);
 }
 
 template <typename T>
-inline constexpr bool is_finite(const detail::vecf<3, T>& v)
+inline constexpr bool is_finite(const detail::vecf<3, T>& x)
 {
-    return math::is_finite(v.x)
-        && math::is_finite(v.y)
-        && math::is_finite(v.z);
+    return math::is_finite(x.x)
+        && math::is_finite(x.y)
+        && math::is_finite(x.z);
 }
 
 template <typename T>
-inline constexpr bool is_finite(const detail::vecf<4, T>& v)
+inline constexpr bool is_finite(const detail::vecf<4, T>& x)
 {
-    return math::is_finite(v.x)
-        && math::is_finite(v.y)
-        && math::is_finite(v.z)
-        && math::is_finite(v.w);
+    return math::is_finite(x.x)
+        && math::is_finite(x.y)
+        && math::is_finite(x.z)
+        && math::is_finite(x.w);
 }
 
 template <typename T>
-inline constexpr bool is_finite(const detail::vec<4, T, detail::vec_t::col, detail::val_t::floating_point>& v)
+inline constexpr bool is_finite(const detail::col<T>& x)
 {
-    return math::is_finite(v.r)
-        && math::is_finite(v.g)
-        && math::is_finite(v.b)
-        && math::is_finite(v.a);
+    return math::is_finite(x.r)
+        && math::is_finite(x.g)
+        && math::is_finite(x.b)
+        && math::is_finite(x.a);
 }
 
 // =============== is_infinite ===============
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::vecf<2, T>& v)
+inline constexpr bool is_infinite(const detail::vecf<2, T>& x)
 {
-    return math::is_infinite(v.x)
-        || math::is_infinite(v.y);
+    return math::is_infinite(x.x)
+        || math::is_infinite(x.y);
 }
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::vecf<3, T>& v)
+inline constexpr bool is_infinite(const detail::vecf<3, T>& x)
 {
-    return math::is_infinite(v.x)
-        || math::is_infinite(v.y)
-        || math::is_infinite(v.z);
+    return math::is_infinite(x.x)
+        || math::is_infinite(x.y)
+        || math::is_infinite(x.z);
 }
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::vecf<4, T>& v)
+inline constexpr bool is_infinite(const detail::vecf<4, T>& x)
 {
-    return math::is_infinite(v.x)
-        || math::is_infinite(v.y)
-        || math::is_infinite(v.z)
-        || math::is_infinite(v.w);
+    return math::is_infinite(x.x)
+        || math::is_infinite(x.y)
+        || math::is_infinite(x.z)
+        || math::is_infinite(x.w);
 }
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::col<T>& v)
+inline constexpr bool is_infinite(const detail::col<T>& x)
 {
-    return math::is_infinite(v.r)
-        || math::is_infinite(v.g)
-        || math::is_infinite(v.b)
-        || math::is_infinite(v.a);
+    return math::is_infinite(x.r)
+        || math::is_infinite(x.g)
+        || math::is_infinite(x.b)
+        || math::is_infinite(x.a);
 }
 
 // =============== is_nan ===============
 
 template <typename T>
-inline constexpr bool is_nan(const detail::vecf<2, T>& v)
+inline constexpr bool is_nan(const detail::vecf<2, T>& x)
 {
-    return math::is_nan(v.x)
-        || math::is_nan(v.y);
+    return math::is_nan(x.x)
+        || math::is_nan(x.y);
 }
 
 template <typename T>
-inline constexpr bool is_nan(const detail::vecf<3, T>& v)
+inline constexpr bool is_nan(const detail::vecf<3, T>& x)
 {
-    return math::is_nan(v.x)
-        || math::is_nan(v.y)
-        || math::is_nan(v.z);
+    return math::is_nan(x.x)
+        || math::is_nan(x.y)
+        || math::is_nan(x.z);
 }
 
 template <typename T>
-inline constexpr bool is_nan(const detail::vecf<4, T>& v)
+inline constexpr bool is_nan(const detail::vecf<4, T>& x)
 {
-    return math::is_nan(v.x)
-        || math::is_nan(v.y)
-        || math::is_nan(v.z)
-        || math::is_nan(v.w);
+    return math::is_nan(x.x)
+        || math::is_nan(x.y)
+        || math::is_nan(x.z)
+        || math::is_nan(x.w);
 }
 
 template <typename T>
-inline constexpr bool is_nan(const detail::col<T>& v)
+inline constexpr bool is_nan(const detail::col<T>& x)
 {
-    return math::is_nan(v.r)
-        || math::is_nan(v.g)
-        || math::is_nan(v.b)
-        || math::is_nan(v.a);
+    return math::is_nan(x.r)
+        || math::is_nan(x.g)
+        || math::is_nan(x.b)
+        || math::is_nan(x.a);
 }
 
 // =============== round_if_close ===============
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::vecf<2, T>& v,
+    const detail::vecf<2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return detail::vecf<2, T>(
-        math::round_if_close(v.x, epsilon),
-        math::round_if_close(v.y, epsilon)
+        math::round_if_close(x.x, epsilon),
+        math::round_if_close(x.y, epsilon)
     );
 }
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::vecf<3, T>& v,
+    const detail::vecf<3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return detail::vecf<3, T>(
-        math::round_if_close(v.x, epsilon),
-        math::round_if_close(v.y, epsilon),
-        math::round_if_close(v.z, epsilon)
+        math::round_if_close(x.x, epsilon),
+        math::round_if_close(x.y, epsilon),
+        math::round_if_close(x.z, epsilon)
     );
 }
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::vecf<4, T>& v,
+    const detail::vecf<4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return detail::vecf<4, T>(
-        math::round_if_close(v.x, epsilon),
-        math::round_if_close(v.y, epsilon),
-        math::round_if_close(v.z, epsilon),
-        math::round_if_close(v.w, epsilon)
+        math::round_if_close(x.x, epsilon),
+        math::round_if_close(x.y, epsilon),
+        math::round_if_close(x.z, epsilon),
+        math::round_if_close(x.w, epsilon)
     );
 }
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::col<T>& v,
+    const detail::col<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return detail::col<T>(
-        math::round_if_close(v.r, epsilon),
-        math::round_if_close(v.g, epsilon),
-        math::round_if_close(v.b, epsilon),
-        math::round_if_close(v.a, epsilon)
+        math::round_if_close(x.r, epsilon),
+        math::round_if_close(x.g, epsilon),
+        math::round_if_close(x.b, epsilon),
+        math::round_if_close(x.a, epsilon)
     );
 }
 

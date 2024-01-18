@@ -12,7 +12,7 @@ int main()
     vec3 v3(2, 0, 0);
     vec3 axis = vec3(0, 0, 1.5);
 
-    std::cout << math::rotate(v3, axis, (float)math::radians(90)).to_string(true);
+    std::cout << math::is_equal_approx(v3, v3)
 
     return 0;
 }

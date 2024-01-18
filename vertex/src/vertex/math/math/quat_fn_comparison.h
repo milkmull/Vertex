@@ -10,62 +10,62 @@ namespace math {
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::quat<T>& q1,
-    const detail::quat<T>& q2,
+    const detail::quat<T>& a,
+    const detail::quat<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(q1.w, q2.w, epsilon)
-        && math::is_equal_approx(q1.x, q2.x, epsilon)
-        && math::is_equal_approx(q1.y, q2.y, epsilon)
-        && math::is_equal_approx(q1.z, q2.z, epsilon);
+    return math::is_equal_approx(a.w, b.w, epsilon)
+        && math::is_equal_approx(a.x, b.x, epsilon)
+        && math::is_equal_approx(a.y, b.y, epsilon)
+        && math::is_equal_approx(a.z, b.z, epsilon);
 }
 
 // =============== is_zero_approx ===============
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::quat<T>& v,
+    const detail::quat<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_equal_approx(q.w, epsilon)
-        && math::is_equal_approx(q.x, epsilon)
-        && math::is_equal_approx(q.y, epsilon)
-        && math::is_equal_approx(q.z, epsilon);
+    return math::is_equal_approx(x.w, epsilon)
+        && math::is_equal_approx(x.x, epsilon)
+        && math::is_equal_approx(x.y, epsilon)
+        && math::is_equal_approx(x.z, epsilon);
 }
 
 // =============== is_finite ===============
 
 template <typename T>
-inline constexpr bool is_finite(const detail::quat<T>& q)
+inline constexpr bool is_finite(const detail::quat<T>& x)
 {
-    return math::is_finite(q.w)
-        && math::is_finite(q.x)
-        && math::is_finite(q.y)
-        && math::is_finite(q.z);
+    return math::is_finite(x.w)
+        && math::is_finite(x.x)
+        && math::is_finite(x.y)
+        && math::is_finite(x.z);
 }
 
 // =============== is_infinite ===============
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::quat<T>& q)
+inline constexpr bool is_infinite(const detail::quat<T>& x)
 {
-    return math::is_infinite(q.w)
-        || math::is_infinite(q.x)
-        || math::is_infinite(q.y)
-        || math::is_infinite(q.z);
+    return math::is_infinite(x.w)
+        || math::is_infinite(x.x)
+        || math::is_infinite(x.y)
+        || math::is_infinite(x.z);
 }
 
 // =============== is_nan ===============
 
 template <typename T>
-inline constexpr bool is_nan(const detail::quat<T>& q)
+inline constexpr bool is_nan(const detail::quat<T>& x)
 {
-    return math::is_nan(q.w)
-        || math::is_nan(q.x)
-        || math::is_nan(q.y)
-        || math::is_nan(q.z);
+    return math::is_nan(x.w)
+        || math::is_nan(x.x)
+        || math::is_nan(x.y)
+        || math::is_nan(x.z);
 }
 
 }
