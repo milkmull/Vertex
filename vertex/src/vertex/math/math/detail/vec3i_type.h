@@ -35,6 +35,11 @@ public:
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(3); }
 
+    using iterator = detail::iterator<T>;
+    using const_iterator = detail::iterator<const T>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     // =============== data ===============
 
     T x, y, z;
@@ -588,86 +593,64 @@ public:
 
     // =============== iterator ===============
 
-    inline T* begin() noexcept
+    inline constexpr iterator begin() noexcept
     {
-        return &x;
+        return iterator(&x);
     }
 
-    inline const T* begin() const noexcept
+    inline constexpr const_iterator begin() const noexcept
     {
         return cbegin();
     }
 
-    inline T* end() noexcept
+    inline constexpr iterator end() noexcept
     {
-        return &z + 1;
+        return iterator(&z + 1);
     }
 
-    inline const T* end() const noexcept
+    inline constexpr const_iterator end() const noexcept
     {
         return cend();
     }
 
-    inline const T* cbegin() const noexcept
+    inline constexpr const_iterator cbegin() const noexcept
     {
-        return &x;
+        return const_iterator(&x);
     }
 
-    inline const T* cend() const noexcept
+    inline constexpr const_iterator cend() const noexcept
     {
-        return &z + 1;
+        return const_iterator(&z + 1);
     }
 
-    inline auto rbegin() noexcept
+    inline constexpr reverse_iterator rbegin() noexcept
     {
-        return std::reverse_iterator<T*>(&z + 1);
+        return reverse_iterator(&z + 1);
     }
 
-    inline const auto rbegin() const noexcept
+    inline constexpr const_reverse_iterator rbegin() const noexcept
     {
         return crbegin();
     }
 
-    inline auto rend() noexcept
+    inline constexpr reverse_iterator rend() noexcept
     {
-        return std::reverse_iterator<T*>(&x);
+        return reverse_iterator(&x);
     }
 
-    inline const auto rend() const noexcept
+    inline constexpr const_reverse_iterator rend() const noexcept
     {
         return crend();
     }
 
-    inline auto crbegin() const noexcept
+    inline constexpr const_reverse_iterator crbegin() const noexcept
     {
-        return std::reverse_iterator<const T*>(&z + 1);
+        return const_reverse_iterator(&z + 1);
     }
 
-    inline auto crend() const noexcept
+    inline constexpr const_reverse_iterator crend() const noexcept
     {
-        return std::reverse_iterator<const T*>(&x);
-    }
-
-    // =============== swizzle ===============
-
-    inline constexpr T swizzle(size_type i) const
-    {
-        return operator[](i);
-    }
-
-    inline constexpr vec2_type swizzle(size_type i, size_type j) const
-    {
-        return vec2_type(operator[](i), operator[](j));
-    }
-
-    inline constexpr type swizzle(size_type i, size_type j, size_type k) const
-    {
-        return type(operator[](i), operator[](j), operator[](k));
-    }
-
-    inline constexpr vec4_type swizzle(size_type i, size_type j, size_type k, size_type l) const
-    {
-        return vec4_type(operator[](i), operator[](j), operator[](k), operator[](l));
+        return const_reverse_iterator(&x);
     }
 
     // =============== string ===============

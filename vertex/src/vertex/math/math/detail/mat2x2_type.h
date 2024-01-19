@@ -37,6 +37,11 @@ struct mat<2, 2, T>
     static inline constexpr size_type width() noexcept { return static_cast<T>(2); }
     static inline constexpr size_type height() noexcept { return static_cast<T>(2); }
 
+    using iterator = detail::iterator<col_type>;
+    using const_iterator = detail::iterator<const col_type>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
     // =============== data ===============
 
     col_type columns[2];
@@ -368,64 +373,64 @@ struct mat<2, 2, T>
 
     // =============== iterator ===============
 
-    inline col_type* begin() noexcept
+    inline constexpr iterator begin() noexcept
     {
-        return &columns[0];
+        return iterator(&columns[0]);
     }
 
-    inline const col_type* begin() const noexcept
+    inline constexpr const_iterator begin() const noexcept
     {
         return cbegin();
     }
 
-    inline col_type* end() noexcept
+    inline constexpr iterator end() noexcept
     {
-        return &columns[1] + 1;
+        return iterator(&columns[1] + 1);
     }
 
-    inline const col_type* end() const noexcept
+    inline constexpr const_iterator end() const noexcept
     {
         return cend();
     }
 
-    inline const col_type* cbegin() const noexcept
+    inline constexpr const_iterator cbegin() const noexcept
     {
-        return &columns[0];
+        return const_iterator(&columns[0]);
     }
 
-    inline const col_type* cend() const noexcept
+    inline constexpr const_iterator cend() const noexcept
     {
-        return &columns[1] + 1;
+        return const_iterator(&columns[1] + 1);
     }
 
-    inline auto rbegin() noexcept
+    inline constexpr reverse_iterator rbegin() noexcept
     {
-        return std::reverse_iterator<col_type*>(&columns[1] + 1);
+        return reverse_iterator(&columns[1] + 1);
     }
 
-    inline const auto rbegin() const noexcept
+    inline constexpr const_reverse_iterator rbegin() const noexcept
     {
         return crbegin();
     }
 
-    inline auto rend() noexcept
+    inline constexpr reverse_iterator rend() noexcept
     {
-        return std::reverse_iterator<col_type*>(&columns[0]);
+        return reverse_iterator(&columns[0]);
     }
 
-    inline const auto rend() const noexcept
+    inline constexpr const_reverse_iterator rend() const noexcept
     {
         return crend();
     }
 
-    inline auto crbegin() const noexcept
+    inline constexpr const_reverse_iterator crbegin() const noexcept
     {
-        return std::reverse_iterator<const col_type*>(&columns[1] + 1);
+        return const_reverse_iterator(&columns[1] + 1);
     }
 
-    inline auto crend() const noexcept
+    inline constexpr const_reverse_iterator crend() const noexcept
     {
-        return std::reverse_iterator<const col_type*>(&columns[0]);
+        return const_reverse_iterator(&columns[0]);
     }
 
     // =============== string ===============
