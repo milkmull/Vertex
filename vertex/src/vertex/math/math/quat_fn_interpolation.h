@@ -31,7 +31,6 @@ inline constexpr detail::quat<T> lerp(
  * This function calculates the slerp interpolation between two quaternions 'x' and 'y'
  * based on the interpolation parameter 't'.
  *
- * @tparam T Element type of the quaternions.
  * @param x The starting quaternion.
  * @param y The target quaternion.
  * @param t Interpolation parameter in the range [0, 1].

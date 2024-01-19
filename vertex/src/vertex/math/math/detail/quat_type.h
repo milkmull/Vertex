@@ -475,14 +475,52 @@ struct quat
     inline constexpr void set(T nwxyz) { w = x = y = z = nwxyz; }
     inline constexpr void set(T nw, T nx, T ny, T nz) { w = nw;  x = nx; y = ny; z = nz; }
 
+    /**
+     * @brief Get the minimum component value of the quaternion.
+     *
+     * This function returns the minimum value between the components of the quaternion.
+     *
+     * @return The minimum component value.
+     */
     inline constexpr T min() const { return math::min({ w, x, y, z }); }
+
+    /**
+     * @brief Get the maximum component value of the quaternion.
+     *
+     * This function returns the maximum value between the components of the quaternion.
+     *
+     * @return The maximum component value.
+     */
     inline constexpr T max() const { return math::max({ w, x, y, z }); }
 
     // =============== magnitude ===============
 
+    /**
+     * @brief Calculates the squared magnitude of the quaternion.
+     *
+     * This function computes the squared magnitude of the quaternion.
+     *
+     * @return The squared length of the quaternion.
+     */
     inline constexpr T magnitude_squared() const { return (w * w) + (x * x) + (y * y) + (z * z); }
+
+    /**
+     * @brief Calculates the magnitude of the quaternion.
+     *
+     * This function computes the magnitude of the quaternion.
+     *
+     * @return The magnitude of the quaternion.
+     */
     inline constexpr T magnitude() const { return math::sqrt((w * w) + (x * x) + (y * y) + (z * z)); }
 
+    /**
+     * @brief Normalizes the quaternion.
+     *
+     * This function normalizes the quaternion.
+     *
+     * @return The normalized quaternion. If the length of the quaternion is 0,
+     * a zero quaternion will be returned.
+     */
     inline constexpr type normalize() const
     {
         const T magsq = magnitude_squared();

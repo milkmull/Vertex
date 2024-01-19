@@ -20,17 +20,17 @@ namespace math {
 /**
  * @brief Calculates the quaternion raised to the power of a scalar value.
  *
- * This function computes the result of a quaternion 'q' raised to the power of 'y'. The result is a new quaternion.
+ * This function computes the result of a quaternion 'q' raised to the power of 'x'. The result is a new quaternion.
  * Special cases:
  * - If the input quaternion is a zero quaternion (all components are zero), the result is a quaternion with zero components.
- * - If 'y' is 0, the result is a quaternion with all components set to NaN.
+ * - If 'x' is 0, the result is a quaternion with all components set to NaN.
  * 
  * @param q The input quaternion.
- * @param y The scalar exponent.
+ * @param x The scalar exponent.
  * @return The resulting quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T y)
+inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
 {
     using quat_type = detail::quat<T>;
     using vec3_type = detail::vecx<3, T>;
@@ -43,15 +43,15 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T y)
         // if q only has a real part, calculate the real part of the result
         if (q.w > static_cast<T>(0))
         {
-            return quat_type(math::pow(q.w, y), 0, 0, 0);
+            return quat_type(math::pow(q.w, x), 0, 0, 0);
         }
         if (q.w < static_cast<T>(0))
         {
-            return quat_type(math::pow(-q.w, y) * math::cos(y * math::pi<T>), 0, 0, 0);
+            return quat_type(math::pow(-q.w, x) * math::cos(x * math::pi<T>), 0, 0, 0);
         }
 
         // 0 ^ n
-        if (y != static_cast<T>(0))
+        if (x != static_cast<T>(0))
         {
             return quat_type(0, 0, 0, 0);
         }
@@ -71,8 +71,8 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T y)
     const T invqmag = static_cast<T>(1) / qmag;
 
     const T angle = math::acos_clamped(q.w * invqmag);
-    const T xangle = y * angle;
-    const T qmagx = math::pow(qmag, y);
+    const T xangle = x * angle;
+    const T qmagx = math::pow(qmag, x);
 
     const T r = qmagx * math::cos(xangle);
     const vec3_type i = qmagx * (v * invvmag) * math::sin(xangle);

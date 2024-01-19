@@ -255,6 +255,20 @@ inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
 }
 
 /**
+ * @brief Normalizes a vector.
+ *
+ * This function normalizes the input vector 'v' without checking if it is 0.
+ *
+ * @param v The vector to be normalized.
+ * @return The normalized vector.
+ */
+template <detail::length_type L, typename T, detail::vec_t Q>
+inline constexpr detail::vecf<L, T, Q> fast_normalize(const detail::vecf<L, T, Q>& v)
+{
+    return v * inverse_sqrt(length_squared(v));
+}
+
+/**
  * @brief Check if a vector is normalized.
  *
  * This function takes a vector and checks if it is normalized,
