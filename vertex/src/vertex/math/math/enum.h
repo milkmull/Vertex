@@ -4,39 +4,39 @@ namespace vx {
 
 enum class clock_direction
 {
-    clockwise,
-    counter_clockwise
+    CLOCKWISE,
+    COUNTER_CLOCKWISE
 };
 
 enum class handedness
 {
-    left,
-    right
+    LEFT,
+    RIGHT
 };
 
 namespace math {
 
 enum class anchor_point
 {
-    topleft,
-    midtop,
-    topright,
-    midright,
-    bottomright,
-    midbottom,
-    bottomleft,
-    midleft,
-    center
+    TOPLEFT,
+    MIDTOP,
+    TOPRIGHT,
+    MIDRIGHT,
+    BOTTOMRIGHT,
+    MIDBOTTOM,
+    BOTTOMLEFT,
+    MIDLEFT,
+    CENTER
 };
 
 enum class side
 {
-    left,
-    right,
-    top,
-    bottom,
-    front,
-    back
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM,
+    FRONT,
+    BACK
 };
 
 }
