@@ -703,6 +703,7 @@ struct quat
     // =============== constants ===============
 
     static inline constexpr type IDENTITY() { return type(); }
+    static inline constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
 
 };
 
