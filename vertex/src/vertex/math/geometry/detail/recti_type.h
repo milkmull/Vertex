@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sstream>
+
 #include "base_type_defs.h"
 #include "../../math/fn_common.h"
 #include "../../math/fn_comparison.h"
@@ -351,15 +353,57 @@ public:
 
     // =============== common getters ===============
 
+    /**
+     * @brief Get the minimum x-coordinate of the rectangle.
+     *
+     * @return The minimum x-coordinate value.
+     */
     inline constexpr T min_x() const { return math::min(positition.x, right()); }
+
+    /**
+     * @brief Get the maximum x-coordinate of the rectangle.
+     *
+     * @return The maximum x-coordinate value.
+     */
     inline constexpr T max_x() const { return math::max(positition.x, right()); }
 
+    /**
+     * @brief Get the minimum y-coordinate of the rectangle.
+     *
+     * @return The minimum y-coordinate value.
+     */
     inline constexpr T min_y() const { return math::min(positition.y, bottom()); }
+
+    /**
+     * @brief Get the maximum y-coordinate of the rectangle.
+     *
+     * @return The maximum y-coordinate value.
+     */
     inline constexpr T max_y() const { return math::max(positition.y, bottom()); }
 
+    /**
+     * @brief Get the aspect ratio of the rectangle.
+     *
+     * The aspect ratio is calculated as the ratio of width to height.
+     *
+     * @return The aspect ratio of the rectangle.
+     */
     inline constexpr FT aspect() const { return size.aspect(); }
+
+    /**
+     * @brief Calculate the area of the rectangle.
+     *
+     * @return The area of the rectangle.
+     */
     inline constexpr T area() const { return size.x * size.y; }
 
+    /**
+     * @brief Check if the rectangle has a positive area.
+     *
+     * This function determines whether both the width and height of the rectangle are greater than zero.
+     *
+     * @return True if the rectangle has a positive area, false otherwise.
+     */
     inline constexpr bool has_area() const
     {
         return size.x > static_cast<T>(0) && size.y > static_cast<T>(0);
@@ -373,6 +417,14 @@ public:
         size.set(width, height);
     }
 
+    /**
+     * @brief Create a normalized version of the rectangle.
+     *
+     * This function returns a new rectangle with non-negative width and height.
+     * If the original rectangle has negative width or height, the position and size are adjusted accordingly.
+     *
+     * @return A normalized rectangle.
+     */
     inline constexpr type normalize() const
     {
         type nr(*this);
@@ -393,16 +445,47 @@ public:
 
     // =============== transformations ===============
 
+    /**
+     * @brief Scale the rectangle uniformly by a scalar factor.
+     *
+     * This function scales the rectangle uniformly in both width and height by a specified scalar factor.
+     *
+     * @param s The scalar factor for scaling.
+     * @return A new rectangle scaled by the given factor.
+     */
     inline constexpr type scale(T s) const
     {
-        return scale(vec_type(s));
+        return type(
+            position,
+            size * s
+        );
     }
 
+    /**
+     * @brief Scale the rectangle independently in both width and height.
+     *
+     * This function scales the rectangle independently in width and height using the provided factors.
+     *
+     * @param sx The scaling factor for the width.
+     * @param sy The scaling factor for the height.
+     * @return A new rectangle scaled by the specified factors.
+     */
     inline constexpr type scale(T sx, T sy) const
     {
-        return scale(vec_type(sx, sy));
+        return type(
+            position,
+            vec_type(size.x * sx, size.y * sy)
+        );
     }
 
+    /**
+     * @brief Scale the rectangle using a vector of scaling factors.
+     *
+     * This function scales the rectangle using a vector of scaling factors for width and height.
+     *
+     * @param dv The vector of scaling factors.
+     * @return A new rectangle scaled by the specified vector.
+     */
     inline constexpr type scale(const vec_type& dv) const
     {
         return type(
@@ -411,11 +494,31 @@ public:
         );
     }
 
+    /**
+     * @brief Move the rectangle by specified displacements along both axes.
+     *
+     * This function moves the rectangle by the specified displacements along the x and y axes.
+     *
+     * @param dx The displacement along the x-axis.
+     * @param dy The displacement along the y-axis.
+     * @return A new rectangle moved by the specified displacements.
+     */
     inline constexpr type move(T dx, T dy) const
     {
-        return move(vec_type(dx, dy));
+        return type(
+            vec_type(position.x + dx, position.y + dy),
+            size
+        );
     }
 
+    /**
+     * @brief Move the rectangle by a vector of displacements.
+     *
+     * This function moves the rectangle by the specified vector of displacements.
+     *
+     * @param dv The vector of displacements.
+     * @return A new rectangle moved by the specified vector.
+     */
     inline constexpr type move(const vec_type& dv) const
     {
         return type(
@@ -424,11 +527,31 @@ public:
         );
     }
 
+    /**
+     * @brief Inflate the rectangle by specified amounts along both axes.
+     *
+     * This function inflates the rectangle by the specified amounts along the x and y axes.
+     *
+     * @param ix The amount to inflate the rectangle's width.
+     * @param iy The amount to inflate the rectangle's height.
+     * @return A new rectangle inflated by the specified amounts.
+     */
     inline constexpr type inflate(T ix, T iy) const
     {
-        return inflate(vec_type(ix, iy));
+        return type(
+            vec_type(position.x - ix, position.y - iy),
+            vec_type(size.x + static_cast<T>(2) * ix, size.y + static_cast<T>(2) * iy)
+        );
     }
 
+    /**
+     * @brief Inflate the rectangle by a vector of amounts.
+     *
+     * This function inflates the rectangle by the specified vector of amounts.
+     *
+     * @param iv The vector of amounts to inflate the rectangle.
+     * @return A new rectangle inflated by the specified vector of amounts.
+     */
     inline constexpr type inflate(const vec_type& iv) const
     {
         return type(
@@ -437,6 +560,14 @@ public:
         );
     }
 
+    /**
+     * @brief Crop 'r' inside of this rectangle.
+     *
+     * This function crops the specified rectangle 'r' based on the current rectangle.
+     *
+     * @param r The rectangle to be cropped using the current rectangle as the cropping region.
+     * @return A new rectangle representing the cropped region within the specified rectangle.
+     */
     inline constexpr type crop(const type& r) const
     {
         const T nl = math::clamp(r.position.x, position.x, right());
@@ -453,6 +584,15 @@ public:
         );
     }
 
+    /**
+     * @brief Merge two rectangles to create a new rectangle containing both.
+     *
+     * This static function merges two rectangles, creating a new rectangle that contains both input rectangles.
+     *
+     * @param r1 The first rectangle to be merged.
+     * @param r2 The second rectangle to be merged.
+     * @return A new rectangle containing both input rectangles.
+     */
     static inline constexpr type merge(const type& r1, const type& r2)
     {
         const T nl = math::min(r1.position.x, r2.position.x);
@@ -469,6 +609,17 @@ public:
         );
     }
 
+    /**
+     * @brief Grow the sides of the rectangle by specified amounts.
+     *
+     * This function expands the sides of the rectangle by the specified amounts for left, right, bottom, and top.
+     *
+     * @param left The amount to grow the left side of the rectangle.
+     * @param right The amount to grow the right side of the rectangle.
+     * @param bottom The amount to grow the bottom side of the rectangle.
+     * @param top The amount to grow the top side of the rectangle.
+     * @return A new rectangle with its sides grown by the specified amounts.
+     */
     inline constexpr type grow_sides(T left, T right, T bottom, T top) const
     {
         return type(
@@ -479,6 +630,14 @@ public:
         );
     }
 
+    /**
+     * @brief Expand the rectangle to include a specified point.
+     *
+     * This function expands the rectangle to ensure it includes the specified point 'p'.
+     *
+     * @param p The point to include in the expanded rectangle.
+     * @return A new rectangle expanded to include the specified point.
+     */
     inline constexpr type expand_to(const vec_type& p) const
     {
         const T nl = math::min(position.x, p.x);
@@ -497,7 +656,15 @@ public:
 
     // =============== collision ===============
 
-    inline constexpr bool collide(const type& r)
+    /**
+     * @brief Check if the current rectangle collides with another rectangle.
+     *
+     * This function checks whether the current rectangle collides with the specified rectangle 'r'.
+     *
+     * @param r The rectangle to check for collision.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(const type& r) const
     {
         return position.x < r.position.x + r.size.x
             && position.x + size.x > r.position.x
@@ -505,10 +672,17 @@ public:
             && position.y + size.y > r.position.y;
     }
 
-    inline constexpr bool collide(
-        const type& r,
-        bool include_borders
-    )
+    /**
+     * @brief Check if the current rectangle collides with another rectangle.
+     *
+     * This function checks whether the current rectangle collides with the specified rectangle 'r'.
+     * The 'include_borders' parameter determines whether to include borders in the collision check.
+     *
+     * @param r The rectangle to check for collision.
+     * @param include_borders If true, include borders in the collision check.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(const type& r, bool include_borders) const
     {
         if (!include_borders) return collide(r);
         return position.x <= r.position.x + r.size.x
@@ -517,7 +691,15 @@ public:
             && position.y + size.y >= r.position.y;
     }
 
-    inline constexpr bool collide(const vec_type& p)
+    /**
+     * @brief Check if a point collides with the current rectangle.
+     *
+     * This function checks whether the specified point 'p' collides with the current rectangle.
+     *
+     * @param p The point to check for collision.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(const vec_type& p) const
     {
         return position.x < p.x
             && position.x + size.x > p.x
@@ -525,10 +707,17 @@ public:
             && position.y + size.y > p.y;
     }
 
-    inline constexpr bool collide(
-        const vec_type& p,
-        bool include_borders
-    )
+    /**
+     * @brief Check if a point collides with the current rectangle.
+     *
+     * This function checks whether the specified point 'p' collides with the current rectangle.
+     * The 'include_borders' parameter determines whether to include borders in the collision check.
+     *
+     * @param p The point to check for collision.
+     * @param include_borders If true, include borders in the collision check.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(const vec_type& p, bool include_borders) const
     {
         if (!include_borders) return collide(p);
         return position.x <= p.x
@@ -537,14 +726,51 @@ public:
             && position.y + size.y >= p.y;
     }
 
-    inline constexpr bool collide(
-        T x, T y,
-        bool include_borders
-    )
+    /**
+     * @brief Check if a point collides with the current rectangle.
+     *
+     * This function checks whether the point specified by coordinates 'x' and 'y' collides with the current rectangle.
+     *
+     * @param x The x-coordinate of the point to check.
+     * @param y The y-coordinate of the point to check.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(T x, T y) const
     {
-        return collide(vec_type(x, y), include_borders);
+        return position.x < x
+            && position.x + size.x > x
+            && position.y < y
+            && position.y + size.y > y;
     }
 
+    /**
+     * @brief Check if a point collides with the current rectangle.
+     *
+     * This function checks whether the point specified by coordinates 'x' and 'y' collides with the current rectangle.
+     * The 'include_borders' parameter determines whether to include borders in the collision check.
+     *
+     * @param x The x-coordinate of the point to check.
+     * @param y The y-coordinate of the point to check.
+     * @param include_borders If true, include borders in the collision check.
+     * @return True if collision occurs, false otherwise.
+     */
+    inline constexpr bool collide(T x, T y, bool include_borders) const
+    {
+        if (!include_borders) return collide(x, y);
+        return position.x <= x
+            && position.x + size.x >= x
+            && position.y <= y
+            && position.y + size.y >= y;
+    }
+
+    /**
+     * @brief Check if the current rectangle contains another rectangle.
+     *
+     * This function checks whether the current rectangle contains the specified rectangle 'r' entirely.
+     *
+     * @param r The rectangle to check for containment.
+     * @return True if the current rectangle contains the specified rectangle, false otherwise.
+     */
     inline constexpr bool contains(const type& r) const
     {
         return position.x < r.position.x
@@ -553,6 +779,16 @@ public:
             && position.y + size.y > r.position.y + r.size.y;
     }
 
+    /**
+     * @brief Check if the current rectangle contains another rectangle.
+     *
+     * This function checks whether the current rectangle contains the specified rectangle 'r' entirely.
+     * The 'include_borders' parameter determines whether to include borders in the containment check.
+     *
+     * @param r The rectangle to check for containment.
+     * @param include_borders If true, include borders in the containment check.
+     * @return True if the current rectangle contains the specified rectangle, false otherwise.
+     */
     inline constexpr bool contains(const type& r, bool include_borders) const
     {
         if (!include_borders) return contains(r);

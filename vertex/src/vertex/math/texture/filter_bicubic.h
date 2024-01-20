@@ -83,7 +83,7 @@ inline constexpr void filter_bicubic(
         {
             static_cast<F>(0.5) * (-ttty + static_cast<F>(2) * tty - ty),
             static_cast<F>(0.5) * (static_cast<F>(3) * ttty - static_cast<F>(5) * tty + static_cast<F>(2)),
-            static_cast<F>(0.5) * (-static_cast<F>(3) * ttty + static_cast<F>(4) * tty + ty),
+            static_cast<F>(0.5) * (static_cast<F>(-3) * ttty + static_cast<F>(4) * tty + ty),
             static_cast<F>(0.5) * (ttty - tty)
         };
 
@@ -105,7 +105,7 @@ inline constexpr void filter_bicubic(
             {
                 static_cast<F>(0.5) * (-tttx + static_cast<F>(2) * ttx - tx),
                 static_cast<F>(0.5) * (static_cast<F>(3) * tttx - static_cast<F>(5) * ttx + static_cast<F>(2)),
-                static_cast<F>(0.5) * (-static_cast<F>(3) * tttx + static_cast<F>(4) * ttx + tx),
+                static_cast<F>(0.5) * (static_cast<F>(-3) * tttx + static_cast<F>(4) * ttx + tx),
                 static_cast<F>(0.5) * (tttx - ttx)
             };
 
