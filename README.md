@@ -58,7 +58,7 @@ Sandbox is an easy way to get started playing around with features without havin
 
 ## Installation
 
-Installation is not currently supported.
+coming soon
 
 # Vertex Math
 
