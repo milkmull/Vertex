@@ -1,53 +1,29 @@
+#include <vertex/math/math.h>
 #include <iostream>
-#include <map>
-
-#include "vertex/math/math.h"
-#include "vertex/math/random/rng.h"
-
-#ifdef VX_PLATFORM_WINDOWS
 
 int main()
 {
-    using namespace vx;
+    // Create vectors
+    vx::vec2 v2(1.0f, 2.0f);
+    vx::vec3 v3(1.0f, 2.0f, 3.0f);
+    vx::vec4 v4(1.0f, 2.0f, 3.0f, 4.0f);
 
-    math::rng rng;
+    // Print vector
+    std::cout << v2.to_string() << std::endl;
 
-    std::vector<int> choices;
-    std::vector<int> weights;
-    std::map<int, int> tally;
+    // Normalize vector
+    v2 = vx::math::normalize(v2);
 
-    for (int i = 0; i < 10; i++)
+    // See if the magnitude is 1.
+    if (vx::math::is_equal_approx(v2.magnitude(), 1.0f))
     {
-        choices.push_back(i);
-        weights.push_back(i);
-
-        tally[i] = 0;
+        std::cout << "vector " << v2.to_string() << " is normalized." << std::endl;
     }
 
-    math::weights w = weights;
-
-    std::vector<int> choices_out(1000);
-    rng.weighted_choices(choices.begin(), choices.end(), choices_out.begin(), choices_out.end(), w);
-
-    for (int x : choices_out)
+    // Check for approximate equallity
+    vx::vec3 v32 = v3 + 0.000001f;
+    if (vx::math::is_equal_approx(v3, v32))
     {
-        tally[x]++;
+        std::cout << v3.to_string() << " and " << v32.to_string() << " are approximately equal." << std::endl;
     }
-
-
-    //for (int i = 0; i < 1000; i++)
-    //{
-    //    int x = rng.weighted_choice(choices.begin(), choices.end(), w);
-    //    tally[x]++;
-    //}
-
-    for (auto pair : tally)
-    {
-        std::cout << pair.first << ' ' << pair.second << std::endl;
-    }
-
-
-    return 0;
 }
-
-#endif // VX_WINDOWS

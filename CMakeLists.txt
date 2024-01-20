@@ -26,12 +26,15 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_definitions(VX_PLATFORM_WINDOWS)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_definitions(VX_PLATFORM_LINUX)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_compile_definitions(VX_PLATFORM_MACOS)
 endif()
 
 # Configuration options
-set(VX_BUILD_SANDBOX ${VX_MAIN_PROJECT} CACHE BOOL "Build Sandbox")
+set(VX_BUILD_SHARED_LIBS OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Shared Libraries")
+set(VX_BUILD_EXAMPLES OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Examples")
+set(VX_BUILD_TESTS OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Tests")
+set(VX_BUILD_SANDBOX ON ${VX_MAIN_PROJECT} CACHE BOOL "Build Sandbox")
 
 # Output
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/bin/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR})
