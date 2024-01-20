@@ -15,18 +15,6 @@ enum class vec_t
     col,	// color
 };
 
-enum class val_t
-{
-    integral,
-    floating_point
-};
-
-template <typename T>
-struct value_type_selector
-{
-    static constexpr val_t value = std::is_integral<T>::value ? val_t::integral : val_t::floating_point;
-};
-
 // =============== types ===============
 
 template <length_type L, typename T, vec_t Q, val_t V = value_type_selector<T>::value> struct vec {};
