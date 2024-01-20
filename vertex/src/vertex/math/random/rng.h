@@ -2,9 +2,8 @@
 
 #include <random>
 #include <chrono>
-#include <cassert>
 
-#include "detail/type_traits.h"
+#include "weights.h"
 
 namespace vx {
 namespace math {
@@ -149,7 +148,7 @@ public:
      * @param begin Iterator to the beginning of the range.
      * @param end Iterator to the end of the range.
      */
-    template <typename IT, std::enable_if_t<detail::is_iterator<IT>::value, bool> = true>
+    template <typename IT, std::enable_if_t<vx::detail::is_iterator<IT>::value, bool> = true>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
@@ -162,7 +161,7 @@ public:
      * @param last Iterator to the end of the range.
      * @return A reference to the randomly selected element.
      */
-    template <typename IT, std::enable_if_t<detail::is_iterator<IT>::value, bool> = true>
+    template <typename IT, std::enable_if_t<::vx::detail::is_iterator<IT>::value, bool> = true>
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
@@ -190,8 +189,8 @@ public:
      */
     template <typename IT1, typename IT2,
         std::enable_if_t<
-        detail::is_iterator<IT1>::value &&
-        detail::is_iterator<IT2>::value,
+        ::vx::detail::is_iterator<IT1>::value &&
+        ::vx::detail::is_iterator<IT2>::value,
         bool> = true>
     inline IT2 choices(
         IT1 first1,
@@ -215,6 +214,93 @@ public:
         {
             IT1 it = first1;
             const diff_type j = dist(m_rng);
+
+            std::advance(it, j);
+            *first2++ = *it;
+        }
+
+        return first2;
+    }
+
+    /**
+     * @brief Chooses a single element from the specified range based on weights.
+     * 
+     * @param first Iterator to the beginning of the range.
+     * @param last Iterator to the end of the range.
+     * @param w Weights object specifying the weights for each element.
+     * @return A const reference to the selected element.
+     */
+    template <typename IT, std::enable_if_t<::vx::detail::is_iterator<IT>::value, bool> = true>
+    inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
+        IT first,
+        IT last,
+        const weights& w
+    )
+    {
+        using diff_type = typename std::iterator_traits<IT>::difference_type;
+        using choice_type = typename std::iterator_traits<IT>::value_type;
+        using weight_type = typename weights::weight_type;
+
+        assert(first != last);
+
+        const diff_type size = std::distance(first, last);
+
+        assert(size == w.size());
+
+        std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
+        const weight_type r = dist(m_rng);
+        auto it = std::upper_bound(w.begin(), w.end(), r);
+
+        const diff_type i = std::distance(w.begin(), it);
+        std::advance(first, i);
+
+        return *first;
+    }
+
+    /**
+     * @brief Chooses multiple elements from one range and assigns them to another range based on weights.
+     * 
+     * @param first1 Iterator to the beginning of the source range.
+     * @param last1 Iterator to the end of the source range.
+     * @param first2 Iterator to the beginning of the destination range.
+     * @param last2 Iterator to the end of the destination range.
+     * @param w Weights object specifying the weights for each element.
+     * @return Iterator pointing to the end of the destination range after assignment.
+     */
+    template <typename IT1, typename IT2,
+        std::enable_if_t<
+        ::vx::detail::is_iterator<IT1>::value &&
+        ::vx::detail::is_iterator<IT2>::value,
+        bool> = true>
+    inline IT2 weighted_choices(
+        IT1 first1,
+        IT1 last1,
+        IT2 first2,
+        IT2 last2,
+        const weights& w
+    )
+    {
+        using diff_type = typename std::iterator_traits<IT1>::difference_type;
+        using choice_type = typename std::iterator_traits<IT1>::value_type;
+        using weight_type = typename weights::weight_type;
+
+        assert(first1 != last1);
+        assert(first2 != last2);
+
+        const diff_type size1 = std::distance(first1, last1);
+        const diff_type size2 = std::distance(first2, last2);
+
+        assert(size1 == w.size());
+
+        std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
+
+        for (diff_type i = 0; i < size2; i++)
+        {
+            const weight_type r = dist(m_rng);
+            auto wit = std::upper_bound(w.begin(), w.end(), r);
+
+            IT1 it = first1;
+            const diff_type j = std::distance(w.begin(), wit);;
 
             std::advance(it, j);
             *first2++ = *it;

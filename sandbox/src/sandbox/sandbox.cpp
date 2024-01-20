@@ -1,7 +1,8 @@
 #include <iostream>
+#include <map>
 
 #include "vertex/math/math.h"
-#include "vertex/math/geometry/rect.h"
+#include "vertex/math/random/rng.h"
 
 #ifdef VX_PLATFORM_WINDOWS
 
@@ -9,11 +10,42 @@ int main()
 {
     using namespace vx;
 
-    rect2 r1;
-    rect2i r1i = rect2i::ZERO();
-    rect2 r2(r1i);
+    math::rng rng;
 
-    std::cout << math::is_equal_approx(r1, r2) << std::endl;
+    std::vector<int> choices;
+    std::vector<int> weights;
+    std::map<int, int> tally;
+
+    for (int i = 0; i < 10; i++)
+    {
+        choices.push_back(i);
+        weights.push_back(i);
+
+        tally[i] = 0;
+    }
+
+    math::weights w = weights;
+
+    std::vector<int> choices_out(1000);
+    rng.weighted_choices(choices.begin(), choices.end(), choices_out.begin(), choices_out.end(), w);
+
+    for (int x : choices_out)
+    {
+        tally[x]++;
+    }
+
+
+    //for (int i = 0; i < 1000; i++)
+    //{
+    //    int x = rng.weighted_choice(choices.begin(), choices.end(), w);
+    //    tally[x]++;
+    //}
+
+    for (auto pair : tally)
+    {
+        std::cout << pair.first << ' ' << pair.second << std::endl;
+    }
+
 
     return 0;
 }
