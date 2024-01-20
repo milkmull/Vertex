@@ -3,10 +3,10 @@
 Vertex is a C++ game development framework that provides essential building blocks for developing games.
 Vertex comes with many helpful tools:
 * Math library including essential functions and structures for 2D and 3D development such as vectors, quaternions, and matrices.
-* (comming soon) Image library for image io and manipulation oprtations.
-* (comming soon) Logging and profiling tools to help streamline the development process.
-* (comming soon) Windowing tools for cross platform window generation and input handling with GLSL backend.
-* (comming soon) Cross platform graphcs api with support for both Vulkan and OpenGL backend.
+* (coming soon) Image library for image io and manipulation oprtations.
+* (coming soon) Logging and profiling tools to help streamline the development process.
+* (coming soon) Windowing tools for cross platform window generation and input handling with GLSL backend.
+* (coming soon) Cross platform graphcs api with support for both Vulkan and OpenGL backend.
 
 ## Getting Started
 
@@ -79,23 +79,23 @@ int main()
     vx::vec3 v3(1.0f, 2.0f, 3.0f);
     vx::vec4 v4(1.0f, 2.0f, 3.0f, 4.0f);
 
-	// Print vector
-	std::cout << v2.to_string() << std::endl;
+    // Print vector
+    std::cout << v2.to_string() << std::endl;
 
-	// Normalize vector
-	v2 = vx::math::normalize(v2);
+    // Normalize vector
+    v2 = vx::math::normalize(v2);
 
-	// See if the magnitude is 1.
-	if (vx::math::is_equal_approx(v2.magnitude(), 1.0f))
-	{
-		std::cout << "vector " << v2.to_string() << " is normalized." << std::endl;
-	}
+    // See if the magnitude is 1.
+    if (vx::math::is_equal_approx(v2.magnitude(), 1.0f))
+    {
+        std::cout << "vector " << v2.to_string() << " is normalized." << std::endl;
+    }
 
-	// Check for approximate equallity
-	vx::vec3 v32 = v3 + 0.000001f;
-	if (vx::math::is_equal_approx(v3, v32))
-	{
-		std::cout << v3.to_string() << " and " << v32.to_string() << " are approximately equal." << std::endl;
-	}
+    // Check for approximate equallity
+    vx::vec3 v32 = v3 + 0.000001f;
+    if (vx::math::is_equal_approx(v3, v32))
+    {
+        std::cout << v3.to_string() << " and " << v32.to_string() << " are approximately equal." << std::endl;
+    }
 }
 ```
