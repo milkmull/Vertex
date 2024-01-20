@@ -28,8 +28,8 @@ cd Vertex
 Create a build directory and run CMake to configure and build the project:
 
 ```bash
-cmake -DVX_BUILD_SANDBOX=ON -B build .
-cmake --build build
+cmake -DVX_BUILD_SANDBOX=ON -B ./build ./
+cmake --build ./build
 ```
 
 #### CMake Parameters
@@ -97,5 +97,18 @@ int main()
     {
         std::cout << v3.to_string() << " and " << v32.to_string() << " are approximately equal." << std::endl;
     }
+
+    // Math operations
+    v4 += 5.0f;
+    v4 -= 20.0f;
+    v4 *= 0.5f;
+    v4 /= 1.2f;
+
+    vx::vec4 v42(v2, v2);
+
+    v4 += v42;
+    v4 -= v42;
+    v4 *= v42;
+	v4 /= v42;
 }
 ```
