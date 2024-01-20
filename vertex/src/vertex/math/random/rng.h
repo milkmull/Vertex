@@ -9,7 +9,7 @@
 namespace vx {
 namespace math {
 
-// For now, rng results may varry accross platforms due to floating point math
+// For now, rng results may varry accross platforms due to implimentation differences
 
 /**
  * @class rng
