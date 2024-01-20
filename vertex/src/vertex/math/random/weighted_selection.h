@@ -7,12 +7,29 @@
 namespace vx {
 namespace math {
 
+/**
+ * @class weighted_selection
+ * @brief Class for weighted random selection from a range.
+ *
+ * The weighted_selection class allows for weighted random selection from a range of elements.
+ * It supports both single and multiple selections with weights provided during construction.
+ */
 class weighted_selection
 {
 public:
 
     using weight_type = double;
 
+    // =============== constructors ===============
+
+    /**
+     * @brief Constructor with weights range.
+     * 
+     * Initializes the class with weights and computes cumulative weights for efficient selection.
+     * 
+     * @param wfirst Iterator to the beginning of the weights range.
+     * @param wlast Iterator to the end of the weights range.
+     */
     template <typename IT,
         std::enable_if_t<
         detail::is_iterator<IT>::value &&
@@ -28,16 +45,30 @@ public:
     weighted_selection(const weighted_selection&) = default;
     weighted_selection(weighted_selection&&) noexcept = default;
 
+    // =============== destructor ===============
+
     ~weighted_selection() = default;
+
+    // =============== assignment ===============
 
     weighted_selection& operator=(const weighted_selection&) = default;
     weighted_selection& operator=(weighted_selection&&) noexcept = default;
 
+    // =============== container operations ===============
+
+    /**
+     * @brief Chooses a single element from the specified range based on weights.
+     * 
+     * @param first Iterator to the beginning of the range.
+     * @param last Iterator to the end of the range.
+     * @param gen Reference to the RNG for random number generation.
+     * @return A const reference to the selected element.
+     */
     template <typename IT, std::enable_if_t<detail::is_iterator<IT>::value, bool> = true>
     inline const typename std::iterator_traits<IT>::value_type& choice(
-        rng& gen,
         IT first,
-        IT last
+        IT last,
+        rng& gen
     ) const
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
@@ -58,17 +89,27 @@ public:
         return *first;
     }
 
+    /**
+     * @brief Chooses multiple elements from one range and assigns them to another range based on weights.
+     * 
+     * @param first1 Iterator to the beginning of the source range.
+     * @param last1 Iterator to the end of the source range.
+     * @param first2 Iterator to the beginning of the destination range.
+     * @param last2 Iterator to the end of the destination range.
+     * @param gen Reference to the RNG for random number generation.
+     * @return Iterator pointing to the end of the destination range after assignment.
+     */
     template <typename IT1, typename IT2,
         std::enable_if_t<
         detail::is_iterator<IT1>::value &&
         detail::is_iterator<IT2>::value,
         bool> = true>
     inline IT2 choices(
-        rng& gen,
         IT1 first1,
         IT1 last1,
         IT2 first2,
-        IT2 last2
+        IT2 last2,
+        rng& gen
     ) const
     {
         using diff_type = typename std::iterator_traits<IT1>::difference_type;
