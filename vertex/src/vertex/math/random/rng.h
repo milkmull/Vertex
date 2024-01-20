@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cassert>
 
+#include "detail/type_traits.h"
+
 namespace vx {
 namespace math {
 
@@ -62,14 +64,14 @@ public:
 	}
 
 	template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
-	inline constexpr T randi_range(T min, T max)
+	inline T randi_range(T min, T max)
 	{
 		std::uniform_int_distribution<T> dist(min, max);
 		return dist(m_rng);
 	}
 
 	template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
-	inline constexpr T randf_range(T min, T max)
+	inline T randf_range(T min, T max)
 	{
 		std::uniform_real_distribution<T> dist(min, max);
 		return dist(m_rng);
@@ -84,102 +86,62 @@ public:
 
 	// =============== container operations ===============
 
-	template <typename IT>
-	inline constexpr void shuffle(IT begin, IT end)
+	template <typename IT, std::enable_if_t<detail::is_iterator<IT>::value, bool> = true>
+	inline void shuffle(IT begin, IT end)
 	{
 		std::shuffle(begin, end, m_rng);
 	}
 
-	template <typename IT>
-	inline constexpr typename std::iterator_traits<IT>::value_type choice(IT begin, IT end)
+	template <typename IT, std::enable_if_t<detail::is_iterator<IT>::value, bool> = true>
+	inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
 	{
-		using diff_t = typename std::iterator_traits<IT>::difference_type;
-		assert(begin != end);
+		using diff_type = typename std::iterator_traits<IT>::difference_type;
+        using choice_type = typename std::iterator_traits<IT>::value_type;
 
-		const diff_t size = std::distance(begin, end);
-		std::uniform_int_distribution<diff_t> dist(0, size - 1);
+        assert(first != last);
 
-		const diff_t i = dist(m_rng);
-		std::advance(begin, i);
+		const diff_type size = std::distance(first, last);
+		std::uniform_int_distribution<diff_type> dist(0, size - 1);
 
-		return *begin;
+		const diff_type i = dist(m_rng);
+		std::advance(first, i);
+
+		return *first;
 	}
 
-	template <typename IT>
-	inline constexpr std::vector<typename std::iterator_traits<IT>::value_type> choices(
-		IT begin,
-		IT end,
-		size_t k
-	)
+    template <typename IT1, typename IT2,
+        std::enable_if_t<
+        detail::is_iterator<IT1>::value &&
+        detail::is_iterator<IT2>::value,
+        bool> = true>
+    inline IT2 choices(
+        IT1 first1,
+        IT1 last1,
+        IT2 first2,
+        IT2 last2
+    )
 	{
-		using diff_t = typename std::iterator_traits<IT>::difference_type;
-		assert(begin != end);
+		using diff_type = typename std::iterator_traits<IT1>::difference_type;
+        using choice_type = typename std::iterator_traits<IT1>::value_type;
 
-		const diff_t size = std::distance(begin, end);
-		std::uniform_int_distribution<diff_t> dist(
-			static_cast<diff_t>(0),
-			size - static_cast<diff_t>(1)
-		);
+        assert(first1 != last1);
+        assert(first2 != last2);
 
-		std::vector<typename std::iterator_traits<IT>::value_type> choices;
-		choices.reserve(k);
+        const diff_type size1 = std::distance(first1, last1);
+        const diff_type size2 = std::distance(first2, last2);
 
-		for (size_t i = 0; i < k; i++)
+        std::uniform_int_distribution<diff_type> dist(0, size1 - 1);
+
+		for (diff_type i = 0; i < size2; i++)
 		{
-			IT it = begin;
-			const diff_t j = dist(m_rng);
+			IT1 it = first1;
+			const diff_type j = dist(m_rng);
 
 			std::advance(it, j);
-			choices.push_back(*it);
+            *first2++ = *it;
 		}
 
-		return choices;
-	}
-
-	template <typename IT, typename WIT>
-	inline constexpr void choices(IT begin, IT end, WIT wbegin, WIT wend, size_t k)
-	{
-		using weight_type = typename std::iterator_traits<WIT>::value_type;
-		assert(begin != end);
-		assert(wbegin != wend);
-
-		const size_t size = std::distance(begin, end);
-		const size_t wsize = std::distance(wbegin, wend);
-
-		if (size != wsize)
-		{
-			throw std::invalid_argument("Sizes are not equal");
-		}
-
-		weight_type totalWeight = static_cast<weight_type>(0);
-		for (WIT wit = wbegin; wit != wend; wit++)
-        {
-            totalWeight += *wit;
-        }
-
-		std::uniform_int_distribution<size_t> dist(0, totalWeight - 1);
-
-		for (size_t i = 0; i < k; i++)
-		{
-			size_t rnd = dist(m_rng);
-
-			for (size_t j = 0; j < size; j++)
-			{
-				WIT wit = wbegin;
-				std::advance(wit, j);
-
-				if (rnd < *wit)
-				{
-					IT it = begin;
-					std::advance(it, j);
-					choices.push_back(*it);
-
-					break;
-				}
-
-				rnd -= *wit;
-			}
-		}
+		return first2;
 	}
 
 private:
