@@ -27,13 +27,6 @@ set(VX_BUILD_SANDBOX ON CACHE BOOL "Build Sandbox")
 add_compile_definitions($<$<CONFIG:Debug>:VX_DEBUG>)
 add_compile_definitions($<$<CONFIG:Release>:VX_RELEASE>)
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_definitions(VX_COMPILER_MSVC)
-elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_definitions(VX_COMPILER_GNU)
-else()
-    add_compile_definitions(VX_COMPILER_UNKNOWN)
-endif()
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")

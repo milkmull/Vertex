@@ -39,8 +39,8 @@ struct mat<3, 3, T>
 
     using quat_type = quat<T>;
 
-    using iterator = detail::iterator<col_type>;
-    using const_iterator = detail::iterator<const col_type>;
+    using iterator = ::vx::detail::iterator<col_type>;
+    using const_iterator = ::vx::detail::iterator<const col_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 

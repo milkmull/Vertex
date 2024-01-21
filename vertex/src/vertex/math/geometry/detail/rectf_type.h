@@ -27,8 +27,8 @@ struct rect<T, val_t::floating_point>
 
     using size_type = length_type;
 
-    using iterator = detail::iterator<T>;
-    using const_iterator = detail::iterator<const T>;
+    using iterator = ::vx::detail::iterator<T>;
+    using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 

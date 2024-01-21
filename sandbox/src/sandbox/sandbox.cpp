@@ -8,7 +8,7 @@ int main()
 {
     using namespace vx;
 
-    math::rng rng;
+    math::rng rng(0);
 
     std::vector<int> choices;
     std::vector<int> weights;

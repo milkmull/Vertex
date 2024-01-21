@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../detail/type_traits.h"
-#include "../detail/iterator.h"
+#include "vertex/tools/detail/iterator.h"
 
 namespace vx {
 namespace math {
