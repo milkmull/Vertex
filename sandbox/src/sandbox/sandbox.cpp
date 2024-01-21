@@ -10,6 +10,11 @@
 
 #include "vertex/math/math/euler.h"
 
+#include "vertex/math/texture/filter_bicubic.h"
+#include "vertex/math/texture/filter_bilinear.h"
+#include "vertex/math/texture/filter_box.h"
+#include "vertex/math/texture/filter_nearest.h"
+
 int main()
 {
     using namespace vx;
