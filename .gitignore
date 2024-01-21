@@ -1,9 +1,9 @@
 # Directories
 .vs/
-bin/
-lib/
-build/
-tools/
+/bin/
+/lib/
+/build/
+/tools/
 
 # Files
 *.user
