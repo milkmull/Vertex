@@ -9,8 +9,5 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${ALL_FILES})
 # Define executable
 add_executable(Sandbox ${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox/sandbox.cpp)
 
-# Properties
-set_target_properties(Sandbox PROPERTIES LINKER_LANGUAGE CXX)
-
 # Add link libraries
 target_link_libraries(Sandbox Vertex)
