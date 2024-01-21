@@ -86,10 +86,10 @@ inline constexpr bool is_zero_approx(
     const T epsilon = math::epsilon<T>
 )
 {
-    return math::is_zero_approx(x.x, , epsilon)
-        && math::is_zero_approx(x.y, , epsilon)
-        && math::is_zero_approx(x.z, , epsilon)
-        && math::is_zero_approx(x.w, , epsilon);
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon)
+        && math::is_zero_approx(x.z, epsilon)
+        && math::is_zero_approx(x.w, epsilon);
 }
 
 template <typename T>

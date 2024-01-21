@@ -19,7 +19,7 @@ namespace math {
  * @return The resulting floating-point vector.
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr typename auto to_float(const detail::veci<L, T, Q>& v)
+inline constexpr auto to_float(const detail::veci<L, T, Q>& v)
 {
     return typename detail::veci<L, T, Q>::float_type(*this);
 }

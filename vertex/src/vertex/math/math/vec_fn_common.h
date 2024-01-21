@@ -326,10 +326,10 @@ inline constexpr auto clamp(
 )
 {
     return detail::col<T>(
-        math::clamp(v.r, min, max),
-        math::clamp(v.g, min, max),
-        math::clamp(v.b, min, max),
-        math::clamp(v.a, min, max)
+        math::clamp(x.r, min, max),
+        math::clamp(x.g, min, max),
+        math::clamp(x.b, min, max),
+        math::clamp(x.a, min, max)
     );
 }
 
