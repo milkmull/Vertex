@@ -242,14 +242,14 @@ public:
 
         const diff_type size = std::distance(first, last);
 
-        assert(size == w.size());
+        assert(size == static_cast<diff_type>(w.size()));
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
         const weight_type r = dist(m_rng);
         auto it = std::upper_bound(w.begin(), w.end(), r);
 
         // If we fail here it means the weights are all <= 0
-        assert(wit != w.end());
+        assert(it != w.end());
 
         const diff_type i = std::distance(w.begin(), it);
         std::advance(first, i);
@@ -289,7 +289,7 @@ public:
         const diff_type size1 = std::distance(first1, last1);
         const diff_type size2 = std::distance(first2, last2);
 
-        assert(size1 == w.size());
+        assert(size1 == static_cast<diff_type>(w.size()));
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
 
