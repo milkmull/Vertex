@@ -7,8 +7,6 @@ if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     set(VX_MAIN_PROJECT ON)
 endif()
 
-# Global values
-
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -18,6 +16,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif()
+message(STATUS "Buid type: ${CMAKE_BUILD_TYPE}")
 
 set(VX_BUILD_SHARED_LIBS OFF CACHE BOOL "Build Shared Libraries")
 set(VX_BUILD_EXAMPLES OFF CACHE BOOL "Build Examples")
@@ -35,6 +34,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 else()
     add_compile_definitions(VX_COMPILER_UNKNOWN)
 endif()
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_definitions(VX_PLATFORM_WINDOWS)
@@ -45,6 +45,7 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 else()
     add_compile_definitions(VX_PLATFORM_UNKNOWN)
 endif()
+message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
 
 # Global compile flags
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
