@@ -25,16 +25,19 @@ cd Vertex
 
 ### Configure and Generate the Project Files
 
-Create a build directory and run CMake to configure and build the project:
+Run CMake to configure and build the project:
 
 ```bash
-cmake -DVX_BUILD_SANDBOX=ON -B ./build ./
+cmake -B ./build ./
 cmake --build ./build
 ```
 
 #### CMake Parameters
 
 You can customize the build process using the following CMake parameters:
+
+- **CMAKE_BUILD_TYPE** (Default: Debug)
+  - Set to Release to build release library.
 
 - **VX_BUILD_SHARED_LIBS** (Default: OFF)
   - Set to ON to build shared libraries instead of static libraries.
