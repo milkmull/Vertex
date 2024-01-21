@@ -4,8 +4,6 @@
 #include "vertex/math/math.h"
 #include "vertex/math/random/rng.h"
 
-#ifdef VX_PLATFORM_WINDOWS
-
 int main()
 {
     using namespace vx;
@@ -21,5 +19,3 @@ int main()
 
     return 0;
 }
-
-#endif // VX_WINDOWS
