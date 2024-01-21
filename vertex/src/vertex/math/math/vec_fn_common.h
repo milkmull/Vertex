@@ -165,9 +165,9 @@ inline constexpr auto modf(
 )
 {
     return detail::vecf<3, T>(
-        math::modf(x.x, ntpart.x),
-        math::modf(x.y, ntpart.y),
-        math::modf(x.z, ntpart.z)
+        math::modf(x.x, intpart.x),
+        math::modf(x.y, intpart.y),
+        math::modf(x.z, intpart.z)
     );
 }
 
