@@ -7,6 +7,11 @@ if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     set(VX_MAIN_PROJECT ON)
 endif()
 
+# Build type
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" ${VX_MAIN_PROJECT} CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+endif()
+
 # Global values
 
 # Set C++ standard
@@ -15,8 +20,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Global compile flags
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -MTd -W3 -external:W0 -Od -Ob0     -D _UNICODE")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MT  -W4 -external:W0 -O2 -Ob2 -GF -D _UNICODE -D NDEBUG")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -MTd -W3 -external:W0 -Od -Ob0     -D _UNICODE          ")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -MT  -W4 -external:W0 -O2 -Ob2 -GF -D _UNICODE -D NDEBUG")
+    message(STATUS "MSVC Compiler")
+elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -g -Wall -O0                      -D_UNICODE         ")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}    -Wall -O2 -fno-strict-aliasing -D_UNICODE -DNDEBUG")
+    message(STATUS "GNU Compiler")
+endif()
 
 # Global defines
 add_compile_definitions($<$<CONFIG:Debug>:VX_DEBUG>)
@@ -28,11 +40,6 @@ elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_definitions(VX_PLATFORM_LINUX)
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_compile_definitions(VX_PLATFORM_MACOS)
-endif()
-
-# Build type
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" ${VX_MAIN_PROJECT} CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
 endif()
 
 # Configuration options
