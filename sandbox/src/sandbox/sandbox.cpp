@@ -12,33 +12,12 @@ int main()
 
     math::rng rng;
 
-    std::vector<int> choices;
-    std::vector<int> weights;
-    std::map<int, int> tally;
+    vec2 v(rng.randf(), rng.randf());
+    vec2i vi;
 
-    for (int i = 0; i < 10; i++)
-    {
-        choices.push_back(i);
-        weights.push_back(i);
+    math::frexp(v, vi);
 
-        tally[i] = 0;
-    }
-
-    math::weights w = weights;
-
-    std::vector<int> choices_out(1000);
-    rng.weighted_choices(choices.begin(), choices.end(), choices_out.begin(), choices_out.end(), w);
-
-    for (int x : choices_out)
-    {
-        tally[x]++;
-    }
-
-    for (auto pair : tally)
-    {
-        std::cout << pair.first << ' ' << pair.second << std::endl;
-    }
-
+    std::cout << vi.to_string();
 
     return 0;
 }

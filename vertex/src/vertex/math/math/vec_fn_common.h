@@ -208,8 +208,8 @@ inline constexpr auto frexp(
 )
 {
     return detail::vecf<2, T>(
-        math::frexp(x.x, &exp.x),
-        math::frexp(x.y, &exp.y)
+        math::frexp(x.x, exp.x),
+        math::frexp(x.y, exp.y)
     );
 }
 
@@ -220,9 +220,9 @@ inline constexpr auto frexp(
 )
 {
     return detail::vecf<3, T>(
-        math::frexp(x.x, &exp.x),
-        math::frexp(x.y, &exp.y),
-        math::frexp(x.z, &exp.z)
+        math::frexp(x.x, exp.x),
+        math::frexp(x.y, exp.y),
+        math::frexp(x.z, exp.z)
     );
 }
 
@@ -233,10 +233,10 @@ inline constexpr auto frexp(
 )
 {
     return detail::vecf<4, T>(
-        math::frexp(x.x, &exp.x),
-        math::frexp(x.y, &exp.y),
-        math::frexp(x.z, &exp.z),
-        math::frexp(x.w, &exp.w)
+        math::frexp(x.x, exp.x),
+        math::frexp(x.y, exp.y),
+        math::frexp(x.z, exp.z),
+        math::frexp(x.w, exp.w)
     );
 }
 
@@ -247,10 +247,10 @@ inline constexpr auto frexp(
 )
 {
     return detail::col<T>(
-        math::frexp(x.r, &exp.r),
-        math::frexp(x.g, &exp.g),
-        math::frexp(x.b, &exp.b),
-        math::frexp(x.a, &exp.a)
+        math::frexp(x.r, exp.r),
+        math::frexp(x.g, exp.g),
+        math::frexp(x.b, exp.b),
+        math::frexp(x.a, exp.a)
     );
 }
 
