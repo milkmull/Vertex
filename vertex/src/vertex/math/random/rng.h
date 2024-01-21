@@ -248,6 +248,9 @@ public:
         const weight_type r = dist(m_rng);
         auto it = std::upper_bound(w.begin(), w.end(), r);
 
+        // If we fail here it means the weights are all <= 0
+        assert(wit != w.end());
+
         const diff_type i = std::distance(w.begin(), it);
         std::advance(first, i);
 
@@ -294,6 +297,9 @@ public:
         {
             const weight_type r = dist(m_rng);
             auto wit = std::upper_bound(w.begin(), w.end(), r);
+
+            // If we fail here it means the weights are all <= 0
+            assert(wit != w.end());
 
             IT1 it = first1;
             const diff_type j = std::distance(w.begin(), wit);;

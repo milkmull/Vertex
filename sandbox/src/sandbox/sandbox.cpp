@@ -4,29 +4,38 @@
 #include "vertex/math/math.h"
 #include "vertex/math/random/rng.h"
 
-#include "vertex/math/geometry/rect.h"
-#include "vertex/math/geometry/spline.h"
-#include "vertex/math/geometry/triangulate.h"
-
-#include "vertex/math/math/euler.h"
-
-#include "vertex/math/texture/filter_bicubic.h"
-#include "vertex/math/texture/filter_bilinear.h"
-#include "vertex/math/texture/filter_box.h"
-#include "vertex/math/texture/filter_nearest.h"
-
 int main()
 {
     using namespace vx;
 
     math::rng rng;
 
-    vec2 v(rng.randf(), rng.randf());
-    vec2i vi;
+    std::vector<int> choices;
+    std::vector<int> weights;
+    std::map<int, int> tally;
 
-    math::frexp(v, vi);
+    for (int i = 0; i < 10; i++)
+    {
+        choices.push_back(i);
+        weights.push_back(i);
 
-    std::cout << vi.to_string();
+        tally[i] = 0;
+    }
+
+    math::weights w = weights;
+
+    std::vector<int> choices_out(1000);
+    rng.weighted_choices(choices.begin(), choices.end(), choices_out.begin(), choices_out.end(), w);
+
+    for (int x : choices_out)
+    {
+        tally[x]++;
+    }
+
+    for (auto pair : tally)
+    {
+        std::cout << pair.first << ' ' << pair.second << std::endl;
+    }
 
     return 0;
 }

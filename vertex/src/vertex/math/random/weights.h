@@ -68,7 +68,9 @@ public:
         : weights(w.begin(), w.end()) {}
 
     weights(const weights&) = default;
-    weights(weights&&) noexcept = default;
+
+    weights(weights&& other) noexcept
+        : m_weights(std::move(other.m_weights)) {}
 
     // =============== destructor ===============
 
