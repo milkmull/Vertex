@@ -165,7 +165,6 @@ public:
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
-        using choice_type = typename std::iterator_traits<IT>::value_type;
 
         assert(first != last);
 
@@ -200,7 +199,6 @@ public:
     )
     {
         using diff_type = typename std::iterator_traits<IT1>::difference_type;
-        using choice_type = typename std::iterator_traits<IT1>::value_type;
 
         assert(first1 != last1);
         assert(first2 != last2);
@@ -238,7 +236,6 @@ public:
     )
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
-        using choice_type = typename std::iterator_traits<IT>::value_type;
         using weight_type = typename weights::weight_type;
 
         assert(first != last);
@@ -281,7 +278,6 @@ public:
     )
     {
         using diff_type = typename std::iterator_traits<IT1>::difference_type;
-        using choice_type = typename std::iterator_traits<IT1>::value_type;
         using weight_type = typename weights::weight_type;
 
         assert(first1 != last1);
