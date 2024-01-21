@@ -3,5 +3,5 @@
 #include <cmath>
 #include <algorithm>
 
-#include "../../setup.h"
+#include "../../detail/setup.h"
 #include "type_traits.h"

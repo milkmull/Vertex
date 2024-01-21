@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cassert>
+#include "vertex/detail/setup.h"
 
 #define VX_ENABLE_MATH_CHECKS 0
 

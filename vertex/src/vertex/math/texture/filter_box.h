@@ -1,8 +1,9 @@
 #pragma once
 
-#include <type_traits>
-#include <cassert>
 #include <cstring>
+
+#include "vertex/detail/setup.h"
+#include "vertex/detail/type_traits.h"
 
 namespace vx {
 namespace math {

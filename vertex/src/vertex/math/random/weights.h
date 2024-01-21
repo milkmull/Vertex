@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <numeric>
-#include <cassert>
 
+#include "vertex/detail/setup.h"
 #include "vertex/detail/type_traits.h"
 
 namespace vx {
