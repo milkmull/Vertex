@@ -1,7 +1,7 @@
 #pragma once
 
-#include "detail/vec4i_type.h"
 #include "detail/vec4f_type.h"
+#include "detail/vec4i_type.h"
 
 #include "vec_fn_common.h"
 #include "vec_fn_comparison.h"

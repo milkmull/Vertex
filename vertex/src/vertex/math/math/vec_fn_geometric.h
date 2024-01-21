@@ -179,7 +179,7 @@ inline constexpr auto length_squared(const detail::vecf<L, T, Q>& v)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
 {
-    return static_cast<detail::int_float_type>(dot(v, v));
+    return static_cast<typename detail::to_float_type<T>::type>(dot(v, v));
 }
 
 /**

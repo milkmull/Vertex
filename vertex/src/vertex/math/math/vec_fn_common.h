@@ -153,8 +153,8 @@ inline constexpr auto modf(
 )
 {
     return detail::vecf<2, T>(
-        math::modf(x.x, &intpart.x),
-        math::modf(x.y, &intpart.y)
+        math::modf(x.x, intpart.x),
+        math::modf(x.y, intpart.y)
     );
 }
 
@@ -165,9 +165,9 @@ inline constexpr auto modf(
 )
 {
     return detail::vecf<3, T>(
-        math::modf(x.x, &intpart.x),
-        math::modf(x.y, &intpart.y),
-        math::modf(x.z, &intpart.z)
+        math::modf(x.x, ntpart.x),
+        math::modf(x.y, ntpart.y),
+        math::modf(x.z, ntpart.z)
     );
 }
 
@@ -178,10 +178,10 @@ inline constexpr auto modf(
 )
 {
     return detail::vecf<4, T>(
-        math::modf(x.x, &intpart.x),
-        math::modf(x.y, &intpart.y),
-        math::modf(x.z, &intpart.z),
-        math::modf(x.w, &intpart.w)
+        math::modf(x.x, intpart.x),
+        math::modf(x.y, intpart.y),
+        math::modf(x.z, intpart.z),
+        math::modf(x.w, intpart.w)
     );
 }
 
@@ -192,14 +192,17 @@ inline constexpr auto modf(
 )
 {
     return detail::col<T>(
-        math::modf(x.r, &intpart.r),
-        math::modf(x.g, &intpart.g),
-        math::modf(x.b, &intpart.b),
-        math::modf(x.a, &intpart.a)
+        math::modf(x.r, intpart.r),
+        math::modf(x.g, intpart.g),
+        math::modf(x.b, intpart.b),
+        math::modf(x.a, intpart.a)
     );
 }
 
 // =============== frexp ===============
+
+// here the template param Q is not required, but having it in the template helps avoid
+// full specialization of veci type before it has been defined
 
 template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
