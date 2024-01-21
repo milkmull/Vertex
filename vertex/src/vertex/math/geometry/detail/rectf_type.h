@@ -257,7 +257,7 @@ struct rect<T, val_t::floating_point>
 
     inline constexpr vec_type bottomright() const
     {
-        return posiion + size;
+        return position + size;
     }
 
     inline constexpr vec_type midbottom() const
@@ -347,28 +347,28 @@ struct rect<T, val_t::floating_point>
      *
      * @return The minimum x-coordinate value.
      */
-    inline constexpr T min_x() const { return math::min(positition.x, right()); }
+    inline constexpr T min_x() const { return math::min(position.x, right()); }
 
     /**
      * @brief Get the maximum x-coordinate of the rectangle.
      *
      * @return The maximum x-coordinate value.
      */
-    inline constexpr T max_x() const { return math::max(positition.x, right()); }
+    inline constexpr T max_x() const { return math::max(position.x, right()); }
 
     /**
      * @brief Get the minimum y-coordinate of the rectangle.
      *
      * @return The minimum y-coordinate value.
      */
-    inline constexpr T min_y() const { return math::min(positition.y, bottom()); }
+    inline constexpr T min_y() const { return math::min(position.y, bottom()); }
 
     /**
      * @brief Get the maximum y-coordinate of the rectangle.
      *
      * @return The maximum y-coordinate value.
      */
-    inline constexpr T max_y() const { return math::max(positition.y, bottom()); }
+    inline constexpr T max_y() const { return math::max(position.y, bottom()); }
 
     /**
      * @brief Get the aspect ratio of the rectangle.
