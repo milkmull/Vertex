@@ -7,11 +7,6 @@ if (${CMAKE_CURRENT_SOURCE_DIR} STREQUAL ${CMAKE_SOURCE_DIR})
     set(VX_MAIN_PROJECT ON)
 endif()
 
-# Build type
-if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" ${VX_MAIN_PROJECT} CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
-endif()
-
 # Global values
 
 # Set C++ standard
@@ -20,10 +15,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configuration options
-set(VX_BUILD_SHARED_LIBS OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Shared Libraries")
-set(VX_BUILD_EXAMPLES OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Examples")
-set(VX_BUILD_TESTS OFF ${VX_MAIN_PROJECT} CACHE BOOL "Build Tests")
-set(VX_BUILD_SANDBOX ON ${VX_MAIN_PROJECT} CACHE BOOL "Build Sandbox")
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
+endif()
+
+set(VX_BUILD_SHARED_LIBS OFF CACHE BOOL "Build Shared Libraries")
+set(VX_BUILD_EXAMPLES OFF CACHE BOOL "Build Examples")
+set(VX_BUILD_TESTS OFF CACHE BOOL "Build Tests")
+set(VX_BUILD_SANDBOX ON CACHE BOOL "Build Sandbox")
 
 # Global defines
 add_compile_definitions($<$<CONFIG:Debug>:VX_DEBUG>)
