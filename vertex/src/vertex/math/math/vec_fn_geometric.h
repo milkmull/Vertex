@@ -21,7 +21,7 @@ namespace math {
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto to_float(const detail::veci<L, T, Q>& v)
 {
-    return typename detail::veci<L, T, Q>::float_type(*this);
+    return typename detail::veci<L, T, Q>::float_type(v);
 }
 
 // =============== dot ===============

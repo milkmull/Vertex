@@ -201,10 +201,10 @@ inline constexpr auto modf(
 
 // =============== frexp ===============
 
-template <typename T>
+template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
     const detail::vecf<2, T>& x,
-    detail::veci<2, int>& exp
+    detail::vec<2, int, Q>& exp
 )
 {
     return detail::vecf<2, T>(
@@ -213,10 +213,10 @@ inline constexpr auto frexp(
     );
 }
 
-template <typename T>
+template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
     const detail::vecf<3, T>& x,
-    detail::veci<3, int>& exp
+    detail::vec<3, int, Q>& exp
 )
 {
     return detail::vecf<3, T>(
@@ -226,10 +226,10 @@ inline constexpr auto frexp(
     );
 }
 
-template <typename T>
+template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
     const detail::vecf<4, T>& x,
-    detail::veci<4, int>& exp
+    detail::vec<4, int, Q>& exp
 )
 {
     return detail::vecf<4, T>(
@@ -240,10 +240,10 @@ inline constexpr auto frexp(
     );
 }
 
-template <typename T>
+template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
     const detail::col<T>& x,
-    detail::veci<4, int>& exp
+    detail::vec<4, int, Q>& exp
 )
 {
     return detail::col<T>(
