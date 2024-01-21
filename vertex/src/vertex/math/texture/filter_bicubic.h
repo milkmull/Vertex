@@ -2,6 +2,7 @@
 
 #include <type_traits>
 #include <cassert>
+#include <cstring>
 
 namespace vx {
 namespace math {
