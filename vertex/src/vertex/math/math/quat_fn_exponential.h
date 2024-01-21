@@ -35,7 +35,7 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
     using quat_type = detail::quat<T>;
     using vec3_type = detail::vecx<3, T>;
 
-    const vec3_type v = q.vec();
+    const vec3_type v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)
@@ -99,7 +99,7 @@ inline constexpr detail::quat<T> exp(const detail::quat<T>& q)
     using quat_type = detail::quat<T>;
     using vec3_type = detail::vecx<3, T>;
 
-    const vec3_type v = q.vec();
+    const vec3_type v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)
@@ -137,7 +137,7 @@ inline constexpr detail::quat<T> log(const detail::quat<T>& q)
     using quat_type = detail::quat<T>;
     using vec3_type = detail::vecx<3, T>;
 
-    const vec3_type v = q.vec();
+    const vec3_type v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)

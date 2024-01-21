@@ -473,7 +473,7 @@ struct quat
      *
      * @return A 3D vector representing the vector part of this quaternion.
      */
-    inline constexpr vec3_type vec() const { return vec3_type(x, y, z); }
+    inline constexpr vec3_type vector() const { return vec3_type(x, y, z); }
 
     // =============== comparison and testing ===============
 
@@ -611,7 +611,7 @@ struct quat
         const vec3_type& up = vec3_type::UP()
     )
     {
-        return type(mat3::make_look_at_lh(eye, target, up));
+        return type(mat3_type::make_look_at_lh(eye, target, up));
     }
 
     /**
@@ -631,7 +631,7 @@ struct quat
         const vec3_type& up = vec3_type::UP()
     )
     {
-        return type(mat3::make_look_at_rh(eye, target, up));
+        return type(mat3_type::make_look_at_rh(eye, target, up));
     }
 
     /**
