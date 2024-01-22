@@ -286,10 +286,9 @@ public:
         assert(first1 != last1);
         assert(first2 != last2);
 
-        const diff_type size1 = std::distance(first1, last1);
         const diff_type size2 = std::distance(first2, last2);
 
-        assert(size1 == static_cast<diff_type>(w.size()));
+        assert(std::distance(first1, last1) == static_cast<diff_type>(w.size()));
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
 
