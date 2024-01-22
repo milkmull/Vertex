@@ -32,15 +32,14 @@ cmake -B ./build ./
 cmake --build ./build
 ```
 
+The build will produce a static library in the lib folder.
+
 #### CMake Parameters
 
 You can customize the build process using the following CMake parameters:
 
 - **CMAKE_BUILD_TYPE** (Default: Debug)
   - Set to Release to build release library.
-
-- **VX_BUILD_SHARED_LIBS** (Default: OFF)
-  - Set to ON to build shared libraries instead of static libraries.
 
 - **VX_BUILD_EXAMPLES** (Default: OFF)
   - Set to ON to include building examples.
