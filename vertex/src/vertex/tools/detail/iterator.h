@@ -148,13 +148,13 @@ public:
 
     // comparison
 
-    template <typename IT, std::enable_if_t<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool> = true>
+    template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator==(const IT& other) const
     {
         return m_current == other.m_current;
     }
 
-    template <typename IT, std::enable_if_t<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool> = true>
+    template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator!=(const IT& other) const
     {
         return !(*this == other);

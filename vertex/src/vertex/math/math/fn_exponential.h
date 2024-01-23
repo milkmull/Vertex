@@ -16,7 +16,7 @@ namespace math {
  * @param y The exponent value.
  * @return The result of raising 'x' to the power of 'y'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T pow(T x, T y)
 {
     return std::pow(x, y);
@@ -32,7 +32,7 @@ inline constexpr T pow(T x, T y)
  * @param x The input value.
  * @return The result of the exponential function e^x.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp(T x)
 {
     return std::exp(x);
@@ -48,7 +48,7 @@ inline constexpr T exp(T x)
  * @param x The input value.
  * @return The result of 2^x.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp2(T x)
 {
     return std::exp2(x);
@@ -64,7 +64,7 @@ inline constexpr T exp2(T x)
  * @param x The input value.
  * @return The natural logarithm of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T log(T x)
 {
     return std::log(x);
@@ -80,7 +80,7 @@ inline constexpr T log(T x)
  * @param x The input value.
  * @return The base-2 logarithm of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T log2(T x)
 {
     return std::log2(x);
@@ -96,7 +96,7 @@ inline constexpr T log2(T x)
  * @param x The input value.
  * @return The square root of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sqrt(T x)
 {
     return std::sqrt(x);
@@ -112,7 +112,7 @@ inline constexpr T sqrt(T x)
  * @param x The input value.
  * @return The result of 1/sqrt(x).
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T inverse_sqrt(T x)
 {
     return static_cast<T>(1) / std::sqrt(x);

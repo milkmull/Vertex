@@ -105,7 +105,7 @@ public:
      * @param max The maximum value of the range.
      * @return The generated random integer within the specified range.
      */
-    template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+    template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
     inline T randi_range(T min, T max)
     {
         std::uniform_int_distribution<T> dist(min, max);
@@ -119,7 +119,7 @@ public:
      * @param max The maximum value of the range.
      * @return The generated random floating-point number within the specified range.
      */
-    template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+    template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
     inline T randf_range(T min, T max)
     {
         std::uniform_real_distribution<T> dist(min, max);
@@ -133,7 +133,7 @@ public:
      * @param deviation The standard deviation of the normal distribution (default is 1).
      * @return The generated random number from the normal distribution.
      */
-    template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+    template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
     inline float rand_norm(T mean = static_cast<T>(0), T deviation = static_cast<T>(1))
     {
         std::normal_distribution<T> dist(mean, deviation);
@@ -148,7 +148,7 @@ public:
      * @param begin Iterator to the beginning of the range.
      * @param end Iterator to the end of the range.
      */
-    template <typename IT, std::enable_if_t<vx::detail::is_iterator<IT>::value, bool> = true>
+    template <typename IT, typename std::enable_if<vx::detail::is_iterator<IT>::value, bool>::type = true>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
@@ -161,7 +161,7 @@ public:
      * @param last Iterator to the end of the range.
      * @return A reference to the randomly selected element.
      */
-    template <typename IT, std::enable_if_t<::vx::detail::is_iterator<IT>::value, bool> = true>
+    template <typename IT, typename std::enable_if<::vx::detail::is_iterator<IT>::value, bool>::type = true>
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
@@ -187,10 +187,10 @@ public:
      * @return Iterator pointing to the end of the destination range after assignment.
      */
     template <typename IT1, typename IT2,
-        std::enable_if_t<
+        typename std::enable_if<
         ::vx::detail::is_iterator<IT1>::value &&
         ::vx::detail::is_iterator<IT2>::value,
-        bool> = true>
+        bool>::type = true>
     inline IT2 choices(
         IT1 first1,
         IT1 last1,
@@ -228,7 +228,7 @@ public:
      * @param w Weights object specifying the weights for each element.
      * @return A const reference to the selected element.
      */
-    template <typename IT, std::enable_if_t<::vx::detail::is_iterator<IT>::value, bool> = true>
+    template <typename IT, typename std::enable_if<::vx::detail::is_iterator<IT>::value, bool>::type = true>
     inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
         IT first,
         IT last,
@@ -268,10 +268,10 @@ public:
      * @return Iterator pointing to the end of the destination range after assignment.
      */
     template <typename IT1, typename IT2,
-        std::enable_if_t<
+        typename std::enable_if<
         ::vx::detail::is_iterator<IT1>::value &&
         ::vx::detail::is_iterator<IT2>::value,
-        bool> = true>
+        bool>::type = true>
     inline IT2 weighted_choices(
         IT1 first1,
         IT1 last1,

@@ -15,14 +15,14 @@ namespace math {
  * @param deg The angle in degrees.
  * @return The equivalent angle in radians.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T radians(T deg)
 {
     constexpr T r = math::two_pi<T> / static_cast<T>(360);
     return deg * r;
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr detail::int_float_type radians(T deg)
 {
     return radians(static_cast<detail::int_float_type>(deg));
@@ -38,14 +38,14 @@ inline constexpr detail::int_float_type radians(T deg)
  * @param rad The angle in radians.
  * @return The equivalent angle in degrees.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T degrees(T rad)
 {
     constexpr T r = static_cast<T>(360) / math::two_pi<T>;
     return rad * r;
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr detail::int_float_type degrees(T rad)
 {
     return degrees(static_cast<detail::int_float_type>(rad));
@@ -61,7 +61,7 @@ inline constexpr detail::int_float_type degrees(T rad)
  * @param x The angle in radians.
  * @return The sine of the angle.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sin(T x)
 {
     return std::sin(x);
@@ -77,7 +77,7 @@ inline constexpr T sin(T x)
  * @param x The angle in radians.
  * @return The cosine of the angle.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T cos(T x)
 {
     return std::cos(x);
@@ -93,7 +93,7 @@ inline constexpr T cos(T x)
  * @param x The angle in radians.
  * @return The tangent of the angle.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T tan(T x)
 {
     return std::tan(x);
@@ -112,7 +112,7 @@ inline constexpr T tan(T x)
  * @param x The input value, should be in the range [-1, 1].
  * @return The arcsine of the input value, in radians.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asin(T x)
 {
     return std::asin(x);
@@ -127,7 +127,7 @@ inline constexpr T asin(T x)
  * @param x The input value to compute the arcsine for, clamped to the range [-1, 1].
  * @return The arcsine of the clamped input value in the range [-pi/2, pi/2].
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asin_clamped(T x)
 {
     return math::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
@@ -143,7 +143,7 @@ inline constexpr T asin_clamped(T x)
  * @param x The input value, within the range [-1, 1].
  * @return The arccosine of the input value, in radians.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acos(T x)
 {
     return std::acos(x);
@@ -158,7 +158,7 @@ inline constexpr T acos(T x)
  * @param x The input value to compute the arccosine for, clamped to the range [-1, 1].
  * @return The arccosine of the clamped input value in the range [0, pi].
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acos_clamped(T x)
 {
     return math::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
@@ -175,7 +175,7 @@ inline constexpr T acos_clamped(T x)
  * @param x The input value to compute the arctangent for.
  * @return The arctangent of the input value in the range [-pi/2, pi/2].
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atan(T x)
 {
     return std::atan(x);
@@ -193,13 +193,13 @@ inline constexpr T atan(T x)
  * @param y Denominator of the ratio for which to compute the arctangent.
  * @return The arctangent of 'x/y' in the range [-pi, pi].
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atan2(T x, T y)
 {
     return std::atan2(x, y);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr detail::int_float_type atan2(T x, T y)
 {
     return std::atan2(
@@ -218,7 +218,7 @@ inline constexpr detail::int_float_type atan2(T x, T y)
  * @param x The value for which to calculate the hyperbolic sine.
  * @return The hyperbolic sine of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sinh(T x)
 {
     return std::sinh(x);
@@ -234,7 +234,7 @@ inline constexpr T sinh(T x)
  * @param x The value for which to calculate the hyperbolic cosine.
  * @return The hyperbolic cosine of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T cosh(T x)
 {
     return std::cosh(x);
@@ -250,7 +250,7 @@ inline constexpr T cosh(T x)
  * @param x The value for which to calculate the hyperbolic tangent.
  * @return The hyperbolic tangent of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T tanh(T x)
 {
     return std::tanh(x);
@@ -266,7 +266,7 @@ inline constexpr T tanh(T x)
  * @param x The value for which to calculate the inverse hyperbolic sine.
  * @return The inverse hyperbolic sine of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asinh(T x)
 {
     return std::asinh(x);
@@ -283,7 +283,7 @@ inline constexpr T asinh(T x)
  * @param x The value for which to calculate the inverse hyperbolic cosine.
  * @return The inverse hyperbolic cosine of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acosh(T x)
 {
     return std::acosh(x);
@@ -300,7 +300,7 @@ inline constexpr T acosh(T x)
  * @param x The value for which to calculate the inverse hyperbolic tangent.
  * @return The inverse hyperbolic tangent of 'x'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atanh(T x)
 {
     return std::atanh(x);

@@ -67,42 +67,42 @@ public:
 
     // =============== conversion vector constructors ===============
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr explicit vec(U scaler)
         : x(static_cast<T>(scaler))
         , y(static_cast<T>(scaler))
         , z(static_cast<T>(scaler))
         , w(static_cast<T>(scaler)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(U x, U y, U z, U w)
         : x(static_cast<T>(x))
         , y(static_cast<T>(y))
         , z(static_cast<T>(z))
         , w(static_cast<T>(w)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(const vecx<2, U>& vxy, U z, U w)
         : x(static_cast<T>(vxy.x))
         , y(static_cast<T>(vxy.y))
         , z(static_cast<T>(z))
         , w(static_cast<T>(w)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(U x, U y, const vecx<2, U>& vzw)
         : x(static_cast<T>(x))
         , y(static_cast<T>(y))
         , z(static_cast<T>(vzw.x))
         , w(static_cast<T>(vzw.y)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(const vecx<3, U>& vxyz, U w)
         : x(static_cast<T>(vxyz.x))
         , y(static_cast<T>(vxyz.y))
         , z(static_cast<T>(vxyz.z))
         , w(static_cast<T>(w)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(U x, const vecx<3, U>& vyzw)
         : x(static_cast<T>(x))
         , y(static_cast<T>(vyzw.x))

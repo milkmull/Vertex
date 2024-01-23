@@ -17,7 +17,7 @@ namespace math {
  * @param t The interpolation parameter (should be in the range [0, 1]).
  * @return The result of linear interpolation between 'x' and 'y'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T lerp(T x, T y, T t)
 {
     return x * (static_cast<T>(1) - t) + y * t;
@@ -34,7 +34,7 @@ inline constexpr T lerp(T x, T y, T t)
  * @param x The input value.
  * @return 0 if 'x' is less than 'edge', and 1 otherwise.
  */
-template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T step(T edge, T x)
 {
     return (x < edge) ? static_cast<T>(0) : static_cast<T>(1);
@@ -52,7 +52,7 @@ inline constexpr T step(T edge, T x)
  * @param x The input value.
  * @return The result of smoothstep interpolation between 'edge0' and 'edge1'.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T smoothstep(T edge0, T edge1, T x)
 {
     const T v = (x - edge0) / (edge1 - edge0);

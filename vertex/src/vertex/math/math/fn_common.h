@@ -82,7 +82,7 @@ inline constexpr T max(std::initializer_list<T> ls)
  * @param x The input value.
  * @return The absolute value of the input.
  */
-template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T abs(T x)
 {
     return std::abs(x);
@@ -99,7 +99,7 @@ inline constexpr T abs(T x)
  * @param x The input value.
  * @return The nearest integer after rounding the input.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T round(T x)
 {
     return std::round(x);
@@ -116,7 +116,7 @@ inline constexpr T round(T x)
  * @param x The input value.
  * @return The truncated value towards zero.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T trunc(T x)
 {
     return std::trunc(x);
@@ -133,7 +133,7 @@ inline constexpr T trunc(T x)
  * @param x The input value.
  * @return The largest integer less than or equal to the input value.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T floor(T x)
 {
     return std::floor(x);
@@ -150,7 +150,7 @@ inline constexpr T floor(T x)
  * @param x The input value.
  * @return The smallest integer greater than or equal to the input value.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T ceil(T x)
 {
     return std::ceil(x);
@@ -168,7 +168,7 @@ inline constexpr T ceil(T x)
  * @param x The input numeric value.
  * @return +1 if the value is positive, -1 if negative, and 0 if the value is zero.
  */
-template <typename T, std::enable_if_t<std::is_arithmetic<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T sign(T x)
 {
     if (x > static_cast<T>(0)) return static_cast<T>(+1);
@@ -188,7 +188,7 @@ inline constexpr T sign(T x)
  * @param y The denominator.
  * @return The remainder of (x/y).
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T fmod(T x, T y)
 {
     return x - y * std::trunc(x / y);
@@ -208,13 +208,13 @@ inline constexpr T fmod(T x, T y)
  * 
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T mod(T x, T y)
 {
     return x - y * std::floor(x / y);
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr detail::int_float_type mod(T x, T y)
 {
     return static_cast<detail::int_float_type>((x % y + y) % y);
@@ -233,7 +233,7 @@ inline constexpr detail::int_float_type mod(T x, T y)
  *
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T fract(T x)
 {
     return x - std::floor(x);
@@ -252,7 +252,7 @@ inline constexpr T fract(T x)
  * @param intpart Reference parameter to store the integer part.
  * @return The fractional part of the input value.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T modf(T x, T& intpart)
 {
     return std::modf(x, &intpart);
@@ -271,7 +271,7 @@ inline constexpr T modf(T x, T& intpart)
  * @param exp Reference parameter to store the exponent.
  * @return The normalized fraction of the input value.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T frexp(T x, int& exp)
 {
     return std::frexp(x, &exp);
@@ -290,14 +290,14 @@ inline constexpr T frexp(T x, int& exp)
  * @param interval The specified interval for snapping.
  * @return The snapped value to the nearest multiple of the interval.
  */
-template <typename T, std::enable_if_t<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T snap(T x, T interval)
 {
     if (interval == static_cast<T>(0)) return x;
     return static_cast<T>(std::round(x / interval)) * interval;
 }
 
-template <typename T, std::enable_if_t<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr T snap(T x, T interval)
 {
     if (interval == static_cast<T>(0)) return x;

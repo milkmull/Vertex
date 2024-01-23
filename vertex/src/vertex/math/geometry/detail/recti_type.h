@@ -63,14 +63,14 @@ public:
 
     // =============== conversion constructors ===============
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr explicit rect(
         const vecx<2, U>& position,
         const vecx<2, U>& size
     )
         : position(position), size(size) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr rect(U x, U y, U width, U height)
         : position(static_cast<T>(x), static_cast<T>(y))
         , size(static_cast<T>(width), static_cast<T>(height)) {}

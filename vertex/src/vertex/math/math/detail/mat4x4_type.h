@@ -92,14 +92,14 @@ struct mat<4, 4, T>
 
     // =============== conversion matrix constructors ===============
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr explicit mat(U scaler)
         : columns{ col_type(static_cast<T>(scaler), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)),
                    col_type(static_cast<T>(0), static_cast<T>(scaler), static_cast<T>(0), static_cast<T>(0)),
                    col_type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(scaler), static_cast<T>(0)),
                    col_type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(scaler)) } {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr mat(
         U x1, U y1, U z1, U w1,
         U x2, U y2, U z2, U w2,

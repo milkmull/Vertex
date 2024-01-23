@@ -58,14 +58,14 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
 
     // =============== conversion vector constructors ===============
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr explicit vec(U scaler)
         : r(static_cast<T>(scaler))
         , g(static_cast<T>(scaler))
         , b(static_cast<T>(scaler))
         , a(static_cast<T>(scaler)) {}
 
-    template <typename U, std::enable_if_t<std::is_arithmetic<U>::value, bool> = true>
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr vec(U r, U g, U b, U a = static_cast<U>(1))
         : r(static_cast<T>(r))
         , g(static_cast<T>(g))

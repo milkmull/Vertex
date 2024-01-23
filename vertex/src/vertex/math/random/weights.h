@@ -41,10 +41,10 @@ public:
      * @param wlast Iterator to the end of the weights range.
      */
     template <typename IT,
-        std::enable_if_t<
+        typename std::enable_if<
         ::vx::detail::is_iterator<IT>::value&&
         std::is_arithmetic<typename std::iterator_traits<IT>::value_type>::value,
-        bool> = true>
+        bool>::type = true>
     weights(IT wfirst, IT wlast)
         : m_weights(std::distance(wfirst, wlast))
     {
@@ -60,10 +60,10 @@ public:
      * @param w STL container containing weights.
      */
     template <typename T,
-        std::enable_if_t<
+        typename std::enable_if<
         ::vx::detail::is_stl_container<T>::value &&
         std::is_arithmetic<typename T::value_type>::value,
-        bool> = true>
+        bool>::type = true>
     weights(const T& w)
         : weights(w.begin(), w.end()) {}
 
