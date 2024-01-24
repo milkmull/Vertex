@@ -63,7 +63,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_definitions("_UNICODE")
     
     # NDEBUG
-    add_compile_definitions("$<$<CONFIG:Debug>:NDEBUG>")
+    add_compile_definitions("$<$<CONFIG:Release>:NDEBUG>")
     
     if (VX_BUILD_SHARED_LIBS)
         # If shared libs are ON, use /MDd for debug and /MD for release
@@ -91,7 +91,7 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     add_compile_definitions("_UNICODE")
     
     # NDEBUG
-    add_compile_definitions("$<$<CONFIG:Debug>:NDEBUG>")
+    add_compile_definitions("$<$<CONFIG:Release>:NDEBUG>")
 
     if (VX_BUILD_SHARED_LIBS)
         # If shared libs are ON, use -fPIC
