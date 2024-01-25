@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstddef>
+#include <cstdint>
 
 namespace vx {
 namespace img {
