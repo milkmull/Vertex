@@ -18,7 +18,27 @@
 #elif defined(__clang__)        // Clang
 #   define VX_COMPILER_CLANG
 #else
-#   define VX_COMPILER_UNKNOWN
+#   error unsupported compiler
 #endif
 
-// =============== meta ===============
+// =============== warning suppression ===============
+
+#if defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+
+#   define VX_DISABLE_WARNING_PUSH()                         _Pragma("GCC diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                          _Pragma("GCC diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number)  _Pragma("GCC diagnostic ignored \"" #warning_name "\"")
+
+#elif defined(VX_COMPILER_MSVC)
+
+#   define VX_DISABLE_WARNING_PUSH()                         __pragma(warning(push, 0))
+#   define VX_DISABLE_WARNING_POP()                          __pragma(warning(pop))
+#   define VX_DISABLE_WARNING(warning_name, warning_number)  __pragma(warning(disable: warning_number))
+
+#else
+
+#   define VX_DISABLE_WARNING_PUSH()
+#   define VX_DISABLE_WARNING_POP()
+#   define VX_DISABLE_WARNING(warning_name, warning_number)
+
+#endif

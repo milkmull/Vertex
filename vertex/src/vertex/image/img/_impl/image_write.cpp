@@ -1,4 +1,6 @@
 #include "../image_write.h"
+
+#include "vertex/detail/setup.h"
 #include "../image_size_limit.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
@@ -9,7 +11,10 @@
 
 #define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_SIZE
 
+VX_DISABLE_WARNING_PUSH()
+VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
 #include "stb_image/stb_image_write.h"
+VX_DISABLE_WARNING_POP()
 
 // =========================================
 

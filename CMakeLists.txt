@@ -42,6 +42,8 @@ message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
 add_compile_definitions("$<$<CONFIG:Debug>:VX_DEBUG>")
 add_compile_definitions("$<$<CONFIG:Release>:VX_RELEASE>")
 
+add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
+
 # Global compile flags
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 

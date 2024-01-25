@@ -1,4 +1,6 @@
 #include "../image_load.h"
+
+#include "vertex/detail/setup.h"
 #include "../image_size_limit.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
@@ -14,7 +16,11 @@
 
 #define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_SIZE
 
+VX_DISABLE_WARNING_PUSH()
+VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
+VX_DISABLE_WARNING("-Wconversion", 4244)
 #include "stb_image/stb_image.h"
+VX_DISABLE_WARNING_POP()
 
 // =========================================
 
