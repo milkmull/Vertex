@@ -6,11 +6,13 @@
 namespace vx {
 namespace img {
 
+#define VX_MAX_IMAGE_SIZE (1 << 24) // 4096 * 4096
+
 enum image_size_limit : size_type
 {
     VX_IMAGE_SIZE_LIMIT_NONE = 0,
 
-    VX_IMAGE_SIZE_LIMIT_MAX_SIZE = (1ull << 24),
+    VX_IMAGE_SIZE_LIMIT_MAX_SIZE = VX_MAX_IMAGE_SIZE,
 
     VX_IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
     VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,

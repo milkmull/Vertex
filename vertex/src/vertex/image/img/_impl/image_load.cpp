@@ -1,6 +1,9 @@
 #include "../image_load.h"
+#include "../image_size_limit.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
+
+// =============== stb image ===============
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -9,12 +12,16 @@
 #define STBI_ONLY_BMP
 #define STBI_ONLY_TGA
 
+#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_SIZE
+
 #include "stb_image/stb_image.h"
 
-#include "../image_size_limit.h"
+// =========================================
 
 namespace vx {
 namespace img {
+
+// =============== error ===============
 
 static const char* error_message = nullptr;
 
@@ -27,6 +34,8 @@ const char* get_image_load_error_message()
 {
     return error_message;
 }
+
+// =============== load ===============
 
 bool load_image(const char* path, image_info& specs, std::vector<byte_type>& data, bool flip_vertically_on_load)
 {
@@ -41,7 +50,7 @@ bool load_image(const char* path, image_info& specs, std::vector<byte_type>& dat
     if (raw == nullptr)
     {
         const char* msg = stbi_failure_reason();
-        set_image_load_error_message((msg != nullptr) ? msg : "Failed to load image");
+        set_image_load_error_message((msg != nullptr) ? msg : "failed to load image");
         return false;
     }
 

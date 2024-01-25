@@ -1,7 +1,6 @@
 #pragma once
 
 #define VX_IMAGE_LOAD_IMPLIMENTATION
-
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
 
 #include <vector>

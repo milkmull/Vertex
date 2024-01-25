@@ -1,14 +1,22 @@
 #include "../image_write.h"
+#include "../image_size_limit.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
 
+// =============== stb image ===============
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+
+#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_SIZE
+
 #include "stb_image/stb_image_write.h"
 
-#include "../image_size_limit.h"
+// =========================================
 
 namespace vx {
 namespace img {
+
+// =============== error ===============
 
 static const char* error_message = nullptr;
 
@@ -22,7 +30,9 @@ const char* get_image_write_error_message()
     return error_message;
 }
 
-bool save_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+// =============== write ===============
+
+bool write_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
     assert(path != nullptr);
     assert(data != nullptr);
@@ -44,7 +54,7 @@ bool save_bmp(const char* path, const image_info& info, const byte_type* data, b
     return success;
 }
 
-bool save_jpg(const char* path, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
+bool write_jpg(const char* path, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
 {
     assert(path != nullptr);
     assert(data != nullptr);
@@ -68,7 +78,7 @@ bool save_jpg(const char* path, const image_info& info, const byte_type* data, i
     return success;
 }
 
-bool save_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+bool write_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
     assert(path != nullptr);
     assert(data != nullptr);
@@ -91,7 +101,7 @@ bool save_png(const char* path, const image_info& info, const byte_type* data, b
     return success;
 }
 
-bool save_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+bool write_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
     assert(path != nullptr);
     assert(data != nullptr);
