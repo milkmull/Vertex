@@ -1,8 +1,9 @@
 #pragma once
 
-#include "base_type_defs.h"
+#include "detail/base_type_defs.h"
 
 namespace vx {
+namespace img {
 
 enum class image_format
 {
@@ -13,9 +14,7 @@ enum class image_format
     R32F, RG32F, RGB32F, RGBA32F
 };
 
-namespace img {
-
-inline constexpr detail::image_size_type get_channel_count(image_format format)
+inline constexpr size_type get_channel_count(image_format format)
 {
     switch (format)
     {
@@ -41,7 +40,7 @@ inline constexpr detail::image_size_type get_channel_count(image_format format)
 }
 
 // Returns the per-channel bitdepth for a given image format
-inline constexpr detail::image_size_type get_bitdepth(image_format format)
+inline constexpr size_type get_bitdepth(image_format format)
 {
     switch (format)
     {
@@ -67,7 +66,7 @@ inline constexpr detail::image_size_type get_bitdepth(image_format format)
 }
 
 // Returns the pixel size in bytes for a given image format
-inline constexpr detail::image_size_type get_pixel_size(image_format format)
+inline constexpr size_type get_pixel_size(image_format format)
 {
     switch (format)
     {
@@ -134,7 +133,7 @@ inline constexpr bool has_alpha(image_format format)
 }
 
 // Chooses an appropriate image format based on the number of channels
-inline constexpr image_format choose_format(detail::image_size_type channels)
+inline constexpr image_format choose_format(size_type channels)
 {
     switch (channels)
     {
@@ -149,99 +148,5 @@ inline constexpr image_format choose_format(detail::image_size_type channels)
     return image_format::UNKNOWN;
 }
 
-namespace detail {
-
-// =============== channel type selector ===============
-
-template <image_format f>
-struct format_traits_base
-{
-    static constexpr image_format format = f;
-    static constexpr image_format format_8_bit = to_8_bit(f);
-
-    static constexpr image_size_type channel_count = get_channel_count(f);
-    static constexpr image_size_type bitdepth = get_bitdepth(f);
-    static constexpr image_size_type pixel_size = get_pixel_size(f);
-
-    static constexpr bool alpha = has_alpha(f);
-
-};
-
-template <image_format format>
-struct format_traits;
-
-template <>
-struct format_traits<image_format::R8> : public format_traits_base<image_format::R8>
-{
-    using channel_type = uint8_t;
-};
-
-template <>
-struct format_traits<image_format::RG8> : public format_traits_base<image_format::RG8>
-{
-    using channel_type = uint8_t;
-};
-
-template <>
-struct format_traits<image_format::RGB8> : public format_traits_base<image_format::RGB8>
-{
-    using channel_type = uint8_t;
-};
-
-template <>
-struct format_traits<image_format::RGBA8> : public format_traits_base<image_format::RGBA8>
-{
-    using channel_type = uint8_t;
-};
-
-template <>
-struct format_traits<image_format::R16> : public format_traits_base<image_format::R16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RG16> : public format_traits_base<image_format::RG16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RGB16> : public format_traits_base<image_format::RGB16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RGBA16> : public format_traits_base<image_format::RGBA16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::R32F> : public format_traits_base<image_format::R32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RG32F> : public format_traits_base<image_format::RG32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RGB32F> : public format_traits_base<image_format::RGB32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RGBA32F> : public format_traits_base<image_format::RGBA32F>
-{
-    using channel_type = float;
-};
-
-}
 }
 }

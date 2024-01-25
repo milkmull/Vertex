@@ -1,6 +1,6 @@
 #pragma once
 
-#include "format.h"
+#include "type_traits.h"
 #include "vertex/math/color/color.h"
 
 namespace vx {
