@@ -67,6 +67,8 @@ bool load_image(const char* path, image_info& specs, std::vector<byte_type>& dat
     specs.format = choose_format(channels);
     data.assign(raw, raw + specs.size());
 
+    stbi_image_free(raw);
+
     return true;
 }
 
