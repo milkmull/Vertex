@@ -241,7 +241,7 @@ struct quat
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     friend inline constexpr type operator*(U scaler, const type& q)
     {
-        return q * scaler
+        return q * scaler;
     }
 
     template <typename U>
