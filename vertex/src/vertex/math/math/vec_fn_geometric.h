@@ -64,8 +64,8 @@ inline constexpr T dot(
 
 template <typename T>
 inline constexpr T dot(
-    const detail::col<T>& v,
-    const detail::col<T>& u
+    const detail::colx<T>& v,
+    const detail::colx<T>& u
 )
 {
     return (v.r * u.r) + (v.g * u.g) + (v.b * u.b) + (v.a * u.a);

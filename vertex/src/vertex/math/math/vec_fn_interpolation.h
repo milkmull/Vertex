@@ -74,10 +74,10 @@ inline constexpr auto step(
 template <typename T>
 inline constexpr auto step(
     T edge,
-    const detail::col<T>& x
+    const detail::colx<T>& x
 )
 {
-    return detail::col<T>(
+    return detail::colx<T>(
         step(edge, x.r),
         step(edge, x.g),
         step(edge, x.b),
@@ -126,11 +126,11 @@ inline constexpr auto step(
 
 template <typename T>
 inline constexpr auto step(
-    const detail::col<T>& edge,
-    const detail::col<T>& x
+    const detail::colx<T>& edge,
+    const detail::colx<T>& x
 )
 {
-    return detail::col<T>(
+    return detail::colx<T>(
         step(edge.r, x.r),
         step(edge.g, x.g),
         step(edge.b, x.b),

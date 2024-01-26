@@ -18,10 +18,22 @@ struct mat<3, 3, T>
 
     // =============== meta ===============
 
+    using value_type = T;
+
     using type = mat<3, 3, T>;
     using col_type = vec<3, T, vec_t::vec>;
     using row_type = vec<3, T, vec_t::vec>;
     using transpose_type = mat<3, 3, T>;
+
+    using size_type = length_type;
+    static inline constexpr size_type size() noexcept { return static_cast<T>(9); }
+    static inline constexpr size_type width() noexcept { return static_cast<T>(3); }
+    static inline constexpr size_type height() noexcept { return static_cast<T>(3); }
+
+    using iterator = ::vx::detail::iterator<col_type>;
+    using const_iterator = ::vx::detail::iterator<const col_type>;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     using vec2_type = vec<2, T, vec_t::vec>;
     using vec3_type = vec<3, T, vec_t::vec>;
@@ -30,19 +42,7 @@ struct mat<3, 3, T>
     using mat2_type = mat<2, 2, T>;
     using mat4_type = mat<4, 4, T>;
 
-    using value_type = T;
-
-    using size_type = length_type;
-    static inline constexpr size_type size() noexcept { return static_cast<T>(9); }
-    static inline constexpr size_type width() noexcept { return static_cast<T>(3); }
-    static inline constexpr size_type height() noexcept { return static_cast<T>(3); }
-
     using quat_type = quat<T>;
-
-    using iterator = ::vx::detail::iterator<col_type>;
-    using const_iterator = ::vx::detail::iterator<const col_type>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // =============== data ===============
 

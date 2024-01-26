@@ -17,8 +17,8 @@ enum class vec_t
 
 // =============== types ===============
 
-template <length_type L, typename T, vec_t Q, val_t V = value_type_selector<T>::value> struct vec {};
-template <length_type M, length_type N, typename T> struct mat {};
+template <length_type L, typename T, vec_t Q, val_t V = value_type_selector<T>::value> struct vec;
+template <length_type M, length_type N, typename T> struct mat;
 
 template <typename T> struct quat;
 
@@ -35,11 +35,14 @@ using vecf = vec<L, T, Q, val_t::floating_point>;
 
 // =============== color alias ===============
 
-template <typename T, val_t V = val_t::floating_point>
-using col = vec<4, T, vec_t::col, V>;
+template <typename T>
+using colx = vec<4, T, vec_t::col>;
 
-template <typename T, val_t V = val_t::floating_point>
-using col = vec<4, T, vec_t::col, V>;
+template <typename T>
+using coli = vec<4, T, vec_t::col, val_t::integral>;
+
+template <typename T>
+using colf = vec<4, T, vec_t::col, val_t::floating_point>;
 
 // =============== matrix alias ===============
 

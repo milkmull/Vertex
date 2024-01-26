@@ -28,10 +28,6 @@ public:
     using type = vec<4, T, vec_t::vec, val_t::integral>;
     using float_type = vec<4, FT, vec_t::vec, val_t::floating_point>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
-
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
 
@@ -39,6 +35,10 @@ public:
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
 
     // =============== data ===============
 
@@ -122,6 +122,13 @@ public:
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z))
         , w(static_cast<T>(v.w)) {}
+
+    template <typename U>
+    inline constexpr explicit vec(const colx<U>& v)
+        : x(static_cast<T>(v.r))
+        , y(static_cast<T>(v.g))
+        , z(static_cast<T>(v.b))
+        , w(static_cast<T>(v.a)) {}
 
     inline constexpr float_type to_float() const
     {

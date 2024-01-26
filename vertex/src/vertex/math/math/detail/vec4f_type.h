@@ -24,10 +24,6 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
     using type = vec<4, T, vec_t::vec, val_t::floating_point>;
     using float_type = type;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
-
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
 
@@ -35,6 +31,10 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
 
     // =============== data ===============
 
@@ -120,7 +120,7 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         , w(static_cast<T>(v.w)) {}
 
     template <typename U>
-    inline constexpr explicit vec(const col<U>& v)
+    inline constexpr explicit vec(const colx<U>& v)
         : x(static_cast<T>(v.r))
         , y(static_cast<T>(v.g))
         , z(static_cast<T>(v.b))

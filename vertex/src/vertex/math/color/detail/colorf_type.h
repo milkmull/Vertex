@@ -17,11 +17,10 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
     // =============== meta ===============
 
     using value_type = T;
+    using float_value_type = T;
 
     using type = vec<4, T, vec_t::col, val_t::floating_point>;
-
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
+    using float_type = type;
 
     using size_type = length_type;
     static inline constexpr size_type size() { return 4; }
@@ -30,6 +29,12 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
+
+    static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
+    static constexpr T MAX_CHANNEL_VALUE = static_cast<T>(1);
 
     // =============== data ===============
 
@@ -73,11 +78,18 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
         , a(static_cast<T>(a)) {}
 
     template <typename U>
-    inline constexpr explicit vec(const col<U>& c)
+    inline constexpr explicit vec(const colf<U>& c)
         : r(static_cast<T>(c.r))
         , g(static_cast<T>(c.g))
         , b(static_cast<T>(c.b))
         , a(static_cast<T>(c.a)) {}
+
+    template <typename U>
+    inline constexpr explicit vec(const coli<U>& c)
+        : r(static_cast<T>(c.r) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))
+        , g(static_cast<T>(c.g) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))
+        , b(static_cast<T>(c.b) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))
+        , a(static_cast<T>(c.a) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE)) {}
 
     template <typename U>
     inline constexpr explicit vec(const vecx<3, U>& v, U a = static_cast<U>(1))
@@ -531,7 +543,11 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
      */
     inline constexpr T luminance() const
     {
-        return (r * static_cast<T>(0.2126)) + (g * static_cast<T>(0.7152)) + (b * static_cast<T>(0.0722));
+        return (
+            (r * static_cast<T>(0.2126)) +
+            (g * static_cast<T>(0.7152)) +
+            (b * static_cast<T>(0.0722))
+        );
     }
 
     // =============== color modifiers ===============
@@ -685,18 +701,6 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
         return type();
     }
 
-    /**
-     * @brief Convert the color to HSV (Hue, Saturation, Value) values.
-     *
-     * This function calculates the HSV values from the color's RGB components.
-     *
-     * @return A 3D vector representing the HSV values (Hue in degrees, Saturation, Value).
-     */
-    static inline constexpr type from_hsv(const vec3_type& hsv, T a = static_cast<T>(1))
-    {
-        return from_hsv(hsv.x, hsv.y, hsv.z, a);
-    }
-
     inline constexpr vec3_type to_hsv() const
     {
         const type cn = clamp();
@@ -796,11 +800,6 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
         }
 
         return type();
-    }
-
-    static inline constexpr type from_hsl(const vec3_type& hsl, T a = static_cast<T>(1))
-    {
-        return from_hsl(hsl.x, hsl.y, hsl.z, a);
     }
 
     /**

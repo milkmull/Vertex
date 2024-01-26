@@ -25,14 +25,6 @@ struct quat
     using value_type = T;
     using type = quat<T>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
-
-    using mat2_type = mat<2, 2, T>;
-    using mat3_type = mat<3, 3, T>;
-    using mat4_type = mat<4, 4, T>;
-
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
 
@@ -40,6 +32,14 @@ struct quat
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
+
+    using mat2_type = mat<2, 2, T>;
+    using mat3_type = mat<3, 3, T>;
+    using mat4_type = mat<4, 4, T>;
 
     // =============== data ===============
 
@@ -152,7 +152,7 @@ struct quat
      * @param m The 4x4 matrix representing a rotation.
      */
     inline constexpr explicit quat(const mat4_type& m)
-        : quat(mat3_type(m)) {}
+        : type(mat3_type(m)) {}
 
     // =============== destructor ===============
 

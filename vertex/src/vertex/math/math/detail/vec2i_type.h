@@ -30,10 +30,6 @@ public:
     using type = vec<2, T, vec_t::vec, val_t::integral>;
     using float_type = vec<2, FT, vec_t::vec, val_t::floating_point>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
-
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(2); }
 
@@ -41,6 +37,10 @@ public:
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
 
     // =============== data ===============
 

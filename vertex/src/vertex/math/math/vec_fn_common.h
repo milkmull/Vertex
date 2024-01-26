@@ -187,11 +187,11 @@ inline constexpr auto modf(
 
 template <typename T>
 inline constexpr auto modf(
-    const detail::col<T>& x,
-    detail::col<T>& intpart
+    const detail::colf<T>& x,
+    detail::colf<T>& intpart
 )
 {
-    return detail::col<T>(
+    return detail::colf<T>(
         math::modf(x.r, intpart.r),
         math::modf(x.g, intpart.g),
         math::modf(x.b, intpart.b),
@@ -245,11 +245,11 @@ inline constexpr auto frexp(
 
 template <typename T, detail::vec_t Q>
 inline constexpr auto frexp(
-    const detail::col<T>& x,
+    const detail::colf<T>& x,
     detail::vec<4, int, Q>& exp
 )
 {
-    return detail::col<T>(
+    return detail::colf<T>(
         math::frexp(x.r, exp.r),
         math::frexp(x.g, exp.g),
         math::frexp(x.b, exp.b),
@@ -323,7 +323,7 @@ inline constexpr auto clamp(
 
 template <typename T>
 inline constexpr auto clamp(
-    const detail::col<T>& x,
+    const detail::colx<T>& x,
     T min,
     T max
 )
@@ -380,12 +380,12 @@ inline constexpr auto clamp(
 
 template <typename T>
 inline constexpr auto clamp(
-    const detail::col<T>& v,
-    const detail::col<T>& min,
-    const detail::col<T>& max
+    const detail::colx<T>& v,
+    const detail::colx<T>& min,
+    const detail::colx<T>& max
 )
 {
-    return detail::col<T>(
+    return detail::colx<T>(
         math::clamp(v.r, min.r, max.r),
         math::clamp(v.g, min.g, max.g),
         math::clamp(v.b, min.b, max.b),

@@ -46,8 +46,8 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::col<T>& a,
-    const detail::col<T>& b,
+    const detail::colf<T>& a,
+    const detail::colf<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -94,7 +94,7 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::col<T>& x,
+    const detail::colf<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -131,7 +131,7 @@ inline constexpr bool is_finite(const detail::vecf<4, T>& x)
 }
 
 template <typename T>
-inline constexpr bool is_finite(const detail::col<T>& x)
+inline constexpr bool is_finite(const detail::colf<T>& x)
 {
     return math::is_finite(x.r)
         && math::is_finite(x.g)
@@ -166,7 +166,7 @@ inline constexpr bool is_infinite(const detail::vecf<4, T>& x)
 }
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::col<T>& x)
+inline constexpr bool is_infinite(const detail::colf<T>& x)
 {
     return math::is_infinite(x.r)
         || math::is_infinite(x.g)
@@ -201,7 +201,7 @@ inline constexpr bool is_nan(const detail::vecf<4, T>& x)
 }
 
 template <typename T>
-inline constexpr bool is_nan(const detail::col<T>& x)
+inline constexpr bool is_nan(const detail::colf<T>& x)
 {
     return math::is_nan(x.r)
         || math::is_nan(x.g)
@@ -252,7 +252,7 @@ inline constexpr auto round_if_close(
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::col<T>& x,
+    const detail::colf<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {

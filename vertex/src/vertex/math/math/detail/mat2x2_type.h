@@ -18,19 +18,12 @@ struct mat<2, 2, T>
 
     // =============== meta ===============
 
+    using value_type = T;
+
     using type = mat<2, 2, T>;
     using col_type = vec<2, T, vec_t::vec, val_t::floating_point>;
     using row_type = vec<2, T, vec_t::vec, val_t::floating_point>;
     using transpose_type = mat<2, 2, T>;
-
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
-
-    using mat3_type = mat<3, 3, T>;
-    using mat4_type = mat<4, 4, T>;
-
-    using value_type = T;
 
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
@@ -41,6 +34,13 @@ struct mat<2, 2, T>
     using const_iterator = ::vx::detail::iterator<const col_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
+
+    using mat3_type = mat<3, 3, T>;
+    using mat4_type = mat<4, 4, T>;
 
     // =============== data ===============
 
