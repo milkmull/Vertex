@@ -997,7 +997,7 @@ public:
 
     inline constexpr typename float_type::vec3_type to_hsv() const
     {
-        return float_type(*this).from_hsv();
+        return float_type(*this).to_hsv();
     }
 
     // =============== hsl ===============
@@ -1031,7 +1031,7 @@ public:
      */
     inline constexpr typename float_type::vec3_type to_hsl() const
     {
-        return float_type(*this).from_hsl();
+        return float_type(*this).to_hsl();
     }
 
     // =============== linear + srgb ===============
