@@ -704,24 +704,36 @@ public:
 
     // =============== swizzle ===============
 
-    inline constexpr T swizzle(size_type i) const
+    inline constexpr T swiz(char i) const
     {
-        return operator[](i);
+        return operator[](static_cast<size_type>(i - 'x'));
     }
 
-    inline constexpr vec2_type swizzle(size_type i, size_type j) const
+    inline constexpr vec2_type swiz(char i, char j) const
     {
-        return vec2_type(operator[](i), operator[](j));
+        return vec2_type(
+            operator[](static_cast<size_type>(i - 'x')),
+            operator[](static_cast<size_type>(j - 'x'))
+        );
     }
 
-    inline constexpr vec3_type swizzle(size_type i, size_type j, size_type k) const
+    inline constexpr vec3_type swiz(char i, char j, char k) const
     {
-        return vec3_type(operator[](i), operator[](j), operator[](k));
+        return vec3_type(
+            operator[](static_cast<size_type>(i - 'x')),
+            operator[](static_cast<size_type>(j - 'x')),
+            operator[](static_cast<size_type>(k - 'x'))
+        );
     }
 
-    inline constexpr type swizzle(size_type i, size_type j, size_type k, size_type l) const
+    inline constexpr vec4_type swiz(char i, char j, char k, char l) const
     {
-        return type(operator[](i), operator[](j), operator[](k), operator[](l));
+        return vec4_type(
+            operator[](static_cast<size_type>(i - 'x')),
+            operator[](static_cast<size_type>(j - 'x')),
+            operator[](static_cast<size_type>(k - 'x')),
+            operator[](static_cast<size_type>(l - 'x'))
+        );
     }
 
     // =============== string ===============

@@ -2,6 +2,7 @@
 
 #include <sstream>
 
+#include "color_fn_helper.h"
 #include "../../math/detail/base_type_defs.h"
 #include "../../math/fn_common.h"
 
@@ -682,14 +683,24 @@ public:
 
     // =============== swizzle ===============
 
-    inline constexpr type swizzle(size_type i, size_type j, size_type k) const
+    inline constexpr type swiz(char i, char j, char k) const
     {
-        return type(operator[](i), operator[](j), operator[](k), a);
+        return type(
+            operator[](static_cast<size_type>(helper_rgba_swizzle(i))),
+            operator[](static_cast<size_type>(helper_rgba_swizzle(j))),
+            operator[](static_cast<size_type>(helper_rgba_swizzle(k))),
+            a
+        );
     }
 
-    inline constexpr type swizzle(size_type i, size_type j, size_type k, size_type l) const
+    inline constexpr type swiz(char i, char j, char k, char l) const
     {
-        return type(operator[](i), operator[](j), operator[](k), operator[](l));
+        return type(
+            operator[](static_cast<size_type>(helper_rgba_swizzle(i))),
+            operator[](static_cast<size_type>(helper_rgba_swizzle(j))),
+            operator[](static_cast<size_type>(helper_rgba_swizzle(k))),
+            operator[](static_cast<size_type>(helper_rgba_swizzle(l)))
+        );
     }
 
     // =============== string ===============
