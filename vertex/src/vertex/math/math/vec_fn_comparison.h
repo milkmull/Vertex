@@ -256,7 +256,7 @@ inline constexpr auto round_if_close(
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::col<T>(
+    return detail::colf<T>(
         math::round_if_close(x.r, epsilon),
         math::round_if_close(x.g, epsilon),
         math::round_if_close(x.b, epsilon),

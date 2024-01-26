@@ -328,7 +328,7 @@ inline constexpr auto clamp(
     T max
 )
 {
-    return detail::col<T>(
+    return detail::colx<T>(
         math::clamp(x.r, min, max),
         math::clamp(x.g, min, max),
         math::clamp(x.b, min, max),

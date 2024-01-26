@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/color_type.h"
+#include "detail/colorf_type.h"
 
 namespace vx {
 
@@ -55,16 +55,16 @@ namespace math {
  * @return The result of blending the source and destination colors.
  */
 template <typename T>
-inline constexpr detail::col<T> blend(
-    const detail::col<T>& src, blend_mode src_blend,
-    const detail::col<T>& dst, blend_mode dst_blend,
-    const detail::col<T>& constant = detail::col<T>(),
+inline constexpr detail::colf<T> blend(
+    const detail::colf<T>& src, blend_mode src_blend,
+    const detail::colf<T>& dst, blend_mode dst_blend,
+    const detail::colf<T>& constant = detail::colf<T>(),
     blend_operator op = blend_operator::ADD
 )
 {
     struct blend_pair
     {
-        detail::col<T> color;
+        detail::colf<T> color;
         blend_mode mode;
     };
 
