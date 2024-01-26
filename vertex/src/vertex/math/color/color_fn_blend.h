@@ -210,10 +210,10 @@ template <typename T>
 inline constexpr detail::colf<T> darken(const detail::colf<T>& c, T amount)
 {
     return type(
-        r * (static_cast<T>(1) - amount),
-        g * (static_cast<T>(1) - amount),
-        b * (static_cast<T>(1) - amount),
-        a
+        c.r * (static_cast<T>(1) - amount),
+        c.g * (static_cast<T>(1) - amount),
+        c.b * (static_cast<T>(1) - amount),
+        c.a
     );
 }
 
