@@ -86,7 +86,7 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
         , a(static_cast<T>(c.a)) {}
 
     template <typename U>
-    inline constexpr explicit vec(const coli<U>& c)
+    inline constexpr vec(const coli<U>& c)
         : r(static_cast<T>(c.r) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))
         , g(static_cast<T>(c.g) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))
         , b(static_cast<T>(c.b) / static_cast<T>(coli<U>::MAX_CHANNEL_VALUE))

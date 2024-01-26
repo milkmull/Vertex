@@ -89,7 +89,7 @@ public:
         : type(c.normalize()) {}
 
     template <typename U>
-    inline constexpr explicit vec(const colf<U>& c)
+    inline constexpr vec(const colf<U>& c)
         : r(static_cast<T>(math::clamp(static_cast<FT>(c.r), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))
         , g(static_cast<T>(math::clamp(static_cast<FT>(c.g), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))
         , b(static_cast<T>(math::clamp(static_cast<FT>(c.b), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))

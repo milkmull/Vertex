@@ -1,19 +1,18 @@
 #include "sandbox/sandbox.h"
 
-void func(vx::vec2 v)
+vx::color func(vx::color v)
 {
-    return;
+    return v;
 }
 
 int main()
 {
     using namespace vx;
 
-    vec2i vi;
-    vec2f vf(1, 2);
-    vec2d vd;
+    color8 c;
+    color8 c2 = func(c);
 
-    std::cout << vf.swiz('y', 'x').to_string() << std::endl;
+    std::cout << func(c).to_string() << std::endl;
 
     return 0;
 }
