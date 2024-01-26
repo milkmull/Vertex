@@ -318,12 +318,12 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
         return *this;
     }
 
-    inline constexpr type& operator*=(const mat<2, 2, U>& m)
+    inline constexpr type& operator*=(const mat<2, 2, T>& m)
     {
         return ((*this) = (*this) * m);
     }
 
-    inline constexpr type& operator*=(const mat<3, 3, U>& m)
+    inline constexpr type& operator*=(const mat<3, 3, T>& m)
     {
         return ((*this) = (*this) * m);
     }

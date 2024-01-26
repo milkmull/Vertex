@@ -90,8 +90,8 @@ public:
         , y(static_cast<T>(vyz.x))
         , z(static_cast<T>(vyz.y)) {}
 
-    template <typename U, vec_t Q, val_t V>
-    inline constexpr explicit vec(const vec<3, U, Q, V>& v)
+    template <typename U>
+    inline constexpr explicit vec(const vecx<3, U>& v)
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}

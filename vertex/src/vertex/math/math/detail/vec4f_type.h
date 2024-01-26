@@ -390,7 +390,7 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         return *this;
     }
 
-    inline constexpr type& operator*=(const mat<4, 4, U>& m)
+    inline constexpr type& operator*=(const mat<4, 4, T>& m)
     {
         return ((*this) = (*this) * m);
     }
