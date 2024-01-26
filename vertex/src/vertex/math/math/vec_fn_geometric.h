@@ -8,22 +8,6 @@
 namespace vx {
 namespace math {
 
-// =============== to_float ===============
-
-/**
- * @brief Converts an integral vector to a floating-point vector.
- *
- * This function converts an integral vector 'v' to a floating-point vector.
- *
- * @param v The integral vector to be converted.
- * @return The resulting floating-point vector.
- */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto to_float(const detail::veci<L, T, Q>& v)
-{
-    return typename detail::veci<L, T, Q>::float_type(v);
-}
-
 // =============== dot ===============
 
 /**

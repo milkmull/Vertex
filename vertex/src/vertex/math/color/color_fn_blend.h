@@ -1,8 +1,12 @@
 #pragma once
 
-#include "detail/colorf_type.h"
+#include "../math/detail/base_type_defs.h"
+#include "../math/vec_fn_common.h"
 
 namespace vx {
+namespace math {
+
+// =============== blend ===============
 
 enum class blend_mode
 {
@@ -147,5 +151,80 @@ inline constexpr detail::colf<T> blend(
     return res[0].color + res[1].color;
 }
 
+template <typename T>
+inline constexpr detail::coli<T> blend(
+    const detail::coli<T>& src, blend_mode src_blend,
+    const detail::coli<T>& dst, blend_mode dst_blend,
+    const detail::coli<T>& constant = detail::coli<T>(),
+    blend_operator op = blend_operator::ADD
+)
+{
+    using float_type = typename detail::coli<T>::float_type;
+
+    return detail::coli<T>(blend(
+        float_type(src), src_blend,
+        float_type(dst), dst_blend,
+        float_type(constant),
+        op
+    ));
+}
+
+// =============== lighten ===============
+
+/**
+ * @brief Lighten the color by a specified amount.
+ *
+ * This function returns a new color by lightening each component based on the provided amount.
+ *
+ * @param amount The amount by which to lighten the color (in the range [0, 1]).
+ * @return A new color with lightened components.
+ */
+template <typename T>
+inline constexpr detail::colf<T> lighten(const detail::colf<T>& c, T amount)
+{
+    return detail::colf<T>(
+        c.r + (static_cast<T>(1) - c.r) * amount,
+        c.g + (static_cast<T>(1) - c.g) * amount,
+        c.b + (static_cast<T>(1) - c.b) * amount,
+        c.a
+    );
+}
+
+template <typename T>
+inline constexpr detail::coli<T> lighten(const detail::coli<T>& c, T amount)
+{
+    using float_type = typename detail::coli<T>::float_type;
+    return detail::coli<T>(lighten(float_type(c), amount));
+}
+
+// =============== darken ===============
+
+/**
+ * @brief Darken the color by a specified amount.
+ *
+ * This function returns a new color by darkening each component based on the provided amount.
+ *
+ * @param amount The amount by which to darken the color (in the range [0, 1]).
+ * @return A new color with darkened components.
+ */
+template <typename T>
+inline constexpr detail::colf<T> darken(const detail::colf<T>& c, T amount)
+{
+    return type(
+        r * (static_cast<T>(1) - amount),
+        g * (static_cast<T>(1) - amount),
+        b * (static_cast<T>(1) - amount),
+        a
+    );
+}
+
+template <typename T>
+inline constexpr detail::coli<T> darken(const detail::coli<T>& c, T amount)
+{
+    using float_type = typename detail::coli<T>::float_type;
+    return detail::coli<T>(darken(float_type(c), amount));
+}
+
+}
 }
 }

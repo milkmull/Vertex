@@ -808,32 +808,6 @@ public:
         );
     }
 
-    /**
-     * @brief Lighten the color by a specified amount.
-     *
-     * This function returns a new color by lightening each component based on the provided amount.
-     *
-     * @param amount The amount by which to lighten the color (in the range [0, 1]).
-     * @return A new color with lightened components.
-     */
-    inline constexpr type lighten(FT amount) const
-    {
-        return type(float_type(*this).lighten(amount));
-    }
-
-    /**
-     * @brief Darken the color by a specified amount.
-     *
-     * This function returns a new color by darkening each component based on the provided amount.
-     *
-     * @param amount The amount by which to darken the color (in the range [0, 1]).
-     * @return A new color with darkened components.
-     */
-    inline constexpr type darken(FT amount) const
-    {
-        return type(float_type(*this).darken(amount));
-    }
-
     // =============== hex ===============
 
     /**
@@ -866,95 +840,6 @@ public:
     inline constexpr uint32_t to_hex() const
     {
         return (r << 24) | (g << 16) | (b << 8) | a;
-    }
-
-    // =============== hsv ===============
-
-    // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
-
-    /**
-     * @brief Create a color from HSV (Hue, Saturation, Value) values.
-     *
-     * This function creates a color using HSV values, where h is the hue in degrees,
-     * s is the saturation, v is the value, and a is the alpha (default is 1). The function
-     * clamps input values to their valid ranges and performs the HSV to RGB conversion.
-     *
-     * @param h The hue value in degrees (range: [0, 360]).
-     * @param s The saturation value (range: [0, 1]).
-     * @param v The value (brightness) value (range: [0, 1]).
-     * @param a The alpha value (default is 1, range: [0, 1]).
-     * @return A new color created from the HSV values.
-     */
-    static inline constexpr type from_hsv(FT h, FT s, FT v, FT a = static_cast<FT>(1))
-    {
-        return type(float_type::from_hsv(h, s, v, a));
-    }
-
-    inline constexpr typename float_type::vec3_type to_hsv() const
-    {
-        return float_type(*this).to_hsv();
-    }
-
-    // =============== hsl ===============
-
-    // https://www.rapidtables.com/convert/color/rgb-to-hsl.html
-
-    /**
-     * @brief Create a color from HSL (Hue, Saturation, Lightness) values.
-     *
-     * This function creates a color using HSL values, where h is the hue in degrees,
-     * s is the saturation, l is the lightness, and a is the alpha (default is 1). The function
-     * clamps input values to their valid ranges and performs the HSL to RGB conversion.
-     *
-     * @param h The hue value in degrees (range: [0, 360]).
-     * @param s The saturation value (range: [0, 1]).
-     * @param l The lightness value (range: [0, 1]).
-     * @param a The alpha value (default is 1, range: [0, 1]).
-     * @return A new color created from the HSL values.
-     */
-    static inline constexpr type from_hsl(T h, T s, T l, T a = static_cast<T>(1))
-    {
-        return type(float_type::from_hsl(h, s, l, a));
-    }
-
-    /**
-     * @brief Convert the color to HSL (Hue, Saturation, Lightness) values.
-     *
-     * This function calculates the HSL values from the color's RGB components.
-     *
-     * @return A 3D vector representing the HSL values (Hue in degrees, Saturation, Lightness).
-     */
-    inline constexpr typename float_type::vec3_type to_hsl() const
-    {
-        return float_type(*this).to_hsl();
-    }
-
-    // =============== linear + srgb ===============
-
-    // https://entropymine.com/imageworsener/srgbformula/
-
-    /**
-     * @brief Convert the color to sRGB color space.
-     *
-     * This function performs the conversion of the color to the sRGB color space.
-     *
-     * @return A new color representing the sRGB color space.
-     */
-    inline constexpr type to_srgb() const
-    {
-        return type(float_type(*this).to_srgb());
-    }
-
-    /**
-     * @brief Convert the color to linear color space.
-     *
-     * This function performs the conversion of the color to the linear color space.
-     *
-     * @return A new color representing the linear color space.
-     */
-    inline constexpr type to_linear() const
-    {
-        return type(float_type(*this).to_linear());
     }
 
     // =============== colors ===============
