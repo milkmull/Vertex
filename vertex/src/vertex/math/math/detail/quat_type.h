@@ -160,7 +160,8 @@ struct quat
 
     // =============== assignment operators ===============
 
-    inline constexpr type& operator=(const type& q) noexcept
+    template <typename U>
+    inline constexpr type& operator=(const quat<U>& q) noexcept
     {
         w = q.w;
         x = q.x;

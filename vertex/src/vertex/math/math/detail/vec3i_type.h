@@ -111,9 +111,9 @@ public:
     template <typename U>
     inline constexpr type& operator=(const vecx<3, U>& v)
     {
-        x = static_cast<T>(v.x);
-        y = static_cast<T>(v.y);
-        z = static_cast<T>(v.z);
+        x = v.x;
+        y = v.y;
+        z = v.z;
         return *this;
     }
 
@@ -727,7 +727,7 @@ public:
     inline constexpr std::string to_string(bool pretty_print = false) const
     {
         std::ostringstream oss;
-        oss << "{ " << x << ", " << y << ", " << z << " }";
+        oss << "{ " << +x << ", " << +y << ", " << +z << " }";
         return oss.str();
     }
 

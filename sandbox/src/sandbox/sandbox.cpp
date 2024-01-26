@@ -13,7 +13,7 @@ int main()
     vec2f vf;
     vec2d vd;
 
-    vf = vi << vi;
+    vf = vec2(vi << vi);
 
     return 0;
 }

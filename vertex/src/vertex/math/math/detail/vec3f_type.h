@@ -108,9 +108,9 @@ struct vec<3, T, vec_t::vec, val_t::floating_point>
     template <typename U>
     inline constexpr type& operator=(const vecx<3, U>& v)
     {
-        x = static_cast<T>(v.x);
-        y = static_cast<T>(v.y);
-        z = static_cast<T>(v.z);
+        x = v.x;
+        y = v.y;
+        z = v.z;
         return *this;
     }
 

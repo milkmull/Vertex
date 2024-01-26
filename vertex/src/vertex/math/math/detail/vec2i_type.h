@@ -100,8 +100,8 @@ public:
     template <typename U>
     inline constexpr type& operator=(const vecx<2, U>& v)
     {
-        x = static_cast<T>(v.x);
-        y = static_cast<T>(v.y);
+        x = v.x;
+        y = v.y;
         return *this;
     }
 

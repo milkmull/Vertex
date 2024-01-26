@@ -142,10 +142,10 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
     template <typename U>
     inline constexpr type& operator=(const vecx<4, U>& v)
     {
-        x = static_cast<T>(v.x);
-        y = static_cast<T>(v.y);
-        z = static_cast<T>(v.z);
-        w = static_cast<T>(v.w);
+        x = v.x;
+        y = v.y;
+        z = v.z;
+        w = v.w;
         return *this;
     }
 
