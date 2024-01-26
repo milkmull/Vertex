@@ -96,7 +96,7 @@ inline constexpr detail::coli<T> color_to_linear(const detail::coli<T>& c)
  * @param a The alpha value (default is 1, range: [0, 1]).
  * @return A new color created from the HSV values.
  */
-template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr detail::colf<T> color_from_hsv(T h, T s, T v, T a = static_cast<T>(1))
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));
@@ -206,7 +206,7 @@ inline constexpr auto color_to_hsv(const detail::coli<T>& c)
  * @param a The alpha value (default is 1, range: [0, 1]).
  * @return A new color created from the HSL values.
  */
-template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr detail::colf<T> from_hsl(T h, T s, T l, T a = static_cast<T>(1))
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));

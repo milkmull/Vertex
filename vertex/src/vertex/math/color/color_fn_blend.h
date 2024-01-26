@@ -4,7 +4,6 @@
 #include "../math/vec_fn_common.h"
 
 namespace vx {
-namespace math {
 
 // =============== blend ===============
 
@@ -225,6 +224,5 @@ inline constexpr detail::coli<T> darken(const detail::coli<T>& c, T amount)
     return detail::coli<T>(darken(float_type(c), amount));
 }
 
-}
 }
 }
