@@ -188,12 +188,14 @@ struct quat
 
     // =============== boolean operators ===============
 
-    friend inline constexpr bool operator==(const type& q1, const type& q2)
+    template <typename U>
+    friend inline constexpr bool operator==(const type& q1, const quat<U>& q2)
     {
         return q1.w == q2.w && q1.x == q2.x && q1.y == q2.y && q1.z == q2.z;
     }
 
-    friend inline constexpr bool operator!=(const type& q1, const type& q2)
+    template <typename U>
+    friend inline constexpr bool operator!=(const type& q1, const quat<U>& q2)
     {
         return !(q1 == q2);
     }
@@ -214,31 +216,36 @@ struct quat
 
     // addition (+)
 
-    friend inline constexpr type operator+(const type& q1, const type& q2)
+    template <typename U>
+    friend inline constexpr type operator+(const type& q1, const quat<U>& q2)
     {
         return type(q1.w + q2.w, q1.x + q2.x, q1.y + q2.y, q1.z + q2.z);
     }
 
     // subtraction (-)
 
-    friend inline constexpr type operator-(const type& q1, const type& q2)
+    template <typename U>
+    friend inline constexpr type operator-(const type& q1, const quat<U>& q2)
     {
         return type(q1.w - q2.w, q1.x - q2.x, q1.y - q2.y, q1.z - q2.z);
     }
 
     // multiplication (*)
 
-    friend inline constexpr type operator*(const type& q, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(const type& q, U scaler)
     {
         return type(q.w * scaler, q.x * scaler, q.y * scaler, q.z * scaler);
     }
 
-    friend inline constexpr type operator*(T scaler, const type& q)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(U scaler, const type& q)
     {
-        return type(scaler * q.w, scaler * q.x, scaler * q.y, scaler * q.z);
+        return q * scaler
     }
 
-    friend inline constexpr type operator*(const type& q1, const type& q2)
+    template <typename U>
+    friend inline constexpr type operator*(const type& q1, const quat<U>& q2)
     {
         return type(q1) *= q2;
     }
@@ -255,32 +262,49 @@ struct quat
       * 
       * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
       */
-    friend inline constexpr vec3_type operator*(const type& q, const vec3_type& v)
+    template <typename U>
+    friend inline constexpr vec3_type operator*(const type& q, const vecx<3, U>& v)
     {
         const vec3_type qv(q.x, q.y, q.z);
-        const vec3_type uv(cross(qv, v));
+        const vec3_type uv(cross(qv, static_cast<vec3_type>(v)));
         const vec3_type uuv(cross(qv, uv));
 
-        return v + ((uv * q.w) + uuv) * static_cast<T>(2);
+        return static_cast<vec3_type>(v) + ((uv * q.w) + uuv) * static_cast<T>(2);
     }
 
-    friend inline constexpr vec3_type operator*(const vec3_type& v, const type& q)
+    
+    template <typename U>
+    friend inline constexpr vec3_type operator*(const vecx<3, U>& v, const type& q)
     {
         return q.invert() * v;
     }
 
     // division (/)
 
-    friend inline constexpr type operator/(const type& q, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(const type& q, U scaler)
     {
         return type(q.w / scaler, q.x / scaler, q.y / scaler, q.z / scaler);
+    }
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(U scaler, const type& q)
+    {
+        return scaler * q.invert();
+    }
+
+    template <typename U>
+    friend inline constexpr type operator/(const type& q1, const quat<U>& q2)
+    {
+        return q1 * q2.invert();
     }
 
     // =============== unary arithmetic operators ===============
 
     // addition (+=)
 
-    inline constexpr type& operator+=(const type& q)
+    template <typename U>
+    inline constexpr type& operator+=(const quat<U>& q)
     {
         w += q.w;
         x += q.x;
@@ -291,7 +315,8 @@ struct quat
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(const type& q)
+    template <typename U>
+    inline constexpr type& operator-=(const quat<U>& q)
     {
         w -= q.w;
         x -= q.x;
@@ -302,7 +327,8 @@ struct quat
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator*=(U scaler)
     {
         w *= scaler;
         x *= scaler;
@@ -326,7 +352,8 @@ struct quat
       * 
       * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
       */
-    inline constexpr type& operator*=(const type& q)
+    template <typename U>
+    inline constexpr type& operator*=(const quat<U>& q)
     {
         const type p(*this);
 
@@ -339,7 +366,8 @@ struct quat
 
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator/=(U scaler)
     {
         w /= scaler;
         x /= scaler;
@@ -348,13 +376,10 @@ struct quat
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& q)
+    template <typename U>
+    inline constexpr type& operator/=(const quat<U>& q)
     {
-        w /= q.w;
-        x /= q.x;
-        y /= q.y;
-        z /= q.z;
-        return *this;
+        return ((*this) = (*this) / q);
     }
 
     // =============== iterator ===============
