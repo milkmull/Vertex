@@ -252,26 +252,6 @@ public:
         return type(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a);
     }
 
-    friend inline constexpr type operator+(const type& c, FT scaler)
-    {
-        return type(
-            static_cast<T>(static_cast<FT>(c.r) + scaler),
-            static_cast<T>(static_cast<FT>(c.g) + scaler),
-            static_cast<T>(static_cast<FT>(c.b) + scaler),
-            static_cast<T>(static_cast<FT>(c.a) + scaler)
-        );
-    }
-
-    friend inline constexpr type operator+(FT scaler, const type& c)
-    {
-        return type(
-            static_cast<T>(scaler + static_cast<FT>(c.r)),
-            static_cast<T>(scaler + static_cast<FT>(c.g)),
-            static_cast<T>(scaler + static_cast<FT>(c.b)),
-            static_cast<T>(scaler + static_cast<FT>(c.a))
-        );
-    }
-
     // subtraction (-)
 
     friend inline constexpr type operator-(const type& c, T scaler)
@@ -287,26 +267,6 @@ public:
     friend inline constexpr type operator-(const type& c1, const type& c2)
     {
         return type(c1.r - c2.r, c1.g - c2.g, c1.b - c2.b, c1.a - c2.a);
-    }
-
-    friend inline constexpr type operator-(const type& c, FT scaler)
-    {
-        return type(
-            static_cast<T>(static_cast<FT>(c.r) - scaler),
-            static_cast<T>(static_cast<FT>(c.g) - scaler),
-            static_cast<T>(static_cast<FT>(c.b) - scaler),
-            static_cast<T>(static_cast<FT>(c.a) - scaler)
-        );
-    }
-
-    friend inline constexpr type operator-(FT scaler, const type& c)
-    {
-        return type(
-            static_cast<T>(scaler - static_cast<FT>(c.r)),
-            static_cast<T>(scaler - static_cast<FT>(c.g)),
-            static_cast<T>(scaler - static_cast<FT>(c.b)),
-            static_cast<T>(scaler - static_cast<FT>(c.a))
-        );
     }
 
     // multiplication (*)
@@ -326,26 +286,6 @@ public:
         return type(c1.r * c2.r, c1.g * c2.g, c1.b * c2.b, c1.a * c2.a);
     }
 
-    friend inline constexpr type operator*(const type& c, FT scaler)
-    {
-        return type(
-            static_cast<T>(static_cast<FT>(c.r) * scaler),
-            static_cast<T>(static_cast<FT>(c.g) * scaler),
-            static_cast<T>(static_cast<FT>(c.b) * scaler),
-            static_cast<T>(static_cast<FT>(c.a) * scaler)
-        );
-    }
-
-    friend inline constexpr type operator*(FT scaler, const type& c)
-    {
-        return type(
-            static_cast<T>(scaler * static_cast<FT>(c.r)),
-            static_cast<T>(scaler * static_cast<FT>(c.g)),
-            static_cast<T>(scaler * static_cast<FT>(c.b)),
-            static_cast<T>(scaler * static_cast<FT>(c.a))
-        );
-    }
-
     // division (/)
 
     friend inline constexpr type operator/(const type& c, T scaler)
@@ -361,26 +301,6 @@ public:
     friend inline constexpr type operator/(const type& c1, const type& c2)
     {
         return type(c1.r / c2.r, c1.g / c2.g, c1.b / c2.b, c1.a / c2.a);
-    }
-
-    friend inline constexpr type operator/(const type& c, FT scaler)
-    {
-        return type(
-            static_cast<T>(static_cast<FT>(c.r) / scaler),
-            static_cast<T>(static_cast<FT>(c.g) / scaler),
-            static_cast<T>(static_cast<FT>(c.b) / scaler),
-            static_cast<T>(static_cast<FT>(c.a) / scaler)
-        );
-    }
-
-    friend inline constexpr type operator/(FT scaler, const type& c)
-    {
-        return type(
-            static_cast<T>(scaler / static_cast<FT>(c.r)),
-            static_cast<T>(scaler / static_cast<FT>(c.g)),
-            static_cast<T>(scaler / static_cast<FT>(c.b)),
-            static_cast<T>(scaler / static_cast<FT>(c.a))
-        );
     }
 
     // modulo (%)
@@ -516,15 +436,6 @@ public:
         return *this;
     }
 
-    inline constexpr type& operator+=(FT scaler)
-    {
-        r = static_cast<T>(static_cast<FT>(r) + scaler);
-        g = static_cast<T>(static_cast<FT>(g) + scaler);
-        b = static_cast<T>(static_cast<FT>(b) + scaler);
-        a = static_cast<T>(static_cast<FT>(a) + scaler);
-        return *this;
-    }
-
     // subtraction (-=)
 
     inline constexpr type& operator-=(T scaler)
@@ -542,15 +453,6 @@ public:
         g -= static_cast<T>(v.g);
         b -= static_cast<T>(v.b);
         a -= static_cast<T>(v.a);
-        return *this;
-    }
-
-    inline constexpr type& operator-=(FT scaler)
-    {
-        r = static_cast<T>(static_cast<FT>(r) - scaler);
-        g = static_cast<T>(static_cast<FT>(g) - scaler);
-        b = static_cast<T>(static_cast<FT>(b) - scaler);
-        a = static_cast<T>(static_cast<FT>(a) - scaler);
         return *this;
     }
 
@@ -574,15 +476,6 @@ public:
         return *this;
     }
 
-    inline constexpr type& operator*=(FT scaler)
-    {
-        r = static_cast<T>(static_cast<FT>(r) * scaler);
-        g = static_cast<T>(static_cast<FT>(g) * scaler);
-        b = static_cast<T>(static_cast<FT>(b) * scaler);
-        a = static_cast<T>(static_cast<FT>(a) * scaler);
-        return *this;
-    }
-
     // division (/=)
 
     inline constexpr type& operator/=(T scaler)
@@ -600,15 +493,6 @@ public:
         g /= static_cast<T>(v.g);
         b /= static_cast<T>(v.b);
         a /= static_cast<T>(v.a);
-        return *this;
-    }
-
-    inline constexpr type& operator/=(FT scaler)
-    {
-        r = static_cast<T>(static_cast<FT>(r) / scaler);
-        g = static_cast<T>(static_cast<FT>(g) / scaler);
-        b = static_cast<T>(static_cast<FT>(b) / scaler);
-        a = static_cast<T>(static_cast<FT>(a) / scaler);
         return *this;
     }
 
