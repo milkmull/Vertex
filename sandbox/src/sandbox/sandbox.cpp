@@ -13,7 +13,7 @@ int main()
     vec2f vf;
     vec2d vd;
 
-    func(vi);
+    vf = vi << vi;
 
     return 0;
 }
