@@ -27,7 +27,8 @@
 
 #   define VX_DISABLE_WARNING_PUSH()                         _Pragma("GCC diagnostic push")
 #   define VX_DISABLE_WARNING_POP()                          _Pragma("GCC diagnostic pop")
-#   define VX_DISABLE_WARNING(warning_name, warning_number)  _Pragma("GCC diagnostic ignored \"" #warning_name "\"")
+#   define VX_DISABLE_WARNING_IMPL(warning)                  _Pragma(#warning)
+#   define VX_DISABLE_WARNING(warning_name, warning_number)  VX_DISABLE_WARNING_IMPL(GCC diagnostic ignored warning_name)
 
 #elif defined(VX_COMPILER_MSVC)
 
