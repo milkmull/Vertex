@@ -92,10 +92,11 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // =============== assignment operators ===============
 
-    inline constexpr type& operator=(const type& v) noexcept
+    template <typename U>
+    inline constexpr type& operator=(const vecx<2, U>& v)
     {
-        x = v.x;
-        y = v.y;
+        x = static_cast<T>(v.x);
+        y = static_cast<T>(v.y);
         return *this;
     }
 

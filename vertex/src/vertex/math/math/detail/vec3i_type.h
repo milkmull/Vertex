@@ -108,11 +108,12 @@ public:
 
     // =============== assignment operators ===============
 
-    inline constexpr type& operator=(const type& v) noexcept
+    template <typename U>
+    inline constexpr type& operator=(const vecx<3, U>& v)
     {
-        x = v.x;
-        y = v.y;
-        z = v.z;
+        x = static_cast<T>(v.x);
+        y = static_cast<T>(v.y);
+        z = static_cast<T>(v.z);
         return *this;
     }
 
