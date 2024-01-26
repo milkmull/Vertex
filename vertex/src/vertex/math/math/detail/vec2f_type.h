@@ -117,35 +117,41 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // =============== comparison operators ===============
 
-    friend inline constexpr bool operator==(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator==(const type& v1, const vecx<2, U>& v2)
     {
         return v1.x == v2.x && v1.y == v2.y;
     }
 
-    friend inline constexpr bool operator!=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator!=(const type& v1, const vecx<2, U>& v2)
     {
         return !(v1 == v2);
     }
 
-    friend inline constexpr bool operator<(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator<(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x < v2.x);
         else              return (v1.y < v2.y);
     }
 
-    friend inline constexpr bool operator>(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator>(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x > v2.x);
         else              return (v1.y > v2.y);
     }
 
-    friend inline constexpr bool operator<=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator<=(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x <  v2.x);
         else              return (v1.y <= v2.y);
     }
 
-    friend inline constexpr bool operator>=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator>=(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x >  v2.x);
         else              return (v1.y >= v2.y);
@@ -201,68 +207,80 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // addition (+)
 
-    friend inline constexpr type operator+(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator+(const type& v, U scaler)
     {
         return type(v.x + scaler, v.y + scaler);
     }
 
-    friend inline constexpr type operator+(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator+(U scaler, const type& v)
     {
-        return type(scaler + v.x, scaler + v.y);
+        return v + scaler;
     }
 
-    friend inline constexpr type operator+(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator+(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x + v2.x, v1.y + v2.y);
     }
 
     // subtraction (-)
 
-    friend inline constexpr type operator-(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator-(const type& v, U scaler)
     {
         return type(v.x - scaler, v.y - scaler);
     }
 
-    friend inline constexpr type operator-(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator-(U scaler, const type& v)
     {
-        return type(scaler - v.x, scaler - v.y);
+        return v - scaler;
     }
 
-    friend inline constexpr type operator-(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator-(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x - v2.x, v1.y - v2.y);
     }
 
     // multiplication (*)
 
-    friend inline constexpr type operator*(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(const type& v, U scaler)
     {
         return type(v.x * scaler, v.y * scaler);
     }
 
-    friend inline constexpr type operator*(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(U scaler, const type& v)
     {
-        return type(scaler * v.x, scaler * v.y);
+        return v * scaler;
     }
 
-    friend inline constexpr type operator*(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator*(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x * v2.x, v1.y * v2.y);
     }
 
     // division (/)
 
-    friend inline constexpr type operator/(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(const type& v, U scaler)
     {
         return type(v.x / scaler, v.y / scaler);
     }
 
-    friend inline constexpr type operator/(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(U scaler, const type& v)
     {
-        return type(scaler / v.x, scaler / v.y);
+        return v / scaler;
     }
 
-    friend inline constexpr type operator/(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator/(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x / v2.x, v1.y / v2.y);
     }
@@ -271,14 +289,16 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // addition (+=)
 
-    inline constexpr type& operator+=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator+=(U scaler)
     {
         x += scaler;
         y += scaler;
         return *this;
     }
 
-    inline constexpr type& operator+=(const type& v)
+    template <typename U>
+    inline constexpr type& operator+=(const vecx<2, U>& v)
     {
         x += v.x;
         y += v.y;
@@ -287,14 +307,16 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator-=(U scaler)
     {
         x -= scaler;
         y -= scaler;
         return *this;
     }
 
-    inline constexpr type& operator-=(const type& v)
+    template <typename U>
+    inline constexpr type& operator-=(const vecx<2, U>& v)
     {
         x -= v.x;
         y -= v.y;
@@ -303,40 +325,46 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator*=(U scaler)
     {
         x *= scaler;
         y *= scaler;
         return *this;
     }
 
-    inline constexpr type& operator*=(const type& v)
+    template <typename U>
+    inline constexpr type& operator*=(const vecx<2, U>& v)
     {
         x *= v.x;
         y *= v.y;
         return *this;
     }
 
-    inline constexpr type& operator*=(const mat<2, 2, T>& m)
+    template <typename U>
+    inline constexpr type& operator*=(const mat<2, 2, U>& m)
     {
         return ((*this) = (*this) * m);
     }
 
-    inline constexpr type& operator*=(const mat<3, 3, T>& m)
+    template <typename U>
+    inline constexpr type& operator*=(const mat<3, 3, U>& m)
     {
         return ((*this) = (*this) * m);
     }
 
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator/=(U scaler)
     {
         x /= scaler;
         y /= scaler;
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& v)
+    template <typename U>
+    inline constexpr type& operator/=(const vecx<2, U>& v)
     {
         x /= v.x;
         y /= v.y;

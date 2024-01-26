@@ -91,11 +91,6 @@ public:
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y)) {}
 
-    inline constexpr float_type to_float() const
-    {
-        return float_type(*this);
-    }
-
     // =============== destructor ===============
 
     ~vec() noexcept = default;
@@ -127,35 +122,41 @@ public:
 
     // =============== comparison operators ===============
 
-    friend inline constexpr bool operator==(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator==(const type& v1, const vecx<2, U>& v2)
     {
         return v1.x == v2.x && v1.y == v2.y;
     }
 
-    friend inline constexpr bool operator!=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator!=(const type& v1, const vecx<2, U>& v2)
     {
         return !(v1 == v2);
     }
 
-    friend inline constexpr bool operator<(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator<(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x < v2.x);
         else              return (v1.y < v2.y);
     }
 
-    friend inline constexpr bool operator>(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator>(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x > v2.x);
         else              return (v1.y > v2.y);
     }
 
-    friend inline constexpr bool operator<=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator<=(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x < v2.x);
         else              return (v1.y <= v2.y);
     }
 
-    friend inline constexpr bool operator>=(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr bool operator>=(const type& v1, const vecx<2, U>& v2)
     {
         if (v1.x != v2.x) return (v1.x > v2.x);
         else              return (v1.y >= v2.y);
@@ -211,85 +212,100 @@ public:
 
     // addition (+)
 
-    friend inline constexpr type operator+(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator+(const type& v, U scaler)
     {
         return type(v.x + scaler, v.y + scaler);
     }
 
-    friend inline constexpr type operator+(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator+(U scaler, const type& v)
     {
-        return type(scaler + v.x, scaler + v.y);
+        return v + scaler;
     }
 
-    friend inline constexpr type operator+(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator+(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x + v2.x, v1.y + v2.y);
     }
 
     // subtraction (-)
 
-    friend inline constexpr type operator-(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator-(const type& v, U scaler)
     {
         return type(v.x - scaler, v.y - scaler);
     }
 
-    friend inline constexpr type operator-(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator-(U scaler, const type& v)
     {
-        return type(scaler - v.x, scaler - v.y);
+        return v - scaler;
     }
 
-    friend inline constexpr type operator-(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator-(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x - v2.x, v1.y - v2.y);
     }
 
     // multiplication (*)
 
-    friend inline constexpr type operator*(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(const type& v, U scaler)
     {
         return type(v.x * scaler, v.y * scaler);
     }
 
-    friend inline constexpr type operator*(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator*(U scaler, const type& v)
     {
-        return type(scaler * v.x, scaler * v.y);
+        return v * scaler;
     }
 
-    friend inline constexpr type operator*(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator*(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x * v2.x, v1.y * v2.y);
     }
 
     // division (/)
 
-    friend inline constexpr type operator/(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(const type& v, U scaler)
     {
         return type(v.x / scaler, v.y / scaler);
     }
 
-    friend inline constexpr type operator/(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    friend inline constexpr type operator/(U scaler, const type& v)
     {
-        return type(scaler / v.x, scaler / v.y);
+        return v / scaler;
     }
 
-    friend inline constexpr type operator/(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator/(const type& v1, const vecx<2, U>& v2)
     {
         return type(v1.x / v2.x, v1.y / v2.y);
     }
 
     // modulo (%)
 
-    friend inline constexpr type operator%(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator%(const type& v, U scaler)
     {
         return type(v.x % scaler, v.y % scaler);
     }
 
-    friend inline constexpr type operator%(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator%(U scaler, const type& v)
     {
-        return type(scaler % v.x, scaler % v.y);
+        return v % scaler;
     }
 
-    friend inline constexpr type operator%(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator%(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x % v2.x, v1.y % v2.y);
     }
@@ -298,85 +314,100 @@ public:
 
     // and (&)
 
-    friend inline constexpr type operator&(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator&(const type& v, U scaler)
     {
         return type(v.x & scaler, v.y & scaler);
     }
 
-    friend inline constexpr type operator&(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator&(U scaler, const type& v)
     {
-        return type(scaler & v.x, scaler & v.y);
+        return v & scaler;
     }
 
-    friend inline constexpr type operator&(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator&(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x & v2.x, v1.y & v2.y);
     }
 
     // or (|)
 
-    friend inline constexpr type operator|(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator|(const type& v, U scaler)
     {
         return type(v.x | scaler, v.y | scaler);
     }
 
-    friend inline constexpr type operator|(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator|(U scaler, const type& v)
     {
-        return type(scaler | v.x, scaler | v.y);
+        return v | scaler;
     }
 
-    friend inline constexpr type operator|(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator|(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x | v2.x, v1.y | v2.y);
     }
 
     // xor (^)
 
-    friend inline constexpr type operator^(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator^(const type& v, U scaler)
     {
         return type(v.x ^ scaler, v.y ^ scaler);
     }
 
-    friend inline constexpr type operator^(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator^(U scaler, const type& v)
     {
-        return type(scaler ^ v.x, scaler ^ v.y);
+        return v ^ scaler;
     }
 
-    friend inline constexpr type operator^(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator^(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x ^ v2.x, v1.y ^ v2.y);
     }
 
     // left shift (<<)
 
-    friend inline constexpr type operator<<(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator<<(const type& v, U scaler)
     {
         return type(v.x << scaler, v.y << scaler);
     }
 
-    friend inline constexpr type operator<<(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator<<(U scaler, const type& v)
     {
-        return type(scaler << v.x, scaler << v.y);
+        return v << scaler;
     }
 
-    friend inline constexpr type operator<<(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator<<(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x << v2.x, v1.y << v2.y);
     }
 
     // right shift (>>)
 
-    friend inline constexpr type operator>>(const type& v, T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator>>(const type& v, U scaler)
     {
         return type(v.x >> scaler, v.y >> scaler);
     }
 
-    friend inline constexpr type operator>>(T scaler, const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    friend inline constexpr type operator>>(U scaler, const type& v)
     {
-        return type(scaler >> v.x, scaler >> v.y);
+        return v >> scaler;
     }
 
-    friend inline constexpr type operator>>(const type& v1, const type& v2)
+    template <typename U>
+    friend inline constexpr type operator>>(const type& v1, const veci<2, U>& v2)
     {
         return type(v1.x >> v2.x, v1.y >> v2.y);
     }
@@ -392,14 +423,16 @@ public:
 
     // addition (+=)
 
-    inline constexpr type& operator+=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator+=(U scaler)
     {
         x += scaler;
         y += scaler;
         return *this;
     }
 
-    inline constexpr type& operator+=(const type& v)
+    template <typename U>
+    inline constexpr type& operator+=(const vecx<2, U>& v)
     {
         x += v.x;
         y += v.y;
@@ -408,14 +441,16 @@ public:
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator-=(U scaler)
     {
         x -= scaler;
         y -= scaler;
         return *this;
     }
 
-    inline constexpr type& operator-=(const type& v)
+    template <typename U>
+    inline constexpr type& operator-=(const vecx<2, U>& v)
     {
         x -= v.x;
         y -= v.y;
@@ -424,30 +459,46 @@ public:
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator*=(U scaler)
     {
         x *= scaler;
         y *= scaler;
         return *this;
     }
 
-    inline constexpr type& operator*=(const type& v)
+    template <typename U>
+    inline constexpr type& operator*=(const vecx<2, U>& v)
     {
         x *= v.x;
         y *= v.y;
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator*=(const mat<2, 2, U>& m)
+    {
+        return ((*this) = (*this) * m);
+    }
+
+    template <typename U>
+    inline constexpr type& operator*=(const mat<3, 3, U>& m)
+    {
+        return ((*this) = (*this) * m);
+    }
+
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator/=(U scaler)
     {
         x /= scaler;
         y /= scaler;
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& v)
+    template <typename U>
+    inline constexpr type& operator/=(const vecx<2, U>& v)
     {
         x /= v.x;
         y /= v.y;
@@ -456,14 +507,16 @@ public:
 
     // modulo (%=)
 
-    inline constexpr type& operator%=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator%=(U scaler)
     {
         x %= scaler;
         y %= scaler;
         return *this;
     }
 
-    inline constexpr type& operator%=(const type& v)
+    template <typename U>
+    inline constexpr type& operator%=(const veci<2, U>& v)
     {
         x %= v.x;
         y %= v.y;
@@ -474,14 +527,16 @@ public:
 
     // and (&=)
 
-    inline constexpr type& operator&=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator&=(U scaler)
     {
         x &= scaler;
         y &= scaler;
         return *this;
     }
 
-    inline constexpr type& operator&=(const type& v)
+    template <typename U>
+    inline constexpr type& operator&=(const veci<2, U>& v)
     {
         x &= v.x;
         y &= v.y;
@@ -490,14 +545,16 @@ public:
 
     // or (|=)
 
-    inline constexpr type& operator|=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator|=(U scaler)
     {
         x |= scaler;
         y |= scaler;
         return *this;
     }
 
-    inline constexpr type& operator|=(const type& v)
+    template <typename U>
+    inline constexpr type& operator|=(const veci<2, U>& v)
     {
         x |= v.x;
         y |= v.y;
@@ -506,14 +563,16 @@ public:
 
     // xor (^=)
 
-    inline constexpr type& operator^=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator^=(U scaler)
     {
         x ^= scaler;
         y ^= scaler;
         return *this;
     }
 
-    inline constexpr type& operator^=(const type& v)
+    template <typename U>
+    inline constexpr type& operator^=(const veci<2, U>& v)
     {
         x ^= v.x;
         y ^= v.y;
@@ -522,14 +581,16 @@ public:
 
     // left shift (<<=)
 
-    inline constexpr type& operator<<=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator<<=(U scaler)
     {
         x <<= scaler;
         y <<= scaler;
         return *this;
     }
 
-    inline constexpr type& operator<<=(const type& v)
+    template <typename U>
+    inline constexpr type& operator<<=(const veci<2, U>& v)
     {
         x <<= v.x;
         y <<= v.y;
@@ -538,14 +599,16 @@ public:
 
     // right shift (>>=)
 
-    inline constexpr type& operator>>=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator>>=(U scaler)
     {
         x >>= scaler;
         y >>= scaler;
         return *this;
     }
 
-    inline constexpr type& operator>>=(const type& v)
+    template <typename U>
+    inline constexpr type& operator>>=(const veci<2, U>& v)
     {
         x >>= v.x;
         y >>= v.y;
@@ -641,7 +704,7 @@ public:
     inline constexpr std::string to_string(bool pretty_print = false) const
     {
         std::ostringstream oss;
-        oss << "{ " << x << ", " << y << " }";
+        oss << "{ " << +x << ", " << +y << " }";
         return oss.str();
     }
 
