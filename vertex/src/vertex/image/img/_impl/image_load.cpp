@@ -77,19 +77,23 @@ error_code load_image(const char* path, image_info& info, std::vector<byte_type>
     }
 
     error_code err = check_image_size_limits(width, height, channels, 8);
-    if (err != error_code::NONE)
-    {
-        return err;
-    }
 
-    info.width = width;
-    info.height = height;
-    info.format = choose_format(channels);
-    data.assign(raw, raw + info.size());
+    if (err == error_code::NONE)
+    {
+        info.width = width;
+        info.height = height;
+        info.format = choose_format(channels);
+        data.assign(raw, raw + info.size());
+
+        if (info.format == image_format::UNKNOWN)
+        {
+            err = error_code::UNSUPPORTED_FORMAT;
+        }
+    }
 
     stbi_image_free(raw);
 
-    return error_code::NONE;
+    return err;
 }
 
 }

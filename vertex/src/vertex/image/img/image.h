@@ -35,21 +35,21 @@ public:
     image(const byte_type* data, size_type width, size_type height, image_format format)
         : image(data, image_info{ width, height, format }) {}
 
-    image(const char* path, image_format format)
+    image(const char* path, image_format format, error_code& err)
     {
-        //const bool result = load_image(path, m_info, m_data);
-        //
-        //if (result && m_info.format != image_format::UNKNOWN)
-        //{
-        //    const uint32_t new_width = m_info.width * m_info.pixel_size() / get_pixel_size(format);
-        //    const uint32_t new_height = m_info.height;
-        //
-        //    reinterpret({ newWidth, newHeight, format });
-        //}
-        //else
-        //{
-        //    reset();
-        //}
+        err = load_image(path, m_info, m_data);
+        
+        if (result && m_info.format != image_format::UNKNOWN)
+        {
+            const uint32_t new_width = m_info.width * m_info.pixel_size() / get_pixel_size(format);
+            const uint32_t new_height = m_info.height;
+        
+            reinterpret({ newWidth, newHeight, format });
+        }
+        else
+        {
+            reset();
+        }
     }
 
 private:
