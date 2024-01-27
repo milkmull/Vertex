@@ -10,7 +10,7 @@
 namespace vx {
 namespace img {
 
-bool load_image(const char* path, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load = false);
+int load_image(const char* path, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load = false);
 
 }
 }
