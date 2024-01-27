@@ -12,6 +12,15 @@ struct image_info
     size_type width, height;
     image_format format;
 
+    image_info() = default;
+    image_info(const image_info&) = default;
+    image_info(image_info&&) noexcept = default;
+
+    ~image_info() = default;
+
+    image_info& operator=(const image_info&) = default;
+    image_info& operator=(image_info&&) noexcept = default;
+
     inline constexpr size_type channels() const { return get_channel_count(format); }
     inline constexpr size_type bitdepth() const { return get_bitdepth(format); }
     inline constexpr size_type pixel_size() const { return get_pixel_size(format); }

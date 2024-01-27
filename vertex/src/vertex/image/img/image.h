@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <utility>
 
 #include "image_info.h"
 #include "image_load.h"
@@ -48,6 +49,46 @@ public:
 
         assert(m_info.size() == m_data.size());
     }
+
+    image(const image& i)
+        : m_info(i.m_info), m_data(i.m_data) {}
+
+    image(image&& i) noexcept
+        : m_info(std::move(i.m_info)), m_data(std::move(i.m_data)) {}
+
+    // =============== destructor ===============
+
+    ~image() = default;
+
+    // =============== assignment operators ===============
+
+    image& operator=(const image& i)
+    {
+        m_info = i.m_info;
+        m_data = i.m_data;
+        return *this;
+    }
+
+    image& operator=(image&& i) noexcept
+    {
+        m_info = std::move(i.m_info);
+        m_data = std::move(i.m_data);
+        return *this;
+    }
+
+    // =============== info ===============
+
+    inline const image_info& get_info() const { return m_info; }
+
+    inline size_type width() const { return m_info.width; }
+    inline size_type height() const { return m_info.height; }
+    inline image_format format() const { return m_info.format; }
+
+    inline size_type channels() const { return m_info.channels(); }
+    inline size_type bitdepth() const { return m_info.bitdepth(); }
+    inline size_type pixel_size() const { return m_info.pixel_size(); }
+
+    inline const std::vector<byte_type> data() const { return m_data; }
 
 private:
 

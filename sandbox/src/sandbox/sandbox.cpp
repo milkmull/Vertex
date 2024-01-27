@@ -4,10 +4,19 @@ int main()
 {
     using namespace vx;
 
-    img::image_info info;
-    std::vector<img::byte_type> data;
+    img::error_code err{};
 
-    std::cout << info.width;
+    img::image img("../../tools/cloud1.png", err);
+
+    std::cout << "error: "      << static_cast<int>(err) << std::endl;
+    std::cout << "width: "      << img.width() << std::endl;
+    std::cout << "height: "     << img.height() << std::endl;
+    std::cout << "format: "     << static_cast<int>(img.format()) << std::endl;
+    std::cout << "channels: "   << img.channels() << std::endl;
+    std::cout << "bitdepth: "   << img.bitdepth() << std::endl;
+    std::cout << "pixel_size: " << img.pixel_size() << std::endl;
+    std::cout << "length: "     << img.data().size() << std::endl;
+
 
     return 0;
 }
