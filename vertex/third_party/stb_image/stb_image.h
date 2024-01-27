@@ -88,6 +88,7 @@ RECENT REVISION HISTORY:
     Ken Miller (pgm, ppm)                  Richard Mitton (16-bit PSD)
     github:urraka (animated gif)           Junggon Kim (PNM comments)
     Christopher Forseth (animated gif)     Daniel Gibson (16-bit TGA)
+                                           Michael "milkmull" Mullins (error codes)
                                            socks-the-fox (16-bit PNG)
                                            Jeremy Sawicki (handle all ImageNet JPGs)
  Optimizations & bugfixes                  Mikhail Morozov (1-bit BMP)
@@ -178,6 +179,11 @@ RECENT REVISION HISTORY:
 // unfriendly explanation of why the load failed. Define STBI_NO_FAILURE_STRINGS
 // to avoid compiling these strings at all, and STBI_FAILURE_USERMSG to get slightly
 // more user-friendly ones.
+// 
+// If STBI_NO_FAILURE_STRINGS is defined, stbi_failure_reason()
+// will be configured to return an integer error code. These codes are defined by the
+// enum values STBI_ERROR_* and can provide an easy way for users to switch on general
+// errors and impliment their own handling and messages. 
 //
 // Paletted PNG, BMP, GIF, and PIC images are automatically depalettized.
 //
@@ -1353,7 +1359,7 @@ STBI_EXTERN __declspec(dllimport) int __stdcall WideCharToMultiByte(unsigned int
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
 STBIDEF int stbi_convert_wchar_to_utf8(char *buffer, size_t bufferlen, const wchar_t* input)
 {
-	return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
+    return WideCharToMultiByte(65001 /* UTF8 */, 0, input, -1, buffer, (int) bufferlen, NULL, NULL);
 }
 #endif
 
@@ -1363,15 +1369,15 @@ static FILE *stbi__fopen(char const *filename, char const *mode)
 #if defined(_WIN32) && defined(STBI_WINDOWS_UTF8)
    wchar_t wMode[64];
    wchar_t wFilename[1024];
-	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
+    if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, filename, -1, wFilename, sizeof(wFilename)/sizeof(*wFilename)))
       return 0;
 
-	if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
+    if (0 == MultiByteToWideChar(65001 /* UTF8 */, 0, mode, -1, wMode, sizeof(wMode)/sizeof(*wMode)))
       return 0;
 
 #if defined(_MSC_VER) && _MSC_VER >= 1400
-	if (0 != _wfopen_s(&f, wFilename, wMode))
-		f = 0;
+    if (0 != _wfopen_s(&f, wFilename, wMode))
+        f = 0;
 #else
    f = _wfopen(wFilename, wMode);
 #endif
@@ -5352,7 +5358,7 @@ static int stbi__png_is16(stbi__context *s)
    stbi__png p;
    p.s = s;
    if (!stbi__png_info_raw(&p, NULL, NULL, NULL))
-	   return 0;
+       return 0;
    if (p.depth != 16) {
       stbi__rewind(p.s);
       return 0;
@@ -7645,7 +7651,7 @@ static int      stbi__pnm_info(stbi__context *s, int *x, int *y, int *comp)
 static int stbi__pnm_is16(stbi__context *s)
 {
    if (stbi__pnm_info(s, NULL, NULL, NULL) == 16)
-	   return 1;
+       return 1;
    return 0;
 }
 #endif
