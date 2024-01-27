@@ -37,19 +37,19 @@ public:
 
     image(const char* path, image_format format)
     {
-        const bool result = load_image(path, m_info, m_data);
-
-        if (result && m_info.format != image_format::UNKNOWN)
-        {
-            const uint32_t new_width = m_info.width * m_info.pixel_size() / get_pixel_size(format);
-            const uint32_t new_height = m_info.height;
-
-            reinterpret({ newWidth, newHeight, format });
-        }
-        else
-        {
-            reset();
-        }
+        //const bool result = load_image(path, m_info, m_data);
+        //
+        //if (result && m_info.format != image_format::UNKNOWN)
+        //{
+        //    const uint32_t new_width = m_info.width * m_info.pixel_size() / get_pixel_size(format);
+        //    const uint32_t new_height = m_info.height;
+        //
+        //    reinterpret({ newWidth, newHeight, format });
+        //}
+        //else
+        //{
+        //    reset();
+        //}
     }
 
 private:

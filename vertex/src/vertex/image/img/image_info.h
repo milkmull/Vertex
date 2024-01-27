@@ -27,7 +27,7 @@ struct image_info
     inline constexpr size_type size() const { return pixel_size() * width * height; }
     inline constexpr size_type safe_size() const { return std::max(size(), static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_SIZE)); }
 
-    inline constexpr image_size_limit validate() const { return check_image_size_limits(width, height, channels(), bitdepth()); }
+    inline constexpr error_code get_error() const { return check_image_size_limits(width, height, channels(), bitdepth()); }
 
     // Returns a new set of image specifications with the format converted to an
     // equivalent 8-bit format. The width of the image is adjusted such that the

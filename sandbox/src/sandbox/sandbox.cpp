@@ -7,9 +7,9 @@ int main()
     img::image_info info;
     std::vector<img::byte_type> data;
 
-    int code = img::load_image("", info, data);
+    img::error_code code = img::load_image("", info, data);
 
-    std::cout << code;
+    std::cout << static_cast<int>(code);
 
     return 0;
 }
