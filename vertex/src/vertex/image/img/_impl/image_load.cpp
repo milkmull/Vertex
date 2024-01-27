@@ -27,23 +27,9 @@ VX_DISABLE_WARNING_POP()
 namespace vx {
 namespace img {
 
-// =============== error ===============
-
-static const char* error_message = nullptr;
-
-static void set_image_load_error_message(const char* msg)
-{
-    error_message = msg;
-}
-
-const char* get_image_load_error_message()
-{
-    return error_message;
-}
-
 // =============== load ===============
 
-bool load_image(const char* path, image_info& specs, std::vector<byte_type>& data, bool flip_vertically_on_load)
+bool load_image(const char* path, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load)
 {
     assert(path != nullptr);
 
@@ -61,17 +47,17 @@ bool load_image(const char* path, image_info& specs, std::vector<byte_type>& dat
     }
 
     image_size_limit err = check_image_size_limits(width, height, channels, 8);
-    if (err != image_size_limit::VX_IMAGE_SIZE_LIMIT_NONE)
+    if (err != VX_IMAGE_SIZE_LIMIT_NONE)
     {
         const char* msg = get_image_size_limit_error_message(err);
         set_image_load_error_message(msg);
         return false;
     }
 
-    specs.width = width;
-    specs.height = height;
-    specs.format = choose_format(channels);
-    data.assign(raw, raw + specs.size());
+    info.width = width;
+    info.height = height;
+    info.format = choose_format(channels);
+    data.assign(raw, raw + info.size());
 
     stbi_image_free(raw);
 
