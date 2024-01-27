@@ -7,6 +7,7 @@ enum class error_code
 {
     NONE = 0,
     ERROR,
+    NULL_POINTER,
 
     FILE_IO,
     OUT_OF_MEMORY,

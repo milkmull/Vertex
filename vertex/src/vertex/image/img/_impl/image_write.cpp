@@ -1,5 +1,6 @@
-#include "../image_write.h"
+#include <algorithm>
 
+#include "../image_write.h"
 #include "vertex/detail/setup.h"
 #include "../image_size_limit.h"
 
@@ -21,26 +22,20 @@ VX_DISABLE_WARNING_POP()
 namespace vx {
 namespace img {
 
-// =============== error ===============
-
-static const char* error_message = nullptr;
-
-static void set_image_write_error_message(const char* msg)
-{
-    error_message = msg;
-}
-
-const char* get_image_write_error_message()
-{
-    return error_message;
-}
-
 // =============== write ===============
 
-bool write_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(path != nullptr);
-    assert(data != nullptr);
+    if (path == nullptr || data == nullptr)
+    {
+        return error_code::NULL_POINTER;
+    }
+
+    const error_code info_error = info.get_error();
+    if (info_error != error_code::NONE)
+    {
+        return info_error;
+    }
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_bmp(
@@ -51,19 +46,21 @@ bool write_bmp(const char* path, const image_info& info, const byte_type* data, 
 		data
 	);
 
-	if (!success)
-	{
-        set_image_write_error_message("failed to write bmp");
-	}
-
-    return success;
+    return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-bool write_jpg(const char* path, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
+error_code write_jpg(const char* path, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
 {
-    assert(path != nullptr);
-    assert(data != nullptr);
-    assert(1 <= quality && quality <= 100);
+    if (path == nullptr || data == nullptr)
+    {
+        return error_code::NULL_POINTER;
+    }
+
+    const error_code info_error = info.get_error();
+    if (info_error != error_code::NONE)
+    {
+        return info_error;
+    }
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_jpg(
@@ -72,21 +69,24 @@ bool write_jpg(const char* path, const image_info& info, const byte_type* data, 
         static_cast<int>(info.height),
         static_cast<int>(info.channels()),
 		data,
-        quality
+        std::clamp(quality, 1, 100)
 	);
 
-    if (!success)
-    {
-        set_image_write_error_message("failed to write jpg");
-    }
-
-    return success;
+    return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-bool write_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(path != nullptr);
-    assert(data != nullptr);
+    if (path == nullptr || data == nullptr)
+    {
+        return error_code::NULL_POINTER;
+    }
+
+    const error_code info_error = info.get_error();
+    if (info_error != error_code::NONE)
+    {
+        return info_error;
+    }
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_png(
@@ -98,18 +98,21 @@ bool write_png(const char* path, const image_info& info, const byte_type* data, 
 		static_cast<int>(info.width * info.pixel_size())
 	);
 
-    if (!success)
-    {
-        set_image_write_error_message("failed to write png");
-    }
-
-    return success;
+    return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-bool write_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(path != nullptr);
-    assert(data != nullptr);
+    if (path == nullptr || data == nullptr)
+    {
+        return error_code::NULL_POINTER;
+    }
+
+    const error_code info_error = info.get_error();
+    if (info_error != error_code::NONE)
+    {
+        return info_error;
+    }
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_tga(
@@ -120,12 +123,7 @@ bool write_tga(const char* path, const image_info& info, const byte_type* data, 
 		data
 	);
 
-    if (!success)
-    {
-        set_image_write_error_message("failed to write tga");
-    }
-
-    return success;
+    return success ? error_code::NONE : error_code::FILE_IO;
 }
 
 }

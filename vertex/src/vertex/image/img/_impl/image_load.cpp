@@ -61,7 +61,7 @@ error_code load_image(const char* path, image_info& info, std::vector<byte_type>
 {
     if (path == nullptr)
     {
-        return error_code::FILE_IO;
+        return error_code::NULL_POINTER;
     }
 
     int width, height, channels;

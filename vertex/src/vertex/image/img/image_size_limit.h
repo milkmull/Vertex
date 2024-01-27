@@ -26,7 +26,8 @@ constexpr error_code check_image_size_limits(
     size_type width,
     size_type height,
     size_type channels,
-    size_type bitdepth
+    size_type bitdepth,
+    error_code default_error = error_code::NONE
 )
 {
     if (width * height > VX_IMAGE_SIZE_LIMIT_MAX_SIZE)
@@ -42,7 +43,7 @@ constexpr error_code check_image_size_limits(
         return error_code::UNSUPPORTED_BITDEPTH;
     }
 
-    return error_code::NONE;
+    return default_error;
 }
 
 }
