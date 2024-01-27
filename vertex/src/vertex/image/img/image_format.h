@@ -68,27 +68,7 @@ inline constexpr size_type get_bitdepth(image_format format)
 // Returns the pixel size in bytes for a given image format
 inline constexpr size_type get_pixel_size(image_format format)
 {
-    switch (format)
-    {
-        case image_format::R8:			return 1;
-        case image_format::RG8:			return 2;
-        case image_format::RGB8:		return 3;
-        case image_format::RGBA8:		return 4;
-
-        case image_format::R16:			return 2;
-        case image_format::RG16:		return 4;
-        case image_format::RGB16:		return 6;
-        case image_format::RGBA16:		return 8;
-
-        case image_format::R32F:		return 4;
-        case image_format::RG32F:		return 8;
-        case image_format::RGB32F:		return 12;
-        case image_format::RGBA32F:		return 16;
-
-        default:						break;
-    }
-
-    return 0;
+    return get_bitdepth(format) / 8 * get_channel_count(format);
 }
 
 // Converts an image format to an equivalent 8-bit format

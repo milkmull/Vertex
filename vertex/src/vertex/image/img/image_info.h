@@ -12,22 +12,10 @@ struct image_info
     size_type width, height;
     image_format format;
 
-    image_info() = default;
-    image_info(const image_info&) = default;
-    image_info(image_info&&) noexcept = default;
-
-    ~image_info() = default;
-
-    image_info& operator=(const image_info&) = default;
-    image_info& operator=(image_info&&) noexcept = default;
-
     inline constexpr size_type channels() const { return get_channel_count(format); }
     inline constexpr size_type bitdepth() const { return get_bitdepth(format); }
     inline constexpr size_type pixel_size() const { return get_pixel_size(format); }
     inline constexpr size_type size() const { return pixel_size() * width * height; }
-    inline constexpr size_type safe_size() const { return std::max(size(), static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_SIZE)); }
-
-    inline constexpr error_code get_error() const { return check_image_size_limits(width, height, channels(), bitdepth()); }
 
     // Returns a new set of image specifications with the format converted to an
     // equivalent 8-bit format. The width of the image is adjusted such that the
@@ -39,6 +27,24 @@ struct image_info
         const size_type new_height = height;
 
         return image_info{ new_width, new_height, new_format };
+    }
+
+    inline constexpr image_info make_safe() const
+    {
+        const image_format new_format = (format != image_format::UNKNOWN) ? format : image_format::RGB8;
+        const size_type new_width = std::min(width, static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS));
+        const size_type new_height = std::min(height, static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS));
+        
+        return image_info{ new_width, new_height, new_format };
+    }
+
+    inline constexpr error_code get_error() const
+    {
+        if (format == image_format::UNKNOWN)
+        {
+            return error_code::UNSUPPORTED_IMAGE_TYPE;
+        }
+        return check_image_size_limits(width, height, channels(), bitdepth());
     }
 };
 

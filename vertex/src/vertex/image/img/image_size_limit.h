@@ -7,19 +7,27 @@
 namespace vx {
 namespace img {
 
-#define VX_MAX_IMAGE_SIZE (1 << 24) // 4096 * 4096
+#define VX_MAX_IMAGE_DIMENSIONS (1 << 13) // 8192
 
 enum image_size_limit : size_type
 {
     VX_IMAGE_SIZE_LIMIT_NONE = 0,
 
-    VX_IMAGE_SIZE_LIMIT_MAX_SIZE = VX_MAX_IMAGE_SIZE,
+    VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS = VX_MAX_IMAGE_DIMENSIONS,
 
     VX_IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
     VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
 
     VX_IMAGE_SIZE_LIMIT_MIN_BITDEPTH = 8,
     VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 32,
+
+    VX_IMAGE_SIZE_LIMIT_MAX_SIZE = (
+        VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
+        VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
+        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS  *
+        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH  /
+        8
+    )
 };
 
 constexpr error_code check_image_size_limits(
@@ -30,7 +38,7 @@ constexpr error_code check_image_size_limits(
     error_code default_error = error_code::NONE
 )
 {
-    if (width * height > VX_IMAGE_SIZE_LIMIT_MAX_SIZE)
+    if (width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
     {
         return error_code::MAX_SIZE;
     }

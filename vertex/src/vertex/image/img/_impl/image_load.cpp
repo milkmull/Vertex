@@ -13,7 +13,7 @@
 #define STBI_ONLY_BMP
 #define STBI_ONLY_TGA
 
-#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_SIZE
+#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_DIMENSIONS
 
 #define STBI_NO_FAILURE_STRINGS
 
@@ -59,36 +59,39 @@ static inline error_code stb_image_error_to_vx_error(int stb_image_error)
 
 error_code load_image(const char* path, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load)
 {
+    info.width = info.height = 0;
+    info.format = image_format::UNKNOWN;
+    data.clear();
+
     if (path == nullptr)
     {
         return error_code::NULL_POINTER;
     }
 
     int width, height, channels;
-    data.clear();
 
     stbi_set_flip_vertically_on_load(flip_vertically_on_load);
     stbi_uc* raw = stbi_load(path, &width, &height, &channels, 0);
 
+    // If stb image fails to load the file, grab the failure reason and return.
     if (raw == nullptr)
     {
         const int err = stbi_failure_reason();
         return stb_image_error_to_vx_error(err);
     }
 
-    error_code err = check_image_size_limits(width, height, channels, 8);
+    info.width = static_cast<size_type>(width);
+    info.height = static_cast<size_type>(height);
+    info.format = choose_format(static_cast<size_type>(channels));
 
+    const error_code err = info.get_error();
+
+    // Ideally we should never fail here. If for some reason we get an unsupported
+    // number of channels from stb_image, the info.format will be unknown. If that
+    // happens, the size of the image will be set but the data will be empty.
     if (err == error_code::NONE)
     {
-        info.width = width;
-        info.height = height;
-        info.format = choose_format(channels);
         data.assign(raw, raw + info.size());
-
-        if (info.format == image_format::UNKNOWN)
-        {
-            err = error_code::UNSUPPORTED_FORMAT;
-        }
     }
 
     stbi_image_free(raw);

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cassert>
+
 #include "image_info.h"
 #include "image_load.h"
 #include "image_write.h"
@@ -17,9 +19,8 @@ public:
         : m_info{ 0, 0, image_format::RGB8 } {}
 
     image(const image_info& info)
-        : m_info(info), m_data(m_info.safe_size())
+        : m_info(info.make_safe()), m_data(m_info.size())
     {
-        validate();
         std::fill(m_data.begin(), m_data.end(), 0);
     }
 
@@ -27,46 +28,25 @@ public:
         : image(image_info{ width, height, format }) {}
 
     image(const byte_type* data, const image_info& info)
-        : m_info(info), m_data(data, data + m_info.safe_size())
-    {
-        validate();
-    }
+        : m_info(info.make_safe()), m_data(data, data + m_info.size()) {}
 
     image(const byte_type* data, size_type width, size_type height, image_format format)
         : image(data, image_info{ width, height, format }) {}
 
-    image(const char* path, image_format format, error_code& err)
+    image(const char* path, error_code& err)
     {
         err = load_image(path, m_info, m_data);
-        
-        if (result && m_info.format != image_format::UNKNOWN)
-        {
-            const uint32_t new_width = m_info.width * m_info.pixel_size() / get_pixel_size(format);
-            const uint32_t new_height = m_info.height;
-        
-            reinterpret({ newWidth, newHeight, format });
-        }
-        else
-        {
-            reset();
-        }
-    }
 
-private:
-
-    void validate()
-    {
-        if (m_info.validate() != VX_IMAGE_SIZE_LIMIT_NONE)
+        if (err != error_code::NONE)
         {
-            reset();
+            m_info = m_info.make_safe();
+            if (m_info.size() != m_data.size())
+            {
+                m_data.resize(m_info.size());
+            }
         }
-    }
 
-    void reset()
-    {
-        m_info.width = m_info.height = 0;
-        m_info.format = image_format::UNKNOWN;
-        m_data.clear();
+        assert(m_info.size() == m_data.size());
     }
 
 private:
