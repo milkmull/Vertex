@@ -5,6 +5,7 @@
 #include "color_fn_helper.h"
 #include "../../math/detail/base_type_defs.h"
 #include "../../math/fn_common.h"
+#include "../../math/fn_exponential.h"
 
 namespace vx {
 namespace math {
