@@ -1031,11 +1031,8 @@ struct mat<3, 3, T>
 }
 }
 
-// =============== types ===============
-
-typedef math::detail::mat<3, 3, float> mat3;
-
-typedef math::detail::mat<3, 3, float> mat3f;
-typedef math::detail::mat<3, 3, double> mat3d;
+using mat3  = math::detail::mat<3, 3,  float>;
+using mat3f = math::detail::mat<3, 3,  float>;
+using mat3d = math::detail::mat<3, 3, double>;
 
 }

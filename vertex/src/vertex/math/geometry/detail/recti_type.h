@@ -807,4 +807,8 @@ public:
 
 }
 }
+
+using rect2i  = math::detail::rect< int32_t>;
+using rect2ui = math::detail::rect<uint32_t>;
+
 }

@@ -644,4 +644,7 @@ struct vec<4, T, vec_t::col, val_t::floating_point>
 
 }
 }
+
+using color = math::detail::vec<4, float, math::detail::vec_t::col>;
+
 }

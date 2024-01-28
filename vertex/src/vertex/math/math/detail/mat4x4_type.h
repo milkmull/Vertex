@@ -2161,11 +2161,8 @@ struct mat<4, 4, T>
 }
 }
 
-// =============== types ===============
-
-typedef math::detail::mat<4, 4, float> mat4;
-
-typedef math::detail::mat<4, 4, float> mat4f;
-typedef math::detail::mat<4, 4, double> mat4d;
+using mat4  = math::detail::mat<4, 4,  float>;
+using mat4f = math::detail::mat<4, 4,  float>;
+using mat4d = math::detail::mat<4, 4, double>;
 
 }
