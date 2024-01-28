@@ -589,4 +589,9 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
 
 }
 }
+
+using vec2  = math::detail::vec<2,  float, math::detail::vec_t::vec>;
+using vec2f = math::detail::vec<2,  float, math::detail::vec_t::vec>;
+using vec2d = math::detail::vec<2, double, math::detail::vec_t::vec>;
+
 }

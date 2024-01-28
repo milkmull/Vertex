@@ -9,7 +9,7 @@ namespace img {
 
 #define VX_MAX_IMAGE_DIMENSIONS (1 << 13) // 8192
 
-enum image_size_limit : size_type
+enum : size_t
 {
     VX_IMAGE_SIZE_LIMIT_NONE = 0,
 
@@ -24,8 +24,8 @@ enum image_size_limit : size_type
     VX_IMAGE_SIZE_LIMIT_MAX_SIZE = (
         VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
         VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS  *
-        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH  /
+        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS   *
+        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH   /
         8
     )
 };

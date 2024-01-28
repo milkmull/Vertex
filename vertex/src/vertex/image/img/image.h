@@ -7,6 +7,8 @@
 #include "image_load.h"
 #include "image_write.h"
 
+#include "vertex/math/geometry/rect.h"
+
 namespace vx {
 namespace img {
 
@@ -41,6 +43,7 @@ public:
         if (err != error_code::NONE)
         {
             m_info = m_info.make_safe();
+
             if (m_info.size() != m_data.size())
             {
                 m_data.resize(m_info.size());
@@ -86,9 +89,16 @@ public:
 
     inline size_type channels() const { return m_info.channels(); }
     inline size_type bitdepth() const { return m_info.bitdepth(); }
+    inline bool has_alpha() const { return m_info.has_alpha(); }
+
     inline size_type pixel_size() const { return m_info.pixel_size(); }
+    inline size_type pitch() const { return m_info.pitch(); }
+
+    inline size_t length() const { return m_data.size(); }
+    inline bool empty() const { return m_data.empty(); }
 
     inline const std::vector<byte_type> data() const { return m_data; }
+    inline const byte_type* raw_data() const { return m_data.data(); }
 
 private:
 

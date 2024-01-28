@@ -764,4 +764,10 @@ public:
 
 }
 }
+
+using vec3i  = math::detail::vec<3,  int32_t, math::detail::vec_t::vec>;
+using vec3ui = math::detail::vec<3, uint32_t, math::detail::vec_t::vec>;
+using vec3sz = math::detail::vec<3,   size_t, math::detail::vec_t::vec>;
+using vec3b  = math::detail::vec<3,     bool, math::detail::vec_t::vec>;
+
 }

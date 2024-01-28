@@ -23,8 +23,11 @@ struct image_info
 
     inline constexpr size_type channels() const { return get_channel_count(format); }
     inline constexpr size_type bitdepth() const { return get_bitdepth(format); }
+    inline constexpr bool has_alpha() const { return img::has_alpha(format); }
+
     inline constexpr size_type pixel_size() const { return get_pixel_size(format); }
     inline constexpr size_type size() const { return pixel_size() * width * height; }
+    inline constexpr size_type pitch() const { return width * pixel_size(); }
 
     // Returns a new set of image specifications with the format converted to an
     // equivalent 8-bit format. The width of the image is adjusted such that the
