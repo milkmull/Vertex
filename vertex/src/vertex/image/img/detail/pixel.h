@@ -335,6 +335,23 @@ struct pixel<image_format::RGBA32F> : public format_traits<image_format::RGBA32F
     }
 };
 
+// =============== types ===============
+
+using pixel_r8 = pixel<image_format::R8>;
+using pixel_rg8 = pixel<image_format::RG8>;
+using pixel_rgb8 = pixel<image_format::RGB8>;
+using pixel_rgba8 = pixel<image_format::RGBA8>;
+
+using pixel_r16 = pixel<image_format::R16>;
+using pixel_rg16 = pixel<image_format::RG16>;
+using pixel_rgb16 = pixel<image_format::RGB16>;
+using pixel_rgba16 = pixel<image_format::RGBA16>;
+
+using pixel_r32f = pixel<image_format::R32F>;
+using pixel_rg32f = pixel<image_format::RG32F>;
+using pixel_rgb32f = pixel<image_format::RGB32F>;
+using pixel_rgba32f = pixel<image_format::RGBA32F>;
+
 }
 }
 }

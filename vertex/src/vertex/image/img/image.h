@@ -7,7 +7,11 @@
 #include "image_load.h"
 #include "image_write.h"
 
-#include "vertex/math/geometry/rect.h"
+#include "detail/pixel.h"
+
+#include "vertex/math/math/detail/vec2i_type.h"
+#include "vertex/math/geometry/detail/recti_type.h"
+#include "vertex/math/color/detail/colorf_type.h"
 
 namespace vx {
 namespace img {
@@ -99,6 +103,95 @@ public:
 
     inline const std::vector<byte_type> data() const { return m_data; }
     inline const byte_type* raw_data() const { return m_data.data(); }
+
+    inline vec2ui size() const { return vec2ui(m_info.width, m_info.height); }
+    inline rect2ui get_rect() const { return rect2ui(0, 0, m_info.width, m_info.height); }
+
+    // =============== pixel ===============
+
+    color get_pixel(size_type x, size_type y) const
+    {
+        const size_type offset = (m_info.width * y + x) * m_info.pixel_size();
+
+        if (offset >= m_data.size())
+        {
+            return color();
+        }
+
+        switch (m_info.format)
+        {
+            case image_format::R8:		return static_cast<color>(*(detail::pixel_r8*)      (&m_data[offset]));
+            case image_format::RG8:		return static_cast<color>(*(detail::pixel_rg8*)     (&m_data[offset]));
+            case image_format::RGB8:	return static_cast<color>(*(detail::pixel_rgb8*)    (&m_data[offset]));
+            case image_format::RGBA8:	return static_cast<color>(*(detail::pixel_rgba8*)   (&m_data[offset]));
+                                                                                                           
+            case image_format::R16:		return static_cast<color>(*(detail::pixel_r16*)     (&m_data[offset]));
+            case image_format::RG16:	return static_cast<color>(*(detail::pixel_rg16*)    (&m_data[offset]));
+            case image_format::RGB16:	return static_cast<color>(*(detail::pixel_rgb16*)   (&m_data[offset]));
+            case image_format::RGBA16:	return static_cast<color>(*(detail::pixel_rgba16*)  (&m_data[offset]));
+                                                                                                           
+            case image_format::R32F:	return static_cast<color>(*(detail::pixel_r32f*)    (&m_data[offset]));
+            case image_format::RG32F:	return static_cast<color>(*(detail::pixel_rg32f*)   (&m_data[offset]));
+            case image_format::RGB32F:	return static_cast<color>(*(detail::pixel_rgb32f*)  (&m_data[offset]));
+            case image_format::RGBA32F:	return static_cast<color>(*(detail::pixel_rgba32f*) (&m_data[offset]));
+
+            default:					break;
+        }
+
+        return color();
+    }
+
+    void set_pixel(size_type x, size_type y, const color& color)
+    {
+        const size_type offset = (m_info.width * y + x) * m_info.pixel_size();
+
+        if (offset >= m_data.size())
+        {
+            return;
+        }
+
+        switch (m_info.format)
+        {
+            case image_format::R8:
+            case image_format::RG8:
+            case image_format::RGB8:
+            case image_format::RGBA8:
+
+                *(detail::pixel_rgba8*)(&m_data[offset]) = detail::pixel_rgba8(color);
+                return;
+
+            case image_format::R16:
+            case image_format::RG16:
+            case image_format::RGB16:
+            case image_format::RGBA16:
+
+                *(detail::pixel_rgba16*)(&m_data[offset]) = detail::pixel_rgba16(color);
+                return;
+
+            case image_format::R32F:
+            case image_format::RG32F:
+            case image_format::RGB32F:
+            case image_format::RGBA32F:
+
+                *(detail::pixel_rgba32f*)(&m_data[offset]) = color;
+                return;
+
+            default:
+
+                return;
+        }
+    }
+
+    void fill(const color& c)
+    {
+        for (size_type y = 0; y < m_info.height; ++y)
+        {
+            for (size_type x = 0; x < m_info.width; ++x)
+            {
+                set_pixel(x, y, c);
+            }
+        }
+    }
 
 private:
 
