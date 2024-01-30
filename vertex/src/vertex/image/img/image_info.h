@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "detail/base_type_defs.h"
 #include "image_size_limit.h"
 #include "image_format.h"
@@ -12,14 +14,15 @@ struct image_info
     size_type width, height;
     image_format format;
 
-    image_info() = default;
-    image_info(const image_info&) = default;
-    image_info(image_info&&) noexcept = default;
+    inline bool operator==(const image_info& other) const
+    {
+        return width == other.width && height == other.height && format == other.format;
+    }
 
-    ~image_info() = default;
-
-    image_info& operator=(const image_info&) = default;
-    image_info& operator=(image_info&&) noexcept = default;
+    inline bool operator!=(const image_info& other) const
+    {
+        return !(*this == other);
+    }
 
     inline constexpr size_type channels() const { return get_channel_count(format); }
     inline constexpr size_type bitdepth() const { return get_bitdepth(format); }
@@ -28,37 +31,46 @@ struct image_info
     inline constexpr size_type pixel_size() const { return get_pixel_size(format); }
     inline constexpr size_type size() const { return pixel_size() * width * height; }
     inline constexpr size_type pitch() const { return width * pixel_size(); }
-
-    // Returns a new set of image specifications with the format converted to an
-    // equivalent 8-bit format. The width of the image is adjusted such that the
-    // total size of the image in bytes remains the same.
-    inline constexpr image_info to_8_bit() const
-    {
-        const image_format new_format = img::to_8_bit(format);
-        const size_type new_width = (width * pixel_size()) / get_pixel_size(new_format);
-        const size_type new_height = height;
-
-        return image_info{ new_width, new_height, new_format };
-    }
-
-    inline constexpr image_info make_safe() const
-    {
-        const image_format new_format = (format != image_format::UNKNOWN) ? format : image_format::RGB8;
-        const size_type new_width = std::min(width, static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS));
-        const size_type new_height = std::min(height, static_cast<size_type>(VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS));
-        
-        return image_info{ new_width, new_height, new_format };
-    }
-
-    inline constexpr error_code get_error() const
-    {
-        if (format == image_format::UNKNOWN)
-        {
-            return error_code::UNSUPPORTED_IMAGE_TYPE;
-        }
-        return check_image_size_limits(width, height, channels(), bitdepth());
-    }
 };
+
+inline constexpr error_code get_image_info_error(const image_info& info)
+{
+    if (info.format == image_format::UNKNOWN)
+    {
+        return error_code::UNSUPPORTED_IMAGE_TYPE;
+    }
+    if (info.width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || info.height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
+    {
+        return error_code::MAX_SIZE;
+    }
+    return error_code::NONE;
+}
+
+inline constexpr image_info get_8_bit_info(const image_info& info)
+{
+    const image_format format = to_8_bit(info.format);
+    const size_type width = (info.width * info.pixel_size()) / get_pixel_size(format);
+    const size_type height = info.height;
+
+    return image_info{ width, height, format };
+}
+
+inline constexpr bool reinterpret_info(image_info& info, image_format target_format)
+{
+    if (info.format == image_format::UNKNOWN || target_format == image_format::UNKNOWN)
+    {
+        return false;
+    }
+    if ((info.width * info.pixel_size()) % get_pixel_size(target_format) != 0)
+    {
+        return false;
+    }
+
+    info.width = (info.width * info.pixel_size()) / get_pixel_size(target_format);
+    info.format = target_format;
+
+    return true;
+}
 
 }
 }

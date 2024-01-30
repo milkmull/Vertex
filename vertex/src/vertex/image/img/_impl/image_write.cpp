@@ -10,7 +10,7 @@
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
-#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_DIMENSIONS
+//#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_DIMENSIONS
 
 VX_DISABLE_WARNING_PUSH()
 VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
@@ -31,7 +31,7 @@ error_code write_bmp(const char* path, const image_info& info, const byte_type* 
         return error_code::NULL_POINTER;
     }
 
-    const error_code info_error = info.get_error();
+    const error_code info_error = get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
@@ -56,7 +56,7 @@ error_code write_jpg(const char* path, const image_info& info, const byte_type* 
         return error_code::NULL_POINTER;
     }
 
-    const error_code info_error = info.get_error();
+    const error_code info_error = get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
@@ -82,20 +82,22 @@ error_code write_png(const char* path, const image_info& info, const byte_type* 
         return error_code::NULL_POINTER;
     }
 
-    const error_code info_error = info.get_error();
+    const error_code info_error = get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
     }
 
+    const image_info info_8_bit = get_8_bit_info(info);
+
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_png(
 		path,
-        static_cast<int>(info.width),
-        static_cast<int>(info.height),
-        static_cast<int>(info.channels()),
+        static_cast<int>(info_8_bit.width),
+        static_cast<int>(info_8_bit.height),
+        static_cast<int>(info_8_bit.channels()),
 		data,
-		static_cast<int>(info.width * info.pixel_size())
+		static_cast<int>(info_8_bit.width * info_8_bit.pixel_size())
 	);
 
     return success ? error_code::NONE : error_code::FILE_IO;
@@ -108,7 +110,7 @@ error_code write_tga(const char* path, const image_info& info, const byte_type* 
         return error_code::NULL_POINTER;
     }
 
-    const error_code info_error = info.get_error();
+    const error_code info_error = get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;

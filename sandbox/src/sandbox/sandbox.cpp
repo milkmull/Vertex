@@ -4,23 +4,20 @@ int main()
 {
     using namespace vx;
 
-    img::error_code err{};
+    //img::error_code err{};
+    //img::image_info info{};
+    //std::vector<img::byte_type> data;
+    //
+    //err = img::load_image("../../tools/max_size.png", info, img::image_format::RGBA16, data);
+    //
+    //std::cout << static_cast<int>(err) << std::endl;
+    //std::cout << static_cast<int>(info.width) << std::endl;
+    //std::cout << static_cast<int>(info.height) << std::endl;
 
-    img::image img("../../tools/cloud1.png", err);
-
-    std::cout << "error: "      << static_cast<int>(err) << std::endl;
-    std::cout << "width: "      << img.width() << std::endl;
-    std::cout << "height: "     << img.height() << std::endl;
-    std::cout << "format: "     << static_cast<int>(img.format()) << std::endl;
-    std::cout << "channels: "   << img.channels() << std::endl;
-    std::cout << "bitdepth: "   << img.bitdepth() << std::endl;
-    std::cout << "pixel_size: " << img.pixel_size() << std::endl;
-    std::cout << "length: "     << img.data().size() << std::endl;
-
-    img.fill(color::RED());
-
-    err = img::write_png("../../tools/cloud2.png", img.get_info(), img.raw_data());
-    std::cout << static_cast<int>(err);
+    //img::image image(VX_MAX_IMAGE_DIMENSIONS, VX_MAX_IMAGE_DIMENSIONS, img::image_format::RGBA16);
+    //image.fill(color::GREEN());
+    //
+    //img::write_png("../../tools/max_size.png", image.get_info(), image.raw_data());
 
     return 0;
 }

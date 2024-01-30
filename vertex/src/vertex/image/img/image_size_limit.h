@@ -1,6 +1,5 @@
 #pragma once
 
-#include "vertex/tools/detail/enum_bit_operators.h"
 #include "detail/base_type_defs.h"
 #include "error_code.h"
 
@@ -30,12 +29,11 @@ enum : size_t
     )
 };
 
-constexpr error_code check_image_size_limits(
+inline constexpr error_code check_image_size_limits(
     size_type width,
     size_type height,
     size_type channels,
-    size_type bitdepth,
-    error_code default_error = error_code::NONE
+    size_type bitdepth
 )
 {
     if (width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
@@ -51,7 +49,7 @@ constexpr error_code check_image_size_limits(
         return error_code::UNSUPPORTED_BITDEPTH;
     }
 
-    return default_error;
+    return error_code::NONE;
 }
 
 }
