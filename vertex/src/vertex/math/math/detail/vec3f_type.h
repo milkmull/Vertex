@@ -579,10 +579,10 @@ struct vec<3, T, vec_t::vec, val_t::floating_point>
 };
 
 }
+
+using vec3  = detail::vec<3,  float, detail::vec_t::vec>;
+using vec3f = detail::vec<3,  float, detail::vec_t::vec>;
+using vec3d = detail::vec<3, double, detail::vec_t::vec>;
+
 }
-
-using vec3  = math::detail::vec<3,  float, math::detail::vec_t::vec>;
-using vec3f = math::detail::vec<3,  float, math::detail::vec_t::vec>;
-using vec3d = math::detail::vec<3, double, math::detail::vec_t::vec>;
-
 }

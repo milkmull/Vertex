@@ -6,6 +6,7 @@
 
 namespace vx {
 namespace math {
+namespace euler {
 
 // =============== quaternion ===============
 
@@ -2224,5 +2225,6 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZYZ(const detail::mat4x<T>& m)
     );
 }
 
+}
 }
 }

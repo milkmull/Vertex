@@ -601,10 +601,10 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
 };
 
 }
+
+using vec4  = detail::vec<4,  float, detail::vec_t::vec>;
+using vec4f = detail::vec<4,  float, detail::vec_t::vec>;
+using vec4d = detail::vec<4, double, detail::vec_t::vec>;
+
 }
-
-using vec4  = math::detail::vec<4,  float, math::detail::vec_t::vec>;
-using vec4f = math::detail::vec<4,  float, math::detail::vec_t::vec>;
-using vec4d = math::detail::vec<4, double, math::detail::vec_t::vec>;
-
 }

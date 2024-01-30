@@ -758,10 +758,10 @@ struct quat
 };
 
 }
+
+using quaternion  = detail::quat< float>;
+using quaternionf = detail::quat< float>;
+using quaterniond = detail::quat<double>;
+
 }
-
-using quaternion  = math::detail::quat< float>;
-using quaternionf = math::detail::quat< float>;
-using quaterniond = math::detail::quat<double>;
-
 }

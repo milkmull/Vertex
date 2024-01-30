@@ -800,11 +800,11 @@ public:
 };
 
 }
+
+using vec4i  = detail::vec<4,  int32_t, detail::vec_t::vec>;
+using vec4ui = detail::vec<4, uint32_t, detail::vec_t::vec>;
+using vec4sz = detail::vec<4,   size_t, detail::vec_t::vec>;
+using vec4b  = detail::vec<4,     bool, detail::vec_t::vec>;
+
 }
-
-using vec4i  = math::detail::vec<4,  int32_t, math::detail::vec_t::vec>;
-using vec4ui = math::detail::vec<4, uint32_t, math::detail::vec_t::vec>;
-using vec4sz = math::detail::vec<4,   size_t, math::detail::vec_t::vec>;
-using vec4b  = math::detail::vec<4,     bool, math::detail::vec_t::vec>;
-
 }

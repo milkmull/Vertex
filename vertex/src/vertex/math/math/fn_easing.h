@@ -6,6 +6,7 @@
 
 namespace vx {
 namespace math {
+namespace ease {
 
 // https://easings.net/
 
@@ -709,5 +710,6 @@ inline constexpr T ease_in_out_bounce(T x)
     }
 }
 
+}
 }
 }

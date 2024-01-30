@@ -1029,10 +1029,10 @@ struct mat<3, 3, T>
 };
 
 }
+
+using mat3  = detail::mat<3, 3,  float>;
+using mat3f = detail::mat<3, 3,  float>;
+using mat3d = detail::mat<3, 3, double>;
+
 }
-
-using mat3  = math::detail::mat<3, 3,  float>;
-using mat3f = math::detail::mat<3, 3,  float>;
-using mat3d = math::detail::mat<3, 3, double>;
-
 }

@@ -763,11 +763,11 @@ public:
 };
 
 }
+
+using vec3i  = detail::vec<3,  int32_t, detail::vec_t::vec>;
+using vec3ui = detail::vec<3, uint32_t, detail::vec_t::vec>;
+using vec3sz = detail::vec<3,   size_t, detail::vec_t::vec>;
+using vec3b  = detail::vec<3,     bool, detail::vec_t::vec>;
+
 }
-
-using vec3i  = math::detail::vec<3,  int32_t, math::detail::vec_t::vec>;
-using vec3ui = math::detail::vec<3, uint32_t, math::detail::vec_t::vec>;
-using vec3sz = math::detail::vec<3,   size_t, math::detail::vec_t::vec>;
-using vec3b  = math::detail::vec<3,     bool, math::detail::vec_t::vec>;
-
 }

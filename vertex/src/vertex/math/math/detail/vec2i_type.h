@@ -737,11 +737,11 @@ public:
 };
 
 }
+
+using vec2i  = detail::vec<2,  int32_t, detail::vec_t::vec>;
+using vec2ui = detail::vec<2, uint32_t, detail::vec_t::vec>;
+using vec2sz = detail::vec<2,   size_t, detail::vec_t::vec>;
+using vec2b  = detail::vec<2,     bool, detail::vec_t::vec>;
+
 }
-
-using vec2i  = math::detail::vec<2,  int32_t, math::detail::vec_t::vec>;
-using vec2ui = math::detail::vec<2, uint32_t, math::detail::vec_t::vec>;
-using vec2sz = math::detail::vec<2,   size_t, math::detail::vec_t::vec>;
-using vec2b  = math::detail::vec<2,     bool, math::detail::vec_t::vec>;
-
 }

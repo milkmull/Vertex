@@ -636,10 +636,10 @@ struct mat<2, 2, T>
 };
 
 }
+
+using mat2  = detail::mat<2, 2, float>;
+using mat2f = detail::mat<2, 2, float>;
+using mat2d = detail::mat<2, 2, double>;
+
 }
-
-using mat2  = math::detail::mat<2, 2,  float>;
-using mat2f = math::detail::mat<2, 2,  float>;
-using mat2d = math::detail::mat<2, 2, double>;
-
 }

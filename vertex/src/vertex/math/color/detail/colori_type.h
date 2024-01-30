@@ -861,8 +861,7 @@ public:
 };
 
 }
+using color8 = detail::vec<4, uint8_t, detail::vec_t::col>;
+
 }
-
-using color8 = math::detail::vec<4, uint8_t, math::detail::vec_t::col>;
-
 }

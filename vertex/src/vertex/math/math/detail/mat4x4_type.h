@@ -2159,10 +2159,10 @@ struct mat<4, 4, T>
 };
 
 }
+
+using mat4  = detail::mat<4, 4,  float>;
+using mat4f = detail::mat<4, 4,  float>;
+using mat4d = detail::mat<4, 4, double>;
+
 }
-
-using mat4  = math::detail::mat<4, 4,  float>;
-using mat4f = math::detail::mat<4, 4,  float>;
-using mat4d = math::detail::mat<4, 4, double>;
-
 }

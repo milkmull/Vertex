@@ -122,30 +122,30 @@ public:
 
     // extra
 
-    inline constexpr vec2 resolution() const
+    inline constexpr math::vec2 resolution() const
     {
-        return vec2(m_width, m_height);
+        return math::vec2(m_width, m_height);
     }
 
-    inline constexpr color color() const
+    inline constexpr math::color color() const
     {
-        return static_cast<color>(operator*());
+        return static_cast<math::color>(operator*());
     }
 
-    inline constexpr vec2 coord() const
+    inline constexpr math::vec2 coord() const
     {
-        return vec2(m_x, m_y);
+        return math::vec2(m_x, m_y);
     }
 
-    inline constexpr vec2 frag_coord() const
+    inline constexpr math::vec2 frag_coord() const
     {
-        return vec2(
+        return math::vec2(
             static_cast<float>(m_x) / static_cast<float>(m_width),
             static_cast<float>(m_y) / static_cast<float>(m_height)
         );
     }
 
-    inline constexpr vec2 local() const
+    inline constexpr math::vec2 local() const
     {
         return coord() - resolution() * 0.5f;
     }

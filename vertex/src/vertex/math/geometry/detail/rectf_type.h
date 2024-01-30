@@ -795,9 +795,9 @@ struct rect<T, val_t::floating_point>
 };
 
 }
+
+using rect2  = detail::rect<float>;
+using rect2f = detail::rect<float>;
+
 }
-
-using rect2  = math::detail::rect<float>;
-using rect2f = math::detail::rect<float>;
-
 }
