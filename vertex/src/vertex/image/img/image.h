@@ -111,7 +111,7 @@ public:
     inline bool has_alpha() const { return img::has_alpha(m_format); }
 
     inline size_type pixel_size() const { return get_pixel_size(m_format); }
-    inline size_type pitch() const { return m_width * pixel_size(); }
+    inline size_type stride() const { return m_width * pixel_size(); }
 
     inline size_t length() const { return m_data.size(); }
     inline bool empty() const { return m_data.empty(); }

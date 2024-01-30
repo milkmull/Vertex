@@ -37,12 +37,14 @@ error_code write_bmp(const char* path, const image_info& info, const byte_type* 
         return info_error;
     }
 
+    const image_info info_8_bit = get_8_bit_info(info);
+
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_bmp(
 		path,
-		static_cast<int>(info.width),
-        static_cast<int>(info.height),
-        static_cast<int>(info.channels()),
+		static_cast<int>(info_8_bit.width),
+        static_cast<int>(info_8_bit.height),
+        static_cast<int>(info_8_bit.channels()),
 		data
 	);
 
@@ -62,12 +64,14 @@ error_code write_jpg(const char* path, const image_info& info, const byte_type* 
         return info_error;
     }
 
+    const image_info info_8_bit = get_8_bit_info(info);
+
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_jpg(
 		path,
-        static_cast<int>(info.width),
-        static_cast<int>(info.height),
-        static_cast<int>(info.channels()),
+        static_cast<int>(info_8_bit.width),
+        static_cast<int>(info_8_bit.height),
+        static_cast<int>(info_8_bit.channels()),
 		data,
         std::clamp(quality, 1, 100)
 	);
@@ -97,7 +101,7 @@ error_code write_png(const char* path, const image_info& info, const byte_type* 
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
 		data,
-		static_cast<int>(info_8_bit.width * info_8_bit.pixel_size())
+		static_cast<int>(info_8_bit.stride())
 	);
 
     return success ? error_code::NONE : error_code::FILE_IO;
@@ -116,12 +120,14 @@ error_code write_tga(const char* path, const image_info& info, const byte_type* 
         return info_error;
     }
 
+    const image_info info_8_bit = get_8_bit_info(info);
+
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_tga(
 		path,
-        static_cast<int>(info.width),
-        static_cast<int>(info.height),
-        static_cast<int>(info.channels()),
+        static_cast<int>(info_8_bit.width),
+        static_cast<int>(info_8_bit.height),
+        static_cast<int>(info_8_bit.channels()),
 		data
 	);
 

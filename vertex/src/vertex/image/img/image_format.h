@@ -7,19 +7,19 @@ namespace img {
 
 enum class image_format
 {
-    UNKNOWN =  0,
+    UNKNOWN = 0,
 
-    R8      =  1,
-    RG8     =  2,
-    RGB8    =  3,
-    RGBA8   =  4,
+    R8      = 1,
+    RG8     = 2,
+    RGB8    = 3,
+    RGBA8   = 4,
 
-    R16     =  5,
-    RG16    =  6,
-    RGB16   =  7,
-    RGBA16  =  8,
+    R16     = 5,
+    RG16    = 6,
+    RGB16   = 7,
+    RGBA16  = 8,
 
-    R32F    =  9,
+    R32F    = 9,
     RG32F   = 10,
     RGB32F  = 11,
     RGBA32F = 12
@@ -47,8 +47,8 @@ inline constexpr image_format_data image_format_data_table[] = {
     { 3, 16, 6, false, image_format::RGB8 },    // RGB16
     { 4, 16, 8,  true, image_format::RGBA8 },   // RGBA16
 
-    { 1, 32,  4, false, image_format::R8 },     // R32F
-    { 2, 32,  8, false, image_format::RG8 },    // RG32F
+    { 1, 32, 4, false, image_format::R8 },      // R32F
+    { 2, 32, 8, false, image_format::RG8 },     // RG32F
     { 3, 32, 12, false, image_format::RGB8 },   // RGB32F
     { 4, 32, 16,  true, image_format::RGBA8 }   // RGBA32F
 };

@@ -30,7 +30,7 @@ struct image_info
 
     inline constexpr size_type pixel_size() const { return get_pixel_size(format); }
     inline constexpr size_type size() const { return pixel_size() * width * height; }
-    inline constexpr size_type pitch() const { return width * pixel_size(); }
+    inline constexpr size_type stride() const { return width * pixel_size(); }
 };
 
 inline constexpr error_code get_image_info_error(const image_info& info)
