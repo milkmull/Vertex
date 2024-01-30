@@ -236,9 +236,27 @@ public:
         *this = converted;
     }
 
+    bool reinterpret(image_format format)
+    {
+        image_info info = get_info();
+
+        if (reinterpret_info(info, format) && get_image_info_error(info) == error_code::NONE)
+        {
+            m_width = info.width;
+            m_height = info.height;
+            m_format = format;
+
+            return true;
+        }
+
+        return false;
+    }
+
     bool reinterpret(size_type width, size_type height, image_format format)
     {
-        if (width * height * get_pixel_size(format) == static_cast<size_type>(m_data.size()))
+        image_info info{ width, height, format };
+
+        if (get_image_info_error(info) == error_code::NONE && info.size() == static_cast<size_type>(m_data.size()))
         {
             m_width = width;
             m_height = height;
