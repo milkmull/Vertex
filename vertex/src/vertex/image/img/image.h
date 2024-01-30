@@ -3,13 +3,12 @@
 #include <cassert>
 #include <utility>
 
-#include "detail/pixel.h"
+#include "detail/iterator.h"
 #include "image_load.h"
 #include "image_write.h"
 
 #include "vertex/math/math/detail/vec2i_type.h"
 #include "vertex/math/geometry/detail/recti_type.h"
-#include "vertex/math/color/detail/colorf_type.h"
 #include "vertex/math/math/vec_fn_comparison.h"
 
 namespace vx {
@@ -151,20 +150,20 @@ public:
 
         switch (m_format)
         {
-            case image_format::R8:		return static_cast<color>(*(detail::pixel_r8*)      (&m_data[offset]));
-            case image_format::RG8:		return static_cast<color>(*(detail::pixel_rg8*)     (&m_data[offset]));
-            case image_format::RGB8:	return static_cast<color>(*(detail::pixel_rgb8*)    (&m_data[offset]));
-            case image_format::RGBA8:	return static_cast<color>(*(detail::pixel_rgba8*)   (&m_data[offset]));
-                                                                                                           
-            case image_format::R16:		return static_cast<color>(*(detail::pixel_r16*)     (&m_data[offset]));
-            case image_format::RG16:	return static_cast<color>(*(detail::pixel_rg16*)    (&m_data[offset]));
-            case image_format::RGB16:	return static_cast<color>(*(detail::pixel_rgb16*)   (&m_data[offset]));
-            case image_format::RGBA16:	return static_cast<color>(*(detail::pixel_rgba16*)  (&m_data[offset]));
-                                                                                                           
-            case image_format::R32F:	return static_cast<color>(*(detail::pixel_r32f*)    (&m_data[offset]));
-            case image_format::RG32F:	return static_cast<color>(*(detail::pixel_rg32f*)   (&m_data[offset]));
-            case image_format::RGB32F:	return static_cast<color>(*(detail::pixel_rgb32f*)  (&m_data[offset]));
-            case image_format::RGBA32F:	return static_cast<color>(*(detail::pixel_rgba32f*) (&m_data[offset]));
+            case image_format::R8:		return static_cast<color>(*(pixel_r8*)      (&m_data[offset]));
+            case image_format::RG8:		return static_cast<color>(*(pixel_rg8*)     (&m_data[offset]));
+            case image_format::RGB8:	return static_cast<color>(*(pixel_rgb8*)    (&m_data[offset]));
+            case image_format::RGBA8:	return static_cast<color>(*(pixel_rgba8*)   (&m_data[offset]));
+                                                                                                   
+            case image_format::R16:		return static_cast<color>(*(pixel_r16*)     (&m_data[offset]));
+            case image_format::RG16:	return static_cast<color>(*(pixel_rg16*)    (&m_data[offset]));
+            case image_format::RGB16:	return static_cast<color>(*(pixel_rgb16*)   (&m_data[offset]));
+            case image_format::RGBA16:	return static_cast<color>(*(pixel_rgba16*)  (&m_data[offset]));
+                                                                                                   
+            case image_format::R32F:	return static_cast<color>(*(pixel_r32f*)    (&m_data[offset]));
+            case image_format::RG32F:	return static_cast<color>(*(pixel_rg32f*)   (&m_data[offset]));
+            case image_format::RGB32F:	return static_cast<color>(*(pixel_rgb32f*)  (&m_data[offset]));
+            case image_format::RGBA32F:	return static_cast<color>(*(pixel_rgba32f*) (&m_data[offset]));
 
             default:					break;
         }
@@ -183,20 +182,20 @@ public:
 
         switch (m_format)
         {
-            case image_format::R8:      return (void)(*(detail::pixel_r8*)      (&m_data[offset]) = color);
-            case image_format::RG8:     return (void)(*(detail::pixel_rg8*)     (&m_data[offset]) = color);
-            case image_format::RGB8:    return (void)(*(detail::pixel_rgb8*)    (&m_data[offset]) = color);
-            case image_format::RGBA8:   return (void)(*(detail::pixel_rgba8*)   (&m_data[offset]) = color);
+            case image_format::R8:      return (void)(*(pixel_r8*)      (&m_data[offset]) = color);
+            case image_format::RG8:     return (void)(*(pixel_rg8*)     (&m_data[offset]) = color);
+            case image_format::RGB8:    return (void)(*(pixel_rgb8*)    (&m_data[offset]) = color);
+            case image_format::RGBA8:   return (void)(*(pixel_rgba8*)   (&m_data[offset]) = color);
 
-            case image_format::R16:     return (void)(*(detail::pixel_r16*)     (&m_data[offset]) = color);
-            case image_format::RG16:    return (void)(*(detail::pixel_rg16*)    (&m_data[offset]) = color);
-            case image_format::RGB16:   return (void)(*(detail::pixel_rgb16*)   (&m_data[offset]) = color);
-            case image_format::RGBA16:  return (void)(*(detail::pixel_rgba16*)  (&m_data[offset]) = color);
+            case image_format::R16:     return (void)(*(pixel_r16*)     (&m_data[offset]) = color);
+            case image_format::RG16:    return (void)(*(pixel_rg16*)    (&m_data[offset]) = color);
+            case image_format::RGB16:   return (void)(*(pixel_rgb16*)   (&m_data[offset]) = color);
+            case image_format::RGBA16:  return (void)(*(pixel_rgba16*)  (&m_data[offset]) = color);
 
-            case image_format::R32F:    return (void)(*(detail::pixel_r32f*)    (&m_data[offset]) = color);
-            case image_format::RG32F:   return (void)(*(detail::pixel_rg32f*)   (&m_data[offset]) = color);
-            case image_format::RGB32F:  return (void)(*(detail::pixel_rgb32f*)  (&m_data[offset]) = color);
-            case image_format::RGBA32F: return (void)(*(detail::pixel_rgba32f*) (&m_data[offset]) = color);
+            case image_format::R32F:    return (void)(*(pixel_r32f*)    (&m_data[offset]) = color);
+            case image_format::RG32F:   return (void)(*(pixel_rg32f*)   (&m_data[offset]) = color);
+            case image_format::RGB32F:  return (void)(*(pixel_rgb32f*)  (&m_data[offset]) = color);
+            case image_format::RGBA32F: return (void)(*(pixel_rgba32f*) (&m_data[offset]) = color);
 
             default:                    break;
         }
@@ -283,6 +282,44 @@ public:
         }
 
         return false;
+    }
+
+    // =============== iterator ===============
+
+    template <typename T>
+    auto begin() noexcept
+    {
+        return detail::iterator<T>((T*)m_data.data(), 0, 0, m_width, m_height);
+    }
+
+    template <typename T>
+    auto begin() const noexcept
+    {
+        return cbegin<T>();
+    }
+
+    template <typename T>
+    auto end() noexcept
+    {
+        return detail::iterator<T>((T*)(m_data.data() + m_data.size()), 0, m_height, m_width, m_height);
+    }
+
+    template <typename T>
+    auto end() const noexcept
+    {
+        return cend<T>();
+    }
+
+    template <typename T>
+    auto cbegin() const noexcept
+    {
+        return detail::iterator<T>((const T*)m_data.data(), 0, 0, m_width, m_height);
+    }
+
+    template <typename T>
+    auto cend() const noexcept
+    {
+        return detail::iterator<T>((const T*)(m_data.data() + m_data.size()), 0, m_height, m_width, m_height);
     }
 
 private:
