@@ -10,6 +10,7 @@
 #include "vertex/math/math/detail/vec2i_type.h"
 #include "vertex/math/geometry/detail/recti_type.h"
 #include "vertex/math/color/detail/colorf_type.h"
+#include "vertex/math/math/vec_fn_comparison.h"
 
 namespace vx {
 namespace img {
@@ -203,13 +204,29 @@ public:
         return;
     }
 
-    void fill(const color& c)
+    void fill(const color& fill_color)
     {
         for (size_type y = 0; y < m_height; ++y)
         {
             for (size_type x = 0; x < m_width; ++x)
             {
-                set_pixel(x, y, c);
+                set_pixel(x, y, fill_color);
+            }
+        }
+    }
+
+    void key(const color& key_color, float threshold = 0.0f)
+    {
+        for (size_type y = 0; y < m_height; ++y)
+        {
+            for (size_type x = 0; x < m_width; ++x)
+            {
+                color c(get_pixel(x, y));
+                if (math::is_equal_approx(c, key_color, threshold))
+                {
+                    c.a = 0.0f;
+                    set_pixel(x, y, c);
+                }
             }
         }
     }
