@@ -107,6 +107,14 @@ inline constexpr T sd_orientated_box(const detail::vecf<2, T>& p, const detail::
     return length(max(q, static_cast<T>(0))) + min(max(q.x, q.y), static_cast<T>(0));
 }
 
+template <typename T>
+inline constexpr T sd_segment(const detail::vecf<2, T>& p, const detail::vecf<2, T>& a, const detail::vecf<2, T>& b)
+{
+    detail::vecf<2, T> pa = p - a, ba = b - a;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), static_cast<T>(0), static_cast<T>(1));
+    return length(pa - ba * h);
+}
+
 }
 }
 }

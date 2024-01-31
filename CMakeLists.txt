@@ -27,15 +27,6 @@ set(VX_BUILD_SANDBOX     ON  CACHE BOOL "Build Sandbox")
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
 # Check platform
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_compile_definitions("VX_PLATFORM_WINDOWS")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_compile_definitions("VX_PLATFORM_LINUX")
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    add_compile_definitions("VX_PLATFORM_MACOS")
-else()
-    add_compile_definitions("VX_PLATFORM_UNKNOWN")
-endif()
 message(STATUS "System: ${CMAKE_SYSTEM_NAME}")
 
 # Global defines
@@ -110,9 +101,6 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/lib/Debug/${CMAKE_
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
-
-    
-
 
 # Subdirectories
 add_subdirectory("${CMAKE_SOURCE_DIR}/vertex")
