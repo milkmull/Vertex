@@ -19,8 +19,7 @@ struct vec_unary<2, T, vec_t::vec, R>
     using vec_type = vec<2, T, vec_t::vec>;
     using vec_return_type = vec<2, R, vec_t::vec>;
 
-    template <auto(*func)(T)>
-    static inline constexpr vec_return_type call(const vec_type& v)
+    static inline constexpr vec_return_type call(R(*func)(T), const vec_type& v)
     {
         return vec_return_type(func(v.x), func(v.y));
     }

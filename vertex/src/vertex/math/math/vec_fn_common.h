@@ -51,7 +51,7 @@ inline constexpr auto max(
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto abs(const detail::vec<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::abs<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::abs<T>, x);
 }
 
 // =============== round ===============
