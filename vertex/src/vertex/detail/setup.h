@@ -9,7 +9,7 @@
 #define VX_VERSION_MINOR 1
 #define VX_VERSION_PATCH 0
 
-// =============== compilers ===============
+// =============== compiler ===============
 
 #ifdef _MSC_VER                 // Microsoft Visual C++
 #   define VX_COMPILER_MSVC
