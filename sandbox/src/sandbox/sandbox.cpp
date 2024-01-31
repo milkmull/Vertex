@@ -12,6 +12,8 @@ int main()
 
     using pixel_type = img::pixel_rgba8;
 
+    float z = math::abs(-5.0f);
+
     /*
 float rounded_box_SDF(vec2 localPosition, vec2 halfSize, float radius)
 {
