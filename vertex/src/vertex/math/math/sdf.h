@@ -193,12 +193,12 @@ T sd_arc(const detail::vecf<2, T>& p, const detail::vecf<2, T>& sc, T ra, T rb) 
 }
 
 template <typename T>
-T sd_ring(const detail::vecf<2, T>& p, const detail::vecf<2, T>& cs, T r, T t)
+T sd_ring(const detail::vecf<2, T>& p, const detail::vecf<2, T>& sc, T r, T t)
 {
     detail::vecf<2, T> ip(p);
 
     ip.x = abs(ip.x);
-    ip = detail::mat2x<T>(cs.x, cs.y, -cs.y, cs.x) * ip;
+    ip = detail::mat2x<T>(sc.x, sc.y, -sc.y, sc.x) * ip;
 
     return max(
         abs(length(ip) - r) - t * static_cast<T>(0.5),

@@ -22,7 +22,7 @@ int main()
     {
         auto p = math::rotate(it.local(), a2);
 
-        float dist = math::sdf::sd_ellipse(p, math::vec2(-100, 100));
+        float dist = math::sdf::sd_ring(p, math::vec2(math::sin(a), math::cos(a)), 100.0f, 100.0f);
 
         if (dist < 0.0f)
         {
