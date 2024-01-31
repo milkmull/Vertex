@@ -14,7 +14,7 @@ inline constexpr auto pow(
     T y
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::pow<T>>(x, y);
+    return detail::vec_scaler_binary<L, T, Q, T>::call(math::pow<T>, x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -23,7 +23,7 @@ inline constexpr auto pow(
     const detail::vecf<L, T, Q>& y
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::pow<T>>(x, y);
+    return detail::vec_binary<L, T, Q, T>::call(math::pow<T>, x, y);
 }
 
 // =============== exp ===============
@@ -31,7 +31,7 @@ inline constexpr auto pow(
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto exp(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::exp<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::exp<T>, x);
 }
 
 // =============== exp2 ===============
@@ -39,7 +39,7 @@ inline constexpr auto exp(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto exp2(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::exp2<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::exp2<T>, x);
 }
 
 // =============== log ===============
@@ -47,7 +47,7 @@ inline constexpr auto exp2(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto log(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::log<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::log<T>, x);
 }
 
 // =============== log2 ===============
@@ -55,7 +55,7 @@ inline constexpr auto log(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto log2(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::log2<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::log2<T>, x);
 }
 
 // =============== sqrt ===============
@@ -63,7 +63,7 @@ inline constexpr auto log2(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto sqrt(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::sqrt<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::sqrt<T>, x);
 }
 
 // =============== inverse_sqrt ===============
@@ -71,7 +71,7 @@ inline constexpr auto sqrt(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto inverse_sqrt(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::inverse_sqrt<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::inverse_sqrt<T>, x);
 }
 
 }

@@ -31,8 +31,7 @@ struct vec_unary<3, T, vec_t::vec, R>
     using vec_type = vec<3, T, vec_t::vec>;
     using vec_return_type = vec<3, R, vec_t::vec>;
 
-    template <auto(*func)(T)>
-    static inline constexpr vec_return_type call(const vec_type& v)
+    static inline constexpr vec_return_type call(R(*func)(T), const vec_type& v)
     {
         return vec_return_type(func(v.x), func(v.y), func(v.z));
     }
@@ -44,8 +43,7 @@ struct vec_unary<4, T, vec_t::vec, R>
     using vec_type = vec<4, T, vec_t::vec>;
     using vec_return_type = vec<4, R, vec_t::vec>;
 
-    template <auto(*func)(T)>
-    static inline constexpr vec_return_type call(const vec_type& v)
+    static inline constexpr vec_return_type call(R(*func)(T), const vec_type& v)
     {
         return vec_return_type(func(v.x), func(v.y), func(v.z), func(v.w));
     }
@@ -57,8 +55,7 @@ struct vec_unary<4, T, vec_t::col, R>
     using vec_type = vec<4, T, vec_t::col>;
     using vec_return_type = vec<4, R, vec_t::col>;
 
-    template <auto(*func)(T)>
-    static inline constexpr vec_return_type call(const vec_type& v)
+    static inline constexpr vec_return_type call(R(*func)(T), const vec_type& v)
     {
         return vec_return_type(func(v.r), func(v.g), func(v.b), func(v.a));
     }
@@ -75,8 +72,7 @@ struct vec_scaler_binary<2, T, vec_t::vec, R>
     using vec_type = vec<2, T, vec_t::vec>;
     using vec_return_type = vec<2, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v, T s)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v, T s)
     {
         return vec_return_type(func(v.x, s), func(v.y, s));
     }
@@ -88,8 +84,7 @@ struct vec_scaler_binary<3, T, vec_t::vec, R>
     using vec_type = vec<3, T, vec_t::vec>;
     using vec_return_type = vec<3, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v, T s)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v, T s)
     {
         return vec_return_type(func(v.x, s), func(v.y, s), func(v.z, s));
     }
@@ -101,8 +96,7 @@ struct vec_scaler_binary<4, T, vec_t::vec, R>
     using vec_type = vec<4, T, vec_t::vec>;
     using vec_return_type = vec<4, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v, T s)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v, T s)
     {
         return vec_return_type(func(v.x, s), func(v.y, s), func(v.z, s), func(v.w, s));
     }
@@ -114,8 +108,7 @@ struct vec_scaler_binary<4, T, vec_t::col, R>
     using vec_type = vec<4, T, vec_t::col>;
     using vec_return_type = vec<4, R, vec_t::col>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v, T s)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v, T s)
     {
         return vec_return_type(func(v.r, s), func(v.g, s), func(v.b, s), func(v.a, s));
     }
@@ -132,8 +125,7 @@ struct vec_binary<2, T, vec_t::vec, R>
     using vec_type = vec<2, T, vec_t::vec>;
     using vec_return_type = vec<2, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v1, const vec_type& v2)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v1, const vec_type& v2)
     {
         return vec_return_type(func(v1.x, v2.x), func(v1.y, v2.y));
     }
@@ -145,8 +137,7 @@ struct vec_binary<3, T, vec_t::vec, R>
     using vec_type = vec<3, T, vec_t::vec>;
     using vec_return_type = vec<3, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v1, const vec_type& v2)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v1, const vec_type& v2)
     {
         return vec_return_type(func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z));
     }
@@ -158,8 +149,7 @@ struct vec_binary<4, T, vec_t::vec, R>
     using vec_type = vec<4, T, vec_t::vec>;
     using vec_return_type = vec<4, R, vec_t::vec>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v1, const vec_type& v2)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v1, const vec_type& v2)
     {
         return vec_return_type(func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z), func(v1.w, v2.w));
     }
@@ -171,8 +161,7 @@ struct vec_binary<4, T, vec_t::col, R>
     using vec_type = vec<4, T, vec_t::col>;
     using vec_return_type = vec<4, R, vec_t::col>;
 
-    template <auto(*func)(T, T)>
-    static inline constexpr vec_return_type call(const vec_type& v1, const vec_type& v2)
+    static inline constexpr vec_return_type call(R(*func)(T, T), const vec_type& v1, const vec_type& v2)
     {
         return vec_return_type(func(v1.r, v2.r), func(v1.g, v2.g), func(v1.b, v2.b), func(v1.a, v2.a));
     }

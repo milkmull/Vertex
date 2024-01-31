@@ -14,7 +14,7 @@ inline constexpr auto min(
     T y
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::min<T>>(x, y);
+    return detail::vec_scaler_binary<L, T, Q, T>::call(math::min<T>, x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -23,7 +23,7 @@ inline constexpr auto min(
     const detail::vec<L, T, Q>& y
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::min<T>>(x, y);
+    return detail::vec_binary<L, T, Q, T>::call(math::min<T>, x, y);
 }
 
 // =============== max ===============
@@ -34,7 +34,7 @@ inline constexpr auto max(
     T y
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::max<T>>(x, y);
+    return detail::vec_scaler_binary<L, T, Q, T>::call(math::max<T>, x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -43,7 +43,7 @@ inline constexpr auto max(
     const detail::vec<L, T, Q>& y
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::max<T>>(x, y);
+    return detail::vec_binary<L, T, Q, T>::call(math::max<T>, x, y);
 }
 
 // =============== abs ===============
@@ -59,7 +59,7 @@ inline constexpr auto abs(const detail::vec<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto round(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::round<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::round<T>, x);
 }
 
 // =============== trunc ===============
@@ -67,7 +67,7 @@ inline constexpr auto round(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto trunc(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::trunc<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::trunc<T>, x);
 }
 
 // =============== floor ===============
@@ -75,7 +75,7 @@ inline constexpr auto trunc(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto floor(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::floor<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::floor<T>, x);
 }
 
 // =============== ceil ===============
@@ -83,7 +83,7 @@ inline constexpr auto floor(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto ceil(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::ceil<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::ceil<T>, x);
 }
 
 // =============== sign ===============
@@ -91,7 +91,7 @@ inline constexpr auto ceil(const detail::vecf<L, T, Q>& x)
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto sign(const detail::vec<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::sign<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::sign<T>, x);
 }
 
 // =============== fmod ===============
@@ -102,7 +102,7 @@ inline constexpr auto fmod(
     T y
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::fmod<T>>(x, y);
+    return detail::vec_scaler_binary<L, T, Q, T>::call(math::fmod<T>, x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -111,7 +111,7 @@ inline constexpr auto fmod(
     const detail::vecf<L, T, Q>& y
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::fmod<T>>(x, y);
+    return detail::vec_binary<L, T, Q, T>::call(math::fmod<T>, x, y);
 }
 
 // =============== mod ===============
@@ -123,7 +123,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return detail::vec_scaler_binary<L, T, Q, R>::call<math::mod<T>>(x, y);
+    return detail::vec_scaler_binary<L, T, Q, R>::call(math::mod<T>, x, y);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -133,7 +133,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return detail::vec_binary<L, T, Q, R>::call<math::mod<T>>(x, y);
+    return detail::vec_binary<L, T, Q, R>::call(math::mod<T>, x, y);
 }
 
 // =============== fract ===============
@@ -141,7 +141,7 @@ inline constexpr auto mod(
 template <detail::length_type L, typename T, detail::vec_t Q>
 inline constexpr auto fract(const detail::vecf<L, T, Q>& x)
 {
-    return detail::vec_unary<L, T, Q, T>::call<math::fract<T>>(x);
+    return detail::vec_unary<L, T, Q, T>::call(math::fract<T>, x);
 }
 
 // =============== modf ===============
@@ -265,7 +265,7 @@ inline constexpr auto snap(
     T interval
 )
 {
-    return detail::vec_scaler_binary<L, T, Q, T>::call<math::snap<T>>(x, interval);
+    return detail::vec_scaler_binary<L, T, Q, T>::call(math::snap<T>, x, interval);
 }
 
 template <detail::length_type L, typename T, detail::vec_t Q>
@@ -274,7 +274,7 @@ inline constexpr auto snap(
     const detail::vec<L, T, Q>& interval
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call<math::snap<T>>(x, interval);
+    return detail::vec_binary<L, T, Q, T>::call(math::snap<T>, x, interval);
 }
 
 // =============== clamp ===============
