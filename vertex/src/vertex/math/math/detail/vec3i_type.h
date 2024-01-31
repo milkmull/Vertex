@@ -9,6 +9,8 @@ namespace vx {
 namespace math {
 namespace detail {
 
+VX_PACK_PUSH()
+
 template <typename T>
 struct vec<3, T, vec_t::vec, val_t::integral>
 {
@@ -761,6 +763,8 @@ public:
 #endif
 
 };
+
+VX_PACK_POP()
 
 }
 

@@ -11,6 +11,8 @@ namespace vx {
 namespace math {
 namespace detail {
 
+VX_PACK_PUSH()
+
 template <typename T>
 struct vec<4, T, vec_t::vec, val_t::floating_point>
 {
@@ -599,6 +601,8 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
     static inline constexpr type ONE() { return type(static_cast<T>(1)); }
 
 };
+
+VX_PACK_POP()
 
 }
 

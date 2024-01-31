@@ -10,6 +10,8 @@ namespace vx {
 namespace math {
 namespace detail {
 
+VX_PACK_PUSH()
+
 template <typename T>
 struct rect<T, val_t::floating_point>
 {
@@ -793,6 +795,8 @@ struct rect<T, val_t::floating_point>
     static inline constexpr type UNIT() { return type(static_cast<T>(-1), static_cast<T>(-1), static_cast<T>(1), static_cast<T>(1)); }
 
 };
+
+VX_PACK_POP()
 
 }
 

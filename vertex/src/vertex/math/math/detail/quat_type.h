@@ -15,6 +15,8 @@ namespace detail {
 // 1 - (s * s) = sin2(t / 2)
 // |cross(u, v)| = |u||v|sin(t)
 
+VX_PACK_PUSH()
+
 template <typename T>
 struct quat
 {
@@ -756,6 +758,8 @@ struct quat
     static inline constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
 
 };
+
+VX_PACK_POP()
 
 }
 

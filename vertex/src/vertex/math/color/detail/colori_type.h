@@ -11,6 +11,8 @@ namespace vx {
 namespace math {
 namespace detail {
 
+VX_PACK_PUSH()
+
 template <typename T>
 struct vec<4, T, vec_t::col, val_t::integral>
 {
@@ -860,7 +862,10 @@ public:
 
 };
 
+VX_PACK_POP()
+
 }
+
 using color8 = detail::vec<4, uint8_t, detail::vec_t::col>;
 
 }
