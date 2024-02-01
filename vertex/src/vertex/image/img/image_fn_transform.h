@@ -1,7 +1,7 @@
 #pragma once
 
+#include <cstring>
 #include <vector>
-#include <iostream>
 
 #include "image_info.h"
 
@@ -57,7 +57,6 @@ inline image_info flip_y(const image_info& info, byte_type* data)
 inline image_info rotate_90_cw(const image_info& info, byte_type* data)
 {
     const size_type pxsz = info.pixel_size();
-    const size_type rowsz = info.width * pxsz;
     std::vector<byte_type> tmp(info.size());
 
     for (size_type y = 0; y < info.height; ++y)
@@ -84,7 +83,6 @@ inline image_info rotate_90_cw(const image_info& info, byte_type* data)
 inline image_info rotate_90_ccw(const image_info& info, byte_type* data)
 {
     const size_type pxsz = info.pixel_size();
-    const size_type rowsz = info.width * pxsz;
     std::vector<byte_type> tmp(info.size());
 
     for (size_type y = 0; y < info.height; ++y)
