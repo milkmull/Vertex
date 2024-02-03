@@ -49,54 +49,6 @@ struct format_traits<image_format::RGBA8> : public format_traits_base<image_form
     using channel_type = uint8_t;
 };
 
-template <>
-struct format_traits<image_format::R16> : public format_traits_base<image_format::R16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RG16> : public format_traits_base<image_format::RG16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RGB16> : public format_traits_base<image_format::RGB16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::RGBA16> : public format_traits_base<image_format::RGBA16>
-{
-    using channel_type = uint16_t;
-};
-
-template <>
-struct format_traits<image_format::R32F> : public format_traits_base<image_format::R32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RG32F> : public format_traits_base<image_format::RG32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RGB32F> : public format_traits_base<image_format::RGB32F>
-{
-    using channel_type = float;
-};
-
-template <>
-struct format_traits<image_format::RGBA32F> : public format_traits_base<image_format::RGBA32F>
-{
-    using channel_type = float;
-};
-
 }
 }
 }

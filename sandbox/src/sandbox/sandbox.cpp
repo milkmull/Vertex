@@ -6,15 +6,15 @@ int main()
 {
     using namespace vx;
 
-    std::vector<img::byte_type> data;
-    img::image_info info;
+    img::image_info info{};
+    img::error_code err{};
 
-    img::error_code err = img::load_image("../../tools/cloud1.png", info, data);
+    img::image image("../../tools/cloud1.png", err);
     std::cout << static_cast<int>(err) << std::endl;
     
-    info = img::transform::transpose(info, data.data());
+    img::transform::flip_x(image);
 
-    img::write_png("../../tools/cloud2.png", info, data.data());
+    img::write_png("../../tools/cloud2.png", image.get_info(), image.raw_data());
 
     return 0;
 }

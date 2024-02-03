@@ -118,6 +118,7 @@ public:
 
     inline const std::vector<byte_type> data() const { return m_data; }
     inline const byte_type* raw_data() const { return m_data.data(); }
+    inline byte_type* raw_data() { return m_data.data(); }
 
     inline math::vec2ui size() const { return math::vec2ui(m_width, m_height); }
     inline math::rect2ui get_rect() const { return math::rect2ui(0, 0, m_width, m_height); }
@@ -154,16 +155,6 @@ public:
             case image_format::RG8:		return static_cast<math::color>(*(pixel_rg8*)     (&m_data[offset]));
             case image_format::RGB8:	return static_cast<math::color>(*(pixel_rgb8*)    (&m_data[offset]));
             case image_format::RGBA8:	return static_cast<math::color>(*(pixel_rgba8*)   (&m_data[offset]));
-                                                                                                   
-            case image_format::R16:		return static_cast<math::color>(*(pixel_r16*)     (&m_data[offset]));
-            case image_format::RG16:	return static_cast<math::color>(*(pixel_rg16*)    (&m_data[offset]));
-            case image_format::RGB16:	return static_cast<math::color>(*(pixel_rgb16*)   (&m_data[offset]));
-            case image_format::RGBA16:	return static_cast<math::color>(*(pixel_rgba16*)  (&m_data[offset]));
-                                                                                                   
-            case image_format::R32F:	return static_cast<math::color>(*(pixel_r32f*)    (&m_data[offset]));
-            case image_format::RG32F:	return static_cast<math::color>(*(pixel_rg32f*)   (&m_data[offset]));
-            case image_format::RGB32F:	return static_cast<math::color>(*(pixel_rgb32f*)  (&m_data[offset]));
-            case image_format::RGBA32F:	return static_cast<math::color>(*(pixel_rgba32f*) (&m_data[offset]));
 
             default:					break;
         }
@@ -186,16 +177,6 @@ public:
             case image_format::RG8:     return (void)(*(pixel_rg8*)     (&m_data[offset]) = color);
             case image_format::RGB8:    return (void)(*(pixel_rgb8*)    (&m_data[offset]) = color);
             case image_format::RGBA8:   return (void)(*(pixel_rgba8*)   (&m_data[offset]) = color);
-
-            case image_format::R16:     return (void)(*(pixel_r16*)     (&m_data[offset]) = color);
-            case image_format::RG16:    return (void)(*(pixel_rg16*)    (&m_data[offset]) = color);
-            case image_format::RGB16:   return (void)(*(pixel_rgb16*)   (&m_data[offset]) = color);
-            case image_format::RGBA16:  return (void)(*(pixel_rgba16*)  (&m_data[offset]) = color);
-
-            case image_format::R32F:    return (void)(*(pixel_r32f*)    (&m_data[offset]) = color);
-            case image_format::RG32F:   return (void)(*(pixel_rg32f*)   (&m_data[offset]) = color);
-            case image_format::RGB32F:  return (void)(*(pixel_rgb32f*)  (&m_data[offset]) = color);
-            case image_format::RGBA32F: return (void)(*(pixel_rgba32f*) (&m_data[offset]) = color);
 
             default:                    break;
         }
