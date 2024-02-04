@@ -5,7 +5,7 @@
 
 #include "vec_fn_common.h"
 #include "vec_fn_comparison.h"
-#include "math/vec_fn_geometric.h"
+#include "vec_fn_geometric.h"
 
 namespace vx {
 namespace math {
