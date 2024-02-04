@@ -736,7 +736,6 @@ VX_PACK_POP()
 
 using vec3i  = detail::vec<3,  int32_t, detail::vec_t::vec>;
 using vec3ui = detail::vec<3, uint32_t, detail::vec_t::vec>;
-using vec3sz = detail::vec<3,   size_t, detail::vec_t::vec>;
 using vec3b  = detail::vec<3,     bool, detail::vec_t::vec>;
 
 }

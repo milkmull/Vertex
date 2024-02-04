@@ -773,7 +773,6 @@ VX_PACK_POP()
 
 using vec4i  = detail::vec<4,  int32_t, detail::vec_t::vec>;
 using vec4ui = detail::vec<4, uint32_t, detail::vec_t::vec>;
-using vec4sz = detail::vec<4,   size_t, detail::vec_t::vec>;
 using vec4b  = detail::vec<4,     bool, detail::vec_t::vec>;
 
 }

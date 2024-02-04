@@ -763,9 +763,9 @@ VX_PACK_POP()
 
 }
 
-using quaternion  = detail::quat< float>;
-using quaternionf = detail::quat< float>;
-using quaterniond = detail::quat<double>;
+using quat  = detail::quat< float>;
+using quatf = detail::quat< float>;
+using quatd = detail::quat<double>;
 
 }
 }
