@@ -6,7 +6,7 @@ namespace vx {
 namespace math {
 namespace detail {
 
-template <typename T, val_t V = value_type_selector<T>::value> struct rect {};
+template <typename T, val_t V = value_type_selector<T>::value> struct rect;
 
 template <typename T>
 using rectx = rect<T>;

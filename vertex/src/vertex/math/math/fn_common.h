@@ -171,9 +171,10 @@ inline constexpr T ceil(T x)
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T sign(T x)
 {
-    if (x > static_cast<T>(0)) return static_cast<T>(+1);
-    if (x < static_cast<T>(0)) return static_cast<T>(-1);
-    return static_cast<T>(0);
+    return static_cast<T>(
+        (static_cast<T>(0) < x) -
+        (static_cast<T>(0) > x)
+    );
 }
 
 // =============== fmod ===============
