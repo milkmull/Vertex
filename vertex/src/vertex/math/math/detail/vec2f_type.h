@@ -408,40 +408,6 @@ struct vec<2, T, vec_t::vec, val_t::floating_point>
         return const_reverse_iterator(&x);
     }
 
-    // =============== swizzle ===============
-
-    inline constexpr T swiz(char i) const
-    {
-        return operator[](static_cast<size_type>(i - 'x'));
-    }
-
-    inline constexpr vec2_type swiz(char i, char j) const
-    {
-        return vec2_type(
-            operator[](static_cast<size_type>(i - 'x')),
-            operator[](static_cast<size_type>(j - 'x'))
-        );
-    }
-
-    inline constexpr vec3_type swiz(char i, char j, char k) const
-    {
-        return vec3_type(
-            operator[](static_cast<size_type>(i - 'x')),
-            operator[](static_cast<size_type>(j - 'x')),
-            operator[](static_cast<size_type>(k - 'x'))
-        );
-    }
-
-    inline constexpr vec4_type swiz(char i, char j, char k, char l) const
-    {
-        return vec4_type(
-            operator[](static_cast<size_type>(i - 'x')),
-            operator[](static_cast<size_type>(j - 'x')),
-            operator[](static_cast<size_type>(k - 'x')),
-            operator[](static_cast<size_type>(l - 'x'))
-        );
-    }
-
     // =============== string ===============
 
     inline constexpr std::string to_string(bool pretty_print = false) const

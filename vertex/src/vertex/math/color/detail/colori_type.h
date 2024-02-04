@@ -2,7 +2,6 @@
 
 #include <sstream>
 
-#include "color_fn_helper.h"
 #include "../../math/detail/base_type_defs.h"
 #include "../../math/fn_common.h"
 #include "../../math/fn_exponential.h"
@@ -682,28 +681,6 @@ public:
     inline constexpr const_reverse_iterator crend() const noexcept
     {
         return const_reverse_iterator(&r);
-    }
-
-    // =============== swizzle ===============
-
-    inline constexpr type swiz(char i, char j, char k) const
-    {
-        return type(
-            operator[](static_cast<size_type>(helper_rgba_swizzle(i))),
-            operator[](static_cast<size_type>(helper_rgba_swizzle(j))),
-            operator[](static_cast<size_type>(helper_rgba_swizzle(k))),
-            a
-        );
-    }
-
-    inline constexpr type swiz(char i, char j, char k, char l) const
-    {
-        return type(
-            operator[](static_cast<size_type>(helper_rgba_swizzle(i))),
-            operator[](static_cast<size_type>(helper_rgba_swizzle(j))),
-            operator[](static_cast<size_type>(helper_rgba_swizzle(k))),
-            operator[](static_cast<size_type>(helper_rgba_swizzle(l)))
-        );
     }
 
     // =============== string ===============
