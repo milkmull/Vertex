@@ -6,28 +6,28 @@
 namespace vx {
 namespace img {
 
-#define VX_MAX_IMAGE_DIMENSIONS (1 << 13) // 8192
+#define VX_MAX_IMAGE_DIMENSIONS (1 << 12) // 4096
 
 enum : size_t
 {
-    VX_IMAGE_SIZE_LIMIT_NONE = 0,
-
     VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS = VX_MAX_IMAGE_DIMENSIONS,
 
     VX_IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
     VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
 
     VX_IMAGE_SIZE_LIMIT_MIN_BITDEPTH = 8,
-    VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 32,
+    VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 8,
 
     VX_IMAGE_SIZE_LIMIT_MAX_SIZE = (
         VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
         VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS   *
-        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH   /
+        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS *
+        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH /
         8
-    )
+        )
 };
+
+namespace util {
 
 inline constexpr error_code check_image_size_limits(
     size_type width,
@@ -52,5 +52,6 @@ inline constexpr error_code check_image_size_limits(
     return error_code::NONE;
 }
 
+}
 }
 }

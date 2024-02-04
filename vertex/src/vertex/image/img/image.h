@@ -3,9 +3,9 @@
 #include <cassert>
 #include <utility>
 
-#include "detail/iterator.h"
 #include "image_load.h"
 #include "image_write.h"
+#include "pixel.h"
 
 #include "vertex/math/math/detail/vec2i_type.h"
 #include "vertex/math/geometry/detail/recti_type.h"
@@ -106,11 +106,11 @@ public:
 
     inline image_info get_info() const { return image_info{ m_width, m_height, m_format }; }
 
-    inline size_type channels() const { return get_channel_count(m_format); }
-    inline size_type bitdepth() const { return get_bitdepth(m_format); }
-    inline bool has_alpha() const { return img::has_alpha(m_format); }
+    inline size_type channels() const { return util::get_channel_count(m_format); }
+    inline size_type bitdepth() const { return util::get_bitdepth(m_format); }
+    inline bool has_alpha() const { return util::has_alpha(m_format); }
 
-    inline size_type pixel_size() const { return get_pixel_size(m_format); }
+    inline size_type pixel_size() const { return util::get_pixel_size(m_format); }
     inline size_type stride() const { return m_width * pixel_size(); }
 
     inline size_t length() const { return m_data.size(); }
@@ -237,7 +237,7 @@ public:
     {
         image_info info = get_info();
 
-        if (reinterpret_info(info, format) && get_image_info_error(info) == error_code::NONE)
+        if (util::reinterpret_info(info, format) && util::get_image_info_error(info) == error_code::NONE)
         {
             m_width = info.width;
             m_height = info.height;
@@ -253,7 +253,7 @@ public:
     {
         image_info info{ width, height, format };
 
-        if (get_image_info_error(info) == error_code::NONE && info.size() == static_cast<size_type>(m_data.size()))
+        if (util::get_image_info_error(info) == error_code::NONE && info.size() == static_cast<size_type>(m_data.size()))
         {
             m_width = width;
             m_height = height;
@@ -263,44 +263,6 @@ public:
         }
 
         return false;
-    }
-
-    // =============== iterator ===============
-
-    template <typename T>
-    auto begin() noexcept
-    {
-        return detail::iterator<T>((T*)m_data.data(), 0, 0, m_width, m_height);
-    }
-
-    template <typename T>
-    auto begin() const noexcept
-    {
-        return cbegin<T>();
-    }
-
-    template <typename T>
-    auto end() noexcept
-    {
-        return detail::iterator<T>((T*)(m_data.data() + m_data.size()), 0, m_height, m_width, m_height);
-    }
-
-    template <typename T>
-    auto end() const noexcept
-    {
-        return cend<T>();
-    }
-
-    template <typename T>
-    auto cbegin() const noexcept
-    {
-        return detail::iterator<T>((const T*)m_data.data(), 0, 0, m_width, m_height);
-    }
-
-    template <typename T>
-    auto cend() const noexcept
-    {
-        return detail::iterator<T>((const T*)(m_data.data() + m_data.size()), 0, m_height, m_width, m_height);
     }
 
 private:

@@ -12,13 +12,13 @@ template <image_format f>
 struct format_traits_base
 {
     static constexpr image_format format = f;
-    static constexpr image_format format_8_bit = to_8_bit(f);
+    static constexpr image_format format_8_bit = util::to_8_bit(f);
 
-    static constexpr size_type channel_count = get_channel_count(f);
-    static constexpr size_type bitdepth = get_bitdepth(f);
-    static constexpr size_type pixel_size = get_pixel_size(f);
+    static constexpr size_type channel_count = util::get_channel_count(f);
+    static constexpr size_type bitdepth = util::get_bitdepth(f);
+    static constexpr size_type pixel_size = util::get_pixel_size(f);
 
-    static constexpr bool alpha = has_alpha(f);
+    static constexpr bool alpha = util::has_alpha(f);
 
 };
 

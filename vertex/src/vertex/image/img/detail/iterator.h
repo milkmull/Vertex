@@ -3,7 +3,7 @@
 #include <iterator>
 
 #include "base_type_defs.h"
-#include "pixel.h"
+#include "../pixel.h"
 #include "vertex/math/math/detail/vec2f_type.h"
 
 namespace vx {
@@ -94,8 +94,10 @@ public:
     inline constexpr iterator& operator++()
     {
         ++m_current;
+
         m_x = (m_x + 1) % m_width;
         if (m_x == 0) ++m_y;
+
         return *this;
     }
 
@@ -155,8 +157,8 @@ private:
     pointer m_current = nullptr;
     size_type m_x = 0;
     size_type m_y = 0;
-    size_type m_width = 0;
-    size_type m_height = 0;
+    size_type m_xbegin = 0;
+    size_type m_xend = 0;
 
 };
 

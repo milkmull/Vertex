@@ -9,11 +9,13 @@ enum class image_format
 {
     UNKNOWN = 0,
 
-    R8      = 1,
-    RG8     = 2,
-    RGB8    = 3,
-    RGBA8   = 4
+    R8 = 1,
+    RG8 = 2,
+    RGB8 = 3,
+    RGBA8 = 4
 };
+
+namespace detail {
 
 struct image_format_data
 {
@@ -33,33 +35,37 @@ inline constexpr image_format_data image_format_data_table[] = {
     { 4, 8, 4,  true, image_format::RGBA8 }     // RGBA8
 };
 
+} // detail
+
+namespace util {
+
 inline constexpr size_type get_channel_count(image_format format)
 {
-    return image_format_data_table[static_cast<int>(format)].channels;
+    return detail::image_format_data_table[static_cast<int>(format)].channels;
 }
 
 // Returns the per-channel bitdepth for a given image format
 inline constexpr size_type get_bitdepth(image_format format)
 {
-    return image_format_data_table[static_cast<int>(format)].bitdepth;
+    return detail::image_format_data_table[static_cast<int>(format)].bitdepth;
 }
 
 // Returns the pixel size in bytes for a given image format
 inline constexpr size_type get_pixel_size(image_format format)
 {
-    return image_format_data_table[static_cast<int>(format)].pixel_size;
+    return detail::image_format_data_table[static_cast<int>(format)].pixel_size;
 }
 
 // Converts an image format to an equivalent 8-bit format
 inline constexpr image_format to_8_bit(image_format format)
 {
-    return image_format_data_table[static_cast<int>(format)].format_8_bit;
+    return detail::image_format_data_table[static_cast<int>(format)].format_8_bit;
 }
 
 // Checks if an image format has an alpha channel
 inline constexpr bool has_alpha(image_format format)
 {
-    return image_format_data_table[static_cast<int>(format)].alpha;
+    return detail::image_format_data_table[static_cast<int>(format)].alpha;
 }
 
 // Chooses an appropriate image format based on the number of channels
@@ -78,5 +84,6 @@ inline constexpr image_format choose_format(size_type channels)
     return image_format::UNKNOWN;
 }
 
+}
 }
 }

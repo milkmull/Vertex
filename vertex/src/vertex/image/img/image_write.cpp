@@ -1,8 +1,8 @@
 #include <algorithm>
 
-#include "../image_write.h"
+#include "image_write.h"
 #include "vertex/detail/setup.h"
-#include "../image_size_limit.h"
+#include "image_size_limit.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
 
@@ -24,24 +24,22 @@ namespace img {
 
 // =============== write ===============
 
-error_code write_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    if (path == nullptr || data == nullptr)
-    {
-        return error_code::NULL_POINTER;
-    }
+    assert(filename != nullptr);
+    assert(data != nullptr);
 
-    const error_code info_error = get_image_info_error(info);
+    const error_code info_error = util::get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
     }
 
-    const image_info info_8_bit = get_8_bit_info(info);
+    const image_info info_8_bit = util::get_8_bit_info(info);
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_bmp(
-		path,
+		filename,
 		static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
@@ -51,24 +49,22 @@ error_code write_bmp(const char* path, const image_info& info, const byte_type* 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-error_code write_jpg(const char* path, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
+error_code write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
 {
-    if (path == nullptr || data == nullptr)
-    {
-        return error_code::NULL_POINTER;
-    }
+    assert(filename != nullptr);
+    assert(data != nullptr);
 
-    const error_code info_error = get_image_info_error(info);
+    const error_code info_error = util::get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
     }
 
-    const image_info info_8_bit = get_8_bit_info(info);
+    const image_info info_8_bit = util::get_8_bit_info(info);
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	const bool success = stbi_write_jpg(
-		path,
+		filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
@@ -79,24 +75,22 @@ error_code write_jpg(const char* path, const image_info& info, const byte_type* 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-error_code write_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    if (path == nullptr || data == nullptr)
-    {
-        return error_code::NULL_POINTER;
-    }
+    assert(filename != nullptr);
+    assert(data != nullptr);
 
-    const error_code info_error = get_image_info_error(info);
+    const error_code info_error = util::get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
     }
 
-    const image_info info_8_bit = get_8_bit_info(info);
+    const image_info info_8_bit = util::get_8_bit_info(info);
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_png(
-		path,
+		filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
@@ -107,24 +101,22 @@ error_code write_png(const char* path, const image_info& info, const byte_type* 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
 
-error_code write_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+error_code write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    if (path == nullptr || data == nullptr)
-    {
-        return error_code::NULL_POINTER;
-    }
+    assert(filename != nullptr);
+    assert(data != nullptr);
 
-    const error_code info_error = get_image_info_error(info);
+    const error_code info_error = util::get_image_info_error(info);
     if (info_error != error_code::NONE)
     {
         return info_error;
     }
 
-    const image_info info_8_bit = get_8_bit_info(info);
+    const image_info info_8_bit = util::get_8_bit_info(info);
 
 	stbi_flip_vertically_on_write(flip_vertically_on_write);
 	bool success = stbi_write_tga(
-		path,
+		filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),

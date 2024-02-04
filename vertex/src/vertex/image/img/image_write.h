@@ -10,10 +10,10 @@
 namespace vx {
 namespace img {
 
-error_code write_bmp(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
-error_code write_jpg(const char* path, const image_info& info, const byte_type* data, int quality = 75, bool flip_vertically_on_write = false);
-error_code write_png(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
-error_code write_tga(const char* path, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+error_code write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+error_code write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality = 75, bool flip_vertically_on_write = false);
+error_code write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+error_code write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
 
 }
 }

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <algorithm>
-
-#include "detail/base_type_defs.h"
 #include "image_size_limit.h"
 #include "image_format.h"
 
@@ -24,14 +21,16 @@ struct image_info
         return !(*this == other);
     }
 
-    inline constexpr size_type channels() const { return get_channel_count(format); }
-    inline constexpr size_type bitdepth() const { return get_bitdepth(format); }
-    inline constexpr bool has_alpha() const { return img::has_alpha(format); }
+    inline constexpr size_type channels() const { return util::get_channel_count(format); }
+    inline constexpr size_type bitdepth() const { return util::get_bitdepth(format); }
+    inline constexpr bool has_alpha() const { return util::has_alpha(format); }
 
-    inline constexpr size_type pixel_size() const { return get_pixel_size(format); }
+    inline constexpr size_type pixel_size() const { return util::get_pixel_size(format); }
     inline constexpr size_type size() const { return pixel_size() * width * height; }
     inline constexpr size_type stride() const { return width * pixel_size(); }
 };
+
+namespace util {
 
 inline constexpr error_code get_image_info_error(const image_info& info)
 {
@@ -72,5 +71,6 @@ inline constexpr bool reinterpret_info(image_info& info, image_format target_for
     return true;
 }
 
+}
 }
 }

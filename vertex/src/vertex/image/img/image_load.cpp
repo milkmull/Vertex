@@ -1,7 +1,7 @@
 #include "vertex/detail/setup.h"
 
-#include "../image_load.h"
-#include "../image_size_limit.h"
+#include "image_load.h"
+#include "image_size_limit.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
 
@@ -78,7 +78,7 @@ static error_code get_info(const char* filename, image_info& info)
     {
         static_cast<size_type>(width),
         static_cast<size_type>(height),
-        choose_format(static_cast<size_type>(channels))
+        util::choose_format(static_cast<size_type>(channels))
     };
 
     return error_code::NONE;
@@ -102,12 +102,12 @@ static error_code load_image_internal(
         return err;
     }
 
-    if (target_format != image_format::UNKNOWN && !reinterpret_info(info, target_format))
+    if (target_format != image_format::UNKNOWN && !util::reinterpret_info(info, target_format))
     {
         return error_code::UNSUPPORTED_CONVERSION;
     }
 
-    err = get_image_info_error(info);
+    err = util::get_image_info_error(info);
     if (err != error_code::NONE)
     {
         return err;

@@ -1,9 +1,9 @@
 #include <cstring>
 #include <vector>
 
-#include "../image_fn_transform.h"
-#include "../image.h"
-#include "../image_info.h"
+#include "image_fn_transform.h"
+#include "image.h"
+#include "image_info.h"
 
 namespace vx {
 namespace img {
