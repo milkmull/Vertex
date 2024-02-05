@@ -99,8 +99,8 @@ inline constexpr T abs(T x)
  * @param x The input value.
  * @return The nearest integer after rounding the input.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T round(T x)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto round(T x)
 {
     return std::round(x);
 }
@@ -116,8 +116,8 @@ inline constexpr T round(T x)
  * @param x The input value.
  * @return The truncated value towards zero.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T trunc(T x)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto trunc(T x)
 {
     return std::trunc(x);
 }
@@ -133,8 +133,8 @@ inline constexpr T trunc(T x)
  * @param x The input value.
  * @return The largest integer less than or equal to the input value.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T floor(T x)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto floor(T x)
 {
     return std::floor(x);
 }
@@ -150,8 +150,8 @@ inline constexpr T floor(T x)
  * @param x The input value.
  * @return The smallest integer greater than or equal to the input value.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T ceil(T x)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto ceil(T x)
 {
     return std::ceil(x);
 }
@@ -189,8 +189,8 @@ inline constexpr T sign(T x)
  * @param y The denominator.
  * @return The remainder of (x/y).
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T fmod(T x, T y)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto fmod(T x, T y)
 {
     return x - y * std::trunc(x / y);
 }
@@ -209,16 +209,10 @@ inline constexpr T fmod(T x, T y)
  * 
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T mod(T x, T y)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto mod(T x, T y)
 {
     return x - y * std::floor(x / y);
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr detail::int_float_type mod(T x, T y)
-{
-    return static_cast<detail::int_float_type>((x % y + y) % y);
 }
 
 // =============== fract ===============
@@ -234,8 +228,8 @@ inline constexpr detail::int_float_type mod(T x, T y)
  *
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T fract(T x)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto fract(T x)
 {
     return x - std::floor(x);
 }
@@ -254,9 +248,16 @@ inline constexpr T fract(T x)
  * @return The fractional part of the input value.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T modf(T x, T& intpart)
+inline constexpr auto modf(T x, T& intpart)
 {
     return std::modf(x, &intpart);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr double modf(T x, double& intpart)
+{
+    intpart = static_cast<double>(x);
+    return static_cast<double>(0);
 }
 
 // =============== frexp ===============
@@ -272,8 +273,8 @@ inline constexpr T modf(T x, T& intpart)
  * @param exp Reference parameter to store the exponent.
  * @return The normalized fraction of the input value.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T frexp(T x, int& exp)
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr auto frexp(T x, int& exp)
 {
     return std::frexp(x, &exp);
 }
