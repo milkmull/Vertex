@@ -158,7 +158,7 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
 )
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    const T t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 

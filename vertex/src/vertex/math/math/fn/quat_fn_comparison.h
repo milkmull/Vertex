@@ -6,6 +6,20 @@
 namespace vx {
 namespace math {
 
+// =============== is_zero_approx ===============
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::quat<T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_equal_approx(x.w, epsilon)
+        && math::is_equal_approx(x.x, epsilon)
+        && math::is_equal_approx(x.y, epsilon)
+        && math::is_equal_approx(x.z, epsilon);
+}
+
 // =============== is_equal_approx ===============
 
 template <typename T>
@@ -19,20 +33,6 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.x, b.x, epsilon)
         && math::is_equal_approx(a.y, b.y, epsilon)
         && math::is_equal_approx(a.z, b.z, epsilon);
-}
-
-// =============== is_zero_approx ===============
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::quat<T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_equal_approx(x.w, epsilon)
-        && math::is_equal_approx(x.x, epsilon)
-        && math::is_equal_approx(x.y, epsilon)
-        && math::is_equal_approx(x.z, epsilon);
 }
 
 // =============== is_finite ===============

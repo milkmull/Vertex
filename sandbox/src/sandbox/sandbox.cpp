@@ -4,7 +4,8 @@ int main()
 {
     using namespace vx;
 
-    int y = 1;
+    math::color c;
+    auto x = math::normalized_dot(c, c);
 
     return 0;
 }

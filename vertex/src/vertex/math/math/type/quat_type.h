@@ -683,8 +683,8 @@ struct quat
      */
     inline constexpr vec3_type axis() const
     {
-        const type qn(normalize());
-        const T s2 = static_cast<T>(1) - (qn.w * qn.w);
+        const T nw = normalize().w;
+        const T s2 = static_cast<T>(1) - (nw * nw);
 
         if (s2 < math::epsilon<T>)
         {

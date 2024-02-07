@@ -5,6 +5,41 @@
 namespace vx {
 namespace math {
 
+// =============== is_zero_approx ===============
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::mat<2, 2, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.columns[0], epsilon)
+        && math::is_zero_approx(x.columns[1], epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::mat<3, 3, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.columns[0], epsilon)
+        && math::is_zero_approx(x.columns[1], epsilon)
+        && math::is_zero_approx(x.columns[2], epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::mat<4, 4, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.columns[0], epsilon)
+        && math::is_zero_approx(x.columns[1], epsilon)
+        && math::is_zero_approx(x.columns[2], epsilon)
+        && math::is_zero_approx(x.columns[3], epsilon);
+}
+
 // =============== is_equal_approx ===============
 
 template <typename T>
@@ -41,41 +76,6 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.columns[1], b.columns[1], epsilon)
         && math::is_equal_approx(a.columns[2], b.columns[2], epsilon)
         && math::is_equal_approx(a.columns[3], b.columns[3], epsilon);
-}
-
-// =============== is_zero_approx ===============
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::mat<2, 2, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.columns[0], epsilon)
-        && math::is_zero_approx(x.columns[1], epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::mat<3, 3, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.columns[0], epsilon)
-        && math::is_zero_approx(x.columns[1], epsilon)
-        && math::is_zero_approx(x.columns[2], epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::mat<4, 4, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.columns[0], epsilon)
-        && math::is_zero_approx(x.columns[1], epsilon)
-        && math::is_zero_approx(x.columns[2], epsilon)
-        && math::is_zero_approx(x.columns[3], epsilon);
 }
 
 // =============== round_if_close ===============

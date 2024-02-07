@@ -292,7 +292,7 @@ inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
         return detail::vecf<L, T, Q>(0);
     }
 
-    const T new_mag = math::clamp(
+    const T new_mag = std::clamp(
         mag,
         static_cast<T>(min),
         static_cast<T>(max)
@@ -392,84 +392,6 @@ inline constexpr detail::vecf<3, T> rotate(
     const T sina = math::sin(angle);
 
     return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
-}
-
-/**
- * @brief Rotate a 3D vector around the X-axis.
- *
- * This function takes a 3D vector and rotates it around the X-axis by a specified angle.
- * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
- *
- * @param v The original 3D vector to be rotated.
- * @param angle The rotation angle in radians.
- * @return The rotated 3D vector.
- */
-template <typename T>
-inline constexpr detail::vecf<3, T> rotate_x(
-    const detail::vecf<3, T>& v,
-    T angle
-)
-{
-    const T cosa = math::cos(angle);
-    const T sina = math::sin(angle);
-
-    return detail::vecf<3, T>(
-        v.x,
-        (v.y * cosa) - (v.z * sina),
-        (v.y * sina) + (v.z * cosa)
-    );
-}
-
-/**
- * @brief Rotate a 3D vector around the Y-axis.
- *
- * This function takes a 3D vector and rotates it around the Y-axis by a specified angle.
- * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
- *
- * @param v The original 3D vector to be rotated.
- * @param angle The rotation angle in radians.
- * @return The rotated 3D vector.
- */
-template <typename T>
-inline constexpr detail::vecf<3, T> rotate_y(
-    const detail::vecf<3, T>& v,
-    T angle
-)
-{
-    const T cosa = math::cos(angle);
-    const T sina = math::sin(angle);
-
-    return detail::vecf<3, T>(
-        (v.x * cosa) + (v.z * sina),
-        v.y,
-        -(v.x * sina) + (v.z * cosa)
-    );
-}
-
-/**
- * @brief Rotate a 3D vector around the Z-axis.
- *
- * This function takes a 3D vector and rotates it around the Z-axis by a specified angle.
- * The rotation is achieved using cosine and sine trigonometric functions to compute the new vector.
- *
- * @param v The original 3D vector to be rotated.
- * @param angle The rotation angle in radians.
- * @return The rotated 3D vector.
- */
-template <typename T>
-inline constexpr detail::vecf<3, T> rotate_z(
-    const detail::vecf<3, T>& v,
-    T angle
-)
-{
-    const T cosa = math::cos(angle);
-    const T sina = math::sin(angle);
-
-    return detail::vecf<3, T>(
-        (v.x * cosa) - (v.y * sina),
-        (v.x * sina) + (v.y * cosa),
-        v.z
-    );
 }
 
 // =============== project ===============

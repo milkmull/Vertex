@@ -6,6 +6,53 @@
 namespace vx {
 namespace math {
 
+// =============== is_zero_approx ===============
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::vecf<2, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::vecf<3, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon)
+        && math::is_zero_approx(x.z, epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::vecf<4, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.x, epsilon)
+        && math::is_zero_approx(x.y, epsilon)
+        && math::is_zero_approx(x.z, epsilon)
+        && math::is_zero_approx(x.w, epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_zero_approx(
+    const detail::colf<T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_zero_approx(x.r, epsilon)
+        && math::is_zero_approx(x.g, epsilon)
+        && math::is_zero_approx(x.b, epsilon)
+        && math::is_zero_approx(x.a, epsilon);
+}
+
 // =============== is_equal_approx ===============
 
 template <typename T>
@@ -55,53 +102,6 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.g, b.g, epsilon)
         && math::is_equal_approx(a.b, b.b, epsilon)
         && math::is_equal_approx(a.a, b.a, epsilon);
-}
-
-// =============== is_zero_approx ===============
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::vecf<2, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.x, epsilon)
-        && math::is_zero_approx(x.y, epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::vecf<3, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.x, epsilon)
-        && math::is_zero_approx(x.y, epsilon)
-        && math::is_zero_approx(x.z, epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::vecf<4, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.x, epsilon)
-        && math::is_zero_approx(x.y, epsilon)
-        && math::is_zero_approx(x.z, epsilon)
-        && math::is_zero_approx(x.w, epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_zero_approx(
-    const detail::colf<T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return math::is_zero_approx(x.r, epsilon)
-        && math::is_zero_approx(x.g, epsilon)
-        && math::is_zero_approx(x.b, epsilon)
-        && math::is_zero_approx(x.a, epsilon);
 }
 
 // =============== is_finite ===============
