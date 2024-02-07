@@ -2,7 +2,7 @@
 
 #include <initializer_list>
 
-#include "detail/common.h"
+#include "../detail/common.h"
 
 namespace vx {
 namespace math {
@@ -171,10 +171,7 @@ inline constexpr T ceil(T x)
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T sign(T x)
 {
-    return static_cast<T>(
-        (static_cast<T>(0) < x) -
-        (static_cast<T>(0) > x)
-    );
+    return static_cast<T>((static_cast<T>(0) < x) - (static_cast<T>(0) > x));
 }
 
 // =============== fmod ===============

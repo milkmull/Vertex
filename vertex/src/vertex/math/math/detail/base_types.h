@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/type_traits.h"
+#include "type_traits.h"
 #include "vertex/tools/detail/iterator.h"
 
 namespace vx {
@@ -18,6 +18,7 @@ enum class vec_t
 // =============== types ===============
 
 template <length_type L, typename T, vec_t Q, val_t V = value_type_selector<T>::value> struct vec;
+
 template <length_type M, length_type N, typename T> struct mat;
 
 template <typename T> struct quat;

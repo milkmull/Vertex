@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/vectorize.h"
+#include "../detail/vectorize.h"
 #include "fn_common.h"
 
 namespace vx {

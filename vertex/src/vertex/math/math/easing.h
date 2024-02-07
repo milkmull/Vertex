@@ -1,8 +1,6 @@
 #pragma once
 
-#include "constants.h"
-#include "fn_exponential.h"
-#include "fn_trigonometric.h"
+#include "math.h"
 
 namespace vx {
 namespace math {

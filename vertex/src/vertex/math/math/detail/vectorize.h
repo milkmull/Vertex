@@ -1,8 +1,6 @@
 #pragma once
 
-#include <utility>
-
-#include "base_type_defs.h"
+#include "base_types.h"
 
 namespace vx {
 namespace math {
@@ -11,7 +9,7 @@ namespace detail {
 // =============== unary ===============
 
 template <length_type L, typename T, vec_t Q, typename R>
-struct vec_unary {};
+struct vec_unary;
 
 template <typename T, typename R>
 struct vec_unary<2, T, vec_t::vec, R>

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "fn_trigonometric.h"
 #include "fn_exponential.h"
-#include "fn_comparison.h"
+#include "fn_trigonometric.h"
 
 namespace vx {
 namespace math {
@@ -141,9 +140,9 @@ inline constexpr detail::quat<T> fast_normalize(const detail::quat<T>& q)
  * @return True if the quaternion is normalized, false otherwise.
  */
 template <typename T>
-inline constexpr bool is_normalized(const detail::quat<T>& q)
+inline constexpr bool is_normalized_approx(const detail::quat<T>& q, const T epsilon = math::epsilon<T>)
 {
-    return math::is_equal_approx(length_squared(q), static_cast<T>(1));
+    return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
 
 // =============== angle ===============

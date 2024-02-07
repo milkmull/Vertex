@@ -2,9 +2,8 @@
 
 #include <sstream>
 
-#include "base_type_defs.h"
-#include "../../math/fn_common.h"
-#include "../../math/fn_comparison.h"
+#include "../detail/base_type_defs.h"
+#include "../../math/math.h"
 
 namespace vx {
 namespace math {

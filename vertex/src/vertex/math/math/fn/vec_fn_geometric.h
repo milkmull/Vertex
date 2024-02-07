@@ -1,9 +1,8 @@
 #pragma once
 
-#include "detail/base_type_defs.h"
+#include "../detail/base_types.h"
 #include "fn_trigonometric.h"
 #include "fn_exponential.h"
-#include "fn_comparison.h"
 
 namespace vx {
 namespace math {
@@ -262,9 +261,9 @@ inline constexpr detail::vecf<L, T, Q> fast_normalize(const detail::vecf<L, T, Q
  * @return True if the vector is normalized, false otherwise.
  */
 template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr bool is_normalized(const detail::vecf<L, T, Q>& v)
+inline constexpr bool is_normalized_approx(const detail::vecf<L, T, Q>& v, const T epsilon = math::epsilon<T>)
 {
-    return math::is_equal_approx(length_squared(v), static_cast<T>(1));
+    return (length_squared(v) - static_cast<T>(1)) < epsilon;
 }
 
 // =============== clamp_magnitude ===============

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "detail/common.h"
+#include "../constants.h"
+#include "../detail/common.h"
 
 namespace vx {
 namespace math {
@@ -130,7 +131,7 @@ inline constexpr T asin(T x)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asin_clamped(T x)
 {
-    return math::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
+    return std::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
 
 // =============== acos ===============
@@ -161,7 +162,7 @@ inline constexpr T acos(T x)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acos_clamped(T x)
 {
-    return math::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
+    return std::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
 
 // =============== atan ===============
@@ -200,12 +201,10 @@ inline constexpr T atan2(T x, T y)
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr detail::int_float_type atan2(T x, T y)
+inline constexpr typename detail::to_float_type<T>::type atan2(T x, T y)
 {
-    return std::atan2(
-        static_cast<detail::int_float_type>(x),
-        static_cast<detail::int_float_type>(y)
-    );
+    using F = typename detail::to_float_type<T>::type;
+    return std::atan2(static_cast<F>(x), static_cast<F>(y));
 }
 
 // =============== sinh ===============

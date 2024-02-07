@@ -1,9 +1,8 @@
 #pragma once
 
-#include "detail/vectorize.h"
-#include "fn_trigonometric.h"
+#include "../detail/vectorize.h"
 #include "fn_interpolation.h"
-#include "vec_fn_common.h"
+#include "vec_fn_geometric.h"
 
 namespace vx {
 namespace math {

@@ -2,10 +2,7 @@
 
 #include <sstream>
 
-#include "base_type_defs.h"
-#include "../fn_comparison.h"
-#include "../fn_exponential.h"
-#include "../fn_trigonometric.h"
+#include "../math.h"
 
 namespace vx {
 namespace math {
@@ -14,23 +11,17 @@ namespace detail {
 VX_PACK_PUSH()
 
 template <typename T>
-struct vec<2, T, vec_t::vec, val_t::integral>
+struct vec<2, T, vec_t::vec, val_t::floating_point>
 {
-    static_assert(std::is_integral<T>::value, "type T must be integral type");
+    static_assert(std::is_floating_point<T>::value, "type T must be floating point type");
 
     // =============== meta ===============
 
-private:
-
-    using FT = typename detail::to_float_type<T>::type;
-
-public:
-
     using value_type = T;
-    using float_value_type = FT;
+    using float_value_type = T;
 
-    using type = vec<2, T, vec_t::vec, val_t::integral>;
-    using float_type = vec<2, FT, vec_t::vec, val_t::floating_point>;
+    using type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using float_type = type;
 
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(2); }
@@ -40,9 +31,9 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
+    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
 
     // =============== data ===============
 
@@ -99,6 +90,7 @@ public:
 
     // =============== assignment operators ===============
 
+    template <typename U>
     inline constexpr type& operator=(const type& v) noexcept
     {
         x = v.x;
@@ -148,13 +140,13 @@ public:
 
     friend inline constexpr bool operator<=(const type& v1, const type& v2)
     {
-        if (v1.x != v2.x) return (v1.x < v2.x);
+        if (v1.x != v2.x) return (v1.x <  v2.x);
         else              return (v1.y <= v2.y);
     }
 
     friend inline constexpr bool operator>=(const type& v1, const type& v2)
     {
-        if (v1.x != v2.x) return (v1.x > v2.x);
+        if (v1.x != v2.x) return (v1.x >  v2.x);
         else              return (v1.y >= v2.y);
     }
 
@@ -274,117 +266,6 @@ public:
         return type(v1.x / v2.x, v1.y / v2.y);
     }
 
-    // modulo (%)
-
-    friend inline constexpr type operator%(const type& v, T scaler)
-    {
-        return type(v.x % scaler, v.y % scaler);
-    }
-
-    friend inline constexpr type operator%(T scaler, const type& v)
-    {
-        return v % scaler;
-    }
-
-    friend inline constexpr type operator%(const type& v1, const type& v2)
-    {
-        return type(v1.x % v2.x, v1.y % v2.y);
-    }
-
-    // =============== binary bit operators ===============
-
-    // and (&)
-
-    friend inline constexpr type operator&(const type& v, T scaler)
-    {
-        return type(v.x & scaler, v.y & scaler);
-    }
-
-    friend inline constexpr type operator&(T scaler, const type& v)
-    {
-        return v & scaler;
-    }
-
-    friend inline constexpr type operator&(const type& v1, const type& v2)
-    {
-        return type(v1.x & v2.x, v1.y & v2.y);
-    }
-
-    // or (|)
-
-    friend inline constexpr type operator|(const type& v, T scaler)
-    {
-        return type(v.x | scaler, v.y | scaler);
-    }
-
-    friend inline constexpr type operator|(T scaler, const type& v)
-    {
-        return v | scaler;
-    }
-
-    friend inline constexpr type operator|(const type& v1, const type& v2)
-    {
-        return type(v1.x | v2.x, v1.y | v2.y);
-    }
-
-    // xor (^)
-
-    friend inline constexpr type operator^(const type& v, T scaler)
-    {
-        return type(v.x ^ scaler, v.y ^ scaler);
-    }
-
-    friend inline constexpr type operator^(T scaler, const type& v)
-    {
-        return v ^ scaler;
-    }
-
-    friend inline constexpr type operator^(const type& v1, const type& v2)
-    {
-        return type(v1.x ^ v2.x, v1.y ^ v2.y);
-    }
-
-    // left shift (<<)
-
-    friend inline constexpr type operator<<(const type& v, T scaler)
-    {
-        return type(v.x << scaler, v.y << scaler);
-    }
-
-    friend inline constexpr type operator<<(T scaler, const type& v)
-    {
-        return v << scaler;
-    }
-
-    friend inline constexpr type operator<<(const type& v1, const type& v2)
-    {
-        return type(v1.x << v2.x, v1.y << v2.y);
-    }
-
-    // right shift (>>)
-
-    friend inline constexpr type operator>>(const type& v, T scaler)
-    {
-        return type(v.x >> scaler, v.y >> scaler);
-    }
-
-    friend inline constexpr type operator>>(T scaler, const type& v)
-    {
-        return v >> scaler;
-    }
-
-    friend inline constexpr type operator>>(const type& v1, const type& v2)
-    {
-        return type(v1.x >> v2.x, v1.y >> v2.y);
-    }
-
-    // not (~)
-
-    friend inline constexpr type operator~(const type& v)
-    {
-        return type(~v.x, ~v.y);
-    }
-
     // =============== unary arithmetic operators ===============
 
     // addition (+=)
@@ -435,6 +316,16 @@ public:
         return *this;
     }
 
+    inline constexpr type& operator*=(const mat<2, 2, T>& m)
+    {
+        return ((*this) = (*this) * m);
+    }
+
+    inline constexpr type& operator*=(const mat<3, 3, T>& m)
+    {
+        return ((*this) = (*this) * m);
+    }
+
     // division (/=)
 
     inline constexpr type& operator/=(T scaler)
@@ -448,104 +339,6 @@ public:
     {
         x /= v.x;
         y /= v.y;
-        return *this;
-    }
-
-    // modulo (%=)
-
-    inline constexpr type& operator%=(T scaler)
-    {
-        x %= scaler;
-        y %= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator%=(const type& v)
-    {
-        x %= v.x;
-        y %= v.y;
-        return *this;
-    }
-
-    // =============== unary bit operators ===============
-
-    // and (&=)
-
-    inline constexpr type& operator&=(T scaler)
-    {
-        x &= scaler;
-        y &= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator&=(const type& v)
-    {
-        x &= v.x;
-        y &= v.y;
-        return *this;
-    }
-
-    // or (|=)
-
-    inline constexpr type& operator|=(T scaler)
-    {
-        x |= scaler;
-        y |= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator|=(const type& v)
-    {
-        x |= v.x;
-        y |= v.y;
-        return *this;
-    }
-
-    // xor (^=)
-
-    inline constexpr type& operator^=(T scaler)
-    {
-        x ^= scaler;
-        y ^= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator^=(const type& v)
-    {
-        x ^= v.x;
-        y ^= v.y;
-        return *this;
-    }
-
-    // left shift (<<=)
-
-    inline constexpr type& operator<<=(T scaler)
-    {
-        x <<= scaler;
-        y <<= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator<<=(const type& v)
-    {
-        x <<= v.x;
-        y <<= v.y;
-        return *this;
-    }
-
-    // right shift (>>=)
-
-    inline constexpr type& operator>>=(T scaler)
-    {
-        x >>= scaler;
-        y >>= scaler;
-        return *this;
-    }
-
-    inline constexpr type& operator>>=(const type& v)
-    {
-        x >>= v.x;
-        y >>= v.y;
         return *this;
     }
 
@@ -615,8 +408,16 @@ public:
 
     inline constexpr std::string to_string(bool pretty_print = false) const
     {
+        if (pretty_print)
+        {
+            return type(
+                math::make_pretty(x),
+                math::make_pretty(y)
+            ).to_string();
+        }
+
         std::ostringstream oss;
-        oss << "{ " << +x << ", " << +y << " }";
+        oss << "{ " << x << ", " << y << " }";
         return oss.str();
     }
 
@@ -654,9 +455,9 @@ public:
      *
      * @return The aspect ratio of the vector.
      */
-    inline constexpr FT aspect() const
+    inline constexpr T aspect() const
     {
-        return math::is_zero_approx(y) ? static_cast<FT>(0) : (static_cast<FT>(x) / static_cast<FT>(y));
+        return math::is_zero_approx(y) ? static_cast<T>(0) : (x / y);
     }
 
     /**
@@ -666,9 +467,9 @@ public:
      *
      * @return The angle of the vector in radians.
      */
-    inline constexpr FT angle() const
+    inline constexpr T angle() const
     {
-        return math::atan2(static_cast<FT>(y), static_cast<FT>(x));
+        return math::atan2(y, x);
     }
 
     // =============== magnitude ===============
@@ -680,7 +481,7 @@ public:
      *
      * @return The squared length of the vector.
      */
-    inline constexpr FT magnitude_squared() const { return static_cast<FT>((x * x) + (y * y)); }
+    inline constexpr T magnitude_squared() const { return (x * x) + (y * y); }
 
     /**
      * @brief Calculates the magnitude of the vector.
@@ -689,7 +490,53 @@ public:
      *
      * @return The magnitude of the vector.
      */
-    inline constexpr FT magnitude() const { return math::sqrt(static_cast<FT>((x * x) + (y * y))); }
+    inline constexpr T magnitude() const { return math::sqrt((x * x) + (y * y)); }
+
+    /**
+     * @brief Normalizes the vector.
+     *
+     * This function normalizes the vector.
+     *
+     * @return The normalized vector. If the length of the vector is 0,
+     * a zero vector will be returned.
+     */
+    inline constexpr type normalize() const
+    {
+        const T magsq = magnitude_squared();
+        if (magsq < math::epsilon<T>)
+            return type();
+        return (*this) * math::inverse_sqrt(magsq);
+    }
+
+    // =============== direction and orientation ===============
+
+    /**
+     * @brief Create a vector from a given angle.
+     *
+     * This static function creates a vector with components calculated from the
+     * cosine and sine of the specified angle.
+     *
+     * @param angle The angle in radians.
+     * @return A new vector created from the given angle.
+     */
+    static inline constexpr type from_angle(T angle)
+    {
+        return type(math::cos(angle), math::sin(angle));
+    }
+
+    /**
+     * @brief Create a vector that is orthogonal (perpendicular) to the given vector.
+     *
+     * This static function returns a new vector that is orthogonal to the provided vector.
+     * The orthogonal vector is obtained by swapping the x and y components and negating the new y component.
+     *
+     * @param v The input vector.
+     * @return A new vector orthogonal to the input vector.
+     */
+    static inline constexpr type orthogonal(const type& v)
+    {
+        return type(v.y, -v.x);
+    }
 
     // =============== constants ===============
 
@@ -708,9 +555,9 @@ VX_PACK_POP()
 
 }
 
-using vec2i  = detail::vec<2,  int32_t, detail::vec_t::vec>;
-using vec2ui = detail::vec<2, uint32_t, detail::vec_t::vec>;
-using vec2b  = detail::vec<2,     bool, detail::vec_t::vec>;
+using vec2  = detail::vec<2,  float, detail::vec_t::vec>;
+using vec2f = detail::vec<2,  float, detail::vec_t::vec>;
+using vec2d = detail::vec<2, double, detail::vec_t::vec>;
 
 }
 }

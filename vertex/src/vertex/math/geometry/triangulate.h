@@ -4,7 +4,7 @@
 
 #include "../math/enum.h"
 #include "../math/detail/type_traits.h"
-#include "../math/detail/base_type_defs.h"
+#include "../math/detail/base_types.h"
 
 namespace vx {
 namespace math {

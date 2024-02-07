@@ -2,10 +2,7 @@
 
 #include <sstream>
 
-#include "base_type_defs.h"
-#include "../fn_common.h"
-#include "../fn_comparison.h"
-#include "../fn_exponential.h"
+#include "../math.h"
 
 namespace vx {
 namespace math {
@@ -14,17 +11,23 @@ namespace detail {
 VX_PACK_PUSH()
 
 template <typename T>
-struct vec<4, T, vec_t::vec, val_t::floating_point>
+struct vec<4, T, vec_t::vec, val_t::integral>
 {
-    static_assert(std::is_floating_point<T>::value, "type T must be floating point type");
+    static_assert(std::is_integral<T>::value, "type T must be integral type");
 
     // =============== meta ===============
 
-    using value_type = T;
-    using float_value_type = T;
+private:
 
-    using type = vec<4, T, vec_t::vec, val_t::floating_point>;
-    using float_type = type;
+    using FT = typename detail::to_float_type<T>::type;
+
+public:
+
+    using value_type = T;
+    using float_value_type = FT;
+
+    using type = vec<4, T, vec_t::vec, val_t::integral>;
+    using float_type = vec<4, FT, vec_t::vec, val_t::floating_point>;
 
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
@@ -34,9 +37,9 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
+    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
+    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
+    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
 
     // =============== data ===============
 
@@ -127,13 +130,6 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         , y(static_cast<T>(v.g))
         , z(static_cast<T>(v.b))
         , w(static_cast<T>(v.a)) {}
-
-    template <typename U>
-    inline constexpr explicit vec(const quat<U>& q)
-        : x(static_cast<T>(q.x))
-        , y(static_cast<T>(q.y))
-        , z(static_cast<T>(q.z))
-        , w(static_cast<T>(q.w)) {}
 
     // =============== destructor ===============
 
@@ -330,6 +326,117 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         return type(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
     }
 
+    // modulo (%)
+
+    friend inline constexpr type operator%(const type& v, T scaler)
+    {
+        return type(v.x % scaler, v.y % scaler, v.z % scaler, v.w % scaler);
+    }
+
+    friend inline constexpr type operator%(T scaler, const type& v)
+    {
+        return v % scaler;
+    }
+
+    friend inline constexpr type operator%(const type& v1, const type& v2)
+    {
+        return type(v1.x % v2.x, v1.y % v2.y, v1.z % v2.z, v1.w % v2.w);
+    }
+
+    // =============== binary bit operators ===============
+
+    // and (&)
+
+    friend inline constexpr type operator&(const type& v, T scaler)
+    {
+        return type(v.x & scaler, v.y & scaler, v.z & scaler, v.w & scaler);
+    }
+
+    friend inline constexpr type operator&(T scaler, const type& v)
+    {
+        return v & scaler;
+    }
+
+    friend inline constexpr type operator&(const type& v1, const type& v2)
+    {
+        return type(v1.x & v2.x, v1.y & v2.y, v1.z & v2.z, v1.w & v2.w);
+    }
+
+    // or (|)
+
+    friend inline constexpr type operator|(const type& v, T scaler)
+    {
+        return type(v.x | scaler, v.y | scaler, v.z | scaler, v.w | scaler);
+    }
+
+    friend inline constexpr type operator|(T scaler, const type& v)
+    {
+        return v | scaler;
+    }
+
+    friend inline constexpr type operator|(const type& v1, const type& v2)
+    {
+        return type(v1.x | v2.x, v1.y | v2.y, v1.z | v2.z, v1.w | v2.w);
+    }
+
+    // xor (^)
+
+    friend inline constexpr type operator^(const type& v, T scaler)
+    {
+        return type(v.x ^ scaler, v.y ^ scaler, v.z ^ scaler, v.w ^ scaler);
+    }
+
+    friend inline constexpr type operator^(T scaler, const type& v)
+    {
+        return v ^ scaler;
+    }
+
+    friend inline constexpr type operator^(const type& v1, const type& v2)
+    {
+        return type(v1.x ^ v2.x, v1.y ^ v2.y, v1.z ^ v2.z, v1.w ^ v2.w);
+    }
+
+    // left shift (<<)
+
+    friend inline constexpr type operator<<(const type& v, T scaler)
+    {
+        return type(v.x << scaler, v.y << scaler, v.z << scaler, v.w << scaler);
+    }
+
+    friend inline constexpr type operator<<(T scaler, const type& v)
+    {
+        return v << scaler;
+    }
+
+    friend inline constexpr type operator<<(const type& v1, const type& v2)
+    {
+        return type(v1.x << v2.x, v1.y << v2.y, v1.z << v2.z, v1.w << v2.w);
+    }
+
+    // right shift (>>)
+
+    friend inline constexpr type operator>>(const type& v, T scaler)
+    {
+        return type(v.x >> scaler, v.y >> scaler, v.z >> scaler, v.w >> scaler);
+    }
+
+    friend inline constexpr type operator>>(T scaler, const type& v)
+    {
+        return v >> scaler;
+    }
+
+    friend inline constexpr type operator>>(const type& v1, const type& v2)
+    {
+        return type(v1.x >> v2.x, v1.y >> v2.y, v1.z >> v2.z, v1.w >> v2.w);
+    }
+
+    // not (~)
+
+    friend inline constexpr type operator~(const type& v)
+    {
+        return type(~v.x, ~v.y, ~v.z, ~v.w);
+    }
+
     // =============== unary arithmetic operators ===============
 
     // addition (+=)
@@ -392,11 +499,6 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         return *this;
     }
 
-    inline constexpr type& operator*=(const mat<4, 4, T>& m)
-    {
-        return ((*this) = (*this) * m);
-    }
-
     // division (/=)
 
     inline constexpr type& operator/=(T scaler)
@@ -414,6 +516,128 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
         y /= v.y;
         z /= v.z;
         w /= v.w;
+        return *this;
+    }
+
+    // modulo (%=)
+
+    inline constexpr type& operator%=(T scaler)
+    {
+        x %= scaler;
+        y %= scaler;
+        z %= scaler;
+        w %= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator%=(const type& v)
+    {
+        x %= v.x;
+        y %= v.y;
+        z %= v.z;
+        w %= v.w;
+        return *this;
+    }
+
+    // =============== unary bit operators ===============
+
+    // and (&=)
+
+    inline constexpr type& operator&=(T scaler)
+    {
+        x &= scaler;
+        y &= scaler;
+        z &= scaler;
+        w &= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator&=(const type& v)
+    {
+        x &= v.x;
+        y &= v.y;
+        z &= v.z;
+        w &= v.w;
+        return *this;
+    }
+
+    // or (|=)
+
+    inline constexpr type& operator|=(T scaler)
+    {
+        x |= scaler;
+        y |= scaler;
+        z |= scaler;
+        w |= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator|=(const type& v)
+    {
+        x |= v.x;
+        y |= v.y;
+        z |= v.z;
+        w |= v.w;
+        return *this;
+    }
+
+    // xor (^=)
+
+    inline constexpr type& operator^=(T scaler)
+    {
+        x ^= scaler;
+        y ^= scaler;
+        z ^= scaler;
+        w ^= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator^=(const type& v)
+    {
+        x ^= v.x;
+        y ^= v.y;
+        z ^= v.z;
+        w ^= v.w;
+        return *this;
+    }
+
+    // left shift (<<=)
+
+    inline constexpr type& operator<<=(T scaler)
+    {
+        x <<= scaler;
+        y <<= scaler;
+        z <<= scaler;
+        w <<= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator<<=(const type& v)
+    {
+        x <<= v.x;
+        y <<= v.y;
+        z <<= v.z;
+        w <<= v.w;
+        return *this;
+    }
+
+    // right shift (>>=)
+
+    inline constexpr type& operator>>=(T scaler)
+    {
+        x >>= scaler;
+        y >>= scaler;
+        z >>= scaler;
+        w >>= scaler;
+        return *this;
+    }
+
+    inline constexpr type& operator>>=(const type& v)
+    {
+        x >>= v.x;
+        y >>= v.y;
+        z >>= v.z;
+        w >>= v.w;
         return *this;
     }
 
@@ -483,18 +707,8 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
 
     inline constexpr std::string to_string(bool pretty_print = false) const
     {
-        if (pretty_print)
-        {
-            return type(
-                math::make_pretty(x),
-                math::make_pretty(y),
-                math::make_pretty(z),
-                math::make_pretty(w)
-            ).to_string();
-        }
-
         std::ostringstream oss;
-        oss << "{ " << x << ", " << y << ", " << z << ", " << w << " }";
+        oss << "{ " << +x << ", " << +y << ", " << +z << ", " << +w << " }";
         return oss.str();
     }
 
@@ -534,8 +748,8 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
      *
      * @return The squared length of the vector.
      */
-    inline constexpr T magnitude_squared() const { return (x * x) + (y * y) + (z * z) + (w * w); }
-
+    inline constexpr FT magnitude_squared() const { return static_cast<FT>((x * x) + (y * y) + (z * z) + (w * w)); }
+    
     /**
      * @brief Calculates the magnitude of the vector.
      *
@@ -543,23 +757,7 @@ struct vec<4, T, vec_t::vec, val_t::floating_point>
      *
      * @return The magnitude of the vector.
      */
-    inline constexpr T magnitude() const { return math::sqrt((x * x) + (y * y) + (z * z) + (w * w)); }
-
-    /**
-     * @brief Normalizes the vector.
-     *
-     * This function normalizes the vector.
-     *
-     * @return The normalized vector. If the length of the vector is 0,
-     * a zero vector will be returned.
-     */
-    inline constexpr type normalize() const
-    {
-        const T magsq = magnitude_squared();
-        if (magsq < math::epsilon<T>)
-            return type();
-        return (*this) * math::inverse_sqrt(magsq);
-    }
+    inline constexpr FT magnitude() const { return math::sqrt(static_cast<FT>((x * x) + (y * y) + (z * z) + (w * w))); }
 
     // =============== constants ===============
 
@@ -572,9 +770,9 @@ VX_PACK_POP()
 
 }
 
-using vec4  = detail::vec<4,  float, detail::vec_t::vec>;
-using vec4f = detail::vec<4,  float, detail::vec_t::vec>;
-using vec4d = detail::vec<4, double, detail::vec_t::vec>;
+using vec4i  = detail::vec<4,  int32_t, detail::vec_t::vec>;
+using vec4ui = detail::vec<4, uint32_t, detail::vec_t::vec>;
+using vec4b  = detail::vec<4,     bool, detail::vec_t::vec>;
 
 }
 }

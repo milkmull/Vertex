@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/detail/type_traits.h"
+#include <type_traits>
 
 namespace vx {
 namespace math {

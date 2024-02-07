@@ -2,9 +2,7 @@
 
 #include <sstream>
 
-#include "../../math/detail/base_type_defs.h"
-#include "../../math/fn_common.h"
-#include "../../math/fn_exponential.h"
+#include "../../math/math.h"
 
 namespace vx {
 namespace math {

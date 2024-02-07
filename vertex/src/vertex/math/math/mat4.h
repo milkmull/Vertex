@@ -1,8 +1,6 @@
 #pragma once
 
-#include "detail/mat4x4_type.h"
-
-#include "mat_fn_comparison.h"
+#include "type/mat4x4_type.h"
 
 namespace vx {
 namespace math {

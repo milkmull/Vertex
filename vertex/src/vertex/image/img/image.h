@@ -7,9 +7,8 @@
 #include "image_write.h"
 #include "pixel.h"
 
-#include "vertex/math/math/detail/vec2i_type.h"
+#include "vertex/math/math/type/vec2i_type.h"
 #include "vertex/math/geometry/detail/recti_type.h"
-#include "vertex/math/math/vec_fn_comparison.h"
 
 namespace vx {
 namespace img {

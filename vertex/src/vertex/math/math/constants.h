@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/common.h"
+#include <limits>
 
 namespace vx {
 namespace math {

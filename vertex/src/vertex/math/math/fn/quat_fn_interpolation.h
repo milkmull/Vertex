@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/base_type_defs.h"
+#include "../detail/base_types.h"
 #include "quat_fn_geometric.h"
 
 namespace vx {

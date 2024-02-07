@@ -2,10 +2,7 @@
 
 #include <iomanip>
 
-#include "common.h"
-#include "../fn_comparison.h"
-#include "../fn_trigonometric.h"
-#include "../vec_fn_geometric.h"
+#include "../math.h"
 
 namespace vx {
 namespace math {

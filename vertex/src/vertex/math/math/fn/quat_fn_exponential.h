@@ -1,7 +1,6 @@
 #pragma once
 
-#include "detail/base_type_defs.h"
-#include "quat_fn_comparison.h"
+#include "../detail/base_types.h"
 #include "fn_exponential.h"
 #include "fn_trigonometric.h"
 
