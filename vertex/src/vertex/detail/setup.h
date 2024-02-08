@@ -11,7 +11,7 @@
 
 // =============== compiler ===============
 
-#ifdef _MSC_VER                 // Microsoft Visual C++
+#if defined(_MSC_VER)           // Microsoft Visual C++
 #   define VX_COMPILER_MSVC
 #elif defined(__GNUC__)         // GNU Compiler Collection
 #   define VX_COMPILER_GNU
@@ -21,17 +21,17 @@
 #   error unsupported compiler
 #endif
 
-// =============== platform ===============
+// =============== system ===============
 
 #if defined(_WIN32)
-#   define VX_PLATFORM_WINDOWS
+#   define VX_SYSTEM_WINDOWS
 #elif defined(__APPLE__)
 #   include "TargetConditionals.h"
 #   if TARGET_OS_MAC
-#       define VX_PLATFORM_MACOS
+#       define VX_SYSTEM_MACOS
 #   endif
 #elif defined(__linux__)
-#   define VX_PLATFORM_LINUX
+#   define VX_SYSTEM_LINUX
 #else
 #   error unsupported platform
 #endif
@@ -52,6 +52,42 @@
 #       define VX_ARCH_X86_64
 #   elif defined(__i386__)
 #       define VX_ARCH_X86
+#   endif
+
+#endif
+
+// =============== c++ standard ===============
+
+#if defined(VX_COMPILER_MSVC)
+
+#   if _MSVC_LANG == 202002L
+#      define VX_CPP_STANDARD 20
+#   elif _MSVC_LANG == 201703L
+#      define VX_CPP_STANDARD 17
+#   elif _MSVC_LANG == 201402L
+#      define VX_CPP_STANDARD 14
+#   elif _MSVC_LANG == 201103L
+#      define VX_CPP_STANDARD 11
+#   elif _MSVC_LANG == 199711L
+#      define VX_CPP_STANDARD 98
+#   else
+#      define VX_CPP_STANDARD 1
+#   endif
+
+#else
+
+#   if __cplusplus == 202002L
+#      define VX_CPP_STANDARD 20
+#   elif __cplusplus == 201703L
+#      define VX_CPP_STANDARD 17
+#   elif __cplusplus == 201402L
+#      define VX_CPP_STANDARD 14
+#   elif __cplusplus == 201103L
+#      define VX_CPP_STANDARD 11
+#   elif __cplusplus == 199711L
+#      define VX_CPP_STANDARD 98
+#   else
+#      define VX_CPP_STANDARD 1
 #   endif
 
 #endif
@@ -81,7 +117,7 @@
 
 // =============== packing ===============
 
-#ifdef VX_COMPILER_MSVC
+#if defined(VX_COMPILER_MSVC)
 
 #   define VX_PACK_PUSH()   __pragma(pack(push, 1))
 #   define VX_PACK_POP()    __pragma(pack(pop))
@@ -96,4 +132,38 @@
 #   define VX_PACK_PUSH()
 #   define VX_PACK_POP()
 
+#endif
+
+// =============== (un)likely ===============
+
+#if VX_CPP_STANDARD >= 20 // C++20 or later
+
+#   define VX_LIKELY(expr) [[likely]] expr
+#   define VX_UNLIKELY(expr) [[unlikely]] expr
+
+#elif defined(VX_COMPILER_MSVC)
+
+#   define VX_LIKELY(expr) (expr)
+#   define VX_UNLIKELY(expr) (expr)
+
+#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+
+#   define VX_LIKELY(expr) __builtin_expect(!!(expr), 1)
+#   define VX_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+
+#else
+
+#   define VX_LIKELY(expr) expr
+#   define VX_UNLIKELY(expr) expr
+
+#endif
+
+// =============== force inline ===============
+
+#if defined(VX_COMPILER_MSVC)
+#   define VX_FORCE_INLINE __forceinline
+#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#   define VX_FORCE_INLINE inline __attribute__((always_inline))
+#else
+#   define VX_FORCE_INLINE inline
 #endif
