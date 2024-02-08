@@ -108,7 +108,7 @@ inline constexpr T length(const detail::quat<T>& q)
  * the unit quaternion will be returned.
  */
 template <typename T>
-inline constexpr auto normalize(const detail::quat<T>& q)
+inline constexpr detail::quat<T> normalize(const detail::quat<T>& q)
 {
     const T magsq = length_squared(q);
     if (magsq < math::epsilon<T>)
@@ -240,6 +240,40 @@ static inline constexpr T signed_angle(
     const T a = angle(from, to);
     const T c = (from.w * to.w) - (from.x * to.x) - (from.y * to.y) - (from.z * to.z);
     return (c < static_cast<T>(0)) ? -a : a;
+}
+
+// =============== conjugate ===============
+
+/**
+ * @brief Calculates the conjugate of a quaternion.
+ *
+ * The conjugate of a quaternion is obtained by negating the imaginary components
+ * (x, y, z) while keeping the real component (w) unchanged.
+ *
+ * @param q The quaternion for which to calculate the conjugate.
+ * @return The conjugate of the quaternion.
+ */
+template <typename T>
+inline constexpr detail::quat<T> conjugate(const detail::quat<T>& q)
+{
+    return detail::quat<T>(q.w, -q.x, -q.y, -q.z);
+}
+
+// =============== invert ===============
+
+/**
+ * @brief Calculates the inverse of a quaternion.
+ *
+ * This function returns the inverse of a quaternion, effectively
+ * reversing the encoded rotation.
+ *
+ * @param q The quaternion to invert.
+ * @return The inverse of the quaternion.
+ */
+template <typename T>
+inline constexpr detail::quat<T> invert(const detail::quat<T>& q)
+{
+    return conjugate(q) / length_squared(q);
 }
 
 }
