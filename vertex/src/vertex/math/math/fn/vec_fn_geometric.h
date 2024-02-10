@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../detail/type_traits.h"
 #include "fn_trigonometric.h"
 #include "fn_exponential.h"
 
@@ -19,39 +19,33 @@ namespace math {
  * @return The dot product of the two vectors.
  */
 template <typename T>
-inline constexpr T dot(
-    const detail::vecx<2, T>& v,
-    const detail::vecx<2, T>& u
+inline constexpr auto dot(
+    const vec2_t<T>& v,
+    const vec2_t<T>& u
 )
 {
-    return (v.x * u.x) + (v.y * u.y);
+    using FT = typename detail::to_float_type<T>::type;
+    return static_cast<FT>((v.x * u.x) + (v.y * u.y));
 }
 
 template <typename T>
-inline constexpr T dot(
-    const detail::vecx<3, T>& v,
-    const detail::vecx<3, T>& u
+inline constexpr auto dot(
+    const vec3_t<T>& v,
+    const vec3_t<T>& u
 )
 {
-    return (v.x * u.x) + (v.y * u.y) + (v.z * u.z);
+    using FT = typename detail::to_float_type<T>::type;
+    return static_cast<FT>((v.x * u.x) + (v.y * u.y) + (v.z * u.z));
 }
 
 template <typename T>
-inline constexpr T dot(
-    const detail::vecx<4, T>& v,
-    const detail::vecx<4, T>& u
+inline constexpr auto dot(
+    const vec4_t<T>& v,
+    const vec4_t<T>& u
 )
 {
-    return (v.x * u.x) + (v.y * u.y) + (v.z * u.z) + (v.w * u.w);
-}
-
-template <typename T>
-inline constexpr T dot(
-    const detail::colx<T>& v,
-    const detail::colx<T>& u
-)
-{
-    return (v.r * u.r) + (v.g * u.g) + (v.b * u.b) + (v.a * u.a);
+    using FT = typename detail::to_float_type<T>::type;
+    return static_cast<FT>((v.x * u.x) + (v.y * u.y) + (v.z * u.z) + (v.w * u.w));
 }
 
 /**
@@ -63,10 +57,10 @@ inline constexpr T dot(
  * @param u The second vector to be normalized and used in the dot product.
  * @return The normalized dot product of the two vectors.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr T normalized_dot(
-    const detail::vecf<L, T, Q>& v,
-    const detail::vecf<L, T, Q>& u
+template <size_type L, typename T>
+inline constexpr auto normalized_dot(
+    const vec<L, T>& v,
+    const vec<L, T>& u
 )
 {
     return dot(normalize(v), normalize(u));
@@ -84,12 +78,13 @@ inline constexpr T normalized_dot(
  * @return The cross product of the two 2D vectors.
  */
 template <typename T>
-inline constexpr T cross(
-    const detail::vecx<2, T>& v,
-    const detail::vecx<2, T>& u
+inline constexpr auto cross(
+    const vec2_t<T>& v,
+    const vec2_t<T>& u
 )
 {
-    return (v.x * u.y) - (v.y * u.x);
+    using FT = typename detail::to_float_type<T>::type;
+    return static_cast<FT>((v.x * u.y) - (v.y * u.x));
 }
 
 /**
@@ -102,12 +97,13 @@ inline constexpr T cross(
  * @return The cross product of the two 3D vectors.
  */
 template <typename T>
-inline constexpr detail::vecx<3, T> cross(
-    const detail::vecx<3, T>& v,
-    const detail::vecx<3, T>& u
+inline constexpr auto cross(
+    const vec3_t<T>& v,
+    const vec3_t<T>& u
 )
 {
-    return detail::vecx<3, T>(
+    using FT = typename detail::to_float_type<T>::type;
+    return vec3_t<FT>(
         (v.y * u.z) - (v.z * u.y),
         (v.z * u.x) - (v.x * u.z),
         (v.x * u.y) - (v.y * u.x)
@@ -125,19 +121,19 @@ inline constexpr detail::vecx<3, T> cross(
  * @param scaler The scalar value to scale the vector by.
  * @return The resulting scaled vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vec<L, T, Q> scale(
-    const detail::vec<L, T, Q>& v,
+template <size_type L, typename T>
+inline constexpr vec<L, T> scale(
+    const vec<L, T>& v,
     T scaler
 )
 {
     return v * scaler;
 }
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vec<L, T, Q> scale(
-    const detail::vec<L, T, Q>& v,
-    const detail::vec<L, T, Q>& scaler
+template <size_type L, typename T>
+inline constexpr vec<L, T> scale(
+    const vec<L, T>& v,
+    const vec<L, T>& scaler
 )
 {
     return v * scaler;
@@ -153,16 +149,10 @@ inline constexpr detail::vec<L, T, Q> scale(
  * @param v The vector for which to calculate the squared length.
  * @return The squared length of the vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto length_squared(const detail::vecf<L, T, Q>& v)
+template <size_type L, typename T>
+inline constexpr auto length_squared(const vec<L, T>& v)
 {
     return dot(v, v);
-}
-
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
-{
-    return static_cast<typename detail::to_float_type<T>::type>(dot(v, v));
 }
 
 /**
@@ -173,8 +163,8 @@ inline constexpr auto length_squared(const detail::veci<L, T, Q>& v)
  * @param v The vector for which to calculate the length.
  * @return The length of the vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto length(const detail::vec<L, T, Q>& v)
+template <size_type L, typename T>
+inline constexpr auto length(const vec<L, T>& v)
 {
     return sqrt(length_squared(v));
 }
@@ -190,10 +180,10 @@ inline constexpr auto length(const detail::vec<L, T, Q>& v)
  * @param p1 The second vector.
  * @return The squared distance between the two vectors.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
+template <size_type L, typename T>
 inline constexpr auto distance_squared(
-    const detail::vec<L, T, Q>& p0,
-    const detail::vec<L, T, Q>& p1
+    const vec<L, T>& p0,
+    const vec<L, T>& p1
 )
 {
     return length_squared(p1 - p0);
@@ -208,10 +198,10 @@ inline constexpr auto distance_squared(
  * @param p1 The second vector.
  * @return The distance between the two vectors.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
+template <size_type L, typename T>
 inline constexpr auto distance(
-    const detail::vec<L, T, Q>& p0,
-    const detail::vec<L, T, Q>& p1
+    const vec<L, T>& p0,
+    const vec<L, T>& p1
 )
 {
     return length(p1 - p0);
@@ -228,13 +218,22 @@ inline constexpr auto distance(
  * @return The normalized vector. If the length of the input vector is 0,
  * a zero vector will be returned.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
-    if (magsq < math::epsilon<T>)
-        return detail::vecf<L, T, Q>(0);
+
+    if VX_UNLIKELY(magsq < math::epsilon<T>)
+        return vec<L, T>(0);
+
     return v * inverse_sqrt(magsq);
+}
+
+template <size_type L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr auto normalize(const vec<L, T>& v)
+{
+    using FT = typename detail::to_float_type<T>::type;
+    return normalize(vec<L, FT>(v));
 }
 
 /**
@@ -245,10 +244,17 @@ inline constexpr detail::vecf<L, T, Q> normalize(const detail::vecf<L, T, Q>& v)
  * @param v The vector to be normalized.
  * @return The normalized vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> fast_normalize(const detail::vecf<L, T, Q>& v)
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
 {
     return v * inverse_sqrt(length_squared(v));
+}
+
+template <size_type L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr auto fast_normalize(const vec<L, T>& v)
+{
+    using FT = typename detail::to_float_type<T>::type;
+    return fast_normalize(vec<L, FT>(v));
 }
 
 /**
@@ -260,8 +266,8 @@ inline constexpr detail::vecf<L, T, Q> fast_normalize(const detail::vecf<L, T, Q
  * @param v The vector to be checked for normalization.
  * @return True if the vector is normalized, false otherwise.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr bool is_normalized_approx(const detail::vecf<L, T, Q>& v, const T epsilon = math::epsilon<T>)
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_normalized_approx(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
 }
@@ -278,9 +284,9 @@ inline constexpr bool is_normalized_approx(const detail::vecf<L, T, Q>& v, const
  * @param max The maximum magnitude allowed.
  * @return A new vector with the clamped magnitude.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
-    const detail::vecf<L, T, Q>& v,
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> clamp_magnitude(
+    const vec<L, T>& v,
     T min,
     T max
 )
@@ -289,10 +295,10 @@ inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
 
     if (mag < math::epsilon<T>)
     {
-        return detail::vecf<L, T, Q>(0);
+        return vec<L, T>(0);
     }
 
-    const T new_mag = std::clamp(
+    const T new_mag = math::clamp(
         mag,
         static_cast<T>(min),
         static_cast<T>(max)
@@ -304,37 +310,51 @@ inline constexpr detail::vecf<L, T, Q> clamp_magnitude(
 // =============== angle ===============
 
 /**
- * @brief Calculates the angle between two 2D vectors.
+ * @brief Calculates the angle between the vector and the positive x axis.
  *
- * This function computes the angle (in radians) between two 2D vectors 'from' and 'to'.
+ * This function computes the angle (in radians) of the vector relative to the positive x axis.
  *
- * @param from The first 2D vector.
- * @param to The second 2D vector.
- * @return The angle (in radians) between the two 2D vectors.
+ * @param v The vector.
+ * @return The angle of the vector relative to the positive x axis in radians.
  */
 template <typename T>
+static inline constexpr auto angle(const vec2_t<T>& v)
+{
+    return math::atan2(v.y, v.x);
+}
+
+/**
+ * @brief Calculates the angle between two vectors.
+ *
+ * This function computes the angle (in radians) between two vectors 'from' and 'to'.
+ *
+ * @param from The first vector.
+ * @param to The second vector.
+ * @return The angle (in radians) between the two vectors.
+ */
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T angle(
-    const detail::vecf<2, T>& from,
-    const detail::vecf<2, T>& to
+    const vec<L, T>& from,
+    const vec<L, T>& to
 )
 {
     return math::acos(normalized_dot(from, to));
 }
 
 /**
- * @brief Calculates the signed angle between two 2D vectors.
+ * @brief Calculates the signed angle between two vectors.
  *
- * This function computes the signed angle (in radians) between two 2D vectors 'from' and 'to'.
+ * This function computes the signed angle (in radians) between two vectors 'from' and 'to'.
  * The sign indicates the direction of rotation from 'from' to 'to'.
  *
- * @param from The first 2D vector.
- * @param to The second 2D vector.
- * @return The signed angle (in radians) between the two 2D vectors.
+ * @param from The first vector.
+ * @param to The second vector.
+ * @return The signed angle (in radians) between the two vectors.
  */
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T signed_angle(
-    const detail::vecf<2, T>& from,
-    const detail::vecf<2, T>& to
+    const vec<L, T>& from,
+    const vec<L, T>& to
 )
 {
     const T a = angle(from, to);
@@ -353,13 +373,13 @@ static inline constexpr T signed_angle(
  * @param angle The rotation angle in radians.
  * @return A new 2D vector representing the rotated vector.
  */
-template <typename T>
-inline constexpr detail::vecf<2, T> rotate(const detail::vecf<2, T>& v, T angle)
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> rotate(const vec2_t<T>& v, T angle)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
 
-    return detail::vecf<2, T>(
+    return vec2_t<T>(
         (v.x * cosa) - (v.y * sina),
         (v.x * sina) + (v.y * cosa)
     );
@@ -379,14 +399,14 @@ inline constexpr detail::vecf<2, T> rotate(const detail::vecf<2, T>& v, T angle)
  *
  * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  */
-template <typename T>
-inline constexpr detail::vecf<3, T> rotate(
-    const detail::vecf<3, T>& v, 
-    const detail::vecf<3, T>& axis, 
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> rotate(
+    const vec3_t<T>& v,
+    const vec3_t<T>& axis,
     T angle
 )
 {
-    const detail::vecf<3, T> naxis(normalize(axis));
+    const vec3_t<T> naxis(normalize(axis));
 
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -405,10 +425,10 @@ inline constexpr detail::vecf<3, T> rotate(
  * @param n The vector onto which 'i' is projected.
  * @return The vector 'i' projected onto the direction of 'n'.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> project(
-    const detail::vecf<L, T, Q>& i,
-    const detail::vecf<L, T, Q>& n
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> project(
+    const vec<L, T>& i,
+    const vec<L, T>& n
 )
 {
     return n * (dot(i, n) / length_squared(n));
@@ -425,10 +445,10 @@ inline constexpr detail::vecf<L, T, Q> project(
  * @param n The normal vector used for reflection.
  * @return The vector 'i' reflected based on the normal vector 'n'.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> reflect(
-    const detail::vecf<L, T, Q>& i,
-    const detail::vecf<L, T, Q>& n
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> reflect(
+    const vec<L, T>& i,
+    const vec<L, T>& n
 )
 {
     return i - static_cast<T>(2) * normalized_dot(n, i) * n;
@@ -446,10 +466,10 @@ inline constexpr detail::vecf<L, T, Q> reflect(
  * @param n The normal vector of the surface.
  * @return The bounce vector of the incident vector off the surface.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> bounce(
-    const detail::vecf<L, T, Q>& i,
-    const detail::vecf<L, T, Q>& n
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> bounce(
+    const vec<L, T>& i,
+    const vec<L, T>& n
 )
 {
     return -reflect(i, n);
@@ -468,10 +488,10 @@ inline constexpr detail::vecf<L, T, Q> bounce(
  * @param eta The refraction index.
  * @return The refracted vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> refract(
-    const detail::vecf<L, T, Q>& i,
-    const detail::vecf<L, T, Q>& n,
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> refract(
+    const vec<L, T>& i,
+    const vec<L, T>& n,
     T eta
 )
 {
@@ -499,11 +519,11 @@ inline constexpr detail::vecf<L, T, Q> refract(
  * @param nref The reference normal vector.
  * @return The adjusted normal vector.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> face_forward(
-    const detail::vecf<L, T, Q>& n,
-    const detail::vecf<L, T, Q>& i,
-    const detail::vecf<L, T, Q>& nref
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> face_forward(
+    const vec<L, T>& n,
+    const vec<L, T>& i,
+    const vec<L, T>& nref
 )
 {
     return (normalized_dot(nref, i) < static_cast<T>(0)) ? n : -n;
@@ -524,14 +544,14 @@ inline constexpr detail::vecf<L, T, Q> face_forward(
  * @param delta The distance to move towards the target.
  * @return The resulting vector after moving towards the target.
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> move_toward(
-    const detail::vecf<L, T, Q>& from,
-    const detail::vecf<L, T, Q>& to,
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> move_toward(
+    const vec<L, T>& from,
+    const vec<L, T>& to,
     T delta
 )
 {
-    const detail::vecf<L, T, Q> vd(to - from);
+    const vec<L, T> vd(to - from);
     const T d = length(vd);
     return (d <= delta) ? to : (from + (vd / d * delta));
 }

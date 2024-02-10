@@ -24,9 +24,10 @@ inline constexpr T radians(T deg)
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr detail::int_float_type radians(T deg)
+inline constexpr auto radians(T deg)
 {
-    return radians(static_cast<detail::int_float_type>(deg));
+    using FT = typename detail::to_float_type<T>::type;
+    return radians(static_cast<FT>(deg));
 }
 
 // =============== degrees ===============
@@ -47,9 +48,10 @@ inline constexpr T degrees(T rad)
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr detail::int_float_type degrees(T rad)
+inline constexpr auto degrees(T rad)
 {
-    return degrees(static_cast<detail::int_float_type>(rad));
+    using FT = typename detail::to_float_type<T>::type;
+    return degrees(static_cast<FT>(rad));
 }
 
 // =============== sin ===============
@@ -195,16 +197,16 @@ inline constexpr T atan(T x)
  * @return The arctangent of 'x/y' in the range [-pi, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T atan2(T x, T y)
+inline constexpr T atan2(T y, T x)
 {
-    return std::atan2(x, y);
+    return std::atan2(y, x);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr typename detail::to_float_type<T>::type atan2(T x, T y)
+inline constexpr auto atan2(T y, T x)
 {
-    using F = typename detail::to_float_type<T>::type;
-    return std::atan2(static_cast<F>(x), static_cast<F>(y));
+    using FT = typename detail::to_float_type<T>::type;
+    return std::atan2(static_cast<FT>(y), static_cast<FT>(x));
 }
 
 // =============== sinh ===============

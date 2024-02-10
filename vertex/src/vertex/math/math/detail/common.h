@@ -1,7 +1,9 @@
 #pragma once
 
-#include <cmath>
 #include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <type_traits>
 
 #include "../../detail/setup.h" // math/setup
-#include "type_traits.h"
+#include "base_types.h"

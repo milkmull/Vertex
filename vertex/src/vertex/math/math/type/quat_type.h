@@ -660,7 +660,7 @@ struct quat
         const vec3_type& up = vec3_type::UP()
     )
     {
-#	if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT)
+#	if VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT
         return make_look_at_rotation_lh(eye, target, up);
 #	else
         return make_look_at_rotation_rh(eye, target, up);

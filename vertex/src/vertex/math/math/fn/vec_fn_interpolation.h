@@ -9,21 +9,21 @@ namespace math {
 
 // =============== lerp ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> lerp(
-    const detail::vecf<L, T, Q>& x,
-    const detail::vecf<L, T, Q>& y,
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+inline constexpr vec<L, T> lerp(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
     T t
 )
 {
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> lerp(
-    const detail::vecf<L, T, Q>& x,
-    const detail::vecf<L, T, Q>& y,
-    const detail::vecf<L, T, Q>& t
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+inline constexpr vec<L, T> lerp(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
+    const vec<L, T>& t
 )
 {
     return x * (static_cast<T>(1) - t) + y * t;
@@ -31,38 +31,38 @@ inline constexpr detail::vecf<L, T, Q> lerp(
 
 // =============== step ===============
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
     T edge,
-    const detail::vecx<2, T>& x
+    const vec<2, T>& x
 )
 {
-    return detail::vecx<2, T>(
+    return vec<2, T>(
         step(edge, x.x),
         step(edge, x.y)
     );
 }
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
     T edge,
-    const detail::vecx<3, T>& x
+    const vec<3, T>& x
 )
 {
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         step(edge, x.x),
         step(edge, x.y),
         step(edge, x.z)
     );
 }
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
     T edge,
-    const detail::vecx<4, T>& x
+    const vec<4, T>& x
 )
 {
-    return detail::vecx<4, T>(
+    return vec<4, T>(
         step(edge, x.x),
         step(edge, x.y),
         step(edge, x.z),
@@ -70,52 +70,38 @@ inline constexpr auto step(
     );
 }
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
-    T edge,
-    const detail::colx<T>& x
+    const vec<2, T>& edge,
+    const vec<2, T>& x
 )
 {
-    return detail::colx<T>(
-        step(edge, x.r),
-        step(edge, x.g),
-        step(edge, x.b),
-        step(edge, x.a)
-    );
-}
-
-template <typename T>
-inline constexpr auto step(
-    const detail::vecx<2, T>& edge,
-    const detail::vecx<2, T>& x
-)
-{
-    return detail::vecx<2, T>(
+    return vec<2, T>(
         step(edge.x, x.x),
         step(edge.y, x.y)
     );
 }
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
-    const detail::vecx<3, T>& edge,
-    const detail::vecx<3, T>& x
+    const vec<3, T>& edge,
+    const vec<3, T>& x
 )
 {
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         step(edge.x, x.x),
         step(edge.y, x.y),
         step(edge.z, x.z)
     );
 }
 
-template <typename T>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
 inline constexpr auto step(
-    const detail::vecx<4, T>& edge,
-    const detail::vecx<4, T>& x
+    const vec<4, T>& edge,
+    const vec<4, T>& x
 )
 {
-    return detail::vecx<4, T>(
+    return vec<4, T>(
         step(edge.x, x.x),
         step(edge.y, x.y),
         step(edge.z, x.z),
@@ -123,38 +109,24 @@ inline constexpr auto step(
     );
 }
 
-template <typename T>
-inline constexpr auto step(
-    const detail::colx<T>& edge,
-    const detail::colx<T>& x
-)
-{
-    return detail::colx<T>(
-        step(edge.r, x.r),
-        step(edge.g, x.g),
-        step(edge.b, x.b),
-        step(edge.a, x.a)
-    );
-}
-
 // =============== smoothstep ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> smoothstep(
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+inline constexpr vec<L, T> smoothstep(
     T edge0,
     T edge1,
-    const detail::vecf<L, T, Q>& x)
+    const vec<L, T>& x)
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    const T t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> smoothstep(
-    const detail::vecf<L, T, Q>& edge0,
-    const detail::vecf<L, T, Q>& edge1,
-    const detail::vecf<L, T, Q>& x
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+inline constexpr vec<L, T> smoothstep(
+    const vec<L, T>& edge0,
+    const vec<L, T>& edge1,
+    const vec<L, T>& x
 )
 {
     const T v = (x - edge0) / (edge1 - edge0);
@@ -182,10 +154,10 @@ inline constexpr detail::vecf<L, T, Q> smoothstep(
  * 
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr detail::vecf<L, T, Q> slerp(
-    const detail::vecf<L, T, Q>& x,
-    const detail::vecf<L, T, Q>& y,
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+inline constexpr vec<L, T> slerp(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
     T t
 )
 {

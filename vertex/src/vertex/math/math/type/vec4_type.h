@@ -1,98 +1,126 @@
 #pragma once
 
-#include <sstream>
-
 #include "../math.h"
 
 namespace vx {
 namespace math {
-namespace detail {
 
 VX_PACK_PUSH()
 
 template <typename T>
-struct vec<2, T, vec_t::vec, val_t::integral>
+struct vec<4, T>
 {
-    static_assert(std::is_integral<T>::value, "type T must be integral type");
+    static_assert(std::is_arithmetic<T>::value, "type T must be arithmetic type");
 
     // =============== meta ===============
 
-private:
-
-    using FT = typename detail::to_float_type<T>::type;
-
-public:
-
     using value_type = T;
-    using float_value_type = FT;
+    using type = vec<4, T>;
 
-    using type = vec<2, T, vec_t::vec, val_t::integral>;
-    using float_type = vec<2, FT, vec_t::vec, val_t::floating_point>;
+    using float_value_type = typename detail::to_float_type<T>::type;
+    using float_type = vec<4, float_value_type>;
 
-    using size_type = length_type;
-    static inline constexpr size_type size() noexcept { return static_cast<T>(2); }
+    using size_type = math::size_type;
+    static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
 
     using iterator = ::vx::detail::iterator<T>;
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::integral>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
-
     // =============== data ===============
 
-    T x, y;
+    T x, y, z, w;
 
     // =============== implicit constructors ===============
 
     inline constexpr vec() noexcept
-        : x(static_cast<T>(0)), y(static_cast<T>(0)) {}
+        : x(static_cast<T>(0))
+        , y(static_cast<T>(0))
+        , z(static_cast<T>(0))
+        , w(static_cast<T>(0)) {}
 
     inline constexpr vec(const type& v) noexcept
-        : x(v.x), y(v.y) {}
+        : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
     inline constexpr vec(type&&) noexcept = default;
 
     // =============== explicit constructors ===============
 
     inline constexpr explicit vec(T scaler) noexcept
-        : x(scaler), y(scaler) {}
+        : x(scaler), y(scaler), z(scaler), w(scaler) {}
 
-    inline constexpr vec(T x, T y) noexcept
-        : x(x), y(y) {}
+    inline constexpr vec(T x, T y, T z, T w) noexcept
+        : x(x), y(y), z(z), w(w) {}
 
     // =============== conversion vector constructors ===============
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     inline constexpr explicit vec(U scaler)
         : x(static_cast<T>(scaler))
-        , y(static_cast<T>(scaler)) {}
+        , y(static_cast<T>(scaler))
+        , z(static_cast<T>(scaler))
+        , w(static_cast<T>(scaler)) {}
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr vec(U x, U y)
+    inline constexpr vec(U x, U y, U z, U w)
         : x(static_cast<T>(x))
-        , y(static_cast<T>(y)) {}
+        , y(static_cast<T>(y))
+        , z(static_cast<T>(z))
+        , w(static_cast<T>(w)) {}
 
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr vec(const vec<2, U>& vxy, U z, U w)
+        : x(static_cast<T>(vxy.x))
+        , y(static_cast<T>(vxy.y))
+        , z(static_cast<T>(z))
+        , w(static_cast<T>(w)) {}
+    
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr vec(U x, U y, const vec<2, U>& vzw)
+        : x(static_cast<T>(x))
+        , y(static_cast<T>(y))
+        , z(static_cast<T>(vzw.x))
+        , w(static_cast<T>(vzw.y)) {}
+    
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr vec(const vec<3, U>& vxyz, U w)
+        : x(static_cast<T>(vxyz.x))
+        , y(static_cast<T>(vxyz.y))
+        , z(static_cast<T>(vxyz.z))
+        , w(static_cast<T>(w)) {}
+    
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr vec(U x, const vec<3, U>& vyzw)
+        : x(static_cast<T>(x))
+        , y(static_cast<T>(vyzw.x))
+        , z(static_cast<T>(vyzw.y))
+        , w(static_cast<T>(vyzw.z)) {}
+    
     template <typename U>
-    inline constexpr explicit vec(const vecx<2, U>& v)
-        : x(static_cast<T>(v.x))
-        , y(static_cast<T>(v.y)) {}
-
+    inline constexpr vec(const vec<2, U>& vxy, const vec<2, U>& vzw)
+        : x(static_cast<T>(vxy.x))
+        , y(static_cast<T>(vxy.y))
+        , z(static_cast<T>(vzw.x))
+        , w(static_cast<T>(vzw.y)) {}
+    
     template <typename U>
-    inline constexpr explicit vec(const vecx<3, U>& v)
+    inline constexpr explicit vec(const vec<4, U>& v)
         : x(static_cast<T>(v.x))
-        , y(static_cast<T>(v.y)) {}
-
+        , y(static_cast<T>(v.y))
+        , z(static_cast<T>(v.z))
+        , w(static_cast<T>(v.w)) {}
+    
     template <typename U>
-    inline constexpr explicit vec(const vecx<4, U>& v)
-        : x(static_cast<T>(v.x))
-        , y(static_cast<T>(v.y)) {}
+    inline constexpr explicit vec(const color_t<U>& c)
+        : x(static_cast<T>(c.r))
+        , y(static_cast<T>(c.g))
+        , z(static_cast<T>(c.b))
+        , w(static_cast<T>(c.a)) {}
 
     // =============== destructor ===============
 
-    ~vec() noexcept = default;
+    ~vec4_t() noexcept = default;
 
     // =============== assignment operators ===============
 
@@ -100,6 +128,8 @@ public:
     {
         x = v.x;
         y = v.y;
+        z = v.z;
+        w = v.w;
         return *this;
     }
 
@@ -109,21 +139,21 @@ public:
 
     inline constexpr T& operator[](size_type i)
     {
-        assert(i < 2);
+        assert(i < 4);
         return (&x)[i];
     }
 
     inline constexpr const T& operator[](size_type i) const
     {
-        assert(i < 2);
+        assert(i < 4);
         return (&x)[i];
     }
 
-    // =============== comparison operators ===============
+    // =============== boolean operators ===============
 
     friend inline constexpr bool operator==(const type& v1, const type& v2)
     {
-        return v1.x == v2.x && v1.y == v2.y;
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
     }
 
     friend inline constexpr bool operator!=(const type& v1, const type& v2)
@@ -134,47 +164,57 @@ public:
     friend inline constexpr bool operator<(const type& v1, const type& v2)
     {
         if (v1.x != v2.x) return (v1.x < v2.x);
-        else              return (v1.y < v2.y);
+        if (v1.y != v2.y) return (v1.y < v2.y);
+        if (v1.z != v2.z) return (v1.z < v2.z);
+        else              return (v1.w < v2.w);
     }
 
     friend inline constexpr bool operator>(const type& v1, const type& v2)
     {
         if (v1.x != v2.x) return (v1.x > v2.x);
-        else              return (v1.y > v2.y);
+        if (v1.y != v2.y) return (v1.y > v2.y);
+        if (v1.z != v2.z) return (v1.z > v2.z);
+        else              return (v1.w > v2.w);
     }
 
     friend inline constexpr bool operator<=(const type& v1, const type& v2)
     {
         if (v1.x != v2.x) return (v1.x < v2.x);
-        else              return (v1.y <= v2.y);
+        if (v1.y != v2.y) return (v1.y < v2.y);
+        if (v1.z != v2.z) return (v1.z < v2.z);
+        else              return (v1.w <= v2.w);
     }
 
     friend inline constexpr bool operator>=(const type& v1, const type& v2)
     {
         if (v1.x != v2.x) return (v1.x > v2.x);
-        else              return (v1.y >= v2.y);
+        if (v1.y != v2.y) return (v1.y > v2.y);
+        if (v1.z != v2.z) return (v1.z > v2.z);
+        else              return (v1.w >= v2.w);
     }
 
     // =============== unary constant operators ===============
 
     inline constexpr type operator+() const
     {
-        return *this;
+        return type(+x, +y, +z, +w);
     }
 
     inline constexpr type operator-() const
     {
-        return type(-x, -y);
+        return type(-x, -y, -z, -w);
     }
 
     // =============== incrememnt and decrement operators ===============
 
-    // increment (++)
+    // incrememnt (++)
 
     inline constexpr type& operator++()
     {
         x++;
         y++;
+        z++;
+        w++;
         return *this;
     }
 
@@ -191,6 +231,8 @@ public:
     {
         x--;
         y--;
+        z--;
+        w--;
         return *this;
     }
 
@@ -207,7 +249,7 @@ public:
 
     friend inline constexpr type operator+(const type& v, T scaler)
     {
-        return type(v.x + scaler, v.y + scaler);
+        return type(v.x + scaler, v.y + scaler, v.z + scaler, v.w + scaler);
     }
 
     friend inline constexpr type operator+(T scaler, const type& v)
@@ -217,14 +259,14 @@ public:
 
     friend inline constexpr type operator+(const type& v1, const type& v2)
     {
-        return type(v1.x + v2.x, v1.y + v2.y);
+        return type(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
     }
 
     // subtraction (-)
 
     friend inline constexpr type operator-(const type& v, T scaler)
     {
-        return type(v.x - scaler, v.y - scaler);
+        return type(v.x - scaler, v.y - scaler, v.z - scaler, v.w - scaler);
     }
 
     friend inline constexpr type operator-(T scaler, const type& v)
@@ -234,31 +276,31 @@ public:
 
     friend inline constexpr type operator-(const type& v1, const type& v2)
     {
-        return type(v1.x - v2.x, v1.y - v2.y);
+        return type(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
     }
 
     // multiplication (*)
 
     friend inline constexpr type operator*(const type& v, T scaler)
     {
-        return type(v.x * scaler, v.y * scaler);
+        return type(v.x * scaler, v.y * scaler, v.z * scaler, v.w * scaler);
     }
 
     friend inline constexpr type operator*(T scaler, const type& v)
     {
-        return v * scaler;
+        return type(scaler * v.x, scaler * v.y, scaler * v.z, scaler * v.w);
     }
 
     friend inline constexpr type operator*(const type& v1, const type& v2)
     {
-        return type(v1.x * v2.x, v1.y * v2.y);
+        return type(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
     }
 
     // division (/)
 
     friend inline constexpr type operator/(const type& v, T scaler)
     {
-        return type(v.x / scaler, v.y / scaler);
+        return type(v.x / scaler, v.y / scaler, v.z / scaler, v.w / scaler);
     }
 
     friend inline constexpr type operator/(T scaler, const type& v)
@@ -268,118 +310,137 @@ public:
 
     friend inline constexpr type operator/(const type& v1, const type& v2)
     {
-        return type(v1.x / v2.x, v1.y / v2.y);
+        return type(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
     }
 
     // modulo (%)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(const type& v, T scaler)
     {
-        return type(v.x % scaler, v.y % scaler);
+        return type(v.x % scaler, v.y % scaler, v.z % scaler, v.w % scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(T scaler, const type& v)
     {
         return v % scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(const type& v1, const type& v2)
     {
-        return type(v1.x % v2.x, v1.y % v2.y);
+        return type(v1.x % v2.x, v1.y % v2.y, v1.z % v2.z, v1.w % v2.w);
     }
 
     // =============== binary bit operators ===============
 
     // and (&)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(const type& v, T scaler)
     {
-        return type(v.x & scaler, v.y & scaler);
+        return type(v.x & scaler, v.y & scaler, v.z & scaler, v.w & scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(T scaler, const type& v)
     {
         return v & scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(const type& v1, const type& v2)
     {
-        return type(v1.x & v2.x, v1.y & v2.y);
+        return type(v1.x & v2.x, v1.y & v2.y, v1.z & v2.z, v1.w & v2.w);
     }
 
     // or (|)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(const type& v, T scaler)
     {
-        return type(v.x | scaler, v.y | scaler);
+        return type(v.x | scaler, v.y | scaler, v.z | scaler, v.w | scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(T scaler, const type& v)
     {
         return v | scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(const type& v1, const type& v2)
     {
-        return type(v1.x | v2.x, v1.y | v2.y);
+        return type(v1.x | v2.x, v1.y | v2.y, v1.z | v2.z, v1.w | v2.w);
     }
 
     // xor (^)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(const type& v, T scaler)
     {
-        return type(v.x ^ scaler, v.y ^ scaler);
+        return type(v.x ^ scaler, v.y ^ scaler, v.z ^ scaler, v.w ^ scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(T scaler, const type& v)
     {
         return v ^ scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(const type& v1, const type& v2)
     {
-        return type(v1.x ^ v2.x, v1.y ^ v2.y);
+        return type(v1.x ^ v2.x, v1.y ^ v2.y, v1.z ^ v2.z, v1.w ^ v2.w);
     }
 
     // left shift (<<)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(const type& v, T scaler)
     {
-        return type(v.x << scaler, v.y << scaler);
+        return type(v.x << scaler, v.y << scaler, v.z << scaler, v.w << scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(T scaler, const type& v)
     {
         return v << scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(const type& v1, const type& v2)
     {
-        return type(v1.x << v2.x, v1.y << v2.y);
+        return type(v1.x << v2.x, v1.y << v2.y, v1.z << v2.z, v1.w << v2.w);
     }
 
     // right shift (>>)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(const type& v, T scaler)
     {
-        return type(v.x >> scaler, v.y >> scaler);
+        return type(v.x >> scaler, v.y >> scaler, v.z >> scaler, v.w >> scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(T scaler, const type& v)
     {
         return v >> scaler;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(const type& v1, const type& v2)
     {
-        return type(v1.x >> v2.x, v1.y >> v2.y);
+        return type(v1.x >> v2.x, v1.y >> v2.y, v1.z >> v2.z, v1.w >> v2.w);
     }
 
     // not (~)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator~(const type& v)
     {
-        return type(~v.x, ~v.y);
+        return type(~v.x, ~v.y, ~v.z, ~v.w);
     }
 
     // =============== unary arithmetic operators ===============
@@ -390,6 +451,8 @@ public:
     {
         x += scaler;
         y += scaler;
+        z += scaler;
+        w += scaler;
         return *this;
     }
 
@@ -397,6 +460,8 @@ public:
     {
         x += v.x;
         y += v.y;
+        z += v.z;
+        w += v.w;
         return *this;
     }
 
@@ -406,6 +471,8 @@ public:
     {
         x -= scaler;
         y -= scaler;
+        z -= scaler;
+        w -= scaler;
         return *this;
     }
 
@@ -413,6 +480,8 @@ public:
     {
         x -= v.x;
         y -= v.y;
+        z -= v.z;
+        w -= v.w;
         return *this;
     }
 
@@ -422,6 +491,8 @@ public:
     {
         x *= scaler;
         y *= scaler;
+        z *= scaler;
+        w *= scaler;
         return *this;
     }
 
@@ -429,6 +500,8 @@ public:
     {
         x *= v.x;
         y *= v.y;
+        z *= v.z;
+        w *= v.w;
         return *this;
     }
 
@@ -438,6 +511,8 @@ public:
     {
         x /= scaler;
         y /= scaler;
+        z /= scaler;
+        w /= scaler;
         return *this;
     }
 
@@ -445,22 +520,30 @@ public:
     {
         x /= v.x;
         y /= v.y;
+        z /= v.z;
+        w /= v.w;
         return *this;
     }
 
     // modulo (%=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator%=(T scaler)
     {
         x %= scaler;
         y %= scaler;
+        z %= scaler;
+        w %= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator%=(const type& v)
     {
         x %= v.x;
         y %= v.y;
+        z %= v.z;
+        w %= v.w;
         return *this;
     }
 
@@ -468,81 +551,111 @@ public:
 
     // and (&=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator&=(T scaler)
     {
         x &= scaler;
         y &= scaler;
+        z &= scaler;
+        w &= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator&=(const type& v)
     {
         x &= v.x;
         y &= v.y;
+        z &= v.z;
+        w &= v.w;
         return *this;
     }
 
     // or (|=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator|=(T scaler)
     {
         x |= scaler;
         y |= scaler;
+        z |= scaler;
+        w |= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator|=(const type& v)
     {
         x |= v.x;
         y |= v.y;
+        z |= v.z;
+        w |= v.w;
         return *this;
     }
 
     // xor (^=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator^=(T scaler)
     {
         x ^= scaler;
         y ^= scaler;
+        z ^= scaler;
+        w ^= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator^=(const type& v)
     {
         x ^= v.x;
         y ^= v.y;
+        z ^= v.z;
+        w ^= v.w;
         return *this;
     }
 
     // left shift (<<=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator<<=(T scaler)
     {
         x <<= scaler;
         y <<= scaler;
+        z <<= scaler;
+        w <<= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator<<=(const type& v)
     {
         x <<= v.x;
         y <<= v.y;
+        z <<= v.z;
+        w <<= v.w;
         return *this;
     }
 
     // right shift (>>=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator>>=(T scaler)
     {
         x >>= scaler;
         y >>= scaler;
+        z >>= scaler;
+        w >>= scaler;
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator>>=(const type& v)
     {
         x >>= v.x;
         y >>= v.y;
+        z >>= v.z;
+        w >>= v.w;
         return *this;
     }
 
@@ -560,7 +673,7 @@ public:
 
     inline constexpr iterator end() noexcept
     {
-        return iterator(&y + 1);
+        return iterator(&w + 1);
     }
 
     inline constexpr const_iterator end() const noexcept
@@ -575,12 +688,12 @@ public:
 
     inline constexpr const_iterator cend() const noexcept
     {
-        return const_iterator(&y + 1);
+        return const_iterator(&w + 1);
     }
 
     inline constexpr reverse_iterator rbegin() noexcept
     {
-        return reverse_iterator(&y + 1);
+        return reverse_iterator(&w + 1);
     }
 
     inline constexpr const_reverse_iterator rbegin() const noexcept
@@ -600,7 +713,7 @@ public:
 
     inline constexpr const_reverse_iterator crbegin() const noexcept
     {
-        return const_reverse_iterator(&y + 1);
+        return const_reverse_iterator(&w + 1);
     }
 
     inline constexpr const_reverse_iterator crend() const noexcept
@@ -613,14 +726,11 @@ public:
     inline constexpr std::string to_string(bool pretty_print = false) const
     {
         std::ostringstream oss;
-        oss << "{ " << +x << ", " << +y << " }";
+        oss << "{ " << +x << ", " << +y << ", " << +z << ", " << +w << " }";
         return oss.str();
     }
 
     // =============== comparison and testing ===============
-
-    inline constexpr void set(T nxy) { x = y = nxy; }
-    inline constexpr void set(T nx, T ny) { x = nx; y = ny; }
 
     /**
      * @brief Get the minimum component value of the vector.
@@ -629,7 +739,7 @@ public:
      *
      * @return The minimum component value.
      */
-    inline constexpr T min() const { return math::min(x, y); }
+    inline constexpr T min() const { return math::min({ x, y, z, w }); }
 
     /**
      * @brief Get the maximum component value of the vector.
@@ -638,35 +748,11 @@ public:
      *
      * @return The maximum component value.
      */
-    inline constexpr T max() const { return math::max(x, y); }
+    inline constexpr T max() const { return math::max({ x, y, z, w }); }
 
     inline constexpr T width() const { return x; }
     inline constexpr T height() const { return y; }
-
-    /**
-     * @brief Calculate the aspect ratio of the vector.
-     *
-     * This function computes the aspect ratio by dividing the x component by the y component.
-     * If the y component is approximately zero, the function returns 0 to avoid division by zero.
-     *
-     * @return The aspect ratio of the vector.
-     */
-    inline constexpr FT aspect() const
-    {
-        return math::is_zero_approx(y) ? static_cast<FT>(0) : (static_cast<FT>(x) / static_cast<FT>(y));
-    }
-
-    /**
-     * @brief Calculate the angle of the vector.
-     *
-     * This function computes the angle (in radians) of the vector using the arctangent of the y and x components.
-     *
-     * @return The angle of the vector in radians.
-     */
-    inline constexpr FT angle() const
-    {
-        return math::atan2(static_cast<FT>(y), static_cast<FT>(x));
-    }
+    inline constexpr T depth() const { return z; }
 
     // =============== magnitude ===============
 
@@ -677,7 +763,7 @@ public:
      *
      * @return The squared length of the vector.
      */
-    inline constexpr FT magnitude_squared() const { return static_cast<FT>((x * x) + (y * y)); }
+    inline constexpr float_value_type magnitude_squared() const { return math::length_squared(*this); }
 
     /**
      * @brief Calculates the magnitude of the vector.
@@ -686,28 +772,35 @@ public:
      *
      * @return The magnitude of the vector.
      */
-    inline constexpr FT magnitude() const { return math::sqrt(static_cast<FT>((x * x) + (y * y))); }
+    inline constexpr float_value_type magnitude() const { return math::length(*this); }
+
+    /**
+     * @brief Normalizes the vector.
+     *
+     * This function normalizes the vector.
+     *
+     * @return The normalized vector. If the length of the vector is 0,
+     * a zero vector will be returned.
+     */
+    inline constexpr float_type normalize() const
+    {
+        return math::normalize(*this);
+    }
 
     // =============== constants ===============
 
     static inline constexpr type ZERO() { return type(); }
     static inline constexpr type ONE() { return type(static_cast<T>(1)); }
 
-    static inline constexpr type RIGHT() { return type(static_cast<T>(1), static_cast<T>(0)); }
-    static inline constexpr type LEFT() { return type(static_cast<T>(-1), static_cast<T>(0)); }
-
-    static inline constexpr type UP() { return type(static_cast<T>(0), static_cast<T>(1)); }
-    static inline constexpr type DOWN() { return type(static_cast<T>(0), static_cast<T>(-1)); }
-
 };
 
 VX_PACK_POP()
 
-}
-
-using vec2i  = detail::vec<2,  int32_t, detail::vec_t::vec>;
-using vec2ui = detail::vec<2, uint32_t, detail::vec_t::vec>;
-using vec2b  = detail::vec<2,     bool, detail::vec_t::vec>;
+using vec4  = vec<4, float>;
+using vec4f = vec<4, float>;
+using vec4d = vec<4, double>;
+using vec4u = vec<4, unsigned int>;
+using vec4i = vec<4, int>;
 
 }
 }

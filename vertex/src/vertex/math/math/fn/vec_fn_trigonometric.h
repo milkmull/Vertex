@@ -8,143 +8,581 @@ namespace math {
 
 // =============== radians ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto radians(const detail::vec<L, T, Q>& x)
+template <typename T>
+inline constexpr auto radians(
+    const vec2_t<T>& deg
+)
 {
     using R = decltype(math::radians(std::declval<T>()));
-    return detail::vec_unary<L, T, Q, R>::call(math::radians<T>, x);
+    return vec2_t<R>(
+        math::radians(deg.x),
+        math::radians(deg.y)
+    );
+}
+
+template <typename T>
+inline constexpr auto radians(
+    const vec3_t<T>& deg
+)
+{
+    using R = decltype(math::radians(std::declval<T>()));
+    return vec3_t<R>(
+        math::radians(deg.x),
+        math::radians(deg.y),
+        math::radians(deg.z)
+    );
+}
+
+template <typename T>
+inline constexpr auto radians(
+    const vec4_t<T>& deg
+)
+{
+    using R = decltype(math::radians(std::declval<T>()));
+    return vec4_t<R>(
+        math::radians(deg.x),
+        math::radians(deg.y),
+        math::radians(deg.z),
+        math::radians(deg.w)
+    );
 }
 
 // =============== degrees ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto degrees(const detail::vec<L, T, Q>& x)
+template <typename T>
+inline constexpr auto degrees(
+    const vec2_t<T>& rad
+)
 {
     using R = decltype(math::degrees(std::declval<T>()));
-    return detail::vec_unary<L, T, Q, R>::call(math::degrees<T>, x);
+    return vec2_t<R>(
+        math::degrees(rad.x),
+        math::degrees(rad.y)
+    );
+}
+
+template <typename T>
+inline constexpr auto degrees(
+    const vec3_t<T>& rad
+)
+{
+    using R = decltype(math::degrees(std::declval<T>()));
+    return vec3_t<R>(
+        math::degrees(rad.x),
+        math::degrees(rad.y),
+        math::degrees(rad.z)
+    );
+}
+
+template <typename T>
+inline constexpr auto degrees(
+    const vec4_t<T>& rad
+)
+{
+    using R = decltype(math::degrees(std::declval<T>()));
+    return vec4_t<R>(
+        math::degrees(rad.x),
+        math::degrees(rad.y),
+        math::degrees(rad.z),
+        math::degrees(rad.w)
+    );
 }
 
 // =============== sin ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto sin(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> sin(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::sin<T>, x);
+    return vec2_t<T>(
+        math::sin(x.x),
+        math::sin(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> sin(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::sin(x.x),
+        math::sin(x.y),
+        math::sin(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> sin(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::sin(x.x),
+        math::sin(x.y),
+        math::sin(x.z),
+        math::sin(x.w)
+    );
 }
 
 // =============== cos ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto cos(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> cos(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::cos<T>, x);
+    return vec2_t<T>(
+        math::cos(x.x),
+        math::cos(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> cos(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::cos(x.x),
+        math::cos(x.y),
+        math::cos(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> cos(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::cos(x.x),
+        math::cos(x.y),
+        math::cos(x.z),
+        math::cos(x.w)
+    );
 }
 
 // =============== tan ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto tan(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> tan(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::tan<T>, x);
+    return vec2_t<T>(
+        math::tan(x.x),
+        math::tan(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> tan(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::tan(x.x),
+        math::tan(x.y),
+        math::tan(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> tan(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::tan(x.x),
+        math::tan(x.y),
+        math::tan(x.z),
+        math::tan(x.w)
+    );
 }
 
 // =============== asin ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto asin(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> asin(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::asin<T>, x);
+    return vec2_t<T>(
+        math::asin(x.x),
+        math::asin(x.y)
+    );
 }
 
-// =============== asin clamped ===============
-
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto asin_clamped(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> asin(
+    const vec3_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::asin_clamped<T>, x);
+    return vec3_t<T>(
+        math::asin(x.x),
+        math::asin(x.y),
+        math::asin(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> asin(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::asin(x.x),
+        math::asin(x.y),
+        math::asin(x.z),
+        math::asin(x.w)
+    );
 }
 
 // =============== acos ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto acos(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> acos(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::acos<T>, x);
+    return vec2_t<T>(
+        math::acos(x.x),
+        math::acos(x.y)
+    );
 }
 
-// =============== acos clamped ===============
-
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto acos_clamped(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> acos(
+    const vec3_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::acos_clamped<T>, x);
+    return vec3_t<T>(
+        math::acos(x.x),
+        math::acos(x.y),
+        math::acos(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> acos(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::acos(x.x),
+        math::acos(x.y),
+        math::acos(x.z),
+        math::acos(x.w)
+    );
 }
 
 // =============== atan ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto atan(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> atan(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::atan<T>, x);
+    return vec2_t<T>(
+        math::atan(x.x),
+        math::atan(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> atan(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::atan(x.x),
+        math::atan(x.y),
+        math::atan(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> atan(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::atan(x.x),
+        math::atan(x.y),
+        math::atan(x.z),
+        math::atan(x.w)
+    );
 }
 
 // =============== atan2 ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto atan2(
-    const detail::vecf<L, T, Q>& x1,
-    const detail::vecf<L, T, Q>& x2
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> atan2(
+    const vec2_t<T>& y,
+    const vec2_t<T>& x
 )
 {
-    return detail::vec_binary<L, T, Q, T>::call(math::atan2<T>, x1, x2);
+    return vec2_t<T>(
+        math::atan2(y.x, x.x),
+        math::atan2(y.y, x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> atan2(
+    const vec3_t<T>& y,
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::atan2(y.x, x.x),
+        math::atan2(y.y, x.y),
+        math::atan2(y.z, x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> atan2(
+    const vec4_t<T>& y,
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::atan2(y.x, x.x),
+        math::atan2(y.y, x.y),
+        math::atan2(y.z, x.z),
+        math::atan2(y.w, x.w)
+    );
 }
 
 // =============== sinh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto sinh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> sinh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::sinh<T>, x);
+    return vec2_t<T>(
+        math::sinh(x.x),
+        math::sinh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> sinh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::sinh(x.x),
+        math::sinh(x.y),
+        math::sinh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> sinh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::sinh(x.x),
+        math::sinh(x.y),
+        math::sinh(x.z),
+        math::sinh(x.w)
+    );
 }
 
 // =============== cosh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto cosh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> cosh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::cosh<T>, x);
+    return vec2_t<T>(
+        math::cosh(x.x),
+        math::cosh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> cosh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::cosh(x.x),
+        math::cosh(x.y),
+        math::cosh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> cosh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::cosh(x.x),
+        math::cosh(x.y),
+        math::cosh(x.z),
+        math::cosh(x.w)
+    );
 }
 
 // =============== tanh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto tanh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> tanh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::tanh<T>, x);
+    return vec2_t<T>(
+        math::tanh(x.x),
+        math::tanh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> tanh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::tanh(x.x),
+        math::tanh(x.y),
+        math::tanh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> tanh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::tanh(x.x),
+        math::tanh(x.y),
+        math::tanh(x.z),
+        math::tanh(x.w)
+    );
 }
 
 // =============== asinh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto asinh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> asinh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::asinh<T>, x);
+    return vec2_t<T>(
+        math::asinh(x.x),
+        math::asinh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> asinh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::asinh(x.x),
+        math::asinh(x.y),
+        math::asinh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> asinh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::asinh(x.x),
+        math::asinh(x.y),
+        math::asinh(x.z),
+        math::asinh(x.w)
+    );
 }
 
 // =============== acosh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto acosh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> acosh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::acosh<T>, x);
+    return vec2_t<T>(
+        math::acosh(x.x),
+        math::acosh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> acosh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::acosh(x.x),
+        math::acosh(x.y),
+        math::acosh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> acosh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::acosh(x.x),
+        math::acosh(x.y),
+        math::acosh(x.z),
+        math::acosh(x.w)
+    );
 }
 
 // =============== atanh ===============
 
-template <detail::length_type L, typename T, detail::vec_t Q>
-inline constexpr auto atanh(const detail::vecf<L, T, Q>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec2_t<T> atanh(
+    const vec2_t<T>& x
+)
 {
-    return detail::vec_unary<L, T, Q, T>::call(math::atanh<T>, x);
+    return vec2_t<T>(
+        math::atanh(x.x),
+        math::atanh(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec3_t<T> atanh(
+    const vec3_t<T>& x
+)
+{
+    return vec3_t<T>(
+        math::atanh(x.x),
+        math::atanh(x.y),
+        math::atanh(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec4_t<T> atanh(
+    const vec4_t<T>& x
+)
+{
+    return vec4_t<T>(
+        math::atanh(x.x),
+        math::atanh(x.y),
+        math::atanh(x.z),
+        math::atanh(x.w)
+    );
 }
 
 }
