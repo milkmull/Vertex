@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../detail/vectorize.h"
 #include "fn_comparison.h"
 
 namespace vx {

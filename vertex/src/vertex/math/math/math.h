@@ -7,11 +7,11 @@
 #include "fn/fn_trigonometric.h"
 
 #include "fn/vec_fn_common.h"
-//#include "fn/vec_fn_comparison.h"
-//#include "fn/vec_fn_exponential.h"
-//#include "fn/vec_fn_interpolation.h"
+#include "fn/vec_fn_comparison.h"
+#include "fn/vec_fn_exponential.h"
+#include "fn/vec_fn_interpolation.h"
 #include "fn/vec_fn_geometric.h"
-//#include "fn/vec_fn_trigonometric.h"
+#include "fn/vec_fn_trigonometric.h"
 //
 //#include "fn/mat_fn_comparison.h"
 //#include "fn/mat_fn_operations.h"

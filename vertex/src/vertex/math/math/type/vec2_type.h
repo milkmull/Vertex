@@ -1,6 +1,9 @@
 #pragma once
 
+#include <sstream>
+
 #include "../math.h"
+#include "vertex/tools/detail/iterator.h"
 
 namespace vx {
 namespace math {
@@ -21,7 +24,7 @@ struct vec<2, T>
     using float_type = vec<2, float_value_type>;
 
     using size_type = math::size_type;
-    static inline constexpr size_type size() noexcept { return static_cast<T>(2); }
+    static inline constexpr size_type size() noexcept { return static_cast<size_type>(2); }
 
     using iterator = ::vx::detail::iterator<T>;
     using const_iterator = ::vx::detail::iterator<const T>;

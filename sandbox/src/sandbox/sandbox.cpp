@@ -1,14 +1,14 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/math/math/type/vec2_type.h"
+#include "vertex/math/color/type/colorf_type.h"
+#include "vertex/math/color/fn/color_fn_common.h"
 
 int main()
 {
     using namespace vx;
 
-    math::vec2_t<float> v;
-
-    math::mix<float>(2.0, 1.0, 1.0);
+    constexpr math::color c = math::color::MAGENTA();
+    constexpr auto x = math::color::luminance(c);
 
     return 0;
 }

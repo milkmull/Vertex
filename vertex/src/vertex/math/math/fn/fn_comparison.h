@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../constants.h"
 #include "../detail/common.h"
+#include "../constants.h"
 
 namespace vx {
 namespace math {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../detail/vectorize.h"
 #include "fn_interpolation.h"
 #include "vec_fn_geometric.h"
 

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../detail/vectorize.h"
 #include "fn_trigonometric.h"
 
 namespace vx {

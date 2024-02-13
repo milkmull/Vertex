@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/type_traits.h"
+#include "../detail/base_types.h"
 #include "fn_trigonometric.h"
 #include "fn_exponential.h"
 

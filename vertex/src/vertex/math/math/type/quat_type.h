@@ -27,7 +27,7 @@ struct quat
     using type = quat<T>;
 
     using size_type = length_type;
-    static inline constexpr size_type size() noexcept { return static_cast<T>(4); }
+    static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
 
     using iterator = ::vx::detail::iterator<T>;
     using const_iterator = ::vx::detail::iterator<const T>;

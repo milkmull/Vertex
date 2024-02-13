@@ -1,8 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <cmath>
-
 #include "../../detail/setup.h"             // math/setup
 #include "../../detail/int_float_type.h"    // math/int_float_type
 

@@ -23,9 +23,9 @@ struct mat<3, 3, T>
     using transpose_type = mat<3, 3, T>;
 
     using size_type = length_type;
-    static inline constexpr size_type size() noexcept { return static_cast<T>(9); }
-    static inline constexpr size_type width() noexcept { return static_cast<T>(3); }
-    static inline constexpr size_type height() noexcept { return static_cast<T>(3); }
+    static inline constexpr size_type size() noexcept { return static_cast<size_type>(9); }
+    static inline constexpr size_type width() noexcept { return static_cast<size_type>(3); }
+    static inline constexpr size_type height() noexcept { return static_cast<size_type>(3); }
 
     using iterator = ::vx::detail::iterator<col_type>;
     using const_iterator = ::vx::detail::iterator<const col_type>;

@@ -8,13 +8,6 @@ namespace vx {
 namespace math {
 namespace detail {
 
-template <typename T>
-struct to_float_type
-{
-    static_assert(std::is_arithmetic<T>::value, "T must be arithmetic type");
-    using type = typename std::conditional_t<std::is_integral<T>::value, double, T>;
-};
-
 // =============== vector ===============
 
 template <typename T>

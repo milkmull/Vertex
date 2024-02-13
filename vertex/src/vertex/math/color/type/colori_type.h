@@ -1,46 +1,41 @@
 #pragma once
 
-#include <sstream>
+#include <limits>
 
-#include "../../math/math.h"
+#include "../detail/base_types.h"
+#include "../fn/color_fn_common.h"
+#include "vertex/tools/detail/iterator.h"
 
 namespace vx {
 namespace math {
-namespace detail {
+
+template <typename T> struct vec3_t;
+template <typename T> struct vec4_t;
 
 VX_PACK_PUSH()
 
 template <typename T>
-struct vec<4, T, vec_t::col, val_t::integral>
+struct colori_t
 {
     static_assert(std::is_integral<T>::value, "type T must be integral type");
 
     // =============== meta ===============
 
-private:
-
-    using FT = typename detail::to_float_type<float>::type;
-
-public:
-
     using value_type = T;
-    using float_value_type = FT;
+    using type = colori_t<T>;
 
-    using type = vec<4, T, vec_t::col, val_t::integral>;
-    using float_type = vec<4, FT, vec_t::col, val_t::floating_point>;
+    using float_value_type = typename detail::to_float_type<T>::type;
+    using float_type = colorf_t<float_value_type>;
 
-    using size_type = length_type;
-    static inline constexpr size_type size() { return 4; }
+    using size_type = math::size_type;
+    static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
 
     using iterator = ::vx::detail::iterator<T>;
     using const_iterator = ::vx::detail::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using vec3_type = vec<3, T, vec_t::vec, val_t::integral>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::integral>;
-
-    static constexpr T MIN_CHANNEL_VALUE = std::numeric_limits<T>::min();
+    static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
     static constexpr T MAX_CHANNEL_VALUE = std::numeric_limits<T>::max();
 
     // =============== data ===============
@@ -49,61 +44,61 @@ public:
 
     // =============== implicit constructors ===============
 
-    inline constexpr vec()
+    inline constexpr colori_t()
         : r(static_cast<T>(0))
         , g(static_cast<T>(0))
         , b(static_cast<T>(0))
         , a(MAX_CHANNEL_VALUE) {}
 
-    inline constexpr vec(const type& c)
+    inline constexpr colori_t(const type& c)
         : r(c.r), g(c.g), b(c.b), a(c.a) {}
 
-    inline constexpr vec(type&&) noexcept = default;
+    inline constexpr colori_t(type&&) noexcept = default;
 
     // =============== explicit constructors ===============
 
-    inline constexpr explicit vec(T scaler)
+    inline constexpr explicit colori_t(T scaler)
         : r(scaler), g(scaler), b(scaler), a(scaler) {}
 
-    inline constexpr vec(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
+    inline constexpr colori_t(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
         : r(r), g(g), b(b), a(a) {}
 
     // =============== conversion vector constructors ===============
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr explicit vec(U scaler)
+    inline constexpr explicit colori_t(U scaler)
         : r(static_cast<T>(scaler))
         , g(static_cast<T>(scaler))
         , b(static_cast<T>(scaler))
         , a(static_cast<T>(scaler)) {}
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr vec(U r, U g, U b, U a = MAX_CHANNEL_VALUE)
+    inline constexpr colori_t(U r, U g, U b, U a = static_cast<U>(MAX_CHANNEL_VALUE))
         : r(static_cast<T>(r))
         , g(static_cast<T>(g))
         , b(static_cast<T>(b))
         , a(static_cast<T>(a)) {}
 
     template <typename U>
-    inline constexpr explicit vec(const coli<U>& c)
-        : type(c.normalize()) {}
+    inline constexpr explicit colori_t(const colori_t<U>& c)
+        : type(typename colori_t<U>::float_type(c)) {}
 
     template <typename U>
-    inline constexpr vec(const colf<U>& c)
-        : r(static_cast<T>(math::clamp(static_cast<FT>(c.r), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))
-        , g(static_cast<T>(math::clamp(static_cast<FT>(c.g), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))
-        , b(static_cast<T>(math::clamp(static_cast<FT>(c.b), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE)))
-        , a(static_cast<T>(math::clamp(static_cast<FT>(c.a), static_cast<FT>(0), static_cast<FT>(1)) * static_cast<FT>(MAX_CHANNEL_VALUE))) {}
+    inline constexpr colori_t(const colorf_t<U>& c)
+        : r(static_cast<T>(math::clamp(c.r, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , g(static_cast<T>(math::clamp(c.g, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , b(static_cast<T>(math::clamp(c.b, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , a(static_cast<T>(math::clamp(c.a, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE)) {}
 
     template <typename U>
-    inline constexpr explicit vec(const vecx<3, U>& v, U a = MAX_CHANNEL_VALUE)
+    inline constexpr explicit colori_t(const vec3_t<U>& v, U a = static_cast<U>(MAX_CHANNEL_VALUE))
         : r(static_cast<T>(v.x))
         , g(static_cast<T>(v.y))
         , b(static_cast<T>(v.z))
         , a(static_cast<T>(a)) {}
-
+    
     template <typename U>
-    inline constexpr explicit vec(const vecx<4, U>& v)
+    inline constexpr explicit colori_t(const vec4_t<U>& v)
         : r(static_cast<T>(v.x))
         , g(static_cast<T>(v.y))
         , b(static_cast<T>(v.z))
@@ -111,7 +106,7 @@ public:
 
     // =============== destructor ===============
 
-    ~vec() noexcept = default;
+    ~colori_t() noexcept = default;
 
     // =============== assignment operators ===============
 
@@ -188,7 +183,7 @@ public:
 
     inline constexpr type operator+() const
     {
-        return *this;
+        return type(+r, +g, +b, +a);
     }
 
     inline constexpr type operator-() const
@@ -692,19 +687,6 @@ public:
 
     // =============== comparison and testing ===============
 
-    inline constexpr void set(T nrgba) { r = g = b = a = nrgba; }
-    inline constexpr void set(T nr, T ng, T nb) { r = nr; g = ng; b = nb; }
-    inline constexpr void set(T nr, T ng, T nb, T na) { r = nr; g = ng; b = nb; a = na; }
-
-    /**
-     * @brief Get the minimum component value of the color.
-     *
-     * This function returns the minimum value among the components of the color.
-     *
-     * @return The minimum component value.
-     */
-    inline constexpr T min() const { return math::min({ r, g, b, a }); }
-
     /**
      * @brief Get the minimum color component value of the color.
      *
@@ -715,15 +697,6 @@ public:
     inline constexpr T min_color() const { return math::min({ r, g, b }); }
 
     /**
-     * @brief Get the maximum component value of the color.
-     *
-     * This function returns the maximum value among the components of the color.
-     *
-     * @return The maximum component value.
-     */
-    inline constexpr T max() const { return math::max({ r, g, b, a }); }
-
-    /**
      * @brief Get the maximum color component value of the color.
      *
      * This function returns the maximum value among the RGB components of the color.
@@ -731,94 +704,6 @@ public:
      * @return The maximum color component value.
      */
     inline constexpr T max_color() const { return math::max({ r, g, b }); }
-
-    // =============== magnitude ===============
-
-    inline constexpr T magnitude_squared() const { return (r * r) + (g * g) + (b * b) + (a * a); }
-    inline constexpr T magnitude() const { return math::sqrt((r * r) + (g * g) + (b * b) + (a * a)); }
-
-    inline constexpr float_type normalize() const
-    {
-        constexpr FT inv_max_channel_value = static_cast<FT>(1) / static_cast<FT>(MAX_CHANNEL_VALUE);
-
-        return float_type(
-            static_cast<FT>(r) * inv_max_channel_value,
-            static_cast<FT>(g) * inv_max_channel_value,
-            static_cast<FT>(b) * inv_max_channel_value,
-            static_cast<FT>(a) * inv_max_channel_value
-        );
-    }
-
-    // =============== color attributes ===============
-
-    /**
-     * @brief Calculate the luminance of the color.
-     *
-     * This function computes the luminance of the color.
-     * Luminance represents the perceived brightness of the color, taking into account
-     * human vision sensitivity to different color channels. The coefficients used in
-     * the formula correspond to the standard luminance weights for the RGB color space.
-     *
-     * @return The luminance value.
-     */
-    inline constexpr FT luminance() const
-    {
-        return float_type(*this).luminance();
-    }
-
-    // =============== color modifiers ===============
-
-    /**
-     * @brief Invert the color components.
-     *
-     * This function returns a new color with inverted components, where each component
-     * is replaced by its reciprocal (1 / component).
-     *
-     * @return A new color with inverted components.
-     */
-    inline constexpr type invert() const
-    {
-        return type(
-            MAX_CHANNEL_VALUE - r,
-            MAX_CHANNEL_VALUE - g,
-            MAX_CHANNEL_VALUE - b,
-            a
-        );
-    }
-
-    // =============== hex ===============
-
-    /**
-     * @brief Create a color from a 32-bit hexadecimal value.
-     *
-     * This function creates a color by extracting RGBA components from a 32-bit
-     * hexadecimal value and normalizing them to the range [0, 1].
-     *
-     * @param hex The 32-bit hexadecimal value representing the color.
-     * @return A new color created from the hexadecimal value.
-     */
-    static inline constexpr type from_hex(uint32_t hex)
-    {
-        return type(
-            (hex >>  0) & MAX_CHANNEL_VALUE,
-            (hex >>  8) & MAX_CHANNEL_VALUE,
-            (hex >> 16) & MAX_CHANNEL_VALUE,
-            (hex >> 24) & MAX_CHANNEL_VALUE
-        );
-    }
-
-    /**
-     * @brief Convert the color to a 32-bit hexadecimal value.
-     *
-     * This function converts the color to a 32-bit hexadecimal value by clamping each
-     * component to the range [0, 1] and then scaling them to the [0, 255] range.
-     *
-     * @return The 32-bit hexadecimal value representing the color.
-     */
-    inline constexpr uint32_t to_hex() const
-    {
-        return (r << 24) | (g << 16) | (b << 8) | a;
-    }
 
     // =============== colors ===============
 
@@ -839,9 +724,7 @@ public:
 
 VX_PACK_POP()
 
-}
-
-using color8 = detail::vec<4, uint8_t, detail::vec_t::col>;
+using color8 = colori_t<uint8_t>;
 
 }
 }
