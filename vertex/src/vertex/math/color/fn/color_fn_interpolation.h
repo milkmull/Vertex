@@ -9,9 +9,9 @@ namespace math {
 // =============== lerp ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
-inline constexpr colorf_t<T> lerp(
-    const colorf_t<T>& x,
-    const colorf_t<T>& y,
+inline constexpr color_t<T> lerp(
+    const color_t<T>& x,
+    const color_t<T>& y,
     T t
 )
 {
@@ -19,14 +19,14 @@ inline constexpr colorf_t<T> lerp(
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool> = true>
-inline constexpr colori_t<T> lerp(
-    const colori_t<T>& x,
-    const colori_t<T>& y,
-    typename colori_t<T>::float_value_type t
+inline constexpr color_t<T> lerp(
+    const color_t<T>& x,
+    const color_t<T>& y,
+    typename color_t<T>::float_value_type t
 )
 {
-    using FT = decltype(t);
-    return lerp(colorf_t<FT>(x), colorf_t<FT>(y), t);
+    using float_type = typename color_t<T>::float_type;
+    return lerp(float_type(x), float_type(y), t);
 }
 
 }

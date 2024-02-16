@@ -10,7 +10,7 @@ namespace math {
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr bool is_zero_approx(
-    const colorf_t<T>& x,
+    const color_t<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -24,8 +24,8 @@ inline constexpr bool is_zero_approx(
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr bool is_equal_approx(
-    const colorf_t<T>& a,
-    const colorf_t<T>& b,
+    const color_t<T>& a,
+    const color_t<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -38,7 +38,7 @@ inline constexpr bool is_equal_approx(
 // =============== is_finite ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_finite(const colorf_t<T>& x)
+inline constexpr bool is_finite(const color_t<T>& x)
 {
     return math::is_finite(x.r)
         && math::is_finite(x.g)
@@ -49,7 +49,7 @@ inline constexpr bool is_finite(const colorf_t<T>& x)
 // =============== is_infinite ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(const colorf_t<T>& x)
+inline constexpr bool is_infinite(const color_t<T>& x)
 {
     return math::is_infinite(x.r)
         || math::is_infinite(x.g)
@@ -60,7 +60,7 @@ inline constexpr bool is_infinite(const colorf_t<T>& x)
 // =============== is_nan ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_nan(const colorf_t<T>& x)
+inline constexpr bool is_nan(const color_t<T>& x)
 {
     return math::is_nan(x.r)
         || math::is_nan(x.g)

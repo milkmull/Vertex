@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../math/detail/base_type_defs.h"
-#include "../math/vec_fn_common.h"
+#include "type/color_type.h"
 
 namespace vx {
 
@@ -41,6 +40,7 @@ enum class blend_operator
 };
 
 namespace math {
+namespace color_util {
 
 // https://learnopengl.com/Advanced-OpenGL/Blending
 
@@ -57,17 +57,17 @@ namespace math {
  * @param op The blending operator.
  * @return The result of blending the source and destination colors.
  */
-template <typename T>
-inline constexpr detail::colf<T> blend(
-    const detail::colf<T>& src, blend_mode src_blend,
-    const detail::colf<T>& dst, blend_mode dst_blend,
-    const detail::colf<T>& constant = detail::colf<T>(),
+template <typename T = float>
+inline constexpr color blend(
+    const color& src, blend_mode src_blend,
+    const color& dst, blend_mode dst_blend,
+    const color& constant = color(0),
     blend_operator op = blend_operator::ADD
 )
 {
     struct blend_pair
     {
-        detail::colf<T> color;
+        color color;
         blend_mode mode;
     };
 
@@ -142,31 +142,14 @@ inline constexpr detail::colf<T> blend(
         case blend_operator::ADD:				return res[0].color + res[1].color;
         case blend_operator::SUBTRACT:			return res[0].color - res[1].color;
         case blend_operator::REVERSE_SUBTRACT:	return res[1].color - res[0].color;
-        case blend_operator::MIN:				return math::min(res[1].color, res[0].color);
-        case blend_operator::MAX:				return math::max(res[1].color, res[0].color);
+        case blend_operator::MIN:				return math::min(res[0].color, res[1].color);
+        case blend_operator::MAX:				return math::max(res[0].color, res[1].color);
         default:								break;
     }
 
     return res[0].color + res[1].color;
 }
 
-template <typename T>
-inline constexpr detail::coli<T> blend(
-    const detail::coli<T>& src, blend_mode src_blend,
-    const detail::coli<T>& dst, blend_mode dst_blend,
-    const detail::coli<T>& constant = detail::coli<T>(),
-    blend_operator op = blend_operator::ADD
-)
-{
-    using float_type = typename detail::coli<T>::float_type;
-
-    return detail::coli<T>(blend(
-        float_type(src), src_blend,
-        float_type(dst), dst_blend,
-        float_type(constant),
-        op
-    ));
 }
-
 }
 }

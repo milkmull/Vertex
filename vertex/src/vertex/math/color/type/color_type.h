@@ -4,28 +4,28 @@
 
 #include "../detail/base_types.h"
 #include "../fn/color_fn_common.h"
-#include "vertex/tools/detail/iterator.h"
+#include "../../math/type/vec3_type.h"
 
 namespace vx {
 namespace math {
 
-template <typename T> struct vec3_t;
-template <typename T> struct vec4_t;
-
 VX_PACK_PUSH()
 
 template <typename T>
-struct colori_t
+struct color_t
 {
-    static_assert(std::is_integral<T>::value, "type T must be integral type");
+    static_assert(std::is_same<T, float>::value && std::is_same<T, uint8_t>::value, "type T must be float or uint8_t");
 
     // =============== meta ===============
 
     using value_type = T;
-    using type = colori_t<T>;
+    using type = color_t<T>;
 
-    using float_value_type = typename detail::to_float_type<T>::type;
-    using float_type = colorf_t<float_value_type>;
+    using float_value_type = float;
+    using float_type = color_t<float_value_type>;
+
+    using int_value_type = uint8_t;
+    using vec_value_type = typename std::conditional<std::is_integral<T>::value && (sizeof(value_type) <= sizeof(uint16_t)), uint32_t, value_type>::type;
 
     using size_type = math::size_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
@@ -36,7 +36,7 @@ struct colori_t
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
-    static constexpr T MAX_CHANNEL_VALUE = std::numeric_limits<T>::max();
+    static constexpr T MAX_CHANNEL_VALUE = std::is_floating_point<T>::value ? static_cast<T>(1) : std::numeric_limits<T>::max();
 
     // =============== data ===============
 
@@ -44,69 +44,93 @@ struct colori_t
 
     // =============== implicit constructors ===============
 
-    inline constexpr colori_t()
+    inline constexpr color_t()
         : r(static_cast<T>(0))
         , g(static_cast<T>(0))
         , b(static_cast<T>(0))
         , a(MAX_CHANNEL_VALUE) {}
 
-    inline constexpr colori_t(const type& c)
+    inline constexpr color_t(const type& c)
         : r(c.r), g(c.g), b(c.b), a(c.a) {}
 
-    inline constexpr colori_t(type&&) noexcept = default;
+    inline constexpr color_t(type&&) noexcept = default;
 
     // =============== explicit constructors ===============
 
-    inline constexpr explicit colori_t(T scaler)
-        : r(scaler), g(scaler), b(scaler), a(scaler) {}
+    inline constexpr explicit color_t(T scaler)
+        : r(scaler), g(scaler), b(scaler), a(MAX_CHANNEL_VALUE) {}
 
-    inline constexpr colori_t(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
+    inline constexpr color_t(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
         : r(r), g(g), b(b), a(a) {}
 
     // =============== conversion vector constructors ===============
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr explicit colori_t(U scaler)
+    inline constexpr explicit color_t(U scaler)
         : r(static_cast<T>(scaler))
         , g(static_cast<T>(scaler))
         , b(static_cast<T>(scaler))
-        , a(static_cast<T>(scaler)) {}
+        , a(MAX_CHANNEL_VALUE) {}
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr colori_t(U r, U g, U b, U a = static_cast<U>(MAX_CHANNEL_VALUE))
+    inline constexpr color_t(U r, U g, U b, U a = MAX_CHANNEL_VALUE)
         : r(static_cast<T>(r))
         , g(static_cast<T>(g))
         , b(static_cast<T>(b))
         , a(static_cast<T>(a)) {}
 
     template <typename U>
-    inline constexpr explicit colori_t(const colori_t<U>& c)
-        : type(typename colori_t<U>::float_type(c)) {}
-
-    template <typename U>
-    inline constexpr colori_t(const colorf_t<U>& c)
-        : r(static_cast<T>(math::clamp(c.r, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
-        , g(static_cast<T>(math::clamp(c.g, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
-        , b(static_cast<T>(math::clamp(c.b, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
-        , a(static_cast<T>(math::clamp(c.a, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE)) {}
-
-    template <typename U>
-    inline constexpr explicit colori_t(const vec3_t<U>& v, U a = static_cast<U>(MAX_CHANNEL_VALUE))
+    inline constexpr explicit color_t(const vec<3, U>& v, U a = MAX_CHANNEL_VALUE)
         : r(static_cast<T>(v.x))
         , g(static_cast<T>(v.y))
         , b(static_cast<T>(v.z))
         , a(static_cast<T>(a)) {}
-    
+
     template <typename U>
-    inline constexpr explicit colori_t(const vec4_t<U>& v)
+    inline constexpr explicit color_t(const vec<4, U>& v)
         : r(static_cast<T>(v.x))
         , g(static_cast<T>(v.y))
         , b(static_cast<T>(v.z))
         , a(static_cast<T>(v.w)) {}
 
+    // =============== conversions ===============
+
+    // int to int
+
+    template <typename U, typename std::enable_if<std::is_integral<U>::value && std::is_integral<T>::value, bool>::type = true>
+    inline constexpr explicit color_t(const color_t<U>& c)
+        : color_t(typename color_t<U>::float_type(c)) {}
+    
+    // int to float
+
+    template <typename U, typename std::enable_if<std::is_integral<U>::value && std::is_floating_point<T>::value, bool>::type = true>
+    inline constexpr color_t(const color_t<U>& c)
+        : r(static_cast<T>(c.r) / static_cast<T>(color_t<U>::MAX_CHANNEL_VALUE))
+        , g(static_cast<T>(c.g) / static_cast<T>(color_t<U>::MAX_CHANNEL_VALUE))
+        , b(static_cast<T>(c.b) / static_cast<T>(color_t<U>::MAX_CHANNEL_VALUE))
+        , a(static_cast<T>(c.a) / static_cast<T>(color_t<U>::MAX_CHANNEL_VALUE)) {}
+
+    // float to int
+
+    template <typename U, typename std::enable_if<std::is_floating_point<U>::value && std::is_integral<T>::value, bool>::type = true>
+    inline constexpr color_t(const color_t<U>& c)
+        : r(static_cast<T>(math::clamp(c.r, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , g(static_cast<T>(math::clamp(c.g, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , b(static_cast<T>(math::clamp(c.b, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE))
+        , a(static_cast<T>(math::clamp(c.a, static_cast<U>(0), static_cast<U>(1)) * MAX_CHANNEL_VALUE)) {}
+
+    // float to float
+
+    template <typename U, typename std::enable_if<std::is_floating_point<U>::value && std::is_floating_point<T>::value, bool>::type = true>
+    inline constexpr explicit color_t(const color_t<U>& c)
+        : r(static_cast<T>(c.r))
+        , g(static_cast<T>(c.g))
+        , b(static_cast<T>(c.b))
+        , a(static_cast<T>(c.a)) {}
+
     // =============== destructor ===============
 
-    ~colori_t() noexcept = default;
+    ~color_t() noexcept = default;
 
     // =============== assignment operators ===============
 
@@ -301,16 +325,19 @@ struct colori_t
 
     // modulo (%)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(const type& c, T scaler)
     {
         return type(c.r % scaler, c.g % scaler, c.b % scaler, c.a % scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(T scaler, const type& c)
     {
         return type(scaler % c.r, scaler % c.g, scaler % c.b, scaler % c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(const type& c1, const type& c2)
     {
         return type(c1.r % c2.r, c1.g % c2.g, c1.b % c2.b, c1.a % c2.a);
@@ -320,16 +347,19 @@ struct colori_t
 
     // and (&)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(const type& c, T scaler)
     {
         return type(c.r & scaler, c.g & scaler, c.b & scaler, c.a & scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(T scaler, const type& c)
     {
         return type(scaler & c.r, scaler & c.g, scaler & c.b, scaler & c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(const type& c1, const type& c2)
     {
         return type(c1.r & c2.r, c1.g & c2.g, c1.b & c2.b, c1.a & c2.a);
@@ -337,16 +367,19 @@ struct colori_t
 
     // or (|)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(const type& c, T scaler)
     {
         return type(c.r | scaler, c.g | scaler, c.b | scaler, c.a | scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(T scaler, const type& c)
     {
         return type(scaler | c.r, scaler | c.g, scaler | c.b, scaler | c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(const type& c1, const type& c2)
     {
         return type(c1.r | c2.r, c1.g | c2.g, c1.b | c2.b, c1.a | c2.a);
@@ -354,16 +387,19 @@ struct colori_t
 
     // ror (^)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(const type& c, T scaler)
     {
         return type(c.r ^ scaler, c.g ^ scaler, c.b ^ scaler, c.a ^ scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(T scaler, const type& c)
     {
         return type(scaler ^ c.r, scaler ^ c.g, scaler ^ c.b, scaler ^ c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(const type& c1, const type& c2)
     {
         return type(c1.r ^ c2.r, c1.g ^ c2.g, c1.b ^ c2.b, c1.a ^ c2.a);
@@ -371,16 +407,19 @@ struct colori_t
 
     // left shift (<<)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(const type& c, T scaler)
     {
         return type(c.r << scaler, c.g << scaler, c.b << scaler, c.a << scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(T scaler, const type& c)
     {
         return type(scaler << c.r, scaler << c.g, scaler << c.b, scaler << c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(const type& c1, const type& c2)
     {
         return type(c1.r << c2.r, c1.g << c2.g, c1.b << c2.b, c1.a << c2.a);
@@ -388,16 +427,19 @@ struct colori_t
 
     // right shift (>>)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(const type& c, T scaler)
     {
         return type(c.r >> scaler, c.g >> scaler, c.b >> scaler, c.a >> scaler);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(T scaler, const type& c)
     {
         return type(scaler >> c.r, scaler >> c.g, scaler >> c.b, scaler >> c.a);
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(const type& c1, const type& c2)
     {
         return type(c1.r >> c2.r, c1.g >> c2.g, c1.b >> c2.b, c1.a >> c2.a);
@@ -405,6 +447,7 @@ struct colori_t
 
     // not (~)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator~(const type& c)
     {
         return type(~c.r, ~c.g, ~c.b, ~c.a);
@@ -494,6 +537,7 @@ struct colori_t
 
     // modulo (%=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator%=(T scaler)
     {
         r %= scaler;
@@ -503,6 +547,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator%=(const type& c)
     {
         r %= c.r;
@@ -516,6 +561,7 @@ struct colori_t
 
     // and (&=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator&=(T scaler)
     {
         r &= scaler;
@@ -525,6 +571,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator&=(const type& c)
     {
         r &= c.r;
@@ -536,6 +583,7 @@ struct colori_t
 
     // or (|=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator|=(T scaler)
     {
         r |= scaler;
@@ -545,6 +593,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator|=(const type& c)
     {
         r |= c.r;
@@ -556,6 +605,7 @@ struct colori_t
 
     // xor (^=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator^=(T scaler)
     {
         r ^= scaler;
@@ -565,6 +615,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator^=(const type& c)
     {
         r ^= c.r;
@@ -576,6 +627,7 @@ struct colori_t
 
     // left shift (<<=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator<<=(T scaler)
     {
         r <<= scaler;
@@ -585,6 +637,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator<<=(const type& c)
     {
         r <<= c.r;
@@ -596,6 +649,7 @@ struct colori_t
 
     // right shift (>>=)
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator>>=(T scaler)
     {
         r >>= scaler;
@@ -605,6 +659,7 @@ struct colori_t
         return *this;
     }
 
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type& operator>>=(const type& c)
     {
         r >>= c.r;
@@ -687,6 +742,8 @@ struct colori_t
 
     // =============== comparison and testing ===============
 
+    inline constexpr vec<3, vec_value_type> rgb() const { return vec<3, vec_value_type>(r, g, b); }
+
     /**
      * @brief Get the minimum color component value of the color.
      *
@@ -705,12 +762,80 @@ struct colori_t
      */
     inline constexpr T max_color() const { return math::max({ r, g, b }); }
 
+    // =============== color attributes ===============
+
+    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
+    inline constexpr type clamp() const
+    {
+        return math::clamp(*this);
+    }
+
+    // =============== color attributes ===============
+
+    /**
+     * @brief Calculate the luminance of the color.
+     *
+     * This function computes the luminance of the color.
+     * Luminance represents the perceived brightness of the color, taking into account
+     * human vision sensitivity to different color channels. The coefficients used in
+     * the formula correspond to the standard luminance weights for the RGB color space.
+     *
+     * @return The luminance value.
+     */
+    inline constexpr auto luminance(const type& c)
+    {
+        return math::luminance(*this);
+    }
+
+    // =============== color modifiers ===============
+
+    /**
+     * @brief Lighten the color by a specified amount.
+     *
+     * This function returns a new color by lightening each component based on the provided amount.
+     *
+     * @param amount The amount by which to lighten the color (in the range [0, 1]).
+     * @return A new color with lightened components.
+     */
+    inline constexpr type lighten(const type& c, float_value_type amount)
+    {
+        return math::lighten(*this, amount);
+    }
+
+    /**
+     * @brief Darken the color by a specified amount.
+     *
+     * This function returns a new color by darkening each component based on the provided amount.
+     *
+     * @param amount The amount by which to darken the color (in the range [0, 1]).
+     * @return A new color with darkened components.
+     */
+    inline constexpr type darken(const type& c, float_value_type amount)
+    {
+        return math::darken(*this, amount);
+    }
+
+    /**
+     * @brief Invert the color components.
+     *
+     * This function returns a new color with inverted components, where each component
+     * is replaced by its reciprocal (1 / component).
+     *
+     * @return A new color with inverted components.
+     */
+    inline constexpr type invert()
+    {
+        return math::invert(*this);
+    }
+
     // =============== colors ===============
 
-    static inline constexpr type CLEAR()   { return type(static_cast<T>(0)); }
+    static inline constexpr type CLEAR()   { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
     static inline constexpr type WHITE()   { return type(MAX_CHANNEL_VALUE); }
     static inline constexpr type BLACK()   { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
-    static inline constexpr type GREY()    { return type(MAX_CHANNEL_VALUE / static_cast<T>(2)); }
+
+    static inline constexpr type GRAY()    { return type(MAX_CHANNEL_VALUE / static_cast<T>(2)); }
+    static inline constexpr type GREY()    { return GRAY(); }
 
     static inline constexpr type RED()     { return type(MAX_CHANNEL_VALUE, static_cast<T>(0), static_cast<T>(0)); }
     static inline constexpr type GREEN()   { return type(static_cast<T>(0), MAX_CHANNEL_VALUE, static_cast<T>(0)); }
@@ -724,7 +849,8 @@ struct colori_t
 
 VX_PACK_POP()
 
-using color8 = colori_t<uint8_t>;
+using color  = color_t<float>;
+using color8 = color_t<uint8_t>;
 
 }
 }

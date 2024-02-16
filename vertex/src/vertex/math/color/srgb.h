@@ -1,7 +1,10 @@
 #pragma once
 
+#include "type/color_type.h"
+
 namespace vx {
 namespace math {
+namespace color_util {
 
 // =============== srgb ===============
 
@@ -14,34 +17,23 @@ namespace math {
  *
  * @return A new color representing the sRGB color space.
  */
-template <typename T>
-inline constexpr detail::colf<T> color_to_srgb(const detail::colf<T>& c)
+template <typename T = float>
+inline color linear_to_srgb(const color& c)
 {
-    const detail::colf<T> cn = c.clamp();
+    color srgb(c.clamp());
 
-    const T nr = (cn.r < static_cast<T>(0.0031308))
-        ? (static_cast<T>(12.92) * cn.r)
-        : (static_cast<T>(1.055)) * math::pow(cn.r, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
-    const T ng = (cn.g < static_cast<T>(0.0031308))
-        ? (static_cast<T>(12.92) * cn.g)
-        : (static_cast<T>(1.055)) * math::pow(cn.g, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
-    const T nb = (cn.b < static_cast<T>(0.0031308))
-        ? (static_cast<T>(12.92) * cn.b)
-        : (static_cast<T>(1.055)) * math::pow(cn.b, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
+    srgb.r = (srgb.r < static_cast<T>(0.0031308))
+        ? (static_cast<T>(12.92) * srgb.r)
+        : (static_cast<T>(1.055)) * math::pow(srgb.r, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
+    srgb.g = (srgb.g < static_cast<T>(0.0031308))
+        ? (static_cast<T>(12.92) * srgb.g)
+        : (static_cast<T>(1.055)) * math::pow(srgb.g, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
+    srgb.b = (srgb.b < static_cast<T>(0.0031308))
+        ? (static_cast<T>(12.92) * srgb.b)
+        : (static_cast<T>(1.055)) * math::pow(srgb.b, static_cast<T>(0.4166666667)) - static_cast<T>(0.055);
 
-    return detail::colf<T>(nr, ng, nb, c.a);
+    return srgb;
 }
-
-template <typename T>
-inline constexpr detail::coli<T> color_to_srgb(const detail::coli<T>& c)
-{
-    using float_type = typename decltype(c)::float_type;
-    return detail::coli<T>(color_to_srgb(float_type(c)));
-}
-
-// =============== linear ===============
-
-// https://entropymine.com/imageworsener/srgbformula/
 
 /**
  * @brief Convert the color to linear color space.
@@ -50,30 +42,24 @@ inline constexpr detail::coli<T> color_to_srgb(const detail::coli<T>& c)
  *
  * @return A new color representing the linear color space.
  */
-template <typename T>
-inline constexpr detail::colf<T> color_to_linear(const detail::colf<T>& c)
+template <typename T = float>
+inline color srgb_to_linear(const color& c)
 {
-    const detail::colf<T> cn = c.clamp();
+    color lrgb(c.clamp());
 
-    const T nr = (cn.r < static_cast<T>(0.04045))
-        ? (static_cast<T>(0.0773993808) * cn.r)
-        : math::pow((cn.r + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
-    const T ng = (cn.g < static_cast<T>(0.04045))
-        ? (static_cast<T>(0.0773993808) * cn.g)
-        : math::pow((cn.g + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
-    const T nb = (cn.b < static_cast<T>(0.04045))
-        ? (static_cast<T>(0.0773993808) * cn.b)
-        : math::pow((cn.b + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
+    lrgb.r = (lrgb.r < static_cast<T>(0.04045))
+        ? (static_cast<T>(0.0773993808) * lrgb.r)
+        : math::pow((lrgb.r + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
+    lrgb.g = (lrgb.g < static_cast<T>(0.04045))
+        ? (static_cast<T>(0.0773993808) * lrgb.g)
+        : math::pow((lrgb.g + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
+    lrgb.b = (lrgb.b < static_cast<T>(0.04045))
+        ? (static_cast<T>(0.0773993808) * lrgb.b)
+        : math::pow((lrgb.b + static_cast<T>(0.055)) * static_cast<T>(0.9478672986), static_cast<T>(2.4));
 
-    return detail::colf<T>(nr, ng, nb, c.a);
+    return lrgb;
 }
 
-template <typename T>
-inline constexpr detail::coli<T> color_to_linear(const detail::coli<T>& c)
-{
-    using float_type = typename decltype(c)::float_type;
-    return detail::coli<T>(color_to_linear(float_type(c)));
 }
-
 }
 }

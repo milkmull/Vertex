@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../math/detail/base_type_defs.h"
+#include "../math/type/vec3_type.h"
 
 namespace vx {
 namespace math {
+namespace color_space {
 
 // =============== hsl ===============
 
@@ -22,20 +23,19 @@ namespace math {
  * @param a The alpha value (default is 1, range: [0, 1]).
  * @return A new color created from the HSL values.
  */
-template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr detail::colf<T> from_hsl(T h, T s, T l, T a = static_cast<T>(1))
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+static inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l)
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));
     s = math::clamp(s, static_cast<T>(0), static_cast<T>(1));
     l = math::clamp(l, static_cast<T>(0), static_cast<T>(1));
-    a = math::clamp(a, static_cast<T>(0), static_cast<T>(1));
 
     if (s == static_cast<T>(0))
     {
-        return detail::colf<T>(l, l, l, a);
+        return vec<3, T>(l);
     }
 
-    const T sector = std::floor(h * static_cast<T>(0.0166666667));
+    const T sector = math::floor(h * static_cast<T>(0.0166666667));
     const T frac = (h * static_cast<T>(0.0166666667)) - sector;
 
     const T c = (static_cast<T>(1) - math::abs(static_cast<T>(2) * l - static_cast<T>(1))) * s;
@@ -47,16 +47,16 @@ static inline constexpr detail::colf<T> from_hsl(T h, T s, T l, T a = static_cas
 
     switch (static_cast<int>(sector))
     {
-        case 0:		return detail::colf<T>(n, q, o, a);
-        case 1:		return detail::colf<T>(p, n, o, a);
-        case 2:		return detail::colf<T>(o, n, q, a);
-        case 3:		return detail::colf<T>(o, p, n, a);
-        case 4:		return detail::colf<T>(q, o, n, a);
-        case 5:		return detail::colf<T>(n, o, p, a);
+        case 0:		return vec<3, T>(n, q, o);
+        case 1:		return vec<3, T>(p, n, o);
+        case 2:		return vec<3, T>(o, n, q);
+        case 3:		return vec<3, T>(o, p, n);
+        case 4:		return vec<3, T>(q, o, n);
+        case 5:		return vec<3, T>(n, o, p);
         default:	break;
     }
 
-    return detail::colf<T>();
+    return vec<3, T>(0);
 }
 
 /**
@@ -66,25 +66,26 @@ static inline constexpr detail::colf<T> from_hsl(T h, T s, T l, T a = static_cas
  *
  * @return A 3D vector representing the HSL values (Hue in degrees, Saturation, Lightness).
  */
-template <typename T>
-inline constexpr auto color_to_hsl(const detail::colf<T>& c)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> rgb_to_hsl(T r, T g, T b)
 {
-    using vec3_type = typename decltype(c)::vec3_type;
+    r = math::clamp(r, static_cast<T>(0), static_cast<T>(1));
+    g = math::clamp(g, static_cast<T>(0), static_cast<T>(1));
+    b = math::clamp(b, static_cast<T>(0), static_cast<T>(1));
 
-    const detail::colf<T> cn = c.clamp();
-    const T cmax = cn.max_color();
+    const T cmax = math::max({ r, g, b });
 
     if (cmax == static_cast<T>(0))
     {
-        return vec3_type();
+        return vec<3, T>(0);
     }
 
-    const T cmin = cn.min_color();
+    const T cmin = math::min({ r, g, b });
     const T l = (cmin + cmax) * static_cast<T>(0.5);
 
     if (cmin == cmax)
     {
-        return vec3_type(static_cast<T>(0), static_cast<T>(0), l);
+        return vec<3, T>(0, 0, l);
     }
 
     const T dc = cmax - cmin;
@@ -93,17 +94,17 @@ inline constexpr auto color_to_hsl(const detail::colf<T>& c)
 
     s = (l > static_cast<T>(0.5)) ? dc * (static_cast<T>(0.5) - cmax - cmin) : dc / (cmax + cmin);
 
-    if (cmax == cn.r)
+    if (cmax == r)
     {
-        h = static_cast<T>(0) + static_cast<T>(60) * (cn.g - cn.b) / dc;
+        h = static_cast<T>(0) + static_cast<T>(60) * (g - b) / dc;
     }
-    else if (cmax == cn.g)
+    else if (cmax == g)
     {
-        h = static_cast<T>(120) + static_cast<T>(60) * (cn.b - cn.r) / dc;
+        h = static_cast<T>(120) + static_cast<T>(60) * (b - r) / dc;
     }
-    else if (cmax == cn.b)
+    else if (cmax == b)
     {
-        h = static_cast<T>(240) + static_cast<T>(60) * (cn.r - cn.g) / dc;
+        h = static_cast<T>(240) + static_cast<T>(60) * (r - g) / dc;
     }
     else
     {
@@ -115,15 +116,9 @@ inline constexpr auto color_to_hsl(const detail::colf<T>& c)
         h += static_cast<T>(360);
     }
 
-    return vec3_type(h, s, l);
+    return vec<3, T>(h, s, l);
 }
 
-template <typename T>
-inline constexpr auto color_to_hsl(const detail::coli<T>& c)
-{
-    using float_type = typename decltype(c)::float_type;
-    return color_to_hsl(float_type(c));
 }
-
 }
 }

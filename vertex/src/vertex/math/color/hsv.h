@@ -1,7 +1,10 @@
 #pragma once
 
+#include "type/color_type.h"
+
 namespace vx {
 namespace math {
+namespace color_util {
 
 // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
 
@@ -18,17 +21,16 @@ namespace math {
  * @param a The alpha value (default is 1, range: [0, 1]).
  * @return A new color created from the HSV values.
  */
-template <typename T = float, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr detail::colf<T> color_from_hsv(T h, T s, T v, T a = static_cast<T>(1))
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+static inline constexpr vec<3, T> hsv_to_rgb(T h, T s, T v)
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));
     s = math::clamp(s, static_cast<T>(0), static_cast<T>(1));
     v = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
-    a = math::clamp(a, static_cast<T>(0), static_cast<T>(1));
 
     if (s == static_cast<T>(0))
     {
-        return detail::colf<T>(v, v, v, a);
+        return vec<3, T>(v);
     }
 
     const T sector = math::floor(h * static_cast<T>(0.0166666667));
@@ -41,37 +43,38 @@ static inline constexpr detail::colf<T> color_from_hsv(T h, T s, T v, T a = stat
 
     switch (static_cast<int>(sector))
     {
-        case 0:		return detail::colf<T>(n, q, o, a);
-        case 1:		return detail::colf<T>(p, n, o, a);
-        case 2:		return detail::colf<T>(o, n, q, a);
-        case 3:		return detail::colf<T>(o, p, n, a);
-        case 4:		return detail::colf<T>(q, o, n, a);
-        case 5:		return detail::colf<T>(n, o, p, a);
+        case 0:		return vec<3, T>(n, q, o);
+        case 1:		return vec<3, T>(p, n, o);
+        case 2:		return vec<3, T>(o, n, q);
+        case 3:		return vec<3, T>(o, p, n);
+        case 4:		return vec<3, T>(q, o, n);
+        case 5:		return vec<3, T>(n, o, p);
         default:	break;
     }
 
-    return detail::colf<T>();
+    return vec<3, T>(0);
 }
 
-template <typename T>
-inline constexpr auto color_to_hsv(const detail::colf<T>& c)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> rgb_to_hsv(T r, T g, T b)
 {
-    using vec3_type = typename decltype(c)::vec3_type;
+    r = math::clamp(r, static_cast<T>(0), static_cast<T>(1));
+    g = math::clamp(g, static_cast<T>(0), static_cast<T>(1));
+    b = math::clamp(b, static_cast<T>(0), static_cast<T>(1));
 
-    const detail::colf<T> cn = c.clamp();
-    const T cmax = cn.max_color();
+    const T cmax = math::max({ r, g, b });
 
     if (cmax == static_cast<T>(0))
     {
-        return vec3_type();
+        return vec<3, T>(0);
     }
 
-    const T cmin = cn.min_color();
+    const T cmin = math::min({ r, g, b });
     const T v = cmax;
 
     if (cmin == cmax)
     {
-        return vec3_type(static_cast<T>(0), static_cast<T>(0), v);
+        return vec<3, T>(0, 0, v);
     }
 
     const T dc = cmax - cmin;
@@ -79,17 +82,17 @@ inline constexpr auto color_to_hsv(const detail::colf<T>& c)
 
     s = dc / cmax;
 
-    if (cmax == cn.r)
+    if (cmax == r)
     {
-        h = static_cast<T>(0) + static_cast<T>(60) * (cn.g - cn.b) / dc;
+        h = static_cast<T>(0) + static_cast<T>(60) * (g - b) / dc;
     }
-    else if (cmax == cn.g)
+    else if (cmax == g)
     {
-        h = static_cast<T>(120) + static_cast<T>(60) * (cn.b - cn.r) / dc;
+        h = static_cast<T>(120) + static_cast<T>(60) * (b - r) / dc;
     }
-    else if (cmax == cn.b)
+    else if (cmax == b)
     {
-        h = static_cast<T>(240) + static_cast<T>(60) * (cn.r - cn.g) / dc;
+        h = static_cast<T>(240) + static_cast<T>(60) * (r - g) / dc;
     }
     else
     {
@@ -101,15 +104,9 @@ inline constexpr auto color_to_hsv(const detail::colf<T>& c)
         h += static_cast<T>(360);
     }
 
-    return vec3_type(h, s, v);
+    return vec<3, T>(h, s, v);
 }
 
-template <typename T>
-inline constexpr auto color_to_hsv(const detail::coli<T>& c)
-{
-    using float_type = typename decltype(c)::float_type;
-    return color_from_hsv(float_type(c));
 }
-
 }
 }
