@@ -9,9 +9,9 @@ namespace math {
 // =============== lerp ===============
 
 template <typename T>
-inline constexpr detail::quat<T> lerp(
-    const detail::quat<T>& x,
-    const detail::quat<T>& y,
+inline constexpr quat_t<T> lerp(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
     T t
 )
 {
@@ -42,9 +42,9 @@ inline constexpr detail::quat<T> lerp(
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <typename T>
-inline constexpr detail::quat<T> slerp(
-    const detail::quat<T>& x,
-    const detail::quat<T>& y,
+inline constexpr quat_t<T> slerp(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
     T t
 )
 {

@@ -10,7 +10,7 @@ namespace math {
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::quat<T>& x,
+    const quat_t<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -24,8 +24,8 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::quat<T>& a,
-    const detail::quat<T>& b,
+    const quat_t<T>& a,
+    const quat_t<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -38,7 +38,7 @@ inline constexpr bool is_equal_approx(
 // =============== is_finite ===============
 
 template <typename T>
-inline constexpr bool is_finite(const detail::quat<T>& x)
+inline constexpr bool is_finite(const quat_t<T>& x)
 {
     return math::is_finite(x.w)
         && math::is_finite(x.x)
@@ -49,7 +49,7 @@ inline constexpr bool is_finite(const detail::quat<T>& x)
 // =============== is_infinite ===============
 
 template <typename T>
-inline constexpr bool is_infinite(const detail::quat<T>& x)
+inline constexpr bool is_infinite(const quat_t<T>& x)
 {
     return math::is_infinite(x.w)
         || math::is_infinite(x.x)
@@ -60,7 +60,7 @@ inline constexpr bool is_infinite(const detail::quat<T>& x)
 // =============== is_nan ===============
 
 template <typename T>
-inline constexpr bool is_nan(const detail::quat<T>& x)
+inline constexpr bool is_nan(const quat_t<T>& x)
 {
     return math::is_nan(x.w)
         || math::is_nan(x.x)

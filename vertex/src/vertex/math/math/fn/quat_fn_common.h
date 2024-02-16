@@ -9,9 +9,9 @@ namespace math {
 // =============== abs ===============
 
 template <typename T>
-inline constexpr auto abs(const detail::quat<T>& x)
+inline constexpr auto abs(const quat_t<T>& x)
 {
-    return detail::quat<T>(
+    return quat_t<T>(
         math::abs(x.w),
         math::abs(x.x),
         math::abs(x.y),
@@ -22,9 +22,9 @@ inline constexpr auto abs(const detail::quat<T>& x)
 // =============== sign ===============
 
 template <typename T>
-inline constexpr auto sign(const detail::quat<T>& x)
+inline constexpr auto sign(const quat_t<T>& x)
 {
-    return detail::quat<T>(
+    return quat_t<T>(
         math::sign(x.w),
         math::sign(x.x),
         math::sign(x.y),
@@ -36,12 +36,12 @@ inline constexpr auto sign(const detail::quat<T>& x)
 
 template <typename T>
 inline constexpr auto clamp(
-    const detail::quat<T>& x,
+    const quat_t<T>& x,
     T min,
     T max
 )
 {
-    return detail::quat<T>(
+    return quat_t<T>(
         math::clamp(x.w, min, max),
         math::clamp(x.x, min, max),
         math::clamp(x.y, min, max),
@@ -51,12 +51,12 @@ inline constexpr auto clamp(
 
 template <typename T>
 inline constexpr auto clamp(
-    const detail::quat<T>& x,
-    const detail::quat<T>& min,
-    const detail::quat<T>& max
+    const quat_t<T>& x,
+    const quat_t<T>& min,
+    const quat_t<T>& max
 )
 {
-    return detail::quat<T>(
+    return quat_t<T>(
         math::clamp(x.w, min.w, max.w),
         math::clamp(x.x, min.x, max.x),
         math::clamp(x.y, min.y, max.y),

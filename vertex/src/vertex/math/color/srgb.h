@@ -18,7 +18,7 @@ namespace color_util {
  * @return A new color representing the sRGB color space.
  */
 template <typename T = float>
-inline color linear_to_srgb(const color& c)
+inline constexpr color linear_to_srgb(const color& c)
 {
     color srgb(c.clamp());
 
@@ -43,7 +43,7 @@ inline color linear_to_srgb(const color& c)
  * @return A new color representing the linear color space.
  */
 template <typename T = float>
-inline color srgb_to_linear(const color& c)
+inline constexpr color srgb_to_linear(const color& c)
 {
     color lrgb(c.clamp());
 

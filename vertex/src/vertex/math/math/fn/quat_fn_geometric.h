@@ -21,8 +21,8 @@ namespace math {
  */
 template <typename T>
 inline constexpr T dot(
-    const detail::quat<T>& q1,
-    const detail::quat<T>& q2
+    const quat_t<T>& q1,
+    const quat_t<T>& q2
 )
 {
     return (q1.w * q2.w) + (q1.x * q2.x) + (q1.y * q2.y) + (q1.z * q2.z);
@@ -39,8 +39,8 @@ inline constexpr T dot(
  */
 template <typename T>
 inline constexpr T normalized_dot(
-    const detail::quat<T>& q1,
-    const detail::quat<T>& q2
+    const quat_t<T>& q1,
+    const quat_t<T>& q2
 )
 {
     return dot(normalize(q1), normalize(q2));
@@ -58,8 +58,8 @@ inline constexpr T normalized_dot(
  * @return The resulting scaled quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> scale(
-    const detail::quat<T>& q,
+inline constexpr quat_t<T> scale(
+    const quat_t<T>& q,
     T scaler
 )
 {
@@ -77,7 +77,7 @@ inline constexpr detail::quat<T> scale(
  * @return The squared length of the quaternion.
  */
 template <typename T>
-inline constexpr T length_squared(const detail::quat<T>& q)
+inline constexpr T length_squared(const quat_t<T>& q)
 {
     return dot(q, q);
 }
@@ -91,7 +91,7 @@ inline constexpr T length_squared(const detail::quat<T>& q)
  * @return The length of the quaternion.
  */
 template <typename T>
-inline constexpr T length(const detail::quat<T>& q)
+inline constexpr T length(const quat_t<T>& q)
 {
     return sqrt(length_squared(q));
 }
@@ -108,11 +108,13 @@ inline constexpr T length(const detail::quat<T>& q)
  * the unit quaternion will be returned.
  */
 template <typename T>
-inline constexpr detail::quat<T> normalize(const detail::quat<T>& q)
+inline constexpr quat_t<T> normalize(const quat_t<T>& q)
 {
     const T magsq = length_squared(q);
-    if (magsq < math::epsilon<T>)
-        return detail::quat<T>();
+
+    if VX_UNLIKELY(magsq < math::epsilon<T>)
+        return quat_t<T>();
+
     return q * math::inverse_sqrt(magsq);
 }
 
@@ -125,7 +127,7 @@ inline constexpr detail::quat<T> normalize(const detail::quat<T>& q)
  * @return The normalized quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> fast_normalize(const detail::quat<T>& q)
+inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
 {
     return q * inverse_sqrt(length_squared(q));
 }
@@ -140,7 +142,7 @@ inline constexpr detail::quat<T> fast_normalize(const detail::quat<T>& q)
  * @return True if the quaternion is normalized, false otherwise.
  */
 template <typename T>
-inline constexpr bool is_normalized_approx(const detail::quat<T>& q, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_normalized_approx(const quat_t<T>& q, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
@@ -161,10 +163,8 @@ inline constexpr bool is_normalized_approx(const detail::quat<T>& q, const T eps
  * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
  */
 template <typename T>
-inline constexpr auto axis(const detail::quat<T>& q)
+inline constexpr auto axis(const quat_t<T>& q)
 {
-    using vec3_type = typename decltype(q)::vec3_type;
-
     const T nw = normalize(q).w;
     const T s2 = static_cast<T>(1) - (nw * nw);
 
@@ -172,11 +172,11 @@ inline constexpr auto axis(const detail::quat<T>& q)
     {
         // This indicates that the angle is 0 degrees and thus,
         // the axis does not matter. We choose the +y axis.
-        return vec3_type::UP();
+        return vec<3, T>::UP();
     }
 
     const T invs = math::inverse_sqrt(s2);
-    return vec3_type(
+    return vec<3, T>(
         q.x * invs,
         q.y * invs,
         q.z * invs
@@ -195,7 +195,7 @@ inline constexpr auto axis(const detail::quat<T>& q)
  * @return The rotation angle of the quaternion in radians.
  */
 template <typename T>
-inline constexpr T angle(const detail::quat<T>& q)
+inline constexpr T angle(const quat_t<T>& q)
 {
     return static_cast<T>(2) * math::acos_clamped(normalize(q).w);
 }
@@ -211,8 +211,8 @@ inline constexpr T angle(const detail::quat<T>& q)
  */
 template <typename T>
 static inline constexpr T angle(
-    const detail::quat<T>& from,
-    const detail::quat<T>& to
+    const quat_t<T>& from,
+    const quat_t<T>& to
 )
 {
     // We use the half angle identity:
@@ -233,8 +233,8 @@ static inline constexpr T angle(
  */
 template <typename T>
 static inline constexpr T signed_angle(
-    const detail::quat<T>& from,
-    const detail::quat<T>& to
+    const quat_t<T>& from,
+    const quat_t<T>& to
 )
 {
     const T a = angle(from, to);
@@ -254,9 +254,9 @@ static inline constexpr T signed_angle(
  * @return The conjugate of the quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> conjugate(const detail::quat<T>& q)
+inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 {
-    return detail::quat<T>(q.w, -q.x, -q.y, -q.z);
+    return quat_t<T>(q.w, -q.x, -q.y, -q.z);
 }
 
 // =============== invert ===============
@@ -271,7 +271,7 @@ inline constexpr detail::quat<T> conjugate(const detail::quat<T>& q)
  * @return The inverse of the quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> invert(const detail::quat<T>& q)
+inline constexpr quat_t<T> invert(const quat_t<T>& q)
 {
     return conjugate(q) / length_squared(q);
 }

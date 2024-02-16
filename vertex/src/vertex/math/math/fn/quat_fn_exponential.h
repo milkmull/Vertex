@@ -29,12 +29,9 @@ namespace math {
  * @return The resulting quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
+inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
 {
-    using quat_type = detail::quat<T>;
-    using vec3_type = detail::vecx<3, T>;
-
-    const vec3_type v = q.vector();
+    const vec<3, T> v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)
@@ -42,21 +39,21 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
         // if q only has a real part, calculate the real part of the result
         if (q.w > static_cast<T>(0))
         {
-            return quat_type(math::pow(q.w, x), 0, 0, 0);
+            return quat_t<T>(math::pow(q.w, x), 0, 0, 0);
         }
         if (q.w < static_cast<T>(0))
         {
-            return quat_type(math::pow(-q.w, x) * math::cos(x * math::pi<T>), 0, 0, 0);
+            return quat_t<T>(math::pow(-q.w, x) * math::cos(x * math::pi<T>), 0, 0, 0);
         }
 
         // 0 ^ n
         if (x != static_cast<T>(0))
         {
-            return quat_type(0, 0, 0, 0);
+            return quat_t<T>(0, 0, 0, 0);
         }
 
         // 0 ^ 0
-        return quat_type(
+        return quat_t<T>(
             math::nan<T>,
             math::nan<T>,
             math::nan<T>,
@@ -74,9 +71,9 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
     const T qmagx = math::pow(qmag, x);
 
     const T r = qmagx * math::cos(xangle);
-    const vec3_type i = qmagx * (v * invvmag) * math::sin(xangle);
+    const vec<3, T> i = qmagx * (v * invvmag) * math::sin(xangle);
 
-    return quat_type(r, i);
+    return quat_t<T>(r, i);
 }
 
 // =============== exp ===============
@@ -93,26 +90,23 @@ inline constexpr detail::quat<T> pow(const detail::quat<T>& q, T x)
  * @return The quaternion exponential of the input quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> exp(const detail::quat<T>& q)
+inline constexpr quat_t<T> exp(const quat_t<T>& q)
 {
-    using quat_type = detail::quat<T>;
-    using vec3_type = detail::vecx<3, T>;
-
-    const vec3_type v = q.vector();
+    const vec<3, T> v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)
     {
         // if q only has a positive real part, take the exp like a real number
-        return quat_type(math::exp(q.w), 0, 0, 0);
+        return quat_t<T>(math::exp(q.w), 0, 0, 0);
     }
 
     const T ea = math::exp(q.w);
 
     const T r = ea * math::cos(vmag);
-    const vec3_type i = ea * v * (static_cast<T>(1) / vmag) * math::sin(vmag);
+    const vec<3, T> i = ea * v * (static_cast<T>(1) / vmag) * math::sin(vmag);
 
-    return quat_type(r, i);
+    return quat_t<T>(r, i);
 }
 
 // =============== log ===============
@@ -131,12 +125,9 @@ inline constexpr detail::quat<T> exp(const detail::quat<T>& q)
  * @return The quaternion natural logarithm of the input quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> log(const detail::quat<T>& q)
+inline constexpr quat_t<T> log(const quat_t<T>& q)
 {
-    using quat_type = detail::quat<T>;
-    using vec3_type = detail::vecx<3, T>;
-
-    const vec3_type v = q.vector();
+    const vec<3, T> v = q.vector();
     const T vmag = v.magnitude();
 
     if (vmag < math::epsilon<T>)
@@ -144,18 +135,18 @@ inline constexpr detail::quat<T> log(const detail::quat<T>& q)
         if (q.w > static_cast<T>(0))
         {
             // if q only has a positive real part, take the log like a real number
-            return quat_type(math::log(q.w), 0, 0, 0);
+            return quat_t<T>(math::log(q.w), 0, 0, 0);
         }
         if (q.w < static_cast<T>(0))
         {
             // taking the log of a negative number is defined as:
             // ln(-a) = ln|a| + pi
             // where ln|a| is the real part and pi is the imaginary part
-            return quat_type(math::log(-q.w), math::pi<T>, 0, 0);
+            return quat_t<T>(math::log(-q.w), math::pi<T>, 0, 0);
         }
 
         // log(0) is undefined
-        return quat_type(
+        return quat_t<T>(
             -math::infinity<T>,
             -math::infinity<T>,
             -math::infinity<T>,
@@ -169,9 +160,9 @@ inline constexpr detail::quat<T> log(const detail::quat<T>& q)
     const T invqmag = static_cast<T>(1) / qmag;
 
     const T r = math::log(qmag);
-    const vec3_type i = v * invvmag * math::acos_clamped(q.w * invqmag);
+    const vec<3, T> i = v * invvmag * math::acos_clamped(q.w * invqmag);
 
-    return quat_type(r, i);
+    return quat_t<T>(r, i);
 }
 
 // =============== sqrt ===============
@@ -187,7 +178,7 @@ inline constexpr detail::quat<T> log(const detail::quat<T>& q)
  * @return The resulting quaternion.
  */
 template <typename T>
-inline constexpr detail::quat<T> sqrt(const detail::quat<T>& q)
+inline constexpr quat_t<T> sqrt(const quat_t<T>& q)
 {
     return math::pow(q, static_cast<T>(0.5));
 }

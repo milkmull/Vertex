@@ -12,7 +12,6 @@ int main()
     constexpr math::color c3 = c2;
     constexpr auto y = math::lighten(c2, 0.5);
     constexpr auto z = math::invert(c3);
-    constexpr auto x = math::color_util::srgb_to_linear(c3);
 
     return 0;
 }

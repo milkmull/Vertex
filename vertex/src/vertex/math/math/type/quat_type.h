@@ -6,7 +6,6 @@
 
 namespace vx {
 namespace math {
-namespace detail {
 
 // key formuals:
 // q = s + v = cos(t / 2) + sin(t / 2) * v
@@ -17,14 +16,14 @@ namespace detail {
 VX_PACK_PUSH()
 
 template <typename T>
-struct quat
+struct quat_t
 {
     static_assert(std::is_floating_point<T>::value, "type T must be floating point type");
 
     // =============== meta ===============
 
     using value_type = T;
-    using type = quat<T>;
+    using type = quat_t<T>;
 
     using size_type = length_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
@@ -34,50 +33,42 @@ struct quat
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
-
-    using mat2_type = mat<2, 2, T>;
-    using mat3_type = mat<3, 3, T>;
-    using mat4_type = mat<4, 4, T>;
-
     // =============== data ===============
 
     T w, x, y, z;
 
     // =============== implicit constructors ===============
 
-    inline constexpr quat() noexcept
+    inline constexpr quat_t() noexcept
         : w(static_cast<T>(1))
         , x(static_cast<T>(0))
         , y(static_cast<T>(0))
         , z(static_cast<T>(0)) {}
 
-    inline constexpr quat(const type& q) noexcept
+    inline constexpr quat_t(const type& q) noexcept
         : w(q.w), x(q.x), y(q.y), z(q.z) {}
 
-    inline constexpr quat(type&&) noexcept = default;
+    inline constexpr quat_t(type&&) noexcept = default;
 
     // =============== explicit constructors ===============
 
-    inline constexpr quat(T w, const vec3_type& v) noexcept
+    inline constexpr quat_t(T w, const vec<3, T>& v) noexcept
         : w(w), x(v.x), y(v.y), z(v.z) {}
 
-    inline constexpr quat(T w, T x, T y, T z) noexcept
+    inline constexpr quat_t(T w, T x, T y, T z) noexcept
         : w(w), x(x), y(y), z(z) {}
 
     // =============== conversion constructors ===============
 
     template <typename U>
-    inline constexpr explicit quat(const quat<U>& q)
+    inline constexpr explicit quat_t(const quat_t<U>& q)
         : w(static_cast<T>(q.w))
         , x(static_cast<T>(q.x))
         , y(static_cast<T>(q.y))
         , z(static_cast<T>(q.z)) {}
 
-    template <typename U>
-    inline constexpr explicit quat(const vecf<4, U>& v)
+    template <typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+    inline constexpr explicit quat_t(const vec<4, U>& v)
         : w(static_cast<T>(v.w))
         , x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
@@ -97,7 +88,7 @@ struct quat
       * 
       * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
       */
-    inline constexpr explicit quat(const mat3_type& m)
+    inline constexpr explicit quat_t(const mat3_t<T>& m)
     {
         const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
 
@@ -152,12 +143,12 @@ struct quat
      *
      * @param m The 4x4 matrix representing a rotation.
      */
-    inline constexpr explicit quat(const mat4_type& m)
-        : type(mat3_type(m)) {}
+    inline constexpr explicit quat_t(const mat4_t<T>& m)
+        : type(mat3_t<T>(m)) {}
 
     // =============== destructor ===============
 
-    ~quat() noexcept = default;
+    ~quat_t() noexcept = default;
 
     // =============== assignment operators ===============
 
@@ -202,7 +193,7 @@ struct quat
 
     inline constexpr type operator+() const
     {
-        return *this;
+        return type(+w, +x, +y, +z);
     }
 
     inline constexpr type operator-() const
@@ -255,17 +246,17 @@ struct quat
       * 
       * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
       */
-    friend inline constexpr vec3_type operator*(const type& q, const vec3_type& v)
+    friend inline constexpr vec3_t<T> operator*(const type& q, const vec3_t<T>& v)
     {
-        const vec3_type qv(q.x, q.y, q.z);
-        const vec3_type uv(cross(qv, v));
-        const vec3_type uuv(cross(qv, uv));
+        const vec3_t<T> qv(q.x, q.y, q.z);
+        const vec3_t<T> uv(cross(qv, v));
+        const vec3_t<T> uuv(cross(qv, uv));
 
         return v + ((uv * q.w) + uuv) * static_cast<T>(2);
     }
 
     
-    friend inline constexpr vec3_type operator*(const vec3_type& v, const type& q)
+    friend inline constexpr vec3_t<T> operator*(const vec3_t<T>& v, const type& q)
     {
         return q.invert() * v;
     }
@@ -428,20 +419,10 @@ struct quat
 
     // =============== string ===============
 
-    inline constexpr std::string to_string(bool pretty_print = false) const
+    inline constexpr std::string to_string() const
     {
-        if (pretty_print)
-        {
-            return type(
-                math::make_pretty(w),
-                math::make_pretty(x),
-                math::make_pretty(y),
-                math::make_pretty(z)
-            ).to_string();
-        }
-
         std::ostringstream oss;
-        oss << "{ " << w << ", " << x << ", " << y << ", " << z << " }";
+        oss << "{ " << +w << ", " << +x << ", " << +y << ", " << +z << " }";
         return oss.str();
     }
 
@@ -457,7 +438,7 @@ struct quat
      */
     inline constexpr type conjugate() const
     {
-        return type(w, -x, -y, -z);
+        return math::conjugate(*this);
     }
 
     /**
@@ -470,7 +451,7 @@ struct quat
      */
     inline constexpr type invert() const
     {
-        return conjugate() / magnitude_squared();
+        return math::invert(*this);
     }
 
     /**
@@ -481,12 +462,9 @@ struct quat
      *
      * @return A 3D vector representing the vector part of this quaternion.
      */
-    inline constexpr vec3_type vector() const { return vec3_type(x, y, z); }
+    inline constexpr vec3_t<T> vector() const { return vec3_t<T>(x, y, z); }
 
     // =============== comparison and testing ===============
-
-    inline constexpr void set(T nwxyz) { w = x = y = z = nwxyz; }
-    inline constexpr void set(T nw, T nx, T ny, T nz) { w = nw;  x = nx; y = ny; z = nz; }
 
     /**
      * @brief Get the minimum component value of the quaternion.
@@ -515,7 +493,7 @@ struct quat
      *
      * @return The squared length of the quaternion.
      */
-    inline constexpr T magnitude_squared() const { return (w * w) + (x * x) + (y * y) + (z * z); }
+    inline constexpr T magnitude_squared() const { return math::length_squared(*this); }
 
     /**
      * @brief Calculates the magnitude of the quaternion.
@@ -524,7 +502,7 @@ struct quat
      *
      * @return The magnitude of the quaternion.
      */
-    inline constexpr T magnitude() const { return math::sqrt((w * w) + (x * x) + (y * y) + (z * z)); }
+    inline constexpr T magnitude() const { return math::length(*this); }
 
     /**
      * @brief Normalizes the quaternion.
@@ -536,10 +514,7 @@ struct quat
      */
     inline constexpr type normalize() const
     {
-        const T magsq = magnitude_squared();
-        if (magsq < math::epsilon<T>)
-            return type();
-        return (*this) * math::inverse_sqrt(magsq);
+        math::normalize(*this);
     }
 
     // =============== direction and orientation ===============
@@ -562,12 +537,12 @@ struct quat
      * @ref https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
      * @ref https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
      */
-    static inline constexpr type from_to(const vec3_type& from, const vec3_type& to)
+    static inline constexpr type from_to(const vec3_t<T>& from, const vec3_t<T>& to)
     {
-        const vec3_type fn = math::normalize(from);
-        const vec3_type tn = math::normalize(to);
+        const vec3_t<T> fn = math::normalize(from);
+        const vec3_t<T> tn = math::normalize(to);
 
-        const T cosa = dot(fn, tn);
+        const T cosa = math::dot(fn, tn);
 
         if (cosa > static_cast<T>(1) - math::epsilon<T>)
         {
@@ -577,7 +552,7 @@ struct quat
             return type(1, 0, 0, 0);
         }
 
-        const vec3_type axis = math::normalize(math::cross(fn, tn));
+        const vec3_t<T> axis = math::normalize(math::cross(fn, tn));
 
         if (cosa < static_cast<T>(-1) + math::epsilon<T>)
         {
@@ -614,12 +589,12 @@ struct quat
      * @return The quaternion representing the left-handed look-at rotation.
      */
     static inline constexpr type make_look_at_rotation_lh(
-        const vec3_type& eye,
-        const vec3_type& target,
-        const vec3_type& up = vec3_type::UP()
+        const vec3_t<T>& eye,
+        const vec3_t<T>& target,
+        const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
-        return type(mat3_type::make_look_at_lh(eye, target, up));
+        return type(mat3_t<T>::make_look_at_lh(eye, target, up));
     }
 
     /**
@@ -634,12 +609,12 @@ struct quat
      * @return The quaternion representing the right-handed look-at rotation.
      */
     static inline constexpr type make_look_at_rotation_rh(
-        const vec3_type& eye,
-        const vec3_type& target,
-        const vec3_type& up = vec3_type::UP()
+        const vec3_t<T>& eye,
+        const vec3_t<T>& target,
+        const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
-        return type(mat3_type::make_look_at_rh(eye, target, up));
+        return type(mat3_t<T>::make_look_at_rh(eye, target, up));
     }
 
     /**
@@ -655,9 +630,9 @@ struct quat
      * @return The quaternion representing the look-at rotation.
      */
     static inline constexpr type make_look_at_rotation(
-        const vec3_type& eye,
-        const vec3_type& target,
-        const vec3_type& up = vec3_type::UP()
+        const vec3_t<T>& eye,
+        const vec3_t<T>& target,
+        const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
 #	if VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT
@@ -681,24 +656,9 @@ struct quat
      * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
      * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
      */
-    inline constexpr vec3_type axis() const
+    inline constexpr vec3_t<T> axis() const
     {
-        const T nw = normalize().w;
-        const T s2 = static_cast<T>(1) - (nw * nw);
-
-        if (s2 < math::epsilon<T>)
-        {
-            // This indicates that the angle is 0 degrees and thus,
-            // the axis does not matter. We choose the +y axis.
-            return vec3_type::UP();
-        }
-
-        const T invs = math::inverse_sqrt(s2);
-        return vec3_type(
-            x * invs,
-            y * invs,
-            z * invs
-        );
+        return math::axis(*this);
     }
 
     /**
@@ -712,7 +672,7 @@ struct quat
      */
     inline constexpr T angle() const
     {
-        return static_cast<T>(2) * math::acos_clamped(normalize().w);
+        return math::angle(*this);
     }
 
     /**
@@ -725,9 +685,9 @@ struct quat
      * @param angle The rotation angle in radians.
      * @return The quaternion representing the rotation around the specified axis.
      */
-    static inline constexpr type from_axis_angle(const vec3_type& axis, T angle)
+    static inline constexpr type from_axis_angle(const vec3_t<T>& axis, T angle)
     {
-        const vec3_type naxis = math::normalize(axis);
+        const vec3_t<T> naxis = math::normalize(axis);
 
         const T sina2 = math::sin(angle * static_cast<T>(0.5));
         const T cosa2 = math::cos(angle * static_cast<T>(0.5));
@@ -746,7 +706,7 @@ struct quat
      * @param v The 3D vector to be rotated.
      * @return The rotated 3D vector.
      */
-    inline constexpr vec3_type rotate(const vec3_type& v) const
+    inline constexpr vec3_t<T> rotate(const vec3_t<T>& v) const
     {
         return (*this) * v;
     }
@@ -760,11 +720,8 @@ struct quat
 
 VX_PACK_POP()
 
-}
-
-using quat  = detail::quat< float>;
-using quatf = detail::quat< float>;
-using quatd = detail::quat<double>;
+using quat  = quat_t<float>;
+using quatd = quat_t<double>;
 
 }
 }

@@ -22,7 +22,7 @@ namespace color_util {
  * @return A new color created from the HSV values.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr vec<3, T> hsv_to_rgb(T h, T s, T v)
+inline constexpr vec<3, T> hsv_to_rgb(T h, T s, T v)
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));
     s = math::clamp(s, static_cast<T>(0), static_cast<T>(1));

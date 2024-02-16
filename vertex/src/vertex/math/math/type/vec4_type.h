@@ -8,8 +8,7 @@
 namespace vx {
 namespace math {
 
-template <typename T> struct colorf_t;
-template <typename T> struct colori_t;
+template <typename T> struct color_t;
 
 VX_PACK_PUSH()
 
@@ -118,14 +117,7 @@ struct vec<4, T>
         , w(static_cast<T>(v.w)) {}
     
     template <typename U>
-    inline constexpr explicit vec(const colorf_t<U>& c)
-        : x(static_cast<T>(c.r))
-        , y(static_cast<T>(c.g))
-        , z(static_cast<T>(c.b))
-        , w(static_cast<T>(c.a)) {}
-
-    template <typename U>
-    inline constexpr explicit vec(const colori_t<U>& c)
+    inline constexpr explicit vec(const color_t<U>& c)
         : x(static_cast<T>(c.r))
         , y(static_cast<T>(c.g))
         , z(static_cast<T>(c.b))

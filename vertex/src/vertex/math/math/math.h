@@ -16,8 +16,8 @@
 //#include "fn/mat_fn_comparison.h"
 //#include "fn/mat_fn_operations.h"
 //
-//#include "fn/quat_fn_common.h"
-//#include "fn/quat_fn_comparison.h"
-//#include "fn/quat_fn_exponential.h"
-//#include "fn/quat_fn_interpolation.h"
-//#include "fn/quat_fn_geometric.h"
+#include "fn/quat_fn_common.h"
+#include "fn/quat_fn_comparison.h"
+#include "fn/quat_fn_exponential.h"
+#include "fn/quat_fn_interpolation.h"
+#include "fn/quat_fn_geometric.h"

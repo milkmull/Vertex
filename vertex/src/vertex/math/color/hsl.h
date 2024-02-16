@@ -24,7 +24,7 @@ namespace color_space {
  * @return A new color created from the HSL values.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l)
+inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l)
 {
     h = math::clamp(h, static_cast<T>(0), static_cast<T>(360));
     s = math::clamp(s, static_cast<T>(0), static_cast<T>(1));
