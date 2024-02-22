@@ -1,9 +1,10 @@
 #pragma once
 
-#include "math.h"
+#include "../math.h"
 
 namespace vx {
 namespace math {
+namespace transform3d {
 namespace euler {
 
 // =============== quaternion ===============
@@ -26,8 +27,8 @@ namespace euler {
  * @param t3 The rotation angle around the Z-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_XYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_XYZ(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -41,7 +42,7 @@ inline constexpr detail::quat<T> quat_from_euler_XYZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         -(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         +(st1 * ct2 * ct3) + (st2 * st3 * ct1),
         -(st1 * st3 * ct2) + (st2 * ct1 * ct3),
@@ -60,8 +61,8 @@ inline constexpr detail::quat<T> quat_from_euler_XYZ(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Y-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_XZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_XZY(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -75,7 +76,7 @@ inline constexpr detail::quat<T> quat_from_euler_XZY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         +(st1 * ct2 * ct3) - (st2 * st3 * ct1),
         -(st1 * st2 * ct3) + (st1 * ct1 * ct2),
@@ -94,8 +95,8 @@ inline constexpr detail::quat<T> quat_from_euler_XZY(T t1, T t2, T t3)
  * @param t3 The rotation angle around the X-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_XYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_XYX(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -104,7 +105,7 @@ inline constexpr detail::quat<T> quat_from_euler_XYX(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         +ct2 * math::sin(t1p3),
         +st2 * math::cos(t1m3),
@@ -123,8 +124,8 @@ inline constexpr detail::quat<T> quat_from_euler_XYX(T t1, T t2, T t3)
  * @param t3 The rotation angle around the X-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_XZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_XZX(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -133,7 +134,7 @@ inline constexpr detail::quat<T> quat_from_euler_XZX(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         +ct2 * math::sin(t1p3),
         -st2 * math::sin(t1m3),
@@ -152,8 +153,8 @@ inline constexpr detail::quat<T> quat_from_euler_XZX(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Z-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_YXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_YXZ(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -167,7 +168,7 @@ inline constexpr detail::quat<T> quat_from_euler_YXZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         +(st1 * st3 * ct2) + (st2 * ct1 * ct3),
         +(st1 * ct2 * ct3) - (st2 * st3 * ct1),
@@ -186,8 +187,8 @@ inline constexpr detail::quat<T> quat_from_euler_YXZ(T t1, T t2, T t3)
  * @param t3 The rotation angle around the X-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_YZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_YZX(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -201,7 +202,7 @@ inline constexpr detail::quat<T> quat_from_euler_YZX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         -(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         +(st1 * st2 * ct3) + (st3 * ct1 * ct2),
         +(st1 * ct2 * ct3) + (st2 * st3 * ct1),
@@ -220,8 +221,8 @@ inline constexpr detail::quat<T> quat_from_euler_YZX(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Y-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_YXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_YXY(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -230,7 +231,7 @@ inline constexpr detail::quat<T> quat_from_euler_YXY(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         +st2 * math::cos(t1m3),
         +ct2 * math::sin(t1p3),
@@ -249,8 +250,8 @@ inline constexpr detail::quat<T> quat_from_euler_YXY(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Y-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_YZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_YZY(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -259,7 +260,7 @@ inline constexpr detail::quat<T> quat_from_euler_YZY(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         +st2 * math::sin(t1m3),
         +ct2 * math::sin(t1p3),
@@ -278,8 +279,8 @@ inline constexpr detail::quat<T> quat_from_euler_YZY(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Y-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_ZXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_ZXY(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -293,7 +294,7 @@ inline constexpr detail::quat<T> quat_from_euler_ZXY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         -(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         -(st1 * st3 * ct2) + (st2 * ct1 * ct3),
         +(st1 * st2 * ct3) + (st3 * ct1 * ct2),
@@ -312,8 +313,8 @@ inline constexpr detail::quat<T> quat_from_euler_ZXY(T t1, T t2, T t3)
  * @param t3 The rotation angle around the X-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_ZYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_ZYX(T t1, T t2, T t3)
 {
     t1 *= static_cast<T>(0.5);
     t2 *= static_cast<T>(0.5);
@@ -327,7 +328,7 @@ inline constexpr detail::quat<T> quat_from_euler_ZYX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +(st1 * st2 * st3) + (ct1 * ct2 * ct3),
         -(st1 * st2 * ct3) + (st3 * ct1 * ct2),
         +(st1 * st3 * ct2) + (st2 * ct1 * ct3),
@@ -346,8 +347,8 @@ inline constexpr detail::quat<T> quat_from_euler_ZYX(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Z-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_ZXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_ZXZ(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -356,7 +357,7 @@ inline constexpr detail::quat<T> quat_from_euler_ZXZ(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         +st2 * math::cos(t1m3),
         +st2 * math::sin(t1m3),
@@ -375,8 +376,8 @@ inline constexpr detail::quat<T> quat_from_euler_ZXZ(T t1, T t2, T t3)
  * @param t3 The rotation angle around the Z-axis in radians.
  * @return The quaternion representing the rotation.
  */
-template <typename T>
-inline constexpr detail::quat<T> quat_from_euler_ZYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr quat_t<T> quat_from_euler_ZYZ(T t1, T t2, T t3)
 {
     const T t1p3 = (t1 + t3) * static_cast<T>(0.5);
     const T t1m3 = (t1 - t3) * static_cast<T>(0.5);
@@ -385,7 +386,7 @@ inline constexpr detail::quat<T> quat_from_euler_ZYZ(T t1, T t2, T t3)
     const T ct2 = math::cos(t2);
     const T st2 = math::sin(t2);
 
-    return detail::quat<T>(
+    return quat_t<T>(
         +ct2 * math::cos(t1p3),
         -st2 * math::sin(t1m3),
         +st2 * math::cos(t1m3),
@@ -404,10 +405,10 @@ inline constexpr detail::quat<T> quat_from_euler_ZYZ(T t1, T t2, T t3)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_XYZ(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_XYZ(const quat_t<T>& q)
 {
-    return mat3_to_euler_XYZ(detail::mat3x<T>(q));
+    return mat3_to_euler_XYZ(q.to_mat3());
 }
 
 /**
@@ -419,10 +420,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_XYZ(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_XZY(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_XZY(const quat_t<T>& q)
 {
-    return mat3_to_euler_XZY(detail::mat3x<T>(q));
+    return mat3_to_euler_XZY(q.to_mat3());
 }
 
 /**
@@ -434,10 +435,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_XZY(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_XYX(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_XYX(const quat_t<T>& q)
 {
-    return mat3_to_euler_XYX(detail::mat3x<T>(q));
+    return mat3_to_euler_XYX(q.to_mat3());
 }
 
 /**
@@ -449,10 +450,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_XYX(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_XZX(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_XZX(const quat_t<T>& q)
 {
-    return mat3_to_euler_XZX(detail::mat3x<T>(q));
+    return mat3_to_euler_XZX(q.to_mat3());
 }
 
 /**
@@ -464,10 +465,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_XZX(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_YXZ(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_YXZ(const quat_t<T>& q)
 {
-    return mat3_to_euler_YXZ(detail::mat3x<T>(q));
+    return mat3_to_euler_YXZ(q.to_mat3());
 }
 
 /**
@@ -479,10 +480,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_YXZ(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_YZX(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_YZX(const quat_t<T>& q)
 {
-    return mat3_to_euler_YZX(detail::mat3x<T>(q));
+    return mat3_to_euler_YZX(q.to_mat3());
 }
 
 /**
@@ -494,10 +495,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_YZX(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_YXY(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_YXY(const quat_t<T>& q)
 {
-    return mat3_to_euler_YXY(detail::mat3x<T>(q));
+    return mat3_to_euler_YXY(q.to_mat3());
 }
 
 /**
@@ -509,10 +510,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_YXY(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_YZY(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_YZY(const quat_t<T>& q)
 {
-    return mat3_to_euler_YZY(detail::mat3x<T>(q));
+    return mat3_to_euler_YZY(q.to_mat3());
 }
 
 /**
@@ -524,10 +525,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_YZY(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_ZXY(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_ZXY(const quat_t<T>& q)
 {
-    return mat3_to_euler_ZXY(detail::mat3x<T>(q));
+    return mat3_to_euler_ZXY(q.to_mat3());
 }
 
 /**
@@ -539,10 +540,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_ZXY(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_ZYX(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_ZYX(const quat_t<T>& q)
 {
-    return mat3_to_euler_ZYX(detail::mat3x<T>(q));
+    return mat3_to_euler_ZYX(q.to_mat3());
 }
 
 /**
@@ -554,10 +555,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_ZYX(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_ZXZ(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_ZXZ(const quat_t<T>& q)
 {
-    return mat3_to_euler_ZXZ(detail::mat3x<T>(q));
+    return mat3_to_euler_ZXZ(q.to_mat3());
 }
 
 /**
@@ -569,10 +570,10 @@ inline constexpr detail::vecx<3, T> quat_to_euler_ZXZ(const detail::quat<T>& q)
  * @param q The quaternion to convert.
  * @return A vector containing the Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> quat_to_euler_ZYZ(const detail::quat<T>& q)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> quat_to_euler_ZYZ(const quat_t<T>& q)
 {
-    return mat3_to_euler_ZYZ(detail::mat3x<T>(q));
+    return mat3_to_euler_ZYZ(q.to_mat3());
 }
 
 // =============== mat3 ===============
@@ -593,8 +594,8 @@ inline constexpr detail::vecx<3, T> quat_to_euler_ZYZ(const detail::quat<T>& q)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_XYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_XYZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -604,7 +605,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XYZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct2 * ct3),
         +(st1 * st2 * ct3) + (ct1 * st3),
         -(ct1 * st2 * ct3) + (st1 * st3),
@@ -631,8 +632,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XYZ(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_XZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_XZY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -642,7 +643,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XZY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct2 * ct3),
         +(ct1 * st2 * ct3) + (st1 * st3),
         +(st1 * st2 * ct3) - (ct1 * st3),
@@ -669,8 +670,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XZY(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_XYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_XYX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -680,7 +681,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XYX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct2),
         +(st1 * st2),
         -(ct1 * st2),
@@ -707,8 +708,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XYX(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_XZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_XZX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -718,7 +719,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XZX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct2),
         +(ct1 * st2),
         +(st1 * st2),
@@ -745,8 +746,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_XZX(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_YXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_YXZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -756,7 +757,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YXZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(st1 * st2 * st3) + (ct1 * ct3),
         +(ct2 * st3),
         +(ct1 * st2 * st3) - (st1 * ct3),
@@ -783,8 +784,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YXZ(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_YZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_YZX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -794,7 +795,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YZX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct1 * ct2),
         +(st2),
         -(st1 * ct2),
@@ -821,8 +822,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YZX(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_YXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_YXY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -832,7 +833,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YXY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         -(st1 * ct2 * st3) + (ct1 * ct3),
         +(st2 * st3),
         -(ct1 * ct2 * st3) - (st1 * ct3),
@@ -859,8 +860,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YXY(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_YZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_YZY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -870,7 +871,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YZY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct1 * ct2 * ct3) - (st1 * st3),
         +(st2 * ct3),
         -(st1 * ct2 * ct3) - (ct1 * st3),
@@ -897,8 +898,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_YZY(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_ZXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_ZXY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -908,7 +909,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZXY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         -(st1 * st2 * st3) + (ct1 * ct3),
         +(ct1 * st2 * st3) + (st1 * ct3),
         -(ct2 * st3),
@@ -935,8 +936,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZXY(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_ZYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_ZYX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -946,7 +947,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZYX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct1 * ct2),
         +(st1 * ct2),
         -(st2),
@@ -973,8 +974,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZYX(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_ZXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_ZXZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -984,7 +985,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZXZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         -(st1 * ct2 * st3) + (ct1 * ct3),
         +(ct1 * ct2 * st3) + (st1 * ct3),
         +(st2 * st3),
@@ -1011,8 +1012,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZXZ(T t1, T t2, T t3)
  *
  * @return The 3x3 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat3x<T> mat3_from_euler_ZYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<3, 3, T> mat3_from_euler_ZYZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1022,7 +1023,7 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZYZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +(ct1 * ct2 * ct3) - (st1 * st3),
         +(st1 * ct2 * ct3) + (ct1 * st3),
         -(st2 * ct3),
@@ -1048,8 +1049,8 @@ inline constexpr detail::mat3x<T> mat3_from_euler_ZYZ(T t1, T t2, T t3)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_XYZ(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_XYZ(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].y, m.columns[2].z);
     const T c2 = math::sqrt(m.columns[0].x * m.columns[0].x + m.columns[1].x * m.columns[1].x);
@@ -1058,7 +1059,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XYZ(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[0].z - c1 * m.columns[0].y, c1 * m.columns[1].y - s1 * m.columns[1].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         -t1,
         -t2,
         -t3
@@ -1074,8 +1075,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XYZ(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_XZY(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_XZY(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].z, m.columns[1].y);
     const T c2 = math::sqrt(m.columns[0].x * m.columns[0].x + m.columns[2].x * m.columns[2].x);
@@ -1084,7 +1085,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XZY(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[0].y - c1 * m.columns[0].z, c1 * m.columns[2].z - s1 * m.columns[2].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1100,8 +1101,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XZY(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_XYX(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_XYX(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].y, -m.columns[0].z);
     const T s2 = math::sqrt(m.columns[1].x * m.columns[1].x + m.columns[2].x * m.columns[2].x);
@@ -1110,7 +1111,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XYX(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-c1 * m.columns[2].y - s1 * m.columns[2].z, c1 * m.columns[1].y + s1 * m.columns[1].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1126,8 +1127,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XYX(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_XZX(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_XZX(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].z, m.columns[0].y);
     const T s2 = math::sqrt(m.columns[1].x * m.columns[1].x + m.columns[2].x * m.columns[2].x);
@@ -1136,7 +1137,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XZX(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[1].z - s1 * m.columns[1].y, c1 * m.columns[2].z - s1 * m.columns[2].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1152,8 +1153,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_XZX(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_YXZ(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_YXZ(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].x, m.columns[2].z);
     const T c2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[1].y * m.columns[1].y);
@@ -1162,7 +1163,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YXZ(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[1].z - c1 * m.columns[1].x, c1 * m.columns[0].x - s1 * m.columns[0].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1178,8 +1179,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YXZ(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_YZX(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_YZX(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(-m.columns[0].z, m.columns[0].x);
     const T c2 = math::sqrt(m.columns[1].y * m.columns[1].y + m.columns[2].y * m.columns[2].y);
@@ -1188,7 +1189,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YZX(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[1].x + c1 * m.columns[1].z, s1 * m.columns[2].x + c1 * m.columns[2].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1204,8 +1205,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YZX(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_YXY(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_YXY(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].x, m.columns[1].z);
     const T s2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[2].y * m.columns[2].y);
@@ -1214,7 +1215,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YXY(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[2].x - s1 * m.columns[2].z, c1 * m.columns[0].x - s1 * m.columns[0].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1230,8 +1231,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YXY(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_YZY(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_YZY(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].z, -m.columns[1].x);
     const T s2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[2].y * m.columns[2].y);
@@ -1240,7 +1241,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YZY(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-s1 * m.columns[0].x - c1 * m.columns[0].z, s1 * m.columns[2].x + c1 * m.columns[2].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1256,8 +1257,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_YZY(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_ZXY(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_ZXY(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(-m.columns[1].x, m.columns[1].y);
     const T c2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[2].z * m.columns[2].z);
@@ -1266,7 +1267,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZXY(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[2].x + s1 * m.columns[2].y, c1 * m.columns[0].x + s1 * m.columns[0].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1282,8 +1283,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZXY(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_ZYX(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_ZYX(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].y, m.columns[0].x);
     const T c2 = math::sqrt(m.columns[1].z * m.columns[1].z + m.columns[2].z * m.columns[2].z);
@@ -1292,7 +1293,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZYX(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[2].x - c1 * m.columns[2].y, c1 * m.columns[1].y - s1 * m.columns[1].x);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1308,8 +1309,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZYX(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_ZXZ(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_ZXZ(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].x, -m.columns[2].y);
     const T s2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[1].z * m.columns[1].z);
@@ -1318,7 +1319,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZXZ(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-c1 * m.columns[1].x - s1 * m.columns[1].y, c1 * m.columns[0].x + s1 * m.columns[0].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1334,8 +1335,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZXZ(const detail::mat3x<T>& m)
  * @param m The 3x3 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat3_to_euler_ZYZ(const detail::mat3x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat3_to_euler_ZYZ(const mat<3, 3, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].y, m.columns[2].x);
     const T s2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[1].z * m.columns[1].z);
@@ -1344,7 +1345,7 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZYZ(const detail::mat3x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[0].y - s1 * m.columns[0].x, c1 * m.columns[1].y - s1 * m.columns[1].x);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1369,8 +1370,8 @@ inline constexpr detail::vecx<3, T> mat3_to_euler_ZYZ(const detail::mat3x<T>& m)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_XYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_XYZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1380,7 +1381,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XYZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct2 * ct3),
         +(st1 * st2 * ct3) + (ct1 * st3),
         -(ct1 * st2 * ct3) + (st1 * st3),
@@ -1415,8 +1416,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XYZ(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_XZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_XZY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1426,7 +1427,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XZY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct2 * ct3),
         +(ct1 * st2 * ct3) + (st1 * st3),
         +(st1 * st2 * ct3) - (ct1 * st3),
@@ -1461,8 +1462,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XZY(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_XYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_XYX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1472,7 +1473,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XYX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct2),
         +(st1 * st2),
         -(ct1 * st2),
@@ -1507,8 +1508,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XYX(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_XZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_XZX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1518,7 +1519,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XZX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct2),
         +(ct1 * st2),
         +(st1 * st2),
@@ -1553,8 +1554,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_XZX(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_YXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_YXZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1564,7 +1565,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YXZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(st1 * st2 * st3) + (ct1 * ct3),
         +(ct2 * st3),
         +(ct1 * st2 * st3) - (st1 * ct3),
@@ -1599,8 +1600,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YXZ(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_YZX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_YZX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1610,7 +1611,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YZX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct1 * ct2),
         +(st2),
         -(st1 * ct2),
@@ -1645,8 +1646,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YZX(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_YXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_YXY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1656,7 +1657,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YXY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         -(st1 * ct2 * st3) + (ct1 * ct3),
         +(st2 * st3),
         -(ct1 * ct2 * st3) - (st1 * ct3),
@@ -1691,8 +1692,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YXY(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_YZY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_YZY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1702,7 +1703,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YZY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct1 * ct2 * ct3) - (st1 * st3),
         +(st2 * ct3),
         -(st1 * ct2 * ct3) - (ct1 * st3),
@@ -1737,8 +1738,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_YZY(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_ZXY(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_ZXY(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1748,7 +1749,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZXY(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         -(st1 * st2 * st3) + (ct1 * ct3),
         +(ct1 * st2 * st3) + (st1 * ct3),
         -(ct2 * st3),
@@ -1783,8 +1784,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZXY(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_ZYX(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_ZYX(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1794,7 +1795,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZYX(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct1 * ct2),
         +(st1 * ct2),
         -(st2),
@@ -1829,8 +1830,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZYX(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_ZXZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_ZXZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1840,7 +1841,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZXZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         -(st1 * ct2 * st3) + (ct1 * ct3),
         +(ct1 * ct2 * st3) + (st1 * ct3),
         +(st2 * st3),
@@ -1875,8 +1876,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZXZ(T t1, T t2, T t3)
  *
  * @return The 4x4 rotation matrix.
  */
-template <typename T>
-inline constexpr detail::mat4x<T> mat4_from_euler_ZYZ(T t1, T t2, T t3)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<4, 4, T> mat4_from_euler_ZYZ(T t1, T t2, T t3)
 {
     const T ct1 = math::cos(t1);
     const T ct2 = math::cos(t2);
@@ -1886,7 +1887,7 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZYZ(T t1, T t2, T t3)
     const T st2 = math::sin(t2);
     const T st3 = math::sin(t3);
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +(ct1 * ct2 * ct3) - (st1 * st3),
         +(st1 * ct2 * ct3) + (ct1 * st3),
         -(st2 * ct3),
@@ -1920,8 +1921,8 @@ inline constexpr detail::mat4x<T> mat4_from_euler_ZYZ(T t1, T t2, T t3)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_XYZ(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_XYZ(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].y, m.columns[2].z);
     const T c2 = math::sqrt(m.columns[0].x * m.columns[0].x + m.columns[1].x * m.columns[1].x);
@@ -1930,7 +1931,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XYZ(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[0].z - c1 * m.columns[0].y, c1 * m.columns[1].y - s1 * m.columns[1].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         -t1,
         -t2,
         -t3
@@ -1946,8 +1947,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XYZ(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_XZY(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_XZY(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].z, m.columns[1].y);
     const T c2 = math::sqrt(m.columns[0].x * m.columns[0].x + m.columns[2].x * m.columns[2].x);
@@ -1956,7 +1957,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XZY(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[0].y - c1 * m.columns[0].z, c1 * m.columns[2].z - s1 * m.columns[2].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1972,8 +1973,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XZY(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_XYX(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_XYX(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].y, -m.columns[0].z);
     const T s2 = math::sqrt(m.columns[1].x * m.columns[1].x + m.columns[2].x * m.columns[2].x);
@@ -1982,7 +1983,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XYX(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-c1 * m.columns[2].y - s1 * m.columns[2].z, c1 * m.columns[1].y + s1 * m.columns[1].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -1998,8 +1999,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XYX(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_XZX(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_XZX(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].z, m.columns[0].y);
     const T s2 = math::sqrt(m.columns[1].x * m.columns[1].x + m.columns[2].x * m.columns[2].x);
@@ -2008,7 +2009,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XZX(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[1].z - s1 * m.columns[1].y, c1 * m.columns[2].z - s1 * m.columns[2].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2024,8 +2025,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_XZX(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_YXZ(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_YXZ(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].x, m.columns[2].z);
     const T c2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[1].y * m.columns[1].y);
@@ -2034,7 +2035,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YXZ(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[1].z - c1 * m.columns[1].x, c1 * m.columns[0].x - s1 * m.columns[0].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2050,8 +2051,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YXZ(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_YZX(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_YZX(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(-m.columns[0].z, m.columns[0].x);
     const T c2 = math::sqrt(m.columns[1].y * m.columns[1].y + m.columns[2].y * m.columns[2].y);
@@ -2060,7 +2061,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YZX(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[1].x + c1 * m.columns[1].z, s1 * m.columns[2].x + c1 * m.columns[2].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2076,8 +2077,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YZX(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_YXY(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_YXY(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].x, m.columns[1].z);
     const T s2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[2].y * m.columns[2].y);
@@ -2086,7 +2087,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YXY(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[2].x - s1 * m.columns[2].z, c1 * m.columns[0].x - s1 * m.columns[0].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2102,8 +2103,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YXY(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_YZY(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_YZY(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[1].z, -m.columns[1].x);
     const T s2 = math::sqrt(m.columns[0].y * m.columns[0].y + m.columns[2].y * m.columns[2].y);
@@ -2112,7 +2113,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YZY(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-s1 * m.columns[0].x - c1 * m.columns[0].z, s1 * m.columns[2].x + c1 * m.columns[2].z);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2128,8 +2129,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_YZY(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_ZXY(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_ZXY(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(-m.columns[1].x, m.columns[1].y);
     const T c2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[2].z * m.columns[2].z);
@@ -2138,7 +2139,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZXY(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[2].x + s1 * m.columns[2].y, c1 * m.columns[0].x + s1 * m.columns[0].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2154,8 +2155,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZXY(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_ZYX(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_ZYX(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[0].y, m.columns[0].x);
     const T c2 = math::sqrt(m.columns[1].z * m.columns[1].z + m.columns[2].z * m.columns[2].z);
@@ -2164,7 +2165,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZYX(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(s1 * m.columns[2].x - c1 * m.columns[2].y, c1 * m.columns[1].y - s1 * m.columns[1].x);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2180,8 +2181,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZYX(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_ZXZ(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_ZXZ(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].x, -m.columns[2].y);
     const T s2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[1].z * m.columns[1].z);
@@ -2190,7 +2191,7 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZXZ(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(-c1 * m.columns[1].x - s1 * m.columns[1].y, c1 * m.columns[0].x + s1 * m.columns[0].y);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
@@ -2206,8 +2207,8 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZXZ(const detail::mat4x<T>& m)
  * @param m The 4x4 rotation matrix.
  * @return The Euler angles (t1, t2, t3) in radians.
  */
-template <typename T>
-inline constexpr detail::vecx<3, T> mat4_to_euler_ZYZ(const detail::mat4x<T>& m)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> mat4_to_euler_ZYZ(const mat<4, 4, T>& m)
 {
     const T t1 = math::atan2(m.columns[2].y, m.columns[2].x);
     const T s2 = math::sqrt(m.columns[0].z * m.columns[0].z + m.columns[1].z * m.columns[1].z);
@@ -2216,13 +2217,14 @@ inline constexpr detail::vecx<3, T> mat4_to_euler_ZYZ(const detail::mat4x<T>& m)
     const T c1 = math::cos(t1);
     const T t3 = math::atan2(c1 * m.columns[0].y - s1 * m.columns[0].x, c1 * m.columns[1].y - s1 * m.columns[1].x);
 
-    return detail::vecx<3, T>(
+    return vec<3, T>(
         t1,
         t2,
         t3
     );
 }
 
+}
 }
 }
 }

@@ -1,17 +1,17 @@
 #pragma once
 
-#include "detail/base_type_defs.h"
-#include "../math/fn_comparison.h"
+#include "../detail/base_types.h"
+#include "../../math/fn/fn_comparison.h"
 
 namespace vx {
 namespace math {
 
 // =============== is_equal_approx ===============
 
-template <typename T>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr bool is_equal_approx(
-    const detail::rectf<T>& a,
-    const detail::rectf<T>& b,
+    const rect_t<T>& a,
+    const rect_t<T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -21,9 +21,9 @@ inline constexpr bool is_equal_approx(
 
 // =============== is_zero_approx ===============
 
-template <typename T>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr bool is_zero_approx(
-    const detail::rectf<T>& x,
+    const rect_t<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -33,8 +33,8 @@ inline constexpr bool is_zero_approx(
 
 // =============== is_finite ===============
 
-template <typename T>
-inline constexpr bool is_finite(const detail::rectf<T>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_finite(const rect_t<T>& x)
 {
     return math::is_finite(x.position)
         && math::is_finite(x.size);
@@ -42,8 +42,8 @@ inline constexpr bool is_finite(const detail::rectf<T>& x)
 
 // =============== is_infinite ===============
 
-template <typename T>
-inline constexpr bool is_infinite(const detail::rectf<T>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_infinite(const rect_t<T>& x)
 {
     return math::is_infinite(x.position)
         || math::is_infinite(x.size);
@@ -51,8 +51,8 @@ inline constexpr bool is_infinite(const detail::rectf<T>& x)
 
 // =============== is_nan ===============
 
-template <typename T>
-inline constexpr bool is_nan(const detail::rectf<T>& x)
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_nan(const rect_t<T>& x)
 {
     return math::is_nan(x.position)
         || math::is_nan(x.size);
@@ -60,13 +60,13 @@ inline constexpr bool is_nan(const detail::rectf<T>& x)
 
 // =============== round_if_close ===============
 
-template <typename T>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto round_if_close(
-    const detail::rectf<T>& x,
+    const rect_t<T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::rectf<T>(
+    return rect_t<T>(
         math::round_if_close(x.position, epsilon),
         math::round_if_close(x.size, epsilon)
     );

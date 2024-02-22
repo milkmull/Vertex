@@ -25,7 +25,7 @@ struct quat_t
     using value_type = T;
     using type = quat_t<T>;
 
-    using size_type = length_type;
+    using size_type = math::size_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
 
     using iterator = ::vx::detail::iterator<T>;
@@ -73,78 +73,6 @@ struct quat_t
         , x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}
-
-    // =============== conversion matrix constructors ===============
-
-     /**
-      * @brief Explicit constructor from a 3x3 matrix.
-      * @param m The 3x3 matrix to convert into a quaternion.
-      *
-      * This constructor creates a quaternion from a 3x3 matrix. The matrix is assumed to be a rotation matrix,
-      * and the quaternion represents the rotation. The matrix is used to determine the rotation axis and angle.
-      * The resulting quaternion is normalized.
-      *
-      * @param m The 3x3 matrix representing a rotation.
-      * 
-      * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
-      */
-    inline constexpr explicit quat_t(const mat3_t<T>& m)
-    {
-        const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
-
-        if (trace > static_cast<T>(0))
-        {
-            const T s = math::sqrt(static_cast<T>(1) + trace) * static_cast<T>(2);
-            const T invs = static_cast<T>(1) / s;
-
-            w = s * static_cast<T>(0.25);
-            x = (m.columns[2].y - m.columns[1].z) * invs;
-            y = (m.columns[0].z - m.columns[2].x) * invs;
-            z = (m.columns[1].x - m.columns[0].y) * invs;
-        }
-        else if (m.columns[0].x > m.columns[1].y && m.columns[0].x > m.columns[2].z)
-        {
-            const T s = math::sqrt(static_cast<T>(1) + m.columns[0].x - m.columns[1].y - m.columns[2].z) * static_cast<T>(2);
-            const T invs = static_cast<T>(1) / s;
-
-            w = (m.columns[2].y - m.columns[1].z) * invs;
-            x = s * static_cast<T>(0.25);
-            y = (m.columns[0].y + m.columns[1].x) * invs;
-            z = (m.columns[0].z + m.columns[2].x) * invs;
-        }
-        else if (m.columns[1].y > m.columns[2].z)
-        {
-            const T s = math::sqrt(static_cast<T>(1) + m.columns[1].y - m.columns[0].x - m.columns[2].z) * static_cast<T>(2);
-            const T invs = static_cast<T>(1) / s;
-
-            w = (m.columns[2].x - m.columns[0].z) * invs;
-            x = (m.columns[0].y + m.columns[1].x) * invs;
-            y = s * static_cast<T>(0.25);
-            z = (m.columns[1].z + m.columns[2].y) * invs;
-        }
-        else
-        {
-            const T s = math::sqrt(static_cast<T>(1) + m.columns[2].z - m.columns[0].x - m.columns[1].y) * static_cast<T>(2);
-            const T invs = static_cast<T>(1) / s;
-
-            w = (m.columns[1].x - m.columns[0].y) * invs;
-            x = (m.columns[0].z + m.columns[2].x) * invs;
-            y = (m.columns[1].z + m.columns[2].y) * invs;
-            z = s * static_cast<T>(0.25);
-        }
-    }
-
-    /**
-     * @brief Explicit constructor from a 4x4 matrix.
-     *
-     * This constructor creates a quaternion from a 4x4 matrix. The matrix is assumed to be a rotation matrix,
-     * and the quaternion represents the rotation. The rotation is extracted from the upper-left 3x3 submatrix of the
-     * 4x4 matrix, and the resulting quaternion is normalized.
-     *
-     * @param m The 4x4 matrix representing a rotation.
-     */
-    inline constexpr explicit quat_t(const mat4_t<T>& m)
-        : type(mat3_t<T>(m)) {}
 
     // =============== destructor ===============
 
@@ -438,7 +366,7 @@ struct quat_t
      */
     inline constexpr type conjugate() const
     {
-        return math::conjugate(*this);
+        return type(w, -x, -y, -z);
     }
 
     /**
@@ -451,7 +379,7 @@ struct quat_t
      */
     inline constexpr type invert() const
     {
-        return math::invert(*this);
+        return conjugate() / magnitude_squared();
     }
 
     /**
@@ -575,6 +503,230 @@ struct quat_t
         );
     }
 
+    // =============== axis angle ===============
+
+    /**
+     * @brief Creates a quaternion from an axis and an angle.
+     *
+     * Given a normalized 3D vector 'axis' and an angle in radians, this function
+     * computes a quaternion representing the rotation around the specified axis.
+     *
+     * @param axis The normalized rotation axis.
+     * @param angle The rotation angle in radians.
+     * @return The quaternion representing the rotation around the specified axis.
+     */
+    static inline constexpr type from_axis_angle(const vec3_t<T>& axis, T angle)
+    {
+        const vec3_t<T> naxis = math::normalize(axis);
+
+        const T sina2 = math::sin(angle * static_cast<T>(0.5));
+        const T cosa2 = math::cos(angle * static_cast<T>(0.5));
+
+        return type(cosa2, naxis * sina2);
+    }
+
+    /**
+     * @brief Retrieves the rotation axis of this quaternion.
+     *
+     * This function calculates and returns the 3D vector representing the rotation axis
+     * of this normalized quaternion. If the quaternion represents no rotation (angle is 0),
+     * it returns the positive y-axis.
+     *
+     * @return The rotation axis of this quaternion.
+     * 
+     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+     * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
+     */
+    inline constexpr vec3_t<T> axis() const
+    {
+        const T nw = normalize().w;
+        const T s2 = static_cast<T>(1) - (nw * nw);
+
+        if (s2 < math::epsilon<T>)
+        {
+            // This indicates that the angle is 0 degrees and thus,
+            // the axis does not matter. We choose the +y axis.
+            return vec<3, T>::UP();
+        }
+
+        const T invs = math::inverse_sqrt(s2);
+        return vec<3, T>(
+            x * invs,
+            y * invs,
+            z * invs
+        );
+    }
+
+    /**
+     * @brief Retrieves the rotation angle of this quaternion.
+     *
+     * This function calculates and returns the rotation angle (in radians) represented
+     * by this normalized quaternion. The angle is twice the arccosine of the scalar (w)
+     * component of the quaternion.
+     *
+     * @return The rotation angle of this quaternion in radians.
+     */
+    inline constexpr T angle() const
+    {
+        return static_cast<T>(2) * math::acos_clamped(normalize().w);
+    }
+
+    // =============== euler angles ===============
+
+    template <typename T>
+    static inline constexpr type from_euler_angles(T x, T y, T z)
+    {
+        x *= static_cast<T>(0.5);
+        y *= static_cast<T>(0.5);
+        z *= static_cast<T>(0.5);
+
+        const T cx = math::cos(x);
+        const T cy = math::cos(y);
+        const T cz = math::cos(z);
+
+        const T sx = math::sin(x);
+        const T sy = math::sin(y);
+        const T sz = math::sin(z);
+
+        return type(
+            -(sx * sy * sz) + (cx * cy * cz),
+            +(sx * cy * cz) + (sy * sz * cx),
+            -(sx * sz * cy) + (sy * cx * cz),
+            +(sx * sy * cz) + (sz * cx * cy)
+        );
+    }
+
+    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
+
+    inline constexpr vec<3, T> to_euler_angles() const
+    {
+        const type qn = normalize();
+
+        const T qxy = qn.x * qn.y;
+        const T qwz = qn.w * qn.z;
+
+        const T test = qxy + qwz;
+
+        if (test > static_cast<T>(0.5) - math::epsilon<T>)
+        {
+            // singularity at north pole
+            return vec<3, T>(
+                static_cast<T>(2) * math::atan2(qn.x, qn.w),
+                math::half_pi<T>,
+                static_cast<T>(0)
+            );
+        }
+        if (test < static_cast<T>(-0.5) + math::epsilon<T>)
+        {
+            // singularity at south pole
+            return vec<3, T>(
+                static_cast<T>(-2) * math::atan2(qn.x, qn.w),
+                -math::half_pi<T>,
+                static_cast<T>(0)
+            );
+        }
+
+        const T qxx = qn.x * qn.x;
+        const T qyy = qn.y * qn.y;
+        const T qzz = qn.z * qn.z;
+        const T qww = qn.w * qn.w;
+        const T qxz = qn.x * qn.z;
+        const T qyz = qn.y * qn.z;
+        const T qwx = qn.w * qn.x;
+        const T qwy = qn.w * qn.y;
+
+        return vec<3, T>(
+            math::atan2(static_cast<T>(2) * (qwy - qxz), qxx - qyy - qzz + qww),
+            math::asin( static_cast<T>(2) * test),
+            math::atan2(static_cast<T>(2) * (qwx - qyz), qyy - qxx - qzz + qww)
+        );
+    }
+
+    // =============== matrix conversions ===============
+
+    static inline constexpr type from_mat3(const mat<3, 3, T>& m)
+    {
+        const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
+
+        if (trace > static_cast<T>(0))
+        {
+            const T s = math::sqrt(static_cast<T>(1) + trace) * static_cast<T>(2);
+            const T invs = static_cast<T>(1) / s;
+
+            return type(
+                s * static_cast<T>(0.25),
+                (m.columns[2].y - m.columns[1].z) * invs,
+                (m.columns[0].z - m.columns[2].x) * invs,
+                (m.columns[1].x - m.columns[0].y) * invs
+            );
+        }
+        else if (m.columns[0].x > m.columns[1].y && m.columns[0].x > m.columns[2].z)
+        {
+            const T s = math::sqrt(static_cast<T>(1) + m.columns[0].x - m.columns[1].y - m.columns[2].z) * static_cast<T>(2);
+            const T invs = static_cast<T>(1) / s;
+
+            return type(
+                (m.columns[2].y - m.columns[1].z) * invs,
+                s * static_cast<T>(0.25),
+                (m.columns[0].y + m.columns[1].x) * invs,
+                (m.columns[0].z + m.columns[2].x) * invs
+            );
+        }
+        else if (m.columns[1].y > m.columns[2].z)
+        {
+            const T s = math::sqrt(static_cast<T>(1) + m.columns[1].y - m.columns[0].x - m.columns[2].z) * static_cast<T>(2);
+            const T invs = static_cast<T>(1) / s;
+
+            return type(
+                (m.columns[2].x - m.columns[0].z) * invs,
+                (m.columns[0].y + m.columns[1].x) * invs,
+                s * static_cast<T>(0.25),
+                (m.columns[1].z + m.columns[2].y) * invs
+            );
+        }
+        else
+        {
+            const T s = math::sqrt(static_cast<T>(1) + m.columns[2].z - m.columns[0].x - m.columns[1].y) * static_cast<T>(2);
+            const T invs = static_cast<T>(1) / s;
+
+            return type(
+                (m.columns[1].x - m.columns[0].y) * invs,
+                (m.columns[0].z + m.columns[2].x) * invs,
+                (m.columns[1].z + m.columns[2].y) * invs,
+                s * static_cast<T>(0.25)
+            );
+        }
+    }
+
+    inline constexpr mat<3, 3, T> to_mat3() const
+    {
+        const type qn = normalize();
+
+        const T qxx = qn.x * qn.x;
+        const T qyy = qn.y * qn.y;
+        const T qzz = qn.z * qn.z;
+        const T qxz = qn.x * qn.z;
+        const T qxy = qn.x * qn.y;
+        const T qyz = qn.y * qn.z;
+        const T qwx = qn.w * qn.x;
+        const T qwy = qn.w * qn.y;
+        const T qwz = qn.w * qn.z;
+
+        return mat<3, 3, T>(
+            static_cast<T>(1) - static_cast<T>(2) * (qyy + qzz),
+            static_cast<T>(2) * (qxy + qwz),
+            static_cast<T>(2) * (qxz - qwy),
+
+            static_cast<T>(2) * (qxy - qwz),
+            static_cast<T>(1) - static_cast<T>(2) * (qxx + qzz),
+            static_cast<T>(2) * (qyz + qwx),
+
+            static_cast<T>(2) * (qxz + qwy),
+            static_cast<T>(2) * (qyz - qwx),
+            static_cast<T>(1) - static_cast<T>(2) * (qxx + qyy)
+        );
+    }
+
     // =============== look at ===============
 
     /**
@@ -594,7 +746,11 @@ struct quat_t
         const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
-        return type(mat3_t<T>::make_look_at_lh(eye, target, up));
+        const vec<3, T> z = math::normalize(target - eye);
+        const vec<3, T> x = math::normalize(math::cross(math::normalize(up), z));
+        const vec<3, T> y = math::cross(z, x);
+
+        return from_mat3(mat<3, 3, T>(x, y, z));
     }
 
     /**
@@ -614,7 +770,11 @@ struct quat_t
         const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
-        return type(mat3_t<T>::make_look_at_rh(eye, target, up));
+        const vec<3, T> z = math::normalize(eye - target);
+        const vec<3, T> x = math::normalize(math::cross(math::normalize(up), z));
+        const vec<3, T> y = math::cross(z, x);
+
+        return from_mat3(mat<3, 3, T>(x, y, z));
     }
 
     /**
@@ -635,64 +795,11 @@ struct quat_t
         const vec3_t<T>& up = vec3_t<T>::UP()
     )
     {
-#	if VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT
+#	if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT)
         return make_look_at_rotation_lh(eye, target, up);
 #	else
         return make_look_at_rotation_rh(eye, target, up);
 #	endif
-    }
-
-    // =============== axis angle ===============
-
-    /**
-     * @brief Retrieves the rotation axis of this quaternion.
-     *
-     * This function calculates and returns the 3D vector representing the rotation axis
-     * of this normalized quaternion. If the quaternion represents no rotation (angle is 0),
-     * it returns the positive y-axis.
-     *
-     * @return The rotation axis of this quaternion.
-     * 
-     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-     * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
-     */
-    inline constexpr vec3_t<T> axis() const
-    {
-        return math::axis(*this);
-    }
-
-    /**
-     * @brief Retrieves the rotation angle of this quaternion.
-     *
-     * This function calculates and returns the rotation angle (in radians) represented
-     * by this normalized quaternion. The angle is twice the arccosine of the scalar (w)
-     * component of the quaternion.
-     *
-     * @return The rotation angle of this quaternion in radians.
-     */
-    inline constexpr T angle() const
-    {
-        return math::angle(*this);
-    }
-
-    /**
-     * @brief Creates a quaternion from an axis and an angle.
-     *
-     * Given a normalized 3D vector 'axis' and an angle in radians, this function
-     * computes a quaternion representing the rotation around the specified axis.
-     *
-     * @param axis The normalized rotation axis.
-     * @param angle The rotation angle in radians.
-     * @return The quaternion representing the rotation around the specified axis.
-     */
-    static inline constexpr type from_axis_angle(const vec3_t<T>& axis, T angle)
-    {
-        const vec3_t<T> naxis = math::normalize(axis);
-
-        const T sina2 = math::sin(angle * static_cast<T>(0.5));
-        const T cosa2 = math::cos(angle * static_cast<T>(0.5));
-
-        return type(cosa2, naxis * sina2);
     }
 
     // =============== vector transformations ===============

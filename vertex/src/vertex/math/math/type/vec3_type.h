@@ -8,6 +8,8 @@
 namespace vx {
 namespace math {
 
+template <typename T> struct color_t;
+
 VX_PACK_PUSH()
 
 template <typename T>

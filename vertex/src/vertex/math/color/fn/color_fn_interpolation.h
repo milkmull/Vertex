@@ -8,7 +8,7 @@ namespace math {
 
 // =============== lerp ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr color_t<T> lerp(
     const color_t<T>& x,
     const color_t<T>& y,
@@ -18,7 +18,7 @@ inline constexpr color_t<T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool> = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr color_t<T> lerp(
     const color_t<T>& x,
     const color_t<T>& y,

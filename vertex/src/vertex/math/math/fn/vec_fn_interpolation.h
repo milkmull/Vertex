@@ -8,7 +8,7 @@ namespace math {
 
 // =============== lerp ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -18,7 +18,7 @@ inline constexpr vec<L, T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -30,7 +30,7 @@ inline constexpr vec<L, T> lerp(
 
 // =============== step ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<2, T>& x
@@ -42,7 +42,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<3, T>& x
@@ -55,7 +55,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<4, T>& x
@@ -69,7 +69,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<2, T>& edge,
     const vec<2, T>& x
@@ -81,7 +81,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<3, T>& edge,
     const vec<3, T>& x
@@ -94,7 +94,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<4, T>& edge,
     const vec<4, T>& x
@@ -110,7 +110,7 @@ inline constexpr auto step(
 
 // =============== smoothstep ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> smoothstep(
     T edge0,
     T edge1,
@@ -121,7 +121,7 @@ inline constexpr vec<L, T> smoothstep(
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> smoothstep(
     const vec<L, T>& edge0,
     const vec<L, T>& edge1,
@@ -153,7 +153,7 @@ inline constexpr vec<L, T> smoothstep(
  * 
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool> = true>
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> slerp(
     const vec<L, T>& x,
     const vec<L, T>& y,

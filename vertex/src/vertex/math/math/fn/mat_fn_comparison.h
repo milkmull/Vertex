@@ -9,7 +9,7 @@ namespace math {
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::mat<2, 2, T>& x,
+    const mat<2, 2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -19,7 +19,7 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::mat<3, 3, T>& x,
+    const mat<3, 3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -30,7 +30,7 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_zero_approx(
-    const detail::mat<4, 4, T>& x,
+    const mat<4, 4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -44,8 +44,8 @@ inline constexpr bool is_zero_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::mat<2, 2, T>& a,
-    const detail::mat<2, 2, T>& b,
+    const mat<2, 2, T>& a,
+    const mat<2, 2, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -55,8 +55,8 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::mat<3, 3, T>& a,
-    const detail::mat<3, 3, T>& b,
+    const mat<3, 3, T>& a,
+    const mat<3, 3, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -67,8 +67,8 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr bool is_equal_approx(
-    const detail::mat<4, 4, T>& a,
-    const detail::mat<4, 4, T>& b,
+    const mat<4, 4, T>& a,
+    const mat<4, 4, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -82,11 +82,11 @@ inline constexpr bool is_equal_approx(
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::mat<2, 2, T>& x,
+    const mat<2, 2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::mat<2, 2, T>(
+    return mat<2, 2, T>(
         math::round_if_close(x.columns[0], epsilon),
         math::round_if_close(x.columns[1], epsilon)
     );
@@ -94,11 +94,11 @@ inline constexpr auto round_if_close(
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::mat<3, 3, T>& x,
+    const mat<3, 3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::mat<3, 3, T>(
+    return mat<3, 3, T>(
         math::round_if_close(x.columns[0], epsilon),
         math::round_if_close(x.columns[1], epsilon),
         math::round_if_close(x.columns[2], epsilon)
@@ -107,11 +107,11 @@ inline constexpr auto round_if_close(
 
 template <typename T>
 inline constexpr auto round_if_close(
-    const detail::mat<4, 4, T>& x,
+    const mat<4, 4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
-    return detail::mat<4, 4, T>(
+    return mat<4, 4, T>(
         math::round_if_close(x.columns[0], epsilon),
         math::round_if_close(x.columns[1], epsilon),
         math::round_if_close(x.columns[2], epsilon),

@@ -6,7 +6,6 @@
 
 namespace vx {
 namespace math {
-namespace detail {
 
 template <typename T>
 struct mat<2, 2, T>
@@ -18,11 +17,11 @@ struct mat<2, 2, T>
     using value_type = T;
 
     using type = mat<2, 2, T>;
-    using col_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using row_type = vec<2, T, vec_t::vec, val_t::floating_point>;
+    using col_type = vec<2, T>;
+    using row_type = vec<2, T>;
     using transpose_type = mat<2, 2, T>;
 
-    using size_type = length_type;
+    using size_type = math::size_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
     static inline constexpr size_type width() noexcept { return static_cast<size_type>(2); }
     static inline constexpr size_type height() noexcept { return static_cast<size_type>(2); }
@@ -31,13 +30,6 @@ struct mat<2, 2, T>
     using const_iterator = ::vx::detail::iterator<const col_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
-    using vec2_type = vec<2, T, vec_t::vec, val_t::floating_point>;
-    using vec3_type = vec<3, T, vec_t::vec, val_t::floating_point>;
-    using vec4_type = vec<4, T, vec_t::vec, val_t::floating_point>;
-
-    using mat3_type = mat<3, 3, T>;
-    using mat4_type = mat<4, 4, T>;
 
     // =============== data ===============
 
@@ -78,7 +70,7 @@ struct mat<2, 2, T>
         : columns{ col_type(x1, y1), col_type(x2, y2) } {}
 
     template <typename U>
-    inline constexpr mat(const vecx<2, U>& v1, const vecx<2, U>& v2)
+    inline constexpr mat(const vec<2, U>& v1, const vec<2, U>& v2)
         : columns{ v1, v2 } {}
 
     template <typename U>
@@ -163,7 +155,7 @@ struct mat<2, 2, T>
 
     friend inline constexpr type operator+(const type& m)
     {
-        return m;
+        return type(+m.columns[0], +m.columns[1]);
     }
 
     friend inline constexpr type operator-(const type& m)
@@ -432,18 +424,8 @@ struct mat<2, 2, T>
 
     // =============== string ===============
 
-    inline constexpr std::string to_string(bool pretty_print = false) const
+    inline constexpr std::string to_string() const
     {
-        if (pretty_print)
-        {
-            return type(
-                math::make_pretty(columns[0].x),
-                math::make_pretty(columns[0].y),
-                math::make_pretty(columns[1].x),
-                math::make_pretty(columns[1].y)
-            ).to_string();
-        }
-
         size_t wmax = 0;
         for (size_t i = 0; i < 2; i++)
         {
@@ -482,7 +464,7 @@ struct mat<2, 2, T>
      */
     inline constexpr T determinant() const
     {
-        return (columns[0].x * columns[1].y) - (columns[1].x * columns[0].y);
+        return math::determinant(*this);
     }
 
     /**
@@ -494,10 +476,7 @@ struct mat<2, 2, T>
      */
     inline constexpr type transpose() const
     {
-        return type(
-            columns[0].x, columns[1].x,
-            columns[0].y, columns[1].y
-        );
+        return math::transpose(*this);
     }
 
     /**
@@ -510,36 +489,10 @@ struct mat<2, 2, T>
      */
     inline constexpr type invert() const
     {
-        const T det = determinant();
-
-        if (math::is_zero_approx(det))
-        {
-            return type(static_cast<T>(0));
-        }
-
-        const T idet = static_cast<T>(1) / det;
-
-        return type(
-            +columns[1].y * idet,
-            -columns[0].y * idet,
-            -columns[1].x * idet,
-            +columns[0].x * idet
-        );
+        return math::invert(*this);
     }
 
     // =============== comparison and testing ===============
-
-    inline constexpr void set(
-        T x1, T y1,
-        T x2, T y2
-    )
-    {
-        columns[0].x = x1;
-        columns[0].y = y1;
-
-        columns[1].x = x2;
-        columns[1].y = y2;
-    }
 
     inline constexpr row_type get_row(size_type i) const
     {
@@ -564,67 +517,6 @@ struct mat<2, 2, T>
         operator[](i) = column;
     }
 
-    // =============== matrix transform ===============
-
-    /**
-     * @brief Creates a 2x2 rotation matrix.
-     *
-     * This function generates a 2x2 rotation matrix based on the specified angle (in radians).
-     *
-     * @param angle The angle of rotation in radians.
-     * @return The 2x2 rotation matrix.
-     */
-    static inline constexpr type make_rotation(T angle)
-    {
-        const T cosa = math::cos(angle);
-        const T sina = math::sin(angle);
-
-        return type(cosa, sina, -sina, cosa);
-    }
-
-    /**
-     * @brief Retrieves the rotation angle from the 2x2 matrix.
-     *
-     * This function calculates the rotation angle (in radians) from the 2x2 rotation matrix.
-     *
-     * @return The rotation angle.
-     */
-    inline constexpr T get_rotation() const
-    {
-        return math::atan2(columns[0].y, columns[0].x);
-    }
-
-    /**
-     * @brief Creates a 2x2 scaling matrix.
-     *
-     * This function generates a 2x2 scaling matrix based on the specified scaling factors along the x and y axes.
-     *
-     * @param scale The scaling factors along the x and y axes.
-     * @return The 2x2 scaling matrix.
-     */
-    static inline constexpr type make_scale(const vec2_type& scale)
-    {
-        return type(
-            scale.x, static_cast<T>(0),
-            static_cast<T>(0), scale.y
-        );
-    }
-
-    /**
-     * @brief Retrieves the 2D scaling factors from the 2x2 matrix.
-     *
-     * This function calculates the scaling factors along the x and y axes from the 2x2 matrix.
-     *
-     * @return The 2D scaling factors.
-     */
-    inline constexpr vec2_type get_scale() const
-    {
-        return vec2_type(
-            math::length(columns[0]),
-            math::length(columns[1])
-        );
-    }
-
     // =============== constants ===============
 
     static inline constexpr type IDENTITY() { return type(); }
@@ -632,11 +524,9 @@ struct mat<2, 2, T>
 
 };
 
-}
-
-using mat2  = detail::mat<2, 2, float>;
-using mat2f = detail::mat<2, 2, float>;
-using mat2d = detail::mat<2, 2, double>;
+using mat2  = mat<2, 2, float>;
+using mat2f = mat<2, 2, float>;
+using mat2d = mat<2, 2, double>;
 
 }
 }

@@ -12,7 +12,7 @@ template <typename T> using vec4_t = vec<4, T>;
 
 template <typename T> struct quat_t;
 
-template <size_type L, size_type L, typename T> struct mat;
+template <size_type M, size_type N, typename T> struct mat;
 template <typename T> using mat2_t = mat<2, 2, T>;
 template <typename T> using mat3_t = mat<3, 3, T>;
 template <typename T> using mat4_t = mat<4, 4, T>;

@@ -17,18 +17,18 @@ namespace math {
  * @return The transposed matrix.
  */
 template <typename T>
-inline constexpr detail::mat2x<T> transpose(const detail::mat2x<T>& m)
+inline constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
 {
-    return detail::mat2x<T>(
+    return mat<2, 2, T>(
         m.columns[0].x, m.columns[1].x,
         m.columns[0].y, m.columns[1].y
     );
 }
 
 template <typename T>
-inline constexpr detail::mat3x<T> transpose(const detail::mat3x<T>& m)
+inline constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
 {
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x,
         m.columns[0].y, m.columns[1].y, m.columns[2].y,
         m.columns[0].z, m.columns[1].z, m.columns[2].z
@@ -36,9 +36,9 @@ inline constexpr detail::mat3x<T> transpose(const detail::mat3x<T>& m)
 }
 
 template <typename T>
-inline constexpr detail::mat4x<T> transpose(const detail::mat4x<T>& m)
+inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 {
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x, m.columns[3].x,
         m.columns[0].y, m.columns[1].y, m.columns[2].y, m.columns[3].y,
         m.columns[0].z, m.columns[1].z, m.columns[2].z, m.columns[3].z,
@@ -57,13 +57,13 @@ inline constexpr detail::mat4x<T> transpose(const detail::mat4x<T>& m)
  * @return The determinant of the matrix.
  */
 template <typename T>
-inline constexpr T determinant(const detail::mat2x<T>& m)
+inline constexpr T determinant(const mat<2, 2, T>& m)
 {
     return (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
 }
 
 template <typename T>
-inline constexpr T determinant(const detail::mat3x<T>& m)
+inline constexpr T determinant(const mat<3, 3, T>& m)
 {
     return (
         +m.columns[0].x * ((m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z))
@@ -73,7 +73,7 @@ inline constexpr T determinant(const detail::mat3x<T>& m)
 }
 
 template <typename T>
-inline constexpr T determinant(const detail::mat4x<T>& m)
+inline constexpr T determinant(const mat<4, 4, T>& m)
 {
     const T subfac00 = (m.columns[2].z * m.columns[3].w) - (m.columns[2].w * m.columns[3].z);
     const T subfac01 = (m.columns[2].y * m.columns[3].w) - (m.columns[2].w * m.columns[3].y);
@@ -102,18 +102,18 @@ inline constexpr T determinant(const detail::mat4x<T>& m)
  * @return The inverted matrix if invertible, otherwise a matrix with zeros.
  */
 template <typename T>
-inline constexpr detail::mat2x<T> invert(const detail::mat2x<T>& m)
+inline constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
 {
     const T det = determinant(m);
 
     if (math::is_zero_approx(det))
     {
-        return detail::mat2x<T>(static_cast<T>(0));
+        return mat<2, 2, T>(static_cast<T>(0));
     }
 
     const T idet = static_cast<T>(1) / det;
 
-    return detail::mat2x<T>(
+    return mat<2, 2, T>(
         +m.columns[1].y * idet,
         -m.columns[0].y * idet,
         -m.columns[1].x * idet,
@@ -122,18 +122,18 @@ inline constexpr detail::mat2x<T> invert(const detail::mat2x<T>& m)
 }
 
 template <typename T>
-inline constexpr detail::mat3x<T> invert(const detail::mat3x<T>& m)
+inline constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
 {
     const T det = determinant(m);
 
     if (math::is_zero_approx(det))
     {
-        return detail::mat3x<T>(static_cast<T>(0));
+        return mat<3, 3, T>(static_cast<T>(0));
     }
 
     const T idet = static_cast<T>(1) / det;
 
-    return detail::mat3x<T>(
+    return mat<3, 3, T>(
         +((m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z)) * idet,
         -((m.columns[0].y * m.columns[2].z) - (m.columns[2].y * m.columns[0].z)) * idet,
         +((m.columns[0].y * m.columns[1].z) - (m.columns[1].y * m.columns[0].z)) * idet,
@@ -149,7 +149,7 @@ inline constexpr detail::mat3x<T> invert(const detail::mat3x<T>& m)
 }
 
 template <typename T>
-inline constexpr detail::mat4x<T> invert(const detail::mat4x<T>& m)
+inline constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
 {
     const T coef00 = (m.columns[2].z * m.columns[3].w) - (m.columns[3].z * m.columns[2].w);
     const T coef01 = (m.columns[2].y * m.columns[3].w) - (m.columns[3].y * m.columns[2].w);
@@ -184,12 +184,12 @@ inline constexpr detail::mat4x<T> invert(const detail::mat4x<T>& m)
 
     if (math::is_zero_approx(det))
     {
-        return detail::mat4x<T>(static_cast<T>(0));
+        return mat<4, 4, T>(static_cast<T>(0));
     }
 
     const T idet = static_cast<T>(1) / det;
 
-    return detail::mat4x<T>(
+    return mat<4, 4, T>(
         +((m.columns[1].y * coef00) - (m.columns[1].z * coef01) + (m.columns[1].w * coef02)) * idet,
         -((m.columns[0].y * coef00) - (m.columns[0].z * coef01) + (m.columns[0].w * coef02)) * idet,
         +((m.columns[0].y * coef06) - (m.columns[0].z * coef07) + (m.columns[0].w * coef08)) * idet,

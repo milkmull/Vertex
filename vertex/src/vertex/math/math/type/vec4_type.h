@@ -125,7 +125,7 @@ struct vec<4, T>
 
     // =============== destructor ===============
 
-    ~vec4_t() noexcept = default;
+    ~vec() noexcept = default;
 
     // =============== assignment operators ===============
 

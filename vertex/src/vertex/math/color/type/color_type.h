@@ -14,7 +14,7 @@ VX_PACK_PUSH()
 template <typename T>
 struct color_t
 {
-    static_assert(std::is_same<T, float>::value && std::is_same<T, uint8_t>::value, "type T must be float or uint8_t");
+    static_assert(std::is_same<T, float>::value || std::is_same<T, uint8_t>::value, "type T must be float or uint8_t");
 
     // =============== meta ===============
 

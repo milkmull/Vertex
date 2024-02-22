@@ -1,17 +1,14 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/math/color/type/color_type.h"
-#include "vertex/math/color/srgb.h"
+#include "vertex/math/math/transform/matrix3.h"
+#include "vertex/math/math/transform/transform3d.h"
 
 int main()
 {
     using namespace vx;
 
-    constexpr math::color8 c1 = math::color8::RED();
-    constexpr math::color8 c2 = math::color8::GREY();
-    constexpr math::color c3 = c2;
-    constexpr auto y = math::lighten(c2, 0.5);
-    constexpr auto z = math::invert(c3);
+    math::mat3 r = math::transform3d::matrix3::make_rotation(0.2f, 3.95f, -0.3f);
+    math::mat4 r2 = math::transform3d::make_rotation(0.2f, 3.95f, -0.3f);
 
     return 0;
 }

@@ -7,8 +7,8 @@
 #include "image_write.h"
 #include "pixel.h"
 
-#include "vertex/math/math/type/vec2i_type.h"
-#include "vertex/math/geometry/detail/recti_type.h"
+#include "vertex/math/math/type/vec2_type.h"
+#include "vertex/math/geometry/type/rect_type.h"
 
 namespace vx {
 namespace img {
@@ -119,8 +119,8 @@ public:
     inline const byte_type* raw_data() const { return m_data.data(); }
     inline byte_type* raw_data() { return m_data.data(); }
 
-    inline math::vec2ui size() const { return math::vec2ui(m_width, m_height); }
-    inline math::rect2ui get_rect() const { return math::rect2ui(0, 0, m_width, m_height); }
+    inline math::vec2u size() const { return math::vec2u(m_width, m_height); }
+    inline math::rectu get_rect() const { return math::rectu(0, 0, m_width, m_height); }
 
     // =============== comparison ===============
 
