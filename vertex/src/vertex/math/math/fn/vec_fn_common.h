@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fn_common.h"
+#include "../../detail/get_type.h"
 
 namespace vx {
 namespace math {
@@ -659,7 +660,7 @@ inline constexpr vec<4, T> modf(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec<decltype(x)::size(), int>& exp
+    vec<2, typename detail::get_type<int>::type>& exp
 )
 {
     return vec<2, T>(
@@ -671,7 +672,7 @@ inline constexpr vec<2, T> frexp(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<decltype(x)::size(), int>& exp
+    vec<3, typename detail::get_type<int>::type>& exp
 )
 {
     return vec<3, T>(
@@ -684,7 +685,7 @@ inline constexpr vec<3, T> frexp(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<decltype(x)::size(), int>& exp
+    vec<4, typename detail::get_type<int>::type>& exp
 )
 {
     return vec<4, T>(
