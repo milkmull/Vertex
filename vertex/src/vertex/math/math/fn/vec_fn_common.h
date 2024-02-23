@@ -657,24 +657,28 @@ inline constexpr vec<4, T> modf(
 
 // =============== frexp ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec<2, typename detail::get_type<int, T>::type>& exp
+    vec<2, U>& exp
 )
 {
+    static_assert(std::is_same<U, int>::value, "exp must be of type int");
+
     return vec<2, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y)
     );
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<3, typename detail::get_type<int, T>::type>& exp
+    vec<3, int>& exp
 )
 {
+    static_assert(std::is_same<U, int>::value, "exp must be of type int");
+
     return vec<3, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y),
@@ -682,12 +686,14 @@ inline constexpr vec<3, T> frexp(
     );
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<4, typename detail::get_type<int, T>::type>& exp
+    vec<4, int>& exp
 )
 {
+    static_assert(std::is_same<U, int>::value, "exp must be of type int");
+
     return vec<4, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y),

@@ -456,18 +456,6 @@ struct mat<2, 2, T>
     // =============== operations ===============
 
     /**
-     * @brief Computes the determinant of the 2x2 matrix.
-     *
-     * This function calculates the determinant of the 2x2 matrix.
-     *
-     * @return The determinant of the matrix.
-     */
-    inline constexpr T determinant() const
-    {
-        return math::determinant(*this);
-    }
-
-    /**
      * @brief Computes the transpose of the 2x2 matrix.
      *
      * This function calculates the transpose of the 2x2 matrix.
@@ -476,7 +464,22 @@ struct mat<2, 2, T>
      */
     inline constexpr type transpose() const
     {
-        return math::transpose(*this);
+        return type(
+            columns[0].x, columns[1].x,
+            columns[0].y, columns[1].y
+        );
+    }
+
+    /**
+     * @brief Computes the determinant of the 2x2 matrix.
+     *
+     * This function calculates the determinant of the 2x2 matrix.
+     *
+     * @return The determinant of the matrix.
+     */
+    inline constexpr T determinant() const
+    {
+        return (columns[0].x * columns[1].y) - (columns[1].x * columns[0].y);
     }
 
     /**
@@ -489,7 +492,21 @@ struct mat<2, 2, T>
      */
     inline constexpr type invert() const
     {
-        return math::invert(*this);
+        const T det = determinant();
+
+        if (math::is_zero_approx(det))
+        {
+            return type(0);
+        }
+
+        const T idet = static_cast<T>(1) / det;
+
+        return type(
+            +m.columns[1].y * idet,
+            -m.columns[0].y * idet,
+            -m.columns[1].x * idet,
+            +m.columns[0].x * idet
+        );
     }
 
     // =============== comparison and testing ===============
@@ -519,8 +536,8 @@ struct mat<2, 2, T>
 
     // =============== constants ===============
 
-    static inline constexpr type IDENTITY() { return type(); }
-    static inline constexpr type ZERO() { return type(static_cast<T>(0)); }
+    static inline constexpr type IDENTITY() { return type(1); }
+    static inline constexpr type ZERO() { return type(0); }
 
 };
 

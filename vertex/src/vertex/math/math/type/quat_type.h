@@ -59,6 +59,20 @@ struct quat_t
         : w(w), x(x), y(y), z(z) {}
 
     // =============== conversion constructors ===============
+    
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr quat_t(U w, const vec<3, U>& v)
+        : w(static_cast<T>(w))
+        , x(static_cast<T>(v.x))
+        , y(static_cast<T>(v.y))
+        , z(static_cast<T>(v.z)) {}
+
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr quat_t(U w, U x, U y, U z)
+        : w(static_cast<T>(w))
+        , x(static_cast<T>(x))
+        , y(static_cast<T>(y))
+        , z(static_cast<T>(z)) {}
 
     template <typename U>
     inline constexpr explicit quat_t(const quat_t<U>& q)
@@ -421,7 +435,10 @@ struct quat_t
      *
      * @return The squared length of the quaternion.
      */
-    inline constexpr T magnitude_squared() const { return math::length_squared(*this); }
+    inline constexpr T magnitude_squared() const
+    {
+        return (w * w) + (x * x) + (y * y) + (z * z);
+    }
 
     /**
      * @brief Calculates the magnitude of the quaternion.
@@ -430,7 +447,10 @@ struct quat_t
      *
      * @return The magnitude of the quaternion.
      */
-    inline constexpr T magnitude() const { return math::length(*this); }
+    inline constexpr T magnitude() const
+    {
+        return math::sqrt(magnitude_squared());
+    }
 
     /**
      * @brief Normalizes the quaternion.
@@ -442,7 +462,14 @@ struct quat_t
      */
     inline constexpr type normalize() const
     {
-        math::normalize(*this);
+        const T magsq = magnitude_squared();
+
+        if VX_UNLIKELY(magsq < math::epsilon<T>)
+        {
+            return quat_t<T>();
+        }
+
+        return (*this) * math::inverse_sqrt(magsq);
     }
 
     // =============== direction and orientation ===============
@@ -739,7 +766,7 @@ struct quat_t
      * @param up The up vector (default is positive y-axis).
      * @return The quaternion representing the left-handed look-at rotation.
      */
-    static inline constexpr type make_look_at_rotation_lh(
+    static inline constexpr type make_look_at_lh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -763,7 +790,7 @@ struct quat_t
      * @param up The up vector (default is positive y-axis).
      * @return The quaternion representing the right-handed look-at rotation.
      */
-    static inline constexpr type make_look_at_rotation_rh(
+    static inline constexpr type make_look_at_rh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -788,7 +815,7 @@ struct quat_t
      * @param up The up vector (default is positive y-axis).
      * @return The quaternion representing the look-at rotation.
      */
-    static inline constexpr type make_look_at_rotation(
+    static inline constexpr type make_look_at(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -801,26 +828,10 @@ struct quat_t
 #	endif
     }
 
-    // =============== vector transformations ===============
-
-    /**
-     * @brief Rotates a 3D vector using this quaternion.
-     *
-     * Given a 3D vector 'v', this function rotates the vector using this quaternion.
-     * The rotation is performed by quaternion multiplication.
-     *
-     * @param v The 3D vector to be rotated.
-     * @return The rotated 3D vector.
-     */
-    inline constexpr vec<3, T> rotate(const vec<3, T>& v) const
-    {
-        return (*this) * v;
-    }
-
     // =============== constants ===============
 
-    static inline constexpr type IDENTITY() { return type(); }
-    static inline constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static inline constexpr type IDENTITY() { return type(1, 0, 0, 0); }
+    static inline constexpr type ZERO() { return type(0, 0, 0, 0); }
 
 };
 

@@ -112,8 +112,10 @@ inline constexpr quat_t<T> normalize(const quat_t<T>& q)
 {
     const T magsq = length_squared(q);
 
-    if (VX_UNLIKELY(magsq < math::epsilon<T>))
+    if VX_UNLIKELY(magsq < math::epsilon<T>)
+    {
         return quat_t<T>();
+    }
 
     return q * math::inverse_sqrt(magsq);
 }

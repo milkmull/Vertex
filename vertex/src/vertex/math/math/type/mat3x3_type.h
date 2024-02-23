@@ -514,18 +514,6 @@ struct mat<3, 3, T>
     // =============== operations ===============
 
     /**
-     * @brief Calculates the determinant of the 3x3 matrix.
-     *
-     * This function computes the determinant of the matrix using the expansion by minors method.
-     *
-     * @return The determinant of the matrix.
-     */
-    inline constexpr T determinant() const
-    {
-        return math::determinant(*this);
-    }
-
-    /**
      * @brief Computes the transpose of the 3x3 matrix.
      *
      * This function returns a new matrix where the rows become columns and vice versa.
@@ -534,7 +522,27 @@ struct mat<3, 3, T>
      */
     inline constexpr type transpose() const
     {
-        return math::transpose(*this);
+        return type(
+            columns[0].x, columns[1].x, columns[2].x,
+            columns[0].y, columns[1].y, columns[2].y,
+            columns[0].z, columns[1].z, columns[2].z
+        );
+    }
+
+    /**
+     * @brief Calculates the determinant of the 3x3 matrix.
+     *
+     * This function computes the determinant of the matrix using the expansion by minors method.
+     *
+     * @return The determinant of the matrix.
+     */
+    inline constexpr T determinant() const
+    {
+        return (
+            +columns[0].x * ((columns[1].y * columns[2].z) - (columns[2].y * columns[1].z))
+            -columns[1].x * ((columns[0].y * columns[2].z) - (columns[2].y * columns[0].z))
+            +columns[2].x * ((columns[0].y * columns[1].z) - (columns[1].y * columns[0].z))
+            );
     }
 
     /**
@@ -547,7 +555,28 @@ struct mat<3, 3, T>
      */
     inline constexpr type invert() const
     {
-        return math::invert(*this);
+        const T det = determinant(m);
+
+        if (math::is_zero_approx(det))
+        {
+            return type(0);
+        }
+
+        const T idet = static_cast<T>(1) / det;
+
+        return type(
+            +((columns[1].y * columns[2].z) - (columns[2].y * columns[1].z)) * idet,
+            -((columns[0].y * columns[2].z) - (columns[2].y * columns[0].z)) * idet,
+            +((columns[0].y * columns[1].z) - (columns[1].y * columns[0].z)) * idet,
+
+            -((columns[1].x * columns[2].z) - (columns[2].x * columns[1].z)) * idet,
+            +((columns[0].x * columns[2].z) - (columns[2].x * columns[0].z)) * idet,
+            -((columns[0].x * columns[1].z) - (columns[1].x * columns[0].z)) * idet,
+
+            +((columns[1].x * columns[2].y) - (columns[2].x * columns[1].y)) * idet,
+            -((columns[0].x * columns[2].y) - (columns[2].x * columns[0].y)) * idet,
+            +((columns[0].x * columns[1].y) - (columns[1].x * columns[0].y)) * idet
+        );
     }
 
     // =============== comparison and testing ===============

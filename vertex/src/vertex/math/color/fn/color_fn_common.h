@@ -60,71 +60,7 @@ inline constexpr color_t<T> clamp(
 template <typename T>
 inline constexpr color_t<T> invert(const color_t<T>& c)
 {
-    return color_t<T>(
-        color_t<T>::MAX_CHANNEL_VALUE - c.r,
-        color_t<T>::MAX_CHANNEL_VALUE - c.g,
-        color_t<T>::MAX_CHANNEL_VALUE - c.b,
-        c.a
-    );
-}
-
-// =============== lighten ===============
-
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr color_t<T> lighten(const color_t<T>& c, T amount)
-{
-    return color_t<T>(
-        c.r + (static_cast<T>(1) - c.r) * amount,
-        c.g + (static_cast<T>(1) - c.g) * amount,
-        c.b + (static_cast<T>(1) - c.b) * amount,
-        c.a
-    );
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr color_t<T> lighten(const color_t<T>& c, typename color_t<T>::float_value_type amount)
-{
-    using float_type = typename color_t<T>::float_type;
-    return lighten(float_type(c), amount);
-}
-
-// =============== darken ===============
-
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr color_t<T> darken(const color_t<T>& c, T amount)
-{
-    return color_t<T>(
-        c.r * (static_cast<T>(1) - amount),
-        c.g * (static_cast<T>(1) - amount),
-        c.b * (static_cast<T>(1) - amount),
-        c.a
-    );
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr color_t<T> darken(const color_t<T>& c, typename color_t<T>::float_value_type amount)
-{
-    using float_type = typename color_t<T>::float_type;
-    return darken(float_type(c), amount);
-}
-
-// =============== luminance ===============
-
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T luminance(const color_t<T>& c)
-{
-    return (
-        (c.r * static_cast<T>(0.2126)) +
-        (c.g * static_cast<T>(0.7152)) +
-        (c.b * static_cast<T>(0.0722))
-    );
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto luminance(const color_t<T>& c)
-{
-    using float_type = typename color_t<T>::float_type;
-    return luminance(float_type(c));
+    return c.invert();
 }
 
 }

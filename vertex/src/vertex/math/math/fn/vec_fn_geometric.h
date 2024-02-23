@@ -103,7 +103,7 @@ inline constexpr auto cross(
 )
 {
     using FT = typename detail::to_float_type<T>::type;
-    return vec3_t<FT>(
+    return vec<3, FT>(
         (v.y * u.z) - (v.z * u.y),
         (v.z * u.x) - (v.x * u.z),
         (v.x * u.y) - (v.y * u.x)
@@ -223,8 +223,10 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
 
-    if (VX_UNLIKELY(magsq < math::epsilon<T>))
+    if VX_UNLIKELY(magsq < math::epsilon<T>)
+    {
         return vec<L, T>(0);
+    }
 
     return v * inverse_sqrt(magsq);
 }
@@ -308,20 +310,6 @@ inline constexpr vec<L, T> clamp_magnitude(
 }
 
 // =============== angle ===============
-
-/**
- * @brief Calculates the angle between the vector and the positive x axis.
- *
- * This function computes the angle (in radians) of the vector relative to the positive x axis.
- *
- * @param v The vector.
- * @return The angle of the vector relative to the positive x axis in radians.
- */
-template <typename T>
-static inline constexpr auto angle(const vec<2, T>& v)
-{
-    return math::atan2(v.y, v.x);
-}
 
 /**
  * @brief Calculates the angle between two vectors.
@@ -412,6 +400,15 @@ inline constexpr vec<3, T> rotate(
     const T sina = math::sin(angle);
 
     return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
+}
+
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> rotate(
+    const vec<3, T>& v,
+    const quat_t<T>& rotation
+)
+{
+    return rotation * v;
 }
 
 // =============== project ===============

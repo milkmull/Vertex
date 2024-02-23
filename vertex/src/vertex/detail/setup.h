@@ -138,23 +138,18 @@
 
 #if VX_CPP_STANDARD >= 20 // C++20 or later
 
-#   define VX_LIKELY(expr) [[likely]] expr
-#   define VX_UNLIKELY(expr) [[unlikely]] expr
-
-#elif defined(VX_COMPILER_MSVC)
-
-#   define VX_LIKELY(expr) (expr)
-#   define VX_UNLIKELY(expr) (expr)
+#   define VX_LIKELY(expr) [[likely]] (expr)
+#   define VX_UNLIKELY(expr) [[unlikely]] (expr)
 
 #elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
 
-#   define VX_LIKELY(expr) __builtin_expect(!!(expr), 1)
-#   define VX_UNLIKELY(expr) __builtin_expect(!!(expr), 0)
+#   define VX_LIKELY(expr) (__builtin_expect(!!(expr), 1))
+#   define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
 
 #else
 
-#   define VX_LIKELY(expr) expr
-#   define VX_UNLIKELY(expr) expr
+#   define VX_LIKELY(expr) (expr)
+#   define VX_UNLIKELY(expr) (expr)
 
 #endif
 

@@ -782,9 +782,20 @@ struct color_t
      *
      * @return The luminance value.
      */
-    inline constexpr auto luminance(const type& c)
+    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
+    inline constexpr T luminance() const
     {
-        return math::luminance(*this);
+        return (
+            (r * static_cast<T>(0.2126)) +
+            (g * static_cast<T>(0.7152)) +
+            (b * static_cast<T>(0.0722))
+        );
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr float_value_type luminance() const
+    {
+        return float_type(*this).luminance();
     }
 
     // =============== color modifiers ===============
@@ -797,9 +808,21 @@ struct color_t
      * @param amount The amount by which to lighten the color (in the range [0, 1]).
      * @return A new color with lightened components.
      */
-    inline constexpr type lighten(const type& c, float_value_type amount)
+    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
+    inline constexpr type lighten(T amount) const
     {
-        return math::lighten(*this, amount);
+        return type(
+            r + (static_cast<T>(1) - r) * amount,
+            g + (static_cast<T>(1) - g) * amount,
+            b + (static_cast<T>(1) - b) * amount,
+            a
+        );
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type lighten(float_value_type amount) const
+    {
+        return float_type(*this).lighten(amount);
     }
 
     /**
@@ -810,40 +833,49 @@ struct color_t
      * @param amount The amount by which to darken the color (in the range [0, 1]).
      * @return A new color with darkened components.
      */
-    inline constexpr type darken(const type& c, float_value_type amount)
+    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
+    inline constexpr type darken(T amount) const
     {
-        return math::darken(*this, amount);
+        return type(
+            r * (static_cast<T>(1) - amount),
+            g * (static_cast<T>(1) - amount),
+            b * (static_cast<T>(1) - amount),
+            a
+        );
     }
 
-    /**
-     * @brief Invert the color components.
-     *
-     * This function returns a new color with inverted components, where each component
-     * is replaced by its reciprocal (1 / component).
-     *
-     * @return A new color with inverted components.
-     */
+    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type darken(float_value_type amount) const
+    {
+        return float_type(*this).darken(amount);
+    }
+
     inline constexpr type invert()
     {
-        return math::invert(*this);
+        return type(
+            MAX_CHANNEL_VALUE - r,
+            MAX_CHANNEL_VALUE - g,
+            MAX_CHANNEL_VALUE - b,
+            a
+        );
     }
 
     // =============== colors ===============
 
-    static inline constexpr type CLEAR()   { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static inline constexpr type CLEAR()   { return type(0, 0, 0, 0); }
     static inline constexpr type WHITE()   { return type(MAX_CHANNEL_VALUE); }
-    static inline constexpr type BLACK()   { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static inline constexpr type BLACK()   { return type(0, 0, 0); }
 
     static inline constexpr type GRAY()    { return type(MAX_CHANNEL_VALUE / static_cast<T>(2)); }
     static inline constexpr type GREY()    { return GRAY(); }
 
-    static inline constexpr type RED()     { return type(MAX_CHANNEL_VALUE, static_cast<T>(0), static_cast<T>(0)); }
-    static inline constexpr type GREEN()   { return type(static_cast<T>(0), MAX_CHANNEL_VALUE, static_cast<T>(0)); }
-    static inline constexpr type BLUE()    { return type(static_cast<T>(0), static_cast<T>(0), MAX_CHANNEL_VALUE); }
+    static inline constexpr type RED()     { return type(MAX_CHANNEL_VALUE, 0, 0); }
+    static inline constexpr type GREEN()   { return type(0, MAX_CHANNEL_VALUE, 0); }
+    static inline constexpr type BLUE()    { return type(0, 0, MAX_CHANNEL_VALUE); }
 
-    static inline constexpr type YELLOW()  { return type(MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE, static_cast<T>(0)); }
-    static inline constexpr type MAGENTA() { return type(MAX_CHANNEL_VALUE, static_cast<T>(0), MAX_CHANNEL_VALUE); }
-    static inline constexpr type CYAN()	   { return type(static_cast<T>(0), MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE); }
+    static inline constexpr type YELLOW()  { return type(MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE, 0); }
+    static inline constexpr type MAGENTA() { return type(MAX_CHANNEL_VALUE, 0, MAX_CHANNEL_VALUE); }
+    static inline constexpr type CYAN()	   { return type(0, MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE); }
 
 };
 

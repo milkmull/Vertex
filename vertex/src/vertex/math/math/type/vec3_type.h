@@ -719,7 +719,10 @@ struct vec<3, T>
      *
      * @return The squared length of the vector.
      */
-    inline constexpr float_value_type magnitude_squared() const { return math::length_squared(*this); }
+    inline constexpr float_value_type magnitude_squared() const
+    {
+        return static_cast<float_value_type>((x * x) + (y * y) + (z * z));
+    }
 
     /**
      * @brief Calculates the magnitude of the vector.
@@ -728,7 +731,10 @@ struct vec<3, T>
      *
      * @return The magnitude of the vector.
      */
-    inline constexpr float_value_type magnitude() const { return math::length(*this); }
+    inline constexpr float_value_type magnitude() const
+    {
+        return math::sqrt(magnitude_squared());
+    }
 
     /**
      * @brief Normalizes the vector.
@@ -740,29 +746,36 @@ struct vec<3, T>
      */
     inline constexpr float_type normalize() const
     {
-        return math::normalize(*this);
+        const float_value_type magsq = magnitude_squared();
+
+        if VX_UNLIKELY(magsq < math::epsilon<float_value_type>)
+        {
+            return float_type(0);
+        }
+
+        return float_type(*this) * math::inverse_sqrt(magsq);
     }
 
     // =============== constants ===============
 
-    static inline constexpr type ZERO() { return type(); }
-    static inline constexpr type ONE() { return type(static_cast<T>(1)); }
+    static inline constexpr type ZERO() { return type(0); }
+    static inline constexpr type ONE() { return type(1); }
 
-    static inline constexpr type RIGHT() { return type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0)); }
-    static inline constexpr type LEFT() { return type(static_cast<T>(-1), static_cast<T>(0), static_cast<T>(0)); }
+    static inline constexpr type RIGHT() { return type(1, 0, 0); }
+    static inline constexpr type LEFT() { return type(-1, 0, 0); }
 
-    static inline constexpr type UP() { return type(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0)); }
-    static inline constexpr type DOWN() { return type(static_cast<T>(0), static_cast<T>(-1), static_cast<T>(0)); }
+    static inline constexpr type UP() { return type(0, 1, 0); }
+    static inline constexpr type DOWN() { return type(0, -1, 0); }
 
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
 
-    static inline constexpr type FORWARD() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(-1)); }
-    static inline constexpr type BACK() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)); }
+    static inline constexpr type FORWARD() { return type(0, 0, -1); }
+    static inline constexpr type BACK() { return type(0, 0, 1); }
 
 #else
 
-    static inline constexpr type FORWARD() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)); }
-    static inline constexpr type BACK() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(-1)); }
+    static inline constexpr type FORWARD() { return type(0, 0, 1); }
+    static inline constexpr type BACK() { return type(0, 0, -1); }
 
 #endif
 

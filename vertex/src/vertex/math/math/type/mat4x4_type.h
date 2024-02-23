@@ -607,18 +607,6 @@ struct mat<4, 4, T>
     // =============== operations ===============
 
     /**
-     * @brief Calculates the determinant of the 4x4 matrix.
-     *
-     * This function computes the determinant of the matrix using the expansion by minors method.
-     *
-     * @return The determinant of the matrix.
-     */
-    inline constexpr T determinant() const
-    {
-        return math::determinant(*this);
-    }
-
-    /**
      * @brief Computes the transpose of the 4x4 matrix.
      *
      * This function returns a new matrix where the rows become columns and vice versa.
@@ -627,7 +615,36 @@ struct mat<4, 4, T>
      */
     inline constexpr type transpose() const
     {
-        return math::transpose(*this);
+        return type(
+            columns[0].x, columns[1].x, columns[2].x, columns[3].x,
+            columns[0].y, columns[1].y, columns[2].y, columns[3].y,
+            columns[0].z, columns[1].z, columns[2].z, columns[3].z,
+            columns[0].w, columns[1].w, columns[2].w, columns[3].w
+        );
+    }
+
+    /**
+     * @brief Calculates the determinant of the 4x4 matrix.
+     *
+     * This function computes the determinant of the matrix using the expansion by minors method.
+     *
+     * @return The determinant of the matrix.
+     */
+    inline constexpr T determinant() const
+    {
+        const T subfac00 = (columns[2].z * columns[3].w) - (columns[2].w * columns[3].z);
+        const T subfac01 = (columns[2].y * columns[3].w) - (columns[2].w * columns[3].y);
+        const T subfac02 = (columns[2].y * columns[3].z) - (columns[2].z * columns[3].y);
+        const T subfac03 = (columns[2].x * columns[3].w) - (columns[2].w * columns[3].x);
+        const T subfac04 = (columns[2].x * columns[3].z) - (columns[2].z * columns[3].x);
+        const T subfac05 = (columns[2].x * columns[3].y) - (columns[2].y * columns[3].x);
+
+        return (
+            +(columns[0].x * ((columns[1].y * subfac00) - (columns[1].z * subfac01) + (columns[1].w * subfac02)))
+            -(columns[0].y * ((columns[1].x * subfac00) - (columns[1].z * subfac03) + (columns[1].w * subfac04)))
+            +(columns[0].z * ((columns[1].x * subfac01) - (columns[1].y * subfac03) + (columns[1].w * subfac05)))
+            -(columns[0].w * ((columns[1].x * subfac02) - (columns[1].y * subfac04) + (columns[1].z * subfac05)))
+        );
     }
 
     /**
@@ -640,7 +657,65 @@ struct mat<4, 4, T>
      */
     inline constexpr type invert() const
     {
-        return math::invert(*this);
+        const T coef00 = (columns[2].z * columns[3].w) - (columns[3].z * columns[2].w);
+        const T coef01 = (columns[2].y * columns[3].w) - (columns[3].y * columns[2].w);
+        const T coef02 = (columns[2].y * columns[3].z) - (columns[3].y * columns[2].z);
+
+        const T coef03 = (columns[2].x * columns[3].w) - (columns[2].w * columns[3].x);
+        const T coef04 = (columns[2].x * columns[3].z) - (columns[2].z * columns[3].x);
+        const T coef05 = (columns[2].x * columns[3].y) - (columns[2].y * columns[3].x);
+
+        const T coef06 = (columns[1].z * columns[3].w) - (columns[1].w * columns[3].z);
+        const T coef07 = (columns[1].y * columns[3].w) - (columns[1].w * columns[3].y);
+        const T coef08 = (columns[1].y * columns[3].z) - (columns[1].z * columns[3].y);
+
+        const T coef09 = (columns[1].z * columns[2].w) - (columns[1].w * columns[2].z);
+        const T coef10 = (columns[1].y * columns[2].w) - (columns[1].w * columns[2].y);
+        const T coef11 = (columns[1].y * columns[2].z) - (columns[1].z * columns[2].y);
+
+        const T coef12 = (columns[1].x * columns[3].w) - (columns[1].w * columns[3].x);
+        const T coef13 = (columns[1].x * columns[3].z) - (columns[1].z * columns[3].x);
+        const T coef14 = (columns[1].x * columns[2].w) - (columns[1].w * columns[2].x);
+
+        const T coef15 = (columns[1].x * columns[2].z) - (columns[1].z * columns[2].x);
+        const T coef16 = (columns[1].x * columns[3].y) - (columns[1].y * columns[3].x);
+        const T coef17 = (columns[1].x * columns[2].y) - (columns[1].y * columns[2].x);
+
+        const T det = (
+            +(columns[0].x * ((columns[1].y * coef00) - (columns[1].z * coef01) + (columns[1].w * coef02)))
+            -(columns[0].y * ((columns[1].x * coef00) - (columns[1].z * coef03) + (columns[1].w * coef04)))
+            +(columns[0].z * ((columns[1].x * coef01) - (columns[1].y * coef03) + (columns[1].w * coef05)))
+            -(columns[0].w * ((columns[1].x * coef02) - (columns[1].y * coef04) + (columns[1].z * coef05)))
+        );
+
+        if (math::is_zero_approx(det))
+        {
+            return type(0);
+        }
+
+        const T idet = static_cast<T>(1) / det;
+
+        return type(
+            +((columns[1].y * coef00) - (columns[1].z * coef01) + (columns[1].w * coef02)) * idet,
+            -((columns[0].y * coef00) - (columns[0].z * coef01) + (columns[0].w * coef02)) * idet,
+            +((columns[0].y * coef06) - (columns[0].z * coef07) + (columns[0].w * coef08)) * idet,
+            -((columns[0].y * coef09) - (columns[0].z * coef10) + (columns[0].w * coef11)) * idet,
+
+            -((columns[1].x * coef00) - (columns[1].z * coef03) + (columns[1].w * coef04)) * idet,
+            +((columns[0].x * coef00) - (columns[0].z * coef03) + (columns[0].w * coef04)) * idet,
+            -((columns[0].x * coef06) - (columns[0].z * coef12) + (columns[0].w * coef13)) * idet,
+            +((columns[0].x * coef09) - (columns[0].z * coef14) + (columns[0].w * coef15)) * idet,
+
+            +((columns[1].x * coef01) - (columns[1].y * coef03) + (columns[1].w * coef05)) * idet,
+            -((columns[0].x * coef01) - (columns[0].y * coef03) + (columns[0].w * coef05)) * idet,
+            +((columns[0].x * coef07) - (columns[0].y * coef12) + (columns[0].w * coef16)) * idet,
+            -((columns[0].x * coef10) - (columns[0].y * coef14) + (columns[0].w * coef17)) * idet,
+
+            -((columns[1].x * coef02) - (columns[1].y * coef04) + (columns[1].z * coef05)) * idet,
+            +((columns[0].x * coef02) - (columns[0].y * coef04) + (columns[0].z * coef05)) * idet,
+            -((columns[0].x * coef08) - (columns[0].y * coef13) + (columns[0].z * coef16)) * idet,
+            +((columns[0].x * coef11) - (columns[0].y * coef15) + (columns[0].z * coef17)) * idet
+        );
     }
 
     // =============== comparison and testing ===============
@@ -677,8 +752,8 @@ struct mat<4, 4, T>
 
     // =============== constants ===============
 
-    static inline constexpr type IDENTITY() { return type(static_cast<T>(0)); }
-    static inline constexpr type ZERO() { return type(static_cast<T>(0)); }
+    static inline constexpr type IDENTITY() { return type(1); }
+    static inline constexpr type ZERO() { return type(0); }
 
 };
 
