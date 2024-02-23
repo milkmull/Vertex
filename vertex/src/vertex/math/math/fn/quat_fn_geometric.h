@@ -149,59 +149,6 @@ inline constexpr bool is_normalized_approx(const quat_t<T>& q, const T epsilon =
     return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
 
-// =============== axis ===============
-
-/**
- * @brief Retrieves the rotation axis of a quaternion.
- *
- * This function calculates and returns the 3D vector representing the rotation axis
- * of the quaternion 'q'. If the quaternion represents no rotation (angle is 0),
- * it returns the positive y-axis.
- *
- * @param q The quaternion for which to extract the axis.
- * @return The rotation axis of the quaternion.
- *
- * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
- * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
- */
-template <typename T>
-inline constexpr auto axis(const quat_t<T>& q)
-{
-    const T nw = normalize(q).w;
-    const T s2 = static_cast<T>(1) - (nw * nw);
-
-    if (s2 < math::epsilon<T>)
-    {
-        // This indicates that the angle is 0 degrees and thus,
-        // the axis does not matter. We choose the +y axis.
-        return vec<3, T>::UP();
-    }
-
-    const T invs = math::inverse_sqrt(s2);
-    return vec<3, T>(
-        q.x * invs,
-        q.y * invs,
-        q.z * invs
-    );
-}
-
-// =============== angle ===============
-
-/**
- * @brief Retrieves the rotation angle of a quaternion.
- *
- * This function calculates and returns the rotation angle (in radians) represented
- * by the quaternion 'q'.
- *
- * @param q The quaternion for which to extract the angle.
- * @return The rotation angle of the quaternion in radians.
- */
-template <typename T>
-inline constexpr T angle(const quat_t<T>& q)
-{
-    return static_cast<T>(2) * math::acos_clamped(normalize(q).w);
-}
-
 /**
  * @brief Calculates the angle between two quaternions.
  *
@@ -258,7 +205,7 @@ static inline constexpr T signed_angle(
 template <typename T>
 inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 {
-    return quat_t<T>(q.w, -q.x, -q.y, -q.z);
+    return q.conjugate();
 }
 
 // =============== invert ===============
@@ -275,7 +222,7 @@ inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 template <typename T>
 inline constexpr quat_t<T> invert(const quat_t<T>& q)
 {
-    return conjugate(q) / length_squared(q);
+    return q.invert();
 }
 
 }

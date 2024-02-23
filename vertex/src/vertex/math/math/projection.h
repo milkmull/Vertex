@@ -4,7 +4,6 @@
 
 namespace vx {
 namespace math {
-namespace project {
 
 // =============== ortho ===============
 
@@ -1122,6 +1121,5 @@ inline constexpr vec<3, T> unproject(
 #endif
 }
 
-}
 }
 }

@@ -24,6 +24,12 @@ inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
     return ((x < static_cast<T>(0)) ? -x : x) < epsilon;
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
+{
+    return x == static_cast<T>(0);
+}
+
 // =============== is_equal_approx ===============
 
 /**
@@ -41,6 +47,12 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return is_zero_approx(a - b, epsilon);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a == b;
 }
 
 // =============== is_not_equal_approx ===============
@@ -62,6 +74,12 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
     return !is_zero_approx(a - b, epsilon);
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a != b;
+}
+
 // =============== is_greater_approx ===============
 
 /**
@@ -79,6 +97,12 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a > (b + epsilon);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a > b;
 }
 
 // =============== is_greater_or_equal_approx ===============
@@ -100,6 +124,12 @@ inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = mat
     return a > (b - epsilon);
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a >= b;
+}
+
 // =============== is_less_approx ===============
 
 /**
@@ -117,6 +147,12 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a < (b - epsilon);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a < b;
 }
 
 // =============== is_less_or_equal_approx ===============
@@ -138,6 +174,12 @@ inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::
     return a < (b + epsilon);
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+{
+    return a <= b;
+}
+
 // =============== is_finite ===============
 
 /**
@@ -152,6 +194,12 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr bool is_finite(T x)
 {
     return std::isfinite(x);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_finite(T x)
+{
+    return true;
 }
 
 // =============== is_infinite ===============
@@ -170,6 +218,12 @@ inline constexpr bool is_infinite(T x)
     return std::isinf(x);
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_infinite(T x)
+{
+    return false;
+}
+
 // =============== is_nan ===============
 
 /**
@@ -186,44 +240,25 @@ inline constexpr bool is_nan(T x)
     return std::isnan(x);
 }
 
-// =============== round_if_close ===============
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_nan(T x)
+{
+    return false;
+}
 
-/**
- * @brief Round a value if it is close to an integer.
- *
- * This function rounds the given value to the nearest integer
- * if it is close enough (within a specified epsilon range). If the value is not close
- * to an integer, it returns the original value.
- *
- * @param x The input value.
- * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
- * @return The rounded value if close to an integer, otherwise the original value.
- */
+// =============== round_epsilon ===============
+
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T round_if_close(T x, const T epsilon = math::epsilon<T>)
+inline constexpr T round_epsilon(T x, const T epsilon = math::epsilon<T>)
 {
     const T xr = std::round(x);
     return is_equal_approx(x, xr, epsilon) ? xr : x;
 }
 
-// =============== make_pretty ===============
-
-/**
- * @brief Make a value "pretty" by rounding if close to an integer.
- *
- * This function makes the given value "pretty" by rounding
- * it to the nearest integer if it is close enough (within a specified epsilon range).
- * If the rounded value is zero, it returns the absolute value of the input value.
- *
- * @param x The input value.
- * @param epsilon The epsilon value for the approximation (default is math::epsilon<T>).
- * @return The "pretty" value.
- */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T make_pretty(T x, const T epsilon = math::epsilon<T>)
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr T round_epsilon(T x, const T epsilon = math::epsilon<T>)
 {
-    const T r = round_if_close(x, epsilon);
-    return (r == static_cast<T>(0)) ? std::abs(r) : r;
+    return x;
 }
 
 }

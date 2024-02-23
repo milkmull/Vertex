@@ -457,88 +457,92 @@ struct color_t
 
     // addition (+=)
 
-    inline constexpr type& operator+=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator+=(U scaler)
     {
-        r += static_cast<T>(scaler);
-        g += static_cast<T>(scaler);
-        b += static_cast<T>(scaler);
-        a += static_cast<T>(scaler);
+        r += scaler;
+        g += scaler;
+        b += scaler;
+        a += scaler;
         return *this;
     }
 
-    inline constexpr type& operator+=(const type& v)
+    inline constexpr type& operator+=(const type& c)
     {
-        r += static_cast<T>(v.r);
-        g += static_cast<T>(v.g);
-        b += static_cast<T>(v.b);
-        a += static_cast<T>(v.a);
+        r += c.r;
+        g += c.g;
+        b += c.b;
+        a += c.a;
         return *this;
     }
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator-=(U scaler)
     {
-        r -= static_cast<T>(scaler);
-        g -= static_cast<T>(scaler);
-        b -= static_cast<T>(scaler);
-        a -= static_cast<T>(scaler);
+        r -= scaler;
+        g -= scaler;
+        b -= scaler;
+        a -= scaler;
         return *this;
     }
 
-    inline constexpr type& operator-=(const type& v)
+    inline constexpr type& operator-=(const type& c)
     {
-        r -= static_cast<T>(v.r);
-        g -= static_cast<T>(v.g);
-        b -= static_cast<T>(v.b);
-        a -= static_cast<T>(v.a);
+        r -= c.r;
+        g -= c.g;
+        b -= c.b;
+        a -= c.a;
         return *this;
     }
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator*=(U scaler)
     {
-        r *= static_cast<T>(scaler);
-        g *= static_cast<T>(scaler);
-        b *= static_cast<T>(scaler);
-        a *= static_cast<T>(scaler);
+        r *= scaler;
+        g *= scaler;
+        b *= scaler;
+        a *= scaler;
         return *this;
     }
 
-    inline constexpr type& operator*=(const type& v)
+    inline constexpr type& operator*=(const type& c)
     {
-        r *= static_cast<T>(v.r);
-        g *= static_cast<T>(v.g);
-        b *= static_cast<T>(v.b);
-        a *= static_cast<T>(v.a);
+        r *= c.r;
+        g *= c.g;
+        b *= c.b;
+        a *= c.a;
         return *this;
     }
 
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator/=(U scaler)
     {
-        r /= static_cast<T>(scaler);
-        g /= static_cast<T>(scaler);
-        b /= static_cast<T>(scaler);
-        a /= static_cast<T>(scaler);
+        r /= scaler;
+        g /= scaler;
+        b /= scaler;
+        a /= scaler;
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& v)
+    inline constexpr type& operator/=(const type& c)
     {
-        r /= static_cast<T>(v.r);
-        g /= static_cast<T>(v.g);
-        b /= static_cast<T>(v.b);
-        a /= static_cast<T>(v.a);
+        r /= c.r;
+        g /= c.g;
+        b /= c.b;
+        a /= c.a;
         return *this;
     }
 
     // modulo (%=)
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator%=(T scaler)
+    inline constexpr type& operator%=(U scaler)
     {
         r %= scaler;
         g %= scaler;

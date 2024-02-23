@@ -98,6 +98,14 @@ struct mat<2, 2, T>
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator=(const mat<2, 2, U>& m) noexcept
+    {
+        columns[0] = m.columns[0];
+        columns[1] = m.columns[1];
+        return *this;
+    }
+
     inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============

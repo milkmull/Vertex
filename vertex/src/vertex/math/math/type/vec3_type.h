@@ -115,6 +115,15 @@ struct vec<3, T>
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator=(const vec<3, U>& v)
+    {
+        x = static_cast<T>(v.x);
+        y = static_cast<T>(v.y);
+        z = static_cast<T>(v.z);
+        return *this;
+    }
+
     inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============
@@ -423,7 +432,8 @@ struct vec<3, T>
 
     // addition (+=)
 
-    inline constexpr type& operator+=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator+=(U scaler)
     {
         x += scaler;
         y += scaler;
@@ -431,7 +441,8 @@ struct vec<3, T>
         return *this;
     }
 
-    inline constexpr type& operator+=(const type& v)
+    template <typename U>
+    inline constexpr type& operator+=(const vec<3, U>& v)
     {
         x += v.x;
         y += v.y;
@@ -441,7 +452,8 @@ struct vec<3, T>
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator-=(U scaler)
     {
         x -= scaler;
         y -= scaler;
@@ -449,7 +461,8 @@ struct vec<3, T>
         return *this;
     }
 
-    inline constexpr type& operator-=(const type& v)
+    template <typename U>
+    inline constexpr type& operator-=(const vec<3, U>& v)
     {
         x -= v.x;
         y -= v.y;
@@ -459,7 +472,8 @@ struct vec<3, T>
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator*=(U scaler)
     {
         x *= scaler;
         y *= scaler;
@@ -467,7 +481,8 @@ struct vec<3, T>
         return *this;
     }
 
-    inline constexpr type& operator*=(const type& v)
+    template <typename U>
+    inline constexpr type& operator*=(const vec<3, U>& v)
     {
         x *= v.x;
         y *= v.y;
@@ -477,7 +492,8 @@ struct vec<3, T>
 
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    inline constexpr type& operator/=(U scaler)
     {
         x /= scaler;
         y /= scaler;
@@ -485,7 +501,8 @@ struct vec<3, T>
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& v)
+    template <typename U>
+    inline constexpr type& operator/=(const vec<3, U>& v)
     {
         x /= v.x;
         y /= v.y;
@@ -495,8 +512,8 @@ struct vec<3, T>
 
     // modulo (%=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator%=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator%=(U scaler)
     {
         x %= scaler;
         y %= scaler;
@@ -504,8 +521,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator%=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator%=(const vec<3, U>& v)
     {
         x %= v.x;
         y %= v.y;
@@ -517,8 +534,8 @@ struct vec<3, T>
 
     // and (&=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator&=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator&=(U scaler)
     {
         x &= scaler;
         y &= scaler;
@@ -526,8 +543,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator&=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator&=(const vec<3, U>& v)
     {
         x &= v.x;
         y &= v.y;
@@ -537,8 +554,8 @@ struct vec<3, T>
 
     // or (|=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator|=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator|=(U scaler)
     {
         x |= scaler;
         y |= scaler;
@@ -546,8 +563,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator|=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator|=(const vec<3, U>& v)
     {
         x |= v.x;
         y |= v.y;
@@ -557,8 +574,8 @@ struct vec<3, T>
 
     // xor (^=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator^=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator^=(U scaler)
     {
         x ^= scaler;
         y ^= scaler;
@@ -566,8 +583,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator^=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator^=(const vec<3, U>& v)
     {
         x ^= v.x;
         y ^= v.y;
@@ -577,8 +594,8 @@ struct vec<3, T>
 
     // left shift (<<=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator<<=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator<<=(U scaler)
     {
         x <<= scaler;
         y <<= scaler;
@@ -586,8 +603,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator<<=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator<<=(const vec<3, U>& v)
     {
         x <<= v.x;
         y <<= v.y;
@@ -597,8 +614,8 @@ struct vec<3, T>
 
     // right shift (>>=)
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator>>=(T scaler)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator>>=(U scaler)
     {
         x >>= scaler;
         y >>= scaler;
@@ -606,8 +623,8 @@ struct vec<3, T>
         return *this;
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type& operator>>=(const type& v)
+    template <typename U, typename std::enable_if<std::is_integral<T>::value && std::is_integral<U>::value, bool>::type = true>
+    inline constexpr type& operator>>=(const vec<3, U>& v)
     {
         x >>= v.x;
         y >>= v.y;

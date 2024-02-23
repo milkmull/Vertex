@@ -103,6 +103,16 @@ struct quat_t
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator=(const quat_t<U>& q)
+    {
+        w = static_cast<T>(q.w);
+        x = static_cast<T>(q.x);
+        y = static_cast<T>(q.y);
+        z = static_cast<T>(q.z);
+        return *this;
+    }
+
     inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============
@@ -171,9 +181,29 @@ struct quat_t
         return q * scaler;
     }
 
+    /**
+     * @brief Multiplies this quaternion by another quaternion in-place.
+     *
+     * This operator performs quaternion multiplication and updates the current quaternion
+     * with the result.
+     *
+     * @param q The quaternion to multiply with.
+     * @return A reference to the updated quaternion after multiplication.
+     *
+     * @note Quaternion multiplication is used to compose multiple rotations together.
+     * The operation follows the Hamilton product formula and updates the components of this quaternion
+     * based on the components of the current quaternion and the specified quaternion.
+     *
+     * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
+     */
     friend inline constexpr type operator*(const type& q1, const type& q2)
     {
-        return type(q1) *= q2;
+        return type(
+            (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z),
+            (q1.w * q2.x) + (q1.x * q2.w) + (q1.y * q2.z) - (q1.z * q2.y),
+            (q1.w * q2.y) + (q1.y * q2.w) + (q1.z * q2.x) - (q1.x * q2.z),
+            (q1.w * q2.z) + (q1.z * q2.w) + (q1.x * q2.y) - (q1.y * q2.x)
+        );
     }
 
      /**
@@ -255,30 +285,9 @@ struct quat_t
         return *this;
     }
 
-     /**
-      * @brief Multiplies this quaternion by another quaternion in-place.
-      *
-      * This operator performs quaternion multiplication and updates the current quaternion
-      * with the result.
-      *
-      * @param q The quaternion to multiply with.
-      * @return A reference to the updated quaternion after multiplication.
-      * 
-      * @note Quaternion multiplication is used to compose multiple rotations together.
-      * The operation follows the Hamilton product formula and updates the components of this quaternion
-      * based on the components of the current quaternion and the specified quaternion.
-      * 
-      * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
-      */
     inline constexpr type& operator*=(const type& q)
     {
-        const type p = *this;
-
-        w = (p.w * q.w) - (p.x * q.x) - (p.y * q.y) - (p.z * q.z);
-        x = (p.w * q.x) + (p.x * q.w) + (p.y * q.z) - (p.z * q.y);
-        y = (p.w * q.y) + (p.y * q.w) + (p.z * q.x) - (p.x * q.z);
-        z = (p.w * q.z) + (p.z * q.w) + (p.x * q.y) - (p.y * q.x);
-        return *this;
+        return ((*this) = (*this) * q);
     }
 
     // division (/=)

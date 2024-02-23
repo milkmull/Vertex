@@ -126,6 +126,15 @@ struct mat<3, 3, T>
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator=(const mat<3, 3, U>& m) noexcept
+    {
+        columns[0] = m.columns[0];
+        columns[1] = m.columns[1];
+        columns[2] = m.columns[2];
+        return *this;
+    }
+
     inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============
