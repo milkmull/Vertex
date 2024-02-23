@@ -37,8 +37,8 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr vec<2, T> mat2_get_scale(const mat<2, 2, T>& m)
 {
     return vec<2, T>(
-        math::length(columns[0]),
-        math::length(columns[1])
+        math::length(m.columns[0]),
+        math::length(m.columns[1])
     );
 }
 

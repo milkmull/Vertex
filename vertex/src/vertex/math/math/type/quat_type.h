@@ -573,7 +573,6 @@ struct quat_t
 
     // =============== euler angles ===============
 
-    template <typename T>
     static inline constexpr type from_euler_angles(T x, T y, T z)
     {
         x *= static_cast<T>(0.5);

@@ -39,7 +39,7 @@ inline constexpr mat<3, 3, T> mat3_make_rotation(const vec<3, T>& axis, T angle)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<3, 3, T> mat3_make_rotation(const quat_t<T>& rotation)
 {
-    const quat_t<T> qn = math::normalize(q);
+    const quat_t<T> qn = math::normalize(rotation);
 
     const T qxx = qn.x * qn.x;
     const T qyy = qn.y * qn.y;
@@ -439,12 +439,12 @@ inline constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> get_scale_3d()
+inline constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
 {
     return vec<3, T>(
-        math::length(columns[0]),
-        math::length(columns[1]),
-        math::length(columns[2])
+        math::length(m.columns[0]),
+        math::length(m.columns[1]),
+        math::length(m.columns[2])
     );
 }
 
