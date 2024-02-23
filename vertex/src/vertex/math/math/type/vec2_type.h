@@ -672,7 +672,7 @@ struct vec<2, T>
      */
     inline constexpr float_value_type aspect() const
     {
-        return math::is_zero_approx(y) ? * (static_cast<float_value_type>(x) / static_cast<float_value_type>(y));
+        return static_cast<T>(math::is_zero_approx(y)) * (static_cast<float_value_type>(x) / static_cast<float_value_type>(y));
     }
 
     /**

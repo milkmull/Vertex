@@ -659,7 +659,7 @@ inline constexpr vec<4, T> modf(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec2_t<int>& exp
+    vec<2, int>& exp
 )
 {
     return vec<2, T>(
@@ -671,7 +671,7 @@ inline constexpr vec<2, T> frexp(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec3_t<int>& exp
+    vec<3, int>& exp
 )
 {
     return vec<3, T>(
@@ -684,7 +684,7 @@ inline constexpr vec<3, T> frexp(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec4_t<int>& exp
+    vec<4, int>& exp
 )
 {
     return vec<4, T>(
@@ -702,7 +702,7 @@ inline constexpr vec<4, T> frexp(
 template <typename T>
 inline constexpr vec<2, T> snap(
     const vec<2, T>& x,
-    T y
+    T interval
 )
 {
     return vec<2, T>(

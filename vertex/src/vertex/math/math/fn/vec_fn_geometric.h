@@ -223,7 +223,7 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
 
-    if VX_UNLIKELY(magsq < math::epsilon<T>)
+    if (VX_UNLIKELY(magsq < math::epsilon<T>))
         return vec<L, T>(0);
 
     return v * inverse_sqrt(magsq);
