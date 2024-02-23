@@ -20,8 +20,8 @@ namespace math {
  */
 template <typename T>
 inline constexpr auto dot(
-    const vec2_t<T>& v,
-    const vec2_t<T>& u
+    const vec<2, T>& v,
+    const vec<2, T>& u
 )
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -30,8 +30,8 @@ inline constexpr auto dot(
 
 template <typename T>
 inline constexpr auto dot(
-    const vec3_t<T>& v,
-    const vec3_t<T>& u
+    const vec<3, T>& v,
+    const vec<3, T>& u
 )
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -40,8 +40,8 @@ inline constexpr auto dot(
 
 template <typename T>
 inline constexpr auto dot(
-    const vec4_t<T>& v,
-    const vec4_t<T>& u
+    const vec<4, T>& v,
+    const vec<4, T>& u
 )
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -79,8 +79,8 @@ inline constexpr auto normalized_dot(
  */
 template <typename T>
 inline constexpr auto cross(
-    const vec2_t<T>& v,
-    const vec2_t<T>& u
+    const vec<2, T>& v,
+    const vec<2, T>& u
 )
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -98,8 +98,8 @@ inline constexpr auto cross(
  */
 template <typename T>
 inline constexpr auto cross(
-    const vec3_t<T>& v,
-    const vec3_t<T>& u
+    const vec<3, T>& v,
+    const vec<3, T>& u
 )
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -318,7 +318,7 @@ inline constexpr vec<L, T> clamp_magnitude(
  * @return The angle of the vector relative to the positive x axis in radians.
  */
 template <typename T>
-static inline constexpr auto angle(const vec2_t<T>& v)
+static inline constexpr auto angle(const vec<2, T>& v)
 {
     return math::atan2(v.y, v.x);
 }
@@ -374,12 +374,12 @@ static inline constexpr T signed_angle(
  * @return A new 2D vector representing the rotated vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec2_t<T> rotate(const vec2_t<T>& v, T angle)
+inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
 
-    return vec2_t<T>(
+    return vec<2, T>(
         (v.x * cosa) - (v.y * sina),
         (v.x * sina) + (v.y * cosa)
     );
@@ -400,13 +400,13 @@ inline constexpr vec2_t<T> rotate(const vec2_t<T>& v, T angle)
  * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec3_t<T> rotate(
-    const vec3_t<T>& v,
-    const vec3_t<T>& axis,
+inline constexpr vec<3, T> rotate(
+    const vec<3, T>& v,
+    const vec<3, T>& axis,
     T angle
 )
 {
-    const vec3_t<T> naxis(normalize(axis));
+    const vec<3, T> naxis = normalize(axis);
 
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -500,7 +500,7 @@ inline constexpr vec<L, T> refract(
 
     if (k < math::epsilon<T>)
     {
-        return detail::vec<L, T, Q>(0);
+        return vec<L, T>(0);
     }
 
     return eta * i - (eta * d + sqrt(k)) * n;
@@ -551,7 +551,7 @@ inline constexpr vec<L, T> move_toward(
     T delta
 )
 {
-    const vec<L, T> vd(to - from);
+    const vec<L, T> vd = to - from;
     const T d = length(vd);
     return (d <= delta) ? to : (from + (vd / d * delta));
 }

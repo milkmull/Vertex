@@ -4,7 +4,6 @@
 
 namespace vx {
 namespace math {
-namespace color_util {
 
 enum rgba_mask : uint32_t
 {
@@ -36,6 +35,5 @@ inline constexpr uint32_t color_to_hex(const color8& c)
     );
 }
 
-}
 }
 }

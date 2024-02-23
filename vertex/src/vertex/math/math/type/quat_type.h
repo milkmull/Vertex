@@ -174,17 +174,17 @@ struct quat_t
       * 
       * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
       */
-    friend inline constexpr vec3_t<T> operator*(const type& q, const vec3_t<T>& v)
+    friend inline constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
     {
-        const vec3_t<T> qv(q.x, q.y, q.z);
-        const vec3_t<T> uv(cross(qv, v));
-        const vec3_t<T> uuv(cross(qv, uv));
+        const vec<3, T> qv = q.vector();
+        const vec<3, T> uv = math::cross(qv, v);
+        const vec<3, T> uuv = math::cross(qv, uv);
 
         return v + ((uv * q.w) + uuv) * static_cast<T>(2);
     }
 
     
-    friend inline constexpr vec3_t<T> operator*(const vec3_t<T>& v, const type& q)
+    friend inline constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
     {
         return q.invert() * v;
     }
@@ -258,7 +258,7 @@ struct quat_t
       */
     inline constexpr type& operator*=(const type& q)
     {
-        const type p(*this);
+        const type p = *this;
 
         w = (p.w * q.w) - (p.x * q.x) - (p.y * q.y) - (p.z * q.z);
         x = (p.w * q.x) + (p.x * q.w) + (p.y * q.z) - (p.z * q.y);
@@ -390,7 +390,7 @@ struct quat_t
      *
      * @return A 3D vector representing the vector part of this quaternion.
      */
-    inline constexpr vec3_t<T> vector() const { return vec3_t<T>(x, y, z); }
+    inline constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
 
     // =============== comparison and testing ===============
 
@@ -465,10 +465,10 @@ struct quat_t
      * @ref https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
      * @ref https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
      */
-    static inline constexpr type from_to(const vec3_t<T>& from, const vec3_t<T>& to)
+    static inline constexpr type from_to(const vec<3, T>& from, const vec<3, T>& to)
     {
-        const vec3_t<T> fn = math::normalize(from);
-        const vec3_t<T> tn = math::normalize(to);
+        const vec<3, T> fn = math::normalize(from);
+        const vec<3, T> tn = math::normalize(to);
 
         const T cosa = math::dot(fn, tn);
 
@@ -480,7 +480,7 @@ struct quat_t
             return type(1, 0, 0, 0);
         }
 
-        const vec3_t<T> axis = math::normalize(math::cross(fn, tn));
+        const vec<3, T> axis = math::normalize(math::cross(fn, tn));
 
         if (cosa < static_cast<T>(-1) + math::epsilon<T>)
         {
@@ -515,9 +515,9 @@ struct quat_t
      * @param angle The rotation angle in radians.
      * @return The quaternion representing the rotation around the specified axis.
      */
-    static inline constexpr type from_axis_angle(const vec3_t<T>& axis, T angle)
+    static inline constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
     {
-        const vec3_t<T> naxis = math::normalize(axis);
+        const vec<3, T> naxis = math::normalize(axis);
 
         const T sina2 = math::sin(angle * static_cast<T>(0.5));
         const T cosa2 = math::cos(angle * static_cast<T>(0.5));
@@ -537,7 +537,7 @@ struct quat_t
      * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
      * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
      */
-    inline constexpr vec3_t<T> axis() const
+    inline constexpr vec<3, T> axis() const
     {
         const T nw = normalize().w;
         const T s2 = static_cast<T>(1) - (nw * nw);
@@ -637,7 +637,7 @@ struct quat_t
 
         return vec<3, T>(
             math::atan2(static_cast<T>(2) * (qwy - qxz), qxx - qyy - qzz + qww),
-            math::asin( static_cast<T>(2) * test),
+            math::asin (static_cast<T>(2) * test),
             math::atan2(static_cast<T>(2) * (qwx - qyz), qyy - qxx - qzz + qww)
         );
     }
@@ -741,9 +741,9 @@ struct quat_t
      * @return The quaternion representing the left-handed look-at rotation.
      */
     static inline constexpr type make_look_at_rotation_lh(
-        const vec3_t<T>& eye,
-        const vec3_t<T>& target,
-        const vec3_t<T>& up = vec3_t<T>::UP()
+        const vec<3, T>& eye,
+        const vec<3, T>& target,
+        const vec<3, T>& up = vec<3, T>::UP()
     )
     {
         const vec<3, T> z = math::normalize(target - eye);
@@ -765,9 +765,9 @@ struct quat_t
      * @return The quaternion representing the right-handed look-at rotation.
      */
     static inline constexpr type make_look_at_rotation_rh(
-        const vec3_t<T>& eye,
-        const vec3_t<T>& target,
-        const vec3_t<T>& up = vec3_t<T>::UP()
+        const vec<3, T>& eye,
+        const vec<3, T>& target,
+        const vec<3, T>& up = vec<3, T>::UP()
     )
     {
         const vec<3, T> z = math::normalize(eye - target);
@@ -790,9 +790,9 @@ struct quat_t
      * @return The quaternion representing the look-at rotation.
      */
     static inline constexpr type make_look_at_rotation(
-        const vec3_t<T>& eye,
-        const vec3_t<T>& target,
-        const vec3_t<T>& up = vec3_t<T>::UP()
+        const vec<3, T>& eye,
+        const vec<3, T>& target,
+        const vec<3, T>& up = vec<3, T>::UP()
     )
     {
 #	if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT)
@@ -813,7 +813,7 @@ struct quat_t
      * @param v The 3D vector to be rotated.
      * @return The rotated 3D vector.
      */
-    inline constexpr vec3_t<T> rotate(const vec3_t<T>& v) const
+    inline constexpr vec<3, T> rotate(const vec<3, T>& v) const
     {
         return (*this) * v;
     }

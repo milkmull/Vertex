@@ -40,7 +40,6 @@ enum class blend_operator
 };
 
 namespace math {
-namespace color_util {
 
 // https://learnopengl.com/Advanced-OpenGL/Blending
 
@@ -150,6 +149,5 @@ inline constexpr color blend(
     return res[0].color + res[1].color;
 }
 
-}
 }
 }

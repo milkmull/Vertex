@@ -4,12 +4,48 @@
 
 namespace vx {
 namespace math {
-namespace transform2d {
+
+// =============== mat2 pure rotation ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<2, 2, T> mat2_make_rotation(T angle)
+{
+    const T cosa = math::cos(angle);
+    const T sina = math::sin(angle);
+
+    return mat<2, 2, T>(cosa, sina, -sina, cosa);
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T mat2_get_rotation(const mat<2, 2, T>& m)
+{
+    return math::atan2(m.columns[0].y, m.columns[0].x);
+}
+
+// =============== mat2 pure scale ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr mat<2, 2, T> mat2_make_scale(const vec<2, T>& scale)
+{
+    return mat<2, 2, T>(
+        scale.x, static_cast<T>(0),
+        static_cast<T>(0), scale.y
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<2, T> mat2_get_scale(const mat<2, 2, T>& m)
+{
+    return vec<2, T>(
+        math::length(columns[0]),
+        math::length(columns[1])
+    );
+}
 
 // =============== 2d translation ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_translation(const vec<2, T>& translation)
+inline constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& translation)
 {
     return mat<3, 3, T>(
         static_cast<T>(1), static_cast<T>(0), static_cast<T>(0),
@@ -19,7 +55,7 @@ inline constexpr mat<3, 3, T> make_translation(const vec<2, T>& translation)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> get_translation(const mat<3, 3, T>& m)
+inline constexpr vec<2, T> get_translation_2d(const mat<3, 3, T>& m)
 {
     return vec<2, T>(m.columns[2].x, m.columns[2].y);
 }
@@ -27,7 +63,7 @@ inline constexpr vec<2, T> get_translation(const mat<3, 3, T>& m)
 // =============== 2d rotation ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_rotation(T angle)
+inline constexpr mat<3, 3, T> make_rotation_2d(T angle)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -40,7 +76,7 @@ inline constexpr mat<3, 3, T> make_rotation(T angle)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T get_rotation(const mat<3, 3, T>& m)
+inline constexpr T get_rotation_2d(const mat<3, 3, T>& m)
 {
     return math::atan2(m.columns[0].y, m.columns[0].x);
 }
@@ -48,7 +84,7 @@ inline constexpr T get_rotation(const mat<3, 3, T>& m)
 // =============== 2d scale ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_scale(const vec<2, T>& scale)
+inline constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
 {
     return mat<3, 3, T>(
         scale.x,           static_cast<T>(0), static_cast<T>(0),
@@ -58,7 +94,7 @@ inline constexpr mat<3, 3, T> make_scale(const vec<2, T>& scale)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> get_scale(const mat<3, 3, T>& m)
+inline constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
 {
     return vec<2, T>(
         math::length(m.columns[0]),
@@ -69,7 +105,7 @@ inline constexpr vec<2, T> get_scale(const mat<3, 3, T>& m)
 // =============== trs ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_trs(const vec<2, T>& translation, T angle, vec<2, T>& scale)
+inline constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation, T angle, vec<2, T>& scale)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -84,7 +120,7 @@ inline constexpr mat<3, 3, T> make_trs(const vec<2, T>& translation, T angle, ve
 // =============== invert ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
+inline constexpr mat<3, 3, T> affine_invert(const mat<3, 3, T>& m)
 {
     const mat<2, 2, T> ibasis = math::invert(mat<2, 2, T>(m));
 
@@ -106,6 +142,5 @@ inline constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v)
     );
 }
 
-}
 }
 }

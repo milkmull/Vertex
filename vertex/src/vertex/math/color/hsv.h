@@ -4,7 +4,6 @@
 
 namespace vx {
 namespace math {
-namespace color_util {
 
 // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
 
@@ -107,6 +106,5 @@ inline constexpr vec<3, T> rgb_to_hsv(T r, T g, T b)
     return vec<3, T>(h, s, v);
 }
 
-}
 }
 }

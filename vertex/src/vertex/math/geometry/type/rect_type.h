@@ -176,10 +176,10 @@ struct rect_t
 
     // =============== string ===============
 
-    inline constexpr std::string to_string(bool pretty_print = false) const
+    inline constexpr std::string to_string() const
     {
         std::ostringstream oss;
-        oss << "{ " << position.to_string(pretty_print) << ", " << size.to_string(pretty_print) << " }";
+        oss << "rect(" << position.to_string() << ", " << size.to_string() << ')';
         return oss.str();
     }
 
@@ -275,18 +275,6 @@ struct rect_t
      */
     inline constexpr T area() const { return size.x * size.y; }
 
-    /**
-     * @brief Check if the rectangle has a positive area.
-     *
-     * This function determines whether both the width and height of the rectangle are greater than zero.
-     *
-     * @return True if the rectangle has a positive area, false otherwise.
-     */
-    inline constexpr bool has_area() const
-    {
-        return size.x > static_cast<T>(0) && size.y > static_cast<T>(0);
-    }
-
     // =============== common modifiers ===============
 
     /**
@@ -317,51 +305,27 @@ struct rect_t
 
     // =============== transformations ===============
 
-    /**
-     * @brief Scale the rectangle using a vector of scaling factors.
-     *
-     * This function scales the rectangle using a vector of scaling factors for width and height.
-     *
-     * @param dv The vector of scaling factors.
-     * @return A new rectangle scaled by the specified vector.
-     */
-    inline constexpr type scale(const vec<2, T>& dv) const
+    inline constexpr type scale(const vec<2, T>& s) const
     {
         return type(
             position,
-            size * dv
+            size * s
         );
     }
 
-    /**
-     * @brief Move the rectangle by a vector of displacements.
-     *
-     * This function moves the rectangle by the specified vector of displacements.
-     *
-     * @param dv The vector of displacements.
-     * @return A new rectangle moved by the specified vector.
-     */
-    inline constexpr type move(const vec<2, T>& dv) const
+    inline constexpr type move(const vec<2, T>& offset) const
     {
         return type(
-            position + dv,
+            position + offset,
             size
         );
     }
 
-    /**
-     * @brief Inflate the rectangle by a vector of amounts.
-     *
-     * This function inflates the rectangle by the specified vector of amounts.
-     *
-     * @param iv The vector of amounts to inflate the rectangle.
-     * @return A new rectangle inflated by the specified vector of amounts.
-     */
-    inline constexpr type inflate(const vec<2, T>& iv) const
+    inline constexpr type inflate(const vec<2, T>& s) const
     {
         return type(
-            position - iv,
-            size + static_cast<T>(2) * iv
+            position - s,
+            size + static_cast<T>(2) * s
         );
     }
 
@@ -462,7 +426,6 @@ struct rect_t
     // =============== constants ===============
 
     static inline constexpr type ZERO() { return type(); }
-    static inline constexpr type UNIT() { return type(static_cast<T>(-1), static_cast<T>(-1), static_cast<T>(1), static_cast<T>(1)); }
 
 };
 

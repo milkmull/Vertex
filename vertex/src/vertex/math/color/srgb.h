@@ -4,7 +4,6 @@
 
 namespace vx {
 namespace math {
-namespace color_util {
 
 // =============== srgb ===============
 
@@ -60,6 +59,5 @@ inline constexpr color srgb_to_linear(const color& c)
     return lrgb;
 }
 
-}
 }
 }

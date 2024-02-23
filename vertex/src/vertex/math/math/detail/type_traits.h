@@ -14,41 +14,41 @@ template <typename T>
 struct is_vector : std::false_type {};
 
 template <typename T>
-struct is_vector<vec2_t<T>> : std::true_type {};
+struct is_vector<vec<2, T>> : std::true_type {};
 template <typename T>
-struct is_vector<vec3_t<T>> : std::true_type {};
+struct is_vector<vec<3, T>> : std::true_type {};
 template <typename T>
-struct is_vector<vec4_t<T>> : std::true_type {};
+struct is_vector<vec<4, T>> : std::true_type {};
 
 template <typename T>
 struct vector_size : std::integral_constant<size_type, 0> {};
 
 template <typename T>
-struct vector_size<vec2_t<T>> : std::integral_constant<size_type, 2> {};
+struct vector_size<vec<2, T>> : std::integral_constant<size_type, 2> {};
 template <typename T>
-struct vector_size<vec3_t<T>> : std::integral_constant<size_type, 3> {};
+struct vector_size<vec<3, T>> : std::integral_constant<size_type, 3> {};
 template <typename T>
-struct vector_size<vec4_t<T>> : std::integral_constant<size_type, 4> {};
+struct vector_size<vec<4, T>> : std::integral_constant<size_type, 4> {};
 
 template <typename T>
 struct is_floating_point_vector : std::false_type {};
 
 template <typename T>
-struct is_floating_point_vector<vec2_t<T>> : std::is_floating_point<T> {};
+struct is_floating_point_vector<vec<2, T>> : std::is_floating_point<T> {};
 template <typename T>
-struct is_floating_point_vector<vec3_t<T>> : std::is_floating_point<T> {};
+struct is_floating_point_vector<vec<3, T>> : std::is_floating_point<T> {};
 template <typename T>
-struct is_floating_point_vector<vec4_t<T>> : std::is_floating_point<T> {};
+struct is_floating_point_vector<vec<4, T>> : std::is_floating_point<T> {};
 
 template <typename T>
 struct is_integral_vector : std::false_type {};
 
 template <typename T>
-struct is_integral_vector<vec2_t<T>> : std::is_integral<T> {};
+struct is_integral_vector<vec<2, T>> : std::is_integral<T> {};
 template <typename T>
-struct is_integral_vector<vec3_t<T>> : std::is_integral<T> {};
+struct is_integral_vector<vec<3, T>> : std::is_integral<T> {};
 template <typename T>
-struct is_integral_vector<vec4_t<T>> : std::is_integral<T> {};
+struct is_integral_vector<vec<4, T>> : std::is_integral<T> {};
 
 // =============== matrix ===============
 

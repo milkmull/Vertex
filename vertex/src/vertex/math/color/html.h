@@ -7,9 +7,8 @@
 
 namespace vx {
 namespace math {
-namespace color_util {
 
-inline bool is_valid_html(const std::string& html)
+inline bool is_valid_html_color(const std::string& html)
 {
     const bool has_hash = (html[0] == '#');
     const size_t size = html.size();
@@ -33,7 +32,7 @@ inline bool is_valid_html(const std::string& html)
 
 inline color8 color_from_html(const std::string& html)
 {
-    if (html.empty() || !is_valid_html(html))
+    if (html.empty() || !is_valid_html_color(html))
     {
         return color8(0);
     }
@@ -80,6 +79,5 @@ inline std::string color_to_html(const color8& c, bool hash = true)
     return oss.str();
 }
 
-}
 }
 }

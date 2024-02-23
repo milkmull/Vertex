@@ -4,7 +4,6 @@
 
 namespace vx {
 namespace math {
-namespace color_space {
 
 // =============== hsl ===============
 
@@ -119,6 +118,5 @@ inline constexpr vec<3, T> rgb_to_hsl(T r, T g, T b)
     return vec<3, T>(h, s, l);
 }
 
-}
 }
 }
