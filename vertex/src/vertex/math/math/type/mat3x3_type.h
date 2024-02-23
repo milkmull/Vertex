@@ -555,7 +555,7 @@ struct mat<3, 3, T>
      */
     inline constexpr type invert() const
     {
-        const T det = determinant(m);
+        const T det = determinant();
 
         if (math::is_zero_approx(det))
         {

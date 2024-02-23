@@ -674,7 +674,7 @@ inline constexpr vec<2, T> frexp(
 template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<3, int>& exp
+    vec<3, U>& exp
 )
 {
     static_assert(std::is_same<U, int>::value, "exp must be of type int");
@@ -689,7 +689,7 @@ inline constexpr vec<3, T> frexp(
 template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<4, int>& exp
+    vec<4, U>& exp
 )
 {
     static_assert(std::is_same<U, int>::value, "exp must be of type int");

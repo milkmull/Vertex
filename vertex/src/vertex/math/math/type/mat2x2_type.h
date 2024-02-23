@@ -502,10 +502,10 @@ struct mat<2, 2, T>
         const T idet = static_cast<T>(1) / det;
 
         return type(
-            +m.columns[1].y * idet,
-            -m.columns[0].y * idet,
-            -m.columns[1].x * idet,
-            +m.columns[0].x * idet
+            +columns[1].y * idet,
+            -columns[0].y * idet,
+            -columns[1].x * idet,
+            +columns[0].x * idet
         );
     }
 
