@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include "../math.h"
+#include "vertex/tools/iter/iterator.h"
 
 namespace vx {
 namespace math {
@@ -28,8 +29,8 @@ struct mat<4, 4, T>
     static inline constexpr size_type width() noexcept { return static_cast<size_type>(4); }
     static inline constexpr size_type height() noexcept { return static_cast<size_type>(4); }
 
-    using iterator = ::vx::detail::iterator<col_type>;
-    using const_iterator = ::vx::detail::iterator<const col_type>;
+    using iterator = ::vx::tools::iterator<col_type>;
+    using const_iterator = ::vx::tools::iterator<const col_type>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 

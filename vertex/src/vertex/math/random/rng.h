@@ -148,7 +148,7 @@ public:
      * @param begin Iterator to the beginning of the range.
      * @param end Iterator to the end of the range.
      */
-    template <typename IT, typename std::enable_if<vx::detail::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
@@ -161,7 +161,7 @@ public:
      * @param last Iterator to the end of the range.
      * @return A reference to the randomly selected element.
      */
-    template <typename IT, typename std::enable_if<::vx::detail::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
@@ -188,8 +188,8 @@ public:
      */
     template <typename IT1, typename IT2,
         typename std::enable_if<
-        ::vx::detail::is_iterator<IT1>::value &&
-        ::vx::detail::is_iterator<IT2>::value,
+        ::vx::tools::is_iterator<IT1>::value &&
+        ::vx::tools::is_iterator<IT2>::value,
         bool>::type = true>
     inline IT2 choices(
         IT1 first1,
@@ -228,7 +228,7 @@ public:
      * @param w Weights object specifying the weights for each element.
      * @return A const reference to the selected element.
      */
-    template <typename IT, typename std::enable_if<::vx::detail::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
     inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
         IT first,
         IT last,
@@ -269,8 +269,8 @@ public:
      */
     template <typename IT1, typename IT2,
         typename std::enable_if<
-        ::vx::detail::is_iterator<IT1>::value &&
-        ::vx::detail::is_iterator<IT2>::value,
+        ::vx::tools::is_iterator<IT1>::value &&
+        ::vx::tools::is_iterator<IT2>::value,
         bool>::type = true>
     inline IT2 weighted_choices(
         IT1 first1,

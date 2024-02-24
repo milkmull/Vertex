@@ -3,7 +3,7 @@
 #include <iterator>
 
 namespace vx {
-namespace detail {
+namespace tools {
 
 template <typename T>
 class iterator
@@ -149,13 +149,13 @@ public:
     // comparison
 
     template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
-    bool inline constexpr operator==(const IT& other) const
+    bool inline constexpr operator==(const IT & other) const
     {
         return m_current == other.m_current;
     }
 
     template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
-    bool inline constexpr operator!=(const IT& other) const
+    bool inline constexpr operator!=(const IT & other) const
     {
         return !(*this == other);
     }

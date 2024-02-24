@@ -3,7 +3,7 @@
 #include <sstream>
 
 #include "../math.h"
-#include "vertex/tools/detail/iterator.h"
+#include "vertex/tools/iter/iterator.h"
 
 namespace vx {
 namespace math {
@@ -26,8 +26,8 @@ struct vec<2, T>
     using size_type = math::size_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(2); }
 
-    using iterator = ::vx::detail::iterator<T>;
-    using const_iterator = ::vx::detail::iterator<const T>;
+    using iterator = ::vx::tools::iterator<T>;
+    using const_iterator = ::vx::tools::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 

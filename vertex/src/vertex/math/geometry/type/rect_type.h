@@ -25,8 +25,8 @@ struct rect_t
 
     using size_type = math::size_type;
 
-    using iterator = ::vx::detail::iterator<T>;
-    using const_iterator = ::vx::detail::iterator<const T>;
+    using iterator = ::vx::tools::iterator<T>;
+    using const_iterator = ::vx::tools::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
