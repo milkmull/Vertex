@@ -7,9 +7,9 @@ namespace math {
 
 // =============== is_zero_approx ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_zero_approx(
-    const vec2_t<T>& x,
+    const vec<2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -17,9 +17,9 @@ inline constexpr bool is_zero_approx(
         && math::is_zero_approx(x.y, epsilon);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_zero_approx(
-    const vec3_t<T>& x,
+    const vec<3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -28,9 +28,9 @@ inline constexpr bool is_zero_approx(
         && math::is_zero_approx(x.z, epsilon);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_zero_approx(
-    const vec4_t<T>& x,
+    const vec<4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -42,10 +42,10 @@ inline constexpr bool is_zero_approx(
 
 // =============== is_equal_approx ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_equal_approx(
-    const vec2_t<T>& a,
-    const vec2_t<T>& b,
+    const vec<2, T>& a,
+    const vec<2, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -53,10 +53,10 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.y, b.y, epsilon);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_equal_approx(
-    const vec3_t<T>& a,
-    const vec3_t<T>& b,
+    const vec<3, T>& a,
+    const vec<3, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -65,10 +65,10 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.z, b.z, epsilon);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_equal_approx(
-    const vec4_t<T>& a,
-    const vec4_t<T>& b,
+    const vec<4, T>& a,
+    const vec<4, T>& b,
     const T epsilon = math::epsilon<T>
 )
 {
@@ -78,25 +78,63 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.w, b.w, epsilon);
 }
 
+// =============== is_not_equal_approx ===============
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const vec<2, T>& a,
+    const vec<2, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.x, b.x, epsilon)
+        && math::is_not_equal_approx(a.y, b.y, epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const vec<3, T>& a,
+    const vec<3, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.x, b.x, epsilon)
+        && math::is_not_equal_approx(a.y, b.y, epsilon)
+        && math::is_not_equal_approx(a.z, b.z, epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const vec<4, T>& a,
+    const vec<4, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.x, b.x, epsilon)
+        && math::is_not_equal_approx(a.y, b.y, epsilon)
+        && math::is_not_equal_approx(a.z, b.z, epsilon)
+        && math::is_not_equal_approx(a.w, b.w, epsilon);
+}
+
 // =============== is_finite ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_finite(const vec2_t<T>& x)
+template <typename T>
+inline constexpr bool is_finite(const vec<2, T>& x)
 {
     return math::is_finite(x.x)
         && math::is_finite(x.y);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_finite(const vec3_t<T>& x)
+template <typename T>
+inline constexpr bool is_finite(const vec<3, T>& x)
 {
     return math::is_finite(x.x)
         && math::is_finite(x.y)
         && math::is_finite(x.z);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_finite(const vec4_t<T>& x)
+template <typename T>
+inline constexpr bool is_finite(const vec<4, T>& x)
 {
     return math::is_finite(x.x)
         && math::is_finite(x.y)
@@ -106,23 +144,23 @@ inline constexpr bool is_finite(const vec4_t<T>& x)
 
 // =============== is_infinite ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(const vec2_t<T>& x)
+template <typename T>
+inline constexpr bool is_infinite(const vec<2, T>& x)
 {
     return math::is_infinite(x.x)
         || math::is_infinite(x.y);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(const vec3_t<T>& x)
+template <typename T>
+inline constexpr bool is_infinite(const vec<3, T>& x)
 {
     return math::is_infinite(x.x)
         || math::is_infinite(x.y)
         || math::is_infinite(x.z);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(const vec4_t<T>& x)
+template <typename T>
+inline constexpr bool is_infinite(const vec<4, T>& x)
 {
     return math::is_infinite(x.x)
         || math::is_infinite(x.y)
@@ -132,28 +170,60 @@ inline constexpr bool is_infinite(const vec4_t<T>& x)
 
 // =============== is_nan ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_nan(const vec2_t<T>& x)
+template <typename T>
+inline constexpr bool is_nan(const vec<2, T>& x)
 {
     return math::is_nan(x.x)
         || math::is_nan(x.y);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_nan(const vec3_t<T>& x)
+template <typename T>
+inline constexpr bool is_nan(const vec<3, T>& x)
 {
     return math::is_nan(x.x)
         || math::is_nan(x.y)
         || math::is_nan(x.z);
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_nan(const vec4_t<T>& x)
+template <typename T>
+inline constexpr bool is_nan(const vec<4, T>& x)
 {
     return math::is_nan(x.x)
         || math::is_nan(x.y)
         || math::is_nan(x.z)
         || math::is_nan(x.w);
+}
+
+// =============== is_nan ===============
+
+template <typename T>
+inline constexpr vec<2, T> round_epsilon(const vec<2, T>& x, const T epsilon = math::epsilon<T>)
+{
+    return vec<2, T>(
+        math::round_epsilon(x.x, epsilon),
+        math::round_epsilon(x.y, epsilon)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, T> round_epsilon(const vec<3, T>& x, const T epsilon = math::epsilon<T>)
+{
+    return vec<3, T>(
+        math::round_epsilon(x.x, epsilon),
+        math::round_epsilon(x.y, epsilon),
+        math::round_epsilon(x.z, epsilon)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, T> round_epsilon(const vec<4, T>& x, const T epsilon = math::epsilon<T>)
+{
+    return vec<4, T>(
+        math::round_epsilon(x.x, epsilon),
+        math::round_epsilon(x.y, epsilon),
+        math::round_epsilon(x.z, epsilon),
+        math::round_epsilon(x.w, epsilon)
+    );
 }
 
 }

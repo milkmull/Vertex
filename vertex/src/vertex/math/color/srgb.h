@@ -10,16 +10,16 @@ namespace math {
 // https://entropymine.com/imageworsener/srgbformula/
 
 /**
- * @brief Convert the color to sRGB color space.
+ * @brief Converts a linear color to sRGB color space.
  *
- * This function performs the conversion of the color to the sRGB color space.
- *
- * @return A new color representing the sRGB color space.
+ * @param c The linear color to be converted.
+ * @return The sRGB color corresponding to the input linear color.
  */
-template <typename T = float>
 inline constexpr color linear_to_srgb(const color& c)
 {
-    color srgb(c.clamp());
+    using T = typename color::value_type;
+
+    color srgb = c.clamp();
 
     srgb.r = (srgb.r < static_cast<T>(0.0031308))
         ? (static_cast<T>(12.92) * srgb.r)
@@ -35,16 +35,16 @@ inline constexpr color linear_to_srgb(const color& c)
 }
 
 /**
- * @brief Convert the color to linear color space.
+ * @brief Converts an sRGB color to linear color space.
  *
- * This function performs the conversion of the color to the linear color space.
- *
- * @return A new color representing the linear color space.
+ * @param c The sRGB color to be converted.
+ * @return The linear color corresponding to the input sRGB color.
  */
-template <typename T = float>
 inline constexpr color srgb_to_linear(const color& c)
 {
-    color lrgb(c.clamp());
+    using T = typename color::value_type;
+
+    color lrgb = c.clamp();
 
     lrgb.r = (lrgb.r < static_cast<T>(0.04045))
         ? (static_cast<T>(0.0773993808) * lrgb.r)

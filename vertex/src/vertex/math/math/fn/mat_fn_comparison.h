@@ -78,45 +78,112 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.columns[3], b.columns[3], epsilon);
 }
 
-// =============== round_if_close ===============
+// =============== is_not_equal_approx ===============
 
 template <typename T>
-inline constexpr auto round_if_close(
+inline constexpr bool is_not_equal_approx(
+    const mat<2, 2, T>& a,
+    const mat<2, 2, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.columns[0], b.columns[0], epsilon)
+        && math::is_not_equal_approx(a.columns[1], b.columns[1], epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const mat<3, 3, T>& a,
+    const mat<3, 3, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.columns[0], b.columns[0], epsilon)
+        && math::is_not_equal_approx(a.columns[1], b.columns[1], epsilon)
+        && math::is_not_equal_approx(a.columns[2], b.columns[2], epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const mat<4, 4, T>& a,
+    const mat<4, 4, T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.columns[0], b.columns[0], epsilon)
+        && math::is_not_equal_approx(a.columns[1], b.columns[1], epsilon)
+        && math::is_not_equal_approx(a.columns[2], b.columns[2], epsilon)
+        && math::is_not_equal_approx(a.columns[3], b.columns[3], epsilon);
+}
+
+// =============== round_epsilon ===============
+
+template <typename T>
+inline constexpr auto round_epsilon(
     const mat<2, 2, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return mat<2, 2, T>(
-        math::round_if_close(x.columns[0], epsilon),
-        math::round_if_close(x.columns[1], epsilon)
+        math::round_epsilon(x.columns[0], epsilon),
+        math::round_epsilon(x.columns[1], epsilon)
     );
 }
 
 template <typename T>
-inline constexpr auto round_if_close(
+inline constexpr auto round_epsilon(
     const mat<3, 3, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return mat<3, 3, T>(
-        math::round_if_close(x.columns[0], epsilon),
-        math::round_if_close(x.columns[1], epsilon),
-        math::round_if_close(x.columns[2], epsilon)
+        math::round_epsilon(x.columns[0], epsilon),
+        math::round_epsilon(x.columns[1], epsilon),
+        math::round_epsilon(x.columns[2], epsilon)
     );
 }
 
 template <typename T>
-inline constexpr auto round_if_close(
+inline constexpr auto round_epsilon(
     const mat<4, 4, T>& x,
     const T epsilon = math::epsilon<T>
 )
 {
     return mat<4, 4, T>(
-        math::round_if_close(x.columns[0], epsilon),
-        math::round_if_close(x.columns[1], epsilon),
-        math::round_if_close(x.columns[2], epsilon),
-        math::round_if_close(x.columns[3], epsilon)
+        math::round_epsilon(x.columns[0], epsilon),
+        math::round_epsilon(x.columns[1], epsilon),
+        math::round_epsilon(x.columns[2], epsilon),
+        math::round_epsilon(x.columns[3], epsilon)
     );
+}
+
+// =============== is_identity ===============
+
+template <typename T>
+inline constexpr bool is_identity(
+    const mat<2, 2, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return is_equal_approx(x, mat<2, 2, T>::IDENTITY(), epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_identity(
+    const mat<3, 3, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return is_equal_approx(x, mat<3, 3, T>::IDENTITY(), epsilon);
+}
+
+template <typename T>
+inline constexpr bool is_identity(
+    const mat<4, 4, T>& x,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return is_equal_approx(x, mat<4, 4, T>::IDENTITY(), epsilon);
 }
 
 }

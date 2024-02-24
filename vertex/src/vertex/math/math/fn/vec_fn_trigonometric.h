@@ -13,7 +13,7 @@ inline constexpr auto radians(
 )
 {
     using R = decltype(math::radians(std::declval<T>()));
-    return vec2_t<R>(
+    return vec<2, R>(
         math::radians(deg.x),
         math::radians(deg.y)
     );
@@ -25,7 +25,7 @@ inline constexpr auto radians(
 )
 {
     using R = decltype(math::radians(std::declval<T>()));
-    return vec3_t<R>(
+    return vec<3, R>(
         math::radians(deg.x),
         math::radians(deg.y),
         math::radians(deg.z)
@@ -38,7 +38,7 @@ inline constexpr auto radians(
 )
 {
     using R = decltype(math::radians(std::declval<T>()));
-    return vec4_t<R>(
+    return vec<4, R>(
         math::radians(deg.x),
         math::radians(deg.y),
         math::radians(deg.z),
@@ -54,7 +54,7 @@ inline constexpr auto degrees(
 )
 {
     using R = decltype(math::degrees(std::declval<T>()));
-    return vec2_t<R>(
+    return vec<2, R>(
         math::degrees(rad.x),
         math::degrees(rad.y)
     );
@@ -66,7 +66,7 @@ inline constexpr auto degrees(
 )
 {
     using R = decltype(math::degrees(std::declval<T>()));
-    return vec3_t<R>(
+    return vec<3, R>(
         math::degrees(rad.x),
         math::degrees(rad.y),
         math::degrees(rad.z)
@@ -79,7 +79,7 @@ inline constexpr auto degrees(
 )
 {
     using R = decltype(math::degrees(std::declval<T>()));
-    return vec4_t<R>(
+    return vec<4, R>(
         math::degrees(rad.x),
         math::degrees(rad.y),
         math::degrees(rad.z),

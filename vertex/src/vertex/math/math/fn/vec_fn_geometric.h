@@ -10,13 +10,14 @@ namespace math {
 // =============== dot ===============
 
 /**
- * @brief Calculates the dot product of two vectors.
+ * @brief Computes the dot product of two vectors.
  *
- * This function computes the dot product between two vectors 'v' and 'u'.
+ * This function computes the dot product of two vectors.
  *
+ * @tparam T Type of the vector components.
  * @param v The first vector.
  * @param u The second vector.
- * @return The dot product of the two vectors.
+ * @return The dot product of v and u.
  */
 template <typename T>
 inline constexpr auto dot(
@@ -49,13 +50,15 @@ inline constexpr auto dot(
 }
 
 /**
- * @brief Calculates the normalized dot product of two vectors.
+ * @brief Computes the normalized dot product of two vectors.
  *
- * This function computes the dot product between two vectors 'v' and 'u' after normalizing them.
+ * This function computes the dot product of two vectors after normalizing them.
  *
- * @param v The first vector to be normalized and used in the dot product.
- * @param u The second vector to be normalized and used in the dot product.
- * @return The normalized dot product of the two vectors.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param v The first vector.
+ * @param u The second vector.
+ * @return The normalized dot product of v and u.
  */
 template <size_type L, typename T>
 inline constexpr auto normalized_dot(
@@ -69,13 +72,14 @@ inline constexpr auto normalized_dot(
 // =============== cross ===============
 
 /**
- * @brief Calculates the cross product of two 2D vectors.
+ * @brief Computes the cross product of two 2D vectors.
  *
- * This function computes the cross product between two 2D vectors 'v' and 'u'.
+ * This function computes the cross product of two 2D vectors.
  *
- * @param v The first 2D vector.
- * @param u The second 2D vector.
- * @return The cross product of the two 2D vectors.
+ * @tparam T Type of the vector components.
+ * @param v The first vector.
+ * @param u The second vector.
+ * @return The cross product of v and u.
  */
 template <typename T>
 inline constexpr auto cross(
@@ -88,13 +92,14 @@ inline constexpr auto cross(
 }
 
 /**
- * @brief Calculates the cross product of two 3D vectors.
+ * @brief Computes the cross product of two 3D vectors.
  *
- * This function computes the cross product between two 3D vectors 'v' and 'u'.
+ * This function computes the cross product of two 3D vectors.
  *
- * @param v The first 3D vector.
- * @param u The second 3D vector.
- * @return The cross product of the two 3D vectors.
+ * @tparam T Type of the vector components.
+ * @param v The first vector.
+ * @param u The second vector.
+ * @return The cross product of v and u.
  */
 template <typename T>
 inline constexpr auto cross(
@@ -113,13 +118,15 @@ inline constexpr auto cross(
 // =============== scale ===============
 
 /**
- * @brief Scales a vector by a scalar.
+ * @brief Scales a vector by a scalar value.
  *
- * This function scales the input vector 'v' by the specified scalar value.
+ * This function scales a vector by a scalar value.
  *
- * @param v The vector to be scaled.
- * @param scaler The scalar value to scale the vector by.
- * @return The resulting scaled vector.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector to scale.
+ * @param scaler The scalar value.
+ * @return The scaled vector.
  */
 template <size_type L, typename T>
 inline constexpr vec<L, T> scale(
@@ -130,6 +137,17 @@ inline constexpr vec<L, T> scale(
     return v * scaler;
 }
 
+/**
+ * @brief Scales a vector component-wise by another vector.
+ *
+ * This function scales each component of a vector by the corresponding component of another vector.
+ *
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param v The vector to scale.
+ * @param scaler The vector to scale by.
+ * @return The scaled vector.
+ */
 template <size_type L, typename T>
 inline constexpr vec<L, T> scale(
     const vec<L, T>& v,
@@ -142,12 +160,14 @@ inline constexpr vec<L, T> scale(
 // =============== length ===============
 
 /**
- * @brief Calculates the squared length of a vector.
+ * @brief Computes the squared length of a vector.
  *
- * This function computes the squared length of the input vector 'v'.
+ * This function computes the squared length of a vector.
  *
- * @param v The vector for which to calculate the squared length.
- * @return The squared length of the vector.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector.
+ * @return The squared length of v.
  */
 template <size_type L, typename T>
 inline constexpr auto length_squared(const vec<L, T>& v)
@@ -156,12 +176,14 @@ inline constexpr auto length_squared(const vec<L, T>& v)
 }
 
 /**
- * @brief Calculates the length of a vector.
+ * @brief Computes the length of a vector.
  *
- * This function computes the length of the input vector 'v'.
+ * This function computes the length of a vector.
  *
- * @param v The vector for which to calculate the length.
- * @return The length of the vector.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector.
+ * @return The length of v.
  */
 template <size_type L, typename T>
 inline constexpr auto length(const vec<L, T>& v)
@@ -172,13 +194,15 @@ inline constexpr auto length(const vec<L, T>& v)
 // =============== distance ===============
 
 /**
- * @brief Calculates the squared distance between two vectors.
+ * @brief Computes the squared distance between two points.
  *
- * This function computes the squared distance between two vectors 'p0' and 'p1'.
+ * This function computes the squared distance between two points represented by vectors.
  *
- * @param p0 The first vector.
- * @param p1 The second vector.
- * @return The squared distance between the two vectors.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param p0 The first point.
+ * @param p1 The second point.
+ * @return The squared distance between p0 and p1.
  */
 template <size_type L, typename T>
 inline constexpr auto distance_squared(
@@ -190,13 +214,15 @@ inline constexpr auto distance_squared(
 }
 
 /**
- * @brief Calculates the distance between two vectors.
+ * @brief Computes the distance between two points.
  *
- * This function computes the distance between two vectors 'p0' and 'p1'.
+ * This function computes the distance between two points represented by vectors.
  *
- * @param p0 The first vector.
- * @param p1 The second vector.
- * @return The distance between the two vectors.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param p0 The first point.
+ * @param p1 The second point.
+ * @return The distance between p0 and p1.
  */
 template <size_type L, typename T>
 inline constexpr auto distance(
@@ -212,11 +238,15 @@ inline constexpr auto distance(
 /**
  * @brief Normalizes a vector.
  *
- * This function normalizes the input vector 'v'.
+ * This function normalizes a vector, i.e., it scales the vector to have unit
+ * length. If the input vector is a zero vector or very close to it, a zero
+ * vector is returned.
  *
- * @param v The vector to be normalized.
- * @return The normalized vector. If the length of the input vector is 0,
- * a zero vector will be returned.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector to normalize.
+ * @return The normalized vector if the input is not the zero vector;
+ * otherwise, returns the zero vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> normalize(const vec<L, T>& v)
@@ -239,11 +269,14 @@ inline constexpr auto normalize(const vec<L, T>& v)
 }
 
 /**
- * @brief Normalizes a vector.
+ * @brief Fast normalization of a vector.
  *
- * This function normalizes the input vector 'v' without checking if it is 0.
+ * This function performs a fast normalization of a vector, i.e., it scales the
+ * vector to have approximately unit length without checking if the length is 0.
  *
- * @param v The vector to be normalized.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector to normalize.
  * @return The normalized vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -260,16 +293,19 @@ inline constexpr auto fast_normalize(const vec<L, T>& v)
 }
 
 /**
- * @brief Check if a vector is normalized.
+ * @brief Checks if a vector is normalized.
  *
- * This function takes a vector and checks if it is normalized,
- * meaning its magnitude (length) is approximately equal to 1.
+ * This function checks if a vector is normalized by comparing its squared length
+ * to one within a specified epsilon value.
  *
- * @param v The vector to be checked for normalization.
+ * @tparam L Number of components in the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector to be checked.
+ * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
  * @return True if the vector is normalized, false otherwise.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_normalized_approx(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
+template <size_type L, typename T>
+inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
 }
@@ -277,14 +313,18 @@ inline constexpr bool is_normalized_approx(const vec<L, T>& v, const T epsilon =
 // =============== clamp_magnitude ===============
 
 /**
- * @brief Clamp the magnitude of the vector within a specified range.
+ * @brief Clamps the magnitude of a vector within a specified range.
  *
- * This function clamps the magnitude of the vector to be within the specified minimum and maximum values.
- * If the magnitude is below a small epsilon value, the function returns a zero vector.
+ * This function clamps the magnitude of a vector within a specified range. If
+ * the input vector is the zero vector or very close to it, the zero vector is
+ * returned.
  *
- * @param min The minimum magnitude allowed.
- * @param max The maximum magnitude allowed.
- * @return A new vector with the clamped magnitude.
+ * @tparam L Dimension of the vector.
+ * @tparam T Type of the vector components.
+ * @param v The vector whose magnitude to clamp.
+ * @param min The minimum allowed magnitude.
+ * @param max The maximum allowed magnitude.
+ * @return The clamped vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> clamp_magnitude(
@@ -312,13 +352,15 @@ inline constexpr vec<L, T> clamp_magnitude(
 // =============== angle ===============
 
 /**
- * @brief Calculates the angle between two vectors.
+ * @brief Computes the angle between two vectors.
  *
- * This function computes the angle (in radians) between two vectors 'from' and 'to'.
+ * This function computes the angle between two vectors.
  *
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
  * @param from The first vector.
  * @param to The second vector.
- * @return The angle (in radians) between the two vectors.
+ * @return The angle between from and to in radians.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T angle(
@@ -330,14 +372,17 @@ static inline constexpr T angle(
 }
 
 /**
- * @brief Calculates the signed angle between two vectors.
+ * @brief Computes the signed angle between two vectors.
  *
- * This function computes the signed angle (in radians) between two vectors 'from' and 'to'.
- * The sign indicates the direction of rotation from 'from' to 'to'.
+ * This function computes the signed angle between two vectors. The sign
+ * indicates the direction of rotation from the "from" vector to the "to"
+ * vector.
  *
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
  * @param from The first vector.
  * @param to The second vector.
- * @return The signed angle (in radians) between the two vectors.
+ * @return The signed angle between from and to in radians.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T signed_angle(
@@ -352,14 +397,14 @@ static inline constexpr T signed_angle(
 // =============== rotate ===============
 
 /**
- * @brief Rotate a 2D vector by a specified angle.
+ * @brief Rotates a 2D vector by a specified angle.
  *
- * This function rotates the given 2D vector by the specified angle using
- * cosine and sine trigonometric functions.
+ * This function rotates a 2D vector by a specified angle.
  *
- * @param v The 2D vector to be rotated.
- * @param angle The rotation angle in radians.
- * @return A new 2D vector representing the rotated vector.
+ * @tparam T Type of the vector components.
+ * @param v The 2D vector to rotate.
+ * @param angle The angle of rotation in radians.
+ * @return The rotated vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
@@ -374,17 +419,16 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
 }
 
 /**
- * @brief Rotate a 3D vector around a specified axis by a specified angle.
+ * @brief Rotates a 3D vector around a specified axis by a given angle.
  *
- * This function takes a 3D vector, a rotation axis, and a rotation angle, and applies
- * the rotation using Rodrigues' rotation formula. The formula combines cosine and sine trigonometric
- * functions to compute the rotated vector, ensuring accurate and efficient 3D rotations.
+ * This function rotates a 3D vector around a specified axis by a given angle.
  *
- * @param v The original 3D vector to be rotated.
- * @param axis The rotation axis around which the rotation occurs.
- * @param angle The rotation angle in radians.
- * @return The rotated 3D vector.
- *
+ * @tparam T Type of the vector components.
+ * @param v The 3D vector to rotate.
+ * @param axis The axis of rotation.
+ * @param angle The angle of rotation in radians.
+ * @return The rotated vector.
+ * 
  * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -402,6 +446,16 @@ inline constexpr vec<3, T> rotate(
     return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
 }
 
+/**
+ * @brief Rotates a 3D vector by a quaternion rotation.
+ *
+ * This function rotates a 3D vector by a quaternion rotation.
+ *
+ * @tparam T Type of the vector components.
+ * @param v The 3D vector to rotate.
+ * @param rotation The quaternion representing the rotation.
+ * @return The rotated vector.
+ */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rotate(
     const vec<3, T>& v,
@@ -416,11 +470,13 @@ inline constexpr vec<3, T> rotate(
 /**
  * @brief Projects a vector onto another vector.
  *
- * This function projects the input vector 'i' onto the direction of the vector 'n'.
+ * This function projects a vector onto another vector.
  *
- * @param i The vector to be projected.
- * @param n The vector onto which 'i' is projected.
- * @return The vector 'i' projected onto the direction of 'n'.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param i The vector to project.
+ * @param n The vector onto which to project.
+ * @return The projected vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> project(
@@ -434,13 +490,17 @@ inline constexpr vec<L, T> project(
 // =============== reflect ===============
 
 /**
- * @brief Reflects a vector based on a normal vector.
+ * @brief Reflects a vector off a surface with a given normal.
  *
- * This function reflects the input vector 'i' based on the normal vector 'n'.
+ * This function reflects a vector off a surface with a given normal.
  *
- * @param i The vector to be reflected.
- * @param n The normal vector used for reflection.
- * @return The vector 'i' reflected based on the normal vector 'n'.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param i The incident vector.
+ * @param n The normal vector of the surface.
+ * @return The reflected vector.
+ * 
+ * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/reflect.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> reflect(
@@ -454,14 +514,15 @@ inline constexpr vec<L, T> reflect(
 // =============== bounce ===============
 
 /**
- * @brief Bounces a vector off a surface defined by a normal vector.
+ * @brief Computes the bounce direction of a vector off a surface with a given normal.
  *
- * This function calculates the bounce vector of the input vector 'i' off a surface
- * defined by the normal vector 'n'.
+ * This function computes the bounce direction of a vector off a surface with a given normal.
  *
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
  * @param i The incident vector.
  * @param n The normal vector of the surface.
- * @return The bounce vector of the incident vector off the surface.
+ * @return The bounced vector.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> bounce(
@@ -475,15 +536,22 @@ inline constexpr vec<L, T> bounce(
 // =============== refract ===============
 
 /**
- * @brief Refracts a vector based on a normal vector and a refraction index.
+ * @brief Computes the refraction of a vector through a surface with a given
+ * normal and refraction index.
  *
- * This function refracts the input vector 'i' based on the normal vector 'n'
- * and a refraction index 'eta'.
+ * This function computes the refraction of a vector through a surface with a
+ * given normal and refraction index.
  *
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
  * @param i The incident vector.
- * @param n The normal vector.
- * @param eta The refraction index.
+ * @param n The normal vector of the surface.
+ * @param eta The ratio of refraction indices (refraction index of the medium
+ * the incident ray is leaving divided by the refraction index of the medium
+ * it is entering).
  * @return The refracted vector.
+ * 
+ * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/refract.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> refract(
@@ -506,15 +574,20 @@ inline constexpr vec<L, T> refract(
 // =============== face_forward ===============
 
 /**
- * @brief Ensures the correct orientation of a normal vector relative to an incident vector.
+ * @brief Ensures the normal vector is facing in the same direction as the
+ * incident vector relative to a reference normal.
  *
- * This function ensures that the input normal vector 'n' has the correct orientation
- * relative to the incident vector 'i' based on the reference normal vector 'nref'.
+ * This function ensures the normal vector is facing in the same direction as
+ * the incident vector relative to a reference normal.
  *
- * @param n The normal vector to be adjusted.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param n The original normal vector.
  * @param i The incident vector.
  * @param nref The reference normal vector.
  * @return The adjusted normal vector.
+ * 
+ * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/faceforward.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> face_forward(
@@ -529,17 +602,16 @@ inline constexpr vec<L, T> face_forward(
 // =============== move_toward ===============
 
 /**
- * @brief Moves a vector towards a target vector by a specified delta.
+ * @brief Moves a vector towards a target vector by a specified distance.
  *
- * This function moves the input vector 'from' towards the target vector 'to'
- * by a specified delta distance. If the current distance between 'from' and 'to'
- * is less than or equal to the delta, the target vector 'to' is returned.
- * Otherwise, the vector 'from' is moved towards 'to' by the delta distance.
+ * This function moves a vector towards a target vector by a specified distance.
  *
- * @param from The starting vector.
- * @param to The target vector.
- * @param delta The distance to move towards the target.
- * @return The resulting vector after moving towards the target.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param from The initial vector position.
+ * @param to The target vector position.
+ * @param delta The maximum distance to move towards the target.
+ * @return The new vector position.
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> move_toward(

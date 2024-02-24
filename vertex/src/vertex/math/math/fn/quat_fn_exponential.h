@@ -19,10 +19,10 @@ namespace math {
 /**
  * @brief Calculates the quaternion raised to the power of a scalar value.
  *
- * This function computes the result of a quaternion 'q' raised to the power of 'x'. The result is a new quaternion.
+ * This function computes the result of a quaternion q raised to the power of x. The result is a new quaternion.
  * Special cases:
  * - If the input quaternion is a zero quaternion (all components are zero), the result is a quaternion with zero components.
- * - If 'x' is 0, the result is a quaternion with all components set to NaN.
+ * - If x is 0, the result is a quaternion with all components set to NaN.
  * 
  * @param q The input quaternion.
  * @param x The scalar exponent.
@@ -84,7 +84,7 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
 /**
  * @brief Calculates the quaternion exponential of the given quaternion.
  * 
- * This function computes the result of e raised to a quaternion power 'q'. The result is a new quaternion.
+ * This function computes the result of e raised to a quaternion power q. The result is a new quaternion.
  * 
  * @param q The input quaternion.
  * @return The quaternion exponential of the input quaternion.
@@ -117,7 +117,7 @@ inline constexpr quat_t<T> exp(const quat_t<T>& q)
 /**
  * @brief Calculates the quaternion natural logarithm of the given quaternion.
  *
- * This function computes the natural logorithm of a quaternion 'q'. The result is a new quaternion.
+ * This function computes the natural logorithm of a quaternion q. The result is a new quaternion.
  * Special cases:
  * - If the input quaternion is a zero quaternion (all components are zero), the operation is undefined.
  *
@@ -170,7 +170,7 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
 /**
  * @brief Calculates the square root of a quaternion.
  *
- * This function computes the square root of a quaternion 'q'. The result is a new quaternion.
+ * This function computes the square root of a quaternion q. The result is a new quaternion.
  * Special cases:
  * - If the input quaternion is a zero quaternion (all components are zero), the result is a quaternion with zero components.
  *

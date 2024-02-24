@@ -13,8 +13,9 @@ namespace math {
 /**
  * @brief Calculates the dot product of two quaternions.
  *
- * This function computes the dot product between two quaternions 'q1' and 'q2'.
+ * This function calculates the dot product of two quaternions.
  *
+ * @tparam T Type of the quaternion components.
  * @param q1 The first quaternion.
  * @param q2 The second quaternion.
  * @return The dot product of the two quaternions.
@@ -31,10 +32,11 @@ inline constexpr T dot(
 /**
  * @brief Calculates the normalized dot product of two quaternions.
  *
- * This function computes the dot product between two quaternions 'q1' and 'q2' after normalizing them.
+ * This function calculates the normalized dot product of two quaternions.
  *
- * @param v The first quaternion to be normalized and used in the dot product.
- * @param u The second quaternion to be normalized and used in the dot product.
+ * @tparam T Type of the quaternion components.
+ * @param q1 The first quaternion.
+ * @param q2 The second quaternion.
  * @return The normalized dot product of the two quaternions.
  */
 template <typename T>
@@ -49,13 +51,14 @@ inline constexpr T normalized_dot(
 // =============== scale ===============
 
 /**
- * @brief Scales a quaternion by a scalar.
+ * @brief Scales a quaternion by a scalar value.
  *
- * This function scales the input quaternion 'q' by the specified scalar value.
+ * This function scales a quaternion by a scalar value.
  *
+ * @tparam T Type of the quaternion components.
  * @param q The quaternion to be scaled.
  * @param scaler The scalar value to scale the quaternion by.
- * @return The resulting scaled quaternion.
+ * @return The scaled quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> scale(
@@ -71,9 +74,10 @@ inline constexpr quat_t<T> scale(
 /**
  * @brief Calculates the squared length of a quaternion.
  *
- * This function computes the squared length of the input quaternion 'q'.
+ * This function calculates the squared length of a quaternion.
  *
- * @param q The quaternion for which to calculate the squared length.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion.
  * @return The squared length of the quaternion.
  */
 template <typename T>
@@ -85,9 +89,10 @@ inline constexpr T length_squared(const quat_t<T>& q)
 /**
  * @brief Calculates the length of a quaternion.
  *
- * This function computes the length of the input quaternion 'q'.
+ * This function calculates the length of a quaternion.
  *
- * @param q The quaternion for which to calculate the length.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion.
  * @return The length of the quaternion.
  */
 template <typename T>
@@ -101,11 +106,13 @@ inline constexpr T length(const quat_t<T>& q)
 /**
  * @brief Normalizes a quaternion.
  *
- * This function normalizes the input quaternion 'q'.
+ * This function normalizes a quaternion, i.e., it scales the quaternion to have
+ * unit length. If the input quaternion is a zero quaternion or very close to it,
+ * an identity quaternion is returned.
  *
+ * @tparam T Type of the quaternion components.
  * @param q The quaternion to be normalized.
- * @return The normalized quaternion. If the length of the input quaternion is 0,
- * the unit quaternion will be returned.
+ * @return The normalized quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> normalize(const quat_t<T>& q)
@@ -121,12 +128,14 @@ inline constexpr quat_t<T> normalize(const quat_t<T>& q)
 }
 
 /**
- * @brief Normalizes a quaternion.
+ * @brief Fast normalization of a quaternion.
  *
- * This function normalizes the input quaternion 'q' without checking if it is 0.
+ * This function performs a fast normalization of a quaternion, i.e., it scales the
+ * quaternion to have approximately unit length without checking if the length is 0.
  *
- * @param q The quaternion to be normalized.
- * @return The normalized quaternion.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion to be fast normalized.
+ * @return The fast normalized quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
@@ -135,28 +144,31 @@ inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
 }
 
 /**
- * @brief Check if a quaternion is normalized.
+ * @brief Checks if a quaternion is normalized.
  *
- * This function takes a quaternion and checks if it is normalized,
- * meaning its magnitude (length) is approximately equal to 1.
+ * This function checks if a quaternion is normalized by comparing its squared length
+ * to one within a specified epsilon value.
  *
- * @param q The quaternion to be checked for normalization.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion to be checked.
+ * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
  * @return True if the quaternion is normalized, false otherwise.
  */
 template <typename T>
-inline constexpr bool is_normalized_approx(const quat_t<T>& q, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
 
 /**
- * @brief Calculates the angle between two quaternions.
+ * @brief Computes the angle between two quaternions.
  *
- * This function computes the angle (in radians) between two quaternions 'from' and 'to'.
+ * This function computes the angle between two quaternions.
  *
+ * @tparam T Type of the quaternion components.
  * @param from The first quaternion.
  * @param to The second quaternion.
- * @return The angle (in radians) between the two quaternions.
+ * @return The angle between the two quaternions.
  */
 template <typename T>
 static inline constexpr T angle(
@@ -172,13 +184,14 @@ static inline constexpr T angle(
 }
 
 /**
- * @brief Calculates the signed angle between two quaternions.
+ * @brief Computes the signed angle between two quaternions.
  *
- * This function computes the signed angle (in radians) between two quaternions 'from' and 'to'.
+ * This function computes the signed angle between two quaternions.
  *
+ * @tparam T Type of the quaternion components.
  * @param from The first quaternion.
  * @param to The second quaternion.
- * @return The signed angle (in radians) between the two quaternions.
+ * @return The signed angle between the two quaternions.
  */
 template <typename T>
 static inline constexpr T signed_angle(
@@ -194,13 +207,13 @@ static inline constexpr T signed_angle(
 // =============== conjugate ===============
 
 /**
- * @brief Calculates the conjugate of a quaternion.
+ * @brief Computes the conjugate of a quaternion.
  *
- * The conjugate of a quaternion is obtained by negating the imaginary components
- * (x, y, z) while keeping the real component (w) unchanged.
+ * This function computes the conjugate of a quaternion.
  *
- * @param q The quaternion for which to calculate the conjugate.
- * @return The conjugate of the quaternion.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion.
+ * @return The conjugate of the input quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
@@ -211,13 +224,13 @@ inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 // =============== invert ===============
 
 /**
- * @brief Calculates the inverse of a quaternion.
+ * @brief Computes the inverse of a quaternion.
  *
- * This function returns the inverse of a quaternion, effectively
- * reversing the encoded rotation.
+ * This function computes the inverse of a quaternion.
  *
- * @param q The quaternion to invert.
- * @return The inverse of the quaternion.
+ * @tparam T Type of the quaternion components.
+ * @param q The quaternion.
+ * @return The inverse of the input quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> invert(const quat_t<T>& q)

@@ -136,20 +136,16 @@ inline constexpr vec<L, T> smoothstep(
 // =============== slerp ===============
 
 /**
- * @brief Performs spherical linear interpolation ('slerp') between two normalized vectors.
+ * @brief Performs spherical linear interpolation (SLERP) between two vectors.
  *
- * This function calculates the slerp interpolation between two normalized vectors 'x' and 'y'
- * based on the interpolation parameter 't'.
+ * This function performs spherical linear interpolation (SLERP) between two vectors.
  *
- * @param x The starting normalized vector.
- * @param y The target normalized vector.
- * @param t Interpolation parameter in the range [0, 1].
- * @return The slerp interpolated vector.
- *
- * @note If the angle between the vectors is very small, linear interpolation
- * is used as an optimization to avoid numerical instability.
- *
- * @note The vectors 'x' and 'y' are assumed to be normalized before calling this function.
+ * @tparam L Dimension of the vectors.
+ * @tparam T Type of the vector components.
+ * @param x The start vector.
+ * @param y The end vector.
+ * @param t The interpolation parameter, where t is in the range [0, 1].
+ * @return The interpolated vector.
  * 
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */

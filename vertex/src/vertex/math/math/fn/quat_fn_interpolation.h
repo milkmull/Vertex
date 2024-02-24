@@ -26,19 +26,16 @@ inline constexpr quat_t<T> lerp(
 // qm = { qx * sin((1 - t) * theta) + qy * sin(t * theta) } / sin(theta)
 
 /**
- * @brief Performs spherical linear interpolation ('slerp') between two quaternions.
+ * @brief Performs spherical linear interpolation (SLERP) between two quaternions.
  *
- * This function calculates the slerp interpolation between two quaternions 'x' and 'y'
- * based on the interpolation parameter 't'.
+ * This function performs spherical linear interpolation (SLERP) between two quaternions.
  *
+ * @tparam T Type of the quaternion components.
  * @param x The starting quaternion.
- * @param y The target quaternion.
- * @param t Interpolation parameter in the range [0, 1].
- * @return The slerp interpolated quaternion.
- *
- * @note If the angle between the quaternions is very small, linear interpolation
- * is used as an optimization to avoid numerical instability.
- *
+ * @param y The ending quaternion.
+ * @param t Interpolation parameter. Should be in the range [0, 1].
+ * @return The interpolated quaternion.
+ * 
  * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <typename T>

@@ -687,7 +687,7 @@ struct vec<2, T>
      */
     inline constexpr float_value_type aspect() const
     {
-        return static_cast<T>(math::is_zero_approx(y)) * (static_cast<float_value_type>(x) / static_cast<float_value_type>(y));
+        return static_cast<float_value_type>(math::is_zero_approx(y)) * (static_cast<float_value_type>(x) / static_cast<float_value_type>(y));
     }
 
     /**
@@ -765,9 +765,9 @@ struct vec<2, T>
     }
 
     /**
-     * @brief Create a vector that is orthogonal (perpendicular) to the given vector.
+     * @brief Create a vector that is orthogonal (perpendicular) to this vector.
      *
-     * This static function returns a new vector that is orthogonal to the provided vector.
+     * This function returns a new vector that is orthogonal to the provided vector.
      * The orthogonal vector is obtained by swapping the x and y components and negating the new y component.
      *
      * @param v The input vector.

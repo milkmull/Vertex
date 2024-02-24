@@ -8,7 +8,7 @@ namespace math {
 
 // =============== is_zero_approx ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_zero_approx(
     const color_t<T>& x,
     const T epsilon = math::epsilon<T>
@@ -22,7 +22,7 @@ inline constexpr bool is_zero_approx(
 
 // =============== is_equal_approx ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_equal_approx(
     const color_t<T>& a,
     const color_t<T>& b,
@@ -35,9 +35,24 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.a, b.a, epsilon);
 }
 
+// =============== is_not_equal_approx ===============
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const color_t<T>& a,
+    const color_t<T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.r, b.r, epsilon)
+        && math::is_not_equal_approx(a.g, b.g, epsilon)
+        && math::is_not_equal_approx(a.b, b.b, epsilon)
+        && math::is_not_equal_approx(a.a, b.a, epsilon);
+}
+
 // =============== is_finite ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_finite(const color_t<T>& x)
 {
     return math::is_finite(x.r)
@@ -48,7 +63,7 @@ inline constexpr bool is_finite(const color_t<T>& x)
 
 // =============== is_infinite ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_infinite(const color_t<T>& x)
 {
     return math::is_infinite(x.r)
@@ -59,7 +74,7 @@ inline constexpr bool is_infinite(const color_t<T>& x)
 
 // =============== is_nan ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T>
 inline constexpr bool is_nan(const color_t<T>& x)
 {
     return math::is_nan(x.r)

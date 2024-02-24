@@ -9,12 +9,13 @@ namespace math {
 // =============== radians ===============
 
 /**
- * @brief Convert degrees to radians.
+ * @brief Converts degrees to radians.
  *
- * This function converts degrees to radians.
+ * This function converts an angle from degrees to radians.
  *
+ * @tparam T Type of the angle values.
  * @param deg The angle in degrees.
- * @return The equivalent angle in radians.
+ * @return The angle in radians.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T radians(T deg)
@@ -33,12 +34,13 @@ inline constexpr auto radians(T deg)
 // =============== degrees ===============
 
 /**
- * @brief Convert radians to degrees.
+ * @brief Converts radians to degrees.
  *
- * This function converts radians to degrees.
+ * This function converts an angle from radians to degrees.
  *
+ * @tparam T Type of the angle values.
  * @param rad The angle in radians.
- * @return The equivalent angle in degrees.
+ * @return The angle in degrees.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T degrees(T rad)
@@ -57,12 +59,13 @@ inline constexpr auto degrees(T rad)
 // =============== sin ===============
 
 /**
- * @brief Compute the sine of an angle.
+ * @brief Computes the sine of an angle.
  *
- * This function computes the sine of the given angle.
+ * This function computes the sine of the input angle.
  *
+ * @tparam T Type of the angle.
  * @param x The angle in radians.
- * @return The sine of the angle.
+ * @return The sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sin(T x)
@@ -73,12 +76,13 @@ inline constexpr T sin(T x)
 // =============== cos ===============
 
 /**
- * @brief Compute the cosine of an angle.
+ * @brief Computes the cosine of an angle.
  *
- * This function computes the cosine of the given angle.
+ * This function computes the cosine of the input angle.
  *
+ * @tparam T Type of the angle.
  * @param x The angle in radians.
- * @return The cosine of the angle.
+ * @return The cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T cos(T x)
@@ -89,12 +93,13 @@ inline constexpr T cos(T x)
 // =============== tan ===============
 
 /**
- * @brief Compute the tangent of an angle.
+ * @brief Computes the tangent of an angle.
  *
- * This function computes the tangent of the given angle.
+ * This function computes the tangent of the input angle.
  *
+ * @tparam T Type of the angle.
  * @param x The angle in radians.
- * @return The tangent of the angle.
+ * @return The tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T tan(T x)
@@ -105,15 +110,13 @@ inline constexpr T tan(T x)
 // =============== asin ===============
 
 /**
- * @brief Compute the arcsine of a value.
+ * @brief Computes the arcsine of a value.
  *
- * This function computes the arcsine of the given value.
+ * This function computes the arcsine (inverse sine) of the input value.
  *
- * @note The input value should be in the range [-1, 1].
- * @note The output is in the range [-pi/2, pi/2].
- *
- * @param x The input value, should be in the range [-1, 1].
- * @return The arcsine of the input value, in radians.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The arcsine of x in radians, in the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asin(T x)
@@ -122,13 +125,13 @@ inline constexpr T asin(T x)
 }
 
 /**
- * @brief Calculates the arcsine of the given value within the clamped range [-1, 1].
+ * @brief Computes the clamped arcsine of a value.
  *
- * This function computes the arcsine of the input value 'x' and ensures that the input is clamped
- * to the valid range [-1, 1]. The result is in the range [-pi/2, pi/2].
+ * This function computes the arcsine (inverse sine) of the input value after clamping it to the range [-1, 1].
  *
- * @param x The input value to compute the arcsine for, clamped to the range [-1, 1].
- * @return The arcsine of the clamped input value in the range [-pi/2, pi/2].
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The arcsine of x in radians, clamped to the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asin_clamped(T x)
@@ -139,12 +142,13 @@ inline constexpr T asin_clamped(T x)
 // =============== acos ===============
 
 /**
- * @brief Compute the arccosine of a value.
+ * @brief Computes the arccosine of a value.
  *
- * This function computes the arccosine of the given value.
+ * This function computes the arccosine (inverse cosine) of the input value.
  *
- * @param x The input value, within the range [-1, 1].
- * @return The arccosine of the input value, in radians.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The arccosine of x in radians, in the range [0, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acos(T x)
@@ -153,13 +157,13 @@ inline constexpr T acos(T x)
 }
 
 /**
- * @brief Calculates the arccosine of the given value within the clamped range [-1, 1].
+ * @brief Computes the clamped arccosine of a value.
  *
- * This function computes the arccosine of the input value 'x' and ensures that the input is clamped
- * to the valid range [-1, 1]. The result is in the range [0, pi].
+ * This function computes the arccosine (inverse cosine) of the input value after clamping it to the range [-1, 1].
  *
- * @param x The input value to compute the arccosine for, clamped to the range [-1, 1].
- * @return The arccosine of the clamped input value in the range [0, pi].
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The arccosine of x in radians, clamped to the range [0, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acos_clamped(T x)
@@ -170,13 +174,13 @@ inline constexpr T acos_clamped(T x)
 // =============== atan ===============
 
 /**
- * @brief Calculates the arctangent of the given value.
+ * @brief Computes the arctangent of a value.
  *
- * This function computes the arctangent of the input value 'x', returning the angle
- * in radians whose tangent is 'x'. The result is in the range [-pi/2, pi/2].
+ * This function computes the arctangent (inverse tangent) of the input value.
  *
- * @param x The input value to compute the arctangent for.
- * @return The arctangent of the input value in the range [-pi/2, pi/2].
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The arctangent of x in radians, in the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atan(T x)
@@ -187,14 +191,15 @@ inline constexpr T atan(T x)
 // =============== atan2 ===============
 
 /**
- * @brief Calculates the arctangent of the quotient of its arguments.
+ * @brief Computes the arctangent of the quotient of its arguments.
  *
- * This function computes the four-quadrant arctangent of the ratio 'x/y', returning
- * the angle in radians whose tangent is the quotient 'x/y'. The result is in the range [-pi, pi].
+ * This function computes the arctangent (inverse tangent) of the quotient y/x,
+ * where y is the first argument and x is the second argument.
  *
- * @param x Numerator of the ratio for which to compute the arctangent.
- * @param y Denominator of the ratio for which to compute the arctangent.
- * @return The arctangent of 'x/y' in the range [-pi, pi].
+ * @tparam T Type of the arguments.
+ * @param y The numerator.
+ * @param x The denominator.
+ * @return The arctangent of y/x in radians, in the range [-pi, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atan2(T y, T x)
@@ -212,12 +217,13 @@ inline constexpr auto atan2(T y, T x)
 // =============== sinh ===============
 
 /**
- * @brief Calculates the hyperbolic sine of the specified value.
+ * @brief Computes the hyperbolic sine of a value.
  *
- * This function computes the hyperbolic sine of the input 'x'.
+ * This function computes the hyperbolic sine of the input value.
  *
- * @param x The value for which to calculate the hyperbolic sine.
- * @return The hyperbolic sine of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The hyperbolic sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sinh(T x)
@@ -228,12 +234,13 @@ inline constexpr T sinh(T x)
 // =============== cosh ===============
 
 /**
- * @brief Calculates the hyperbolic cosine of the specified value.
+ * @brief Computes the hyperbolic cosine of a value.
  *
- * This function computes the hyperbolic cosine of the input 'x'.
+ * This function computes the hyperbolic cosine of the input value.
  *
- * @param x The value for which to calculate the hyperbolic cosine.
- * @return The hyperbolic cosine of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The hyperbolic cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T cosh(T x)
@@ -244,12 +251,13 @@ inline constexpr T cosh(T x)
 // =============== tanh ===============
 
 /**
- * @brief Calculates the hyperbolic tangent of the specified value.
+ * @brief Computes the hyperbolic tangent of a value.
  *
- * This function computes the hyperbolic tangent of the input 'x'.
+ * This function computes the hyperbolic tangent of the input value.
  *
- * @param x The value for which to calculate the hyperbolic tangent.
- * @return The hyperbolic tangent of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The hyperbolic tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T tanh(T x)
@@ -260,12 +268,13 @@ inline constexpr T tanh(T x)
 // =============== asinh ===============
 
 /**
- * @brief Calculates the inverse hyperbolic sine of the specified value.
+ * @brief Computes the inverse hyperbolic sine of a value.
  *
- * This function computes the inverse hyperbolic sine of the input 'x'.
+ * This function computes the inverse hyperbolic sine of the input value.
  *
- * @param x The value for which to calculate the inverse hyperbolic sine.
- * @return The inverse hyperbolic sine of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The inverse hyperbolic sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T asinh(T x)
@@ -276,13 +285,13 @@ inline constexpr T asinh(T x)
 // =============== acosh ===============
 
 /**
- * @brief Calculates the inverse hyperbolic cosine of the specified value.
+ * @brief Computes the inverse hyperbolic cosine of a value.
  *
- * This function computes the inverse hyperbolic cosine of the input 'x'.
- * The input 'x' must be greater than or equal to 1.
+ * This function computes the inverse hyperbolic cosine of the input value.
  *
- * @param x The value for which to calculate the inverse hyperbolic cosine.
- * @return The inverse hyperbolic cosine of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The inverse hyperbolic cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T acosh(T x)
@@ -293,13 +302,13 @@ inline constexpr T acosh(T x)
 // =============== atanh ===============
 
 /**
- * @brief Calculates the inverse hyperbolic tangent of the specified value.
+ * @brief Computes the inverse hyperbolic tangent of a value.
  *
- * This function computes the inverse hyperbolic tangent of the input 'x'.
- * The absolute value of 'x' must be less than 1.
+ * This function computes the inverse hyperbolic tangent of the input value.
  *
- * @param x The value for which to calculate the inverse hyperbolic tangent.
- * @return The inverse hyperbolic tangent of 'x'.
+ * @tparam T Type of the value.
+ * @param x The value.
+ * @return The inverse hyperbolic tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T atanh(T x)

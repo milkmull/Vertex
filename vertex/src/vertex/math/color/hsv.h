@@ -8,17 +8,13 @@ namespace math {
 // https://www.rapidtables.com/convert/color/hsv-to-rgb.html
 
 /**
- * @brief Create a color from HSV (Hue, Saturation, Value) values.
+ * @brief Converts HSV (Hue, Saturation, Value) color space to RGB color space.
  *
- * This function creates a color using HSV values, where h is the hue in degrees,
- * s is the saturation, v is the value, and a is the alpha (default is 1). The function
- * clamps input values to their valid ranges and performs the HSV to RGB conversion.
- *
- * @param h The hue value in degrees (range: [0, 360]).
- * @param s The saturation value (range: [0, 1]).
- * @param v The value (brightness) value (range: [0, 1]).
- * @param a The alpha value (default is 1, range: [0, 1]).
- * @return A new color created from the HSV values.
+ * @tparam T The type of elements in the vectors (float or double).
+ * @param h The hue component of the color (in degrees, range [0, 360]).
+ * @param s The saturation component of the color (range [0, 1]).
+ * @param v The value component of the color (range [0, 1]).
+ * @return The RGB color corresponding to the input HSV color.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> hsv_to_rgb(T h, T s, T v)
@@ -54,6 +50,15 @@ inline constexpr vec<3, T> hsv_to_rgb(T h, T s, T v)
     return vec<3, T>(0);
 }
 
+/**
+ * @brief Converts RGB color space to HSV (Hue, Saturation, Value) color space.
+ *
+ * @tparam T The type of elements in the vectors (float or double).
+ * @param r The red component of the color (range [0, 1]).
+ * @param g The green component of the color (range [0, 1]).
+ * @param b The blue component of the color (range [0, 1]).
+ * @return The HSV color corresponding to the input RGB color.
+ */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rgb_to_hsv(T r, T g, T b)
 {

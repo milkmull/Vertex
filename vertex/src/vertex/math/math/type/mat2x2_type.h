@@ -464,11 +464,11 @@ struct mat<2, 2, T>
     // =============== operations ===============
 
     /**
-     * @brief Computes the transpose of the 2x2 matrix.
+     * @brief Transposes the matrix.
      *
-     * This function calculates the transpose of the 2x2 matrix.
+     * This function transposes the matrix, swapping its rows and columns.
      *
-     * @return The transposed 2x2 matrix.
+     * @return The transposed matrix.
      */
     inline constexpr type transpose() const
     {
@@ -479,7 +479,7 @@ struct mat<2, 2, T>
     }
 
     /**
-     * @brief Computes the determinant of the 2x2 matrix.
+     * @brief Calculates the determinant of the matrix.
      *
      * This function calculates the determinant of the 2x2 matrix.
      *
@@ -491,12 +491,13 @@ struct mat<2, 2, T>
     }
 
     /**
-     * @brief Computes the inverse of the 2x2 matrix.
+     * @brief Calculates the inverse of the matrix.
      *
-     * This function calculates the inverse matrix for the 2x2 matrix if it exists.
-     * If the matrix is not invertible (determinant is approximately zero), it returns a matrix with zeros.
+     * This function calculates the inverse of the 2x2 matrix.
+     * If the determinant is close to zero, indicating singularity,
+     * a zero matrix is returned.
      *
-     * @return The inverted 2x2 matrix if invertible, otherwise a matrix with zeros.
+     * @return The inverse of the matrix, or a zero matrix if the determinant is close to zero.
      */
     inline constexpr type invert() const
     {

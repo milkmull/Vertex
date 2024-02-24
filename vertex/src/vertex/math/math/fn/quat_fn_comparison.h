@@ -35,6 +35,21 @@ inline constexpr bool is_equal_approx(
         && math::is_equal_approx(a.z, b.z, epsilon);
 }
 
+// =============== is_not_equal_approx ===============
+
+template <typename T>
+inline constexpr bool is_not_equal_approx(
+    const quat_t<T>& a,
+    const quat_t<T>& b,
+    const T epsilon = math::epsilon<T>
+)
+{
+    return math::is_not_equal_approx(a.w, b.w, epsilon)
+        && math::is_not_equal_approx(a.x, b.x, epsilon)
+        && math::is_not_equal_approx(a.y, b.y, epsilon)
+        && math::is_not_equal_approx(a.z, b.z, epsilon);
+}
+
 // =============== is_finite ===============
 
 template <typename T>
@@ -66,6 +81,27 @@ inline constexpr bool is_nan(const quat_t<T>& x)
         || math::is_nan(x.x)
         || math::is_nan(x.y)
         || math::is_nan(x.z);
+}
+
+// =============== round_epsilon ===============
+
+template <typename T>
+inline constexpr quat_t<T> round_epsilon(const quat_t<T>& x, const T epsilon = math::epsilon<T>)
+{
+    return quat_t<T>(
+        math::round_epsilon(x.w, epsilon),
+        math::round_epsilon(x.x, epsilon),
+        math::round_epsilon(x.y, epsilon),
+        math::round_epsilon(x.z, epsilon)
+    );
+}
+
+// =============== is_identity ===============
+
+template <typename T>
+inline constexpr quat_t<T> is_identity(const quat_t<T>& x, const T epsilon = math::epsilon<T>)
+{
+    return is_equal_approx(x, quat_t<T>::IDENTITY(), epsilon);
 }
 
 }

@@ -1,14 +1,16 @@
 #include "sandbox/sandbox.h"
 
 #include "vertex/math/math.h"
+#include "vertex/math/color/blend.h"
 
 int main()
 {
     using namespace vx;
 
-    math::vec2 v2;
-    constexpr math::vec2i v2i(10, 10);
-    //constexpr auto v2i2 = v2i + 0.8;
+    constexpr math::color8 c1 = math::color::BLACK();
+    constexpr math::color8 c2 = math::color::WHITE();
+
+    constexpr math::color8 c3 = math::blend(c1, blend_mode::ONE, c2, blend_mode::ONE);
 
     return 0;
 }

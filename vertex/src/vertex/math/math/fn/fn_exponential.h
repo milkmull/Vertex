@@ -8,13 +8,14 @@ namespace math {
 // =============== pow ===============
 
 /**
- * @brief Power function.
+ * @brief Computes the value of x raised to the power of y.
  *
- * This function calculates the value of 'x' raised to the power of 'y'.
+ * This function computes the value of x raised to the power of y.
  *
- * @param x The base value.
- * @param y The exponent value.
- * @return The result of raising 'x' to the power of 'y'.
+ * @tparam T Type of the numbers.
+ * @param x The base.
+ * @param y The exponent.
+ * @return The value of x raised to the power of y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T pow(T x, T y)
@@ -25,12 +26,13 @@ inline constexpr T pow(T x, T y)
 // =============== exp ===============
 
 /**
- * @brief Exponential function.
+ * @brief Computes the exponential (e^x) of a number.
  *
- * This function calculates the exponential of the input value 'x'.
+ * This function computes the exponential (e^x) of the input number.
  *
- * @param x The input value.
- * @return The result of the exponential function e^x.
+ * @tparam T Type of the number.
+ * @param x The exponent.
+ * @return The value of e raised to the power of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp(T x)
@@ -41,12 +43,13 @@ inline constexpr T exp(T x)
 // =============== exp2 ===============
 
 /**
- * @brief Base-2 exponential function.
+ * @brief Computes 2 raised to the power of a number.
  *
- * This function calculates 2 raised to the power of the input value 'x'.
+ * This function computes 2 raised to the power of the input number.
  *
- * @param x The input value.
- * @return The result of 2^x.
+ * @tparam T Type of the number.
+ * @param x The exponent.
+ * @return The value of 2 raised to the power of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp2(T x)
@@ -57,12 +60,13 @@ inline constexpr T exp2(T x)
 // =============== log ===============
 
 /**
- * @brief Natural logarithm function.
+ * @brief Computes the natural logarithm of a number.
  *
- * This function calculates the natural logarithm of the input value 'x'.
+ * This function computes the natural logarithm (base e) of the input number.
  *
- * @param x The input value.
- * @return The natural logarithm of 'x'.
+ * @tparam T Type of the number.
+ * @param x The number.
+ * @return The natural logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T log(T x)
@@ -73,12 +77,13 @@ inline constexpr T log(T x)
 // =============== log2 ===============
 
 /**
- * @brief Base-2 logarithm function.
+ * @brief Computes the base-2 logarithm of a number.
  *
- * This function calculates the base-2 logarithm of the input value 'x'.
+ * This function computes the base-2 logarithm of the input number.
  *
- * @param x The input value.
- * @return The base-2 logarithm of 'x'.
+ * @tparam T Type of the number.
+ * @param x The number.
+ * @return The base-2 logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T log2(T x)
@@ -89,12 +94,13 @@ inline constexpr T log2(T x)
 // =============== sqrt ===============
 
 /**
- * @brief Square root function.
+ * @brief Computes the square root of a number.
  *
- * This function calculates the square root of the input value 'x'.
+ * This function computes the square root of the input number.
  *
- * @param x The input value.
- * @return The square root of 'x'.
+ * @tparam T Type of the number.
+ * @param x The number.
+ * @return The square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sqrt(T x)
@@ -105,12 +111,13 @@ inline constexpr T sqrt(T x)
 // =============== inverse_sqrt ===============
 
 /**
- * @brief Inverse square root function.
+ * @brief Computes the inverse square root of a number.
  *
- * This function calculates the inverse square root of the input value 'x'.
+ * This function computes the inverse square root of the input number.
  *
- * @param x The input value.
- * @return The result of 1/sqrt(x).
+ * @tparam T Type of the number.
+ * @param x The number.
+ * @return The inverse square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T inverse_sqrt(T x)

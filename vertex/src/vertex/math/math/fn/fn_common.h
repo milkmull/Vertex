@@ -10,13 +10,12 @@ namespace math {
 // =============== min ===============
 
 /**
- * @brief Get the minimum of two values.
+ * @brief Returns the minimum of two values.
  *
- * This function calculates the minimum of two values and returns the result.
- *
- * @param x The first value.
- * @param y The second value.
- * @return The minimum of the two values.
+ * @tparam T Type of the values.
+ * @param x First value.
+ * @param y Second value.
+ * @return The smaller of the two input values.
  */
 template <typename T>
 inline constexpr T min(T x, T y)
@@ -25,13 +24,11 @@ inline constexpr T min(T x, T y)
 }
 
 /**
- * @brief Get the minimum value from an initializer list.
+ * @brief Returns the minimum value from a list of values.
  *
- * This function calculates the minimum value from the provided initializer list
- * and returns the result.
- *
- * @param ls The initializer list containing values to find the minimum from.
- * @return The minimum value from the initializer list.
+ * @tparam T Type of the values in the initializer list.
+ * @param ls The initializer list containing values to compare.
+ * @return The smallest value in the initializer list.
  */
 template <typename T>
 inline constexpr T min(std::initializer_list<T> ls)
@@ -42,13 +39,12 @@ inline constexpr T min(std::initializer_list<T> ls)
 // =============== max ===============
 
 /**
- * @brief Get the maximum of two values.
+ * @brief Returns the maximum of two values.
  *
- * This function calculates the maximum of two values and returns the result.
- *
- * @param x The first value.
- * @param y The second value.
- * @return The maximum of the two values.
+ * @tparam T Type of the values.
+ * @param x First value.
+ * @param y Second value.
+ * @return The greater of the two input values.
  */
 template <typename T>
 inline constexpr T max(T x, T y)
@@ -57,13 +53,11 @@ inline constexpr T max(T x, T y)
 }
 
 /**
- * @brief Get the maximum value from an initializer list.
+ * @brief Returns the maximum value from a list of values.
  *
- * This function calculates the maximum value from the provided initializer list
- * and returns the result.
- *
- * @param ls The initializer list containing values to find the maximum from.
- * @return The maximum value from the initializer list.
+ * @tparam T Type of the values in the initializer list.
+ * @param ls The initializer list containing values to compare.
+ * @return The largest value in the initializer list.
  */
 template <typename T>
 inline constexpr T max(std::initializer_list<T> ls)
@@ -74,13 +68,11 @@ inline constexpr T max(std::initializer_list<T> ls)
 // =============== abs ===============
 
 /**
- * @brief Calculate the absolute value of the input.
+ * @brief Returns the absolute value of a numeric type.
  *
- * This function calculates the absolute value of the input and
- * returns the result.
- *
- * @param x The input value.
- * @return The absolute value of the input.
+ * @tparam T Type of the numeric value.
+ * @param x The numeric value.
+ * @return The absolute value of the input numeric value.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T abs(T x)
@@ -91,13 +83,11 @@ inline constexpr T abs(T x)
 // =============== round ===============
 
 /**
- * @brief Round a value to the nearest integer.
+ * @brief Rounds a floating-point number to the nearest integer.
  *
- * This function rounds the given value to the nearest integer
- * and returns the result.
- *
- * @param x The input value.
- * @return The nearest integer after rounding the input.
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to round.
+ * @return The nearest integer value to the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T round(T x)
@@ -108,13 +98,11 @@ inline constexpr T round(T x)
 // =============== trunc ===============
 
 /**
- * @brief Truncate a floating point value.
+ * @brief Truncates a floating-point number towards zero.
  *
- * This function truncates the given value and returns
- * the result.
- *
- * @param x The input value.
- * @return The truncated value towards zero.
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to truncate.
+ * @return The truncated value of the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T trunc(T x)
@@ -125,13 +113,11 @@ inline constexpr T trunc(T x)
 // =============== floor ===============
 
 /**
- * @brief Round down a value to the nearest integer.
+ * @brief Rounds a floating-point number down to the nearest integer.
  *
- * This function rounds down the given value to the nearest
- * integer and returns the result.
- *
- * @param x The input value.
- * @return The largest integer less than or equal to the input value.
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to round down.
+ * @return The largest integral value not greater than the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T floor(T x)
@@ -142,13 +128,11 @@ inline constexpr T floor(T x)
 // =============== ceil ===============
 
 /**
- * @brief Round up a value to the nearest integer.
+ * @brief Rounds a floating-point number up to the nearest integer.
  *
- * This function rounds up the given value to the nearest
- * integer and returns the result.
- *
- * @param x The input value.
- * @return The smallest integer greater than or equal to the input value.
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to round up.
+ * @return The smallest integral value not less than the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T ceil(T x)
@@ -159,14 +143,11 @@ inline constexpr T ceil(T x)
 // =============== sign ===============
 
 /**
- * @brief Get the sign of a numeric value.
+ * @brief Returns the sign of a numeric value.
  *
- * This function determines the sign of the given numeric value and
- * returns +1 if the value is positive, -1 if negative, and 0 if the value is zero.
- * The function is enabled only for arithmetic types.
- *
- * @param x The input numeric value.
- * @return +1 if the value is positive, -1 if negative, and 0 if the value is zero.
+ * @tparam T Type of the numeric value.
+ * @param x The numeric value.
+ * @return -1 if the input is negative, 1 if positive, and 0 if zero.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T sign(T x)
@@ -177,14 +158,12 @@ inline constexpr T sign(T x)
 // =============== fmod ===============
 
 /**
- * @brief Calculate the remainder of the division operation.
+ * @brief Computes the remainder of division of two floating-point numbers.
  *
- * This function calculates the remainder of the division
- * operation (x/y) and returns the result.
- *
- * @param x The numerator.
- * @param y The denominator.
- * @return The remainder of (x/y).
+ * @tparam T Type of the floating-point numbers.
+ * @param x The dividend.
+ * @param y The divisor.
+ * @return The floating-point remainder of dividing x by y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T fmod(T x, T y)
@@ -195,14 +174,12 @@ inline constexpr T fmod(T x, T y)
 // =============== mod ===============
 
 /**
- * @brief Calculate the modulus of the division operation.
+ * @brief Computes the remainder of division of two numbers.
  *
- * This function calculates the modulus of the division
- * operation (x/y) and returns the result.
- *
- * @param x The numerator.
- * @param y The denominator.
- * @return The modulus of (x/y).
+ * @tparam T Type of the numbers.
+ * @param x The dividend.
+ * @param y The divisor.
+ * @return The remainder of dividing x by y.
  * 
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml
  */
@@ -221,14 +198,12 @@ inline constexpr T mod(T x, T y)
 // =============== fract ===============
 
 /**
- * @brief Get the fractional part of a value.
+ * @brief Computes the fractional part of a floating-point number.
  *
- * This function extracts the fractional part of the given
- * value and returns the result.
- *
- * @param x The input value.
- * @return The fractional part of the input value.
- *
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number.
+ * @return The fractional part of the input floating-point number.
+ * 
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -240,15 +215,15 @@ inline constexpr T fract(T x)
 // =============== modf ===============
 
 /**
- * @brief Split a value into integer and fractional parts.
+ * @brief Decomposes a floating-point number into integral and fractional parts.
  *
- * This function splits the given value into its integer
- * and fractional parts and returns the fractional part. The integer part is stored
- * in the reference parameter 'intpart'.
+ * This function decomposes the input floating-point number into its integral and fractional parts.
+ * The integral part is stored in the provided reference variable, and the fractional part is returned.
  *
- * @param x The input value.
- * @param intpart Reference parameter to store the integer part.
- * @return The fractional part of the input value.
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to decompose.
+ * @param intpart Reference variable to store the integral part of x.
+ * @return The fractional part of the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto modf(T x, T& intpart)
@@ -259,15 +234,15 @@ inline constexpr auto modf(T x, T& intpart)
 // =============== frexp ===============
 
 /**
- * @brief Decompose a value into a normalized fraction and exponent.
- *
- * This function decomposes the given value into a normalized
- * fraction and an exponent, returning the fraction. The exponent is stored in the
- * reference parameter 'exp'.
- *
- * @param x The input floating-point value.
- * @param exp Reference parameter to store the exponent.
- * @return The normalized fraction of the input value.
+ * @brief Decomposes a floating-point number into its normalized fraction and exponent.
+ * 
+ * This function decomposes the input floating-point number into its normalized fraction and exponent.
+ * The normalized fraction is returned, and the exponent is stored in the provided reference variable.
+ * 
+ * @tparam T Type of the floating-point number.
+ * @param x The floating-point number to decompose.
+ * @param exp Reference variable to store the exponent of x.
+ * @return The normalized fraction of the input floating-point number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto frexp(T x, int& exp)
@@ -278,15 +253,15 @@ inline constexpr auto frexp(T x, int& exp)
 // =============== snap ===============
 
 /**
- * @brief Snap a value to the nearest multiple of a specified interval.
+ * @brief Rounds a number to the nearest multiple of an interval.
  *
- * This function snaps the given value to the nearest multiple of a specified
- * interval and returns the result. If the interval is zero, the original value is
- * returned unchanged.
+ * This function rounds the input number to the nearest multiple of the specified interval.
+ * If the interval is zero, the function returns the input number unchanged.
  *
- * @param x The input value to be snapped.
- * @param interval The specified interval for snapping.
- * @return The snapped value to the nearest multiple of the interval.
+ * @tparam T Type of the numbers.
+ * @param x The number to round.
+ * @param interval The interval to snap to.
+ * @return The nearest multiple of the interval to the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T snap(T x, T interval)
@@ -306,16 +281,18 @@ inline constexpr T snap(T x, T interval)
 // =============== clamp ===============
 
 /**
- * @brief Clamp a value within a specified range.
+ * @brief Clamps a value within a specified range.
  *
- * This function clamps the given value within the specified range [min, max]
- * and returns the result. If the value is less than min, it returns min; if the value
- * is greater than max, it returns max; otherwise, it returns the original value.
+ * This function ensures that the input value is within the specified range.
+ * If the input value is less than the minimum, it returns the minimum.
+ * If the input value is greater than the maximum, it returns the maximum.
+ * Otherwise, it returns the input value unchanged.
  *
- * @param x The input value.
+ * @tparam T Type of the value.
+ * @param x The value to clamp.
  * @param min The minimum value in the range.
  * @param max The maximum value in the range.
- * @return The clamped value within the specified range.
+ * @return The clamped value.
  */
 template <typename T>
 inline constexpr T clamp(T x, T min, T max)

@@ -84,6 +84,14 @@ struct rect_t
         return *this;
     }
 
+    template <typename U>
+    inline constexpr type& operator=(const rect_t<U>& r) noexcept
+    {
+        position = r.position;
+        size = r.size;
+        return *this;
+    }
+
     inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============
@@ -260,15 +268,6 @@ struct rect_t
     inline constexpr T max_y() const { return math::max(position.y, bottom()); }
 
     /**
-     * @brief Get the aspect ratio of the rectangle.
-     *
-     * The aspect ratio is calculated as the ratio of width to height.
-     *
-     * @return The aspect ratio of the rectangle.
-     */
-    inline constexpr T aspect() const { return size.aspect(); }
-
-    /**
      * @brief Calculate the area of the rectangle.
      *
      * @return The area of the rectangle.
@@ -278,12 +277,11 @@ struct rect_t
     // =============== common modifiers ===============
 
     /**
-     * @brief Create a normalized version of the rectangle.
+     * @brief Normalizes the rectangle.
      *
-     * This function returns a new rectangle with non-negative width and height.
-     * If the original rectangle has negative width or height, the position and size are adjusted accordingly.
+     * Normalizes the rectangle by ensuring that its size components are non-negative.
      *
-     * @return A normalized rectangle.
+     * @return The normalized rectangle.
      */
     inline constexpr type normalize() const
     {
@@ -305,6 +303,12 @@ struct rect_t
 
     // =============== transformations ===============
 
+    /**
+     * @brief Scales the rectangle by a specified factor.
+     *
+     * @param s The scaling factor.
+     * @return The scaled rectangle.
+     */
     inline constexpr type scale(const vec<2, T>& s) const
     {
         return type(
@@ -313,6 +317,12 @@ struct rect_t
         );
     }
 
+    /**
+     * @brief Moves the rectangle by a specified offset.
+     *
+     * @param offset The offset by which to move the rectangle.
+     * @return The moved rectangle.
+     */
     inline constexpr type move(const vec<2, T>& offset) const
     {
         return type(
@@ -321,6 +331,12 @@ struct rect_t
         );
     }
 
+    /**
+     * @brief Increases the size of the rectangle by a specified amount.
+     *
+     * @param s The amount by which to increase the size of the rectangle.
+     * @return The inflated rectangle.
+     */
     inline constexpr type inflate(const vec<2, T>& s) const
     {
         return type(
@@ -330,12 +346,12 @@ struct rect_t
     }
 
     /**
-     * @brief Crop 'r' inside of this rectangle.
+     * @brief Crops the rectangle to the intersection with another rectangle.
      *
-     * This function crops the specified rectangle 'r' based on the current rectangle.
+     * Returns a new rectangle representing the intersection of this rectangle with the specified rectangle.
      *
-     * @param r The rectangle to be cropped using the current rectangle as the cropping region.
-     * @return A new rectangle representing the cropped region within the specified rectangle.
+     * @param r The rectangle to intersect with.
+     * @return The intersected rectangle.
      */
     inline constexpr type crop(const type& r) const
     {
@@ -354,13 +370,13 @@ struct rect_t
     }
 
     /**
-     * @brief Merge two rectangles to create a new rectangle containing both.
+     * @brief Merges two rectangles to form a new rectangle containing both rectangles.
      *
-     * This static function merges two rectangles, creating a new rectangle that contains both input rectangles.
+     * Returns a new rectangle that contains both the specified rectangles.
      *
-     * @param r1 The first rectangle to be merged.
-     * @param r2 The second rectangle to be merged.
-     * @return A new rectangle containing both input rectangles.
+     * @param r1 The first rectangle.
+     * @param r2 The second rectangle.
+     * @return The merged rectangle.
      */
     static inline constexpr type merge(const type& r1, const type& r2)
     {
@@ -379,15 +395,15 @@ struct rect_t
     }
 
     /**
-     * @brief Grow the sides of the rectangle by specified amounts.
+     * @brief Grows the sides of the rectangle by the specified amounts.
      *
-     * This function expands the sides of the rectangle by the specified amounts for left, right, bottom, and top.
+     * Returns a new rectangle with its sides grown by the specified amounts.
      *
-     * @param left The amount to grow the left side of the rectangle.
-     * @param right The amount to grow the right side of the rectangle.
+     * @param left   The amount to grow the left side of the rectangle.
+     * @param right  The amount to grow the right side of the rectangle.
      * @param bottom The amount to grow the bottom side of the rectangle.
-     * @param top The amount to grow the top side of the rectangle.
-     * @return A new rectangle with its sides grown by the specified amounts.
+     * @param top    The amount to grow the top side of the rectangle.
+     * @return The new rectangle with grown sides.
      */
     inline constexpr type grow_sides(T left, T right, T bottom, T top) const
     {
@@ -400,12 +416,12 @@ struct rect_t
     }
 
     /**
-     * @brief Expand the rectangle to include a specified point.
+     * @brief Expands the rectangle to include the specified point.
      *
-     * This function expands the rectangle to ensure it includes the specified point 'p'.
+     * Returns a new rectangle expanded to include the specified point.
      *
      * @param p The point to include in the expanded rectangle.
-     * @return A new rectangle expanded to include the specified point.
+     * @return The new rectangle expanded to include the specified point.
      */
     inline constexpr type expand_to(const vec<2, T>& p) const
     {
@@ -425,7 +441,7 @@ struct rect_t
 
     // =============== constants ===============
 
-    static inline constexpr type ZERO() { return type(); }
+    static inline constexpr type ZERO() { return type(0, 0, 0, 0); }
 
 };
 

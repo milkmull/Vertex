@@ -10,17 +10,13 @@ namespace math {
 // https://www.rapidtables.com/convert/color/rgb-to-hsl.html
 
 /**
- * @brief Create a color from HSL (Hue, Saturation, Lightness) values.
+ * @brief Converts HSL (Hue, Saturation, Lightness) color space to RGB color space.
  *
- * This function creates a color using HSL values, where h is the hue in degrees,
- * s is the saturation, l is the lightness, and a is the alpha (default is 1). The function
- * clamps input values to their valid ranges and performs the HSL to RGB conversion.
- *
- * @param h The hue value in degrees (range: [0, 360]).
- * @param s The saturation value (range: [0, 1]).
- * @param l The lightness value (range: [0, 1]).
- * @param a The alpha value (default is 1, range: [0, 1]).
- * @return A new color created from the HSL values.
+ * @tparam T The type of elements in the vectors (float or double).
+ * @param h The hue component of the color (in degrees, range [0, 360]).
+ * @param s The saturation component of the color (range [0, 1]).
+ * @param l The lightness component of the color (range [0, 1]).
+ * @return The RGB color corresponding to the input HSL color.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l)
@@ -59,11 +55,13 @@ inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l)
 }
 
 /**
- * @brief Convert the color to HSL (Hue, Saturation, Lightness) values.
+ * @brief Converts RGB color space to HSL (Hue, Saturation, Lightness) color space.
  *
- * This function calculates the HSL values from the color's RGB components.
- *
- * @return A 3D vector representing the HSL values (Hue in degrees, Saturation, Lightness).
+ * @tparam T The type of elements in the vectors (float or double).
+ * @param r The red component of the color (range [0, 1]).
+ * @param g The green component of the color (range [0, 1]).
+ * @param b The blue component of the color (range [0, 1]).
+ * @return The HSL color corresponding to the input RGB color.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rgb_to_hsl(T r, T g, T b)

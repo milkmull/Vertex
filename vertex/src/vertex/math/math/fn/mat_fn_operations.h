@@ -9,11 +9,12 @@ namespace math {
 // =============== transpose ===============
 
 /**
- * @brief Computes the transpose of a matrix.
+ * @brief Transposes a 2x2 matrix.
  *
- * This function calculates the transpose of the matrix 'm'.
+ * This function transposes a 2x2 matrix.
  *
- * @param m The matrix to transpose.
+ * @tparam T Type of the matrix components.
+ * @param m The input matrix.
  * @return The transposed matrix.
  */
 template <typename T>
@@ -22,12 +23,30 @@ inline constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
     return m.transpose();
 }
 
+/**
+ * @brief Transposes a 3x3 matrix.
+ *
+ * This function transposes a 3x3 matrix.
+ *
+ * @tparam T Type of the matrix components.
+ * @param m The input matrix.
+ * @return The transposed matrix.
+ */
 template <typename T>
 inline constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
 {
     return m.transpose();
 }
 
+/**
+ * @brief Transposes a 4x4 matrix.
+ *
+ * This function transposes a 4x4 matrix.
+ *
+ * @tparam T Type of the matrix components.
+ * @param m The input matrix.
+ * @return The transposed matrix.
+ */
 template <typename T>
 inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 {

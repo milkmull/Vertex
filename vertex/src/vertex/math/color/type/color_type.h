@@ -746,28 +746,35 @@ struct color_t
 
     // =============== comparison and testing ===============
 
+    /**
+     * @brief Retrieves the RGB components of the color.
+     *
+     * @return A vector representing the RGB components of the color.
+     */
     inline constexpr vec<3, vec_value_type> rgb() const { return vec<3, vec_value_type>(r, g, b); }
 
     /**
-     * @brief Get the minimum color component value of the color.
-     *
-     * This function returns the minimum value among the RGB components of the color.
+     * @brief Get the minimum RGB component of the color.
      *
      * @return The minimum color component value.
      */
     inline constexpr T min_color() const { return math::min({ r, g, b }); }
 
     /**
-     * @brief Get the maximum color component value of the color.
-     *
-     * This function returns the maximum value among the RGB components of the color.
+     * @brief Get the maximum coRGBlor component of the color.
      *
      * @return The maximum color component value.
      */
     inline constexpr T max_color() const { return math::max({ r, g, b }); }
 
-    // =============== color attributes ===============
-
+    /**
+     * @brief Clamps the color components within the range [0, 1].
+     *
+     * This function clamps the color components of the color to the range [0, 1].
+     * This function is only enabled for floating-point color types.
+     *
+     * @return The color with its components clamped to the range [0, 1].
+     */
     template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
     inline constexpr type clamp() const
     {
@@ -777,14 +784,12 @@ struct color_t
     // =============== color attributes ===============
 
     /**
-     * @brief Calculate the luminance of the color.
+     * @brief Calculates the luminance of the color.
      *
-     * This function computes the luminance of the color.
-     * Luminance represents the perceived brightness of the color, taking into account
-     * human vision sensitivity to different color channels. The coefficients used in
-     * the formula correspond to the standard luminance weights for the RGB color space.
+     * This function calculates the luminance of the color using the formula:
+     * luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
      *
-     * @return The luminance value.
+     * @return The luminance of the color.
      */
     template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
     inline constexpr T luminance() const

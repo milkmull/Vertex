@@ -382,8 +382,8 @@ struct quat_t
     /**
      * @brief Calculates the conjugate of this quaternion.
      *
-     * The conjugate of a quaternion is obtained by negating the imaginary components
-     * (x, y, z) while keeping the real component (w) unchanged.
+     * The conjugate of a quaternion is obtained by negating
+     * its vector part while keeping the scalar part unchanged.
      *
      * @return The conjugate of this quaternion.
      */
@@ -394,9 +394,11 @@ struct quat_t
 
     /**
      * @brief Calculates the inverse of this quaternion.
-     * 
-     * This function returns the inverse of this quaternion, effectively
-     * reversing the encoded rotation.
+     *
+     * The inverse of a quaternion is obtained by taking its conjugate
+     * and dividing each component by the square of its magnitude.
+     * If the quaternion represents a unit rotation, its inverse
+     * represents the rotation in the opposite direction.
      *
      * @return The inverse of this quaternion.
      */
@@ -406,12 +408,13 @@ struct quat_t
     }
 
     /**
-     * @brief Retrieves the vector part of this quaternion.
+     * @brief Extracts the vector part of this quaternion.
      *
-     * This function returns a 3D vector containing the x, y, and z components
-     * of this quaternion. It discards the scalar (w) component.
+     * The vector part of a quaternion represents the imaginary
+     * components (x, y, z) of the quaternion. This method returns
+     * a 3D vector containing these components.
      *
-     * @return A 3D vector representing the vector part of this quaternion.
+     * @return The vector part of this quaternion.
      */
     inline constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
 
@@ -420,16 +423,12 @@ struct quat_t
     /**
      * @brief Get the minimum component value of the quaternion.
      *
-     * This function returns the minimum value between the components of the quaternion.
-     *
      * @return The minimum component value.
      */
     inline constexpr T min() const { return math::min({ w, x, y, z }); }
 
     /**
      * @brief Get the maximum component value of the quaternion.
-     *
-     * This function returns the maximum value between the components of the quaternion.
      *
      * @return The maximum component value.
      */
@@ -439,8 +438,6 @@ struct quat_t
 
     /**
      * @brief Calculates the squared magnitude of the quaternion.
-     *
-     * This function computes the squared magnitude of the quaternion.
      *
      * @return The squared length of the quaternion.
      */
@@ -452,8 +449,6 @@ struct quat_t
     /**
      * @brief Calculates the magnitude of the quaternion.
      *
-     * This function computes the magnitude of the quaternion.
-     *
      * @return The magnitude of the quaternion.
      */
     inline constexpr T magnitude() const
@@ -463,8 +458,6 @@ struct quat_t
 
     /**
      * @brief Normalizes the quaternion.
-     *
-     * This function normalizes the quaternion.
      *
      * @return The normalized quaternion. If the length of the quaternion is 0,
      * a zero quaternion will be returned.
@@ -484,19 +477,16 @@ struct quat_t
     // =============== direction and orientation ===============
 
     /**
-     * @brief Creates a quaternion representing the rotation from one vector to another.
+     * @brief Creates a quaternion representing rotation from one vector to another.
      *
-     * Given two normalized 3D vectors 'from' and 'to', this function calculates a
-     * quaternion that represents the rotation needed to align the 'from' vector with
-     * the 'to' vector.
+     * This function calculates a quaternion representing the rotation from the "from" vector to the "to" vector.
+     * If both vectors point in the same direction, it returns the identity quaternion (no rotation).
+     * If the vectors point in opposite directions, it chooses an arbitrary axis perpendicular to both vectors
+     * and rotates around that axis by pi radians.
      *
-     * If the vectors are nearly parallel, it returns the identity quaternion (no rotation).
-     * If the vectors are nearly antiparallel, it chooses an arbitrary axis and rotates by pi radians.
-     * Otherwise, it calculates the rotation axis and angle to create the quaternion.
-     *
-     * @param from The normalized starting vector.
-     * @param to The normalized target vector.
-     * @return The quaternion representing the rotation from the 'from' vector to the 'to' vector.
+     * @param from The initial vector.
+     * @param to The target vector.
+     * @return The quaternion representing the rotation from the "from" vector to the "to" vector.
      * 
      * @ref https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
      * @ref https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
@@ -542,14 +532,11 @@ struct quat_t
     // =============== axis angle ===============
 
     /**
-     * @brief Creates a quaternion from an axis and an angle.
+     * @brief Creates a quaternion representing rotation around an axis by a given angle.
      *
-     * Given a normalized 3D vector 'axis' and an angle in radians, this function
-     * computes a quaternion representing the rotation around the specified axis.
-     *
-     * @param axis The normalized rotation axis.
-     * @param angle The rotation angle in radians.
-     * @return The quaternion representing the rotation around the specified axis.
+     * @param axis The axis of rotation.
+     * @param angle The angle of rotation in radians.
+     * @return The quaternion representing the rotation around the specified axis by the given angle.
      */
     static inline constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
     {
@@ -562,13 +549,13 @@ struct quat_t
     }
 
     /**
-     * @brief Retrieves the rotation axis of this quaternion.
+     * @brief Retrieves the axis of rotation represented by the quaternion.
      *
-     * This function calculates and returns the 3D vector representing the rotation axis
-     * of this normalized quaternion. If the quaternion represents no rotation (angle is 0),
-     * it returns the positive y-axis.
+     * This function calculates and returns the axis of rotation represented by the quaternion.
+     * If the quaternion represents zero rotation (i.e., its magnitude is close to zero),
+     * it returns the positive y-axis as the default axis.
      *
-     * @return The rotation axis of this quaternion.
+     * @return The axis of rotation represented by the quaternion.
      * 
      * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
      * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
@@ -594,13 +581,9 @@ struct quat_t
     }
 
     /**
-     * @brief Retrieves the rotation angle of this quaternion.
+     * @brief Retrieves the angle of rotation represented by the quaternion.
      *
-     * This function calculates and returns the rotation angle (in radians) represented
-     * by this normalized quaternion. The angle is twice the arccosine of the scalar (w)
-     * component of the quaternion.
-     *
-     * @return The rotation angle of this quaternion in radians.
+     * @return The angle of rotation represented by the quaternion.
      */
     inline constexpr T angle() const
     {
@@ -609,6 +592,17 @@ struct quat_t
 
     // =============== euler angles ===============
 
+    /**
+     * @brief Creates a quaternion from Euler angles.
+     *
+     * This function constructs a quaternion from Euler angles.
+     * The Euler angles are specified in radians and represent rotations around the x, y, and z axes, respectively.
+     *
+     * @param x The rotation angle around the x-axis.
+     * @param y The rotation angle around the y-axis.
+     * @param z The rotation angle around the z-axis.
+     * @return The quaternion representing the specified Euler angles.
+     */
     static inline constexpr type from_euler_angles(T x, T y, T z)
     {
         x *= static_cast<T>(0.5);
@@ -633,6 +627,15 @@ struct quat_t
 
     // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
 
+    /**
+     * @brief Converts the quaternion to Euler angles.
+     *
+     * This function calculates and returns the Euler angles corresponding to the quaternion.
+     * The resulting angles represent rotations around the x, y, and z axes, respectively.
+     * The angles are returned in radians.
+     *
+     * @return The Euler angles corresponding to the quaternion.
+     */
     inline constexpr vec<3, T> to_euler_angles() const
     {
         const type qn = normalize();
@@ -679,6 +682,12 @@ struct quat_t
 
     // =============== matrix conversions ===============
 
+    /**
+     * @brief Creates a quaternion from a 3x3 rotation matrix.
+     *
+     * @param m The 3x3 rotation matrix.
+     * @return The quaternion representing the rotation.
+     */
     static inline constexpr type from_mat3(const mat<3, 3, T>& m)
     {
         const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
@@ -733,6 +742,11 @@ struct quat_t
         }
     }
 
+    /**
+     * @brief Converts the quaternion to a 3x3 rotation matrix.
+     * 
+     * @return The 3x3 rotation matrix represented by the quaternion.
+     */
     inline constexpr mat<3, 3, T> to_mat3() const
     {
         const type qn = normalize();
@@ -765,15 +779,16 @@ struct quat_t
     // =============== look at ===============
 
     /**
-     * @brief Creates a quaternion representing a left-handed look-at rotation.
+     * @brief Constructs a quaternion representing a left-handed look-at transformation.
      *
-     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
-     * this function computes a quaternion representing a left-handed look-at rotation.
+     * This function constructs a quaternion representing a left-handed look-at transformation.
+     * The resulting quaternion represents the orientation required for an object to face the target
+     * from the specified eye position, assuming a left-handed coordinate system.
      *
-     * @param eye The position of the viewer's eye.
-     * @param target The position the viewer is looking at.
-     * @param up The up vector (default is positive y-axis).
-     * @return The quaternion representing the left-handed look-at rotation.
+     * @param eye The position of the observer.
+     * @param target The position of the target.
+     * @param up The up direction. Default is the positive y-axis.
+     * @return The quaternion representing the left-handed look-at transformation.
      */
     static inline constexpr type make_look_at_lh(
         const vec<3, T>& eye,
@@ -789,15 +804,16 @@ struct quat_t
     }
 
     /**
-     * @brief Creates a quaternion representing a right-handed look-at rotation.
+     * @brief Constructs a quaternion representing a right-handed look-at transformation.
      *
-     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
-     * this function computes a quaternion representing a right-handed look-at rotation.
+     * This function constructs a quaternion representing a right-handed look-at transformation.
+     * The resulting quaternion represents the orientation required for an object to face the target
+     * from the specified eye position, assuming a right-handed coordinate system.
      *
-     * @param eye The position of the viewer's eye.
-     * @param target The position the viewer is looking at.
-     * @param up The up vector (default is positive y-axis).
-     * @return The quaternion representing the right-handed look-at rotation.
+     * @param eye The position of the observer.
+     * @param target The position of the target.
+     * @param up The up direction. Default is the positive y-axis.
+     * @return The quaternion representing the right-handed look-at transformation.
      */
     static inline constexpr type make_look_at_rh(
         const vec<3, T>& eye,
@@ -813,16 +829,17 @@ struct quat_t
     }
 
     /**
-     * @brief Creates a quaternion representing a look-at rotation.
+     * @brief Constructs a quaternion representing a look-at transformation.
      *
-     * Given an 'eye' position, a 'target' position, and an optional 'up' vector,
-     * this function computes a quaternion representing a look-at rotation based on
-     * the configured clip control (left-handed or right-handed).
+     * This function constructs a quaternion representing a look-at transformation.
+     * The resulting quaternion represents the orientation required for an object to face the target
+     * from the specified eye position. The handedness of the resulting transformation depends on
+     * the configuration defined in VX_CONFIG_CLIP_CONTROL.
      *
-     * @param eye The position of the viewer's eye.
-     * @param target The position the viewer is looking at.
-     * @param up The up vector (default is positive y-axis).
-     * @return The quaternion representing the look-at rotation.
+     * @param eye The position of the observer.
+     * @param target The position of the target.
+     * @param up The up direction. Default is the positive y-axis.
+     * @return The quaternion representing the look-at transformation.
      */
     static inline constexpr type make_look_at(
         const vec<3, T>& eye,

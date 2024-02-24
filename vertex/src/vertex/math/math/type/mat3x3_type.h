@@ -522,13 +522,6 @@ struct mat<3, 3, T>
 
     // =============== operations ===============
 
-    /**
-     * @brief Computes the transpose of the 3x3 matrix.
-     *
-     * This function returns a new matrix where the rows become columns and vice versa.
-     *
-     * @return The transposed matrix.
-     */
     inline constexpr type transpose() const
     {
         return type(
@@ -538,13 +531,6 @@ struct mat<3, 3, T>
         );
     }
 
-    /**
-     * @brief Calculates the determinant of the 3x3 matrix.
-     *
-     * This function computes the determinant of the matrix using the expansion by minors method.
-     *
-     * @return The determinant of the matrix.
-     */
     inline constexpr T determinant() const
     {
         return (
@@ -554,14 +540,6 @@ struct mat<3, 3, T>
             );
     }
 
-    /**
-     * @brief Computes the inverse of the 3x3 matrix.
-     *
-     * This function calculates the inverse matrix if it exists, otherwise, it returns a matrix with zeros.
-     * The inverse is computed using the determinant and adjugate matrix.
-     *
-     * @return The inverted matrix if the determinant is non-zero, otherwise a matrix with zeros.
-     */
     inline constexpr type invert() const
     {
         const T det = determinant();

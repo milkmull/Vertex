@@ -44,19 +44,19 @@ namespace math {
 // https://learnopengl.com/Advanced-OpenGL/Blending
 
 /**
- * @brief Blend two colors using specified blending modes and operators.
+ * @brief Blends two colors using the specified blend modes and operation.
  *
- * This function performs color blending based on the provided blending modes and operators.
+ * This function blends two colors using the specified blend modes and operation. It supports various blend modes
+ * and blending operations. You can also provide a constant color for certain blend modes.
  *
  * @param src The source color.
- * @param src_blend The blending mode for the source color.
+ * @param src_blend The blend mode for the source color.
  * @param dst The destination color.
- * @param dst_blend The blending mode for the destination color.
- * @param constant The constant color used in blending (default is black).
- * @param op The blending operator.
- * @return The result of blending the source and destination colors.
+ * @param dst_blend The blend mode for the destination color.
+ * @param constant The constant color used in some blend modes. Defaults to color(0).
+ * @param op The blending operation to apply. Defaults to blend_operator::ADD.
+ * @return The blended color.
  */
-template <typename T = float>
 inline constexpr color blend(
     const color& src, blend_mode src_blend,
     const color& dst, blend_mode dst_blend,
@@ -64,6 +64,8 @@ inline constexpr color blend(
     blend_operator op = blend_operator::ADD
 )
 {
+    using T = typename color::value_type;
+
     struct blend_pair
     {
         color color;
