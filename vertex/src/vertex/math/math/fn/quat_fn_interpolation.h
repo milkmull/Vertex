@@ -35,8 +35,6 @@ inline constexpr quat_t<T> lerp(
  * @param y The ending quaternion.
  * @param t Interpolation parameter. Should be in the range [0, 1].
  * @return The interpolated quaternion.
- * 
- * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <typename T>
 inline constexpr quat_t<T> slerp(

@@ -181,6 +181,8 @@ struct quat_t
         return q * scaler;
     }
 
+    // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
+
     /**
      * @brief Multiplies this quaternion by another quaternion in-place.
      *
@@ -193,8 +195,6 @@ struct quat_t
      * @note Quaternion multiplication is used to compose multiple rotations together.
      * The operation follows the Hamilton product formula and updates the components of this quaternion
      * based on the components of the current quaternion and the specified quaternion.
-     *
-     * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
      */
     friend inline constexpr type operator*(const type& q1, const type& q2)
     {
@@ -206,6 +206,8 @@ struct quat_t
         );
     }
 
+    // https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
+
     /**
      * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
      *
@@ -215,8 +217,6 @@ struct quat_t
      * @param q The quaternion.
      * @param v The 3D vector to be rotated.
      * @return The resulting 3D vector after rotation.
-     * 
-     * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
      */
     friend inline constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
     {
@@ -476,6 +476,9 @@ struct quat_t
 
     // =============== direction and orientation ===============
 
+    // https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
+    // https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
+
     /**
      * @brief Creates a quaternion representing rotation from one vector to another.
      *
@@ -487,9 +490,6 @@ struct quat_t
      * @param from The initial vector.
      * @param to The target vector.
      * @return The quaternion representing the rotation from the "from" vector to the "to" vector.
-     * 
-     * @ref https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
-     * @ref https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
      */
     static inline constexpr type from_to(const vec<3, T>& from, const vec<3, T>& to)
     {
@@ -548,6 +548,9 @@ struct quat_t
         return type(cosa2, naxis * sina2);
     }
 
+    // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
+    // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
+
     /**
      * @brief Retrieves the axis of rotation represented by the quaternion.
      *
@@ -556,9 +559,6 @@ struct quat_t
      * it returns the positive y-axis as the default axis.
      *
      * @return The axis of rotation represented by the quaternion.
-     * 
-     * @ref https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
-     * @ref https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
      */
     inline constexpr vec<3, T> axis() const
     {

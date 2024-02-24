@@ -44,6 +44,8 @@ inline constexpr T step(T edge, T x)
 
 // =============== smoothstep ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml
+
 /**
  * @brief Computes a smoothstep function.
  *
@@ -54,8 +56,6 @@ inline constexpr T step(T edge, T x)
  * @param edge1 The upper edge.
  * @param x The value to interpolate.
  * @return The smooth interpolated value between edge0 and edge1 based on x.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/smoothstep.xhtml
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T smoothstep(T edge0, T edge1, T x)

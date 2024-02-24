@@ -173,6 +173,8 @@ inline constexpr T fmod(T x, T y)
 
 // =============== mod ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml
+
 /**
  * @brief Computes the remainder of division of two numbers.
  *
@@ -180,8 +182,6 @@ inline constexpr T fmod(T x, T y)
  * @param x The dividend.
  * @param y The divisor.
  * @return The remainder of dividing x by y.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/mod.xhtml
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T mod(T x, T y)
@@ -197,14 +197,14 @@ inline constexpr T mod(T x, T y)
 
 // =============== fract ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
+
 /**
  * @brief Computes the fractional part of a number.
  *
  * @tparam T Type of the number.
  * @param x The number.
  * @return The fractional part of the input number.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T fract(T x)

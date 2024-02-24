@@ -135,6 +135,8 @@ inline constexpr vec<L, T> smoothstep(
 
 // =============== slerp ===============
 
+// https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
+
 /**
  * @brief Performs spherical linear interpolation (SLERP) between two vectors.
  *
@@ -146,8 +148,6 @@ inline constexpr vec<L, T> smoothstep(
  * @param y The end vector.
  * @param t The interpolation parameter, where t is in the range [0, 1].
  * @return The interpolated vector.
- * 
- * @ref https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> slerp(

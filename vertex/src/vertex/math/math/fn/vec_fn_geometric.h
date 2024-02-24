@@ -403,6 +403,8 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
     );
 }
 
+// https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
+
 /**
  * @brief Rotates a 3D vector around a specified axis by a given angle.
  *
@@ -411,8 +413,6 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
  * @param axis The axis of rotation.
  * @param angle The angle of rotation in radians.
  * @return The rotated vector.
- * 
- * @ref https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rotate(
@@ -468,6 +468,8 @@ inline constexpr vec<L, T> project(
 
 // =============== reflect ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/reflect.xhtml
+
 /**
  * @brief Reflects a vector off a surface with a given normal.
  *
@@ -476,8 +478,6 @@ inline constexpr vec<L, T> project(
  * @param i The incident vector.
  * @param n The normal vector of the surface.
  * @return The reflected vector.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/reflect.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> reflect(
@@ -510,6 +510,8 @@ inline constexpr vec<L, T> bounce(
 
 // =============== refract ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/refract.xhtml
+
 /**
  * @brief Computes the refraction of a vector through a surface with a given
  * normal and refraction index.
@@ -522,8 +524,6 @@ inline constexpr vec<L, T> bounce(
  * the incident ray is leaving divided by the refraction index of the medium
  * it is entering).
  * @return The refracted vector.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/refract.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> refract(
@@ -545,6 +545,8 @@ inline constexpr vec<L, T> refract(
 
 // =============== face_forward ===============
 
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/faceforward.xhtml
+
 /**
  * @brief Ensures the normal vector is facing in the same direction as the
  * incident vector relative to a reference normal.
@@ -555,8 +557,6 @@ inline constexpr vec<L, T> refract(
  * @param i The incident vector.
  * @param nref The reference normal vector.
  * @return The adjusted normal vector.
- * 
- * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/faceforward.xhtml
  */
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> face_forward(
