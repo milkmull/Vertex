@@ -68,7 +68,7 @@ inline constexpr color blend(
 
     struct blend_pair
     {
-        color color;
+        color col;
         blend_mode mode;
     };
 
@@ -79,58 +79,58 @@ inline constexpr color blend(
         switch (bp.mode)
         {
             case blend_mode::ZERO:
-                bp.color *= static_cast<T>(0);
+                bp.col *= static_cast<T>(0);
                 break;
 
             case blend_mode::ONE:
                 break;
 
             case blend_mode::SRC_COLOR:
-                bp.color *= src;
+                bp.col *= src;
                 break;
 
             case blend_mode::ONE_MINUS_SRC_COLOR:
-                bp.color *= (static_cast<T>(1) - src);
+                bp.col *= (static_cast<T>(1) - src);
                 break;
 
             case blend_mode::DST_COLOR:
-                bp.color *= dst;
+                bp.col *= dst;
                 break;
 
             case blend_mode::ONE_MINUS_DST_COLOR:
-                bp.color *= (static_cast<T>(1) - dst);
+                bp.col *= (static_cast<T>(1) - dst);
                 break;
 
             case blend_mode::SRC_ALPHA:
-                bp.color *= src.a;
+                bp.col *= src.a;
                 break;
 
             case blend_mode::ONE_MINUS_SRC_ALPHA:
-                bp.color *= (static_cast<T>(1) - src.a);
+                bp.col *= (static_cast<T>(1) - src.a);
                 break;
 
             case blend_mode::DST_ALPHA:
-                bp.color *= dst.a;
+                bp.col *= dst.a;
                 break;
 
             case blend_mode::ONE_MINUS_DST_ALPHA:
-                bp.color *= (static_cast<T>(1) - dst.a);
+                bp.col *= (static_cast<T>(1) - dst.a);
                 break;
 
             case blend_mode::CONST_COLOR:
-                bp.color *= constant;
+                bp.col *= constant;
                 break;
 
             case blend_mode::ONE_MINUS_CONST_COLOR:
-                bp.color *= (static_cast<T>(1) - constant);
+                bp.col *= (static_cast<T>(1) - constant);
                 break;
 
             case blend_mode::CONST_ALPHA:
-                bp.color *= constant.a;
+                bp.col *= constant.a;
                 break;
 
             case blend_mode::ONE_MINUS_CONST_ALPHA:
-                bp.color *= (static_cast<T>(1) - constant.a);
+                bp.col *= (static_cast<T>(1) - constant.a);
                 break;
 
             default:
@@ -140,15 +140,15 @@ inline constexpr color blend(
 
     switch (op)
     {
-        case blend_operator::ADD:				return res[0].color + res[1].color;
-        case blend_operator::SUBTRACT:			return res[0].color - res[1].color;
-        case blend_operator::REVERSE_SUBTRACT:	return res[1].color - res[0].color;
-        case blend_operator::MIN:				return math::min(res[0].color, res[1].color);
-        case blend_operator::MAX:				return math::max(res[0].color, res[1].color);
+        case blend_operator::ADD:				return res[0].col + res[1].col;
+        case blend_operator::SUBTRACT:			return res[0].col - res[1].col;
+        case blend_operator::REVERSE_SUBTRACT:	return res[1].col - res[0].col;
+        case blend_operator::MIN:				return math::min(res[0].col, res[1].col);
+        case blend_operator::MAX:				return math::max(res[0].col, res[1].col);
         default:								break;
     }
 
-    return res[0].color + res[1].color;
+    return res[0].col + res[1].col;
 }
 
 }
