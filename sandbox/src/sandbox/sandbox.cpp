@@ -6,7 +6,5 @@ int main()
 {
     using namespace vx;
 
-    //math::rng::weights w;
-
     return 0;
 }
