@@ -56,31 +56,41 @@ template <typename T>
 struct is_matrix : std::false_type {};
 
 template <typename T>
-struct is_matrix<mat2_t<T>> : std::true_type {};
+struct is_matrix<mat<2, 2, T>> : std::true_type {};
 template <typename T>
-struct is_matrix<mat3_t<T>> : std::true_type {};
+struct is_matrix<mat<3, 3, T>> : std::true_type {};
 template <typename T>
-struct is_matrix<mat4_t<T>> : std::true_type {};
+struct is_matrix<mat<4, 4, T>> : std::true_type {};
 
 template <typename T>
 struct matrix_width : std::integral_constant<size_type, 0> {};
 
 template <typename T>
-struct matrix_width<mat2_t<T>> : std::integral_constant<size_type, 2> {};
+struct matrix_width<mat<2, 2, T>> : std::integral_constant<size_type, 2> {};
 template <typename T>
-struct matrix_width<mat3_t<T>> : std::integral_constant<size_type, 3> {};
+struct matrix_width<mat<3, 3, T>> : std::integral_constant<size_type, 3> {};
 template <typename T>
-struct matrix_width<mat4_t<T>> : std::integral_constant<size_type, 4> {};
+struct matrix_width<mat<4, 4, T>> : std::integral_constant<size_type, 4> {};
 
 template <typename T>
 struct matrix_height : std::integral_constant<size_type, 0> {};
 
 template <typename T>
-struct matrix_height<mat2_t<T>> : std::integral_constant<size_type, 2> {};
+struct matrix_height<mat<2, 2, T>> : std::integral_constant<size_type, 2> {};
 template <typename T>
-struct matrix_height<mat3_t<T>> : std::integral_constant<size_type, 3> {};
+struct matrix_height<mat<3, 3, T>> : std::integral_constant<size_type, 3> {};
 template <typename T>
-struct matrix_height<mat4_t<T>> : std::integral_constant<size_type, 4> {};
+struct matrix_height<mat<4, 4, T>> : std::integral_constant<size_type, 4> {};
+
+template <typename T>
+struct is_square_matrix : std::false_type {};
+
+template <typename T>
+struct is_square_matrix<mat<2, 2, T>> : std::true_type {};
+template <typename T>
+struct is_square_matrix<mat<3, 3, T>> : std::true_type {};
+template <typename T>
+struct is_square_matrix<mat<4, 4, T>> : std::true_type {};
 
 }
 }

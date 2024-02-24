@@ -83,11 +83,11 @@ inline constexpr T abs(T x)
 // =============== round ===============
 
 /**
- * @brief Rounds a floating-point number to the nearest integer.
+ * @brief Rounds a number to the nearest integer.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to round.
- * @return The nearest integer value to the input floating-point number.
+ * @tparam T Type of the number.
+ * @param x The number to round.
+ * @return The nearest integer value to the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T round(T x)
@@ -98,11 +98,11 @@ inline constexpr T round(T x)
 // =============== trunc ===============
 
 /**
- * @brief Truncates a floating-point number towards zero.
+ * @brief Truncates a number towards zero.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to truncate.
- * @return The truncated value of the input floating-point number.
+ * @tparam T Type of the number.
+ * @param x The number to truncate.
+ * @return The truncated value of the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T trunc(T x)
@@ -113,11 +113,11 @@ inline constexpr T trunc(T x)
 // =============== floor ===============
 
 /**
- * @brief Rounds a floating-point number down to the nearest integer.
+ * @brief Rounds a number down to the nearest integer.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to round down.
- * @return The largest integral value not greater than the input floating-point number.
+ * @tparam T Type of the number.
+ * @param x The number to round down.
+ * @return The largest integral value not greater than the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T floor(T x)
@@ -128,11 +128,11 @@ inline constexpr T floor(T x)
 // =============== ceil ===============
 
 /**
- * @brief Rounds a floating-point number up to the nearest integer.
+ * @brief Rounds a number up to the nearest integer.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to round up.
- * @return The smallest integral value not less than the input floating-point number.
+ * @tparam T Type of the number.
+ * @param x The number to round up.
+ * @return The smallest integral value not less than the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T ceil(T x)
@@ -158,12 +158,12 @@ inline constexpr T sign(T x)
 // =============== fmod ===============
 
 /**
- * @brief Computes the remainder of division of two floating-point numbers.
+ * @brief Computes the remainder of division of two numbers.
  *
- * @tparam T Type of the floating-point numbers.
+ * @tparam T Type of the numbers.
  * @param x The dividend.
  * @param y The divisor.
- * @return The floating-point remainder of dividing x by y.
+ * @return The remainder of dividing x by y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T fmod(T x, T y)
@@ -198,11 +198,11 @@ inline constexpr T mod(T x, T y)
 // =============== fract ===============
 
 /**
- * @brief Computes the fractional part of a floating-point number.
+ * @brief Computes the fractional part of a number.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number.
- * @return The fractional part of the input floating-point number.
+ * @tparam T Type of the number.
+ * @param x The number.
+ * @return The fractional part of the input number.
  * 
  * @ref https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
  */
@@ -215,15 +215,15 @@ inline constexpr T fract(T x)
 // =============== modf ===============
 
 /**
- * @brief Decomposes a floating-point number into integral and fractional parts.
+ * @brief Decomposes a number into integral and fractional parts.
  *
- * This function decomposes the input floating-point number into its integral and fractional parts.
+ * This function decomposes the input number into its integral and fractional parts.
  * The integral part is stored in the provided reference variable, and the fractional part is returned.
  *
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to decompose.
+ * @tparam T Type of the number.
+ * @param x The number to decompose.
  * @param intpart Reference variable to store the integral part of x.
- * @return The fractional part of the input floating-point number.
+ * @return The fractional part of the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto modf(T x, T& intpart)
@@ -234,15 +234,15 @@ inline constexpr auto modf(T x, T& intpart)
 // =============== frexp ===============
 
 /**
- * @brief Decomposes a floating-point number into its normalized fraction and exponent.
+ * @brief Decomposes a number into its normalized fraction and exponent.
  * 
- * This function decomposes the input floating-point number into its normalized fraction and exponent.
+ * This function decomposes the input number into its normalized fraction and exponent.
  * The normalized fraction is returned, and the exponent is stored in the provided reference variable.
  * 
- * @tparam T Type of the floating-point number.
- * @param x The floating-point number to decompose.
+ * @tparam T Type of the number.
+ * @param x The number to decompose.
  * @param exp Reference variable to store the exponent of x.
- * @return The normalized fraction of the input floating-point number.
+ * @return The normalized fraction of the input number.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto frexp(T x, int& exp)
@@ -282,11 +282,6 @@ inline constexpr T snap(T x, T interval)
 
 /**
  * @brief Clamps a value within a specified range.
- *
- * This function ensures that the input value is within the specified range.
- * If the input value is less than the minimum, it returns the minimum.
- * If the input value is greater than the maximum, it returns the maximum.
- * Otherwise, it returns the input value unchanged.
  *
  * @tparam T Type of the value.
  * @param x The value to clamp.

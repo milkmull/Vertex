@@ -617,9 +617,7 @@ struct mat<4, 4, T>
     // =============== operations ===============
 
     /**
-     * @brief Computes the transpose of the 4x4 matrix.
-     *
-     * This function returns a new matrix where the rows become columns and vice versa.
+     * @brief Transposes the matrix.
      *
      * @return The transposed matrix.
      */
@@ -634,9 +632,7 @@ struct mat<4, 4, T>
     }
 
     /**
-     * @brief Calculates the determinant of the 4x4 matrix.
-     *
-     * This function computes the determinant of the matrix using the expansion by minors method.
+     * @brief Calculates the determinant of the matrix.
      *
      * @return The determinant of the matrix.
      */
@@ -658,12 +654,13 @@ struct mat<4, 4, T>
     }
 
     /**
-     * @brief Computes the inverse of the 4x4 matrix.
+     * @brief Calculates the inverse of the matrix.
      *
-     * This function calculates the inverse matrix for the 4x4 matrix if it exists.
-     * If the matrix is not invertible (determinant is approximately zero), it returns a matrix with zeros.
+     * This function calculates the inverse of the 2x2 matrix.
+     * If the determinant is close to zero, indicating singularity,
+     * a zero matrix is returned.
      *
-     * @return The inverted 4x4 matrix if invertible, otherwise a matrix with zeros.
+     * @return The inverse of the matrix, or a zero matrix if the determinant is close to zero.
      */
     inline constexpr type invert() const
     {

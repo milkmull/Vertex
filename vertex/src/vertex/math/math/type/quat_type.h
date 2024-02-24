@@ -206,18 +206,18 @@ struct quat_t
         );
     }
 
-     /**
-      * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
-      *
-      * This function performs the multiplication of a quaternion and a 3D vector. The result is a new
-      * vector representing the input vector after rotation by the quaternion.
-      *
-      * @param q The quaternion.
-      * @param v The 3D vector to be rotated.
-      * @return The resulting 3D vector after rotation.
-      * 
-      * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
-      */
+    /**
+     * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
+     *
+     * This function performs the multiplication of a quaternion and a 3D vector. The result is a new
+     * vector representing the input vector after rotation by the quaternion.
+     *
+     * @param q The quaternion.
+     * @param v The 3D vector to be rotated.
+     * @return The resulting 3D vector after rotation.
+     * 
+     * @ref https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
+     */
     friend inline constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
     {
         const vec<3, T> qv = q.vector();

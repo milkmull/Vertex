@@ -13,8 +13,6 @@ namespace math {
 /**
  * @brief Calculates the dot product of two quaternions.
  *
- * This function calculates the dot product of two quaternions.
- *
  * @tparam T Type of the quaternion components.
  * @param q1 The first quaternion.
  * @param q2 The second quaternion.
@@ -31,8 +29,6 @@ inline constexpr T dot(
 
 /**
  * @brief Calculates the normalized dot product of two quaternions.
- *
- * This function calculates the normalized dot product of two quaternions.
  *
  * @tparam T Type of the quaternion components.
  * @param q1 The first quaternion.
@@ -53,8 +49,6 @@ inline constexpr T normalized_dot(
 /**
  * @brief Scales a quaternion by a scalar value.
  *
- * This function scales a quaternion by a scalar value.
- *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion to be scaled.
  * @param scaler The scalar value to scale the quaternion by.
@@ -74,8 +68,6 @@ inline constexpr quat_t<T> scale(
 /**
  * @brief Calculates the squared length of a quaternion.
  *
- * This function calculates the squared length of a quaternion.
- *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion.
  * @return The squared length of the quaternion.
@@ -88,8 +80,6 @@ inline constexpr T length_squared(const quat_t<T>& q)
 
 /**
  * @brief Calculates the length of a quaternion.
- *
- * This function calculates the length of a quaternion.
  *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion.
@@ -163,8 +153,6 @@ inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::
 /**
  * @brief Computes the angle between two quaternions.
  *
- * This function computes the angle between two quaternions.
- *
  * @tparam T Type of the quaternion components.
  * @param from The first quaternion.
  * @param to The second quaternion.
@@ -185,8 +173,6 @@ static inline constexpr T angle(
 
 /**
  * @brief Computes the signed angle between two quaternions.
- *
- * This function computes the signed angle between two quaternions.
  *
  * @tparam T Type of the quaternion components.
  * @param from The first quaternion.
@@ -209,8 +195,6 @@ static inline constexpr T signed_angle(
 /**
  * @brief Computes the conjugate of a quaternion.
  *
- * This function computes the conjugate of a quaternion.
- *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion.
  * @return The conjugate of the input quaternion.
@@ -225,8 +209,6 @@ inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 
 /**
  * @brief Computes the inverse of a quaternion.
- *
- * This function computes the inverse of a quaternion.
  *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion.

@@ -12,8 +12,6 @@ namespace math {
 /**
  * @brief Computes the dot product of two vectors.
  *
- * This function computes the dot product of two vectors.
- *
  * @tparam T Type of the vector components.
  * @param v The first vector.
  * @param u The second vector.
@@ -74,8 +72,6 @@ inline constexpr auto normalized_dot(
 /**
  * @brief Computes the cross product of two 2D vectors.
  *
- * This function computes the cross product of two 2D vectors.
- *
  * @tparam T Type of the vector components.
  * @param v The first vector.
  * @param u The second vector.
@@ -93,8 +89,6 @@ inline constexpr auto cross(
 
 /**
  * @brief Computes the cross product of two 3D vectors.
- *
- * This function computes the cross product of two 3D vectors.
  *
  * @tparam T Type of the vector components.
  * @param v The first vector.
@@ -120,49 +114,50 @@ inline constexpr auto cross(
 /**
  * @brief Scales a vector by a scalar value.
  *
- * This function scales a vector by a scalar value.
+ * This function scales each component of the input vector v by the scalar value scaler.
  *
- * @tparam L Dimension of the vector.
- * @tparam T Type of the vector components.
- * @param v The vector to scale.
- * @param scaler The scalar value.
- * @return The scaled vector.
+ * @tparam L The dimensionality of the vector.
+ * @tparam T The data type of the components of the vector.
+ * @tparam U The data type of the scalar value.
+ * @param v The vector to be scaled.
+ * @param scaler The scalar value by which to scale the vector.
+ * @return The result of scaling the vector by the scalar value.
  */
-template <size_type L, typename T>
+template <size_type L, typename T, typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
 inline constexpr vec<L, T> scale(
     const vec<L, T>& v,
-    T scaler
+    U scaler
 )
 {
-    return v * scaler;
+    return vec<L, T>(v) *= scaler;
 }
 
 /**
- * @brief Scales a vector component-wise by another vector.
+ * @brief Scales a vector by another vector component-wise.
  *
- * This function scales each component of a vector by the corresponding component of another vector.
+ * This function scales each component of the input vector v by the corresponding component
+ * of the input vector scaler.
  *
- * @tparam L Dimension of the vectors.
- * @tparam T Type of the vector components.
- * @param v The vector to scale.
- * @param scaler The vector to scale by.
- * @return The scaled vector.
+ * @tparam L The dimensionality of the vectors.
+ * @tparam T The data type of the components of the input vector v.
+ * @tparam U The data type of the components of the input vector scaler.
+ * @param v The vector to be scaled.
+ * @param scaler The vector containing scaling factors for each component of v.
+ * @return The result of scaling the vector v by the components of the vector scaler.
  */
-template <size_type L, typename T>
+template <size_type L, typename T, typename U>
 inline constexpr vec<L, T> scale(
     const vec<L, T>& v,
-    const vec<L, T>& scaler
+    const vec<L, U>& scaler
 )
 {
-    return v * scaler;
+    return vec<L, U>(v) *= scaler;
 }
 
 // =============== length ===============
 
 /**
  * @brief Computes the squared length of a vector.
- *
- * This function computes the squared length of a vector.
  *
  * @tparam L Dimension of the vector.
  * @tparam T Type of the vector components.
@@ -177,8 +172,6 @@ inline constexpr auto length_squared(const vec<L, T>& v)
 
 /**
  * @brief Computes the length of a vector.
- *
- * This function computes the length of a vector.
  *
  * @tparam L Dimension of the vector.
  * @tparam T Type of the vector components.
@@ -354,8 +347,6 @@ inline constexpr vec<L, T> clamp_magnitude(
 /**
  * @brief Computes the angle between two vectors.
  *
- * This function computes the angle between two vectors.
- *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
  * @param from The first vector.
@@ -373,10 +364,6 @@ static inline constexpr T angle(
 
 /**
  * @brief Computes the signed angle between two vectors.
- *
- * This function computes the signed angle between two vectors. The sign
- * indicates the direction of rotation from the "from" vector to the "to"
- * vector.
  *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
@@ -399,8 +386,6 @@ static inline constexpr T signed_angle(
 /**
  * @brief Rotates a 2D vector by a specified angle.
  *
- * This function rotates a 2D vector by a specified angle.
- *
  * @tparam T Type of the vector components.
  * @param v The 2D vector to rotate.
  * @param angle The angle of rotation in radians.
@@ -420,8 +405,6 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
 
 /**
  * @brief Rotates a 3D vector around a specified axis by a given angle.
- *
- * This function rotates a 3D vector around a specified axis by a given angle.
  *
  * @tparam T Type of the vector components.
  * @param v The 3D vector to rotate.
@@ -449,8 +432,6 @@ inline constexpr vec<3, T> rotate(
 /**
  * @brief Rotates a 3D vector by a quaternion rotation.
  *
- * This function rotates a 3D vector by a quaternion rotation.
- *
  * @tparam T Type of the vector components.
  * @param v The 3D vector to rotate.
  * @param rotation The quaternion representing the rotation.
@@ -469,8 +450,6 @@ inline constexpr vec<3, T> rotate(
 
 /**
  * @brief Projects a vector onto another vector.
- *
- * This function projects a vector onto another vector.
  *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
@@ -491,8 +470,6 @@ inline constexpr vec<L, T> project(
 
 /**
  * @brief Reflects a vector off a surface with a given normal.
- *
- * This function reflects a vector off a surface with a given normal.
  *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
@@ -515,9 +492,7 @@ inline constexpr vec<L, T> reflect(
 
 /**
  * @brief Computes the bounce direction of a vector off a surface with a given normal.
- *
- * This function computes the bounce direction of a vector off a surface with a given normal.
- *
+ * 
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
  * @param i The incident vector.
@@ -538,9 +513,6 @@ inline constexpr vec<L, T> bounce(
 /**
  * @brief Computes the refraction of a vector through a surface with a given
  * normal and refraction index.
- *
- * This function computes the refraction of a vector through a surface with a
- * given normal and refraction index.
  *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
@@ -577,9 +549,6 @@ inline constexpr vec<L, T> refract(
  * @brief Ensures the normal vector is facing in the same direction as the
  * incident vector relative to a reference normal.
  *
- * This function ensures the normal vector is facing in the same direction as
- * the incident vector relative to a reference normal.
- *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.
  * @param n The original normal vector.
@@ -603,8 +572,6 @@ inline constexpr vec<L, T> face_forward(
 
 /**
  * @brief Moves a vector towards a target vector by a specified distance.
- *
- * This function moves a vector towards a target vector by a specified distance.
  *
  * @tparam L Dimension of the vectors.
  * @tparam T Type of the vector components.

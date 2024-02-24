@@ -522,6 +522,11 @@ struct mat<3, 3, T>
 
     // =============== operations ===============
 
+    /**
+     * @brief Transposes the matrix.
+     *
+     * @return The transposed matrix.
+     */
     inline constexpr type transpose() const
     {
         return type(
@@ -531,6 +536,11 @@ struct mat<3, 3, T>
         );
     }
 
+    /**
+     * @brief Calculates the determinant of the matrix.
+     *
+     * @return The determinant of the matrix.
+     */
     inline constexpr T determinant() const
     {
         return (
@@ -540,6 +550,15 @@ struct mat<3, 3, T>
             );
     }
 
+    /**
+     * @brief Calculates the inverse of the matrix.
+     *
+     * This function calculates the inverse of the 2x2 matrix.
+     * If the determinant is close to zero, indicating singularity,
+     * a zero matrix is returned.
+     *
+     * @return The inverse of the matrix, or a zero matrix if the determinant is close to zero.
+     */
     inline constexpr type invert() const
     {
         const T det = determinant();

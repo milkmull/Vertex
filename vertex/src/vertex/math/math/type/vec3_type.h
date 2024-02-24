@@ -708,16 +708,12 @@ struct vec<3, T>
     /**
      * @brief Get the minimum component value of the vector.
      *
-     * This function returns the minimum value between the x and y components of the vector.
-     *
      * @return The minimum component value.
      */
     inline constexpr T min() const { return math::min({ x, y, z }); }
 
     /**
      * @brief Get the maximum component value of the vector.
-     *
-     * This function returns the maximum value between the x and y components of the vector.
      *
      * @return The maximum component value.
      */
@@ -732,8 +728,6 @@ struct vec<3, T>
     /**
      * @brief Calculates the squared magnitude of the vector.
      *
-     * This function computes the squared magnitude of the vector.
-     *
      * @return The squared length of the vector.
      */
     inline constexpr float_value_type magnitude_squared() const
@@ -744,8 +738,6 @@ struct vec<3, T>
     /**
      * @brief Calculates the magnitude of the vector.
      *
-     * This function computes the magnitude of the vector.
-     *
      * @return The magnitude of the vector.
      */
     inline constexpr float_value_type magnitude() const
@@ -755,8 +747,6 @@ struct vec<3, T>
 
     /**
      * @brief Normalizes the vector.
-     *
-     * This function normalizes the vector.
      *
      * @return The normalized vector. If the length of the vector is 0,
      * a zero vector will be returned.

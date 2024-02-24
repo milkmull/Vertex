@@ -17,16 +17,17 @@ namespace math {
 // pow(q, x) = pow(|q|, x) * { cos(x * angle) + (v / |v|) * sin(x * angle) }
 
 /**
- * @brief Calculates the quaternion raised to the power of a scalar value.
+ * @brief Computes the quaternion raised to the power of a scalar.
  *
- * This function computes the result of a quaternion q raised to the power of x. The result is a new quaternion.
- * Special cases:
- * - If the input quaternion is a zero quaternion (all components are zero), the result is a quaternion with zero components.
- * - If x is 0, the result is a quaternion with all components set to NaN.
+ * Special Cases:
  * 
- * @param q The input quaternion.
- * @param x The scalar exponent.
- * @return The resulting quaternion.
+ * - If the quaternion is zero (all components are zero) and the exponent is nonzero, returns a quaternion with all components set to zero.
+ * - If the quaternion is zero and the exponent is zero, returns a quaternion with all components set to NaN.
+ *
+ * @tparam T The data type of the components of the quaternion.
+ * @param q The quaternion to be raised to the power.
+ * @param x The exponent to raise the quaternion to.
+ * @return The quaternion raised to the power of the scalar.
  */
 template <typename T>
 inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
@@ -82,12 +83,11 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
 // exp(q) = exp(a) * { cos|v| + (v / |v|) * sin|q| }
 
 /**
- * @brief Calculates the quaternion exponential of the given quaternion.
+ * @brief Computes the quaternion exponential function.
  * 
- * This function computes the result of e raised to a quaternion power q. The result is a new quaternion.
- * 
- * @param q The input quaternion.
- * @return The quaternion exponential of the input quaternion.
+ * @tparam T The data type of the components of the quaternion.
+ * @param q The quaternion for which to compute the exponential function.
+ * @return The exponential of the quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> exp(const quat_t<T>& q)
@@ -115,14 +115,15 @@ inline constexpr quat_t<T> exp(const quat_t<T>& q)
 // ln(q) = { ln|q| + (v / |v|) * arccos(a / |q|) }
 
 /**
- * @brief Calculates the quaternion natural logarithm of the given quaternion.
+ * @brief Computes the quaternion logarithm function.
  *
- * This function computes the natural logorithm of a quaternion q. The result is a new quaternion.
- * Special cases:
- * - If the input quaternion is a zero quaternion (all components are zero), the operation is undefined.
- *
- * @param q The input quaternion.
- * @return The quaternion natural logarithm of the input quaternion.
+ * Special Cases:
+ * 
+ * - If the quaternion is zero (all components are zero), returns a quaternion with all components set to negative infinity.
+ * 
+ * @tparam T The data type of the components of the quaternion.
+ * @param q The quaternion for which to compute the logarithm function.
+ * @return The natural logarithm of the quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> log(const quat_t<T>& q)
@@ -168,14 +169,16 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
 // =============== sqrt ===============
 
 /**
- * @brief Calculates the square root of a quaternion.
+ * @brief Computes the square root of a quaternion.
  *
- * This function computes the square root of a quaternion q. The result is a new quaternion.
- * Special cases:
- * - If the input quaternion is a zero quaternion (all components are zero), the result is a quaternion with zero components.
+ * Special Cases:
  *
- * @param q The input quaternion.
- * @return The resulting quaternion.
+ * - If the quaternion is zero (all components are zero) and the exponent is nonzero, returns a quaternion with all components set to zero.
+ * - If the quaternion is zero and the exponent is zero, returns a quaternion with all components set to NaN.
+ *
+ * @tparam T The data type of the components of the quaternion.
+ * @param q The quaternion for which to compute the square root.
+ * @return The square root of the quaternion.
  */
 template <typename T>
 inline constexpr quat_t<T> sqrt(const quat_t<T>& q)

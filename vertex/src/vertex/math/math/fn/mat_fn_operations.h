@@ -9,9 +9,7 @@ namespace math {
 // =============== transpose ===============
 
 /**
- * @brief Transposes a 2x2 matrix.
- *
- * This function transposes a 2x2 matrix.
+ * @brief Transposes a matrix.
  *
  * @tparam T Type of the matrix components.
  * @param m The input matrix.
@@ -23,30 +21,12 @@ inline constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
     return m.transpose();
 }
 
-/**
- * @brief Transposes a 3x3 matrix.
- *
- * This function transposes a 3x3 matrix.
- *
- * @tparam T Type of the matrix components.
- * @param m The input matrix.
- * @return The transposed matrix.
- */
 template <typename T>
 inline constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
 {
     return m.transpose();
 }
 
-/**
- * @brief Transposes a 4x4 matrix.
- *
- * This function transposes a 4x4 matrix.
- *
- * @tparam T Type of the matrix components.
- * @param m The input matrix.
- * @return The transposed matrix.
- */
 template <typename T>
 inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 {
@@ -57,8 +37,6 @@ inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 
 /**
  * @brief Computes the determinant of a matrix.
- *
- * This function calculates the determinant of a matrix 'm'.
  *
  * @param m The matrix to compute the determinant of.
  * @return The determinant of the matrix.

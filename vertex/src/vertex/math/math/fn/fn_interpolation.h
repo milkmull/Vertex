@@ -29,12 +29,12 @@ inline constexpr T lerp(T x, T y, T t)
 /**
  * @brief Computes a step function.
  *
- * This function returns 1.0 if x is greater than or equal to the edge value, otherwise returns 0.0.
+ * This function returns 1 if x is greater than or equal to the edge value, otherwise returns 0.
  *
  * @tparam T Type of the values.
  * @param edge The edge value.
  * @param x The value to compare against the edge.
- * @return 1.0 if x is greater than or equal to the edge value, otherwise 0.0.
+ * @return 1 if x is greater than or equal to the edge value, otherwise 0.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr T step(T edge, T x)

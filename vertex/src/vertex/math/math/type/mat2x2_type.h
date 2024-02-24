@@ -466,8 +466,6 @@ struct mat<2, 2, T>
     /**
      * @brief Transposes the matrix.
      *
-     * This function transposes the matrix, swapping its rows and columns.
-     *
      * @return The transposed matrix.
      */
     inline constexpr type transpose() const
@@ -480,8 +478,6 @@ struct mat<2, 2, T>
 
     /**
      * @brief Calculates the determinant of the matrix.
-     *
-     * This function calculates the determinant of the 2x2 matrix.
      *
      * @return The determinant of the matrix.
      */

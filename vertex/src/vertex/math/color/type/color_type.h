@@ -791,75 +791,67 @@ struct color_t
      *
      * @return The luminance of the color.
      */
-    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
-    inline constexpr T luminance() const
-    {
-        return (
-            (r * static_cast<T>(0.2126)) +
-            (g * static_cast<T>(0.7152)) +
-            (b * static_cast<T>(0.0722))
-        );
-    }
-
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr float_value_type luminance() const
     {
-        return float_type(*this).luminance();
+        const float_type c = *this;
+
+        return (
+            (c.r * static_cast<float_value_type>(0.2126)) +
+            (c.g * static_cast<float_value_type>(0.7152)) +
+            (c.b * static_cast<float_value_type>(0.0722))
+        );
     }
 
     // =============== color modifiers ===============
 
     /**
-     * @brief Lighten the color by a specified amount.
+     * @brief Creates a lighter version of the color.
      *
-     * This function returns a new color by lightening each component based on the provided amount.
+     * Returns a new color that is lightened by the specified amount.
      *
-     * @param amount The amount by which to lighten the color (in the range [0, 1]).
-     * @return A new color with lightened components.
+     * @param amount The amount by which to lighten the color. Should be in the range [0, 1].
+     * @return The new color lightened by the specified amount.
      */
-    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
-    inline constexpr type lighten(T amount) const
-    {
-        return type(
-            r + (static_cast<T>(1) - r) * amount,
-            g + (static_cast<T>(1) - g) * amount,
-            b + (static_cast<T>(1) - b) * amount,
-            a
-        );
-    }
-
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     inline constexpr type lighten(float_value_type amount) const
     {
-        return float_type(*this).lighten(amount);
+        const float_type c = *this;
+
+        return float_type(
+            c.r + (static_cast<T>(1) - c.r) * amount,
+            c.g + (static_cast<T>(1) - c.g) * amount,
+            c.b + (static_cast<T>(1) - c.b) * amount,
+            c.a
+        );
     }
 
     /**
-     * @brief Darken the color by a specified amount.
+     * @brief Creates a darker version of the color.
      *
-     * This function returns a new color by darkening each component based on the provided amount.
+     * Returns a new color that is darkened by the specified amount.
      *
-     * @param amount The amount by which to darken the color (in the range [0, 1]).
-     * @return A new color with darkened components.
+     * @param amount The amount by which to darken the color. Should be in the range [0, 1].
+     * @return The new color darkened by the specified amount.
      */
-    template <typename U = T, typename std::enable_if<std::is_floating_point<U>::value, bool>::type = true>
-    inline constexpr type darken(T amount) const
+    inline constexpr type darken(float_value_type amount) const
     {
+        const float_type c = *this;
+
         return type(
-            r * (static_cast<T>(1) - amount),
-            g * (static_cast<T>(1) - amount),
-            b * (static_cast<T>(1) - amount),
-            a
+            c.r * (static_cast<T>(1) - amount),
+            c.g * (static_cast<T>(1) - amount),
+            c.b * (static_cast<T>(1) - amount),
+            c.a
         );
     }
 
-    template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
-    inline constexpr type darken(float_value_type amount) const
-    {
-        return float_type(*this).darken(amount);
-    }
-
-    inline constexpr type invert()
+    /**
+     * @brief Creates the inverted color.
+     *
+     * Returns a new color where each channel value is subtracted from the maximum channel value.
+     *
+     * @return The inverted color.
+     */
+    inline constexpr type invert() const
     {
         return type(
             MAX_CHANNEL_VALUE - r,

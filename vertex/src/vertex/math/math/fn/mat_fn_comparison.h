@@ -157,34 +157,5 @@ inline constexpr auto round_epsilon(
     );
 }
 
-// =============== is_identity ===============
-
-template <typename T>
-inline constexpr bool is_identity(
-    const mat<2, 2, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return is_equal_approx(x, mat<2, 2, T>::IDENTITY(), epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_identity(
-    const mat<3, 3, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return is_equal_approx(x, mat<3, 3, T>::IDENTITY(), epsilon);
-}
-
-template <typename T>
-inline constexpr bool is_identity(
-    const mat<4, 4, T>& x,
-    const T epsilon = math::epsilon<T>
-)
-{
-    return is_equal_approx(x, mat<4, 4, T>::IDENTITY(), epsilon);
-}
-
 }
 }

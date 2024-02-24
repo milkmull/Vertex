@@ -96,13 +96,5 @@ inline constexpr quat_t<T> round_epsilon(const quat_t<T>& x, const T epsilon = m
     );
 }
 
-// =============== is_identity ===============
-
-template <typename T>
-inline constexpr quat_t<T> is_identity(const quat_t<T>& x, const T epsilon = math::epsilon<T>)
-{
-    return is_equal_approx(x, quat_t<T>::IDENTITY(), epsilon);
-}
-
 }
 }

@@ -10,18 +10,17 @@ namespace math {
 // https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 
 /**
- * @brief Creates a 3x3 rotation matrix around an arbitrary axis.
+ * @brief Creates a 3x3 rotation matrix from an axis and an angle.
  *
- * This function constructs a 3x3 rotation matrix that rotates vectors
- * around the specified axis by the given angle.
+ * This function generates a 3x3 rotation matrix representing a rotation around the specified axis by the given angle.
  *
- * @tparam T The data type of the matrix elements.
+ * @tparam T The type of elements in the matrix and vector.
  * @param axis The axis of rotation.
  * @param angle The angle of rotation in radians.
- * @return The 3x3 rotation matrix.
+ * @return A 3x3 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> mat3_make_rotation(const vec<3, T>& axis, T angle)
+inline constexpr mat<3, 3, T> mat3_from_axis_angle(const vec<3, T>& axis, T angle)
 {
     const vec<3, T> naxis = math::normalize(axis);
 
@@ -50,15 +49,14 @@ inline constexpr mat<3, 3, T> mat3_make_rotation(const vec<3, T>& axis, T angle)
 /**
  * @brief Creates a 3x3 rotation matrix from a quaternion.
  *
- * This function constructs a 3x3 rotation matrix that represents
- * the same rotation as the given quaternion.
+ * This function generates a 3x3 rotation matrix from the given quaternion.
  *
- * @tparam T The data type of the matrix elements.
+ * @tparam T The type of elements in the matrix and quaternion.
  * @param rotation The quaternion representing the rotation.
- * @return The 3x3 rotation matrix.
+ * @return A 3x3 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> mat3_make_rotation(const quat_t<T>& rotation)
+inline constexpr mat<3, 3, T> mat3_from_quat(const quat_t<T>& rotation)
 {
     const quat_t<T> qn = math::normalize(rotation);
 
@@ -92,18 +90,17 @@ inline constexpr mat<3, 3, T> mat3_make_rotation(const quat_t<T>& rotation)
 /**
  * @brief Creates a 3x3 rotation matrix from Euler angles.
  *
- * This function constructs a 3x3 rotation matrix that represents
- * the rotation specified by the Euler angles (in radians) around
- * the X, Y, and Z axes respectively.
+ * This function generates a 3x3 rotation matrix from the given Euler angles (in radians).
+ * The rotation order is assumed to be X-Y-Z (roll, pitch, yaw).
  *
- * @tparam T The data type of the matrix elements.
- * @param x The rotation angle around the X-axis.
- * @param y The rotation angle around the Y-axis.
- * @param z The rotation angle around the Z-axis.
- * @return The 3x3 rotation matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param x The angle of rotation around the X-axis (roll).
+ * @param y The angle of rotation around the Y-axis (pitch).
+ * @param z The angle of rotation around the Z-axis (yaw).
+ * @return A 3x3 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> mat3_make_rotation(T x, T y, T z)
+inline constexpr mat<3, 3, T> mat3_from_euler_angles(T x, T y, T z)
 {
     const T ct1 = math::cos(x);
     const T ct2 = math::cos(y);
@@ -131,17 +128,16 @@ inline constexpr mat<3, 3, T> mat3_make_rotation(T x, T y, T z)
 // https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 
 /**
- * @brief Extracts the rotation quaternion from a 3x3 rotation matrix.
+ * @brief Converts a 3x3 rotation matrix to a quaternion.
  *
- * This function extracts the rotation quaternion that represents the
- * rotation encoded in the given 3x3 rotation matrix.
+ * This function converts the given 3x3 rotation matrix to a quaternion.
  *
- * @tparam T The data type of the matrix elements and quaternion components.
+ * @tparam T The type of elements in the matrix and quaternion.
  * @param m The 3x3 rotation matrix.
- * @return The rotation quaternion.
+ * @return The quaternion representing the rotation.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr quat_t<T> mat3_get_rotation(const mat<3, 3, T>& m)
+inline constexpr quat_t<T> mat3_to_quat(const mat<3, 3, T>& m)
 {
     const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
 
@@ -198,13 +194,11 @@ inline constexpr quat_t<T> mat3_get_rotation(const mat<3, 3, T>& m)
 // =============== mat3 pure scale ===============
 
 /**
- * @brief Creates a 3x3 scale matrix from the specified scale vector.
+ * @brief Creates a 3x3 scaling matrix.
  *
- * This function creates a 3x3 scale matrix using the provided scale vector.
- *
- * @tparam T The data type of the matrix elements and vector components.
- * @param scale The scale vector specifying the scaling factors along each axis.
- * @return The resulting scale matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
+ * @return A 3x3 scaling matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<3, 3, T> mat3_make_scale(const vec<3, T>& scale)
@@ -225,13 +219,14 @@ inline constexpr mat<3, 3, T> mat3_make_scale(const vec<3, T>& scale)
 }
 
 /**
- * @brief Extracts the scale vector from the specified 3x3 matrix.
+ * @brief Retrieves the scaling factors from a 3x3 scaling matrix.
  *
- * This function extracts the scale vector from the specified 3x3 matrix.
+ * This function calculates and returns the scaling factors represented by
+ * the given 3x3 scaling matrix.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param m The 3x3 matrix from which to extract the scale.
- * @return The scale vector extracted from the matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param m The 3x3 scaling matrix.
+ * @return A 3D vector representing the scaling factors along the x, y, and z axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> mat3_get_scale(const mat<3, 3, T>& m)
@@ -248,16 +243,16 @@ inline constexpr vec<3, T> mat3_get_scale(const mat<3, 3, T>& m)
 // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
 
 /**
- * @brief Constructs a left-handed look-at view matrix.
+ * @brief Creates a left-handed 3x3 view matrix for a look-at transformation.
  *
- * This function constructs a left-handed look-at view matrix given the eye position,
- * target position, and up direction.
+ * This function generates a left-handed 3x3 view matrix for a look-at transformation,
+ * given the eye position, target position, and up vector.
  *
- * @tparam T The data type of the matrix elements and vector components.
+ * @tparam T The type of elements in the matrix and vectors.
  * @param eye The position of the camera.
- * @param target The position to look at.
- * @param up The up direction.
- * @return The left-handed look-at view matrix.
+ * @param target The position the camera is looking at.
+ * @param up The up vector of the camera  (default is the positive y-axis).
+ * @return A left-handed 3x3 view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<3, 3, T> mat3_make_look_at_lh(
@@ -274,16 +269,16 @@ inline constexpr mat<3, 3, T> mat3_make_look_at_lh(
 }
 
 /**
- * @brief Constructs a right-handed look-at view matrix.
+ * @brief Creates a right-handed 3x3 view matrix for a look-at transformation.
  *
- * This function constructs a right-handed look-at view matrix given the eye position,
- * target position, and up direction.
+ * This function generates a right-handed 3x3 view matrix for a look-at transformation,
+ * given the eye position, target position, and up vector.
  *
- * @tparam T The data type of the matrix elements and vector components.
+ * @tparam T The type of elements in the matrix and vectors.
  * @param eye The position of the camera.
- * @param target The position to look at.
- * @param up The up direction.
- * @return The right-handed look-at view matrix.
+ * @param target The position the camera is looking at.
+ * @param up The up vector of the camera  (default is the positive y-axis).
+ * @return A right-handed 3x3 view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<3, 3, T> mat3_make_look_at_rh(
@@ -300,17 +295,19 @@ inline constexpr mat<3, 3, T> mat3_make_look_at_rh(
 }
 
 /**
- * @brief Constructs a look-at view matrix based on the specified clip control configuration.
+ * @brief Creates a 3x3 view matrix for a look-at transformation.
  *
- * This function constructs either a left-handed or right-handed look-at view matrix based
- * on the specified clip control configuration. If the clip control is set to left-handed,
- * it constructs a left-handed view matrix; otherwise, it constructs a right-handed view matrix.
+ * This function generates a 3x3 view matrix for a look-at transformation,
+ * given the eye position, target position, and up vector.
  *
- * @tparam T The data type of the matrix elements and vector components.
+ * The handedness of the matrix (left-handed or right-handed) is determined
+ * based on the configuration specified in VX_CONFIG_CLIP_CONTROL.
+ *
+ * @tparam T The type of elements in the matrix and vectors.
  * @param eye The position of the camera.
- * @param target The position to look at.
- * @param up The up direction.
- * @return The look-at view matrix.
+ * @param target The position the camera is looking at.
+ * @param up The up vector of the camera  (default is the positive y-axis).
+ * @return A 3x3 view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<3, 3, T> mat3_make_look_at(
@@ -329,14 +326,13 @@ inline constexpr mat<3, 3, T> mat3_make_look_at(
 // =============== 3d translation ===============
 
 /**
- * @brief Constructs a 3D translation matrix.
+ * @brief Creates a 4x4 translation matrix for 3D space.
  *
- * This function constructs a 3D translation matrix given a translation vector
- * representing the translation along the x, y, and z axes.
+ * This function generates a 4x4 translation matrix for translating points in 3D space.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param translation The translation vector.
- * @return The 3D translation matrix.
+ * @tparam T The type of elements in the matrix and vector.
+ * @param translation A 3D vector representing the translation along the x, y, and z axes.
+ * @return A 4x4 translation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_translation_3d(const vec<3, T>& translation)
@@ -350,14 +346,14 @@ inline constexpr mat<4, 4, T> make_translation_3d(const vec<3, T>& translation)
 }
 
 /**
- * @brief Retrieves the translation vector from a 3D transformation matrix.
+ * @brief Retrieves the translation from a 4x4 transformation matrix in 3D space.
  *
- * This function extracts the translation component from a 3D transformation matrix
- * and returns it as a 3D vector.
+ * This function extracts and returns the translation component represented by
+ * the last column of the given 4x4 transformation matrix.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param m The 3D transformation matrix.
- * @return The translation vector extracted from the matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param m The 4x4 transformation matrix.
+ * @return A 3D vector representing the translation along the x, y, and z axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> get_translation_3d(const mat<4, 4, T>& m)
@@ -368,15 +364,15 @@ inline constexpr vec<3, T> get_translation_3d(const mat<4, 4, T>& m)
 // =============== 3d rotation ===============
 
 /**
- * @brief Creates a 3D rotation matrix around an arbitrary axis.
+ * @brief Creates a 4x4 rotation matrix for 3D space around an axis.
  *
- * This function constructs a 3D rotation matrix representing a rotation
- * around an arbitrary axis in 3D space by the specified angle.
+ * This function generates a 4x4 rotation matrix representing a rotation around
+ * the specified axis by the given angle.
  *
- * @tparam T The data type of the matrix elements and vector components.
+ * @tparam T The type of elements in the matrix and vector.
  * @param axis The axis of rotation.
  * @param angle The angle of rotation in radians.
- * @return The 3D rotation matrix.
+ * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_rotation_3d(const vec<3, T>& axis, T angle)
@@ -412,14 +408,13 @@ inline constexpr mat<4, 4, T> make_rotation_3d(const vec<3, T>& axis, T angle)
 }
 
 /**
- * @brief Creates a 3D rotation matrix from a quaternion.
+ * @brief Creates a 4x4 rotation matrix for 3D space from a quaternion.
  *
- * This function constructs a 3D rotation matrix representing the rotation
- * described by the given quaternion.
+ * This function generates a 4x4 rotation matrix from the given quaternion.
  *
- * @tparam T The data type of the matrix elements and quaternion components.
+ * @tparam T The type of elements in the matrix and quaternion.
  * @param rotation The quaternion representing the rotation.
- * @return The 3D rotation matrix.
+ * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_rotation_3d(const quat_t<T>& rotation)
@@ -462,16 +457,16 @@ inline constexpr mat<4, 4, T> make_rotation_3d(const quat_t<T>& rotation)
 // https://ntrs.nasa.gov/api/citations/19770024290/downloads/19770024290.pdf
 
 /**
- * @brief Creates a 3D rotation matrix from rotation angles around the x, y, and z axes.
+ * @brief Creates a 4x4 rotation matrix for 3D space from Euler angles.
  *
- * This function constructs a 3D rotation matrix representing the rotation
- * described by the given rotation angles around the x, y, and z axes.
+ * This function generates a 4x4 rotation matrix from the given Euler angles
+ * representing rotations around the x, y, and z axes.
  *
- * @tparam T The data type of the matrix elements and rotation angles.
- * @param x The rotation angle around the x-axis, in radians.
- * @param y The rotation angle around the y-axis, in radians.
- * @param z The rotation angle around the z-axis, in radians.
- * @return The 3D rotation matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param x The rotation angle around the x-axis in radians.
+ * @param y The rotation angle around the y-axis in radians.
+ * @param z The rotation angle around the z-axis in radians.
+ * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_rotation_3d(T x, T y, T z)
@@ -508,14 +503,13 @@ inline constexpr mat<4, 4, T> make_rotation_3d(T x, T y, T z)
 }
 
 /**
- * @brief Extracts the rotation quaternion from a 3D transformation matrix.
+ * @brief Retrieves the rotation quaternion from a 4x4 transformation matrix in 3D space.
  *
- * This function extracts the rotation part from the given 3D transformation matrix
- * and returns it as a unit quaternion representing the rotation component.
+ * This function extracts and returns the rotation component from the given 4x4 transformation matrix.
  *
- * @tparam T The data type of the matrix elements and quaternion components.
- * @param m The 3D transformation matrix.
- * @return The rotation quaternion extracted from the transformation matrix.
+ * @tparam T The type of elements in the matrix and quaternion.
+ * @param m The 4x4 transformation matrix.
+ * @return The quaternion representing the rotation.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr quat_t<T> get_rotation_3d(const mat<4, 4, T>& m)
@@ -575,14 +569,13 @@ inline constexpr quat_t<T> get_rotation_3d(const mat<4, 4, T>& m)
 // =============== 3d scale ===============
 
 /**
- * @brief Creates a 3D scaling transformation matrix.
+ * @brief Creates a 4x4 scale matrix for 3D space.
  *
- * This function generates a 3D transformation matrix that represents
- * a scaling transformation in 3D space along each axis by the given scaling factors.
+ * This function generates a 4x4 scale matrix for scaling objects in 3D space.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param scale The scaling factors along each axis.
- * @return The 3D scaling transformation matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
+ * @return A 4x4 scale matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
@@ -611,14 +604,13 @@ inline constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
 }
 
 /**
- * @brief Extracts the scaling factors from a 3D transformation matrix.
+ * @brief Retrieves the scale vector from a 4x4 transformation matrix in 3D space.
  *
- * This function extracts the scaling factors along each axis from a 4x4
- * transformation matrix representing a 3D scaling transformation.
+ * This function extracts and returns the scaling component from the given 4x4 transformation matrix.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param m The 3D transformation matrix.
- * @return The scaling factors along each axis.
+ * @tparam T The type of elements in the matrix and vector.
+ * @param m The 4x4 transformation matrix.
+ * @return A 3D vector representing the scaling factors along the x, y, and z axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
@@ -633,17 +625,16 @@ inline constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
 // =============== trs ===============
 
 /**
- * @brief Creates a 3D transformation matrix from translation, rotation, and scaling components.
+ * @brief Creates a 4x4 transformation matrix for translation, rotation, and scaling in 3D space.
  *
- * This function constructs a 4x4 transformation matrix representing a 3D transformation
- * composed of translation, rotation, and scaling components.
+ * This function generates a 4x4 transformation matrix combining translation, rotation, and scaling in 3D space.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param translation The translation component of the transformation.
- * @param axis The axis of rotation for the transformation.
- * @param angle The angle of rotation in radians.
- * @param scale The scaling component of the transformation.
- * @return The 3D transformation matrix.
+ * @tparam T The type of elements in the matrix and vectors.
+ * @param translation A 3D vector representing the translation along the x, y, and z axes.
+ * @param axis A 3D vector representing the axis of rotation.
+ * @param angle The rotation angle in radians.
+ * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
+ * @return A 4x4 transformation matrix representing the combined translation, rotation, and scaling.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> make_trs_3d(
@@ -683,16 +674,15 @@ inline constexpr mat<4, 4, T> make_trs_3d(
 }
 
 /**
- * @brief Creates a 3D transformation matrix from translation, rotation, and scaling components.
+ * @brief Creates a 4x4 transformation matrix for translation, rotation, and scaling in 3D space.
  *
- * This function constructs a 4x4 transformation matrix representing a 3D transformation
- * composed of translation, rotation, and scaling components.
+ * This function generates a 4x4 transformation matrix combining translation, rotation, and scaling in 3D space.
  *
- * @tparam T The data type of the matrix elements and vector components.
- * @param translation The translation component of the transformation.
- * @param rotation The rotation component of the transformation, represented as a quaternion.
- * @param scale The scaling component of the transformation.
- * @return The 3D transformation matrix.
+ * @tparam T The type of elements in the matrix and vectors.
+ * @param translation A 3D vector representing the translation along the x, y, and z axes.
+ * @param rotation A quaternion representing the rotation.
+ * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
+ * @return A 4x4 transformation matrix representing the combined translation, rotation, and scaling.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr mat<4, 4, T> make_trs_3d(
@@ -739,15 +729,15 @@ static inline constexpr mat<4, 4, T> make_trs_3d(
 // =============== invert ===============
 
 /**
- * @brief Computes the inverse of an affine transformation matrix.
+ * @brief Calculates the inverse of an affine transformation matrix.
  *
- * This function computes the inverse of a 4x4 affine transformation matrix.
- * Affine transformation matrices are used to represent translations, rotations,
- * scaling, and shearing transformations.
+ * This function computes the inverse of the given 4x4 affine transformation matrix.
+ * The inverse of an affine transformation matrix undoes the transformation, effectively
+ * reversing the original transformation.
  *
- * @tparam T The data type of the matrix elements.
- * @param m The 4x4 affine transformation matrix to invert.
- * @return The inverse of the input affine transformation matrix.
+ * @tparam T The type of elements in the matrix.
+ * @param m The 4x4 affine transformation matrix.
+ * @return The inverse of the matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr mat<4, 4, T> affine_invert(const mat<4, 4, T>& m)
@@ -765,14 +755,14 @@ inline constexpr mat<4, 4, T> affine_invert(const mat<4, 4, T>& m)
 // =============== transform ===============
 
 /**
- * @brief Transforms a 3D vector by a 4x4 transformation matrix.
+ * @brief Transforms a 3D vector using a 4x4 transformation matrix.
  *
- * This function transforms a 3D vector by a 4x4 transformation matrix,
- * which represents translation, rotation, scaling, and perspective transformations.
+ * This function applies the given 4x4 transformation matrix to a 3D vector.
+ * The transformation matrix represents a combination of translation, rotation, and scaling.
  *
- * @tparam T The data type of the vector and matrix elements.
+ * @tparam T The type of elements in the matrix and vector.
  * @param m The 4x4 transformation matrix.
- * @param v The 3D vector to transform.
+ * @param v The 3D vector to be transformed.
  * @return The transformed 3D vector.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -795,14 +785,16 @@ inline constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v)
 // https://stackoverflow.com/questions/31040378/whats-the-difference-between-these-two-ways-of-computing-a-lookat-matrix
 
 /**
- * @brief Creates a left-handed view matrix for 3D rendering.
+ * @brief Creates a left-handed view matrix using the look-at transformation.
  *
- * This function creates a left-handed view matrix for 3D rendering.
+ * This function creates a left-handed view matrix using the look-at transformation.
+ * It transforms a set of objects from world space to view space. The resulting matrix
+ * represents the transformation from world space to a camera's view space.
  *
- * @tparam T The data type of the matrix elements.
- * @param eye The position of the viewer's eye.
- * @param target The position where the viewer is looking at.
- * @param up The up direction in world space (optional, default is vec<3, T>::UP()).
+ * @tparam T The type of elements in the matrix and vectors.
+ * @param eye The position of the camera.
+ * @param target The position to look at.
+ * @param up The up direction in world space (default is the positive y-axis).
  * @return The left-handed view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -840,14 +832,16 @@ inline constexpr mat<4, 4, T> make_look_at_lh_3d(
 }
 
 /**
- * @brief Creates a right-handed view matrix for 3D rendering.
+ * @brief Creates a right-handed view matrix using the look-at transformation.
  *
- * This function creates a right-handed view matrix for 3D rendering.
+ * This function creates a right-handed view matrix using the look-at transformation.
+ * It transforms a set of objects from world space to view space. The resulting matrix
+ * represents the transformation from world space to a camera's view space.
  *
- * @tparam T The data type of the matrix elements.
- * @param eye The position of the viewer's eye.
- * @param target The position where the viewer is looking at.
- * @param up The up direction in world space (optional, default is vec<3, T>::UP()).
+ * @tparam T The type of elements in the matrix and vectors.
+ * @param eye The position of the camera.
+ * @param target The position to look at.
+ * @param up The up direction in world space (default is the positive y-axis).
  * @return The right-handed view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -888,15 +882,18 @@ inline constexpr mat<4, 4, T> make_look_at_rh_3d(
 }
 
 /**
- * @brief Creates a view matrix for 3D rendering.
+ * @brief Creates a view matrix using the look-at transformation.
  *
- * This function creates either a left-handed or right-handed view matrix
- * for 3D rendering based on the configuration.
+ * This function creates a view matrix using the look-at transformation. It automatically
+ * selects between left-handed and right-handed coordinate systems based on the configuration
+ * settings. If the left-handed coordinate system is enabled, it returns a left-handed view matrix
+ * using the `make_look_at_lh_3d` function. Otherwise, it returns a right-handed view matrix
+ * using the `make_look_at_rh_3d` function.
  *
- * @tparam T The data type of the matrix elements.
- * @param eye The position of the viewer's eye.
- * @param target The position where the viewer is looking at.
- * @param up The up direction in world space (optional, default is vec<3, T>::UP()).
+ * @tparam T The type of elements in the matrix and vectors.
+ * @param eye The position of the camera.
+ * @param target The position to look at.
+ * @param up The up direction in world space (default is the positive y-axis).
  * @return The view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>

@@ -31,7 +31,7 @@ inline constexpr T op_union(T d1, T d2)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T op_smooth_union(T d1, T d2, T k)
 {
-    float h = clamp(static_cast<T>(0.5) + static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
+    const T h = clamp(static_cast<T>(0.5) + static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
     return lerp(d2, d1, h) - k * h * (static_cast<T>(1) - h);
 }
 
@@ -42,9 +42,9 @@ inline constexpr T op_subtract(T dist1, T dist2)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T op_smooth_subtraction(T d1, T d2, T k)
+inline constexpr T op_smooth_subtract(T d1, T d2, T k)
 {
-    float h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 + d1) / k, static_cast<T>(0), static_cast<T>(1));
+    const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 + d1) / k, static_cast<T>(0), static_cast<T>(1));
     return lerp(d2, -d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
@@ -57,14 +57,14 @@ inline constexpr T op_intersection(T d1, T d2)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T op_smooth_itersection(T d1, T d2, T k)
 {
-    float h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
+    const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
     return lerp(d2, d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
 // =============== sdfs ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T sd_circle(const vec<2, T>& p, float r)
+inline constexpr T sd_circle(const vec<2, T>& p, T r)
 {
     return length(p) - r;
 }
@@ -92,15 +92,16 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr T sd_box(const vec<2, T>& p, const vec<2, T>& b)
 {
 
-    const vec<2, T> d = math::abs(p) - b;
+    const vec<2, T> d = abs(p) - b;
     return length(max(d, static_cast<T>(0))) + min(max(d.x, d.y), static_cast<T>(0));
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sd_segment(const vec<2, T>& p, const vec<2, T>& a, const vec<2, T>& b)
 {
-    const vec<2, T> pa = p - a, ba = b - a;
-    const float h = clamp(dot(pa, ba) / dot(ba, ba), static_cast<T>(0), static_cast<T>(1));
+    const vec<2, T> pa = p - a;
+    const vec<2, T> ba = b - a;
+    const T h = clamp(dot(pa, ba) / dot(ba, ba), static_cast<T>(0), static_cast<T>(1));
     return length(pa - ba * h);
 }
 
@@ -109,7 +110,7 @@ T sd_equilateral_triangle(const vec<2, T>& p, T r)
 {
     vec<2, T> ip(p);
 
-    const float k = sqrt(static_cast<T>(3));
+    const T k = sqrt(static_cast<T>(3));
 
     ip.x = abs(ip.x) - r;
     ip.y = ip.y + r / k;
@@ -142,7 +143,7 @@ T sd_isosceles_triangle(const vec<2, T>& p, const vec<2, T>& q)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-float sd_triangle(
+T sd_triangle(
     const vec<2, T>& p,
     const vec<2, T>& p0,
     const vec<2, T>& p1,
@@ -175,13 +176,13 @@ T sd_pie(const vec<2, T>& p, const vec<2, T>& sc, T r) // use a 2x2 rotation mat
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
 
-    const float l = length(ip) - r;
-    const float m = length(ip - sc * clamp(dot(ip, sc), static_cast<T>(0), r)); // sc is the sin/cos of the arc's aperture
+    const T l = length(ip) - r;
+    const T m = length(ip - sc * clamp(dot(ip, sc), static_cast<T>(0), r));
     return max(l, m * sign(sc.y * ip.x - sc.x * ip.y));
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_arc(const vec<2, T>& p, const vec<2, T>& sc, T ra, T rb) // sc is the sin/cos of the arc's aperture
+T sd_arc(const vec<2, T>& p, const vec<2, T>& sc, T ra, T rb)
 {
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
