@@ -4,7 +4,7 @@
 
 #include "base_type_defs.h"
 #include "../pixel.h"
-#include "vertex/math/math/type/vec2_type.h"
+#include "vertex/math/geometry/type/rect_type.h"
 
 namespace vx {
 namespace img {
@@ -35,14 +35,14 @@ public:
 
     inline constexpr iterator() = default;
 
-    inline constexpr iterator(pointer ptr, size_type x, size_type y, size_type width, size_type height) noexcept
-        : m_current(ptr), m_x(x), m_y(y), m_width(width), m_height(height) {}
+    inline constexpr iterator(pointer ptr, const math::rectu& area) noexcept
+        : m_current(ptr), m_area(area), m_position(area.position) {}
 
     inline constexpr iterator(const iterator<const T>& other) noexcept
-        : m_current(other.m_current), m_x(other.m_x), m_y(other.m_y), m_width(other.width), m_height(other.height) {}
+        : m_current(other.m_current), m_area(other.m_area), m_position(other.m_position) {}
 
     inline constexpr iterator(const iterator<typename std::remove_const<T>::type>& other) noexcept
-        : m_current(other.m_current), m_x(other.m_x), m_y(other.m_y), m_width(other.width), m_height(other.height) {}
+        : m_current(other.m_current), m_area(other.m_area), m_position(other.m_position) {}
 
     inline constexpr iterator(iterator&&) noexcept = default;
 
@@ -53,20 +53,16 @@ public:
     inline constexpr iterator& operator=(const iterator<const T>& other) noexcept
     {
         m_current = other.m_current;
-        m_x = other.m_x;
-        m_y = other.m_y;
-        m_width = other.m_width;
-        m_height = other.m_height;
+        m_area = other.m_area;
+        m_position = other.m_position;
         return *this;
     }
 
     inline constexpr iterator& operator=(const iterator<typename std::remove_const<T>::type>& other) noexcept
     {
         m_current = other.m_current;
-        m_x = other.m_x;
-        m_y = other.m_y;
-        m_width = other.m_width;
-        m_height = other.m_height;
+        m_area = other.m_area;
+        m_position = other.m_position;
         return *this;
     }
 
@@ -89,14 +85,20 @@ public:
         return m_current[i];
     }
 
-    // addition (+)
+    // addition (++)
 
     inline constexpr iterator& operator++()
     {
-        ++m_current;
+        assert(m_position.y < m_area.position.y + m_area.size.y);
 
-        m_x = (m_x + 1) % m_width;
-        if (m_x == 0) ++m_y;
+        ++m_current;
+        ++m_position;
+
+        if (m_position >= m_area.position.x + m_area.size.x)
+        {
+            m_position.x = m_area.position.x;
+            ++m_position.y;
+        }
 
         return *this;
     }
@@ -113,7 +115,7 @@ public:
     template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator==(const IT & other) const
     {
-        return m_current == other.m_current && m_x == other.m_x && m_y == other.m_y && m_width == other.m_width && m_height == other.m_height;
+        return m_current == other.m_current && m_area = other.m_area && m_position == other.m_position;
     }
 
     template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
@@ -126,7 +128,7 @@ public:
 
     inline constexpr math::vec2 resolution() const
     {
-        return math::vec2(m_width, m_height);
+        return math::vec2(m_area.size);
     }
 
     inline constexpr math::color color() const
@@ -136,15 +138,12 @@ public:
 
     inline constexpr math::vec2 coord() const
     {
-        return math::vec2(m_x, m_y);
+        return math::vec2(m_position);
     }
 
     inline constexpr math::vec2 frag_coord() const
     {
-        return math::vec2(
-            static_cast<float>(m_x) / static_cast<float>(m_width),
-            static_cast<float>(m_y) / static_cast<float>(m_height)
-        );
+        return math::vec2(m_position - m_area.position) / math::vec2(m_area.size);
     }
 
     inline constexpr math::vec2 local() const
@@ -155,10 +154,8 @@ public:
 private:
 
     pointer m_current = nullptr;
-    size_type m_x = 0;
-    size_type m_y = 0;
-    size_type m_xbegin = 0;
-    size_type m_xend = 0;
+    math::rectu m_area;
+    math::vec2u m_position;
 
 };
 

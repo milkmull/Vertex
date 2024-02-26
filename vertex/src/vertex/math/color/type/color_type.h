@@ -746,6 +746,8 @@ struct color_t
 
     // =============== comparison and testing ===============
 
+    static inline constexpr size_type channels() { return static_cast<size_type>(4); }
+
     /**
      * @brief Retrieves the RGB components of the color.
      *
