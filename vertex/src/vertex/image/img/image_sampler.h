@@ -144,14 +144,14 @@ private:
     {
         // x
         const float srcxfrac = u - 0.5f;
-        const int srcx = static_cast<int>(srcxfrac);
+        const int srcx = static_cast<int>(math::floor(srcxfrac));
 
         const float fx2 = srcxfrac - srcx;
         const float fx = 1.0f - fx2;
 
         // y
         const float srcyfrac = v - 0.5f;
-        int srcy = static_cast<int>(srcyfrac);
+        int srcy = static_cast<int>(math::floor(srcyfrac));
 
         const float fy2 = srcyfrac - srcy;
         const float fy = 1.0f - fy2;
