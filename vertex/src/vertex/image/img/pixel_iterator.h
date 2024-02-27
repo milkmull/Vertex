@@ -178,37 +178,37 @@ private:
 
 class image;
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 inline constexpr auto begin(image& i)
 {
     return iterator<T>((T*)i.raw_data(), 0, 0, i.width(), i.height());
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 auto cbegin(const image& i) noexcept
 {
     return iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 auto begin(const image& i) noexcept
 {
     return cbegin<T>(i);
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 inline constexpr auto end(image& i)
 {
     return iterator<T>((T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 auto cend(const image& i) noexcept
 {
     return iterator<typename std::add_const<T>::type>((const T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
 }
 
-template <typename T>
+template <typename T, typename std::enable_if<detail::is_pixel<T>::value, bool>::type = true>
 auto end(const image& i) noexcept
 {
     return cend<T>(i);

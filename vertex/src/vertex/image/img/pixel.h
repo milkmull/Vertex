@@ -11,6 +11,12 @@ namespace detail {
 
 template <image_format format> struct pixel;
 
+template<typename T>
+struct is_pixel : std::false_type {};
+
+template<image_format format>
+struct is_pixel<pixel<format>> : std::true_type {};
+
 // =============== 8 bit ===============
 
 template <>
