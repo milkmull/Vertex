@@ -185,6 +185,12 @@ inline constexpr auto begin(image& i)
 }
 
 template <typename T>
+auto cbegin(const image& i) noexcept
+{
+    return iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
+}
+
+template <typename T>
 auto begin(const image& i) noexcept
 {
     return cbegin<T>(i);
@@ -197,21 +203,15 @@ inline constexpr auto end(image& i)
 }
 
 template <typename T>
-auto end(const image& i) noexcept
-{
-    return cend<T>(i);
-}
-
-template <typename T>
-auto cbegin(const image& i) noexcept
-{
-    return iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
-}
-
-template <typename T>
 auto cend(const image& i) noexcept
 {
     return iterator<typename std::add_const<T>::type>((const T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
+}
+
+template <typename T>
+auto end(const image& i) noexcept
+{
+    return cend<T>(i);
 }
 
 }
