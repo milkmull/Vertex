@@ -26,6 +26,9 @@ public:
 
     // =============== specs ===============
 
+    const math::vec2& get_resolution() const { return m_resolution; }
+    void set_resolution(const math::vec2& resolution) { m_resolution = resolution; }
+
     image_wrap get_xwrap() const { return m_xwrap; }
     image_wrap get_ywrap() const { return m_ywrap; }
 
@@ -35,8 +38,11 @@ public:
     const math::color& get_border() const { return m_border; }
     void set_border(const math::color& border) { m_border = border; }
 
-    const math::vec2& get_resolution() const { return m_resolution; }
-    void set_resolution(const math::vec2& resolution) { m_resolution = resolution; }
+    image_filter get_min_filter() const { return m_min_filter; }
+    image_filter get_mag_filter() const { return m_mag_filter; }
+
+    void set_min_filter(image_filter filter) { m_min_filter = filter; }
+    void set_mag_filter(image_filter filter) { m_mag_filter = filter; }
 
     // =============== sampling ===============
 
@@ -50,6 +56,11 @@ public:
 
     math::color sample(float u, float v) const
     {
+        if (m_image.empty())
+        {
+            return m_border;
+        }
+
         u *= (static_cast<float>(m_image.width()) / m_resolution.x);
         v *= (static_cast<float>(m_image.height()) / m_resolution.y);
 
@@ -182,12 +193,12 @@ private:
 
     image& m_image;
 
-    image_wrap m_xwrap = image_wrap::MIRROR_CLAMP_TO_EDGE;
-    image_wrap m_ywrap = image_wrap::MIRROR_CLAMP_TO_EDGE;
+    math::vec2 m_resolution = math::vec2(1.0f);
+
+    image_wrap m_xwrap = image_wrap::REPEAT;
+    image_wrap m_ywrap = image_wrap::REPEAT;
 
     math::color m_border;
-
-    math::vec2 m_resolution = math::vec2(1.0f);
 
     image_filter m_min_filter = image_filter::NEAREST;
     image_filter m_mag_filter = image_filter::LINEAR;

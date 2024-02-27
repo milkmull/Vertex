@@ -6,8 +6,7 @@ namespace img {
 enum class image_filter
 {
     NEAREST,
-    LINEAR,
-    CUBIC
+    LINEAR
 };
 
 enum class image_wrap
