@@ -15,10 +15,7 @@ public:
     // =============== constructors & destructor ===============
     
     image_sampler(image& image)
-        : m_image(image), m_area(image.get_rect()) {}
-
-    image_sampler(image& image, const math::rectu& area)
-        : m_image(image), m_area(m_image.get_rect().crop(area)) {}
+        : m_image(image) {}
 
     image_sampler(const image_sampler&) = default;
     image_sampler(image_sampler&&) noexcept = default;
@@ -43,23 +40,26 @@ public:
 
     // =============== sampling ===============
 
+    math::color sample_pixel(int x, int y) const
+    {
+        return sample(
+            static_cast<float>(x) / static_cast<float>(m_image.width()),
+            static_cast<float>(y) / static_cast<float>(m_image.height())
+        );
+    }
+
     math::color sample(float u, float v) const
     {
-        if (m_area.area() == 0)
-        {
-            return m_border;
-        }
-
-        const float x = u * (static_cast<float>(m_area.size.x) / m_resolution.x);
-        const float y = v * (static_cast<float>(m_area.size.y) / m_resolution.y);
+        u *= (static_cast<float>(m_image.width()) / m_resolution.x);
+        v *= (static_cast<float>(m_image.height()) / m_resolution.y);
 
         const float sample_pixel_size = m_resolution.x * m_resolution.y;
         image_filter current_filter = (sample_pixel_size < 1.0f) ? m_min_filter : m_mag_filter;
 
         switch (current_filter)
         {
-            case image_filter::NEAREST: return sample_nearest(x, y);
-            case image_filter::LINEAR:  return sample_bilinear(x, y);
+            case image_filter::NEAREST: return sample_nearest(u, v);
+            case image_filter::LINEAR:  return sample_bilinear(u, v);
 
             default:                    break;
         }
@@ -67,28 +67,17 @@ public:
         return m_border;
     }
 
-    math::color sample_pixel(int x, int y) const
-    {
-        return sample(
-            static_cast<float>(x) / static_cast<float>(m_area.size.x),
-            static_cast<float>(y) / static_cast<float>(m_area.size.y)
-        );
-    }
-
 private:
 
     math::color get_pixel(int x, int y) const
     {
-        x = wrap_pixel(x, m_area.size.x, m_xwrap);
-        y = wrap_pixel(y, m_area.size.y, m_ywrap);
+        x = wrap_pixel(x, m_image.width(), m_xwrap);
+        y = wrap_pixel(y, m_image.height(), m_ywrap);
 
-        if (x < 0 || x >= static_cast<int>(m_area.size.x) || y < 0 || y >= static_cast<int>(m_area.size.y))
+        if (!math::contains(m_image.get_rect(), math::vec2i(x, y)))
         {
             return m_border;
         }
-
-        x += m_area.position.x;
-        y += m_area.position.y;
 
         return m_image.get_pixel(x, y);
     }
@@ -100,19 +89,36 @@ private:
             return p;
         }
 
+       // https://registry.khronos.org/OpenGL/specs/gl/glspec46.core.pdf (page 260)
+
         switch (wrap)
         {
-            case image_wrap::REPEAT:
-                return p % size;
-
-            case image_wrap::MIRRORED_REPEAT:
-                return (p / size) % 2 ? size - 1 - (p % size) : (p % size);
-
-            case image_wrap::EDGE_CLAMP:
+            case image_wrap::CLAMP_TO_EDGE:
+            {
                 return math::clamp(p, 0, size - 1);
-
+            }
+            case image_wrap::CLAMP_TO_BORDER:
+            {
+                return math::clamp(p, -1, size);
+            }
+            case image_wrap::REPEAT:
+            {
+                return math::mod(p, size);
+            }
+            case image_wrap::MIRRORED_REPEAT:
+            {
+                const int a = math::mod(p, 2 * size) - size;
+                return (size - 1) - (a >= 0 ? a : -(1 + a));
+            }
+            case image_wrap::MIRROR_CLAMP_TO_EDGE:
+            {
+                const int a = p;
+                return math::clamp(a >= 0 ? a : -(1 + a), 0, size - 1);
+            }
             default:
+            {
                 return p;
+            }
         }
     }
 
@@ -157,11 +163,11 @@ private:
         };
 
         // sample
-        math::color out;
+        math::color samp;
 
-        for (size_t c = 0; c < out.size(); ++c)
+        for (size_t c = 0; c < samp.channels(); ++c)
         {
-            out[c] = (
+            samp[c] = (
                 pixels[0][c] * weights[0] +
                 pixels[1][c] * weights[1] +
                 pixels[2][c] * weights[2] +
@@ -169,16 +175,15 @@ private:
             );
         }
 
-        return out;
+        return samp;
     }
 
 private:
 
     image& m_image;
-    math::rectu m_area;
 
-    image_wrap m_xwrap = image_wrap::REPEAT;
-    image_wrap m_ywrap = image_wrap::REPEAT;
+    image_wrap m_xwrap = image_wrap::MIRROR_CLAMP_TO_EDGE;
+    image_wrap m_ywrap = image_wrap::MIRROR_CLAMP_TO_EDGE;
 
     math::color m_border;
 

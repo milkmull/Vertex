@@ -825,8 +825,8 @@ VX_PACK_POP()
 using vec4  = vec<4, float>;
 using vec4f = vec<4, float>;
 using vec4d = vec<4, double>;
-using vec4u = vec<4, unsigned int>;
-using vec4i = vec<4, int>;
+using vec4u = vec<4, uint32_t>;
+using vec4i = vec<4, int32_t>;
 
 }
 }

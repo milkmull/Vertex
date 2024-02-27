@@ -119,8 +119,8 @@ public:
     inline const byte_type* raw_data() const { return m_data.data(); }
     inline byte_type* raw_data() { return m_data.data(); }
 
-    inline math::vec2u size() const { return math::vec2u(m_width, m_height); }
-    inline math::rectu get_rect() const { return math::rectu(0, 0, m_width, m_height); }
+    inline math::vec2i size() const { return math::vec2i(m_width, m_height); }
+    inline math::recti get_rect() const { return math::recti(0, 0, m_width, m_height); }
 
     // =============== comparison ===============
 

@@ -6,7 +6,7 @@
 namespace vx {
 namespace img {
 
-#define VX_MAX_IMAGE_DIMENSIONS (1 << 12) // 4096
+#define VX_MAX_IMAGE_DIMENSIONS (1ull << 12) // 4096
 
 enum : size_t
 {

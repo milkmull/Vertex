@@ -2,7 +2,8 @@
 
 #include <sstream>
 
-#include "../detail/base_types.h"
+#include "../fn/rect_fn_comparison.h"
+#include "../fn/rect_fn_collision.h"
 #include "../../math/type/vec2_type.h"
 
 namespace vx {
@@ -274,6 +275,13 @@ struct rect_t
      */
     inline constexpr T area() const { return size.x * size.y; }
 
+    /**
+     * @brief Check if the rectangle has no area.
+     *
+     * @return True if the rectangle's area is 0, otherwise false.
+     */
+    inline constexpr bool empty() const { return area() == static_cast<T>(0); }
+
     // =============== common modifiers ===============
 
     /**
@@ -318,6 +326,29 @@ struct rect_t
     }
 
     /**
+     * @brief Scales the rectangle by a specified factor.
+     *
+     * @param sx The x-axis scaling factor.
+     * @param sy The y-axis scaling factor.
+     * @return The scaled rectangle.
+     */
+    inline constexpr type scale(T sx, T sy) const
+    {
+        return scale(vec<2, T>(sx, sy));
+    }
+
+    /**
+     * @brief Scales the rectangle by a specified factor.
+     *
+     * @param s The scaling factor.
+     * @return The scaled rectangle.
+     */
+    inline constexpr type scale(T s) const
+    {
+        return scale(vec<2, T>(s));
+    }
+
+    /**
      * @brief Moves the rectangle by a specified offset.
      *
      * @param offset The offset by which to move the rectangle.
@@ -329,6 +360,18 @@ struct rect_t
             position + offset,
             size
         );
+    }
+
+    /**
+     * @brief Moves the rectangle by a specified offset.
+     *
+     * @param dx The x-axis offset.
+     * @param dy The y-axis offset.
+     * @return The moved rectangle.
+     */
+    inline constexpr type move(T dx, T dy) const
+    {
+        return move(vec<2, T>(dx, dy));
     }
 
     /**
@@ -450,8 +493,8 @@ VX_PACK_POP()
 using rect  = rect_t<float>;
 using rectf = rect_t<float>;
 using rectd = rect_t<double>;
-using rectu = rect_t<unsigned int>;
-using recti = rect_t<int>;
+using rectu = rect_t<uint32_t>;
+using recti = rect_t<int32_t>;
 
 }
 }

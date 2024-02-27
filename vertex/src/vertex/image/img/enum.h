@@ -12,10 +12,11 @@ enum class image_filter
 
 enum class image_wrap
 {
+    CLAMP_TO_EDGE,
+    CLAMP_TO_BORDER,
     REPEAT,
     MIRRORED_REPEAT,
-    EDGE_CLAMP,
-    BORDER_CLAMP,
+    MIRROR_CLAMP_TO_EDGE
 };
 
 }

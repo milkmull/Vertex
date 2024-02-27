@@ -23,15 +23,17 @@ int main()
 
     if (err == img::error_code::NONE)
     {
-        img::image_sampler sampler(src, { 200, 200, 100, 100 });
+        math::recti area = src.get_rect();
+
+        img::image_sampler sampler(src);
     
-        img::image dst(src.width(), src.height(), src.format());
+        img::image dst(src.width() * 4, src.height() * 4, src.format());
     
         for (int y = 0; y < (int)dst.height(); ++y)
         {
             for (int x = 0; x < (int)dst.width(); ++x)
             {
-                dst.set_pixel(x, y, sampler.sample_pixel(x, y));
+                dst.set_pixel(x, y, sampler.sample_pixel(x - src.width() * 2, y - src.height() * 2));
             }
         }
     

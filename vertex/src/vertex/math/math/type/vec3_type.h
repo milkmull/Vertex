@@ -793,8 +793,8 @@ VX_PACK_POP()
 using vec3  = vec<3, float>;
 using vec3f = vec<3, float>;
 using vec3d = vec<3, double>;
-using vec3u = vec<3, unsigned int>;
-using vec3i = vec<3, int>;
+using vec3u = vec<3, uint32_t>;
+using vec3i = vec<3, int32_t>;
 
 }
 }
