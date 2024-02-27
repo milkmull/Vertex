@@ -1,10 +1,9 @@
 #include "sandbox/sandbox.h"
 
 #include "vertex/image/img/image.h"
+#include "vertex/image/img/pixel_iterator.h"
 #include "vertex/image/img/image_sampler.h"
 #include "vertex/image/img/image_write.h"
-
-#include "vertex/math/texture/filter_bilinear.h"
 
 int main()
 {
@@ -28,13 +27,10 @@ int main()
         img::image_sampler sampler(src);
     
         img::image dst(src.width() * 4, src.height() * 4, src.format());
-    
-        for (int y = 0; y < (int)dst.height(); ++y)
+
+        for (auto it = img::begin<img::pixel_rgba8>(dst); it != img::end<img::pixel_rgba8>(dst); it++)
         {
-            for (int x = 0; x < (int)dst.width(); ++x)
-            {
-                dst.set_pixel(x, y, sampler.sample_pixel(x - src.width() * 2, y - src.height() * 2));
-            }
+            dst.set_pixel(it.position(), sampler.sample_pixel(it.position() - src.size() * 2));
         }
     
         err = img::write_png("../../assets/sampler_text.png", dst.get_info(), dst.data().data());

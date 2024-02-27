@@ -115,7 +115,7 @@ public:
     inline size_t length() const { return m_data.size(); }
     inline bool empty() const { return m_data.empty(); }
 
-    inline const std::vector<byte_type> data() const { return m_data; }
+    inline const std::vector<byte_type>& data() const { return m_data; }
     inline const byte_type* raw_data() const { return m_data.data(); }
     inline byte_type* raw_data() { return m_data.data(); }
 
@@ -161,6 +161,11 @@ public:
         return math::color();
     }
 
+    math::color get_pixel(const math::vec2i& p) const
+    {
+        return get_pixel(p.x, p.y);
+    }
+
     void set_pixel(size_type x, size_type y, const math::color& color)
     {
         const size_type offset = (m_width * y + x) * pixel_size();
@@ -181,6 +186,11 @@ public:
         }
 
         return;
+    }
+
+    void set_pixel(const math::vec2i& p, const math::color& color)
+    {
+        set_pixel(p.x, p.y, color);
     }
 
     void fill(const math::color& fill_color)

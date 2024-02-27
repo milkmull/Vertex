@@ -14,7 +14,7 @@ public:
 
     // =============== constructors & destructor ===============
     
-    image_sampler(image& image)
+    image_sampler(const image& image)
         : m_image(image) {}
 
     image_sampler(const image_sampler&) = default;
@@ -26,20 +26,20 @@ public:
 
     // =============== specs ===============
 
-    const math::vec2& get_resolution() const { return m_resolution; }
+    const math::vec2& resolution() const { return m_resolution; }
     void set_resolution(const math::vec2& resolution) { m_resolution = resolution; }
 
-    image_wrap get_xwrap() const { return m_xwrap; }
-    image_wrap get_ywrap() const { return m_ywrap; }
+    image_wrap xwrap() const { return m_xwrap; }
+    image_wrap ywrap() const { return m_ywrap; }
 
     void set_xwrap(image_wrap wrap) { m_xwrap = wrap; }
     void set_ywrap(image_wrap wrap) { m_ywrap = wrap; }
 
-    const math::color& get_border() const { return m_border; }
+    const math::color& border() const { return m_border; }
     void set_border(const math::color& border) { m_border = border; }
 
-    image_filter get_min_filter() const { return m_min_filter; }
-    image_filter get_mag_filter() const { return m_mag_filter; }
+    image_filter min_filter() const { return m_min_filter; }
+    image_filter mag_filter() const { return m_mag_filter; }
 
     void set_min_filter(image_filter filter) { m_min_filter = filter; }
     void set_mag_filter(image_filter filter) { m_mag_filter = filter; }
@@ -52,6 +52,11 @@ public:
             static_cast<float>(x) / static_cast<float>(m_image.width()),
             static_cast<float>(y) / static_cast<float>(m_image.height())
         );
+    }
+
+    math::color sample_pixel(const math::vec2i& p) const
+    {
+        return sample_pixel(p.x, p.y);
     }
 
     math::color sample(float u, float v) const
@@ -76,6 +81,11 @@ public:
         }
 
         return m_border;
+    }
+
+    math::color sample(const math::vec2& p) const
+    {
+        return sample(p.x, p.y);
     }
 
 private:
@@ -151,7 +161,7 @@ private:
 
         // y
         const float srcyfrac = v - 0.5f;
-        int srcy = static_cast<int>(math::floor(srcyfrac));
+        const int srcy = static_cast<int>(math::floor(srcyfrac));
 
         const float fy2 = srcyfrac - srcy;
         const float fy = 1.0f - fy2;
@@ -191,7 +201,7 @@ private:
 
 private:
 
-    image& m_image;
+    const image& m_image;
 
     math::vec2 m_resolution = math::vec2(1.0f);
 
