@@ -65,8 +65,11 @@ struct vec<3, T>
         , y(static_cast<T>(scaler))
         , z(static_cast<T>(scaler)) {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr vec(U x, U y, U z)
+    template <typename X, typename Y, typename Z, typename std::enable_if<
+        std::is_arithmetic<X>::value &&
+        std::is_arithmetic<Y>::value &&
+        std::is_arithmetic<Z>::value, bool>::type = true>
+    inline constexpr vec(X x, Y y, Z z)
         : x(static_cast<T>(x))
         , y(static_cast<T>(y))
         , z(static_cast<T>(z)) {}

@@ -66,8 +66,15 @@ struct mat<2, 2, T>
         : columns{ col_type(static_cast<T>(scaler), static_cast<T>(0)),
                    col_type(static_cast<T>(0), static_cast<T>(scaler)) } {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr mat(U x1, U y1, U x2, U y2)
+    template <
+        typename X1, typename Y1,
+        typename X2, typename Y2,
+        typename std::enable_if<
+        std::is_arithmetic<X1>::value &&
+        std::is_arithmetic<Y1>::value &&
+        std::is_arithmetic<X2>::value &&
+        std::is_arithmetic<Y2>::value, bool>::type = true>
+    inline constexpr mat(X1 x1, Y1 y1, X2 x2, Y2 y2)
         : columns{ col_type(x1, y1), col_type(x2, y2) } {}
 
     template <typename U>

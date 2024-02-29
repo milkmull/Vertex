@@ -68,8 +68,12 @@ struct quat_t
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr quat_t(U w, U x, U y, U z)
+    template <typename W, typename X, typename Y, typename Z, typename std::enable_if<
+        std::is_arithmetic<W>::value &&
+        std::is_arithmetic<X>::value &&
+        std::is_arithmetic<Y>::value &&
+        std::is_arithmetic<Z>::value, bool>::type = true>
+    inline constexpr quat_t(W w, X x, Y y, Z z)
         : w(static_cast<T>(w))
         , x(static_cast<T>(x))
         , y(static_cast<T>(y))

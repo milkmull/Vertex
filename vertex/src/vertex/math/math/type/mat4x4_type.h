@@ -87,12 +87,33 @@ struct mat<4, 4, T>
                    col_type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(scaler), static_cast<T>(0)),
                    col_type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(scaler)) } {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    template <
+        typename X1, typename Y1, typename Z1, typename W1,
+        typename X2, typename Y2, typename Z2, typename W2,
+        typename X3, typename Y3, typename Z3, typename W3,
+        typename X4, typename Y4, typename Z4, typename W4,
+        typename std::enable_if<
+        std::is_arithmetic<X1>::value &&
+        std::is_arithmetic<Y1>::value &&
+        std::is_arithmetic<Z1>::value &&
+        std::is_arithmetic<W1>::value &&
+        std::is_arithmetic<X2>::value &&
+        std::is_arithmetic<Y2>::value &&
+        std::is_arithmetic<Z2>::value &&
+        std::is_arithmetic<W2>::value &&
+        std::is_arithmetic<X3>::value &&
+        std::is_arithmetic<Y3>::value &&
+        std::is_arithmetic<Z3>::value &&
+        std::is_arithmetic<W3>::value &&
+        std::is_arithmetic<X4>::value &&
+        std::is_arithmetic<Y4>::value &&
+        std::is_arithmetic<Z4>::value &&
+        std::is_arithmetic<W4>::value, bool>::type = true>
     inline constexpr mat(
-        U x1, U y1, U z1, U w1,
-        U x2, U y2, U z2, U w2,
-        U x3, U y3, U z3, U w3,
-        U x4, U y4, U z4, U w4
+        X1 x1, Y1 y1, Z1 z1, W1 w1,
+        X2 x2, Y2 y2, Z2 z2, W2 w2,
+        X3 x3, Y3 y3, Z3 z3, W3 w3,
+        X4 x4, Y4 y4, Z4 z4, W4 w4
     )
         : columns{ col_type(x1, y1, z1, w1),
                    col_type(x2, y2, z2, w2),

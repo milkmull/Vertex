@@ -72,8 +72,12 @@ struct color_t
         , b(static_cast<T>(scaler))
         , a(MAX_CHANNEL_VALUE) {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr color_t(U r, U g, U b, U a = MAX_CHANNEL_VALUE)
+    template <typename R, typename G, typename B, typename A, typename std::enable_if<
+        std::is_arithmetic<R>::value &&
+        std::is_arithmetic<G>::value &&
+        std::is_arithmetic<B>::value &&
+        std::is_arithmetic<A>::value, bool>::type = true>
+    inline constexpr color_t(R r, G g, B b, A a = MAX_CHANNEL_VALUE)
         : r(static_cast<T>(r))
         , g(static_cast<T>(g))
         , b(static_cast<T>(b))

@@ -63,8 +63,12 @@ struct rect_t
     )
         : position(position), size(size) {}
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr rect_t(U x, U y, U width, U height)
+    template <typename X, typename Y, typename W, typename H, typename std::enable_if<
+        std::is_arithmetic<X>::value &&
+        std::is_arithmetic<Y>::value &&
+        std::is_arithmetic<W>::value &&
+        std::is_arithmetic<H>::value, bool>::type = true>
+    inline constexpr rect_t(X x, Y y, W width, H height)
         : position(static_cast<T>(x), static_cast<T>(y))
         , size(static_cast<T>(width), static_cast<T>(height)) {}
 
