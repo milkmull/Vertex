@@ -253,8 +253,8 @@ inline constexpr bool crop(
     assert(dst);
 
     // check crop area is within area of image
-    if ((area[0] < 0) || (area[0] + area[2] > src_width) ||
-        (area[1] < 0) || (area[1] + area[3] > src_height))
+    if ((area[0] < static_cast<U>(0)) || (static_cast<size_t>(area[0] + area[2]) > src_width) ||
+        (area[1] < static_cast<U>(0)) || (static_cast<size_t>(area[1] + area[3]) > src_height))
     {
         return false;
     }
