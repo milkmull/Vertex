@@ -258,15 +258,13 @@ public:
         return false;
     }
 
-    bool reinterpret(size_type width, size_type height, image_format format)
+    bool reinterpret(const image_info& info)
     {
-        image_info info{ width, height, format };
-
         if (util::get_image_info_error(info) == error_code::NONE && info.size() == static_cast<size_type>(m_data.size()))
         {
-            m_width = width;
-            m_height = height;
-            m_format = format;
+            m_width = info.width;
+            m_height = info.height;
+            m_format = info.format;
 
             return true;
         }
