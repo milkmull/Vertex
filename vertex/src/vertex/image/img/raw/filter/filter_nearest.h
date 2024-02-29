@@ -4,7 +4,7 @@
 #include <type_traits>
 
 namespace vx {
-namespace math {
+namespace img {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 
@@ -17,25 +17,25 @@ namespace math {
  *
  * @tparam T The channel type of the image (must be an arithmetic type).
  *
- * @param src_data Pointer to the source image data.
+ * @param src Pointer to the source image data.
  * @param src_width Width of the source image.
  * @param src_height Height of the source image.
- * @param dst_data Pointer to the destination image data.
+ * @param dst Pointer to the destination image data.
  * @param dst_width Width of the destination image.
  * @param dst_height Height of the destination image.
  * @param channels Number of channels in the images.
  */
 template <typename T>
 inline constexpr void filter_nearest(
-    const T* src_data, size_t src_width, size_t src_height,
-          T* dst_data, size_t dst_width, size_t dst_height,
+    const T* src, size_t src_width, size_t src_height,
+          T* dst, size_t dst_width, size_t dst_height,
     size_t channels
 )
 {
     static_assert(std::is_arithmetic<T>::value, "T must be arithmatic type");
 
-    assert(src_data != nullptr);
-    assert(dst_data != nullptr);
+    assert(src != nullptr);
+    assert(dst != nullptr);
 
     if (dst_width == 0 || dst_height == 0)
     {
@@ -43,7 +43,7 @@ inline constexpr void filter_nearest(
     }
     if (src_width == 0 || src_height == 0)
     {
-        std::memset(dst_data, 0, dst_width * dst_height * sizeof(T) * channels);
+        std::memset(dst, 0, dst_width * dst_height * sizeof(T) * channels);
         return;
     }
 
@@ -59,8 +59,8 @@ inline constexpr void filter_nearest(
         const size_t srcy = y * src_height / dst_height;
 
         // Calculate pointers to the current row in the source and destination images
-        const T* srcrow = &src_data[src_row_size * srcy];
-        T* dstpx = &dst_data[dst_row_size * y];
+        const T* srcrow = &src[src_row_size * srcy];
+        T* dstpx = &dst[dst_row_size * y];
 
         // Loop over each column in the destination image
         for (size_t x = 0; x < dst_width; x++, dstpx += channels)

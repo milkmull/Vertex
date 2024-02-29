@@ -69,8 +69,8 @@ public:
         u *= (static_cast<float>(m_image.width()) / m_resolution.x);
         v *= (static_cast<float>(m_image.height()) / m_resolution.y);
 
-        const float sample_pixel_size = m_resolution.x * m_resolution.y;
-        image_filter current_filter = (sample_pixel_size < 1.0f) ? m_min_filter : m_mag_filter;
+        const float sample_pixel_area = m_resolution.x * m_resolution.y;
+        image_filter current_filter = (sample_pixel_area < 1.0f) ? m_min_filter : m_mag_filter;
 
         switch (current_filter)
         {

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <cstring>
 #include <vector>
-#include <iostream>
+#include <array>
 
 namespace vx {
 namespace img {
@@ -34,7 +34,7 @@ inline constexpr void flip_x(T* data, size_t width, size_t height, size_t channe
 template <typename T>
 inline constexpr void flip_x(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t channels
+    T* dst, size_t channels
 )
 {
     assert(src);
@@ -79,7 +79,7 @@ inline constexpr void flip_y(T* data, size_t width, size_t height, size_t channe
 template <typename T>
 inline constexpr void flip_y(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t channels
+    T* dst, size_t channels
 )
 {
     assert(src);
@@ -108,14 +108,13 @@ inline constexpr void rotate_90_cw(T* data, size_t width, size_t height, size_t 
     std::vector<T> dst(width * height * pxsz);
 
     rotate_90_cw(data, width, height, dst.data(), channels);
-
     std::move(dst.begin(), dst.end(), data);
 }
 
 template <typename T>
 inline constexpr void rotate_90_cw(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t channels
+    T* dst, size_t channels
 )
 {
     assert(src);
@@ -149,14 +148,13 @@ inline constexpr void rotate_90_ccw(T* data, size_t width, size_t height, size_t
     std::vector<T> dst(width * height * pxsz);
 
     rotate_90_ccw(data, width, height, dst.data(), channels);
-
     std::move(dst.begin(), dst.end(), data);
 }
 
 template <typename T>
 inline constexpr void rotate_90_ccw(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t channels
+    T* dst, size_t channels
 )
 {
     assert(src);
@@ -219,7 +217,7 @@ inline constexpr void rotate_180(T* data, size_t width, size_t height, size_t ch
 template <typename T>
 inline constexpr void rotate_180(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t channels
+    T* dst, size_t channels
 )
 {
     assert(src);
@@ -240,6 +238,44 @@ inline constexpr void rotate_180(
             std::memcpy(dstpx, srcpx, pxsz);
         }
     }
+}
+
+// =============== crop ===============
+
+template <typename T, typename U>
+inline constexpr bool crop(
+    const T* src, size_t src_width, size_t src_height,
+    T* dst, size_t channels,
+    const std::array<U, 4>& area
+)
+{
+    assert(src);
+    assert(dst);
+
+    // check crop area is within area of image
+    if ((area[0] < 0) || (area[0] + area[2] > src_width) ||
+        (area[1] < 0) || (area[1] + area[3] > src_height))
+    {
+        return false;
+    }
+
+    const size_t pxsz = sizeof(T) * channels;
+
+    for (size_t y = 0; y < static_cast<size_t>(area[3]); ++y)
+    {
+        const T* srcrow = &src[src_width * (static_cast<size_t>(area[1]) + y) * pxsz];
+        T* dstrow = &dst[static_cast<size_t>(area[2]) * y * pxsz];
+
+        for (size_t x = 0; x < static_cast<size_t>(area[2]); ++x)
+        {
+            const T* srcpx = &srcrow[(static_cast<size_t>(area[0]) + x) * pxsz];
+            T* dstpx = &dstrow[x * pxsz];
+
+            std::memcpy(dstpx, srcpx, pxsz);
+        }
+    }
+
+    return true;
 }
 
 }

@@ -12,7 +12,7 @@ int main()
 
     if (err == img::error_code::NONE)
     {
-        src = rotate_180(src);
+        src = resize(src, { 300, 100 });
         err = img::write_png("../../assets/transform_test.png", src.get_info(), src.raw_data());
         std::cout << "image saved with error: " << (int)err << std::endl;
     }
