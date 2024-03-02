@@ -11,35 +11,35 @@ namespace img {
 image flip_x(const image& img)
 {
     image out = img;
-    flip_x(out.raw_data(), out.width(), out.height(), out.channels());
+    flip_x(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
 image flip_y(const image& img)
 {
     image out = img;
-    flip_y(out.raw_data(), out.width(), out.height(), out.channels());
+    flip_y(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
 image rotate_90_cw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    rotate_90_cw(img.raw_data(), img.width(), img.height(), out.raw_data(), img.channels());
+    rotate_90_cw(img.data(), img.width(), img.height(), out.data(), img.channels());
     return out;
 }
 
 image rotate_90_ccw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    rotate_90_ccw(img.raw_data(), img.width(), img.height(), out.raw_data(), img.channels());
+    rotate_90_ccw(img.data(), img.width(), img.height(), out.data(), img.channels());
     return out;
 }
 
 image rotate_180(const image& img)
 {
     image out = img;
-    rotate_180(out.raw_data(), out.width(), out.height(), out.channels());
+    rotate_180(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
@@ -49,7 +49,7 @@ image crop(const image& img, const math::recti& area)
     image out(cropped.size.x, cropped.size.y, img.format());
 
     const std::array<int32_t, 4> r{ cropped.position.x, cropped.position.y, cropped.size.x, cropped.size.y };
-    crop(img.raw_data(), img.width(), img.height(), out.raw_data(), img.channels(), r);
+    crop(img.data(), img.width(), img.height(), out.data(), img.channels(), r);
 
     return out;
 }
@@ -63,8 +63,8 @@ image resize(const image& img, const math::vec2i& size, image_filter filter)
         case image_filter::NEAREST:
         {
             filter_nearest(
-                img.raw_data(), img.width(), img.height(),
-                out.raw_data(), out.width(), out.height(),
+                img.data(), img.width(), img.height(),
+                out.data(), out.width(), out.height(),
                 img.channels()
             );
             break;
@@ -72,8 +72,8 @@ image resize(const image& img, const math::vec2i& size, image_filter filter)
         case image_filter::LINEAR:
         {
             filter_bilinear(
-                img.raw_data(), img.width(), img.height(),
-                out.raw_data(), out.width(), out.height(),
+                img.data(), img.width(), img.height(),
+                out.data(), out.width(), out.height(),
                 img.channels()
             );
             break;

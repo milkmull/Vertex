@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "detail/base_type_defs.h"
+#include "detail/base_types.h"
 
 namespace vx {
 namespace img {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "detail/base_type_defs.h"
+#include "detail/base_types.h"
 #include "vertex/math/geometry/type/rect_type.h"
 
 namespace vx {

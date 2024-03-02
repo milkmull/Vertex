@@ -17,12 +17,12 @@ public:
     image_sampler(const image& image)
         : m_image(image) {}
 
-    image_sampler(const image_sampler&) = default;
-    image_sampler(image_sampler&&) noexcept = default;
+    image_sampler(const image_sampler&) = delete;
+    image_sampler(image_sampler&&) noexcept = delete;
     ~image_sampler() = default;
 
-    image_sampler& operator=(const image_sampler&) = default;
-    image_sampler& operator=(image_sampler&&) noexcept = default;
+    image_sampler& operator=(const image_sampler&) = delete;
+    image_sampler& operator=(image_sampler&&) noexcept = delete;
 
     // =============== specs ===============
 

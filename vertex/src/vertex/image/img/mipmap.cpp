@@ -29,8 +29,8 @@ std::vector<image> generate_mipmap(const image& img, size_type depth)
         image map(w, h, img.format());
 
         filter_box(
-            img.raw_data(), img.width(), img.height(),
-            map.raw_data(), map.width(), map.height(),
+            img.data(), img.width(), img.height(),
+            map.data(), map.width(), map.height(),
             img.channels()
         );
 

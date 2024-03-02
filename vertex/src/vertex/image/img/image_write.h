@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "image_info.h"
+#include "error_code.h"
 
 namespace vx {
 namespace img {

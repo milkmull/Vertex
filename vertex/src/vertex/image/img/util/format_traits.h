@@ -1,24 +1,24 @@
 #pragma once
 
-#include "../image_format.h"
+#include "format.h"
 
 namespace vx {
 namespace img {
-namespace detail {
+namespace util {
 
 // =============== format type traits ===============
 
-template <image_format f>
+template <image_format format>
 struct format_traits_base
 {
-    static constexpr image_format format = f;
-    static constexpr image_format format_8_bit = util::to_8_bit(f);
+    static constexpr image_format format = format;
+    static constexpr image_format format_8_bit = to_8_bit(format);
 
-    static constexpr size_type channel_count = util::get_channel_count(f);
-    static constexpr size_type bitdepth = util::get_bitdepth(f);
-    static constexpr size_type pixel_size = util::get_pixel_size(f);
+    static constexpr size_type channel_count = get_channel_count(format);
+    static constexpr size_type bitdepth = get_bitdepth(format);
+    static constexpr size_type pixel_size = get_pixel_size(format);
 
-    static constexpr bool alpha = util::has_alpha(f);
+    static constexpr bool alpha = has_alpha(format);
 
 };
 

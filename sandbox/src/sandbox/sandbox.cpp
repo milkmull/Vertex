@@ -28,7 +28,7 @@ int main()
         img::blit(src, src.get_rect(), dst, math::vec2i(0), blend);
         //dst = img::resize(dst, math::vec2i(100));
 
-        err = img::write_png("../../assets/blend_test.png", dst.get_info(), dst.raw_data());
+        err = img::write_png("../../assets/blend_test.png", dst.get_info(), dst.data());
         std::cout << "image saved with error : " << (int)err << std::endl;
     }
     else

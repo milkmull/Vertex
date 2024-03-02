@@ -1,8 +1,9 @@
+#include "image_write.h"
+
 #include <algorithm>
 
-#include "image_write.h"
 #include "vertex/detail/setup.h"
-#include "image_size_limit.h"
+#include "util/info_helpers.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
 

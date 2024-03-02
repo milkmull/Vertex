@@ -1,11 +1,10 @@
 #pragma once
 
-#include "detail/type_traits.h"
+#include "util/format_traits.h"
 #include "vertex/math/color/type/color_type.h"
 
 namespace vx {
 namespace img {
-namespace detail {
 
 // =============== pixel ===============
 
@@ -20,7 +19,7 @@ struct is_pixel<pixel<format>> : std::true_type {};
 // =============== 8 bit ===============
 
 template <>
-struct pixel<image_format::R8> : public format_traits<image_format::R8>
+struct pixel<image_format::R8> : public util::format_traits<image_format::R8>
 {
     channel_type r;
 
@@ -42,7 +41,7 @@ struct pixel<image_format::R8> : public format_traits<image_format::R8>
 };
 
 template <>
-struct pixel<image_format::RG8> : public format_traits<image_format::RG8>
+struct pixel<image_format::RG8> : public util::format_traits<image_format::RG8>
 {
     channel_type r, g;
 
@@ -68,7 +67,7 @@ struct pixel<image_format::RG8> : public format_traits<image_format::RG8>
 };
 
 template <>
-struct pixel<image_format::RGB8> : public format_traits<image_format::RGB8>
+struct pixel<image_format::RGB8> : public util::format_traits<image_format::RGB8>
 {
     channel_type r, g, b;
 
@@ -96,7 +95,7 @@ struct pixel<image_format::RGB8> : public format_traits<image_format::RGB8>
 };
 
 template <>
-struct pixel<image_format::RGBA8> : public format_traits<image_format::RGBA8>
+struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGBA8>
 {
     channel_type r, g, b, a;
 
@@ -125,14 +124,12 @@ struct pixel<image_format::RGBA8> : public format_traits<image_format::RGBA8>
     }
 };
 
-}
-
 // =============== types ===============
 
-using pixel_r8 = detail::pixel<image_format::R8>;
-using pixel_rg8 = detail::pixel<image_format::RG8>;
-using pixel_rgb8 = detail::pixel<image_format::RGB8>;
-using pixel_rgba8 = detail::pixel<image_format::RGBA8>;
+using pixel_r8 = pixel<image_format::R8>;
+using pixel_rg8 = pixel<image_format::RG8>;
+using pixel_rgb8 = pixel<image_format::RGB8>;
+using pixel_rgba8 = pixel<image_format::RGBA8>;
 
 }
 }
