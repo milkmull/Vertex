@@ -8,17 +8,17 @@ namespace util {
 
 // =============== format type traits ===============
 
-template <image_format format>
+template <image_format f>
 struct format_traits_base
 {
-    static constexpr image_format format = format;
-    static constexpr image_format format_8_bit = to_8_bit(format);
+    static constexpr image_format format = f;
+    static constexpr image_format format_8_bit = to_8_bit(f);
 
-    static constexpr size_t channel_count = get_channel_count(format);
-    static constexpr size_t bitdepth = get_bitdepth(format);
-    static constexpr size_t pixel_size = get_pixel_size(format);
+    static constexpr size_t channel_count = get_channel_count(f);
+    static constexpr size_t bitdepth = get_bitdepth(f);
+    static constexpr size_t pixel_size = get_pixel_size(f);
 
-    static constexpr bool alpha = has_alpha(format);
+    static constexpr bool alpha = has_alpha(f);
 
 };
 
