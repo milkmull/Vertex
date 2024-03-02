@@ -101,7 +101,7 @@ public:
     inline byte_type* data() { return m_data.data(); }
     inline const byte_type* data() const { return m_data.data(); }
 
-    inline size_t length() const { return m_data.size(); }
+    inline size_t data_size() const { return m_data.size(); }
     inline bool empty() const { return m_data.empty(); }
 
     inline constexpr math::vec2i size() const { return math::vec2i(m_width, m_height); }

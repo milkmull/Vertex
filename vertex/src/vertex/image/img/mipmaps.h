@@ -6,7 +6,7 @@
 namespace vx {
 namespace img {
 
-inline std::vector<image> generate_mipmap(const image& img, size_t depth = -1)
+inline std::vector<image> generate_mipmaps(const image& img, size_t depth = -1)
 {
     if (img.empty())
     {
@@ -19,7 +19,7 @@ inline std::vector<image> generate_mipmap(const image& img, size_t depth = -1)
     size_t count = static_cast<size_t>(math::floor(math::log2(static_cast<float>(math::max(w, h)))));
     count = math::min(depth, count);
 
-    std::vector<image> mipmap(count);
+    std::vector<image> mipmaps(count);
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -34,10 +34,10 @@ inline std::vector<image> generate_mipmap(const image& img, size_t depth = -1)
             img.channels()
         );
 
-        mipmap[i] = map;
+        mipmaps[i] = map;
     }
 
-    return mipmap;
+    return mipmaps;
 }
 
 }

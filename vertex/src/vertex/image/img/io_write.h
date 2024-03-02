@@ -1,7 +1,7 @@
 #pragma once
 
 #include "image.h"
-#include "raw/io_write.h"
+#include "raw/io/write.h"
 
 namespace vx {
 namespace img {

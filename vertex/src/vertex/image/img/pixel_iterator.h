@@ -11,11 +11,11 @@ namespace vx {
 namespace img {
 
 template <typename T>
-class iterator
+class pixel_iterator
 {
 private:
 
-    using other_iterator = iterator<
+    using other_iterator = pixel_iterator<
         typename std::conditional<std::is_const<T>::value, typename std::remove_const<T>::type, const T>::type
     >;
 
@@ -33,24 +33,24 @@ public:
 
     // =============== constructors and destructor ===============
 
-    inline constexpr iterator() = default;
+    inline constexpr pixel_iterator() = default;
 
-    inline constexpr iterator(pointer ptr, size_type x, size_type y, size_type width, size_type height) noexcept
+    inline constexpr pixel_iterator(pointer ptr, size_t x, size_t y, size_t width, size_t height) noexcept
         : m_current(ptr), m_x(x), m_y(y), m_w(width), m_h(height) {}
 
-    inline constexpr iterator(const iterator<const T>& other) noexcept
+    inline constexpr pixel_iterator(const pixel_iterator<const T>& other) noexcept
         : m_current(other.m_current), m_x(other.m_x), m_y(other.m_y), m_w(other.m_w), m_h(other.m_h) {}
 
-    inline constexpr iterator(const iterator<typename std::remove_const<T>::type>& other) noexcept
+    inline constexpr pixel_iterator(const pixel_iterator<typename std::remove_const<T>::type>& other) noexcept
         : m_current(other.m_current), m_x(other.m_x), m_y(other.m_y), m_w(other.m_w), m_h(other.m_h) {}
 
-    inline constexpr iterator(iterator&&) noexcept = default;
+    inline constexpr pixel_iterator(pixel_iterator&&) noexcept = default;
 
-    ~iterator() noexcept = default;
+    ~pixel_iterator() noexcept = default;
 
     // =============== assignment ===============
 
-    inline constexpr iterator& operator=(const iterator<const T>& other) noexcept
+    inline constexpr pixel_iterator& operator=(const pixel_iterator<const T>& other) noexcept
     {
         m_current = other.m_current;
         m_x = other.m_x;
@@ -60,7 +60,7 @@ public:
         return *this;
     }
 
-    inline constexpr iterator& operator=(const iterator<typename std::remove_const<T>::type>& other) noexcept
+    inline constexpr pixel_iterator& operator=(const pixel_iterator<typename std::remove_const<T>::type>& other) noexcept
     {
         m_current = other.m_current;
         m_x = other.m_x;
@@ -70,7 +70,7 @@ public:
         return *this;
     }
 
-    inline constexpr iterator& operator=(iterator&&) noexcept = default;
+    inline constexpr pixel_iterator& operator=(pixel_iterator&&) noexcept = default;
 
     // =============== operators ===============
 
@@ -91,7 +91,7 @@ public:
 
     // addition (++)
 
-    inline constexpr iterator& operator++()
+    inline constexpr pixel_iterator& operator++()
     {
         ++m_current;
 
@@ -105,22 +105,22 @@ public:
         return *this;
     }
 
-    inline constexpr iterator operator++(int)
+    inline constexpr pixel_iterator operator++(int)
     {
-        iterator result = *this;
+        pixel_iterator result = *this;
         ++(*this);
         return result;
     }
 
     // comparison
 
-    template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<std::is_same<IT, pixel_iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator==(const IT & other) const
     {
         return m_current == other.m_current && m_x == other.m_x && m_y == other.m_y && m_w == other.m_w && m_h == other.m_h;
     }
 
-    template <typename IT, typename std::enable_if<std::is_same<IT, iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<std::is_same<IT, pixel_iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator!=(const IT & other) const
     {
         return !(*this == other);
@@ -128,8 +128,8 @@ public:
 
     // extra
 
-    inline constexpr size_type x() const { return m_x; }
-    inline constexpr size_type y() const { return m_y; }
+    inline constexpr size_t x() const { return m_x; }
+    inline constexpr size_t y() const { return m_y; }
 
     inline constexpr math::vec2 resolution() const
     {
@@ -138,7 +138,7 @@ public:
 
     inline constexpr math::color color() const
     {
-        return static_cast<math::color>(operator*());
+        return math::color(operator*());
     }
 
     inline constexpr math::vec2i position() const
@@ -168,28 +168,35 @@ private:
 
     pointer m_current = nullptr;
 
-    size_type m_x = 0;
-    size_type m_y = 0;
+    size_t m_x = 0;
+    size_t m_y = 0;
 
-    size_type m_w = 0;
-    size_type m_h = 0;
+    size_t m_w = 0;
+    size_t m_h = 0;
 
 };
+
+// =============== types ===============
+
+using pixel_iterator_r8 = pixel_iterator<pixel_r8>;
+using pixel_iterator_rg8 = pixel_iterator<pixel_rg8>;
+using pixel_iterator_rgb8 = pixel_iterator<pixel_rgb8>;
+using pixel_iterator_rgba8 = pixel_iterator<pixel_rgba8>;
 
 // =============== iterator ===============
 
 class image;
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
-inline constexpr auto begin(image& i)
+inline constexpr auto begin(image& i) noexcept
 {
-    return iterator<T>((T*)i.raw_data(), 0, 0, i.width(), i.height());
+    return pixel_iterator<T>((T*)i.raw_data(), 0, 0, i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 auto cbegin(const image& i) noexcept
 {
-    return iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
+    return pixel_iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
@@ -199,15 +206,15 @@ auto begin(const image& i) noexcept
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
-inline constexpr auto end(image& i)
+inline constexpr auto end(image& i) noexcept
 {
-    return iterator<T>((T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
+    return pixel_iterator<T>((T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 auto cend(const image& i) noexcept
 {
-    return iterator<typename std::add_const<T>::type>((const T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
+    return pixel_iterator<typename std::add_const<T>::type>((const T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>

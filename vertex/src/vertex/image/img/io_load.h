@@ -3,7 +3,7 @@
 #include <cassert>
 
 #include "image.h"
-#include "raw/io_load.h"
+#include "raw/io/load.h"
 
 namespace vx {
 namespace img {
