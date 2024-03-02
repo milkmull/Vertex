@@ -23,8 +23,8 @@ inline constexpr error_code get_image_info_error(const image_info& info)
 inline constexpr image_info get_8_bit_info(const image_info& info)
 {
     const image_format format = to_8_bit(info.format);
-    const size_type width = (info.width * info.pixel_size()) / get_pixel_size(format);
-    const size_type height = info.height;
+    const size_t width = (info.width * info.pixel_size()) / get_pixel_size(format);
+    const size_t height = info.height;
 
     return image_info{ width, height, format };
 }

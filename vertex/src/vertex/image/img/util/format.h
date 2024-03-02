@@ -10,9 +10,9 @@ namespace detail {
 
 struct image_format_data
 {
-    size_type channels;
-    size_type bitdepth;
-    size_type pixel_size;
+    size_t channels;
+    size_t bitdepth;
+    size_t pixel_size;
     bool alpha;
     image_format format_8_bit;
 };
@@ -30,19 +30,19 @@ inline constexpr image_format_data image_format_data_table[] = {
 
 namespace util {
 
-inline constexpr size_type get_channel_count(image_format format)
+inline constexpr size_t get_channel_count(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].channels;
 }
 
 // Returns the per-channel bitdepth for a given image format
-inline constexpr size_type get_bitdepth(image_format format)
+inline constexpr size_t get_bitdepth(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].bitdepth;
 }
 
 // Returns the pixel size in bytes for a given image format
-inline constexpr size_type get_pixel_size(image_format format)
+inline constexpr size_t get_pixel_size(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].pixel_size;
 }
@@ -60,7 +60,7 @@ inline constexpr bool has_alpha(image_format format)
 }
 
 // Chooses an appropriate image format based on the number of channels
-inline constexpr image_format choose_format(size_type channels)
+inline constexpr image_format choose_format(size_t channels)
 {
     switch (channels)
     {

@@ -9,7 +9,7 @@ namespace img {
 
 class image;
 
-std::vector<image> generate_mipmap(const image& img, size_type depth);
+std::vector<image> generate_mipmap(const image& img, size_t depth);
 std::vector<image> generate_mipmap(const image& img);
 
 }

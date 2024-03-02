@@ -95,12 +95,7 @@ private:
         x = wrap_pixel(x, m_image.width(), m_xwrap);
         y = wrap_pixel(y, m_image.height(), m_ywrap);
 
-        if (!math::contains(m_image.get_rect(), math::vec2i(x, y)))
-        {
-            return m_border;
-        }
-
-        return m_image.get_pixel(x, y);
+        return m_image.get_pixel(x, y, m_border);
     }
 
     int wrap_pixel(int p, int size, image_wrap wrap) const

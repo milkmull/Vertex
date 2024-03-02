@@ -76,9 +76,9 @@ static error_code get_info(const char* filename, image_info& info)
 
     info = image_info
     {
-        static_cast<size_type>(width),
-        static_cast<size_type>(height),
-        util::choose_format(static_cast<size_type>(channels))
+        static_cast<size_t>(width),
+        static_cast<size_t>(height),
+        util::choose_format(static_cast<size_t>(channels))
     };
 
     return error_code::NONE;

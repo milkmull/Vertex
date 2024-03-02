@@ -29,10 +29,10 @@ enum : size_t
 };
 
 inline constexpr error_code check_image_size_limits(
-    size_type width,
-    size_type height,
-    size_type channels,
-    size_type bitdepth
+    size_t width,
+    size_t height,
+    size_t channels,
+    size_t bitdepth
 )
 {
     if (width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)

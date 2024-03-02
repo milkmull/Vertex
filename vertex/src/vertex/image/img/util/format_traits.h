@@ -14,9 +14,9 @@ struct format_traits_base
     static constexpr image_format format = format;
     static constexpr image_format format_8_bit = to_8_bit(format);
 
-    static constexpr size_type channel_count = get_channel_count(format);
-    static constexpr size_type bitdepth = get_bitdepth(format);
-    static constexpr size_type pixel_size = get_pixel_size(format);
+    static constexpr size_t channel_count = get_channel_count(format);
+    static constexpr size_t bitdepth = get_bitdepth(format);
+    static constexpr size_t pixel_size = get_pixel_size(format);
 
     static constexpr bool alpha = has_alpha(format);
 

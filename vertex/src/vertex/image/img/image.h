@@ -28,9 +28,9 @@ public:
 
     // basic constructors
 
-    image(size_type width, size_type height, image_format format)
-        : m_width (math::min(width,  static_cast<size_type>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_height(math::min(height, static_cast<size_type>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+    image(size_t width, size_t height, image_format format)
+        : m_width (math::min(width,  static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        , m_height(math::min(height, static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
         , m_data(m_width * m_height * pixel_size(), 0) {}
 
@@ -39,9 +39,9 @@ public:
 
     // data constructors
 
-    image(const byte_type* data, size_type width, size_type height, image_format format)
-        : m_width (math::min(width,  static_cast<size_type>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_height(math::min(height, static_cast<size_type>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+    image(const byte_type* data, size_t width, size_t height, image_format format)
+        : m_width (math::min(width,  static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        , m_height(math::min(height, static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
         , m_data(data, data + (m_width * m_height * pixel_size())) {}
 
@@ -114,19 +114,19 @@ public:
 
     // =============== info ===============
 
-    inline constexpr size_type width() const { return m_width; }
-    inline constexpr size_type height() const { return m_height; }
+    inline constexpr size_t width() const { return m_width; }
+    inline constexpr size_t height() const { return m_height; }
     inline constexpr image_format format() const { return m_format; }
     inline constexpr bool is_valid_format() const { return m_format != image_format::UNKNOWN; }
 
     inline constexpr image_info get_info() const { return image_info{ m_width, m_height, m_format }; }
 
-    inline constexpr size_type channels() const { return util::get_channel_count(m_format); }
-    inline constexpr size_type bitdepth() const { return util::get_bitdepth(m_format); }
+    inline constexpr size_t channels() const { return util::get_channel_count(m_format); }
+    inline constexpr size_t bitdepth() const { return util::get_bitdepth(m_format); }
     inline constexpr bool has_alpha() const { return util::has_alpha(m_format); }
 
-    inline constexpr size_type pixel_size() const { return util::get_pixel_size(m_format); }
-    inline constexpr size_type stride() const { return m_width * pixel_size(); }
+    inline constexpr size_t pixel_size() const { return util::get_pixel_size(m_format); }
+    inline constexpr size_t stride() const { return m_width * pixel_size(); }
 
     inline byte_type* data() { return m_data.data(); }
     inline const byte_type* data() const { return m_data.data(); }
@@ -156,12 +156,12 @@ public:
 
     math::color get_pixel(size_t x, size_t y, const math::color& default_color = math::color()) const
     {
-        const size_t offset = (m_width * y + x) * pixel_size();
-
-        if (offset >= m_data.size())
+        if (x >= m_width || y >= m_height)
         {
             return default_color;
         }
+
+        const size_t offset = (m_width * y + x) * pixel_size();
 
         switch (m_format)
         {
@@ -183,12 +183,12 @@ public:
 
     void set_pixel(size_t x, size_t y, const math::color& color)
     {
-        const size_t offset = (m_width * y + x) * pixel_size();
-
-        if (offset >= m_data.size())
+        if (x >= m_width || y >= m_height)
         {
             return;
         }
+
+        const size_t offset = (m_width * y + x) * pixel_size();
 
         switch (m_format)
         {
@@ -210,9 +210,9 @@ public:
 
     void fill(const math::color& color)
     {
-        for (size_type y = 0; y < m_height; ++y)
+        for (size_t y = 0; y < m_height; ++y)
         {
-            for (size_type x = 0; x < m_width; ++x)
+            for (size_t x = 0; x < m_width; ++x)
             {
                 set_pixel(x, y, color);
             }
@@ -230,9 +230,9 @@ public:
 
         image converted(m_width, m_height, format);
 
-        for (size_type y = 0; y < m_height; ++y)
+        for (size_t y = 0; y < m_height; ++y)
         {
-            for (size_type x = 0; x < m_width; ++x)
+            for (size_t x = 0; x < m_width; ++x)
             {
                 converted.set_pixel(x, y, get_pixel(x, y));
             }
@@ -259,7 +259,7 @@ public:
 
     bool reinterpret(const image_info& info)
     {
-        if (util::get_image_info_error(info) == error_code::NONE && info.size() == static_cast<size_type>(m_data.size()))
+        if (util::get_image_info_error(info) == error_code::NONE && info.size() == m_data.size())
         {
             m_width = info.width;
             m_height = info.height;
@@ -273,8 +273,8 @@ public:
 
 private:
 
-    size_type m_width;
-    size_type m_height;
+    size_t m_width;
+    size_t m_height;
     image_format m_format;
     std::vector<byte_type> m_data;
 

@@ -7,9 +7,9 @@ namespace img {
 
 void fill(image& img, const math::color& color)
 {
-    for (size_type y = 0; y < img.height(); ++y)
+    for (size_t y = 0; y < img.height(); ++y)
     {
-        for (size_type x = 0; x < img.width(); ++x)
+        for (size_t x = 0; x < img.width(); ++x)
         {
             img.set_pixel(x, y, color);
         }
@@ -18,9 +18,9 @@ void fill(image& img, const math::color& color)
 
 void invert(image& img)
 {
-    for (size_type y = 0; y < img.height(); ++y)
+    for (size_t y = 0; y < img.height(); ++y)
     {
-        for (size_type x = 0; x < img.width(); ++x)
+        for (size_t x = 0; x < img.width(); ++x)
         {
             img.set_pixel(x, y, img.get_pixel(x, y).invert());
         }
@@ -29,9 +29,9 @@ void invert(image& img)
 
 void replace_color(image& img, const math::color& color1, const math::color& color2, float epsilon)
 {
-    for (size_type y = 0; y < img.height(); ++y)
+    for (size_t y = 0; y < img.height(); ++y)
     {
-        for (size_type x = 0; x < img.width(); ++x)
+        for (size_t x = 0; x < img.width(); ++x)
         {
             if (math::is_equal_approx(img.get_pixel(x, y), color1, epsilon))
             {
@@ -43,9 +43,9 @@ void replace_color(image& img, const math::color& color1, const math::color& col
 
 void swap_color(image& img, const math::color& color1, const math::color& color2, float epsilon)
 {
-    for (size_type y = 0; y < img.height(); ++y)
+    for (size_t y = 0; y < img.height(); ++y)
     {
-        for (size_type x = 0; x < img.width(); ++x)
+        for (size_t x = 0; x < img.width(); ++x)
         {
             if (math::is_equal_approx(img.get_pixel(x, y), color1, epsilon))
             {
@@ -61,9 +61,9 @@ void swap_color(image& img, const math::color& color1, const math::color& color2
 
 void key(image& img, const math::color& color, float threshold)
 {
-    for (size_type y = 0; y < img.height(); ++y)
+    for (size_t y = 0; y < img.height(); ++y)
     {
-        for (size_type x = 0; x < img.width(); ++x)
+        for (size_t x = 0; x < img.width(); ++x)
         {
             math::color c = img.get_pixel(x, y);
             if (math::is_equal_approx(c, color, threshold))

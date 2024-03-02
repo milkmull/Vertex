@@ -6,22 +6,22 @@
 namespace vx {
 namespace img {
 
-std::vector<image> generate_mipmap(const image& img, size_type depth)
+std::vector<image> generate_mipmap(const image& img, size_t depth)
 {
     if (img.empty())
     {
         return std::vector<image>();
     }
 
-    size_type w = img.width();
-    size_type h = img.height();
+    size_t w = img.width();
+    size_t h = img.height();
 
-    size_type count = static_cast<size_type>(math::floor(math::log2(static_cast<float>(math::max(w, h)))));
+    size_t count = static_cast<size_t>(math::floor(math::log2(static_cast<float>(math::max(w, h)))));
     count = math::min(depth, count);
 
     std::vector<image> mipmap(count);
 
-    for (size_type i = 0; i < count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
         w /= 2;
         h /= 2;
