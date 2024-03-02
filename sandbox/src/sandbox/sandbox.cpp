@@ -2,13 +2,13 @@
 
 #include "vertex/math/color/blend.h"
 
-#include "vertex/image/img/image.h"
-#include "vertex/image/img/fn_transform.h"
-#include "vertex/image/img/fn_color_adjust.h"
-#include "vertex/image/img/mipmaps.h"
-#include "vertex/image/img/fn_blit.h"
-#include "vertex/image/img/io_load.h"
-#include "vertex/image/img/io_write.h"
+#include "vertex/image/image.h"
+#include "vertex/image/fn_transform.h"
+#include "vertex/image/fn_color_adjust.h"
+#include "vertex/image/mipmaps.h"
+#include "vertex/image/fn_blit.h"
+#include "vertex/image/io_load.h"
+#include "vertex/image/io_write.h"
 
 int main()
 {
