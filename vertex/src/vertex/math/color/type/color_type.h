@@ -25,7 +25,6 @@ struct color_t
     using float_type = color_t<float_value_type>;
 
     using int_value_type = uint8_t;
-    using vec_value_type = typename std::conditional<std::is_integral<T>::value && (sizeof(value_type) <= sizeof(uint16_t)), uint32_t, value_type>::type;
 
     using size_type = math::size_type;
     static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
@@ -34,6 +33,8 @@ struct color_t
     using const_iterator = ::vx::tools::iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+    using rgb_type = vec<3, typename std::conditional<std::is_integral<T>::value && (sizeof(value_type) <= sizeof(uint16_t)), uint32_t, value_type>::type>;
 
     static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
     static constexpr T MAX_CHANNEL_VALUE = std::is_floating_point<T>::value ? static_cast<T>(1) : std::numeric_limits<T>::max();
@@ -757,7 +758,13 @@ struct color_t
      *
      * @return A vector representing the RGB components of the color.
      */
-    inline constexpr vec<3, vec_value_type> rgb() const { return vec<3, vec_value_type>(r, g, b); }
+    inline constexpr rgb_type rgb() const { return rgb_type(r, g, b); }
+    inline constexpr void set_rgb(const rgb_type& rgb)
+    { 
+        r = rgb.x;
+        g = rgb.y;
+        b = rgb.z; 
+    }
 
     /**
      * @brief Get the minimum RGB component of the color.

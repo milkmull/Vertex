@@ -1,5 +1,6 @@
-#include "image_fn_transform.h"
+#include "transform.h"
 #include "image.h"
+#include "enum.h"
 #include "raw/transform.h"
 #include "raw/filter/filter_nearest.h"
 #include "raw/filter/filter_bilinear.h"

@@ -139,9 +139,9 @@ public:
 
     // =============== pixel ===============
 
-    math::color get_pixel(size_type x, size_type y) const
+    math::color get_pixel(size_t x, size_t y) const
     {
-        const size_type offset = (m_width * y + x) * pixel_size();
+        const size_t offset = (m_width * y + x) * pixel_size();
 
         if (offset >= m_data.size())
         {
@@ -163,12 +163,12 @@ public:
 
     math::color get_pixel(const math::vec2i& p) const
     {
-        return get_pixel(p.x, p.y);
+        return get_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y));
     }
 
-    void set_pixel(size_type x, size_type y, const math::color& color)
+    void set_pixel(size_t x, size_t y, const math::color& color)
     {
-        const size_type offset = (m_width * y + x) * pixel_size();
+        const size_t offset = (m_width * y + x) * pixel_size();
 
         if (offset >= m_data.size())
         {
@@ -190,7 +190,7 @@ public:
 
     void set_pixel(const math::vec2i& p, const math::color& color)
     {
-        set_pixel(p.x, p.y, color);
+        set_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y), color);
     }
 
     void fill(const math::color& fill_color)
