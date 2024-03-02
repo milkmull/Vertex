@@ -1,9 +1,7 @@
-#include "image_write.h"
-
-#include <algorithm>
+#include "io_write.h"
 
 #include "vertex/detail/setup.h"
-#include "util/info_helpers.h"
+#include "../util/info_helpers.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
 
@@ -22,6 +20,7 @@ VX_DISABLE_WARNING_POP()
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // =============== write ===============
 
@@ -38,14 +37,14 @@ error_code write_bmp(const char* filename, const image_info& info, const byte_ty
 
     const image_info info_8_bit = util::get_8_bit_info(info);
 
-	stbi_flip_vertically_on_write(flip_vertically_on_write);
-	const bool success = stbi_write_bmp(
-		filename,
-		static_cast<int>(info_8_bit.width),
+    stbi_flip_vertically_on_write(flip_vertically_on_write);
+    const bool success = stbi_write_bmp(
+        filename,
+        static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
-		data
-	);
+        data
+    );
 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
@@ -63,15 +62,15 @@ error_code write_jpg(const char* filename, const image_info& info, const byte_ty
 
     const image_info info_8_bit = util::get_8_bit_info(info);
 
-	stbi_flip_vertically_on_write(flip_vertically_on_write);
-	const bool success = stbi_write_jpg(
-		filename,
+    stbi_flip_vertically_on_write(flip_vertically_on_write);
+    const bool success = stbi_write_jpg(
+        filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
-		data,
-        std::clamp(quality, 1, 100)
-	);
+        data,
+        quality
+    );
 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
@@ -89,15 +88,15 @@ error_code write_png(const char* filename, const image_info& info, const byte_ty
 
     const image_info info_8_bit = util::get_8_bit_info(info);
 
-	stbi_flip_vertically_on_write(flip_vertically_on_write);
-	bool success = stbi_write_png(
-		filename,
+    stbi_flip_vertically_on_write(flip_vertically_on_write);
+    bool success = stbi_write_png(
+        filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
-		data,
-		static_cast<int>(info_8_bit.stride())
-	);
+        data,
+        static_cast<int>(info_8_bit.stride())
+    );
 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
@@ -115,18 +114,19 @@ error_code write_tga(const char* filename, const image_info& info, const byte_ty
 
     const image_info info_8_bit = util::get_8_bit_info(info);
 
-	stbi_flip_vertically_on_write(flip_vertically_on_write);
-	bool success = stbi_write_tga(
-		filename,
+    stbi_flip_vertically_on_write(flip_vertically_on_write);
+    bool success = stbi_write_tga(
+        filename,
         static_cast<int>(info_8_bit.width),
         static_cast<int>(info_8_bit.height),
         static_cast<int>(info_8_bit.channels()),
-		data
-	);
+        data
+    );
 
     return success ? error_code::NONE : error_code::FILE_IO;
 }
 
+}
 }
 }
 

@@ -1,12 +1,8 @@
 #pragma once
 
-#include <cassert>
-#include <utility>
+#include <vector>
 
-#include "image_load.h"
-#include "image_write.h"
 #include "pixel.h"
-
 #include "util/size_limits.h"
 #include "util/info_helpers.h"
 
@@ -47,32 +43,6 @@ public:
 
     image(const byte_type* data, const image_info& info)
         : image(data, info.width, info.height, info.format) {}
-
-    // load constructors
-
-    image(const char* path, error_code& err)
-    {
-        image_info info;
-        err = load_image(path, info, m_data);
-
-        m_width = info.width;
-        m_height = info.height;
-        m_format = info.format;
-
-        assert(info.size() == m_data.size());
-    }
-
-    image(const char* path, image_format format, error_code& err)
-    {
-        image_info info;
-        err = load_image(path, info, format, m_data);
-
-        m_width = info.width;
-        m_height = info.height;
-        m_format = info.format;
-
-        assert(info.size() == m_data.size());
-    }
 
     // copy & move constructors
 

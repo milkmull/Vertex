@@ -10,12 +10,12 @@ struct image_info
     size_t width, height;
     image_format format;
 
-    inline bool operator==(const image_info& other) const
+    inline constexpr bool operator==(const image_info& other) const
     {
         return width == other.width && height == other.height && format == other.format;
     }
 
-    inline bool operator!=(const image_info& other) const
+    inline constexpr bool operator!=(const image_info& other) const
     {
         return !(*this == other);
     }

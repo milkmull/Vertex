@@ -1,56 +1,45 @@
 #pragma once
 
 #include "image.h"
-#include "enum.h"
-
-#include <iostream>
+#include "enum_image_filter.h"
+#include "enum_image_wrap.h"
 
 namespace vx {
 namespace img {
 
-class image_sampler
+struct sampler
 {
-public:
-
     // =============== constructors & destructor ===============
     
-    image_sampler(const image& image)
-        : m_image(image) {}
+    sampler(const image& image)
+        : m_image(&image) {}
 
-    image_sampler(const image_sampler&) = delete;
-    image_sampler(image_sampler&&) noexcept = delete;
-    ~image_sampler() = default;
+    sampler(const sampler&) = delete;
+    sampler(sampler&&) noexcept = delete;
+    ~sampler() = default;
 
-    image_sampler& operator=(const image_sampler&) = delete;
-    image_sampler& operator=(image_sampler&&) noexcept = delete;
+    sampler& operator=(const sampler&) = delete;
+    sampler& operator=(sampler&&) noexcept = delete;
 
-    // =============== specs ===============
+    // =============== data ===============
 
-    const math::vec2& resolution() const { return m_resolution; }
-    void set_resolution(const math::vec2& resolution) { m_resolution = resolution; }
+    math::vec2 resolution = math::vec2(1.0f);
 
-    image_wrap xwrap() const { return m_xwrap; }
-    image_wrap ywrap() const { return m_ywrap; }
+    image_wrap xwrap = image_wrap::REPEAT;
+    image_wrap ywrap = image_wrap::REPEAT;
 
-    void set_xwrap(image_wrap wrap) { m_xwrap = wrap; }
-    void set_ywrap(image_wrap wrap) { m_ywrap = wrap; }
+    math::color border;
 
-    const math::color& border() const { return m_border; }
-    void set_border(const math::color& border) { m_border = border; }
-
-    image_filter min_filter() const { return m_min_filter; }
-    image_filter mag_filter() const { return m_mag_filter; }
-
-    void set_min_filter(image_filter filter) { m_min_filter = filter; }
-    void set_mag_filter(image_filter filter) { m_mag_filter = filter; }
+    image_filter min_filter = image_filter::NEAREST;
+    image_filter mag_filter = image_filter::LINEAR;
 
     // =============== sampling ===============
 
     math::color sample_pixel(int x, int y) const
     {
         return sample(
-            static_cast<float>(x) / static_cast<float>(m_image.width()),
-            static_cast<float>(y) / static_cast<float>(m_image.height())
+            static_cast<float>(x) / static_cast<float>(m_image->width()),
+            static_cast<float>(y) / static_cast<float>(m_image->height())
         );
     }
 
@@ -61,16 +50,16 @@ public:
 
     math::color sample(float u, float v) const
     {
-        if (m_image.empty())
+        if (m_image->empty())
         {
-            return m_border;
+            return border;
         }
 
-        u *= (static_cast<float>(m_image.width()) / m_resolution.x);
-        v *= (static_cast<float>(m_image.height()) / m_resolution.y);
+        u *= (static_cast<float>(m_image->width()) / resolution.x);
+        v *= (static_cast<float>(m_image->height()) / resolution.y);
 
-        const float sample_pixel_area = m_resolution.x * m_resolution.y;
-        image_filter current_filter = (sample_pixel_area < 1.0f) ? m_min_filter : m_mag_filter;
+        const float sample_pixel_area = resolution.x * resolution.y;
+        image_filter current_filter = (sample_pixel_area < 1.0f) ? min_filter : mag_filter;
 
         switch (current_filter)
         {
@@ -80,7 +69,7 @@ public:
             default:                    break;
         }
 
-        return m_border;
+        return border;
     }
 
     math::color sample(const math::vec2& p) const
@@ -92,10 +81,10 @@ private:
 
     math::color get_pixel(int x, int y) const
     {
-        x = wrap_pixel(x, m_image.width(), m_xwrap);
-        y = wrap_pixel(y, m_image.height(), m_ywrap);
+        x = wrap_pixel(x, m_image->width(), xwrap);
+        y = wrap_pixel(y, m_image->height(), ywrap);
 
-        return m_image.get_pixel(x, y, m_border);
+        return m_image->get_pixel(x, y, border);
     }
 
     int wrap_pixel(int p, int size, image_wrap wrap) const
@@ -196,17 +185,8 @@ private:
 
 private:
 
-    const image& m_image;
+    const image* m_image = nullptr;
 
-    math::vec2 m_resolution = math::vec2(1.0f);
-
-    image_wrap m_xwrap = image_wrap::REPEAT;
-    image_wrap m_ywrap = image_wrap::REPEAT;
-
-    math::color m_border;
-
-    image_filter m_min_filter = image_filter::NEAREST;
-    image_filter m_mag_filter = image_filter::LINEAR;
 };
 
 }

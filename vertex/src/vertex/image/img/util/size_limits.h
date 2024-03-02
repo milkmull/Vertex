@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../detail/base_types.h"
-#include "../error_code.h"
+#include "../enum_error_code.h"
 
 namespace vx {
 namespace img {

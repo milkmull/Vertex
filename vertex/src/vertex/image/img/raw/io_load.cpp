@@ -1,7 +1,7 @@
-#include "image_load.h"
+#include "io_load.h"
 
 #include "vertex/detail/setup.h"
-#include "util/info_helpers.h"
+#include "../util/info_helpers.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
 
@@ -28,6 +28,7 @@ VX_DISABLE_WARNING_POP()
 
 namespace vx {
 namespace img {
+namespace raw {
 
 static inline error_code stb_image_error_to_vx_error(int stb_image_error)
 {
@@ -58,7 +59,7 @@ static inline error_code stb_image_error_to_vx_error(int stb_image_error)
 
 // =============== load ===============
 
-static error_code get_info(const char* filename, image_info& info)
+error_code get_file_info(const char* filename, image_info& info)
 {
     assert(filename != nullptr);
 
@@ -70,8 +71,8 @@ static error_code get_info(const char* filename, image_info& info)
 
     if (ok == 0)
     {
-        const int err = stbi_failure_reason();
-        return stb_image_error_to_vx_error(err);
+        const int stb_err = stbi_failure_reason();
+        return stb_image_error_to_vx_error(stb_err);
     }
 
     info = image_info
@@ -96,7 +97,7 @@ static error_code load_image_internal(
 
     data.clear();
 
-    error_code err = get_info(filename, info);
+    error_code err = get_file_info(filename, info);
     if (err != error_code::NONE)
     {
         return err;
@@ -140,6 +141,7 @@ error_code load_image(const char* filename, image_info& info, image_format targe
     return load_image_internal(filename, info, target_format, data, flip_vertically_on_load);
 }
 
+}
 }
 }
 

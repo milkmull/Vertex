@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // https://www.youtube.com/watch?v=_htjjOdXbmA
 
@@ -29,7 +30,7 @@ namespace img {
 template <typename T, typename F = float>
 inline constexpr void filter_bicubic(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t dst_width, size_t dst_height,
+    T* dst, size_t dst_width, size_t dst_height,
     size_t channels
 )
 {
@@ -134,7 +135,7 @@ inline constexpr void filter_bicubic(
                     (pixels[1][0][c] * qx[0] + pixels[1][1][c] * qx[1] + pixels[1][2][c] * qx[2] + pixels[1][3][c] * qx[3]) * qy[1] +
                     (pixels[2][0][c] * qx[0] + pixels[2][1][c] * qx[1] + pixels[2][2][c] * qx[2] + pixels[2][3][c] * qx[3]) * qy[2] +
                     (pixels[3][0][c] * qx[0] + pixels[3][1][c] * qx[1] + pixels[3][2][c] * qx[2] + pixels[3][3][c] * qx[3]) * qy[3]
-                );
+                    );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
             }
@@ -142,5 +143,6 @@ inline constexpr void filter_bicubic(
     }
 }
 
+}
 }
 }

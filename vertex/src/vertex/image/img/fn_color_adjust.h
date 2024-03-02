@@ -1,11 +1,11 @@
-#include "color.h"
+#pragma once
 
 #include "image.h"
 
 namespace vx {
 namespace img {
 
-void fill(image& img, const math::color& color)
+inline void fill(image& img, const math::color& color)
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -16,7 +16,7 @@ void fill(image& img, const math::color& color)
     }
 }
 
-void invert(image& img)
+inline void invert(image& img)
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -27,7 +27,7 @@ void invert(image& img)
     }
 }
 
-void replace_color(image& img, const math::color& color1, const math::color& color2, float epsilon)
+inline void replace_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>)
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -41,7 +41,7 @@ void replace_color(image& img, const math::color& color1, const math::color& col
     }
 }
 
-void swap_color(image& img, const math::color& color1, const math::color& color2, float epsilon)
+inline void swap_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>)
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -59,7 +59,7 @@ void swap_color(image& img, const math::color& color1, const math::color& color2
     }
 }
 
-void key(image& img, const math::color& color, float threshold)
+inline void key(image& img, const math::color& color, float threshold = math::epsilon<float>)
 {
     for (size_t y = 0; y < img.height(); ++y)
     {

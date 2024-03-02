@@ -5,12 +5,13 @@
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 
 /**
  * @brief Apply nearest-neighbor filtering to an image.
- * 
+ *
  * This function applies nearest-neighbor filtering to an image and
  * mapps the result to a new image. The images are assumed to be of
  * the same format and have the same channel count in each pixel.
@@ -28,7 +29,7 @@ namespace img {
 template <typename T>
 inline constexpr void filter_nearest(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t dst_width, size_t dst_height,
+    T* dst, size_t dst_width, size_t dst_height,
     size_t channels
 )
 {
@@ -74,5 +75,6 @@ inline constexpr void filter_nearest(
     }
 }
 
+}
 }
 }

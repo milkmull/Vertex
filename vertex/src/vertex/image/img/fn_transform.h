@@ -1,6 +1,7 @@
-#include "transform.h"
+#pragma once
+
 #include "image.h"
-#include "enum.h"
+#include "enum_image_filter.h"
 #include "raw/transform.h"
 #include "raw/filter/filter_nearest.h"
 #include "raw/filter/filter_bilinear.h"
@@ -8,53 +9,53 @@
 namespace vx {
 namespace img {
 
-image flip_x(const image& img)
+inline image flip_x(const image& img)
 {
     image out = img;
-    flip_x(out.data(), out.width(), out.height(), out.channels());
+    raw::flip_x(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
-image flip_y(const image& img)
+inline image flip_y(const image& img)
 {
     image out = img;
-    flip_y(out.data(), out.width(), out.height(), out.channels());
+    raw::flip_y(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
-image rotate_90_cw(const image& img)
+inline image rotate_90_cw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    rotate_90_cw(img.data(), img.width(), img.height(), out.data(), img.channels());
+    raw::rotate_90_cw(img.data(), img.width(), img.height(), out.data(), img.channels());
     return out;
 }
 
-image rotate_90_ccw(const image& img)
+inline image rotate_90_ccw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    rotate_90_ccw(img.data(), img.width(), img.height(), out.data(), img.channels());
+    raw::rotate_90_ccw(img.data(), img.width(), img.height(), out.data(), img.channels());
     return out;
 }
 
-image rotate_180(const image& img)
+inline image rotate_180(const image& img)
 {
     image out = img;
-    rotate_180(out.data(), out.width(), out.height(), out.channels());
+    raw::rotate_180(out.data(), out.width(), out.height(), out.channels());
     return out;
 }
 
-image crop(const image& img, const math::recti& area)
+inline image crop(const image& img, const math::recti& area)
 {
     const math::recti cropped = img.get_rect().crop(area);
     image out(cropped.size.x, cropped.size.y, img.format());
 
     const std::array<int32_t, 4> r{ cropped.position.x, cropped.position.y, cropped.size.x, cropped.size.y };
-    crop(img.data(), img.width(), img.height(), out.data(), img.channels(), r);
+    raw::crop(img.data(), img.width(), img.height(), out.data(), img.channels(), r);
 
     return out;
 }
 
-image resize(const image& img, const math::vec2i& size, image_filter filter)
+inline image resize(const image& img, const math::vec2i& size, image_filter filter)
 {
     image out(size.x, size.y, img.format());
 
@@ -62,7 +63,7 @@ image resize(const image& img, const math::vec2i& size, image_filter filter)
     {
         case image_filter::NEAREST:
         {
-            filter_nearest(
+            raw::filter_nearest(
                 img.data(), img.width(), img.height(),
                 out.data(), out.width(), out.height(),
                 img.channels()
@@ -71,7 +72,7 @@ image resize(const image& img, const math::vec2i& size, image_filter filter)
         }
         case image_filter::LINEAR:
         {
-            filter_bilinear(
+            raw::filter_bilinear(
                 img.data(), img.width(), img.height(),
                 out.data(), out.width(), out.height(),
                 img.channels()
@@ -87,7 +88,7 @@ image resize(const image& img, const math::vec2i& size, image_filter filter)
     return out;
 }
 
-image resize(const image& img, const math::vec2i& size)
+inline image resize(const image& img, const math::vec2i& size)
 {
     const float pixel_area = (
         (static_cast<float>(size.x) / static_cast<float>(img.width())) *

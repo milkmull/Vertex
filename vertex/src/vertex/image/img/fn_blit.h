@@ -1,12 +1,11 @@
 #pragma once
 
 #include "image.h"
-#include "vertex/math/color/blend.h"
 
 namespace vx {
 namespace img {
 
-inline constexpr void blit(
+inline void blit(
     const image& src, const math::recti& src_area,
     image& dst, const math::vec2i& dst_position
 )
@@ -44,13 +43,13 @@ inline constexpr void blit(
     }
 }
 
-inline constexpr void blit(const image& src, image& dst, const math::vec2i& dst_position)
+inline void blit(const image& src, image& dst, const math::vec2i& dst_position)
 {
     blit(src, src.get_rect(), dst, dst_position);
 }
 
 template <typename blend_func>
-inline constexpr void blit(
+inline void blit(
     const image& src, const math::recti& src_area,
     image& dst, const math::vec2i& dst_position,
     const blend_func& blend

@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // https://stackoverflow.com/questions/13888210/extremely-slow-bilinear-interpolation-compared-to-opencv
 // https://www.youtube.com/watch?v=_htjjOdXbmA
@@ -30,7 +31,7 @@ namespace img {
 template <typename T, typename F = float>
 inline constexpr void filter_bilinear(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t dst_width, size_t dst_height,
+    T* dst, size_t dst_width, size_t dst_height,
     size_t channels
 )
 {
@@ -116,9 +117,9 @@ inline constexpr void filter_bilinear(
             // Array of weights corresponding to each neighboring pixel
             const F weights[4] =
             {
-                fx  * fy,
+                fx * fy,
                 fx2 * fy,
-                fx  * fy2,
+                fx * fy2,
                 fx2 * fy2
             };
 
@@ -131,7 +132,7 @@ inline constexpr void filter_bilinear(
                     pixels[1][c] * weights[1] +
                     pixels[2][c] * weights[2] +
                     pixels[3][c] * weights[3]
-                );
+                    );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
             }
@@ -139,5 +140,6 @@ inline constexpr void filter_bilinear(
     }
 }
 
+}
 }
 }

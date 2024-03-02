@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 // https://www.youtube.com/watch?v=_htjjOdXbmA
@@ -32,7 +33,7 @@ namespace img {
 template <typename T, typename F = float>
 inline constexpr void filter_box(
     const T* src, size_t src_width, size_t src_height,
-          T* dst, size_t dst_width, size_t dst_height,
+    T* dst, size_t dst_width, size_t dst_height,
     size_t channels
 )
 {
@@ -119,7 +120,7 @@ inline constexpr void filter_box(
                     pixels[1][c] * weight +
                     pixels[2][c] * weight +
                     pixels[3][c] * weight
-                );
+                    );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
             }
@@ -127,5 +128,6 @@ inline constexpr void filter_box(
     }
 }
 
+}
 }
 }

@@ -7,6 +7,7 @@
 
 namespace vx {
 namespace img {
+namespace raw {
 
 // =============== flip_x ===============
 
@@ -46,12 +47,12 @@ inline constexpr void flip_x(
     {
         const T* srcrow = &src[src_width * y * pxsz];
         T* dstrow = &dst[src_width * y * pxsz];
-    
+
         for (size_t x = 0; x < src_width; ++x)
         {
             const T* srcpx = &srcrow[x * pxsz];
             T* dstpx = &dstrow[(src_width - x - 1) * pxsz];
-    
+
             std::memcpy(dstpx, srcpx, pxsz);
         }
     }
@@ -190,12 +191,12 @@ inline constexpr void rotate_180(T* data, size_t width, size_t height, size_t ch
     {
         T* srcrow = &data[width * y * pxsz];
         T* dstrow = &data[width * (height - y - 1) * pxsz];
-    
+
         for (size_t x = 0; x < width; ++x)
         {
             T* srcpx = &srcrow[x * pxsz];
             T* dstpx = &dstrow[(width - x - 1) * pxsz];
-    
+
             std::swap_ranges(srcpx, &srcpx[channels], dstpx);
         }
     }
@@ -278,5 +279,6 @@ inline constexpr bool crop(
     return true;
 }
 
+}
 }
 }
