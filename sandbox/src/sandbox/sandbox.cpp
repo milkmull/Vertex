@@ -9,6 +9,7 @@
 #include "vertex/image/fn_blit.h"
 #include "vertex/image/io_load.h"
 #include "vertex/image/io_write.h"
+#include "vertex/image/sampler.h"
 
 int main()
 {

@@ -82,8 +82,8 @@ private:
 
     math::color get_pixel(int x, int y) const
     {
-        x = wrap_pixel(x, m_image->width(), xwrap);
-        y = wrap_pixel(y, m_image->height(), ywrap);
+        x = wrap_pixel(x, static_cast<int>(m_image->width()), xwrap);
+        y = wrap_pixel(y, static_cast<int>(m_image->height()), ywrap);
 
         return m_image->get_pixel(x, y, border);
     }
