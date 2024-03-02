@@ -3,6 +3,7 @@
 #include "image.h"
 #include "enum_image_filter.h"
 #include "enum_image_wrap.h"
+#include "vertex/math/texture/wrap.h"
 
 namespace vx {
 namespace img {
@@ -94,36 +95,14 @@ private:
             return p;
         }
 
-       // https://registry.khronos.org/OpenGL/specs/gl/glspec46.core.pdf (page 260)
-
         switch (wrap)
         {
-            case image_wrap::CLAMP_TO_EDGE:
-            {
-                return math::clamp(p, 0, size - 1);
-            }
-            case image_wrap::CLAMP_TO_BORDER:
-            {
-                return math::clamp(p, -1, size);
-            }
-            case image_wrap::REPEAT:
-            {
-                return math::mod(p, size);
-            }
-            case image_wrap::MIRRORED_REPEAT:
-            {
-                const int a = math::mod(p, 2 * size) - size;
-                return (size - 1) - (a >= 0 ? a : -(1 + a));
-            }
-            case image_wrap::MIRROR_CLAMP_TO_EDGE:
-            {
-                const int a = p;
-                return math::clamp(a >= 0 ? a : -(1 + a), 0, size - 1);
-            }
-            default:
-            {
-                return p;
-            }
+            case image_wrap::CLAMP_TO_EDGE:         return math::wrap::clamp_to_edge(p, size);
+            case image_wrap::CLAMP_TO_BORDER:       return math::wrap::clamp_to_border(p, size);
+            case image_wrap::REPEAT:                return math::wrap::repeat(p, size);
+            case image_wrap::MIRRORED_REPEAT:       return math::wrap::mirrored_repeat(p, size);
+            case image_wrap::MIRROR_CLAMP_TO_EDGE:  return math::wrap::mirror_clamp_to_edge(p, size);
+            default:                                return p;
         }
     }
 
