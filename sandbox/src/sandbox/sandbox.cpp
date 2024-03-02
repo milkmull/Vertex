@@ -5,7 +5,7 @@
 #include "vertex/image/img/image.h"
 #include "vertex/image/img/fn_transform.h"
 #include "vertex/image/img/fn_color_adjust.h"
-#include "vertex/image/img/mipmap.h"
+#include "vertex/image/img/mipmaps.h"
 #include "vertex/image/img/fn_blit.h"
 #include "vertex/image/img/io_load.h"
 #include "vertex/image/img/io_write.h"
