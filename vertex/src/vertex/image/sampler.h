@@ -36,6 +36,16 @@ struct sampler
 
     // =============== sampling ===============
 
+    math::color operator()(float u, float v) const
+    {
+        return sample(u, v);
+    }
+
+    math::color operator()(const math::vec2& p) const
+    {
+        return sample(p);
+    }
+
     math::color sample_pixel(int x, int y) const
     {
         return sample(

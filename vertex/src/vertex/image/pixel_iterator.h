@@ -141,6 +141,11 @@ public:
         return math::color(operator*());
     }
 
+    inline constexpr void set_color(const math::color& c)
+    {
+        operator*() = c;
+    }
+
     inline constexpr math::vec2i position() const
     {
         return math::vec2i(m_x, m_y);
@@ -190,13 +195,13 @@ class image;
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 inline constexpr auto begin(image& i) noexcept
 {
-    return pixel_iterator<T>((T*)i.raw_data(), 0, 0, i.width(), i.height());
+    return pixel_iterator<T>((T*)i.data(), 0, 0, i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 auto cbegin(const image& i) noexcept
 {
-    return pixel_iterator<typename std::add_const<T>::type>((const T*)i.raw_data(), 0, 0, i.width(), i.height());
+    return pixel_iterator<typename std::add_const<T>::type>((const T*)i.data(), 0, 0, i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
@@ -208,13 +213,13 @@ auto begin(const image& i) noexcept
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 inline constexpr auto end(image& i) noexcept
 {
-    return pixel_iterator<T>((T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
+    return pixel_iterator<T>((T*)(i.data() + i.data_size()), 0, i.height(), i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
 auto cend(const image& i) noexcept
 {
-    return pixel_iterator<typename std::add_const<T>::type>((const T*)(i.raw_data() + i.data().size()), 0, i.height(), i.width(), i.height());
+    return pixel_iterator<typename std::add_const<T>::type>((const T*)(i.data() + i.data_size()), 0, i.height(), i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
