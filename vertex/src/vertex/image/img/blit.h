@@ -35,9 +35,9 @@ inline constexpr void blit(
         return;
     }
 
-    for (size_t y = area.position.y; y < area.bottom(); ++y)
+    for (size_t y = area.position.y; y < static_cast<size_t>(area.bottom()); ++y)
     {
-        for (size_t x = area.position.x; x < area.right(); ++x)
+        for (size_t x = area.position.x; x < static_cast<size_t>(area.right()); ++x)
         {
             dst.set_pixel(x, y, src.get_pixel(x - shift.x, y - shift.y));
         }
@@ -80,9 +80,9 @@ inline constexpr void blit(
         return;
     }
 
-    for (size_t y = area.position.y; y < area.bottom(); ++y)
+    for (size_t y = area.position.y; y < static_cast<size_t>(area.bottom()); ++y)
     {
-        for (size_t x = area.position.x; x < area.right(); ++x)
+        for (size_t x = area.position.x; x < static_cast<size_t>(area.right()); ++x)
         {
             dst.set_pixel(
                 x, y,

@@ -20,7 +20,6 @@ std::vector<image> generate_mipmap(const image& img, size_type depth)
     count = math::min(depth, count);
 
     std::vector<image> mipmap(count);
-    const size_type pxsz = img.pixel_size();
 
     for (size_type i = 0; i < count; ++i)
     {
