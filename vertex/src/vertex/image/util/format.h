@@ -30,36 +30,67 @@ inline constexpr image_format_data image_format_data_table[] = {
 
 namespace util {
 
+/**
+ * @brief Get the number of color channels for the given image format.
+ *
+ * @param format The image format.
+ * @return The number of color channels.
+ */
 inline constexpr size_t get_channel_count(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].channels;
 }
 
-// Returns the per-channel bitdepth for a given image format
+/**
+ * @brief Get the bit depth for the given image format.
+ *
+ * @param format The image format.
+ * @return The bit depth.
+ */
 inline constexpr size_t get_bitdepth(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].bitdepth;
 }
 
-// Returns the pixel size in bytes for a given image format
+/**
+ * @brief Get the size of each pixel in bytes for the given image format.
+ *
+ * @param format The image format.
+ * @return The size of each pixel in bytes.
+ */
 inline constexpr size_t get_pixel_size(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].pixel_size;
 }
 
-// Converts an image format to an equivalent 8-bit format
+/**
+ * @brief Convert the given image format to its corresponding 8-bit format.
+ *
+ * @param format The image format.
+ * @return The corresponding 8-bit image format.
+ */
 inline constexpr image_format to_8_bit(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].format_8_bit;
 }
 
-// Checks if an image format has an alpha channel
+/**
+ * @brief Check if the given image format has an alpha channel.
+ *
+ * @param format The image format.
+ * @return True if the image format has an alpha channel, false otherwise.
+ */
 inline constexpr bool has_alpha(image_format format)
 {
     return detail::image_format_data_table[static_cast<int>(format)].alpha;
 }
 
-// Chooses an appropriate image format based on the number of channels
+/**
+ * @brief Choose the appropriate image format based on the number of color channels.
+ *
+ * @param channels The number of color channels.
+ * @return The chosen image format.
+ */
 inline constexpr image_format choose_format(size_t channels)
 {
     switch (channels)

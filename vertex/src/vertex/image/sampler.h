@@ -10,18 +10,6 @@ namespace img {
 
 struct sampler
 {
-    // =============== constructors & destructor ===============
-    
-    sampler(const image& image)
-        : m_image(&image) {}
-
-    sampler(const sampler&) = delete;
-    sampler(sampler&&) noexcept = delete;
-    ~sampler() = default;
-
-    sampler& operator=(const sampler&) = delete;
-    sampler& operator=(sampler&&) noexcept = delete;
-
     // =============== data ===============
 
     math::vec2 resolution = math::vec2(1.0f);
@@ -34,48 +22,56 @@ struct sampler
     image_filter min_filter = image_filter::NEAREST;
     image_filter mag_filter = image_filter::LINEAR;
 
+    // =============== constructors & destructor ===============
+
+    bool operator==(const sampler& other) const
+    {
+        return resolution == other.resolution
+            && xwrap == other.xwrap
+            && ywrap == other.ywrap
+            && border == other.border
+            && min_filter == other.min_filter
+            && mag_filter == other.mag_filter;
+    }
+
+    bool operator!=(const sampler& other) const
+    {
+        return !(*this == other);
+    }
+
     // =============== sampling ===============
 
-    math::color operator()(float u, float v) const
-    {
-        return sample(u, v);
-    }
-
-    math::color operator()(const math::vec2& p) const
-    {
-        return sample(p);
-    }
-
-    math::color sample_pixel(int x, int y) const
+    math::color sample_pixel(const image& img, int x, int y) const
     {
         return sample(
-            static_cast<float>(x) / static_cast<float>(m_image->width()),
-            static_cast<float>(y) / static_cast<float>(m_image->height())
+            img,
+            static_cast<float>(x) / static_cast<float>(img.width()),
+            static_cast<float>(y) / static_cast<float>(img.height())
         );
     }
 
-    math::color sample_pixel(const math::vec2i& p) const
+    math::color sample_pixel(const image& img, const math::vec2i& p) const
     {
-        return sample_pixel(p.x, p.y);
+        return sample_pixel(img, p.x, p.y);
     }
 
-    math::color sample(float u, float v) const
+    math::color sample(const image& img, float u, float v) const
     {
-        if (m_image->empty())
+        if (img.empty())
         {
             return border;
         }
 
-        u *= (static_cast<float>(m_image->width()) / resolution.x);
-        v *= (static_cast<float>(m_image->height()) / resolution.y);
+        u *= (static_cast<float>(img.width()) / resolution.x);
+        v *= (static_cast<float>(img.height()) / resolution.y);
 
         const float sample_pixel_area = resolution.x * resolution.y;
         image_filter current_filter = (sample_pixel_area < 1.0f) ? min_filter : mag_filter;
 
         switch (current_filter)
         {
-            case image_filter::NEAREST: return sample_nearest(u, v);
-            case image_filter::LINEAR:  return sample_bilinear(u, v);
+            case image_filter::NEAREST: return sample_nearest(img, u, v);
+            case image_filter::LINEAR:  return sample_bilinear(img, u, v);
 
             default:                    break;
         }
@@ -83,19 +79,19 @@ struct sampler
         return border;
     }
 
-    math::color sample(const math::vec2& p) const
+    math::color sample(const image& img, const math::vec2& p) const
     {
-        return sample(p.x, p.y);
+        return sample(img, p.x, p.y);
     }
 
 private:
 
-    math::color get_pixel(int x, int y) const
+    math::color get_pixel(const image& img, int x, int y) const
     {
-        x = wrap_pixel(x, static_cast<int>(m_image->width()), xwrap);
-        y = wrap_pixel(y, static_cast<int>(m_image->height()), ywrap);
+        x = wrap_pixel(x, static_cast<int>(img.width()), xwrap);
+        y = wrap_pixel(y, static_cast<int>(img.height()), ywrap);
 
-        return m_image->get_pixel(x, y, border);
+        return img.get_pixel(x, y, border);
     }
 
     int wrap_pixel(int p, int size, image_wrap wrap) const
@@ -118,12 +114,12 @@ private:
 
     // =============== sample methods ===============
 
-    math::color sample_nearest(float u, float v) const
+    math::color sample_nearest(const image& img, float u, float v) const
     {
-        return get_pixel(static_cast<int>(u), static_cast<int>(v));
+        return get_pixel(img, static_cast<int>(u), static_cast<int>(v));
     }
 
-    math::color sample_bilinear(float u, float v) const
+    math::color sample_bilinear(const image& img, float u, float v) const
     {
         // x
         const float srcxfrac = u - 0.5f;
@@ -142,10 +138,10 @@ private:
         // interpolate
         const math::color pixels[4] =
         {
-            get_pixel(srcx, srcy),
-            get_pixel(srcx + 1, srcy),
-            get_pixel(srcx, srcy + 1),
-            get_pixel(srcx + 1, srcy + 1)
+            get_pixel(img, srcx, srcy),
+            get_pixel(img, srcx + 1, srcy),
+            get_pixel(img, srcx, srcy + 1),
+            get_pixel(img, srcx + 1, srcy + 1)
         };
 
         const float weights[4] =
@@ -171,10 +167,6 @@ private:
 
         return samp;
     }
-
-private:
-
-    const image* m_image = nullptr;
 
 };
 

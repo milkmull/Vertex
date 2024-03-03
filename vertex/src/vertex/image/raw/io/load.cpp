@@ -85,6 +85,18 @@ error_code get_file_info(const char* filename, image_info& info)
     return error_code::NONE;
 }
 
+/**
+ * @brief Internal function to load an image from a file.
+ *
+ * Loads an image from the specified file into the provided image_info and data vectors.
+ *
+ * @param filename The path to the image file.
+ * @param info Reference to an image_info object to store information about the loaded image.
+ * @param target_format The target image format to reinterpret the loaded image to (use image_format::UNKNOWN for no reinterpretation).
+ * @param data Reference to a vector to store the pixel data of the loaded image.
+ * @param flip_vertically_on_load Whether to flip the image vertically during loading.
+ * @return An error_code indicating the success or failure of the operation.
+ */
 static error_code load_image_internal(
     const char* filename,
     image_info& info,

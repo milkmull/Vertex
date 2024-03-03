@@ -124,6 +124,14 @@ public:
 
     // =============== pixel ===============
 
+    /**
+     * @brief Get the color of the pixel at the specified coordinates.
+     *
+     * @param x The x-coordinate of the pixel.
+     * @param y The y-coordinate of the pixel.
+     * @param default_color The default color to return if the pixel is out of bounds.
+     * @return The color of the pixel at the specified coordinates.
+     */
     math::color get_pixel(size_t x, size_t y, const math::color& default_color = math::color()) const
     {
         if (x >= m_width || y >= m_height)
@@ -146,11 +154,25 @@ public:
         return default_color;
     }
 
+    /**
+     * @brief Get the color of the pixel at the specified 2D vector coordinates.
+     *
+     * @param p The 2D vector coordinates of the pixel.
+     * @param default_color The default color to return if the pixel is out of bounds.
+     * @return The color of the pixel at the specified coordinates.
+     */
     math::color get_pixel(const math::vec2i& p, const math::color& default_color = math::color()) const
     {
         return get_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y), default_color);
     }
 
+    /**
+     * @brief Set the color of the pixel at the specified coordinates.
+     *
+     * @param x The x-coordinate of the pixel.
+     * @param y The y-coordinate of the pixel.
+     * @param color The color to set for the pixel.
+     */
     void set_pixel(size_t x, size_t y, const math::color& color)
     {
         if (x >= m_width || y >= m_height)
@@ -173,11 +195,22 @@ public:
         return;
     }
 
+    /**
+     * @brief Set the color of the pixel at the specified 2D vector coordinates.
+     *
+     * @param p The 2D vector coordinates of the pixel.
+     * @param color The color to set for the pixel.
+     */
     void set_pixel(const math::vec2i& p, const math::color& color)
     {
         set_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y), color);
     }
 
+    /**
+     * @brief Fill the entire image with the specified color.
+     *
+     * @param color The color to fill the image with.
+     */
     void fill(const math::color& color)
     {
         for (size_t y = 0; y < m_height; ++y)
@@ -191,6 +224,11 @@ public:
 
     // =============== conversion ===============
 
+    /**
+     * @brief Convert the image to the specified format.
+     *
+     * @param format The target image format to convert to.
+     */
     void convert(image_format format)
     {
         if (format == m_format)
@@ -211,6 +249,14 @@ public:
         *this = converted;
     }
 
+    /**
+     * @brief Reinterpret the image with a new format.
+     *
+     * Reinterpreting the image does not alter the underlying pixel data but rather changes how the data is interpreted.
+     * 
+     * @param format The target image format to reinterpret to.
+     * @return True if reinterpretation was successful, false otherwise.
+     */
     bool reinterpret(image_format format)
     {
         image_info info = get_info();
@@ -227,6 +273,14 @@ public:
         return false;
     }
 
+    /**
+     * @brief Reinterpret the image with the provided image_info.
+     * 
+     * Reinterpreting the image does not alter the underlying pixel data but rather changes how the data is interpreted.
+     *
+     * @param info The target image_info to reinterpret to.
+     * @return True if reinterpretation was successful, false otherwise.
+     */
     bool reinterpret(const image_info& info)
     {
         if (util::get_image_info_error(info) == error_code::NONE && info.size() == m_data.size())

@@ -28,6 +28,15 @@ enum : size_t
     )
 };
 
+/**
+ * @brief Check if the given image size exceeds predefined limits.
+ *
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of channels in the image.
+ * @param bitdepth The bit depth of the image.
+ * @return The error code indicating if the image size exceeds limits or not.
+ */
 inline constexpr error_code check_image_size_limits(
     size_t width,
     size_t height,

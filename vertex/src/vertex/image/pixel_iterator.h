@@ -128,9 +128,6 @@ public:
 
     // extra
 
-    inline constexpr size_t x() const { return m_x; }
-    inline constexpr size_t y() const { return m_y; }
-
     inline constexpr math::vec2 resolution() const
     {
         return math::vec2(m_w, m_h);
@@ -151,12 +148,12 @@ public:
         return math::vec2i(m_x, m_y);
     }
 
-    inline constexpr math::vec2 coord() const
+    inline constexpr math::vec2 xy() const
     {
         return math::vec2(m_x, m_y);
     }
 
-    inline constexpr math::vec2 frag_coord() const
+    inline constexpr math::vec2 uv() const
     {
         return math::vec2(
             static_cast<float>(m_x) / static_cast<float>(m_w),
@@ -166,7 +163,7 @@ public:
 
     inline constexpr math::vec2 local() const
     {
-        return coord() - resolution() * 0.5f;
+        return xy() - resolution() * 0.5f;
     }
 
 private:
