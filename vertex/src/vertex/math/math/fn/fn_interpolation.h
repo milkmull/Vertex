@@ -24,6 +24,25 @@ inline constexpr T lerp(T x, T y, T t)
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
+// =============== mix ===============
+
+/**
+ * @brief Performs linear interpolation between two values.
+ *
+ * This function performs linear interpolation between two values x and y based on a interpolation factor t.
+ *
+ * @tparam T Type of the values.
+ * @param x The starting value.
+ * @param y The ending value.
+ * @param t The interpolation factor, typically in the range [0, 1].
+ * @return The interpolated value between x and y.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T mix(T x, T y, T t)
+{
+    return lerp(x, y, t);
+}
+
 // =============== step ===============
 
 /**

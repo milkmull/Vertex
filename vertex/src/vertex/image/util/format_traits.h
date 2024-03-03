@@ -1,6 +1,6 @@
 #pragma once
 
-#include "format.h"
+#include "format_info.h"
 
 namespace vx {
 namespace img {

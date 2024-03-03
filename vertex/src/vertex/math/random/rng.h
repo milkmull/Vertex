@@ -30,18 +30,6 @@ public:
     rng() { seed(); }
     rng(uint32_t seed) { m_rng.seed(seed); }
 
-    rng(const rng&) = default;
-    rng(rng&&) noexcept = default;
-
-    // =============== destructor ===============
-
-    ~rng() = default;
-
-    // =============== assignment ===============
-
-    rng& operator=(const rng&) = default;
-    rng& operator=(rng&&) noexcept = default;
-
     // =============== seeding ===============
 
     /**
@@ -86,6 +74,16 @@ public:
     inline float randf()
     {
         return randf_range(0.0f, 1.0f);
+    }
+
+    /**
+     * @brief Generates a random floating-point number between 0.0 and 1.0.
+     *
+     * @return The generated random float.
+     */
+    inline float operator()()
+    {
+        return randf();
     }
 
     /**

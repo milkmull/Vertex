@@ -1,6 +1,6 @@
 #pragma once
 
-#include "size_limits.h"
+#include "size_limit.h"
 #include "../image_info.h"
 
 namespace vx {

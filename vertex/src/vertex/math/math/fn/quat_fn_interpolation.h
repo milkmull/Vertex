@@ -18,6 +18,18 @@ inline constexpr quat_t<T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
+// =============== mix ===============
+
+template <typename T>
+inline constexpr quat_t<T> mix(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
+    T t
+)
+{
+    return lerp(x, y, t);
+}
+
 // =============== slerp ===============
 
 // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm

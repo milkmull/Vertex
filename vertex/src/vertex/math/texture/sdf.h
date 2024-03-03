@@ -32,7 +32,7 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr T op_smooth_union(T d1, T d2, T k)
 {
     const T h = clamp(static_cast<T>(0.5) + static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
-    return lerp(d2, d1, h) - k * h * (static_cast<T>(1) - h);
+    return mix(d2, d1, h) - k * h * (static_cast<T>(1) - h);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -45,7 +45,7 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr T op_smooth_subtract(T d1, T d2, T k)
 {
     const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 + d1) / k, static_cast<T>(0), static_cast<T>(1));
-    return lerp(d2, -d1, h) + k * h * (static_cast<T>(1) - h);
+    return mix(d2, -d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -58,7 +58,7 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr T op_smooth_itersection(T d1, T d2, T k)
 {
     const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
-    return lerp(d2, d1, h) + k * h * (static_cast<T>(1) - h);
+    return mix(d2, d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
 // =============== sdfs ===============

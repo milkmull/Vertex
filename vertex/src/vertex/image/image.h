@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "pixel.h"
-#include "util/size_limits.h"
-#include "util/info_helpers.h"
+#include "util/size_limit.h"
+#include "util/image_info_helpers.h"
 
 #include "vertex/math/geometry/type/rect_type.h"
 

@@ -28,9 +28,31 @@ inline constexpr vec<L, T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-// =============== step ===============
+// =============== mix ===============
 
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> mix(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
+    T t
+)
+{
+    return lerp(x, y, t);
+}
+
+template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<L, T> mix(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
+    const vec<L, T>& t
+)
+{
+    return lerp(x, y, t);
+}
+
+// =============== step ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<2, T>& x
@@ -42,7 +64,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<3, T>& x
@@ -55,7 +77,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     T edge,
     const vec<4, T>& x
@@ -69,7 +91,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<2, T>& edge,
     const vec<2, T>& x
@@ -81,7 +103,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<3, T>& edge,
     const vec<3, T>& x
@@ -94,7 +116,7 @@ inline constexpr auto step(
     );
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto step(
     const vec<4, T>& edge,
     const vec<4, T>& x

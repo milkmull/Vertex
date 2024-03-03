@@ -29,5 +29,27 @@ inline constexpr color_t<T> lerp(
     return lerp(float_type(x), float_type(y), t);
 }
 
+// =============== mix ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr color_t<T> mix(
+    const color_t<T>& x,
+    const color_t<T>& y,
+    T t
+)
+{
+    return lerp(x, y, t);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr color_t<T> mix(
+    const color_t<T>& x,
+    const color_t<T>& y,
+    typename color_t<T>::float_value_type t
+)
+{
+    return lerp(x, y, t);
+}
+
 }
 }

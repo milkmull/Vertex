@@ -5,10 +5,9 @@
 #include "vertex/image/io_write.h"
 #include "vertex/image/sampler.h"
 #include "vertex/image/pixel_iterator.h"
-#include "vertex/image/fn_color_adjust.h"
 
-#include "vertex/math/texture/sdf.h"
-#include "vertex/math/color/blend.h"
+#include "vertex/math/random/rng.h"
+#include "vertex/math/texture/noise/perlin_noise.h"
 
 int main()
 {
@@ -16,52 +15,23 @@ int main()
 
     img::error_code err{};
 
-    img::image fg = img::load("../../assets/michael.png", err);
-    assert(err == img::error_code::NONE);
+    img::image noise(200, 200, img::image_format::R8);
 
-    img::image bg = img::load("../../assets/treasurechest.png", err);
-    assert(err == img::error_code::NONE);
+    math::rng rng;
 
-    img::image dst(fg.get_info());
+    math::mix(0.1, 0.1, 0.1);
 
-    img::sampler fg_sampler;
-    fg_sampler.resolution /= 4;
-    fg_sampler.xwrap = img::image_wrap::MIRRORED_REPEAT;
+    const math::vec2 offset(rng(), rng());
 
-    img::sampler bg_sampler;
-    bg_sampler.resolution /= 2;
-    bg_sampler.xwrap = img::image_wrap::MIRRORED_REPEAT;
-    bg_sampler.ywrap = img::image_wrap::MIRRORED_REPEAT;
-
-    math::blend_func blend;
-    blend.src_blend = blend_mode::ONE;
-    blend.dst_blend = blend_mode::ONE;
-
-    using pixel_type = img::pixel_rgba8;
-    for (auto it = img::begin<pixel_type>(dst); it != img::end<pixel_type>(dst); ++it)
+    using pixel_type = img::pixel_r8;
+    for (auto it = img::begin<pixel_type>(noise); it != img::end<pixel_type>(noise); ++it)
     {
-        math::vec2 p = it.local();
-
-        float d = math::sdf::sd_circle(p, 50.0f);
-        d = math::sdf::op_annularize(d, 30.0f);
-
-        if (d <= 0.0f)
-        {
-            math::color c1 = fg_sampler.sample(fg, it.uv());
-            math::color c2 = bg_sampler.sample(bg, it.uv());
-
-            it.set_color(blend(c1, c2));
-            
-        }
-        else
-        {
-            it.set_color(bg_sampler.sample(bg, it.uv()));
-        }
+        *it = math::color(math::perlin_noise(math::vec4(it.uv(), 0.0f, 0.0f) * 10));
     }
 
     //img::replace_color(dst, math::color::BLACK(), math::color(0.2f, 0.8f, 0.75f), 0.5f);
 
-    err = img::write_png("../../assets/sampler_test.png", dst);
+    err = img::write_png("../../assets/noise_test_4d.png", noise);
     std::cout << "image saved with error: " << (int)err << std::endl;
 
     return 0;

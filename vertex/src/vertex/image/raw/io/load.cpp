@@ -1,7 +1,7 @@
 #include "load.h"
 
 #include "vertex/detail/setup.h"
-#include "../../util/info_helpers.h"
+#include "../../util/image_info_helpers.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION
 
