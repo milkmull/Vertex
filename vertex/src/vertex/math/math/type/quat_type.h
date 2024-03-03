@@ -183,7 +183,7 @@ struct quat_t
 
     friend inline constexpr type operator*(T scaler, const type& q)
     {
-        return q * scaler;
+        return type(scaler * q.w, scaler * q.x, scaler * q.y, scaler * q.z);
     }
 
     // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm

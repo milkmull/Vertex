@@ -273,7 +273,7 @@ struct vec<4, T>
 
     friend inline constexpr type operator+(T scaler, const type& v)
     {
-        return v + scaler;
+        return type(scaler + v.x, scaler + v.y, scaler + v.z, scaler + v.w);
     }
 
     friend inline constexpr type operator+(const type& v1, const type& v2)
@@ -290,7 +290,7 @@ struct vec<4, T>
 
     friend inline constexpr type operator-(T scaler, const type& v)
     {
-        return v - scaler;
+        return type(scaler - v.x, scaler - v.y, scaler - v.z, scaler - v.w);
     }
 
     friend inline constexpr type operator-(const type& v1, const type& v2)
@@ -324,7 +324,7 @@ struct vec<4, T>
 
     friend inline constexpr type operator/(T scaler, const type& v)
     {
-        return v / scaler;
+        return type(scaler / v.x, scaler / v.y, scaler / v.z, scaler / v.w);
     }
 
     friend inline constexpr type operator/(const type& v1, const type& v2)
@@ -343,7 +343,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator%(T scaler, const type& v)
     {
-        return v % scaler;
+        return type(scaler % v.x, scaler % v.y, scaler % v.z, scaler % v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
@@ -365,7 +365,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator&(T scaler, const type& v)
     {
-        return v & scaler;
+        return type(scaler & v.x, scaler & v.y, scaler & v.z, scaler & v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
@@ -385,7 +385,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator|(T scaler, const type& v)
     {
-        return v | scaler;
+        return type(scaler | v.x, scaler | v.y, scaler | v.z, scaler | v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
@@ -405,7 +405,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator^(T scaler, const type& v)
     {
-        return v ^ scaler;
+        return type(scaler ^ v.x, scaler ^ v.y, scaler ^ v.z, scaler ^ v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
@@ -425,7 +425,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator<<(T scaler, const type& v)
     {
-        return v << scaler;
+        return type(scaler << v.x, scaler << v.y, scaler << v.z, scaler << v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
@@ -445,7 +445,7 @@ struct vec<4, T>
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>
     friend inline constexpr type operator>>(T scaler, const type& v)
     {
-        return v >> scaler;
+        return type(scaler >> v.x, scaler >> v.y, scaler >> v.z, scaler >> v.w);
     }
 
     template <typename U = T, typename std::enable_if<std::is_integral<U>::value, bool>::type = true>

@@ -295,5 +295,24 @@ inline constexpr T clamp(T x, T min, T max)
     return std::clamp(x, min, max);
 }
 
+// =============== map ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T map(T x, T min1, T max1, T min2, T max2)
+{
+    return min2 + (x - min1) * (max2 - min2) / (max1 - min1);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr T map(T x, T min1, T max1, T min2, T max2)
+{
+    using FT = typename detail::to_float_type<T>::type;
+    return static_cast<T>(map(
+        static_cast<FT>(x),
+        static_cast<FT>(min1), static_cast<FT>(max1),
+        static_cast<FT>(min2), static_cast<FT>(max2)
+    ));
+}
+
 }
 }
