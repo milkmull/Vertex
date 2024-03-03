@@ -64,7 +64,7 @@ inline constexpr void filter_bicubic(
     const F yscale = static_cast<F>(src_height) / dst_height;
 
     // Loop over each row in the destination image
-    for (size_t y = 0; y < dst_height; y++)
+    for (size_t y = 0; y < dst_height; ++y)
     {
         // Map the vertical offset back to the source image to figure out what row
         // should be sampled from
@@ -89,7 +89,7 @@ inline constexpr void filter_bicubic(
         };
 
         // Loop over each column in the destination image
-        for (size_t x = 0; x < dst_width; x++, dstpx += channels)
+        for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
         {
             // Map the horizontal offset back to the source image to figure out what column
             // should be sampled from
@@ -114,12 +114,12 @@ inline constexpr void filter_bicubic(
             const T* pixels[4][4]{};
 
             // Populate the pixels array with neighboring pixels for interpolation
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; ++i)
             {
                 int sy = std::clamp(srcy + i - 1, 0, srcymax);
                 const T* srcrow = &src[src_row_size * sy];
 
-                for (int j = 0; j < 4; j++)
+                for (int j = 0; j < 4; ++j)
                 {
                     int sx = std::clamp(srcx + j - 1, 0, srcxmax);
                     pixels[i][j] = &srcrow[sx * channels];
@@ -127,7 +127,7 @@ inline constexpr void filter_bicubic(
             }
 
             // Loop over each channel
-            for (size_t c = 0; c < channels; c++)
+            for (size_t c = 0; c < channels; ++c)
             {
                 // Perform bicubic interpolation using the sixteen neighboring pixels and weights
                 const F px = (

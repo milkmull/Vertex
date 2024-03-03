@@ -11,6 +11,17 @@ namespace raw {
 
 // =============== flip_x ===============
 
+/**
+ * @brief Flip an image horizontally in place.
+ *
+ * Flips the specified image data horizontally in place.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param data Pointer to the image data to be flipped.
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void flip_x(T* data, size_t width, size_t height, size_t channels)
 {
@@ -32,6 +43,18 @@ inline constexpr void flip_x(T* data, size_t width, size_t height, size_t channe
     }
 }
 
+/**
+ * @brief Flip an image horizontally and copy it to a new buffer.
+ *
+ * Flips the specified source image horizontally and copies it to the specified destination buffer.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param src Pointer to the source image data to be flipped.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer to store the flipped image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void flip_x(
     const T* src, size_t src_width, size_t src_height,
@@ -60,6 +83,17 @@ inline constexpr void flip_x(
 
 // =============== flip_y ===============
 
+/**
+ * @brief Flip an image vertically in place.
+ *
+ * Flips the specified image data vertically in place.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param data Pointer to the image data to be flipped.
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void flip_y(T* data, size_t width, size_t height, size_t channels)
 {
@@ -77,6 +111,18 @@ inline constexpr void flip_y(T* data, size_t width, size_t height, size_t channe
     }
 }
 
+/**
+ * @brief Flip an image vertically and copy it to a new buffer.
+ *
+ * Flips the specified source image vertically and copies it to the specified destination buffer.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param src Pointer to the source image data to be flipped.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer to store the flipped image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void flip_y(
     const T* src, size_t src_width, size_t src_height,
@@ -100,6 +146,17 @@ inline constexpr void flip_y(
 
 // =============== rotate_90_cw ===============
 
+/**
+ * @brief Rotate an image 90 degrees clockwise in place.
+ *
+ * Rotates the specified image data 90 degrees clockwise in place.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param data Pointer to the image data to be rotated.
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_90_cw(T* data, size_t width, size_t height, size_t channels)
 {
@@ -112,6 +169,18 @@ inline constexpr void rotate_90_cw(T* data, size_t width, size_t height, size_t 
     std::move(dst.begin(), dst.end(), data);
 }
 
+/**
+ * @brief Rotate an image 90 degrees clockwise and copy it to a new buffer.
+ *
+ * Rotates the specified source image 90 degrees clockwise and copies it to the specified destination buffer.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param src Pointer to the source image data to be rotated.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer to store the rotated image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_90_cw(
     const T* src, size_t src_width, size_t src_height,
@@ -140,6 +209,17 @@ inline constexpr void rotate_90_cw(
 
 // =============== rotate_90_ccw ===============
 
+/**
+ * @brief Rotate an image 90 degrees counterclockwise in place.
+ *
+ * Rotates the specified image data 90 degrees counterclockwise in place.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param data Pointer to the image data to be rotated.
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_90_ccw(T* data, size_t width, size_t height, size_t channels)
 {
@@ -152,6 +232,18 @@ inline constexpr void rotate_90_ccw(T* data, size_t width, size_t height, size_t
     std::move(dst.begin(), dst.end(), data);
 }
 
+/**
+ * @brief Rotate an image 90 degrees counterclockwise and copy it to a new buffer.
+ *
+ * Rotates the specified source image 90 degrees counterclockwise and copies it to the specified destination buffer.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param src Pointer to the source image data to be rotated.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer to store the rotated image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_90_ccw(
     const T* src, size_t src_width, size_t src_height,
@@ -180,6 +272,17 @@ inline constexpr void rotate_90_ccw(
 
 // =============== rotate_180 ===============
 
+/**
+ * @brief Rotate an image 180 degrees in place.
+ *
+ * Rotates the specified image data 180 degrees in place.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param data Pointer to the image data to be rotated.
+ * @param width The width of the image.
+ * @param height The height of the image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_180(T* data, size_t width, size_t height, size_t channels)
 {
@@ -215,6 +318,18 @@ inline constexpr void rotate_180(T* data, size_t width, size_t height, size_t ch
     }
 }
 
+/**
+ * @brief Rotate an image 180 degrees and copy it to a new buffer.
+ *
+ * Rotates the specified source image 180 degrees and copies it to the specified destination buffer.
+ *
+ * @tparam T The data type of the image pixels.
+ * @param src Pointer to the source image data to be rotated.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer to store the rotated image.
+ * @param channels The number of color channels per pixel.
+ */
 template <typename T>
 inline constexpr void rotate_180(
     const T* src, size_t src_width, size_t src_height,
@@ -243,6 +358,21 @@ inline constexpr void rotate_180(
 
 // =============== crop ===============
 
+/**
+ * @brief Crop a region of interest from an image and copy it to a new buffer.
+ *
+ * Extracts a rectangular region of interest from the source image and copies it to the destination buffer.
+ *
+ * @tparam T The data type of the source and destination image pixels.
+ * @tparam U The data type of the crop area coordinates.
+ * @param src Pointer to the source image data.
+ * @param src_width The width of the source image.
+ * @param src_height The height of the source image.
+ * @param dst Pointer to the destination buffer where the cropped image will be copied.
+ * @param channels The number of color channels per pixel.
+ * @param area An array containing the coordinates and size of the area to be cropped. The format is [x, y, width, height].
+ * @return true if the crop operation was successful, false otherwise.
+ */
 template <typename T, typename U>
 inline constexpr bool crop(
     const T* src, size_t src_width, size_t src_height,

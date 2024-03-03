@@ -5,6 +5,14 @@
 namespace vx {
 namespace img {
 
+/**
+ * @brief Blit a portion of the source image onto the destination image at the specified position.
+ *
+ * @param src The source image.
+ * @param src_area The rectangular area within the source image to be copied.
+ * @param dst The destination image.
+ * @param dst_position The position within the destination image where the source image will be copied.
+ */
 inline void blit(
     const image& src, const math::recti& src_area,
     image& dst, const math::vec2i& dst_position
@@ -43,11 +51,28 @@ inline void blit(
     }
 }
 
+/**
+ * @brief Blit the entire source image onto the destination image at the specified position.
+ *
+ * @param src The source image.
+ * @param dst The destination image.
+ * @param dst_position The position within the destination image where the source image will be copied.
+ */
 inline void blit(const image& src, image& dst, const math::vec2i& dst_position)
 {
     blit(src, src.get_rect(), dst, dst_position);
 }
 
+/**
+ * @brief Blit a portion of the source image onto the destination image at the specified position with blending.
+ *
+ * @tparam blend_func The blending function type.
+ * @param src The source image.
+ * @param src_area The rectangular area within the source image to be copied.
+ * @param dst The destination image.
+ * @param dst_position The position within the destination image where the source image will be copied.
+ * @param blend The blending function to be applied when copying pixels.
+ */
 template <typename blend_func>
 inline void blit(
     const image& src, const math::recti& src_area,

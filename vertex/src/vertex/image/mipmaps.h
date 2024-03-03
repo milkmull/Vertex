@@ -6,6 +6,18 @@
 namespace vx {
 namespace img {
 
+/**
+ * @brief Generates a series of mipmaps for the given image.
+ *
+ * This function generates a series of mipmaps for the provided image, which are progressively smaller
+ * versions of the original image.
+ *
+ * @param img The original image for which mipmaps are to be generated.
+ * @param depth The maximum depth of mipmaps to generate. Default is -1, which indicates generating
+ * mipmaps down to the smallest possible size based on the dimensions of the original image.
+ *
+ * @return A vector containing the generated mipmaps.
+ */
 inline std::vector<image> generate_mipmaps(const image& img, size_t depth = -1)
 {
     if (img.empty())

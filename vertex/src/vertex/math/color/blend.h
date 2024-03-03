@@ -41,44 +41,56 @@ namespace math {
 
 // https://learnopengl.com/Advanced-OpenGL/Blending
 
+/**
+ * @brief Structure representing a blend function for blending colors.
+ *
+ * The blend function defines how colors are blended together when rendering.
+ */
 struct blend_func
 {
-    // =============== constructors ===============
-
-    inline constexpr blend_func(
-        blend_mode src_blend, blend_mode dst_blend,
-        blend_operator op = blend_operator::ADD,
-        const color& constant = color()
-    )
-        : src_blend(src_blend)
-        , dst_blend(dst_blend)
-        , op(op)
-        , constant(constant) {}
-
-    inline constexpr blend_func() = default;
-    inline constexpr blend_func(const blend_func&) = default;
-    inline constexpr blend_func(blend_func&&) noexcept = default;
-
-    inline constexpr blend_func& operator=(const blend_func&) = default;
-    inline constexpr blend_func& operator=(blend_func&&) noexcept = default;
-
-    ~blend_func() = default;
-
     // =============== data ===============
 
     blend_mode src_blend = blend_mode::SRC_ALPHA;
     blend_mode dst_blend = blend_mode::ONE_MINUS_SRC_ALPHA;
-
     blend_operator op = blend_operator::ADD;
     color constant;
 
+    // =============== comparison ===============
+
+    inline constexpr bool operator==(const blend_func& other) const
+    {
+        return src_blend == other.src_blend
+            && dst_blend == other.dst_blend
+            && op == other.op
+            && constant == other.constant;
+    }
+
+    inline constexpr bool operator!=(const blend_func& other) const
+    {
+        return !(*this == other);
+    }
+
     // =============== blend ===============
 
+    /**
+     * @brief Blends two colors using the specified blend function.
+     *
+     * @param src The source color.
+     * @param dst The destination color.
+     * @return The blended color.
+     */
     inline constexpr color operator()(const color& src, const color& dst) const
     {
         return blend(src, dst);
     }
 
+    /**
+     * @brief Blends two colors using the specified blend function.
+     *
+     * @param src The source color.
+     * @param dst The destination color.
+     * @return The blended color.
+     */
     inline constexpr color blend(const color& src, const color& dst) const
     {
         using T = typename color::value_type;
@@ -172,33 +184,14 @@ struct blend_func
 
 };
 
+/**
+ * @brief Structure representing a separate blend function for blending colors with distinct color and alpha blending modes.
+ *
+ * The blend_func_separate structure allows for blending colors with separate blend modes for their color and alpha components.
+ * This allows finer control over the blending process, as it enables different blending behaviors for the color and alpha channels.
+ */
 struct blend_func_separate
 {
-    // =============== constructors ===============
-
-    inline constexpr blend_func_separate(
-        blend_mode src_color_blend, blend_mode src_alpha_blend,
-        blend_mode dst_color_blend, blend_mode dst_alpha_blend,
-        blend_operator color_op, blend_operator alpha_op,
-        const color& constant = color()
-    )
-        : src_color_blend(src_color_blend)
-        , dst_color_blend(dst_color_blend)
-        , src_alpha_blend(src_alpha_blend)
-        , dst_alpha_blend(dst_alpha_blend)
-        , color_op(color_op)
-        , alpha_op(alpha_op)
-        , constant(constant) {}
-
-    inline constexpr blend_func_separate() = default;
-    inline constexpr blend_func_separate(const blend_func_separate&) = default;
-    inline constexpr blend_func_separate(blend_func_separate&&) noexcept = default;
-
-    inline constexpr blend_func_separate& operator=(const blend_func_separate&) = default;
-    inline constexpr blend_func_separate& operator=(blend_func_separate&&) noexcept = default;
-
-    ~blend_func_separate() = default;
-
     // =============== data ===============
 
     blend_mode src_color_blend = blend_mode::SRC_ALPHA;
@@ -214,11 +207,25 @@ struct blend_func_separate
 
     // =============== blend ===============
 
+    /**
+     * @brief Blends two colors using the specified separate blend function.
+     *
+     * @param src The source color.
+     * @param dst The destination color.
+     * @return The blended color.
+     */
     inline constexpr color operator()(const color& src, const color& dst) const
     {
         return blend(src, dst);
     }
 
+    /**
+     * @brief Blends two colors using the specified separate blend function.
+     *
+     * @param src The source color.
+     * @param dst The destination color.
+     * @return The blended color.
+     */
     inline constexpr color blend(const color& src, const color& dst) const
     {
         using T = typename color::value_type;

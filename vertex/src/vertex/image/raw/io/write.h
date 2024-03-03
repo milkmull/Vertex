@@ -20,7 +20,7 @@ namespace raw {
  * @param filename The path to the BMP file to write.
  * @param info Information about the image to be written.
  * @param data Pointer to the pixel data of the image.
- * @param flip_vertically_on_write Whether to flip the image vertically during writing.
+ * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
@@ -33,8 +33,8 @@ error_code write_bmp(const char* filename, const image_info& info, const byte_ty
  * @param filename The path to the JPEG file to write.
  * @param info Information about the image to be written.
  * @param data Pointer to the pixel data of the image.
- * @param quality The quality of the JPEG compression.
- * @param flip_vertically_on_write Whether to flip the image vertically during writing.
+ * @param quality The quality of the JPEG compression (default is 75).
+ * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality = 75, bool flip_vertically_on_write = false);
@@ -47,7 +47,7 @@ error_code write_jpg(const char* filename, const image_info& info, const byte_ty
  * @param filename The path to the PNG file to write.
  * @param info Information about the image to be written.
  * @param data Pointer to the pixel data of the image.
- * @param flip_vertically_on_write Whether to flip the image vertically during writing.
+ * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
@@ -60,7 +60,7 @@ error_code write_png(const char* filename, const image_info& info, const byte_ty
  * @param filename The path to the TGA file to write.
  * @param info Information about the image to be written.
  * @param data Pointer to the pixel data of the image.
- * @param flip_vertically_on_write Whether to flip the image vertically during writing.
+ * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);

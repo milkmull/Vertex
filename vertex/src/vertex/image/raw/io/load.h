@@ -31,7 +31,7 @@ error_code get_file_info(const char* filename, image_info& info);
  * @param filename The path to the image file.
  * @param info Reference to an image_info object to store information about the loaded image.
  * @param data Reference to a vector to store the pixel data of the loaded image.
- * @param flip_vertically_on_load Whether to flip the image vertically during loading (defaults to false).
+ * @param flip_vertically_on_load Whether to flip the image vertically during loading (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code load_image(const char* filename, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load = false);
@@ -45,7 +45,7 @@ error_code load_image(const char* filename, image_info& info, std::vector<byte_t
  * @param info Reference to an image_info object to store information about the loaded image.
  * @param target_format The target image format to reinterpret the loaded image to.
  * @param data Reference to a vector to store the pixel data of the loaded image.
- * @param flip_vertically_on_load Whether to flip the image vertically during loading (defaults to false).
+ * @param flip_vertically_on_load Whether to flip the image vertically during loading (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
 error_code load_image(const char* filename, image_info& info, image_format target_format, std::vector<byte_type>& data, bool flip_vertically_on_load = false);

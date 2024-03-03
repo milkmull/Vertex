@@ -10,6 +10,14 @@
 namespace vx {
 namespace img {
 
+/**
+ * @brief Iterator for accessing pixels in an image.
+ *
+ * This class provides an iterator for accessing pixels in an image. It supports forward iteration
+ * and provides methods for accessing pixel information such as color, position, and UV coordinates.
+ *
+ * @tparam T The pixel type.
+ */
 template <typename T>
 class pixel_iterator
 {
@@ -128,31 +136,61 @@ public:
 
     // extra
 
+    /**
+     * @brief Gets the resolution of the image.
+     *
+     * @return A vector representing the resolution of the image (width, height).
+     */
     inline constexpr math::vec2 resolution() const
     {
         return math::vec2(m_w, m_h);
     }
 
+    /**
+     * @brief Gets the color of the current pixel.
+     *
+     * @return The color of the current pixel.
+     */
     inline constexpr math::color color() const
     {
         return math::color(operator*());
     }
 
+    /**
+     * @brief Sets the color of the current pixel.
+     *
+     * @param c The color to set.
+     */
     inline constexpr void set_color(const math::color& c)
     {
         operator*() = c;
     }
 
+    /**
+     * @brief Gets the position of the current pixel.
+     *
+     * @return A vector representing the position of the current pixel (x, y).
+     */
     inline constexpr math::vec2i position() const
     {
         return math::vec2i(m_x, m_y);
     }
 
+    /**
+     * @brief Gets the (x, y) coordinates of the current pixel.
+     *
+     * @return A vector representing the (x, y) coordinates of the current pixel.
+     */
     inline constexpr math::vec2 xy() const
     {
         return math::vec2(m_x, m_y);
     }
 
+    /**
+     * @brief Gets the UV coordinates of the current pixel.
+     *
+     * @return A vector representing the UV coordinates of the current pixel.
+     */
     inline constexpr math::vec2 uv() const
     {
         return math::vec2(
@@ -161,6 +199,11 @@ public:
         );
     }
 
+    /**
+     * @brief Gets the local coordinates of the current pixel relative to the center of the image.
+     *
+     * @return A vector representing the local coordinates of the current pixel.
+     */
     inline constexpr math::vec2 local() const
     {
         return xy() - resolution() * 0.5f;

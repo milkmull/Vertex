@@ -10,7 +10,7 @@ namespace raw {
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 // https://www.youtube.com/watch?v=_htjjOdXbmA
 
-// box filtering uses the sme algorithm as bilinear, just with the weights equally applied to the surrounding pixels (0.25)
+// box filtering uses the same algorithm as bilinear, just with the weights equally applied to the surrounding pixels (0.25)
 
 /**
  * @brief Apply box filtering to an image.
@@ -70,7 +70,7 @@ inline constexpr void filter_box(
     constexpr F weight = static_cast<F>(0.25);
 
     // Loop over each row in the destination image
-    for (size_t y = 0; y < dst_height; y++)
+    for (size_t y = 0; y < dst_height; ++y)
     {
         // Map the vertical offset back to the source image to figure out what row
         // should be sampled from
@@ -88,7 +88,7 @@ inline constexpr void filter_box(
         T* dstpx = &dst[dst_row_size * y];
 
         // Loop over each column in the destination image
-        for (size_t x = 0; x < dst_width; x++, dstpx += channels)
+        for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
         {
             // Map the horizontal offset back to the source image to figure out what column
             // should be sampled from
@@ -112,7 +112,7 @@ inline constexpr void filter_box(
             };
 
             // Loop over each channel
-            for (size_t c = 0; c < channels; c++)
+            for (size_t c = 0; c < channels; ++c)
             {
                 // Perform bilinear interpolation using the four neighboring pixels
                 const F px = (
@@ -120,7 +120,7 @@ inline constexpr void filter_box(
                     pixels[1][c] * weight +
                     pixels[2][c] * weight +
                     pixels[3][c] * weight
-                    );
+                );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
             }

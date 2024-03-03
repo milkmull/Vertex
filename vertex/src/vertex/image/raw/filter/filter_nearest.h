@@ -54,7 +54,7 @@ inline constexpr void filter_nearest(
     const size_t dst_row_size = dst_width * channels;
 
     // Loop over each column in the destination image
-    for (size_t y = 0; y < dst_height; y++)
+    for (size_t y = 0; y < dst_height; ++y)
     {
         // Calculate the corresponding y-coordinate in the source image
         const size_t srcy = y * src_height / dst_height;
@@ -64,7 +64,7 @@ inline constexpr void filter_nearest(
         T* dstpx = &dst[dst_row_size * y];
 
         // Loop over each column in the destination image
-        for (size_t x = 0; x < dst_width; x++, dstpx += channels)
+        for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
         {
             // Calculate pointer to the source pixel to sample from
             const T* srcpx = &srcrow[x * src_width / dst_width * channels];

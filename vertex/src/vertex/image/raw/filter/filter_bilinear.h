@@ -65,7 +65,7 @@ inline constexpr void filter_bilinear(
     const F yscale = static_cast<F>(src_height) / dst_height;
 
     // Loop over each row in the destination image
-    for (size_t y = 0; y < dst_height; y++)
+    for (size_t y = 0; y < dst_height; ++y)
     {
         // Map the vertical offset back to the source image to figure out what row
         // should be sampled from
@@ -87,7 +87,7 @@ inline constexpr void filter_bilinear(
         const F fy = static_cast<F>(1) - fy2;
 
         // Loop over each column in the destination image
-        for (size_t x = 0; x < dst_width; x++, dstpx += channels)
+        for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
         {
             // Map the horizontal offset back to the source image to figure out what column
             // should be sampled from
@@ -124,7 +124,7 @@ inline constexpr void filter_bilinear(
             };
 
             // Loop over each channel
-            for (size_t c = 0; c < channels; c++)
+            for (size_t c = 0; c < channels; ++c)
             {
                 // Perform bilinear interpolation using the four neighboring pixels and weights
                 const F px = (
@@ -132,7 +132,7 @@ inline constexpr void filter_bilinear(
                     pixels[1][c] * weights[1] +
                     pixels[2][c] * weights[2] +
                     pixels[3][c] * weights[3]
-                    );
+                );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
             }

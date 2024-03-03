@@ -8,6 +8,12 @@
 namespace vx {
 namespace img {
 
+/**
+ * @brief A structure representing a sampler for accessing pixels in an image.
+ *
+ * The sampler structure encapsulates various properties and methods for sampling pixels from an image.
+ * It allows specifying parameters such as resolution, wrapping behavior, border color, and filtering modes.
+ */
 struct sampler
 {
     // =============== data ===============
@@ -41,6 +47,14 @@ struct sampler
 
     // =============== sampling ===============
 
+    /**
+     * @brief Samples the pixel at the specified integer coordinates.
+     *
+     * @param img The image to sample from.
+     * @param x The X-coordinate of the pixel.
+     * @param y The Y-coordinate of the pixel.
+     * @return The sampled color.
+     */
     math::color sample_pixel(const image& img, int x, int y) const
     {
         return sample(
@@ -50,11 +64,26 @@ struct sampler
         );
     }
 
+    /**
+     * @brief Samples the pixel at the specified integer coordinates.
+     *
+     * @param img The image to sample from.
+     * @param p The integer coordinates of the pixel.
+     * @return The sampled color.
+     */
     math::color sample_pixel(const image& img, const math::vec2i& p) const
     {
         return sample_pixel(img, p.x, p.y);
     }
 
+    /**
+     * @brief Samples the color at the specified floating-point coordinates.
+     *
+     * @param img The image to sample from.
+     * @param u The U-coordinate (horizontal) of the pixel.
+     * @param v The V-coordinate (vertical) of the pixel.
+     * @return The sampled color.
+     */
     math::color sample(const image& img, float u, float v) const
     {
         if (img.empty())
@@ -79,6 +108,13 @@ struct sampler
         return border;
     }
 
+    /**
+     * @brief Samples the color at the specified floating-point coordinates.
+     *
+     * @param img The image to sample from.
+     * @param p The floating-point coordinates of the pixel.
+     * @return The sampled color.
+     */
     math::color sample(const image& img, const math::vec2& p) const
     {
         return sample(img, p.x, p.y);
