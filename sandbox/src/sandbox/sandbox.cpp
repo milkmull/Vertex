@@ -36,7 +36,7 @@ int main()
             std::cout << "stop" << std::endl;
         }
 
-        auto z = (math::simplex_noise(math::vec4(it.uv(), it.uv()) * 10.0f) + 1.0f) / 2.0f;
+        auto z = (math::simplex_noise(math::vec4(it.uv(), 0.0f, 0.0f) * 10.0f) + 1.0f) / 2.0f;
         //std::cout << z << std::endl;
         *it = math::color(z);
 
@@ -46,7 +46,7 @@ int main()
 
     //img::replace_color(dst, math::color::BLACK(), math::color(0.2f, 0.8f, 0.75f), 0.5f);
 
-    err = img::write_png("../../assets/noise_test_simplex_4d.png", noise);
+    err = img::write_png("../../assets/noise_test_simplex_3d1.png", noise);
     std::cout << "image saved with error: " << (int)err << std::endl;
 
     return 0;

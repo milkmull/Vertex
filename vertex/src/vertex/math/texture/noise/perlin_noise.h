@@ -30,10 +30,10 @@ inline constexpr T perlin_noise(const vec<2, T>& p)
     vec<4, T> tx = floor(gx + static_cast<T>(0.5));
     gx -= tx;
 
-    vec<2, T> g00(gx.x, gy.x);
-    vec<2, T> g10(gx.y, gy.y);
-    vec<2, T> g01(gx.z, gy.z);
-    vec<2, T> g11(gx.w, gy.w);
+    vec<2, T> g00 (gx.x, gy.x);
+    vec<2, T> g10 (gx.y, gy.y);
+    vec<2, T> g01 (gx.z, gy.z);
+    vec<2, T> g11 (gx.w, gy.w);
 
     vec<4, T> norm = detail::taylor_inv_sqrt(vec<4, T>(dot(g00, g00), dot(g01, g01), dot(g10, g10), dot(g11, g11)));
     g00 *= norm.x;
@@ -118,7 +118,7 @@ T perlin_noise(const vec<3, T>& p)
     vec<3, T> fade_xyz = detail::fade(pf0);
     vec<4, T> n_z = mix(vec<4, T>(n000, n100, n010, n110), vec<4, T>(n001, n101, n011, n111), fade_xyz.z);
     vec<2, T> n_yz = mix(vec<2, T>(n_z.x, n_z.y), vec<2, T>(n_z.z, n_z.w), fade_xyz.y);
-    float n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
+    T n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
     return static_cast<T>(2.2) * n_xyz;
 }
 
@@ -231,29 +231,29 @@ T perlin_noise(const vec<4, T>& p)
     g1011 *= norm11.z;
     g1111 *= norm11.w;
 
-    float n0000 = dot(g0000, pf0);
-    float n1000 = dot(g1000, vec<4, T>(pf1.x, pf0.y, pf0.z, pf0.w));
-    float n0100 = dot(g0100, vec<4, T>(pf0.x, pf1.y, pf0.z, pf0.w));
-    float n1100 = dot(g1100, vec<4, T>(pf1.x, pf1.y, pf0.z, pf0.w));
-    float n0010 = dot(g0010, vec<4, T>(pf0.x, pf0.y, pf1.z, pf0.w));
-    float n1010 = dot(g1010, vec<4, T>(pf1.x, pf0.y, pf1.z, pf0.w));
-    float n0110 = dot(g0110, vec<4, T>(pf0.x, pf1.y, pf1.z, pf0.w));
-    float n1110 = dot(g1110, vec<4, T>(pf1.x, pf1.y, pf1.z, pf0.w));
-    float n0001 = dot(g0001, vec<4, T>(pf0.x, pf0.y, pf0.z, pf1.w));
-    float n1001 = dot(g1001, vec<4, T>(pf1.x, pf0.y, pf0.z, pf1.w));
-    float n0101 = dot(g0101, vec<4, T>(pf0.x, pf1.y, pf0.z, pf1.w));
-    float n1101 = dot(g1101, vec<4, T>(pf1.x, pf1.y, pf0.z, pf1.w));
-    float n0011 = dot(g0011, vec<4, T>(pf0.x, pf0.y, pf1.z, pf1.w));
-    float n1011 = dot(g1011, vec<4, T>(pf1.x, pf0.y, pf1.z, pf1.w));
-    float n0111 = dot(g0111, vec<4, T>(pf0.x, pf1.y, pf1.z, pf1.w));
-    float n1111 = dot(g1111, pf1);
+    T n0000 = dot(g0000, pf0);
+    T n1000 = dot(g1000, vec<4, T>(pf1.x, pf0.y, pf0.z, pf0.w));
+    T n0100 = dot(g0100, vec<4, T>(pf0.x, pf1.y, pf0.z, pf0.w));
+    T n1100 = dot(g1100, vec<4, T>(pf1.x, pf1.y, pf0.z, pf0.w));
+    T n0010 = dot(g0010, vec<4, T>(pf0.x, pf0.y, pf1.z, pf0.w));
+    T n1010 = dot(g1010, vec<4, T>(pf1.x, pf0.y, pf1.z, pf0.w));
+    T n0110 = dot(g0110, vec<4, T>(pf0.x, pf1.y, pf1.z, pf0.w));
+    T n1110 = dot(g1110, vec<4, T>(pf1.x, pf1.y, pf1.z, pf0.w));
+    T n0001 = dot(g0001, vec<4, T>(pf0.x, pf0.y, pf0.z, pf1.w));
+    T n1001 = dot(g1001, vec<4, T>(pf1.x, pf0.y, pf0.z, pf1.w));
+    T n0101 = dot(g0101, vec<4, T>(pf0.x, pf1.y, pf0.z, pf1.w));
+    T n1101 = dot(g1101, vec<4, T>(pf1.x, pf1.y, pf0.z, pf1.w));
+    T n0011 = dot(g0011, vec<4, T>(pf0.x, pf0.y, pf1.z, pf1.w));
+    T n1011 = dot(g1011, vec<4, T>(pf1.x, pf0.y, pf1.z, pf1.w));
+    T n0111 = dot(g0111, vec<4, T>(pf0.x, pf1.y, pf1.z, pf1.w));
+    T n1111 = dot(g1111, pf1);
 
     vec<4, T> fade_xyzw = detail::fade(pf0);
     vec<4, T> n_0w = mix(vec<4, T>(n0000, n1000, n0100, n1100), vec<4, T>(n0001, n1001, n0101, n1101), fade_xyzw.w);
     vec<4, T> n_1w = mix(vec<4, T>(n0010, n1010, n0110, n1110), vec<4, T>(n0011, n1011, n0111, n1111), fade_xyzw.w);
     vec<4, T> n_zw = mix(n_0w, n_1w, fade_xyzw.z);
     vec<2, T> n_yzw = mix(vec<2, T>(n_zw.x, n_zw.y), vec<2, T>(n_zw.z, n_zw.w), fade_xyzw.y);
-    float n_xyzw = mix(n_yzw.x, n_yzw.y, fade_xyzw.x);
+    T n_xyzw = mix(n_yzw.x, n_yzw.y, fade_xyzw.x);
     return static_cast<T>(2.2) * n_xyzw;
 }
 

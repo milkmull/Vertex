@@ -52,7 +52,7 @@ inline constexpr vec<L, T> fade(const vec<L, T>& t)
 }
 
 template <typename T>
-vec<4, T> grad4(T j, const vec<4, T>& ip)
+inline constexpr vec<4, T> grad4(T j, const vec<4, T>& ip)
 {
     vec<3, T> pxyz = floor(fract(vec<3, T>(j) * vec<3, T>(ip)) * static_cast<T>(7)) * ip.z - static_cast<T>(1);
     T pw = static_cast<T>(1.5) - dot(abs(pxyz), vec<3, T>(static_cast<T>(1)));

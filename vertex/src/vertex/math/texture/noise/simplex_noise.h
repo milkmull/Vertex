@@ -17,7 +17,7 @@ namespace math {
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T simplex_noise(const vec<2, T>& v)
 {
-    const vec<4, T> c(
+    const vec<4, T> C(
         static_cast<T>(+0.211324865405187),  // (3.0 - sqrt(3.0)) / 6.0
         static_cast<T>(+0.366025403784439),  // 0.5 * (sqrt(3.0) - 1.0)
         static_cast<T>(-0.577350269189626),  // -1.0 + 2.0 * c.x
@@ -25,8 +25,8 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
     );
 
     // First corner
-    vec<2, T> i  = floor(v + dot(v, vec<2, T>(c.y)));
-    vec<2, T> x0 = v -   i + dot(i, vec<2, T>(c.x));
+    vec<2, T> i  = floor(v + dot(v, vec<2, T>(C.y)));
+    vec<2, T> x0 = v -   i + dot(i, vec<2, T>(C.x));
 
     if (x0.x == x0.y)
     {
@@ -34,15 +34,16 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
     }
 
     // Other corners
-    //i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1 : 0
-    //i1.y = 1 - i1.x;
+    // i1.x = step( x0.y, x0.x ); // x0.x > x0.y ? 1 : 0
+    // i1.y = 1 - i1.x;
     vec<2, T> i1 = (x0.x > x0.y)
         ? vec<2, T>(static_cast<T>(1), static_cast<T>(0))
         : vec<2, T>(static_cast<T>(0), static_cast<T>(1));
+
     // x0 = x0 - 0 + 0 * c.xx ;
     // x1 = x0 - i1 + 1 * c.xx ;
     // x2 = x0 - 1 + 2 * c.xx ;
-    vec<4, T> x12 = vec<4, T>(x0.x, x0.y, x0.x, x0.y) + vec<4, T>(c.x, c.x, c.z, c.z);
+    vec<4, T> x12 = vec<4, T>(x0.x, x0.y, x0.x, x0.y) + vec<4, T>(C.x, C.x, C.z, C.z);
     x12.x -= i1.x;
     x12.y -= i1.y;
 
@@ -63,14 +64,13 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
 
     // Gradients: 41 points uniformly over a line, mapped onto a diamond.
     // The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
-
-    vec<3, T> x = static_cast<T>(2) * fract(p * vec<3, T>(c.w)) - static_cast<T>(1);
+    vec<3, T> x = static_cast<T>(2) * fract(p * vec<3, T>(C.w)) - static_cast<T>(1);
     vec<3, T> h = abs(x) - static_cast<T>(0.5);
     vec<3, T> ox = floor(x + static_cast<T>(0.5));
     vec<3, T> a0 = x - ox;
 
     // Normalise gradients implicitly by scaling m
-    // Approximation of: m *= inversesqrt( a0*a0 + h*h );
+    // Approximation of: m *= inversesqrt(a0 * a0 + h * h);
     m *= static_cast<T>(1.79284291400159) - static_cast<T>(0.85373472095314) * (a0 * a0 + h * h);
 
     // Compute final noise value at P
@@ -86,16 +86,16 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T simplex_noise(const vec<3, T>& v)
 {
-    const vec<2, T> c (static_cast<T>(1.0) / static_cast<T>(6.0), static_cast<T>(1.0) / static_cast<T>(3.0));
-    const vec<4, T> d (static_cast<T>(0.0),  static_cast<T>(0.5), static_cast<T>(1.0),  static_cast<T>(2.0));
+    const vec<2, T> C(static_cast<T>(1.0) / static_cast<T>(6.0), static_cast<T>(1.0) / static_cast<T>(3.0));
+    const vec<4, T> D(static_cast<T>(0.0),  static_cast<T>(0.5), static_cast<T>(1.0),  static_cast<T>(2.0));
 
     // First corner
-    vec<3, T> i = floor(v + dot(v, vec<3, T>(c.y)));
-    vec<3, T> x0 = v -  i + dot(i, vec<3, T>(c.x));
+    vec<3, T> i = floor(v + dot(v, vec<3, T>(C.y)));
+    vec<3, T> x0 = v -  i + dot(i, vec<3, T>(C.x));
 
     // Other corners
     vec<3, T> g = step(vec<3, T>(x0.y, x0.z, x0.x), x0);
-    g.z -= step(static_cast<T>(3), (g.x + g.y + g.z)); // avoids singularities when g == (1, 1, 1)
+    g.z -= step(static_cast<T>(3), (g.x + g.y + g.z)); // Avoids singularities when g == (1, 1, 1)
     vec<3, T> l = static_cast<T>(1) - g;
     vec<3, T> i1 = min(g, vec<3, T>(l.z, l.x, l.y));
     vec<3, T> i2 = max(g, vec<3, T>(l.z, l.x, l.y));
@@ -104,9 +104,9 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     // x1 = x0 - i1  + 1.0 * C.xxx;
     // x2 = x0 - i2  + 2.0 * C.xxx;
     // x3 = x0 - 1.0 + 3.0 * C.xxx;
-    vec<3, T> x1 (x0 - i1 + c.x);
-    vec<3, T> x2 (x0 - i2 + c.y); // 2.0 * C.x = 1 / 3 = C.y
-    vec<3, T> x3 (x0 -      d.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
+    vec<3, T> x1(x0 - i1 + C.x);
+    vec<3, T> x2(x0 - i2 + C.y); //  2.0 * C.x = 1 / 3 = C.y
+    vec<3, T> x3(x0 -      C.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
 
     // Permutations
     i = detail::mod289(i);
@@ -117,14 +117,14 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     );
 
     // Gradients: 7x7 points over a square, mapped onto an octahedron.
-    // The ring size 17 * 17 = 289 is close to a multiple of 49 (49 * 6 = 294)
+    // The ring size 17*17 = 289 is close to a multiple of 49 (49*6 = 294)
     const T n_ = static_cast<T>(0.142857142857); // 1.0 / 7.0
-    vec<3, T> ns = n_ * vec<3, T>(d.w, d.y, d.z) - vec<3, T>(d.x, d.z, d.x);
+    vec<3, T> ns = n_ * vec<3, T>(D.w, D.y, D.z) - vec<3, T>(D.x, D.z, D.x);
 
     vec<4, T> j = p - static_cast<T>(49) * floor(p * ns.z * ns.z); // mod(p, 7 * 7)
 
     vec<4, T> x_ = floor(j * ns.z);
-    vec<4, T> y_ = floor(j - static_cast<T>(7) * x_);    // mod(j, N)
+    vec<4, T> y_ = floor(j - static_cast<T>(7) * x_); // mod(j, N)
 
     vec<4, T> x (x_ * ns.x + ns.y);
     vec<4, T> y (y_ * ns.x + ns.y);
@@ -133,8 +133,8 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     vec<4, T> b0 (x.x, x.y, y.x, y.y);
     vec<4, T> b1 (x.z, x.w, y.z, y.w);
 
-    //vec<4, T> s0 = vec4(lessThan(b0, 0.0)) * 2.0 - 1.0;
-    //vec<4, T> s1 = vec4(lessThan(b1, 0.0)) * 2.0 - 1.0;
+    // vec4 s0 = vec4(lessThan(b0, 0.0)) * 2.0 - 1.0;
+    // vec4 s1 = vec4(lessThan(b1, 0.0)) * 2.0 - 1.0;
     vec<4, T> s0 = floor(b0) * static_cast<T>(2) + static_cast<T>(1);
     vec<4, T> s1 = floor(b1) * static_cast<T>(2) + static_cast<T>(1);
     vec<4, T> sh = -step(h, vec<4, T>(static_cast<T>(0)));
@@ -166,7 +166,7 @@ inline constexpr T simplex_noise(const vec<4, T>& v)
 {
     const T F4 = static_cast<T>(0.309016994374947451);
 
-    const vec<4, T> c(
+    const vec<4, T> C(
         static_cast<T>(+0.138196601125011),  // (5 - sqrt(5))/20  G4
         static_cast<T>(+0.276393202250021),  // 2 * G4
         static_cast<T>(+0.414589803375032),  // 3 * G4
@@ -175,39 +175,39 @@ inline constexpr T simplex_noise(const vec<4, T>& v)
 
     // First corner
     vec<4, T> i = floor(v + dot(v, vec<4, T>(F4)));
-    vec<4, T> x0 = v -  i + dot(i, vec<4, T>(c.x));
+    vec<4, T> x0 = v -  i + dot(i, vec<4, T>(C.x));
 
     // Other corners
 
     // Rank sorting originally contributed by Bill Licea-Kane, AMD (formerly ATI)
     vec<3, T> is_x  = step(vec<3, T>(x0.y, x0.z, x0.w), vec<3, T>(x0.x));
     vec<3, T> is_yz = step(vec<3, T>(x0.z, x0.w, x0.w), vec<3, T>(x0.y, x0.y, x0.z));
-    //  i0.x = dot(isX, vec3(1.0));
-    //i0.x = isX.x + isX.y + isX.z;
-    //i0.yzw = static_cast<T>(1) - isX;
+    // i0.x = dot(isX, vec3(1.0));
+    // i0.x = isX.x + isX.y + isX.z;
+    // i0.yzw = static_cast<T>(1) - isX;
     vec<4, T> i0 (is_x.x + is_x.y + is_x.z, static_cast<T>(1) - is_x);
-    //  i0.y += dot(isYZ.xy, vec2(1.0));
+    // i0.y += dot(isYZ.xy, vec2(1.0));
     i0.y += is_yz.x + is_yz.y;
-    //i0.zw += 1.0 - vec<2, T, Q>(isYZ.x, isYZ.y);
+    // i0.zw += 1.0 - vec<2, T, Q>(isYZ.x, isYZ.y);
     i0.z += static_cast<T>(1) - is_yz.x;
     i0.w += static_cast<T>(1) - is_yz.y;
     i0.z += is_yz.z;
     i0.w += static_cast<T>(1) - is_yz.z;
 
     // i0 now contains the unique values 0,1,2,3 in each channel
-    vec<4, T> i3 = clamp(i0,  static_cast<T>(0), static_cast<T>(1));
+    vec<4, T> i3 = clamp(i0,                     static_cast<T>(0), static_cast<T>(1));
     vec<4, T> i2 = clamp(i0 - static_cast<T>(1), static_cast<T>(0), static_cast<T>(1));
     vec<4, T> i1 = clamp(i0 - static_cast<T>(2), static_cast<T>(0), static_cast<T>(1));
 
-    //  x0 = x0 - 0.0 + 0.0 * C.xxxx
-    //  x1 = x0 - i1  + 1.0 * C.xxxx
-    //  x2 = x0 - i2  + 2.0 * C.xxxx
-    //  x3 = x0 - i3  + 3.0 * C.xxxx
-    //  x4 = x0 - 1.0 + 4.0 * C.xxxx
-    vec<4, T> x1 = x0 - i1 + c.x;
-    vec<4, T> x2 = x0 - i2 + c.y;
-    vec<4, T> x3 = x0 - i3 + c.z;
-    vec<4, T> x4 = x0      + c.w;
+    // x0 = x0 - 0.0 + 0.0 * C.xxxx
+    // x1 = x0 - i1  + 1.0 * C.xxxx
+    // x2 = x0 - i2  + 2.0 * C.xxxx
+    // x3 = x0 - i3  + 3.0 * C.xxxx
+    // x4 = x0 - 1.0 + 4.0 * C.xxxx
+    vec<4, T> x1 = x0 - i1 + C.x;
+    vec<4, T> x2 = x0 - i2 + C.y;
+    vec<4, T> x3 = x0 - i3 + C.z;
+    vec<4, T> x4 = x0      + C.w;
 
     // Permutations
     i = detail::mod289(i);
@@ -249,7 +249,7 @@ inline constexpr T simplex_noise(const vec<4, T>& v)
     m1 = m1 * m1;
     return static_cast<T>(49) * (
         dot(m0 * m0, vec<3, T>(dot(p0, x0), dot(p1, x1), dot(p2, x2))) +
-        dot(m1 * m1, vec<2, T>(dot(p3, x3), dot(p4, x4)))
+        dot(m1 * m1, vec<2, T>(dot(p3, x3),              dot(p4, x4)))
     );
 }
 
