@@ -138,8 +138,8 @@ inline constexpr vec<L, T> smoothstep(
     T edge1,
     const vec<L, T>& x)
 {
-    const T v = (x - edge0) / (edge1 - edge0);
-    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const vec<L, T> v = (x - edge0) / (edge1 - edge0);
+    const vec<L, T> t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
@@ -150,8 +150,8 @@ inline constexpr vec<L, T> smoothstep(
     const vec<L, T>& x
 )
 {
-    const T v = (x - edge0) / (edge1 - edge0);
-    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    const vec<L, T> v = (x - edge0) / (edge1 - edge0);
+    const vec<L, T> t = math::clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 

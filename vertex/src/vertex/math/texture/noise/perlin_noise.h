@@ -12,12 +12,12 @@
 namespace vx {
 namespace math {
 
-template<typename T>
+template<typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T perlin_noise(const vec<2, T>& p)
 {
-    vec<4, T> pi = floor(vec<4, T>(p.x, p.y, p.x, p.y)) + vec<4, T>(0.0, 0.0, 1.0, 1.0);
-    vec<4, T> pf = fract(vec<4, T>(p.x, p.y, p.x, p.y)) - vec<4, T>(0.0, 0.0, 1.0, 1.0);
-    pi = mod(pi, static_cast<T>(289.0)); // To avoid truncation effects in permutation
+    vec<4, T> pi = floor(vec<4, T>(p.x, p.y, p.x, p.y)) + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1));
+    vec<4, T> pf = fract(vec<4, T>(p.x, p.y, p.x, p.y)) - vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1));
+    pi = mod(pi, static_cast<T>(289)); // To avoid truncation effects in permutation
     vec<4, T> ix(pi.x, pi.z, pi.x, pi.z);
     vec<4, T> iy(pi.y, pi.y, pi.w, pi.w);
     vec<4, T> fx(pf.x, pf.z, pf.x, pf.z);
@@ -25,7 +25,7 @@ inline constexpr T perlin_noise(const vec<2, T>& p)
 
     vec<4, T> i = detail::permute(detail::permute(ix) + iy);
 
-    vec<4, T> gx = static_cast<T>(2.0) * fract(i * (static_cast<T>(1.0) / static_cast<T>(41.0))) - static_cast<T>(1.0);
+    vec<4, T> gx = static_cast<T>(2) * fract(i * (static_cast<T>(1) / static_cast<T>(41))) - static_cast<T>(1);
     vec<4, T> gy = abs(gx) - static_cast<T>(0.5);
     vec<4, T> tx = floor(gx + static_cast<T>(0.5));
     gx -= tx;
@@ -56,11 +56,11 @@ template <typename T>
 T perlin_noise(const vec<3, T>& p)
 {
     vec<3, T> pi0 = floor(p); // Integer part for indexing
-    vec<3, T> pi1 = pi0 + static_cast<T>(1.0); // Integer part + 1
+    vec<3, T> pi1 = pi0 + static_cast<T>(1); // Integer part + 1
     pi0 = detail::mod289(pi0);
     pi1 = detail::mod289(pi1);
     vec<3, T> pf0 = fract(p); // Fractional part for interpolation
-    vec<3, T> pf1 = pf0 - static_cast<T>(1.0); // Fractional part - 1.0
+    vec<3, T> pf1 = pf0 - static_cast<T>(1); // Fractional part - 1
     vec<4, T> ix(pi0.x, pi1.x, pi0.x, pi1.x);
     vec<4, T> iy(pi0.y, pi0.y, pi1.y, pi1.y);
     vec<4, T> iz0(pi0.z);
@@ -70,21 +70,21 @@ T perlin_noise(const vec<3, T>& p)
     vec<4, T> ixy0 = detail::permute(ixy + iz0);
     vec<4, T> ixy1 = detail::permute(ixy + iz1);
 
-    vec<4, T> gx0 = ixy0 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy0 = fract(floor(gx0) * (static_cast<T>(1.0) / static_cast<T>(7.0))) - static_cast<T>(0.5);
+    vec<4, T> gx0 = ixy0 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy0 = fract(floor(gx0) * (static_cast<T>(1) / static_cast<T>(7))) - static_cast<T>(0.5);
     gx0 = fract(gx0);
     vec<4, T> gz0 = vec<4, T>(0.5) - abs(gx0) - abs(gy0);
-    vec<4, T> sz0 = step(gz0, vec<4, T>(0.0));
-    gx0 -= sz0 * (step(static_cast<T>(0.0), gx0) - static_cast<T>(0.5));
-    gy0 -= sz0 * (step(static_cast<T>(0.0), gy0) - static_cast<T>(0.5));
+    vec<4, T> sz0 = step(gz0, vec<4, T>(0));
+    gx0 -= sz0 * (step(static_cast<T>(0), gx0) - static_cast<T>(0.5));
+    gy0 -= sz0 * (step(static_cast<T>(0), gy0) - static_cast<T>(0.5));
 
-    vec<4, T> gx1 = ixy1 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy1 = fract(floor(gx1) * (static_cast<T>(1.0) / static_cast<T>(7.0))) - static_cast<T>(0.5);
+    vec<4, T> gx1 = ixy1 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy1 = fract(floor(gx1) * (static_cast<T>(1) / static_cast<T>(7))) - static_cast<T>(0.5);
     gx1 = fract(gx1);
     vec<4, T> gz1 = vec<4, T>(0.5) - abs(gx1) - abs(gy1);
-    vec<4, T> sz1 = step(gz1, vec<4, T>(0.0));
-    gx1 -= sz1 * (step(static_cast<T>(0.0), gx1) - static_cast<T>(0.5));
-    gy1 -= sz1 * (step(static_cast<T>(0.0), gy1) - static_cast<T>(0.5));
+    vec<4, T> sz1 = step(gz1, vec<4, T>(0));
+    gx1 -= sz1 * (step(static_cast<T>(0), gx1) - static_cast<T>(0.5));
+    gy1 -= sz1 * (step(static_cast<T>(0), gy1) - static_cast<T>(0.5));
 
     vec<3, T> g000(gx0.x, gy0.x, gz0.x);
     vec<3, T> g100(gx0.y, gy0.y, gz0.y);
@@ -126,11 +126,11 @@ template <typename T>
 T perlin_noise(const vec<4, T>& p)
 {
     vec<4, T> pi0 = floor(p); // Integer part for indexing
-    vec<4, T> pi1 = pi0 + static_cast<T>(1.0); // Integer part + 1
+    vec<4, T> pi1 = pi0 + static_cast<T>(1); // Integer part + 1
     pi0 = detail::mod289(pi0);
     pi1 = detail::mod289(pi1);
     vec<4, T> pf0 = fract(p); // Fractional part for interpolation
-    vec<4, T> pf1 = pf0 - static_cast<T>(1.0); // Fractional part - 1.0
+    vec<4, T> pf1 = pf0 - static_cast<T>(1); // Fractional part - 1
     vec<4, T> ix(pi0.x, pi1.x, pi0.x, pi1.x);
     vec<4, T> iy(pi0.y, pi0.y, pi1.y, pi1.y);
     vec<4, T> iz0(pi0.z);
@@ -146,49 +146,49 @@ T perlin_noise(const vec<4, T>& p)
     vec<4, T> ixy10 = detail::permute(ixy1 + iw0);
     vec<4, T> ixy11 = detail::permute(ixy1 + iw1);
 
-    vec<4, T> gx00 = ixy00 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy00 = floor(gx00) * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gz00 = floor(gy00) * (static_cast<T>(1.0) / static_cast<T>(6.0));
+    vec<4, T> gx00 = ixy00 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy00 = floor(gx00) * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gz00 = floor(gy00) * (static_cast<T>(1) / static_cast<T>(6));
     gx00 = fract(gx00) - static_cast<T>(0.5);
     gy00 = fract(gy00) - static_cast<T>(0.5);
     gz00 = fract(gz00) - static_cast<T>(0.5);
     vec<4, T> gw00 = static_cast<T>(0.75) - abs(gx00) - abs(gy00) - abs(gz00);
-    vec<4, T> sw00 = step(gw00, vec<4, T>(0.0));
-    gx00 -= sw00 * (step(static_cast<T>(0.0), gx00) - static_cast<T>(0.5));
-    gy00 -= sw00 * (step(static_cast<T>(0.0), gy00) - static_cast<T>(0.5));
+    vec<4, T> sw00 = step(gw00, vec<4, T>(0));
+    gx00 -= sw00 * (step(static_cast<T>(0), gx00) - static_cast<T>(0.5));
+    gy00 -= sw00 * (step(static_cast<T>(0), gy00) - static_cast<T>(0.5));
 
-    vec<4, T> gx01 = ixy01 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy01 = floor(gx01) * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gz01 = floor(gy01) * (static_cast<T>(1.0) / static_cast<T>(6.0));
+    vec<4, T> gx01 = ixy01 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy01 = floor(gx01) * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gz01 = floor(gy01) * (static_cast<T>(1) / static_cast<T>(6));
     gx01 = fract(gx01) - static_cast<T>(0.5);
     gy01 = fract(gy01) - static_cast<T>(0.5);
     gz01 = fract(gz01) - static_cast<T>(0.5);
     vec<4, T> gw01 = static_cast<T>(0.75) - abs(gx01) - abs(gy01) - abs(gz01);
-    vec<4, T> sw01 = step(gw01, vec<4, T>(0.0));
-    gx01 -= sw01 * (step(static_cast<T>(0.0), gx01) - static_cast<T>(0.5));
-    gy01 -= sw01 * (step(static_cast<T>(0.0), gy01) - static_cast<T>(0.5));
+    vec<4, T> sw01 = step(gw01, vec<4, T>(0));
+    gx01 -= sw01 * (step(static_cast<T>(0), gx01) - static_cast<T>(0.5));
+    gy01 -= sw01 * (step(static_cast<T>(0), gy01) - static_cast<T>(0.5));
 
-    vec<4, T> gx10 = ixy10 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy10 = floor(gx10) * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gz10 = floor(gy10) * (static_cast<T>(1.0) / static_cast<T>(6.0));
+    vec<4, T> gx10 = ixy10 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy10 = floor(gx10) * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gz10 = floor(gy10) * (static_cast<T>(1) / static_cast<T>(6));
     gx10 = fract(gx10) - static_cast<T>(0.5);
     gy10 = fract(gy10) - static_cast<T>(0.5);
     gz10 = fract(gz10) - static_cast<T>(0.5);
     vec<4, T> gw10 = static_cast<T>(0.75) - abs(gx10) - abs(gy10) - abs(gz10);
-    vec<4, T> sw10 = step(gw10, vec<4, T>(0.0));
-    gx10 -= sw10 * (step(static_cast<T>(0.0), gx10) - static_cast<T>(0.5));
-    gy10 -= sw10 * (step(static_cast<T>(0.0), gy10) - static_cast<T>(0.5));
+    vec<4, T> sw10 = step(gw10, vec<4, T>(0));
+    gx10 -= sw10 * (step(static_cast<T>(0), gx10) - static_cast<T>(0.5));
+    gy10 -= sw10 * (step(static_cast<T>(0), gy10) - static_cast<T>(0.5));
 
-    vec<4, T> gx11 = ixy11 * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gy11 = floor(gx11) * (static_cast<T>(1.0) / static_cast<T>(7.0));
-    vec<4, T> gz11 = floor(gy11) * (static_cast<T>(1.0) / static_cast<T>(6.0));
+    vec<4, T> gx11 = ixy11 * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gy11 = floor(gx11) * (static_cast<T>(1) / static_cast<T>(7));
+    vec<4, T> gz11 = floor(gy11) * (static_cast<T>(1) / static_cast<T>(6));
     gx11 = fract(gx11) - static_cast<T>(0.5);
     gy11 = fract(gy11) - static_cast<T>(0.5);
     gz11 = fract(gz11) - static_cast<T>(0.5);
     vec<4, T> gw11 = static_cast<T>(0.75) - abs(gx11) - abs(gy11) - abs(gz11);
-    vec<4, T> sw11 = step(gw11, vec<4, T>(0.0));
-    gx11 -= sw11 * (step(static_cast<T>(0.0), gx11) - static_cast<T>(0.5));
-    gy11 -= sw11 * (step(static_cast<T>(0.0), gy11) - static_cast<T>(0.5));
+    vec<4, T> sw11 = step(gw11, vec<4, T>(0));
+    gx11 -= sw11 * (step(static_cast<T>(0), gx11) - static_cast<T>(0.5));
+    gy11 -= sw11 * (step(static_cast<T>(0), gy11) - static_cast<T>(0.5));
 
     vec<4, T> g0000(gx00.x, gy00.x, gz00.x, gw00.x);
     vec<4, T> g1000(gx00.y, gy00.y, gz00.y, gw00.y);
