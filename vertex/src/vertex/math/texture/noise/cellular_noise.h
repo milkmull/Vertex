@@ -227,5 +227,118 @@ inline constexpr vec<2, T> cellular_noise(const vec<3, T>& P)
 #endif
 }
 
+// Cellular noise, returning F1 and F2 in a vec2.
+// Speeded up by using 2x2 search window instead of 3x3,
+// at the expense of some strong pattern artifacts.
+// F2 is often wrong and has sharp discontinuities.
+// If you need a smooth F2, use the slower 3x3 version.
+// F1 is sometimes wrong, too, but OK for most purposes.
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+vec<2, T> cellular_noise_2x2(const vec<2, T>& P)
+{
+    const T K      = static_cast<T>(0.142857142857); // 1/7
+    const T K2     = static_cast<T>(0.0714285714285); // K/2
+    const T jitter = static_cast<T>(0.8); // jitter 1.0 makes F1 wrong more often
+
+    vec<2, T> Pi = detail::mod289(floor(P));
+    vec<2, T> Pf = fract(P);
+    vec<4, T> Pfx = Pf.x + vec<4, T>(static_cast<T>(-0.5), static_cast<T>(-1.5), static_cast<T>(-0.5), static_cast<T>(-1.5));
+    vec<4, T> Pfy = Pf.y + vec<4, T>(static_cast<T>(-0.5), static_cast<T>(-0.5), static_cast<T>(-1.5), static_cast<T>(-1.5));
+    vec<4, T> p = detail::permute(Pi.x + vec<4, T>(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0), static_cast<T>(1)));
+    p       = detail::permute(p + Pi.y + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1)));
+    vec<4, T> ox = detail::mod7(p) * K + K2;
+    vec<4, T> oy = detail::mod7(floor(p * K)) * K + K2;
+    vec<4, T> dx = Pfx + jitter * ox;
+    vec<4, T> dy = Pfy + jitter * oy;
+    vec<4, T> d = dx * dx + dy * dy; // d11, d12, d21 and d22, squared
+    // Sort out the two smallest distances
+#if 0
+    // Cheat and pick only F1
+    // d.xy = min(d.xy, d.zw);
+    d = vec<4, T>(min(d.x, d.z), min(d.y, d.w), d.z, d.w);
+    d.x = min(d.x, d.y);
+    return vec<2, T>(sqrt(d.x)); // F1 duplicated, F2 not computed
+#else
+    // Do it right and find both F1 and F2
+    // d.xy = (d.x < d.y) ? d.xy : d.yx; // Swap if smaller
+    // d.xz = (d.x < d.z) ? d.xz : d.zx;
+    // d.xw = (d.x < d.w) ? d.xw : d.wx;
+    d = vec<4, T>(min(d.x, d.y), max(d.x, d.y), d.z, d.w);
+    d = vec<4, T>(min(d.x, d.z), d.y, max(d.x, d.z), d.w);
+    d = vec<4, T>(min(d.x, d.w), d.y, d.z, max(d.x, d.w));
+
+    d.y = min(d.y, d.z);
+    d.y = min(d.y, d.w);
+    return sqrt(vec<2, T>(d.x, d.y));
+#endif
+}
+
+// Cellular noise, returning F1 and F2 in a vec2.
+// Speeded up by using 2x2x2 search window instead of 3x3x3,
+// at the expense of some pattern artifacts.
+// F2 is often wrong and has sharp discontinuities.
+// If you need a good F2, use the slower 3x3x3 version.
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+vec<2, T> cellular_noise_2x2x2(const vec<3, T>& P)
+{
+    const T K  = static_cast<T>(0.142857142857); // 1/7
+    const T Ko = static_cast<T>(0.428571428571); // 1/2-K/2
+    const T K2 = static_cast<T>(0.020408163265306); // 1/(7*7)
+    const T Kz = static_cast<T>(0.166666666667); // 1/6
+    const T Kzo = static_cast<T>(0.416666666667); // 1/2-1/6*2
+    const T jitter = static_cast<T>(0.8); // smaller jitter gives less errors in F2
+
+    vec<3, T> Pi = detail::mod289(floor(P));
+    vec<3, T> Pf = fract(P);
+    vec<4, T> Pfx = Pf.x + vec<4, T>(static_cast<T>(0), static_cast<T>(-1), static_cast<T>(0),  static_cast<T>(-1));
+    vec<4, T> Pfy = Pf.y + vec<4, T>(static_cast<T>(0), static_cast<T>(0),  static_cast<T>(-1), static_cast<T>(-1));
+    vec<4, T> p = detail::permute(Pi.x + vec<4, T>(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0), static_cast<T>(1)));
+    p = detail::permute(p + Pi.y + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1)));
+    vec<4, T> p1 = detail::permute(p + Pi.z); // z+0
+    vec<4, T> p2 = detail::permute(p + Pi.z + static_cast<T>(1)); // z+1
+    vec<4, T> ox1 = fract(p1 * K) - Ko;
+    vec<4, T> oy1 = detail::mod7(floor(p1 * K)) * K - Ko;
+    vec<4, T> oz1 = floor(p1 * K2) * Kz - Kzo; // p1 < 289 guaranteed
+    vec<4, T> ox2 = fract(p2 * K) - Ko;
+    vec<4, T> oy2 = detail::mod7(floor(p2 * K)) * K - Ko;
+    vec<4, T> oz2 = floor(p2 * K2) * Kz - Kzo;
+    vec<4, T> dx1 = Pfx                      + jitter * ox1;
+    vec<4, T> dy1 = Pfy                      + jitter * oy1;
+    vec<4, T> dz1 = Pf.z                     + jitter * oz1;
+    vec<4, T> dx2 = Pfx                      + jitter * ox2;
+    vec<4, T> dy2 = Pfy                      + jitter * oy2;
+    vec<4, T> dz2 = Pf.z - static_cast<T>(1) + jitter * oz2;
+    vec<4, T> d1 = dx1 * dx1 + dy1 * dy1 + dz1 * dz1; // z+0
+    vec<4, T> d2 = dx2 * dx2 + dy2 * dy2 + dz2 * dz2; // z+1
+
+    // Sort out the two smallest distances (F1, F2)
+#if 0
+    // Cheat and sort out only F1
+    d1 = min(d1, d2);
+    // d1.xy = min(d1.xy, d1.wz);
+    d1 = vec<4, T>(min(d1.x, d1.w), min(d1.y, d1.z), d1.z, d1.w);
+    d1.x = min(d1.x, d1.y);
+    return vec<2, T>(sqrt(d1.x));
+#else
+    // Do it right and sort out both F1 and F2
+    vec<4, T> d = min(d1, d2); // F1 is now in d
+    d2 = max(d1, d2); // Make sure we keep all candidates for F2
+
+    // d.xy = (d.x < d.y) ? d.xy : d.yx; // Swap smallest to d.x
+    // d.xz = (d.x < d.z) ? d.xz : d.zx;
+    // d.xw = (d.x < d.w) ? d.xw : d.wx; // F1 is now in d.x
+    // d.yzw = min(d.yzw, d2.yzw); // F2 now not in d2.yzw
+    d = vec<4, T>(min(d.x, d.y), max(d.x, d.y), d.z, d.w);
+    d = vec<4, T>(min(d.x, d.z), d.y, max(d.x, d.z), d.w);
+    d = vec<4, T>(min(d.x, d.w), d.y, d.z, max(d.x, d.w));
+    d = vec<4, T>(d.x, min(d.y, d2.y), min(d.z, d2.z), min(d.w, d2.w));
+
+    d.y = min(d.y, d.z); // nor in d.z
+    d.y = min(d.y, d.w); // nor in d.w
+    d.y = min(d.y, d2.x); // F2 is now in d.y
+    return sqrt(vec<2, T>(d.x, d.y)); // F1 and F2
+#endif
+}
+
 }
 }

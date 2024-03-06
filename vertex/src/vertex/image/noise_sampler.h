@@ -3,6 +3,7 @@
 #include "image.h"
 #include "vertex/math/texture/noise/perlin_noise.h"
 #include "vertex/math/texture/noise/simplex_noise.h"
+#include "vertex/math/texture/noise/cellular_noise.h"
 
 namespace vx {
 namespace img {
@@ -20,21 +21,45 @@ struct noise_sampler
 
     // =============== sampling ===============
 
-    float sample(float u, float v) const
+    template <math::size_type L>
+    float perlin_noise(const math::vec<L, float>& uv) const
     {
-        return sample(math::vec2(u, v));
+        using T = decltype(uv);
+        using R = float;
+
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&math::perlin_noise));
     }
 
     template <math::size_type L>
-    float sample(const math::vec<L, float>& uv) const
+    float simplex_noise(const math::vec<L, float>& uv) const
+    {
+        using T = decltype(uv);
+        using R = float;
+
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&math::simplex_noise));
+    }
+
+    template <math::size_type L, typename std::enable_if<(L == 2 || L == 3), bool>::type = true>
+    math::vec2 cellular_noise(const math::vec<L, float>& uv) const
+    {
+        using T = decltype(uv);
+        using R = math::vec2;
+
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&math::cellular_noise));
+    }
+
+private:
+
+    template <typename T, typename R>
+    R sample_internal(const T& uv, R(*noise_func)(T)) const
     {
         float v_frequency = frequency;
         float v_amplitude = amplitude;
-        float value = 0.0f;
+        R value{};
 
         for (size_t i = 0; i < octaves; ++i)
         {
-            value += math::simplex_noise(uv * v_frequency) * v_amplitude;
+            value += noise_func(uv * v_frequency) * v_amplitude;
 
             v_frequency *= lacunarity;
             v_amplitude *= persistence;
@@ -42,6 +67,7 @@ struct noise_sampler
 
         return (value + 1.0f) * 0.5f;
     }
+
 
 };
 

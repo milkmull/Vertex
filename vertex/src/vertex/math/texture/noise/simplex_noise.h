@@ -106,7 +106,7 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     // x3 = x0 - 1.0 + 3.0 * C.xxx;
     vec<3, T> x1(x0 - i1 + C.x);
     vec<3, T> x2(x0 - i2 + C.y); //  2.0 * C.x = 1 / 3 = C.y
-    vec<3, T> x3(x0 -      C.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
+    vec<3, T> x3(x0 -      D.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
 
     // Permutations
     i = detail::mod289(i);
@@ -126,12 +126,12 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     vec<4, T> x_ = floor(j * ns.z);
     vec<4, T> y_ = floor(j - static_cast<T>(7) * x_); // mod(j, N)
 
-    vec<4, T> x (x_ * ns.x + ns.y);
-    vec<4, T> y (y_ * ns.x + ns.y);
+    vec<4, T> x(x_ * ns.x + ns.y);
+    vec<4, T> y(y_ * ns.x + ns.y);
     vec<4, T> h = static_cast<T>(1) - abs(x) - abs(y);
 
-    vec<4, T> b0 (x.x, x.y, y.x, y.y);
-    vec<4, T> b1 (x.z, x.w, y.z, y.w);
+    vec<4, T> b0(x.x, x.y, y.x, y.y);
+    vec<4, T> b1(x.z, x.w, y.z, y.w);
 
     // vec4 s0 = vec4(lessThan(b0, 0.0)) * 2.0 - 1.0;
     // vec4 s1 = vec4(lessThan(b1, 0.0)) * 2.0 - 1.0;
