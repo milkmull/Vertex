@@ -12,7 +12,7 @@
 namespace vx {
 namespace math {
 
-template<typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T perlin_noise(const vec<2, T>& p)
 {
     vec<4, T> pi = floor(vec<4, T>(p.x, p.y, p.x, p.y)) + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1));

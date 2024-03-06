@@ -28,7 +28,7 @@ struct sampler
     image_filter min_filter = image_filter::NEAREST;
     image_filter mag_filter = image_filter::LINEAR;
 
-    // =============== constructors & destructor ===============
+    // =============== comparison ===============
 
     bool operator==(const sampler& other) const
     {

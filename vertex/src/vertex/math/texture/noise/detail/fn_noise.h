@@ -12,13 +12,19 @@ namespace detail {
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T mod289(T x)
 {
-    return x - math::floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
+    return x - floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
 }
 
 template <size_type L, typename T>
 inline constexpr vec<L, T> mod289(const vec<L, T>& x)
 {
-    return x - math::floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
+    return x - floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
+}
+
+template <size_type L, typename T>
+inline constexpr vec<L, T> mod7(const vec<L, T>& x)
+{
+    return x - floor(x * (static_cast<T>(1) / static_cast<T>(7))) * static_cast<T>(7);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
