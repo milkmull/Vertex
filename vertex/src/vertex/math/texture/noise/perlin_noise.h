@@ -1,13 +1,16 @@
 #pragma once
 
-#include "../../math/math.h"
-#include "detail/fn_noise.h"
+// Copyright (c) 2011 Stefan Gustavson. All rights reserved.
+// Distributed under the MIT license. See LICENSE file.
+// https://github.com/stegu/webgl-noise
 
 // Based on the work of Stefan Gustavson and Ashima Arts:
-// https://github.com/ashima/webgl-noise
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise2D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise3D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise4D.glsl
+
+#include "../../math/math.h"
+#include "detail/fn_noise.h"
 
 namespace vx {
 namespace math {
@@ -53,7 +56,7 @@ inline constexpr T perlin_noise(const vec<2, T>& p)
 }
 
 template <typename T>
-T perlin_noise(const vec<3, T>& p)
+inline constexpr T perlin_noise(const vec<3, T>& p)
 {
     vec<3, T> pi0 = floor(p); // Integer part for indexing
     vec<3, T> pi1 = pi0 + static_cast<T>(1); // Integer part + 1
@@ -66,7 +69,7 @@ T perlin_noise(const vec<3, T>& p)
     vec<4, T> iz0(pi0.z);
     vec<4, T> iz1(pi1.z);
 
-    vec<4, T> ixy = detail::permute(detail::permute(ix) + iy);
+    vec<4, T> ixy  = detail::permute(detail::permute(ix) + iy);
     vec<4, T> ixy0 = detail::permute(ixy + iz0);
     vec<4, T> ixy1 = detail::permute(ixy + iz1);
 
@@ -116,14 +119,14 @@ T perlin_noise(const vec<3, T>& p)
     T n111 = dot(g111, pf1);
 
     vec<3, T> fade_xyz = detail::fade(pf0);
-    vec<4, T> n_z = mix(vec<4, T>(n000, n100, n010, n110), vec<4, T>(n001, n101, n011, n111), fade_xyz.z);
+    vec<4, T> n_z  = mix(vec<4, T>(n000, n100, n010, n110), vec<4, T>(n001, n101, n011, n111), fade_xyz.z);
     vec<2, T> n_yz = mix(vec<2, T>(n_z.x, n_z.y), vec<2, T>(n_z.z, n_z.w), fade_xyz.y);
     T n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
     return static_cast<T>(2.2) * n_xyz;
 }
 
 template <typename T>
-T perlin_noise(const vec<4, T>& p)
+inline constexpr T perlin_noise(const vec<4, T>& p)
 {
     vec<4, T> pi0 = floor(p); // Integer part for indexing
     vec<4, T> pi1 = pi0 + static_cast<T>(1); // Integer part + 1
@@ -138,9 +141,9 @@ T perlin_noise(const vec<4, T>& p)
     vec<4, T> iw0(pi0.w);
     vec<4, T> iw1(pi1.w);
 
-    vec<4, T> ixy = detail::permute(detail::permute(ix) + iy);
-    vec<4, T> ixy0 = detail::permute(ixy + iz0);
-    vec<4, T> ixy1 = detail::permute(ixy + iz1);
+    vec<4, T> ixy   = detail::permute(detail::permute(ix) + iy);
+    vec<4, T> ixy0  = detail::permute(ixy + iz0);
+    vec<4, T> ixy1  = detail::permute(ixy + iz1);
     vec<4, T> ixy00 = detail::permute(ixy0 + iw0);
     vec<4, T> ixy01 = detail::permute(ixy0 + iw1);
     vec<4, T> ixy10 = detail::permute(ixy1 + iw0);
@@ -249,9 +252,9 @@ T perlin_noise(const vec<4, T>& p)
     T n1111 = dot(g1111, pf1);
 
     vec<4, T> fade_xyzw = detail::fade(pf0);
-    vec<4, T> n_0w = mix(vec<4, T>(n0000, n1000, n0100, n1100), vec<4, T>(n0001, n1001, n0101, n1101), fade_xyzw.w);
-    vec<4, T> n_1w = mix(vec<4, T>(n0010, n1010, n0110, n1110), vec<4, T>(n0011, n1011, n0111, n1111), fade_xyzw.w);
-    vec<4, T> n_zw = mix(n_0w, n_1w, fade_xyzw.z);
+    vec<4, T> n_0w  = mix(vec<4, T>(n0000, n1000, n0100, n1100), vec<4, T>(n0001, n1001, n0101, n1101), fade_xyzw.w);
+    vec<4, T> n_1w  = mix(vec<4, T>(n0010, n1010, n0110, n1110), vec<4, T>(n0011, n1011, n0111, n1111), fade_xyzw.w);
+    vec<4, T> n_zw  = mix(n_0w, n_1w, fade_xyzw.z);
     vec<2, T> n_yzw = mix(vec<2, T>(n_zw.x, n_zw.y), vec<2, T>(n_zw.z, n_zw.w), fade_xyzw.y);
     T n_xyzw = mix(n_yzw.x, n_yzw.y, fade_xyzw.x);
     return static_cast<T>(2.2) * n_xyzw;

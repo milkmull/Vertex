@@ -1,15 +1,19 @@
 #pragma once
 
-#include "../../math/math.h"
-#include "detail/fn_noise.h"
+// Copyright (C) 2011 Ashima Arts. All rights reserved.
+// Distributed under the MIT License. See LICENSE file.
+// https://github.com/ashima/webgl-noise
+// https://github.com/stegu/webgl-noise
 
 // Based on the work of Stefan Gustavson and Ashima Arts:
-// https://github.com/ashima/webgl-noise
 // https://github.com/ashima/webgl-noise/blob/master/src/noise2D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/noise3D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/noise4D.glsl
 
 // https://cgvr.cs.uni-bremen.de/teaching/cg_literatur/simplexnoise.pdf
+
+#include "../../math/math.h"
+#include "detail/fn_noise.h"
 
 namespace vx {
 namespace math {
@@ -18,10 +22,10 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 inline constexpr T simplex_noise(const vec<2, T>& v)
 {
     const vec<4, T> C(
-        static_cast<T>(+0.211324865405187),  // (3.0 - sqrt(3.0)) / 6.0
-        static_cast<T>(+0.366025403784439),  // 0.5 * (sqrt(3.0) - 1.0)
-        static_cast<T>(-0.577350269189626),  // -1.0 + 2.0 * c.x
-        static_cast<T>(+0.024390243902439)   // 1.0 / 41.0
+        static_cast<T>(+0.211324865405187), // (3.0 - sqrt(3.0)) / 6.0
+        static_cast<T>(+0.366025403784439), // 0.5 * (sqrt(3.0) - 1.0)
+        static_cast<T>(-0.577350269189626), // -1.0 + 2.0 * c.x
+        static_cast<T>(+0.024390243902439)  // 1.0 / 41.0
     );
 
     // First corner
@@ -64,6 +68,7 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
 
     // Gradients: 41 points uniformly over a line, mapped onto a diamond.
     // The ring size 17*17 = 289 is close to a multiple of 41 (41*7 = 287)
+
     vec<3, T> x = static_cast<T>(2) * fract(p * vec<3, T>(C.w)) - static_cast<T>(1);
     vec<3, T> h = abs(x) - static_cast<T>(0.5);
     vec<3, T> ox = floor(x + static_cast<T>(0.5));

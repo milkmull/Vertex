@@ -1,14 +1,19 @@
 #pragma once
 
-#include "../../math/math.h"
-#include "detail/fn_noise.h"
+// Copyright (c) Stefan Gustavson 2011-04-19. All rights reserved.
+// This code is released under the conditions of the MIT license.
+// See LICENSE file for details.
+// https://github.com/stegu/webgl-noise
 
 // Based on the work of Stefan Gustavson and Ashima Arts:
 // https://github.com/ashima/webgl-noise
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2D.glsl
+// https://github.com/ashima/webgl-noise/blob/master/src/cellular3D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2x2.glsl
-// https://github.com/ashima/webgl-noise/blob/master/src/cellular3D.glsl
+
+#include "../../math/math.h"
+#include "detail/fn_noise.h"
 
 namespace vx {
 namespace math {
