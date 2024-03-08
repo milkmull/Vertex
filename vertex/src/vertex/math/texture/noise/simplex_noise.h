@@ -18,6 +18,15 @@
 namespace vx {
 namespace math {
 
+/**
+ * @brief Generates simplex noise for 2D coordinates.
+ *
+ * This function calculates simplex noise for given 2D coordinates.
+ *
+ * @tparam T The type of the coordinates.
+ * @param v The 2D coordinates for which simplex noise is calculated.
+ * @return The simplex noise value for the given coordinates, ranging from -1 to 1.
+ */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T simplex_noise(const vec<2, T>& v)
 {
@@ -88,6 +97,15 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
     return static_cast<T>(130) * dot(m, g);
 }
 
+/**
+ * @brief Generates simplex noise for 3D coordinates.
+ *
+ * This function calculates simplex noise for given 3D coordinates.
+ *
+ * @tparam T The type of the coordinates.
+ * @param v The 3D coordinates for which simplex noise is calculated.
+ * @return The simplex noise value for the given coordinates, ranging from -1 to 1.
+ */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T simplex_noise(const vec<3, T>& v)
 {
@@ -166,6 +184,15 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     return static_cast<T>(105) * dot(m * m, vec<4, T>(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
 }
 
+/**
+ * @brief Generates simplex noise for 4D coordinates.
+ *
+ * This function calculates simplex noise for given 4D coordinates.
+ *
+ * @tparam T The type of the coordinates.
+ * @param v The 4D coordinates for which simplex noise is calculated.
+ * @return The simplex noise value for the given coordinates, ranging from -1 to 1.
+ */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T simplex_noise(const vec<4, T>& v)
 {

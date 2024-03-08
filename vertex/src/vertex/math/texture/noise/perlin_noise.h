@@ -15,6 +15,16 @@
 namespace vx {
 namespace math {
 
+/**
+ * @brief Generates Perlin noise for 2D coordinates.
+ *
+ * This function calculates Perlin noise for given 2D coordinates.
+ * Perlin noise is a type of gradient noise used in computer graphics.
+ *
+ * @tparam T The type of the coordinates.
+ * @param p The 2D coordinates for which Perlin noise is calculated.
+ * @return The Perlin noise value for the given coordinates, ranging from -1 to 1.
+ */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T perlin_noise(const vec<2, T>& p)
 {
@@ -55,7 +65,17 @@ inline constexpr T perlin_noise(const vec<2, T>& p)
     return static_cast<T>(2.3) * n_xy;
 }
 
-template <typename T>
+/**
+ * @brief Generates Perlin noise for 3D coordinates.
+ *
+ * This function calculates Perlin noise for given 3D coordinates.
+ * Perlin noise is a type of gradient noise used in computer graphics.
+ *
+ * @tparam T The type of the coordinates.
+ * @param p The 3D coordinates for which Perlin noise is calculated.
+ * @return The Perlin noise value for the given coordinates, ranging from -1 to 1.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T perlin_noise(const vec<3, T>& p)
 {
     vec<3, T> pi0 = floor(p); // Integer part for indexing
@@ -125,7 +145,17 @@ inline constexpr T perlin_noise(const vec<3, T>& p)
     return static_cast<T>(2.2) * n_xyz;
 }
 
-template <typename T>
+/**
+ * @brief Generates Perlin noise for 4D coordinates.
+ *
+ * This function calculates Perlin noise for given 4D coordinates.
+ * Perlin noise is a type of gradient noise used in computer graphics.
+ *
+ * @tparam T The type of the coordinates.
+ * @param p The 4D coordinates for which Perlin noise is calculated.
+ * @return The Perlin noise value for the given coordinates, ranging from -1 to 1.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T perlin_noise(const vec<4, T>& p)
 {
     vec<4, T> pi0 = floor(p); // Integer part for indexing

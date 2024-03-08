@@ -30,13 +30,13 @@ inline constexpr vec<L, T> mod7(const vec<L, T>& x)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T permute(T x)
 {
-    return mod289(((x * static_cast<T>(34)) + static_cast<T>(10)) * x);
+    return mod289(((x * static_cast<T>(34)) + static_cast<T>(1)) * x);
 }
 
 template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> permute(const vec<L, T>& x)
 {
-    return mod289(((x * static_cast<T>(34)) + static_cast<T>(10)) * x);
+    return mod289(((x * static_cast<T>(34)) + static_cast<T>(1)) * x);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>

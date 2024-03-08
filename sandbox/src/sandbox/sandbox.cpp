@@ -1,5 +1,7 @@
 #include "sandbox/sandbox.h"
 
+#include "vertex/math/random/rng.h"
+
 #include "vertex/image/image.h"
 #include "vertex/image/io_load.h"
 #include "vertex/image/io_write.h"
@@ -15,13 +17,18 @@ int main()
 
     img::image noise(200, 200, img::image_format::R8);
 
+    math::rng rng;
+
     img::noise_sampler s;
+    s.frequency = 10.0f;
+
+    s.seed.x = rng.randf_range(0.0f, 100.0f);
+    s.seed.y = rng.randf_range(0.0f, 100.0f);
 
     using pixel_type = img::pixel_r8;
     for (auto it = img::begin<pixel_type>(noise); it != img::end<pixel_type>(noise); ++it)
     {
-        float z = math::simplex_noise(math::vec3(it.uv(), 0.0f) * 20.0f);
-        z = (z + 1.0f) * 0.5f;
+        float z = s.simplex_noise(it.uv());
         *it = math::color(z);
     }
 
