@@ -85,7 +85,7 @@ private:
 
         for (size_t i = 0; i < octaves; ++i)
         {
-            value += noise_func(uv * v_frequency) * v_amplitude;
+            value += noise_func(uvs * v_frequency) * v_amplitude;
 
             v_frequency *= lacunarity;
             v_amplitude *= persistence;
