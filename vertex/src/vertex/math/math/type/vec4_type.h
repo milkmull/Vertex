@@ -686,6 +686,56 @@ struct vec<4, T>
         return *this;
     }
 
+    // =============== boolean operators ===============
+
+    // and (&&)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(const type& v, T scaler)
+    {
+        return type(v.x && scaler, v.y && scaler, v.z && scaler, v.w && scaler);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(T scaler, const type& v)
+    {
+        return type(scaler && v.x, scaler && v.y, scaler && v.z, scaler && v.w);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(const type& v1, const type& v2)
+    {
+        return type(v1.x && v2.x, v1.y && v2.y, v1.z && v2.z, v1.w && v2.w);
+    }
+
+    // or (||)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(const type& v, T scaler)
+    {
+        return type(v.x || scaler, v.y || scaler, v.z || scaler, v.w || scaler);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(T scaler, const type& v)
+    {
+        return type(scaler || v.x, scaler || v.y, scaler || v.z, scaler || v.w);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(const type& v1, const type& v2)
+    {
+        return type(v1.x || v2.x, v1.y || v2.y, v1.z || v2.z, v1.w || v2.w);
+    }
+
+    // not (!)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator!(const type& v)
+    {
+        return type(!v.x, !v.y, !v.z, !v.w);
+    }
+
     // =============== iterator ===============
 
     inline constexpr iterator begin() noexcept

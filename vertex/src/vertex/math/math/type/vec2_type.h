@@ -585,6 +585,56 @@ struct vec<2, T>
         return *this;
     }
 
+    // =============== boolean operators ===============
+
+    // and (&&)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(const type& v, T scaler)
+    {
+        return type(v.x && scaler, v.y && scaler);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(T scaler, const type& v)
+    {
+        return type(scaler && v.x, scaler && v.y);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator&&(const type& v1, const type& v2)
+    {
+        return type(v1.x && v2.x, v1.y && v2.y);
+    }
+
+    // or (||)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(const type& v, T scaler)
+    {
+        return type(v.x || scaler, v.y || scaler);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(T scaler, const type& v)
+    {
+        return type(scaler || v.x, scaler || v.y);
+    }
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator||(const type& v1, const type& v2)
+    {
+        return type(v1.x || v2.x, v1.y || v2.y);
+    }
+
+    // not (!)
+
+    template <typename U = T, typename std::enable_if<std::is_same<U, bool>::value, bool>::type = true>
+    friend inline constexpr type operator!(const type& v)
+    {
+        return type(!v.x, !v.y);
+    }
+
     // =============== iterator ===============
 
     inline constexpr iterator begin() noexcept
@@ -786,6 +836,7 @@ VX_PACK_POP()
 using vec2  = vec<2, float>;
 using vec2f = vec<2, float>;
 using vec2d = vec<2, double>;
+using vec2b = vec<2, bool>;
 using vec2u = vec<2, uint32_t>;
 using vec2i = vec<2, int32_t>;
 
