@@ -1,41 +1,19 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/math/random/rng.h"
-
-#include "vertex/image/image.h"
-#include "vertex/image/io_load.h"
-#include "vertex/image/io_write.h"
-#include "vertex/image/sampler.h"
-#include "vertex/image/pixel_iterator.h"
-#include "vertex/image/noise_sampler.h"
+#include "vertex/math/math/type/vec2.h"
+#include "vertex/math/math/type/vec3.h"
+#include "vertex/math/math/type/vec4.h"
+#include "vertex/math/math/type/mat2x4.h"
+#include "vertex/math/math/type/mat4x2.h"
 
 int main()
 {
     using namespace vx;
 
-    img::error_code err{};
+    constexpr math::mat2x4 m1(1, 2, 3, 4, 5, 6, 7, 8);
+    constexpr math::mat4x2 m2(1, 2, 3, 4, 5, 6, 7, 8);
 
-    img::image noise(200, 200, img::image_format::R8);
-
-    math::rng rng;
-
-    img::noise_sampler s;
-    s.frequency = 10.0f;
-
-    s.seed.x = rng.randf_range(0.0f, 100.0f);
-    s.seed.y = rng.randf_range(0.0f, 100.0f);
-
-    using pixel_type = img::pixel_r8;
-    for (auto it = img::begin<pixel_type>(noise); it != img::end<pixel_type>(noise); ++it)
-    {
-        float z = s.simplex_noise(it.uv());
-        *it = math::color(z);
-    }
-
-    //img::replace_color(dst, math::color::BLACK(), math::color(0.2f, 0.8f, 0.75f), 0.5f);
-
-    err = img::write_png("../../assets/noise_test.png", noise);
-    std::cout << "image saved with error: " << (int)err << std::endl;
+    constexpr auto x = m2 * m1;
 
     return 0;
 }

@@ -58,7 +58,7 @@ inline constexpr auto dot(
  * @param u The second vector.
  * @return The normalized dot product of v and u.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr auto normalized_dot(
     const vec<L, T>& v,
     const vec<L, T>& u
@@ -123,7 +123,7 @@ inline constexpr auto cross(
  * @param scaler The scalar value by which to scale the vector.
  * @return The result of scaling the vector by the scalar value.
  */
-template <size_type L, typename T, typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+template <size_t L, typename T, typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
 inline constexpr vec<L, T> scale(
     const vec<L, T>& v,
     U scaler
@@ -145,7 +145,7 @@ inline constexpr vec<L, T> scale(
  * @param scaler The vector containing scaling factors for each component of v.
  * @return The result of scaling the vector v by the components of the vector scaler.
  */
-template <size_type L, typename T, typename U>
+template <size_t L, typename T, typename U>
 inline constexpr vec<L, T> scale(
     const vec<L, T>& v,
     const vec<L, U>& scaler
@@ -164,7 +164,7 @@ inline constexpr vec<L, T> scale(
  * @param v The vector.
  * @return The squared length of v.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr auto length_squared(const vec<L, T>& v)
 {
     return dot(v, v);
@@ -178,7 +178,7 @@ inline constexpr auto length_squared(const vec<L, T>& v)
  * @param v The vector.
  * @return The length of v.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr auto length(const vec<L, T>& v)
 {
     return sqrt(length_squared(v));
@@ -197,7 +197,7 @@ inline constexpr auto length(const vec<L, T>& v)
  * @param p1 The second point.
  * @return The squared distance between p0 and p1.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr auto distance_squared(
     const vec<L, T>& p0,
     const vec<L, T>& p1
@@ -217,7 +217,7 @@ inline constexpr auto distance_squared(
  * @param p1 The second point.
  * @return The distance between p0 and p1.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr auto distance(
     const vec<L, T>& p0,
     const vec<L, T>& p1
@@ -241,7 +241,7 @@ inline constexpr auto distance(
  * @return The normalized vector if the input is not the zero vector;
  * otherwise, returns the zero vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
@@ -254,7 +254,7 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
     return v * inverse_sqrt(magsq);
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr auto normalize(const vec<L, T>& v)
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -272,13 +272,13 @@ inline constexpr auto normalize(const vec<L, T>& v)
  * @param v The vector to normalize.
  * @return The normalized vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
 {
     return v * inverse_sqrt(length_squared(v));
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr auto fast_normalize(const vec<L, T>& v)
 {
     using FT = typename detail::to_float_type<T>::type;
@@ -297,7 +297,7 @@ inline constexpr auto fast_normalize(const vec<L, T>& v)
  * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
  * @return True if the vector is normalized, false otherwise.
  */
-template <size_type L, typename T>
+template <size_t L, typename T>
 inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
@@ -319,7 +319,7 @@ inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::
  * @param max The maximum allowed magnitude.
  * @return The clamped vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> clamp_magnitude(
     const vec<L, T>& v,
     T min,
@@ -353,7 +353,7 @@ inline constexpr vec<L, T> clamp_magnitude(
  * @param to The second vector.
  * @return The angle between from and to in radians.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T angle(
     const vec<L, T>& from,
     const vec<L, T>& to
@@ -371,7 +371,7 @@ static inline constexpr T angle(
  * @param to The second vector.
  * @return The signed angle between from and to in radians.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static inline constexpr T signed_angle(
     const vec<L, T>& from,
     const vec<L, T>& to
@@ -391,7 +391,7 @@ static inline constexpr T signed_angle(
  * @param angle The angle of rotation in radians.
  * @return The rotated vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
 {
     const T cosa = math::cos(angle);
@@ -414,7 +414,7 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
  * @param angle The angle of rotation in radians.
  * @return The rotated vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const vec<3, T>& axis,
@@ -437,7 +437,7 @@ inline constexpr vec<3, T> rotate(
  * @param rotation The quaternion representing the rotation.
  * @return The rotated vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const quat_t<T>& rotation
@@ -457,7 +457,7 @@ inline constexpr vec<3, T> rotate(
  * @param n The vector onto which to project.
  * @return The projected vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> project(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -479,7 +479,7 @@ inline constexpr vec<L, T> project(
  * @param n The normal vector of the surface.
  * @return The reflected vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> reflect(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -499,7 +499,7 @@ inline constexpr vec<L, T> reflect(
  * @param n The normal vector of the surface.
  * @return The bounced vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> bounce(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -525,7 +525,7 @@ inline constexpr vec<L, T> bounce(
  * it is entering).
  * @return The refracted vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> refract(
     const vec<L, T>& i,
     const vec<L, T>& n,
@@ -558,7 +558,7 @@ inline constexpr vec<L, T> refract(
  * @param nref The reference normal vector.
  * @return The adjusted normal vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> face_forward(
     const vec<L, T>& n,
     const vec<L, T>& i,
@@ -580,7 +580,7 @@ inline constexpr vec<L, T> face_forward(
  * @param delta The maximum distance to move towards the target.
  * @return The new vector position.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> move_toward(
     const vec<L, T>& from,
     const vec<L, T>& to,

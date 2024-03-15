@@ -2,8 +2,6 @@
 
 #include "vertex/detail/setup.h"
 
-#define VX_ENABLE_MATH_CHECKS 0
-
 // Clip control, define VX_FORCE_DEPTH_ZERO_TO_ONE before including vertex
 // to use a clip space between 0 to 1.
 // Coordinate system, define VX_FORCE_LEFT_HANDED before including vertex

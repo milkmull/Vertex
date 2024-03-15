@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fn_common.h"
-#include "../../detail/get_type.h"
 
 namespace vx {
 namespace math {

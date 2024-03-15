@@ -8,7 +8,7 @@ namespace math {
 
 // =============== lerp ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -18,7 +18,7 @@ inline constexpr vec<L, T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -30,7 +30,7 @@ inline constexpr vec<L, T> lerp(
 
 // =============== mix ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -40,7 +40,7 @@ inline constexpr vec<L, T> mix(
     return lerp(x, y, t);
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -132,7 +132,7 @@ inline constexpr auto step(
 
 // =============== smoothstep ===============
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> smoothstep(
     T edge0,
     T edge1,
@@ -143,7 +143,7 @@ inline constexpr vec<L, T> smoothstep(
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> smoothstep(
     const vec<L, T>& edge0,
     const vec<L, T>& edge1,
@@ -171,7 +171,7 @@ inline constexpr vec<L, T> smoothstep(
  * @param t The interpolation parameter, where t is in the range [0, 1].
  * @return The interpolated vector.
  */
-template <size_type L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<L, T> slerp(
     const vec<L, T>& x,
     const vec<L, T>& y,

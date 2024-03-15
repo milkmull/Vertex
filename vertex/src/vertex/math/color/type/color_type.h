@@ -4,7 +4,7 @@
 
 #include "../detail/base_types.h"
 #include "../fn/color_fn_common.h"
-#include "../../math/type/vec3_type.h"
+#include "../../math/type/vec3.h"
 
 namespace vx {
 namespace math {
@@ -26,8 +26,7 @@ struct color_t
 
     using int_value_type = uint8_t;
 
-    using size_type = math::size_type;
-    static inline constexpr size_type size() noexcept { return static_cast<size_type>(4); }
+    static inline constexpr size_t size() noexcept { return static_cast<size_t>(4); }
 
     using iterator = ::vx::tools::iterator<T>;
     using const_iterator = ::vx::tools::iterator<const T>;
@@ -152,13 +151,13 @@ struct color_t
 
     // =============== accessors ===============
 
-    inline constexpr T& operator[](size_type i)
+    inline constexpr T& operator[](size_t i)
     {
         assert(i < 4);
         return (&r)[i];
     }
 
-    inline constexpr const T& operator[](size_type i) const
+    inline constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
         return (&r)[i];
@@ -751,7 +750,7 @@ struct color_t
 
     // =============== comparison and testing ===============
 
-    static inline constexpr size_type channels() { return static_cast<size_type>(4); }
+    static inline constexpr size_t channels() { return static_cast<size_t>(4); }
 
     /**
      * @brief Retrieves the RGB components of the color.
