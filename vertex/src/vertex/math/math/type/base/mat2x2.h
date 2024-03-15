@@ -4,6 +4,7 @@
 
 #include "../../../detail/setup.h"
 #include "../../detail/type_traits.h"
+#include "../../fn/vec_fn_geometric.h"
 
 namespace vx {
 namespace math {
@@ -326,19 +327,19 @@ struct mat<2, 2, T>
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend inline constexpr vec<2, T> operator/(const type& m, const vec<2, T>& v)
     {
-        return inverse(m) * v;
+        return invert(m) * v;
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend inline constexpr vec<2, T> operator/(const vec<2, T>& v, const type& m)
     {
-        return v * inverse(m);
+        return v * invert(m);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend inline constexpr type operator/(const type& m1, const type& m2)
     {
-        return inverse(m1) * m2;
+        return invert(m1) * m2;
     }
 
     // modulo (%)
@@ -701,6 +702,81 @@ struct mat<2, 2, T>
     inline constexpr type operator!()
     {
         return type(!columns[0], !columns[1]);
+    }
+
+    // =============== rotation ===============
+
+    /**
+     * @brief Creates a 2x2 rotation matrix.
+     *
+     * This function generates a 2x2 rotation matrix with the specified angle.
+     *
+     * @tparam T The type of elements in the matrix.
+     * @param angle The angle of rotation in radians.
+     * @return A 2x2 rotation matrix.
+     */
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
+    static inline constexpr type make_rotation(T angle)
+    {
+        const T cosa = math::cos(angle);
+        const T sina = math::sin(angle);
+
+        return type(cosa, sina, -sina, cosa);
+    }
+
+    /**
+     * @brief Retrieves the rotation angle from a 2x2 rotation matrix.
+     *
+     * This function calculates and returns the rotation angle represented by
+     * the given 2x2 rotation matrix.
+     *
+     * @tparam T The type of elements in the matrix.
+     * @param m The 2x2 rotation matrix.
+     * @return The rotation angle in radians.
+     */
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
+    static inline constexpr T get_rotation(const type& m)
+    {
+        return math::atan2(m.columns[0].y, m.columns[0].x);
+    }
+
+    // =============== scale ===============
+
+    /**
+     * @brief Creates a 2x2 scaling matrix.
+     *
+     * This function generates a 2x2 scaling matrix with the specified scaling factors.
+     *
+     * @tparam T The type of elements in the matrix.
+     * @param scale A 2D vector representing the scaling factors along the x and y axes.
+     * @return A 2x2 scaling matrix.
+     */
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
+    static inline constexpr type make_scale(const vec<2, T>& scale)
+    {
+        return type(
+            scale.x, static_cast<T>(0),
+            static_cast<T>(0), scale.y
+        );
+    }
+
+    /**
+     * @brief Retrieves the scaling factors from a 2x2 scaling matrix.
+     *
+     * This function calculates and returns the scaling factors represented by
+     * the given 2x2 scaling matrix.
+     *
+     * @tparam T The type of elements in the matrix.
+     * @param m The 2x2 scaling matrix.
+     * @return A 2D vector representing the scaling factors along the x and y axes.
+     */
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
+    static inline constexpr vec<2, T> get_scale(const type& m)
+    {
+        return vec<2, T>(
+            math::length(m.columns[0]),
+            math::length(m.columns[1])
+        );
     }
 
     // =============== constants ===============

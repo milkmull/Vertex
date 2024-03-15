@@ -44,25 +44,6 @@ inline constexpr T normalized_dot(
     return dot(normalize(q1), normalize(q2));
 }
 
-// =============== scale ===============
-
-/**
- * @brief Scales a quaternion by a scalar value.
- *
- * @tparam T Type of the quaternion components.
- * @param q The quaternion to be scaled.
- * @param scaler The scalar value to scale the quaternion by.
- * @return The scaled quaternion.
- */
-template <typename T>
-inline constexpr quat_t<T> scale(
-    const quat_t<T>& q,
-    T scaler
-)
-{
-    return q * scaler;
-}
-
 // =============== length ===============
 
 /**
@@ -202,7 +183,7 @@ static inline constexpr T signed_angle(
 template <typename T>
 inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 {
-    return q.conjugate();
+    return quat_t<T>(q.w, -q.x, -q.y, -q.z);
 }
 
 // =============== invert ===============
@@ -217,7 +198,7 @@ inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
 template <typename T>
 inline constexpr quat_t<T> invert(const quat_t<T>& q)
 {
-    return q.invert();
+    return conjugate(q) / magnitude_squared(q);
 }
 
 }

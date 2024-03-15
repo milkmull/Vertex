@@ -28,11 +28,6 @@ struct color_t
 
     static inline constexpr size_t size() noexcept { return static_cast<size_t>(4); }
 
-    using iterator = ::vx::tools::iterator<T>;
-    using const_iterator = ::vx::tools::iterator<const T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-
     using rgb_type = vec<3, typename std::conditional<std::is_integral<T>::value && (sizeof(value_type) <= sizeof(uint16_t)), uint32_t, value_type>::type>;
 
     static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
@@ -675,77 +670,6 @@ struct color_t
         b >>= c.b;
         a >>= c.a;
         return *this;
-    }
-
-    // =============== iterator ===============
-
-    inline constexpr iterator begin() noexcept
-    {
-        return iterator(&r);
-    }
-
-    inline constexpr const_iterator begin() const noexcept
-    {
-        return cbegin();
-    }
-
-    inline constexpr iterator end() noexcept
-    {
-        return iterator(&a + 1);
-    }
-
-    inline constexpr const_iterator end() const noexcept
-    {
-        return cend();
-    }
-
-    inline constexpr const_iterator cbegin() const noexcept
-    {
-        return const_iterator(&r);
-    }
-
-    inline constexpr const_iterator cend() const noexcept
-    {
-        return const_iterator(&a + 1);
-    }
-
-    inline constexpr reverse_iterator rbegin() noexcept
-    {
-        return reverse_iterator(&a + 1);
-    }
-
-    inline constexpr const_reverse_iterator rbegin() const noexcept
-    {
-        return crbegin();
-    }
-
-    inline constexpr reverse_iterator rend() noexcept
-    {
-        return reverse_iterator(&r);
-    }
-
-    inline constexpr const_reverse_iterator rend() const noexcept
-    {
-        return crend();
-    }
-
-    inline constexpr const_reverse_iterator crbegin() const noexcept
-    {
-        return const_reverse_iterator(&a + 1);
-    }
-
-    inline constexpr const_reverse_iterator crend() const noexcept
-    {
-        return const_reverse_iterator(&r);
-    }
-
-    // =============== string ===============
-
-    inline constexpr std::string to_string() const
-    {
-        std::ostringstream oss;
-        oss << "rgba(" << +r << ", " << +g << ", " << +b << ", " << +a << ")";
-        return oss.str();
     }
 
     // =============== comparison and testing ===============

@@ -1,9 +1,12 @@
 #pragma once
 
-#include <sstream>
+#include <cassert>
 
-#include "../../math.h"
-#include "vertex/tools/iter/iterator.h"
+#include "../../../detail/setup.h"
+#include "../../detail/type_traits.h"
+
+#include "../../fn/vec_fn_geometric.h"
+#include "../../fn/quat_fn_geometric.h"
 
 namespace vx {
 namespace math {
@@ -23,15 +26,10 @@ struct quat_t
 
     // =============== meta ===============
 
-    using value_type = T;
+    using scaler_type = T;
     using type = quat_t<T>;
 
     static inline constexpr size_t size() noexcept { return static_cast<size_t>(4); }
-
-    using iterator = ::vx::tools::iterator<T>;
-    using const_iterator = ::vx::tools::iterator<const T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // =============== data ===============
 
@@ -60,8 +58,8 @@ struct quat_t
 
     // =============== conversion constructors ===============
     
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    inline constexpr quat_t(U w, const vec<3, U>& v)
+    template <typename W, typename XYZ, typename std::enable_if<std::is_arithmetic<W>::value, bool>::type = true>
+    inline constexpr quat_t(W w, const vec<3, XYZ>& v)
         : w(static_cast<T>(w))
         , x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
@@ -107,6 +105,8 @@ struct quat_t
         return *this;
     }
 
+    inline constexpr type& operator=(type&&) noexcept = default;
+
     template <typename U>
     inline constexpr type& operator=(const quat_t<U>& q)
     {
@@ -116,8 +116,6 @@ struct quat_t
         z = static_cast<T>(q.z);
         return *this;
     }
-
-    inline constexpr type& operator=(type&&) noexcept = default;
 
     // =============== accessors ===============
 
@@ -131,6 +129,19 @@ struct quat_t
     {
         assert(i < 4);
         return (&w)[i];
+    }
+
+    // =============== conversion operators ===============
+
+    template <typename U, typename std::enable_if<type_traits::is_floating_point<U>::value, bool>::type = true>
+    inline constexpr explicit operator vec<4, U>() const
+    {
+        return vec<4, U>(
+            static_cast<U>(x),
+            static_cast<U>(y),
+            static_cast<U>(z),
+            static_cast<U>(w)
+        );
     }
 
     // =============== boolean operators ===============
@@ -234,7 +245,7 @@ struct quat_t
     
     friend inline constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
     {
-        return q.invert() * v;
+        return math::invert(*this) * v;
     }
 
     // division (/)
@@ -246,12 +257,12 @@ struct quat_t
 
     friend inline constexpr type operator/(T scaler, const type& q)
     {
-        return scaler * q.invert();
+        return scaler * math::invert(*this);
     }
 
     friend inline constexpr type operator/(const type& q1, const type& q2)
     {
-        return q1 * q2.invert();
+        return q1 * math::invert(*this);
     }
 
     // =============== unary arithmetic operators ===============
@@ -291,7 +302,8 @@ struct quat_t
 
     inline constexpr type& operator*=(const type& q)
     {
-        return ((*this) = (*this) * q);
+        (*this) = (*this) * q;
+        return *this;
     }
 
     // division (/=)
@@ -307,109 +319,11 @@ struct quat_t
 
     inline constexpr type& operator/=(const type& q)
     {
-        return ((*this) = (*this) / q);
-    }
-
-    // =============== iterator ===============
-
-    inline constexpr iterator begin() noexcept
-    {
-        return iterator(&w);
-    }
-
-    inline constexpr const_iterator begin() const noexcept
-    {
-        return cbegin();
-    }
-
-    inline constexpr iterator end() noexcept
-    {
-        return iterator(&z + 1);
-    }
-
-    inline constexpr const_iterator end() const noexcept
-    {
-        return cend();
-    }
-
-    inline constexpr const_iterator cbegin() const noexcept
-    {
-        return const_iterator(&w);
-    }
-
-    inline constexpr const_iterator cend() const noexcept
-    {
-        return const_iterator(&z + 1);
-    }
-
-    inline constexpr reverse_iterator rbegin() noexcept
-    {
-        return reverse_iterator(&z + 1);
-    }
-
-    inline constexpr const_reverse_iterator rbegin() const noexcept
-    {
-        return crbegin();
-    }
-
-    inline constexpr reverse_iterator rend() noexcept
-    {
-        return reverse_iterator(&w);
-    }
-
-    inline constexpr const_reverse_iterator rend() const noexcept
-    {
-        return crend();
-    }
-
-    inline constexpr const_reverse_iterator crbegin() const noexcept
-    {
-        return const_reverse_iterator(&z + 1);
-    }
-
-    inline constexpr const_reverse_iterator crend() const noexcept
-    {
-        return const_reverse_iterator(&w);
-    }
-
-    // =============== string ===============
-
-    inline constexpr std::string to_string() const
-    {
-        std::ostringstream oss;
-        oss << "{ " << +w << ", " << +x << ", " << +y << ", " << +z << " }";
-        return oss.str();
+        (*this) = (*this) / q;
+        return *this;
     }
 
     // =============== operations ===============
-
-    /**
-     * @brief Calculates the conjugate of this quaternion.
-     *
-     * The conjugate of a quaternion is obtained by negating
-     * its vector part while keeping the scalar part unchanged.
-     *
-     * @return The conjugate of this quaternion.
-     */
-    inline constexpr type conjugate() const
-    {
-        return type(w, -x, -y, -z);
-    }
-
-    /**
-     * @brief Calculates the inverse of this quaternion.
-     *
-     * The inverse of a quaternion is obtained by taking its conjugate
-     * and dividing each component by the square of its magnitude.
-     * If the quaternion represents a unit rotation, its inverse
-     * represents the rotation in the opposite direction.
-     *
-     * @return The inverse of this quaternion.
-     */
-    inline constexpr type invert() const
-    {
-        return conjugate() / magnitude_squared();
-    }
 
     /**
      * @brief Extracts the vector part of this quaternion.
@@ -421,62 +335,6 @@ struct quat_t
      * @return The vector part of this quaternion.
      */
     inline constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
-
-    // =============== comparison and testing ===============
-
-    /**
-     * @brief Get the minimum component value of the quaternion.
-     *
-     * @return The minimum component value.
-     */
-    inline constexpr T min() const { return math::min({ w, x, y, z }); }
-
-    /**
-     * @brief Get the maximum component value of the quaternion.
-     *
-     * @return The maximum component value.
-     */
-    inline constexpr T max() const { return math::max({ w, x, y, z }); }
-
-    // =============== magnitude ===============
-
-    /**
-     * @brief Calculates the squared magnitude of the quaternion.
-     *
-     * @return The squared length of the quaternion.
-     */
-    inline constexpr T magnitude_squared() const
-    {
-        return (w * w) + (x * x) + (y * y) + (z * z);
-    }
-
-    /**
-     * @brief Calculates the magnitude of the quaternion.
-     *
-     * @return The magnitude of the quaternion.
-     */
-    inline constexpr T magnitude() const
-    {
-        return math::sqrt(magnitude_squared());
-    }
-
-    /**
-     * @brief Normalizes the quaternion.
-     *
-     * @return The normalized quaternion. If the length of the quaternion is 0,
-     * a zero quaternion will be returned.
-     */
-    inline constexpr type normalize() const
-    {
-        const T magsq = magnitude_squared();
-
-        if VX_UNLIKELY(magsq < math::epsilon<T>)
-        {
-            return quat_t<T>();
-        }
-
-        return (*this) * math::inverse_sqrt(magsq);
-    }
 
     // =============== direction and orientation ===============
 
@@ -566,7 +424,7 @@ struct quat_t
      */
     inline constexpr vec<3, T> axis() const
     {
-        const T nw = normalize().w;
+        const T nw = math::normalize(*this).w;
         const T s2 = static_cast<T>(1) - (nw * nw);
 
         if (s2 < math::epsilon<T>)
@@ -591,7 +449,7 @@ struct quat_t
      */
     inline constexpr T angle() const
     {
-        return static_cast<T>(2) * math::acos_clamped(normalize().w);
+        return static_cast<T>(2) * math::acos_clamped(math::normalize(*this).w);
     }
 
     // =============== euler angles ===============
@@ -642,7 +500,7 @@ struct quat_t
      */
     inline constexpr vec<3, T> to_euler_angles() const
     {
-        const type qn = normalize();
+        const type qn = math::normalize(*this);
 
         const T qxy = qn.x * qn.y;
         const T qwz = qn.w * qn.z;
@@ -753,7 +611,7 @@ struct quat_t
      */
     inline constexpr mat<3, 3, T> to_mat3() const
     {
-        const type qn = normalize();
+        const type qn = math::normalize(*this);
 
         const T qxx = qn.x * qn.x;
         const T qyy = qn.y * qn.y;
@@ -860,8 +718,8 @@ struct quat_t
 
     // =============== constants ===============
 
-    static inline constexpr type IDENTITY() { return type(1, 0, 0, 0); }
-    static inline constexpr type ZERO() { return type(0, 0, 0, 0); }
+    static inline constexpr type IDENTITY() { return type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static inline constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
 
 };
 
