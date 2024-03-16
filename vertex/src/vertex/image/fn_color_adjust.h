@@ -46,7 +46,7 @@ inline void invert(image& img)
  * @param color2 The color to replace with.
  * @param epsilon The threshold for color comparison.
  */
-inline void replace_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>)
+inline void replace_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>())
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -68,7 +68,7 @@ inline void replace_color(image& img, const math::color& color1, const math::col
  * @param color2 The second color to be swapped.
  * @param epsilon The threshold for color comparison.
  */
-inline void swap_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>)
+inline void swap_color(image& img, const math::color& color1, const math::color& color2, float epsilon = math::epsilon<float>())
 {
     for (size_t y = 0; y < img.height(); ++y)
     {
@@ -93,7 +93,7 @@ inline void swap_color(image& img, const math::color& color1, const math::color&
  * @param color The color to be keyed out.
  * @param threshold The threshold for color comparison.
  */
-inline void key(image& img, const math::color& color, float threshold = math::epsilon<float>)
+inline void key(image& img, const math::color& color, float threshold = math::epsilon<float>())
 {
     for (size_t y = 0; y < img.height(); ++y)
     {

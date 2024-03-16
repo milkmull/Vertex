@@ -20,7 +20,7 @@ namespace math {
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T radians(T deg)
 {
-    constexpr T r = math::two_pi<T> / static_cast<T>(360);
+    constexpr T r = math::two_pi<T>() / static_cast<T>(360);
     return deg * r;
 }
 
@@ -44,7 +44,7 @@ inline constexpr auto radians(T deg)
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T degrees(T rad)
 {
-    constexpr T r = static_cast<T>(360) / math::two_pi<T>;
+    constexpr T r = static_cast<T>(360) / math::two_pi<T>();
     return rad * r;
 }
 

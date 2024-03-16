@@ -103,13 +103,13 @@ inline constexpr bool is_nan(T x)
  * @return True if the absolute value of x is less than epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>())
 {
     return ((x < static_cast<T>(0)) ? -x : x) < epsilon;
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>())
 {
     return x == static_cast<T>(0);
 }
@@ -128,13 +128,13 @@ inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>)
  * @return True if the absolute difference between a and b is less than epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return is_zero_approx(a - b, epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a == b;
 }
@@ -153,13 +153,13 @@ inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<
  * @return True if the absolute difference between a and b is greater than or equal to epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return !is_zero_approx(a - b, epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a != b;
 }
@@ -178,13 +178,13 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
  * @return True if a is greater than (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a > (b + epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a > b;
 }
@@ -203,13 +203,13 @@ inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::e
  * @return True if a is greater than or equal to (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a > (b - epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a >= b;
 }
@@ -228,13 +228,13 @@ inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = m
  * @return True if a is less than (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a < (b - epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a < b;
 }
@@ -253,13 +253,13 @@ inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsi
  * @return True if a is less than or equal to (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a < (b + epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>())
 {
     return a <= b;
 }

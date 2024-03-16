@@ -33,7 +33,7 @@ inline constexpr bool is_nan(const quat_t<T>& x)
 template <typename T>
 inline constexpr bool is_zero_approx(
     const quat_t<T>& x,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(x.w, epsilon)
@@ -48,7 +48,7 @@ template <typename T>
 inline constexpr bool is_equal_approx(
     const quat_t<T>& a,
     const quat_t<T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(a.w, b.w, epsilon)
@@ -63,7 +63,7 @@ template <typename T>
 inline constexpr bool is_not_equal_approx(
     const quat_t<T>& a,
     const quat_t<T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_not_equal_approx(a.w, b.w, epsilon)

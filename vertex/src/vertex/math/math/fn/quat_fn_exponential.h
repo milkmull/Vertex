@@ -34,7 +34,7 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
 
-    if (vmag < math::epsilon<T>)
+    if (vmag < math::epsilon<T>())
     {
         // if q only has a real part, calculate the real part of the result
         if (q.w > static_cast<T>(0))
@@ -43,7 +43,7 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
         }
         if (q.w < static_cast<T>(0))
         {
-            return quat_t<T>(math::pow(-q.w, x) * math::cos(x * math::pi<T>), 0, 0, 0);
+            return quat_t<T>(math::pow(-q.w, x) * math::cos(x * math::pi<T>()), 0, 0, 0);
         }
 
         // 0 ^ n
@@ -94,7 +94,7 @@ inline constexpr quat_t<T> exp(const quat_t<T>& q)
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
 
-    if (vmag < math::epsilon<T>)
+    if (vmag < math::epsilon<T>())
     {
         // if q only has a positive real part, take the exp like a real number
         return quat_t<T>(math::exp(q.w), 0, 0, 0);
@@ -130,7 +130,7 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
 
-    if (vmag < math::epsilon<T>)
+    if (vmag < math::epsilon<T>())
     {
         if (q.w > static_cast<T>(0))
         {
@@ -142,7 +142,7 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
             // taking the log of a negative number is defined as:
             // ln(-a) = ln|a| + pi
             // where ln|a| is the real part and pi is the imaginary part
-            return quat_t<T>(math::log(-q.w), math::pi<T>, 0, 0);
+            return quat_t<T>(math::log(-q.w), math::pi<T>(), 0, 0);
         }
 
         // log(0) is undefined

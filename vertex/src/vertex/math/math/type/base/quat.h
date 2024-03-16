@@ -355,7 +355,7 @@ struct quat_t
 
         const T cosa = math::dot(fn, tn);
 
-        if (cosa > static_cast<T>(1) - math::epsilon<T>)
+        if (cosa > static_cast<T>(1) - math::epsilon<T>())
         {
             // In this case, both vectors are pointing in the
             // same direction. We can return the identity
@@ -365,14 +365,14 @@ struct quat_t
 
         const vec<3, T> axis = math::normalize(math::cross(fn, tn));
 
-        if (cosa < static_cast<T>(-1) + math::epsilon<T>)
+        if (cosa < static_cast<T>(-1) + math::epsilon<T>())
         {
             // In this case, the vectors are pointing in opposite
             // directions. There is no ideal axis to rotate around,
             // so we choose one. In this case we just use the cross
             // product of the 2 input vectors and a rotation angle
             // of pi.
-            return from_axis_angle(axis, math::pi<T>);
+            return from_axis_angle(axis, math::pi<T>());
         }
 
         const T s = math::sqrt((static_cast<T>(1) + cosa) * static_cast<T>(2));
@@ -422,7 +422,7 @@ struct quat_t
         const T nw = math::normalize(*this).w;
         const T s2 = static_cast<T>(1) - (nw * nw);
 
-        if (s2 < math::epsilon<T>)
+        if (s2 < math::epsilon<T>())
         {
             // This indicates that the angle is 0 degrees and thus,
             // the axis does not matter. We choose the +y axis.
@@ -502,7 +502,7 @@ struct quat_t
 
         const T test = qxy + qwz;
 
-        if (test > static_cast<T>(0.5) - math::epsilon<T>)
+        if (test > static_cast<T>(0.5) - math::epsilon<T>())
         {
             // singularity at north pole
             return vec<3, T>(
@@ -511,7 +511,7 @@ struct quat_t
                 static_cast<T>(0)
             );
         }
-        if (test < static_cast<T>(-0.5) + math::epsilon<T>)
+        if (test < static_cast<T>(-0.5) + math::epsilon<T>())
         {
             // singularity at south pole
             return vec<3, T>(

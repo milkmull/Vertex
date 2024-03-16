@@ -306,7 +306,7 @@ inline constexpr vec<4, bool> is_nan(const vec<4, T>& x, vec<4, T>& y)
 template <typename T>
 inline constexpr bool is_zero_approx(
     const vec<2, T>& x,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_zero_approx(x.x, epsilon)
@@ -316,7 +316,7 @@ inline constexpr bool is_zero_approx(
 template <typename T>
 inline constexpr bool is_zero_approx(
     const vec<3, T>& x,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_zero_approx(x.x, epsilon)
@@ -327,7 +327,7 @@ inline constexpr bool is_zero_approx(
 template <typename T>
 inline constexpr bool is_zero_approx(
     const vec<4, T>& x,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_zero_approx(x.x, epsilon)
@@ -342,7 +342,7 @@ template <typename T>
 inline constexpr bool is_equal_approx(
     const vec<2, T>& a,
     const vec<2, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(a.x, b.x, epsilon)
@@ -353,7 +353,7 @@ template <typename T>
 inline constexpr bool is_equal_approx(
     const vec<3, T>& a,
     const vec<3, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(a.x, b.x, epsilon)
@@ -365,7 +365,7 @@ template <typename T>
 inline constexpr bool is_equal_approx(
     const vec<4, T>& a,
     const vec<4, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(a.x, b.x, epsilon)
@@ -380,7 +380,7 @@ template <typename T>
 inline constexpr bool is_not_equal_approx(
     const vec<2, T>& a,
     const vec<2, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_not_equal_approx(a.x, b.x, epsilon)
@@ -391,7 +391,7 @@ template <typename T>
 inline constexpr bool is_not_equal_approx(
     const vec<3, T>& a,
     const vec<3, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_not_equal_approx(a.x, b.x, epsilon)
@@ -403,7 +403,7 @@ template <typename T>
 inline constexpr bool is_not_equal_approx(
     const vec<4, T>& a,
     const vec<4, T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_not_equal_approx(a.x, b.x, epsilon)

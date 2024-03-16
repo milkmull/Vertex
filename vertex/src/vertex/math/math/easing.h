@@ -278,7 +278,7 @@ inline constexpr T ease_in_out_quint(T x)
 template <typename T>
 inline constexpr T ease_in_sine(T x)
 {
-    return static_cast<T>(1) - math::cos((x * math::pi<T>) * static_cast<T>(0.5));
+    return static_cast<T>(1) - math::cos((x * math::pi<T>()) * static_cast<T>(0.5));
 }
 
 /**
@@ -294,7 +294,7 @@ inline constexpr T ease_in_sine(T x)
 template <typename T>
 inline constexpr T ease_out_sine(T x)
 {
-    return math::sin((x * math::pi<T>) * static_cast<T>(0.5));
+    return math::sin((x * math::pi<T>()) * static_cast<T>(0.5));
 }
 
 /**
@@ -311,7 +311,7 @@ inline constexpr T ease_out_sine(T x)
 template <typename T>
 inline constexpr T ease_in_out_sine(T x)
 {
-    return (static_cast<T>(1) - math::cos(math::pi<T> *x)) * static_cast<T>(0.5);
+    return (static_cast<T>(1) - math::cos(math::pi<T>() *x)) * static_cast<T>(0.5);
 }
 
 // =============== expo ===============
@@ -545,7 +545,7 @@ inline constexpr T ease_in_out_back(T x)
 template <typename T>
 inline constexpr T ease_in_elastic(T x)
 {
-    constexpr T c4 = math::two_pi<T> / static_cast<T>(3);
+    constexpr T c4 = math::two_pi<T>() / static_cast<T>(3);
 
     if (x == static_cast<T>(0))
     {
@@ -575,7 +575,7 @@ inline constexpr T ease_in_elastic(T x)
 template <typename T>
 inline constexpr T ease_out_elastic(T x)
 {
-    constexpr T c4 = math::two_pi<T> / static_cast<T>(3);
+    constexpr T c4 = math::two_pi<T>() / static_cast<T>(3);
 
     if (x == static_cast<T>(0))
     {
@@ -606,7 +606,7 @@ inline constexpr T ease_out_elastic(T x)
 template <typename T>
 inline constexpr T ease_in_out_elastic(T x)
 {
-    constexpr T c5 = math::two_pi<T> / static_cast<T>(4.5);
+    constexpr T c5 = math::two_pi<T>() / static_cast<T>(4.5);
 
     if (x == static_cast<T>(0))
     {

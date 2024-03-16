@@ -90,7 +90,7 @@ inline constexpr quat_t<T> normalize(const quat_t<T>& q)
 {
     const T magsq = length_squared(q);
 
-    if VX_UNLIKELY(magsq < math::epsilon<T>)
+    if VX_UNLIKELY(magsq < math::epsilon<T>())
     {
         return quat_t<T>();
     }
@@ -122,11 +122,11 @@ inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
  *
  * @tparam T Type of the quaternion components.
  * @param q The quaternion to be checked.
- * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
+ * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>()).
  * @return True if the quaternion is normalized, false otherwise.
  */
 template <typename T>
-inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::epsilon<T>())
 {
     return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
