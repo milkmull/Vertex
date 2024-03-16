@@ -7,9 +7,8 @@ int main()
 {
     using namespace vx;
 
-    math::quat q;
-
-    math::vec4 v(q);
+    constexpr math::mat3 m(1, 1, 1, 1, 1, 1, 1, 1, 1);
+    constexpr math::mat3 mi = math::invert(m);
 
     return 0;
 }

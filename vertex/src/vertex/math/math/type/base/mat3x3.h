@@ -4,6 +4,7 @@
 
 #include "../../../detail/setup.h"
 #include "../../detail/type_traits.h"
+#include "../../fn/mat_fn_operations.h"
 #include "../../fn/vec_fn_geometric.h"
 
 namespace vx {

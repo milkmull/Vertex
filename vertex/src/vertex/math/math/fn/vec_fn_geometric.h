@@ -18,33 +18,30 @@ namespace math {
  * @return The dot product of v and u.
  */
 template <typename T>
-inline constexpr auto dot(
+inline constexpr T dot(
     const vec<2, T>& v,
     const vec<2, T>& u
 )
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return static_cast<FT>((v.x * u.x) + (v.y * u.y));
+    return (v.x * u.x) + (v.y * u.y);
 }
 
 template <typename T>
-inline constexpr auto dot(
+inline constexpr T dot(
     const vec<3, T>& v,
     const vec<3, T>& u
 )
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return static_cast<FT>((v.x * u.x) + (v.y * u.y) + (v.z * u.z));
+    return (v.x * u.x) + (v.y * u.y) + (v.z * u.z);
 }
 
 template <typename T>
-inline constexpr auto dot(
+inline constexpr T dot(
     const vec<4, T>& v,
     const vec<4, T>& u
 )
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return static_cast<FT>((v.x * u.x) + (v.y * u.y) + (v.z * u.z) + (v.w * u.w));
+    return (v.x * u.x) + (v.y * u.y) + (v.z * u.z) + (v.w * u.w);
 }
 
 /**
@@ -58,7 +55,7 @@ inline constexpr auto dot(
  * @param u The second vector.
  * @return The normalized dot product of v and u.
  */
-template <size_t L, typename T>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr auto normalized_dot(
     const vec<L, T>& v,
     const vec<L, T>& u
@@ -77,14 +74,13 @@ inline constexpr auto normalized_dot(
  * @param u The second vector.
  * @return The cross product of v and u.
  */
-template <typename T>
-inline constexpr auto cross(
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T cross(
     const vec<2, T>& v,
     const vec<2, T>& u
 )
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return static_cast<FT>((v.x * u.y) - (v.y * u.x));
+    return (v.x * u.y) - (v.y * u.x);
 }
 
 /**
@@ -95,63 +91,17 @@ inline constexpr auto cross(
  * @param u The second vector.
  * @return The cross product of v and u.
  */
-template <typename T>
-inline constexpr auto cross(
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr vec<3, T> cross(
     const vec<3, T>& v,
     const vec<3, T>& u
 )
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return vec<3, FT>(
+    return vec<3, T>(
         (v.y * u.z) - (v.z * u.y),
         (v.z * u.x) - (v.x * u.z),
         (v.x * u.y) - (v.y * u.x)
     );
-}
-
-// =============== scale ===============
-
-/**
- * @brief Scales a vector by a scalar value.
- *
- * This function scales each component of the input vector v by the scalar value scaler.
- *
- * @tparam L The dimensionality of the vector.
- * @tparam T The data type of the components of the vector.
- * @tparam U The data type of the scalar value.
- * @param v The vector to be scaled.
- * @param scaler The scalar value by which to scale the vector.
- * @return The result of scaling the vector by the scalar value.
- */
-template <size_t L, typename T, typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-inline constexpr vec<L, T> scale(
-    const vec<L, T>& v,
-    U scaler
-)
-{
-    return vec<L, T>(v) *= scaler;
-}
-
-/**
- * @brief Scales a vector by another vector component-wise.
- *
- * This function scales each component of the input vector v by the corresponding component
- * of the input vector scaler.
- *
- * @tparam L The dimensionality of the vectors.
- * @tparam T The data type of the components of the input vector v.
- * @tparam U The data type of the components of the input vector scaler.
- * @param v The vector to be scaled.
- * @param scaler The vector containing scaling factors for each component of v.
- * @return The result of scaling the vector v by the components of the vector scaler.
- */
-template <size_t L, typename T, typename U>
-inline constexpr vec<L, T> scale(
-    const vec<L, T>& v,
-    const vec<L, U>& scaler
-)
-{
-    return vec<L, U>(v) *= scaler;
 }
 
 // =============== length ===============
@@ -164,8 +114,8 @@ inline constexpr vec<L, T> scale(
  * @param v The vector.
  * @return The squared length of v.
  */
-template <size_t L, typename T>
-inline constexpr auto length_squared(const vec<L, T>& v)
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T length_squared(const vec<L, T>& v)
 {
     return dot(v, v);
 }
@@ -178,8 +128,8 @@ inline constexpr auto length_squared(const vec<L, T>& v)
  * @param v The vector.
  * @return The length of v.
  */
-template <size_t L, typename T>
-inline constexpr auto length(const vec<L, T>& v)
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T length(const vec<L, T>& v)
 {
     return sqrt(length_squared(v));
 }
@@ -197,8 +147,8 @@ inline constexpr auto length(const vec<L, T>& v)
  * @param p1 The second point.
  * @return The squared distance between p0 and p1.
  */
-template <size_t L, typename T>
-inline constexpr auto distance_squared(
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T distance_squared(
     const vec<L, T>& p0,
     const vec<L, T>& p1
 )
@@ -217,8 +167,8 @@ inline constexpr auto distance_squared(
  * @param p1 The second point.
  * @return The distance between p0 and p1.
  */
-template <size_t L, typename T>
-inline constexpr auto distance(
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T distance(
     const vec<L, T>& p0,
     const vec<L, T>& p1
 )
@@ -254,13 +204,6 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
     return v * inverse_sqrt(magsq);
 }
 
-template <size_t L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto normalize(const vec<L, T>& v)
-{
-    using FT = typename detail::to_float_type<T>::type;
-    return normalize(vec<L, FT>(v));
-}
-
 /**
  * @brief Fast normalization of a vector.
  *
@@ -278,13 +221,6 @@ inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
     return v * inverse_sqrt(length_squared(v));
 }
 
-template <size_t L, typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto fast_normalize(const vec<L, T>& v)
-{
-    using FT = typename detail::to_float_type<T>::type;
-    return fast_normalize(vec<L, FT>(v));
-}
-
 /**
  * @brief Checks if a vector is normalized.
  *
@@ -297,7 +233,7 @@ inline constexpr auto fast_normalize(const vec<L, T>& v)
  * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
  * @return True if the vector is normalized, false otherwise.
  */
-template <size_t L, typename T>
+template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
