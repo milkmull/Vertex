@@ -27,8 +27,7 @@ inline constexpr T radians(T deg)
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr auto radians(T deg)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return radians(static_cast<FT>(deg));
+    return radians(static_cast<double>(deg));
 }
 
 // =============== degrees ===============
@@ -52,8 +51,7 @@ inline constexpr T degrees(T rad)
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr auto degrees(T rad)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return degrees(static_cast<FT>(rad));
+    return degrees(static_cast<double>(rad));
 }
 
 // =============== sin ===============
@@ -210,8 +208,7 @@ inline constexpr T atan2(T y, T x)
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 inline constexpr auto atan2(T y, T x)
 {
-    using FT = typename detail::to_float_type<T>::type;
-    return std::atan2(static_cast<FT>(y), static_cast<FT>(x));
+    return std::atan2(static_cast<double>(y), static_cast<double>(x));
 }
 
 // =============== sinh ===============
