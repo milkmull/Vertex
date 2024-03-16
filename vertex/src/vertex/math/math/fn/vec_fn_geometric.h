@@ -67,6 +67,14 @@ inline constexpr auto normalized_dot(
 
 // =============== cross ===============
 
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+static inline constexpr vec<2, T> orthogonal(const vec<2, T>& v)
+{
+    return vec<2, T>(-v.y, v.x);
+}
+
+// =============== cross ===============
+
 /**
  * @brief Computes the cross product of two 2D vectors.
  *
@@ -280,6 +288,12 @@ inline constexpr vec<L, T> clamp_magnitude(
 }
 
 // =============== angle ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+static inline constexpr T angle(const vec<2, T>& v)
+{
+    return math::atan2(v.y, v.x);
+}
 
 /**
  * @brief Computes the angle between two vectors.

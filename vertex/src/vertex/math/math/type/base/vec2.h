@@ -4,6 +4,7 @@
 
 #include "../../../detail/setup.h"
 #include "../../detail/type_traits.h"
+#include "../../fn/fn_trigonometric.h"
 
 namespace vx {
 namespace math {
@@ -637,6 +638,14 @@ struct vec<2, T>
     inline constexpr type operator!() const
     {
         return type(!x, !y);
+    }
+
+    // =============== static constructors ===============
+
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
+    static inline constexpr type from_angle(T angle)
+    {
+        return type(math::cos(angle), math::sin(angle));
     }
 
     // =============== constants ===============
