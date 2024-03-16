@@ -263,5 +263,186 @@ inline constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
     );
 }
 
+// =============== component multiplication ===============
+
+/**
+ * @brief Performs component-wise multiplication of two matrices of size 2xN.
+ *
+ * This function computes the component-wise multiplication of two matrices and returns the result.
+ *
+ * @tparam N The number of columns in the matrices.
+ * @tparam T The data type of the matrix elements.
+ * @param x The first matrix operand.
+ * @param y The second matrix operand.
+ * @return The resulting matrix after component-wise multiplication.
+ */
+template <size_t N, typename T>
+inline constexpr mat<2, N, T> matrix_comp_mult(
+    const mat<2, N, T>& x,
+    const mat<2, N, T>& y
+)
+{
+    return mat<2, N, T>(
+        x.colums[0] * y.columns[0],
+        x.colums[1] * y.columns[1]
+    );
+}
+
+template <size_t N, typename T>
+inline constexpr mat<3, N, T> matrix_comp_mult(
+    const mat<3, N, T>& x,
+    const mat<3, N, T>& y
+)
+{
+    return mat<3, N, T>(
+        x.colums[0] * y.columns[0],
+        x.colums[1] * y.columns[1],
+        x.colums[2] * y.columns[2]
+    );
+}
+
+template <size_t N, typename T>
+inline constexpr mat<4, N, T> matrix_comp_mult(
+    const mat<4, N, T>& x,
+    const mat<4, N, T>& y
+)
+{
+    return mat<4, N, T>(
+        x.colums[0] * y.columns[0],
+        x.colums[1] * y.columns[1],
+        x.colums[2] * y.columns[2],
+        x.colums[3] * y.columns[3]
+    );
+}
+
+// =============== outer product ===============
+
+/**
+ * @brief Computes the outer product of two vectors.
+ *
+ * This function computes the outer product of two vectors and returns the resulting matrix.
+ *
+ * @tparam T The data type of the vector elements.
+ * @param c The first vector operand (column vector).
+ * @param r The second vector operand (row vector).
+ * @return The resulting matrix after computing the outer product.
+ */
+template <typename T>
+inline constexpr mat<2, 2, T> outer_product(
+    const vec<2, T>& c,
+    const vec<2, T>& r
+)
+{
+    return mat<2, 2, T>(
+        c.x * r.x, c.y * r.x,
+        c.x * r.y, c.y * r.y
+    );
+}
+
+template <typename T>
+inline constexpr mat<2, 3, T> outer_product(
+    const vec<3, T>& c,
+    const vec<2, T>& r
+)
+{
+    return mat<2, 3, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y
+    );
+}
+
+template <typename T>
+inline constexpr mat<2, 4, T> outer_product(
+    const vec<4, T>& c,
+    const vec<2, T>& r
+)
+{
+    return mat<2, 4, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x, c.w * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y, c.w * r.y
+    );
+}
+
+template <typename T>
+inline constexpr mat<3, 2, T> outer_product(
+    const vec<2, T>& c,
+    const vec<3, T>& r
+)
+{
+    return mat<3, 2, T>(
+        c.x * r.x, c.y * r.x,
+        c.x * r.y, c.y * r.y,
+        c.x * r.z, c.y * r.z
+    );
+}
+
+template <typename T>
+inline constexpr mat<3, 3, T> outer_product(
+    const vec<3, T>& c,
+    const vec<3, T>& r
+)
+{
+    return mat<3, 3, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y,
+        c.x * r.z, c.y * r.z, c.z * r.z
+    );
+}
+
+template <typename T>
+inline constexpr mat<3, 4, T> outer_product(
+    const vec<4, T>& c,
+    const vec<3, T>& r
+)
+{
+    return mat<3, 4, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x, c.w * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y, c.w * r.y,
+        c.x * r.z, c.y * r.z, c.z * r.z, c.w * r.z
+    );
+}
+
+template <typename T>
+inline constexpr mat<4, 2, T> outer_product(
+    const vec<2, T>& c,
+    const vec<4, T>& r
+)
+{
+    return mat<4, 2, T>(
+        c.x * r.x, c.y * r.x,
+        c.x * r.y, c.y * r.y,
+        c.x * r.z, c.y * r.z,
+        c.x * r.w, c.y * r.w
+    );
+}
+
+template <typename T>
+inline constexpr mat<4, 3, T> outer_product(
+    const vec<3, T>& c,
+    const vec<4, T>& r
+)
+{
+    return mat<4, 3, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y,
+        c.x * r.z, c.y * r.z, c.z * r.z,
+        c.x * r.w, c.y * r.w, c.z * r.w
+    );
+}
+
+template <typename T>
+inline constexpr mat<4, 4, T> outer_product(
+    const vec<4, T>& c,
+    const vec<4, T>& r
+)
+{
+    return mat<4, 4, T>(
+        c.x * r.x, c.y * r.x, c.z * r.x, c.w * r.x,
+        c.x * r.y, c.y * r.y, c.z * r.y, c.w * r.y,
+        c.x * r.z, c.y * r.z, c.z * r.z, c.w * r.z,
+        c.x * r.w, c.y * r.w, c.z * r.w, c.w * r.w
+    );
+}
+
 }
 }
