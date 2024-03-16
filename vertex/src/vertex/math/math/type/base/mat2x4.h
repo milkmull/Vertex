@@ -76,8 +76,8 @@ struct mat<2, 4, T>
         std::is_arithmetic<Z2>::value &&
         std::is_arithmetic<W2>::value, bool>::type = true>
     inline constexpr mat(
-        X1 x1, Y1 y1, W1 w1,
-        X2 x2, Y2 y2, W2 w2
+        X1 x1, Y1 y1, Z1 z1, W1 w1,
+        X2 x2, Y2 y2, Z2 z2, W2 w2
     )
         : columns{ col_type(static_cast<T>(x1), static_cast<T>(y1), static_cast<T>(z1), static_cast<T>(w1)),
                    col_type(static_cast<T>(x2), static_cast<T>(y2), static_cast<T>(z2), static_cast<T>(w2)) } {}
