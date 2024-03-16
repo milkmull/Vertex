@@ -262,7 +262,7 @@ struct quat_t
 
     friend inline constexpr type operator/(const type& q1, const type& q2)
     {
-        return q1 * math::invert(q);
+        return q1 * math::invert(q2);
     }
 
     // =============== unary arithmetic operators ===============
