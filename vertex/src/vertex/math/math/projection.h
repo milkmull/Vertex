@@ -1,6 +1,7 @@
 #pragma once
 
-#include "math.h"
+#include "fn/fn_comparison.h"
+#include "fn/fn_trigonometric.h"
 
 namespace vx {
 namespace math {
