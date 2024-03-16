@@ -436,7 +436,7 @@ struct vec<4, T>
 
     // addition (+=)
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator+=(T scaler)
     {
         x += scaler;
@@ -446,7 +446,7 @@ struct vec<4, T>
         return *this;
     }
 
-    template <typename T>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator+=(const type& v)
     {
         x += v.x;
@@ -458,7 +458,7 @@ struct vec<4, T>
 
     // subtraction (-=)
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator-=(T scaler)
     {
         x -= scaler;
@@ -468,7 +468,7 @@ struct vec<4, T>
         return *this;
     }
 
-    template <typename T>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator-=(const type& v)
     {
         x -= v.x;
@@ -480,7 +480,7 @@ struct vec<4, T>
 
     // multiplication (*=)
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator*=(T scaler)
     {
         x *= scaler;
@@ -490,7 +490,7 @@ struct vec<4, T>
         return *this;
     }
 
-    template <typename T>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator*=(const type& v)
     {
         x *= v.x;
@@ -516,7 +516,7 @@ struct vec<4, T>
 
     // division (/=)
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator/=(T scaler)
     {
         x /= scaler;
@@ -526,7 +526,7 @@ struct vec<4, T>
         return *this;
     }
 
-    template <typename T>
+    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<T>::value, bool>::type = true>
     inline constexpr type& operator/=(const type& v)
     {
         x /= v.x;

@@ -128,7 +128,7 @@ struct vec<3, T>
 
     friend inline constexpr bool operator==(const type& v1, const type& v2)
     {
-        return v1.x == v.x && v1.y == v.y && v1.z == v.z;
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
     }
 
     friend inline constexpr bool operator!=(const type& v1, const type& v2)
@@ -501,7 +501,7 @@ struct vec<3, T>
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<T>::value, bool>::type = true>
     inline constexpr type& operator/=(const mat<3, 3, T>& m)
     {
-        v = v / m;
+        (*this) = (*this) / m;
         return *this;
     }
 

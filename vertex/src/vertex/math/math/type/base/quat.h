@@ -245,7 +245,7 @@ struct quat_t
     
     friend inline constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
     {
-        return math::invert(*this) * v;
+        return math::invert(q) * v;
     }
 
     // division (/)
@@ -257,12 +257,12 @@ struct quat_t
 
     friend inline constexpr type operator/(T scaler, const type& q)
     {
-        return scaler * math::invert(*this);
+        return scaler * math::invert(q);
     }
 
     friend inline constexpr type operator/(const type& q1, const type& q2)
     {
-        return q1 * math::invert(*this);
+        return q1 * math::invert(q);
     }
 
     // =============== unary arithmetic operators ===============
