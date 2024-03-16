@@ -9,14 +9,7 @@ namespace math {
 
 // =============== bit_count ===============
 
-template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
-inline constexpr T bit_count(T x)
-{
-    using U = typename std::make_unsigned<T>::type;
-    return static_cast<T>(bit_count(static_cast<U>(x)));
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T bit_count(T x)
 {
     T count = 0;
@@ -29,16 +22,16 @@ inline constexpr T bit_count(T x)
     return count;
 }
 
-// =============== find_lsb ===============
-
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
-inline constexpr T find_lsb(T x)
+inline constexpr T bit_count(T x)
 {
     using U = typename std::make_unsigned<T>::type;
-    return static_cast<T>(find_lsb(static_cast<U>(x)));
+    return static_cast<T>(bit_count(static_cast<U>(x)));
 }
 
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+// =============== find_lsb ===============
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T find_lsb(T x)
 {
     if (x == static_cast<T>(0))
@@ -56,26 +49,16 @@ inline constexpr T find_lsb(T x)
     return index;
 }
 
+template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
+inline constexpr T find_lsb(T x)
+{
+    using U = typename std::make_unsigned<T>::type;
+    return static_cast<T>(find_lsb(static_cast<U>(x)));
+}
+
 // =============== find_msb ===============
 
 // https://registry.khronos.org/OpenGL-Refpages/gl4/html/findMSB.xhtml
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
-inline constexpr T find_msb(T x)
-{
-    if (x == static_cast<T>(-1))
-    {
-        return static_cast<T>(-1);
-    }
-
-    if (x < static_cast<T>(0))
-    {
-        x = ~x;
-    }
-
-    using U = typename std::make_unsigned<T>::type;
-    return static_cast<T>(find_msb(static_cast<U>(x)));
-}
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T find_msb(T x)
@@ -94,16 +77,26 @@ inline constexpr T find_msb(T x)
     return index;
 }
 
-// =============== reverse_bits ===============
-
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
-inline constexpr T reverse_bits(T x)
+inline constexpr T find_msb(T x)
 {
+    if (x == static_cast<T>(-1))
+    {
+        return static_cast<T>(-1);
+    }
+
+    if (x < static_cast<T>(0))
+    {
+        x = ~x;
+    }
+
     using U = typename std::make_unsigned<T>::type;
-    return static_cast<T>(reverse_bits(static_cast<U>(x)));
+    return static_cast<T>(find_msb(static_cast<U>(x)));
 }
 
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+// =============== reverse_bits ===============
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T reverse_bits(T x)
 {
     T rx = 0;
@@ -116,6 +109,13 @@ inline constexpr T reverse_bits(T x)
     }
 
     return rx;
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value, bool>::type = true>
+inline constexpr T reverse_bits(T x)
+{
+    using U = typename std::make_unsigned<T>::type;
+    return static_cast<T>(reverse_bits(static_cast<U>(x)));
 }
 
 }
