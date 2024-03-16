@@ -2,13 +2,14 @@
 
 #include "vertex/math/math/type/vec4.h"
 #include "vertex/math/math/type/vec4i.h"
+#include "vertex/math/math/fn/fn_bitwise.h"
 
 int main()
 {
     using namespace vx;
 
-    constexpr math::mat3 m(1, 0, 0, 0, 1, 0, 0, 0, 1);
-    constexpr math::mat3 mi = math::invert(m);
+    constexpr int x = 1 << 31;
+    constexpr uint32_t y = math::find_msb(x);
 
     return 0;
 }
