@@ -7,7 +7,7 @@ int main()
 {
     using namespace vx;
 
-    constexpr math::mat3 m(1, 1, 1, 1, 1, 1, 1, 1, 1);
+    constexpr math::mat3 m(1, 0, 0, 0, 1, 0, 0, 0, 1);
     constexpr math::mat3 mi = math::invert(m);
 
     return 0;

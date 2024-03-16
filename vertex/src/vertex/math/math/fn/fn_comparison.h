@@ -6,6 +6,90 @@
 namespace vx {
 namespace math {
 
+// =============== common ===============
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool equal(T x, T y)
+{
+    return x == y;
+}
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool not_equal(T x, T y)
+{
+    return x != y;
+}
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool greater_than(T x, T y)
+{
+    return x > y;
+}
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool greater_than_equal(T x, T y)
+{
+    return x >= y;
+}
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool less_than(T x, T y)
+{
+    return x < y;
+}
+
+template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
+inline constexpr bool less_than_equal(T x, T y)
+{
+    return x <= y;
+}
+
+// =============== is_inf ===============
+
+/**
+ * @brief Checks if a number is infinite.
+ *
+ * This function checks whether the input number is infinite.
+ *
+ * @tparam T Type of the number.
+ * @param x The number to check.
+ * @return True if x is infinite, false otherwise.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_inf(T x)
+{
+    return std::isinf(x);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_inf(T x)
+{
+    return false;
+}
+
+// =============== is_nan ===============
+
+/**
+ * @brief Checks if a number is NaN (Not a Number).
+ *
+ * This function checks whether the input number is NaN (Not a Number).
+ *
+ * @tparam T Type of the number.
+ * @param x The number to check.
+ * @return True if x is NaN, false otherwise.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr bool is_nan(T x)
+{
+    return std::isnan(x);
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+inline constexpr bool is_nan(T x)
+{
+    return false;
+}
+
 // =============== is_zero_approx ===============
 
 /**
@@ -178,75 +262,6 @@ template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>:
 inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a <= b;
-}
-
-// =============== is_finite ===============
-
-/**
- * @brief Checks if a number is finite.
- *
- * This function checks whether the input number is finite, i.e., it is neither infinite nor NaN (Not a Number).
- *
- * @tparam T Type of the number.
- * @param x The number to check.
- * @return True if x is a finite number, false otherwise.
- */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_finite(T x)
-{
-    return std::isfinite(x);
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_finite(T x)
-{
-    return true;
-}
-
-// =============== is_infinite ===============
-
-/**
- * @brief Checks if a number is infinite.
- *
- * This function checks whether the input number is infinite.
- *
- * @tparam T Type of the number.
- * @param x The number to check.
- * @return True if x is infinite, false otherwise.
- */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(T x)
-{
-    return std::isinf(x);
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_infinite(T x)
-{
-    return false;
-}
-
-// =============== is_nan ===============
-
-/**
- * @brief Checks if a number is NaN (Not a Number).
- *
- * This function checks whether the input number is NaN (Not a Number).
- *
- * @tparam T Type of the number.
- * @param x The number to check.
- * @return True if x is NaN, false otherwise.
- */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_nan(T x)
-{
-    return std::isnan(x);
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_nan(T x)
-{
-    return false;
 }
 
 }

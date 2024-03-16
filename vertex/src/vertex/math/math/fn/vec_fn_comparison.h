@@ -5,6 +5,302 @@
 namespace vx {
 namespace math {
 
+// =============== any ===============
+
+template <typename T>
+inline constexpr bool any(const vec<2, T>& x)
+{
+    return x.x || x.y;
+}
+
+template <typename T>
+inline constexpr bool any(const vec<3, T>& x)
+{
+    return x.x || x.y || x.z;
+}
+
+template <typename T>
+inline constexpr bool any(const vec<4, T>& x)
+{
+    return x.x || x.y || x.z || x.w;
+}
+
+// =============== all ===============
+
+template <typename T>
+inline constexpr bool all(const vec<2, T>& x)
+{
+    return x.x && x.y;
+}
+
+template <typename T>
+inline constexpr bool all(const vec<3, T>& x)
+{
+    return x.x && x.y && x.z;
+}
+
+template <typename T>
+inline constexpr bool all(const vec<4, T>& x)
+{
+    return x.x && x.y && x.z && x.w;
+}
+
+// =============== equal ===============
+
+template <typename T>
+inline constexpr vec<2, bool> equal(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        equal(x.x, y.x),
+        equal(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> equal(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        equal(x.x, y.x),
+        equal(x.y, y.y),
+        equal(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> equal(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        equal(x.x, y.x),
+        equal(x.y, y.y),
+        equal(x.z, y.z),
+        equal(x.w, y.w)
+    );
+}
+
+// =============== not_equal ===============
+
+template <typename T>
+inline constexpr vec<2, bool> not_equal(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        not_equal(x.x, y.x),
+        not_equal(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> not_equal(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        not_equal(x.x, y.x),
+        not_equal(x.y, y.y),
+        not_equal(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> not_equal(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        not_equal(x.x, y.x),
+        not_equal(x.y, y.y),
+        not_equal(x.z, y.z),
+        not_equal(x.w, y.w)
+    );
+}
+
+// =============== greater_than ===============
+
+template <typename T>
+inline constexpr vec<2, bool> greater_than(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        greater_than(x.x, y.x),
+        greater_than(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> greater_than(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        greater_than(x.x, y.x),
+        greater_than(x.y, y.y),
+        greater_than(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> greater_than(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        greater_than(x.x, y.x),
+        greater_than(x.y, y.y),
+        greater_than(x.z, y.z),
+        greater_than(x.w, y.w)
+    );
+}
+
+// =============== greater_than_equal ===============
+
+template <typename T>
+inline constexpr vec<2, bool> greater_than_equal(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        greater_than_equal(x.x, y.x),
+        greater_than_equal(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> greater_than_equal(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        greater_than_equal(x.x, y.x),
+        greater_than_equal(x.y, y.y),
+        greater_than_equal(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> greater_than_equal(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        greater_than_equal(x.x, y.x),
+        greater_than_equal(x.y, y.y),
+        greater_than_equal(x.z, y.z),
+        greater_than_equal(x.w, y.w)
+    );
+}
+
+// =============== less_than ===============
+
+template <typename T>
+inline constexpr vec<2, bool> less_than(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        less_than(x.x, y.x),
+        less_than(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> less_than(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        less_than(x.x, y.x),
+        less_than(x.y, y.y),
+        less_than(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> less_than(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        less_than(x.x, y.x),
+        less_than(x.y, y.y),
+        less_than(x.z, y.z),
+        less_than(x.w, y.w)
+    );
+}
+
+// =============== less_than_equal ===============
+
+template <typename T>
+inline constexpr vec<2, bool> less_than_equal(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        less_than_equal(x.x, y.x),
+        less_than_equal(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> less_than_equal(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        less_than_equal(x.x, y.x),
+        less_than_equal(x.y, y.y),
+        less_than_equal(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> less_than_equal(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        less_than_equal(x.x, y.x),
+        less_than_equal(x.y, y.y),
+        less_than_equal(x.z, y.z),
+        less_than_equal(x.w, y.w)
+    );
+}
+
+// =============== is_inf ===============
+
+template <typename T>
+inline constexpr vec<2, bool> is_inf(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        is_inf(x.x, y.x),
+        is_inf(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> is_inf(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        is_inf(x.x, y.x),
+        is_inf(x.y, y.y),
+        is_inf(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> is_inf(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        is_inf(x.x, y.x),
+        is_inf(x.y, y.y),
+        is_inf(x.z, y.z),
+        is_inf(x.w, y.w)
+    );
+}
+
+// =============== is_nan ===============
+
+template <typename T>
+inline constexpr vec<2, bool> is_nan(const vec<2, T>& x, vec<2, T>& y)
+{
+    return vec<2, bool>(
+        is_nan(x.x, y.x),
+        is_nan(x.y, y.y)
+    );
+}
+
+template <typename T>
+inline constexpr vec<3, bool> is_nan(const vec<3, T>& x, vec<3, T>& y)
+{
+    return vec<3, bool>(
+        is_nan(x.x, y.x),
+        is_nan(x.y, y.y),
+        is_nan(x.z, y.z)
+    );
+}
+
+template <typename T>
+inline constexpr vec<4, bool> is_nan(const vec<4, T>& x, vec<4, T>& y)
+{
+    return vec<4, bool>(
+        is_nan(x.x, y.x),
+        is_nan(x.y, y.y),
+        is_nan(x.z, y.z),
+        is_nan(x.w, y.w)
+    );
+}
+
 // =============== is_zero_approx ===============
 
 template <typename T>
@@ -114,84 +410,6 @@ inline constexpr bool is_not_equal_approx(
         && math::is_not_equal_approx(a.y, b.y, epsilon)
         && math::is_not_equal_approx(a.z, b.z, epsilon)
         && math::is_not_equal_approx(a.w, b.w, epsilon);
-}
-
-// =============== is_finite ===============
-
-template <typename T>
-inline constexpr bool is_finite(const vec<2, T>& x)
-{
-    return math::is_finite(x.x)
-        && math::is_finite(x.y);
-}
-
-template <typename T>
-inline constexpr bool is_finite(const vec<3, T>& x)
-{
-    return math::is_finite(x.x)
-        && math::is_finite(x.y)
-        && math::is_finite(x.z);
-}
-
-template <typename T>
-inline constexpr bool is_finite(const vec<4, T>& x)
-{
-    return math::is_finite(x.x)
-        && math::is_finite(x.y)
-        && math::is_finite(x.z)
-        && math::is_finite(x.w);
-}
-
-// =============== is_infinite ===============
-
-template <typename T>
-inline constexpr bool is_infinite(const vec<2, T>& x)
-{
-    return math::is_infinite(x.x)
-        || math::is_infinite(x.y);
-}
-
-template <typename T>
-inline constexpr bool is_infinite(const vec<3, T>& x)
-{
-    return math::is_infinite(x.x)
-        || math::is_infinite(x.y)
-        || math::is_infinite(x.z);
-}
-
-template <typename T>
-inline constexpr bool is_infinite(const vec<4, T>& x)
-{
-    return math::is_infinite(x.x)
-        || math::is_infinite(x.y)
-        || math::is_infinite(x.z)
-        || math::is_infinite(x.w);
-}
-
-// =============== is_nan ===============
-
-template <typename T>
-inline constexpr bool is_nan(const vec<2, T>& x)
-{
-    return math::is_nan(x.x)
-        || math::is_nan(x.y);
-}
-
-template <typename T>
-inline constexpr bool is_nan(const vec<3, T>& x)
-{
-    return math::is_nan(x.x)
-        || math::is_nan(x.y)
-        || math::is_nan(x.z);
-}
-
-template <typename T>
-inline constexpr bool is_nan(const vec<4, T>& x)
-{
-    return math::is_nan(x.x)
-        || math::is_nan(x.y)
-        || math::is_nan(x.z)
-        || math::is_nan(x.w);
 }
 
 }

@@ -6,6 +6,28 @@
 namespace vx {
 namespace math {
 
+// =============== is_inf ===============
+
+template <typename T>
+inline constexpr bool is_inf(const quat_t<T>& x)
+{
+    return math::is_inf(x.w)
+        || math::is_inf(x.x)
+        || math::is_inf(x.y)
+        || math::is_inf(x.z);
+}
+
+// =============== is_nan ===============
+
+template <typename T>
+inline constexpr bool is_nan(const quat_t<T>& x)
+{
+    return math::is_nan(x.w)
+        || math::is_nan(x.x)
+        || math::is_nan(x.y)
+        || math::is_nan(x.z);
+}
+
 // =============== is_zero_approx ===============
 
 template <typename T>
@@ -48,39 +70,6 @@ inline constexpr bool is_not_equal_approx(
         && math::is_not_equal_approx(a.x, b.x, epsilon)
         && math::is_not_equal_approx(a.y, b.y, epsilon)
         && math::is_not_equal_approx(a.z, b.z, epsilon);
-}
-
-// =============== is_finite ===============
-
-template <typename T>
-inline constexpr bool is_finite(const quat_t<T>& x)
-{
-    return math::is_finite(x.w)
-        && math::is_finite(x.x)
-        && math::is_finite(x.y)
-        && math::is_finite(x.z);
-}
-
-// =============== is_infinite ===============
-
-template <typename T>
-inline constexpr bool is_infinite(const quat_t<T>& x)
-{
-    return math::is_infinite(x.w)
-        || math::is_infinite(x.x)
-        || math::is_infinite(x.y)
-        || math::is_infinite(x.z);
-}
-
-// =============== is_nan ===============
-
-template <typename T>
-inline constexpr bool is_nan(const quat_t<T>& x)
-{
-    return math::is_nan(x.w)
-        || math::is_nan(x.x)
-        || math::is_nan(x.y)
-        || math::is_nan(x.z);
 }
 
 }

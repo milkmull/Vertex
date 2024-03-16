@@ -6,6 +6,28 @@
 namespace vx {
 namespace math {
 
+// =============== is_inf ===============
+
+template <typename T>
+inline constexpr bool is_inf(const color_t<T>& x)
+{
+    return math::is_inf(x.r)
+        || math::is_inf(x.g)
+        || math::is_inf(x.b)
+        || math::is_inf(x.a);
+}
+
+// =============== is_nan ===============
+
+template <typename T>
+inline constexpr bool is_nan(const color_t<T>& x)
+{
+    return math::is_nan(x.r)
+        || math::is_nan(x.g)
+        || math::is_nan(x.b)
+        || math::is_nan(x.a);
+}
+
 // =============== is_zero_approx ===============
 
 template <typename T>
@@ -48,39 +70,6 @@ inline constexpr bool is_not_equal_approx(
         && math::is_not_equal_approx(a.g, b.g, epsilon)
         && math::is_not_equal_approx(a.b, b.b, epsilon)
         && math::is_not_equal_approx(a.a, b.a, epsilon);
-}
-
-// =============== is_finite ===============
-
-template <typename T>
-inline constexpr bool is_finite(const color_t<T>& x)
-{
-    return math::is_finite(x.r)
-        && math::is_finite(x.g)
-        && math::is_finite(x.b)
-        && math::is_finite(x.a);
-}
-
-// =============== is_infinite ===============
-
-template <typename T>
-inline constexpr bool is_infinite(const color_t<T>& x)
-{
-    return math::is_infinite(x.r)
-        || math::is_infinite(x.g)
-        || math::is_infinite(x.b)
-        || math::is_infinite(x.a);
-}
-
-// =============== is_nan ===============
-
-template <typename T>
-inline constexpr bool is_nan(const color_t<T>& x)
-{
-    return math::is_nan(x.r)
-        || math::is_nan(x.g)
-        || math::is_nan(x.b)
-        || math::is_nan(x.a);
 }
 
 }

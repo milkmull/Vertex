@@ -6,6 +6,24 @@
 namespace vx {
 namespace math {
 
+// =============== is_inf ===============
+
+template <typename T>
+inline constexpr bool is_inf(const rect_t<T>& x)
+{
+    return math::is_inf(x.position)
+        || math::is_inf(x.size);
+}
+
+// =============== is_nan ===============
+
+template <typename T>
+inline constexpr bool is_nan(const rect_t<T>& x)
+{
+    return math::is_nan(x.position)
+        || math::is_nan(x.size);
+}
+
 // =============== is_zero_approx ===============
 
 template <typename T>
@@ -42,33 +60,6 @@ inline constexpr bool is_not_equal_approx(
 {
     return math::is_not_equal_approx(a.position, b.position, epsilon)
         && math::is_not_equal_approx(a.size, b.size, epsilon);
-}
-
-// =============== is_finite ===============
-
-template <typename T>
-inline constexpr bool is_finite(const rect_t<T>& x)
-{
-    return math::is_finite(x.position)
-        && math::is_finite(x.size);
-}
-
-// =============== is_infinite ===============
-
-template <typename T>
-inline constexpr bool is_infinite(const rect_t<T>& x)
-{
-    return math::is_infinite(x.position)
-        || math::is_infinite(x.size);
-}
-
-// =============== is_nan ===============
-
-template <typename T>
-inline constexpr bool is_nan(const rect_t<T>& x)
-{
-    return math::is_nan(x.position)
-        || math::is_nan(x.size);
 }
 
 }
