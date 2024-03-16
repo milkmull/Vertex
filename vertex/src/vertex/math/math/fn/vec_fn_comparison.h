@@ -194,37 +194,5 @@ inline constexpr bool is_nan(const vec<4, T>& x)
         || math::is_nan(x.w);
 }
 
-// =============== is_nan ===============
-
-template <typename T>
-inline constexpr vec<2, T> round_epsilon(const vec<2, T>& x, const T epsilon = math::epsilon<T>)
-{
-    return vec<2, T>(
-        math::round_epsilon(x.x, epsilon),
-        math::round_epsilon(x.y, epsilon)
-    );
-}
-
-template <typename T>
-inline constexpr vec<3, T> round_epsilon(const vec<3, T>& x, const T epsilon = math::epsilon<T>)
-{
-    return vec<3, T>(
-        math::round_epsilon(x.x, epsilon),
-        math::round_epsilon(x.y, epsilon),
-        math::round_epsilon(x.z, epsilon)
-    );
-}
-
-template <typename T>
-inline constexpr vec<4, T> round_epsilon(const vec<4, T>& x, const T epsilon = math::epsilon<T>)
-{
-    return vec<4, T>(
-        math::round_epsilon(x.x, epsilon),
-        math::round_epsilon(x.y, epsilon),
-        math::round_epsilon(x.z, epsilon),
-        math::round_epsilon(x.w, epsilon)
-    );
-}
-
 }
 }

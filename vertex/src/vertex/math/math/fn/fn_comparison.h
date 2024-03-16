@@ -249,33 +249,5 @@ inline constexpr bool is_nan(T x)
     return false;
 }
 
-// =============== round_epsilon ===============
-
-/**
- * @brief Rounds a number to the nearest integer if it is close enough.
- *
- * This function rounds the input number to the nearest integer if it is close
- * enough to the rounded value within a specified epsilon. If the difference
- * between the input number and its rounded value is within the epsilon, it
- * returns the rounded value, otherwise it returns the input number unchanged.
- *
- * @tparam T Type of the number.
- * @param x The number to round.
- * @param epsilon The tolerance threshold for considering the number as approximately equal to its rounded value.
- * @return The rounded value if close enough, otherwise the input number unchanged.
- */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T round_epsilon(T x, const T epsilon = math::epsilon<T>)
-{
-    const T xr = std::round(x);
-    return is_equal_approx(x, xr, epsilon) ? xr : x;
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr T round_epsilon(T x, const T epsilon = math::epsilon<T>)
-{
-    return x;
-}
-
 }
 }

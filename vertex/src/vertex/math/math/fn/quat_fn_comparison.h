@@ -83,18 +83,5 @@ inline constexpr bool is_nan(const quat_t<T>& x)
         || math::is_nan(x.z);
 }
 
-// =============== round_epsilon ===============
-
-template <typename T>
-inline constexpr quat_t<T> round_epsilon(const quat_t<T>& x, const T epsilon = math::epsilon<T>)
-{
-    return quat_t<T>(
-        math::round_epsilon(x.w, epsilon),
-        math::round_epsilon(x.x, epsilon),
-        math::round_epsilon(x.y, epsilon),
-        math::round_epsilon(x.z, epsilon)
-    );
-}
-
 }
 }
