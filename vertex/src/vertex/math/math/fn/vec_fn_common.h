@@ -89,6 +89,32 @@ inline constexpr vec<4, T> min(
     );
 }
 
+// component
+
+template <typename T>
+inline constexpr T cmin(
+    const vec<2, T>& x
+)
+{
+    return math::min(x.x, x.y);
+}
+
+template <typename T>
+inline constexpr T cmin(
+    const vec<3, T>& x
+)
+{
+    return math::min({ x.x, x.y, x.z });
+}
+
+template <typename T>
+inline constexpr T cmin(
+    const vec<4, T>& x
+)
+{
+    return math::min({ x.x, x.y, x.z, x.w });
+}
+
 // =============== max ===============
 
 // scaler binary
@@ -171,6 +197,58 @@ inline constexpr vec<4, T> max(
         math::max(x.z, y.z),
         math::max(x.w, y.w)
     );
+}
+
+// component
+
+template <typename T>
+inline constexpr T cmax(
+    const vec<2, T>& x
+)
+{
+    return math::max(x.x, x.y);
+}
+
+template <typename T>
+inline constexpr T cmax(
+    const vec<3, T>& x
+)
+{
+    return math::max({ x.x, x.y, x.z });
+}
+
+template <typename T>
+inline constexpr T cmax(
+    const vec<4, T>& x
+)
+{
+    return math::max({ x.x, x.y, x.z, x.w });
+}
+
+// =============== csum ===============
+
+template <typename T>
+inline constexpr T csum(
+    const vec<2, T>& x
+)
+{
+    return x.x + x.y;
+}
+
+template <typename T>
+inline constexpr T csum(
+    const vec<3, T>& x
+)
+{
+    return x.x + x.y + x.z;
+}
+
+template <typename T>
+inline constexpr T csum(
+    const vec<4, T>& x
+)
+{
+    return x.x + x.y + x.z + x.w;
 }
 
 // =============== abs ===============
