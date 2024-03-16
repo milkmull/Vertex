@@ -1,10 +1,5 @@
 #pragma once
 
-#include <cassert>
-
-#include "../../../detail/setup.h"
-#include "../../detail/type_traits.h"
-
 #include "../../fn/vec_fn_geometric.h"
 #include "../../fn/quat_fn_geometric.h"
 

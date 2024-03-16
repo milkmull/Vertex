@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cassert>
-
-#include "../../../detail/setup.h"
-#include "../../detail/type_traits.h"
+#include "../../detail/common.h"
 
 namespace vx {
 namespace math {

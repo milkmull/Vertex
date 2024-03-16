@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cassert>
+
 #include <algorithm>
 #include <cmath>
 
-#include "../../detail/setup.h"             // math/setup
-#include "../../detail/int_float_type.h"    // math/int_float_type
-
-#include "base_types.h"
+#include "../util/type_traits.h"
+#include "../../detail/setup.h"

@@ -95,7 +95,7 @@ inline constexpr quat_t<T> normalize(const quat_t<T>& q)
         return quat_t<T>();
     }
 
-    return q * math::inverse_sqrt(magsq);
+    return q * inverse_sqrt(magsq);
 }
 
 /**

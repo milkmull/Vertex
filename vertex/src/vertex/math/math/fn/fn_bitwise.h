@@ -1,8 +1,6 @@
 #pragma once
 
-#include <initializer_list>
-
-#include "../detail/common.h"
+#include "../util/type_traits.h"
 
 namespace vx {
 namespace math {

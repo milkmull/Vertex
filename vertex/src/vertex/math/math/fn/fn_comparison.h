@@ -164,7 +164,7 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
     return a != b;
 }
 
-// =============== is_greater_approx ===============
+// =============== is_greater_than_approx ===============
 
 /**
  * @brief Checks if a number is approximately greater than another.
@@ -178,18 +178,18 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
  * @return True if a is greater than (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a > (b + epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a > b;
 }
 
-// =============== is_greater_or_equal_approx ===============
+// =============== is_greater_than_equal_approx ===============
 
 /**
  * @brief Checks if a number is approximately greater than or equal to another.
@@ -203,18 +203,18 @@ inline constexpr bool is_greater_approx(T a, T b, const T epsilon = math::epsilo
  * @return True if a is greater than or equal to (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a > (b - epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a >= b;
 }
 
-// =============== is_less_approx ===============
+// =============== is_less_than_approx ===============
 
 /**
  * @brief Checks if a number is approximately less than another.
@@ -228,18 +228,18 @@ inline constexpr bool is_greater_or_equal_approx(T a, T b, const T epsilon = mat
  * @return True if a is less than (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a < (b - epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a < b;
 }
 
-// =============== is_less_or_equal_approx ===============
+// =============== is_less_than_equal_approx ===============
 
 /**
  * @brief Checks if a number is approximately less than or equal to another.
@@ -253,13 +253,13 @@ inline constexpr bool is_less_approx(T a, T b, const T epsilon = math::epsilon<T
  * @return True if a is less than or equal to (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a < (b + epsilon);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr bool is_less_or_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_less_than_equal_approx(T a, T b, const T epsilon = math::epsilon<T>)
 {
     return a <= b;
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <initializer_list>
-
 #include "../detail/common.h"
 
 namespace vx {

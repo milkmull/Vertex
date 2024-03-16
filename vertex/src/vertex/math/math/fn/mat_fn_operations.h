@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../detail/common.h"
 
 namespace vx {
 namespace math {

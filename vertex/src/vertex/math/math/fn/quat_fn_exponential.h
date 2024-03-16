@@ -1,8 +1,7 @@
 #pragma once
 
-#include "../detail/base_types.h"
-#include "fn_exponential.h"
-#include "fn_trigonometric.h"
+#include "quat_fn_geometric.h"
+#include "vec_fn_geometric.h"
 
 namespace vx {
 namespace math {
@@ -33,7 +32,7 @@ template <typename T>
 inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
 {
     const vec<3, T> v = q.vector();
-    const T vmag = v.magnitude();
+    const T vmag = math::length(v);
 
     if (vmag < math::epsilon<T>)
     {
@@ -62,7 +61,7 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
         );
     }
 
-    const T qmag = q.magnitude();
+    const T qmag = math::length(q);
 
     const T invvmag = static_cast<T>(1) / vmag;
     const T invqmag = static_cast<T>(1) / qmag;
@@ -93,7 +92,7 @@ template <typename T>
 inline constexpr quat_t<T> exp(const quat_t<T>& q)
 {
     const vec<3, T> v = q.vector();
-    const T vmag = v.magnitude();
+    const T vmag = math::length(v);
 
     if (vmag < math::epsilon<T>)
     {
@@ -129,7 +128,7 @@ template <typename T>
 inline constexpr quat_t<T> log(const quat_t<T>& q)
 {
     const vec<3, T> v = q.vector();
-    const T vmag = v.magnitude();
+    const T vmag = math::length(v);
 
     if (vmag < math::epsilon<T>)
     {
@@ -155,7 +154,7 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
         );
     }
 
-    const T qmag = q.magnitude();
+    const T qmag = math::length(q);
 
     const T invvmag = static_cast<T>(1) / vmag;
     const T invqmag = static_cast<T>(1) / qmag;

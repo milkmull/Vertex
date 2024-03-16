@@ -3,10 +3,11 @@
 #include <sstream>
 #include <iomanip>
 
-#include "../detail/base_types.h"
+#include "../type/base/base_types.h"
 
 namespace vx {
-namespace math {
+
+// =============== scaler ===============
 
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline std::string to_string(T x)
@@ -14,8 +15,10 @@ inline std::string to_string(T x)
     return std::to_string(x);
 }
 
+// =============== vector ===============
+
 template <typename T>
-inline std::string to_string(const vec<2, T>& v)
+inline std::string to_string(const math::vec<2, T>& v)
 {
     std::ostringstream oss;
     oss << "{ " << v.x << ", " << v.y << " }";
@@ -23,7 +26,7 @@ inline std::string to_string(const vec<2, T>& v)
 }
 
 template <typename T>
-inline std::string to_string(const vec<3, T>& v)
+inline std::string to_string(const math::vec<3, T>& v)
 {
     std::ostringstream oss;
     oss << "{ " << v.x << ", " << v.y << ", " << v.z << " }";
@@ -31,23 +34,41 @@ inline std::string to_string(const vec<3, T>& v)
 }
 
 template <typename T>
-inline std::string to_string(const vec<4, T>& v)
+inline std::string to_string(const math::vec<4, T>& v)
 {
     std::ostringstream oss;
     oss << "{ " << v.x << ", " << v.y << ", " << v.z << ", " << v.w << " }";
     return oss.str();
 }
 
+template <size_t L, typename T>
+inline std::ostream& operator<<(std::ostream& os, const math::vec<L, T>& v)
+{
+    os << to_string(v);
+    return os;
+}
+
+// =============== quaternion ===============
+
 template <typename T>
-inline std::string to_string(const quat_t<T>& q)
+inline std::string to_string(const math::quat_t<T>& q)
 {
     std::ostringstream oss;
     oss << "{ " << q.w << ", " << q.x << ", " << q.y << ", " << q.z << " }";
     return oss.str();
 }
 
+template <typename T>
+inline std::ostream& operator<<(std::ostream& os, const math::quat_t<T>& q)
+{
+    os << to_string(q);
+    return os;
+}
+
+// =============== matrix ===============
+
 template <size_t M, size_t N, typename T>
-inline std::string to_string(const mat<M, N, T>& m)
+inline std::string to_string(const math::mat<M, N, T>& m)
 {
     size_t wmax = 0;
     for (size_t i = 0; i < N; i++)
@@ -76,5 +97,11 @@ inline std::string to_string(const mat<M, N, T>& m)
     return oss.str();
 }
 
+template <size_t M, size_t N, typename T>
+inline std::ostream& operator<<(std::ostream& os, const math::mat<M, N, T>& m)
+{
+    os << to_string(m);
+    return os;
 }
+
 }
