@@ -1,24 +1,23 @@
 #include "sandbox/sandbox.h"
 
 #include "vertex/math/math/type/vec2.h"
-#include "vertex/math/math/util/hash.h"
-
-#include <unordered_set>
+#include "vertex/math/math/type/mat2x2.h"
+#include "vertex/math/math/type/mat2x4.h"
+#include "vertex/math/math/type/mat4x2.h"
+#include "vertex/math/math/type/mat4x4.h"
+#include "vertex/math/math/util/to_string.h"
 
 int main()
 {
     using namespace vx;
 
-    math::vec2 v1;
-    math::vec2 v2;
+    math::mat2x4 m1;
+    math::mat4x2 m2;
+    math::mat4x4 m3;
 
-    std::unordered_set<math::vec2> set;
-    set.insert({ 0, 0 });
-    set.insert({ 1, 0 });
-    set.insert({ 0, 1 });
-    set.insert({ 1, 1 });
-
-    std::cout << set.size();
+    std::cout << math::to_string(m1) << std::endl << std::endl;
+    std::cout << math::to_string(m2) << std::endl << std::endl;
+    std::cout << math::to_string(m3) << std::endl << std::endl;
 
 
     return 0;

@@ -35,9 +35,9 @@ struct mat<3, 3, T>
     // =============== implicit constructors ===============
 
     inline constexpr mat() noexcept
-        : columns{ col_type(static_cast<T>(0)),
-                   col_type(static_cast<T>(0)),
-                   col_type(static_cast<T>(0)) } {}
+        : columns{ col_type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0)),
+                   col_type(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0)),
+                   col_type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1)) } {}
 
     inline constexpr mat(const type& m) noexcept
         : columns{ m.columns[0], m.columns[1], m.columns[2] } {}
