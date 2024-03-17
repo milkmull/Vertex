@@ -6,7 +6,11 @@ int main()
 {
     using namespace vx;
 
-    constexpr auto x = math::min({ 1, 2, 3, 4 });
+    constexpr auto blend = math::blend_func();
+    constexpr math::color c1 = math::color::BLACK();
+    constexpr math::color c2 = math::color::WHITE();
+
+    constexpr auto y = blend(c1, c2);
 
     return 0;
 }
