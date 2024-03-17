@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <random>
 #include <chrono>
 
@@ -146,7 +147,7 @@ public:
      * @param begin Iterator to the beginning of the range.
      * @param end Iterator to the end of the range.
      */
-    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
@@ -159,7 +160,7 @@ public:
      * @param last Iterator to the end of the range.
      * @return A reference to the randomly selected element.
      */
-    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
@@ -186,8 +187,8 @@ public:
      */
     template <typename IT1, typename IT2,
         typename std::enable_if<
-        ::vx::tools::is_iterator<IT1>::value &&
-        ::vx::tools::is_iterator<IT2>::value,
+        ::vx::tools::type_traits::is_iterator<IT1>::value &&
+        ::vx::tools::type_traits::is_iterator<IT2>::value,
         bool>::type = true>
     inline IT2 choices(
         IT1 first1,
@@ -206,7 +207,7 @@ public:
 
         std::uniform_int_distribution<diff_type> dist(0, size1 - 1);
 
-        for (diff_type i = 0; i < size2; i++)
+        for (diff_type i = 0; i < size2; ++i)
         {
             IT1 it = first1;
             const diff_type j = dist(m_rng);
@@ -226,7 +227,7 @@ public:
      * @param w Weights object specifying the weights for each element.
      * @return A const reference to the selected element.
      */
-    template <typename IT, typename std::enable_if<::vx::tools::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT, typename std::enable_if<::vx::tools::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
         IT first,
         IT last,
@@ -267,8 +268,8 @@ public:
      */
     template <typename IT1, typename IT2,
         typename std::enable_if<
-        ::vx::tools::is_iterator<IT1>::value &&
-        ::vx::tools::is_iterator<IT2>::value,
+        ::vx::tools::type_traits::is_iterator<IT1>::value &&
+        ::vx::tools::type_traits::is_iterator<IT2>::value,
         bool>::type = true>
     inline IT2 weighted_choices(
         IT1 first1,
@@ -290,7 +291,7 @@ public:
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
 
-        for (diff_type i = 0; i < size2; i++)
+        for (diff_type i = 0; i < size2; ++i)
         {
             const weight_type r = dist(m_rng);
             auto wit = std::upper_bound(w.begin(), w.end(), r);

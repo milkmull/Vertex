@@ -4,16 +4,17 @@
 #include <type_traits>
 
 namespace vx {
-namespace img {
-namespace raw {
+namespace math {
 
-// https://stackoverflow.com/questions/13888210/extremely-slow-bilinear-interpolation-compared-to-opencv
+// https://www.youtube.com/watch?v=4s30cnqxJ-0
 // https://www.youtube.com/watch?v=_htjjOdXbmA
 
+// box filtering uses the same algorithm as bilinear, just with the weights equally applied to the surrounding pixels (0.25)
+
 /**
- * @brief Apply bilinear filtering to an image.
+ * @brief Apply box filtering to an image.
  *
- * This function applies bilinear filtering to an image and
+ * This function applies box filtering to an image and
  * mapps the result to a new image. The images are assumed to be of
  * the same format and have the same channel count in each pixel.
  *
@@ -29,7 +30,7 @@ namespace raw {
  * @param channels Number of channels in the images.
  */
 template <typename T, typename F = float>
-inline constexpr void filter_bilinear(
+inline constexpr void filter_box(
     const T* src, size_t src_width, size_t src_height,
     T* dst, size_t dst_width, size_t dst_height,
     size_t channels
@@ -64,6 +65,9 @@ inline constexpr void filter_bilinear(
     const F xscale = static_cast<F>(src_width) / dst_width;
     const F yscale = static_cast<F>(src_height) / dst_height;
 
+    // Interpolation weight
+    constexpr F weight = static_cast<F>(0.25);
+
     // Loop over each row in the destination image
     for (size_t y = 0; y < dst_height; ++y)
     {
@@ -82,10 +86,6 @@ inline constexpr void filter_bilinear(
         // Calculate the pointer to the destination pixel (the pixel that will be written to)
         T* dstpx = &dst[dst_row_size * y];
 
-        // Interpolation weights for y-coordinate
-        const F fy2 = srcyfrac - srcy;
-        const F fy = static_cast<F>(1) - fy2;
-
         // Loop over each column in the destination image
         for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
         {
@@ -101,10 +101,6 @@ inline constexpr void filter_bilinear(
             // Calculate the offset required to get the source pixel to the left or right
             const size_t dx = static_cast<size_t>(srcx < srcxmax) * channels;
 
-            // Interpolation weights for x-coordinate
-            const F fx2 = srcxfrac - srcx;
-            const F fx = static_cast<F>(1) - fx2;
-
             // Array of pointers to the four neighboring pixels used in interpolation
             const T* pixels[4] =
             {
@@ -114,24 +110,15 @@ inline constexpr void filter_bilinear(
                 srcpx + dx + dy
             };
 
-            // Array of weights corresponding to each neighboring pixel
-            const F weights[4] =
-            {
-                fx * fy,
-                fx2 * fy,
-                fx * fy2,
-                fx2 * fy2
-            };
-
             // Loop over each channel
             for (size_t c = 0; c < channels; ++c)
             {
-                // Perform bilinear interpolation using the four neighboring pixels and weights
+                // Perform bilinear interpolation using the four neighboring pixels
                 const F px = (
-                    pixels[0][c] * weights[0] +
-                    pixels[1][c] * weights[1] +
-                    pixels[2][c] * weights[2] +
-                    pixels[3][c] * weights[3]
+                    pixels[0][c] * weight +
+                    pixels[1][c] * weight +
+                    pixels[2][c] * weight +
+                    pixels[3][c] * weight
                 );
 
                 dstpx[c] = static_cast<T>(std::clamp(px, min, max));
@@ -140,6 +127,5 @@ inline constexpr void filter_bilinear(
     }
 }
 
-}
 }
 }

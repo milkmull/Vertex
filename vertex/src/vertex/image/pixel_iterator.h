@@ -5,7 +5,7 @@
 #include "detail/base_types.h"
 #include "pixel.h"
 
-#include "vertex/math/math/type/vec2_type.h"
+#include "vertex/math/math/type/vec2.h"
 
 namespace vx {
 namespace img {

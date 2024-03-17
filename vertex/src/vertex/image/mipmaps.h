@@ -2,6 +2,8 @@
 
 #include "image.h"
 #include "raw/filter/filter_box.h"
+#include "vertex/math/math/fn/fn_common.h"
+#include "vertex/math/math/fn/fn_exponential.h"
 
 namespace vx {
 namespace img {

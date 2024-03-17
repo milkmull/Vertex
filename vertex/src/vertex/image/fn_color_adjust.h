@@ -1,6 +1,8 @@
 #pragma once
 
 #include "image.h"
+#include "vertex/math/color/fn/color_fn_common.h"
+#include "vertex/math/color/fn/color_fn_comparison.h"
 
 namespace vx {
 namespace img {
@@ -33,7 +35,7 @@ inline void invert(image& img)
     {
         for (size_t x = 0; x < img.width(); ++x)
         {
-            img.set_pixel(x, y, img.get_pixel(x, y).invert());
+            img.set_pixel(x, y, math::invert(img.get_pixel(x, y)));
         }
     }
 }

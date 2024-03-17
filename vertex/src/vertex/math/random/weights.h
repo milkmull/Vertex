@@ -42,7 +42,7 @@ public:
      */
     template <typename IT,
         typename std::enable_if<
-        ::vx::tools::is_iterator<IT>::value &&
+        ::vx::tools::type_traits::is_iterator<IT>::value &&
         std::is_arithmetic<typename std::iterator_traits<IT>::value_type>::value,
         bool>::type = true>
     weights(IT wfirst, IT wlast)
@@ -61,7 +61,7 @@ public:
      */
     template <typename T,
         typename std::enable_if<
-        ::vx::tools::is_stl_container<T>::value &&
+        ::vx::tools::type_traits::is_stl_container<T>::value &&
         std::is_arithmetic<typename T::value_type>::value,
         bool>::type = true>
     weights(const T& w)
@@ -79,11 +79,22 @@ public:
     // =============== assignment ===============
 
     weights& operator=(const weights&) = default;
-    weights& operator=(weights&&) noexcept = default;
+
+    weights& operator=(weights&& other) noexcept
+    {
+        m_weights = std::move(other.m_weights);
+        return *this;
+    }
 
     // =============== accessors ===============
 
     inline value_type& operator[](size_type i)
+    {
+        assert(i < m_weights.size());
+        return m_weights[i];
+    }
+
+    inline const value_type& operator[](size_type i) const
     {
         assert(i < m_weights.size());
         return m_weights[i];
@@ -94,7 +105,7 @@ public:
     friend inline bool operator==(
         const weights& w1,
         const weights& w2
-        )
+    )
     {
         return w1.m_weights == w2.m_weights;
     }
@@ -102,7 +113,7 @@ public:
     friend inline bool operator!=(
         const weights& w1,
         const weights& w2
-        )
+    )
     {
         return !(w1 == w2);
     }

@@ -6,9 +6,9 @@
 #include "vertex/math/math/type/vec3.h"
 #include "vertex/math/math/type/vec4.h"
 
-#include "vertex/math/texture/noise/perlin_noise.h"
-#include "vertex/math/texture/noise/simplex_noise.h"
-#include "vertex/math/texture/noise/cellular_noise.h"
+#include "vertex/math/sample/noise/perlin_noise.h"
+#include "vertex/math/sample/noise/simplex_noise.h"
+#include "vertex/math/sample/noise/cellular_noise.h"
 
 namespace vx {
 namespace img {

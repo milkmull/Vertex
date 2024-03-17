@@ -4,8 +4,7 @@
 #include <type_traits>
 
 namespace vx {
-namespace img {
-namespace raw {
+namespace math {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 
@@ -75,6 +74,5 @@ inline constexpr void filter_nearest(
     }
 }
 
-}
 }
 }

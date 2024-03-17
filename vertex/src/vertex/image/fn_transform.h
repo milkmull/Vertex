@@ -3,8 +3,8 @@
 #include "image.h"
 #include "enum_image_filter.h"
 #include "raw/transform.h"
-#include "raw/filter/filter_nearest.h"
-#include "raw/filter/filter_bilinear.h"
+#include "vertex/math/sample/filter/filter_nearest.h"
+#include "vertex/math/sample/filter/filter_bilinear.h"
 
 namespace vx {
 namespace img {
@@ -108,7 +108,7 @@ inline image resize(const image& img, const math::vec2i& size, image_filter filt
     {
         case image_filter::NEAREST:
         {
-            raw::filter_nearest(
+            math::filter_nearest(
                 img.data(), img.width(), img.height(),
                 out.data(), out.width(), out.height(),
                 img.channels()
@@ -117,7 +117,7 @@ inline image resize(const image& img, const math::vec2i& size, image_filter filt
         }
         case image_filter::LINEAR:
         {
-            raw::filter_bilinear(
+            math::filter_bilinear(
                 img.data(), img.width(), img.height(),
                 out.data(), out.width(), out.height(),
                 img.channels()

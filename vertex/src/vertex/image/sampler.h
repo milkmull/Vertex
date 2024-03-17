@@ -3,7 +3,8 @@
 #include "image.h"
 #include "enum_image_filter.h"
 #include "enum_image_wrap.h"
-#include "vertex/math/texture/wrap.h"
+#include "vertex/math/sample/wrap.h"
+#include "vertex/math/math/type/vec2.h"
 
 namespace vx {
 namespace img {
@@ -191,7 +192,7 @@ private:
         // sample
         math::color samp;
 
-        for (size_t c = 0; c < samp.channels(); ++c)
+        for (size_t c = 0; c < samp.size(); ++c)
         {
             samp[c] = (
                 pixels[0][c] * weights[0] +
