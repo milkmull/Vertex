@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../type/color.h"
 #include "../../math/fn/fn_comparison.h"
 
 namespace vx {
@@ -33,7 +33,7 @@ inline constexpr bool is_nan(const color_t<T>& x)
 template <typename T>
 inline constexpr bool is_zero_approx(
     const color_t<T>& x,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_zero_approx(x.r, epsilon)
@@ -48,7 +48,7 @@ template <typename T>
 inline constexpr bool is_equal_approx(
     const color_t<T>& a,
     const color_t<T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_equal_approx(a.r, b.r, epsilon)
@@ -63,7 +63,7 @@ template <typename T>
 inline constexpr bool is_not_equal_approx(
     const color_t<T>& a,
     const color_t<T>& b,
-    const T epsilon = math::epsilon<T>
+    const T epsilon = math::epsilon<T>()
 )
 {
     return math::is_not_equal_approx(a.r, b.r, epsilon)

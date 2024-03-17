@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../type/color.h"
 #include "../../math/fn/fn_interpolation.h"
 
 namespace vx {
@@ -8,47 +8,55 @@ namespace math {
 
 // =============== lerp ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr color_t<T> lerp(
-    const color_t<T>& x,
-    const color_t<T>& y,
-    T t
+inline constexpr color lerp(
+    const color& x,
+    const color& y,
+    float t
 )
 {
-    return x * (static_cast<T>(1) - t) + y * t;
-}
-
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr color_t<T> lerp(
-    const color_t<T>& x,
-    const color_t<T>& y,
-    typename color_t<T>::float_value_type t
-)
-{
-    using float_type = typename color_t<T>::float_type;
-    return lerp(float_type(x), float_type(y), t);
+    return x * (1.0f - t) + y * t;
 }
 
 // =============== mix ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr color_t<T> mix(
-    const color_t<T>& x,
-    const color_t<T>& y,
-    T t
+inline constexpr color mix(
+    const color& x,
+    const color& y,
+    float t
 )
 {
     return lerp(x, y, t);
 }
 
-template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr color_t<T> mix(
-    const color_t<T>& x,
-    const color_t<T>& y,
-    typename color_t<T>::float_value_type t
+// =============== step ===============
+
+inline constexpr color step(
+    float edge,
+    const color& x
 )
 {
-    return lerp(x, y, t);
+    return color(
+        step(edge, x.r),
+        step(edge, x.g),
+        step(edge, x.b),
+        step(edge, x.a)
+    );
+}
+
+// =============== smoothstep ===============
+
+inline constexpr color smoothstep(
+    float edge0,
+    float edge1,
+    const color& x
+)
+{
+    return color(
+        smoothstep(edge0, edge1, x.r),
+        smoothstep(edge0, edge1, x.g),
+        smoothstep(edge0, edge1, x.b),
+        smoothstep(edge0, edge1, x.a)
+    );
 }
 
 }

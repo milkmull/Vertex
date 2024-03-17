@@ -10,6 +10,6 @@
 #include "math/type/mat3x3.h"
 #include "math/type/mat4x4.h"
 
-#include "color/type/color_type.h"
+#include "color/type/color.h"
 #include "color/fn/color_fn_comparison.h"
 #include "color/fn/color_fn_interpolation.h"

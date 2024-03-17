@@ -1,6 +1,6 @@
 #pragma once
 
-#include "type/color_type.h"
+#include "type/color.h"
 
 namespace vx {
 namespace math {

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "type/color_type.h"
+#include "../math/fn/fn_exponential.h"
+#include "fn/color_fn_common.h"
 
 namespace vx {
 namespace math {
@@ -17,9 +18,9 @@ namespace math {
  */
 inline constexpr color linear_to_srgb(const color& c)
 {
-    using T = typename color::value_type;
+    using T = float;
 
-    color srgb = c.clamp();
+    color srgb = math::clamp(c);
 
     srgb.r = (srgb.r < static_cast<T>(0.0031308))
         ? (static_cast<T>(12.92) * srgb.r)
@@ -42,9 +43,9 @@ inline constexpr color linear_to_srgb(const color& c)
  */
 inline constexpr color srgb_to_linear(const color& c)
 {
-    using T = typename color::value_type;
+    using T = float;
 
-    color lrgb = c.clamp();
+    color lrgb = math::clamp(c);
 
     lrgb.r = (lrgb.r < static_cast<T>(0.04045))
         ? (static_cast<T>(0.0773993808) * lrgb.r)

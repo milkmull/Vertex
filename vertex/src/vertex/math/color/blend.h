@@ -1,6 +1,7 @@
 #pragma once
 
-#include "type/color_type.h"
+#include "type/color.h"
+#include "../math/type/vec3.h"
 
 namespace vx {
 
@@ -93,7 +94,7 @@ struct blend_func
      */
     inline constexpr color blend(const color& src, const color& dst) const
     {
-        using T = typename color::value_type;
+        using T = float;
 
         struct blend_pair
         {
@@ -109,11 +110,11 @@ struct blend_func
             switch (bp.color_mode)
             {
                 case blend_mode::ZERO:
-                    bp.col *= static_cast<T>(0);
+                    bp.col *= 0.0f;
                     break;
 
                 case blend_mode::ONE:
-                    bp.col *= static_cast<T>(1);
+                    bp.col *= 1.0f;
                     break;
 
                 case blend_mode::SRC_COLOR:
@@ -121,7 +122,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_SRC_COLOR:
-                    bp.col *= (static_cast<T>(1) - src);
+                    bp.col *= (1.0f - src);
                     break;
 
                 case blend_mode::DST_COLOR:
@@ -129,7 +130,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_DST_COLOR:
-                    bp.col *= (static_cast<T>(1) - dst);
+                    bp.col *= (1.0f - dst);
                     break;
 
                 case blend_mode::SRC_ALPHA:
@@ -137,7 +138,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_SRC_ALPHA:
-                    bp.col *= (static_cast<T>(1) - src.a);
+                    bp.col *= (1.0f - src.a);
                     break;
 
                 case blend_mode::DST_ALPHA:
@@ -145,7 +146,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_DST_ALPHA:
-                    bp.col *= (static_cast<T>(1) - dst.a);
+                    bp.col *= (1.0f - dst.a);
                     break;
 
                 case blend_mode::CONST_COLOR:
@@ -153,7 +154,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_CONST_COLOR:
-                    bp.col *= (static_cast<T>(1) - constant);
+                    bp.col *= (1.0f - constant);
                     break;
 
                 case blend_mode::CONST_ALPHA:
@@ -161,7 +162,7 @@ struct blend_func
                     break;
 
                 case blend_mode::ONE_MINUS_CONST_ALPHA:
-                    bp.col *= (static_cast<T>(1) - constant.a);
+                    bp.col *= (1.0f - constant.a);
                     break;
 
                 default:
@@ -228,12 +229,10 @@ struct blend_func_separate
      */
     inline constexpr color blend(const color& src, const color& dst) const
     {
-        using T = typename color::value_type;
-
         struct blend_pair
         {
-            typename color::rgb_type rgb;
-            T a;
+            vec3 rgb;
+            float a;
             blend_mode color_mode;
             blend_mode alpha_mode;
         };
@@ -248,11 +247,11 @@ struct blend_func_separate
             switch (bp.color_mode)
             {
                 case blend_mode::ZERO:
-                    bp.rgb *= static_cast<T>(0);
+                    bp.rgb *= 0.0f;
                     break;
 
                 case blend_mode::ONE:
-                    bp.rgb *= static_cast<T>(1);
+                    bp.rgb *= 1.0f;
                     break;
 
                 case blend_mode::SRC_COLOR:
@@ -260,7 +259,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_SRC_COLOR:
-                    bp.rgb *= (static_cast<T>(1) - src.rgb());
+                    bp.rgb *= (1.0f - src.rgb());
                     break;
 
                 case blend_mode::DST_COLOR:
@@ -268,7 +267,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_DST_COLOR:
-                    bp.rgb *= (static_cast<T>(1) - dst.rgb());
+                    bp.rgb *= (1.0f - dst.rgb());
                     break;
 
                 case blend_mode::SRC_ALPHA:
@@ -276,7 +275,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_SRC_ALPHA:
-                    bp.rgb *= (static_cast<T>(1) - src.a);
+                    bp.rgb *= (1.0f - src.a);
                     break;
 
                 case blend_mode::DST_ALPHA:
@@ -284,7 +283,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_DST_ALPHA:
-                    bp.rgb *= (static_cast<T>(1) - dst.a);
+                    bp.rgb *= (1.0f - dst.a);
                     break;
 
                 case blend_mode::CONST_COLOR:
@@ -292,7 +291,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_CONST_COLOR:
-                    bp.rgb *= (static_cast<T>(1) - constant.rgb());
+                    bp.rgb *= (1.0f - constant.rgb());
                     break;
 
                 case blend_mode::CONST_ALPHA:
@@ -300,7 +299,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_CONST_ALPHA:
-                    bp.rgb *= (static_cast<T>(1) - constant.a);
+                    bp.rgb *= (1.0f - constant.a);
                     break;
 
                 default:
@@ -310,11 +309,11 @@ struct blend_func_separate
             switch (bp.alpha_mode)
             {
                 case blend_mode::ZERO:
-                    bp.a *= static_cast<T>(0);
+                    bp.a *= 0.0f;
                     break;
 
                 case blend_mode::ONE:
-                    bp.a *= static_cast<T>(1);
+                    bp.a *= 1.0f;
                     break;
 
                 case blend_mode::SRC_ALPHA:
@@ -322,7 +321,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_SRC_ALPHA:
-                    bp.a *= (static_cast<T>(1) - src.a);
+                    bp.a *= (1.0f - src.a);
                     break;
 
                 case blend_mode::DST_ALPHA:
@@ -330,7 +329,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_DST_ALPHA:
-                    bp.a *= (static_cast<T>(1) - dst.a);
+                    bp.a *= (1.0f - dst.a);
                     break;
 
                 case blend_mode::CONST_ALPHA:
@@ -338,7 +337,7 @@ struct blend_func_separate
                     break;
 
                 case blend_mode::ONE_MINUS_CONST_ALPHA:
-                    bp.a *= (static_cast<T>(1) - constant.a);
+                    bp.a *= (1.0f - constant.a);
                     break;
 
                 default:
@@ -346,8 +345,8 @@ struct blend_func_separate
             }
         }
 
-        typename color::rgb_type blend_rgb;
-        T blend_a = 0;
+        vec3 blend_rgb;
+        float blend_a = 0.0f;
 
         switch (color_op)
         {
