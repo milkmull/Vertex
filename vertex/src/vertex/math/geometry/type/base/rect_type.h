@@ -1,10 +1,8 @@
 #pragma once
 
-#include <sstream>
-
-#include "../fn/rect_fn_comparison.h"
-#include "../fn/rect_fn_collision.h"
-#include "../../math/type/vec2_type.h"
+#include "../../detail/common.h"
+#include "../../../math/fn/fn_common.h"
+#include "../../fn/rect_fn_collision.h"
 
 namespace vx {
 namespace math {
@@ -18,18 +16,8 @@ struct rect_t
 
     // =============== meta ===============
 
-    using value_type = T;
+    using scaler_type = T;
     using type = rect_t<T>;
-
-    using float_value_type = typename detail::to_float_type<T>::type;
-    using float_type = rect_t<float_value_type>;
-
-    using size_type = math::size_type;
-
-    using iterator = ::vx::tools::iterator<T>;
-    using const_iterator = ::vx::tools::iterator<const T>;
-    using reverse_iterator = std::reverse_iterator<iterator>;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     // =============== data ===============
 
@@ -54,19 +42,22 @@ struct rect_t
     inline constexpr rect_t(T x, T y, T width, T height) noexcept
         : position(x, y), size(width, height) {}
 
+    inline constexpr explicit rect_t(const vec<4, T>& v) noexcept
+        : position(v.x, v.y), size(v.z, v.w) {}
+
     // =============== conversion constructors ===============
 
-    template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
+    template <typename P, typename S>
     inline constexpr explicit rect_t(
-        const vec<2, U>& position,
-        const vec<2, U>& size
+        const vec<2, P>& position,
+        const vec<2, S>& size
     )
         : position(position), size(size) {}
 
     template <typename X, typename Y, typename W, typename H, typename std::enable_if<
-        std::is_arithmetic<X>::value &&
-        std::is_arithmetic<Y>::value &&
-        std::is_arithmetic<W>::value &&
+        std::is_arithmetic<X>::value&&
+        std::is_arithmetic<Y>::value&&
+        std::is_arithmetic<W>::value&&
         std::is_arithmetic<H>::value, bool>::type = true>
     inline constexpr rect_t(X x, Y y, W width, H height)
         : position(static_cast<T>(x), static_cast<T>(y))
@@ -75,6 +66,11 @@ struct rect_t
     template <typename U>
     inline constexpr explicit rect_t(const rect_t<U>& r)
         : position(r.position), size(r.size) {}
+
+    template <typename U>
+    inline constexpr explicit rect_t(const vec<4, U>& v)
+        : position(static_cast<T>(v.x), static_cast<T>(v.y))
+        , size(static_cast<T>(v.z), static_cast<T>(v.w)) {}
 
     // =============== destructor ===============
 
@@ -89,6 +85,8 @@ struct rect_t
         return *this;
     }
 
+    inline constexpr type& operator=(type&&) noexcept = default;
+
     template <typename U>
     inline constexpr type& operator=(const rect_t<U>& r) noexcept
     {
@@ -97,20 +95,31 @@ struct rect_t
         return *this;
     }
 
-    inline constexpr type& operator=(type&&) noexcept = default;
-
     // =============== accessors ===============
 
-    inline constexpr T& operator[](size_type i)
+    inline constexpr T& operator[](size_t i)
     {
         assert(i < 4);
         return (&position.x)[i];
     }
 
-    inline constexpr const T& operator[](size_type i) const
+    inline constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
         return (&position.x)[i];
+    }
+
+    // =============== conversion operators ===============
+
+    template <typename U>
+    inline constexpr explicit operator vec<4, U>() const
+    {
+        return vec<4, U>(
+            static_cast<U>(position.x),
+            static_cast<U>(position.y),
+            static_cast<U>(size.x),
+            static_cast<U>(size.y)
+        );
     }
 
     // =============== boolean operators ===============
@@ -125,77 +134,6 @@ struct rect_t
         return !(r1 == r2);
     }
 
-    // =============== iterator ===============
-
-    inline constexpr iterator begin() noexcept
-    {
-        return iterator(&position.x);
-    }
-
-    inline constexpr const_iterator begin() const noexcept
-    {
-        return cbegin();
-    }
-
-    inline constexpr iterator end() noexcept
-    {
-        return iterator(&size.y + 1);
-    }
-
-    inline constexpr const_iterator end() const noexcept
-    {
-        return cend();
-    }
-
-    inline constexpr const_iterator cbegin() const noexcept
-    {
-        return const_iterator(&position.x);
-    }
-
-    inline constexpr const_iterator cend() const noexcept
-    {
-        return const_iterator(&size.y + 1);
-    }
-
-    inline constexpr reverse_iterator rbegin() noexcept
-    {
-        return reverse_iterator(&size.y + 1);
-    }
-
-    inline constexpr const_reverse_iterator rbegin() const noexcept
-    {
-        return crbegin();
-    }
-
-    inline constexpr reverse_iterator rend() noexcept
-    {
-        return reverse_iterator(&position.x);
-    }
-
-    inline constexpr const_reverse_iterator rend() const noexcept
-    {
-        return crend();
-    }
-
-    inline constexpr const_reverse_iterator crbegin() const noexcept
-    {
-        return const_reverse_iterator(&size.y + 1);
-    }
-
-    inline constexpr const_reverse_iterator crend() const noexcept
-    {
-        return const_reverse_iterator(&position.x);
-    }
-
-    // =============== string ===============
-
-    inline constexpr std::string to_string() const
-    {
-        std::ostringstream oss;
-        oss << "rect(" << position.to_string() << ", " << size.to_string() << ')';
-        return oss.str();
-    }
-
     // =============== anchors ===============
 
     inline constexpr T x()		const { return position.x; }
@@ -203,9 +141,9 @@ struct rect_t
     inline constexpr T width()	const { return size.x; }
     inline constexpr T height() const { return size.y; }
 
-    inline constexpr void set_x(T x)           { position.x = x; }
-    inline constexpr void set_y(T y)           { position.y = y; }
-    inline constexpr void set_width(T width)   { size.x = width; }
+    inline constexpr void set_x(T x) { position.x = x; }
+    inline constexpr void set_y(T y) { position.y = y; }
+    inline constexpr void set_width(T width) { size.x = width; }
     inline constexpr void set_height(T height) { size.y = height; }
 
     inline constexpr T left()	 const { return position.x; }
@@ -215,11 +153,11 @@ struct rect_t
     inline constexpr T centerx() const { return position.x + size.x / static_cast<T>(2); }
     inline constexpr T centery() const { return position.y + size.y / static_cast<T>(2); }
 
-    inline constexpr void set_left(T left)        { position.x = left; }
-    inline constexpr void set_right(T right)      { position.x = right - size.x; }
-    inline constexpr void set_top(T top)          { position.y = top; }
-    inline constexpr void set_bottom(T bottom)    { position.y = bottom - size.y; }
-    inline constexpr void set_centerx(T centerx)  { position.x = centerx - size.x / static_cast<T>(2); }
+    inline constexpr void set_left(T left) { position.x = left; }
+    inline constexpr void set_right(T right) { position.x = right - size.x; }
+    inline constexpr void set_top(T top) { position.y = top; }
+    inline constexpr void set_bottom(T bottom) { position.y = bottom - size.y; }
+    inline constexpr void set_centerx(T centerx) { position.x = centerx - size.x / static_cast<T>(2); }
     inline constexpr void set_centery(T cenrtery) { position.y = cenrtery - size.y / static_cast<T>(2); }
 
     inline constexpr vec<2, T> topleft()     const { return position; }
@@ -232,15 +170,15 @@ struct rect_t
     inline constexpr vec<2, T> midleft()     const { return vec<2, T>(position.x, position.y + size.y / static_cast<T>(2)); }
     inline constexpr vec<2, T> center()      const { return position + size / static_cast<T>(2); }
 
-    inline constexpr void set_topleft(const vec<2, T>& topleft)         { position = topleft; }
-    inline constexpr void set_midtop(const vec<2, T>& midtop)           { position.x = midtop.x - size.x / static_cast<T>(2); position.y = midtop.y; }
-    inline constexpr void set_topright(const vec<2, T>& topright)       { position.x = topright.x - size.x; position.y = topright.y; }
-    inline constexpr void set_midright(const vec<2, T>& midright)       { position.x = midright.x - size.x; position.y = midright.y - size.y / static_cast<T>(2); }
+    inline constexpr void set_topleft(const vec<2, T>& topleft) { position = topleft; }
+    inline constexpr void set_midtop(const vec<2, T>& midtop) { position.x = midtop.x - size.x / static_cast<T>(2); position.y = midtop.y; }
+    inline constexpr void set_topright(const vec<2, T>& topright) { position.x = topright.x - size.x; position.y = topright.y; }
+    inline constexpr void set_midright(const vec<2, T>& midright) { position.x = midright.x - size.x; position.y = midright.y - size.y / static_cast<T>(2); }
     inline constexpr void set_bottomright(const vec<2, T>& bottomright) { position = bottomright - size; }
-    inline constexpr void set_midbottom(const vec<2, T>& midbottom)     { position.x = midbottom.x - size.x / static_cast<T>(2); position.y = midbottom.y - size.y; }
-    inline constexpr void set_bottomleft(const vec<2, T>& bottomleft)   { position.x = bottomleft.x; position.y = bottomleft.y - size.y; }
-    inline constexpr void set_midleft(const vec<2, T>& midleft)         { position.x = midleft.x; position.y = midleft.y - size.y / static_cast<T>(2); }
-    inline constexpr void set_center(const vec<2, T>& center)           { position = center - size / static_cast<T>(2); }
+    inline constexpr void set_midbottom(const vec<2, T>& midbottom) { position.x = midbottom.x - size.x / static_cast<T>(2); position.y = midbottom.y - size.y; }
+    inline constexpr void set_bottomleft(const vec<2, T>& bottomleft) { position.x = bottomleft.x; position.y = bottomleft.y - size.y; }
+    inline constexpr void set_midleft(const vec<2, T>& midleft) { position.x = midleft.x; position.y = midleft.y - size.y / static_cast<T>(2); }
+    inline constexpr void set_center(const vec<2, T>& center) { position = center - size / static_cast<T>(2); }
 
     // =============== common getters ===============
 
@@ -313,7 +251,7 @@ struct rect_t
         return nr;
     }
 
-    // =============== transformations ===============
+    // =============== transform ===============
 
     /**
      * @brief Scales the rectangle by a specified factor.
@@ -493,12 +431,6 @@ struct rect_t
 };
 
 VX_PACK_POP()
-
-using rect  = rect_t<float>;
-using rectf = rect_t<float>;
-using rectd = rect_t<double>;
-using rectu = rect_t<uint32_t>;
-using recti = rect_t<int32_t>;
 
 }
 }

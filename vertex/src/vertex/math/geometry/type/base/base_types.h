@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../../detail/size_type.h"
-
 namespace vx {
 namespace math {
 
