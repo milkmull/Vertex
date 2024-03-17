@@ -1,22 +1,16 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/math/color/blend.h"
-#include "vertex/math/color/fn/color_fn_interpolation.h"
-
-#include "vertex/math/color/util/hash.h"
-#include "vertex/math/color/util/to_string.h"
+#include "vertex/math/geometry/type/rect.h"
+#include "vertex/math/geometry/util/hash.h"
+#include "vertex/math/geometry/util/to_string.h"
 
 int main()
 {
     using namespace vx;
 
-    constexpr auto blend = math::blend_func();
-    constexpr math::color c1 = math::color::BLACK();
-    constexpr math::color c2 = math::color::WHITE();
+    math::rect r;
 
-    constexpr auto y = blend(c1, c2);
-
-    std::cout << c1;
+    std::cout << r;
 
     return 0;
 }
