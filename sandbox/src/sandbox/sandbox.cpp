@@ -3,6 +3,9 @@
 #include "vertex/math/color/blend.h"
 #include "vertex/math/color/fn/color_fn_interpolation.h"
 
+#include "vertex/math/color/util/hash.h"
+#include "vertex/math/color/util/to_string.h"
+
 int main()
 {
     using namespace vx;
@@ -12,6 +15,8 @@ int main()
     constexpr math::color c2 = math::color::WHITE();
 
     constexpr auto y = blend(c1, c2);
+
+    std::cout << c1;
 
     return 0;
 }

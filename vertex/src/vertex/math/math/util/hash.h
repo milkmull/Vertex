@@ -3,7 +3,7 @@
 #include <functional>
 
 #include "../../detail/hash.h"
-#include "../detail/base_types.h"
+#include "../type/base/base_types.h"
 
 namespace std {
 
