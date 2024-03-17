@@ -291,7 +291,7 @@ inline constexpr vec<L, T> clamp_magnitude(
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T aspect(const vec<2, T>& v)
 {
-    return static_cast<T>(math::abs(v.y) > math::epsilon<T>()) * (x / y);
+    return static_cast<T>(math::abs(v.y) > math::epsilon<T>()) * (v.x / v.y);
 }
 
 // =============== angle ===============
