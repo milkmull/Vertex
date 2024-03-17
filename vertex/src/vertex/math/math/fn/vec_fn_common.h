@@ -1,7 +1,6 @@
 #pragma once
 
 #include "fn_common.h"
-#include "../type/vec2i.h"
 
 namespace vx {
 namespace math {
@@ -756,10 +755,10 @@ inline constexpr vec<4, T> modf(
 
 // =============== frexp ===============
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
 inline constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec<2, int>& exp
+    vec<2, I>& exp
 )
 {
     return vec<2, T>(
@@ -768,10 +767,10 @@ inline constexpr vec<2, T> frexp(
     );
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<3, int>& exp
+    vec<3, I>& exp
 )
 {
     return vec<3, T>(
@@ -781,10 +780,10 @@ inline constexpr vec<3, T> frexp(
     );
 }
 
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<4, int>& exp
+    vec<4, I>& exp
 )
 {
     return vec<4, T>(
@@ -792,6 +791,47 @@ inline constexpr vec<4, T> frexp(
         math::frexp(x.y, exp.y),
         math::frexp(x.z, exp.z),
         math::frexp(x.w, exp.w)
+    );
+}
+
+// =============== ldexp ===============
+
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
+inline constexpr vec<2, T> ldexp(
+    const vec<2, T>& x,
+    const vec<2, I>& exp
+)
+{
+    return vec<2, T>(
+        math::ldexp(x.x, exp.x),
+        math::ldexp(x.y, exp.y)
+    );
+}
+
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
+inline constexpr vec<3, T> ldexp(
+    const vec<3, T>& x,
+    const vec<3, I>& exp
+)
+{
+    return vec<3, T>(
+        math::ldexp(x.x, exp.x),
+        math::ldexp(x.y, exp.y),
+        math::ldexp(x.z, exp.z)
+    );
+}
+
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
+inline constexpr vec<4, T> ldexp(
+    const vec<4, T>& x,
+    const vec<4, I>& exp
+)
+{
+    return vec<4, T>(
+        math::ldexp(x.x, exp.x),
+        math::ldexp(x.y, exp.y),
+        math::ldexp(x.z, exp.z),
+        math::ldexp(x.w, exp.w)
     );
 }
 

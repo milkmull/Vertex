@@ -242,10 +242,31 @@ inline constexpr auto modf(T x, T& intpart)
  * @param exp Reference variable to store the exponent of x.
  * @return The normalized fraction of the input number.
  */
-template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto frexp(T x, int& exp)
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
+inline constexpr auto frexp(T x, I& exp)
 {
-    return std::frexp(x, &exp);
+    int exp_int;
+    const T f = std::frexp(x, &exp_int);
+    exp = static_cast<I>(exp_int);
+    return f;
+}
+
+// =============== ldexp ===============
+
+/**
+ * @brief Computes x times 2 raised to the power of exp.
+ *
+ * This function computes x times 2 raised to the power of exp.
+ *
+ * @tparam T The type of the floating-point numbers.
+ * @param x The floating-point number.
+ * @param exp The exponent.
+ * @return The result of x times 2 raised to the power of exp.
+ */
+template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
+inline constexpr T ldexp(T x, I exp)
+{
+    return std::ldexp(x, static_cast<int>(exp));
 }
 
 // =============== clamp ===============

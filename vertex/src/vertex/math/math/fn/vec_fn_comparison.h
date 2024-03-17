@@ -1,7 +1,10 @@
 #pragma once
 
 #include "fn_comparison.h"
+
 #include "../type/vec2b.h"
+#include "../type/vec3b.h"
+#include "../type/vec4b.h"
 
 namespace vx {
 namespace math {
