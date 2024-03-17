@@ -574,7 +574,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec2_t<R>(
+    return vec<2, R>(
         math::mod(x.x, y),
         math::mod(x.y, y)
     );
@@ -587,7 +587,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec3_t<R>(
+    return vec<3, R>(
         math::mod(x.x, y),
         math::mod(x.y, y),
         math::mod(x.z, y)
@@ -601,7 +601,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec4_t<R>(
+    return vec<4, R>(
         math::mod(x.x, y),
         math::mod(x.y, y),
         math::mod(x.z, y),
@@ -618,7 +618,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec2_t<R>(
+    return vec<2, R>(
         math::mod(x.x, y.x),
         math::mod(x.y, y.y)
     );
@@ -631,7 +631,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec3_t<R>(
+    return vec<3, R>(
         math::mod(x.x, y.x),
         math::mod(x.y, y.y),
         math::mod(x.z, y.z)
@@ -645,7 +645,7 @@ inline constexpr auto mod(
 )
 {
     using R = decltype(math::mod(std::declval<T>(), std::declval<T>()));
-    return vec4_t<R>(
+    return vec<4, R>(
         math::mod(x.x, y.x),
         math::mod(x.y, y.y),
         math::mod(x.z, y.z),
