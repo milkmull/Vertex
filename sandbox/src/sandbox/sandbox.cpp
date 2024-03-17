@@ -1,6 +1,7 @@
 #include "sandbox/sandbox.h"
 
 #include "vertex/math/color/blend.h"
+#include "vertex/math/color/fn/color_fn_interpolation.h"
 
 int main()
 {
