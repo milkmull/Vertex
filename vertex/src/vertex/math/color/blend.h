@@ -2,6 +2,7 @@
 
 #include "fn/color_fn_common.h"
 #include "../math/type/vec3.h"
+#include "../math/fn/vec_fn_common.h"
 
 namespace vx {
 
