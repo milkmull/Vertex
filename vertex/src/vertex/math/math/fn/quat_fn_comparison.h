@@ -1,7 +1,8 @@
 #pragma once
 
-#include "../type/base/base_types.h"
 #include "fn_comparison.h"
+
+#include "../type/quat.h"
 
 namespace vx {
 namespace math {

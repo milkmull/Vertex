@@ -2,6 +2,10 @@
 
 #include "fn_trigonometric.h"
 
+#include "../type/vec2.h"
+#include "../type/vec3.h"
+#include "../type/vec4.h"
+
 namespace vx {
 namespace math {
 

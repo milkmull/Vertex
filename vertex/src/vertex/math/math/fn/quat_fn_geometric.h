@@ -3,6 +3,8 @@
 #include "fn_exponential.h"
 #include "fn_trigonometric.h"
 
+#include "../type/quat.h"
+
 namespace vx {
 namespace math {
 

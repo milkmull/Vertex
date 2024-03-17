@@ -1,7 +1,6 @@
 #pragma once
 
-#include "../../fn/mat_fn_operations.h"
-#include "../../fn/vec_fn_geometric.h"
+#include "../../detail/common.h"
 
 namespace vx {
 namespace math {

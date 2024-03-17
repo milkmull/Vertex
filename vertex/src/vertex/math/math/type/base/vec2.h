@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../fn/fn_trigonometric.h"
+#include "../../detail/common.h"
 
 namespace vx {
 namespace math {
@@ -620,7 +620,7 @@ struct vec<2, T>
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static inline constexpr type from_angle(T angle)
     {
-        return type(math::cos(angle), math::sin(angle));
+        return type(std::cos(angle), std::sin(angle));
     }
 
     // =============== constants ===============

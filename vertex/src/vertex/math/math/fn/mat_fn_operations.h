@@ -2,6 +2,10 @@
 
 #include "../detail/common.h"
 
+#include "../type/mat2x2.h"
+#include "../type/mat3x3.h"
+#include "../type/mat4x4.h"
+
 namespace vx {
 namespace math {
 
