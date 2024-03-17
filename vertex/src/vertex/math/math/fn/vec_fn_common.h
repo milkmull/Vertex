@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fn_common.h"
+#include "../type/vec2i.h"
 
 namespace vx {
 namespace math {
@@ -755,28 +756,24 @@ inline constexpr vec<4, T> modf(
 
 // =============== frexp ===============
 
-template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec<2, U>& exp
+    vec<2, int>& exp
 )
 {
-    static_assert(std::is_same<U, int>::value, "exp must be of type int");
-
     return vec<2, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y)
     );
 }
 
-template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<3, U>& exp
+    vec<3, int>& exp
 )
 {
-    static_assert(std::is_same<U, int>::value, "exp must be of type int");
-
     return vec<3, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y),
@@ -784,14 +781,12 @@ inline constexpr vec<3, T> frexp(
     );
 }
 
-template <typename T, typename U = int, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<4, U>& exp
+    vec<4, int>& exp
 )
 {
-    static_assert(std::is_same<U, int>::value, "exp must be of type int");
-
     return vec<4, T>(
         math::frexp(x.x, exp.x),
         math::frexp(x.y, exp.y),
