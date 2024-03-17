@@ -6,7 +6,7 @@
 #include "util/size_limit.h"
 #include "util/image_info_helpers.h"
 
-#include "vertex/math/geometry/type/rect_type.h"
+#include "vertex/math/geometry/type/recti.h"
 
 namespace vx {
 namespace img {
