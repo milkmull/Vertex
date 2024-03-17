@@ -91,6 +91,13 @@ inline constexpr vec<4, T> min(
 
 // component
 
+/**
+ * @brief Computes the component-wise minimum of a vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return The component-wise minimum of the vector.
+ */
 template <typename T>
 inline constexpr T cmin(
     const vec<2, T>& x
@@ -201,6 +208,13 @@ inline constexpr vec<4, T> max(
 
 // component
 
+/**
+ * @brief Computes the component-wise maximum of a vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return The component-wise maximum of the vector.
+ */
 template <typename T>
 inline constexpr T cmax(
     const vec<2, T>& x
@@ -227,6 +241,13 @@ inline constexpr T cmax(
 
 // =============== csum ===============
 
+/**
+ * @brief Computes the component-wise sum of a vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return The component-wise sum of the vector.
+ */
 template <typename T>
 inline constexpr T csum(
     const vec<2, T>& x

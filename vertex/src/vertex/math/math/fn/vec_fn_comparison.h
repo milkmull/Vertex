@@ -7,6 +7,15 @@ namespace math {
 
 // =============== any ===============
 
+/**
+ * @brief Checks if any component of a vector is true.
+ *
+ * This function checks if any component of a vector is true (non-zero).
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return True if any component of the vector is true (non-zero), false otherwise.
+ */
 template <typename T>
 inline constexpr bool any(const vec<2, T>& x)
 {
@@ -27,6 +36,13 @@ inline constexpr bool any(const vec<4, T>& x)
 
 // =============== all ===============
 
+/**
+ * @brief Checks if all components of a vector are true.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return True if all components of the vector are true (non-zero), false otherwise.
+ */
 template <typename T>
 inline constexpr bool all(const vec<2, T>& x)
 {
@@ -47,6 +63,14 @@ inline constexpr bool all(const vec<4, T>& x)
 
 // =============== equal ===============
 
+/**
+ * @brief Checks if components of two vectors are equal.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components are equal.
+ */
 template <typename T>
 inline constexpr vec<2, bool> equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -79,6 +103,16 @@ inline constexpr vec<4, bool> equal(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== not_equal ===============
 
+/**
+ * @brief Checks if components of two vectors are not equal.
+ *
+ * This function checks if components of two vectors are not equal.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components are not equal.
+ */
 template <typename T>
 inline constexpr vec<2, bool> not_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -111,6 +145,14 @@ inline constexpr vec<4, bool> not_equal(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== greater_than ===============
 
+/**
+ * @brief Checks if components of the first vector are greater than the components of the second vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components of the first vector are greater than the components of the second vector.
+ */
 template <typename T>
 inline constexpr vec<2, bool> greater_than(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -143,6 +185,14 @@ inline constexpr vec<4, bool> greater_than(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== greater_than_equal ===============
 
+/**
+ * @brief Checks if components of the first vector are greater than or equal to the components of the second vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components of the first vector are greater than or equal to the components of the second vector.
+ */
 template <typename T>
 inline constexpr vec<2, bool> greater_than_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -175,6 +225,14 @@ inline constexpr vec<4, bool> greater_than_equal(const vec<4, T>& x, vec<4, T>& 
 
 // =============== less_than ===============
 
+/**
+ * @brief Checks if components of the first vector are less than the components of the second vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components of the first vector are less than the components of the second vector.
+ */
 template <typename T>
 inline constexpr vec<2, bool> less_than(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -207,6 +265,14 @@ inline constexpr vec<4, bool> less_than(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== less_than_equal ===============
 
+/**
+ * @brief Checks if components of the first vector are less than or equal to the components of the second vector.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The first vector.
+ * @param y The second vector.
+ * @return A vector of boolean values indicating whether components of the first vector are less than or equal to the components of the second vector.
+ */
 template <typename T>
 inline constexpr vec<2, bool> less_than_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -239,6 +305,13 @@ inline constexpr vec<4, bool> less_than_equal(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== is_inf ===============
 
+/**
+ * @brief Checks if components of the vector are infinite.
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return A vector of boolean values indicating whether components of the vector are infinite.
+ */
 template <typename T>
 inline constexpr vec<2, bool> is_inf(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -271,6 +344,13 @@ inline constexpr vec<4, bool> is_inf(const vec<4, T>& x, vec<4, T>& y)
 
 // =============== is_nan ===============
 
+/**
+ * @brief Checks if components of the vector are NaN (Not-a-Number).
+ *
+ * @tparam T The type of the vector components.
+ * @param x The vector.
+ * @return A vector of boolean values indicating whether components of the vector are NaN.
+ */
 template <typename T>
 inline constexpr vec<2, bool> is_nan(const vec<2, T>& x, vec<2, T>& y)
 {

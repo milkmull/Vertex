@@ -10,8 +10,6 @@ namespace math {
 /**
  * @brief Performs linear interpolation between two values.
  *
- * This function performs linear interpolation between two values x and y based on a interpolation factor t.
- *
  * @tparam T Type of the values.
  * @param x The starting value.
  * @param y The ending value.
@@ -28,8 +26,6 @@ inline constexpr T lerp(T x, T y, T t)
 
 /**
  * @brief Performs linear interpolation between two values.
- *
- * This function performs linear interpolation between two values x and y based on a interpolation factor t.
  *
  * @tparam T Type of the values.
  * @param x The starting value.
@@ -74,7 +70,7 @@ inline constexpr T step(T edge, T x)
  * @param edge0 The lower edge.
  * @param edge1 The upper edge.
  * @param x The value to interpolate.
- * @return The smooth interpolated value between edge0 and edge1 based on x.
+ * @return The result of smoothstep interpolation between 0 and 1.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T smoothstep(T edge0, T edge1, T x)

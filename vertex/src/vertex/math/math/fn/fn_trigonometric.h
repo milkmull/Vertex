@@ -11,8 +11,6 @@ namespace math {
 /**
  * @brief Converts degrees to radians.
  *
- * This function converts an angle from degrees to radians.
- *
  * @tparam T Type of the angle values.
  * @param deg The angle in degrees.
  * @return The angle in radians.
@@ -34,8 +32,6 @@ inline constexpr auto radians(T deg)
 
 /**
  * @brief Converts radians to degrees.
- *
- * This function converts an angle from radians to degrees.
  *
  * @tparam T Type of the angle values.
  * @param rad The angle in radians.
@@ -59,8 +55,6 @@ inline constexpr auto degrees(T rad)
 /**
  * @brief Computes the sine of an angle.
  *
- * This function computes the sine of the input angle.
- *
  * @tparam T Type of the angle.
  * @param x The angle in radians.
  * @return The sine of x.
@@ -75,8 +69,6 @@ inline constexpr T sin(T x)
 
 /**
  * @brief Computes the cosine of an angle.
- *
- * This function computes the cosine of the input angle.
  *
  * @tparam T Type of the angle.
  * @param x The angle in radians.
@@ -93,8 +85,6 @@ inline constexpr T cos(T x)
 /**
  * @brief Computes the tangent of an angle.
  *
- * This function computes the tangent of the input angle.
- *
  * @tparam T Type of the angle.
  * @param x The angle in radians.
  * @return The tangent of x.
@@ -109,8 +99,6 @@ inline constexpr T tan(T x)
 
 /**
  * @brief Computes the arcsine of a value.
- *
- * This function computes the arcsine (inverse sine) of the input value.
  *
  * @tparam T Type of the value.
  * @param x The value.
@@ -142,8 +130,6 @@ inline constexpr T asin_clamped(T x)
 /**
  * @brief Computes the arccosine of a value.
  *
- * This function computes the arccosine (inverse cosine) of the input value.
- *
  * @tparam T Type of the value.
  * @param x The value.
  * @return The arccosine of x in radians, in the range [0, pi].
@@ -173,8 +159,6 @@ inline constexpr T acos_clamped(T x)
 
 /**
  * @brief Computes the arctangent of a value.
- *
- * This function computes the arctangent (inverse tangent) of the input value.
  *
  * @tparam T Type of the value.
  * @param x The value.
@@ -216,8 +200,6 @@ inline constexpr auto atan2(T y, T x)
 /**
  * @brief Computes the hyperbolic sine of a value.
  *
- * This function computes the hyperbolic sine of the input value.
- *
  * @tparam T Type of the value.
  * @param x The value.
  * @return The hyperbolic sine of x.
@@ -232,8 +214,6 @@ inline constexpr T sinh(T x)
 
 /**
  * @brief Computes the hyperbolic cosine of a value.
- *
- * This function computes the hyperbolic cosine of the input value.
  *
  * @tparam T Type of the value.
  * @param x The value.
@@ -250,8 +230,6 @@ inline constexpr T cosh(T x)
 /**
  * @brief Computes the hyperbolic tangent of a value.
  *
- * This function computes the hyperbolic tangent of the input value.
- *
  * @tparam T Type of the value.
  * @param x The value.
  * @return The hyperbolic tangent of x.
@@ -266,8 +244,6 @@ inline constexpr T tanh(T x)
 
 /**
  * @brief Computes the inverse hyperbolic sine of a value.
- *
- * This function computes the inverse hyperbolic sine of the input value.
  *
  * @tparam T Type of the value.
  * @param x The value.
@@ -284,8 +260,6 @@ inline constexpr T asinh(T x)
 /**
  * @brief Computes the inverse hyperbolic cosine of a value.
  *
- * This function computes the inverse hyperbolic cosine of the input value.
- *
  * @tparam T Type of the value.
  * @param x The value.
  * @return The inverse hyperbolic cosine of x.
@@ -300,8 +274,6 @@ inline constexpr T acosh(T x)
 
 /**
  * @brief Computes the inverse hyperbolic tangent of a value.
- *
- * This function computes the inverse hyperbolic tangent of the input value.
  *
  * @tparam T Type of the value.
  * @param x The value.

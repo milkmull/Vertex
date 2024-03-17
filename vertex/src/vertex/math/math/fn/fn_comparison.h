@@ -8,36 +8,84 @@ namespace math {
 
 // =============== common ===============
 
+/**
+ * @brief Checks if two values are equal.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the values are equal, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool equal(T x, T y)
 {
     return x == y;
 }
 
+/**
+ * @brief Checks if two values are not equal.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the values are not equal, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool not_equal(T x, T y)
 {
     return x != y;
 }
 
+/**
+ * @brief Checks if the first value is greater than the second value.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the first value is greater than the second value, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool greater_than(T x, T y)
 {
     return x > y;
 }
 
+/**
+ * @brief Checks if the first value is greater than or equal to the second value.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the first value is greater than or equal to the second value, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool greater_than_equal(T x, T y)
 {
     return x >= y;
 }
 
+/**
+ * @brief Checks if the first value is less than the second value.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the first value is less than the second value, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool less_than(T x, T y)
 {
     return x < y;
 }
 
+/**
+ * @brief Checks if the first value is less than or equal to the second value.
+ *
+ * @tparam T The type of the values.
+ * @param x The first value.
+ * @param y The second value.
+ * @return True if the first value is less than or equal to the second value, false otherwise.
+ */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline constexpr bool less_than_equal(T x, T y)
 {
@@ -48,8 +96,6 @@ inline constexpr bool less_than_equal(T x, T y)
 
 /**
  * @brief Checks if a number is infinite.
- *
- * This function checks whether the input number is infinite.
  *
  * @tparam T Type of the number.
  * @param x The number to check.
@@ -71,8 +117,6 @@ inline constexpr bool is_inf(T x)
 
 /**
  * @brief Checks if a number is NaN (Not a Number).
- *
- * This function checks whether the input number is NaN (Not a Number).
  *
  * @tparam T Type of the number.
  * @param x The number to check.

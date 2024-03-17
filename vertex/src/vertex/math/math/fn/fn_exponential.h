@@ -10,8 +10,6 @@ namespace math {
 /**
  * @brief Computes the value of x raised to the power of y.
  *
- * This function computes the value of x raised to the power of y.
- *
  * @tparam T Type of the numbers.
  * @param x The base.
  * @param y The exponent.
@@ -28,8 +26,6 @@ inline constexpr T pow(T x, T y)
 /**
  * @brief Computes the exponential (e^x) of a number.
  *
- * This function computes the exponential (e^x) of the input number.
- *
  * @tparam T Type of the number.
  * @param x The exponent.
  * @return The value of e raised to the power of x.
@@ -44,8 +40,6 @@ inline constexpr T exp(T x)
 
 /**
  * @brief Computes 2 raised to the power of a number.
- *
- * This function computes 2 raised to the power of the input number.
  *
  * @tparam T Type of the number.
  * @param x The exponent.
@@ -62,8 +56,6 @@ inline constexpr T exp2(T x)
 /**
  * @brief Computes the natural logarithm of a number.
  *
- * This function computes the natural logarithm (base e) of the input number.
- *
  * @tparam T Type of the number.
  * @param x The number.
  * @return The natural logarithm of x.
@@ -78,8 +70,6 @@ inline constexpr T log(T x)
 
 /**
  * @brief Computes the base-2 logarithm of a number.
- *
- * This function computes the base-2 logarithm of the input number.
  *
  * @tparam T Type of the number.
  * @param x The number.
@@ -96,8 +86,6 @@ inline constexpr T log2(T x)
 /**
  * @brief Computes the square root of a number.
  *
- * This function computes the square root of the input number.
- *
  * @tparam T Type of the number.
  * @param x The number.
  * @return The square root of x.
@@ -112,8 +100,6 @@ inline constexpr T sqrt(T x)
 
 /**
  * @brief Computes the inverse square root of a number.
- *
- * This function computes the inverse square root of the input number.
  *
  * @tparam T Type of the number.
  * @param x The number.

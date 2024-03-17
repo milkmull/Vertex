@@ -1,12 +1,10 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/image/noise_sampler.h"
+#include "vertex/math/math/fn/vec_fn_comparison.h"
 
 int main()
 {
     using namespace vx;
-
-    img::noise_sampler s;
 
     return 0;
 }

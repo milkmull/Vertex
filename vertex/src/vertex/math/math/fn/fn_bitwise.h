@@ -7,6 +7,13 @@ namespace math {
 
 // =============== bit_count ===============
 
+/**
+ * @brief Counts the number of set bits (1s) in the binary representation of an integer.
+ *
+ * @tparam T The type of the integer.
+ * @param x The integer for which to count the set bits.
+ * @return The number of set bits in the binary representation of the integer.
+ */
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T bit_count(T x)
 {
@@ -29,6 +36,16 @@ inline constexpr T bit_count(T x)
 
 // =============== find_lsb ===============
 
+/**
+ * @brief Finds the index of the least significant bit (LSB) that is set to 1 in the binary representation of an integer.
+ *
+ * This function finds the index (position) of the least significant bit (LSB) that is set to 1 in the binary representation
+ * of the given integer. If no bit is set (the input is zero), it returns -1.
+ *
+ * @tparam T The type of the integer.
+ * @param x The integer for which to find the index of the least significant bit.
+ * @return The index of the least significant bit (LSB) that is set to 1, or -1 if no bit is set.
+ */
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T find_lsb(T x)
 {
@@ -58,6 +75,18 @@ inline constexpr T find_lsb(T x)
 
 // https://registry.khronos.org/OpenGL-Refpages/gl4/html/findMSB.xhtml
 
+/**
+ * @brief Finds the index of the most significant bit (MSB) that is set to 1 in the binary representation of an unsigned integer.
+ *
+ * This function finds the index (position) of the most significant bit (MSB) that is set to 1 in the binary representation
+ * of the given integer. For positive integers, the result will be the bit number of the most significant bit that
+ * is set to 1. For negative integers, the result will be the bit number of the most significant bit set to 0. For a value
+ * of zero or negative 1, -1 will be returned.
+ *
+ * @tparam T The type of the integer.
+ * @param x The integer for which to find the index of the most significant bit.
+ * @return The index of the most significant bit (MSB) that is set to 1, or -1 if no bit is set.
+ */
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T find_msb(T x)
 {
@@ -94,6 +123,15 @@ inline constexpr T find_msb(T x)
 
 // =============== reverse_bits ===============
 
+/**
+ * @brief Reverses the order of bits in the binary representation of an integer.
+ *
+ * This function reverses the order of bits in the binary representation of the given integer.
+ *
+ * @tparam T The type of the integer.
+ * @param x The integer for which to reverse the bits.
+ * @return The integer with its bits reversed.
+ */
 template <typename T, typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value, bool>::type = true>
 inline constexpr T reverse_bits(T x)
 {
