@@ -95,8 +95,6 @@ struct blend_func
      */
     inline constexpr color blend(const color& src, const color& dst) const
     {
-        using T = float;
-
         struct blend_pair
         {
             color col;
