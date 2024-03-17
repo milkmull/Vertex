@@ -204,7 +204,7 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
 
-    if VX_UNLIKELY(magsq < math::epsilon<T>)
+    if VX_UNLIKELY(magsq < math::epsilon<T>())
     {
         return vec<L, T>(0);
     }
@@ -238,11 +238,11 @@ inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
  * @tparam L Number of components in the vector.
  * @tparam T Type of the vector components.
  * @param v The vector to be checked.
- * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>).
+ * @param epsilon The epsilon value used for comparison (default: math::epsilon<T>()).
  * @return True if the vector is normalized, false otherwise.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>)
+inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>())
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
 }
@@ -272,7 +272,7 @@ inline constexpr vec<L, T> clamp_magnitude(
 {
     const T mag = length(v);
 
-    if (mag < math::epsilon<T>)
+    if (mag < math::epsilon<T>())
     {
         return vec<L, T>(0);
     }
@@ -284,6 +284,14 @@ inline constexpr vec<L, T> clamp_magnitude(
     );
 
     return (v * (static_cast<T>(1) / mag)) * new_mag;
+}
+
+// =============== aespect ===============
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+inline constexpr T aspect(const vec<2, T>& v)
+{
+    return static_cast<T>(math::abs(v.y) > math::epsilon<T>()) * (x / y);
 }
 
 // =============== angle ===============
@@ -485,7 +493,7 @@ inline constexpr vec<L, T> refract(
     const T d = normalized_dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
 
-    if (k < math::epsilon<T>)
+    if (k < math::epsilon<T>())
     {
         return vec<L, T>(0);
     }
