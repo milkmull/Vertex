@@ -437,20 +437,6 @@ struct vec<2, T>
         return *this;
     }
 
-    template <size_t M, typename std::enable_if<type_traits::is_numeric<T>::value, bool>::type = true>
-    inline constexpr type& operator*=(const mat<M, 2, T>& m)
-    {
-        (*this) = (*this) * m;
-        return *this;
-    }
-
-    template <size_t N, typename std::enable_if<type_traits::is_numeric<T>::value, bool>::type = true>
-    inline constexpr type& operator*=(const mat<2, N, T>& m)
-    {
-        (*this) = (*this) * m;
-        return *this;
-    }
-
     // division (/=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
@@ -466,13 +452,6 @@ struct vec<2, T>
     {
         x /= v.x;
         y /= v.y;
-        return *this;
-    }
-
-    template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<T>::value, bool>::type = true>
-    inline constexpr type& operator/=(const mat<2, 2, T>& m)
-    {
-        (*this) = (*this) / m;
         return *this;
     }
 
