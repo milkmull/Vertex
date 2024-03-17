@@ -12,8 +12,8 @@
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2x2.glsl
 
-#include "../../math/math.h"
 #include "detail/fn_noise.h"
+#include "../../math/fn/vec_fn_exponential.h"
 
 namespace vx {
 namespace math {
@@ -274,8 +274,8 @@ vec<2, T> cellular_noise_2x2(const vec<2, T>& P)
     vec<2, T> Pf = fract(P);
     vec<4, T> Pfx = Pf.x + vec<4, T>(static_cast<T>(-0.5), static_cast<T>(-1.5), static_cast<T>(-0.5), static_cast<T>(-1.5));
     vec<4, T> Pfy = Pf.y + vec<4, T>(static_cast<T>(-0.5), static_cast<T>(-0.5), static_cast<T>(-1.5), static_cast<T>(-1.5));
-    vec<4, T> p = detail::permute(Pi.x + vec<4, T>(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0), static_cast<T>(1)));
-    p       = detail::permute(p + Pi.y + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1)));
+    vec<4, T> p = detail::permute(Pi.x     + vec<4, T>(static_cast<T>(0), static_cast<T>(1), static_cast<T>(0), static_cast<T>(1)));
+              p = detail::permute(p + Pi.y + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1)));
     vec<4, T> ox = detail::mod7(p) * K + K2;
     vec<4, T> oy = detail::mod7(floor(p * K)) * K + K2;
     vec<4, T> dx = Pfx + jitter * ox;

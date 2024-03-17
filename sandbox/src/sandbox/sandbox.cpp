@@ -1,16 +1,12 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/math/geometry/type/rect.h"
-#include "vertex/math/geometry/util/hash.h"
-#include "vertex/math/geometry/util/to_string.h"
+#include "vertex/image/noise_sampler.h"
 
 int main()
 {
     using namespace vx;
 
-    math::rect r;
-
-    std::cout << r;
+    img::noise_sampler s;
 
     return 0;
 }

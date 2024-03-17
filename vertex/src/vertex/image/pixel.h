@@ -1,7 +1,7 @@
 #pragma once
 
 #include "util/format_traits.h"
-#include "vertex/math/color/type/color_type.h"
+#include "vertex/math/color/type/color.h"
 
 namespace vx {
 namespace img {

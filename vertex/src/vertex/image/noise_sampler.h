@@ -1,7 +1,11 @@
 #pragma once
 
 #include "image.h"
-#include "vertex/math/math/type/vec4_type.h"
+
+#include "vertex/math/math/type/vec2.h"
+#include "vertex/math/math/type/vec3.h"
+#include "vertex/math/math/type/vec4.h"
+
 #include "vertex/math/texture/noise/perlin_noise.h"
 #include "vertex/math/texture/noise/simplex_noise.h"
 #include "vertex/math/texture/noise/cellular_noise.h"
@@ -29,7 +33,7 @@ struct noise_sampler
      * @param uv UV coordinates at which to sample the noise.
      * @return The Perlin noise value at the specified UV coordinates.
      */
-    template <math::size_type L>
+    template <size_t L>
     float perlin_noise(const math::vec<L, float>& uv) const
     {
         using T = decltype(uv);
@@ -46,7 +50,7 @@ struct noise_sampler
      * @param uv UV coordinates at which to sample the noise.
      * @return The simplex noise value at the specified UV coordinates.
      */
-    template <math::size_type L>
+    template <size_t L>
     float simplex_noise(const math::vec<L, float>& uv) const
     {
         using T = decltype(uv);
@@ -63,7 +67,7 @@ struct noise_sampler
      * @param uv UV coordinates at which to sample the noise.
      * @return The cellular noise values at the specified UV coordinates.
      */
-    template <math::size_type L, typename std::enable_if<(L == 2 || L == 3), bool>::type = true>
+    template <size_t L, typename std::enable_if<(L == 2 || L == 3), bool>::type = true>
     math::vec2 cellular_noise(const math::vec<L, float>& uv) const
     {
         using T = decltype(uv);

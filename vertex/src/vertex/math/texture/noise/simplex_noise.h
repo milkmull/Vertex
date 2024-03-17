@@ -12,7 +12,6 @@
 
 // https://cgvr.cs.uni-bremen.de/teaching/cg_literatur/simplexnoise.pdf
 
-#include "../../math/math.h"
 #include "detail/fn_noise.h"
 
 namespace vx {

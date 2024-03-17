@@ -9,7 +9,6 @@
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise3D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise4D.glsl
 
-#include "../../math/math.h"
 #include "detail/fn_noise.h"
 
 namespace vx {
