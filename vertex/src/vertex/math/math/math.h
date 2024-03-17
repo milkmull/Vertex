@@ -22,6 +22,4 @@
 #include "fn/quat_fn_interpolation.h"
 #include "fn/quat_fn_geometric.h"
 
-#include "../color/fn/color_fn_common.h"
-#include "../color/fn/color_fn_comparison.h"
-#include "../color/fn/color_fn_interpolation.h"
+#include "../color/color.h"

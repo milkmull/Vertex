@@ -709,8 +709,5 @@ struct color_t
 
 VX_PACK_POP()
 
-using color  = color_t<float>;
-using color8 = color_t<uint8_t>;
-
 }
 }

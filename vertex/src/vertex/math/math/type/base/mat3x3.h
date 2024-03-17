@@ -759,7 +759,6 @@ struct mat<3, 3, T>
      *
      * This function generates a 3x3 rotation matrix representing a rotation around the specified axis by the given angle.
      *
-     * @tparam T The type of elements in the matrix and vector.
      * @param axis The axis of rotation.
      * @param angle The angle of rotation in radians.
      * @return A 3x3 rotation matrix.
@@ -797,7 +796,6 @@ struct mat<3, 3, T>
      * This function generates a 3x3 rotation matrix from the given Euler angles (in radians).
      * The rotation order is assumed to be X-Y-Z (roll, pitch, yaw).
      *
-     * @tparam T The type of elements in the matrix.
      * @param x The angle of rotation around the X-axis (roll).
      * @param y The angle of rotation around the Y-axis (pitch).
      * @param z The angle of rotation around the Z-axis (yaw).
@@ -836,7 +834,6 @@ struct mat<3, 3, T>
      *
      * This function generates a 3x3 rotation matrix from the given quaternion.
      *
-     * @tparam T The type of elements in the matrix and quaternion.
      * @param rotation The quaternion representing the rotation.
      * @return A 3x3 rotation matrix.
      */
@@ -877,7 +874,6 @@ struct mat<3, 3, T>
      *
      * This function converts the given 3x3 rotation matrix to a quaternion.
      *
-     * @tparam T The type of elements in the matrix and quaternion.
      * @param m The 3x3 rotation matrix.
      * @return The quaternion representing the rotation.
      */
@@ -941,7 +937,6 @@ struct mat<3, 3, T>
     /**
      * @brief Creates a 3x3 scaling matrix.
      *
-     * @tparam T The type of elements in the matrix.
      * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
      * @return A 3x3 scaling matrix.
      */
@@ -969,7 +964,6 @@ struct mat<3, 3, T>
      * This function calculates and returns the scaling factors represented by
      * the given 3x3 scaling matrix.
      *
-     * @tparam T The type of elements in the matrix.
      * @param m The 3x3 scaling matrix.
      * @return A 3D vector representing the scaling factors along the x, y, and z axes.
      */
@@ -993,7 +987,6 @@ struct mat<3, 3, T>
      * This function generates a left-handed 3x3 view matrix for a look-at transformation,
      * given the eye position, target position, and up vector.
      *
-     * @tparam T The type of elements in the matrix and vectors.
      * @param eye The position of the camera.
      * @param target The position the camera is looking at.
      * @param up The up vector of the camera  (default is the positive y-axis).
@@ -1019,7 +1012,6 @@ struct mat<3, 3, T>
      * This function generates a right-handed 3x3 view matrix for a look-at transformation,
      * given the eye position, target position, and up vector.
      *
-     * @tparam T The type of elements in the matrix and vectors.
      * @param eye The position of the camera.
      * @param target The position the camera is looking at.
      * @param up The up vector of the camera  (default is the positive y-axis).
@@ -1048,7 +1040,6 @@ struct mat<3, 3, T>
      * The handedness of the matrix (left-handed or right-handed) is determined
      * based on the configuration specified in VX_CONFIG_CLIP_CONTROL.
      *
-     * @tparam T The type of elements in the matrix and vectors.
      * @param eye The position of the camera.
      * @param target The position the camera is looking at.
      * @param up The up vector of the camera  (default is the positive y-axis).

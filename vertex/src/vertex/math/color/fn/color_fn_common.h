@@ -66,12 +66,13 @@ inline constexpr color_t<T> clamp(
 // =============== color attributes ===============
 
 /**
- * @brief Calculates the luminance of the color.
+ * @brief Computes the luminance of a color.
  *
- * This function calculates the luminance of the color using the formula:
- * luminance = (0.2126 * r) + (0.7152 * g) + (0.0722 * b)
+ * This function computes the luminance of a color using the formula:
+ * Luminance = (Red * 0.2126) + (Green * 0.7152) + (Blue * 0.0722).
  *
- * @return The luminance of the color.
+ * @param c The color for which to compute the luminance.
+ * @return The luminance value of the color.
  */
 inline constexpr float luminance(const color& c)
 {
@@ -81,12 +82,11 @@ inline constexpr float luminance(const color& c)
 // =============== color modifiers ===============
 
 /**
- * @brief Creates a lighter version of the color.
+ * @brief Lightens a color by a specified amount.
  *
- * Returns a new color that is lightened by the specified amount.
- *
- * @param amount The amount by which to lighten the color. Should be in the range [0, 1].
- * @return The new color lightened by the specified amount.
+ * @param c The color to lighten.
+ * @param amount The amount by which to lighten the color.
+ * @return The lightened color.
  */
 inline constexpr color lighten(const color& c, float amount)
 {
@@ -99,12 +99,11 @@ inline constexpr color lighten(const color& c, float amount)
 }
 
 /**
- * @brief Creates a darker version of the color.
+ * @brief Darkens a color by a specified amount.
  *
- * Returns a new color that is darkened by the specified amount.
- *
- * @param amount The amount by which to darken the color. Should be in the range [0, 1].
- * @return The new color darkened by the specified amount.
+ * @param c The color to darken.
+ * @param amount The amount by which to darken the color.
+ * @return The darkened color.
  */
 inline constexpr color darken(const color& c, float amount)
 {
@@ -118,6 +117,13 @@ inline constexpr color darken(const color& c, float amount)
 
 // =============== invert ===============
 
+/**
+ * @brief Inverts a color.
+ *
+ * @tparam T The type of the color components.
+ * @param c The color to invert.
+ * @return The inverted color.
+ */
 template <typename T>
 inline constexpr color_t<T> invert(const color_t<T>& c)
 {

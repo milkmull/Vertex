@@ -617,6 +617,15 @@ struct vec<2, T>
 
     // =============== static constructors ===============
 
+    /**
+     * @brief Constructs a vector from an angle.
+     *
+     * This function constructs a vector from an angle, where the x-component is the cosine of the angle
+     * and the y-component is the sine of the angle.
+     *
+     * @param angle The angle in radians.
+     * @return The vector constructed from the angle.
+     */
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static inline constexpr type from_angle(T angle)
     {

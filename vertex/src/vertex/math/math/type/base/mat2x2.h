@@ -707,7 +707,6 @@ struct mat<2, 2, T>
      *
      * This function generates a 2x2 rotation matrix with the specified angle.
      *
-     * @tparam T The type of elements in the matrix.
      * @param angle The angle of rotation in radians.
      * @return A 2x2 rotation matrix.
      */
@@ -726,7 +725,6 @@ struct mat<2, 2, T>
      * This function calculates and returns the rotation angle represented by
      * the given 2x2 rotation matrix.
      *
-     * @tparam T The type of elements in the matrix.
      * @param m The 2x2 rotation matrix.
      * @return The rotation angle in radians.
      */
@@ -743,7 +741,6 @@ struct mat<2, 2, T>
      *
      * This function generates a 2x2 scaling matrix with the specified scaling factors.
      *
-     * @tparam T The type of elements in the matrix.
      * @param scale A 2D vector representing the scaling factors along the x and y axes.
      * @return A 2x2 scaling matrix.
      */
@@ -762,7 +759,6 @@ struct mat<2, 2, T>
      * This function calculates and returns the scaling factors represented by
      * the given 2x2 scaling matrix.
      *
-     * @tparam T The type of elements in the matrix.
      * @param m The 2x2 scaling matrix.
      * @return A 2D vector representing the scaling factors along the x and y axes.
      */
