@@ -10,7 +10,12 @@ enum class image_format
     R8 = 1,
     RG8 = 2,
     RGB8 = 3,
-    RGBA8 = 4
+    RGBA8 = 4,
+
+    R32F = 5,
+    RG32F = 6,
+    RGB32F = 7,
+    RGBA32F = 8
 };
 
 }

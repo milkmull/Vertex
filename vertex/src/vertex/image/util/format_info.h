@@ -20,10 +20,15 @@ struct image_format_data
 inline constexpr image_format_data image_format_data_table[] = {
     { 0, 0, 0, false, image_format::UNKNOWN },  // UNKNOWN
 
-    { 1, 8, 1, false, image_format::R8 },       // R8
-    { 2, 8, 2, false, image_format::RG8 },      // RG8
-    { 3, 8, 3, false, image_format::RGB8 },     // RGB8
-    { 4, 8, 4,  true, image_format::RGBA8 }     // RGBA8
+    { 1, 8, 1,   false, image_format::R8 },     // R8
+    { 2, 8, 2,   false, image_format::RG8 },    // RG8
+    { 3, 8, 3,   false, image_format::RGB8 },   // RGB8
+    { 4, 8, 4,    true, image_format::RGBA8 },  // RGBA8
+
+    { 1, 32, 4,  false, image_format::R8 },     // R32F
+    { 2, 32, 8,  false, image_format::RG8 },    // RG32F
+    { 3, 32, 12, false, image_format::RGB8 },   // RGB32F
+    { 4, 32, 16,  true, image_format::RGBA8 }   // RGBA32F
 };
 
 } // detail
