@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../math/math.h"
+#include "../math.h"
 
 namespace vx {
 namespace math {
@@ -106,7 +106,7 @@ inline constexpr T sd_segment(const vec<2, T>& p, const vec<2, T>& a, const vec<
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_equilateral_triangle(const vec<2, T>& p, T r)
+inline constexpr T sd_equilateral_triangle(const vec<2, T>& p, T r)
 {
     vec<2, T> ip(p);
 
@@ -125,7 +125,7 @@ T sd_equilateral_triangle(const vec<2, T>& p, T r)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_isosceles_triangle(const vec<2, T>& p, const vec<2, T>& q)
+inline constexpr T sd_isosceles_triangle(const vec<2, T>& p, const vec<2, T>& q)
 {
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
@@ -143,7 +143,7 @@ T sd_isosceles_triangle(const vec<2, T>& p, const vec<2, T>& q)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_triangle(
+inline constexpr T sd_triangle(
     const vec<2, T>& p,
     const vec<2, T>& p0,
     const vec<2, T>& p1,
@@ -171,7 +171,7 @@ T sd_triangle(
 // sc is the sin/cos of the arc's aperture
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_pie(const vec<2, T>& p, const vec<2, T>& sc, T r) // use a 2x2 rotation matrix to rotate p to get rotated version
+inline constexpr T sd_pie(const vec<2, T>& p, const vec<2, T>& sc, T r) // use a 2x2 rotation matrix to rotate p to get rotated version
 {
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
@@ -182,7 +182,7 @@ T sd_pie(const vec<2, T>& p, const vec<2, T>& sc, T r) // use a 2x2 rotation mat
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_arc(const vec<2, T>& p, const vec<2, T>& sc, T ra, T rb)
+inline constexpr T sd_arc(const vec<2, T>& p, const vec<2, T>& sc, T ra, T rb)
 {
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
@@ -191,7 +191,7 @@ T sd_arc(const vec<2, T>& p, const vec<2, T>& sc, T ra, T rb)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-T sd_ring(const vec<2, T>& p, const vec<2, T>& sc, T r, T t)
+inline constexpr T sd_ring(const vec<2, T>& p, const vec<2, T>& sc, T r, T t)
 {
     vec<2, T> ip(p);
     ip.x = abs(ip.x);
