@@ -124,125 +124,12 @@ struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGB
     }
 };
 
-// =============== 32 bit float ===============
-
-template <>
-struct pixel<image_format::R32F> : public util::format_traits<image_format::R32F>
-{
-    channel_type r;
-
-    inline constexpr pixel(channel_type r)
-        : r(r) {}
-
-    inline constexpr pixel(const math::color& c)
-        : r(c.r) {}
-
-    inline constexpr operator math::color() const
-    {
-        return math::color(
-            r,
-            0.0f,
-            0.0f,
-            0.0f
-        );
-    }
-};
-
-template <>
-struct pixel<image_format::RG32F> : public util::format_traits<image_format::RG32F>
-{
-    channel_type r, g;
-
-    inline constexpr pixel(
-        channel_type r,
-        channel_type g
-    )
-        : r(r), g(g) {}
-
-    inline constexpr pixel(const math::color& c)
-        : r(c.r)
-        , g(c.g) {}
-
-    inline constexpr operator math::color() const
-    {
-        return math::color(
-            r,
-            g,
-            0.0f,
-            0.0f
-        );
-    }
-};
-
-template <>
-struct pixel<image_format::RGB32F> : public util::format_traits<image_format::RGB32F>
-{
-    channel_type r, g, b;
-
-    inline constexpr pixel(
-        channel_type r,
-        channel_type g,
-        channel_type b
-    )
-        : r(r), g(g), b(b) {}
-
-    inline constexpr pixel(const math::color& c)
-        : r(c.r)
-        , g(c.g)
-        , b(c.b) {}
-
-    inline constexpr operator math::color() const
-    {
-        return math::color(
-            r,
-            g,
-            b,
-            0.0f
-        );
-    }
-};
-
-template <>
-struct pixel<image_format::RGBA32F> : public util::format_traits<image_format::RGBA32F>
-{
-    channel_type r, g, b, a;
-
-    inline constexpr pixel(
-        channel_type r,
-        channel_type g,
-        channel_type b,
-        channel_type a
-    )
-        : r(r), g(g), b(b), a(a) {}
-
-    inline constexpr pixel(const math::color& c)
-        : r(c.r)
-        , g(c.g)
-        , b(c.b)
-        , a(c.a) {}
-
-    inline constexpr operator math::color() const
-    {
-        return math::color(
-            r,
-            g,
-            b,
-            a
-        );
-    }
-};
-
 // =============== types ===============
 
 using pixel_r8 = pixel<image_format::R8>;
 using pixel_rg8 = pixel<image_format::RG8>;
 using pixel_rgb8 = pixel<image_format::RGB8>;
 using pixel_rgba8 = pixel<image_format::RGBA8>;
-
-using pixel_r32f = pixel<image_format::R32F>;
-using pixel_rg32f = pixel<image_format::RG32F>;
-using pixel_rgb32f = pixel<image_format::RGB32F>;
-using pixel_rgba32f = pixel<image_format::RGBA32F>;
 
 }
 }
