@@ -92,6 +92,20 @@
 
 #endif
 
+// =============== file and line ===============
+
+#if defined(VX_COMPILER_MSVC) || defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+
+#   define VX_FILE __FILE__
+#   define VX_LINE __LINE__
+
+#else
+
+#   define VX_FILE ""
+#   define VX_LINE 0
+
+#endif
+
 // =============== warning suppression ===============
 
 #if defined(VX_COMPILER_MSVC)
