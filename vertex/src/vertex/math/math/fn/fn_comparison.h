@@ -95,10 +95,10 @@ inline constexpr bool less_than_equal(T x, T y)
 // =============== is_inf ===============
 
 /**
- * @brief Checks if a number is infinite.
+ * @brief Checks if a value is infinite.
  *
- * @tparam T Type of the number.
- * @param x The number to check.
+ * @tparam T Type of the value.
+ * @param x The value to check.
  * @return True if x is infinite, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -116,10 +116,10 @@ inline constexpr bool is_inf(T x)
 // =============== is_nan ===============
 
 /**
- * @brief Checks if a number is NaN (Not a Number).
+ * @brief Checks if a value is NaN (Not a number).
  *
- * @tparam T Type of the number.
- * @param x The number to check.
+ * @tparam T Type of the value.
+ * @param x The value to check.
  * @return True if x is NaN, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -137,13 +137,13 @@ inline constexpr bool is_nan(T x)
 // =============== is_zero_approx ===============
 
 /**
- * @brief Checks if a number is approximately zero.
+ * @brief Checks if a value is approximately zero.
  *
- * This function checks whether the absolute value of the input number is less than a specified epsilon.
+ * This function checks whether the absolute value of the input value is less than a specified epsilon.
  *
- * @tparam T Type of the number.
- * @param x The number to check.
- * @param epsilon The tolerance threshold for considering a number as zero.
+ * @tparam T Type of the value.
+ * @param x The value to check.
+ * @param epsilon The tolerance threshold for considering a value as zero.
  * @return True if the absolute value of x is less than epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -161,14 +161,14 @@ inline constexpr bool is_zero_approx(T x, const T epsilon = math::epsilon<T>())
 // =============== is_equal_approx ===============
 
 /**
- * @brief Checks if two numbers are approximately equal.
+ * @brief Checks if two values are approximately equal.
  *
- * This function checks whether the absolute difference between two numbers is less than a specified epsilon.
+ * This function checks whether the absolute difference between two values is less than a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as equal.
  * @return True if the absolute difference between a and b is less than epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -186,14 +186,14 @@ inline constexpr bool is_equal_approx(T a, T b, const T epsilon = math::epsilon<
 // =============== is_not_equal_approx ===============
 
 /**
- * @brief Checks if two numbers are approximately not equal.
+ * @brief Checks if two values are approximately not equal.
  *
- * This function checks whether the absolute difference between two numbers is greater than or equal to a specified epsilon.
+ * This function checks whether the absolute difference between two values is greater than or equal to a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as equal.
  * @return True if the absolute difference between a and b is greater than or equal to epsilon, false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -211,14 +211,14 @@ inline constexpr bool is_not_equal_approx(T a, T b, const T epsilon = math::epsi
 // =============== is_greater_than_approx ===============
 
 /**
- * @brief Checks if a number is approximately greater than another.
+ * @brief Checks if a value is approximately greater than another.
  *
- * This function checks whether the first number is greater than the second number plus a specified epsilon.
+ * This function checks whether the first value is greater than the second value plus a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as approximately equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as approximately equal.
  * @return True if a is greater than (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -236,14 +236,14 @@ inline constexpr bool is_greater_than_approx(T a, T b, const T epsilon = math::e
 // =============== is_greater_than_equal_approx ===============
 
 /**
- * @brief Checks if a number is approximately greater than or equal to another.
+ * @brief Checks if a value is approximately greater than or equal to another.
  *
- * This function checks whether the first number is greater than or equal to the second number minus a specified epsilon.
+ * This function checks whether the first value is greater than or equal to the second value minus a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as approximately equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as approximately equal.
  * @return True if a is greater than or equal to (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -261,14 +261,14 @@ inline constexpr bool is_greater_than_equal_approx(T a, T b, const T epsilon = m
 // =============== is_less_than_approx ===============
 
 /**
- * @brief Checks if a number is approximately less than another.
+ * @brief Checks if a value is approximately less than another.
  *
- * This function checks whether the first number is less than the second number minus a specified epsilon.
+ * This function checks whether the first value is less than the second value minus a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as approximately equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as approximately equal.
  * @return True if a is less than (b - epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -286,14 +286,14 @@ inline constexpr bool is_less_than_approx(T a, T b, const T epsilon = math::epsi
 // =============== is_less_than_equal_approx ===============
 
 /**
- * @brief Checks if a number is approximately less than or equal to another.
+ * @brief Checks if a value is approximately less than or equal to another.
  *
- * This function checks whether the first number is less than or equal to the second number plus a specified epsilon.
+ * This function checks whether the first value is less than or equal to the second value plus a specified epsilon.
  *
- * @tparam T Type of the numbers.
- * @param a The first number to compare.
- * @param b The second number to compare.
- * @param epsilon The tolerance threshold for considering the numbers as approximately equal.
+ * @tparam T Type of the values.
+ * @param a The first value to compare.
+ * @param b The second value to compare.
+ * @param epsilon The tolerance threshold for considering the values as approximately equal.
  * @return True if a is less than or equal to (b + epsilon), false otherwise.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>

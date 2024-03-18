@@ -8,12 +8,12 @@ namespace math {
 // =============== pow ===============
 
 /**
- * @brief Computes the value of x raised to the power of y.
+ * @brief Returns the value of x raised to the power of y.
  *
- * @tparam T Type of the numbers.
- * @param x The base.
- * @param y The exponent.
- * @return The value of x raised to the power of y.
+ * @tparam T The type of the values.
+ * @param x The base value.
+ * @param y The exponent value.
+ * @return The result of x raised to the power of y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T pow(T x, T y)
@@ -24,11 +24,11 @@ inline constexpr T pow(T x, T y)
 // =============== exp ===============
 
 /**
- * @brief Computes the exponential (e^x) of a number.
+ * @brief Returns the exponential value of the given value.
  *
- * @tparam T Type of the number.
- * @param x The exponent.
- * @return The value of e raised to the power of x.
+ * @tparam T The type of the value.
+ * @param x The value.
+ * @return The exponential value of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp(T x)
@@ -39,11 +39,11 @@ inline constexpr T exp(T x)
 // =============== exp2 ===============
 
 /**
- * @brief Computes 2 raised to the power of a number.
+ * @brief Returns 2 raised to the power of the given value.
  *
- * @tparam T Type of the number.
- * @param x The exponent.
- * @return The value of 2 raised to the power of x.
+ * @tparam T The type of the value.
+ * @param x The exponent value.
+ * @return 2 raised to the power of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T exp2(T x)
@@ -54,10 +54,10 @@ inline constexpr T exp2(T x)
 // =============== log ===============
 
 /**
- * @brief Computes the natural logarithm of a number.
+ * @brief Returns the natural logarithm of the given value.
  *
- * @tparam T Type of the number.
- * @param x The number.
+ * @tparam T The type of the value.
+ * @param x The value.
  * @return The natural logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -69,10 +69,10 @@ inline constexpr T log(T x)
 // =============== log2 ===============
 
 /**
- * @brief Computes the base-2 logarithm of a number.
+ * @brief Returns the base-2 logarithm of the given value.
  *
- * @tparam T Type of the number.
- * @param x The number.
+ * @tparam T The type of the value.
+ * @param x The value.
  * @return The base-2 logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -84,10 +84,10 @@ inline constexpr T log2(T x)
 // =============== sqrt ===============
 
 /**
- * @brief Computes the square root of a number.
+ * @brief Returns the square root of the given value.
  *
- * @tparam T Type of the number.
- * @param x The number.
+ * @tparam T The type of the value.
+ * @param x The value.
  * @return The square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
@@ -99,10 +99,10 @@ inline constexpr T sqrt(T x)
 // =============== inverse_sqrt ===============
 
 /**
- * @brief Computes the inverse square root of a number.
+ * @brief Returns the inverse square root of the given value.
  *
- * @tparam T Type of the number.
- * @param x The number.
+ * @tparam T The type of the value.
+ * @param x The value.
  * @return The inverse square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
