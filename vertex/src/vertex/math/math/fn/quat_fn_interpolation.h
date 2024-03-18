@@ -8,7 +8,7 @@ namespace math {
 // =============== lerp ===============
 
 template <typename T>
-inline constexpr quat_t<T> lerp(
+VX_FORCE_INLINE constexpr quat_t<T> lerp(
     const quat_t<T>& x,
     const quat_t<T>& y,
     T t
@@ -20,7 +20,7 @@ inline constexpr quat_t<T> lerp(
 // =============== mix ===============
 
 template <typename T>
-inline constexpr quat_t<T> mix(
+VX_FORCE_INLINE constexpr quat_t<T> mix(
     const quat_t<T>& x,
     const quat_t<T>& y,
     T t

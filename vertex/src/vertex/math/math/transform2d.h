@@ -17,7 +17,7 @@ namespace math {
  * @return A 3x3 translation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& translation)
+VX_FORCE_INLINE constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& translation)
 {
     return mat<3, 3, T>(
         static_cast<T>(1), static_cast<T>(0), static_cast<T>(0),
@@ -37,7 +37,7 @@ inline constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& translation)
  * @return A 2D vector representing the translation along the x and y axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> get_translation_2d(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr vec<2, T> get_translation_2d(const mat<3, 3, T>& m)
 {
     return vec<2, T>(m.columns[2].x, m.columns[2].y);
 }
@@ -54,7 +54,7 @@ inline constexpr vec<2, T> get_translation_2d(const mat<3, 3, T>& m)
  * @return A 3x3 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_rotation_2d(T angle)
+VX_FORCE_INLINE constexpr mat<3, 3, T> make_rotation_2d(T angle)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -77,7 +77,7 @@ inline constexpr mat<3, 3, T> make_rotation_2d(T angle)
  * @return The rotation angle in radians.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T get_rotation_2d(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr T get_rotation_2d(const mat<3, 3, T>& m)
 {
     return math::atan2(m.columns[0].y, m.columns[0].x);
 }
@@ -94,7 +94,7 @@ inline constexpr T get_rotation_2d(const mat<3, 3, T>& m)
  * @return A 3x3 scaling matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
+VX_FORCE_INLINE constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
 {
     return mat<3, 3, T>(
         scale.x,           static_cast<T>(0), static_cast<T>(0),
@@ -114,7 +114,7 @@ inline constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
  * @return A 2D vector representing the scaling factors along the x and y axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
 {
     return vec<2, T>(
         math::length(m.columns[0]),
@@ -136,7 +136,7 @@ inline constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
  * @return A 3x3 transformation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation, T angle, vec<2, T>& scale)
+VX_FORCE_INLINE constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation, T angle, vec<2, T>& scale)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -162,7 +162,7 @@ inline constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation, T angle,
  * @return The inverse of the matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> affine_invert(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 3, T> affine_invert(const mat<3, 3, T>& m)
 {
     const mat<2, 2, T> ibasis = math::invert(mat<2, 2, T>(m));
 
@@ -187,7 +187,7 @@ inline constexpr mat<3, 3, T> affine_invert(const mat<3, 3, T>& m)
  * @return The transformed 2D vector.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v)
+VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v)
 {
     return vec<2, T>(
         (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + m.columns[2].x,

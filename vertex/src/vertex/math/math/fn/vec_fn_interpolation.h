@@ -9,7 +9,7 @@ namespace math {
 // =============== lerp ===============
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> lerp(
+VX_FORCE_INLINE constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
     T t
@@ -19,7 +19,7 @@ inline constexpr vec<L, T> lerp(
 }
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> lerp(
+VX_FORCE_INLINE constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
     const vec<L, T>& t
@@ -31,7 +31,7 @@ inline constexpr vec<L, T> lerp(
 // =============== mix ===============
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> mix(
+VX_FORCE_INLINE constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
     T t
@@ -41,7 +41,7 @@ inline constexpr vec<L, T> mix(
 }
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> mix(
+VX_FORCE_INLINE constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
     const vec<L, T>& t
@@ -53,7 +53,7 @@ inline constexpr vec<L, T> mix(
 // =============== step ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     T edge,
     const vec<2, T>& x
 )
@@ -65,7 +65,7 @@ inline constexpr auto step(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     T edge,
     const vec<3, T>& x
 )
@@ -78,7 +78,7 @@ inline constexpr auto step(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     T edge,
     const vec<4, T>& x
 )
@@ -92,7 +92,7 @@ inline constexpr auto step(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     const vec<2, T>& edge,
     const vec<2, T>& x
 )
@@ -104,7 +104,7 @@ inline constexpr auto step(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     const vec<3, T>& edge,
     const vec<3, T>& x
 )
@@ -117,7 +117,7 @@ inline constexpr auto step(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto step(
+VX_FORCE_INLINE constexpr auto step(
     const vec<4, T>& edge,
     const vec<4, T>& x
 )
@@ -133,7 +133,7 @@ inline constexpr auto step(
 // =============== smoothstep ===============
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> smoothstep(
+VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
     T edge0,
     T edge1,
     const vec<L, T>& x)
@@ -144,7 +144,7 @@ inline constexpr vec<L, T> smoothstep(
 }
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> smoothstep(
+VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
     const vec<L, T>& edge0,
     const vec<L, T>& edge1,
     const vec<L, T>& x
@@ -172,7 +172,7 @@ inline constexpr vec<L, T> smoothstep(
  * @return The interpolated vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> slerp(
+VX_FORCE_INLINE constexpr vec<L, T> slerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
     T t

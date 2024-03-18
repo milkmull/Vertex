@@ -19,7 +19,7 @@ namespace math {
  * @return The transposed matrix.
  */
 template <typename T>
-inline constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
+VX_FORCE_INLINE constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
 {
     return mat<2, 2, T>(
         m.columns[0].x, m.columns[1].x,
@@ -28,7 +28,7 @@ inline constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<3, 2, T> transpose(const mat<2, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 2, T> transpose(const mat<2, 3, T>& m)
 {
     return mat<3, 2, T>(
         m.columns[0].x, m.columns[1].x,
@@ -38,7 +38,7 @@ inline constexpr mat<3, 2, T> transpose(const mat<2, 3, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<4, 2, T> transpose(const mat<2, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 2, T> transpose(const mat<2, 4, T>& m)
 {
     return mat<4, 2, T>(
         m.columns[0].x, m.columns[1].x,
@@ -49,7 +49,7 @@ inline constexpr mat<4, 2, T> transpose(const mat<2, 4, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<2, 3, T> transpose(const mat<3, 2, T>& m)
+VX_FORCE_INLINE constexpr mat<2, 3, T> transpose(const mat<3, 2, T>& m)
 {
     return mat<2, 3, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x,
@@ -58,7 +58,7 @@ inline constexpr mat<2, 3, T> transpose(const mat<3, 2, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
 {
     return mat<3, 3, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x,
@@ -68,7 +68,7 @@ inline constexpr mat<3, 3, T> transpose(const mat<3, 3, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<4, 3, T> transpose(const mat<3, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 3, T> transpose(const mat<3, 4, T>& m)
 {
     return mat<4, 3, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x,
@@ -79,7 +79,7 @@ inline constexpr mat<4, 3, T> transpose(const mat<3, 4, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<2, 4, T> transpose(const mat<4, 2, T>& m)
+VX_FORCE_INLINE constexpr mat<2, 4, T> transpose(const mat<4, 2, T>& m)
 {
     return mat<2, 4, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x, m.columns[3].x,
@@ -88,7 +88,7 @@ inline constexpr mat<2, 4, T> transpose(const mat<4, 2, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<3, 4, T> transpose(const mat<4, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 4, T> transpose(const mat<4, 3, T>& m)
 {
     return mat<3, 4, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x, m.columns[3].x,
@@ -98,7 +98,7 @@ inline constexpr mat<3, 4, T> transpose(const mat<4, 3, T>& m)
 }
 
 template <typename T>
-inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 {
     return mat<4, 4, T>(
         m.columns[0].x, m.columns[1].x, m.columns[2].x, m.columns[3].x,
@@ -117,13 +117,13 @@ inline constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
  * @return The determinant of the matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T determinant(const mat<2, 2, T>& m)
+VX_FORCE_INLINE constexpr T determinant(const mat<2, 2, T>& m)
 {
     return (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T determinant(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr T determinant(const mat<3, 3, T>& m)
 {
     return +m.columns[0].x * ((m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z))
            -m.columns[1].x * ((m.columns[0].y * m.columns[2].z) - (m.columns[2].y * m.columns[0].z))
@@ -131,7 +131,7 @@ inline constexpr T determinant(const mat<3, 3, T>& m)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T determinant(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m)
 {
     const T subfac00 = (m.columns[2].z * m.columns[3].w) - (m.columns[2].w * m.columns[3].z);
     const T subfac01 = (m.columns[2].y * m.columns[3].w) - (m.columns[2].w * m.columns[3].y);
@@ -158,7 +158,7 @@ inline constexpr T determinant(const mat<4, 4, T>& m)
  * @return The inverted matrix if invertible, otherwise a matrix with zeros.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
+VX_FORCE_INLINE constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
 {
     const T det = (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
 
@@ -173,7 +173,7 @@ inline constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
 {
     const T coef00 = (m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z);
     const T coef01 = (m.columns[0].y * m.columns[2].z) - (m.columns[2].y * m.columns[0].z);
@@ -211,7 +211,7 @@ inline constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
 // https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
 {
     const T coef00 = (m.columns[2].z * m.columns[3].w) - (m.columns[3].z * m.columns[2].w);
     const T coef01 = (m.columns[2].y * m.columns[3].w) - (m.columns[3].y * m.columns[2].w);
@@ -281,7 +281,7 @@ inline constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
  * @return The resulting matrix after component-wise multiplication.
  */
 template <size_t N, typename T>
-inline constexpr mat<2, N, T> matrix_comp_mult(
+VX_FORCE_INLINE constexpr mat<2, N, T> matrix_comp_mult(
     const mat<2, N, T>& x,
     const mat<2, N, T>& y
 )
@@ -293,7 +293,7 @@ inline constexpr mat<2, N, T> matrix_comp_mult(
 }
 
 template <size_t N, typename T>
-inline constexpr mat<3, N, T> matrix_comp_mult(
+VX_FORCE_INLINE constexpr mat<3, N, T> matrix_comp_mult(
     const mat<3, N, T>& x,
     const mat<3, N, T>& y
 )
@@ -306,7 +306,7 @@ inline constexpr mat<3, N, T> matrix_comp_mult(
 }
 
 template <size_t N, typename T>
-inline constexpr mat<4, N, T> matrix_comp_mult(
+VX_FORCE_INLINE constexpr mat<4, N, T> matrix_comp_mult(
     const mat<4, N, T>& x,
     const mat<4, N, T>& y
 )
@@ -332,7 +332,7 @@ inline constexpr mat<4, N, T> matrix_comp_mult(
  * @return The resulting matrix after computing the outer product.
  */
 template <typename T>
-inline constexpr mat<2, 2, T> outer_product(
+VX_FORCE_INLINE constexpr mat<2, 2, T> outer_product(
     const vec<2, T>& c,
     const vec<2, T>& r
 )
@@ -344,7 +344,7 @@ inline constexpr mat<2, 2, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<2, 3, T> outer_product(
+VX_FORCE_INLINE constexpr mat<2, 3, T> outer_product(
     const vec<3, T>& c,
     const vec<2, T>& r
 )
@@ -356,7 +356,7 @@ inline constexpr mat<2, 3, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<2, 4, T> outer_product(
+VX_FORCE_INLINE constexpr mat<2, 4, T> outer_product(
     const vec<4, T>& c,
     const vec<2, T>& r
 )
@@ -368,7 +368,7 @@ inline constexpr mat<2, 4, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<3, 2, T> outer_product(
+VX_FORCE_INLINE constexpr mat<3, 2, T> outer_product(
     const vec<2, T>& c,
     const vec<3, T>& r
 )
@@ -381,7 +381,7 @@ inline constexpr mat<3, 2, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<3, 3, T> outer_product(
+VX_FORCE_INLINE constexpr mat<3, 3, T> outer_product(
     const vec<3, T>& c,
     const vec<3, T>& r
 )
@@ -394,7 +394,7 @@ inline constexpr mat<3, 3, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<3, 4, T> outer_product(
+VX_FORCE_INLINE constexpr mat<3, 4, T> outer_product(
     const vec<4, T>& c,
     const vec<3, T>& r
 )
@@ -407,7 +407,7 @@ inline constexpr mat<3, 4, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<4, 2, T> outer_product(
+VX_FORCE_INLINE constexpr mat<4, 2, T> outer_product(
     const vec<2, T>& c,
     const vec<4, T>& r
 )
@@ -421,7 +421,7 @@ inline constexpr mat<4, 2, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<4, 3, T> outer_product(
+VX_FORCE_INLINE constexpr mat<4, 3, T> outer_product(
     const vec<3, T>& c,
     const vec<4, T>& r
 )
@@ -435,7 +435,7 @@ inline constexpr mat<4, 3, T> outer_product(
 }
 
 template <typename T>
-inline constexpr mat<4, 4, T> outer_product(
+VX_FORCE_INLINE constexpr mat<4, 4, T> outer_product(
     const vec<4, T>& c,
     const vec<4, T>& r
 )

@@ -23,7 +23,7 @@ struct quat_t
     using scaler_type = T;
     using type = quat_t<T>;
 
-    static inline constexpr size_t size() noexcept { return static_cast<size_t>(4); }
+    static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(4); }
 
     // =============== data ===============
 
@@ -31,29 +31,29 @@ struct quat_t
 
     // =============== implicit constructors ===============
 
-    inline constexpr quat_t() noexcept
+    VX_FORCE_INLINE constexpr quat_t() noexcept
         : w(static_cast<T>(1))
         , x(static_cast<T>(0))
         , y(static_cast<T>(0))
         , z(static_cast<T>(0)) {}
 
-    inline constexpr quat_t(const type& q) noexcept
+    VX_FORCE_INLINE constexpr quat_t(const type& q) noexcept
         : w(q.w), x(q.x), y(q.y), z(q.z) {}
 
-    inline constexpr quat_t(type&&) noexcept = default;
+    VX_FORCE_INLINE constexpr quat_t(type&&) noexcept = default;
 
     // =============== explicit constructors ===============
 
-    inline constexpr quat_t(T w, const vec<3, T>& v) noexcept
+    VX_FORCE_INLINE constexpr quat_t(T w, const vec<3, T>& v) noexcept
         : w(w), x(v.x), y(v.y), z(v.z) {}
 
-    inline constexpr quat_t(T w, T x, T y, T z) noexcept
+    VX_FORCE_INLINE constexpr quat_t(T w, T x, T y, T z) noexcept
         : w(w), x(x), y(y), z(z) {}
 
     // =============== conversion constructors ===============
     
     template <typename W, typename XYZ, typename std::enable_if<std::is_arithmetic<W>::value, bool>::type = true>
-    inline constexpr quat_t(W w, const vec<3, XYZ>& v)
+    VX_FORCE_INLINE constexpr quat_t(W w, const vec<3, XYZ>& v)
         : w(static_cast<T>(w))
         , x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
@@ -64,21 +64,21 @@ struct quat_t
         std::is_arithmetic<X>::value &&
         std::is_arithmetic<Y>::value &&
         std::is_arithmetic<Z>::value, bool>::type = true>
-    inline constexpr quat_t(W w, X x, Y y, Z z)
+    VX_FORCE_INLINE constexpr quat_t(W w, X x, Y y, Z z)
         : w(static_cast<T>(w))
         , x(static_cast<T>(x))
         , y(static_cast<T>(y))
         , z(static_cast<T>(z)) {}
 
     template <typename U>
-    inline constexpr explicit quat_t(const quat_t<U>& q)
+    VX_FORCE_INLINE constexpr explicit quat_t(const quat_t<U>& q)
         : w(static_cast<T>(q.w))
         , x(static_cast<T>(q.x))
         , y(static_cast<T>(q.y))
         , z(static_cast<T>(q.z)) {}
 
     template <typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-    inline constexpr explicit quat_t(const vec<4, U>& v)
+    VX_FORCE_INLINE constexpr explicit quat_t(const vec<4, U>& v)
         : w(static_cast<T>(v.w))
         , x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
@@ -90,7 +90,7 @@ struct quat_t
 
     // =============== assignment operators ===============
 
-    inline constexpr type& operator=(const type& q) noexcept
+    VX_FORCE_INLINE constexpr type& operator=(const type& q) noexcept
     {
         w = q.w;
         x = q.x;
@@ -99,10 +99,10 @@ struct quat_t
         return *this;
     }
 
-    inline constexpr type& operator=(type&&) noexcept = default;
+    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U>
-    inline constexpr type& operator=(const quat_t<U>& q)
+    VX_FORCE_INLINE constexpr type& operator=(const quat_t<U>& q)
     {
         w = static_cast<T>(q.w);
         x = static_cast<T>(q.x);
@@ -113,13 +113,13 @@ struct quat_t
 
     // =============== accessors ===============
 
-    inline constexpr T& operator[](size_t i)
+    VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
         return (&w)[i];
     }
 
-    inline constexpr const T& operator[](size_t i) const
+    VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
         return (&w)[i];
@@ -128,7 +128,7 @@ struct quat_t
     // =============== conversion operators ===============
 
     template <typename U, typename std::enable_if<type_traits::is_floating_point<U>::value, bool>::type = true>
-    inline constexpr explicit operator vec<4, U>() const
+    VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const
     {
         return vec<4, U>(
             static_cast<U>(x),
@@ -140,24 +140,24 @@ struct quat_t
 
     // =============== boolean operators ===============
 
-    friend inline constexpr bool operator==(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr bool operator==(const type& q1, const type& q2)
     {
         return q1.w == q2.w && q1.x == q2.x && q1.y == q2.y && q1.z == q2.z;
     }
 
-    friend inline constexpr bool operator!=(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr bool operator!=(const type& q1, const type& q2)
     {
         return !(q1 == q2);
     }
 
     // =============== unary constant operators ===============
 
-    inline constexpr type operator+() const
+    VX_FORCE_INLINE constexpr type operator+() const
     {
         return type(+w, +x, +y, +z);
     }
 
-    inline constexpr type operator-() const
+    VX_FORCE_INLINE constexpr type operator-() const
     {
         return type(-w, -x, -y, -z);
     }
@@ -166,26 +166,26 @@ struct quat_t
 
     // addition (+)
 
-    friend inline constexpr type operator+(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr type operator+(const type& q1, const type& q2)
     {
         return type(q1.w + q2.w, q1.x + q2.x, q1.y + q2.y, q1.z + q2.z);
     }
 
     // subtraction (-)
 
-    friend inline constexpr type operator-(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr type operator-(const type& q1, const type& q2)
     {
         return type(q1.w - q2.w, q1.x - q2.x, q1.y - q2.y, q1.z - q2.z);
     }
 
     // multiplication (*)
 
-    friend inline constexpr type operator*(const type& q, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator*(const type& q, T scaler)
     {
         return type(q.w * scaler, q.x * scaler, q.y * scaler, q.z * scaler);
     }
 
-    friend inline constexpr type operator*(T scaler, const type& q)
+    friend VX_FORCE_INLINE constexpr type operator*(T scaler, const type& q)
     {
         return type(scaler * q.w, scaler * q.x, scaler * q.y, scaler * q.z);
     }
@@ -205,7 +205,7 @@ struct quat_t
      * The operation follows the Hamilton product formula and updates the components of this quaternion
      * based on the components of the current quaternion and the specified quaternion.
      */
-    friend inline constexpr type operator*(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr type operator*(const type& q1, const type& q2)
     {
         return type(
             (q1.w * q2.w) - (q1.x * q2.x) - (q1.y * q2.y) - (q1.z * q2.z),
@@ -227,7 +227,7 @@ struct quat_t
      * @param v The 3D vector to be rotated.
      * @return The resulting 3D vector after rotation.
      */
-    friend inline constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
+    friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
     {
         const vec<3, T> qv = q.vector();
         const vec<3, T> uv = math::cross(qv, v);
@@ -237,24 +237,24 @@ struct quat_t
     }
 
     
-    friend inline constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
+    friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
     {
         return math::invert(q) * v;
     }
 
     // division (/)
 
-    friend inline constexpr type operator/(const type& q, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator/(const type& q, T scaler)
     {
         return type(q.w / scaler, q.x / scaler, q.y / scaler, q.z / scaler);
     }
 
-    friend inline constexpr type operator/(T scaler, const type& q)
+    friend VX_FORCE_INLINE constexpr type operator/(T scaler, const type& q)
     {
         return scaler * math::invert(q);
     }
 
-    friend inline constexpr type operator/(const type& q1, const type& q2)
+    friend VX_FORCE_INLINE constexpr type operator/(const type& q1, const type& q2)
     {
         return q1 * math::invert(q2);
     }
@@ -263,7 +263,7 @@ struct quat_t
 
     // addition (+=)
 
-    inline constexpr type& operator+=(const type& q)
+    VX_FORCE_INLINE constexpr type& operator+=(const type& q)
     {
         w += q.w;
         x += q.x;
@@ -274,7 +274,7 @@ struct quat_t
 
     // subtraction (-=)
 
-    inline constexpr type& operator-=(const type& q)
+    VX_FORCE_INLINE constexpr type& operator-=(const type& q)
     {
         w -= q.w;
         x -= q.x;
@@ -285,7 +285,7 @@ struct quat_t
 
     // multiplication (*=)
 
-    inline constexpr type& operator*=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator*=(T scaler)
     {
         w *= scaler;
         x *= scaler;
@@ -294,7 +294,7 @@ struct quat_t
         return *this;
     }
 
-    inline constexpr type& operator*=(const type& q)
+    VX_FORCE_INLINE constexpr type& operator*=(const type& q)
     {
         (*this) = (*this) * q;
         return *this;
@@ -302,7 +302,7 @@ struct quat_t
 
     // division (/=)
 
-    inline constexpr type& operator/=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator/=(T scaler)
     {
         w /= scaler;
         x /= scaler;
@@ -311,7 +311,7 @@ struct quat_t
         return *this;
     }
 
-    inline constexpr type& operator/=(const type& q)
+    VX_FORCE_INLINE constexpr type& operator/=(const type& q)
     {
         (*this) = (*this) / q;
         return *this;
@@ -328,7 +328,7 @@ struct quat_t
      *
      * @return The vector part of this quaternion.
      */
-    inline constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
+    VX_FORCE_INLINE constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
 
     // =============== direction and orientation ===============
 
@@ -347,7 +347,7 @@ struct quat_t
      * @param to The target vector.
      * @return The quaternion representing the rotation from the "from" vector to the "to" vector.
      */
-    static inline constexpr type from_to(const vec<3, T>& from, const vec<3, T>& to)
+    static VX_FORCE_INLINE constexpr type from_to(const vec<3, T>& from, const vec<3, T>& to)
     {
         const vec<3, T> fn = math::normalize(from);
         const vec<3, T> tn = math::normalize(to);
@@ -394,7 +394,7 @@ struct quat_t
      * @param angle The angle of rotation in radians.
      * @return The quaternion representing the rotation around the specified axis by the given angle.
      */
-    static inline constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
+    static VX_FORCE_INLINE constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
     {
         const vec<3, T> naxis = math::normalize(axis);
 
@@ -416,7 +416,7 @@ struct quat_t
      *
      * @return The axis of rotation represented by the quaternion.
      */
-    inline constexpr vec<3, T> axis() const
+    VX_FORCE_INLINE constexpr vec<3, T> axis() const
     {
         const T nw = math::normalize(*this).w;
         const T s2 = static_cast<T>(1) - (nw * nw);
@@ -441,7 +441,7 @@ struct quat_t
      *
      * @return The angle of rotation represented by the quaternion.
      */
-    inline constexpr T angle() const
+    VX_FORCE_INLINE constexpr T angle() const
     {
         return static_cast<T>(2) * math::acos_clamped(math::normalize(*this).w);
     }
@@ -459,7 +459,7 @@ struct quat_t
      * @param z The rotation angle around the z-axis.
      * @return The quaternion representing the specified Euler angles.
      */
-    static inline constexpr type from_euler_angles(T x, T y, T z)
+    static VX_FORCE_INLINE constexpr type from_euler_angles(T x, T y, T z)
     {
         x *= static_cast<T>(0.5);
         y *= static_cast<T>(0.5);
@@ -492,7 +492,7 @@ struct quat_t
      *
      * @return The Euler angles corresponding to the quaternion.
      */
-    inline constexpr vec<3, T> to_euler_angles() const
+    VX_FORCE_INLINE constexpr vec<3, T> to_euler_angles() const
     {
         const type qn = math::normalize(*this);
 
@@ -544,7 +544,7 @@ struct quat_t
      * @param m The 3x3 rotation matrix.
      * @return The quaternion representing the rotation.
      */
-    static inline constexpr type from_mat3(const mat<3, 3, T>& m)
+    static VX_FORCE_INLINE constexpr type from_mat3(const mat<3, 3, T>& m)
     {
         const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
 
@@ -603,7 +603,7 @@ struct quat_t
      * 
      * @return The 3x3 rotation matrix represented by the quaternion.
      */
-    inline constexpr mat<3, 3, T> to_mat3() const
+    VX_FORCE_INLINE constexpr mat<3, 3, T> to_mat3() const
     {
         const type qn = math::normalize(*this);
 
@@ -646,7 +646,7 @@ struct quat_t
      * @param up The up direction. Default is the positive y-axis.
      * @return The quaternion representing the left-handed look-at transformation.
      */
-    static inline constexpr type make_look_at_lh(
+    static VX_FORCE_INLINE constexpr type make_look_at_lh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -671,7 +671,7 @@ struct quat_t
      * @param up The up direction. Default is the positive y-axis.
      * @return The quaternion representing the right-handed look-at transformation.
      */
-    static inline constexpr type make_look_at_rh(
+    static VX_FORCE_INLINE constexpr type make_look_at_rh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -697,7 +697,7 @@ struct quat_t
      * @param up The up direction. Default is the positive y-axis.
      * @return The quaternion representing the look-at transformation.
      */
-    static inline constexpr type make_look_at(
+    static VX_FORCE_INLINE constexpr type make_look_at(
         const vec<3, T>& eye,
         const vec<3, T>& target,
         const vec<3, T>& up = vec<3, T>::UP()
@@ -712,8 +712,8 @@ struct quat_t
 
     // =============== constants ===============
 
-    static inline constexpr type IDENTITY() { return type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
-    static inline constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
+    static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
 
 };
 

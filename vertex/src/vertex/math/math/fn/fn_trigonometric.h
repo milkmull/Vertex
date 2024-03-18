@@ -16,14 +16,14 @@ namespace math {
  * @return The angle in radians.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T radians(T deg)
+VX_FORCE_INLINE constexpr T radians(T deg)
 {
     constexpr T r = math::two_pi<T>() / static_cast<T>(360);
     return deg * r;
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto radians(T deg)
+VX_FORCE_INLINE constexpr auto radians(T deg)
 {
     return radians(static_cast<double>(deg));
 }
@@ -38,14 +38,14 @@ inline constexpr auto radians(T deg)
  * @return The angle in degrees.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T degrees(T rad)
+VX_FORCE_INLINE constexpr T degrees(T rad)
 {
     constexpr T r = static_cast<T>(360) / math::two_pi<T>();
     return rad * r;
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto degrees(T rad)
+VX_FORCE_INLINE constexpr auto degrees(T rad)
 {
     return degrees(static_cast<double>(rad));
 }
@@ -60,7 +60,7 @@ inline constexpr auto degrees(T rad)
  * @return The sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T sin(T x)
+VX_FORCE_INLINE constexpr T sin(T x)
 {
     return std::sin(x);
 }
@@ -75,7 +75,7 @@ inline constexpr T sin(T x)
  * @return The cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T cos(T x)
+VX_FORCE_INLINE constexpr T cos(T x)
 {
     return std::cos(x);
 }
@@ -90,7 +90,7 @@ inline constexpr T cos(T x)
  * @return The tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T tan(T x)
+VX_FORCE_INLINE constexpr T tan(T x)
 {
     return std::tan(x);
 }
@@ -105,7 +105,7 @@ inline constexpr T tan(T x)
  * @return The arcsine of x in radians, in the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T asin(T x)
+VX_FORCE_INLINE constexpr T asin(T x)
 {
     return std::asin(x);
 }
@@ -120,7 +120,7 @@ inline constexpr T asin(T x)
  * @return The arcsine of x in radians, clamped to the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T asin_clamped(T x)
+VX_FORCE_INLINE constexpr T asin_clamped(T x)
 {
     return std::asin(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
@@ -135,7 +135,7 @@ inline constexpr T asin_clamped(T x)
  * @return The arccosine of x in radians, in the range [0, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T acos(T x)
+VX_FORCE_INLINE constexpr T acos(T x)
 {
     return std::acos(x);
 }
@@ -150,7 +150,7 @@ inline constexpr T acos(T x)
  * @return The arccosine of x in radians, clamped to the range [0, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T acos_clamped(T x)
+VX_FORCE_INLINE constexpr T acos_clamped(T x)
 {
     return std::acos(std::clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
@@ -165,7 +165,7 @@ inline constexpr T acos_clamped(T x)
  * @return The arctangent of x in radians, in the range [-pi/2, pi/2].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T atan(T x)
+VX_FORCE_INLINE constexpr T atan(T x)
 {
     return std::atan(x);
 }
@@ -184,13 +184,13 @@ inline constexpr T atan(T x)
  * @return The arctangent of y/x in radians, in the range [-pi, pi].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T atan2(T y, T x)
+VX_FORCE_INLINE constexpr T atan2(T y, T x)
 {
     return std::atan2(y, x);
 }
 
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr auto atan2(T y, T x)
+VX_FORCE_INLINE constexpr auto atan2(T y, T x)
 {
     return std::atan2(static_cast<double>(y), static_cast<double>(x));
 }
@@ -205,7 +205,7 @@ inline constexpr auto atan2(T y, T x)
  * @return The hyperbolic sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T sinh(T x)
+VX_FORCE_INLINE constexpr T sinh(T x)
 {
     return std::sinh(x);
 }
@@ -220,7 +220,7 @@ inline constexpr T sinh(T x)
  * @return The hyperbolic cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T cosh(T x)
+VX_FORCE_INLINE constexpr T cosh(T x)
 {
     return std::cosh(x);
 }
@@ -235,7 +235,7 @@ inline constexpr T cosh(T x)
  * @return The hyperbolic tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T tanh(T x)
+VX_FORCE_INLINE constexpr T tanh(T x)
 {
     return std::tanh(x);
 }
@@ -250,7 +250,7 @@ inline constexpr T tanh(T x)
  * @return The inverse hyperbolic sine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T asinh(T x)
+VX_FORCE_INLINE constexpr T asinh(T x)
 {
     return std::asinh(x);
 }
@@ -265,7 +265,7 @@ inline constexpr T asinh(T x)
  * @return The inverse hyperbolic cosine of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T acosh(T x)
+VX_FORCE_INLINE constexpr T acosh(T x)
 {
     return std::acosh(x);
 }
@@ -280,7 +280,7 @@ inline constexpr T acosh(T x)
  * @return The inverse hyperbolic tangent of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T atanh(T x)
+VX_FORCE_INLINE constexpr T atanh(T x)
 {
     return std::atanh(x);
 }

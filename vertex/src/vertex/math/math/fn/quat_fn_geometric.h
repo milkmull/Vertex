@@ -21,7 +21,7 @@ namespace math {
  * @return The dot product of the two quaternions.
  */
 template <typename T>
-inline constexpr T dot(
+VX_FORCE_INLINE constexpr T dot(
     const quat_t<T>& q1,
     const quat_t<T>& q2
 )
@@ -38,7 +38,7 @@ inline constexpr T dot(
  * @return The normalized dot product of the two quaternions.
  */
 template <typename T>
-inline constexpr T normalized_dot(
+VX_FORCE_INLINE constexpr T normalized_dot(
     const quat_t<T>& q1,
     const quat_t<T>& q2
 )
@@ -56,7 +56,7 @@ inline constexpr T normalized_dot(
  * @return The squared length of the quaternion.
  */
 template <typename T>
-inline constexpr T length_squared(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr T length_squared(const quat_t<T>& q)
 {
     return dot(q, q);
 }
@@ -69,7 +69,7 @@ inline constexpr T length_squared(const quat_t<T>& q)
  * @return The length of the quaternion.
  */
 template <typename T>
-inline constexpr T length(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr T length(const quat_t<T>& q)
 {
     return sqrt(length_squared(q));
 }
@@ -88,7 +88,7 @@ inline constexpr T length(const quat_t<T>& q)
  * @return The normalized quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> normalize(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> normalize(const quat_t<T>& q)
 {
     const T magsq = length_squared(q);
 
@@ -111,7 +111,7 @@ inline constexpr quat_t<T> normalize(const quat_t<T>& q)
  * @return The fast normalized quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
 {
     return q * inverse_sqrt(length_squared(q));
 }
@@ -128,7 +128,7 @@ inline constexpr quat_t<T> fast_normalize(const quat_t<T>& q)
  * @return True if the quaternion is normalized, false otherwise.
  */
 template <typename T>
-inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::epsilon<T>())
+VX_FORCE_INLINE constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::epsilon<T>())
 {
     return (length_squared(q) - static_cast<T>(1)) < epsilon;
 }
@@ -142,7 +142,7 @@ inline constexpr bool is_normalized(const quat_t<T>& q, const T epsilon = math::
  * @return The angle between the two quaternions.
  */
 template <typename T>
-static inline constexpr T angle(
+VX_FORCE_INLINE constexpr T angle(
     const quat_t<T>& from,
     const quat_t<T>& to
 )
@@ -163,7 +163,7 @@ static inline constexpr T angle(
  * @return The signed angle between the two quaternions.
  */
 template <typename T>
-static inline constexpr T signed_angle(
+VX_FORCE_INLINE constexpr T signed_angle(
     const quat_t<T>& from,
     const quat_t<T>& to
 )
@@ -183,7 +183,7 @@ static inline constexpr T signed_angle(
  * @return The conjugate of the input quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> conjugate(const quat_t<T>& q)
 {
     return quat_t<T>(q.w, -q.x, -q.y, -q.z);
 }
@@ -198,7 +198,7 @@ inline constexpr quat_t<T> conjugate(const quat_t<T>& q)
  * @return The inverse of the input quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> invert(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> invert(const quat_t<T>& q)
 {
     return conjugate(q) / magnitude_squared(q);
 }

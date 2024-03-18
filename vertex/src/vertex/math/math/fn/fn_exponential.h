@@ -16,7 +16,7 @@ namespace math {
  * @return The result of x raised to the power of y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T pow(T x, T y)
+VX_FORCE_INLINE constexpr T pow(T x, T y)
 {
     return std::pow(x, y);
 }
@@ -31,7 +31,7 @@ inline constexpr T pow(T x, T y)
  * @return The exponential value of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T exp(T x)
+VX_FORCE_INLINE constexpr T exp(T x)
 {
     return std::exp(x);
 }
@@ -46,7 +46,7 @@ inline constexpr T exp(T x)
  * @return 2 raised to the power of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T exp2(T x)
+VX_FORCE_INLINE constexpr T exp2(T x)
 {
     return std::exp2(x);
 }
@@ -61,7 +61,7 @@ inline constexpr T exp2(T x)
  * @return The natural logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T log(T x)
+VX_FORCE_INLINE constexpr T log(T x)
 {
     return std::log(x);
 }
@@ -76,7 +76,7 @@ inline constexpr T log(T x)
  * @return The base-2 logarithm of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T log2(T x)
+VX_FORCE_INLINE constexpr T log2(T x)
 {
     return std::log2(x);
 }
@@ -91,7 +91,7 @@ inline constexpr T log2(T x)
  * @return The square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T sqrt(T x)
+VX_FORCE_INLINE constexpr T sqrt(T x)
 {
     return std::sqrt(x);
 }
@@ -106,7 +106,7 @@ inline constexpr T sqrt(T x)
  * @return The inverse square root of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T inverse_sqrt(T x)
+VX_FORCE_INLINE constexpr T inverse_sqrt(T x)
 {
     return static_cast<T>(1) / std::sqrt(x);
 }

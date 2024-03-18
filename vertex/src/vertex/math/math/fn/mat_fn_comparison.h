@@ -12,7 +12,7 @@ namespace math {
 // =============== is_zero_approx ===============
 
 template <size_t N, typename T>
-inline constexpr bool is_zero_approx(
+VX_FORCE_INLINE constexpr bool is_zero_approx(
     const mat<2, N, T>& x,
     const T epsilon = math::epsilon<T>()
 )
@@ -22,7 +22,7 @@ inline constexpr bool is_zero_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_zero_approx(
+VX_FORCE_INLINE constexpr bool is_zero_approx(
     const mat<3, N, T>& x,
     const T epsilon = math::epsilon<T>()
 )
@@ -33,7 +33,7 @@ inline constexpr bool is_zero_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_zero_approx(
+VX_FORCE_INLINE constexpr bool is_zero_approx(
     const mat<4, N, T>& x,
     const T epsilon = math::epsilon<T>()
 )
@@ -47,7 +47,7 @@ inline constexpr bool is_zero_approx(
 // =============== is_equal_approx ===============
 
 template <size_t N, typename T>
-inline constexpr bool is_equal_approx(
+VX_FORCE_INLINE constexpr bool is_equal_approx(
     const mat<2, N, T>& a,
     const mat<2, N, T>& b,
     const T epsilon = math::epsilon<T>()
@@ -58,7 +58,7 @@ inline constexpr bool is_equal_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_equal_approx(
+VX_FORCE_INLINE constexpr bool is_equal_approx(
     const mat<3, N, T>& a,
     const mat<3, N, T>& b,
     const T epsilon = math::epsilon<T>()
@@ -70,7 +70,7 @@ inline constexpr bool is_equal_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_equal_approx(
+VX_FORCE_INLINE constexpr bool is_equal_approx(
     const mat<4, N, T>& a,
     const mat<4, N, T>& b,
     const T epsilon = math::epsilon<T>()
@@ -85,7 +85,7 @@ inline constexpr bool is_equal_approx(
 // =============== is_not_equal_approx ===============
 
 template <size_t N, typename T>
-inline constexpr bool is_not_equal_approx(
+VX_FORCE_INLINE constexpr bool is_not_equal_approx(
     const mat<2, N, T>& a,
     const mat<2, N, T>& b,
     const T epsilon = math::epsilon<T>()
@@ -96,7 +96,7 @@ inline constexpr bool is_not_equal_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_not_equal_approx(
+VX_FORCE_INLINE constexpr bool is_not_equal_approx(
     const mat<3, N, T>& a,
     const mat<3, N, T>& b,
     const T epsilon = math::epsilon<T>()
@@ -108,7 +108,7 @@ inline constexpr bool is_not_equal_approx(
 }
 
 template <size_t N, typename T>
-inline constexpr bool is_not_equal_approx(
+VX_FORCE_INLINE constexpr bool is_not_equal_approx(
     const mat<4, N, T>& a,
     const mat<4, N, T>& b,
     const T epsilon = math::epsilon<T>()

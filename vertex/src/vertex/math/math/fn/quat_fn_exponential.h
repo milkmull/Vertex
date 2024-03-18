@@ -29,7 +29,7 @@ namespace math {
  * @return The quaternion raised to the power of the scalar.
  */
 template <typename T>
-inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
+VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x)
 {
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
@@ -89,7 +89,7 @@ inline constexpr quat_t<T> pow(const quat_t<T>& q, T x)
  * @return The exponential of the quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> exp(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> exp(const quat_t<T>& q)
 {
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
@@ -125,7 +125,7 @@ inline constexpr quat_t<T> exp(const quat_t<T>& q)
  * @return The natural logarithm of the quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> log(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q)
 {
     const vec<3, T> v = q.vector();
     const T vmag = math::length(v);
@@ -180,7 +180,7 @@ inline constexpr quat_t<T> log(const quat_t<T>& q)
  * @return The square root of the quaternion.
  */
 template <typename T>
-inline constexpr quat_t<T> sqrt(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> sqrt(const quat_t<T>& q)
 {
     return math::pow(q, static_cast<T>(0.5));
 }

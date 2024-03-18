@@ -22,7 +22,7 @@ namespace ease {
  * @return The linearly eased output value.
  */
 template <typename T>
-inline constexpr T ease_linear(T x)
+VX_FORCE_INLINE constexpr T ease_linear(T x)
 {
     return x;
 }
@@ -40,7 +40,7 @@ inline constexpr T ease_linear(T x)
  * @return The quadratically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_quad(T x)
+VX_FORCE_INLINE constexpr T ease_in_quad(T x)
 {
     return x * x;
 }
@@ -56,7 +56,7 @@ inline constexpr T ease_in_quad(T x)
  * @return The quadratically eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_quad(T x)
+VX_FORCE_INLINE constexpr T ease_out_quad(T x)
 {
     return x * (static_cast<T>(2) - x);
 }
@@ -73,7 +73,7 @@ inline constexpr T ease_out_quad(T x)
  * @return The quadratically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_quad(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_quad(T x)
 {
     if (x < static_cast<T>(0.5))
     {
@@ -99,7 +99,7 @@ inline constexpr T ease_in_out_quad(T x)
  * @return The cubicly eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_cubic(T x)
+VX_FORCE_INLINE constexpr T ease_in_cubic(T x)
 {
     return x * x * x;
 }
@@ -115,7 +115,7 @@ inline constexpr T ease_in_cubic(T x)
  * @return The cubicly eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_cubic(T x)
+VX_FORCE_INLINE constexpr T ease_out_cubic(T x)
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y);
@@ -132,7 +132,7 @@ inline constexpr T ease_out_cubic(T x)
  * @return The cubicly eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_cubic(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_cubic(T x)
 {
     if (x < static_cast<T>(0.5))
     {
@@ -158,7 +158,7 @@ inline constexpr T ease_in_out_cubic(T x)
  * @return The quartically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_quart(T x)
+VX_FORCE_INLINE constexpr T ease_in_quart(T x)
 {
     return x * x * x * x;
 }
@@ -174,7 +174,7 @@ inline constexpr T ease_in_quart(T x)
  * @return The quartically eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_quart(T x)
+VX_FORCE_INLINE constexpr T ease_out_quart(T x)
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y * y);
@@ -192,7 +192,7 @@ inline constexpr T ease_out_quart(T x)
  * @return The quartically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_quart(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_quart(T x)
 {
     if (x < static_cast<T>(0.5))
     {
@@ -218,7 +218,7 @@ inline constexpr T ease_in_out_quart(T x)
  * @return The quintically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_quint(T x)
+VX_FORCE_INLINE constexpr T ease_in_quint(T x)
 {
     return x * x * x * x * x;
 }
@@ -234,7 +234,7 @@ inline constexpr T ease_in_quint(T x)
  * @return The quintically eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_quint(T x)
+VX_FORCE_INLINE constexpr T ease_out_quint(T x)
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y * y * y);
@@ -252,7 +252,7 @@ inline constexpr T ease_out_quint(T x)
  * @return The quintically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_quint(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_quint(T x)
 {
     if (x < static_cast<T>(0.5))
     {
@@ -278,7 +278,7 @@ inline constexpr T ease_in_out_quint(T x)
  * @return The sine-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_sine(T x)
+VX_FORCE_INLINE constexpr T ease_in_sine(T x)
 {
     return static_cast<T>(1) - math::cos((x * math::pi<T>()) * static_cast<T>(0.5));
 }
@@ -294,7 +294,7 @@ inline constexpr T ease_in_sine(T x)
  * @return The sine-eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_sine(T x)
+VX_FORCE_INLINE constexpr T ease_out_sine(T x)
 {
     return math::sin((x * math::pi<T>()) * static_cast<T>(0.5));
 }
@@ -311,7 +311,7 @@ inline constexpr T ease_out_sine(T x)
  * @return The sine-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_sine(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_sine(T x)
 {
     return (static_cast<T>(1) - math::cos(math::pi<T>() *x)) * static_cast<T>(0.5);
 }
@@ -330,7 +330,7 @@ inline constexpr T ease_in_out_sine(T x)
  * @return The exponentially eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_expo(T x)
+VX_FORCE_INLINE constexpr T ease_in_expo(T x)
 {
     if (x <= static_cast<T>(0))
     {
@@ -355,7 +355,7 @@ inline constexpr T ease_in_expo(T x)
  * @return The exponentially eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_expo(T x)
+VX_FORCE_INLINE constexpr T ease_out_expo(T x)
 {
     if (x >= static_cast<T>(1))
     {
@@ -380,7 +380,7 @@ inline constexpr T ease_out_expo(T x)
  * @return The exponentially eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_expo(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_expo(T x)
 {
     if (x <= static_cast<T>(0))
     {
@@ -415,7 +415,7 @@ inline constexpr T ease_in_out_expo(T x)
  * @return The circularly eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_circ(T x)
+VX_FORCE_INLINE constexpr T ease_in_circ(T x)
 {
     return static_cast<T>(1) - math::sqrt(static_cast<T>(1) - (x * x));
 }
@@ -431,7 +431,7 @@ inline constexpr T ease_in_circ(T x)
  * @return The circularly eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_circ(T x)
+VX_FORCE_INLINE constexpr T ease_out_circ(T x)
 {
     return math::sqrt(x * (static_cast<T>(2) - x));
 }
@@ -448,7 +448,7 @@ inline constexpr T ease_out_circ(T x)
  * @return The circularly eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_circ(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_circ(T x)
 {
     if (x < static_cast<T>(0.5))
     {
@@ -475,7 +475,7 @@ inline constexpr T ease_in_out_circ(T x)
  * @return The back-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_back(T x)
+VX_FORCE_INLINE constexpr T ease_in_back(T x)
 {
     constexpr T c1 = static_cast<T>(1.70158);
     constexpr T c3 = c1 + static_cast<T>(1);
@@ -494,7 +494,7 @@ inline constexpr T ease_in_back(T x)
  * @return The back-eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_back(T x)
+VX_FORCE_INLINE constexpr T ease_out_back(T x)
 {
     constexpr T c1 = static_cast<T>(1.70158);
     constexpr T c3 = c1 + static_cast<T>(1);
@@ -515,7 +515,7 @@ inline constexpr T ease_out_back(T x)
  * @return The back-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_back(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_back(T x)
 {
     constexpr T c1 = static_cast<T>(1.70158);
     constexpr T c2 = c1 * static_cast<T>(1.525);
@@ -545,7 +545,7 @@ inline constexpr T ease_in_out_back(T x)
  * @return The elastically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_elastic(T x)
+VX_FORCE_INLINE constexpr T ease_in_elastic(T x)
 {
     constexpr T c4 = math::two_pi<T>() / static_cast<T>(3);
 
@@ -575,7 +575,7 @@ inline constexpr T ease_in_elastic(T x)
  * @return The elastically eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_elastic(T x)
+VX_FORCE_INLINE constexpr T ease_out_elastic(T x)
 {
     constexpr T c4 = math::two_pi<T>() / static_cast<T>(3);
 
@@ -606,7 +606,7 @@ inline constexpr T ease_out_elastic(T x)
  * @return The elastically eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_elastic(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_elastic(T x)
 {
     constexpr T c5 = math::two_pi<T>() / static_cast<T>(4.5);
 
@@ -643,7 +643,7 @@ inline constexpr T ease_in_out_elastic(T x)
  * @return The bounced-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_bounce(T x)
+VX_FORCE_INLINE constexpr T ease_in_bounce(T x)
 {
     return static_cast<T>(1) - ease_out_bounce(static_cast<T>(1) - x);
 }
@@ -659,7 +659,7 @@ inline constexpr T ease_in_bounce(T x)
  * @return The bounced-eased output value.
  */
 template <typename T>
-inline constexpr T ease_out_bounce(T x)
+VX_FORCE_INLINE constexpr T ease_out_bounce(T x)
 {
     constexpr T n1 = static_cast<T>(7.5625);
     constexpr T d1 = static_cast<T>(2.75);
@@ -698,7 +698,7 @@ inline constexpr T ease_out_bounce(T x)
  * @return The bounced-eased output value.
  */
 template <typename T>
-inline constexpr T ease_in_out_bounce(T x)
+VX_FORCE_INLINE constexpr T ease_in_out_bounce(T x)
 {
     if (x < static_cast<T>(0.5))
     {

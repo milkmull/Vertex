@@ -23,7 +23,7 @@ namespace math {
  * @return The constructed left-handed orthographic projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_lh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -67,7 +67,7 @@ inline constexpr mat<4, 4, T> ortho_lh_zo(
  * @return The constructed left-handed orthographic projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_lh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -111,7 +111,7 @@ inline constexpr mat<4, 4, T> ortho_lh_no(
  * @return The constructed right-handed orthographic projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_rh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -155,7 +155,7 @@ inline constexpr mat<4, 4, T> ortho_rh_zo(
  * @return The constructed right-handed orthographic projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_rh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -199,7 +199,7 @@ inline constexpr mat<4, 4, T> ortho_rh_no(
  * @return The constructed orthographic projection matrix with depth range [0, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -227,7 +227,7 @@ inline constexpr mat<4, 4, T> ortho_zo(
  * @return The constructed orthographic projection matrix with depth range [-1, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -255,7 +255,7 @@ inline constexpr mat<4, 4, T> ortho_no(
  * @return The constructed left-handed orthographic projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_lh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -284,7 +284,7 @@ inline constexpr mat<4, 4, T> ortho_lh(
  * @return The constructed right-handed orthographic projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho_rh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -312,7 +312,7 @@ inline constexpr mat<4, 4, T> ortho_rh(
  * @return The constructed orthographic projection matrix with appropriate handedness and depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> ortho(
+VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -346,7 +346,7 @@ inline constexpr mat<4, 4, T> ortho(
  * @return The constructed left-handed frustum projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_lh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -390,7 +390,7 @@ inline constexpr mat<4, 4, T> frustrum_lh_zo(
  * @return The constructed left-handed frustum projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_lh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -434,7 +434,7 @@ inline constexpr mat<4, 4, T> frustrum_lh_no(
  * @return The constructed right-handed frustum projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_rh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -479,7 +479,7 @@ inline constexpr mat<4, 4, T> frustrum_rh_zo(
  * @return The constructed right-handed frustum projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_rh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -523,7 +523,7 @@ inline constexpr mat<4, 4, T> frustrum_rh_no(
  * @return The constructed frustum projection matrix with depth range [0, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -551,7 +551,7 @@ inline constexpr mat<4, 4, T> frustrum_zo(
  * @return The constructed frustum projection matrix with depth range [-1, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -579,7 +579,7 @@ inline constexpr mat<4, 4, T> frustrum_no(
  * @return The constructed left-handed frustum projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_lh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -607,7 +607,7 @@ inline constexpr mat<4, 4, T> frustrum_lh(
  * @return The constructed right-handed frustum projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum_rh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -635,7 +635,7 @@ inline constexpr mat<4, 4, T> frustrum_rh(
  * @return The constructed frustum projection matrix with appropriate handedness and depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> frustrum(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -667,7 +667,7 @@ inline constexpr mat<4, 4, T> frustrum(
  * @return The constructed left-handed perspective projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_lh_zo(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -712,7 +712,7 @@ static inline constexpr mat<4, 4, T> perspective_lh_zo(
  * @return The constructed left-handed perspective projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_lh_no(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -757,7 +757,7 @@ static inline constexpr mat<4, 4, T> perspective_lh_no(
  * @return The constructed right-handed perspective projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_rh_zo(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -802,7 +802,7 @@ static inline constexpr mat<4, 4, T> perspective_rh_zo(
  * @return The constructed right-handed perspective projection matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_rh_no(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_no(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -847,7 +847,7 @@ static inline constexpr mat<4, 4, T> perspective_rh_no(
  * @return The constructed perspective projection matrix with depth range [0, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_zo(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_zo(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -872,7 +872,7 @@ static inline constexpr mat<4, 4, T> perspective_zo(
  * @return The constructed perspective projection matrix with depth range [-1, 1].
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> perspective_no(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_no(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -897,7 +897,7 @@ static inline constexpr mat<4, 4, T> perspective_no(
  * @return The constructed left-handed perspective projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> perspective_lh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -922,7 +922,7 @@ inline constexpr mat<4, 4, T> perspective_lh(
  * @return The constructed right-handed perspective projection matrix with appropriate depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> perspective_rh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -947,7 +947,7 @@ inline constexpr mat<4, 4, T> perspective_rh(
  * @return The constructed perspective projection matrix with appropriate handedness and depth range.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> perspective(
+VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
     T fovy, T aspect,
     T znear, T zfar
 )
@@ -980,7 +980,7 @@ inline constexpr mat<4, 4, T> perspective(
  * @return Returns the projected 3D object coordinate in normalized device coordinates with a depth range of [0, 1].
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> project_zo(
+VX_FORCE_INLINE constexpr vec<3, T> project_zo(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1017,7 +1017,7 @@ inline constexpr vec<3, T> project_zo(
  * @return Returns the projected 3D object coordinate in clip space coordinates with a depth range of [-1, 1].
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> project_no(
+VX_FORCE_INLINE constexpr vec<3, T> project_no(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1056,7 +1056,7 @@ inline constexpr vec<3, T> project_no(
  * @return Returns the projected 3D object coordinate in clip space coordinates.
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> project(
+VX_FORCE_INLINE constexpr vec<3, T> project(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1088,7 +1088,7 @@ inline constexpr vec<3, T> project(
  * @return Returns the unprojected 3D point in world space.
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> unproject_zo(
+VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1125,7 +1125,7 @@ inline constexpr vec<3, T> unproject_zo(
  * @return Returns the unprojected 3D point in world space.
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> unproject_no(
+VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1163,7 +1163,7 @@ inline constexpr vec<3, T> unproject_no(
  * @return Returns the unprojected 3D point in world space.
  */
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> unproject(
+VX_FORCE_INLINE constexpr vec<3, T> unproject(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
     const mat<4, 4, T>& projection,
@@ -1191,7 +1191,7 @@ inline constexpr vec<3, T> unproject(
  * @return Returns the projected 3D vector.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, T>& v)
+VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, T>& v)
 {
     vec<4, T> v4(v, static_cast<T>(1));
     v4 = m * v4;
@@ -1211,7 +1211,7 @@ inline constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, T>& v)
  * @return Returns the unprojected 3D vector.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3, T>& v)
+VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3, T>& v)
 {
     vec<4, T> v4(v, static_cast<T>(1));
     v4 = math::invert(m) * v4;

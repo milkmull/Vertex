@@ -18,7 +18,7 @@ namespace math {
  * @return A 4x4 translation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_translation_3d(const vec<3, T>& translation)
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_translation_3d(const vec<3, T>& translation)
 {
     return mat<4, 4, T>(
         static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0),
@@ -39,7 +39,7 @@ inline constexpr mat<4, 4, T> make_translation_3d(const vec<3, T>& translation)
  * @return A 3D vector representing the translation along the x, y, and z axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> get_translation_3d(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr vec<3, T> get_translation_3d(const mat<4, 4, T>& m)
 {
     return vec<3, T>(m.columns[3].x, m.columns[3].y, m.columns[3].z);
 }
@@ -58,7 +58,7 @@ inline constexpr vec<3, T> get_translation_3d(const mat<4, 4, T>& m)
  * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_rotation_3d(const vec<3, T>& axis, T angle)
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_rotation_3d(const vec<3, T>& axis, T angle)
 {
     const vec<3, T> naxis = math::normalize(axis);
 
@@ -100,7 +100,7 @@ inline constexpr mat<4, 4, T> make_rotation_3d(const vec<3, T>& axis, T angle)
  * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_rotation_3d(const quat_t<T>& rotation)
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_rotation_3d(const quat_t<T>& rotation)
 {
     const quat_t<T> qn = math::normalize(rotation);
 
@@ -152,7 +152,7 @@ inline constexpr mat<4, 4, T> make_rotation_3d(const quat_t<T>& rotation)
  * @return A 4x4 rotation matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_rotation_3d(T x, T y, T z)
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_rotation_3d(T x, T y, T z)
 {
     const T ct1 = math::cos(x);
     const T ct2 = math::cos(y);
@@ -195,7 +195,7 @@ inline constexpr mat<4, 4, T> make_rotation_3d(T x, T y, T z)
  * @return The quaternion representing the rotation.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr quat_t<T> get_rotation_3d(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr quat_t<T> get_rotation_3d(const mat<4, 4, T>& m)
 {
     const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
 
@@ -261,7 +261,7 @@ inline constexpr quat_t<T> get_rotation_3d(const mat<4, 4, T>& m)
  * @return A 4x4 scale matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
 {
     return mat<4, 4, T>(
         scale.x,
@@ -296,7 +296,7 @@ inline constexpr mat<4, 4, T> make_scale_3d(const vec<3, T>& scale)
  * @return A 3D vector representing the scaling factors along the x, y, and z axes.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
 {
     return vec<3, T>(
         math::length(m.columns[0]),
@@ -320,7 +320,7 @@ inline constexpr vec<3, T> get_scale_3d(const mat<4, 4, T>& m)
  * @return A 4x4 transformation matrix representing the combined translation, rotation, and scaling.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_trs_3d(
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_trs_3d(
     const vec<3, T>& translation,
     const vec<3, T>& axis, T angle,
     const vec<3, T>& scale
@@ -368,7 +368,7 @@ inline constexpr mat<4, 4, T> make_trs_3d(
  * @return A 4x4 transformation matrix representing the combined translation, rotation, and scaling.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> make_trs_3d(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> make_trs_3d(
     const vec<3, T>& translation,
     const quat_t<T>& rotation,
     const vec<3, T>& scale
@@ -423,7 +423,7 @@ static inline constexpr mat<4, 4, T> make_trs_3d(
  * @return The inverse of the matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> affine_invert(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 4, T> affine_invert(const mat<4, 4, T>& m)
 {
     const mat<3, 3, T> ibasis = math::invert(mat<3, 3, T>(m));
 
@@ -449,7 +449,7 @@ inline constexpr mat<4, 4, T> affine_invert(const mat<4, 4, T>& m)
  * @return The transformed 3D vector.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v)
+VX_FORCE_INLINE constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v)
 {
     return vec<3, T>(
         (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z) + m.columns[3].x,
@@ -481,7 +481,7 @@ inline constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v)
  * @return The left-handed view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_look_at_lh_3d(
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_look_at_lh_3d(
     const vec<3, T>& eye,
     const vec<3, T>& target,
     const vec<3, T>& up = vec<3, T>::UP()
@@ -528,7 +528,7 @@ inline constexpr mat<4, 4, T> make_look_at_lh_3d(
  * @return The right-handed view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr mat<4, 4, T> make_look_at_rh_3d(
+VX_FORCE_INLINE constexpr mat<4, 4, T> make_look_at_rh_3d(
     const vec<3, T>& eye,
     const vec<3, T>& target,
     const vec<3, T>& up = vec<3, T>::UP()
@@ -580,7 +580,7 @@ inline constexpr mat<4, 4, T> make_look_at_rh_3d(
  * @return The view matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr mat<4, 4, T> make_look_at_3d(
+static VX_FORCE_INLINE constexpr mat<4, 4, T> make_look_at_3d(
     const vec<3, T>& eye,
     const vec<3, T>& target,
     const vec<3, T>& up = vec<3, T>::UP()

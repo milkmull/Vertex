@@ -10,7 +10,7 @@ namespace math {
 // =============== abs ===============
 
 template <typename T>
-inline constexpr auto abs(const quat_t<T>& x)
+VX_FORCE_INLINE constexpr auto abs(const quat_t<T>& x)
 {
     return quat_t<T>(
         math::abs(x.w),
@@ -23,7 +23,7 @@ inline constexpr auto abs(const quat_t<T>& x)
 // =============== sign ===============
 
 template <typename T>
-inline constexpr auto sign(const quat_t<T>& x)
+VX_FORCE_INLINE constexpr auto sign(const quat_t<T>& x)
 {
     return quat_t<T>(
         math::sign(x.w),
@@ -36,7 +36,7 @@ inline constexpr auto sign(const quat_t<T>& x)
 // =============== clamp ===============
 
 template <typename T>
-inline constexpr auto clamp(
+VX_FORCE_INLINE constexpr auto clamp(
     const quat_t<T>& x,
     T min,
     T max
@@ -51,7 +51,7 @@ inline constexpr auto clamp(
 }
 
 template <typename T>
-inline constexpr auto clamp(
+VX_FORCE_INLINE constexpr auto clamp(
     const quat_t<T>& x,
     const quat_t<T>& min,
     const quat_t<T>& max

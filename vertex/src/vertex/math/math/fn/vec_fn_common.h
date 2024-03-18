@@ -10,7 +10,7 @@ namespace math {
 // scaler binary
 
 template <typename T>
-inline constexpr vec<2, T> min(
+VX_FORCE_INLINE constexpr vec<2, T> min(
     const vec<2, T>& x,
     T y
 )
@@ -22,7 +22,7 @@ inline constexpr vec<2, T> min(
 }
 
 template <typename T>
-inline constexpr vec<3, T> min(
+VX_FORCE_INLINE constexpr vec<3, T> min(
     const vec<3, T>& x,
     T y
 )
@@ -35,7 +35,7 @@ inline constexpr vec<3, T> min(
 }
 
 template <typename T>
-inline constexpr vec<4, T> min(
+VX_FORCE_INLINE constexpr vec<4, T> min(
     const vec<4, T>& x,
     T y
 )
@@ -51,7 +51,7 @@ inline constexpr vec<4, T> min(
 // binary
 
 template <typename T>
-inline constexpr vec<2, T> min(
+VX_FORCE_INLINE constexpr vec<2, T> min(
     const vec<2, T>& x,
     const vec<2, T>& y
 )
@@ -63,7 +63,7 @@ inline constexpr vec<2, T> min(
 }
 
 template <typename T>
-inline constexpr vec<3, T> min(
+VX_FORCE_INLINE constexpr vec<3, T> min(
     const vec<3, T>& x,
     const vec<3, T>& y
 )
@@ -76,7 +76,7 @@ inline constexpr vec<3, T> min(
 }
 
 template <typename T>
-inline constexpr vec<4, T> min(
+VX_FORCE_INLINE constexpr vec<4, T> min(
     const vec<4, T>& x,
     const vec<4, T>& y
 )
@@ -99,7 +99,7 @@ inline constexpr vec<4, T> min(
  * @return The component-wise minimum of the vector.
  */
 template <typename T>
-inline constexpr T cmin(
+VX_FORCE_INLINE constexpr T cmin(
     const vec<2, T>& x
 )
 {
@@ -107,7 +107,7 @@ inline constexpr T cmin(
 }
 
 template <typename T>
-inline constexpr T cmin(
+VX_FORCE_INLINE constexpr T cmin(
     const vec<3, T>& x
 )
 {
@@ -115,7 +115,7 @@ inline constexpr T cmin(
 }
 
 template <typename T>
-inline constexpr T cmin(
+VX_FORCE_INLINE constexpr T cmin(
     const vec<4, T>& x
 )
 {
@@ -127,7 +127,7 @@ inline constexpr T cmin(
 // scaler binary
 
 template <typename T>
-inline constexpr vec<2, T> max(
+VX_FORCE_INLINE constexpr vec<2, T> max(
     const vec<2, T>& x,
     T y
 )
@@ -139,7 +139,7 @@ inline constexpr vec<2, T> max(
 }
 
 template <typename T>
-inline constexpr vec<3, T> max(
+VX_FORCE_INLINE constexpr vec<3, T> max(
     const vec<3, T>& x,
     T y
 )
@@ -152,7 +152,7 @@ inline constexpr vec<3, T> max(
 }
 
 template <typename T>
-inline constexpr vec<4, T> max(
+VX_FORCE_INLINE constexpr vec<4, T> max(
     const vec<4, T>& x,
     T y
 )
@@ -168,7 +168,7 @@ inline constexpr vec<4, T> max(
 // binary
 
 template <typename T>
-inline constexpr vec<2, T> max(
+VX_FORCE_INLINE constexpr vec<2, T> max(
     const vec<2, T>& x,
     const vec<2, T>& y
 )
@@ -180,7 +180,7 @@ inline constexpr vec<2, T> max(
 }
 
 template <typename T>
-inline constexpr vec<3, T> max(
+VX_FORCE_INLINE constexpr vec<3, T> max(
     const vec<3, T>& x,
     const vec<3, T>& y
 )
@@ -193,7 +193,7 @@ inline constexpr vec<3, T> max(
 }
 
 template <typename T>
-inline constexpr vec<4, T> max(
+VX_FORCE_INLINE constexpr vec<4, T> max(
     const vec<4, T>& x,
     const vec<4, T>& y
 )
@@ -216,7 +216,7 @@ inline constexpr vec<4, T> max(
  * @return The component-wise maximum of the vector.
  */
 template <typename T>
-inline constexpr T cmax(
+VX_FORCE_INLINE constexpr T cmax(
     const vec<2, T>& x
 )
 {
@@ -224,7 +224,7 @@ inline constexpr T cmax(
 }
 
 template <typename T>
-inline constexpr T cmax(
+VX_FORCE_INLINE constexpr T cmax(
     const vec<3, T>& x
 )
 {
@@ -232,7 +232,7 @@ inline constexpr T cmax(
 }
 
 template <typename T>
-inline constexpr T cmax(
+VX_FORCE_INLINE constexpr T cmax(
     const vec<4, T>& x
 )
 {
@@ -249,7 +249,7 @@ inline constexpr T cmax(
  * @return The component-wise sum of the vector.
  */
 template <typename T>
-inline constexpr T csum(
+VX_FORCE_INLINE constexpr T csum(
     const vec<2, T>& x
 )
 {
@@ -257,7 +257,7 @@ inline constexpr T csum(
 }
 
 template <typename T>
-inline constexpr T csum(
+VX_FORCE_INLINE constexpr T csum(
     const vec<3, T>& x
 )
 {
@@ -265,7 +265,7 @@ inline constexpr T csum(
 }
 
 template <typename T>
-inline constexpr T csum(
+VX_FORCE_INLINE constexpr T csum(
     const vec<4, T>& x
 )
 {
@@ -275,7 +275,7 @@ inline constexpr T csum(
 // =============== abs ===============
 
 template <typename T>
-inline constexpr vec<2, T> abs(
+VX_FORCE_INLINE constexpr vec<2, T> abs(
     const vec<2, T>& x
 )
 {
@@ -286,7 +286,7 @@ inline constexpr vec<2, T> abs(
 }
 
 template <typename T>
-inline constexpr vec<3, T> abs(
+VX_FORCE_INLINE constexpr vec<3, T> abs(
     const vec<3, T>& x
 )
 {
@@ -298,7 +298,7 @@ inline constexpr vec<3, T> abs(
 }
 
 template <typename T>
-inline constexpr vec<4, T> abs(
+VX_FORCE_INLINE constexpr vec<4, T> abs(
     const vec<4, T>& x
 )
 {
@@ -313,7 +313,7 @@ inline constexpr vec<4, T> abs(
 // =============== round ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> round(
+VX_FORCE_INLINE constexpr vec<2, T> round(
     const vec<2, T>& x
 )
 {
@@ -324,7 +324,7 @@ inline constexpr vec<2, T> round(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> round(
+VX_FORCE_INLINE constexpr vec<3, T> round(
     const vec<3, T>& x
 )
 {
@@ -336,7 +336,7 @@ inline constexpr vec<3, T> round(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> round(
+VX_FORCE_INLINE constexpr vec<4, T> round(
     const vec<4, T>& x
 )
 {
@@ -351,7 +351,7 @@ inline constexpr vec<4, T> round(
 // =============== trunc ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> trunc(
+VX_FORCE_INLINE constexpr vec<2, T> trunc(
     const vec<2, T>& x
 )
 {
@@ -362,7 +362,7 @@ inline constexpr vec<2, T> trunc(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> trunc(
+VX_FORCE_INLINE constexpr vec<3, T> trunc(
     const vec<3, T>& x
 )
 {
@@ -374,7 +374,7 @@ inline constexpr vec<3, T> trunc(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> trunc(
+VX_FORCE_INLINE constexpr vec<4, T> trunc(
     const vec<4, T>& x
 )
 {
@@ -389,7 +389,7 @@ inline constexpr vec<4, T> trunc(
 // =============== floor ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> floor(
+VX_FORCE_INLINE constexpr vec<2, T> floor(
     const vec<2, T>& x
 )
 {
@@ -400,7 +400,7 @@ inline constexpr vec<2, T> floor(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> floor(
+VX_FORCE_INLINE constexpr vec<3, T> floor(
     const vec<3, T>& x
 )
 {
@@ -412,7 +412,7 @@ inline constexpr vec<3, T> floor(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> floor(
+VX_FORCE_INLINE constexpr vec<4, T> floor(
     const vec<4, T>& x
 )
 {
@@ -427,7 +427,7 @@ inline constexpr vec<4, T> floor(
 // =============== ceil ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> ceil(
+VX_FORCE_INLINE constexpr vec<2, T> ceil(
     const vec<2, T>& x
 )
 {
@@ -438,7 +438,7 @@ inline constexpr vec<2, T> ceil(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> ceil(
+VX_FORCE_INLINE constexpr vec<3, T> ceil(
     const vec<3, T>& x
 )
 {
@@ -450,7 +450,7 @@ inline constexpr vec<3, T> ceil(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> ceil(
+VX_FORCE_INLINE constexpr vec<4, T> ceil(
     const vec<4, T>& x
 )
 {
@@ -465,7 +465,7 @@ inline constexpr vec<4, T> ceil(
 // =============== sign ===============
 
 template <typename T>
-inline constexpr vec<2, T> sign(
+VX_FORCE_INLINE constexpr vec<2, T> sign(
     const vec<2, T>& x
 )
 {
@@ -476,7 +476,7 @@ inline constexpr vec<2, T> sign(
 }
 
 template <typename T>
-inline constexpr vec<3, T> sign(
+VX_FORCE_INLINE constexpr vec<3, T> sign(
     const vec<3, T>& x
 )
 {
@@ -488,7 +488,7 @@ inline constexpr vec<3, T> sign(
 }
 
 template <typename T>
-inline constexpr vec<4, T> sign(
+VX_FORCE_INLINE constexpr vec<4, T> sign(
     const vec<4, T>& x
 )
 {
@@ -505,7 +505,7 @@ inline constexpr vec<4, T> sign(
 // scaler binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> fmod(
+VX_FORCE_INLINE constexpr vec<2, T> fmod(
     const vec<2, T>& x,
     T y
 )
@@ -517,7 +517,7 @@ inline constexpr vec<2, T> fmod(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> fmod(
+VX_FORCE_INLINE constexpr vec<3, T> fmod(
     const vec<3, T>& x,
     T y
 )
@@ -530,7 +530,7 @@ inline constexpr vec<3, T> fmod(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> fmod(
+VX_FORCE_INLINE constexpr vec<4, T> fmod(
     const vec<4, T>& x,
     T y
 )
@@ -546,7 +546,7 @@ inline constexpr vec<4, T> fmod(
 // binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> fmod(
+VX_FORCE_INLINE constexpr vec<2, T> fmod(
     const vec<2, T>& x,
     const vec<2, T>& y
 )
@@ -558,7 +558,7 @@ inline constexpr vec<2, T> fmod(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> fmod(
+VX_FORCE_INLINE constexpr vec<3, T> fmod(
     const vec<3, T>& x,
     const vec<3, T>& y
 )
@@ -571,7 +571,7 @@ inline constexpr vec<3, T> fmod(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> fmod(
+VX_FORCE_INLINE constexpr vec<4, T> fmod(
     const vec<4, T>& x,
     const vec<4, T>& y
 )
@@ -589,7 +589,7 @@ inline constexpr vec<4, T> fmod(
 // scaler binary
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<2, T>& x,
     T y
 )
@@ -602,7 +602,7 @@ inline constexpr auto mod(
 }
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<3, T>& x,
     T y
 )
@@ -616,7 +616,7 @@ inline constexpr auto mod(
 }
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<4, T>& x,
     T y
 )
@@ -633,7 +633,7 @@ inline constexpr auto mod(
 // binary
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<2, T>& x,
     const vec<2, T>& y
 )
@@ -646,7 +646,7 @@ inline constexpr auto mod(
 }
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<3, T>& x,
     const vec<3, T>& y
 )
@@ -660,7 +660,7 @@ inline constexpr auto mod(
 }
 
 template <typename T>
-inline constexpr auto mod(
+VX_FORCE_INLINE constexpr auto mod(
     const vec<4, T>& x,
     const vec<4, T>& y
 )
@@ -677,7 +677,7 @@ inline constexpr auto mod(
 // =============== fract ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> fract(
+VX_FORCE_INLINE constexpr vec<2, T> fract(
     const vec<2, T>& x
 )
 {
@@ -688,7 +688,7 @@ inline constexpr vec<2, T> fract(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> fract(
+VX_FORCE_INLINE constexpr vec<3, T> fract(
     const vec<3, T>& x
 )
 {
@@ -700,7 +700,7 @@ inline constexpr vec<3, T> fract(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> fract(
+VX_FORCE_INLINE constexpr vec<4, T> fract(
     const vec<4, T>& x
 )
 {
@@ -715,7 +715,7 @@ inline constexpr vec<4, T> fract(
 // =============== modf ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> modf(
+VX_FORCE_INLINE constexpr vec<2, T> modf(
     const vec<2, T>& x,
     vec<2, T>& intpart
 )
@@ -727,7 +727,7 @@ inline constexpr vec<2, T> modf(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> modf(
+VX_FORCE_INLINE constexpr vec<3, T> modf(
     const vec<3, T>& x,
     vec<3, T>& intpart
 )
@@ -740,7 +740,7 @@ inline constexpr vec<3, T> modf(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> modf(
+VX_FORCE_INLINE constexpr vec<4, T> modf(
     const vec<4, T>& x,
     vec<4, T>& intpart
 )
@@ -756,7 +756,7 @@ inline constexpr vec<4, T> modf(
 // =============== frexp ===============
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<2, T> frexp(
+VX_FORCE_INLINE constexpr vec<2, T> frexp(
     const vec<2, T>& x,
     vec<2, I>& exp
 )
@@ -768,7 +768,7 @@ inline constexpr vec<2, T> frexp(
 }
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<3, T> frexp(
+VX_FORCE_INLINE constexpr vec<3, T> frexp(
     const vec<3, T>& x,
     vec<3, I>& exp
 )
@@ -781,7 +781,7 @@ inline constexpr vec<3, T> frexp(
 }
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<4, T> frexp(
+VX_FORCE_INLINE constexpr vec<4, T> frexp(
     const vec<4, T>& x,
     vec<4, I>& exp
 )
@@ -797,7 +797,7 @@ inline constexpr vec<4, T> frexp(
 // =============== ldexp ===============
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<2, T> ldexp(
+VX_FORCE_INLINE constexpr vec<2, T> ldexp(
     const vec<2, T>& x,
     const vec<2, I>& exp
 )
@@ -809,7 +809,7 @@ inline constexpr vec<2, T> ldexp(
 }
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<3, T> ldexp(
+VX_FORCE_INLINE constexpr vec<3, T> ldexp(
     const vec<3, T>& x,
     const vec<3, I>& exp
 )
@@ -822,7 +822,7 @@ inline constexpr vec<3, T> ldexp(
 }
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr vec<4, T> ldexp(
+VX_FORCE_INLINE constexpr vec<4, T> ldexp(
     const vec<4, T>& x,
     const vec<4, I>& exp
 )
@@ -840,7 +840,7 @@ inline constexpr vec<4, T> ldexp(
 // scaler
 
 template <typename T>
-inline constexpr vec<2, T> clamp(
+VX_FORCE_INLINE constexpr vec<2, T> clamp(
     const vec<2, T>& x,
     T min,
     T max
@@ -853,7 +853,7 @@ inline constexpr vec<2, T> clamp(
 }
 
 template <typename T>
-inline constexpr vec<3, T> clamp(
+VX_FORCE_INLINE constexpr vec<3, T> clamp(
     const vec<3, T>& x,
     T min,
     T max
@@ -867,7 +867,7 @@ inline constexpr vec<3, T> clamp(
 }
 
 template <typename T>
-inline constexpr vec<4, T> clamp(
+VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     T min,
     T max
@@ -884,7 +884,7 @@ inline constexpr vec<4, T> clamp(
 // vector
 
 template <typename T>
-inline constexpr vec<2, T> clamp(
+VX_FORCE_INLINE constexpr vec<2, T> clamp(
     const vec<2, T>& x,
     const vec<2, T>& min,
     const vec<2, T>& max
@@ -897,7 +897,7 @@ inline constexpr vec<2, T> clamp(
 }
 
 template <typename T>
-inline constexpr vec<3, T> clamp(
+VX_FORCE_INLINE constexpr vec<3, T> clamp(
     const vec<3, T>& x,
     const vec<3, T>& min,
     const vec<3, T>& max
@@ -911,7 +911,7 @@ inline constexpr vec<3, T> clamp(
 }
 
 template <typename T>
-inline constexpr vec<4, T> clamp(
+VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     const vec<4, T>& min,
     const vec<4, T>& max

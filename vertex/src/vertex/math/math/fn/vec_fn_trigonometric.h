@@ -8,7 +8,7 @@ namespace math {
 // =============== radians ===============
 
 template <typename T>
-inline constexpr auto radians(
+VX_FORCE_INLINE constexpr auto radians(
     const vec<2, T>& deg
 )
 {
@@ -20,7 +20,7 @@ inline constexpr auto radians(
 }
 
 template <typename T>
-inline constexpr auto radians(
+VX_FORCE_INLINE constexpr auto radians(
     const vec<3, T>& deg
 )
 {
@@ -33,7 +33,7 @@ inline constexpr auto radians(
 }
 
 template <typename T>
-inline constexpr auto radians(
+VX_FORCE_INLINE constexpr auto radians(
     const vec<4, T>& deg
 )
 {
@@ -49,7 +49,7 @@ inline constexpr auto radians(
 // =============== degrees ===============
 
 template <typename T>
-inline constexpr auto degrees(
+VX_FORCE_INLINE constexpr auto degrees(
     const vec<2, T>& rad
 )
 {
@@ -61,7 +61,7 @@ inline constexpr auto degrees(
 }
 
 template <typename T>
-inline constexpr auto degrees(
+VX_FORCE_INLINE constexpr auto degrees(
     const vec<3, T>& rad
 )
 {
@@ -74,7 +74,7 @@ inline constexpr auto degrees(
 }
 
 template <typename T>
-inline constexpr auto degrees(
+VX_FORCE_INLINE constexpr auto degrees(
     const vec<4, T>& rad
 )
 {
@@ -90,7 +90,7 @@ inline constexpr auto degrees(
 // =============== sin ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> sin(
+VX_FORCE_INLINE constexpr vec<2, T> sin(
     const vec<2, T>& x
 )
 {
@@ -101,7 +101,7 @@ inline constexpr vec<2, T> sin(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> sin(
+VX_FORCE_INLINE constexpr vec<3, T> sin(
     const vec<3, T>& x
 )
 {
@@ -113,7 +113,7 @@ inline constexpr vec<3, T> sin(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> sin(
+VX_FORCE_INLINE constexpr vec<4, T> sin(
     const vec<4, T>& x
 )
 {
@@ -128,7 +128,7 @@ inline constexpr vec<4, T> sin(
 // =============== cos ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> cos(
+VX_FORCE_INLINE constexpr vec<2, T> cos(
     const vec<2, T>& x
 )
 {
@@ -139,7 +139,7 @@ inline constexpr vec<2, T> cos(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> cos(
+VX_FORCE_INLINE constexpr vec<3, T> cos(
     const vec<3, T>& x
 )
 {
@@ -151,7 +151,7 @@ inline constexpr vec<3, T> cos(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> cos(
+VX_FORCE_INLINE constexpr vec<4, T> cos(
     const vec<4, T>& x
 )
 {
@@ -166,7 +166,7 @@ inline constexpr vec<4, T> cos(
 // =============== tan ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> tan(
+VX_FORCE_INLINE constexpr vec<2, T> tan(
     const vec<2, T>& x
 )
 {
@@ -177,7 +177,7 @@ inline constexpr vec<2, T> tan(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> tan(
+VX_FORCE_INLINE constexpr vec<3, T> tan(
     const vec<3, T>& x
 )
 {
@@ -189,7 +189,7 @@ inline constexpr vec<3, T> tan(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> tan(
+VX_FORCE_INLINE constexpr vec<4, T> tan(
     const vec<4, T>& x
 )
 {
@@ -204,7 +204,7 @@ inline constexpr vec<4, T> tan(
 // =============== asin ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> asin(
+VX_FORCE_INLINE constexpr vec<2, T> asin(
     const vec<2, T>& x
 )
 {
@@ -215,7 +215,7 @@ inline constexpr vec<2, T> asin(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> asin(
+VX_FORCE_INLINE constexpr vec<3, T> asin(
     const vec<3, T>& x
 )
 {
@@ -227,7 +227,7 @@ inline constexpr vec<3, T> asin(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> asin(
+VX_FORCE_INLINE constexpr vec<4, T> asin(
     const vec<4, T>& x
 )
 {
@@ -242,7 +242,7 @@ inline constexpr vec<4, T> asin(
 // =============== acos ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> acos(
+VX_FORCE_INLINE constexpr vec<2, T> acos(
     const vec<2, T>& x
 )
 {
@@ -253,7 +253,7 @@ inline constexpr vec<2, T> acos(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> acos(
+VX_FORCE_INLINE constexpr vec<3, T> acos(
     const vec<3, T>& x
 )
 {
@@ -265,7 +265,7 @@ inline constexpr vec<3, T> acos(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> acos(
+VX_FORCE_INLINE constexpr vec<4, T> acos(
     const vec<4, T>& x
 )
 {
@@ -280,7 +280,7 @@ inline constexpr vec<4, T> acos(
 // =============== atan ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> atan(
+VX_FORCE_INLINE constexpr vec<2, T> atan(
     const vec<2, T>& x
 )
 {
@@ -291,7 +291,7 @@ inline constexpr vec<2, T> atan(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> atan(
+VX_FORCE_INLINE constexpr vec<3, T> atan(
     const vec<3, T>& x
 )
 {
@@ -303,7 +303,7 @@ inline constexpr vec<3, T> atan(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> atan(
+VX_FORCE_INLINE constexpr vec<4, T> atan(
     const vec<4, T>& x
 )
 {
@@ -318,7 +318,7 @@ inline constexpr vec<4, T> atan(
 // =============== atan2 ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> atan2(
+VX_FORCE_INLINE constexpr vec<2, T> atan2(
     const vec<2, T>& y,
     const vec<2, T>& x
 )
@@ -330,7 +330,7 @@ inline constexpr vec<2, T> atan2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> atan2(
+VX_FORCE_INLINE constexpr vec<3, T> atan2(
     const vec<3, T>& y,
     const vec<3, T>& x
 )
@@ -343,7 +343,7 @@ inline constexpr vec<3, T> atan2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> atan2(
+VX_FORCE_INLINE constexpr vec<4, T> atan2(
     const vec<4, T>& y,
     const vec<4, T>& x
 )
@@ -359,7 +359,7 @@ inline constexpr vec<4, T> atan2(
 // =============== sinh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> sinh(
+VX_FORCE_INLINE constexpr vec<2, T> sinh(
     const vec<2, T>& x
 )
 {
@@ -370,7 +370,7 @@ inline constexpr vec<2, T> sinh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> sinh(
+VX_FORCE_INLINE constexpr vec<3, T> sinh(
     const vec<3, T>& x
 )
 {
@@ -382,7 +382,7 @@ inline constexpr vec<3, T> sinh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> sinh(
+VX_FORCE_INLINE constexpr vec<4, T> sinh(
     const vec<4, T>& x
 )
 {
@@ -397,7 +397,7 @@ inline constexpr vec<4, T> sinh(
 // =============== cosh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> cosh(
+VX_FORCE_INLINE constexpr vec<2, T> cosh(
     const vec<2, T>& x
 )
 {
@@ -408,7 +408,7 @@ inline constexpr vec<2, T> cosh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> cosh(
+VX_FORCE_INLINE constexpr vec<3, T> cosh(
     const vec<3, T>& x
 )
 {
@@ -420,7 +420,7 @@ inline constexpr vec<3, T> cosh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> cosh(
+VX_FORCE_INLINE constexpr vec<4, T> cosh(
     const vec<4, T>& x
 )
 {
@@ -435,7 +435,7 @@ inline constexpr vec<4, T> cosh(
 // =============== tanh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> tanh(
+VX_FORCE_INLINE constexpr vec<2, T> tanh(
     const vec<2, T>& x
 )
 {
@@ -446,7 +446,7 @@ inline constexpr vec<2, T> tanh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> tanh(
+VX_FORCE_INLINE constexpr vec<3, T> tanh(
     const vec<3, T>& x
 )
 {
@@ -458,7 +458,7 @@ inline constexpr vec<3, T> tanh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> tanh(
+VX_FORCE_INLINE constexpr vec<4, T> tanh(
     const vec<4, T>& x
 )
 {
@@ -473,7 +473,7 @@ inline constexpr vec<4, T> tanh(
 // =============== asinh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> asinh(
+VX_FORCE_INLINE constexpr vec<2, T> asinh(
     const vec<2, T>& x
 )
 {
@@ -484,7 +484,7 @@ inline constexpr vec<2, T> asinh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> asinh(
+VX_FORCE_INLINE constexpr vec<3, T> asinh(
     const vec<3, T>& x
 )
 {
@@ -496,7 +496,7 @@ inline constexpr vec<3, T> asinh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> asinh(
+VX_FORCE_INLINE constexpr vec<4, T> asinh(
     const vec<4, T>& x
 )
 {
@@ -511,7 +511,7 @@ inline constexpr vec<4, T> asinh(
 // =============== acosh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> acosh(
+VX_FORCE_INLINE constexpr vec<2, T> acosh(
     const vec<2, T>& x
 )
 {
@@ -522,7 +522,7 @@ inline constexpr vec<2, T> acosh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> acosh(
+VX_FORCE_INLINE constexpr vec<3, T> acosh(
     const vec<3, T>& x
 )
 {
@@ -534,7 +534,7 @@ inline constexpr vec<3, T> acosh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> acosh(
+VX_FORCE_INLINE constexpr vec<4, T> acosh(
     const vec<4, T>& x
 )
 {
@@ -549,7 +549,7 @@ inline constexpr vec<4, T> acosh(
 // =============== atanh ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> atanh(
+VX_FORCE_INLINE constexpr vec<2, T> atanh(
     const vec<2, T>& x
 )
 {
@@ -560,7 +560,7 @@ inline constexpr vec<2, T> atanh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> atanh(
+VX_FORCE_INLINE constexpr vec<3, T> atanh(
     const vec<3, T>& x
 )
 {
@@ -572,7 +572,7 @@ inline constexpr vec<3, T> atanh(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> atanh(
+VX_FORCE_INLINE constexpr vec<4, T> atanh(
     const vec<4, T>& x
 )
 {

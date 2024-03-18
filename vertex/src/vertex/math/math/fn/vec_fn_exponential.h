@@ -10,7 +10,7 @@ namespace math {
 // scaler binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> pow(
+VX_FORCE_INLINE constexpr vec<2, T> pow(
     const vec<2, T>& x,
     T y
 )
@@ -22,7 +22,7 @@ inline constexpr vec<2, T> pow(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> pow(
+VX_FORCE_INLINE constexpr vec<3, T> pow(
     const vec<3, T>& x,
     T y
 )
@@ -35,7 +35,7 @@ inline constexpr vec<3, T> pow(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> pow(
+VX_FORCE_INLINE constexpr vec<4, T> pow(
     const vec<4, T>& x,
     T y
 )
@@ -51,7 +51,7 @@ inline constexpr vec<4, T> pow(
 // binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> pow(
+VX_FORCE_INLINE constexpr vec<2, T> pow(
     const vec<2, T>& x,
     const vec<2, T>& y
 )
@@ -63,7 +63,7 @@ inline constexpr vec<2, T> pow(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> pow(
+VX_FORCE_INLINE constexpr vec<3, T> pow(
     const vec<3, T>& x,
     const vec<3, T>& y
 )
@@ -76,7 +76,7 @@ inline constexpr vec<3, T> pow(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> pow(
+VX_FORCE_INLINE constexpr vec<4, T> pow(
     const vec<4, T>& x,
     const vec<4, T>& y
 )
@@ -92,7 +92,7 @@ inline constexpr vec<4, T> pow(
 // =============== exp ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> exp(
+VX_FORCE_INLINE constexpr vec<2, T> exp(
     const vec<2, T>& x
 )
 {
@@ -103,7 +103,7 @@ inline constexpr vec<2, T> exp(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> exp(
+VX_FORCE_INLINE constexpr vec<3, T> exp(
     const vec<3, T>& x
 )
 {
@@ -115,7 +115,7 @@ inline constexpr vec<3, T> exp(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> exp(
+VX_FORCE_INLINE constexpr vec<4, T> exp(
     const vec<4, T>& x
 )
 {
@@ -130,7 +130,7 @@ inline constexpr vec<4, T> exp(
 // =============== exp2 ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> exp2(
+VX_FORCE_INLINE constexpr vec<2, T> exp2(
     const vec<2, T>& x
 )
 {
@@ -141,7 +141,7 @@ inline constexpr vec<2, T> exp2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> exp2(
+VX_FORCE_INLINE constexpr vec<3, T> exp2(
     const vec<3, T>& x
 )
 {
@@ -153,7 +153,7 @@ inline constexpr vec<3, T> exp2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> exp2(
+VX_FORCE_INLINE constexpr vec<4, T> exp2(
     const vec<4, T>& x
 )
 {
@@ -168,7 +168,7 @@ inline constexpr vec<4, T> exp2(
 // =============== log ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> log(
+VX_FORCE_INLINE constexpr vec<2, T> log(
     const vec<2, T>& x
 )
 {
@@ -179,7 +179,7 @@ inline constexpr vec<2, T> log(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> log(
+VX_FORCE_INLINE constexpr vec<3, T> log(
     const vec<3, T>& x
 )
 {
@@ -191,7 +191,7 @@ inline constexpr vec<3, T> log(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> log(
+VX_FORCE_INLINE constexpr vec<4, T> log(
     const vec<4, T>& x
 )
 {
@@ -206,7 +206,7 @@ inline constexpr vec<4, T> log(
 // =============== log2 ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> log2(
+VX_FORCE_INLINE constexpr vec<2, T> log2(
     const vec<2, T>& x
 )
 {
@@ -217,7 +217,7 @@ inline constexpr vec<2, T> log2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> log2(
+VX_FORCE_INLINE constexpr vec<3, T> log2(
     const vec<3, T>& x
 )
 {
@@ -229,7 +229,7 @@ inline constexpr vec<3, T> log2(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> log2(
+VX_FORCE_INLINE constexpr vec<4, T> log2(
     const vec<4, T>& x
 )
 {
@@ -244,7 +244,7 @@ inline constexpr vec<4, T> log2(
 // =============== sqrt ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> sqrt(
+VX_FORCE_INLINE constexpr vec<2, T> sqrt(
     const vec<2, T>& x
 )
 {
@@ -255,7 +255,7 @@ inline constexpr vec<2, T> sqrt(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> sqrt(
+VX_FORCE_INLINE constexpr vec<3, T> sqrt(
     const vec<3, T>& x
 )
 {
@@ -267,7 +267,7 @@ inline constexpr vec<3, T> sqrt(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> sqrt(
+VX_FORCE_INLINE constexpr vec<4, T> sqrt(
     const vec<4, T>& x
 )
 {
@@ -282,7 +282,7 @@ inline constexpr vec<4, T> sqrt(
 // =============== inverse_sqrt ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> inverse_sqrt(
+VX_FORCE_INLINE constexpr vec<2, T> inverse_sqrt(
     const vec<2, T>& x
 )
 {
@@ -293,7 +293,7 @@ inline constexpr vec<2, T> inverse_sqrt(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> inverse_sqrt(
+VX_FORCE_INLINE constexpr vec<3, T> inverse_sqrt(
     const vec<3, T>& x
 )
 {
@@ -305,7 +305,7 @@ inline constexpr vec<3, T> inverse_sqrt(
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<4, T> inverse_sqrt(
+VX_FORCE_INLINE constexpr vec<4, T> inverse_sqrt(
     const vec<4, T>& x
 )
 {

@@ -17,7 +17,7 @@ namespace math {
  * @return The interpolated value between x and y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T lerp(T x, T y, T t)
+VX_FORCE_INLINE constexpr T lerp(T x, T y, T t)
 {
     return x * (static_cast<T>(1) - t) + y * t;
 }
@@ -34,7 +34,7 @@ inline constexpr T lerp(T x, T y, T t)
  * @return The interpolated value between x and y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T mix(T x, T y, T t)
+VX_FORCE_INLINE constexpr T mix(T x, T y, T t)
 {
     return lerp(x, y, t);
 }
@@ -52,7 +52,7 @@ inline constexpr T mix(T x, T y, T t)
  * @return 1 if x is greater than or equal to the edge value, otherwise 0.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-inline constexpr T step(T edge, T x)
+VX_FORCE_INLINE constexpr T step(T edge, T x)
 {
     return static_cast<T>(x >= edge);
 }
@@ -73,7 +73,7 @@ inline constexpr T step(T edge, T x)
  * @return The result of smoothstep interpolation between 0 and 1.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T smoothstep(T edge0, T edge1, T x)
+VX_FORCE_INLINE constexpr T smoothstep(T edge0, T edge1, T x)
 {
     const T v = (x - edge0) / (edge1 - edge0);
     const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));

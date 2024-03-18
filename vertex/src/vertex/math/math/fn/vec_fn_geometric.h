@@ -18,7 +18,7 @@ namespace math {
  * @return The dot product of v and u.
  */
 template <typename T>
-inline constexpr T dot(
+VX_FORCE_INLINE constexpr T dot(
     const vec<2, T>& v,
     const vec<2, T>& u
 )
@@ -27,7 +27,7 @@ inline constexpr T dot(
 }
 
 template <typename T>
-inline constexpr T dot(
+VX_FORCE_INLINE constexpr T dot(
     const vec<3, T>& v,
     const vec<3, T>& u
 )
@@ -36,7 +36,7 @@ inline constexpr T dot(
 }
 
 template <typename T>
-inline constexpr T dot(
+VX_FORCE_INLINE constexpr T dot(
     const vec<4, T>& v,
     const vec<4, T>& u
 )
@@ -56,7 +56,7 @@ inline constexpr T dot(
  * @return The normalized dot product of v and u.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto normalized_dot(
+VX_FORCE_INLINE constexpr auto normalized_dot(
     const vec<L, T>& v,
     const vec<L, T>& u
 )
@@ -67,7 +67,7 @@ inline constexpr auto normalized_dot(
 // =============== cross ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr vec<2, T> orthogonal(const vec<2, T>& v)
+VX_FORCE_INLINE constexpr vec<2, T> orthogonal(const vec<2, T>& v)
 {
     return vec<2, T>(-v.y, v.x);
 }
@@ -83,7 +83,7 @@ static inline constexpr vec<2, T> orthogonal(const vec<2, T>& v)
  * @return The cross product of v and u.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T cross(
+VX_FORCE_INLINE constexpr T cross(
     const vec<2, T>& v,
     const vec<2, T>& u
 )
@@ -100,7 +100,7 @@ inline constexpr T cross(
  * @return The cross product of v and u.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> cross(
+VX_FORCE_INLINE constexpr vec<3, T> cross(
     const vec<3, T>& v,
     const vec<3, T>& u
 )
@@ -123,7 +123,7 @@ inline constexpr vec<3, T> cross(
  * @return The squared length of v.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T length_squared(const vec<L, T>& v)
+VX_FORCE_INLINE constexpr T length_squared(const vec<L, T>& v)
 {
     return dot(v, v);
 }
@@ -137,7 +137,7 @@ inline constexpr T length_squared(const vec<L, T>& v)
  * @return The length of v.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T length(const vec<L, T>& v)
+VX_FORCE_INLINE constexpr T length(const vec<L, T>& v)
 {
     return sqrt(length_squared(v));
 }
@@ -156,7 +156,7 @@ inline constexpr T length(const vec<L, T>& v)
  * @return The squared distance between p0 and p1.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T distance_squared(
+VX_FORCE_INLINE constexpr T distance_squared(
     const vec<L, T>& p0,
     const vec<L, T>& p1
 )
@@ -176,7 +176,7 @@ inline constexpr T distance_squared(
  * @return The distance between p0 and p1.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T distance(
+VX_FORCE_INLINE constexpr T distance(
     const vec<L, T>& p0,
     const vec<L, T>& p1
 )
@@ -200,7 +200,7 @@ inline constexpr T distance(
  * otherwise, returns the zero vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> normalize(const vec<L, T>& v)
+VX_FORCE_INLINE constexpr vec<L, T> normalize(const vec<L, T>& v)
 {
     const T magsq = length_squared(v);
 
@@ -224,7 +224,7 @@ inline constexpr vec<L, T> normalize(const vec<L, T>& v)
  * @return The normalized vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
+VX_FORCE_INLINE constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
 {
     return v * inverse_sqrt(length_squared(v));
 }
@@ -242,7 +242,7 @@ inline constexpr vec<L, T> fast_normalize(const vec<L, T>& v)
  * @return True if the vector is normalized, false otherwise.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>())
+VX_FORCE_INLINE constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::epsilon<T>())
 {
     return (length_squared(v) - static_cast<T>(1)) < epsilon;
 }
@@ -264,7 +264,7 @@ inline constexpr bool is_normalized(const vec<L, T>& v, const T epsilon = math::
  * @return The clamped vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> clamp_magnitude(
+VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
     const vec<L, T>& v,
     T min,
     T max
@@ -289,7 +289,7 @@ inline constexpr vec<L, T> clamp_magnitude(
 // =============== aespect ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T aspect(const vec<2, T>& v)
+VX_FORCE_INLINE constexpr T aspect(const vec<2, T>& v)
 {
     return static_cast<T>(math::abs(v.y) > math::epsilon<T>()) * (v.x / v.y);
 }
@@ -297,7 +297,7 @@ inline constexpr T aspect(const vec<2, T>& v)
 // =============== angle ===============
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr T angle(const vec<2, T>& v)
+VX_FORCE_INLINE constexpr T angle(const vec<2, T>& v)
 {
     return math::atan2(v.y, v.x);
 }
@@ -312,7 +312,7 @@ static inline constexpr T angle(const vec<2, T>& v)
  * @return The angle between from and to in radians.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr T angle(
+VX_FORCE_INLINE constexpr T angle(
     const vec<L, T>& from,
     const vec<L, T>& to
 )
@@ -330,7 +330,7 @@ static inline constexpr T angle(
  * @return The signed angle between from and to in radians.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-static inline constexpr T signed_angle(
+VX_FORCE_INLINE constexpr T signed_angle(
     const vec<L, T>& from,
     const vec<L, T>& to
 )
@@ -350,7 +350,7 @@ static inline constexpr T signed_angle(
  * @return The rotated vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
+VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
 {
     const T cosa = math::cos(angle);
     const T sina = math::sin(angle);
@@ -373,7 +373,7 @@ inline constexpr vec<2, T> rotate(const vec<2, T>& v, T angle)
  * @return The rotated vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> rotate(
+VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const vec<3, T>& axis,
     T angle
@@ -396,7 +396,7 @@ inline constexpr vec<3, T> rotate(
  * @return The rotated vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<3, T> rotate(
+VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const quat_t<T>& rotation
 )
@@ -416,7 +416,7 @@ inline constexpr vec<3, T> rotate(
  * @return The projected vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> project(
+VX_FORCE_INLINE constexpr vec<L, T> project(
     const vec<L, T>& i,
     const vec<L, T>& n
 )
@@ -438,7 +438,7 @@ inline constexpr vec<L, T> project(
  * @return The reflected vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> reflect(
+VX_FORCE_INLINE constexpr vec<L, T> reflect(
     const vec<L, T>& i,
     const vec<L, T>& n
 )
@@ -458,7 +458,7 @@ inline constexpr vec<L, T> reflect(
  * @return The bounced vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> bounce(
+VX_FORCE_INLINE constexpr vec<L, T> bounce(
     const vec<L, T>& i,
     const vec<L, T>& n
 )
@@ -484,7 +484,7 @@ inline constexpr vec<L, T> bounce(
  * @return The refracted vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> refract(
+VX_FORCE_INLINE constexpr vec<L, T> refract(
     const vec<L, T>& i,
     const vec<L, T>& n,
     T eta
@@ -517,7 +517,7 @@ inline constexpr vec<L, T> refract(
  * @return The adjusted normal vector.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> face_forward(
+VX_FORCE_INLINE constexpr vec<L, T> face_forward(
     const vec<L, T>& n,
     const vec<L, T>& i,
     const vec<L, T>& nref
@@ -539,7 +539,7 @@ inline constexpr vec<L, T> face_forward(
  * @return The new vector position.
  */
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr vec<L, T> move_toward(
+VX_FORCE_INLINE constexpr vec<L, T> move_toward(
     const vec<L, T>& from,
     const vec<L, T>& to,
     T delta

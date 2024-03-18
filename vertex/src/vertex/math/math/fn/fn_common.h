@@ -16,7 +16,7 @@ namespace math {
  * @return The smaller of the two input values.
  */
 template <typename T>
-inline constexpr T min(T x, T y)
+VX_FORCE_INLINE constexpr T min(T x, T y)
 {
     return std::min(x, y);
 }
@@ -29,7 +29,7 @@ inline constexpr T min(T x, T y)
  * @return The smallest value in the initializer list.
  */
 template <typename T>
-inline constexpr T min(std::initializer_list<T> ls)
+VX_FORCE_INLINE constexpr T min(std::initializer_list<T> ls)
 {
     return std::min(ls);
 }
@@ -45,7 +45,7 @@ inline constexpr T min(std::initializer_list<T> ls)
  * @return The greater of the two input values.
  */
 template <typename T>
-inline constexpr T max(T x, T y)
+VX_FORCE_INLINE constexpr T max(T x, T y)
 {
     return std::max(x, y);
 }
@@ -58,7 +58,7 @@ inline constexpr T max(T x, T y)
  * @return The largest value in the initializer list.
  */
 template <typename T>
-inline constexpr T max(std::initializer_list<T> ls)
+VX_FORCE_INLINE constexpr T max(std::initializer_list<T> ls)
 {
     return std::max(ls);
 }
@@ -73,7 +73,7 @@ inline constexpr T max(std::initializer_list<T> ls)
  * @return The absolute value of x.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-inline constexpr T abs(T x)
+VX_FORCE_INLINE constexpr T abs(T x)
 {
     return std::abs(x);
 }
@@ -88,7 +88,7 @@ inline constexpr T abs(T x)
  * @return The rounded value.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T round(T x)
+VX_FORCE_INLINE constexpr T round(T x)
 {
     return std::round(x);
 }
@@ -103,7 +103,7 @@ inline constexpr T round(T x)
  * @return The truncated value.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T trunc(T x)
+VX_FORCE_INLINE constexpr T trunc(T x)
 {
     return std::trunc(x);
 }
@@ -118,7 +118,7 @@ inline constexpr T trunc(T x)
  * @return The largest integral value not greater than than x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T floor(T x)
+VX_FORCE_INLINE constexpr T floor(T x)
 {
     return std::floor(x);
 }
@@ -133,7 +133,7 @@ inline constexpr T floor(T x)
  * @return The smallest integral value not less than x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T ceil(T x)
+VX_FORCE_INLINE constexpr T ceil(T x)
 {
     return std::ceil(x);
 }
@@ -148,7 +148,7 @@ inline constexpr T ceil(T x)
  * @return -1 if x is negative, 0 if x is zero, and 1 if x is positive.
  */
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-inline constexpr T sign(T x)
+VX_FORCE_INLINE constexpr T sign(T x)
 {
     return static_cast<T>((static_cast<T>(0) < x) - (static_cast<T>(0) > x));
 }
@@ -164,7 +164,7 @@ inline constexpr T sign(T x)
  * @return The floating-point remainder of dividing x by y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T fmod(T x, T y)
+VX_FORCE_INLINE constexpr T fmod(T x, T y)
 {
     return x - y * std::trunc(x / y);
 }
@@ -182,7 +182,7 @@ inline constexpr T fmod(T x, T y)
  * @return The remainder of dividing x by y.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T mod(T x, T y)
+VX_FORCE_INLINE constexpr T mod(T x, T y)
 {
     return x - y * std::floor(x / y);
 }
@@ -196,7 +196,7 @@ inline constexpr T mod(T x, T y)
  * @return The result of the modulo operation (x mod y).
  */
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
-inline constexpr T mod(T x, T y)
+VX_FORCE_INLINE constexpr T mod(T x, T y)
 {
     return (x % y + y) % y;
 }
@@ -213,7 +213,7 @@ inline constexpr T mod(T x, T y)
  * @return The fractional part of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr T fract(T x)
+VX_FORCE_INLINE constexpr T fract(T x)
 {
     return x - std::floor(x);
 }
@@ -232,7 +232,7 @@ inline constexpr T fract(T x)
  * @return The fractional part of x.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-inline constexpr auto modf(T x, T& intpart)
+VX_FORCE_INLINE constexpr auto modf(T x, T& intpart)
 {
     return std::modf(x, &intpart);
 }
@@ -249,7 +249,7 @@ inline constexpr auto modf(T x, T& intpart)
  * @return The normalized fraction of x.
  */
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr auto frexp(T x, I& exp)
+VX_FORCE_INLINE constexpr auto frexp(T x, I& exp)
 {
     int exp_int;
     const T f = std::frexp(x, &exp_int);
@@ -269,7 +269,7 @@ inline constexpr auto frexp(T x, I& exp)
  * @return The result of x * (2^exp).
  */
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
-inline constexpr T ldexp(T x, I exp)
+VX_FORCE_INLINE constexpr T ldexp(T x, I exp)
 {
     return std::ldexp(x, static_cast<int>(exp));
 }
@@ -286,7 +286,7 @@ inline constexpr T ldexp(T x, I exp)
  * @return The clamped value, which is x if it's within the range, min if x is less than min, or max if x is greater than max.
  */
 template <typename T>
-inline constexpr T clamp(T x, T min, T max)
+VX_FORCE_INLINE constexpr T clamp(T x, T min, T max)
 {
     return std::clamp(x, min, max);
 }
