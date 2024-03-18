@@ -9,7 +9,7 @@ namespace math {
 // =============== is_inf ===============
 
 template <typename T>
-inline constexpr bool is_inf(const color_t<T>& x)
+VX_FORCE_INLINE constexpr bool is_inf(const color_t<T>& x)
 {
     return math::is_inf(x.r)
         || math::is_inf(x.g)
@@ -20,7 +20,7 @@ inline constexpr bool is_inf(const color_t<T>& x)
 // =============== is_nan ===============
 
 template <typename T>
-inline constexpr bool is_nan(const color_t<T>& x)
+VX_FORCE_INLINE constexpr bool is_nan(const color_t<T>& x)
 {
     return math::is_nan(x.r)
         || math::is_nan(x.g)
@@ -31,7 +31,7 @@ inline constexpr bool is_nan(const color_t<T>& x)
 // =============== is_zero_approx ===============
 
 template <typename T>
-inline constexpr bool is_zero_approx(
+VX_FORCE_INLINE constexpr bool is_zero_approx(
     const color_t<T>& x,
     const T epsilon = math::epsilon<T>()
 )
@@ -45,7 +45,7 @@ inline constexpr bool is_zero_approx(
 // =============== is_equal_approx ===============
 
 template <typename T>
-inline constexpr bool is_equal_approx(
+VX_FORCE_INLINE constexpr bool is_equal_approx(
     const color_t<T>& a,
     const color_t<T>& b,
     const T epsilon = math::epsilon<T>()
@@ -60,7 +60,7 @@ inline constexpr bool is_equal_approx(
 // =============== is_not_equal_approx ===============
 
 template <typename T>
-inline constexpr bool is_not_equal_approx(
+VX_FORCE_INLINE constexpr bool is_not_equal_approx(
     const color_t<T>& a,
     const color_t<T>& b,
     const T epsilon = math::epsilon<T>()

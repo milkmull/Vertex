@@ -16,7 +16,7 @@ namespace math {
  * @param c The linear color to be converted.
  * @return The sRGB color corresponding to the input linear color.
  */
-inline constexpr color linear_to_srgb(const color& c)
+VX_FORCE_INLINE constexpr color linear_to_srgb(const color& c)
 {
     using T = float;
 
@@ -41,7 +41,7 @@ inline constexpr color linear_to_srgb(const color& c)
  * @param c The sRGB color to be converted.
  * @return The linear color corresponding to the input sRGB color.
  */
-inline constexpr color srgb_to_linear(const color& c)
+VX_FORCE_INLINE constexpr color srgb_to_linear(const color& c)
 {
     using T = float;
 

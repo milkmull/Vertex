@@ -10,7 +10,7 @@ namespace std {
 template <typename T>
 struct hash<vx::math::color_t<T>>
 {
-    inline constexpr size_t operator()(const vx::math::color_t<T>& c) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::color_t<T>& c) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;

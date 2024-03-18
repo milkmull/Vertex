@@ -3,6 +3,7 @@
 #include <functional>
 
 #include "../../detail/hash.h"
+#include "../../detail/hash.h"
 #include "../type/base/base_types.h"
 
 namespace std {
@@ -10,7 +11,7 @@ namespace std {
 template <typename T>
 struct hash<vx::math::vec<2, T>>
 {
-    inline constexpr size_t operator()(const vx::math::vec<2, T>& v) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::vec<2, T>& v) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -23,7 +24,7 @@ struct hash<vx::math::vec<2, T>>
 template <typename T>
 struct hash<vx::math::vec<3, T>>
 {
-    inline constexpr size_t operator()(const vx::math::vec<3, T>& v) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::vec<3, T>& v) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -37,7 +38,7 @@ struct hash<vx::math::vec<3, T>>
 template <typename T>
 struct hash<vx::math::vec<4, T>>
 {
-    inline constexpr size_t operator()(const vx::math::vec<4, T>& v) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::vec<4, T>& v) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -52,7 +53,7 @@ struct hash<vx::math::vec<4, T>>
 template <typename T>
 struct hash<vx::math::quat_t<T>>
 {
-    inline constexpr size_t operator()(const vx::math::quat_t<T>& q) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::quat_t<T>& q) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -67,7 +68,7 @@ struct hash<vx::math::quat_t<T>>
 template <size_t N, typename T>
 struct hash<vx::math::mat<2, N, T>>
 {
-    inline constexpr size_t operator()(const vx::math::mat<2, N, T>& m) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::mat<2, N, T>& m) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -80,7 +81,7 @@ struct hash<vx::math::mat<2, N, T>>
 template <size_t N, typename T>
 struct hash<vx::math::mat<3, N, T>>
 {
-    inline constexpr size_t operator()(const vx::math::mat<3, N, T>& m) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::mat<3, N, T>& m) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;
@@ -94,7 +95,7 @@ struct hash<vx::math::mat<3, N, T>>
 template <size_t N, typename T>
 struct hash<vx::math::mat<4, N, T>>
 {
-    inline constexpr size_t operator()(const vx::math::mat<4, N, T>& m) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::mat<4, N, T>& m) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;

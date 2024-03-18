@@ -18,7 +18,7 @@ namespace math {
  * @return True if r2 completely contains r1, otherwise false.
  */
 template <typename T1, typename T2>
-inline constexpr bool contains(const rect_t<T1>& r1, const rect_t<T2>& r2)
+VX_FORCE_INLINE constexpr bool contains(const rect_t<T1>& r1, const rect_t<T2>& r2)
 {
     return r1.position.x <= r2.position.x
         && r1.position.x + r1.size.x > r2.position.x + r2.size.x
@@ -36,7 +36,7 @@ inline constexpr bool contains(const rect_t<T1>& r1, const rect_t<T2>& r2)
  * @return True if the point is within the rectangle, otherwise false.
  */
 template <typename T1, typename T2>
-inline constexpr bool contains(const rect_t<T1>& r, const vec<2, T2>& p)
+VX_FORCE_INLINE constexpr bool contains(const rect_t<T1>& r, const vec<2, T2>& p)
 {
     return r.position.x <= p.x
         && r.position.x + r.size.x > p.x
@@ -56,7 +56,7 @@ inline constexpr bool contains(const rect_t<T1>& r, const vec<2, T2>& p)
  * @return True if the rectangles overlap, otherwise false.
  */
 template <typename T1, typename T2>
-inline constexpr bool overlaps(const rect_t<T1>& r1, const rect_t<T2>& r2)
+VX_FORCE_INLINE constexpr bool overlaps(const rect_t<T1>& r1, const rect_t<T2>& r2)
 {
     return r1.position.x <= r2.position.x + r2.size.x
         && r1.position.x + r1.size.x > r2.position.x
@@ -74,7 +74,7 @@ inline constexpr bool overlaps(const rect_t<T1>& r1, const rect_t<T2>& r2)
  * @return True if the point overlaps with the rectangle, otherwise false.
  */
 template <typename T1, typename T2>
-inline constexpr bool overlaps(const rect_t<T1>& r, const vec<2, T2>& p)
+VX_FORCE_INLINE constexpr bool overlaps(const rect_t<T1>& r, const vec<2, T2>& p)
 {
     return contains(r, p);
 }

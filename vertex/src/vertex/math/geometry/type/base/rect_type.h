@@ -26,29 +26,29 @@ struct rect_t
 
     // =============== implicit constructors ===============
 
-    inline constexpr rect_t() noexcept = default;
+    VX_FORCE_INLINE constexpr rect_t() noexcept = default;
 
-    inline constexpr rect_t(const type& r) noexcept
+    VX_FORCE_INLINE constexpr rect_t(const type& r) noexcept
         : position(r.position), size(r.size) {}
 
     // =============== explicit constructors ===============
 
-    inline constexpr explicit rect_t(
+    VX_FORCE_INLINE constexpr explicit rect_t(
         const vec<2, T>& position,
         const vec<2, T>& size
     ) noexcept
         : position(position), size(size) {}
 
-    inline constexpr rect_t(T x, T y, T width, T height) noexcept
+    VX_FORCE_INLINE constexpr rect_t(T x, T y, T width, T height) noexcept
         : position(x, y), size(width, height) {}
 
-    inline constexpr explicit rect_t(const vec<4, T>& v) noexcept
+    VX_FORCE_INLINE constexpr explicit rect_t(const vec<4, T>& v) noexcept
         : position(v.x, v.y), size(v.z, v.w) {}
 
     // =============== conversion constructors ===============
 
     template <typename P, typename S>
-    inline constexpr explicit rect_t(
+    VX_FORCE_INLINE constexpr explicit rect_t(
         const vec<2, P>& position,
         const vec<2, S>& size
     )
@@ -59,16 +59,16 @@ struct rect_t
         std::is_arithmetic<Y>::value&&
         std::is_arithmetic<W>::value&&
         std::is_arithmetic<H>::value, bool>::type = true>
-    inline constexpr rect_t(X x, Y y, W width, H height)
+    VX_FORCE_INLINE constexpr rect_t(X x, Y y, W width, H height)
         : position(static_cast<T>(x), static_cast<T>(y))
         , size(static_cast<T>(width), static_cast<T>(height)) {}
 
     template <typename U>
-    inline constexpr explicit rect_t(const rect_t<U>& r)
+    VX_FORCE_INLINE constexpr explicit rect_t(const rect_t<U>& r)
         : position(r.position), size(r.size) {}
 
     template <typename U>
-    inline constexpr explicit rect_t(const vec<4, U>& v)
+    VX_FORCE_INLINE constexpr explicit rect_t(const vec<4, U>& v)
         : position(static_cast<T>(v.x), static_cast<T>(v.y))
         , size(static_cast<T>(v.z), static_cast<T>(v.w)) {}
 
@@ -78,17 +78,17 @@ struct rect_t
 
     // =============== assignment operator ===============
 
-    inline constexpr type& operator=(const type& r) noexcept
+    VX_FORCE_INLINE constexpr type& operator=(const type& r) noexcept
     {
         position = r.position;
         size = r.size;
         return *this;
     }
 
-    inline constexpr type& operator=(type&&) noexcept = default;
+    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U>
-    inline constexpr type& operator=(const rect_t<U>& r) noexcept
+    VX_FORCE_INLINE constexpr type& operator=(const rect_t<U>& r) noexcept
     {
         position = r.position;
         size = r.size;
@@ -97,13 +97,13 @@ struct rect_t
 
     // =============== accessors ===============
 
-    inline constexpr T& operator[](size_t i)
+    VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
         return (&position.x)[i];
     }
 
-    inline constexpr const T& operator[](size_t i) const
+    VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
         return (&position.x)[i];
@@ -112,7 +112,7 @@ struct rect_t
     // =============== conversion operators ===============
 
     template <typename U>
-    inline constexpr explicit operator vec<4, U>() const
+    VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const
     {
         return vec<4, U>(
             static_cast<U>(position.x),
@@ -124,61 +124,61 @@ struct rect_t
 
     // =============== boolean operators ===============
 
-    friend inline constexpr bool operator==(const type& r1, const type& r2)
+    friend VX_FORCE_INLINE constexpr bool operator==(const type& r1, const type& r2)
     {
         return r1.position == r2.position && r1.size == r2.size;
     }
 
-    friend inline constexpr bool operator!=(const type& r1, const type& r2)
+    friend VX_FORCE_INLINE constexpr bool operator!=(const type& r1, const type& r2)
     {
         return !(r1 == r2);
     }
 
     // =============== anchors ===============
 
-    inline constexpr T x()		const { return position.x; }
-    inline constexpr T y()		const { return position.y; }
-    inline constexpr T width()	const { return size.x; }
-    inline constexpr T height() const { return size.y; }
+    VX_FORCE_INLINE constexpr T x()		const { return position.x; }
+    VX_FORCE_INLINE constexpr T y()		const { return position.y; }
+    VX_FORCE_INLINE constexpr T width()	const { return size.x; }
+    VX_FORCE_INLINE constexpr T height() const { return size.y; }
 
-    inline constexpr void set_x(T x) { position.x = x; }
-    inline constexpr void set_y(T y) { position.y = y; }
-    inline constexpr void set_width(T width) { size.x = width; }
-    inline constexpr void set_height(T height) { size.y = height; }
+    VX_FORCE_INLINE constexpr void set_x(T x) { position.x = x; }
+    VX_FORCE_INLINE constexpr void set_y(T y) { position.y = y; }
+    VX_FORCE_INLINE constexpr void set_width(T width) { size.x = width; }
+    VX_FORCE_INLINE constexpr void set_height(T height) { size.y = height; }
 
-    inline constexpr T left()	 const { return position.x; }
-    inline constexpr T right()	 const { return position.x + size.x; }
-    inline constexpr T top()	 const { return position.y; }
-    inline constexpr T bottom()	 const { return position.y + size.y; }
-    inline constexpr T centerx() const { return position.x + size.x / static_cast<T>(2); }
-    inline constexpr T centery() const { return position.y + size.y / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr T left()	 const { return position.x; }
+    VX_FORCE_INLINE constexpr T right()	 const { return position.x + size.x; }
+    VX_FORCE_INLINE constexpr T top()	 const { return position.y; }
+    VX_FORCE_INLINE constexpr T bottom()	 const { return position.y + size.y; }
+    VX_FORCE_INLINE constexpr T centerx() const { return position.x + size.x / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr T centery() const { return position.y + size.y / static_cast<T>(2); }
 
-    inline constexpr void set_left(T left) { position.x = left; }
-    inline constexpr void set_right(T right) { position.x = right - size.x; }
-    inline constexpr void set_top(T top) { position.y = top; }
-    inline constexpr void set_bottom(T bottom) { position.y = bottom - size.y; }
-    inline constexpr void set_centerx(T centerx) { position.x = centerx - size.x / static_cast<T>(2); }
-    inline constexpr void set_centery(T cenrtery) { position.y = cenrtery - size.y / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr void set_left(T left) { position.x = left; }
+    VX_FORCE_INLINE constexpr void set_right(T right) { position.x = right - size.x; }
+    VX_FORCE_INLINE constexpr void set_top(T top) { position.y = top; }
+    VX_FORCE_INLINE constexpr void set_bottom(T bottom) { position.y = bottom - size.y; }
+    VX_FORCE_INLINE constexpr void set_centerx(T centerx) { position.x = centerx - size.x / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr void set_centery(T cenrtery) { position.y = cenrtery - size.y / static_cast<T>(2); }
 
-    inline constexpr vec<2, T> topleft()     const { return position; }
-    inline constexpr vec<2, T> midtop()      const { return vec<2, T>(position.x + size.x / static_cast<T>(2), position.y); }
-    inline constexpr vec<2, T> topright()    const { return vec<2, T>(position.x + size.x, position.y); }
-    inline constexpr vec<2, T> midright()    const { return vec<2, T>(position.x + size.x, position.y + size.y / static_cast<T>(2)); }
-    inline constexpr vec<2, T> bottomright() const { return position + size; }
-    inline constexpr vec<2, T> midbottom()   const { return vec<2, T>(position.x + size.x / static_cast<T>(2), position.y + size.y); }
-    inline constexpr vec<2, T> bottomleft()  const { return vec<2, T>(position.x, position.y + size.y); }
-    inline constexpr vec<2, T> midleft()     const { return vec<2, T>(position.x, position.y + size.y / static_cast<T>(2)); }
-    inline constexpr vec<2, T> center()      const { return position + size / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr vec<2, T> topleft()     const { return position; }
+    VX_FORCE_INLINE constexpr vec<2, T> midtop()      const { return vec<2, T>(position.x + size.x / static_cast<T>(2), position.y); }
+    VX_FORCE_INLINE constexpr vec<2, T> topright()    const { return vec<2, T>(position.x + size.x, position.y); }
+    VX_FORCE_INLINE constexpr vec<2, T> midright()    const { return vec<2, T>(position.x + size.x, position.y + size.y / static_cast<T>(2)); }
+    VX_FORCE_INLINE constexpr vec<2, T> bottomright() const { return position + size; }
+    VX_FORCE_INLINE constexpr vec<2, T> midbottom()   const { return vec<2, T>(position.x + size.x / static_cast<T>(2), position.y + size.y); }
+    VX_FORCE_INLINE constexpr vec<2, T> bottomleft()  const { return vec<2, T>(position.x, position.y + size.y); }
+    VX_FORCE_INLINE constexpr vec<2, T> midleft()     const { return vec<2, T>(position.x, position.y + size.y / static_cast<T>(2)); }
+    VX_FORCE_INLINE constexpr vec<2, T> center()      const { return position + size / static_cast<T>(2); }
 
-    inline constexpr void set_topleft(const vec<2, T>& topleft) { position = topleft; }
-    inline constexpr void set_midtop(const vec<2, T>& midtop) { position.x = midtop.x - size.x / static_cast<T>(2); position.y = midtop.y; }
-    inline constexpr void set_topright(const vec<2, T>& topright) { position.x = topright.x - size.x; position.y = topright.y; }
-    inline constexpr void set_midright(const vec<2, T>& midright) { position.x = midright.x - size.x; position.y = midright.y - size.y / static_cast<T>(2); }
-    inline constexpr void set_bottomright(const vec<2, T>& bottomright) { position = bottomright - size; }
-    inline constexpr void set_midbottom(const vec<2, T>& midbottom) { position.x = midbottom.x - size.x / static_cast<T>(2); position.y = midbottom.y - size.y; }
-    inline constexpr void set_bottomleft(const vec<2, T>& bottomleft) { position.x = bottomleft.x; position.y = bottomleft.y - size.y; }
-    inline constexpr void set_midleft(const vec<2, T>& midleft) { position.x = midleft.x; position.y = midleft.y - size.y / static_cast<T>(2); }
-    inline constexpr void set_center(const vec<2, T>& center) { position = center - size / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr void set_topleft(const vec<2, T>& topleft) { position = topleft; }
+    VX_FORCE_INLINE constexpr void set_midtop(const vec<2, T>& midtop) { position.x = midtop.x - size.x / static_cast<T>(2); position.y = midtop.y; }
+    VX_FORCE_INLINE constexpr void set_topright(const vec<2, T>& topright) { position.x = topright.x - size.x; position.y = topright.y; }
+    VX_FORCE_INLINE constexpr void set_midright(const vec<2, T>& midright) { position.x = midright.x - size.x; position.y = midright.y - size.y / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr void set_bottomright(const vec<2, T>& bottomright) { position = bottomright - size; }
+    VX_FORCE_INLINE constexpr void set_midbottom(const vec<2, T>& midbottom) { position.x = midbottom.x - size.x / static_cast<T>(2); position.y = midbottom.y - size.y; }
+    VX_FORCE_INLINE constexpr void set_bottomleft(const vec<2, T>& bottomleft) { position.x = bottomleft.x; position.y = bottomleft.y - size.y; }
+    VX_FORCE_INLINE constexpr void set_midleft(const vec<2, T>& midleft) { position.x = midleft.x; position.y = midleft.y - size.y / static_cast<T>(2); }
+    VX_FORCE_INLINE constexpr void set_center(const vec<2, T>& center) { position = center - size / static_cast<T>(2); }
 
     // =============== common getters ===============
 
@@ -187,42 +187,42 @@ struct rect_t
      *
      * @return The minimum x-coordinate value.
      */
-    inline constexpr T min_x() const { return math::min(position.x, right()); }
+    VX_FORCE_INLINE constexpr T min_x() const { return math::min(position.x, right()); }
 
     /**
      * @brief Get the maximum x-coordinate of the rectangle.
      *
      * @return The maximum x-coordinate value.
      */
-    inline constexpr T max_x() const { return math::max(position.x, right()); }
+    VX_FORCE_INLINE constexpr T max_x() const { return math::max(position.x, right()); }
 
     /**
      * @brief Get the minimum y-coordinate of the rectangle.
      *
      * @return The minimum y-coordinate value.
      */
-    inline constexpr T min_y() const { return math::min(position.y, bottom()); }
+    VX_FORCE_INLINE constexpr T min_y() const { return math::min(position.y, bottom()); }
 
     /**
      * @brief Get the maximum y-coordinate of the rectangle.
      *
      * @return The maximum y-coordinate value.
      */
-    inline constexpr T max_y() const { return math::max(position.y, bottom()); }
+    VX_FORCE_INLINE constexpr T max_y() const { return math::max(position.y, bottom()); }
 
     /**
      * @brief Calculate the area of the rectangle.
      *
      * @return The area of the rectangle.
      */
-    inline constexpr T area() const { return size.x * size.y; }
+    VX_FORCE_INLINE constexpr T area() const { return size.x * size.y; }
 
     /**
      * @brief Check if the rectangle has no area.
      *
      * @return True if the rectangle's area is 0, otherwise false.
      */
-    inline constexpr bool empty() const { return area() == static_cast<T>(0); }
+    VX_FORCE_INLINE constexpr bool empty() const { return area() == static_cast<T>(0); }
 
     // =============== common modifiers ===============
 
@@ -233,7 +233,7 @@ struct rect_t
      *
      * @return The normalized rectangle.
      */
-    inline constexpr type normalize() const
+    VX_FORCE_INLINE constexpr type normalize() const
     {
         type nr = *this;
 
@@ -259,7 +259,7 @@ struct rect_t
      * @param s The scaling factor.
      * @return The scaled rectangle.
      */
-    inline constexpr type scale(const vec<2, T>& s) const
+    VX_FORCE_INLINE constexpr type scale(const vec<2, T>& s) const
     {
         return type(
             position,
@@ -274,7 +274,7 @@ struct rect_t
      * @param sy The y-axis scaling factor.
      * @return The scaled rectangle.
      */
-    inline constexpr type scale(T sx, T sy) const
+    VX_FORCE_INLINE constexpr type scale(T sx, T sy) const
     {
         return scale(vec<2, T>(sx, sy));
     }
@@ -285,7 +285,7 @@ struct rect_t
      * @param s The scaling factor.
      * @return The scaled rectangle.
      */
-    inline constexpr type scale(T s) const
+    VX_FORCE_INLINE constexpr type scale(T s) const
     {
         return scale(vec<2, T>(s));
     }
@@ -296,7 +296,7 @@ struct rect_t
      * @param offset The offset by which to move the rectangle.
      * @return The moved rectangle.
      */
-    inline constexpr type move(const vec<2, T>& offset) const
+    VX_FORCE_INLINE constexpr type move(const vec<2, T>& offset) const
     {
         return type(
             position + offset,
@@ -311,7 +311,7 @@ struct rect_t
      * @param dy The y-axis offset.
      * @return The moved rectangle.
      */
-    inline constexpr type move(T dx, T dy) const
+    VX_FORCE_INLINE constexpr type move(T dx, T dy) const
     {
         return move(vec<2, T>(dx, dy));
     }
@@ -322,7 +322,7 @@ struct rect_t
      * @param s The amount by which to increase the size of the rectangle.
      * @return The inflated rectangle.
      */
-    inline constexpr type inflate(const vec<2, T>& s) const
+    VX_FORCE_INLINE constexpr type inflate(const vec<2, T>& s) const
     {
         return type(
             position - s,
@@ -338,7 +338,7 @@ struct rect_t
      * @param r The rectangle to intersect with.
      * @return The intersected rectangle.
      */
-    inline constexpr type crop(const type& r) const
+    VX_FORCE_INLINE constexpr type crop(const type& r) const
     {
         const T nl = math::clamp(r.position.x, position.x, right());
         const T nr = math::clamp(r.right(), position.x, right());
@@ -363,7 +363,7 @@ struct rect_t
      * @param r2 The second rectangle.
      * @return The merged rectangle.
      */
-    static inline constexpr type merge(const type& r1, const type& r2)
+    static VX_FORCE_INLINE constexpr type merge(const type& r1, const type& r2)
     {
         const T nl = math::min(r1.position.x, r2.position.x);
         const T nr = math::max(r1.right(), r2.right());
@@ -390,7 +390,7 @@ struct rect_t
      * @param top    The amount to grow the top side of the rectangle.
      * @return The new rectangle with grown sides.
      */
-    inline constexpr type grow_sides(T left, T right, T bottom, T top) const
+    VX_FORCE_INLINE constexpr type grow_sides(T left, T right, T bottom, T top) const
     {
         return type(
             position.x - left,
@@ -408,7 +408,7 @@ struct rect_t
      * @param p The point to include in the expanded rectangle.
      * @return The new rectangle expanded to include the specified point.
      */
-    inline constexpr type expand_to(const vec<2, T>& p) const
+    VX_FORCE_INLINE constexpr type expand_to(const vec<2, T>& p) const
     {
         const T nl = math::min(position.x, p.x);
         const T nr = math::max(right(), p.x);
@@ -426,7 +426,7 @@ struct rect_t
 
     // =============== constants ===============
 
-    static inline constexpr type ZERO() { return type(0, 0, 0, 0); }
+    static VX_FORCE_INLINE constexpr type ZERO() { return type(0, 0, 0, 0); }
 
 };
 

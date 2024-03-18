@@ -9,7 +9,7 @@ namespace math {
 // =============== min ===============
 
 template <typename T>
-inline constexpr color_t<T> min(
+VX_FORCE_INLINE constexpr color_t<T> min(
     const color_t<T>& x,
     const color_t<T>& y
 )
@@ -25,7 +25,7 @@ inline constexpr color_t<T> min(
 // =============== max ===============
 
 template <typename T>
-inline constexpr color_t<T> max(
+VX_FORCE_INLINE constexpr color_t<T> max(
     const color_t<T>& x,
     const color_t<T>& y
 )
@@ -49,7 +49,7 @@ inline constexpr color_t<T> max(
  * @return The color with its components clamped to the range [0, 1].
  */
 template <typename T>
-inline constexpr color_t<T> clamp(
+VX_FORCE_INLINE constexpr color_t<T> clamp(
     const color_t<T>& x,
     const color_t<T>& min = color_t<T>(color_t<T>::MIN_CHANNEL_VALUE),
     const color_t<T>& max = color_t<T>(color_t<T>::MAX_CHANNEL_VALUE)
@@ -74,7 +74,7 @@ inline constexpr color_t<T> clamp(
  * @param c The color for which to compute the luminance.
  * @return The luminance value of the color.
  */
-inline constexpr float luminance(const color& c)
+VX_FORCE_INLINE constexpr float luminance(const color& c)
 {
     return (c.r * 0.2126f) + (c.g * 0.7152f) + (c.b * 0.0722f);
 }
@@ -88,7 +88,7 @@ inline constexpr float luminance(const color& c)
  * @param amount The amount by which to lighten the color.
  * @return The lightened color.
  */
-inline constexpr color lighten(const color& c, float amount)
+VX_FORCE_INLINE constexpr color lighten(const color& c, float amount)
 {
     return color(
         c.r + (1.0f - c.r) * amount,
@@ -105,7 +105,7 @@ inline constexpr color lighten(const color& c, float amount)
  * @param amount The amount by which to darken the color.
  * @return The darkened color.
  */
-inline constexpr color darken(const color& c, float amount)
+VX_FORCE_INLINE constexpr color darken(const color& c, float amount)
 {
     return color(
         c.r * (1.0f - amount),
@@ -125,7 +125,7 @@ inline constexpr color darken(const color& c, float amount)
  * @return The inverted color.
  */
 template <typename T>
-inline constexpr color_t<T> invert(const color_t<T>& c)
+VX_FORCE_INLINE constexpr color_t<T> invert(const color_t<T>& c)
 {
     return color_t<T>(
         color_t<T>::MAX_CHANNEL_VALUE - c.r,

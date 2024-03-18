@@ -10,7 +10,7 @@ namespace std {
 template <typename T>
 struct hash<vx::math::rect_t<T>>
 {
-    inline constexpr size_t operator()(const vx::math::rect_t<T>& r) const noexcept
+    VX_FORCE_INLINE constexpr size_t operator()(const vx::math::rect_t<T>& r) const noexcept
     {
         size_t seed = 0;
         hash<T> hasher;

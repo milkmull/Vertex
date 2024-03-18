@@ -8,7 +8,7 @@ namespace math {
 
 // =============== lerp ===============
 
-inline constexpr color lerp(
+VX_FORCE_INLINE constexpr color lerp(
     const color& x,
     const color& y,
     float t
@@ -19,7 +19,7 @@ inline constexpr color lerp(
 
 // =============== mix ===============
 
-inline constexpr color mix(
+VX_FORCE_INLINE constexpr color mix(
     const color& x,
     const color& y,
     float t
@@ -30,7 +30,7 @@ inline constexpr color mix(
 
 // =============== step ===============
 
-inline constexpr color step(
+VX_FORCE_INLINE constexpr color step(
     float edge,
     const color& x
 )
@@ -45,7 +45,7 @@ inline constexpr color step(
 
 // =============== smoothstep ===============
 
-inline constexpr color smoothstep(
+VX_FORCE_INLINE constexpr color smoothstep(
     float edge0,
     float edge1,
     const color& x

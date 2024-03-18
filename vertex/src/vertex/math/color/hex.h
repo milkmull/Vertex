@@ -23,7 +23,7 @@ enum rgba_mask : uint32_t
  * @param hex The hexadecimal value representing the color.
  * @return The color created from the hexadecimal value.
  */
-inline constexpr color8 color_from_hex(uint32_t hex)
+VX_FORCE_INLINE constexpr color8 color_from_hex(uint32_t hex)
 {
     return color8(
         ((hex >>  0) & 0xFF),
@@ -41,7 +41,7 @@ inline constexpr color8 color_from_hex(uint32_t hex)
  * @param c The color to be converted.
  * @return The 32-bit hexadecimal value representing the color.
  */
-inline constexpr uint32_t color_to_hex(const color8& c)
+VX_FORCE_INLINE constexpr uint32_t color_to_hex(const color8& c)
 {
     return (
         (static_cast<uint32_t>(c.r) <<  0) |
