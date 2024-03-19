@@ -23,13 +23,13 @@ struct pixel<image_format::R8> : public util::format_traits<image_format::R8>
 {
     channel_type r;
 
-    inline constexpr pixel(channel_type r)
+    VX_FORCE_INLINE constexpr pixel(channel_type r)
         : r(r) {}
 
-    inline constexpr pixel(const math::color& c)
+    VX_FORCE_INLINE constexpr pixel(const math::color& c)
         : r(static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f))) {}
 
-    inline constexpr operator math::color() const
+    VX_FORCE_INLINE constexpr operator math::color() const
     {
         return math::color(
             r / 255.0f,
@@ -45,17 +45,17 @@ struct pixel<image_format::RG8> : public util::format_traits<image_format::RG8>
 {
     channel_type r, g;
 
-    inline constexpr pixel(
+    VX_FORCE_INLINE constexpr pixel(
         channel_type r,
         channel_type g
     )
         : r(r), g(g) {}
 
-    inline constexpr pixel(const math::color& c)
+    VX_FORCE_INLINE constexpr pixel(const math::color& c)
         : r(static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)))
         , g(static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f))) {}
 
-    inline constexpr operator math::color() const
+    VX_FORCE_INLINE constexpr operator math::color() const
     {
         return math::color(
             r / 255.0f,
@@ -71,19 +71,19 @@ struct pixel<image_format::RGB8> : public util::format_traits<image_format::RGB8
 {
     channel_type r, g, b;
 
-    inline constexpr pixel(
+    VX_FORCE_INLINE constexpr pixel(
         channel_type r,
         channel_type g,
         channel_type b
     )
         : r(r), g(g), b(b) {}
 
-    inline constexpr pixel(const math::color& c)
+    VX_FORCE_INLINE constexpr pixel(const math::color& c)
         : r(static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)))
         , g(static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f)))
         , b(static_cast<channel_type>(math::clamp(c.b * 255.0f, 0.0f, 255.0f))) {}
 
-    inline constexpr operator math::color() const
+    VX_FORCE_INLINE constexpr operator math::color() const
     {
         return math::color(
             r / 255.0f,
@@ -99,7 +99,7 @@ struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGB
 {
     channel_type r, g, b, a;
 
-    inline constexpr pixel(
+    VX_FORCE_INLINE constexpr pixel(
         channel_type r,
         channel_type g,
         channel_type b,
@@ -107,13 +107,13 @@ struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGB
     )
         : r(r), g(g), b(b), a(a) {}
 
-    inline constexpr pixel(const math::color& c)
+    VX_FORCE_INLINE constexpr pixel(const math::color& c)
         : r(static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)))
         , g(static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f)))
         , b(static_cast<channel_type>(math::clamp(c.b * 255.0f, 0.0f, 255.0f)))
         , a(static_cast<channel_type>(math::clamp(c.a * 255.0f, 0.0f, 255.0f))) {}
 
-    inline constexpr operator math::color() const
+    VX_FORCE_INLINE constexpr operator math::color() const
     {
         return math::color(
             r / 255.0f,
