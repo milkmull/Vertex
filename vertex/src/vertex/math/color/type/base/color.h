@@ -40,6 +40,10 @@ struct color_t
 
     VX_FORCE_INLINE constexpr color_t(type&&) noexcept = default;
 
+    template <typename U = T, typename std::enable_if<std::is_same<U, T>::value && std::is_floating_point<T>::value, bool>::type = true>
+    VX_FORCE_INLINE constexpr color_t(const vec<4, U>& v)
+        : r(v.x), g(v.y), b(v.z), a(v.w) {}
+
     // =============== explicit constructors ===============
 
     VX_FORCE_INLINE constexpr explicit color_t(T scaler)
@@ -48,11 +52,8 @@ struct color_t
     VX_FORCE_INLINE constexpr color_t(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
         : r(r), g(g), b(b), a(a) {}
 
-    VX_FORCE_INLINE constexpr explicit color_t(const vec<3, T>& rgb, T a = MAX_CHANNEL_VALUE)
+    VX_FORCE_INLINE constexpr color_t(const vec<3, T>& rgb, T a = MAX_CHANNEL_VALUE)
         : r(rgb.x), g(rgb.y), b(rgb.z), a(a) {}
-
-    VX_FORCE_INLINE constexpr explicit color_t(const vec<4, T>& v)
-        : r(v.x), g(v.y), b(v.z), a(v.w) {}
 
     // =============== conversion vector constructors ===============
 
@@ -75,7 +76,7 @@ struct color_t
         , a(static_cast<T>(a)) {}
 
     template <typename RGB, typename A = T, typename std::enable_if<std::is_arithmetic<A>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr explicit color_t(const vec<3, RGB>& rgb, A a = MAX_CHANNEL_VALUE)
+    VX_FORCE_INLINE constexpr color_t(const vec<3, RGB>& rgb, A a = MAX_CHANNEL_VALUE)
         : r(static_cast<float>(rgb.x))
         , g(static_cast<float>(rgb.y))
         , b(static_cast<float>(rgb.z))
