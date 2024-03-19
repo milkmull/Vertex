@@ -1214,7 +1214,7 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3, T>& v)
 {
     vec<4, T> v4(v, static_cast<T>(1));
-    v4 = math::invert(m) * v4;
+    v4 = math::inverse(m) * v4;
     const T invw = static_cast<T>(1) / v4.w;
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }

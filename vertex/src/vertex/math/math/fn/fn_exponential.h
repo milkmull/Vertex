@@ -111,5 +111,20 @@ VX_FORCE_INLINE constexpr T inverse_sqrt(T x)
     return static_cast<T>(1) / std::sqrt(x);
 }
 
+// =============== inverse ===============
+
+/**
+ * @brief Returns the inverse of the given value.
+ *
+ * @tparam T The type of the value.
+ * @param x The value.
+ * @return The inverse of x.
+ */
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr T inverse(T x)
+{
+    return static_cast<T>(1) / x;
+}
+
 }
 }

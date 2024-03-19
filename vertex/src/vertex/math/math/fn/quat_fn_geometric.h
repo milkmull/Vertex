@@ -188,7 +188,7 @@ VX_FORCE_INLINE constexpr quat_t<T> conjugate(const quat_t<T>& q)
     return quat_t<T>(q.w, -q.x, -q.y, -q.z);
 }
 
-// =============== invert ===============
+// =============== inverse ===============
 
 /**
  * @brief Computes the inverse of a quaternion.
@@ -198,7 +198,7 @@ VX_FORCE_INLINE constexpr quat_t<T> conjugate(const quat_t<T>& q)
  * @return The inverse of the input quaternion.
  */
 template <typename T>
-VX_FORCE_INLINE constexpr quat_t<T> invert(const quat_t<T>& q)
+VX_FORCE_INLINE constexpr quat_t<T> inverse(const quat_t<T>& q)
 {
     return conjugate(q) / magnitude_squared(q);
 }

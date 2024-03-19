@@ -146,7 +146,7 @@ VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m)
            -(m.columns[0].w * ((m.columns[1].x * subfac02) - (m.columns[1].y * subfac04) + (m.columns[1].z * subfac05)));
 }
 
-// =============== invert ===============
+// =============== inverse ===============
 
 /**
  * @brief Computes the inverse of a matrix.
@@ -158,7 +158,7 @@ VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m)
  * @return The inverted matrix if invertible, otherwise a matrix with zeros.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-VX_FORCE_INLINE constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
+VX_FORCE_INLINE constexpr mat<2, 2, T> inverse(const mat<2, 2, T>& m)
 {
     const T det = (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
 
@@ -173,7 +173,7 @@ VX_FORCE_INLINE constexpr mat<2, 2, T> invert(const mat<2, 2, T>& m)
 }
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-VX_FORCE_INLINE constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m)
 {
     const T coef00 = (m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z);
     const T coef01 = (m.columns[0].y * m.columns[2].z) - (m.columns[2].y * m.columns[0].z);
@@ -209,61 +209,64 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> invert(const mat<3, 3, T>& m)
 }
 
 // https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
+// https://github.com/glslify/glsl-inverse/blob/master/index.glsl
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-VX_FORCE_INLINE constexpr mat<4, 4, T> invert(const mat<4, 4, T>& m)
+VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m)
 {
-    const T coef00 = (m.columns[2].z * m.columns[3].w) - (m.columns[3].z * m.columns[2].w);
-    const T coef01 = (m.columns[2].y * m.columns[3].w) - (m.columns[3].y * m.columns[2].w);
-    const T coef02 = (m.columns[2].y * m.columns[3].z) - (m.columns[3].y * m.columns[2].z);
+    const T a00 = m.columns[0].x;
+    const T a01 = m.columns[0].y;
+    const T a02 = m.columns[0].z;
+    const T a03 = m.columns[0].w;
 
-    const T coef03 = (m.columns[2].x * m.columns[3].w) - (m.columns[2].w * m.columns[3].x);
-    const T coef04 = (m.columns[2].x * m.columns[3].z) - (m.columns[2].z * m.columns[3].x);
-    const T coef05 = (m.columns[2].x * m.columns[3].y) - (m.columns[2].y * m.columns[3].x);
+    const T a10 = m.columns[1].x;
+    const T a11 = m.columns[1].y;
+    const T a12 = m.columns[1].z;
+    const T a13 = m.columns[1].w;
 
-    const T coef06 = (m.columns[1].z * m.columns[3].w) - (m.columns[1].w * m.columns[3].z);
-    const T coef07 = (m.columns[1].y * m.columns[3].w) - (m.columns[1].w * m.columns[3].y);
-    const T coef08 = (m.columns[1].y * m.columns[3].z) - (m.columns[1].z * m.columns[3].y);
+    const T a20 = m.columns[2].x;
+    const T a21 = m.columns[2].y;
+    const T a22 = m.columns[2].z;
+    const T a23 = m.columns[2].w;
 
-    const T coef09 = (m.columns[1].z * m.columns[2].w) - (m.columns[1].w * m.columns[2].z);
-    const T coef10 = (m.columns[1].y * m.columns[2].w) - (m.columns[1].w * m.columns[2].y);
-    const T coef11 = (m.columns[1].y * m.columns[2].z) - (m.columns[1].z * m.columns[2].y);
+    const T a30 = m.columns[3].x;
+    const T a31 = m.columns[3].y;
+    const T a32 = m.columns[3].z;
+    const T a33 = m.columns[3].w;
 
-    const T coef12 = (m.columns[1].x * m.columns[3].w) - (m.columns[1].w * m.columns[3].x);
-    const T coef13 = (m.columns[1].x * m.columns[3].z) - (m.columns[1].z * m.columns[3].x);
-    const T coef14 = (m.columns[1].x * m.columns[2].w) - (m.columns[1].w * m.columns[2].x);
+    const T b00 = (a00 * a11) - (a01 * a10);
+    const T b01 = (a00 * a12) - (a02 * a10);
+    const T b02 = (a00 * a13) - (a03 * a10);
+    const T b03 = (a01 * a12) - (a02 * a11);
+    const T b04 = (a01 * a13) - (a03 * a11);
+    const T b05 = (a02 * a13) - (a03 * a12);
+    const T b06 = (a20 * a31) - (a21 * a30);
+    const T b07 = (a20 * a32) - (a22 * a30);
+    const T b08 = (a20 * a33) - (a23 * a30);
+    const T b09 = (a21 * a32) - (a22 * a31);
+    const T b10 = (a21 * a33) - (a23 * a31);
+    const T b11 = (a22 * a33) - (a23 * a32);
 
-    const T coef15 = (m.columns[1].x * m.columns[2].z) - (m.columns[1].z * m.columns[2].x);
-    const T coef16 = (m.columns[1].x * m.columns[3].y) - (m.columns[1].y * m.columns[3].x);
-    const T coef17 = (m.columns[1].x * m.columns[2].y) - (m.columns[1].y * m.columns[2].x);
-
-    const T det = +(m.columns[0].x * ((m.columns[1].y * coef00) - (m.columns[1].z * coef01) + (m.columns[1].w * coef02)))
-                  -(m.columns[0].y * ((m.columns[1].x * coef00) - (m.columns[1].z * coef03) + (m.columns[1].w * coef04)))
-                  +(m.columns[0].z * ((m.columns[1].x * coef01) - (m.columns[1].y * coef03) + (m.columns[1].w * coef05)))
-                  -(m.columns[0].w * ((m.columns[1].x * coef02) - (m.columns[1].y * coef04) + (m.columns[1].z * coef05)));
-
+    const T det = (b00 * b11) - (b01 * b10) + (b02 * b09) + (b03 * b08) - (b04 * b07) + (b05 * b06);
     const T idet = static_cast<T>(1) / det;
 
     return mat<4, 4, T>(
-        +((m.columns[1].y * coef00) - (m.columns[1].z * coef01) + (m.columns[1].w * coef02)) * idet,
-        -((m.columns[0].y * coef00) - (m.columns[0].z * coef01) + (m.columns[0].w * coef02)) * idet,
-        +((m.columns[0].y * coef06) - (m.columns[0].z * coef07) + (m.columns[0].w * coef08)) * idet,
-        -((m.columns[0].y * coef09) - (m.columns[0].z * coef10) + (m.columns[0].w * coef11)) * idet,
-
-        -((m.columns[1].x * coef00) - (m.columns[1].z * coef03) + (m.columns[1].w * coef04)) * idet,
-        +((m.columns[0].x * coef00) - (m.columns[0].z * coef03) + (m.columns[0].w * coef04)) * idet,
-        -((m.columns[0].x * coef06) - (m.columns[0].z * coef12) + (m.columns[0].w * coef13)) * idet,
-        +((m.columns[0].x * coef09) - (m.columns[0].z * coef14) + (m.columns[0].w * coef15)) * idet,
-
-        +((m.columns[1].x * coef01) - (m.columns[1].y * coef03) + (m.columns[1].w * coef05)) * idet,
-        -((m.columns[0].x * coef01) - (m.columns[0].y * coef03) + (m.columns[0].w * coef05)) * idet,
-        +((m.columns[0].x * coef07) - (m.columns[0].y * coef12) + (m.columns[0].w * coef16)) * idet,
-        -((m.columns[0].x * coef10) - (m.columns[0].y * coef14) + (m.columns[0].w * coef17)) * idet,
-
-        -((m.columns[1].x * coef02) - (m.columns[1].y * coef04) + (m.columns[1].z * coef05)) * idet,
-        +((m.columns[0].x * coef02) - (m.columns[0].y * coef04) + (m.columns[0].z * coef05)) * idet,
-        -((m.columns[0].x * coef08) - (m.columns[0].y * coef13) + (m.columns[0].z * coef16)) * idet,
-        +((m.columns[0].x * coef11) - (m.columns[0].y * coef15) + (m.columns[0].z * coef17)) * idet
+        ((a11 * b11) - (a12 * b10) + (a13 * b09)) * idet,
+        ((a02 * b10) - (a01 * b11) - (a03 * b09)) * idet,
+        ((a31 * b05) - (a32 * b04) + (a33 * b03)) * idet,
+        ((a22 * b04) - (a21 * b05) - (a23 * b03)) * idet,
+        ((a12 * b08) - (a10 * b11) - (a13 * b07)) * idet,
+        ((a00 * b11) - (a02 * b08) + (a03 * b07)) * idet,
+        ((a32 * b02) - (a30 * b05) - (a33 * b01)) * idet,
+        ((a20 * b05) - (a22 * b02) + (a23 * b01)) * idet,
+        ((a10 * b10) - (a11 * b08) + (a13 * b06)) * idet,
+        ((a01 * b08) - (a00 * b10) - (a03 * b06)) * idet,
+        ((a30 * b04) - (a31 * b02) + (a33 * b00)) * idet,
+        ((a21 * b02) - (a20 * b04) - (a23 * b00)) * idet,
+        ((a11 * b07) - (a10 * b09) - (a12 * b06)) * idet,
+        ((a00 * b09) - (a01 * b07) + (a02 * b06)) * idet,
+        ((a31 * b01) - (a30 * b03) - (a32 * b00)) * idet,
+        ((a20 * b03) - (a21 * b01) + (a22 * b00)) * idet
     );
 }
 

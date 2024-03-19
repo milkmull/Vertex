@@ -239,7 +239,7 @@ struct quat_t
     
     friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const vec<3, T>& v, const type& q)
     {
-        return math::invert(q) * v;
+        return inverse(q) * v;
     }
 
     // division (/)
@@ -251,12 +251,12 @@ struct quat_t
 
     friend VX_FORCE_INLINE constexpr type operator/(T scaler, const type& q)
     {
-        return scaler * math::invert(q);
+        return scaler * inverse(q);
     }
 
     friend VX_FORCE_INLINE constexpr type operator/(const type& q1, const type& q2)
     {
-        return q1 * math::invert(q2);
+        return q1 * inverse(q2);
     }
 
     // =============== unary arithmetic operators ===============

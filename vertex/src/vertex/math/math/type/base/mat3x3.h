@@ -355,19 +355,19 @@ struct mat<3, 3, T>
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend VX_FORCE_INLINE constexpr vec<2, T> operator/(const type& m, const vec<3, T>& v)
     {
-        return invert(m) * v;
+        return inverse(m) * v;
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend VX_FORCE_INLINE constexpr vec<2, T> operator/(const vec<3, T>& v, const type& m)
     {
-        return v * invert(m);
+        return v * inverse(m);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     friend VX_FORCE_INLINE constexpr type operator/(const type& m1, const type& m2)
     {
-        return invert(m1) * m2;
+        return inverse(m1) * m2;
     }
 
     // modulo (%)

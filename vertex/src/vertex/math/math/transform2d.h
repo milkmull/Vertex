@@ -148,7 +148,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation,
     );
 }
 
-// =============== invert ===============
+// =============== inverse ===============
 
 /**
  * @brief Calculates the inverse of an affine transformation matrix.
@@ -162,9 +162,9 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation,
  * @return The inverse of the matrix.
  */
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
-VX_FORCE_INLINE constexpr mat<3, 3, T> affine_invert(const mat<3, 3, T>& m)
+VX_FORCE_INLINE constexpr mat<3, 3, T> affine_inverse(const mat<3, 3, T>& m)
 {
-    const mat<2, 2, T> ibasis = math::invert(mat<2, 2, T>(m));
+    const mat<2, 2, T> ibasis = math::inverse(mat<2, 2, T>(m));
 
     return mat<3, 3, T>(
         vec<3, T>(ibasis.columns[0],                 static_cast<T>(0)),
