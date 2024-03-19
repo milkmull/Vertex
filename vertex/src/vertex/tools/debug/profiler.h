@@ -35,7 +35,7 @@ public:
     {
     public:
 
-        timer(const char* name) : m_name(name), m_start_time(std::chrono::steady_clock::now()) {}
+        timer(const char* name) : m_name(name), m_start_time(std::chrono::steady_clock::now()), m_stopped(false) {}
         ~timer() { if (!m_stopped) stop(); }
 
         void stop()
@@ -56,7 +56,7 @@ public:
 
         const char* m_name;
         std::chrono::time_point<std::chrono::steady_clock> m_start_time;
-        bool m_stopped = false;
+        bool m_stopped;
     };
 
 private:
@@ -80,11 +80,19 @@ public:
 
     // =============== session stuff ===============
 
-    static void begin_session(const char* name, const char* filename = "results.csv")
+    /**
+     * @brief Begins a new profiling session.
+     * @param name The name of the profiling session.
+     * @param filename The name of the file to write profiling results to (defaults to "results.txt").
+     */
+    static void begin_session(const char* name, const char* filename = "results.txt")
     {
         get().begin_session_internal(name, filename);
     }
 
+    /**
+     * @brief Ends the current profiling session.
+     */
     static void end_session()
     {
         get().end_session_internal();

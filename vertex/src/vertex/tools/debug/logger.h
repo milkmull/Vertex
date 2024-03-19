@@ -7,10 +7,6 @@
 
 #include "vertex/detail/setup.h"
 
-#ifndef _CRT_SECURE_NO_WARNINGS
-#   define _CRT_SECURE_NO_WARNINGS
-#endif
-
 namespace vx {
 
 class logger
@@ -53,11 +49,18 @@ public:
 
     // =============== file stuff ===============
 
+    /**
+     * @brief Starts logging messages to a file.
+     * @param filename The name of the file to log to. Default is "log.txt".
+     */
     static void start_file_output(const char* filename = "log.txt")
     {
         get().open_file(filename);
     }
 
+    /**
+     * @brief Stops logging messages to a file.
+     */
     static void stop_file_output()
     {
         get().close_file();
@@ -90,14 +93,13 @@ public:
 
     // =============== logging ===============
 
+    /**
+     * @brief Logs a message.
+     * @param str The message to log.
+     */
     static void log(const std::string& str)
     {
         get().log_internal(str);
-    }
-
-    static void log(const std::ostringstream& stream)
-    {
-        log(stream.str());
     }
 
 private:
@@ -154,7 +156,7 @@ public:
                 {
                     m_oss << "\n";
                 }
-                log(m_oss);
+                log(m_oss.str());
             }
 
             m_oss.flush();
