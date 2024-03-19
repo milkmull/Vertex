@@ -131,7 +131,7 @@ private:
         entry << "start_time" << ',';
         entry << "elapsed_time" << '\n';
 
-        if (m_current_session && m_output_stream.is_open())
+        if (m_output_stream.is_open())
         {
             m_output_stream << entry.str();
             m_output_stream.flush();
