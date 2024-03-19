@@ -1,9 +1,27 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/tools/debug/log.h"
+#define VX_ENABLE_LOGGING
+#define VX_ENABLE_PROFILING
+
+#include "vertex/tools/debug/logger.h"
+#include "vertex/tools/debug/profiler.h"
 #include "vertex/math/math/util/to_string.h"
 
-using namespace vx::math;
+#include "vertex/math/math/transform3d.h"
+
+void profile_test()
+{
+    using namespace vx::math;
+
+    mat4 m;
+    
+    m = make_rotation_3d(radians(30), radians(-175), radians(330));
+
+    {
+        VX_PROFILE_SCOPE("invert");
+        m = invert(m);
+    }
+}
 
 int main()
 {
@@ -11,9 +29,8 @@ int main()
 
     logger::start_file_output("../../assets/log.txt");
 
-    VX_LOG_DEBUG << "hello world" << 1 << 2;
-
-    VX_LOG_CRITICAL << math::vec2(1, 2);
+    VX_LOG_DEBUG << "hello world" << math::mat4();
+    VX_LOG_DEBUG << "hello world" << math::mat4();
 
     return 0;
 }

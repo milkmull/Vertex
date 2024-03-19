@@ -115,7 +115,7 @@ struct mat<3, 2, T>
     VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U>
-    VX_FORCE_INLINE constexpr type& operator=(const mat<3, 2, U>& m) noexcept
+    VX_FORCE_INLINE constexpr type& operator=(const mat<3, 2, U>& m)
     {
         columns[0] = static_cast<col_type>(m.columns[0]);
         columns[1] = static_cast<col_type>(m.columns[1]);
