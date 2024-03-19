@@ -90,19 +90,19 @@ public:
 
     // =============== logging ===============
 
-    static void log(std::string& str)
+    static void log(const std::string& str)
     {
         get().log_internal(str);
     }
 
-    static void log(std::ostringstream& stream)
+    static void log(const std::ostringstream& stream)
     {
         log(stream.str());
     }
 
 private:
 
-    void log_internal(std::string& str)
+    void log_internal(const std::string& str)
     {
         m_mutex.lock();
 
