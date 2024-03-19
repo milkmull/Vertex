@@ -64,7 +64,7 @@ struct rect_t
         , size(static_cast<T>(width), static_cast<T>(height)) {}
 
     template <typename U>
-    VX_FORCE_INLINE constexpr explicit rect_t(const rect_t<U>& r)
+    VX_FORCE_INLINE constexpr rect_t(const rect_t<U>& r)
         : position(r.position), size(r.size) {}
 
     template <typename U>

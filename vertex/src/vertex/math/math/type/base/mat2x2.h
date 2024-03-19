@@ -80,6 +80,11 @@ struct mat<2, 2, T>
         : columns{ static_cast<col_type>(c1),
                    static_cast<col_type>(c2) } {}
 
+    template <typename U>
+    VX_FORCE_INLINE constexpr mat(const mat<2, 2, U>& m)
+        : columns{ static_cast<col_type>(m.columns[0]),
+                   static_cast<col_type>(m.columns[1]) } {}
+
     template <size_t M, size_t N, typename U, typename std::enable_if<(M >= 2 && N >= 2), bool>::type = true>
     VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m)
         : columns{ static_cast<col_type>(m.columns[0]),

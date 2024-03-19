@@ -103,6 +103,13 @@ struct mat<4, 2, T>
                    static_cast<col_type>(c3),
                    static_cast<col_type>(c4) } {}
 
+    template <typename U>
+    VX_FORCE_INLINE constexpr mat(const mat<4, 2, U>& m)
+        : columns{ static_cast<col_type>(m.columns[0]),
+                   static_cast<col_type>(m.columns[1]),
+                   static_cast<col_type>(m.columns[2]),
+                   static_cast<col_type>(m.columns[3]) } {}
+
     template <size_t M, size_t N, typename U, typename std::enable_if<(M >= 4 && N >= 2), bool>::type = true>
     VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m)
         : columns{ static_cast<col_type>(m.columns[0]),

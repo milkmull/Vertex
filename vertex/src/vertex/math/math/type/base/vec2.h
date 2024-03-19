@@ -54,7 +54,7 @@ struct vec<2, T>
         , y(static_cast<T>(y)) {}
 
     template <typename U>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<2, U>& v)
+    VX_FORCE_INLINE constexpr vec(const vec<2, U>& v)
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y)) {}
     

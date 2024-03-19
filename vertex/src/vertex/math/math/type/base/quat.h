@@ -71,7 +71,7 @@ struct quat_t
         , z(static_cast<T>(z)) {}
 
     template <typename U>
-    VX_FORCE_INLINE constexpr explicit quat_t(const quat_t<U>& q)
+    VX_FORCE_INLINE constexpr quat_t(const quat_t<U>& q)
         : w(static_cast<T>(q.w))
         , x(static_cast<T>(q.x))
         , y(static_cast<T>(q.y))

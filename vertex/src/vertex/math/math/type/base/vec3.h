@@ -71,7 +71,7 @@ struct vec<3, T>
         , z(static_cast<T>(vyz.y)) {}
     
     template <typename U, typename std::enable_if<type_traits::is_numeric<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<3, U>& v)
+    VX_FORCE_INLINE constexpr vec(const vec<3, U>& v)
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}
