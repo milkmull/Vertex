@@ -94,8 +94,18 @@ private:
 
     void begin_session_internal(const char* name, const char* filename)
     {
-        m_output_stream.open(filename);
-        m_current_session = new session{ name };
+        m_filename = filename;
+        m_output_stream.open(filename, std::ios_base::out);
+
+        if (m_output_stream.is_open())
+        {
+            write_header();
+            m_current_session = new session{ name };
+        }
+        else
+        {
+            std::printf("profiler: Failed to open file at %s\n", filename);
+        }
     }
 
     void end_session_internal()
@@ -109,12 +119,28 @@ private:
         }
     }
 
+    void write_header()
+    {
+        // produces a csv where each line is:
+        // name,thread_id,start_time,elapsed_time
+
+        std::ostringstream entry;
+
+        entry << "name" << ',';
+        entry << "thread_id" << ',';
+        entry << "start_time" << ',';
+        entry << "elapsed_time" << '\n';
+
+        if (m_current_session && m_output_stream.is_open())
+        {
+            m_output_stream << entry.str();
+            m_output_stream.flush();
+        }
+    }
+
     void write_profile(const result& result)
     {
         std::ostringstream entry;
-
-        // produces a csv where each line is:
-        // name,thread_id,start_time,elapsed_time
 
         entry << std::setprecision(3) << std::fixed;
         entry << result.name << ',';
@@ -122,7 +148,7 @@ private:
         entry << result.start.count() << ',';
         entry << result.elapsed_time.count() << '\n';
 
-        if (m_current_session)
+        if (m_current_session && m_output_stream.is_open())
         {
             m_output_stream << entry.str();
             m_output_stream.flush();
@@ -131,6 +157,7 @@ private:
 
 private:
 
+    const char* m_filename = nullptr;
     session* m_current_session = nullptr;
     std::ofstream m_output_stream;
 
