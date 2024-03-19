@@ -94,7 +94,7 @@ struct color_t
     // int to int
 
     template <typename U, typename std::enable_if<std::is_integral<U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr color_t(const color_t<U>& c)
+    VX_FORCE_INLINE constexpr explicit color_t(const color_t<U>& c)
         : color_t(typename color_t<U>::float_type(c)) {}
     
     // int to float
@@ -118,7 +118,7 @@ struct color_t
     // float to float
 
     template <typename U, typename std::enable_if<std::is_floating_point<U>::value && std::is_floating_point<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr color_t(const color_t<U>& c)
+    VX_FORCE_INLINE constexpr explicit color_t(const color_t<U>& c)
         : r(static_cast<T>(c.r))
         , g(static_cast<T>(c.g))
         , b(static_cast<T>(c.b))

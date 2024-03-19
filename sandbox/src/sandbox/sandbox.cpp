@@ -14,7 +14,6 @@ void profile_test()
     using namespace vx::math;
 
     mat4 m;
-    
     m = make_rotation_3d(radians(30), radians(-175), radians(330));
 
     {
@@ -29,8 +28,7 @@ int main()
 
     logger::start_file_output("../../assets/log.txt");
 
-    VX_LOG_DEBUG << "hello world" << math::mat4();
-    VX_LOG_DEBUG << "hello world" << math::mat4();
+    
 
     return 0;
 }

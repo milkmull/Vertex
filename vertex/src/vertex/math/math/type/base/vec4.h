@@ -102,7 +102,7 @@ struct vec<4, T>
         , w(static_cast<T>(vzw.y)) {}
     
     template <typename U>
-    VX_FORCE_INLINE constexpr vec(const vec<4, U>& v)
+    VX_FORCE_INLINE constexpr explicit vec(const vec<4, U>& v)
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z))
