@@ -1,7 +1,6 @@
 #pragma once
 
 #include <fstream>
-#include <iostream>
 #include <mutex>
 #include <sstream>
 
@@ -95,23 +94,24 @@ public:
 
     /**
      * @brief Logs a message.
-     * @param str The message to log.
+     * @param msg The message to log.
      */
-    static void log(const std::string& str)
+    static void log(const std::string& msg)
     {
-        get().log_internal(str);
+        get().log_internal(msg);
     }
 
 private:
 
-    void log_internal(const std::string& str)
+    void log_internal(const std::string& msg)
     {
         m_mutex.lock();
 
-        std::cout << str;
+        std::cout << msg;
+
         if (m_output_stream.is_open())
         {
-            m_output_stream << str;
+            m_output_stream << msg;
         }
 
         m_mutex.unlock();
@@ -179,9 +179,9 @@ public:
         // =============== manipulator overloads ===============
 
         template <typename T>
-        log_buffer& operator<<(T&& message)
+        log_buffer& operator<<(T&& msg)
         {
-            m_oss << std::forward<T>(message);
+            m_oss << std::forward<T>(msg);
             return *this;
         }
 

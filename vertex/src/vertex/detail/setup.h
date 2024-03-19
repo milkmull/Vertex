@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <iostream>
 
 // =============== version ===============
 
@@ -190,3 +191,19 @@
 #else
 #   define VX_FORCE_INLINE inline
 #endif
+
+// =============== assert ===============
+
+#ifdef VX_DEBUG
+#   define VX_ENABLE_ASSERTS
+#endif
+
+#ifdef VX_ENABLE_ASSERTS
+#   define VX_ASSERT(x, msg) { if(!(x)) std::cerr << "[ASSERT] [" << VX_FILE << ":" << VX_LINE << "] " << msg << std::endl; }
+#else
+#   define VX_ASSERT(x, msg)
+#endif
+
+// =============== error ===============
+
+#define VX_ERROR(msg) { std::cerr << "[ERROR] [" << VX_FILE << ":" << VX_LINE << "] " << msg << std::endl; std::exit(EXIT_FAILURE); }
