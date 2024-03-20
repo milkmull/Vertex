@@ -23,6 +23,23 @@ set(VX_BUILD_EXAMPLES    OFF CACHE BOOL "Build Examples")
 set(VX_BUILD_TESTS       OFF CACHE BOOL "Build Tests")
 set(VX_BUILD_SANDBOX     ON  CACHE BOOL "Build Sandbox")
 
+# =================== Back end ===================
+
+set(VX_ALLOWED_BACK_ENDS "None" "Vulkan")
+
+# Back end configure
+
+#set(VX_BACK_END "None" CACHE STRING "Rendering back end to compile with")
+#set_property(CACHE VX_BACK_END PROPERTY STRINGS ${VX_ALLOWED_BACK_ENDS})
+#
+#if (NOT VX_BACK_END IN_LIST VX_ALLOWED_BACK_ENDS)
+#    message(FATAL_ERROR "VX_BACK_END must be one of: ${VX_ALLOWED_BACK_ENDS}")
+#endif()
+#
+#message(STATUS "Back end: ${VX_BACK_END}")
+
+# ================================================
+
 # Check compiler
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
 
@@ -34,6 +51,12 @@ add_compile_definitions("$<$<CONFIG:Debug>:VX_DEBUG>")
 add_compile_definitions("$<$<CONFIG:Release>:VX_RELEASE>")
 
 add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
+
+if (VX_BACK_END STREQUAL "OpenGL")
+    add_compile_definitions("VX_USE_OPENGL")
+elseif (VX_BACK_END STREQUAL "Vulkan")
+    add_compile_definitions("VX_USE_VULKAN")
+endif()
 
 # Global compile flags
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

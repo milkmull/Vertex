@@ -4,6 +4,8 @@
 #include "vertex/tools/debug/profiler.h"
 #include "vertex/math/math/util/to_string.h"
 
+#include "vertex/image/io_load.h"
+
 #include "vertex/math/math/transform3d.h"
 
 int main()

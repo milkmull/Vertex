@@ -199,7 +199,7 @@
 #endif
 
 #ifdef VX_ENABLE_ASSERTS
-#   define VX_ASSERT(x, msg) { if(!(x)) std::cerr << "[ASSERT] [" << VX_FILE << ":" << VX_LINE << "] " << msg << std::endl; }
+#   define VX_ASSERT(x, msg) { if (!(x)) std::cerr << "[ASSERT] [" << VX_FILE << ":" << VX_LINE << "] " << msg << std::endl; }
 #else
 #   define VX_ASSERT(x, msg)
 #endif
