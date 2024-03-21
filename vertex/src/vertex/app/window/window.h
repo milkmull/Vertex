@@ -41,6 +41,13 @@ public:
     window& operator=(const window&) = delete;
     window& operator=(window&&) = delete;
 
+private:
+
+    void init();
+    void shutdown();
+
+public:
+
     // =============== title ===============
 
     inline const char* title() const { return m_title; }

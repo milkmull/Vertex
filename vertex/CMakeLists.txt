@@ -57,5 +57,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/
 # =============================================== GLFW ===============================================
 
 if (NOT VX_BACKEND STREQUAL "None")
+    target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw/include")
 endif()

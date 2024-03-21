@@ -265,19 +265,19 @@ public:
 
 #else
 
-#   define VX_LOG_TRACE   
-#   define VX_LOG_DEBUG   
-#   define VX_LOG_INFO    
-#   define VX_LOG_WARNING 
-#   define VX_LOG_ERROR   
-#   define VX_LOG_CRITICAL
+#   define VX_LOG_TRACE         if (false) std::cout
+#   define VX_LOG_DEBUG         if (false) std::cout
+#   define VX_LOG_INFO          if (false) std::cout
+#   define VX_LOG_WARNING       if (false) std::cout
+#   define VX_LOG_ERROR         if (false) std::cout
+#   define VX_LOG_CRITICAL      if (false) std::cout
 
-#   define VX_LOG_TRACE_FULL   
-#   define VX_LOG_DEBUG_FULL   
-#   define VX_LOG_INFO_FULL    
-#   define VX_LOG_WARNING_FULL 
-#   define VX_LOG_ERROR_FULL   
-#   define VX_LOG_CRITICAL_FULL
+#   define VX_LOG_TRACE_FULL    if (false) std::cout
+#   define VX_LOG_DEBUG_FULL    if (false) std::cout
+#   define VX_LOG_INFO_FULL     if (false) std::cout
+#   define VX_LOG_WARNING_FULL  if (false) std::cout
+#   define VX_LOG_ERROR_FULL    if (false) std::cout
+#   define VX_LOG_CRITICAL_FULL if (false) std::cout
 
 #endif
 
