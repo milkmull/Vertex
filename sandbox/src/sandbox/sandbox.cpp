@@ -8,5 +8,10 @@ int main()
 
     app::window w;
 
+    while (w.is_open())
+    {
+        w.poll_events();
+    }
+
     return 0;
 }

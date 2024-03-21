@@ -43,10 +43,16 @@ public:
 
 private:
 
-    void init();
-    void shutdown();
+    void open();
+    void close();
 
 public:
+
+    void poll_events();
+
+    // =============== is_open ===============
+
+    inline bool is_open() const { return m_window != nullptr; }
 
     // =============== title ===============
 
