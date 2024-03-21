@@ -23,20 +23,20 @@ set(VX_BUILD_EXAMPLES    OFF CACHE BOOL "Build Examples")
 set(VX_BUILD_TESTS       OFF CACHE BOOL "Build Tests")
 set(VX_BUILD_SANDBOX     ON  CACHE BOOL "Build Sandbox")
 
-# =================== Back end ===================
+# =================== Backend ===================
 
-set(VX_ALLOWED_BACK_ENDS "None" "Vulkan")
+set(VX_ALLOWED_BACKENDS "None" "Vulkan")
 
 # Back end configure
 
-#set(VX_BACK_END "None" CACHE STRING "Rendering back end to compile with")
-#set_property(CACHE VX_BACK_END PROPERTY STRINGS ${VX_ALLOWED_BACK_ENDS})
-#
-#if (NOT VX_BACK_END IN_LIST VX_ALLOWED_BACK_ENDS)
-#    message(FATAL_ERROR "VX_BACK_END must be one of: ${VX_ALLOWED_BACK_ENDS}")
-#endif()
-#
-#message(STATUS "Back end: ${VX_BACK_END}")
+set(VX_BACKEND "None" CACHE STRING "Rendering backend to compile with")
+set_property(CACHE VX_BACKEND PROPERTY STRINGS ${VX_ALLOWED_BACKENDS})
+
+if (NOT VX_BACKEND IN_LIST VX_ALLOWED_BACKENDS)
+    message(FATAL_ERROR "VX_BACKEND must be one of: ${VX_ALLOWED_BACKENDS}")
+endif()
+
+message(STATUS "Back end: ${VX_BACKEND}")
 
 # ================================================
 

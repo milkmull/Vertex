@@ -1,3 +1,17 @@
+# GLFW
+
+if (NOT VX_BACKEND STREQUAL "None")
+
+    if (VX_BUILD_SHARED_LIBS)
+        set(GLFW_LIBRARY_TYPE "SHARED")
+    else()
+        set(GLFW_LIBRARY_TYPE "STATIC")
+    endif()
+    
+    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw)
+
+endif()
+
 # Files
 
 # =============================================== Vertex ===============================================
@@ -39,3 +53,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/s
 # =============================================== stb_image ===============================================
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
+
+# =============================================== GLFW ===============================================
+
+if (NOT VX_BACKEND STREQUAL "None")
+    target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw/include")
+endif()
