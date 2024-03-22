@@ -12,6 +12,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+#--------------------------------------------------------------------
+# Configuration
+#--------------------------------------------------------------------
+
 # Configuration options
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Choose the type of build (Debug or Release)" FORCE)
@@ -23,7 +27,9 @@ set(VX_BUILD_EXAMPLES    OFF CACHE BOOL "Build Examples")
 set(VX_BUILD_TESTS       OFF CACHE BOOL "Build Tests")
 set(VX_BUILD_SANDBOX     ON  CACHE BOOL "Build Sandbox")
 
-# =================== Backend ===================
+#--------------------------------------------------------------------
+# Backend
+#--------------------------------------------------------------------
 
 set(VX_ALLOWED_BACKENDS "None" "Vulkan")
 
@@ -38,7 +44,17 @@ endif()
 
 message(STATUS "Back end: ${VX_BACKEND}")
 
-# ================================================
+#--------------------------------------------------------------------
+# Windowing
+#--------------------------------------------------------------------
+
+if (VX_BACKEND AND NOT VX_BACKEND STREQUAL "None")
+    set(VX_WINDOWING "GLFW")
+endif()
+
+#--------------------------------------------------------------------
+# Compiler
+#--------------------------------------------------------------------
 
 # Check compiler
 message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
@@ -116,7 +132,10 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     
 endif()
 
+#--------------------------------------------------------------------
 # Output
+#--------------------------------------------------------------------
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/bin/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/lib/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${CMAKE_SOURCE_DIR}/lib/Debug/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
@@ -125,7 +144,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/bin/Release/${CM
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${CMAKE_SOURCE_DIR}/lib/Release/${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
 
+#--------------------------------------------------------------------
 # Subdirectories
+#--------------------------------------------------------------------
+
 add_subdirectory("${CMAKE_SOURCE_DIR}/vertex")
 if (VX_BUILD_SANDBOX)
     add_subdirectory("${CMAKE_SOURCE_DIR}/sandbox")

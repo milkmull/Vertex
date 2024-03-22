@@ -1,7 +1,7 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-#include "window.h"
+#include "../window.h"
 #include "vertex/tools/debug/logger.h"
 
 namespace vx {
