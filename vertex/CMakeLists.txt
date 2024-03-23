@@ -17,39 +17,35 @@ set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 #--------------------------------------------------
-# Vertex Math
+# Vertex Core
 #--------------------------------------------------
 
-file(GLOB_RECURSE VX_MATH_FILES
+file(GLOB_RECURSE VX_CORE_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/detail/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/detail/*.cpp
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/tools/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/tools/*.cpp
+    
     ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/math/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/math/*.inl
     ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/math/*.cpp
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.cpp
 )
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_MATH_FILES})
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_CORE_FILES})
 
-target_sources(${PROJECT_NAME} PUBLIC ${VX_MATH_FILES})
-
-#--------------------------------------------------
-# Vertex Image
-#--------------------------------------------------
+target_sources(${PROJECT_NAME} PRIVATE ${VX_CORE_FILES})
 
 # stb_image
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
+
 file(GLOB_RECURSE STB_IMAGE_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${STB_IMAGE_FILES})
 
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
 target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
-
-file(GLOB_RECURSE VX_IMAGE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.inl
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.cpp
-)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_IMAGE_FILES})
-
-target_sources(${PROJECT_NAME} PRIVATE ${VX_IMAGE_FILES})
 
 #--------------------------------------------------------------------
 # App
@@ -72,7 +68,7 @@ if (NOT VX_BACKEND STREQUAL "None")
         target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})
         
         file(GLOB_RECURSE VX_GLFW_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/window/platform/glfw_window.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/window/glfw_window.cpp"
         )
         
         source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_GLFW_FILES})
