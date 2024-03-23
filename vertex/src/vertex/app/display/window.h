@@ -2,10 +2,12 @@
 
 #if defined(VX_APPLICATION)
 
+#include "vertex/math/math/type/vec2.h"
 #include "vertex/math/math/type/vec2i.h"
 #include "vertex/image/image.h"
 
 #include "../input/event.h"
+#include "../input/cursor.h"
 
 namespace vx {
 namespace app {
@@ -128,6 +130,29 @@ public:
 
     void set_icon(const img::image& icon);
     void clear_icon();
+
+    // =============== cursor ===============
+
+    math::vec2 get_cursor_position() const;
+    void set_cursor_position(const math::vec2& cursor_position);
+
+    void set_cursor_shape(cursor::shape shape);
+    void set_cursor_shape(const img::image& shape, int cursor_id);
+
+    cursor::mode get_cursor_mode() const;
+    void set_cursor_mode(cursor::mode mode);
+
+    // =============== mouse ===============
+
+    bool is_mouse_button_pressed(mouse::button button) const;
+
+    // =============== key ===============
+
+    bool is_key_pressed(keyboard::key key) const;
+
+private:
+
+    static int s_window_count;
 
 private:
 

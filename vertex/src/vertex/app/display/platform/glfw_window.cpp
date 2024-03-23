@@ -1,6 +1,8 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
+#include <unordered_map>
+
 #include "../window.h"
 #include "vertex/tools/debug/logger.h"
 
@@ -8,6 +10,7 @@
 // https://www.glfw.org/docs/3.3/window_guide.html#window_creation
 
 // TODO: fullscreen with monitors, creation flags (center cursor), mouse passthrough
+// TODO: lock aespect, get min and max sizes, content scale values, video modes
 
 namespace vx {
 namespace app {
@@ -17,14 +20,24 @@ static void glfwErrorCallback(int error, const char* description)
     VX_LOG_ERROR << "GLFW Error (" << error << "): " << description;
 }
 
+int window::s_window_count = 0;
+
 window::window(const window_specs& specs)
 {
     open(specs);
+
+    ++s_window_count;
 }
 
 window::~window()
-{
+{   
     close();
+
+    --s_window_count;
+    if (s_window_count == 0)
+    {
+        glfwTerminate();
+    }
 }
 
 void window::open(const window_specs& specs)
@@ -151,6 +164,119 @@ void window::open(const window_specs& specs)
         }
     });
 
+    // key callback
+
+    glfwSetKeyCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int key, int scancode, int action, int mods)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+
+            switch (action)
+            {
+                case GLFW_PRESS:   e.type = event_type::KEY_DOWN;   break;
+                case GLFW_RELEASE: e.type = event_type::KEY_UP;     break;
+                case GLFW_REPEAT:  e.type = event_type::KEY_REPEAT; break;
+                default:                                            return;
+            }
+
+            e.key.key = static_cast<keyboard::key>(key);
+            e.key.scancode = scancode;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // text callback
+
+    glfwSetCharCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, unsigned int codepoint)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::TEXT_INPUT;
+            e.text_input.codepoint = codepoint;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // mouse position callback
+
+    glfwSetCursorPosCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, double xpos, double ypos)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::CURSOR_MOVE;
+            e.cursor_move.x = static_cast<int>(xpos);
+            e.cursor_move.y = static_cast<int>(ypos);
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // mouse enter/leave callback
+
+    glfwSetCursorEnterCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int entered)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::CURSOR_ENTER;
+            e.cursor_enter.value = entered;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // mouse button callback
+
+    glfwSetMouseButtonCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int button, int action, int mods)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+
+            switch (action)
+            {
+                case GLFW_PRESS:   e.type = event_type::MOUSE_BUTTON_DOWN; break;
+                case GLFW_RELEASE: e.type = event_type::MOUSE_BUTTON_UP;   break;
+                default:                                                   return;
+            }
+
+            e.mouse_button.button = static_cast<mouse::button>(button);
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // scroll callback
+
+    glfwSetScrollCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, double xoffset, double yoffset)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::MOUSE_SCROLL;
+            e.mouse_scroll.x = static_cast<float>(xoffset);
+            e.mouse_scroll.y = static_cast<float>(yoffset);
+
+            vx_window->m_event_callback(e);
+        }
+    });
 
 }
 
@@ -361,6 +487,116 @@ void window::set_icon(const img::image& icon)
 void window::clear_icon()
 {
     glfwSetWindowIcon(static_cast<GLFWwindow*>(m_window), 0, nullptr);
+}
+
+// =============== cursor ===============
+
+math::vec2 window::get_cursor_position() const
+{
+    double xpos, ypos;
+    glfwGetCursorPos(static_cast<GLFWwindow*>(m_window), &xpos, &ypos);
+    return math::vec2(xpos, ypos);
+}
+
+void window::set_cursor_position(const math::vec2& cursor_position)
+{
+    glfwSetCursorPos(static_cast<GLFWwindow*>(m_window), cursor_position.x, cursor_position.y);
+}
+
+// GLFW will deallocate GLFWcursor objects when the program terminates
+static std::unordered_map<int, GLFWcursor*> s_cursor_cache;
+
+void window::set_cursor_shape(cursor::shape shape)
+{
+    int glfw_shape;
+
+    switch (shape)
+    {
+        case cursor::shape::ARROW:       glfw_shape = GLFW_ARROW_CURSOR;       break;
+        case cursor::shape::IBEAM:       glfw_shape = GLFW_IBEAM_CURSOR;       break;
+        case cursor::shape::CROSSHAIR:   glfw_shape = GLFW_CROSSHAIR_CURSOR;   break;
+        case cursor::shape::HAND:        glfw_shape = GLFW_HAND_CURSOR;        break;
+        case cursor::shape::HRESIZE:     glfw_shape = GLFW_HRESIZE_CURSOR;     break;
+        case cursor::shape::VRESIZE:     glfw_shape = GLFW_VRESIZE_CURSOR;     break;
+        case cursor::shape::ALL_RESIZE:  glfw_shape = GLFW_RESIZE_ALL_CURSOR;  break;
+        case cursor::shape::NOT_ALLOWED: glfw_shape = GLFW_NOT_ALLOWED_CURSOR; break;
+        default:                                                               return;
+    }
+
+    if (s_cursor_cache.find(glfw_shape) == s_cursor_cache.end())
+    {
+        GLFWcursor* cursor = glfwCreateStandardCursor(glfw_shape);
+        if (!cursor) return;
+
+        s_cursor_cache[glfw_shape] = cursor;
+    }
+
+    glfwSetCursor(static_cast<GLFWwindow*>(m_window), s_cursor_cache[glfw_shape]);
+}
+
+void window::set_cursor_shape(const img::image& shape, int shape_id)
+{
+    assert(shape_id > static_cast<int>(cursor::shape::NOT_ALLOWED));
+
+    if (s_cursor_cache.find(shape_id) == s_cursor_cache.end())
+    {
+        GLFWimage image;
+
+        image.width = static_cast<int>(shape.width());
+        image.height = static_cast<int>(shape.height());
+        image.pixels = (unsigned char*)shape.data();
+
+        GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+        if (!cursor) return;
+
+        s_cursor_cache[shape_id] = cursor;
+    }
+
+    glfwSetCursor(static_cast<GLFWwindow*>(m_window), s_cursor_cache[shape_id]);
+}
+
+cursor::mode window::get_cursor_mode() const
+{
+    const int glfw_cursor_mode = glfwGetInputMode(static_cast<GLFWwindow*>(m_window), GLFW_CURSOR);
+
+    switch (glfw_cursor_mode)
+    {
+        case GLFW_CURSOR_NORMAL:   return cursor::mode::NORMAL;
+        case GLFW_CURSOR_HIDDEN:   return cursor::mode::HIDDEN;
+        case GLFW_CURSOR_DISABLED: return cursor::mode::DISABLED;
+        default:                   break;
+    }
+
+    return cursor::mode::NORMAL;
+}
+
+void window::set_cursor_mode(cursor::mode mode)
+{
+    int glfw_cursor_mode;
+
+    switch (mode)
+    {
+        case cursor::mode::NORMAL:   glfw_cursor_mode = GLFW_CURSOR_NORMAL;   break;
+        case cursor::mode::HIDDEN:   glfw_cursor_mode = GLFW_CURSOR_HIDDEN;   break;
+        case cursor::mode::DISABLED: glfw_cursor_mode = GLFW_CURSOR_DISABLED; break;
+        default:                                                              return;
+    }
+
+    glfwSetInputMode(static_cast<GLFWwindow*>(m_window), GLFW_CURSOR, glfw_cursor_mode);
+}
+
+// =============== mouse button state ===============
+
+bool window::is_mouse_button_pressed(mouse::button button) const
+{
+    return glfwGetMouseButton(static_cast<GLFWwindow*>(m_window), static_cast<int>(button));
+}
+
+// =============== key state ===============
+
+bool window::is_key_pressed(keyboard::key key) const
+{
+    return glfwGetKey(static_cast<GLFWwindow*>(m_window), static_cast<int>(key));
 }
 
 }

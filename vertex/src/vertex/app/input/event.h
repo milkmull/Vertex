@@ -34,13 +34,12 @@ enum class event_type : int
 
     TEXT_INPUT,
 
-    MOUSE_MOVE,
+    CURSOR_MOVE,
+    CURSOR_ENTER,
+
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_UP,
     MOUSE_SCROLL,
-
-    MOUSE_ENTER,
-    MOUSE_LEAVE,
 
     JOYSTICK_BUTTON_DOWN,
     JOYSTICK_BUTTON_UP
@@ -68,12 +67,12 @@ struct event
     struct key_event
     {
         keyboard::key key;
-        keyboard::scan_code scan_code;
+        int scancode;
     };
 
     struct text_input_event
     {
-        char32_t unicode;
+        char32_t codepoint;
     };
 
     struct mouse_button_event
@@ -86,9 +85,8 @@ struct event
     struct mouse_scroll_event
     {
         mouse::button button;
-        float delta;
-        int x;
-        int y;
+        float x;
+        float y;
     };
 
     event_type type;
@@ -104,7 +102,9 @@ struct event
         key_event key;
         text_input_event text_input;
 
-        move_event mouse_move;
+        move_event cursor_move;
+        state_event cursor_enter;
+
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;
     };

@@ -7,6 +7,8 @@ namespace vx {
 namespace app {
 namespace monitor {
 
+// https://www.glfw.org/docs/3.3/monitor_guide.html#monitor_object
+
 monitor get_primary_monitor()
 {
     return (monitor)(glfwGetPrimaryMonitor());
