@@ -2,7 +2,8 @@
 
 #if defined(VX_APPLICATION)
 
-#include "vertex/math/math/type/vec2.h"
+#include "vertex/math/math/type/vec2i.h"
+#include "vertex/image/image.h"
 
 namespace vx {
 namespace app {
@@ -13,28 +14,19 @@ class window
 {
 public:
 
-    enum window_mode
+    struct window_specs
     {
-        WINDOWED,
-        MINIMIZED,
-        MAXIMIZED,
-        FULLSCREEN
-    };
+        const char* title = "Vertex";
 
-    enum window_flag
-    {
-        NONE        = 0,
-        NO_RESIZE   = (1 << 1),
-        NO_BORDER   = (1 << 2),
-        TRANSPARENT = (1 << 3),
-        NO_FOCUS    = (1 << 4)
+        math::vec2i position;
+        math::vec2i size;
     };
 
 public:
 
     // =============== constructors ===============
 
-    window();
+    window(const window_specs& specs);
     ~window();
 
     window(const window&) = delete;
@@ -45,7 +37,7 @@ public:
 
 private:
 
-    void open();
+    void open(const window_specs& specs);
     void close();
 
 public:
@@ -58,44 +50,80 @@ public:
 
     // =============== title ===============
 
-    inline const char* title() const { return m_title; }
+    const char* get_title() const;
     void set_title(const char* title);
 
     // =============== position ===============
 
-    inline math::vec2 position() const { return m_position; }
-    void set_position(const math::vec2& position);
+    math::vec2i get_position() const;
+    void set_position(const math::vec2i& pos);
 
     // =============== size ===============
 
-    inline math::vec2 size() const { return m_size; }
-    void resize(const math::vec2& size);
+    math::vec2i get_size() const;
+    void set_size(const math::vec2i& size);
 
-    // =============== mode ===============
+    void set_min_size(const math::vec2i& size);
+    void set_max_size(const math::vec2i& size);
 
-    inline window_mode mode() const { return m_mode; }
+    // =============== resizable ===============
 
-    // =============== flags ===============
+    void set_resizable(bool resizable);
+    bool is_resizable() const;
 
-    inline bool get_flag(window_flag flag) { return m_flags & flag; }
-    void set_flag(window_flag flag);
+    // =============== bordered ===============
+
+    void set_bordered(bool bordered);
+    bool is_bordered() const;
+
+    // =============== always on top ===============
+
+    void set_always_on_top(bool always_on_top);
+    bool is_always_on_top() const;
+
+    // =============== iconify and maximize ===============
+
+    void iconify();
+    bool is_iconified() const;
+
+    void maximize();
+    bool is_maximized() const;
+
+    void restore();
+
+    // =============== hide and show ===============
+
+    void hide();
+    void show();
+
+    bool is_visible() const;
 
     // =============== focus ===============
 
-    bool has_focus() const;
     void focus();
+    bool is_focused() const;
+
+    // =============== attention ===============
+
+    void request_attention();
+
+    // =============== opacity ===============
+
+    float get_opacity() const;
+    void set_opacity(float opacity);
+
+    // =============== hovered ===============
+
+    bool is_hovered() const;
+
+    // =============== icon ===============
+
+    void set_icon(const img::image& icon);
+    void clear_icon();
 
 private:
 
     void* m_window = nullptr;
-
-    const char* m_title = nullptr;
-
-    math::vec2 m_position;
-    math::vec2 m_size;
-
-    window_mode m_mode = window_mode::WINDOWED;
-    window_flag m_flags = window_flag::NONE;
 
 };
 

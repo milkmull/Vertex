@@ -20,14 +20,14 @@ else()
                                 posix_time.c posix_thread.c)
 endif()
 
-#add_custom_target(update_mappings
-#    COMMAND "${CMAKE_COMMAND}" -P "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake" mappings.h.in mappings.h
-#    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
-#    COMMENT "Updating gamepad mappings from upstream repository"
-#    SOURCES mappings.h.in "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake"
-#    VERBATIM)
-#
-#set_target_properties(update_mappings PROPERTIES FOLDER "GLFW3")
+add_custom_target(update_mappings
+    COMMAND "${CMAKE_COMMAND}" -P "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake" mappings.h.in mappings.h
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Updating gamepad mappings from upstream repository"
+    SOURCES mappings.h.in "${GLFW_SOURCE_DIR}/CMake/GenerateMappings.cmake"
+    VERBATIM)
+
+set_target_properties(update_mappings PROPERTIES FOLDER "GLFW3")
 
 if (GLFW_BUILD_COCOA)
     target_compile_definitions(glfw PRIVATE _GLFW_COCOA)
@@ -50,11 +50,11 @@ if (GLFW_BUILD_X11)
                                 glx_context.c)
 endif()
 
-#if (GLFW_BUILD_WAYLAND)
-#    target_compile_definitions(glfw PRIVATE _GLFW_WAYLAND)
-#    target_sources(glfw PRIVATE wl_platform.h xkb_unicode.h wl_init.c
-#                                wl_monitor.c wl_window.c xkb_unicode.c)
-#endif()
+if (GLFW_BUILD_WAYLAND)
+    target_compile_definitions(glfw PRIVATE _GLFW_WAYLAND)
+    target_sources(glfw PRIVATE wl_platform.h xkb_unicode.h wl_init.c
+                                wl_monitor.c wl_window.c xkb_unicode.c)
+endif()
 
 if (GLFW_BUILD_X11 OR GLFW_BUILD_WAYLAND)
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -63,48 +63,48 @@ if (GLFW_BUILD_X11 OR GLFW_BUILD_WAYLAND)
     target_sources(glfw PRIVATE posix_poll.h posix_poll.c)
 endif()
 
-#if (GLFW_BUILD_WAYLAND)
-#    include(CheckIncludeFiles)
-#    include(CheckFunctionExists)
-#    check_function_exists(memfd_create HAVE_MEMFD_CREATE)
-#    if (HAVE_MEMFD_CREATE)
-#        target_compile_definitions(glfw PRIVATE HAVE_MEMFD_CREATE)
-#    endif()
-#
-#    find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
-#    if (NOT WAYLAND_SCANNER_EXECUTABLE)
-#        message(FATAL_ERROR "Failed to find wayland-scanner")
-#    endif()
-#
-#    macro(generate_wayland_protocol protocol_file)
-#        set(protocol_path "${GLFW_SOURCE_DIR}/deps/wayland/${protocol_file}")
-#
-#        string(REGEX REPLACE "\\.xml$" "-client-protocol.h" header_file ${protocol_file})
-#        string(REGEX REPLACE "\\.xml$" "-client-protocol-code.h" code_file ${protocol_file})
-#
-#        add_custom_command(OUTPUT ${header_file}
-#            COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" client-header "${protocol_path}" ${header_file}
-#            DEPENDS "${protocol_path}"
-#            VERBATIM)
-#
-#        add_custom_command(OUTPUT ${code_file}
-#            COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" private-code "${protocol_path}" ${code_file}
-#            DEPENDS "${protocol_path}"
-#            VERBATIM)
-#
-#        target_sources(glfw PRIVATE ${header_file} ${code_file})
-#    endmacro()
-#
-#    generate_wayland_protocol("wayland.xml")
-#    generate_wayland_protocol("viewporter.xml")
-#    generate_wayland_protocol("xdg-shell.xml")
-#    generate_wayland_protocol("idle-inhibit-unstable-v1.xml")
-#    generate_wayland_protocol("pointer-constraints-unstable-v1.xml")
-#    generate_wayland_protocol("relative-pointer-unstable-v1.xml")
-#    generate_wayland_protocol("fractional-scale-v1.xml")
-#    generate_wayland_protocol("xdg-activation-v1.xml")
-#    generate_wayland_protocol("xdg-decoration-unstable-v1.xml")
-#endif()
+if (GLFW_BUILD_WAYLAND)
+    include(CheckIncludeFiles)
+    include(CheckFunctionExists)
+    check_function_exists(memfd_create HAVE_MEMFD_CREATE)
+    if (HAVE_MEMFD_CREATE)
+        target_compile_definitions(glfw PRIVATE HAVE_MEMFD_CREATE)
+    endif()
+
+    find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
+    if (NOT WAYLAND_SCANNER_EXECUTABLE)
+        message(FATAL_ERROR "Failed to find wayland-scanner")
+    endif()
+
+    macro(generate_wayland_protocol protocol_file)
+        set(protocol_path "${GLFW_SOURCE_DIR}/deps/wayland/${protocol_file}")
+
+        string(REGEX REPLACE "\\.xml$" "-client-protocol.h" header_file ${protocol_file})
+        string(REGEX REPLACE "\\.xml$" "-client-protocol-code.h" code_file ${protocol_file})
+
+        add_custom_command(OUTPUT ${header_file}
+            COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" client-header "${protocol_path}" ${header_file}
+            DEPENDS "${protocol_path}"
+            VERBATIM)
+
+        add_custom_command(OUTPUT ${code_file}
+            COMMAND "${WAYLAND_SCANNER_EXECUTABLE}" private-code "${protocol_path}" ${code_file}
+            DEPENDS "${protocol_path}"
+            VERBATIM)
+
+        target_sources(glfw PRIVATE ${header_file} ${code_file})
+    endmacro()
+
+    generate_wayland_protocol("wayland.xml")
+    generate_wayland_protocol("viewporter.xml")
+    generate_wayland_protocol("xdg-shell.xml")
+    generate_wayland_protocol("idle-inhibit-unstable-v1.xml")
+    generate_wayland_protocol("pointer-constraints-unstable-v1.xml")
+    generate_wayland_protocol("relative-pointer-unstable-v1.xml")
+    generate_wayland_protocol("fractional-scale-v1.xml")
+    generate_wayland_protocol("xdg-activation-v1.xml")
+    generate_wayland_protocol("xdg-decoration-unstable-v1.xml")
+endif()
 
 if (WIN32 AND GLFW_BUILD_SHARED_LIBRARY)
     configure_file(glfw.rc.in glfw.rc @ONLY)
@@ -157,25 +157,25 @@ if (GLFW_BUILD_COCOA)
     set(glfw_PKG_LIBS "-framework Cocoa -framework IOKit -framework CoreFoundation")
 endif()
 
-#if (GLFW_BUILD_WAYLAND)
-#    include(FindPkgConfig)
-#
-#    pkg_check_modules(Wayland REQUIRED
-#        wayland-client>=0.2.7
-#        wayland-cursor>=0.2.7
-#        wayland-egl>=0.2.7
-#        xkbcommon>=0.5.0)
-#
-#    target_include_directories(glfw PRIVATE ${Wayland_INCLUDE_DIRS})
-#
-#    if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
-#        find_package(EpollShim)
-#        if (EPOLLSHIM_FOUND)
-#            target_include_directories(glfw PRIVATE ${EPOLLSHIM_INCLUDE_DIRS})
-#            target_link_libraries(glfw PRIVATE ${EPOLLSHIM_LIBRARIES})
-#        endif()
-#    endif()
-#endif()
+if (GLFW_BUILD_WAYLAND)
+    include(FindPkgConfig)
+
+    pkg_check_modules(Wayland REQUIRED
+        wayland-client>=0.2.7
+        wayland-cursor>=0.2.7
+        wayland-egl>=0.2.7
+        xkbcommon>=0.5.0)
+
+    target_include_directories(glfw PRIVATE ${Wayland_INCLUDE_DIRS})
+
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        find_package(EpollShim)
+        if (EPOLLSHIM_FOUND)
+            target_include_directories(glfw PRIVATE ${EPOLLSHIM_INCLUDE_DIRS})
+            target_link_libraries(glfw PRIVATE ${EPOLLSHIM_LIBRARIES})
+        endif()
+    endif()
+endif()
 
 if (GLFW_BUILD_X11)
     find_package(X11 REQUIRED)
@@ -358,11 +358,11 @@ set(GLFW_PKG_CONFIG_LIBS_PRIVATE "${libs}" CACHE INTERNAL
 
 configure_file("${GLFW_SOURCE_DIR}/CMake/glfw3.pc.in" glfw3.pc @ONLY)
 
-#if (GLFW_INSTALL)
-#    install(TARGETS glfw
-#            EXPORT glfwTargets
-#            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
-#            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-#            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-#endif()
+if (GLFW_INSTALL)
+    install(TARGETS glfw
+            EXPORT glfwTargets
+            RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+            LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+endif()
 
