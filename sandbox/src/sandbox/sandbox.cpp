@@ -1,7 +1,9 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/app/window/window.h"
+#include "vertex/app/display/window.h"
 #include "vertex/image/io_load.h"
+
+#include "vertex/app/display/monitor.h"
 
 static bool open = true;
 
@@ -43,22 +45,24 @@ int main()
 {
     using namespace vx;
 
-    app::window::window_specs specs;
-    specs.size = { 640, 480 };
-    
-    img::error_code err;
-    img::image i = img::load("../../assets/michael.png", err);
-    
-    app::window w(specs);
-    w.set_icon(i);
-    w.set_min_size({ 100, 100 });
+    VX_LOG_INFO << app::monitor::list_monitors().size();
 
-    w.set_event_callback(callback);
-    
-    while (!w.should_close())
-    {
-        w.poll_events();
-    }
+    //app::window::window_specs specs;
+    //specs.size = { 640, 480 };
+    //
+    //img::error_code err;
+    //img::image i = img::load("../../assets/michael.png", err);
+    //
+    //app::window w(specs);
+    //w.set_icon(i);
+    //w.set_min_size({ 100, 100 });
+    //
+    //w.set_event_callback(callback);
+    //
+    //while (!w.should_close())
+    //{
+    //    w.poll_events();
+    //}
 
     return 0;
 }
