@@ -69,6 +69,7 @@ if (NOT VX_BACKEND STREQUAL "None")
         
         file(GLOB_RECURSE VX_GLFW_FILES
             "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/window/glfw_window.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/window/glfw_monitor.cpp"
         )
         
         source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_GLFW_FILES})

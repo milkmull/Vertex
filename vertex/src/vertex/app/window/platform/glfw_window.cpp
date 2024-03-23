@@ -4,7 +4,10 @@
 #include "../window.h"
 #include "vertex/tools/debug/logger.h"
 
+// https://www.glfw.org/docs/3.3/window_guide.html
 // https://www.glfw.org/docs/3.3/window_guide.html#window_creation
+
+// TODO: fullscreen with monitors, creation flags (center cursor), mouse passthrough
 
 namespace vx {
 namespace app {
@@ -51,14 +54,104 @@ void window::open(const window_specs& specs)
     m_window = glfwCreateWindow(specs.size.x, specs.size.y, specs.title, nullptr, nullptr);
     glfwSetWindowUserPointer(static_cast<GLFWwindow*>(m_window), this);
 
-    // set callbacks
+    // window close callback
 
     glfwSetWindowCloseCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window)
     {
         ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
 
-        vx_window->close();
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_CLOSE;
+            
+            vx_window->m_event_callback(e);
+        }
     });
+
+    // window size callback
+
+    glfwSetWindowSizeCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int width, int height)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_RESIZE;
+            e.window_resize.width = width;
+            e.window_resize.height = height;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // window position callback
+
+    glfwSetWindowPosCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int xpos, int ypos)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_MOVE;
+            e.window_move.x = xpos;
+            e.window_move.y = ypos;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // window iconify callback
+
+    glfwSetWindowIconifyCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int iconified)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_ICONIFY;
+            e.window_iconify.value = iconified;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // window maximize callback
+
+    glfwSetWindowMaximizeCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int maximized)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_MAXIMIZE;
+            e.window_maximize.value = maximized;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+    // window focus callback
+
+    glfwSetWindowFocusCallback(static_cast<GLFWwindow*>(m_window), [](GLFWwindow* window, int focused)
+    {
+        ::vx::app::window* vx_window = static_cast<::vx::app::window*>(glfwGetWindowUserPointer(window));
+
+        if (vx_window->m_event_callback)
+        {
+            event e;
+            e.type = event_type::WINDOW_FOCUS;
+            e.window_focus.value = focused;
+
+            vx_window->m_event_callback(e);
+        }
+    });
+
+
 }
 
 void window::close()
@@ -67,6 +160,16 @@ void window::close()
     m_window = nullptr;
 
     glfwTerminate();
+}
+
+bool window::should_close() const
+{
+    return glfwWindowShouldClose(static_cast<GLFWwindow*>(m_window));
+}
+
+void window::set_should_close(bool should_close)
+{
+    glfwSetWindowShouldClose(static_cast<GLFWwindow*>(m_window), should_close);
 }
 
 void window::poll_events()

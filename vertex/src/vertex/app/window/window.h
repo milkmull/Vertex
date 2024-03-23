@@ -5,10 +5,10 @@
 #include "vertex/math/math/type/vec2i.h"
 #include "vertex/image/image.h"
 
+#include "../input/event.h"
+
 namespace vx {
 namespace app {
-
-// https://www.glfw.org/docs/3.3/window_guide.html
 
 class window
 {
@@ -21,6 +21,8 @@ public:
         math::vec2i position;
         math::vec2i size;
     };
+
+    using event_callback = void(*)(event&);
 
 public:
 
@@ -42,11 +44,17 @@ private:
 
 public:
 
+    inline void set_event_callback(const event_callback callback) { m_event_callback = callback; }
     void poll_events();
 
     // =============== is_open ===============
 
     inline bool is_open() const { return m_window != nullptr; }
+
+    // =============== close ===============
+
+    bool should_close() const;
+    void set_should_close(bool should_close);
 
     // =============== title ===============
 
@@ -124,6 +132,7 @@ public:
 private:
 
     void* m_window = nullptr;
+    event_callback m_event_callback = nullptr;
 
 };
 

@@ -21,10 +21,12 @@ enum class event_category : int
 
 enum class event_type : int
 {
-    WINDOW_CLOSED,
+    WINDOW_CLOSE,
     WINDOW_RESIZE,
-    WINDOW_GAIN_FOCUS,
-    WINDOW_LOSE_FOCUS,
+    WINDOW_MOVE,
+    WINDOW_ICONIFY,
+    WINDOW_MAXIMIZE,
+    WINDOW_FOCUS,
 
     KEY_DOWN,
     KEY_REPEAT,
@@ -46,11 +48,21 @@ enum class event_type : int
 
 struct event
 {
-
-    struct window_resize_event
+    struct size_event
     {
-        unsigned int width;
-        unsigned int height;
+        int width;
+        int height;
+    };
+
+    struct move_event
+    {
+        int x;
+        int y;
+    };
+
+    struct state_event
+    {
+        bool value;
     };
 
     struct key_event
@@ -62,12 +74,6 @@ struct event
     struct text_input_event
     {
         char32_t unicode;
-    };
-
-    struct mouse_move_event
-    {
-        int x;
-        int y;
     };
 
     struct mouse_button_event
@@ -89,10 +95,16 @@ struct event
 
     union
     {
-        window_resize_event window_resize;
+        size_event window_resize;
+        move_event window_move;
+        state_event window_iconify;
+        state_event window_maximize;
+        state_event window_focus;
+
         key_event key;
         text_input_event text_input;
-        mouse_move_event mouse_move;
+
+        move_event mouse_move;
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;
     };
