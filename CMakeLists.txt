@@ -68,10 +68,8 @@ add_compile_definitions("$<$<CONFIG:Release>:VX_RELEASE>")
 
 add_compile_definitions("_CRT_SECURE_NO_WARNINGS")
 
-if (VX_BACK_END STREQUAL "OpenGL")
-    add_compile_definitions("VX_USE_OPENGL")
-elseif (VX_BACK_END STREQUAL "Vulkan")
-    add_compile_definitions("VX_USE_VULKAN")
+if (VX_BACKEND AND NOT VX_BACKEND STREQUAL "None")
+    add_compile_definitions("VX_APPLICATION")
 endif()
 
 # Global compile flags

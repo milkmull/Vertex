@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(VX_APPLICATION)
+
 #include "keyboard.h"
 #include "mouse.h"
 #include "joystick.h"
@@ -99,3 +101,5 @@ struct event
 
 }
 }
+
+#endif

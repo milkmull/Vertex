@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(VX_APPLICATION)
+
 #include "vertex/math/math/type/vec2.h"
 
 namespace vx {
@@ -99,3 +101,5 @@ private:
 
 }
 }
+
+#endif

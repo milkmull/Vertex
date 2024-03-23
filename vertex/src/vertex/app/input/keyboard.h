@@ -1,5 +1,7 @@
 #pragma once
 
+#if defined(VX_APPLICATION)
+
 namespace vx {
 namespace app {
 namespace keyboard {
@@ -279,3 +281,5 @@ enum class scan_code : int
 }
 }
 }
+
+#endif
