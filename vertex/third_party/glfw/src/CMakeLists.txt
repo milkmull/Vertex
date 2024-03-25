@@ -129,7 +129,7 @@ set_target_properties(glfw PROPERTIES
                       DEFINE_SYMBOL _GLFW_BUILD_DLL
                       FOLDER "GLFW3")
 
-target_include_directories(glfw PUBLIC
+target_include_directories(glfw PRIVATE
                            "$<BUILD_INTERFACE:${GLFW_SOURCE_DIR}/include>"
                            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_include_directories(glfw PRIVATE

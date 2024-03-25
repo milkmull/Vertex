@@ -14,24 +14,28 @@ endif()
 # Properties
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/src")
+target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 #--------------------------------------------------
 # Vertex Core
 #--------------------------------------------------
 
 file(GLOB_RECURSE VX_CORE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/detail/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/detail/*.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/detail/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/tools/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/tools/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/tools/*.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/detail/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
     
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/math/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/math/*.cpp
-    
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/image/*.cpp
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/detail/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_CORE_FILES})
 
@@ -41,7 +45,8 @@ target_sources(${PROJECT_NAME} PRIVATE ${VX_CORE_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
 
 file(GLOB_RECURSE STB_IMAGE_FILES
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h
+    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/stb_image_impl/*.cpp"
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${STB_IMAGE_FILES})
 
@@ -62,14 +67,14 @@ if (NOT VX_BACKEND STREQUAL "None")
             set(GLFW_LIBRARY_TYPE "STATIC")
         endif()
         
-        add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw)
+        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw")
         
         target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw/include")
         target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})
         
         file(GLOB_RECURSE VX_GLFW_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/display/platform/glfw_window.cpp"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/display/platform/glfw_monitor.cpp"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW_impl/*.h"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW_impl/*.cpp"
         )
         
         source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_GLFW_FILES})
@@ -79,7 +84,9 @@ if (NOT VX_BACKEND STREQUAL "None")
     
     # Vertex App
     file(GLOB_RECURSE VX_APP_FILES
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/vertex/app/*.h
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
     )
     source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
     
