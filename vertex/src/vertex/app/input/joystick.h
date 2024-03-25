@@ -2,6 +2,8 @@
 
 #if defined(VX_APPLICATION)
 
+#include <vector>
+
 namespace vx {
 namespace app {
 namespace joystick {
@@ -39,6 +41,16 @@ enum class button : int
 
     EXTRA_1 = 20
 };
+
+struct state
+{
+    unsigned char buttons[15];
+    float axes[6];
+};
+
+bool is_present(int id);
+const char* get_name(int id);
+state get_state(int id);
 
 }
 }

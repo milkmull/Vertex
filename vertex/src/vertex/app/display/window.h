@@ -49,7 +49,7 @@ public:
     inline void set_event_callback(const event_callback callback) { m_event_callback = callback; }
     void poll_events();
 
-    // =============== is_open ===============
+    // =============== open ===============
 
     inline bool is_open() const { return m_window != nullptr; }
 
@@ -137,7 +137,8 @@ public:
     void set_cursor_position(const math::vec2& cursor_position);
 
     void set_cursor_shape(cursor::shape shape);
-    void set_cursor_shape(const img::image& shape, int cursor_id);
+    void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
+    void clear_cursor_shape();
 
     cursor::mode get_cursor_mode() const;
     void set_cursor_mode(cursor::mode mode);

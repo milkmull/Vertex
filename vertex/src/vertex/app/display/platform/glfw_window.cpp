@@ -534,7 +534,7 @@ void window::set_cursor_shape(cursor::shape shape)
     glfwSetCursor(static_cast<GLFWwindow*>(m_window), s_cursor_cache[glfw_shape]);
 }
 
-void window::set_cursor_shape(const img::image& shape, int shape_id)
+void window::set_cursor_shape(const img::image& shape, int shape_id, const math::vec2i& hotspot)
 {
     assert(shape_id > static_cast<int>(cursor::shape::NOT_ALLOWED));
 
@@ -546,13 +546,18 @@ void window::set_cursor_shape(const img::image& shape, int shape_id)
         image.height = static_cast<int>(shape.height());
         image.pixels = (unsigned char*)shape.data();
 
-        GLFWcursor* cursor = glfwCreateCursor(&image, 0, 0);
+        GLFWcursor* cursor = glfwCreateCursor(&image, hotspot.x, hotspot.y);
         if (!cursor) return;
 
         s_cursor_cache[shape_id] = cursor;
     }
 
     glfwSetCursor(static_cast<GLFWwindow*>(m_window), s_cursor_cache[shape_id]);
+}
+
+void window::clear_cursor_shape()
+{
+    glfwSetCursor(static_cast<GLFWwindow*>(m_window), nullptr);
 }
 
 cursor::mode window::get_cursor_mode() const
