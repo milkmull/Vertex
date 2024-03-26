@@ -1,5 +1,6 @@
 #include "sandbox/sandbox.h"
 
+#include "vertex/app/init.h"
 #include "vertex/app/display/window.h"
 #include "vertex/image/io_load.h"
 
@@ -57,25 +58,29 @@ int main()
 {
     using namespace vx;
 
-    app::window::window_specs specs;
-    specs.size = { 640, 480 };
-    
-    img::error_code err;
-    img::image i = img::load("../../assets/michael.png", err);
-    
-    app::window w(specs);
-    w.set_icon(i);
-    w.set_min_size({ 100, 100 });
-    
-    w.set_event_callback(callback);
+    vx::app::init();
 
-    w.set_cursor_shape(app::cursor::shape::NOT_ALLOWED);
-    w.set_cursor_mode(app::cursor::mode::NORMAL);
-    
-    while (!w.should_close())
-    {
-        w.poll_events();
-    }
+    vx::app::joystick::is_present(0);
+
+    //app::window::window_specs specs;
+    //specs.size = { 640, 480 };
+    //
+    //img::error_code err;
+    //img::image i = img::load("../../assets/michael.png", err);
+    //
+    //app::window w(specs);
+    //w.set_icon(i);
+    //w.set_min_size({ 100, 100 });
+    //
+    //w.set_event_callback(callback);
+    //
+    //w.set_cursor_shape(app::cursor::shape::NOT_ALLOWED);
+    //w.set_cursor_mode(app::cursor::mode::NORMAL);
+    //
+    //while (!w.should_close())
+    //{
+    //    w.poll_events();
+    //}
 
     return 0;
 }

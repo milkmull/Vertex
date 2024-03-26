@@ -245,7 +245,15 @@ public:
 
     };
 
+    struct dummy_log_buffer
+    {
+        template <typename T>
+        void operator<<(const T&) {}
+    };
+
 };
+
+#define VX_ENABLE_LOGGING 1
 
 #if defined(VX_ENABLE_LOGGING)
 

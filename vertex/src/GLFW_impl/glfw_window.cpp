@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "vertex/app/display/window.h"
-#include "vertex/tools/debug/logger.h"
+#include "vertex_impl/app/init_internal.h"
 
 // https://www.glfw.org/docs/3.3/window_guide.html
 // https://www.glfw.org/docs/3.3/window_guide.html#window_creation
@@ -14,11 +14,6 @@
 
 namespace vx {
 namespace app {
-
-static void glfwErrorCallback(int error, const char* description)
-{
-    VX_LOG_ERROR << "GLFW Error (" << error << "): " << description;
-}
 
 int window::s_window_count = 0;
 
@@ -44,16 +39,7 @@ void window::open(const window_specs& specs)
 {
     // initialize glfw
 
-    static bool GLFW_initialized = false;
-
-    if (!GLFW_initialized)
-    {
-        int success = glfwInit();
-        VX_ASSERT(success, "Could not initialize GLFW\n");
-
-        GLFW_initialized = true;
-        glfwSetErrorCallback(glfwErrorCallback);
-    }
+    VX_REQUIRE_INIT();
 
     // set window hints
 
