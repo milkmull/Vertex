@@ -80,6 +80,8 @@ if (NOT VX_BACKEND STREQUAL "None")
         source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_GLFW_FILES})
         target_sources(${PROJECT_NAME} PRIVATE ${VX_GLFW_FILES})
         
+        target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
+        
     endif()
     
     # Vertex App
