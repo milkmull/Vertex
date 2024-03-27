@@ -60,8 +60,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_CLOSE;
+            event::event e;
+            e.type = event::TYPE_WINDOW_CLOSE;
             
             vx_window->m_event_callback(e);
         }
@@ -75,8 +75,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_RESIZE;
+            event::event e;
+            e.type = event::TYPE_WINDOW_RESIZE;
             e.window_resize.width = width;
             e.window_resize.height = height;
 
@@ -92,8 +92,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_MOVE;
+            event::event e;
+            e.type = event::TYPE_WINDOW_MOVE;
             e.window_move.x = xpos;
             e.window_move.y = ypos;
 
@@ -109,8 +109,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_ICONIFY;
+            event::event e;
+            e.type = event::TYPE_WINDOW_ICONIFY;
             e.window_iconify.value = iconified;
 
             vx_window->m_event_callback(e);
@@ -125,8 +125,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_MAXIMIZE;
+            event::event e;
+            e.type = event::TYPE_WINDOW_MAXIMIZE;
             e.window_maximize.value = maximized;
 
             vx_window->m_event_callback(e);
@@ -141,8 +141,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::WINDOW_FOCUS;
+            event::event e;
+            e.type = event::TYPE_WINDOW_FOCUS;
             e.window_focus.value = focused;
 
             vx_window->m_event_callback(e);
@@ -157,13 +157,13 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
+            event::event e;
 
             switch (action)
             {
-                case GLFW_PRESS:   e.type = event_type::KEY_DOWN;   break;
-                case GLFW_RELEASE: e.type = event_type::KEY_UP;     break;
-                case GLFW_REPEAT:  e.type = event_type::KEY_REPEAT; break;
+                case GLFW_PRESS:   e.type = event::TYPE_KEY_DOWN;   break;
+                case GLFW_RELEASE: e.type = event::TYPE_KEY_UP;     break;
+                case GLFW_REPEAT:  e.type = event::TYPE_KEY_REPEAT; break;
                 default:                                            return;
             }
 
@@ -182,8 +182,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::TEXT_INPUT;
+            event::event e;
+            e.type = event::TYPE_TEXT_INPUT;
             e.text_input.codepoint = codepoint;
 
             vx_window->m_event_callback(e);
@@ -198,8 +198,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::CURSOR_MOVE;
+            event::event e;
+            e.type = event::TYPE_CURSOR_MOVE;
             e.cursor_move.x = static_cast<int>(xpos);
             e.cursor_move.y = static_cast<int>(ypos);
 
@@ -215,8 +215,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::CURSOR_ENTER;
+            event::event e;
+            e.type = event::TYPE_CURSOR_ENTER;
             e.cursor_enter.value = entered;
 
             vx_window->m_event_callback(e);
@@ -231,12 +231,12 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
+            event::event e;
 
             switch (action)
             {
-                case GLFW_PRESS:   e.type = event_type::MOUSE_BUTTON_DOWN; break;
-                case GLFW_RELEASE: e.type = event_type::MOUSE_BUTTON_UP;   break;
+                case GLFW_PRESS:   e.type = event::TYPE_MOUSE_BUTTON_DOWN; break;
+                case GLFW_RELEASE: e.type = event::TYPE_MOUSE_BUTTON_UP;   break;
                 default:                                                   return;
             }
 
@@ -254,8 +254,8 @@ void window::open(const window_specs& specs)
 
         if (vx_window->m_event_callback)
         {
-            event e;
-            e.type = event_type::MOUSE_SCROLL;
+            event::event e;
+            e.type = event::TYPE_MOUSE_SCROLL;
             e.mouse_scroll.x = static_cast<float>(xoffset);
             e.mouse_scroll.y = static_cast<float>(yoffset);
 
@@ -497,14 +497,14 @@ void window::set_cursor_shape(cursor::shape shape)
 
     switch (shape)
     {
-        case cursor::shape::ARROW:       glfw_shape = GLFW_ARROW_CURSOR;       break;
-        case cursor::shape::IBEAM:       glfw_shape = GLFW_IBEAM_CURSOR;       break;
-        case cursor::shape::CROSSHAIR:   glfw_shape = GLFW_CROSSHAIR_CURSOR;   break;
-        case cursor::shape::HAND:        glfw_shape = GLFW_HAND_CURSOR;        break;
-        case cursor::shape::HRESIZE:     glfw_shape = GLFW_HRESIZE_CURSOR;     break;
-        case cursor::shape::VRESIZE:     glfw_shape = GLFW_VRESIZE_CURSOR;     break;
-        case cursor::shape::ALL_RESIZE:  glfw_shape = GLFW_RESIZE_ALL_CURSOR;  break;
-        case cursor::shape::NOT_ALLOWED: glfw_shape = GLFW_NOT_ALLOWED_CURSOR; break;
+        case cursor::SHAPE_ARROW:       glfw_shape = GLFW_ARROW_CURSOR;       break;
+        case cursor::SHAPE_IBEAM:       glfw_shape = GLFW_IBEAM_CURSOR;       break;
+        case cursor::SHAPE_CROSSHAIR:   glfw_shape = GLFW_CROSSHAIR_CURSOR;   break;
+        case cursor::SHAPE_HAND:        glfw_shape = GLFW_HAND_CURSOR;        break;
+        case cursor::SHAPE_HRESIZE:     glfw_shape = GLFW_HRESIZE_CURSOR;     break;
+        case cursor::SHAPE_VRESIZE:     glfw_shape = GLFW_VRESIZE_CURSOR;     break;
+        case cursor::SHAPE_ALL_RESIZE:  glfw_shape = GLFW_RESIZE_ALL_CURSOR;  break;
+        case cursor::SHAPE_NOT_ALLOWED: glfw_shape = GLFW_NOT_ALLOWED_CURSOR; break;
         default:                                                               return;
     }
 
@@ -521,7 +521,7 @@ void window::set_cursor_shape(cursor::shape shape)
 
 void window::set_cursor_shape(const img::image& shape, int shape_id, const math::vec2i& hotspot)
 {
-    assert(shape_id > static_cast<int>(cursor::shape::NOT_ALLOWED));
+    assert(shape_id > static_cast<int>(cursor::shape::SHAPE_NOT_ALLOWED));
 
     if (s_cursor_cache.find(shape_id) == s_cursor_cache.end())
     {
@@ -551,13 +551,13 @@ cursor::mode window::get_cursor_mode() const
 
     switch (glfw_cursor_mode)
     {
-        case GLFW_CURSOR_NORMAL:   return cursor::mode::NORMAL;
-        case GLFW_CURSOR_HIDDEN:   return cursor::mode::HIDDEN;
-        case GLFW_CURSOR_DISABLED: return cursor::mode::DISABLED;
+        case GLFW_CURSOR_NORMAL:   return cursor::mode::MODE_NORMAL;
+        case GLFW_CURSOR_HIDDEN:   return cursor::mode::MODE_HIDDEN;
+        case GLFW_CURSOR_DISABLED: return cursor::mode::MODE_DISABLED;
         default:                   break;
     }
 
-    return cursor::mode::NORMAL;
+    return cursor::mode::MODE_NORMAL;
 }
 
 void window::set_cursor_mode(cursor::mode mode)
@@ -566,9 +566,9 @@ void window::set_cursor_mode(cursor::mode mode)
 
     switch (mode)
     {
-        case cursor::mode::NORMAL:   glfw_cursor_mode = GLFW_CURSOR_NORMAL;   break;
-        case cursor::mode::HIDDEN:   glfw_cursor_mode = GLFW_CURSOR_HIDDEN;   break;
-        case cursor::mode::DISABLED: glfw_cursor_mode = GLFW_CURSOR_DISABLED; break;
+        case cursor::mode::MODE_NORMAL:   glfw_cursor_mode = GLFW_CURSOR_NORMAL;   break;
+        case cursor::mode::MODE_HIDDEN:   glfw_cursor_mode = GLFW_CURSOR_HIDDEN;   break;
+        case cursor::mode::MODE_DISABLED: glfw_cursor_mode = GLFW_CURSOR_DISABLED; break;
         default:                                                              return;
     }
 

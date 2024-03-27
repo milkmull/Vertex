@@ -10,39 +10,39 @@
 
 namespace vx {
 namespace app {
+namespace event {
 
-enum class event_category : int
+enum category : int
 {
-    WINDOW,
-    KEY,
-    MOUSE,
-    JOYSTICK
+    CATEGORY_WINDOW,
+    CATEGORY_KEY,
+    CATEGORY_MOUSE,
+    CATEGORY_JOYSTICK
 };
 
-enum class event_type : int
+enum type : int
 {
-    WINDOW_CLOSE,
-    WINDOW_RESIZE,
-    WINDOW_MOVE,
-    WINDOW_ICONIFY,
-    WINDOW_MAXIMIZE,
-    WINDOW_FOCUS,
+    TYPE_WINDOW_CLOSE,
+    TYPE_WINDOW_RESIZE,
+    TYPE_WINDOW_MOVE,
+    TYPE_WINDOW_ICONIFY,
+    TYPE_WINDOW_MAXIMIZE,
+    TYPE_WINDOW_FOCUS,
 
-    KEY_DOWN,
-    KEY_REPEAT,
-    KEY_UP,
+    TYPE_KEY_DOWN,
+    TYPE_KEY_REPEAT,
+    TYPE_KEY_UP,
 
-    TEXT_INPUT,
+    TYPE_TEXT_INPUT,
 
-    CURSOR_MOVE,
-    CURSOR_ENTER,
+    TYPE_CURSOR_MOVE,
+    TYPE_CURSOR_ENTER,
 
-    MOUSE_BUTTON_DOWN,
-    MOUSE_BUTTON_UP,
-    MOUSE_SCROLL,
+    TYPE_MOUSE_BUTTON_DOWN,
+    TYPE_MOUSE_BUTTON_UP,
+    TYPE_MOUSE_SCROLL,
 
-    JOYSTICK_BUTTON_DOWN,
-    JOYSTICK_BUTTON_UP
+    TYPE_JOYSTICK_CONNECTION
 };
 
 struct event
@@ -89,7 +89,13 @@ struct event
         float y;
     };
 
-    event_type type;
+    struct joystick_connection_event
+    {
+        joystick::joystick id;
+        bool connected;
+    };
+
+    type type;
 
     union
     {
@@ -107,10 +113,15 @@ struct event
 
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;
+
+        state_event joystick_connection;
     };
 
 };
 
+using callback_fn = void(*)(event&);
+
+}
 }
 }
 

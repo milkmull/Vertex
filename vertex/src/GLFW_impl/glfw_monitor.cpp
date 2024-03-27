@@ -1,7 +1,7 @@
-#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
 #include "vertex/app/display/monitor.h"
+#include "vertex_impl/app/init_internal.h"
 
 namespace vx {
 namespace app {

@@ -24,8 +24,6 @@ public:
         math::vec2i size;
     };
 
-    using event_callback = void(*)(event&);
-
 public:
 
     // =============== constructors ===============
@@ -158,7 +156,7 @@ private:
 private:
 
     void* m_window = nullptr;
-    event_callback m_event_callback = nullptr;
+    event_callback_fn m_event_callback = nullptr;
 
 };
 

@@ -1,6 +1,6 @@
 #include "vertex/image/raw/io/load.h"
 
-#include "vertex/detail/setup.h"
+#include "vertex/setup.h"
 #include "vertex/image/util/image_info_helpers.h"
 
 #ifdef VX_IMAGE_LOAD_IMPLIMENTATION

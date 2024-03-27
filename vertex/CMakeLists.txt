@@ -3,7 +3,7 @@
 #--------------------------------------------------------------------
 
 # Define library
-if (VX_BUILD_SHARED_LIBS)
+if(VX_BUILD_SHARED_LIBS)
     message(STATUS "Building shared libraries")
     add_library(${PROJECT_NAME} SHARED)
 else()
@@ -53,45 +53,19 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${STB_IMAGE_FILES})
 target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
 
 #--------------------------------------------------------------------
-# App
+# Window
 #--------------------------------------------------------------------
 
-if (NOT VX_BACKEND STREQUAL "None")
+if(VX_BUILD_WINDOW)
 
-    # GLFW
-    if (VX_WINDOWING STREQUAL "GLFW")
-
-        if (VX_BUILD_SHARED_LIBS)
-            set(GLFW_LIBRARY_TYPE "SHARED")
-        else()
-            set(GLFW_LIBRARY_TYPE "STATIC")
-        endif()
-        
-        add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw")
-        
-        target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw/include")
-        target_link_libraries(${PROJECT_NAME} glfw ${GLFW_LIBRARIES})
-        
-        file(GLOB_RECURSE VX_GLFW_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW_impl/*.h"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/GLFW_impl/*.cpp"
-        )
-        
-        source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_GLFW_FILES})
-        target_sources(${PROJECT_NAME} PRIVATE ${VX_GLFW_FILES})
-        
-        target_compile_definitions(${PROJECT_NAME} PRIVATE "GLFW_INCLUDE_NONE")
-        
+    if(VX_OS_WINDOWS)
+    
+    
+    
     endif()
     
-    # Vertex App
-    file(GLOB_RECURSE VX_APP_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
-    )
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
-    
-    target_sources(${PROJECT_NAME} PRIVATE ${VX_APP_FILES})
-
 endif()
+
+#--------------------------------------------------------------------
+# Install
+#--------------------------------------------------------------------

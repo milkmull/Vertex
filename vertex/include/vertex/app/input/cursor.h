@@ -6,23 +6,23 @@ namespace vx {
 namespace app {
 namespace cursor {
 
-enum class mode : int
+enum mode : int
 {
-    NORMAL,
-    HIDDEN,
-    DISABLED
+    MODE_NORMAL,
+    MODE_HIDDEN,
+    MODE_DISABLED
 };
 
-enum class shape : int
+enum shape : int
 {
-    ARROW,
-    IBEAM,
-    CROSSHAIR,
-    HAND,
-    HRESIZE,
-    VRESIZE,
-    ALL_RESIZE,
-    NOT_ALLOWED
+    SHAPE_ARROW,
+    SHAPE_IBEAM,
+    SHAPE_CROSSHAIR,
+    SHAPE_HAND,
+    SHAPE_HRESIZE,
+    SHAPE_VRESIZE,
+    SHAPE_ALL_RESIZE,
+    SHAPE_NOT_ALLOWED
 };
 
 }

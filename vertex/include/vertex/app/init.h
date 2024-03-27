@@ -11,8 +11,8 @@ bool init();
 bool is_init();
 void terminate();
 
-using vx_error_fn = void (*)(error_code code);
-void set_error_callback(vx_error_fn callback);
+using error_fn = void (*)(error_code code);
+void set_error_callback(error_fn callback);
 
 }
 }

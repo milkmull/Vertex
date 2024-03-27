@@ -93,6 +93,14 @@
 
 #endif
 
+// =============== dll ===============
+
+#if defined(VX_BUILD_SHARED_LIBS)
+#   define VX_DLL_EXPORT __declspec(dllexport)
+#else
+#   define VX_DLL_EXPORT 
+#endif
+
 // =============== file function and line ===============
 
 #if defined(VX_COMPILER_MSVC) || defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)

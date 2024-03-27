@@ -2,55 +2,81 @@
 
 #if defined(VX_APPLICATION)
 
-#include <vector>
+#include <array>
 
 namespace vx {
 namespace app {
 namespace joystick {
 
-enum class button : int
+enum joystick : int
 {
-    UNKNOWN = -1,
+    JOYSTICK_1          = 0,
+    JOYSTICK_2          = 1,
+    JOYSTICK_3          = 2,
+    JOYSTICK_4          = 3,
+    JOYSTICK_5          = 4,
+    JOYSTICK_6          = 5,
+    JOYSTICK_7          = 6,
+    JOYSTICK_8          = 7,
+    JOYSTICK_9          = 8,
+    JOYSTICK_10         = 9,
+    JOYSTICK_11         = 10,
+    JOYSTICK_12         = 11,
+    JOYSTICK_13         = 12,
+    JOYSTICK_14         = 13,
+    JOYSTICK_15         = 14,
+    JOYSTICK_16         = 15,
+};
 
-    A = 0,
-    B = 1,
-    X = 2,
-    Y = 3,
+enum button : int
+{
+    BUTTON_UNKNOWN             = -1,
 
-    BACK = 4,
-    GUIDE = 5,
-    START = 6,
+    BUTTON_A                   = 0,
+    BUTTON_B                   = 1,
+    BUTTON_X                   = 2,
+    BUTTON_Y                   = 3,
 
-    LEFT_STICK = 7,
-    RIGHT_STICK = 8,
+    BUTTON_CROSS               = BUTTON_A,
+    BUTTON_CIRCLE              = BUTTON_B,
+    BUTTON_SQUARE              = BUTTON_X,
+    BUTTON_TRIANGLE            = BUTTON_Y,
 
-    LEFT_SHOULDER = 9,
-    RIGHT_SHOULDER = 10,
+    BUTTON_LEFT_BUMPER         = 4,
+    BUTTON_RIGHT_BUMPER        = 5,
 
-    DPAD_UP = 11,
-    DPAD_DOWN = 12,
-    DPAD_LEFT = 13,
-    DPAD_RIGHT = 14,
+    BUTTON_BACK                = 6,
+    BUTTON_START               = 7,
+    BUTTON_GUIDE               = 8,
 
-    PADDLE_1 = 15,
-    PADDLE_2 = 16,
-    PADDLE_3 = 17,
-    PADDLE_4 = 18,
+    BUTTON_LEFT_THUMB          = 9,
+    BUTTON_RIGHT_THUMB         = 10,
 
-    TOUCH_PAD = 19,
+    BUTTON_DPAD_UP             = 11,
+    BUTTON_DPAD_RIGHT          = 12,
+    BUTTON_DPAD_DOWN           = 13,
+    BUTTON_DPAD_LEFT           = 14
+};
 
-    EXTRA_1 = 20
+enum axis : int
+{
+    AXIS_LEFT_X              = 0,
+    AXIS_LEFT_Y              = 1,
+    AXIS_RIGHT_X             = 2,
+    AXIS_RIGHT_Y             = 3,
+    AXIS_LEFT_TRIGGER        = 4,
+    AXIS_RIGHT_TRIGGER       = 5
 };
 
 struct state
 {
-    unsigned char buttons[15];
-    float axes[6];
+    std::array<bool, 15> buttons;
+    std::array<float, 6> axes;
 };
 
-bool is_present(int id);
-const char* get_name(int id);
-state get_state(int id);
+bool is_present(joystick id);
+const char* get_name(joystick id);
+state get_state(joystick id);
 
 }
 }

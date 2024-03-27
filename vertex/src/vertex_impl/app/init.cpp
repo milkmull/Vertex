@@ -29,9 +29,9 @@ void terminate()
     s_is_init = false;
 }
 
-vx_error_fn s_error_callback = nullptr;
+error_fn s_error_callback = nullptr;
 
-void set_error_callback(vx_error_fn callback)
+void set_error_callback(error_fn callback)
 {
     s_error_callback = callback;
 }
