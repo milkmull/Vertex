@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 namespace vx {
 namespace app {
 
@@ -19,5 +17,3 @@ enum class error_code : int
 
 }
 }
-
-#endif

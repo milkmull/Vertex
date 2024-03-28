@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 #include <vector>
 
 #include "vertex/math/math/type/vec2i.h"
@@ -22,5 +20,3 @@ math::vec2i get_monitor_physical_size(monitor monitor);
 }
 }
 }
-
-#endif

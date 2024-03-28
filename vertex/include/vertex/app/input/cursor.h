@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 namespace vx {
 namespace app {
 namespace cursor {
@@ -28,5 +26,3 @@ enum shape : int
 }
 }
 }
-
-#endif

@@ -200,6 +200,16 @@
 #   define VX_FORCE_INLINE inline
 #endif
 
+// =============== fallthrough ===============
+
+#if defined(VX_COMPILER_MSVC)
+#   define VX_FALLTHROUGH __fallthrough
+#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#   define VX_FALLTHROUGH [[clang::fallthrough]]
+#else
+#   define VX_FALLTHROUGH do {} while (0)
+#endif
+
 // =============== assert ===============
 
 #ifdef VX_DEBUG

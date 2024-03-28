@@ -22,17 +22,17 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/
 #--------------------------------------------------
 
 file(GLOB_RECURSE VX_CORE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/detail/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/setup.h"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/tools/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/detail/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/detail/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
@@ -60,7 +60,15 @@ if(VX_BUILD_WINDOW)
 
     if(VX_OS_WINDOWS)
     
-    
+        # Vertex App
+        file(GLOB_RECURSE VX_APP_FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/win32_*.h"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/win32_*.cpp"
+        )
+        source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
+        
+        target_sources(${PROJECT_NAME} PRIVATE ${VX_APP_FILES})
     
     endif()
     

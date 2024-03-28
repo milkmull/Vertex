@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 #include <array>
 
 namespace vx {
@@ -81,5 +79,3 @@ state get_state(joystick id);
 }
 }
 }
-
-#endif

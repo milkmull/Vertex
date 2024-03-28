@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 namespace vx {
 namespace app {
 namespace keyboard {
@@ -145,5 +143,3 @@ enum key : int
 }
 }
 }
-
-#endif

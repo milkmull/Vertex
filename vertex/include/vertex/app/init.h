@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 #include "error_code.h"
 
 namespace vx {
@@ -16,5 +14,3 @@ void set_error_callback(error_fn callback);
 
 }
 }
-
-#endif

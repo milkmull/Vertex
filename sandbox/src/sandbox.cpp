@@ -1,91 +1,23 @@
 #include "sandbox/sandbox.h"
 
-#include "vertex/app/init.h"
-#include "vertex/app/display/window.h"
-#include "vertex/image/io_load.h"
-
-#include "vertex/app/display/monitor.h"
-
-static bool open = true;
-
-//static void callback(vx::app::event& e)
-//{
-//    switch (e.type)
-//    {
-//        case vx::app::event_type::WINDOW_CLOSE:
-//            VX_LOG_INFO << "close event" << std::endl;
-//            open = false;
-//            break;
-//
-//        case vx::app::event_type::WINDOW_RESIZE:
-//            VX_LOG_INFO << "resize event: { " << e.window_resize.width << ", " << e.window_resize.height << " }" << std::endl;
-//            break;
-//
-//        case vx::app::event_type::WINDOW_MOVE:
-//            VX_LOG_INFO << "move event: { " << e.window_move.x << ", " << e.window_move.y << " }" << std::endl;
-//            break;
-//
-//        case vx::app::event_type::WINDOW_ICONIFY:
-//            VX_LOG_INFO << "iconify event: " << e.window_iconify.value << std::endl;
-//            break;
-//
-//        case vx::app::event_type::WINDOW_MAXIMIZE:
-//            VX_LOG_INFO << "maximize event: " << e.window_maximize.value << std::endl;
-//            break;
-//
-//        case vx::app::event_type::WINDOW_FOCUS:
-//            VX_LOG_INFO << "focus event: " << e.window_focus.value << std::endl;
-//            break;
-//
-//        case vx::app::event_type::KEY_DOWN:
-//            VX_LOG_INFO << "key down event: " << (char)e.key.key << std::endl;
-//            break;
-//
-//        case vx::app::event_type::KEY_UP:
-//            VX_LOG_INFO << "key up event: " << (char)e.key.key << std::endl;
-//            break;
-//
-//        case vx::app::event_type::TEXT_INPUT:
-//            VX_LOG_INFO << "text event: " << e.text_input.codepoint;
-//            break;
-//
-//        default:
-//            break;
-//    }
-//}
+#include "vertex/tools/encoding/utf.h"
 
 int main()
 {
     using namespace vx;
 
-    img::error_code err;
+    uint32_t x = 0xA1C2;
+    VX_LOG_INFO << std::hex << x;
+    
+    uint32_t codepoint;
+    tools::encode::utf8::decode((uint8_t*)(&x), (uint8_t*)(&x) + sizeof(x), codepoint);
+    
+    VX_LOG_INFO << codepoint;
 
-    img::image i;
-    i = img::load("../../assets/michael.png", err);
+    uint32_t y;
+    tools::encode::utf8::encode(codepoint, (uint8_t*)(&y));
 
-    //vx::app::init();
-    //
-    //vx::app::joystick::joystick stick = vx::app::joystick::JOYSTICK_1;
-    //
-    //while (vx::app::joystick::is_present(stick))
-    //{
-    //    vx::app::joystick::state state;
-    //    state = vx::app::joystick::get_state(stick);
-    //
-    //    for (int i = 0; i < state.axes.size(); ++i)
-    //    {
-    //        std::cout << i << ": " << state.axes[i] << ' ';
-    //    }
-    //
-    //    if (state.buttons[vx::app::joystick::button::A])
-    //    {
-    //        break;
-    //    }
-    //
-    //    std::cout << std::endl;
-    //}
-    //
-    //vx::app::terminate();
+    VX_LOG_INFO << std::hex << y;
 
     return 0;
 }

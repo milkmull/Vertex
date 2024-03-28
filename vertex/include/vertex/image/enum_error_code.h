@@ -3,6 +3,10 @@
 namespace vx {
 namespace img {
 
+#ifdef ERROR
+#   undef ERROR
+#endif
+
 enum class error_code
 {
     NONE = 0,

@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 #include "vertex/math/math/type/vec2.h"
 #include "vertex/math/math/type/vec2i.h"
 #include "vertex/image/image.h"
@@ -44,7 +42,7 @@ private:
 
 public:
 
-    inline void set_event_callback(const event_callback callback) { m_event_callback = callback; }
+    inline void set_event_callback(const event_callback_fn callback) { m_event_callback = callback; }
     void poll_events();
 
     // =============== open ===============
@@ -162,5 +160,3 @@ private:
 
 }
 }
-
-#endif

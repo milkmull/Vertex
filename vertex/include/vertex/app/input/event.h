@@ -1,7 +1,5 @@
 #pragma once
 
-#if defined(VX_APPLICATION)
-
 #include "keyboard.h"
 #include "mouse.h"
 #include "joystick.h"
@@ -10,7 +8,6 @@
 
 namespace vx {
 namespace app {
-namespace event {
 
 enum category : int
 {
@@ -119,10 +116,7 @@ struct event
 
 };
 
-using callback_fn = void(*)(event&);
+using event_callback_fn = void(*)(event&);
 
 }
 }
-}
-
-#endif
