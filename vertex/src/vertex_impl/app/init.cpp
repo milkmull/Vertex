@@ -7,11 +7,11 @@ static bool s_is_init = false;
 
 bool init()
 {
-    if (!init_video())
-    {
-        terminate();
-        return false;
-    }
+    //if (!init_video())
+    //{
+    //    terminate();
+    //    return false;
+    //}
 
     s_is_init = true;
     return true;
@@ -24,23 +24,22 @@ bool is_init()
 
 void terminate()
 {
-    terminate_video();
+    //terminate_video();
 
     s_is_init = false;
 }
 
 error_fn s_error_callback = nullptr;
-
 void set_error_callback(error_fn callback)
 {
     s_error_callback = callback;
 }
 
-void throw_error(error_code code)
+void throw_error(error_code code, const char* description)
 {
     if (s_error_callback)
     {
-        s_error_callback(code);
+        s_error_callback(code, description);
     }
 }
 

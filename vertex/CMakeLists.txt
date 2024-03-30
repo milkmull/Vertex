@@ -27,7 +27,6 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/tools/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
@@ -58,17 +57,25 @@ target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
 
 if(VX_BUILD_WINDOW)
 
+    # Vertex App
+    file(GLOB_RECURSE VX_APP_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
+    )
+    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
+    
+    target_sources(${PROJECT_NAME} PRIVATE ${VX_APP_FILES})
+
     if(VX_OS_WINDOWS)
     
-        # Vertex App
-        file(GLOB_RECURSE VX_APP_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/win32_*.h"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/win32_*.cpp"
+        file(GLOB_RECURSE VX_WINDOWS_APP_FILES
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/app/*.h"
+            "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/app/*.cpp"
         )
-        source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
+        source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_WINDOWS_APP_FILES})
         
-        target_sources(${PROJECT_NAME} PRIVATE ${VX_APP_FILES})
+        target_sources(${PROJECT_NAME} PRIVATE ${VX_WINDOWS_APP_FILES})
     
     endif()
     

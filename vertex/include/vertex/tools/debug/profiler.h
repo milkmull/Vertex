@@ -6,7 +6,7 @@
 #include <sstream>
 #include <thread>
 
-#include "vertex/detail/setup.h"
+#include "vertex/config.h"
 
 namespace vx {
 

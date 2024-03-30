@@ -6,4 +6,4 @@
 #include <cmath>
 
 #include "../util/type_traits.h"
-#include "../../detail/setup.h"
+#include "../../config.h"

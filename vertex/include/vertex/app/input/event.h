@@ -17,29 +17,29 @@ enum category : int
     CATEGORY_JOYSTICK
 };
 
-enum type : int
+enum event_type : int
 {
-    TYPE_WINDOW_CLOSE,
-    TYPE_WINDOW_RESIZE,
-    TYPE_WINDOW_MOVE,
-    TYPE_WINDOW_ICONIFY,
-    TYPE_WINDOW_MAXIMIZE,
-    TYPE_WINDOW_FOCUS,
+    WINDOW_CLOSE,
+    WINDOW_RESIZE,
+    WINDOW_ICONIFY,
+    WINDOW_MAXIMIZE,
+    WINDOW_MOVE,
+    WINDOW_FOCUS,
 
-    TYPE_KEY_DOWN,
-    TYPE_KEY_REPEAT,
-    TYPE_KEY_UP,
+    KEY_DOWN,
+    KEY_REPEAT,
+    KEY_UP,
 
-    TYPE_TEXT_INPUT,
+    TEXT_INPUT,
 
-    TYPE_CURSOR_MOVE,
-    TYPE_CURSOR_ENTER,
+    CURSOR_MOVE,
+    CURSOR_ENTER,
 
-    TYPE_MOUSE_BUTTON_DOWN,
-    TYPE_MOUSE_BUTTON_UP,
-    TYPE_MOUSE_SCROLL,
+    MOUSE_BUTTON_DOWN,
+    MOUSE_BUTTON_UP,
+    MOUSE_SCROLL,
 
-    TYPE_JOYSTICK_CONNECTION
+    JOYSTICK_CONNECTION
 };
 
 struct event
@@ -92,7 +92,7 @@ struct event
         bool connected;
     };
 
-    type type;
+    event_type type;
 
     union
     {

@@ -2,12 +2,10 @@
 
 #include <locale>
 
-#include "vertex/setup.h"
-#include "../iter/type_traits.h"
+#include "vertex/config.h"
 
 namespace vx {
 namespace tools {
-namespace encode {
 
 // =============== utf8 ===============
 
@@ -650,6 +648,5 @@ inline constexpr uint32_t decode_wide(T input)
 
 } // utf32
 
-}
 }
 }

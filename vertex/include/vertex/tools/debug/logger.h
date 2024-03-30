@@ -4,7 +4,7 @@
 #include <mutex>
 #include <sstream>
 
-#include "vertex/setup.h"
+#include "vertex/config.h"
 
 namespace vx {
 

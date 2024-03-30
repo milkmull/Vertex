@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/setup.h"
+#include "vertex/config.h"
 
 // Clip control, define VX_FORCE_DEPTH_ZERO_TO_ONE before including vertex
 // to use a clip space between 0 to 1.

@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include "../../detail/setup.h"
+#include "../../config.h"
 
 namespace vx {
 namespace math {
