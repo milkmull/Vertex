@@ -21,10 +21,11 @@ enum event_type : int
 {
     WINDOW_CLOSE,
     WINDOW_RESIZE,
-    WINDOW_ICONIFY,
+    WINDOW_MINIMIZE,
     WINDOW_MAXIMIZE,
     WINDOW_MOVE,
     WINDOW_FOCUS,
+    WINDOW_SHOW,
 
     KEY_DOWN,
     KEY_REPEAT,
@@ -44,6 +45,11 @@ enum event_type : int
 
 struct event
 {
+    struct state_event
+    {
+        bool value;
+    };
+
     struct size_event
     {
         int width;
@@ -54,11 +60,6 @@ struct event
     {
         int x;
         int y;
-    };
-
-    struct state_event
-    {
-        bool value;
     };
 
     struct key_event
@@ -97,10 +98,11 @@ struct event
     union
     {
         size_event window_resize;
-        move_event window_move;
-        state_event window_iconify;
+        state_event window_minimize;
         state_event window_maximize;
+        move_event window_move;
         state_event window_focus;
+        state_event window_show;
 
         key_event key;
         text_input_event text_input;

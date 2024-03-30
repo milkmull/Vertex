@@ -20,10 +20,8 @@ public:
 
     // =============== constructors ===============
 
-    static std::unique_ptr<window> create(const std::string& title, const math::vec2i& size, const math::vec2i& position);
-
-    window() = default;
-    virtual ~window() = default;
+    window(const std::string& title, const math::vec2i& size, const math::vec2i& position);
+    ~window();
 
     window(const window&) = delete;
     window(window&&) = delete;
@@ -33,126 +31,119 @@ public:
 
     // =============== events ===============
 
-protected:
-
-    virtual void process_events() = 0;
-
-public:
-
-    virtual void post_event(const event& e);
+    void post_event(const event& e);
     bool pop_event(event& e, bool block = false);
 
-    //virtual inline void set_event_callback(const event_callback_fn callback) = 0;
+    //inline void set_event_callback(const event_callback_fn callback);
     ////void poll_events();
     //
     // =============== open ===============
     
-    virtual bool is_open() const = 0;
+    bool is_open() const;
     
     //// =============== close ===============
     //
-    //virtual bool should_close() const = 0;
-    //virtual void set_should_close(bool should_close) = 0;
+    //bool should_close() const;
+    //void set_should_close(bool should_close);
     //
     // =============== title ===============
     
-    virtual std::string get_title() const = 0;
-    virtual void set_title(const std::string& title) = 0;
+    std::string get_title() const;
+    void set_title(const std::string& title);
     
     // =============== position ===============
     
-    virtual math::vec2i get_position() const = 0;
-    virtual void set_position(const math::vec2i& position) = 0;
+    math::vec2i get_position() const;
+    void set_position(const math::vec2i& position);
     
     // =============== size ===============
     
-    virtual math::vec2i get_size() const = 0;
-    virtual void set_size(const math::vec2i& size) = 0;
+    math::vec2i get_size() const;
+    void set_size(const math::vec2i& size);
     
-    //virtual math::vec2i get_min_size() const = 0;
-    //virtual math::vec2i get_max_size() const = 0;
-    //
-    //virtual void set_min_size(const math::vec2i& size) = 0;
-    //virtual void set_max_size(const math::vec2i& size) = 0;
+    math::vec2i get_min_size() const;
+    math::vec2i get_max_size() const;
+    
+    void set_min_size(const math::vec2i& size);
+    void set_max_size(const math::vec2i& size);
     
     //// =============== resizable ===============
     //
-    //virtual void set_resizable(bool resizable) = 0;
-    //virtual bool is_resizable() const = 0;
+    //void set_resizable(bool resizable);
+    //bool is_resizable() const;
     //
     //// =============== bordered ===============
     //
-    //virtual void set_bordered(bool bordered) = 0;
-    //virtual bool is_bordered() const = 0;
+    //void set_bordered(bool bordered);
+    //bool is_bordered() const;
     //
     //// =============== always on top ===============
     //
-    //virtual void set_always_on_top(bool always_on_top) = 0;
-    //virtual bool is_always_on_top() const = 0;
+    //void set_always_on_top(bool always_on_top);
+    //bool is_always_on_top() const;
     //
-    //// =============== iconify and maximize ===============
-    //
-    //virtual void iconify() = 0;
-    //virtual bool is_iconified() const = 0;
-    //
-    //virtual void maximize() = 0;
-    //virtual bool is_maximized() const = 0;
-    //
-    //virtual void restore() = 0;
-    //
-    //// =============== hide and show ===============
-    //
-    //virtual void hide() = 0;
-    //virtual void show() = 0;
-    //
-    //virtual bool is_visible() const = 0;
-    //
-    //// =============== focus ===============
-    //
-    //virtual void focus() = 0;
-    //virtual bool is_focused() const = 0;
-    //
+    // =============== window ops ===============
+    
+    void show();
+    void hide();
+    
+    bool is_visible() const;
+
+    void minimize();
+    bool is_minimized() const;
+    
+    void maximize();
+    bool is_maximized() const;
+    
+    void restore();
+
+    // =============== focus ===============
+
+    void focus();
+    bool is_focused() const;
+    
     //// =============== attention ===============
     //
-    //virtual void request_attention() = 0;
+    //void request_attention();
     //
     //// =============== opacity ===============
     //
-    //virtual float get_opacity() const = 0;
-    //virtual void set_opacity(float opacity) = 0;
+    //float get_opacity() const;
+    //void set_opacity(float opacity);
     //
     //// =============== hovered ===============
     //
-    //virtual bool is_hovered() const = 0;
+    //bool is_hovered() const;
     //
     //// =============== icon ===============
     //
-    //virtual void set_icon(const img::image& icon) = 0;
-    //virtual void clear_icon() = 0;
+    //void set_icon(const img::image& icon);
+    //void clear_icon();
     //
     //// =============== cursor ===============
     //
-    //virtual math::vec2 get_cursor_position() const = 0;
-    //virtual void set_cursor_position(const math::vec2& cursor_position) = 0;
+    //math::vec2 get_cursor_position() const;
+    //void set_cursor_position(const math::vec2& cursor_position);
     //
-    //virtual void set_cursor_shape(cursor::shape shape) = 0;
-    //virtual void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0)) = 0;
-    //virtual void clear_cursor_shape() = 0;
+    //void set_cursor_shape(cursor::shape shape);
+    //void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
+    //void clear_cursor_shape();
     //
-    //virtual cursor::mode get_cursor_mode() const = 0;
-    //virtual void set_cursor_mode(cursor::mode mode) = 0;
+    //cursor::mode get_cursor_mode() const;
+    //void set_cursor_mode(cursor::mode mode);
     //
     //// =============== mouse ===============
     //
-    //virtual bool is_mouse_button_pressed(mouse::button button) const = 0;
+    //bool is_mouse_button_pressed(mouse::button button) const;
     //
     //// =============== key ===============
     //
-    //virtual bool is_key_pressed(keyboard::key key) const = 0;
+    //bool is_key_pressed(keyboard::key key) const;
 
 private:
 
-    std::queue<event> m_events;
+    class window_impl;
+    std::unique_ptr<window_impl> m_window;
 
 };
 

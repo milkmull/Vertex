@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include "vertex/app/display/window.h"
 #include "win32_header.h"
 #include "vertex_impl/app/init_internal.h"
@@ -7,7 +9,7 @@
 namespace vx {
 namespace app {
 
-class win32_window : public window
+class window::window_impl
 {
 public:
 
@@ -20,14 +22,14 @@ public:
 
     // =============== constructors ===============
 
-    win32_window(const std::string& title, const math::vec2i& size, const math::vec2i& position);
-    ~win32_window() override;
+    window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position);
+    ~window_impl();
 
-    win32_window(const win32_window&) = delete;
-    win32_window(win32_window&&) = delete;
+    window_impl(const window_impl&) = delete;
+    window_impl(window_impl&&) = delete;
 
-    win32_window& operator=(const win32_window&) = delete;
-    win32_window& operator=(win32_window&&) = delete;
+    window_impl& operator=(const window_impl&) = delete;
+    window_impl& operator=(window_impl&&) = delete;
 
 private:
 
@@ -37,40 +39,86 @@ public:
 
     // =============== open ===============
 
-    bool is_open() const override;
+    bool is_open() const;
 
 private:
 
     // =============== events ===============
 
     static LRESULT CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-    void process_event(UINT Msg, WPARAM wParam, LPARAM lParam);
-    void process_events() override;
+    bool process_event(UINT Msg, WPARAM wParam, LPARAM lParam);
+    void process_events();
 
 public:
 
+    void post_event(const event& e);
+    bool pop_event(event& e, bool block);
+
     // =============== title ===============
 
-    std::string get_title() const override;
-    void set_title(const std::string& title) override;
+    std::string get_title() const;
+    void set_title(const std::string& title);
 
-    // =============== position ===============
-
-    math::vec2i get_position() const override;
-    void set_position(const math::vec2i& position) override;
-
-    // =============== size ===============
-
-    math::vec2i get_size() const override;
-    void set_size(const math::vec2i& size) override;
+    // =============== position and size ===============
 
 private:
 
-    HWND m_handle = nullptr;
+    math::vec2i content_position_to_window_position(const math::vec2i& position) const;
+    math::vec2i content_size_to_window_size(const math::vec2i& size) const;
 
-    bool m_resizing_or_moving = false;
+public:
+
+    math::vec2i get_position() const;
+    void set_position(const math::vec2i& position);
+
+    math::vec2i get_size() const;
+    void set_size(const math::vec2i& size);
+
+private:
+
+    static constexpr math::vec2i s_default_min_size = math::vec2i(0);
+    static constexpr math::vec2i s_default_max_size = math::vec2i(50000);
+
+public:
+
+    math::vec2i get_min_size() const;
+    math::vec2i get_max_size() const;
+
+    void set_min_size(const math::vec2i& size);
+    void set_max_size(const math::vec2i& size);
+
+    // =============== window ops ===============
+
+    void show();
+    void hide();
+
+    bool is_visible() const;
+
+    void minimize();
+    bool is_minimized() const;
+
+    void maximize();
+    bool is_maximized() const;
+
+    void restore();
+
+    // =============== focus ===============
+
+    void focus();
+    bool is_focused() const;
+
+private:
+
+    HWND m_handle;
+
+    std::queue<event> m_events;
+
+    bool m_resizing_or_moving;
     math::vec2i m_last_size;
     math::vec2i m_last_position;
+
+    math::vec2i m_min_size;
+    math::vec2i m_max_size;
 
 };
 
