@@ -2,6 +2,7 @@
 
 #include "vertex/math/math/util/to_string.h"
 #include "vertex/tools/string/string_fn.h"
+#include "vertex/image/io_load.h"
 #include "vertex/app/display/window.h"
 
 static void error_callback(vx::app::error_code error, const char* message)
@@ -14,7 +15,9 @@ int main()
     using namespace vx;
 
     vx::app::set_error_callback(error_callback);
-    vx::app::init();
+
+    img::error_code err;
+    img::image icon = img::load("../../assets/michael.png", err);
 
     math::vec2i position = { 200, 200 };
     math::vec2i size = { 800, 600 };
@@ -23,6 +26,9 @@ int main()
 
     app::event e;
     bool running = window.is_open();
+
+    icon.convert(img::image_format::RGB8);
+    window.set_icon(icon);
 
     while (running)
     {
@@ -51,9 +57,9 @@ int main()
 
             if (e.type == app::event_type::MOUSE_BUTTON_DOWN)
             {
-                window.hide();
+                window.maximize();
                 std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                window.minimize();
+                std::cout << window.request_focus();
             }
 
             if (e.type == app::event_type::WINDOW_SHOW)

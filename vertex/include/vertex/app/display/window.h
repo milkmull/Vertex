@@ -97,15 +97,11 @@ public:
     
     void restore();
 
-    // =============== focus ===============
-
-    void focus();
+    bool request_focus();
     bool is_focused() const;
     
-    //// =============== attention ===============
-    //
-    //void request_attention();
-    //
+    void request_attention();
+    
     //// =============== opacity ===============
     //
     //float get_opacity() const;
@@ -115,11 +111,11 @@ public:
     //
     //bool is_hovered() const;
     //
-    //// =============== icon ===============
-    //
-    //void set_icon(const img::image& icon);
-    //void clear_icon();
-    //
+    // =============== icon ===============
+    
+    void set_icon(const img::image& icon);
+    void clear_icon();
+    
     //// =============== cursor ===============
     //
     //math::vec2 get_cursor_position() const;

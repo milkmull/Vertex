@@ -138,15 +138,31 @@ void window::restore()
     m_window->restore();
 }
 
-// =============== focus ===============
-
-void window::focus()
+bool window::request_focus()
 {
+    return m_window->request_focus();
 }
 
 bool window::is_focused() const
 {
-    return true;
+    return m_window->is_focused();
+}
+
+void window::request_attention()
+{
+    m_window->request_attention();
+}
+
+// =============== icon ===============
+
+void window::set_icon(const img::image& icon)
+{
+    m_window->set_icon(icon);
+}
+
+void window::clear_icon()
+{
+    m_window->clear_icon();
 }
 
 }

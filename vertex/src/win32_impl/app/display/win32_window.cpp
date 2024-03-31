@@ -39,6 +39,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
     , m_last_position(position)
     , m_min_size(s_default_min_size)
     , m_max_size(s_default_max_size)
+    , m_icon(NULL)
 {
     make_process_dpi_aware();
 
@@ -81,7 +82,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
         this
     );
 
-    ShowWindow(m_handle, SW_SHOW);
+    show();
 
     // Increment the window count
     ++s_window_count;
@@ -89,6 +90,12 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
 
 window::window_impl::~window_impl()
 {
+    // Destroy the custom icon
+    if (m_icon)
+    {
+        DestroyIcon(m_icon);
+    }
+
     // Destroy the window
     if (m_handle)
     {
@@ -361,6 +368,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
 
         // =============== mouse events ===============
 
+        // Mouse left button down
         case WM_LBUTTONDOWN:
         {
             event e;
@@ -373,14 +381,66 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
 
-        // Mouse left button up event
+        // Mouse left button up
         case WM_LBUTTONUP:
         {
             event e;
             e.type = event_type::MOUSE_BUTTON_UP;
             e.mouse_button.button = mouse::BUTTON_LEFT;
-            e.mouse_button.x = static_cast<int>(LOWORD(lParam));
-            e.mouse_button.y = static_cast<int>(HIWORD(lParam));
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Mouse right button down
+        case WM_RBUTTONDOWN:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_DOWN;
+            e.mouse_button.button = mouse::BUTTON_RIGHT;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Mouse right button up
+        case WM_RBUTTONUP:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_UP;
+            e.mouse_button.button = mouse::BUTTON_RIGHT;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Mouse wheel button down
+        case WM_MBUTTONDOWN:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_DOWN;
+            e.mouse_button.button = mouse::BUTTON_MIDDLE;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Mouse wheel button up
+        case WM_MBUTTONUP:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_UP;
+            e.mouse_button.button = mouse::BUTTON_MIDDLE;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
             post_event(e);
 
             break;
@@ -571,6 +631,95 @@ bool window::window_impl::is_maximized() const
 void window::window_impl::restore()
 {
     ShowWindow(m_handle, SW_RESTORE);
+}
+
+bool window::window_impl::request_focus()
+{
+    // We only want to steal focus from a window if it belongs to the same process as the current window
+    DWORD this_pid;
+    DWORD foreground_pid;
+    GetWindowThreadProcessId(m_handle, &this_pid);
+    GetWindowThreadProcessId(GetForegroundWindow(), &foreground_pid);
+
+    if (this_pid == foreground_pid)
+    {
+        // The window requesting focus belongs to the same process as the current window: steal focus
+        SetForegroundWindow(m_handle);
+        return true;
+    }
+
+    // Different process: don't steal focus, but raquest attention
+    request_attention();
+    return false;
+}
+
+bool window::window_impl::is_focused() const
+{
+    // GetForegroundWindow returns the active window of any process
+    return m_handle == GetForegroundWindow();
+}
+
+void window::window_impl::request_attention()
+{
+    FlashWindow(m_handle, TRUE);
+}
+
+// =============== icon ===============
+
+void window::window_impl::set_icon(const img::image& icon)
+{
+    clear_icon();
+
+    // Format is expected to have 4 8-bit channels in BGRA format
+    img::image formatted_icon(icon.width(), icon.height(), img::image_format::RGBA8);
+
+    // Convert the image to an RGBA-8 format and swizzle each pixel
+    for (size_t y = 0; y < icon.height(); ++y)
+    {
+        for (size_t x = 0; x < icon.width(); ++x)
+        {
+            const math::color p = icon.get_pixel(x, y);
+            formatted_icon.set_pixel(x, y, math::color(p.b, p.g, p.r, p.a));
+        }
+    }
+
+    // MSVC warns about arument 6 being NULL
+    VX_DISABLE_WARNING("", 6387);
+    VX_DISABLE_WARNING_PUSH();
+
+    // Create the icon
+    m_icon = CreateIcon(
+        GetModuleHandleW(NULL),
+        static_cast<int>(formatted_icon.width()),
+        static_cast<int>(formatted_icon.height()),
+        1,
+        32,
+        NULL,
+        formatted_icon.data()
+    );
+
+    VX_DISABLE_WARNING_POP();
+
+    // Set it as both big and small icon of the window
+    if (m_icon)
+    {
+        SendMessageW(m_handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_icon));
+        SendMessageW(m_handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_icon));
+    }
+    else
+    {
+        throw_error(error_code::INTERNAL, "Failed to set window icon");
+    }
+
+}
+
+void window::window_impl::clear_icon()
+{
+    if (m_icon)
+    {
+        DestroyIcon(m_icon);
+        m_icon = NULL;
+    }
 }
 
 }

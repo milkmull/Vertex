@@ -653,7 +653,7 @@ struct color_t
         return *this;
     }
 
-    // =============== comparison and testing ===============
+    // =============== channels ===============
 
     /**
      * @brief Retrieves the RGB components of the color.
@@ -683,11 +683,31 @@ struct color_t
     VX_FORCE_INLINE constexpr T min_color() const { return math::min({ r, g, b }); }
 
     /**
-     * @brief Get the maximum coRGBlor component of the color.
+     * @brief Get the maximum RGB component of the color.
      *
      * @return The maximum color component value.
      */
     VX_FORCE_INLINE constexpr T max_color() const { return math::max({ r, g, b }); }
+
+    /**
+     * @brief Get a new color composed of the specified channels of the color.
+     *
+     * @return The new swizzled color.
+     */
+    VX_FORCE_INLINE constexpr type swizzle(
+        color_channel ri,
+        color_channel gi,
+        color_channel bi,
+        color_channel ai = color_channel::ALPHA
+    ) const
+    {
+        return type(
+            operator[](static_cast<size_t>(ri)),
+            operator[](static_cast<size_t>(gi)),
+            operator[](static_cast<size_t>(bi)),
+            operator[](static_cast<size_t>(ai))
+        );
+    }
 
     // =============== colors ===============
 

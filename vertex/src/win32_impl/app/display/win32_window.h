@@ -102,10 +102,16 @@ public:
 
     void restore();
 
-    // =============== focus ===============
-
-    void focus();
+    bool request_focus();
     bool is_focused() const;
+
+    void request_attention();
+
+    // =============== icon ===============
+    
+    void set_icon(const img::image& icon);
+    void clear_icon();
+    
 
 private:
 
@@ -119,6 +125,8 @@ private:
 
     math::vec2i m_min_size;
     math::vec2i m_max_size;
+
+    HICON m_icon;
 
 };
 
