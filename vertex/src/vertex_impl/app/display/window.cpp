@@ -1,6 +1,3 @@
-#include <chrono>
-#include <thread>
-
 #include "vertex/config.h"
 #include "vertex/app/display/window.h"
 
@@ -13,13 +10,10 @@
 namespace vx {
 namespace app {
 
-window::window(const std::string& title, const math::vec2i& size, const math::vec2i& position)
-    : m_window(std::make_unique<window_impl>(title, size, position)) {}
+window::window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
+    : m_window(std::make_unique<window_impl>(title, size, position, style)) {}
 
-window::~window()
-{
-
-}
+window::~window() {}
 
 // =============== events ===============
 
@@ -40,6 +34,18 @@ bool window::is_open() const
     return m_window->is_open();
 }
 
+// =============== style ===============
+
+void window::set_resizable(bool resizable)
+{
+    m_window->set_resizable(resizable);
+}
+
+bool window::is_resizable() const
+{
+    return m_window->is_resizable();
+}
+
 // =============== title ===============
 
 std::string window::get_title() const
@@ -52,7 +58,7 @@ void window::set_title(const std::string& title)
     m_window->set_title(title);
 }
 
-// =============== position ===============
+// =============== position and size ===============
 
 math::vec2i window::get_position() const
 {
@@ -63,8 +69,6 @@ void window::set_position(const math::vec2i& position)
 {
     m_window->set_position(position);
 }
-
-// =============== size ===============
 
 math::vec2i window::get_size() const
 {

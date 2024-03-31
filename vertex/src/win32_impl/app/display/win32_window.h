@@ -22,7 +22,7 @@ public:
 
     // =============== constructors ===============
 
-    window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position);
+    window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style = style::DEFAULT);
     ~window_impl();
 
     window_impl(const window_impl&) = delete;
@@ -37,9 +37,12 @@ private:
 
 public:
 
-    // =============== open ===============
-
     bool is_open() const;
+
+    // =============== style ===============
+
+    void update_style(int flags, bool enable);
+    bool has_style(int flag) const;
 
 private:
 
@@ -86,6 +89,9 @@ public:
 
     void set_min_size(const math::vec2i& size);
     void set_max_size(const math::vec2i& size);
+
+    void set_resizable(bool resizable);
+    bool is_resizable() const;
 
     // =============== window ops ===============
 

@@ -18,9 +18,20 @@ class window
 {
 public:
 
+    enum style : int
+    {
+        TITLEBAR = 1 << 0, // Title bar + fixed border
+        RESIZE   = 1 << 1, // Title bar + resizable border + maximize button
+        CLOSE    = 1 << 2, // Title bar + close button
+
+        DEFAULT = TITLEBAR | RESIZE | CLOSE // Default window style
+    };
+
+public:
+
     // =============== constructors ===============
 
-    window(const std::string& title, const math::vec2i& size, const math::vec2i& position);
+    window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style = style::DEFAULT);
     ~window();
 
     window(const window&) = delete;
@@ -45,19 +56,22 @@ public:
     //
     //bool should_close() const;
     //void set_should_close(bool should_close);
-    //
+
+    // =============== style ===============
+
+    void set_resizable(bool resizable);
+    bool is_resizable() const;
+
     // =============== title ===============
     
     std::string get_title() const;
     void set_title(const std::string& title);
     
-    // =============== position ===============
+    // =============== position and size ===============
     
     math::vec2i get_position() const;
     void set_position(const math::vec2i& position);
-    
-    // =============== size ===============
-    
+
     math::vec2i get_size() const;
     void set_size(const math::vec2i& size);
     
@@ -67,11 +81,6 @@ public:
     void set_min_size(const math::vec2i& size);
     void set_max_size(const math::vec2i& size);
     
-    //// =============== resizable ===============
-    //
-    //void set_resizable(bool resizable);
-    //bool is_resizable() const;
-    //
     //// =============== bordered ===============
     //
     //void set_bordered(bool bordered);
@@ -102,11 +111,6 @@ public:
     
     void request_attention();
     
-    //// =============== opacity ===============
-    //
-    //float get_opacity() const;
-    //void set_opacity(float opacity);
-    //
     //// =============== hovered ===============
     //
     //bool is_hovered() const;

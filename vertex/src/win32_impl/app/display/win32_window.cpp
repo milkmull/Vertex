@@ -32,7 +32,7 @@ void window::window_impl::register_window_class()
 
 // =============== window init helpers ===============
 
-window::window_impl::window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position)
+window::window_impl::window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
     : m_handle(NULL)
     , m_resizing_or_moving(false)
     , m_last_size(size)
@@ -50,14 +50,20 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
     }
 
     // Configure window style (https://learn.microsoft.com/en-us/windows/win32/winmsg/window-styles)
-    const DWORD win32_style = (
-        WS_VISIBLE     | // window starts as visible
-        WS_CAPTION     | // window has a title bar
-        WS_MINIMIZEBOX | // window has minimize button
-        WS_MAXIMIZEBOX | // window has maximize button
-        WS_SIZEBOX     | // window has a sizing border
-        WS_SYSMENU       // window has window menu on titme bar
-    );
+    DWORD win32_style = WS_VISIBLE;
+
+    if (style & style::TITLEBAR)
+    {
+        win32_style |= WS_CAPTION | WS_MINIMIZEBOX;
+    }
+    if (style & style::RESIZE)
+    {
+        win32_style |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+    }
+    if (style & style::CLOSE)
+    {
+        win32_style |= WS_SYSMENU;
+    }
 
     // Adjust window size to match requested area
     RECT rect = { 0, 0, size.x, size.y };
@@ -122,6 +128,33 @@ void window::window_impl::on_destroy()
 bool window::window_impl::is_open() const
 {
     return m_handle;
+}
+
+// =============== style ===============
+
+void window::window_impl::update_style(int flags, bool enable)
+{
+    LONG_PTR style = GetWindowLongPtrW(m_handle, GWL_STYLE);
+
+    if (enable)
+    {
+        style |= flags;
+    }
+    else
+    {
+        style &= ~flags;
+    }
+
+    SetWindowLongPtrW(m_handle, GWL_STYLE, style);
+
+    // Redraw the window
+    SetWindowPos(m_handle, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+}
+
+bool window::window_impl::has_style(int flag) const
+{
+    LONG_PTR style = GetWindowLongPtrW(m_handle, GWL_STYLE);
+    return style & flag;
 }
 
 // =============== events ===============
@@ -575,16 +608,26 @@ void window::window_impl::set_min_size(const math::vec2i& size)
 {
     m_min_size = size;
 
-    // Instruct the system to post a WM_GETMINMAXINFO so the changes can take effect.
-    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    // Adjust the size to trigger WM_GETMINMAXINFO
+    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
 void window::window_impl::set_max_size(const math::vec2i& size)
 {
     m_max_size = size;
 
-    // Instruct the system to post a WM_GETMINMAXINFO so the changes can take effect.
-    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+    // Adjust the size to trigger WM_GETMINMAXINFO
+    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+}
+
+void window::window_impl::set_resizable(bool resizable)
+{
+    update_style(WS_THICKFRAME | WS_MAXIMIZEBOX, resizable);
+}
+
+bool window::window_impl::is_resizable() const
+{
+    return has_style(WS_THICKFRAME | WS_MAXIMIZEBOX);
 }
 
 // =============== window ops ===============

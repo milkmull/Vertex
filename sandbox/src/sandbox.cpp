@@ -27,8 +27,9 @@ int main()
     app::event e;
     bool running = window.is_open();
 
-    icon.convert(img::image_format::RGB8);
     window.set_icon(icon);
+
+    window.set_resizable(false);
 
     while (running)
     {
@@ -57,9 +58,8 @@ int main()
 
             if (e.type == app::event_type::MOUSE_BUTTON_DOWN)
             {
-                window.maximize();
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-                std::cout << window.request_focus();
+                window.set_min_size(window.get_size());
+                VX_LOG_INFO << "size: " << math::vec2i(window.get_size().x, window.get_size().y);
             }
 
             if (e.type == app::event_type::WINDOW_SHOW)
