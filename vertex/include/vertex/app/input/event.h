@@ -33,8 +33,8 @@ enum event_type : int
 
     TEXT_INPUT,
 
-    CURSOR_MOVE,
-    CURSOR_ENTER,
+    MOUSE_MOVE,
+    MOUSE_ENTER,
 
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_UP,
@@ -107,8 +107,8 @@ struct event
         key_event key;
         text_input_event text_input;
 
-        move_event cursor_move;
-        state_event cursor_enter;
+        move_event mouse_move;
+        state_event mouse_enter;
 
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;

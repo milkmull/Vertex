@@ -40,32 +40,14 @@ int main()
                 running = false;
                 break;
             }
-            if (e.type == app::event_type::WINDOW_RESIZE)
-            {
-                VX_LOG_INFO << "resize: " << math::vec2i(e.window_resize.width, e.window_resize.height);
-                break;
-            }
-            if (e.type == app::event_type::WINDOW_MOVE)
-            {
-                VX_LOG_INFO << "move: " << math::vec2i(e.window_move.x, e.window_move.y);
-                break;
-            }
-            if (e.type == app::event_type::WINDOW_FOCUS)
-            {
-                VX_LOG_INFO << "focus: " << e.window_focus.value;
-                break;
-            }
-
             if (e.type == app::event_type::MOUSE_BUTTON_DOWN)
             {
-                window.set_min_size(window.get_size());
-                VX_LOG_INFO << "size: " << math::vec2i(window.get_size().x, window.get_size().y);
+                window.set_max_size(window.get_size());
             }
-
-            if (e.type == app::event_type::WINDOW_SHOW)
+            if (e.type == app::event_type::MOUSE_MOVE)
             {
-                VX_LOG_INFO << "show: " << e.window_show.value;
-                break;
+                //window.set_min_size(window.get_size());
+                VX_LOG_INFO << "mouse move: " << math::vec2i(e.mouse_move.x, e.mouse_move.y);
             }
         }
     }

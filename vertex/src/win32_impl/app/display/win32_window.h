@@ -1,13 +1,13 @@
 #pragma once
 
-#include <optional>
-
+#include "../../win32_header.h"
 #include "vertex/app/display/window.h"
-#include "win32_header.h"
 #include "vertex_impl/app/init_internal.h"
 
 namespace vx {
 namespace app {
+
+typedef HWND window_handel;
 
 class window::window_impl
 {
@@ -30,6 +30,8 @@ public:
 
     window_impl& operator=(const window_impl&) = delete;
     window_impl& operator=(window_impl&&) = delete;
+
+    const window_handle get_native_handle() const;
 
 private:
 
@@ -117,6 +119,11 @@ public:
     
     void set_icon(const img::image& icon);
     void clear_icon();
+
+    // =============== mouse ===============
+
+    math::vec2i get_mouse_position() const;
+    void set_mouse_position(const math::vec2i& position);
     
 
 private:
@@ -131,6 +138,8 @@ private:
 
     math::vec2i m_min_size;
     math::vec2i m_max_size;
+
+    math::vec2i m_last_mouse_position;
 
     HICON m_icon;
 

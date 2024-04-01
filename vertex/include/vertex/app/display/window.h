@@ -4,7 +4,6 @@
 
 #include "vertex/app/init.h"
 
-#include "vertex/math/math/type/vec2.h"
 #include "vertex/math/math/type/vec2i.h"
 #include "vertex/image/image.h"
 
@@ -13,6 +12,8 @@
 
 namespace vx {
 namespace app {
+
+using window_handle = void*;
 
 class window
 {
@@ -39,6 +40,8 @@ public:
 
     window& operator=(const window&) = delete;
     window& operator=(window&&) = delete;
+
+    const window_handle get_native_handle() const;
 
     // =============== events ===============
 
@@ -120,11 +123,11 @@ public:
     void set_icon(const img::image& icon);
     void clear_icon();
     
-    //// =============== cursor ===============
-    //
-    //math::vec2 get_cursor_position() const;
-    //void set_cursor_position(const math::vec2& cursor_position);
-    //
+    // =============== mouse ===============
+    
+    math::vec2i get_mouse_position() const;
+    void set_mouse_position(const math::vec2i& position);
+    
     //void set_cursor_shape(cursor::shape shape);
     //void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
     //void clear_cursor_shape();

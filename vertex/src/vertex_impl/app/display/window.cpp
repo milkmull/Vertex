@@ -15,6 +15,11 @@ window::window(const std::string& title, const math::vec2i& size, const math::ve
 
 window::~window() {}
 
+const window_handle window::get_native_handle() const
+{
+    return m_window->get_native_handle();
+}
+
 // =============== events ===============
 
 void window::post_event(const event& e)
@@ -167,6 +172,18 @@ void window::set_icon(const img::image& icon)
 void window::clear_icon()
 {
     m_window->clear_icon();
+}
+
+// =============== mouse ===============
+
+math::vec2i window::get_mouse_position() const
+{
+    return m_window->get_mouse_position();
+}
+
+void window::set_mouse_position(const math::vec2i& position)
+{
+    m_window->set_mouse_position(position);
 }
 
 }

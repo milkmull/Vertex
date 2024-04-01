@@ -90,6 +90,9 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
 
     show();
 
+    // Set initial mouse position
+    m_last_mouse_position = get_mouse_position();
+
     // Increment the window count
     ++s_window_count;
 }
@@ -116,6 +119,11 @@ window::window_impl::~window_impl()
     {
         UnregisterClassW(s_class_name, GetModuleHandleW(NULL));
     }
+}
+
+const window_handle window::window_impl::get_native_handle() const
+{
+    return static_cast<window_handle>(m_handle);
 }
 
 void window::window_impl::on_destroy()
@@ -269,7 +277,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
         
-        // Resize window maximize & minimize
+        // Maximize & minimize window
         case WM_SIZE:
         {
             const math::vec2i new_size = get_size();
@@ -401,7 +409,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
 
         // =============== mouse events ===============
 
-        // Mouse left button down
+        // Left mouse button down
         case WM_LBUTTONDOWN:
         {
             event e;
@@ -414,7 +422,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
 
-        // Mouse left button up
+        // Left mouse button up
         case WM_LBUTTONUP:
         {
             event e;
@@ -427,7 +435,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
 
-        // Mouse right button down
+        // Right mouse button down
         case WM_RBUTTONDOWN:
         {
             event e;
@@ -440,7 +448,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
 
-        // Mouse right button up
+        // Right mouse button up
         case WM_RBUTTONUP:
         {
             event e;
@@ -475,6 +483,51 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
             e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
             post_event(e);
+
+            break;
+        }
+
+        // Extra mouse button down
+        case WM_XBUTTONDOWN:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_DOWN;
+            e.mouse_button.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Extra mouse button up
+        case WM_XBUTTONUP:
+        {
+            event e;
+            e.type = event_type::MOUSE_BUTTON_UP;
+            e.mouse_button.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
+            e.mouse_button.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_button.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Mouse move
+        case WM_MOUSEMOVE:
+        {
+            const math::vec2i new_mouse_position = get_mouse_position();
+
+            if (m_last_mouse_position != new_mouse_position)
+            {
+                m_last_mouse_position = new_mouse_position;
+
+                event e;
+                e.type = event_type::MOUSE_MOVE;
+                e.mouse_move.x = new_mouse_position.x;
+                e.mouse_move.y = new_mouse_position.y;
+                post_event(e);
+            }
 
             break;
         }
@@ -763,6 +816,23 @@ void window::window_impl::clear_icon()
         DestroyIcon(m_icon);
         m_icon = NULL;
     }
+}
+
+// =============== mouse ===============
+
+math::vec2i window::window_impl::get_mouse_position() const
+{
+    POINT point;
+    GetCursorPos(&point);
+    ScreenToClient(m_handle, &point);
+    return math::vec2i(point.x, point.y);
+}
+
+void window::window_impl::set_mouse_position(const math::vec2i& position)
+{
+    POINT point = { position.x, position.y };
+    ClientToScreen(m_handle, &point);
+    SetCursorPos(point.x, point.y);
 }
 
 }
