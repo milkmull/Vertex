@@ -14,7 +14,15 @@ enum class handedness
     RIGHT
 };
 
-namespace math {
+enum class side
+{
+    LEFT,
+    RIGHT,
+    TOP,
+    BOTTOM,
+    FRONT,
+    BACK
+};
 
 enum class anchor_point
 {
@@ -29,15 +37,4 @@ enum class anchor_point
     CENTER
 };
 
-enum class side
-{
-    LEFT,
-    RIGHT,
-    TOP,
-    BOTTOM,
-    FRONT,
-    BACK
-};
-
-}
 }

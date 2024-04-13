@@ -6,16 +6,15 @@
 namespace vx {
 namespace math {
 
-// =============== srgb ===============
-
 // https://entropymine.com/imageworsener/srgbformula/
 
-/**
- * @brief Converts a linear color to sRGB color space.
- *
- * @param c The linear color to be converted.
- * @return The sRGB color corresponding to the input linear color.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Converts a linear color to sRGB color space.
+///
+/// @param c The linear color to be converted.
+/// 
+/// @return The sRGB color corresponding to the input linear color.
+////////////////////////////////////////////////////////////////////////////////
 VX_FORCE_INLINE constexpr color linear_to_srgb(const color& c)
 {
     using T = float;
@@ -35,12 +34,13 @@ VX_FORCE_INLINE constexpr color linear_to_srgb(const color& c)
     return srgb;
 }
 
-/**
- * @brief Converts an sRGB color to linear color space.
- *
- * @param c The sRGB color to be converted.
- * @return The linear color corresponding to the input sRGB color.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Converts an sRGB color to linear color space.
+///
+/// @param c The sRGB color to be converted.
+/// 
+/// @return The linear color corresponding to the input sRGB color.
+////////////////////////////////////////////////////////////////////////////////
 VX_FORCE_INLINE constexpr color srgb_to_linear(const color& c)
 {
     using T = float;

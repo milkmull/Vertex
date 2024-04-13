@@ -10,7 +10,7 @@ enum class color_channel
     ALPHA = 3
 };
 
-enum class color_mask
+enum color_mask : int
 {
     RED   = 0x000000FF,
     GREEN = 0x0000FF00,

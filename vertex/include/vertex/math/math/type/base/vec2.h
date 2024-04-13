@@ -48,7 +48,7 @@ struct vec<2, T>
         : x(x), y(y) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // conversion matrix constructors
+    // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>

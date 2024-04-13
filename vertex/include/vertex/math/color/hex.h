@@ -5,16 +5,13 @@
 namespace vx {
 namespace math {
 
-// =============== hex ===============
-
-/**
- * @brief Creates a color from a hexadecimal value.
- *
- * This function creates a color from a 32-bit hexadecimal value.
- *
- * @param hex The hexadecimal value representing the color.
- * @return The color created from the hexadecimal value.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a color from a 32-bit hexadecimal value.
+///
+/// @param hex The hexadecimal value representing the color.
+/// 
+/// @return The color created from the hexadecimal value.
+////////////////////////////////////////////////////////////////////////////////
 VX_FORCE_INLINE constexpr color8 color_from_hex(uint32_t hex)
 {
     return color8(
@@ -25,14 +22,13 @@ VX_FORCE_INLINE constexpr color8 color_from_hex(uint32_t hex)
     );
 }
 
-/**
- * @brief Converts a color to a hexadecimal value.
- *
- * This function converts a color to a 32-bit hexadecimal value.
- *
- * @param c The color to be converted.
- * @return The 32-bit hexadecimal value representing the color.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Converts a color to a 32-bit hexadecimal value.
+///
+/// @param c The color to be converted.
+/// 
+/// @return The 32-bit hexadecimal value representing the color.
+////////////////////////////////////////////////////////////////////////////////
 VX_FORCE_INLINE constexpr uint32_t color_to_hex(const color8& c)
 {
     return (

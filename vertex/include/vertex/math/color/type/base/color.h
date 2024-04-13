@@ -13,7 +13,9 @@ struct color_t
 {
     static_assert(std::is_same<T, float>::value || std::is_same<T, uint8_t>::value, "type T must be float or uint8_t");
 
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = color_t<T>;
@@ -23,11 +25,15 @@ struct color_t
     static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
     static constexpr T MAX_CHANNEL_VALUE = std::is_same<T, float>::value ? 1.0f : 255;
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     T r, g, b, a;
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr color_t()
         : r(static_cast<T>(0))
@@ -44,7 +50,9 @@ struct color_t
     VX_FORCE_INLINE constexpr color_t(const vec<4, U>& v)
         : r(v.x), g(v.y), b(v.z), a(v.w) {}
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit color_t(T scaler)
         : r(scaler), g(scaler), b(scaler), a(MAX_CHANNEL_VALUE) {}
@@ -55,7 +63,9 @@ struct color_t
     VX_FORCE_INLINE constexpr color_t(const vec<3, T>& rgb, T a = MAX_CHANNEL_VALUE)
         : r(rgb.x), g(rgb.y), b(rgb.z), a(a) {}
 
-    // =============== conversion vector constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit color_t(U scaler)
@@ -89,7 +99,9 @@ struct color_t
         , b(static_cast<T>(v.z))
         , a(static_cast<T>(v.w)) {}
 
-    // =============== conversions ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // color conversion constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     // int to int
 
@@ -124,11 +136,15 @@ struct color_t
         , b(static_cast<T>(c.b))
         , a(static_cast<T>(c.a)) {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~color_t() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& c)
     {
@@ -148,7 +164,9 @@ struct color_t
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
@@ -162,7 +180,9 @@ struct color_t
         return (&r)[i];
     }
 
-    // =============== conversion operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U>
     VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const
@@ -175,7 +195,9 @@ struct color_t
         );
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& c1, const type& c2)
     {
@@ -187,7 +209,9 @@ struct color_t
         return !(c1 == c2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type operator+() const
     {
@@ -199,7 +223,9 @@ struct color_t
         return type(-r, -g, -b, -a);
     }
 
-    // =============== incrememnt and decrement operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // incrememnt (++)
 
@@ -237,7 +263,9 @@ struct color_t
         return result;
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -327,7 +355,9 @@ struct color_t
         return type(c1.r % c2.r, c1.g % c2.g, c1.b % c2.b, c1.a % c2.a);
     }
 
-    // =============== binarg bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&)
 
@@ -437,7 +467,9 @@ struct color_t
         return type(~c.r, ~c.g, ~c.b, ~c.a);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -541,7 +573,9 @@ struct color_t
         return *this;
     }
 
-    // =============== unary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&=)
 
@@ -653,19 +687,26 @@ struct color_t
         return *this;
     }
 
-    // =============== channels ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // channels
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Retrieves the RGB components of the color.
-     *
-     * @return A vector representing the RGB components of the color.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the RGB components of the color.
+    ///
+    /// @return A vector representing the RGB components of the color.
+    ////////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr auto rgb() const
     {
         using U = typename std::conditional<std::is_same<T, uint8_t>::value, int32_t, float>::type;
         return vec<3, U>(r, g, b);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Sets the RGB components of the color.
+    ///
+    /// @param A vector representing the RGB components of the color.
+    ////////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr void set_rgb(
         const vec<3, typename std::conditional<std::is_same<T, uint8_t>::value, int32_t, float>::type>& rgb
     )
@@ -675,21 +716,23 @@ struct color_t
         b = rgb.z; 
     }
 
-    /**
-     * @brief Get the minimum RGB component of the color.
-     *
-     * @return The minimum color component value.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the minimum RGB component of the color.
+    ///
+    /// @return The minimum color component value.
+    ////////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T min_color() const { return math::min({ r, g, b }); }
 
-    /**
-     * @brief Get the maximum RGB component of the color.
-     *
-     * @return The maximum color component value.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the maximum RGB component of the color.
+    ///
+    /// @return The maximum color component value.
+    ////////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T max_color() const { return math::max({ r, g, b }); }
 
-    // =============== colors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // colors
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type CLEAR()   { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
     static VX_FORCE_INLINE constexpr type WHITE()   { return type(MAX_CHANNEL_VALUE); }
@@ -704,7 +747,7 @@ struct color_t
 
     static VX_FORCE_INLINE constexpr type YELLOW()  { return type(MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE, static_cast<T>(0)); }
     static VX_FORCE_INLINE constexpr type MAGENTA() { return type(MAX_CHANNEL_VALUE, static_cast<T>(0), MAX_CHANNEL_VALUE); }
-    static VX_FORCE_INLINE constexpr type CYAN()	   { return type(static_cast<T>(0), MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE); }
+    static VX_FORCE_INLINE constexpr type CYAN()	{ return type(static_cast<T>(0), MAX_CHANNEL_VALUE, MAX_CHANNEL_VALUE); }
 
 };
 

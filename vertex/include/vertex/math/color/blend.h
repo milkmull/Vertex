@@ -43,21 +43,25 @@ namespace math {
 
 // https://learnopengl.com/Advanced-OpenGL/Blending
 
-/**
- * @brief Structure representing a blend function for blending colors.
- *
- * The blend function defines how colors are blended together when rendering.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Structure representing a blend function for blending colors.
+///
+/// The blend function defines how colors are blended together when rendering.
+////////////////////////////////////////////////////////////////////////////////
 struct blend_func
 {
-    // =============== data ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // data
+    ////////////////////////////////////////////////////////////////////////////////
 
     blend_mode src_blend = blend_mode::SRC_ALPHA;
     blend_mode dst_blend = blend_mode::ONE_MINUS_SRC_ALPHA;
     blend_operator op = blend_operator::ADD;
     color constant;
 
-    // =============== comparison ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // comparison
+    ////////////////////////////////////////////////////////////////////////////////
 
     inline constexpr bool operator==(const blend_func& other) const
     {
@@ -72,27 +76,31 @@ struct blend_func
         return !(*this == other);
     }
 
-    // =============== blend ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // blend
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Blends two colors using the specified blend function.
-     *
-     * @param src The source color.
-     * @param dst The destination color.
-     * @return The blended color.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Blends two colors using the specified blend function.
+    ///
+    /// @param src The source color.
+    /// @param dst The destination color.
+    /// 
+    /// @return The blended color.
+    ////////////////////////////////////////////////////////////////////////////////
     inline constexpr color operator()(const color& src, const color& dst) const
     {
         return blend(src, dst);
     }
 
-    /**
-     * @brief Blends two colors using the specified blend function.
-     *
-     * @param src The source color.
-     * @param dst The destination color.
-     * @return The blended color.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Blends two colors using the specified blend function.
+    ///
+    /// @param src The source color.
+    /// @param dst The destination color.
+    /// 
+    /// @return The blended color.
+    ////////////////////////////////////////////////////////////////////////////////
     inline constexpr color blend(const color& src, const color& dst) const
     {
         struct blend_pair
@@ -184,15 +192,20 @@ struct blend_func
 
 };
 
-/**
- * @brief Structure representing a separate blend function for blending colors with distinct color and alpha blending modes.
- *
- * The blend_func_separate structure allows for blending colors with separate blend modes for their color and alpha components.
- * This allows finer control over the blending process, as it enables different blending behaviors for the color and alpha channels.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Structure representing a separate blend function for blending colors
+/// with distinct color and alpha blending modes.
+///
+/// The blend_func_separate structure allows for blending colors with separate
+/// blend modes for their color and alpha components. This allows finer control
+/// over the blending process, as it enables different blending behaviors for
+/// the color and alpha channels.
+////////////////////////////////////////////////////////////////////////////////
 struct blend_func_separate
 {
-    // =============== data ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // data
+    ////////////////////////////////////////////////////////////////////////////////
 
     blend_mode src_color_blend = blend_mode::SRC_ALPHA;
     blend_mode dst_color_blend = blend_mode::ONE_MINUS_SRC_ALPHA;
@@ -205,27 +218,31 @@ struct blend_func_separate
 
     color constant;
 
-    // =============== blend ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // blend
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Blends two colors using the specified separate blend function.
-     *
-     * @param src The source color.
-     * @param dst The destination color.
-     * @return The blended color.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Blends two colors using the specified separate blend function.
+    ///
+    /// @param src The source color.
+    /// @param dst The destination color.
+    /// 
+    /// @return The blended color.
+    ////////////////////////////////////////////////////////////////////////////////
     inline constexpr color operator()(const color& src, const color& dst) const
     {
         return blend(src, dst);
     }
 
-    /**
-     * @brief Blends two colors using the specified separate blend function.
-     *
-     * @param src The source color.
-     * @param dst The destination color.
-     * @return The blended color.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Blends two colors using the specified separate blend function.
+    ///
+    /// @param src The source color.
+    /// @param dst The destination color.
+    /// 
+    /// @return The blended color.
+    ////////////////////////////////////////////////////////////////////////////////
     inline constexpr color blend(const color& src, const color& dst) const
     {
         struct blend_pair

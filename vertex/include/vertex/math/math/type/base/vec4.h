@@ -51,7 +51,7 @@ struct vec<4, T>
         : x(x), y(y), z(z), w(w) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // conversion matrix constructors
+    // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>

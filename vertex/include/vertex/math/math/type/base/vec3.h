@@ -50,7 +50,7 @@ struct vec<3, T>
         : x(x), y(y), z(z) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // conversion matrix constructors
+    // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
