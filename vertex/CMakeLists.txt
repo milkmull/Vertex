@@ -22,17 +22,17 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/
 #--------------------------------------------------
 
 file(GLOB_RECURSE VX_CORE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/setup.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/config.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/tools/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/tools/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
 )

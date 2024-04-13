@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/common.h"
+#include "../_priv/common.h"
 #include "../constants.h"
 
 namespace vx {

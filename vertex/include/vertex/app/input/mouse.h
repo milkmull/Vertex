@@ -36,8 +36,16 @@ enum button : int
     BUTTON_EXTRA_2 = BUTTON_9
 };
 
+enum wheel : int
+{
+    VERTICAL,
+    HORIZONTAL
+};
+
 math::vec2i get_mouse_position();
 void set_mouse_position(const math::vec2i& position);
+
+bool is_mouse_button_down(button button);
 
 }
 }

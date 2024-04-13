@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../_priv/base_types.h"
 #include "../enum_error_code.h"
 
 namespace vx {
@@ -11,19 +11,19 @@ namespace util {
 
 enum : size_t
 {
-    VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS = VX_MAX_IMAGE_DIMENSIONS,
+    IMAGE_SIZE_LIMIT_MAX_DIMENSIONS = VX_MAX_IMAGE_DIMENSIONS,
 
-    VX_IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
-    VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
+    IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
+    IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
 
-    VX_IMAGE_SIZE_LIMIT_MIN_BITDEPTH = 8,
-    VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 8,
+    IMAGE_SIZE_LIMIT_MIN_BITDEPTH = 8,
+    IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 8,
 
-    VX_IMAGE_SIZE_LIMIT_MAX_SIZE = (
-        VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS *
-        VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH /
+    IMAGE_SIZE_LIMIT_MAX_SIZE = (
+        IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
+        IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
+        IMAGE_SIZE_LIMIT_MAX_CHANNELS *
+        IMAGE_SIZE_LIMIT_MAX_BITDEPTH /
         8
     )
 };
@@ -44,15 +44,15 @@ inline constexpr error_code check_image_size_limits(
     size_t bitdepth
 )
 {
-    if (width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
+    if (width > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
     {
         return error_code::MAX_SIZE;
     }
-    if (channels < VX_IMAGE_SIZE_LIMIT_MIN_CHANNELS || channels > VX_IMAGE_SIZE_LIMIT_MAX_CHANNELS)
+    if (channels < IMAGE_SIZE_LIMIT_MIN_CHANNELS || channels > IMAGE_SIZE_LIMIT_MAX_CHANNELS)
     {
         return error_code::UNSUPPORTED_CHANNEL_COUNT;
     }
-    if (bitdepth < VX_IMAGE_SIZE_LIMIT_MIN_BITDEPTH || bitdepth > VX_IMAGE_SIZE_LIMIT_MAX_BITDEPTH)
+    if (bitdepth < IMAGE_SIZE_LIMIT_MIN_BITDEPTH || bitdepth > IMAGE_SIZE_LIMIT_MAX_BITDEPTH)
     {
         return error_code::UNSUPPORTED_BITDEPTH;
     }

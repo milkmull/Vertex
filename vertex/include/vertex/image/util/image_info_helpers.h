@@ -19,7 +19,7 @@ inline constexpr error_code get_image_info_error(const image_info& info)
     {
         return error_code::UNSUPPORTED_IMAGE_TYPE;
     }
-    if (info.width > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || info.height > VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
+    if (info.width > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || info.height > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
     {
         return error_code::MAX_SIZE;
     }

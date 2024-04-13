@@ -164,9 +164,9 @@ void window::request_attention()
 
 // =============== icon ===============
 
-void window::set_icon(const img::image& icon)
+void window::set_icon(const uint8_t* pixels, const math::vec2i& size)
 {
-    m_window->set_icon(icon);
+    m_window->set_icon(pixels, size);
 }
 
 void window::clear_icon()
@@ -184,6 +184,26 @@ math::vec2i window::get_mouse_position() const
 void window::set_mouse_position(const math::vec2i& position)
 {
     m_window->set_mouse_position(position);
+}
+
+bool window::is_hovered() const
+{
+    return m_window->is_hovered();
+}
+
+bool window::get_cursor_visibility() const
+{
+    return m_window->get_cursor_visibility();
+}
+
+void window::set_cursor_visibility(bool visible)
+{
+    m_window->set_cursor_visibility(visible);
+}
+
+void window::set_cursor(cursor cursor)
+{
+    m_window->set_cursor(cursor);
 }
 
 }

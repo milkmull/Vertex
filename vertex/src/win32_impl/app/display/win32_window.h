@@ -2,7 +2,6 @@
 
 #include "../../win32_header.h"
 #include "vertex/app/display/window.h"
-#include "vertex_impl/app/init_internal.h"
 
 namespace vx {
 namespace app {
@@ -117,14 +116,28 @@ public:
 
     // =============== icon ===============
     
-    void set_icon(const img::image& icon);
+    void set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
 
     // =============== mouse ===============
 
+private:
+
+    void set_mouse_tracking(bool enabled);
+
+public:
+
     math::vec2i get_mouse_position() const;
     void set_mouse_position(const math::vec2i& position);
-    
+
+    bool is_hovered() const;
+
+    bool get_cursor_visibility() const;
+    void set_cursor_visibility(bool visible);
+
+    void set_cursor_shape(cursor::shape shape);
+    void set_cursor(cursor cursor);
+    cursor::shape get_cursor_shape() const;
 
 private:
 
@@ -140,6 +153,18 @@ private:
     math::vec2i m_max_size;
 
     math::vec2i m_last_mouse_position;
+    bool m_mouse_inside_window;
+
+    struct custom_cursor
+    {
+        custom_cursor(HCURSOR cursor) : cursor(cursor) {}
+        ~custom_cursor() { DestroyCursor(cursor); }
+        HCURSOR cursor;
+    };
+
+    HCURSOR m_last_cursor;
+    cursor::shape m_last_cursor_shape;
+    bool m_cursor_visible;
 
     HICON m_icon;
 

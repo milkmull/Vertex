@@ -34,7 +34,7 @@ enum event_type : int
     TEXT_INPUT,
 
     MOUSE_MOVE,
-    MOUSE_ENTER,
+    MOUSE_HOVER,
 
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_UP,
@@ -82,9 +82,10 @@ struct event
 
     struct mouse_scroll_event
     {
-        mouse::button button;
-        float x;
-        float y;
+        mouse::wheel wheel;
+        float delta;
+        int x;
+        int y;
     };
 
     struct joystick_connection_event
@@ -108,7 +109,7 @@ struct event
         text_input_event text_input;
 
         move_event mouse_move;
-        state_event mouse_enter;
+        state_event mouse_hover;
 
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;

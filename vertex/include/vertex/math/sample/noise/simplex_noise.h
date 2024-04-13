@@ -12,7 +12,7 @@
 
 // https://cgvr.cs.uni-bremen.de/teaching/cg_literatur/simplexnoise.pdf
 
-#include "detail/fn_noise.h"
+#include "_priv/fn_noise.h"
 
 namespace vx {
 namespace math {
@@ -60,8 +60,8 @@ inline constexpr T simplex_noise(const vec<2, T>& v)
     x12.y -= i1.y;
 
     // Permutations
-    i = detail::mod289(i); // Avoid truncation effects in permutation
-    vec<3, T> p = detail::permute(detail::permute(
+    i = _priv::mod289(i); // Avoid truncation effects in permutation
+    vec<3, T> p = _priv::permute(_priv::permute(
         i.y + vec<3, T>(static_cast<T>(0), i1.y, static_cast<T>(1))) +
         i.x + vec<3, T>(static_cast<T>(0), i1.x, static_cast<T>(1))
     );
@@ -131,8 +131,8 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     vec<3, T> x3(x0 -      D.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
 
     // Permutations
-    i = detail::mod289(i);
-    vec<4, T> p = detail::permute(detail::permute(detail::permute(
+    i = _priv::mod289(i);
+    vec<4, T> p = _priv::permute(_priv::permute(_priv::permute(
         i.z + vec<4, T>(static_cast<T>(0), i1.z, i2.z, static_cast<T>(1))) +
         i.y + vec<4, T>(static_cast<T>(0), i1.y, i2.y, static_cast<T>(1))) +
         i.x + vec<4, T>(static_cast<T>(0), i1.x, i2.x, static_cast<T>(1))
@@ -170,7 +170,7 @@ inline constexpr T simplex_noise(const vec<3, T>& v)
     vec<3, T> p3 (a1.z, a1.w, h.w);
 
     // Normalise gradients
-    vec<4, T> norm = detail::taylor_inv_sqrt(vec<4, T>(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+    vec<4, T> norm = _priv::taylor_inv_sqrt(vec<4, T>(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
     p0 *= norm.x;
     p1 *= norm.y;
     p2 *= norm.z;
@@ -241,9 +241,9 @@ inline constexpr T simplex_noise(const vec<4, T>& v)
     vec<4, T> x4 = x0      + C.w;
 
     // Permutations
-    i = detail::mod289(i);
-    T j0 = detail::permute(detail::permute(detail::permute(detail::permute(i.w) + i.z) + i.y) + i.x);
-    vec<4, T> j1 = detail::permute(detail::permute(detail::permute(detail::permute(
+    i = _priv::mod289(i);
+    T j0 = _priv::permute(_priv::permute(_priv::permute(_priv::permute(i.w) + i.z) + i.y) + i.x);
+    vec<4, T> j1 = _priv::permute(_priv::permute(_priv::permute(_priv::permute(
         i.w + vec<4, T>(i1.w, i2.w, i3.w, static_cast<T>(1))) +
         i.z + vec<4, T>(i1.z, i2.z, i3.z, static_cast<T>(1))) +
         i.y + vec<4, T>(i1.y, i2.y, i3.y, static_cast<T>(1))) +
@@ -259,19 +259,19 @@ inline constexpr T simplex_noise(const vec<4, T>& v)
         static_cast<T>(0)
     );
 
-    vec<4, T> p0 = detail::grad4(j0,   ip);
-    vec<4, T> p1 = detail::grad4(j1.x, ip);
-    vec<4, T> p2 = detail::grad4(j1.y, ip);
-    vec<4, T> p3 = detail::grad4(j1.z, ip);
-    vec<4, T> p4 = detail::grad4(j1.w, ip);
+    vec<4, T> p0 = _priv::grad4(j0,   ip);
+    vec<4, T> p1 = _priv::grad4(j1.x, ip);
+    vec<4, T> p2 = _priv::grad4(j1.y, ip);
+    vec<4, T> p3 = _priv::grad4(j1.z, ip);
+    vec<4, T> p4 = _priv::grad4(j1.w, ip);
 
     // Normalise gradients
-    vec<4, T> norm = detail::taylor_inv_sqrt(vec<4, T>(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+    vec<4, T> norm = _priv::taylor_inv_sqrt(vec<4, T>(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
     p0 *= norm.x;
     p1 *= norm.y;
     p2 *= norm.z;
     p3 *= norm.w;
-    p4 *= detail::taylor_inv_sqrt(dot(p4, p4));
+    p4 *= _priv::taylor_inv_sqrt(dot(p4, p4));
 
     // Mix contributions from the five corners
     vec<3, T> m0 = max(static_cast<T>(0.6) - vec<3, T>(dot(x0, x0), dot(x1, x1), dot(x2, x2)), static_cast<T>(0));

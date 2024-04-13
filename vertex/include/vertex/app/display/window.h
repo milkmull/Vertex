@@ -2,10 +2,7 @@
 
 #include <queue>
 
-#include "vertex/app/init.h"
-
 #include "vertex/math/math/type/vec2i.h"
-#include "vertex/image/image.h"
 
 #include "../input/event.h"
 #include "../input/cursor.h"
@@ -114,26 +111,27 @@ public:
     
     void request_attention();
     
-    //// =============== hovered ===============
-    //
-    //bool is_hovered() const;
-    //
     // =============== icon ===============
     
-    void set_icon(const img::image& icon);
+    void set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
     
     // =============== mouse ===============
     
     math::vec2i get_mouse_position() const;
     void set_mouse_position(const math::vec2i& position);
+
+    bool is_hovered() const;
+
+    bool get_cursor_visibility() const;
+    void set_cursor_visibility(bool visible);
+
+    void set_cursor(cursor cursor);
     
     //void set_cursor_shape(cursor::shape shape);
     //void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
     //void clear_cursor_shape();
     //
-    //cursor::mode get_cursor_mode() const;
-    //void set_cursor_mode(cursor::mode mode);
     //
     //// =============== mouse ===============
     //

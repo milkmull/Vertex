@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace detail {
+namespace _priv {
 
 VX_FORCE_INLINE constexpr void hash_combine(size_t& seed, size_t hash)
 {

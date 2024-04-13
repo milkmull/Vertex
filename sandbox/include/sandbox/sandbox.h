@@ -3,5 +3,5 @@
 
 #define VX_ENABLE_PROFILING
 
-#include "vertex/tools/debug/logger.h"
+#include "vertex/system/logger.h"
 #include "vertex/math/math.h"

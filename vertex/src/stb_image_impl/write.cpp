@@ -1,4 +1,4 @@
-#include "vertex/image/raw/io/write.h"
+#include "vertex/image/raw/write.h"
 
 #include "vertex/config.h"
 #include "vertex/image/util/image_info_helpers.h"

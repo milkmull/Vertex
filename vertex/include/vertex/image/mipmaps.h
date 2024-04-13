@@ -1,7 +1,7 @@
 #pragma once
 
 #include "image.h"
-#include "raw/filter/filter_box.h"
+#include "vertex/math/sample/filter/filter_box.h"
 #include "vertex/math/math/fn/fn_common.h"
 #include "vertex/math/math/fn/fn_exponential.h"
 
@@ -42,7 +42,7 @@ inline std::vector<image> generate_mipmaps(const image& img, size_t depth = -1)
 
         image map(w, h, img.format());
 
-        raw::filter_box(
+        math::filter_box(
             img.data(), img.width(), img.height(),
             map.data(), map.width(), map.height(),
             img.channels()

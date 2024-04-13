@@ -3,7 +3,6 @@
 #include <iterator>
 
 namespace vx {
-namespace tools {
 
 template <typename T>
 class iterator
@@ -166,5 +165,4 @@ private:
 
 };
 
-}
 }

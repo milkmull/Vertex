@@ -3,6 +3,7 @@
 #include <chrono>
 #include <fstream>
 #include <iomanip>
+#include <mutex>
 #include <sstream>
 #include <thread>
 
@@ -21,7 +22,6 @@ private:
         std::string name;
         std::chrono::duration<double, std::micro> start;
         std::chrono::microseconds elapsed_time;
-        std::thread::id thread_id;
     };
 
     struct session
@@ -47,7 +47,7 @@ public:
                 std::chrono::time_point_cast<std::chrono::microseconds>(m_start_time).time_since_epoch()
                 );
 
-            profiler::get().write_profile({ m_name, high_res_start, elapsed_time, std::this_thread::get_id() });
+            profiler::get().write_profile(result{ m_name, high_res_start, elapsed_time });
 
             m_stopped = true;
         }
@@ -152,19 +152,24 @@ private:
 
         entry << std::setprecision(3) << std::fixed;
         entry << result.name << ',';
-        entry << result.thread_id << ',';
+        entry << std::this_thread::get_id() << ',';
         entry << result.start.count() << ',';
         entry << result.elapsed_time.count() << '\n';
 
         if (m_current_session && m_output_stream.is_open())
         {
+            m_mutex.lock();
+
             m_output_stream << entry.str();
             m_output_stream.flush();
+
+            m_mutex.unlock();
         }
     }
 
 private:
 
+    std::mutex m_mutex;
     const char* m_filename = nullptr;
     session* m_current_session = nullptr;
     std::ofstream m_output_stream;

@@ -25,8 +25,8 @@ public:
     // basic constructors
 
     image(size_t width, size_t height, image_format format)
-        : m_width (math::min(width,  static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_height(math::min(height, static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
         , m_data(m_width * m_height * pixel_size(), 0) {}
 
@@ -36,8 +36,8 @@ public:
     // data constructors
 
     image(const byte_type* data, size_t width, size_t height, image_format format)
-        : m_width (math::min(width,  static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_height(math::min(height, static_cast<size_t>(util::VX_IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
+        , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
         , m_data(data, data + (m_width * m_height * pixel_size())) {}
 

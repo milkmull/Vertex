@@ -1,5 +1,6 @@
 #include "win32_window.h"
-#include "vertex/tools/string/string_fn.h"
+#include "../input/cursor_internal.h"
+#include "vertex/system/string/string_fn.h"
 
 namespace vx {
 namespace app {
@@ -15,14 +16,14 @@ size_t window::window_impl::s_window_count = 0;
 
 void window::window_impl::register_window_class()
 {
-    WNDCLASSW windowClass;
+    WNDCLASSW windowClass{};
     windowClass.style = 0;
     windowClass.lpfnWndProc = window_proc;
     windowClass.cbClsExtra = 0;
     windowClass.cbWndExtra = 0;
     windowClass.hInstance = GetModuleHandleW(NULL);
     windowClass.hIcon = NULL;
-    windowClass.hCursor = NULL;
+    windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
     windowClass.hbrBackground = NULL;
     windowClass.lpszMenuName = NULL;
     windowClass.lpszClassName = s_class_name;
@@ -78,7 +79,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
     // Create window
     m_handle = CreateWindowW(
         s_class_name,
-        tools::str::string_to_wstring(title).c_str(),
+        str::string_to_wstring(title).c_str(),
         win32_style,
         frame_x, frame_y,
         frame_width, frame_height,
@@ -88,10 +89,15 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
         this
     );
 
-    show();
-
     // Set initial mouse position
     m_last_mouse_position = get_mouse_position();
+    m_mouse_inside_window = is_hovered();
+
+    // Set the default cursor
+    set_cursor_shape(cursor::shape::SHAPE_ARROW);
+
+    // Finally show the window
+    show();
 
     // Increment the window count
     ++s_window_count;
@@ -100,10 +106,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
 window::window_impl::~window_impl()
 {
     // Destroy the custom icon
-    if (m_icon)
-    {
-        DestroyIcon(m_icon);
-    }
+    clear_icon();
 
     // Destroy the window
     if (m_handle)
@@ -114,9 +117,10 @@ window::window_impl::~window_impl()
     // Decrement the window count
     --s_window_count;
 
-    // Unregister window class if we were the last window
+    // If we were the last window...
     if (s_window_count == 0)
     {
+        // Unregister window class
         UnregisterClassW(s_class_name, GetModuleHandleW(NULL));
     }
 }
@@ -128,7 +132,11 @@ const window_handle window::window_impl::get_native_handle() const
 
 void window::window_impl::on_destroy()
 {
+    // Restore cursor visibility
+    set_cursor_visibility(true);
 
+    // Remove tracking
+    set_mouse_tracking(false);
 }
 
 // =============== open ===============
@@ -240,48 +248,48 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             m_resizing_or_moving = true;
             break;
         }
-        
+
         // Resize or move window end
         case WM_EXITSIZEMOVE:
         {
             m_resizing_or_moving = false;
-        
+
             // Check if the position changed
             const math::vec2i new_position = get_position();
-        
+
             if (m_last_position != new_position)
             {
                 m_last_position = new_position;
-        
+
                 event e;
                 e.type = event_type::WINDOW_MOVE;
                 e.window_move.x = new_position.x;
                 e.window_move.y = new_position.y;
                 post_event(e);
             }
-        
+
             // Check if the size changed
             const math::vec2i new_size = get_size();
-        
+
             if (m_last_size != new_size)
             {
                 m_last_size = new_size;
-        
+
                 event e;
                 e.type = event_type::WINDOW_RESIZE;
                 e.window_resize.width = new_size.x;
                 e.window_resize.height = new_size.y;
                 post_event(e);
             }
-        
+
             break;
         }
-        
+
         // Maximize & minimize window
         case WM_SIZE:
         {
             const math::vec2i new_size = get_size();
-        
+
             if (m_last_size != new_size)
             {
                 if (wParam == SIZE_MINIMIZED)
@@ -312,10 +320,10 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                     post_event(e);
                 }
             }
-        
+
             break;
         }
-        
+
         // Move window
         case WM_MOVE:
         {
@@ -347,7 +355,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                     post_event(e);
                 }
             }
-        
+
             break;
         }
 
@@ -356,7 +364,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
         {
             const math::vec2i full_min_size = content_size_to_window_size(m_min_size);
             const math::vec2i full_max_size = content_size_to_window_size(m_max_size);
-        
+
             PMINMAXINFO minmax_info = reinterpret_cast<PMINMAXINFO>(lParam);
 
             minmax_info->ptMinTrackSize.x = full_min_size.x;
@@ -408,6 +416,18 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
         }
 
         // =============== mouse events ===============
+
+        // Set the cursor
+        case WM_SETCURSOR:
+        {
+            if (LOWORD(lParam) == HTCLIENT && is_hovered())
+            {
+                SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+                handled = true;
+            }
+
+            break;
+        }
 
         // Left mouse button down
         case WM_LBUTTONDOWN:
@@ -513,6 +533,40 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             break;
         }
 
+        // Vertical mouse scroll
+        case WM_MOUSEWHEEL:
+        {
+            const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            const math::vec2i mouse_position = get_mouse_position();
+
+            event e;
+            e.type = event_type::MOUSE_SCROLL;
+            e.mouse_scroll.wheel = mouse::wheel::VERTICAL;
+            e.mouse_scroll.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+            e.mouse_scroll.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_scroll.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
+        // Horizontal mouse scroll
+        case WM_MOUSEHWHEEL:
+        {
+            const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            const math::vec2i mouse_position = get_mouse_position();
+
+            event e;
+            e.type = event_type::MOUSE_SCROLL;
+            e.mouse_scroll.wheel = mouse::wheel::HORIZONTAL;
+            e.mouse_scroll.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+            e.mouse_scroll.x = static_cast<int>(GET_X_LPARAM(lParam));
+            e.mouse_scroll.y = static_cast<int>(GET_Y_LPARAM(lParam));
+            post_event(e);
+
+            break;
+        }
+
         // Mouse move
         case WM_MOUSEMOVE:
         {
@@ -530,6 +584,54 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             }
 
             break;
+        }
+
+        // Mouse leave
+        case WM_MOUSELEAVE:
+        {
+            if (m_mouse_inside_window)
+            {
+                m_mouse_inside_window = false;
+                set_mouse_tracking(false);
+
+                event e;
+                e.type = event_type::MOUSE_HOVER;
+                e.mouse_hover.value = false;
+                post_event(e);
+            }
+
+            break;
+        }
+    }
+
+    // Update mouse tracking
+    if (Msg == WM_SIZE || Msg == WM_MOVE || Msg == WM_MOUSEMOVE)
+    {
+        if (!is_hovered())
+        {
+            if (m_mouse_inside_window)
+            {
+                m_mouse_inside_window = false;
+                set_mouse_tracking(false);
+
+                event e;
+                e.type = event_type::MOUSE_HOVER;
+                e.mouse_hover.value = false;
+                post_event(e);
+            }
+        }
+        else
+        {
+            if (!m_mouse_inside_window)
+            {
+                m_mouse_inside_window = true;
+                set_mouse_tracking(true);
+
+                event e;
+                e.type = event_type::MOUSE_HOVER;
+                e.mouse_hover.value = true;
+                post_event(e);
+            }
         }
     }
 
@@ -593,12 +695,12 @@ std::string window::window_impl::get_title() const
     GetWindowTextW(m_handle, reinterpret_cast<LPWSTR>(wtitle.data()), length);
 
     // Convert the wide string
-    return tools::str::wstring_to_string(wtitle);
+    return str::wstring_to_string(wtitle);
 }
 
 void window::window_impl::set_title(const std::string& title)
 {
-    SetWindowTextW(m_handle, tools::str::string_to_wstring(title).c_str());
+    SetWindowTextW(m_handle, str::string_to_wstring(title).c_str());
 }
 
 // =============== position and size ===============
@@ -762,21 +864,27 @@ void window::window_impl::request_attention()
 
 // =============== icon ===============
 
-void window::window_impl::set_icon(const img::image& icon)
+void window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
 {
     clear_icon();
 
-    // Format is expected to have 4 8-bit channels in BGRA format
-    img::image formatted_icon(icon.width(), icon.height(), img::image_format::RGBA8);
+    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
 
-    // Convert the image to an RGBA-8 format and swizzle each pixel
-    for (size_t y = 0; y < icon.height(); ++y)
+    // Format is expected to have 4 8-bit channels in RGBA format
+    if (image_size % 4)
     {
-        for (size_t x = 0; x < icon.width(); ++x)
-        {
-            const math::color p = icon.get_pixel(x, y);
-            formatted_icon.set_pixel(x, y, math::color(p.b, p.g, p.r, p.a));
-        }
+        //throw_error(error_code::INVALID_VALUE, "Window icon should be RGBA format");
+        return;
+    }
+
+    // Convert the image to an BGRA
+    std::vector<uint8_t> formatted_pixels(image_size);
+    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    {
+        formatted_pixels[pixel + 0] = pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = pixels[pixel + 3];
     }
 
     // MSVC warns about arument 6 being NULL
@@ -786,12 +894,11 @@ void window::window_impl::set_icon(const img::image& icon)
     // Create the icon
     m_icon = CreateIcon(
         GetModuleHandleW(NULL),
-        static_cast<int>(formatted_icon.width()),
-        static_cast<int>(formatted_icon.height()),
+        size.x, size.y,
         1,
         32,
         NULL,
-        formatted_icon.data()
+        formatted_pixels.data()
     );
 
     VX_DISABLE_WARNING_POP();
@@ -804,9 +911,8 @@ void window::window_impl::set_icon(const img::image& icon)
     }
     else
     {
-        throw_error(error_code::INTERNAL, "Failed to set window icon");
+        //throw_error(error_code::INTERNAL, "Failed to set window icon");
     }
-
 }
 
 void window::window_impl::clear_icon()
@@ -819,6 +925,16 @@ void window::window_impl::clear_icon()
 }
 
 // =============== mouse ===============
+
+void window::window_impl::set_mouse_tracking(bool enabled)
+{
+    TRACKMOUSEEVENT e{};
+    e.cbSize = sizeof(e);
+    e.dwFlags = enabled ? TME_LEAVE : TME_CANCEL;
+    e.hwndTrack = m_handle;
+    e.dwHoverTime = 0;
+    TrackMouseEvent(&e);
+}
 
 math::vec2i window::window_impl::get_mouse_position() const
 {
@@ -833,6 +949,70 @@ void window::window_impl::set_mouse_position(const math::vec2i& position)
     POINT point = { position.x, position.y };
     ClientToScreen(m_handle, &point);
     SetCursorPos(point.x, point.y);
+}
+
+bool window::window_impl::is_hovered() const
+{
+    POINT point;
+    if (!GetCursorPos(&point))
+    {
+        return false;
+    }
+
+    RECT rect;
+    ScreenToClient(m_handle, &point);
+    GetClientRect(m_handle, &rect);
+
+    return PtInRect(&rect, point);
+}
+
+bool window::window_impl::get_cursor_visibility() const
+{
+    return m_cursor_visible;
+}
+
+void window::window_impl::set_cursor_visibility(bool visible)
+{
+    m_cursor_visible = visible;
+    SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+}
+
+void window::window_impl::set_cursor_shape(cursor::shape shape)
+{
+    LPCWSTR cursor_name = 0;
+
+    switch (shape)
+    {
+        case cursor::shape::SHAPE_ARROW:       cursor_name = IDC_ARROW;   break;
+        case cursor::shape::SHAPE_IBEAM:       cursor_name = IDC_IBEAM;   break;
+        case cursor::shape::SHAPE_WAIT:        cursor_name = IDC_WAIT;    break;
+        case cursor::shape::SHAPE_CROSSHAIR:   cursor_name = IDC_CROSS;   break;
+        case cursor::shape::SHAPE_HAND:        cursor_name = IDC_HAND;    break;
+        case cursor::shape::SHAPE_HRESIZE:     cursor_name = IDC_SIZEWE;  break;
+        case cursor::shape::SHAPE_VRESIZE:     cursor_name = IDC_SIZENS;  break;
+        case cursor::shape::SHAPE_ALL_RESIZE:  cursor_name = IDC_SIZEALL; break;
+        case cursor::shape::SHAPE_NOT_ALLOWED: cursor_name = IDC_NO;      break;
+        default:                                                          return;
+    }
+
+    m_last_cursor = LoadCursorW(nullptr, cursor_name);
+    m_last_cursor_shape = shape;
+    SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+}
+
+void window::window_impl::set_cursor(cursor cursor)
+{
+    auto it = cursor_data::s_cursor_cache.find(cursor.get_id());
+    if (it != cursor_data::s_cursor_cache.end())
+    {
+        m_last_cursor = it->second.cursor;
+        SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+    }
+}
+
+cursor::shape window::window_impl::get_cursor_shape() const
+{
+    return m_last_cursor_shape;
 }
 
 }

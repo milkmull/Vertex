@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../detail/common.h"
+#include "../../_priv/common.h"
 #include "../../../math/fn/fn_common.h"
 #include "../../fn/rect_fn_collision.h"
 

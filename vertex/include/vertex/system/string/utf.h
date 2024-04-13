@@ -5,7 +5,7 @@
 #include "vertex/config.h"
 
 namespace vx {
-namespace tools {
+namespace str {
 
 // =============== utf8 ===============
 
@@ -16,7 +16,7 @@ inline constexpr IT encode(uint32_t codepoint, IT output, uint8_t replacement = 
 {
     if (codepoint < 0x00 || codepoint > 0x10FFFF)
     {
-        // codepoint is outside valid range
+        // Codepoint is outside valid range
         *output++ = replacement;
         return output;
     }
@@ -80,19 +80,19 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
     }
     else
     {
-        // invalid lead byte
+        // Invalid lead byte
         codepoint = replacement;
         return end;
     }
 
     if (trail_bytes >= std::distance(begin, end))
     {
-        // not enough space to contain expected trailing bytes
+        // Not enough space to contain expected trailing bytes
         codepoint = replacement;
         return end;
     }
 
-    // values to shave off leading bits after assembling final codepoint
+    // Values to shave off leading bits after assembling final codepoint
     static constexpr uint32_t lead_masks[4] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080 };
 
     codepoint = 0;
@@ -200,7 +200,7 @@ inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char repl
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
     while (begin < end)
     {
         output = encode(*begin++, output);
@@ -212,13 +212,13 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
     {
         uint32_t codepoint;
         begin = decode(begin, end, codepoint);
 
-        // make sure codepoint is in valid latin1 range
+        // Make sure codepoint is in valid latin1 range
         *output++ = codepoint < 256 ? static_cast<char>(codepoint) : replacement;
     }
 
@@ -265,24 +265,24 @@ inline constexpr IT encode(uint32_t codepoint, IT output, uint16_t replacement =
     {
         if (codepoint >= 0xD800 && codepoint <= 0xDFFF)
         {
-            // invalid codepoint in reserved range
+            // Invalid codepoint in reserved range
             *output++ = replacement;
             return output;
         }
 
-        // codepoint is directly convertable
+        // Codepoint is directly convertable
         *output++ = static_cast<uint16_t>(codepoint);
         return output;
     }
 
     if (codepoint > 0x10FFFF)
     {
-        // out of valid range
+        // Out of valid range
         *output++ = replacement;
         return output;
     }
 
-    // build surrogate pair
+    // Build surrogate pair
     codepoint -= 0x10000;
     *output++ = static_cast<uint16_t>((codepoint >> 10)   + 0xD800);
     *output++ = static_cast<uint16_t>((codepoint & 0x3FF) + 0xDC00);
@@ -295,12 +295,12 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
 {
     const uint16_t first = *begin++;
 
-    // check for expected surrogate pair
+    // Check for expected surrogate pair
     if (first >= 0xD800 && first <= 0xDBFF)
     {
         if (begin >= end)
         {
-            // not enough space to contain second surrogate
+            // Not enough space to contain second surrogate
             codepoint = replacement;
             return begin;
         }
@@ -309,19 +309,19 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
 
         if (second >= 0xDC00 && second <= 0xDFFF)
         {
-            // valid second surrogate, combine surrogate pair
+            // Valid second surrogate, combine surrogate pair
             codepoint = ((first - 0xD800) << 10) + (second - 0xDC00) + 0x10000;
             return begin;
         }
         else
         {
-            // invalid second surrogate
+            // Invalid second surrogate
             codepoint = replacement;
             return begin;
         }
     }
 
-    // codepoint is directly convertable
+    // Codepoint is directly convertable
     codepoint = first;
 
     return begin;
@@ -417,7 +417,7 @@ inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char repl
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16, we can directly encode
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16, we can directly encode
     while (begin < end)
     {
         *output++ = *begin++;
@@ -429,13 +429,13 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
     while (begin < end)
     {
         uint32_t codepoint;
         begin = decode(begin, end, codepoint);
 
-        // make sure codepoint is in valid latin1 range
+        // Make sure codepoint is in valid latin1 range
         *output++ = codepoint < 256 ? static_cast<char>(codepoint) : replacement;
     }
 
@@ -540,7 +540,7 @@ inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 template <typename IT>
 inline constexpr IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0, const std::locale& locale = std::locale())
 {
-    // we use the locale character conversion facet to translate each character to ansi
+    // We use the locale character conversion facet to translate each character to ansi
     const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
     *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
     return output;
@@ -549,7 +549,7 @@ inline constexpr IT encode_ansi(uint32_t codepoint, IT output, char replacement 
 template <typename IT>
 inline constexpr uint32_t decode_ansi(IT input, const std::locale& locale = std::locale())
 {
-    // we use the locale character conversion facet to translate each character from ansi
+    // We use the locale character conversion facet to translate each character from ansi
     const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
     return static_cast<uint32_t>(facet.widen(input));
 }
@@ -559,7 +559,7 @@ inline constexpr uint32_t decode_ansi(IT input, const std::locale& locale = std:
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
     while (begin < end)
     {
         *output++ = *begin++;
@@ -571,10 +571,10 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 template <typename IN_IT, typename OUT_IT>
 inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
-    // latin1 uses 256 (1 byte) codepoints that are a subset of utf32
+    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
     {
-        // make sure codepoint is in valid latin1 range
+        // Make sure codepoint is in valid latin1 range
         *output++ = *begin < 256 ? static_cast<char>(*begin) : replacement;
         ++begin;
     }
@@ -622,7 +622,7 @@ inline constexpr IT encode_wide(uint32_t codepoint, IT output, wchar_t replaceme
             // UCS-2, is utf16, and a subset of UCS-4 that uses 16 bit characters
             if (codepoint <= 0xFFFF && (codepoint < 0xD800 || codepoint > 0xDFFF))
             {
-                // in the valid range for a single character utf16 codepoint
+                // In the valid range for a single character utf16 codepoint
                 *output++ = static_cast<wchar_t>(codepoint);
                 break;
             }
@@ -642,7 +642,7 @@ inline constexpr IT encode_wide(uint32_t codepoint, IT output, wchar_t replaceme
 template <typename T>
 inline constexpr uint32_t decode_wide(T input)
 {
-    // assuming USC-2 or USC-4, both are directly convertable to utf32
+    // Assuming USC-2 or USC-4, both are directly convertable to utf32
     return static_cast<uint32_t>(input);
 }
 

@@ -2,7 +2,7 @@
 
 #include <functional>
 
-#include "../../detail/hash.h"
+#include "../../_priv/hash.h"
 #include "../type/base/base_types.h"
 
 namespace std {

@@ -3,8 +3,8 @@
 #include <vector>
 #include <numeric>
 
-#include "vertex/tools/iter/type_traits.h"
-#include "vertex/tools/container/type_traits.h"
+#include "vertex/system/iterator/type_traits.h"
+#include "vertex/system/container/type_traits.h"
 
 namespace vx {
 namespace math {
@@ -42,7 +42,7 @@ public:
      */
     template <typename IT,
         typename std::enable_if<
-        ::vx::tools::type_traits::is_iterator<IT>::value &&
+        ::vx::type_traits::is_iterator<IT>::value &&
         std::is_arithmetic<typename std::iterator_traits<IT>::value_type>::value,
         bool>::type = true>
     weights(IT wfirst, IT wlast)
@@ -61,7 +61,7 @@ public:
      */
     template <typename T,
         typename std::enable_if<
-        ::vx::tools::type_traits::is_stl_container<T>::value &&
+        ::vx::type_traits::is_stl_container<T>::value &&
         std::is_arithmetic<typename T::value_type>::value,
         bool>::type = true>
     weights(const T& w)

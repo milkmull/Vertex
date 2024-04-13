@@ -4,7 +4,6 @@
 #include <iterator>
 
 namespace vx {
-namespace tools {
 namespace type_traits {
 
 template <typename T, typename = void>
@@ -23,6 +22,5 @@ struct is_stl_container<
     >
 > : std::true_type {};
 
-}
 }
 }

@@ -18,7 +18,7 @@
 
 #include <windows.h>
 
-// macros for extracting signed values from WM_* lparam
+// macros for extracting signed values from WM_* lparam stolen from windowsx.h
 
 #define GET_X_LPARAM(lp)    ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)    ((int)(short)HIWORD(lp))

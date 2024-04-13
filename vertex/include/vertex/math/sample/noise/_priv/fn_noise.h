@@ -9,7 +9,7 @@
 
 namespace vx {
 namespace math {
-namespace detail {
+namespace _priv {
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T mod289(T x)

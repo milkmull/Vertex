@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../detail/base_types.h"
+#include "../_priv/base_types.h"
 #include "../enum_image_format.h"
 
 namespace vx {
 namespace img {
 
-namespace detail {
+namespace _priv {
 
 struct image_format_data
 {
@@ -26,7 +26,7 @@ inline constexpr image_format_data image_format_data_table[] = {
     { 4, 8, 4,    true, image_format::RGBA8 }   // RGBA8
 };
 
-} // detail
+} // _priv
 
 namespace util {
 
@@ -38,7 +38,7 @@ namespace util {
  */
 inline constexpr size_t get_channel_count(image_format format)
 {
-    return detail::image_format_data_table[static_cast<int>(format)].channels;
+    return _priv::image_format_data_table[static_cast<int>(format)].channels;
 }
 
 /**
@@ -49,7 +49,7 @@ inline constexpr size_t get_channel_count(image_format format)
  */
 inline constexpr size_t get_bitdepth(image_format format)
 {
-    return detail::image_format_data_table[static_cast<int>(format)].bitdepth;
+    return _priv::image_format_data_table[static_cast<int>(format)].bitdepth;
 }
 
 /**
@@ -60,7 +60,7 @@ inline constexpr size_t get_bitdepth(image_format format)
  */
 inline constexpr size_t get_pixel_size(image_format format)
 {
-    return detail::image_format_data_table[static_cast<int>(format)].pixel_size;
+    return _priv::image_format_data_table[static_cast<int>(format)].pixel_size;
 }
 
 /**
@@ -71,7 +71,7 @@ inline constexpr size_t get_pixel_size(image_format format)
  */
 inline constexpr image_format to_8_bit(image_format format)
 {
-    return detail::image_format_data_table[static_cast<int>(format)].format_8_bit;
+    return _priv::image_format_data_table[static_cast<int>(format)].format_8_bit;
 }
 
 /**
@@ -82,7 +82,7 @@ inline constexpr image_format to_8_bit(image_format format)
  */
 inline constexpr bool has_alpha(image_format format)
 {
-    return detail::image_format_data_table[static_cast<int>(format)].alpha;
+    return _priv::image_format_data_table[static_cast<int>(format)].alpha;
 }
 
 /**

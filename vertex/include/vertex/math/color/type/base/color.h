@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../detail/common.h"
+#include "../../_priv/common.h"
 #include "../../../math/fn/fn_common.h"
 
 namespace vx {
@@ -688,26 +688,6 @@ struct color_t
      * @return The maximum color component value.
      */
     VX_FORCE_INLINE constexpr T max_color() const { return math::max({ r, g, b }); }
-
-    /**
-     * @brief Get a new color composed of the specified channels of the color.
-     *
-     * @return The new swizzled color.
-     */
-    VX_FORCE_INLINE constexpr type swizzle(
-        color_channel ri,
-        color_channel gi,
-        color_channel bi,
-        color_channel ai = color_channel::ALPHA
-    ) const
-    {
-        return type(
-            operator[](static_cast<size_t>(ri)),
-            operator[](static_cast<size_t>(gi)),
-            operator[](static_cast<size_t>(bi)),
-            operator[](static_cast<size_t>(ai))
-        );
-    }
 
     // =============== colors ===============
 

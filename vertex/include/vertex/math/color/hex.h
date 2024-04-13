@@ -5,14 +5,6 @@
 namespace vx {
 namespace math {
 
-enum rgba_mask : uint32_t
-{
-    VX_COLOR_MASK_R = 0x000000FF,
-    VX_COLOR_MASK_G = 0x0000FF00,
-    VX_COLOR_MASK_B = 0x00FF0000,
-    VX_COLOR_MASK_A = 0xFF000000
-};
-
 // =============== hex ===============
 
 /**

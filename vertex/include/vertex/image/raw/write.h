@@ -5,8 +5,8 @@
 
 #include <vector>
 
-#include "../../image_info.h"
-#include "../../enum_error_code.h"
+#include "../image_info.h"
+#include "../enum_error_code.h"
 
 namespace vx {
 namespace img {

@@ -6,7 +6,6 @@
 #include "utf.h"
 
 namespace vx {
-namespace tools {
 namespace str {
 
 inline std::wstring string_to_wstring(const std::string& str)
@@ -24,6 +23,5 @@ inline std::string wstring_to_string(const std::wstring& wstr)
     return std::string(str_data.begin(), str_data.end());
 }
 
-}
 }
 }
