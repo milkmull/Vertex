@@ -11,43 +11,50 @@ namespace math {
 
 // For now, rng results may varry accross platforms due to implimentation differences
 
-/**
- * @class rng
- * @brief Random Number Generator (RNG) class for generating pseudo-random numbers.
- *
- * The rng class provides a set of functions for generating random numbers of different types and distributions.
- * It supports seeding, generating integers, floats, booleans, and performing various container operations like shuffling.
- *
- * @note The default constructor automatically seeds the RNG using the current system clock.
- *
- * @note The RNG class uses the Mersenne Twister engine (std::mt19937) for random number generation.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Random Number Generator (RNG) class for generating pseudo-random
+/// numbers.
+///
+/// The rng class provides a set of functions for generating random numbers of
+/// different types and distributions. It supports seeding, generating integers,
+/// floats, booleans, and performing various container operations like shuffling.
+///
+/// @note The default constructor automatically seeds the RNG using the current
+/// system clock.
+/// @note The RNG class uses the Mersenne Twister engine (std::mt19937) for
+/// random number generation.
+////////////////////////////////////////////////////////////////////////////////
 class rng
 {
 public:
 
-    // =============== constructors ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////////////////////
 
     rng() { seed(); }
     rng(uint32_t seed) { m_rng.seed(seed); }
 
-    // =============== seeding ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // seeding
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Seeds the RNG with a specified value.
-     * 
-     * @param seed The seed value.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Seeds the RNG with a specified value.
+    /// 
+    /// @param seed The seed value.
+    ////////////////////////////////////////////////////////////////////////////////
     inline void seed(uint32_t seed)
     {
         m_rng.seed(seed);
     }
 
-    /**
-     * @brief Seeds the RNG using the current system clock and returns the generated seed.
-     * 
-     * @return The generated seed value.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Seeds the RNG using the current system clock and returns the
+    /// generated seed.
+    /// 
+    /// @return The generated seed value.
+    ////////////////////////////////////////////////////////////////////////////////
     inline uint32_t seed()
     {
         const uint32_t s = static_cast<uint32_t>(std::chrono::system_clock::now().time_since_epoch().count());
@@ -55,55 +62,58 @@ public:
         return s;
     }
 
-    // =============== generators ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // generators
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Generates a random integer.
-     * 
-     * @return The generated random integer.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random integer.
+    /// 
+    /// @return The generated random integer.
+    ////////////////////////////////////////////////////////////////////////////////
     inline uint32_t randi()
     {
         return m_rng();
     }
 
-    /**
-     * @brief Generates a random floating-point number between 0.0 and 1.0.
-     * 
-     * @return The generated random float.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random floating-point number between 0.0 and 1.0.
+    /// 
+    /// @return The generated random float.
+    ////////////////////////////////////////////////////////////////////////////////
     inline float randf()
     {
         return randf_range(0.0f, 1.0f);
     }
 
-    /**
-     * @brief Generates a random floating-point number between 0.0 and 1.0.
-     *
-     * @return The generated random float.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random floating-point number between 0.0 and 1.0.
+    ///
+    /// @return The generated random float.
+    ////////////////////////////////////////////////////////////////////////////////
     inline float operator()()
     {
         return randf();
     }
 
-    /**
-     * @brief Generates a random boolean value.
-     * 
-     * @return The generated random boolean.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random boolean value.
+    /// 
+    /// @return The generated random boolean.
+    ////////////////////////////////////////////////////////////////////////////////
     inline bool randb()
     {
         return static_cast<bool>(randi_range(0, 1));
     }
 
-    /**
-     * @brief Generates a random integer within the specified range.
-     * 
-     * @param min The minimum value of the range.
-     * @param max The maximum value of the range.
-     * @return The generated random integer within the specified range.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random integer within the specified range.
+    /// 
+    /// @param min The minimum value of the range.
+    /// @param max The maximum value of the range.
+    /// 
+    /// @return The generated random integer within the specified range.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
     inline T randi_range(T min, T max)
     {
@@ -111,13 +121,14 @@ public:
         return dist(m_rng);
     }
 
-    /**
-     * @brief Generates a random floating-point number within the specified range.
-     * 
-     * @param min The minimum value of the range.
-     * @param max The maximum value of the range.
-     * @return The generated random floating-point number within the specified range.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random floating-point number within the specified range.
+    /// 
+    /// @param min The minimum value of the range.
+    /// @param max The maximum value of the range.
+    /// 
+    /// @return The generated random floating-point number within the specified range.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
     inline T randf_range(T min, T max)
     {
@@ -125,13 +136,15 @@ public:
         return dist(m_rng);
     }
 
-    /**
-     * @brief Generates a random number from a normal distribution with specified mean and deviation.
-     * 
-     * @param mean The mean value of the normal distribution (default is 0).
-     * @param deviation The standard deviation of the normal distribution (default is 1).
-     * @return The generated random number from the normal distribution.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Generates a random number from a normal distribution with specified
+    /// mean and deviation.
+    /// 
+    /// @param mean The mean value of the normal distribution (default is 0).
+    /// @param deviation The standard deviation of the normal distribution (default is 1).
+    /// 
+    /// @return The generated random number from the normal distribution.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
     inline float rand_norm(T mean = static_cast<T>(0), T deviation = static_cast<T>(1))
     {
@@ -139,27 +152,30 @@ public:
         return dist(m_rng);
     }
 
-    // =============== container operations ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // container operations
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Shuffles the elements in the specified range using the RNG.
-     * 
-     * @param begin Iterator to the beginning of the range.
-     * @param end Iterator to the end of the range.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Shuffles the elements in the specified range using the RNG.
+    /// 
+    /// @param begin Iterator to the beginning of the range.
+    /// @param end Iterator to the end of the range.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
     }
 
-    /**
-     * @brief Selects a random element from the specified range using the RNG.
-     * 
-     * @param first Iterator to the beginning of the range.
-     * @param last Iterator to the end of the range.
-     * @return A reference to the randomly selected element.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Selects a random element from the specified range using the RNG.
+    /// 
+    /// @param first Iterator to the beginning of the range.
+    /// @param last Iterator to the end of the range.
+    /// 
+    /// @return A reference to the randomly selected element.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
     {
@@ -176,15 +192,17 @@ public:
         return *first;
     }
 
-    /**
-     * @brief Selects multiple random elements from one range and assigns them to another range using the RNG.
-     * 
-     * @param first1 Iterator to the beginning of the source range.
-     * @param last1 Iterator to the end of the source range.
-     * @param first2 Iterator to the beginning of the destination range.
-     * @param last2 Iterator to the end of the destination range.
-     * @return Iterator pointing to the end of the destination range after assignment.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Selects multiple random elements from one range and assigns them to
+    /// another range using the RNG.
+    /// 
+    /// @param first1 Iterator to the beginning of the source range.
+    /// @param last1 Iterator to the end of the source range.
+    /// @param first2 Iterator to the beginning of the destination range.
+    /// @param last2 Iterator to the end of the destination range.
+    /// 
+    /// @return Iterator pointing to the end of the destination range after assignment.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT1, typename IT2,
         typename std::enable_if<
         ::vx::type_traits::is_iterator<IT1>::value &&
@@ -219,14 +237,15 @@ public:
         return first2;
     }
 
-    /**
-     * @brief Chooses a single element from the specified range based on weights.
-     * 
-     * @param first Iterator to the beginning of the range.
-     * @param last Iterator to the end of the range.
-     * @param w Weights object specifying the weights for each element.
-     * @return A const reference to the selected element.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Chooses a single element from the specified range based on weights.
+    /// 
+    /// @param first Iterator to the beginning of the range.
+    /// @param last Iterator to the end of the range.
+    /// @param w Weights object specifying the weights for each element.
+    /// 
+    /// @return A const reference to the selected element.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
     inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
         IT first,
@@ -256,16 +275,18 @@ public:
         return *first;
     }
 
-    /**
-     * @brief Chooses multiple elements from one range and assigns them to another range based on weights.
-     * 
-     * @param first1 Iterator to the beginning of the source range.
-     * @param last1 Iterator to the end of the source range.
-     * @param first2 Iterator to the beginning of the destination range.
-     * @param last2 Iterator to the end of the destination range.
-     * @param w Weights object specifying the weights for each element.
-     * @return Iterator pointing to the end of the destination range after assignment.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Chooses multiple elements from one range and assigns them to another
+    /// range based on weights.
+    /// 
+    /// @param first1 Iterator to the beginning of the source range.
+    /// @param last1 Iterator to the end of the source range.
+    /// @param first2 Iterator to the beginning of the destination range.
+    /// @param last2 Iterator to the end of the destination range.
+    /// @param w Weights object specifying the weights for each element.
+    /// 
+    /// @return Iterator pointing to the end of the destination range after assignment.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT1, typename IT2,
         typename std::enable_if<
         ::vx::type_traits::is_iterator<IT1>::value &&

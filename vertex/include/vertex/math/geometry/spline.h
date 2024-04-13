@@ -3,8 +3,6 @@
 namespace vx {
 namespace math {
 
-// =============== scaler ===============
-
 template <typename T>
 inline constexpr T catmull_rom(
     T p1,

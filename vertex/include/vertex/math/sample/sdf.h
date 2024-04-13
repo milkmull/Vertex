@@ -8,7 +8,9 @@ namespace sdf {
 
 // https://iquilezles.org/articles/distfunctions2d/
 
-// =============== operators ===============
+////////////////////////////////////////////////////////////////////////////////
+// operators
+////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T op_round(T d, T r)

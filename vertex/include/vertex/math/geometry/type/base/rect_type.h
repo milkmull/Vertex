@@ -14,24 +14,32 @@ struct rect_t
 {
     static_assert(std::is_arithmetic<T>::value, "type T must be arithmetic type");
 
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = rect_t<T>;
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     vec<2, T> position;
     vec<2, T> size;
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr rect_t() noexcept = default;
 
     VX_FORCE_INLINE constexpr rect_t(const type& r) noexcept
         : position(r.position), size(r.size) {}
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit rect_t(
         const vec<2, T>& position,
@@ -45,7 +53,9 @@ struct rect_t
     VX_FORCE_INLINE constexpr explicit rect_t(const vec<4, T>& v) noexcept
         : position(v.x, v.y), size(v.z, v.w) {}
 
-    // =============== conversion constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename P, typename S>
     VX_FORCE_INLINE constexpr explicit rect_t(
@@ -72,11 +82,15 @@ struct rect_t
         : position(static_cast<T>(v.x), static_cast<T>(v.y))
         , size(static_cast<T>(v.z), static_cast<T>(v.w)) {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~rect_t() noexcept = default;
 
-    // =============== assignment operator ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& r) noexcept
     {
@@ -95,7 +109,9 @@ struct rect_t
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
@@ -109,7 +125,9 @@ struct rect_t
         return (&position.x)[i];
     }
 
-    // =============== conversion operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U>
     VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const
@@ -122,7 +140,9 @@ struct rect_t
         );
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& r1, const type& r2)
     {
@@ -134,7 +154,9 @@ struct rect_t
         return !(r1 == r2);
     }
 
-    // =============== anchors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // anchors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr T x()		const { return position.x; }
     VX_FORCE_INLINE constexpr T y()		const { return position.y; }
@@ -180,59 +202,62 @@ struct rect_t
     VX_FORCE_INLINE constexpr void set_midleft(const vec<2, T>& midleft) { position.x = midleft.x; position.y = midleft.y - size.y / static_cast<T>(2); }
     VX_FORCE_INLINE constexpr void set_center(const vec<2, T>& center) { position = center - size / static_cast<T>(2); }
 
-    // =============== common getters ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // attributes
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Get the minimum x-coordinate of the rectangle.
-     *
-     * @return The minimum x-coordinate value.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the minimum x-coordinate of the rectangle.
+    ///
+    /// @return The minimum x-coordinate value.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T min_x() const { return math::min(position.x, right()); }
 
-    /**
-     * @brief Get the maximum x-coordinate of the rectangle.
-     *
-     * @return The maximum x-coordinate value.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the maximum x-coordinate of the rectangle.
+    ///
+    /// @return The maximum x-coordinate value.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T max_x() const { return math::max(position.x, right()); }
 
-    /**
-     * @brief Get the minimum y-coordinate of the rectangle.
-     *
-     * @return The minimum y-coordinate value.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the minimum y-coordinate of the rectangle.
+    ///
+    /// @return The minimum y-coordinate value.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T min_y() const { return math::min(position.y, bottom()); }
 
-    /**
-     * @brief Get the maximum y-coordinate of the rectangle.
-     *
-     * @return The maximum y-coordinate value.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Get the maximum y-coordinate of the rectangle.
+    ///
+    /// @return The maximum y-coordinate value.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T max_y() const { return math::max(position.y, bottom()); }
 
-    /**
-     * @brief Calculate the area of the rectangle.
-     *
-     * @return The area of the rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Calculate the area of the rectangle.
+    ///
+    /// @return The area of the rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T area() const { return size.x * size.y; }
 
-    /**
-     * @brief Check if the rectangle has no area.
-     *
-     * @return True if the rectangle's area is 0, otherwise false.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Check if the rectangle has no area.
+    ///
+    /// @return True if the rectangle's area is 0, otherwise false.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr bool empty() const { return area() == static_cast<T>(0); }
 
-    // =============== common modifiers ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // modifiers
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Normalizes the rectangle.
-     *
-     * Normalizes the rectangle by ensuring that its size components are non-negative.
-     *
-     * @return The normalized rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Normalizes the rectangle by ensuring that its size components are
+    /// non-negative.
+    ///
+    /// @return The normalized rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type normalize() const
     {
         type nr = *this;
@@ -251,93 +276,71 @@ struct rect_t
         return nr;
     }
 
-    // =============== transform ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // transform
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Scales the rectangle by a specified factor.
-     *
-     * @param s The scaling factor.
-     * @return The scaled rectangle.
-     */
-    VX_FORCE_INLINE constexpr type scale(const vec<2, T>& s) const
-    {
-        return type(
-            position,
-            size * s
-        );
-    }
-
-    /**
-     * @brief Scales the rectangle by a specified factor.
-     *
-     * @param sx The x-axis scaling factor.
-     * @param sy The y-axis scaling factor.
-     * @return The scaled rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Scales the rectangle by specified factors along the x and y axes.
+    ///
+    /// @param sx The x-axis scaling factor.
+    /// @param sy The y-axis scaling factor.
+    /// 
+    /// @return The scaled rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type scale(T sx, T sy) const
     {
-        return scale(vec<2, T>(sx, sy));
-    }
-
-    /**
-     * @brief Scales the rectangle by a specified factor.
-     *
-     * @param s The scaling factor.
-     * @return The scaled rectangle.
-     */
-    VX_FORCE_INLINE constexpr type scale(T s) const
-    {
-        return scale(vec<2, T>(s));
-    }
-
-    /**
-     * @brief Moves the rectangle by a specified offset.
-     *
-     * @param offset The offset by which to move the rectangle.
-     * @return The moved rectangle.
-     */
-    VX_FORCE_INLINE constexpr type move(const vec<2, T>& offset) const
-    {
         return type(
-            position + offset,
-            size
+            position.x,
+            position.y,
+            size.x * sx,
+            size.y * sy
         );
     }
 
-    /**
-     * @brief Moves the rectangle by a specified offset.
-     *
-     * @param dx The x-axis offset.
-     * @param dy The y-axis offset.
-     * @return The moved rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Moves the rectangle by specified offsets along the x and y axes.
+    ///
+    /// @param dx The x-axis offset.
+    /// @param dy The y-axis offset.
+    /// 
+    /// @return The moved rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type move(T dx, T dy) const
     {
-        return move(vec<2, T>(dx, dy));
-    }
-
-    /**
-     * @brief Increases the size of the rectangle by a specified amount.
-     *
-     * @param s The amount by which to increase the size of the rectangle.
-     * @return The inflated rectangle.
-     */
-    VX_FORCE_INLINE constexpr type inflate(const vec<2, T>& s) const
-    {
         return type(
-            position - s,
-            size + static_cast<T>(2) * s
+            position.x + dx,
+            position.y + dy,
+            size.x,
+            size.y
         );
     }
 
-    /**
-     * @brief Crops the rectangle to the intersection with another rectangle.
-     *
-     * Returns a new rectangle representing the intersection of this rectangle with the specified rectangle.
-     *
-     * @param r The rectangle to intersect with.
-     * @return The intersected rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Increases the size of the rectangle uniformly by a specified amount.
+    ///
+    /// @param s The amount by which to increase the size of the rectangle.
+    /// 
+    /// @return The inflated rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
+    VX_FORCE_INLINE constexpr type inflate(T ix, T iy) const
+    {
+        return type(
+            position.x - ix,
+            position.y - iy,
+            size.x + static_cast<T>(2) * ix,
+            size.y + static_cast<T>(2) * iy
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Returns a new rectangle representing the intersection of this
+    /// rectangle and the specified rectangle.
+    ///
+    /// @param r The rectangle to intersect with.
+    /// 
+    /// @return The intersected rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type crop(const type& r) const
     {
         const T nl = math::clamp(r.position.x, position.x, right());
@@ -354,15 +357,15 @@ struct rect_t
         );
     }
 
-    /**
-     * @brief Merges two rectangles to form a new rectangle containing both rectangles.
-     *
-     * Returns a new rectangle that contains both the specified rectangles.
-     *
-     * @param r1 The first rectangle.
-     * @param r2 The second rectangle.
-     * @return The merged rectangle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Merges two rectangles to form a new rectangle containing both
+    /// rectangles.
+    ///
+    /// @param r1 The first rectangle.
+    /// @param r2 The second rectangle.
+    /// 
+    /// @return The merged rectangle.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type merge(const type& r1, const type& r2)
     {
         const T nl = math::min(r1.position.x, r2.position.x);
@@ -379,17 +382,16 @@ struct rect_t
         );
     }
 
-    /**
-     * @brief Grows the sides of the rectangle by the specified amounts.
-     *
-     * Returns a new rectangle with its sides grown by the specified amounts.
-     *
-     * @param left   The amount to grow the left side of the rectangle.
-     * @param right  The amount to grow the right side of the rectangle.
-     * @param bottom The amount to grow the bottom side of the rectangle.
-     * @param top    The amount to grow the top side of the rectangle.
-     * @return The new rectangle with grown sides.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Returns a new rectangle with its sides grown by the specified amounts.
+    ///
+    /// @param left   The amount to grow the left side of the rectangle.
+    /// @param right  The amount to grow the right side of the rectangle.
+    /// @param bottom The amount to grow the bottom side of the rectangle.
+    /// @param top    The amount to grow the top side of the rectangle.
+    /// 
+    /// @return The new rectangle with grown sides.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type grow_sides(T left, T right, T bottom, T top) const
     {
         return type(
@@ -400,14 +402,13 @@ struct rect_t
         );
     }
 
-    /**
-     * @brief Expands the rectangle to include the specified point.
-     *
-     * Returns a new rectangle expanded to include the specified point.
-     *
-     * @param p The point to include in the expanded rectangle.
-     * @return The new rectangle expanded to include the specified point.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Expands the rectangle to include the specified point.
+    ///
+    /// @param p The point to include in the expanded rectangle.
+    /// 
+    /// @return The new rectangle expanded to include the specified point.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr type expand_to(const vec<2, T>& p) const
     {
         const T nl = math::min(position.x, p.x);
@@ -424,7 +425,9 @@ struct rect_t
         );
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type ZERO() { return type(0, 0, 0, 0); }
 

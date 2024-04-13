@@ -7,8 +7,6 @@
 
 namespace vx {
 
-// =============== vector ===============
-
 template <typename T>
 inline std::string to_string(const math::rect_t<T>& r)
 {

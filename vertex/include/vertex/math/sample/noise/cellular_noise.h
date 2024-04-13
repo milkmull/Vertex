@@ -18,15 +18,15 @@
 namespace vx {
 namespace math {
 
-/**
- * @brief Generates cellular noise for 2D coordinates.
- *
- * This function calculates cellular noise for given 2D coordinates.
- *
- * @tparam T The type of the coordinates.
- * @param P The 2D coordinates for which cellular noise is calculated.
- * @return The cellular noise valuse F1 and F2 for the given coordinates, ranging from -1 to 1.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Generates cellular noise for 2D coordinates.
+///
+/// @tparam T The type of the coordinates.
+/// @param P The 2D coordinates for which cellular noise is calculated.
+/// 
+/// @return The cellular noise values F1 and F2 for the given coordinates,
+/// ranging from -1 to 1.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> cellular_noise(const vec<2, T>& P)
 {
@@ -75,15 +75,15 @@ inline constexpr vec<2, T> cellular_noise(const vec<2, T>& P)
     return sqrt(vec<2, T>(d1.x, d1.y));
 }
 
-/**
- * @brief Generates cellular noise for 3D coordinates.
- *
- * This function calculates cellular noise for given 3D coordinates.
- *
- * @tparam T The type of the coordinates.
- * @param P The 2D coordinates for which cellular noise is calculated.
- * @return The cellular noise valuse F1 and F2 for the given coordinates, ranging from -1 to 1.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Generates cellular noise for 3D coordinates.
+///
+/// @tparam T The type of the coordinates.
+/// @param P The 2D coordinates for which cellular noise is calculated.
+/// 
+/// @return The cellular noise values F1 and F2 for the given coordinates,
+/// ranging from -1 to 1.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr vec<2, T> cellular_noise(const vec<3, T>& P)
 {
@@ -250,19 +250,20 @@ inline constexpr vec<2, T> cellular_noise(const vec<3, T>& P)
 #endif
 }
 
-/**
- * @brief Generates cellular noise for 2D coordinates.
- *
- * This function calculates cellular noise for given 2D coordinates.
- * This version is sped up by using a smaller search window at the expense
- * of some strong artifacts. F2 is often wrong and has sharp discontinuities.
- * If you need a smooth F2, use the slower 3x3 version.
- * F1 is sometimes wrong, too, but OK for most purposes.
- *
- * @tparam T The type of the coordinates.
- * @param P The 2D coordinates for which cellular noise is calculated.
- * @return The cellular noise valuse F1 and F2 for the given coordinates, ranging from -1 to 1.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Generates cellular noise for 2D coordinates.
+///
+/// This version is sped up by using a smaller search window at the expense
+/// of some strong artifacts. F2 is often wrong and has sharp discontinuities.
+/// If you need a smooth F2, use the slower 3x3 version.
+/// F1 is sometimes wrong, too, but OK for most purposes.
+///
+/// @tparam T The type of the coordinates.
+/// @param P The 2D coordinates for which cellular noise is calculated.
+/// 
+/// @return The cellular noise values F1 and F2 for the given coordinates,
+/// ranging from -1 to 1.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 vec<2, T> cellular_noise_2x2(const vec<2, T>& P)
 {
@@ -303,19 +304,20 @@ vec<2, T> cellular_noise_2x2(const vec<2, T>& P)
 #endif
 }
 
-/**
- * @brief Generates cellular noise for 3D coordinates.
- *
- * This function calculates cellular noise for given 3D coordinates.
- * This version is sped up by using a smaller search window at the expense
- * of some strong artifacts. F2 is often wrong and has sharp discontinuities.
- * If you need a smooth F2, use the slower 3x3 version.
- * F1 is sometimes wrong, too, but OK for most purposes.
- *
- * @tparam T The type of the coordinates.
- * @param P The 3D coordinates for which cellular noise is calculated.
- * @return The cellular noise valuse F1 and F2 for the given coordinates, ranging from -1 to 1.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Generates cellular noise for 3D coordinates.
+///
+/// This version is sped up by using a smaller search window at the expense
+/// of some strong artifacts. F2 is often wrong and has sharp discontinuities.
+/// If you need a smooth F2, use the slower 3x3 version.
+/// F1 is sometimes wrong, too, but OK for most purposes.
+///
+/// @tparam T The type of the coordinates.
+/// @param P The 3D coordinates for which cellular noise is calculated.
+/// 
+/// @return The cellular noise values F1 and F2 for the given coordinates,
+/// ranging from -1 to 1.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 vec<2, T> cellular_noise_2x2x2(const vec<3, T>& P)
 {

@@ -8,24 +8,25 @@ namespace math {
 
 // https://www.youtube.com/watch?v=_htjjOdXbmA
 
-/**
- * @brief Apply bicubix filtering to an image.
- *
- * This function applies bicubic filtering to an image and
- * mapps the result to a new image. The images are assumed to be of
- * the same format and have the same channel count in each pixel.
- *
- * @tparam T The channel type of the image (must be an arithmetic type).
- * @tparam F The floating-point type to use in floating-point calculations (defaults to float).
- *
- * @param src Pointer to the source image data.
- * @param src_width Width of the source image.
- * @param src_height Height of the source image.
- * @param dst Pointer to the destination image data.
- * @param dst_width Width of the destination image.
- * @param dst_height Height of the destination image.
- * @param channels Number of channels in the images.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Apply bicubic filtering to an image.
+///
+/// This function applies bicubic filtering to an image and
+/// maps the result to a new image. The images are assumed to be of
+/// the same format and have the same channel count in each pixel.
+///
+/// @tparam T The channel type of the image (must be an arithmetic type).
+/// @tparam F The floating-point type to use in floating-point calculations
+/// (defaults to float).
+///
+/// @param src Pointer to the source image data.
+/// @param src_width Width of the source image.
+/// @param src_height Height of the source image.
+/// @param dst Pointer to the destination image data.
+/// @param dst_width Width of the destination image.
+/// @param dst_height Height of the destination image.
+/// @param channels Number of channels in the images.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename F = float>
 inline constexpr void filter_bicubic(
     const T* src, size_t src_width, size_t src_height,

@@ -9,13 +9,12 @@
 namespace vx {
 namespace math {
 
-/**
- * @class weights
- * @brief Class for managing a range of weights.
- *
- * The weights class provides a convenient way to manage a range of weights.
- * It supports various constructors, accessors, and comparison operators.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Class for managing a range of weights.
+///
+/// The weights class provides a convenient way to manage a range of weights.
+/// It supports various constructors, accessors, and comparison operators.
+////////////////////////////////////////////////////////////////////////////////
 class weights
 {
 public:
@@ -30,16 +29,18 @@ public:
     using reverse_iterator = typename std::vector<value_type>::reverse_iterator;
     using const_reverse_iterator = typename std::vector<value_type>::const_reverse_iterator;
 
-    // =============== constructors ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // constructors
+    ////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Constructor with weights range specified by iterators.
-     *
-     * Initializes the class with weights and computes cumulative weights for efficient access.
-     *
-     * @param wfirst Iterator to the beginning of the weights range.
-     * @param wlast Iterator to the end of the weights range.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructor with weights range specified by iterators.
+    ///
+    /// Initializes the class with weights and computes cumulative weights for efficient access.
+    ///
+    /// @param wfirst Iterator to the beginning of the weights range.
+    /// @param wlast Iterator to the end of the weights range.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename IT,
         typename std::enable_if<
         ::vx::type_traits::is_iterator<IT>::value &&
@@ -52,13 +53,14 @@ public:
         std::partial_sum(wfirst, wlast, m_weights.begin());
     }
 
-    /**
-     * @brief Constructor with weights range specified by an STL container.
-     *
-     * Initializes the class with weights from the specified container and computes cumulative weights.
-     *
-     * @param w STL container containing weights.
-     */
+    ////////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructor with weights range specified by an STL container.
+    ///
+    /// Initializes the class with weights from the specified container and computes
+    /// cumulative weights.
+    ///
+    /// @param w STL container containing weights.
+    ////////////////////////////////////////////////////////////////////////////////
     template <typename T,
         typename std::enable_if<
         ::vx::type_traits::is_stl_container<T>::value &&
@@ -72,11 +74,15 @@ public:
     weights(weights&& other) noexcept
         : m_weights(std::move(other.m_weights)) {}
 
-    // =============== destructor ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // destructors
+    ////////////////////////////////////////////////////////////////////////////////
 
     ~weights() = default;
 
-    // =============== assignment ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ////////////////////////////////////////////////////////////////////////////////
 
     weights& operator=(const weights&) = default;
 
@@ -86,7 +92,9 @@ public:
         return *this;
     }
 
-    // =============== accessors ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ////////////////////////////////////////////////////////////////////////////////
 
     inline value_type& operator[](size_type i)
     {
@@ -100,7 +108,9 @@ public:
         return m_weights[i];
     }
 
-    // =============== comparison ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ////////////////////////////////////////////////////////////////////////////////
 
     friend inline bool operator==(
         const weights& w1,
@@ -118,7 +128,9 @@ public:
         return !(w1 == w2);
     }
 
-    // =============== attributes ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // attributes
+    ////////////////////////////////////////////////////////////////////////////////
 
     inline size_type size() const noexcept { return m_weights.size(); }
     inline bool empty() const noexcept { return m_weights.empty(); }
@@ -129,7 +141,9 @@ public:
     inline value_type max() const noexcept { return back(); }
     inline value_type min() const noexcept { return front(); }
 
-    // =============== iterator ===============
+    ////////////////////////////////////////////////////////////////////////////////
+    // iterators
+    ////////////////////////////////////////////////////////////////////////////////
 
     inline iterator begin() noexcept
     {
