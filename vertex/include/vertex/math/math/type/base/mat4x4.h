@@ -10,7 +10,9 @@ VX_PACK_PUSH()
 template <typename T>
 struct mat<4, 4, T>
 {
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = mat<4, 4, T>;
@@ -23,11 +25,15 @@ struct mat<4, 4, T>
     static VX_FORCE_INLINE constexpr size_t width() noexcept { return static_cast<size_t>(4); }
     static VX_FORCE_INLINE constexpr size_t height() noexcept { return static_cast<size_t>(4); }
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     col_type columns[4];
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr mat() noexcept
         : columns{ col_type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)),
@@ -40,7 +46,9 @@ struct mat<4, 4, T>
 
     VX_FORCE_INLINE constexpr mat(type&&) noexcept = default;
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit mat(T scaler) noexcept
         : columns{ col_type(scaler, static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)),
@@ -62,7 +70,9 @@ struct mat<4, 4, T>
     VX_FORCE_INLINE constexpr mat(const col_type& c1, const col_type& c2, const col_type& c3, const col_type& c4) noexcept
         : columns{ c1, c2, c3, c4 } {}
 
-    // =============== conversion matrix constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion matrix constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit mat(U scaler)
@@ -118,11 +128,15 @@ struct mat<4, 4, T>
                    static_cast<col_type>(m.columns[2]),
                    static_cast<col_type>(m.columns[3]) } {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~mat() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& m) noexcept
     {
@@ -145,7 +159,9 @@ struct mat<4, 4, T>
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr col_type& operator[](size_t i)
     {
@@ -159,7 +175,9 @@ struct mat<4, 4, T>
         return columns[i];
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& m1, const type& m2)
     {
@@ -174,7 +192,9 @@ struct mat<4, 4, T>
         return !(m1 == m2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr type operator+() const
@@ -188,7 +208,9 @@ struct mat<4, 4, T>
         return type(-columns[0], -columns[1], -columns[2], -columns[3]);
     }
 
-    // =============== incrememnt and decrement operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // increment (++)
 
@@ -230,7 +252,9 @@ struct mat<4, 4, T>
         return result;
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -423,7 +447,9 @@ struct mat<4, 4, T>
         return type(m1.columns[0] % m2.columns[0], m1.columns[1] % m2.columns[1], m1.columns[2] % m1.columns[2], m1.columns[3] % m2.columns[3]);
     }
 
-    // =============== binary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&)
 
@@ -533,7 +559,9 @@ struct mat<4, 4, T>
         return type(~columns[0], ~columns[1], ~columns[2], ~columns[3]);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -639,7 +667,9 @@ struct mat<4, 4, T>
         return *this;
     }
 
-    // =============== unary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&=)
 
@@ -751,7 +781,9 @@ struct mat<4, 4, T>
         return *this;
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // boolean operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&&)
 
@@ -801,7 +833,9 @@ struct mat<4, 4, T>
         return type(!columns[0], !columns[1], !columns[2], !columns[3]);
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<T>(1)); }
     static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<T>(0)); }

@@ -9,7 +9,9 @@
 namespace vx {
 namespace math {
 
-// =============== is_zero_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_zero_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, typename T>
 VX_FORCE_INLINE constexpr bool is_zero_approx(
@@ -44,7 +46,9 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(
         && math::is_zero_approx(x.columns[3], epsilon);
 }
 
-// =============== is_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, typename T>
 VX_FORCE_INLINE constexpr bool is_equal_approx(
@@ -82,7 +86,9 @@ VX_FORCE_INLINE constexpr bool is_equal_approx(
         && math::is_equal_approx(a.columns[3], b.columns[3], epsilon);
 }
 
-// =============== is_not_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_not_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t N, typename T>
 VX_FORCE_INLINE constexpr bool is_not_equal_approx(

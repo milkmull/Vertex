@@ -10,7 +10,9 @@ VX_PACK_PUSH()
 template <typename T>
 struct mat<2, 2, T>
 {
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = mat<2, 2, T>;
@@ -23,11 +25,15 @@ struct mat<2, 2, T>
     static VX_FORCE_INLINE constexpr size_t width() noexcept { return static_cast<size_t>(2); }
     static VX_FORCE_INLINE constexpr size_t height() noexcept { return static_cast<size_t>(2); }
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     col_type columns[2];
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr mat() noexcept
         : columns{ col_type(static_cast<T>(1), static_cast<T>(0)),
@@ -38,7 +44,9 @@ struct mat<2, 2, T>
 
     VX_FORCE_INLINE constexpr mat(type&&) noexcept = default;
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit mat(T scaler) noexcept
         : columns{ col_type(scaler, static_cast<T>(0)),
@@ -53,7 +61,9 @@ struct mat<2, 2, T>
     VX_FORCE_INLINE constexpr mat(const col_type& c1, const col_type& c2) noexcept
         : columns{ c1, c2 } {}
 
-    // =============== conversion matrix constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion matrix constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit mat(U scaler)
@@ -85,11 +95,15 @@ struct mat<2, 2, T>
         : columns{ static_cast<col_type>(m.columns[0]),
                    static_cast<col_type>(m.columns[1]) } {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~mat() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& m) noexcept
     {
@@ -108,7 +122,9 @@ struct mat<2, 2, T>
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr col_type& operator[](size_t i)
     {
@@ -122,7 +138,9 @@ struct mat<2, 2, T>
         return columns[i];
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& m1, const type& m2)
     {
@@ -135,7 +153,9 @@ struct mat<2, 2, T>
         return !(m1 == m2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr type operator+() const
@@ -149,7 +169,9 @@ struct mat<2, 2, T>
         return type(-columns[0], -columns[1]);
     }
 
-    // =============== incrememnt and decrement operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // increment (++)
 
@@ -187,7 +209,9 @@ struct mat<2, 2, T>
         return result;
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -358,7 +382,9 @@ struct mat<2, 2, T>
         return type(m1.columns[0] % m2.columns[0], m1.columns[1] % m2.columns[1]);
     }
 
-    // =============== binary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&)
 
@@ -468,7 +494,9 @@ struct mat<2, 2, T>
         return type(~columns[0], ~columns[1]);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -558,7 +586,9 @@ struct mat<2, 2, T>
         return *this;
     }
 
-    // =============== unary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&=)
 
@@ -650,7 +680,9 @@ struct mat<2, 2, T>
         return *this;
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // boolean operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&&)
 
@@ -700,16 +732,17 @@ struct mat<2, 2, T>
         return type(!columns[0], !columns[1]);
     }
 
-    // =============== rotation ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // rotation
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a 2x2 rotation matrix.
-     *
-     * This function generates a 2x2 rotation matrix with the specified angle.
-     *
-     * @param angle The angle of rotation in radians.
-     * @return A 2x2 rotation matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 2x2 rotation matrix.
+    ///
+    /// @param angle The angle of rotation in radians.
+    /// 
+    /// @return A 2x2 rotation matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_rotation(T angle)
     {
@@ -719,31 +752,31 @@ struct mat<2, 2, T>
         return type(cosa, sina, -sina, cosa);
     }
 
-    /**
-     * @brief Retrieves the rotation angle from a 2x2 rotation matrix.
-     *
-     * This function calculates and returns the rotation angle represented by
-     * the given 2x2 rotation matrix.
-     *
-     * @param m The 2x2 rotation matrix.
-     * @return The rotation angle in radians.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the rotation angle from a 2x2 rotation matrix.
+    ///
+    /// @param m The 2x2 rotation matrix.
+    /// 
+    /// @return The rotation angle in radians.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr T get_rotation(const type& m)
     {
         return math::atan2(m.columns[0].y, m.columns[0].x);
     }
 
-    // =============== scale ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // scale
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a 2x2 scaling matrix.
-     *
-     * This function generates a 2x2 scaling matrix with the specified scaling factors.
-     *
-     * @param scale A 2D vector representing the scaling factors along the x and y axes.
-     * @return A 2x2 scaling matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 2x2 scaling matrix.
+    ///
+    /// @param scale A 2D vector representing the scaling factors along the x and
+    /// y axes.
+    /// 
+    /// @return A 2x2 scaling matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_scale(const vec<2, T>& scale)
     {
@@ -753,15 +786,13 @@ struct mat<2, 2, T>
         );
     }
 
-    /**
-     * @brief Retrieves the scaling factors from a 2x2 scaling matrix.
-     *
-     * This function calculates and returns the scaling factors represented by
-     * the given 2x2 scaling matrix.
-     *
-     * @param m The 2x2 scaling matrix.
-     * @return A 2D vector representing the scaling factors along the x and y axes.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the scaling factors from a 2x2 scaling matrix.
+    ///
+    /// @param m The 2x2 scaling matrix.
+    /// 
+    /// @return A 2D vector representing the scaling factors along the x and y axes.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr vec<2, T> get_scale(const type& m)
     {
@@ -771,7 +802,9 @@ struct mat<2, 2, T>
         );
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<T>(1)); }
     static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<T>(0)); }

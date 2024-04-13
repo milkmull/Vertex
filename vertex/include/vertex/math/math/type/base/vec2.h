@@ -10,18 +10,24 @@ VX_PACK_PUSH()
 template <typename T>
 struct vec<2, T>
 {
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = vec<2, T>;
 
     static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(2); }
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     T x, y;
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr vec() noexcept
         : x(static_cast<T>(0)), y(static_cast<T>(0)) {}
@@ -31,7 +37,9 @@ struct vec<2, T>
 
     VX_FORCE_INLINE constexpr vec(type&&) noexcept = default;
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit vec(T scaler) noexcept
         : x(scaler), y(scaler) {}
@@ -39,7 +47,9 @@ struct vec<2, T>
     VX_FORCE_INLINE constexpr vec(T x, T y) noexcept
         : x(x), y(y) {}
 
-    // =============== conversion vector constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion matrix constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit vec(U scaler)
@@ -68,11 +78,15 @@ struct vec<2, T>
         : x(static_cast<T>(v.x))
         , y(static_cast<T>(v.y)) {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~vec() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& v) noexcept
     {
@@ -91,7 +105,9 @@ struct vec<2, T>
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
@@ -105,7 +121,9 @@ struct vec<2, T>
         return (&x)[i];
     }
 
-    // =============== comparison operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2)
     {
@@ -117,7 +135,9 @@ struct vec<2, T>
         return !(v1 == v2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr type operator+() const
@@ -131,7 +151,9 @@ struct vec<2, T>
         return type(-x, -y);
     }
 
-    // =============== incrememnt and decrement operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // increment (++)
 
@@ -169,7 +191,9 @@ struct vec<2, T>
         return result;
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -271,7 +295,9 @@ struct vec<2, T>
         return type(v1.x % v2.x, v1.y % v2.y);
     }
 
-    // =============== binary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&)
 
@@ -381,7 +407,9 @@ struct vec<2, T>
         return type(~x, ~y);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -473,7 +501,9 @@ struct vec<2, T>
         return *this;
     }
 
-    // =============== unary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&=)
 
@@ -565,7 +595,9 @@ struct vec<2, T>
         return *this;
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // boolean operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&&)
 
@@ -615,24 +647,26 @@ struct vec<2, T>
         return type(!x, !y);
     }
 
-    // =============== static constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // static constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Constructs a vector from an angle.
-     *
-     * This function constructs a vector from an angle, where the x-component is the cosine of the angle
-     * and the y-component is the sine of the angle.
-     *
-     * @param angle The angle in radians.
-     * @return The vector constructed from the angle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructs a vector from an angle.
+    ///
+    /// @param angle The angle in radians.
+    /// 
+    /// @return The vector constructed from the angle.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type from_angle(T angle)
     {
         return type(std::cos(angle), std::sin(angle));
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type ZERO()  { return type(static_cast<T>(0)); }
     static VX_FORCE_INLINE constexpr type ONE()   { return type(static_cast<T>(1)); }

@@ -9,17 +9,20 @@
 namespace vx {
 namespace math {
 
-// =============== any ===============
+///////////////////////////////////////////////////////////////////////////////
+// any
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if any component of a vector is true.
- *
- * This function checks if any component of a vector is true (non-zero).
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return True if any component of the vector is true (non-zero), false otherwise.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if any component of a vector is true.
+///
+/// This function checks if any component of a vector is true (non-zero).
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return True if any component of the vector is true (non-zero), false otherwise.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr bool any(const vec<2, T>& x)
 {
@@ -38,15 +41,18 @@ VX_FORCE_INLINE constexpr bool any(const vec<4, T>& x)
     return x.x || x.y || x.z || x.w;
 }
 
-// =============== all ===============
+///////////////////////////////////////////////////////////////////////////////
+// all
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if all components of a vector are true.
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return True if all components of the vector are true (non-zero), false otherwise.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if all components of a vector are true.
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return True if all components of the vector are true (non-zero), false otherwise.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr bool all(const vec<2, T>& x)
 {
@@ -65,16 +71,19 @@ VX_FORCE_INLINE constexpr bool all(const vec<4, T>& x)
     return x.x && x.y && x.z && x.w;
 }
 
-// =============== equal ===============
+///////////////////////////////////////////////////////////////////////////////
+// equal
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of two vectors are equal.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components are equal.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of two vectors are equal.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components are equal.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -105,18 +114,19 @@ VX_FORCE_INLINE constexpr vec<4, bool> equal(const vec<4, T>& x, vec<4, T>& y)
     );
 }
 
-// =============== not_equal ===============
+///////////////////////////////////////////////////////////////////////////////
+// not_equal
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of two vectors are not equal.
- *
- * This function checks if components of two vectors are not equal.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components are not equal.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of two vectors are not equal.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components are not equal.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> not_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -147,16 +157,21 @@ VX_FORCE_INLINE constexpr vec<4, bool> not_equal(const vec<4, T>& x, vec<4, T>& 
     );
 }
 
-// =============== greater_than ===============
+///////////////////////////////////////////////////////////////////////////////
+// greater_than
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the first vector are greater than the components of the second vector.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components of the first vector are greater than the components of the second vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the first vector are greater than the components
+/// of the second vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the first
+/// vector are greater than the components of the second vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> greater_than(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -187,16 +202,21 @@ VX_FORCE_INLINE constexpr vec<4, bool> greater_than(const vec<4, T>& x, vec<4, T
     );
 }
 
-// =============== greater_than_equal ===============
+///////////////////////////////////////////////////////////////////////////////
+// greater_than_equal
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the first vector are greater than or equal to the components of the second vector.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components of the first vector are greater than or equal to the components of the second vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the first vector are greater than or equal to
+/// the components of the second vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the first
+/// vector are greater than or equal to the components of the second vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> greater_than_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -227,16 +247,21 @@ VX_FORCE_INLINE constexpr vec<4, bool> greater_than_equal(const vec<4, T>& x, ve
     );
 }
 
-// =============== less_than ===============
+///////////////////////////////////////////////////////////////////////////////
+// less_than
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the first vector are less than the components of the second vector.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components of the first vector are less than the components of the second vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the first vector are less than the components
+/// of the second vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the first
+/// vector are less than the components of the second vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> less_than(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -267,16 +292,21 @@ VX_FORCE_INLINE constexpr vec<4, bool> less_than(const vec<4, T>& x, vec<4, T>& 
     );
 }
 
-// =============== less_than_equal ===============
+///////////////////////////////////////////////////////////////////////////////
+// less_than_equal
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the first vector are less than or equal to the components of the second vector.
- *
- * @tparam T The type of the vector components.
- * @param x The first vector.
- * @param y The second vector.
- * @return A vector of boolean values indicating whether components of the first vector are less than or equal to the components of the second vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the first vector are less than or equal to the
+/// components of the second vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The first vector.
+/// @param y The second vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the first
+/// vector are less than or equal to the components of the second vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> less_than_equal(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -307,15 +337,19 @@ VX_FORCE_INLINE constexpr vec<4, bool> less_than_equal(const vec<4, T>& x, vec<4
     );
 }
 
-// =============== is_inf ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_inf
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the vector are infinite.
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return A vector of boolean values indicating whether components of the vector are infinite.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the vector are infinite.
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the vector
+/// are infinite.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> is_inf(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -346,15 +380,19 @@ VX_FORCE_INLINE constexpr vec<4, bool> is_inf(const vec<4, T>& x, vec<4, T>& y)
     );
 }
 
-// =============== is_nan ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_nan
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Checks if components of the vector are NaN (Not-a-Number).
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return A vector of boolean values indicating whether components of the vector are NaN.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if components of the vector are NaN (Not-a-Number).
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return A vector of boolean values indicating whether components of the vector
+/// are NaN.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, bool> is_nan(const vec<2, T>& x, vec<2, T>& y)
 {
@@ -385,7 +423,9 @@ VX_FORCE_INLINE constexpr vec<4, bool> is_nan(const vec<4, T>& x, vec<4, T>& y)
     );
 }
 
-// =============== is_zero_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_zero_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_zero_approx(
@@ -420,7 +460,9 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(
         && math::is_zero_approx(x.w, epsilon);
 }
 
-// =============== is_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_equal_approx(
@@ -458,7 +500,9 @@ VX_FORCE_INLINE constexpr bool is_equal_approx(
         && math::is_equal_approx(a.w, b.w, epsilon);
 }
 
-// =============== is_not_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_not_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_not_equal_approx(

@@ -5,7 +5,9 @@
 namespace vx {
 namespace math {
 
-// =============== min ===============
+///////////////////////////////////////////////////////////////////////////////
+// min
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler binary
 
@@ -91,13 +93,14 @@ VX_FORCE_INLINE constexpr vec<4, T> min(
 
 // component
 
-/**
- * @brief Computes the component-wise minimum of a vector.
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return The component-wise minimum of the vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the component-wise minimum of a vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return The component-wise minimum of the vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr T cmin(
     const vec<2, T>& x
@@ -122,7 +125,9 @@ VX_FORCE_INLINE constexpr T cmin(
     return math::min({ x.x, x.y, x.z, x.w });
 }
 
-// =============== max ===============
+///////////////////////////////////////////////////////////////////////////////
+// max
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler binary
 
@@ -208,13 +213,14 @@ VX_FORCE_INLINE constexpr vec<4, T> max(
 
 // component
 
-/**
- * @brief Computes the component-wise maximum of a vector.
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return The component-wise maximum of the vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the component-wise maximum of a vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return The component-wise maximum of the vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr T cmax(
     const vec<2, T>& x
@@ -239,15 +245,18 @@ VX_FORCE_INLINE constexpr T cmax(
     return math::max({ x.x, x.y, x.z, x.w });
 }
 
-// =============== csum ===============
+///////////////////////////////////////////////////////////////////////////////
+// csum
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Computes the component-wise sum of a vector.
- *
- * @tparam T The type of the vector components.
- * @param x The vector.
- * @return The component-wise sum of the vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the component-wise sum of a vector.
+///
+/// @tparam T The type of the vector components.
+/// @param x The vector.
+/// 
+/// @return The component-wise sum of the vector.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr T csum(
     const vec<2, T>& x
@@ -272,7 +281,9 @@ VX_FORCE_INLINE constexpr T csum(
     return x.x + x.y + x.z + x.w;
 }
 
-// =============== abs ===============
+///////////////////////////////////////////////////////////////////////////////
+// abs
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> abs(
@@ -310,7 +321,9 @@ VX_FORCE_INLINE constexpr vec<4, T> abs(
     );
 }
 
-// =============== round ===============
+///////////////////////////////////////////////////////////////////////////////
+// round
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> round(
@@ -348,7 +361,9 @@ VX_FORCE_INLINE constexpr vec<4, T> round(
     );
 }
 
-// =============== trunc ===============
+///////////////////////////////////////////////////////////////////////////////
+// trunc
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> trunc(
@@ -386,7 +401,9 @@ VX_FORCE_INLINE constexpr vec<4, T> trunc(
     );
 }
 
-// =============== floor ===============
+///////////////////////////////////////////////////////////////////////////////
+// floor
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> floor(
@@ -424,7 +441,9 @@ VX_FORCE_INLINE constexpr vec<4, T> floor(
     );
 }
 
-// =============== ceil ===============
+///////////////////////////////////////////////////////////////////////////////
+// ceil
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> ceil(
@@ -462,7 +481,9 @@ VX_FORCE_INLINE constexpr vec<4, T> ceil(
     );
 }
 
-// =============== sign ===============
+///////////////////////////////////////////////////////////////////////////////
+// sign
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> sign(
@@ -500,7 +521,9 @@ VX_FORCE_INLINE constexpr vec<4, T> sign(
     );
 }
 
-// =============== fmod ===============
+///////////////////////////////////////////////////////////////////////////////
+// fmod
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler binary
 
@@ -584,7 +607,9 @@ VX_FORCE_INLINE constexpr vec<4, T> fmod(
     );
 }
 
-// =============== mod ===============
+///////////////////////////////////////////////////////////////////////////////
+// mod
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler binary
 
@@ -674,7 +699,9 @@ VX_FORCE_INLINE constexpr auto mod(
     );
 }
 
-// =============== fract ===============
+///////////////////////////////////////////////////////////////////////////////
+// fract
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> fract(
@@ -712,7 +739,9 @@ VX_FORCE_INLINE constexpr vec<4, T> fract(
     );
 }
 
-// =============== modf ===============
+///////////////////////////////////////////////////////////////////////////////
+// modf
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> modf(
@@ -753,7 +782,9 @@ VX_FORCE_INLINE constexpr vec<4, T> modf(
     );
 }
 
-// =============== frexp ===============
+///////////////////////////////////////////////////////////////////////////////
+// frexp
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> frexp(
@@ -794,7 +825,9 @@ VX_FORCE_INLINE constexpr vec<4, T> frexp(
     );
 }
 
-// =============== ldexp ===============
+///////////////////////////////////////////////////////////////////////////////
+// ldexp
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename I, typename std::enable_if<std::is_floating_point<T>::value && std::is_arithmetic<I>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> ldexp(
@@ -835,7 +868,9 @@ VX_FORCE_INLINE constexpr vec<4, T> ldexp(
     );
 }
 
-// =============== clamp ===============
+///////////////////////////////////////////////////////////////////////////////
+// clamp
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler
 

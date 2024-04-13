@@ -7,7 +7,9 @@
 namespace vx {
 namespace math {
 
-// =============== is_inf ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_inf
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_inf(const quat_t<T>& x)
@@ -18,7 +20,9 @@ VX_FORCE_INLINE constexpr bool is_inf(const quat_t<T>& x)
         || math::is_inf(x.z);
 }
 
-// =============== is_nan ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_nan
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_nan(const quat_t<T>& x)
@@ -29,7 +33,9 @@ VX_FORCE_INLINE constexpr bool is_nan(const quat_t<T>& x)
         || math::is_nan(x.z);
 }
 
-// =============== is_zero_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_zero_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_zero_approx(
@@ -43,7 +49,9 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(
         && math::is_equal_approx(x.z, epsilon);
 }
 
-// =============== is_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_equal_approx(
@@ -58,7 +66,9 @@ VX_FORCE_INLINE constexpr bool is_equal_approx(
         && math::is_equal_approx(a.z, b.z, epsilon);
 }
 
-// =============== is_not_equal_approx ===============
+///////////////////////////////////////////////////////////////////////////////
+// is_not_equal_approx
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr bool is_not_equal_approx(

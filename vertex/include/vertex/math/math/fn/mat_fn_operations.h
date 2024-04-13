@@ -9,15 +9,18 @@
 namespace vx {
 namespace math {
 
-// =============== transpose ===============
+///////////////////////////////////////////////////////////////////////////////
+// transpose
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Transposes a matrix.
- *
- * @tparam T Type of the matrix components.
- * @param m The input matrix.
- * @return The transposed matrix.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Transposes a matrix.
+///
+/// @tparam T Type of the matrix components.
+/// @param m The input matrix.
+/// 
+/// @return The transposed matrix.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr mat<2, 2, T> transpose(const mat<2, 2, T>& m)
 {
@@ -108,14 +111,17 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
     );
 }
 
-// =============== determinant ===============
+///////////////////////////////////////////////////////////////////////////////
+// determinant
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Computes the determinant of a matrix.
- *
- * @param m The matrix to compute the determinant of.
- * @return The determinant of the matrix.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the determinant of a matrix.
+///
+/// @param m The matrix to compute the determinant of.
+/// 
+/// @return The determinant of the matrix.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr T determinant(const mat<2, 2, T>& m)
 {
@@ -146,17 +152,17 @@ VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m)
            -(m.columns[0].w * ((m.columns[1].x * subfac02) - (m.columns[1].y * subfac04) + (m.columns[1].z * subfac05)));
 }
 
-// =============== inverse ===============
+///////////////////////////////////////////////////////////////////////////////
+// inverse
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Computes the inverse of a matrix.
- *
- * This function calculates the inverse matrix for the matrix 'm' if it exists.
- * If the matrix is not invertible (determinant is approximately zero), it returns a matrix with zeros.
- *
- * @param m The matrix to invert.
- * @return The inverted matrix if invertible, otherwise a matrix with zeros.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the inverse of a matrix.
+///
+/// @param m The matrix to invert.
+/// 
+/// @return The inverted matrix.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<2, 2, T> inverse(const mat<2, 2, T>& m)
 {
@@ -270,19 +276,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m)
     );
 }
 
-// =============== component multiplication ===============
+///////////////////////////////////////////////////////////////////////////////
+// componant multiplication
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Performs component-wise multiplication of two matrices of size 2xN.
- *
- * This function computes the component-wise multiplication of two matrices and returns the result.
- *
- * @tparam N The number of columns in the matrices.
- * @tparam T The data type of the matrix elements.
- * @param x The first matrix operand.
- * @param y The second matrix operand.
- * @return The resulting matrix after component-wise multiplication.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Performs component-wise multiplication of two matrices.
+///
+/// @tparam N The number of columns in the matrices.
+/// @tparam T The data type of the matrix elements.
+/// @param x The first matrix operand.
+/// @param y The second matrix operand.
+/// 
+/// @return The resulting matrix after component-wise multiplication.
+///////////////////////////////////////////////////////////////////////////////
 template <size_t N, typename T>
 VX_FORCE_INLINE constexpr mat<2, N, T> matrix_comp_mult(
     const mat<2, N, T>& x,
@@ -322,18 +329,19 @@ VX_FORCE_INLINE constexpr mat<4, N, T> matrix_comp_mult(
     );
 }
 
-// =============== outer product ===============
+///////////////////////////////////////////////////////////////////////////////
+// outer product
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Computes the outer product of two vectors.
- *
- * This function computes the outer product of two vectors and returns the resulting matrix.
- *
- * @tparam T The data type of the vector elements.
- * @param c The first vector operand (column vector).
- * @param r The second vector operand (row vector).
- * @return The resulting matrix after computing the outer product.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the outer product of two vectors.
+///
+/// @tparam T The data type of the vector elements.
+/// @param c The first vector operand (column vector).
+/// @param r The second vector operand (row vector).
+/// 
+/// @return The resulting matrix after computing the outer product.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 VX_FORCE_INLINE constexpr mat<2, 2, T> outer_product(
     const vec<2, T>& c,

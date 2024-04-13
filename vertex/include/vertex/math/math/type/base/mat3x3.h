@@ -10,7 +10,9 @@ VX_PACK_PUSH()
 template <typename T>
 struct mat<3, 3, T>
 {
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = mat<3, 3, T>;
@@ -23,11 +25,15 @@ struct mat<3, 3, T>
     static VX_FORCE_INLINE constexpr size_t width() noexcept { return static_cast<size_t>(3); }
     static VX_FORCE_INLINE constexpr size_t height() noexcept { return static_cast<size_t>(3); }
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     col_type columns[3];
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr mat() noexcept
         : columns{ col_type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0)),
@@ -39,7 +45,9 @@ struct mat<3, 3, T>
 
     VX_FORCE_INLINE constexpr mat(type&&) noexcept = default;
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit mat(T scaler) noexcept
         : columns{ col_type(scaler, static_cast<T>(0), static_cast<T>(0)),
@@ -58,7 +66,9 @@ struct mat<3, 3, T>
     VX_FORCE_INLINE constexpr mat(const col_type& c1, const col_type& c2, const col_type& c3) noexcept
         : columns{ c1, c2, c3 } {}
 
-    // =============== conversion matrix constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion matrix constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit mat(U scaler)
@@ -101,11 +111,15 @@ struct mat<3, 3, T>
                    static_cast<col_type>(m.columns[1]),
                    static_cast<col_type>(m.columns[2]) } {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~mat() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& m) noexcept
     {
@@ -126,7 +140,9 @@ struct mat<3, 3, T>
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr col_type& operator[](size_t i)
     {
@@ -140,7 +156,9 @@ struct mat<3, 3, T>
         return columns[i];
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& m1, const type& m2)
     {
@@ -154,7 +172,9 @@ struct mat<3, 3, T>
         return !(m1 == m2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr type operator+() const
@@ -168,7 +188,9 @@ struct mat<3, 3, T>
         return type(-columns[0], -columns[1], -columns[2]);
     }
 
-    // =============== incrememnt and decrement operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // increment (++)
 
@@ -208,7 +230,9 @@ struct mat<3, 3, T>
         return result;
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -390,7 +414,9 @@ struct mat<3, 3, T>
         return type(m1.columns[0] % m2.columns[0], m1.columns[1] % m2.columns[1], m1.columns[2] % m1.columns[2]);
     }
 
-    // =============== binary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&)
 
@@ -500,7 +526,9 @@ struct mat<3, 3, T>
         return type(~columns[0], ~columns[1], ~columns[2]);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -598,7 +626,9 @@ struct mat<3, 3, T>
         return *this;
     }
 
-    // =============== unary bit operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&=)
 
@@ -700,7 +730,9 @@ struct mat<3, 3, T>
         return *this;
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // boolean operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // and (&&)
 
@@ -750,19 +782,20 @@ struct mat<3, 3, T>
         return type(!columns[0], !columns[1], !columns[2]);
     }
 
-    // =============== rotation ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // rotation
+    ///////////////////////////////////////////////////////////////////////////////
 
     // https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
 
-    /**
-     * @brief Creates a 3x3 rotation matrix from an axis and an angle.
-     *
-     * This function generates a 3x3 rotation matrix representing a rotation around the specified axis by the given angle.
-     *
-     * @param axis The axis of rotation.
-     * @param angle The angle of rotation in radians.
-     * @return A 3x3 rotation matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 3x3 rotation matrix from an axis and an angle.
+    ///
+    /// @param axis The axis of rotation.
+    /// @param angle The angle of rotation in radians.
+    /// 
+    /// @return A 3x3 rotation matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
     {
@@ -790,17 +823,17 @@ struct mat<3, 3, T>
 
     // https://ntrs.nasa.gov/api/citations/19770024290/downloads/19770024290.pdf
 
-    /**
-     * @brief Creates a 3x3 rotation matrix from Euler angles.
-     *
-     * This function generates a 3x3 rotation matrix from the given Euler angles (in radians).
-     * The rotation order is assumed to be X-Y-Z (roll, pitch, yaw).
-     *
-     * @param x The angle of rotation around the X-axis (roll).
-     * @param y The angle of rotation around the Y-axis (pitch).
-     * @param z The angle of rotation around the Z-axis (yaw).
-     * @return A 3x3 rotation matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 3x3 rotation matrix from Euler angles.
+    ///
+    /// The rotation order is assumed to be X-Y-Z (roll, pitch, yaw).
+    ///
+    /// @param x The angle of rotation around the X-axis (roll).
+    /// @param y The angle of rotation around the Y-axis (pitch).
+    /// @param z The angle of rotation around the Z-axis (yaw).
+    /// 
+    /// @return A 3x3 rotation matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type from_euler_angles(T x, T y, T z)
     {
@@ -829,14 +862,13 @@ struct mat<3, 3, T>
 
     // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToMatrix/index.htm
 
-    /**
-     * @brief Creates a 3x3 rotation matrix from a quaternion.
-     *
-     * This function generates a 3x3 rotation matrix from the given quaternion.
-     *
-     * @param rotation The quaternion representing the rotation.
-     * @return A 3x3 rotation matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 3x3 rotation matrix from a quaternion.
+    ///
+    /// @param rotation The quaternion representing the rotation.
+    /// 
+    /// @return A 3x3 rotation matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value&& type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type from_quat(const quat_t<T>& rotation)
     {
@@ -869,14 +901,13 @@ struct mat<3, 3, T>
 
     // https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 
-    /**
-     * @brief Converts a 3x3 rotation matrix to a quaternion.
-     *
-     * This function converts the given 3x3 rotation matrix to a quaternion.
-     *
-     * @param m The 3x3 rotation matrix.
-     * @return The quaternion representing the rotation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Converts a 3x3 rotation matrix to a quaternion.
+    ///
+    /// @param m The 3x3 rotation matrix.
+    /// 
+    /// @return The quaternion representing the rotation.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value&& type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr quat_t<T> to_quat(const type& m)
     {
@@ -932,14 +963,18 @@ struct mat<3, 3, T>
         }
     }
 
-    // =============== scale ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // scale
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a 3x3 scaling matrix.
-     *
-     * @param scale A 3D vector representing the scaling factors along the x, y, and z axes.
-     * @return A 3x3 scaling matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 3x3 scaling matrix.
+    ///
+    /// @param scale A 3D vector representing the scaling factors along the
+    /// x, y, and z axes.
+    /// 
+    /// @return A 3x3 scaling matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_scale(const vec<3, T>& scale)
     {
@@ -958,15 +993,13 @@ struct mat<3, 3, T>
         );
     }
 
-    /**
-     * @brief Retrieves the scaling factors from a 3x3 scaling matrix.
-     *
-     * This function calculates and returns the scaling factors represented by
-     * the given 3x3 scaling matrix.
-     *
-     * @param m The 3x3 scaling matrix.
-     * @return A 3D vector representing the scaling factors along the x, y, and z axes.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the scaling factors from a 3x3 scaling matrix.
+    ///
+    /// @param m The 3x3 scaling matrix.
+    /// 
+    /// @return A 3D vector representing the scaling factors along the x, y, and z axes.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr vec<3, T> get_scale(const type& m)
     {
@@ -977,21 +1010,22 @@ struct mat<3, 3, T>
         );
     }
 
-    // =============== look at ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // look at
+    ///////////////////////////////////////////////////////////////////////////////
 
     // https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluLookAt.xml
 
-    /**
-     * @brief Creates a left-handed 3x3 view matrix for a look-at transformation.
-     *
-     * This function generates a left-handed 3x3 view matrix for a look-at transformation,
-     * given the eye position, target position, and up vector.
-     *
-     * @param eye The position of the camera.
-     * @param target The position the camera is looking at.
-     * @param up The up vector of the camera  (default is the positive y-axis).
-     * @return A left-handed 3x3 view matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a left-handed 3x3 view matrix for a look-at transformation,
+    /// given the eye position, target position, and up vector.
+    ///
+    /// @param eye The position of the camera.
+    /// @param target The position the camera is looking at.
+    /// @param up The up vector of the camera (default is the positive y-axis).
+    /// 
+    /// @return A left-handed 3x3 view matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_look_at_lh(
         const vec<3, T>& eye,
@@ -1006,17 +1040,16 @@ struct mat<3, 3, T>
         return type(x, y, z);
     }
 
-    /**
-     * @brief Creates a right-handed 3x3 view matrix for a look-at transformation.
-     *
-     * This function generates a right-handed 3x3 view matrix for a look-at transformation,
-     * given the eye position, target position, and up vector.
-     *
-     * @param eye The position of the camera.
-     * @param target The position the camera is looking at.
-     * @param up The up vector of the camera  (default is the positive y-axis).
-     * @return A right-handed 3x3 view matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a right-handed 3x3 view matrix for a look-at transformation,
+    /// given the eye position, target position, and up vector.
+    ///
+    /// @param eye The position of the camera.
+    /// @param target The position the camera is looking at.
+    /// @param up The up vector of the camera (default is the positive y-axis).
+    /// 
+    /// @return A right-handed 3x3 view matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_look_at_rh(
         const vec<3, T>& eye,
@@ -1031,20 +1064,19 @@ struct mat<3, 3, T>
         return type(x, y, z);
     }
 
-    /**
-     * @brief Creates a 3x3 view matrix for a look-at transformation.
-     *
-     * This function generates a 3x3 view matrix for a look-at transformation,
-     * given the eye position, target position, and up vector.
-     *
-     * The handedness of the matrix (left-handed or right-handed) is determined
-     * based on the configuration specified in VX_CONFIG_CLIP_CONTROL.
-     *
-     * @param eye The position of the camera.
-     * @param target The position the camera is looking at.
-     * @param up The up vector of the camera  (default is the positive y-axis).
-     * @return A 3x3 view matrix.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a 3x3 view matrix for a look-at transformation, given the
+    /// eye position, target position, and up vector.
+    ///
+    /// The handedness of the matrix (left-handed or right-handed) is determined
+    /// based on the configuration specified in VX_CONFIG_CLIP_CONTROL.
+    ///
+    /// @param eye The position of the camera.
+    /// @param target The position the camera is looking at.
+    /// @param up The up vector of the camera (default is the positive y-axis).
+    /// 
+    /// @return A 3x3 view matrix.
+    ///////////////////////////////////////////////////////////////////////////////
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
     static VX_FORCE_INLINE constexpr type make_look_at(
         const vec<3, T>& eye,
@@ -1059,7 +1091,9 @@ struct mat<3, 3, T>
 #endif
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<T>(1)); }
     static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<T>(0)); }

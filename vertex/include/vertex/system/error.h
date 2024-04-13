@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "logger.h"
+#include "log.h"
 
 namespace vx {
 namespace error {

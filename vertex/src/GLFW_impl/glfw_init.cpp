@@ -1,7 +1,7 @@
 #include <GLFW/glfw3.h>
 
 #include "vertex_impl/app/init_internal.h"
-#include "vertex/system/debug/logger.h"
+#include "vertex/system/debug/log.h"
 
 namespace vx {
 namespace app {

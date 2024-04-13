@@ -5,7 +5,9 @@
 namespace vx {
 namespace math {
 
-// =============== lerp ===============
+///////////////////////////////////////////////////////////////////////////////
+// lerp
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> lerp(
@@ -17,7 +19,9 @@ VX_FORCE_INLINE constexpr quat_t<T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-// =============== mix ===============
+///////////////////////////////////////////////////////////////////////////////
+// mix
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> mix(
@@ -29,24 +33,25 @@ VX_FORCE_INLINE constexpr quat_t<T> mix(
     return lerp(x, y, t);
 }
 
-// =============== slerp ===============
+///////////////////////////////////////////////////////////////////////////////
+// slerp
+///////////////////////////////////////////////////////////////////////////////
 
 // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
 // assuming qx and qy are normalized
 // theta = arccos(dot(qx, qy))
 // qm = { qx * sin((1 - t) * theta) + qy * sin(t * theta) } / sin(theta)
 
-/**
- * @brief Performs spherical linear interpolation (SLERP) between two quaternions.
- *
- * This function performs spherical linear interpolation (SLERP) between two quaternions.
- *
- * @tparam T Type of the quaternion components.
- * @param x The starting quaternion.
- * @param y The ending quaternion.
- * @param t Interpolation parameter. Should be in the range [0, 1].
- * @return The interpolated quaternion.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Performs spherical linear interpolation (SLERP) between two quaternions.
+///
+/// @tparam T Type of the quaternion components.
+/// @param x The starting quaternion.
+/// @param y The ending quaternion.
+/// @param t Interpolation parameter. Should be in the range [0, 1].
+/// 
+/// @return The interpolated quaternion.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 inline constexpr quat_t<T> slerp(
     const quat_t<T>& x,

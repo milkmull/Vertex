@@ -6,7 +6,9 @@
 namespace vx {
 namespace math {
 
-// =============== lerp ===============
+///////////////////////////////////////////////////////////////////////////////
+// lerp
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<L, T> lerp(
@@ -28,7 +30,9 @@ VX_FORCE_INLINE constexpr vec<L, T> lerp(
     return x * (static_cast<T>(1) - t) + y * t;
 }
 
-// =============== mix ===============
+///////////////////////////////////////////////////////////////////////////////
+// mix
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<L, T> mix(
@@ -50,7 +54,9 @@ VX_FORCE_INLINE constexpr vec<L, T> mix(
     return lerp(x, y, t);
 }
 
-// =============== step ===============
+///////////////////////////////////////////////////////////////////////////////
+// step
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr auto step(
@@ -130,7 +136,9 @@ VX_FORCE_INLINE constexpr auto step(
     );
 }
 
-// =============== smoothstep ===============
+///////////////////////////////////////////////////////////////////////////////
+// smoothstep
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
@@ -155,22 +163,23 @@ VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
-// =============== slerp ===============
+///////////////////////////////////////////////////////////////////////////////
+// slerp
+///////////////////////////////////////////////////////////////////////////////
 
 // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
 
-/**
- * @brief Performs spherical linear interpolation (SLERP) between two vectors.
- *
- * This function performs spherical linear interpolation (SLERP) between two vectors.
- *
- * @tparam L Dimension of the vectors.
- * @tparam T Type of the vector components.
- * @param x The start vector.
- * @param y The end vector.
- * @param t The interpolation parameter, where t is in the range [0, 1].
- * @return The interpolated vector.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Performs spherical linear interpolation (SLERP) between two vectors.
+///
+/// @tparam L Dimension of the vectors.
+/// @tparam T Type of the vector components.
+/// @param x The start vector.
+/// @param y The end vector.
+/// @param t The interpolation parameter, where t is in the range [0, 1].
+/// 
+/// @return The interpolated vector.
+///////////////////////////////////////////////////////////////////////////////
 template <size_t L, typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<L, T> slerp(
     const vec<L, T>& x,

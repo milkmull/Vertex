@@ -18,18 +18,24 @@ struct quat_t
 {
     static_assert(std::is_floating_point<T>::value, "type T must be floating point type");
 
-    // =============== meta ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
 
     using scaler_type = T;
     using type = quat_t<T>;
 
     static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(4); }
 
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     T w, x, y, z;
 
-    // =============== implicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr quat_t() noexcept
         : w(static_cast<T>(1))
@@ -42,7 +48,9 @@ struct quat_t
 
     VX_FORCE_INLINE constexpr quat_t(type&&) noexcept = default;
 
-    // =============== explicit constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr quat_t(T w, const vec<3, T>& v) noexcept
         : w(w), x(v.x), y(v.y), z(v.z) {}
@@ -50,7 +58,9 @@ struct quat_t
     VX_FORCE_INLINE constexpr quat_t(T w, T x, T y, T z) noexcept
         : w(w), x(x), y(y), z(z) {}
 
-    // =============== conversion constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion constructors
+    ///////////////////////////////////////////////////////////////////////////////
     
     template <typename W, typename XYZ, typename std::enable_if<std::is_arithmetic<W>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr quat_t(W w, const vec<3, XYZ>& v)
@@ -84,11 +94,15 @@ struct quat_t
         , y(static_cast<T>(v.y))
         , z(static_cast<T>(v.z)) {}
 
-    // =============== destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     ~quat_t() noexcept = default;
 
-    // =============== assignment operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type& operator=(const type& q) noexcept
     {
@@ -111,7 +125,9 @@ struct quat_t
         return *this;
     }
 
-    // =============== accessors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
@@ -125,7 +141,9 @@ struct quat_t
         return (&w)[i];
     }
 
-    // =============== conversion operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<type_traits::is_floating_point<U>::value, bool>::type = true>
     VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const
@@ -138,7 +156,9 @@ struct quat_t
         );
     }
 
-    // =============== boolean operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& q1, const type& q2)
     {
@@ -150,7 +170,9 @@ struct quat_t
         return !(q1 == q2);
     }
 
-    // =============== unary constant operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr type operator+() const
     {
@@ -162,7 +184,9 @@ struct quat_t
         return type(-w, -x, -y, -z);
     }
 
-    // =============== binary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+)
 
@@ -192,19 +216,18 @@ struct quat_t
 
     // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
 
-    /**
-     * @brief Multiplies this quaternion by another quaternion in-place.
-     *
-     * This operator performs quaternion multiplication and updates the current quaternion
-     * with the result.
-     *
-     * @param q The quaternion to multiply with.
-     * @return A reference to the updated quaternion after multiplication.
-     *
-     * @note Quaternion multiplication is used to compose multiple rotations together.
-     * The operation follows the Hamilton product formula and updates the components of this quaternion
-     * based on the components of the current quaternion and the specified quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Multiplies this quaternion by another quaternion in-place.
+    /// 
+    /// Quaternion multiplication is used to compose multiple rotations together.
+    /// The operation follows the Hamilton product formula and updates the components
+    /// of this quaternion based on the components of the current quaternion and the
+    /// specified quaternion.
+    ///
+    /// @param q The quaternion to multiply with.
+    /// 
+    /// @return A reference to the updated quaternion after multiplication.
+    ///////////////////////////////////////////////////////////////////////////////
     friend VX_FORCE_INLINE constexpr type operator*(const type& q1, const type& q2)
     {
         return type(
@@ -217,16 +240,17 @@ struct quat_t
 
     // https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
 
-    /**
-     * @brief Performs quaternion-vector multiplication to rotate a 3D vector.
-     *
-     * This function performs the multiplication of a quaternion and a 3D vector. The result is a new
-     * vector representing the input vector after rotation by the quaternion.
-     *
-     * @param q The quaternion.
-     * @param v The 3D vector to be rotated.
-     * @return The resulting 3D vector after rotation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Performs quaternion-vector multiplication to rotate a 3D vector.
+    ///
+    /// The result is a new vector representing the input vector after rotation by
+    /// the quaternion.
+    ///
+    /// @param q The quaternion.
+    /// @param v The 3D vector to be rotated.
+    /// 
+    /// @return The resulting 3D vector after rotation.
+    ///////////////////////////////////////////////////////////////////////////////
     friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const type& q, const vec<3, T>& v)
     {
         const vec<3, T> qv = q.vector();
@@ -259,7 +283,9 @@ struct quat_t
         return q1 * inverse(q2);
     }
 
-    // =============== unary arithmetic operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     // addition (+=)
 
@@ -317,36 +343,43 @@ struct quat_t
         return *this;
     }
 
-    // =============== operations ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // operations
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Extracts the vector part of this quaternion.
-     *
-     * The vector part of a quaternion represents the imaginary
-     * components (x, y, z) of the quaternion. This method returns
-     * a 3D vector containing these components.
-     *
-     * @return The vector part of this quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Extracts the vector part of this quaternion.
+    ///
+    /// The vector part of a quaternion represents the imaginary
+    /// components (x, y, z) of the quaternion. This method returns
+    /// a 3D vector containing these components.
+    ///
+    /// @return The vector part of this quaternion.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr vec<3, T> vector() const { return vec<3, T>(x, y, z); }
 
-    // =============== direction and orientation ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // direction and orientation
+    ///////////////////////////////////////////////////////////////////////////////
 
     // https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
     // https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
 
-    /**
-     * @brief Creates a quaternion representing rotation from one vector to another.
-     *
-     * This function calculates a quaternion representing the rotation from the "from" vector to the "to" vector.
-     * If both vectors point in the same direction, it returns the identity quaternion (no rotation).
-     * If the vectors point in opposite directions, it chooses an arbitrary axis perpendicular to both vectors
-     * and rotates around that axis by pi radians.
-     *
-     * @param from The initial vector.
-     * @param to The target vector.
-     * @return The quaternion representing the rotation from the "from" vector to the "to" vector.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a quaternion representing rotation from one vector to another.
+    ///
+    /// This function calculates a quaternion representing the rotation from the
+    /// "from" vector to the "to" vector. If both vectors point in the same direction,
+    /// it returns the identity quaternion (no rotation). If the vectors point in
+    /// opposite directions, it chooses an arbitrary axis perpendicular to both
+    /// vectors and rotates around that axis by pi radians.
+    ///
+    /// @param from The initial vector.
+    /// @param to The target vector.
+    /// 
+    /// @return The quaternion representing the rotation from the "from" vector to
+    /// the "to" vector.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type from_to(const vec<3, T>& from, const vec<3, T>& to)
     {
         const vec<3, T> fn = math::normalize(from);
@@ -385,15 +418,20 @@ struct quat_t
         );
     }
 
-    // =============== axis angle ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // axis angle
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a quaternion representing rotation around an axis by a given angle.
-     *
-     * @param axis The axis of rotation.
-     * @param angle The angle of rotation in radians.
-     * @return The quaternion representing the rotation around the specified axis by the given angle.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a quaternion representing rotation around an axis by a given
+    /// angle.
+    ///
+    /// @param axis The axis of rotation.
+    /// @param angle The angle of rotation in radians.
+    /// 
+    /// @return The quaternion representing the rotation around the specified axis
+    /// by the given angle.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type from_axis_angle(const vec<3, T>& axis, T angle)
     {
         const vec<3, T> naxis = math::normalize(axis);
@@ -407,15 +445,14 @@ struct quat_t
     // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/index.htm
     // https://en.wikipedia.org/wiki/Axis%E2%80%93angle_representation#Unit_quaternions
 
-    /**
-     * @brief Retrieves the axis of rotation represented by the quaternion.
-     *
-     * This function calculates and returns the axis of rotation represented by the quaternion.
-     * If the quaternion represents zero rotation (i.e., its magnitude is close to zero),
-     * it returns the positive y-axis as the default axis.
-     *
-     * @return The axis of rotation represented by the quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the axis of rotation represented by the quaternion.
+    ///
+    /// If the quaternion represents zero rotation (i.e., its magnitude is close
+    /// to zero), it returns the positive y-axis as the default axis.
+    ///
+    /// @return The axis of rotation represented by the quaternion.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr vec<3, T> axis() const
     {
         const T nw = math::normalize(*this).w;
@@ -436,29 +473,32 @@ struct quat_t
         );
     }
 
-    /**
-     * @brief Retrieves the angle of rotation represented by the quaternion.
-     *
-     * @return The angle of rotation represented by the quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Retrieves the angle of rotation represented by the quaternion.
+    ///
+    /// @return The angle of rotation represented by the quaternion.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr T angle() const
     {
-        return static_cast<T>(2) * math::acos_clamped(math::normalize(*this).w);
+        return static_cast<T>(2) * math::acos_safe(math::normalize(*this).w);
     }
 
-    // =============== euler angles ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // euler angles
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a quaternion from Euler angles.
-     *
-     * This function constructs a quaternion from Euler angles.
-     * The Euler angles are specified in radians and represent rotations around the x, y, and z axes, respectively.
-     *
-     * @param x The rotation angle around the x-axis.
-     * @param y The rotation angle around the y-axis.
-     * @param z The rotation angle around the z-axis.
-     * @return The quaternion representing the specified Euler angles.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a quaternion from Euler angles.
+    ///
+    /// The Euler angles are specified in radians and represent rotations around
+    /// the x, y, and z axes, respectively.
+    ///
+    /// @param x The rotation angle around the x-axis.
+    /// @param y The rotation angle around the y-axis.
+    /// @param z The rotation angle around the z-axis.
+    /// 
+    /// @return The quaternion representing the specified Euler angles.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type from_euler_angles(T x, T y, T z)
     {
         x *= static_cast<T>(0.5);
@@ -483,15 +523,14 @@ struct quat_t
 
     // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
 
-    /**
-     * @brief Converts the quaternion to Euler angles.
-     *
-     * This function calculates and returns the Euler angles corresponding to the quaternion.
-     * The resulting angles represent rotations around the x, y, and z axes, respectively.
-     * The angles are returned in radians.
-     *
-     * @return The Euler angles corresponding to the quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Converts the quaternion to Euler angles.
+    ///
+    /// The resulting angles represent rotations around the x, y, and z axes,
+    /// respectively. The angles are returned in radians.
+    ///
+    /// @return The Euler angles corresponding to the quaternion.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr vec<3, T> to_euler_angles() const
     {
         const type qn = math::normalize(*this);
@@ -536,14 +575,17 @@ struct quat_t
         );
     }
 
-    // =============== matrix conversions ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // matrix conversions
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Creates a quaternion from a 3x3 rotation matrix.
-     *
-     * @param m The 3x3 rotation matrix.
-     * @return The quaternion representing the rotation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Creates a quaternion from a 3x3 rotation matrix.
+    ///
+    /// @param m The 3x3 rotation matrix.
+    /// 
+    /// @return The quaternion representing the rotation.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type from_mat3(const mat<3, 3, T>& m)
     {
         const T trace = m.columns[0].x + m.columns[1].y + m.columns[2].z;
@@ -598,11 +640,11 @@ struct quat_t
         }
     }
 
-    /**
-     * @brief Converts the quaternion to a 3x3 rotation matrix.
-     * 
-     * @return The 3x3 rotation matrix represented by the quaternion.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Converts the quaternion to a 3x3 rotation matrix.
+    /// 
+    /// @return The 3x3 rotation matrix represented by the quaternion.
+    ///////////////////////////////////////////////////////////////////////////////
     VX_FORCE_INLINE constexpr mat<3, 3, T> to_mat3() const
     {
         const type qn = math::normalize(*this);
@@ -632,20 +674,24 @@ struct quat_t
         );
     }
 
-    // =============== look at ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // look at
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Constructs a quaternion representing a left-handed look-at transformation.
-     *
-     * This function constructs a quaternion representing a left-handed look-at transformation.
-     * The resulting quaternion represents the orientation required for an object to face the target
-     * from the specified eye position, assuming a left-handed coordinate system.
-     *
-     * @param eye The position of the observer.
-     * @param target The position of the target.
-     * @param up The up direction. Default is the positive y-axis.
-     * @return The quaternion representing the left-handed look-at transformation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructs a quaternion representing a left-handed look-at
+    /// transformation.
+    ///
+    /// The resulting quaternion represents the orientation required for an object
+    /// to face the target from the specified eye position, assuming a left-handed
+    /// coordinate system.
+    ///
+    /// @param eye The position of the observer.
+    /// @param target The position of the target.
+    /// @param up The up direction (default is the positive y-axis).
+    /// 
+    /// @return The quaternion representing the left-handed look-at transformation.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type make_look_at_lh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
@@ -659,18 +705,20 @@ struct quat_t
         return from_mat3(mat<3, 3, T>(x, y, z));
     }
 
-    /**
-     * @brief Constructs a quaternion representing a right-handed look-at transformation.
-     *
-     * This function constructs a quaternion representing a right-handed look-at transformation.
-     * The resulting quaternion represents the orientation required for an object to face the target
-     * from the specified eye position, assuming a right-handed coordinate system.
-     *
-     * @param eye The position of the observer.
-     * @param target The position of the target.
-     * @param up The up direction. Default is the positive y-axis.
-     * @return The quaternion representing the right-handed look-at transformation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructs a quaternion representing a right-handed look-at
+    /// transformation.
+    ///
+    /// The resulting quaternion represents the orientation required for an object
+    /// to face the target from the specified eye position, assuming a right-handed
+    /// coordinate system.
+    ///
+    /// @param eye The position of the observer.
+    /// @param target The position of the target.
+    /// @param up The up direction (default is the positive y-axis).
+    /// 
+    /// @return The quaternion representing the right-handed look-at transformation.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type make_look_at_rh(
         const vec<3, T>& eye,
         const vec<3, T>& target,
@@ -684,19 +732,20 @@ struct quat_t
         return from_mat3(mat<3, 3, T>(x, y, z));
     }
 
-    /**
-     * @brief Constructs a quaternion representing a look-at transformation.
-     *
-     * This function constructs a quaternion representing a look-at transformation.
-     * The resulting quaternion represents the orientation required for an object to face the target
-     * from the specified eye position. The handedness of the resulting transformation depends on
-     * the configuration defined in VX_CONFIG_CLIP_CONTROL.
-     *
-     * @param eye The position of the observer.
-     * @param target The position of the target.
-     * @param up The up direction. Default is the positive y-axis.
-     * @return The quaternion representing the look-at transformation.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Constructs a quaternion representing a look-at transformation.
+    ///
+    /// The resulting quaternion represents the orientation required for an object
+    /// to face the target from the specified eye position. The handedness of the
+    /// resulting transformation depends on the configuration defined in
+    /// VX_CONFIG_CLIP_CONTROL.
+    ///
+    /// @param eye The position of the observer.
+    /// @param target The position of the target.
+    /// @param up The up direction (default is the positive y-axis).
+    /// 
+    /// @return The quaternion representing the look-at transformation.
+    ///////////////////////////////////////////////////////////////////////////////
     static VX_FORCE_INLINE constexpr type make_look_at(
         const vec<3, T>& eye,
         const vec<3, T>& target,
@@ -710,7 +759,9 @@ struct quat_t
 #	endif
     }
 
-    // =============== constants ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }
     static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<T>(0), static_cast<T>(0), static_cast<T>(0), static_cast<T>(0)); }

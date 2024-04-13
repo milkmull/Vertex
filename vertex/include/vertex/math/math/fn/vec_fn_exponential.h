@@ -5,7 +5,9 @@
 namespace vx {
 namespace math {
 
-// =============== pow ===============
+///////////////////////////////////////////////////////////////////////////////
+// pow
+///////////////////////////////////////////////////////////////////////////////
 
 // scaler binary
 
@@ -89,7 +91,9 @@ VX_FORCE_INLINE constexpr vec<4, T> pow(
     );
 }
 
-// =============== exp ===============
+///////////////////////////////////////////////////////////////////////////////
+// exp
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> exp(
@@ -127,7 +131,9 @@ VX_FORCE_INLINE constexpr vec<4, T> exp(
     );
 }
 
-// =============== exp2 ===============
+///////////////////////////////////////////////////////////////////////////////
+// exp2
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> exp2(
@@ -165,7 +171,9 @@ VX_FORCE_INLINE constexpr vec<4, T> exp2(
     );
 }
 
-// =============== log ===============
+///////////////////////////////////////////////////////////////////////////////
+// log
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> log(
@@ -203,7 +211,9 @@ VX_FORCE_INLINE constexpr vec<4, T> log(
     );
 }
 
-// =============== log2 ===============
+///////////////////////////////////////////////////////////////////////////////
+// log2
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> log2(
@@ -241,7 +251,9 @@ VX_FORCE_INLINE constexpr vec<4, T> log2(
     );
 }
 
-// =============== sqrt ===============
+///////////////////////////////////////////////////////////////////////////////
+// sqrt
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> sqrt(
@@ -279,7 +291,9 @@ VX_FORCE_INLINE constexpr vec<4, T> sqrt(
     );
 }
 
-// =============== inverse_sqrt ===============
+///////////////////////////////////////////////////////////////////////////////
+// inverse_sqrt
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> inverse_sqrt(
@@ -314,6 +328,46 @@ VX_FORCE_INLINE constexpr vec<4, T> inverse_sqrt(
         math::inverse_sqrt(x.y),
         math::inverse_sqrt(x.z),
         math::inverse_sqrt(x.w)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// inverse
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<2, T> inverse(
+    const vec<2, T>& x
+)
+{
+    return vec<2, T>(
+        math::inverse(x.x),
+        math::inverse(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<3, T> inverse(
+    const vec<3, T>& x
+)
+{
+    return vec<3, T>(
+        math::inverse(x.x),
+        math::inverse(x.y),
+        math::inverse(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<4, T> inverse(
+    const vec<4, T>& x
+)
+{
+    return vec<4, T>(
+        math::inverse(x.x),
+        math::inverse(x.y),
+        math::inverse(x.z),
+        math::inverse(x.w)
     );
 }
 
