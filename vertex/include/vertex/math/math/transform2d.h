@@ -5,17 +5,20 @@
 namespace vx {
 namespace math {
 
-// =============== 2d translation ===============
+///////////////////////////////////////////////////////////////////////////////
+// 2d translation
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Creates a 2D translation matrix.
- *
- * This function generates a 3x3 translation matrix with the specified translation vector in 2D space.
-
- * @tparam T The type of elements in the matrix (must be floating-point).
- * @param translation A 2D vector representing the translation along the x and y axes.
- * @return A 3x3 translation matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a 3x3 translation matrix with the specified translation
+/// vector in 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param translation A 2D vector representing the translation along the
+/// x and y axes.
+/// 
+/// @return A 3x3 translation matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& translation)
 {
@@ -26,33 +29,34 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_translation_2d(const vec<2, T>& tran
     );
 }
 
-/**
- * @brief Retrieves the translation vector from a 2D translation matrix.
- *
- * This function extracts and returns the translation vector represented by
- * the given 3x3 translation matrix in 2D space.
- *
- * @tparam T The type of elements in the matrix.
- * @param m The 3x3 translation matrix.
- * @return A 2D vector representing the translation along the x and y axes.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Extracts the translation vector represented by the given 3x3
+/// translation matrix in 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param m The 3x3 translation matrix.
+/// 
+/// @return A 2D vector representing the translation along the x and y axes.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> get_translation_2d(const mat<3, 3, T>& m)
 {
     return vec<2, T>(m.columns[2].x, m.columns[2].y);
 }
 
-// =============== 2d rotation ===============
+///////////////////////////////////////////////////////////////////////////////
+// 2d rotation
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Creates a 2D rotation matrix.
- *
- * This function generates a 3x3 rotation matrix with the specified angle of rotation in 2D space.
- * 
- * @tparam T The type of elements in the matrix (must be floating-point).
- * @param angle The angle of rotation in radians.
- * @return A 3x3 rotation matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a 3x3 rotation matrix with the specified angle of rotation in
+/// 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param angle The angle of rotation in radians.
+/// 
+/// @return A 3x3 rotation matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<3, 3, T> make_rotation_2d(T angle)
 {
@@ -66,33 +70,35 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_rotation_2d(T angle)
     );
 }
 
-/**
- * @brief Retrieves the rotation angle from a 2D rotation matrix.
- *
- * This function calculates and returns the rotation angle represented by
- * the given 3x3 rotation matrix in 2D space.
- *
- * @tparam T The type of elements in the matrix.
- * @param m The 3x3 rotation matrix.
- * @return The rotation angle in radians.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Extracts the rotation angle represented by the given 3x3 rotation
+/// matrix in 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param m The 3x3 rotation matrix.
+/// 
+/// @return The rotation angle in radians.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr T get_rotation_2d(const mat<3, 3, T>& m)
 {
     return math::atan2(m.columns[0].y, m.columns[0].x);
 }
 
-// =============== 2d scale ===============
+///////////////////////////////////////////////////////////////////////////////
+// 2d scale
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Creates a 2D scaling matrix.
- *
- * This function generates a 3x3 scaling matrix with the specified scaling factors in 2D space.
- *
- * @tparam T The type of elements in the matrix (must be floating-point).
- * @param scale A 2D vector representing the scaling factors along the x and y axes.
- * @return A 3x3 scaling matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a 3x3 scaling matrix with the specified scaling factors in
+/// 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param scale A 2D vector representing the scaling factors along the
+/// x and y axes.
+/// 
+/// @return A 3x3 scaling matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
 {
@@ -103,16 +109,15 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_scale_2d(const vec<2, T>& scale)
     );
 }
 
-/**
- * @brief Retrieves the scaling factors from a 2D scaling matrix.
- *
- * This function calculates and returns the scaling factors represented by
- * the given 3x3 scaling matrix in 2D space.
- *
- * @tparam T The type of elements in the matrix.
- * @param m The 3x3 scaling matrix.
- * @return A 2D vector representing the scaling factors along the x and y axes.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Extracts the scaling factors represented by the given 3x3 scaling
+/// matrix in 2D space.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param m The 3x3 scaling matrix.
+/// 
+/// @return A 2D vector representing the scaling factors along the x and y axes.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
 {
@@ -122,19 +127,23 @@ VX_FORCE_INLINE constexpr vec<2, T> get_scale_2d(const mat<3, 3, T>& m)
     );
 }
 
-// =============== trs ===============
+///////////////////////////////////////////////////////////////////////////////
+// trs
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Creates a 2D transformation matrix combining translation, rotation, and scaling.
- *
- * This function generates a 3x3 transformation matrix in 2D space by combining translation, rotation, and scaling.
- *
- * @tparam T The type of elements in the matrix (must be floating-point).
- * @param translation A 2D vector representing the translation along the x and y axes.
- * @param angle The angle of rotation in radians.
- * @param scale A 2D vector representing the scaling factors along the x and y axes.
- * @return A 3x3 transformation matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a 3x3 transformation matrix in 2D space by combining
+/// translation, rotation, and scaling.
+///
+/// @tparam T The type of elements in the matrix (must be floating-point).
+/// @param translation A 2D vector representing the translation along the
+/// x and y axes.
+/// @param angle The angle of rotation in radians.
+/// @param scale A 2D vector representing the scaling factors along the
+/// x and y axes.
+/// 
+/// @return A 3x3 transformation matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation, T angle, vec<2, T>& scale)
 {
@@ -148,19 +157,21 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> make_trs_2d(const vec<2, T>& translation,
     );
 }
 
-// =============== inverse ===============
+///////////////////////////////////////////////////////////////////////////////
+// inverse
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Calculates the inverse of an affine transformation matrix.
- *
- * This function computes the inverse of the given 3x3 affine transformation matrix.
- * The inverse of an affine transformation matrix undoes the transformation, effectively
- * reversing the original transformation.
- *
- * @tparam T The type of elements in the matrix.
- * @param m The 3x3 affine transformation matrix.
- * @return The inverse of the matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Calculates the inverse of the given 3x3 affine transformation matrix.
+/// 
+/// The inverse of an affine transformation matrix undoes the transformation,
+/// effectively reversing the original transformation.
+///
+/// @tparam T The type of elements in the matrix.
+/// @param m The 3x3 affine transformation matrix.
+/// 
+/// @return The inverse of the matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<3, 3, T> affine_inverse(const mat<3, 3, T>& m)
 {
@@ -173,19 +184,22 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> affine_inverse(const mat<3, 3, T>& m)
     );
 }
 
-// =============== transform ===============
+///////////////////////////////////////////////////////////////////////////////
+// transform
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Transforms a 2D vector using a 3x3 transformation matrix.
- *
- * This function applies the given 3x3 transformation matrix to a 2D vector.
- * The transformation matrix represents a combination of translation, rotation, and scaling.
- *
- * @tparam T The type of elements in the matrix and vector.
- * @param m The 3x3 transformation matrix.
- * @param v The 2D vector to be transformed.
- * @return The transformed 2D vector.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Aapplies the given 3x3 transformation matrix to a 2D vector.
+/// 
+/// The transformation matrix represents a combination of translation, rotation,
+/// and scaling.
+///
+/// @tparam T The type of elements in the matrix and vector.
+/// @param m The 3x3 transformation matrix.
+/// @param v The 2D vector to be transformed.
+/// 
+/// @return The transformed 2D vector.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v)
 {

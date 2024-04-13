@@ -2,8 +2,8 @@
 
 #include <functional>
 
-#include "../../detail/hash.h"
-#include "../../detail/hash.h"
+#include "../../_priv/hash.h"
+#include "../../_priv/hash.h"
 #include "../type/base/base_types.h"
 
 namespace std {
@@ -15,8 +15,8 @@ struct hash<vx::math::vec<2, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(v.x));
-        vx::math::detail::hash_combine(seed, hasher(v.y));
+        vx::math::_priv::hash_combine(seed, hasher(v.x));
+        vx::math::_priv::hash_combine(seed, hasher(v.y));
         return seed;
     }
 };
@@ -28,9 +28,9 @@ struct hash<vx::math::vec<3, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(v.x));
-        vx::math::detail::hash_combine(seed, hasher(v.y));
-        vx::math::detail::hash_combine(seed, hasher(v.z));
+        vx::math::_priv::hash_combine(seed, hasher(v.x));
+        vx::math::_priv::hash_combine(seed, hasher(v.y));
+        vx::math::_priv::hash_combine(seed, hasher(v.z));
         return seed;
     }
 };
@@ -42,10 +42,10 @@ struct hash<vx::math::vec<4, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(v.x));
-        vx::math::detail::hash_combine(seed, hasher(v.y));
-        vx::math::detail::hash_combine(seed, hasher(v.z));
-        vx::math::detail::hash_combine(seed, hasher(v.w));
+        vx::math::_priv::hash_combine(seed, hasher(v.x));
+        vx::math::_priv::hash_combine(seed, hasher(v.y));
+        vx::math::_priv::hash_combine(seed, hasher(v.z));
+        vx::math::_priv::hash_combine(seed, hasher(v.w));
         return seed;
     }
 };
@@ -57,10 +57,10 @@ struct hash<vx::math::quat_t<T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(q.w));
-        vx::math::detail::hash_combine(seed, hasher(q.x));
-        vx::math::detail::hash_combine(seed, hasher(q.y));
-        vx::math::detail::hash_combine(seed, hasher(q.z));
+        vx::math::_priv::hash_combine(seed, hasher(q.w));
+        vx::math::_priv::hash_combine(seed, hasher(q.x));
+        vx::math::_priv::hash_combine(seed, hasher(q.y));
+        vx::math::_priv::hash_combine(seed, hasher(q.z));
         return seed;
     }
 };
@@ -72,8 +72,8 @@ struct hash<vx::math::mat<2, N, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(m.columns[0]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[1]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[0]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[1]));
         return seed;
     }
 };
@@ -85,9 +85,9 @@ struct hash<vx::math::mat<3, N, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(m.columns[0]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[1]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[2]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[0]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[1]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[2]));
         return seed;
     }
 };
@@ -99,10 +99,10 @@ struct hash<vx::math::mat<4, N, T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(m.columns[0]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[1]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[2]));
-        vx::math::detail::hash_combine(seed, hasher(m.columns[3]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[0]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[1]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[2]));
+        vx::math::_priv::hash_combine(seed, hasher(m.columns[3]));
         return seed;
     }
 };

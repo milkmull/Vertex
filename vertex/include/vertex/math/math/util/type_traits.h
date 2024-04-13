@@ -8,7 +8,9 @@ namespace vx {
 namespace math {
 namespace type_traits {
 
-// =============== scaler ===============
+///////////////////////////////////////////////////////////////////////////////
+// scaler
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct is_scaler : std::false_type {};
 
@@ -35,7 +37,9 @@ template <typename T> struct is_floating_point : std::false_type {};
 template <> struct is_floating_point<double> : std::true_type {};
 template <> struct is_floating_point<float> : std::true_type {};
 
-// =============== vector ===============
+///////////////////////////////////////////////////////////////////////////////
+// vector
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 struct is_vector : std::false_type {};
@@ -58,7 +62,9 @@ struct is_floating_point<vec<L, T>> : is_floating_point<T> {};
 template <size_t L, typename T>
 struct is_integral<vec<L, T>> : is_integral<T> {};
 
-// =============== matrix ===============
+///////////////////////////////////////////////////////////////////////////////
+// matrix
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 struct is_matrix : std::false_type {};

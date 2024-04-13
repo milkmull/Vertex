@@ -14,10 +14,10 @@ struct hash<vx::math::rect_t<T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(r.position.x));
-        vx::math::detail::hash_combine(seed, hasher(r.position.y));
-        vx::math::detail::hash_combine(seed, hasher(r.size.x));
-        vx::math::detail::hash_combine(seed, hasher(r.size.y));
+        vx::math::_priv::hash_combine(seed, hasher(r.position.x));
+        vx::math::_priv::hash_combine(seed, hasher(r.position.y));
+        vx::math::_priv::hash_combine(seed, hasher(r.size.x));
+        vx::math::_priv::hash_combine(seed, hasher(r.size.y));
         return seed;
     }
 };

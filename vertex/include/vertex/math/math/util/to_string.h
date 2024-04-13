@@ -7,7 +7,9 @@
 
 namespace vx {
 
-// =============== scaler ===============
+///////////////////////////////////////////////////////////////////////////////
+// scaler
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
 inline std::string to_string(T x)
@@ -15,7 +17,9 @@ inline std::string to_string(T x)
     return std::to_string(x);
 }
 
-// =============== vector ===============
+///////////////////////////////////////////////////////////////////////////////
+// vector
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 inline std::string to_string(const math::vec<2, T>& v)
@@ -48,7 +52,9 @@ inline std::ostream& operator<<(std::ostream& os, const math::vec<L, T>& v)
     return os;
 }
 
-// =============== quaternion ===============
+///////////////////////////////////////////////////////////////////////////////
+// quaternion
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
 inline std::string to_string(const math::quat_t<T>& q)
@@ -65,7 +71,9 @@ inline std::ostream& operator<<(std::ostream& os, const math::quat_t<T>& q)
     return os;
 }
 
-// =============== matrix ===============
+///////////////////////////////////////////////////////////////////////////////
+// matrix
+///////////////////////////////////////////////////////////////////////////////
 
 template <size_t M, size_t N, typename T>
 inline std::string to_string(const math::mat<M, N, T>& m)

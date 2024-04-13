@@ -6,22 +6,23 @@
 namespace vx {
 namespace math {
 
-// =============== ortho ===============
+///////////////////////////////////////////////////////////////////////////////
+// ortho
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Constructs a left-handed orthographic projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 left-handed orthographic projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed orthographic projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed orthographic projection matrix
+/// suitable for rendering with a depth range of [0, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed orthographic projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
     T left, T right,
@@ -52,20 +53,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
     );
 }
 
-/**
- * @brief Constructs a left-handed orthographic projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 left-handed orthographic projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed orthographic projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed orthographic projection matrix
+/// suitable for rendering with a depth range of [-1, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed orthographic projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
     T left, T right,
@@ -96,20 +96,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
     );
 }
 
-/**
- * @brief Constructs a right-handed orthographic projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 right-handed orthographic projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed orthographic projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed orthographic projection matrix
+/// suitable for rendering with a depth range of [0, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed orthographic projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
     T left, T right,
@@ -140,20 +139,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
     );
 }
 
-/**
- * @brief Constructs a right-handed orthographic projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 right-handed orthographic projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed orthographic projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed orthographic projection matrix
+/// suitable for rendering with a depth range of [-1, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed orthographic projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_no(
     T left, T right,
@@ -184,20 +182,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_no(
     );
 }
 
-/**
- * @brief Constructs an orthographic projection matrix with depth range [0, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 orthographic projection matrix with a depth range of [0, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed orthographic projection matrix with depth range [0, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 orthographic projection matrix with a depth range
+/// of [0, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed orthographic projection matrix with depth range [0, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_zo(
     T left, T right,
@@ -212,20 +210,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_zo(
 #endif
 }
 
-/**
- * @brief Constructs an orthographic projection matrix with depth range [-1, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 orthographic projection matrix with a depth range of [-1, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed orthographic projection matrix with depth range [-1, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 orthographic projection matrix with a depth range
+/// of [-1, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed orthographic projection matrix with depth range [-1, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_no(
     T left, T right,
@@ -240,20 +238,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_no(
 #endif
 }
 
-/**
- * @brief Constructs a left-handed orthographic projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 left-handed orthographic projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed orthographic projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed orthographic projection matrix using
+/// either depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed orthographic projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh(
     T left, T right,
@@ -269,20 +267,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh(
 }
 
 
-/**
- * @brief Constructs a right-handed orthographic projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 right-handed orthographic projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed orthographic projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed orthographic projection matrix using
+/// either depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed orthographic projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh(
     T left, T right,
@@ -297,20 +295,21 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh(
 #endif
 }
 
-/**
- * @brief Constructs an orthographic projection matrix using the appropriate handedness and depth range.
- *
- * This function constructs a 4x4 orthographic projection matrix using either left-handed or right-handed convention and depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed orthographic projection matrix with appropriate handedness and depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 orthographic projection matrix using either
+/// left-handed or right-handed convention and depth range [0, 1] or [-1, 1]
+/// based on configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed orthographic projection matrix with appropriate
+/// handedness and depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
     T left, T right,
@@ -329,22 +328,23 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
 #endif
 }
 
-// =============== frustrum ===============
+///////////////////////////////////////////////////////////////////////////////
+// frustrum
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Constructs a left-handed frustum projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 left-handed frustum projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed frustum projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed frustum projection matrix suitable for
+/// rendering with a depth range of [0, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed frustum projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_zo(
     T left, T right,
@@ -375,20 +375,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_zo(
     );
 }
 
-/**
- * @brief Constructs a left-handed frustum projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 left-handed frustum projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed frustum projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed frustum projection matrix suitable for
+/// rendering with a depth range of [-1, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed frustum projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_no(
     T left, T right,
@@ -419,20 +418,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_no(
     );
 }
 
-/**
- * @brief Constructs a right-handed frustum projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 right-handed frustum projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed frustum projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed frustum projection matrix suitable for
+/// rendering with a depth range of [0, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed frustum projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_zo(
     T left, T right,
@@ -464,20 +462,18 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_zo(
 }
 
 
-/**
- * @brief Constructs a right-handed frustum projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 right-handed frustum projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed frustum projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed frustum projection matrix suitable for
+/// rendering with a depth range of [-1, 1].
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed frustum projection matrix.
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_no(
     T left, T right,
@@ -508,20 +504,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_no(
     );
 }
 
-/**
- * @brief Constructs a frustum projection matrix with depth range [0, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 frustum projection matrix with a depth range of [0, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed frustum projection matrix with depth range [0, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 frustum projection matrix with a depth range of
+/// [0, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed frustum projection matrix with depth range [0, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_zo(
     T left, T right,
@@ -536,20 +532,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_zo(
 #endif
 }
 
-/**
- * @brief Constructs a frustum projection matrix with depth range [-1, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 frustum projection matrix with a depth range of [-1, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed frustum projection matrix with depth range [-1, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 frustum projection matrix with a depth range of
+/// [-1, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed frustum projection matrix with depth range [-1, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_no(
     T left, T right,
@@ -564,20 +560,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_no(
 #endif
 }
 
-/**
- * @brief Constructs a left-handed frustum projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 left-handed frustum projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed frustum projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed frustum projection matrix using either
+/// depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed frustum projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh(
     T left, T right,
@@ -592,20 +588,20 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh(
 #endif
 }
 
-/**
- * @brief Constructs a right-handed frustum projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 right-handed frustum projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed frustum projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed frustum projection matrix using either
+/// depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed frustum projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh(
     T left, T right,
@@ -620,20 +616,21 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh(
 #endif
 }
 
-/**
- * @brief Constructs a frustum projection matrix using the appropriate handedness and depth range.
- *
- * This function constructs a 4x4 frustum projection matrix using either left-handed or right-handed convention and depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param left The minimum x-coordinate of the view volume.
- * @param right The maximum x-coordinate of the view volume.
- * @param top The maximum y-coordinate of the view volume.
- * @param bottom The minimum y-coordinate of the view volume.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed frustum projection matrix with appropriate handedness and depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 frustum projection matrix using either left-handed
+/// or right-handed convention and depth range [0, 1] or [-1, 1] based on
+/// configuration.
+///
+/// @param left The minimum x-coordinate of the view volume.
+/// @param right The maximum x-coordinate of the view volume.
+/// @param top The maximum y-coordinate of the view volume.
+/// @param bottom The minimum y-coordinate of the view volume.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed frustum projection matrix with appropriate
+/// handedness and depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum(
     T left, T right,
@@ -652,20 +649,21 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum(
 #endif
 }
 
-// =============== perspective ===============
+///////////////////////////////////////////////////////////////////////////////
+// perspective
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Constructs a left-handed perspective projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 left-handed perspective projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed perspective projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed perspective projection matrix suitable
+/// for rendering with a depth range of [0, 1].
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed perspective projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
     T fovy, T aspect,
@@ -699,18 +697,17 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
     );
 }
 
-/**
- * @brief Constructs a left-handed perspective projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 left-handed perspective projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed perspective projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed perspective projection matrix suitable
+/// for rendering with a depth range of [-1, 1].
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed perspective projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
     T fovy, T aspect,
@@ -744,18 +741,17 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
     );
 }
 
-/**
- * @brief Constructs a right-handed perspective projection matrix with depth range [0, 1].
- *
- * This function constructs a 4x4 right-handed perspective projection matrix suitable for rendering with a depth range of [0, 1].
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed perspective projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed perspective projection matrix suitable
+/// for rendering with a depth range of [0, 1].
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed perspective projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
     T fovy, T aspect,
@@ -789,18 +785,17 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
     );
 }
 
-/**
- * @brief Constructs a right-handed perspective projection matrix with depth range [-1, 1].
- *
- * This function constructs a 4x4 right-handed perspective projection matrix suitable for rendering with a depth range of [-1, 1].
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed perspective projection matrix.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed perspective projection matrix suitable
+/// for rendering with a depth range of [-1, 1].
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed perspective projection matrix.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_no(
     T fovy, T aspect,
@@ -834,18 +829,18 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_no(
     );
 }
 
-/**
- * @brief Constructs a perspective projection matrix with depth range [0, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 perspective projection matrix with a depth range of [0, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed perspective projection matrix with depth range [0, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 perspective projection matrix with a depth range of
+/// [0, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed perspective projection matrix with depth range [0, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_zo(
     T fovy, T aspect,
@@ -859,18 +854,18 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_zo(
 #endif
 }
 
-/**
- * @brief Constructs a perspective projection matrix with depth range [-1, 1] using the appropriate handedness.
- *
- * This function constructs a 4x4 perspective projection matrix with a depth range of [-1, 1] using either left-handed or right-handed convention based on configuration.
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed perspective projection matrix with depth range [-1, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 perspective projection matrix with a depth range of
+/// [-1, 1] using either left-handed or right-handed convention based on
+/// configuration.
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed perspective projection matrix with depth range [-1, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_no(
     T fovy, T aspect,
@@ -884,18 +879,18 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_no(
 #endif
 }
 
-/**
- * @brief Constructs a left-handed perspective projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 left-handed perspective projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param fovy The field of view angle in the y-direction, in radians.
- * @param aspect The aspect ratio, defined as width divided by height.
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed left-handed perspective projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 left-handed perspective projection matrix using
+/// either depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param fovy The field of view angle in the y-direction, in radians.
+/// @param aspect The aspect ratio, defined as width divided by height.
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed left-handed perspective projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh(
     T fovy, T aspect,
@@ -909,18 +904,18 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh(
 #endif
 }
 
-/**
- * @brief Constructs a right-handed perspective projection matrix using the appropriate depth range.
- *
- * This function constructs a 4x4 right-handed perspective projection matrix using either depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param fovy The vertical field of view angle in radians.
- * @param aspect The aspect ratio of the viewport (width / height).
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed right-handed perspective projection matrix with appropriate depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 right-handed perspective projection matrix using
+/// either depth range [0, 1] or [-1, 1] based on configuration.
+///
+/// @param fovy The vertical field of view angle in radians.
+/// @param aspect The aspect ratio of the viewport (width / height).
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed right-handed perspective projection matrix with
+/// appropriate depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh(
     T fovy, T aspect,
@@ -934,18 +929,19 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh(
 #endif
 }
 
-/**
- * @brief Constructs a perspective projection matrix using the appropriate handedness and depth range.
- *
- * This function constructs a 4x4 perspective projection matrix using either left-handed or right-handed convention and depth range [0, 1] or [-1, 1] based on configuration.
- *
- * @param fovy The vertical field of view angle in radians.
- * @param aspect The aspect ratio of the viewport (width / height).
- * @param znear The minimum z-coordinate of the view volume (near clipping plane).
- * @param zfar The maximum z-coordinate of the view volume (far clipping plane).
- *
- * @return The constructed perspective projection matrix with appropriate handedness and depth range.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Constructs a 4x4 perspective projection matrix using either
+/// left-handed or right-handed convention and depth range [0, 1] or [-1, 1]
+/// based on configuration.
+///
+/// @param fovy The vertical field of view angle in radians.
+/// @param aspect The aspect ratio of the viewport (width / height).
+/// @param znear The minimum z-coordinate of the view volume (near clipping plane).
+/// @param zfar The maximum z-coordinate of the view volume (far clipping plane).
+///
+/// @return The constructed perspective projection matrix with appropriate
+/// handedness and depth range.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
     T fovy, T aspect,
@@ -963,22 +959,28 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
 #endif
 }
 
-// =============== project ===============
+///////////////////////////////////////////////////////////////////////////////
+// project
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Projects a 3D object onto the screen in normalized device coordinates with a depth range of [0, 1].
- *
- * This function takes a 3D object coordinate, applies model and projection transformations,
- * and maps the resulting position to the normalized device coordinates with a depth range of [0, 1].
- *
- * @param object The 3D object coordinate to be projected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of normalized device coordinates to screen coordinates.
- * It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the projected 3D object coordinate in normalized device coordinates with a depth range of [0, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Projects a 3D object onto the screen in normalized device coordinates
+/// with a depth range of [0, 1].
+///
+/// This function takes a 3D object coordinate, applies model and projection
+/// transformations, and maps the resulting position to the normalized device
+/// coordinates with a depth range of [0, 1].
+///
+/// @param object The 3D object coordinate to be projected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of normalized device
+/// coordinates to screen coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the projected 3D object coordinate in normalized device
+/// coordinates with a depth range of [0, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> project_zo(
     const vec<3, T>& object,
@@ -1002,20 +1004,24 @@ VX_FORCE_INLINE constexpr vec<3, T> project_zo(
     return vec<3, T>(v4);
 }
 
-/**
- * @brief Projects a 3D object onto the screen in clip space with a depth range of [-1, 1].
- *
- * This function takes a 3D object coordinate, applies model and projection transformations,
- * and maps the resulting position to the clip space coordinates with a depth range of [-1, 1].
- *
- * @param object The 3D object coordinate to be projected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of normalized device coordinates to screen coordinates.
- *                 It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the projected 3D object coordinate in clip space coordinates with a depth range of [-1, 1].
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Projects a 3D object onto the screen in clip space with a depth range
+/// of [-1, 1].
+///
+/// This function takes a 3D object coordinate, applies model and projection
+/// transformations, and maps the resulting position to the clip space
+/// coordinates with a depth range of [-1, 1].
+///
+/// @param object The 3D object coordinate to be projected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of normalized device
+/// coordinates to screen coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the projected 3D object coordinate in clip space coordinates
+/// with a depth range of [-1, 1].
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> project_no(
     const vec<3, T>& object,
@@ -1040,21 +1046,24 @@ VX_FORCE_INLINE constexpr vec<3, T> project_no(
     return vec<3, T>(v4);
 }
 
-/**
- * @brief Projects a 3D object onto the screen in clip space with configurable depth range.
- *
- * This function takes a 3D object coordinate, applies model and projection transformations,
- * and maps the resulting position to the clip space coordinates. The behavior depends on compile-time
- * configuration for the depth range.
- *
- * @param object The 3D object coordinate to be projected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of normalized device coordinates to screen coordinates.
- * It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the projected 3D object coordinate in clip space coordinates.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Projects a 3D object onto the screen in clip space with configurable
+/// depth range.
+///
+/// This function takes a 3D object coordinate, applies model and projection
+/// transformations, and maps the resulting position to the clip space
+/// coordinates. The behavior depends on compile-time configuration for the
+/// depth range.
+///
+/// @param object The 3D object coordinate to be projected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of normalized device
+/// coordinates to screen coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the projected 3D object coordinate in clip space coordinates.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> project(
     const vec<3, T>& object,
@@ -1070,23 +1079,27 @@ VX_FORCE_INLINE constexpr vec<3, T> project(
 #endif
 }
 
-// =============== unproject ===============
+///////////////////////////////////////////////////////////////////////////////
+// unproject
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Unprojects a 3D point from screen space with a depth range of [0, 1] to world space.
- *
- * This function takes a 3D point in screen space with a depth range of [0, 1], applies
- * the inverse model-view-projection transformation, and returns the corresponding point
- * in world space.
- *
- * @param object The 3D point in screen space to be unprojected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of screen coordinates to normalized device coordinates.
- * It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the unprojected 3D point in world space.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Unprojects a 3D point from screen space with a depth range of [0, 1]
+/// to world space.
+///
+/// This function takes a 3D point in screen space with a depth range of [0, 1],
+/// applies the inverse model-view-projection transformation, and returns the
+/// corresponding point in world space.
+///
+/// @param object The 3D point in screen space to be unprojected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of screen coordinates to
+/// normalized device coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the unprojected 3D point in world space.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
     const vec<3, T>& object,
@@ -1109,21 +1122,23 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
-/**
- * @brief Unprojects a 3D point from screen space with a depth range of [-1, 1] to world space.
- *
- * This function takes a 3D point in screen space with a depth range of [-1, 1], applies
- * the inverse model-view-projection transformation, and returns the corresponding point
- * in world space.
- *
- * @param object The 3D point in screen space to be unprojected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of screen coordinates to normalized device coordinates.
- * It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the unprojected 3D point in world space.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Unprojects a 3D point from screen space with a depth range of [-1, 1]
+/// to world space.
+///
+/// This function takes a 3D point in screen space with a depth range of [-1, 1],
+/// applies the inverse model-view-projection transformation, and returns the
+/// corresponding point in world space.
+///
+/// @param object The 3D point in screen space to be unprojected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of screen coordinates to
+/// normalized device coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the unprojected 3D point in world space.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
     const vec<3, T>& object,
@@ -1147,21 +1162,24 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
-/**
- * @brief Unprojects a 3D point from screen space with configurable depth range to world space.
- *
- * This function takes a 3D point in screen space with a configurable depth range, applies
- * the inverse model-view-projection transformation, and returns the corresponding point
- * in world space. The behavior depends on compile-time configuration for the depth range.
- *
- * @param object The 3D point in screen space to be unprojected.
- * @param model The model matrix representing the object's transformation.
- * @param projection The projection matrix representing the camera's projection.
- * @param viewport The viewport defining the mapping of screen coordinates to normalized device coordinates.
- * It's a 4D vector representing (x, y, width, height) of the viewport.
- *
- * @return Returns the unprojected 3D point in world space.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Unprojects a 3D point from screen space with configurable depth
+/// range to world space.
+///
+/// This function takes a 3D point in screen space with a configurable depth
+/// range, applies the inverse model-view-projection transformation, and returns
+/// the corresponding point in world space. The behavior depends on compile-time
+/// configuration for the depth range.
+///
+/// @param object The 3D point in screen space to be unprojected.
+/// @param model The model matrix representing the object's transformation.
+/// @param projection The projection matrix representing the camera's projection.
+/// @param viewport The viewport defining the mapping of screen coordinates to
+/// normalized device coordinates. It's a 4D vector representing
+/// (x, y, width, height) of the viewport.
+///
+/// @return Returns the unprojected 3D point in world space.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename U, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> unproject(
     const vec<3, T>& object,
@@ -1177,19 +1195,21 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject(
 #endif
 }
 
-// =============== projection ===============
+///////////////////////////////////////////////////////////////////////////////
+// projection
+///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Projects a 3D vector using a 4x4 transformation matrix.
- *
- * This function applies the transformation represented by the provided 4x4 matrix to the
- * input 3D vector, effectively projecting it onto another space.
- *
- * @param m The 4x4 transformation matrix representing the projection.
- * @param v The 3D vector to be projected.
- *
- * @return Returns the projected 3D vector.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Projects a 3D vector using a 4x4 transformation matrix.
+///
+/// This function applies the transformation represented by the provided 4x4
+/// matrix to the input 3D vector, effectively projecting it onto another space.
+///
+/// @param m The 4x4 transformation matrix representing the projection.
+/// @param v The 3D vector to be projected.
+///
+/// @return Returns the projected 3D vector.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, T>& v)
 {
@@ -1199,17 +1219,19 @@ VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, 
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
-/**
- * @brief Unprojects a 3D vector using the inverse of a 4x4 transformation matrix.
- *
- * This function applies the inverse transformation of the provided 4x4 matrix to the
- * input 3D vector, effectively unprojecting it from one space to another.
- *
- * @param m The 4x4 transformation matrix representing the inverse projection.
- * @param v The 3D vector to be unprojected.
- *
- * @return Returns the unprojected 3D vector.
- */
+////////////////////////////////////////////////////////////////////////////////
+/// @brief Unprojects a 3D vector using the inverse of a 4x4 transformation
+/// matrix.
+///
+/// This function applies the inverse transformation of the provided 4x4 matrix
+/// to the input 3D vector, effectively unprojecting it from one space to
+/// another.
+///
+/// @param m The 4x4 transformation matrix representing the inverse projection.
+/// @param v The 3D vector to be unprojected.
+///
+/// @return Returns the unprojected 3D vector.
+////////////////////////////////////////////////////////////////////////////////
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3, T>& v)
 {

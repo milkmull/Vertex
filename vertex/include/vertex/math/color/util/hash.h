@@ -14,10 +14,10 @@ struct hash<vx::math::color_t<T>>
     {
         size_t seed = 0;
         hash<T> hasher;
-        vx::math::detail::hash_combine(seed, hasher(c.r));
-        vx::math::detail::hash_combine(seed, hasher(c.g));
-        vx::math::detail::hash_combine(seed, hasher(c.b));
-        vx::math::detail::hash_combine(seed, hasher(c.a));
+        vx::math::_priv::hash_combine(seed, hasher(c.r));
+        vx::math::_priv::hash_combine(seed, hasher(c.g));
+        vx::math::_priv::hash_combine(seed, hasher(c.b));
+        vx::math::_priv::hash_combine(seed, hasher(c.a));
         return seed;
     }
 };

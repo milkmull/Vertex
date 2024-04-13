@@ -2,7 +2,7 @@
 
 #include <iterator>
 
-#include "detail/base_types.h"
+#include "_priv/base_types.h"
 #include "pixel.h"
 
 #include "vertex/math/math/type/vec2.h"
