@@ -1,7 +1,7 @@
 #pragma once
 
 #include "../_priv/base_types.h"
-#include "../enum_error_code.h"
+#include "error.h"
 
 namespace vx {
 namespace img {
@@ -28,16 +28,17 @@ enum : size_t
     )
 };
 
-/**
- * @brief Check if the given image size exceeds predefined limits.
- *
- * @param width The width of the image.
- * @param height The height of the image.
- * @param channels The number of channels in the image.
- * @param bitdepth The bit depth of the image.
- * @return The error code indicating if the image size exceeds limits or not.
- */
-inline constexpr error_code check_image_size_limits(
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Check if the given image size exceeds predefined limits.
+///
+/// @param width The width of the image.
+/// @param height The height of the image.
+/// @param channels The number of channels in the image.
+/// @param bitdepth The bit depth of the image.
+/// 
+/// @return The error code indicating if the image size exceeds limits or not.
+///////////////////////////////////////////////////////////////////////////////
+inline constexpr image_error_code check_image_size_limits(
     size_t width,
     size_t height,
     size_t channels,
@@ -46,18 +47,18 @@ inline constexpr error_code check_image_size_limits(
 {
     if (width > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
     {
-        return error_code::MAX_SIZE;
+        return image_error_code::MAX_SIZE;
     }
     if (channels < IMAGE_SIZE_LIMIT_MIN_CHANNELS || channels > IMAGE_SIZE_LIMIT_MAX_CHANNELS)
     {
-        return error_code::UNSUPPORTED_CHANNEL_COUNT;
+        return image_error_code::UNSUPPORTED_CHANNEL_COUNT;
     }
     if (bitdepth < IMAGE_SIZE_LIMIT_MIN_BITDEPTH || bitdepth > IMAGE_SIZE_LIMIT_MAX_BITDEPTH)
     {
-        return error_code::UNSUPPORTED_BITDEPTH;
+        return image_error_code::UNSUPPORTED_BITDEPTH;
     }
 
-    return error_code::NONE;
+    return image_error_code::NONE;
 }
 
 }

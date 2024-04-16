@@ -5,8 +5,8 @@
 
 #include <vector>
 
+#include "vertex/config.h"
 #include "../image_info.h"
-#include "../enum_error_code.h"
 
 namespace vx {
 namespace img {
@@ -23,7 +23,7 @@ namespace raw {
  * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
-error_code write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+VX_NODISCARD bool write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
 
 /**
  * @brief Write image data to a JPEG file.
@@ -37,7 +37,7 @@ error_code write_bmp(const char* filename, const image_info& info, const byte_ty
  * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
-error_code write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality = 75, bool flip_vertically_on_write = false);
+VX_NODISCARD bool write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality = 75, bool flip_vertically_on_write = false);
 
 /**
  * @brief Write image data to a PNG file.
@@ -50,7 +50,7 @@ error_code write_jpg(const char* filename, const image_info& info, const byte_ty
  * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
-error_code write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+VX_NODISCARD bool write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
 
 /**
  * @brief Write image data to a TGA file.
@@ -63,7 +63,7 @@ error_code write_png(const char* filename, const image_info& info, const byte_ty
  * @param flip_vertically_on_write Whether to flip the image vertically during writing (default is false).
  * @return An error_code indicating the success or failure of the operation.
  */
-error_code write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
+VX_NODISCARD bool write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write = false);
 
 }
 }

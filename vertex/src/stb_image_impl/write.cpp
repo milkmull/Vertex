@@ -1,11 +1,12 @@
 #include "vertex/image/raw/write.h"
-
-#include "vertex/config.h"
 #include "vertex/image/util/image_info_helpers.h"
+#include "vertex/system/error.h"
 
 #ifdef VX_IMAGE_WRITE_IMPLIMENTATION
 
-// =============== stb image ===============
+///////////////////////////////////////////////////////////////////////////////
+// stb_image
+///////////////////////////////////////////////////////////////////////////////
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 
@@ -16,23 +17,26 @@ VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
 #include "stb_image/stb_image_write.h"
 VX_DISABLE_WARNING_POP()
 
-// =========================================
+///////////////////////////////////////////////////////////////////////////////
 
 namespace vx {
 namespace img {
 namespace raw {
 
-// =============== write ===============
+///////////////////////////////////////////////////////////////////////////////
+// write
+///////////////////////////////////////////////////////////////////////////////
 
-error_code write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+#define IMAGE_WRITE_ERROR(filename) VX_ERROR(error::error_code::FILE_ERROR) << "Failed to write image file " << filename
+#define IMAGE_FORMAT_ERROR(err) VX_ERROR(error::error_code::UNSUPPORTED_FORMAT) << util::image_error_code_to_string(err)
+
+bool write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(filename != nullptr);
-    assert(data != nullptr);
-
-    const error_code info_error = util::get_image_info_error(info);
-    if (info_error != error_code::NONE)
+    const util::image_error_code err = util::get_image_info_error(info);
+    if (err != util::image_error_code::NONE)
     {
-        return info_error;
+        IMAGE_FORMAT_ERROR(err);
+        return false;
     }
 
     const image_info info_8_bit = util::get_8_bit_info(info);
@@ -46,18 +50,21 @@ error_code write_bmp(const char* filename, const image_info& info, const byte_ty
         data
     );
 
-    return success ? error_code::NONE : error_code::FILE_IO;
+    if (!success)
+    {
+        IMAGE_WRITE_ERROR(filename);
+    }
+
+    return success;
 }
 
-error_code write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
+bool write_jpg(const char* filename, const image_info& info, const byte_type* data, int quality, bool flip_vertically_on_write)
 {
-    assert(filename != nullptr);
-    assert(data != nullptr);
-
-    const error_code info_error = util::get_image_info_error(info);
-    if (info_error != error_code::NONE)
+    const util::image_error_code err = util::get_image_info_error(info);
+    if (err != util::image_error_code::NONE)
     {
-        return info_error;
+        IMAGE_FORMAT_ERROR(err);
+        return false;
     }
 
     const image_info info_8_bit = util::get_8_bit_info(info);
@@ -72,18 +79,21 @@ error_code write_jpg(const char* filename, const image_info& info, const byte_ty
         quality
     );
 
-    return success ? error_code::NONE : error_code::FILE_IO;
+    if (!success)
+    {
+        IMAGE_WRITE_ERROR(filename);
+    }
+
+    return success;
 }
 
-error_code write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+bool write_png(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(filename != nullptr);
-    assert(data != nullptr);
-
-    const error_code info_error = util::get_image_info_error(info);
-    if (info_error != error_code::NONE)
+    const util::image_error_code err = util::get_image_info_error(info);
+    if (err != util::image_error_code::NONE)
     {
-        return info_error;
+        IMAGE_FORMAT_ERROR(err);
+        return false;
     }
 
     const image_info info_8_bit = util::get_8_bit_info(info);
@@ -98,18 +108,21 @@ error_code write_png(const char* filename, const image_info& info, const byte_ty
         static_cast<int>(info_8_bit.stride())
     );
 
-    return success ? error_code::NONE : error_code::FILE_IO;
+    if (!success)
+    {
+        IMAGE_WRITE_ERROR(filename);
+    }
+
+    return success;
 }
 
-error_code write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
+bool write_tga(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
-    assert(filename != nullptr);
-    assert(data != nullptr);
-
-    const error_code info_error = util::get_image_info_error(info);
-    if (info_error != error_code::NONE)
+    const util::image_error_code err = util::get_image_info_error(info);
+    if (err != util::image_error_code::NONE)
     {
-        return info_error;
+        IMAGE_FORMAT_ERROR(err);
+        return false;
     }
 
     const image_info info_8_bit = util::get_8_bit_info(info);
@@ -123,7 +136,12 @@ error_code write_tga(const char* filename, const image_info& info, const byte_ty
         data
     );
 
-    return success ? error_code::NONE : error_code::FILE_IO;
+    if (!success)
+    {
+        IMAGE_WRITE_ERROR(filename);
+    }
+
+    return success;
 }
 
 }

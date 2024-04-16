@@ -4,21 +4,23 @@
 
 namespace vx {
 namespace img {
-namespace util {
+namespace type_traits {
 
-// =============== format type traits ===============
+///////////////////////////////////////////////////////////////////////////////
+// format type traits
+///////////////////////////////////////////////////////////////////////////////
 
 template <image_format f>
 struct format_traits_base
 {
     static constexpr image_format format = f;
-    static constexpr image_format format_8_bit = to_8_bit(f);
+    static constexpr image_format format_8_bit = util::to_8_bit(f);
 
-    static constexpr size_t channel_count = get_channel_count(f);
-    static constexpr size_t bitdepth = get_bitdepth(f);
-    static constexpr size_t pixel_size = get_pixel_size(f);
+    static constexpr size_t channel_count = util::get_channel_count(f);
+    static constexpr size_t bitdepth = util::get_bitdepth(f);
+    static constexpr size_t pixel_size = util::get_pixel_size(f);
 
-    static constexpr bool alpha = has_alpha(f);
+    static constexpr bool alpha = util::has_alpha(f);
 
 };
 

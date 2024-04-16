@@ -6,9 +6,13 @@
 namespace vx {
 namespace img {
 
-// =============== pixel ===============
+///////////////////////////////////////////////////////////////////////////////
+// pixel
+///////////////////////////////////////////////////////////////////////////////
 
 template <image_format format> struct pixel;
+
+namespace type_traits {
 
 template<typename T>
 struct is_pixel : std::false_type {};
@@ -16,10 +20,10 @@ struct is_pixel : std::false_type {};
 template<image_format format>
 struct is_pixel<pixel<format>> : std::true_type {};
 
-// =============== 8 bit ===============
+} // namespace type_traits
 
 template <>
-struct pixel<image_format::R8> : public util::format_traits<image_format::R8>
+struct pixel<image_format::R8> : public type_traits::format_traits<image_format::R8>
 {
     channel_type r;
 
@@ -41,7 +45,7 @@ struct pixel<image_format::R8> : public util::format_traits<image_format::R8>
 };
 
 template <>
-struct pixel<image_format::RG8> : public util::format_traits<image_format::RG8>
+struct pixel<image_format::RG8> : public type_traits::format_traits<image_format::RG8>
 {
     channel_type r, g;
 
@@ -67,7 +71,7 @@ struct pixel<image_format::RG8> : public util::format_traits<image_format::RG8>
 };
 
 template <>
-struct pixel<image_format::RGB8> : public util::format_traits<image_format::RGB8>
+struct pixel<image_format::RGB8> : public type_traits::format_traits<image_format::RGB8>
 {
     channel_type r, g, b;
 
@@ -95,7 +99,7 @@ struct pixel<image_format::RGB8> : public util::format_traits<image_format::RGB8
 };
 
 template <>
-struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGBA8>
+struct pixel<image_format::RGBA8> : public type_traits::format_traits<image_format::RGBA8>
 {
     channel_type r, g, b, a;
 
@@ -124,7 +128,9 @@ struct pixel<image_format::RGBA8> : public util::format_traits<image_format::RGB
     }
 };
 
-// =============== types ===============
+///////////////////////////////////////////////////////////////////////////////
+// types
+///////////////////////////////////////////////////////////////////////////////
 
 using pixel_r8 = pixel<image_format::R8>;
 using pixel_rg8 = pixel<image_format::RG8>;

@@ -17,12 +17,12 @@ namespace img {
  * @param err Reference to an error_code variable to store any error that occurs during loading.
  * @return An image object representing the loaded image.
  */
-inline image load(const char* filename, error_code& err)
+inline image load(const char* filename)
 {
     image_info info;
     std::vector<byte_type> data;
 
-    err = raw::load_image(filename, info, data);
+    const bool success = raw::load_image(filename, info, data);
     assert(info.size() == data.size());
 
     return image(data.data(), info);
@@ -38,12 +38,12 @@ inline image load(const char* filename, error_code& err)
  * @param err Reference to an error_code variable to store any error that occurs during loading.
  * @return An image object representing the loaded image with the specified format.
  */
-inline image load(const char* filename, image_format format, error_code& err)
+inline image load(const char* filename, image_format format)
 {
     image_info info;
     std::vector<byte_type> data;
 
-    err = raw::load_image(filename, info, format, data);
+    const bool success = raw::load_image(filename, info, format, data);
     assert(info.size() == data.size());
 
     return image(data.data(), info);

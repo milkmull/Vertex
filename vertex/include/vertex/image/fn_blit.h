@@ -36,7 +36,7 @@ inline void blit(
     // then cropped within the dst rect. This gives us the minimum area that
     // we have to copy from src to dst.
 
-    area = dst.get_rect().crop(area.move(shift));
+    area = dst.get_rect().crop(area.move(shift.x, shift.y));
     if (area.empty())
     {
         return;

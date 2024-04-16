@@ -7,11 +7,30 @@
 
 #include "vertex/system/error.h"
 
+static void thread_func(int id)
+{
+    const vx::error::error_code code = static_cast<vx::error::error_code>(id);
+    VX_ERROR(code) << "error " << vx::error::error_code_to_string(code) << " from thread " << id;
+    VX_LOG_ERROR << vx::error::get_error().message;
+}
+
 int main()
 {
     using namespace vx;
 
-    VX_ERROR(error::error_code::PLATFORM_ERROR, "error");
+    std::thread threads[5];
+
+    for (int i = 0; i < 5; ++i)
+    {
+        threads[i] = std::thread(thread_func, i);
+    }
+
+    for (int i = 0; i < 5; ++i)
+    {
+        threads[i].join();
+    }
+
+    VX_LOG_INFO << "finished";
 
     //img::error_code err;
     //img::image icon = img::load("../../assets/michael.png", err);

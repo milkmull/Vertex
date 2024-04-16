@@ -235,6 +235,26 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// nodiscard
+///////////////////////////////////////////////////////////////////////////////
+
+#if (VX_CPP_STANDARD >= 17)
+#   define VX_NODISCARD [[nodiscard]]
+#elif defined(VX_COMPILER_MSVC)
+#   if (_MSC_VER >= 1910) // Visual Studio 2017 version 15.3
+#       define VX_NODISCARD [[nodiscard]]
+#   elif (_MSC_VER >= 1700)
+#       define VX_NODISCARD _Check_return_
+#   else
+#       define VX_NODISCARD
+#   endif
+#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#   define VX_NODISCARD __attribute__((warn_unused_result))
+#else
+#   define VX_NODISCARD
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // assert
 ///////////////////////////////////////////////////////////////////////////////
 

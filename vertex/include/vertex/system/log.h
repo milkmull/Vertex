@@ -28,7 +28,9 @@ enum class log_level
     CRITICAL = 5
 };
 
-using callback_fn = void(*)(log_level level, const char* msg);
+///////////////////////////////////////////////////////////////////////////////
+// internal
+///////////////////////////////////////////////////////////////////////////////
 
 namespace _priv {
 
@@ -36,18 +38,8 @@ class logger
 {
 private:
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // constructors and destructor
-    ///////////////////////////////////////////////////////////////////////////////
-
     logger() {}
     ~logger() { close_file(); }
-
-    logger(const logger&) = delete;
-    logger(logger&&) = delete;
-
-    logger& operator=(const logger&) = delete;
-    logger& operator=(logger&&) = delete;
 
 public:
 
@@ -70,7 +62,8 @@ public:
 
         if (!m_output_stream.is_open())
         {
-            log_buffer(log_level::WARNING) << "Logger: Failed to open file at " << m_filename;
+            std::cout << "[ERROR] Logger: Failed to open file at " << m_filename << std::endl;
+            close_file();
         }
     }
 
@@ -89,25 +82,9 @@ public:
     log_level get_log_level() const { return m_level; }
     void set_log_level(log_level level) { m_level = level; }
 
-    void set_callback(callback_fn callback) { m_callback = callback; }
-
     void log(log_level level, const std::string& msg)
     {
-        if (m_callback_thread == std::this_thread::get_id())
-        {
-            // We discard any logs from inside a logging
-            // callback to prevent infinite recursion.
-            return;
-        }
-
         m_mutex.lock();
-
-        if (m_callback)
-        {
-            m_callback_thread = std::this_thread::get_id();
-            m_callback(level, msg.c_str());
-            m_callback_thread = std::thread::id();
-        }
 
         std::cout << msg;
 
@@ -122,142 +99,64 @@ public:
 
 private:
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // data
-    ///////////////////////////////////////////////////////////////////////////////
-
     log_level m_level = log_level::TRACE;
 
     const char* m_filename = nullptr;
     std::ofstream m_output_stream;
 
-    callback_fn m_callback = nullptr;
-    std::thread::id m_callback_thread;
+    mutable std::mutex m_mutex;
 
-    std::mutex m_mutex;
+};
 
-public:
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // helper classes
-    ///////////////////////////////////////////////////////////////////////////////
-
-    class log_buffer
+struct log_stream
+{
+    log_stream(log_level level)
+        : level(level)
     {
-    public:
+        prefix();
+    }
 
-        ///////////////////////////////////////////////////////////////////////////////
-        // constructors and destructor
-        ///////////////////////////////////////////////////////////////////////////////
-
-        log_buffer(log_level level)
-            : m_level(level)
-        {
-            prefix();
-        }
-
-        log_buffer(log_level level, int line, const char* filename)
-            : m_level(level)
-        {
-            prefix();
-            m_oss << "line " << line << " file " << filename << ": ";
-        };
-
-        ~log_buffer()
-        {
-            if (m_level >= logger::get().get_log_level())
-            {
-                if (m_oss.str().back() != '\n')
-                {
-                    m_oss << '\n';
-                }
-                logger::get().log(m_level, m_oss.str());
-            }
-        }
-
-        std::string str() const { return m_oss.str(); }
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // static constructors
-        ///////////////////////////////////////////////////////////////////////////////
-
-        static log_buffer get(log_level level)
-        {
-            return log_buffer(level);
-        }
-
-        static log_buffer get(log_level level, int line, const char* filename)
-        {
-            return log_buffer(level, line, filename);
-        }
-
-    public:
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // manipulator overloads
-        ///////////////////////////////////////////////////////////////////////////////
-
-        template <typename T>
-        log_buffer& operator<<(T&& msg)
-        {
-            m_oss << std::forward<T>(msg);
-            return *this;
-        }
-
-        using manip1 = std::ostream& (*)(std::ostream&);
-        log_buffer& operator<<(std::ostream& (*fp)(std::ostream&))
-        {
-            m_oss << fp;
-            return *this;
-        }
-
-        using ios_type = std::basic_ios<std::ostream::char_type, std::ostream::traits_type>;
-        using manip2 = ios_type & (*)(ios_type&);
-        log_buffer& operator<<(manip2 fp)
-        {
-            m_oss << fp;
-            return *this;
-        }
-
-        using manip3 = std::ios_base& (*)(std::ios_base&);
-        log_buffer& operator<<(manip3 fp)
-        {
-            m_oss << fp;
-            return *this;
-        }
-
-    private:
-
-        void prefix()
-        {
-            switch (m_level)
-            {
-                case log_level::TRACE:    m_oss << "[TRACE] ";    break;
-                case log_level::DEBUG:    m_oss << "[DEBUG] ";    break;
-                case log_level::INFO:     m_oss << "[INFO] ";     break;
-                case log_level::WARNING:  m_oss << "[WARNING] ";  break;
-                case log_level::ERROR:    m_oss << "[ERROR] ";    break;
-                case log_level::CRITICAL: m_oss << "[CRITICAL] "; break;
-            }
-        }
-
-    private:
-
-        ///////////////////////////////////////////////////////////////////////////////
-        // data
-        ///////////////////////////////////////////////////////////////////////////////
-
-        log_level m_level;
-        std::ostringstream m_oss;
-
-    };
-
-    struct dummy_log_buffer
+    log_stream(log_level level, int line, const char* filename)
+        : level(level)
     {
-        template <typename T>
-        dummy_log_buffer operator<<(const T&) { return dummy_log_buffer(); }
-    };
+        prefix();
+        stream << "line " << line << " file " << filename << ": ";
+    }
 
+    ~log_stream()
+    {
+        if (level >= logger::get().get_log_level())
+        {
+            if (stream.str().back() != '\n')
+            {
+                stream << '\n';
+            }
+            logger::get().log(level, stream.str());
+        }
+    }
+
+    void prefix()
+    {
+        switch (level)
+        {
+            case log_level::TRACE:    stream << "[TRACE] ";    break;
+            case log_level::DEBUG:    stream << "[DEBUG] ";    break;
+            case log_level::INFO:     stream << "[INFO] ";     break;
+            case log_level::WARNING:  stream << "[WARNING] ";  break;
+            case log_level::ERROR:    stream << "[ERROR] ";    break;
+            case log_level::CRITICAL: stream << "[CRITICAL] "; break;
+        }
+    }
+
+    log_level level;
+    std::ostringstream stream;
+
+};
+
+struct dummy_log_stream
+{
+    template <typename T>
+    dummy_log_stream operator<<(T) { return dummy_log_stream(); }
 };
 
 } // namespace _priv
@@ -283,18 +182,6 @@ inline void set_log_level(log_level level) { _priv::logger::get().set_log_level(
 ///////////////////////////////////////////////////////////////////////////////
 // callback
 ///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Sets the global logging callback function.
-///
-/// The callback will be called whenever any message is logged, and will
-/// receive the level of the log as well as the message. Logging is forbidden
-/// inside the logging callback function to prevent infinite recursion. Any
-/// messages logged inside the callback will be discarded. 
-/// 
-/// @param callback The callback function.
-///////////////////////////////////////////////////////////////////////////////
-inline void set_callback(callback_fn callback) { _priv::logger::get().set_callback(callback); }
 
 ///////////////////////////////////////////////////////////////////////////////
 // file
@@ -341,35 +228,35 @@ inline void log(log_level level, const std::string& msg)
 
 #if defined(VX_ENABLE_LOGGING)
 
-#   define VX_LOG_TRACE         ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::TRACE)
-#   define VX_LOG_DEBUG         ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::DEBUG)
-#   define VX_LOG_INFO          ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::INFO)
-#   define VX_LOG_WARNING       ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::WARNING)
-#   define VX_LOG_ERROR         ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::ERROR)
-#   define VX_LOG_CRITICAL      ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::CRITICAL)
+#   define VX_LOG_TRACE         ::vx::log::_priv::log_stream(::vx::log::log_level::TRACE).stream
+#   define VX_LOG_DEBUG         ::vx::log::_priv::log_stream(::vx::log::log_level::DEBUG).stream
+#   define VX_LOG_INFO          ::vx::log::_priv::log_stream(::vx::log::log_level::INFO).stream
+#   define VX_LOG_WARNING       ::vx::log::_priv::log_stream(::vx::log::log_level::WARNING).stream
+#   define VX_LOG_ERROR         ::vx::log::_priv::log_stream(::vx::log::log_level::ERROR).stream
+#   define VX_LOG_CRITICAL      ::vx::log::_priv::log_stream(::vx::log::log_level::CRITICAL).stream
 
-#   define VX_LOG_TRACE_FULL    ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::TRACE,    VX_LINE, VX_FILE)
-#   define VX_LOG_DEBUG_FULL    ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::DEBUG,    VX_LINE, VX_FILE)
-#   define VX_LOG_INFO_FULL     ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::INFO,     VX_LINE, VX_FILE)
-#   define VX_LOG_WARNING_FULL  ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::WARNING,  VX_LINE, VX_FILE)
-#   define VX_LOG_ERROR_FULL    ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::ERROR,    VX_LINE, VX_FILE)
-#   define VX_LOG_CRITICAL_FULL ::vx::log::_priv::logger::log_buffer::get(::vx::log::log_level::CRITICAL, VX_LINE, VX_FILE)
+#   define VX_LOG_TRACE_FULL    ::vx::log::_priv::log_stream(::vx::log::log_level::TRACE,    VX_LINE, VX_FILE).stream
+#   define VX_LOG_DEBUG_FULL    ::vx::log::_priv::log_stream(::vx::log::log_level::DEBUG,    VX_LINE, VX_FILE).stream
+#   define VX_LOG_INFO_FULL     ::vx::log::_priv::log_stream(::vx::log::log_level::INFO,     VX_LINE, VX_FILE).stream
+#   define VX_LOG_WARNING_FULL  ::vx::log::_priv::log_stream(::vx::log::log_level::WARNING,  VX_LINE, VX_FILE).stream
+#   define VX_LOG_ERROR_FULL    ::vx::log::_priv::log_stream(::vx::log::log_level::ERROR,    VX_LINE, VX_FILE).stream
+#   define VX_LOG_CRITICAL_FULL ::vx::log::_priv::log_stream(::vx::log::log_level::CRITICAL, VX_LINE, VX_FILE).stream
 
 #else
 
-#   define VX_LOG_TRACE         ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_DEBUG         ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_INFO          ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_WARNING       ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_ERROR         ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_CRITICAL      ::vx::log::_priv::logger::dummy_log_buffer()
+#   define VX_LOG_TRACE         ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_DEBUG         ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_INFO          ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_WARNING       ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_ERROR         ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_CRITICAL      ::vx::log::_priv::dummy_log_stream()
 
-#   define VX_LOG_TRACE_FULL    ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_DEBUG_FULL    ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_INFO_FULL     ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_WARNING_FULL  ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_ERROR_FULL    ::vx::log::_priv::logger::dummy_log_buffer()
-#   define VX_LOG_CRITICAL_FULL ::vx::log::_priv::logger::dummy_log_buffer()
+#   define VX_LOG_TRACE_FULL    ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_DEBUG_FULL    ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_INFO_FULL     ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_WARNING_FULL  ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_ERROR_FULL    ::vx::log::_priv::dummy_log_stream()
+#   define VX_LOG_CRITICAL_FULL ::vx::log::_priv::dummy_log_stream()
 
 #endif
 
