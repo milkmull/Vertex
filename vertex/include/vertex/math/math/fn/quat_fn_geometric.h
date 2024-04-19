@@ -168,7 +168,7 @@ VX_FORCE_INLINE constexpr T angle(
     // cos(t / 2) = sqrt[(1 + cos(t)) / 2]
     // cos(t) = cos2(t / 2) * 2 - 1
     const T d = normalized_dot(from, to);
-    return math::acos_clamped(d * d * static_cast<T>(2) - static_cast<T>(1));
+    return math::acos_safe(d * d * static_cast<T>(2) - static_cast<T>(1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////

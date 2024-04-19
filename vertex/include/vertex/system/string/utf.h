@@ -34,7 +34,7 @@ inline constexpr IT encode(uint32_t codepoint, IT output, uint8_t replacement = 
     // 4-byte characters: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     else if (codepoint <= 0x0010FFFF) byte_count = 4;
 
-    static constexpr uint8_t lead_bytes[5] = { 0b00000000, 0b00000000, 0b11000000, 0b11100000, 0b11110000 };
+    static uint8_t lead_bytes[5] = { 0b00000000, 0b00000000, 0b11000000, 0b11100000, 0b11110000 };
 
     uint8_t bytes[4];
 
@@ -95,7 +95,7 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
     }
 
     // Values to shave off leading bits after assembling final codepoint
-    static constexpr uint32_t lead_masks[4] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080 };
+    static uint32_t lead_masks[4] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080 };
 
     codepoint = 0;
 
