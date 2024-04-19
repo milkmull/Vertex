@@ -63,7 +63,9 @@ inline constexpr T op_smooth_itersection(T d1, T d2, T k)
     return mix(d2, d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
-// =============== sdfs ===============
+///////////////////////////////////////////////////////////////////////////////
+// sdfs
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 inline constexpr T sd_circle(const vec<2, T>& p, T r)
