@@ -15,7 +15,9 @@ namespace img {
 
 struct noise_sampler
 {
-    // =============== data ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
 
     float frequency = 1.0f;
     float amplitude = 1.0f;
@@ -25,14 +27,18 @@ struct noise_sampler
 
     math::vec4 seed = math::vec4(0.0f);
 
-    // =============== perlin ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // perlin
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Compute Perlin noise at the given UV coordinates.
-     * @tparam L Dimensionality of the UV coordinates.
-     * @param uv UV coordinates at which to sample the noise.
-     * @return The Perlin noise value at the specified UV coordinates.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Compute Perlin noise at the given UV coordinates.
+    ///
+    /// @tparam L Dimensionality of the UV coordinates.
+    /// @param uv UV coordinates at which to sample the noise.
+    /// 
+    /// @return The Perlin noise value at the specified UV coordinates.
+    ///////////////////////////////////////////////////////////////////////////////
     template <size_t L>
     float perlin_noise(const math::vec<L, float>& uv) const
     {
@@ -42,14 +48,18 @@ struct noise_sampler
         return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&math::perlin_noise));
     }
 
-    // =============== simplex ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // simplex
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Compute simplex noise at the given UV coordinates.
-     * @tparam L Dimensionality of the UV coordinates.
-     * @param uv UV coordinates at which to sample the noise.
-     * @return The simplex noise value at the specified UV coordinates.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Compute Simplex noise at the given UV coordinates.
+    ///
+    /// @tparam L Dimensionality of the UV coordinates.
+    /// @param uv UV coordinates at which to sample the noise.
+    /// 
+    /// @return The Simplex noise value at the specified UV coordinates.
+    ///////////////////////////////////////////////////////////////////////////////
     template <size_t L>
     float simplex_noise(const math::vec<L, float>& uv) const
     {
@@ -59,14 +69,18 @@ struct noise_sampler
         return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&math::simplex_noise));
     }
 
-    // =============== cellular ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // cellular
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Compute cellular noise at the given UV coordinates.
-     * @tparam L Dimensionality of the UV coordinates (2 or 3).
-     * @param uv UV coordinates at which to sample the noise.
-     * @return The cellular noise values at the specified UV coordinates.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Compute cellular noise at the given UV coordinates.
+    ///
+    /// @tparam L Dimensionality of the UV coordinates (2 or 3).
+    /// @param uv UV coordinates at which to sample the noise.
+    /// 
+    /// @return The cellular noise values at the specified UV coordinates.
+    ///////////////////////////////////////////////////////////////////////////////
     template <size_t L, typename std::enable_if<(L == 2 || L == 3), bool>::type = true>
     math::vec2 cellular_noise(const math::vec<L, float>& uv) const
     {

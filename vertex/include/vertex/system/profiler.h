@@ -10,12 +10,15 @@
 #include "vertex/config.h"
 
 namespace vx {
+namespace profile {
 
 class profiler
 {
 private:
 
-    // =============== types ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // types
+    ///////////////////////////////////////////////////////////////////////////////
 
     struct result
     {
@@ -78,21 +81,25 @@ public:
         return instance;
     }
 
-    // =============== session stuff ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // session stuff
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Begins a new profiling session.
-     * @param name The name of the profiling session.
-     * @param filename The name of the file to write profiling results to (defaults to "results.txt").
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Begins a new profiling session.
+    ///
+    /// @param name The name of the profiling session.
+    /// @param filename The name of the file to write profiling results to
+    /// (defaults to "results.txt").
+    ///////////////////////////////////////////////////////////////////////////////
     static void begin_session(const char* name, const char* filename = "results.txt")
     {
         get().begin_session_internal(name, filename);
     }
 
-    /**
-     * @brief Ends the current profiling session.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Ends the current profiling session.
+    ///////////////////////////////////////////////////////////////////////////////
     static void end_session()
     {
         get().end_session_internal();
@@ -188,4 +195,5 @@ private:
 
 #endif
 
+}
 }

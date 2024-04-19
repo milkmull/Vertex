@@ -6,18 +6,19 @@
 #include "pixel.h"
 
 #include "vertex/math/math/type/vec2.h"
+#include "vertex/math/math/type/vec2i.h"
 
 namespace vx {
 namespace img {
 
-/**
- * @brief Iterator for accessing pixels in an image.
- *
- * This class provides an iterator for accessing pixels in an image. It supports forward iteration
- * and provides methods for accessing pixel information such as color, position, and UV coordinates.
- *
- * @tparam T The pixel type.
- */
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Iterator for accessing pixels in an image.
+///
+/// This class supports forward iteration and provides methods for accessing
+/// pixel information such as color, position, and UV coordinates.
+///
+/// @tparam T The pixel type.
+///////////////////////////////////////////////////////////////////////////////
 template <typename T>
 class pixel_iterator
 {
@@ -29,7 +30,9 @@ private:
 
 public:
 
-    // =============== iterator traits ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // iterator traits
+    ///////////////////////////////////////////////////////////////////////////////
 
     using iterator_category = std::forward_iterator_tag;
     using value_type = T;
@@ -39,7 +42,9 @@ public:
 
 public:
 
-    // =============== constructors and destructor ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constructors and destructor
+    ///////////////////////////////////////////////////////////////////////////////
 
     inline constexpr pixel_iterator() = default;
 
@@ -56,7 +61,9 @@ public:
 
     ~pixel_iterator() noexcept = default;
 
-    // =============== assignment ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     inline constexpr pixel_iterator& operator=(const pixel_iterator<const T>& other) noexcept
     {
@@ -80,7 +87,9 @@ public:
 
     inline constexpr pixel_iterator& operator=(pixel_iterator&&) noexcept = default;
 
-    // =============== operators ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // reference operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     inline constexpr reference operator*() const
     {
@@ -97,7 +106,9 @@ public:
         return m_current[i];
     }
 
-    // addition (++)
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     inline constexpr pixel_iterator& operator++()
     {
@@ -120,7 +131,9 @@ public:
         return result;
     }
 
-    // comparison
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT, typename std::enable_if<std::is_same<IT, pixel_iterator>::value || std::is_same<IT, other_iterator>::value, bool>::type = true>
     bool inline constexpr operator==(const IT & other) const
@@ -134,76 +147,79 @@ public:
         return !(*this == other);
     }
 
-    // extra
+    ///////////////////////////////////////////////////////////////////////////////
+    // extra stuff
+    ///////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * @brief Gets the resolution of the image.
-     *
-     * @return A vector representing the resolution of the image (width, height).
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the resolution of the image.
+    ///
+    /// @return A vector representing the resolution of the image (width, height).
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::vec2 resolution() const
     {
         return math::vec2(m_w, m_h);
     }
 
-    /**
-     * @brief Gets the color of the current pixel.
-     *
-     * @return The color of the current pixel.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the color of the current pixel.
+    ///
+    /// @return The color of the current pixel.
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::color color() const
     {
         return math::color(operator*());
     }
 
-    /**
-     * @brief Sets the color of the current pixel.
-     *
-     * @param c The color to set.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Sets the color of the current pixel.
+    ///
+    /// @param c The color to set.
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr void set_color(const math::color& c)
     {
         operator*() = c;
     }
 
-    /**
-     * @brief Gets the position of the current pixel.
-     *
-     * @return A vector representing the position of the current pixel (x, y).
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the integer position of the current pixel.
+    ///
+    /// @return A vector representing the integer position of the current pixel
+    /// (x, y).
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::vec2i position() const
     {
         return math::vec2i(m_x, m_y);
     }
 
-    /**
-     * @brief Gets the (x, y) coordinates of the current pixel.
-     *
-     * @return A vector representing the (x, y) coordinates of the current pixel.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the floating point position of the current pixel.
+    ///
+    /// @return A vector representing the floating point position of the current
+    /// pixel (x, y).
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::vec2 xy() const
     {
         return math::vec2(m_x, m_y);
     }
 
-    /**
-     * @brief Gets the UV coordinates of the current pixel.
-     *
-     * @return A vector representing the UV coordinates of the current pixel.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the normalized coordinates (uv) of the current pixel.
+    ///
+    /// @return A vector representing the normalized coordinates (uv) of the
+    /// current pixel.
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::vec2 uv() const
     {
-        return math::vec2(
-            static_cast<float>(m_x) / static_cast<float>(m_w),
-            static_cast<float>(m_y) / static_cast<float>(m_h)
-        );
+        return xy() / resolution();
     }
 
-    /**
-     * @brief Gets the local coordinates of the current pixel relative to the center of the image.
-     *
-     * @return A vector representing the local coordinates of the current pixel.
-     */
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Gets the floating point coordinates of the current pixel relative
+    /// to the center of the image.
+    /// 
+    /// @return A vector representing the local coordinates of the current pixel.
+    ///////////////////////////////////////////////////////////////////////////////
     inline constexpr math::vec2 local() const
     {
         return xy() - resolution() * 0.5f;
@@ -221,14 +237,18 @@ private:
 
 };
 
-// =============== types ===============
+///////////////////////////////////////////////////////////////////////////////
+// types
+///////////////////////////////////////////////////////////////////////////////
 
 using pixel_iterator_r8 = pixel_iterator<pixel_r8>;
 using pixel_iterator_rg8 = pixel_iterator<pixel_rg8>;
 using pixel_iterator_rgb8 = pixel_iterator<pixel_rgb8>;
 using pixel_iterator_rgba8 = pixel_iterator<pixel_rgba8>;
 
-// =============== iterator ===============
+///////////////////////////////////////////////////////////////////////////////
+// iterators
+///////////////////////////////////////////////////////////////////////////////
 
 class image;
 
@@ -239,13 +259,13 @@ inline constexpr auto begin(image& i) noexcept
 }
 
 template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
-auto cbegin(const image& i) noexcept
+inline auto cbegin(const image& i) noexcept
 {
     return pixel_iterator<typename std::add_const<T>::type>((const T*)i.data(), 0, 0, i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
-auto begin(const image& i) noexcept
+inline auto begin(const image& i) noexcept
 {
     return cbegin<T>(i);
 }
@@ -257,13 +277,13 @@ inline constexpr auto end(image& i) noexcept
 }
 
 template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
-auto cend(const image& i) noexcept
+inline auto cend(const image& i) noexcept
 {
     return pixel_iterator<typename std::add_const<T>::type>((const T*)(i.data() + i.data_size()), 0, i.height(), i.width(), i.height());
 }
 
 template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
-auto end(const image& i) noexcept
+inline auto end(const image& i) noexcept
 {
     return cend<T>(i);
 }
