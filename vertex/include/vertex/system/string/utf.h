@@ -14,7 +14,7 @@ namespace str {
 namespace utf8 {
 
 template <typename IT>
-inline constexpr IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
 {
     if (codepoint < 0x00 || codepoint > 0x10FFFF)
     {
@@ -55,7 +55,7 @@ inline constexpr IT encode(uint32_t codepoint, IT output, uint8_t replacement = 
 }
 
 template <typename IT>
-inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
 {
     uint8_t lead = static_cast<uint8_t>(*begin);
     uint8_t trail_bytes = 0;
@@ -112,14 +112,14 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
 }
 
 template <typename IT>
-inline constexpr IT next(IT begin, IT end)
+inline IT next(IT begin, IT end)
 {
     uint32_t codepoint;
     return decode(begin, end, codepoint);
 }
 
 template <typename IT>
-inline constexpr size_t count(IT begin, IT end)
+inline size_t count(IT begin, IT end)
 {
     size_t count = 0;
 
@@ -137,7 +137,7 @@ inline constexpr size_t count(IT begin, IT end)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -147,7 +147,7 @@ inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
     return output;
 }
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -160,7 +160,7 @@ inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -177,7 +177,7 @@ inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
+inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
 {
     while (begin < end)
     {
@@ -189,7 +189,7 @@ inline constexpr OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const s
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
 {
     while (begin < end)
     {
@@ -206,7 +206,7 @@ inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char repl
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
     while (begin < end)
@@ -218,7 +218,7 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
@@ -238,7 +238,7 @@ inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char re
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -250,7 +250,7 @@ inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
 {
     while (begin < end)
     {
@@ -271,7 +271,7 @@ inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t r
 namespace utf16 {
 
 template <typename IT>
-inline constexpr IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
 {
     if (codepoint < 0xFFFF)
     {
@@ -303,7 +303,7 @@ inline constexpr IT encode(uint32_t codepoint, IT output, uint16_t replacement =
 }
 
 template <typename IT>
-inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
 {
     const uint16_t first = *begin++;
 
@@ -340,14 +340,14 @@ inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t repla
 }
 
 template <typename IT>
-inline constexpr IT next(IT begin, IT end)
+inline IT next(IT begin, IT end)
 {
     uint32_t codepoint;
     return decode(begin, end, codepoint);
 }
 
 template <typename IT>
-inline constexpr size_t count(IT begin, IT end)
+inline size_t count(IT begin, IT end)
 {
     size_t count = 0;
 
@@ -365,7 +365,7 @@ inline constexpr size_t count(IT begin, IT end)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -378,7 +378,7 @@ inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -389,7 +389,7 @@ inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -406,7 +406,7 @@ inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
+inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
 {
     while (begin < end)
     {
@@ -418,7 +418,7 @@ inline constexpr OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const s
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
 {
     while (begin < end)
     {
@@ -435,7 +435,7 @@ inline constexpr OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char repl
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16, we can directly encode
     while (begin < end)
@@ -447,7 +447,7 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
     while (begin < end)
@@ -467,7 +467,7 @@ inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char re
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -479,7 +479,7 @@ inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
 {
     while (begin < end)
     {
@@ -500,27 +500,27 @@ inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t r
 namespace utf32 {
 
 template <typename IT>
-inline constexpr IT encode(uint32_t codepoint, IT output, uint32_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint32_t replacement = 0)
 {
     *output++ = codepoint;
     return output;
 }
 
 template <typename IT>
-inline constexpr IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
 {
     codepoint = *begin++;
     return begin;
 }
 
 template <typename IT>
-inline constexpr IT next(IT begin, IT end)
+inline IT next(IT begin, IT end)
 {
     return ++begin;
 }
 
 template <typename IT>
-inline constexpr size_t count(IT begin, IT end)
+inline size_t count(IT begin, IT end)
 {
     return std::distance(begin, end);
 }
@@ -530,7 +530,7 @@ inline constexpr size_t count(IT begin, IT end)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -540,7 +540,7 @@ inline constexpr OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
     return output;
 }
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -551,7 +551,7 @@ inline constexpr OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -566,7 +566,7 @@ inline constexpr OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline constexpr IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0, const std::locale& locale = std::locale())
 {
     // We use the locale character conversion facet to translate each character to ansi
     const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
@@ -575,7 +575,7 @@ inline constexpr IT encode_ansi(uint32_t codepoint, IT output, char replacement 
 }
 
 template <typename IT>
-inline constexpr uint32_t decode_ansi(IT input, const std::locale& locale = std::locale())
+inline uint32_t decode_ansi(IT input, const std::locale& locale = std::locale())
 {
     // We use the locale character conversion facet to translate each character from ansi
     const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
@@ -587,7 +587,7 @@ inline constexpr uint32_t decode_ansi(IT input, const std::locale& locale = std:
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
     while (begin < end)
@@ -599,7 +599,7 @@ inline constexpr OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
@@ -617,7 +617,7 @@ inline constexpr OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char re
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
@@ -628,7 +628,7 @@ inline constexpr OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
 {
     while (begin < end)
     {
@@ -639,7 +639,7 @@ inline constexpr OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t r
 }
 
 template <typename IT>
-inline constexpr IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement = 0)
+inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement = 0)
 {
     switch (sizeof(wchar_t))
     {
@@ -672,7 +672,7 @@ inline constexpr IT encode_wide(uint32_t codepoint, IT output, wchar_t replaceme
 }
 
 template <typename T>
-inline constexpr uint32_t decode_wide(T input)
+inline uint32_t decode_wide(T input)
 {
     // Assuming USC-2 or USC-4, both are directly convertable to utf32
     return static_cast<uint32_t>(input);
