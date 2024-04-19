@@ -232,37 +232,37 @@ using pixel_iterator_rgba8 = pixel_iterator<pixel_rgba8>;
 
 class image;
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 inline constexpr auto begin(image& i) noexcept
 {
     return pixel_iterator<T>((T*)i.data(), 0, 0, i.width(), i.height());
 }
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 auto cbegin(const image& i) noexcept
 {
     return pixel_iterator<typename std::add_const<T>::type>((const T*)i.data(), 0, 0, i.width(), i.height());
 }
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 auto begin(const image& i) noexcept
 {
     return cbegin<T>(i);
 }
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 inline constexpr auto end(image& i) noexcept
 {
     return pixel_iterator<T>((T*)(i.data() + i.data_size()), 0, i.height(), i.width(), i.height());
 }
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 auto cend(const image& i) noexcept
 {
     return pixel_iterator<typename std::add_const<T>::type>((const T*)(i.data() + i.data_size()), 0, i.height(), i.width(), i.height());
 }
 
-template <typename T, typename std::enable_if<is_pixel<T>::value, bool>::type = true>
+template <typename T, typename std::enable_if<type_traits::is_pixel<T>::value, bool>::type = true>
 auto end(const image& i) noexcept
 {
     return cend<T>(i);

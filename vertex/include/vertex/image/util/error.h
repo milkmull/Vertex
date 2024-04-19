@@ -26,7 +26,7 @@ inline constexpr const char* image_error_code_to_string(image_error_code code)
         case image_error_code::MAX_SIZE:                    return "max image size";
         case image_error_code::UNSUPPORTED_CHANNEL_COUNT:   return "unsupported image channel count";
         case image_error_code::UNSUPPORTED_BITDEPTH:        return "unsupported image bit depth";
-        case image_error_code::REINTERPRETATION_ERROR:      return "failed to interpret image as desireed format";
+        case image_error_code::REINTERPRETATION_ERROR:      return "failed to interpret image as desired format";
 
         default:                                            break;
     }

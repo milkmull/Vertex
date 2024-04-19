@@ -50,21 +50,37 @@ inline constexpr image_info get_8_bit_info(const image_info& info)
 ///
 /// @param info The image_info object to reinterpret.
 /// @param target_format The target image format.
+/// @param resize_vertically If true, the height will be stretched
+/// to match the new format, otherwise the width will be stretched.
 /// 
 /// @return True if reinterpretation was successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////////
-inline constexpr image_error_code reinterpret_info(image_info& info, image_format target_format)
+inline constexpr image_error_code reinterpret_info(image_info& info, image_format target_format, bool resize_vertically = false)
 {
     if (info.format == image_format::UNKNOWN || target_format == image_format::UNKNOWN)
     {
         return image_error_code::UNSUPPORTED_IMAGE_FORMAT;
     }
-    if ((info.width * info.pixel_size()) % get_pixel_size(target_format) != 0)
+
+    if (resize_vertically)
     {
-        return image_error_code::REINTERPRETATION_ERROR;
+        if ((info.height * info.pixel_size()) % get_pixel_size(target_format) != 0)
+        {
+            return image_error_code::REINTERPRETATION_ERROR;
+        }
+
+        info.height = (info.height * info.pixel_size()) / get_pixel_size(target_format);
+    }
+    else
+    {
+        if ((info.width * info.pixel_size()) % get_pixel_size(target_format) != 0)
+        {
+            return image_error_code::REINTERPRETATION_ERROR;
+        }
+
+        info.width = (info.width * info.pixel_size()) / get_pixel_size(target_format);
     }
 
-    info.width = (info.width * info.pixel_size()) / get_pixel_size(target_format);
     info.format = target_format;
 
     return image_error_code::NONE;

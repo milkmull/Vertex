@@ -3,6 +3,8 @@
 #include "vertex/math/math/util/to_string.h"
 #include "vertex/system/string/string_fn.h"
 #include "vertex/image/io_load.h"
+#include "vertex/image/io_write.h"
+#include "vertex/image/fn_edit.h"
 #include "vertex/app/display/window.h"
 
 #include "vertex/system/error.h"
@@ -18,19 +20,18 @@ int main()
 {
     using namespace vx;
 
-    std::thread threads[5];
+    bool status;
+    img::image i = img::load("../../assets/flame.png", status);
 
-    for (int i = 0; i < 5; ++i)
+    if (!status)
     {
-        threads[i] = std::thread(thread_func, i);
+        VX_LOG_ERROR << error::get_error().message;
     }
-
-    for (int i = 0; i < 5; ++i)
+    else
     {
-        threads[i].join();
+        img::premultiply_alpha(i);
+        img::write_png("../../assets/premultiply_alpha.png", i);
     }
-
-    VX_LOG_INFO << "finished";
 
     //img::error_code err;
     //img::image icon = img::load("../../assets/michael.png", err);

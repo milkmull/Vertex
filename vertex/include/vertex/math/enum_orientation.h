@@ -2,6 +2,12 @@
 
 namespace vx {
 
+enum class orientation
+{
+    VERTICAL,
+    HORIZONTAL
+};
+
 enum class clock_direction
 {
     CLOCKWISE,

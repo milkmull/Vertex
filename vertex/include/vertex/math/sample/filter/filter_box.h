@@ -28,7 +28,7 @@ namespace math {
 /// @param dst Pointer to the destination image data.
 /// @param dst_width Width of the destination image.
 /// @param dst_height Height of the destination image.
-/// @param channels Number of channels in the images.
+/// @param channels Number of channels in the image pixels.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename T, typename F = float>
 inline constexpr void filter_box(

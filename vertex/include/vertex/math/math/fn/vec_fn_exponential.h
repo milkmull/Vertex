@@ -371,5 +371,45 @@ VX_FORCE_INLINE constexpr vec<4, T> inverse(
     );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// next_pow2
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<2, T> next_pow2(
+    const vec<2, T>& x
+)
+{
+    return vec<2, T>(
+        math::next_pow2(x.x),
+        math::next_pow2(x.y)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<3, T> next_pow2(
+    const vec<3, T>& x
+)
+{
+    return vec<3, T>(
+        math::next_pow2(x.x),
+        math::next_pow2(x.y),
+        math::next_pow2(x.z)
+    );
+}
+
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr vec<4, T> next_pow2(
+    const vec<4, T>& x
+)
+{
+    return vec<4, T>(
+        math::next_pow2(x.x),
+        math::next_pow2(x.y),
+        math::next_pow2(x.z),
+        math::next_pow2(x.w)
+    );
+}
+
 }
 }

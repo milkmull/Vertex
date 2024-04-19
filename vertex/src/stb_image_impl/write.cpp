@@ -24,18 +24,30 @@ namespace img {
 namespace raw {
 
 ///////////////////////////////////////////////////////////////////////////////
-// write
+// error handling
 ///////////////////////////////////////////////////////////////////////////////
 
-#define IMAGE_WRITE_ERROR(filename) VX_ERROR(error::error_code::FILE_ERROR) << "Failed to write image file " << filename
-#define IMAGE_FORMAT_ERROR(err) VX_ERROR(error::error_code::UNSUPPORTED_FORMAT) << util::image_error_code_to_string(err)
+static void image_write_error(const char* filename)
+{
+    VX_ERROR(error::error_code::FILE_ERROR) << "failed to write image file \"" << filename << '"';
+}
+
+static void image_process_error(const char* filename, util::image_error_code code)
+{
+    VX_ERROR(error::error_code::UNSUPPORTED_FORMAT)
+        << "failed to write image file \"" << filename << "\": " << util::image_error_code_to_string(code);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// write
+///////////////////////////////////////////////////////////////////////////////
 
 bool write_bmp(const char* filename, const image_info& info, const byte_type* data, bool flip_vertically_on_write)
 {
     const util::image_error_code err = util::get_image_info_error(info);
     if (err != util::image_error_code::NONE)
     {
-        IMAGE_FORMAT_ERROR(err);
+        image_process_error(filename, err);
         return false;
     }
 
@@ -52,7 +64,7 @@ bool write_bmp(const char* filename, const image_info& info, const byte_type* da
 
     if (!success)
     {
-        IMAGE_WRITE_ERROR(filename);
+        image_write_error(filename);
     }
 
     return success;
@@ -63,7 +75,7 @@ bool write_jpg(const char* filename, const image_info& info, const byte_type* da
     const util::image_error_code err = util::get_image_info_error(info);
     if (err != util::image_error_code::NONE)
     {
-        IMAGE_FORMAT_ERROR(err);
+        image_process_error(filename, err);
         return false;
     }
 
@@ -81,7 +93,7 @@ bool write_jpg(const char* filename, const image_info& info, const byte_type* da
 
     if (!success)
     {
-        IMAGE_WRITE_ERROR(filename);
+        image_write_error(filename);
     }
 
     return success;
@@ -92,7 +104,7 @@ bool write_png(const char* filename, const image_info& info, const byte_type* da
     const util::image_error_code err = util::get_image_info_error(info);
     if (err != util::image_error_code::NONE)
     {
-        IMAGE_FORMAT_ERROR(err);
+        image_process_error(filename, err);
         return false;
     }
 
@@ -110,7 +122,7 @@ bool write_png(const char* filename, const image_info& info, const byte_type* da
 
     if (!success)
     {
-        IMAGE_WRITE_ERROR(filename);
+        image_write_error(filename);
     }
 
     return success;
@@ -121,7 +133,7 @@ bool write_tga(const char* filename, const image_info& info, const byte_type* da
     const util::image_error_code err = util::get_image_info_error(info);
     if (err != util::image_error_code::NONE)
     {
-        IMAGE_FORMAT_ERROR(err);
+        image_process_error(filename, err);
         return false;
     }
 
@@ -138,7 +150,7 @@ bool write_tga(const char* filename, const image_info& info, const byte_type* da
 
     if (!success)
     {
-        IMAGE_WRITE_ERROR(filename);
+        image_write_error(filename);
     }
 
     return success;

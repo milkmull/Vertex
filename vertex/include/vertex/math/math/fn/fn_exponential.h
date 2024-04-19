@@ -150,5 +150,36 @@ VX_FORCE_INLINE constexpr T inverse(T x)
     return static_cast<T>(1) / x;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// next_pow2
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Returns the smallest power of two greater than or equal to the input.
+/// 
+/// @tparam T The type of the value.
+/// @param x The value.
+/// 
+/// @return The next highest power of 2.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr T next_pow2(T x)
+{
+    --x;
+
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+
+    if (sizeof(T) == 8)
+    {
+        x |= x >> 32;
+    }
+
+    return ++x;
+}
+
 }
 }

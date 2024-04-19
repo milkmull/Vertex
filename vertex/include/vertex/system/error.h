@@ -3,6 +3,10 @@
 #include <unordered_map>
 #include <sstream>
 
+#ifdef ERROR
+#   undef ERROR
+#endif
+
 namespace vx {
 namespace error {
 
@@ -13,6 +17,7 @@ namespace error {
 enum class error_code : int
 {
     NONE = 0,
+    ERROR = 1,
 
     OUT_OF_RANGE,
     OUT_OF_MEMORY,
@@ -22,6 +27,7 @@ enum class error_code : int
     UNSUPPORTED_TYPE,
     UNSUPPORTED_FORMAT,
     UNSUPPORTED_CONVERSION,
+    UNSUPPORTED_OPERATION,
 
     FILE_ERROR,
     PLATFORM_ERROR
@@ -39,6 +45,7 @@ inline constexpr const char* error_code_to_string(error_code code)
     switch (code)
     {
         case error_code::NONE:                      return "none";
+        case error_code::ERROR:                     return "error";
         case error_code::OUT_OF_RANGE:              return "out of range";
         case error_code::OUT_OF_MEMORY:             return "out of memory";
         case error_code::SIZE_ERROR:                return "size error";
@@ -46,6 +53,7 @@ inline constexpr const char* error_code_to_string(error_code code)
         case error_code::UNSUPPORTED_TYPE:          return "unsupported type";
         case error_code::UNSUPPORTED_FORMAT:        return "unsupported format";
         case error_code::UNSUPPORTED_CONVERSION:    return "unsupported conversion";
+        case error_code::UNSUPPORTED_OPERATION:     return "unsupported operation";
         case error_code::FILE_ERROR:                return "file error";
         case error_code::PLATFORM_ERROR:            return "platform error";
 

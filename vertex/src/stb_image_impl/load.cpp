@@ -17,8 +17,7 @@
 #define STBI_ONLY_TGA
 
 //#define STBI_MAX_DIMENSIONS VX_MAX_IMAGE_DIMENSIONS
-
-#define STBI_NO_FAILURE_STRINGS
+//#define STBI_NO_FAILURE_STRINGS
 
 VX_DISABLE_WARNING_PUSH()
 VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
@@ -33,11 +32,31 @@ namespace img {
 namespace raw {
 
 ///////////////////////////////////////////////////////////////////////////////
-// load
+// error handling
 ///////////////////////////////////////////////////////////////////////////////
 
-#define IMAGE_LOAD_ERROR(filename) VX_ERROR(error::error_code::FILE_ERROR) << "Failed to load image file " << filename << ": " << stbi_failure_reason()
-#define IMAGE_CONVERSION_ERROR(err) VX_ERROR(error::error_code::UNSUPPORTED_CONVERSION) << util::image_error_code_to_string(err)
+static void image_load_error(const char* filename)
+{
+    std::ostringstream oss;
+    oss << "failed to load image file \"" << filename << '"';
+
+    if (stbi_failure_reason())
+    {
+        oss << ": " << stbi_failure_reason();
+    }
+
+    VX_ERROR(error::error_code::FILE_ERROR) << oss.str();
+}
+
+static void image_process_error(const char* filename, util::image_error_code code)
+{
+    VX_ERROR(error::error_code::UNSUPPORTED_FORMAT)
+        << "failed to load image file \"" << filename << "\": " << util::image_error_code_to_string(code);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// load
+///////////////////////////////////////////////////////////////////////////////
 
 bool get_file_info(const char* filename, image_info& info)
 {
@@ -48,7 +67,7 @@ bool get_file_info(const char* filename, image_info& info)
     const bool success = stbi_info(filename, &width, &height, &channels);
     if (!success)
     {
-        IMAGE_LOAD_ERROR(filename);
+        image_load_error(filename);
         return false;
     }
 
@@ -98,7 +117,7 @@ static bool load_image_internal(
 
         if (err != util::image_error_code::NONE)
         {
-            IMAGE_CONVERSION_ERROR(err);
+            image_process_error(filename, err);
             return false; 
         }
     }
@@ -107,7 +126,7 @@ static bool load_image_internal(
     err = util::get_image_info_error(info);
     if (err != util::image_error_code::NONE)
     {
-        IMAGE_CONVERSION_ERROR(err);
+        image_process_error(filename, err);
         return false;
     }
 
@@ -117,7 +136,7 @@ static bool load_image_internal(
 
     if (raw == nullptr)
     {
-        IMAGE_LOAD_ERROR(filename);
+        image_load_error(filename);
         return false;
     }
 
