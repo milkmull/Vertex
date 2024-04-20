@@ -116,7 +116,7 @@ public:
 
     // =============== icon ===============
     
-    void set_icon(const uint8_t* pixels, const math::vec2i& size);
+    bool set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
 
     // =============== mouse ===============
@@ -135,9 +135,8 @@ public:
     bool get_cursor_visibility() const;
     void set_cursor_visibility(bool visible);
 
-    void set_cursor_shape(cursor::shape shape);
-    void set_cursor(cursor cursor);
-    cursor::shape get_cursor_shape() const;
+    cursor get_cursor() const;
+    bool set_cursor(cursor cursor);
 
 private:
 
@@ -155,15 +154,8 @@ private:
     math::vec2i m_last_mouse_position;
     bool m_mouse_inside_window;
 
-    struct custom_cursor
-    {
-        custom_cursor(HCURSOR cursor) : cursor(cursor) {}
-        ~custom_cursor() { DestroyCursor(cursor); }
-        HCURSOR cursor;
-    };
-
+    cursor m_last_cursor_object;
     HCURSOR m_last_cursor;
-    cursor::shape m_last_cursor_shape;
     bool m_cursor_visible;
 
     HICON m_icon;

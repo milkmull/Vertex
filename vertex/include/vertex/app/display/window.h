@@ -3,8 +3,6 @@
 #include <memory>
 #include <queue>
 
-#include "vertex/math/math/type/vec2i.h"
-
 #include "../input/event.h"
 #include "../input/cursor.h"
 
@@ -28,7 +26,9 @@ public:
 
 public:
 
-    // =============== constructors ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // constructors
+    ///////////////////////////////////////////////////////////////////////////////
 
     window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style = style::DEFAULT);
     ~window();
@@ -41,7 +41,9 @@ public:
 
     const window_handle get_native_handle() const;
 
-    // =============== events ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // event
+    ///////////////////////////////////////////////////////////////////////////////
 
     void post_event(const event& e);
     bool pop_event(event& e, bool block = false);
@@ -49,26 +51,36 @@ public:
     //inline void set_event_callback(const event_callback_fn callback);
     ////void poll_events();
     //
-    // =============== open ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // open
+    ///////////////////////////////////////////////////////////////////////////////
     
     bool is_open() const;
     
-    //// =============== close ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // close
+    ///////////////////////////////////////////////////////////////////////////////
     //
     //bool should_close() const;
     //void set_should_close(bool should_close);
 
-    // =============== style ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // window style
+    ///////////////////////////////////////////////////////////////////////////////
 
     void set_resizable(bool resizable);
     bool is_resizable() const;
 
-    // =============== title ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // title
+    ///////////////////////////////////////////////////////////////////////////////
     
     std::string get_title() const;
     void set_title(const std::string& title);
     
-    // =============== position and size ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // position and size
+    ///////////////////////////////////////////////////////////////////////////////
     
     math::vec2i get_position() const;
     void set_position(const math::vec2i& position);
@@ -82,17 +94,23 @@ public:
     void set_min_size(const math::vec2i& size);
     void set_max_size(const math::vec2i& size);
     
-    //// =============== bordered ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // bordered
+    ///////////////////////////////////////////////////////////////////////////////
     //
     //void set_bordered(bool bordered);
     //bool is_bordered() const;
     //
-    //// =============== always on top ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // always on top
+    ///////////////////////////////////////////////////////////////////////////////
     //
     //void set_always_on_top(bool always_on_top);
     //bool is_always_on_top() const;
     //
-    // =============== window ops ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // window operators
+    ///////////////////////////////////////////////////////////////////////////////
     
     void show();
     void hide();
@@ -112,12 +130,16 @@ public:
     
     void request_attention();
     
-    // =============== icon ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // icon
+    ///////////////////////////////////////////////////////////////////////////////
     
-    void set_icon(const uint8_t* pixels, const math::vec2i& size);
+    bool set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
     
-    // =============== mouse ===============
+    ///////////////////////////////////////////////////////////////////////////////
+    // mouse
+    ///////////////////////////////////////////////////////////////////////////////
     
     math::vec2i get_mouse_position() const;
     void set_mouse_position(const math::vec2i& position);
@@ -127,20 +149,13 @@ public:
     bool get_cursor_visibility() const;
     void set_cursor_visibility(bool visible);
 
-    void set_cursor(cursor cursor);
+    cursor get_cursor() const;
+    bool set_cursor(cursor cursor);
     
     //void set_cursor_shape(cursor::shape shape);
     //void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
     //void clear_cursor_shape();
     //
-    //
-    //// =============== mouse ===============
-    //
-    //bool is_mouse_button_pressed(mouse::button button) const;
-    //
-    //// =============== key ===============
-    //
-    //bool is_key_pressed(keyboard::key key) const;
 
 private:
 

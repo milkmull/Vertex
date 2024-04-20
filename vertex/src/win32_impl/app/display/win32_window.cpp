@@ -1,6 +1,7 @@
 #include "win32_window.h"
 #include "../input/cursor_internal.h"
 #include "vertex/system/string/string_fn.h"
+#include "vertex/system/error.h"
 
 namespace vx {
 namespace app {
@@ -41,6 +42,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
     , m_min_size(s_default_min_size)
     , m_max_size(s_default_max_size)
     , m_icon(NULL)
+    , m_last_cursor_object(cursor::cursor_shape::SHAPE_ARROW)
 {
     make_process_dpi_aware();
 
@@ -94,7 +96,7 @@ window::window_impl::window_impl(const std::string& title, const math::vec2i& si
     m_mouse_inside_window = is_hovered();
 
     // Set the default cursor
-    set_cursor_shape(cursor::shape::SHAPE_ARROW);
+    set_cursor(m_last_cursor_object);
 
     // Finally show the window
     show();
@@ -864,7 +866,7 @@ void window::window_impl::request_attention()
 
 // =============== icon ===============
 
-void window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
+bool window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
 {
     clear_icon();
 
@@ -873,8 +875,8 @@ void window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& siz
     // Format is expected to have 4 8-bit channels in RGBA format
     if (image_size % 4)
     {
-        //throw_error(error_code::INVALID_VALUE, "Window icon should be RGBA format");
-        return;
+        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
+        return false;
     }
 
     // Convert the image to an BGRA
@@ -903,16 +905,16 @@ void window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& siz
 
     VX_DISABLE_WARNING_POP();
 
+    if (!m_icon)
+    {
+        return false;
+    }
+
     // Set it as both big and small icon of the window
-    if (m_icon)
-    {
-        SendMessageW(m_handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_icon));
-        SendMessageW(m_handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_icon));
-    }
-    else
-    {
-        //throw_error(error_code::INTERNAL, "Failed to set window icon");
-    }
+    SendMessageW(m_handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_icon));
+    SendMessageW(m_handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_icon));
+
+    return true;
 }
 
 void window::window_impl::clear_icon()
@@ -977,42 +979,24 @@ void window::window_impl::set_cursor_visibility(bool visible)
     SetCursor(m_cursor_visible ? m_last_cursor : NULL);
 }
 
-void window::window_impl::set_cursor_shape(cursor::shape shape)
+cursor window::window_impl::get_cursor() const
 {
-    LPCWSTR cursor_name = 0;
-
-    switch (shape)
-    {
-        case cursor::shape::SHAPE_ARROW:       cursor_name = IDC_ARROW;   break;
-        case cursor::shape::SHAPE_IBEAM:       cursor_name = IDC_IBEAM;   break;
-        case cursor::shape::SHAPE_WAIT:        cursor_name = IDC_WAIT;    break;
-        case cursor::shape::SHAPE_CROSSHAIR:   cursor_name = IDC_CROSS;   break;
-        case cursor::shape::SHAPE_HAND:        cursor_name = IDC_HAND;    break;
-        case cursor::shape::SHAPE_HRESIZE:     cursor_name = IDC_SIZEWE;  break;
-        case cursor::shape::SHAPE_VRESIZE:     cursor_name = IDC_SIZENS;  break;
-        case cursor::shape::SHAPE_ALL_RESIZE:  cursor_name = IDC_SIZEALL; break;
-        case cursor::shape::SHAPE_NOT_ALLOWED: cursor_name = IDC_NO;      break;
-        default:                                                          return;
-    }
-
-    m_last_cursor = LoadCursorW(nullptr, cursor_name);
-    m_last_cursor_shape = shape;
-    SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+    return m_last_cursor_object;
 }
 
-void window::window_impl::set_cursor(cursor cursor)
+bool window::window_impl::set_cursor(cursor cursor)
 {
-    auto it = cursor_data::s_cursor_cache.find(cursor.get_id());
+    auto it = cursor_data::s_cursor_cache.find(cursor.id());
     if (it != cursor_data::s_cursor_cache.end())
     {
+        m_last_cursor_object = cursor;
         m_last_cursor = it->second.cursor;
         SetCursor(m_cursor_visible ? m_last_cursor : NULL);
-    }
-}
 
-cursor::shape window::window_impl::get_cursor_shape() const
-{
-    return m_last_cursor_shape;
+        return true;
+    }
+
+    return false;
 }
 
 }

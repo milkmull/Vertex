@@ -10,6 +10,10 @@
 namespace vx {
 namespace app {
 
+///////////////////////////////////////////////////////////////////////////////
+// constructors
+///////////////////////////////////////////////////////////////////////////////
+
 window::window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
     : m_window(std::make_unique<window_impl>(title, size, position, style)) {}
 
@@ -20,7 +24,9 @@ const window_handle window::get_native_handle() const
     return m_window->get_native_handle();
 }
 
-// =============== events ===============
+///////////////////////////////////////////////////////////////////////////////
+// event
+///////////////////////////////////////////////////////////////////////////////
 
 void window::post_event(const event& e)
 {
@@ -32,14 +38,18 @@ bool window::pop_event(event& e, bool block)
     return m_window->pop_event(e, block);
 }
 
-// =============== open ===============
+///////////////////////////////////////////////////////////////////////////////
+// open
+///////////////////////////////////////////////////////////////////////////////
 
 bool window::is_open() const
 {
     return m_window->is_open();
 }
 
-// =============== style ===============
+///////////////////////////////////////////////////////////////////////////////
+// window style
+///////////////////////////////////////////////////////////////////////////////
 
 void window::set_resizable(bool resizable)
 {
@@ -51,7 +61,9 @@ bool window::is_resizable() const
     return m_window->is_resizable();
 }
 
-// =============== title ===============
+///////////////////////////////////////////////////////////////////////////////
+// title
+///////////////////////////////////////////////////////////////////////////////
 
 std::string window::get_title() const
 {
@@ -63,7 +75,9 @@ void window::set_title(const std::string& title)
     m_window->set_title(title);
 }
 
-// =============== position and size ===============
+///////////////////////////////////////////////////////////////////////////////
+// position and size
+///////////////////////////////////////////////////////////////////////////////
 
 math::vec2i window::get_position() const
 {
@@ -105,7 +119,9 @@ void window::set_max_size(const math::vec2i& size)
     m_window->set_max_size(size);
 }
 
-// =============== window ops ===============
+///////////////////////////////////////////////////////////////////////////////
+// window ops
+///////////////////////////////////////////////////////////////////////////////
 
 void window::show()
 {
@@ -162,11 +178,13 @@ void window::request_attention()
     m_window->request_attention();
 }
 
-// =============== icon ===============
+///////////////////////////////////////////////////////////////////////////////
+// icon
+///////////////////////////////////////////////////////////////////////////////
 
-void window::set_icon(const uint8_t* pixels, const math::vec2i& size)
+bool window::set_icon(const uint8_t* pixels, const math::vec2i& size)
 {
-    m_window->set_icon(pixels, size);
+    return m_window->set_icon(pixels, size);
 }
 
 void window::clear_icon()
@@ -174,7 +192,9 @@ void window::clear_icon()
     m_window->clear_icon();
 }
 
-// =============== mouse ===============
+///////////////////////////////////////////////////////////////////////////////
+// mouse
+///////////////////////////////////////////////////////////////////////////////
 
 math::vec2i window::get_mouse_position() const
 {
@@ -201,9 +221,14 @@ void window::set_cursor_visibility(bool visible)
     m_window->set_cursor_visibility(visible);
 }
 
-void window::set_cursor(cursor cursor)
+cursor window::get_cursor() const
 {
-    m_window->set_cursor(cursor);
+    return m_window->get_cursor();
+}
+
+bool window::set_cursor(cursor cursor)
+{
+    return m_window->set_cursor(cursor);
 }
 
 }
