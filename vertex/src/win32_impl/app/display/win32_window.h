@@ -138,12 +138,16 @@ public:
     cursor get_cursor() const;
     bool set_cursor(cursor cursor);
 
+    bool is_cursor_grabbed() const;
+    void set_cursor_grabbed(bool grabbed);
+
 private:
 
     HWND m_handle;
 
     std::queue<event> m_events;
 
+    bool m_visible;
     bool m_resizing_or_moving;
     math::vec2i m_last_size;
     math::vec2i m_last_position;
@@ -157,6 +161,7 @@ private:
     cursor m_last_cursor_object;
     HCURSOR m_last_cursor;
     bool m_cursor_visible;
+    bool m_cursor_grabbed;
 
     HICON m_icon;
 

@@ -27,9 +27,16 @@ int main()
     //window.set_cursor(cursor);
     
     //window.set_resizable(false);
+
+    auto last = std::chrono::system_clock::now();
     
     while (running)
     {
+        if (!window.is_visible() && (std::chrono::system_clock::now() - last).count() > 50000000)
+        {
+            window.show();
+        }
+
         while (window.pop_event(e))
         {
             if (e.type == app::event_type::WINDOW_CLOSE)
@@ -42,14 +49,20 @@ int main()
                 //window.minimize();
                 VX_LOG_INFO << "mouse click: " << math::vec2i(e.mouse_button.x, e.mouse_button.y);
                 
-                if (window.get_cursor().shape() == app::cursor::SHAPE_ARROW)
+                if (window.is_visible())
                 {
-                    window.set_cursor(cursor);
+                    window.hide();
+                    last = std::chrono::system_clock::now();
                 }
-                else
-                {
-                    window.set_cursor(app::cursor::SHAPE_ARROW);
-                }
+                
+                //if (window.get_cursor().shape() == app::cursor::SHAPE_ARROW)
+                //{
+                //    window.set_cursor(cursor);
+                //}
+                //else
+                //{
+                //    window.set_cursor(app::cursor::SHAPE_ARROW);
+                //}
             }
             if (e.type == app::event_type::MOUSE_MOVE)
             {
@@ -63,6 +76,10 @@ int main()
             if (e.type == app::event_type::MOUSE_SCROLL)
             {
                 VX_LOG_INFO << "mouse scroll: " << e.mouse_scroll.delta;
+            }
+            if (e.type == app::event_type::WINDOW_FOCUS)
+            {
+                VX_LOG_INFO << "window focus: " << e.window_focus.value;
             }
         }
     

@@ -22,7 +22,7 @@ static void load_system_cursor(cursor::cursor_shape shape)
         case cursor::cursor_shape::SHAPE_VRESIZE:     cursor_name = IDC_SIZENS;  break;
         case cursor::cursor_shape::SHAPE_ALL_RESIZE:  cursor_name = IDC_SIZEALL; break;
         case cursor::cursor_shape::SHAPE_NOT_ALLOWED: cursor_name = IDC_NO;      break;
-        default:                                                          return;
+        default:                                                                 return;
     }
 
     cursor_data::s_cursor_cache[static_cast<int>(shape)].cursor = LoadCursorW(nullptr, cursor_name);
@@ -46,7 +46,7 @@ cursor cursor::make_custom(const uint8_t* pixels, const math::vec2i& size, const
     if (image_size % 4)
     {
         VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Cursor pixels must be RGBA format";
-        return cursor(cursor_shape::SHAPE_INVALID_SHAPE);
+        return cursor(cursor_shape::INVALID_SHAPE);
     }
 
     // Convert the image to an BGRA
@@ -63,7 +63,7 @@ cursor cursor::make_custom(const uint8_t* pixels, const math::vec2i& size, const
     HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
     if (!mask)
     {
-        return cursor(cursor_shape::SHAPE_CUSTOM);
+        return cursor(cursor_shape::INVALID_SHAPE);
     }
 
     // Create color bitmap
@@ -71,7 +71,7 @@ cursor cursor::make_custom(const uint8_t* pixels, const math::vec2i& size, const
     if (!color)
     {
         DeleteObject(mask);
-        return cursor(cursor_shape::SHAPE_CUSTOM);
+        return cursor(cursor_shape::INVALID_SHAPE);
     }
 
     // Create icon info
@@ -89,7 +89,7 @@ cursor cursor::make_custom(const uint8_t* pixels, const math::vec2i& size, const
 
     if (!hcursor)
     {
-        return cursor(cursor_shape::SHAPE_CUSTOM);
+        return cursor(cursor_shape::INVALID_SHAPE);
     }
 
     const int id = cursor_data::s_cursor_id++;

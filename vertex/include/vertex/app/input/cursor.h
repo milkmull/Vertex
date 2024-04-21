@@ -11,7 +11,7 @@ public:
     
     enum cursor_shape : int
     {
-        SHAPE_INVALID_SHAPE = -1,
+        INVALID_SHAPE = -1,
 
         SHAPE_ARROW,
         SHAPE_IBEAM,

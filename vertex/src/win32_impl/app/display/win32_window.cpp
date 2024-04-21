@@ -36,6 +36,7 @@ void window::window_impl::register_window_class()
 
 window::window_impl::window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
     : m_handle(NULL)
+    , m_visible(true)
     , m_resizing_or_moving(false)
     , m_last_size(size)
     , m_last_position(position)
@@ -213,6 +214,25 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
     return DefWindowProcW(hWnd, Msg, wParam, lParam);
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// event checklist
+// 
+// window:
+// - on resize and move events, resize event should post first
+// - when the window is minimized or restored, no move event should be posted
+// - minimized windows should not be able to change their position
+// - focus should be lost when minimizing or hiding window
+// - focus should be gained when restoring or showing window
+//
+// mouse:
+// - mouse hover events should be posted only once per enter and exit of the
+// window.
+// - if the window moves or resizes or is minimized and the mouse leaves or
+// enters the window as a result, a mouse hover event should be posted
+// - have events should still be generated if the window is not in focus or is
+// partially overlapped by another window
+///////////////////////////////////////////////////////////////////////////////
+
 bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     if (!m_handle)
@@ -221,6 +241,7 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
     }
 
     bool handled = false;
+    bool update_tracking = false;
 
     switch (Msg)
     {
@@ -256,20 +277,6 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
         {
             m_resizing_or_moving = false;
 
-            // Check if the position changed
-            const math::vec2i new_position = get_position();
-
-            if (m_last_position != new_position)
-            {
-                m_last_position = new_position;
-
-                event e;
-                e.type = event_type::WINDOW_MOVE;
-                e.window_move.x = new_position.x;
-                e.window_move.y = new_position.y;
-                post_event(e);
-            }
-
             // Check if the size changed
             const math::vec2i new_size = get_size();
 
@@ -281,6 +288,20 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                 e.type = event_type::WINDOW_RESIZE;
                 e.window_resize.width = new_size.x;
                 e.window_resize.height = new_size.y;
+                post_event(e);
+            }
+
+            // Check if the position changed
+            const math::vec2i new_position = get_position();
+
+            if (m_last_position != new_position)
+            {
+                m_last_position = new_position;
+
+                event e;
+                e.type = event_type::WINDOW_MOVE;
+                e.window_move.x = new_position.x;
+                e.window_move.y = new_position.y;
                 post_event(e);
             }
 
@@ -321,6 +342,9 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                     e.window_resize.height = new_size.y;
                     post_event(e);
                 }
+
+                // Update the cursor tracking incase the window moved away from the cursor.
+                update_tracking = true;
             }
 
             break;
@@ -357,6 +381,9 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                     post_event(e);
                 }
             }
+
+            // Update the cursor tracking incase the window moved away from the cursor.
+            update_tracking = true;
 
             break;
         }
@@ -413,6 +440,9 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
             e.type = event_type::WINDOW_SHOW;
             e.window_show.value = wParam;
             post_event(e);
+
+            // Update the cursor tracking incase the cursor moved outside the window.
+            update_tracking = true;
 
             break;
         }
@@ -583,6 +613,9 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                 e.mouse_move.x = new_mouse_position.x;
                 e.mouse_move.y = new_mouse_position.y;
                 post_event(e);
+
+                // Update the cursor tracking incase the cursor moved outside the window.
+                update_tracking = true;
             }
 
             break;
@@ -591,23 +624,15 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
         // Mouse leave
         case WM_MOUSELEAVE:
         {
-            if (m_mouse_inside_window)
-            {
-                m_mouse_inside_window = false;
-                set_mouse_tracking(false);
-
-                event e;
-                e.type = event_type::MOUSE_HOVER;
-                e.mouse_hover.value = false;
-                post_event(e);
-            }
+            // Update the cursor tracking incase the cursor moved outside the window.
+            update_tracking = true;
 
             break;
         }
     }
 
     // Update mouse tracking
-    if (Msg == WM_SIZE || Msg == WM_MOVE || Msg == WM_MOUSEMOVE)
+    if (update_tracking)
     {
         if (!is_hovered())
         {
@@ -791,17 +816,19 @@ bool window::window_impl::is_resizable() const
 
 void window::window_impl::show()
 {
+    m_visible = true;
     ShowWindow(m_handle, SW_SHOW);
 }
 
 void window::window_impl::hide()
 {
+    m_visible = false;
     ShowWindow(m_handle, SW_HIDE);
 }
 
 bool window::window_impl::is_visible() const
 {
-    return IsWindowVisible(m_handle);
+    return m_visible;
 }
 
 void window::window_impl::minimize()
@@ -955,6 +982,11 @@ void window::window_impl::set_mouse_position(const math::vec2i& position)
 
 bool window::window_impl::is_hovered() const
 {
+    if (!is_visible())
+    {
+        return false;
+    }
+
     POINT point;
     if (!GetCursorPos(&point))
     {
@@ -997,6 +1029,26 @@ bool window::window_impl::set_cursor(cursor cursor)
     }
 
     return false;
+}
+
+bool window::window_impl::is_cursor_grabbed() const
+{
+    return m_cursor_grabbed;
+}
+
+void window::window_impl::set_cursor_grabbed(bool grabbed)
+{
+    if (grabbed)
+    {
+        RECT rect;
+        GetClientRect(m_handle, &rect);
+        MapWindowPoints(m_handle, nullptr, reinterpret_cast<LPPOINT>(&rect), 2);
+        ClipCursor(&rect);
+    }
+    else
+    {
+        ClipCursor(nullptr);
+    }
 }
 
 }

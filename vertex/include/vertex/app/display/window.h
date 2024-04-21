@@ -151,11 +151,9 @@ public:
 
     cursor get_cursor() const;
     bool set_cursor(cursor cursor);
-    
-    //void set_cursor_shape(cursor::shape shape);
-    //void set_cursor_shape(const img::image& shape, int cursor_id, const math::vec2i& hotspot = math::vec2i(0, 0));
-    //void clear_cursor_shape();
-    //
+
+    bool is_cursor_grabbed() const;
+    void set_cursor_grabbed(bool grabbed);
 
 private:
 
