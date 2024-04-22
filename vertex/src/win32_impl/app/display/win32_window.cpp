@@ -379,11 +379,11 @@ bool window::window_impl::process_event(UINT Msg, WPARAM wParam, LPARAM lParam)
                     e.window_move.x = new_position.x;
                     e.window_move.y = new_position.y;
                     post_event(e);
+
+                    // Update the cursor tracking incase the window moved away from the cursor.
+                    update_tracking = true;
                 }
             }
-
-            // Update the cursor tracking incase the window moved away from the cursor.
-            update_tracking = true;
 
             break;
         }
@@ -868,7 +868,7 @@ bool window::window_impl::request_focus()
     GetWindowThreadProcessId(m_handle, &this_pid);
     GetWindowThreadProcessId(GetForegroundWindow(), &foreground_pid);
 
-    if (this_pid == foreground_pid)
+    if (true || this_pid == foreground_pid)
     {
         // The window requesting focus belongs to the same process as the current window: steal focus
         SetForegroundWindow(m_handle);

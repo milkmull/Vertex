@@ -11,7 +11,7 @@
     State Transition Matrix
     ~~~~~~~~~~~~~~~~~~~~~~~
 
-                |   Nutral   | Fullscreen | Minimized  | Maximized  |   Hidden   |   Shown    |  Focussed  | Unfocussed |   Moving   |  Resizing  |
+      A->B      |   Nutral   | Fullscreen | Minimized  | Maximized  |   Hidden   |   Shown    |  Focussed  | Unfocussed |   Moving   |  Resizing  |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
      Nutral     |     xx     |     A1     |     A2     |     A3     |     A4     |     A5     |     A6     |     A7     |     A8     |     A9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
@@ -19,20 +19,100 @@
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
      Minimized  |     C0     |     C1     |     xx     |     C3     |     C4     |     C5     |     C6     |     C7     |     C8     |     C9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-     Maximized  |     D0     |     D1     |     D2     |     xx     |     D4     |     D5     |     D6     |     D7     |     D8     |     D9     |
+     Maximized  |     D0     |     D1     |     A2     |     xx     |     A4     |     A5     |     A6     |     A7     |     A8     |     A9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
      Hidden     |     E0     |     E1     |     E2     |     E3     |     xx     |     E5     |     E6     |     E7     |     E8     |     E9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-     Shown      |     F0     |     F1     |     F2     |     F3     |     F4     |     xx     |     F6     |     F7     |     F8     |     F9     |
+     Shown      |     xx     |     F1     |     A2     |     A3     |     A4     |     xx     |     A6     |     A7     |     A8     |     A9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-     Focussed   |     G0     |     G1     |     G2     |     G3     |     G4     |     G5     |     xx     |     G7     |     G8     |     G9     |
+     Focussed   |     xx     |     G1     |     A2     |     A3     |     A4     |     A5     |     xx     |     A7     |     A8     |     A9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-     Unfocussed |     H0     |     H1     |     H2     |     H3     |     H4     |     H5     |     H6     |     xx     |     H8     |     H9     |
+     Unfocussed |     xx     |     H1     |     H2     |     H3     |     H4     |     H5     |     H6     |     xx     |     H8     |     H9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
      Moving     |     I0     |     I1     |     I2     |     I3     |     I4     |     I5     |     I6     |     I7     |     xx     |     I9     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
      Resizing   |     J0     |     J1     |     J2     |     J3     |     J4     |     J5     |     J6     |     J7     |     J8     |     xx     |
     +-----------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
+
+    ===========================================================================
+     Ax: Nutral -> x
+    ===========================================================================
+
+    A1: Nutral -> Fullscreen:
+    ----------------------------------------
+    A2: Nutral -> Minimized:
+        - WINDOW_FOCUS is generated, as the window has lost focus.
+        - WINDOW_MINIMIZE is generated.
+        - WINDOW_RESIZE is generated with the size set to 0.
+        - NO WINDOW_MOVE is generated, it is assumed that the
+          window is in the same position.
+        - MOUSE_HOVER is generated if the cursor was inside the window
+          when minimized.
+    ----------------------------------------
+    A3: Nutral -> Maximized
+        - WINDOW_FOCUS is generated if the window was not in focus
+          when maximized.
+        - WINDOW_MOVE is generated with the new position.
+        - MOUSE_HOVER is generated if the cursor enters the window as a
+          result of the move OR resize.
+        - WINDOW_MAXIMIZE is generated.
+        - WINDOW_RESIZE is generated with the new size.
+        - MOUSE_HOVER is generated if the cursor enters the window as a
+          result of the move OR resize. This is only if the first MOUSE_HOVER
+          was not generated.
+        - MOUSE_MOVE is generated if the position of the mouse
+          changed relative to the new window position.
+    ----------------------------------------
+    A4: Nutral -> Hidden
+        - WINDOW_SHOW is generated.
+        - MOUSE_HOVER is generated if the cursor was in the window area when
+          the window was hidden.
+        - WINDOW_FOCUS is generated if the window was in focus when the window
+          was hidden.
+    ----------------------------------------
+    A5: Nutral -> Shown
+        - Nothing should happen.
+    ----------------------------------------
+    A6: Nutral -> Focussed
+        - Nothing should happen.
+    ----------------------------------------
+    A7: Nutral -> Unfocussed
+        - WINDOW_FOCUS is generated, the wndow lost focus.
+    ----------------------------------------
+    A8: Nutral -> Moving
+        - WINDOW_MOVE is generated with the new position.
+        - MOUSE_HOVER is generated if the cursor enters or exits the window as
+          a result of the move.
+        - MOUSE_MOVE is generated if the position of the mouse
+          changed relative to the new window position.
+    ----------------------------------------
+    A9: Nutral -> Resizing
+        - WINDOW_SIZE is generated with the new size.
+        - WINDOW_MOVE is generated if the left or top sides of the window changed.
+        - MOUSE_HOVER is generated if the cursor enters or exits the window as
+          a result of the size.
+        - MOUSE_MOVE is generated if the position of the mouse
+          changed relative to the new window position.
+        
+    ===========================================================================
+     Bx: Fullscreen -> x
+    ===========================================================================
+
+    ===========================================================================
+     Cx: Minimized -> x
+    ===========================================================================
+
+    C0: Minimized -> Nutral:
+        - WINDOW_FOCUS is generated, as the window has gained focus.
+        - WINDOW_RESIZE is generated ith the size set to the original size
+          (before minimizing).
+        - NO WINDOW_MOVE is generated, it is assumed that the
+          window is in the same position.
+        - MOUSE_HOVER is generated if the cursor enters the window.
+    ----------------------------------------
+    C1: Minimized -> Fullscreen:
+    ----------------------------------------
+    C3: Minimized -> Maximized:
 
 */
 
