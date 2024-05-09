@@ -128,13 +128,29 @@ struct vec<3, T>
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 3);
-        return (&x)[i];
+
+        switch (i)
+        {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+        }
+
+        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 3);
-        return (&x)[i];
+
+        switch (i)
+        {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+        }
+
+        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

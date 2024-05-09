@@ -26,15 +26,21 @@ file(GLOB_RECURSE VX_CORE_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/video/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/video/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/video/*.cpp"
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_CORE_FILES})
 
@@ -55,30 +61,16 @@ target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
 # Window
 #--------------------------------------------------------------------
 
-if(VX_BUILD_WINDOW)
+if(VX_OS_WINDOWS)
 
-    # Vertex App
-    file(GLOB_RECURSE VX_APP_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
+    file(GLOB_RECURSE VX_WINDOWS_APP_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/*.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/*.cpp"
     )
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_APP_FILES})
+    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_WINDOWS_APP_FILES})
     
-    target_sources(${PROJECT_NAME} PRIVATE ${VX_APP_FILES})
+    target_sources(${PROJECT_NAME} PRIVATE ${VX_WINDOWS_APP_FILES})
 
-    if(VX_OS_WINDOWS)
-    
-        file(GLOB_RECURSE VX_WINDOWS_APP_FILES
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/app/*.h"
-            "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/app/*.cpp"
-        )
-        source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_WINDOWS_APP_FILES})
-        
-        target_sources(${PROJECT_NAME} PRIVATE ${VX_WINDOWS_APP_FILES})
-    
-    endif()
-    
 endif()
 
 #--------------------------------------------------------------------

@@ -16,15 +16,10 @@ enum : size_t
     IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
     IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
 
-    IMAGE_SIZE_LIMIT_MIN_BITDEPTH = 8,
-    IMAGE_SIZE_LIMIT_MAX_BITDEPTH = 8,
-
     IMAGE_SIZE_LIMIT_MAX_SIZE = (
         IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
         IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        IMAGE_SIZE_LIMIT_MAX_CHANNELS *
-        IMAGE_SIZE_LIMIT_MAX_BITDEPTH /
-        8
+        IMAGE_SIZE_LIMIT_MAX_CHANNELS
     )
 };
 
@@ -34,15 +29,13 @@ enum : size_t
 /// @param width The width of the image.
 /// @param height The height of the image.
 /// @param channels The number of channels in the image.
-/// @param bitdepth The bit depth of the image.
 /// 
 /// @return The error code indicating if the image size exceeds limits or not.
 ///////////////////////////////////////////////////////////////////////////////
 inline constexpr image_error_code check_image_size_limits(
     size_t width,
     size_t height,
-    size_t channels,
-    size_t bitdepth
+    size_t channels
 )
 {
     if (width > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || height > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
@@ -52,10 +45,6 @@ inline constexpr image_error_code check_image_size_limits(
     if (channels < IMAGE_SIZE_LIMIT_MIN_CHANNELS || channels > IMAGE_SIZE_LIMIT_MAX_CHANNELS)
     {
         return image_error_code::UNSUPPORTED_CHANNEL_COUNT;
-    }
-    if (bitdepth < IMAGE_SIZE_LIMIT_MIN_BITDEPTH || bitdepth > IMAGE_SIZE_LIMIT_MAX_BITDEPTH)
-    {
-        return image_error_code::UNSUPPORTED_BITDEPTH;
     }
 
     return image_error_code::NONE;

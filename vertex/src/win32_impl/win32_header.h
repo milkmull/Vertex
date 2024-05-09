@@ -17,6 +17,9 @@
 #endif
 
 #include <windows.h>
+#include <VersionHelpers.h>
+
+#define WIN32_LOAD_FUNCTION(module, name) module ? reinterpret_cast<void*>(GetProcAddress(module, name)) : NULL
 
 // macros for extracting signed values from WM_* lparam stolen from windowsx.h
 

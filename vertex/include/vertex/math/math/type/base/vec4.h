@@ -156,13 +156,31 @@ struct vec<4, T>
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
-        return (&x)[i];
+
+        switch (i)
+        {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+        }
+
+        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
-        return (&x)[i];
+
+        switch (i)
+        {
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+        }
+
+        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -169,6 +169,48 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// byte_order
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_LIL_ENDIAN 1234
+#define VX_BIG_ENDIAN 4321
+#define VX_PDP_ENDIAN 3412
+
+#if defined(VX_SYSTEM_LINUX)
+
+#   include <endian.h>
+#   define VX_BYTE_ORDER __BYTE_ORDER
+
+#elif defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__) && defined(__BYTE_ORDER__)
+
+#   if (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#       define VX_BYTE_ORDER   VX_LIL_ENDIAN
+#   elif (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#       define VX_BYTE_ORDER   VX_BIG_ENDIAN
+#   else
+#       error Unsupported endianness
+#   endif
+
+#else
+
+#   if defined(__hppa__)                          || \
+       defined(__m68k__)                          || \
+       defined(mc68000)                           || \
+       defined(_M_M68K)                           || \
+       (defined(__MIPS__) && defined(__MIPSEB__)) || \
+       defined(__ppc__)                           || \
+       defined(__POWERPC__)                       || \
+       defined(__powerpc__)                       || \
+       defined(__PPC__)                           || \
+       defined(__sparc__)
+#       define VX_BYTE_ORDER VX_BIG_ENDIAN
+#   else
+#       define VX_BYTE_ORDER VX_LIL__ENDIAN
+#endif
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // packing
 ///////////////////////////////////////////////////////////////////////////////
 

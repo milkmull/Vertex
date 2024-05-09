@@ -1,147 +1,88 @@
 ﻿#include "sandbox/sandbox.h"
 
-#include "vertex/math/math/util/to_string.h"
 #include "vertex/image/io_load.h"
-#include "vertex/app/display/window.h"
-#include "vertex/system/error.h"
-
-static void print_event(const vx::app::event& e)
-{
-    switch (e.type)
-    {
-        case vx::app::event_type::WINDOW_CLOSE:
-        {
-            VX_LOG_INFO << "WINDOW_CLOSE";
-            return;
-        }
-        case vx::app::event_type::WINDOW_RESIZE:
-        {
-            VX_LOG_INFO << "WINDOW_RESIZE { " << e.window_resize.width << ", " << e.window_resize.height << " }";
-            return;
-        }
-        case vx::app::event_type::WINDOW_MINIMIZE:
-        {
-            VX_LOG_INFO << "WINDOW_MINIMIZE";
-            return;
-        }
-        case vx::app::event_type::WINDOW_MAXIMIZE:
-        {
-            VX_LOG_INFO << "WINDOW_MAXIMIZE";
-            return;
-        }
-        case vx::app::event_type::WINDOW_MOVE:
-        {
-            VX_LOG_INFO << "WINDOW_MOVE { " << e.window_move.x << ", " << e.window_move.y << " }";
-            return;
-        }
-        case vx::app::event_type::WINDOW_FOCUS:
-        {
-            VX_LOG_INFO << "WINDOW_FOCUS " << e.window_focus.value;
-            return;
-        }
-        case vx::app::event_type::WINDOW_SHOW:
-        {
-            VX_LOG_INFO << "WINDOW_SHOW " << e.window_show.value;
-            return;
-        }
-        case vx::app::event_type::KEY_DOWN:
-        case vx::app::event_type::KEY_REPEAT:
-        case vx::app::event_type::KEY_UP:
-        case vx::app::event_type::TEXT_INPUT:
-        {
-            return;
-        }
-        case vx::app::event_type::MOUSE_MOVE:
-        {
-            VX_LOG_INFO << "MOUSE_MOVE { " << e.mouse_move.x << ", " << e.mouse_move.y << " }";
-            return;
-        }
-        case vx::app::event_type::MOUSE_HOVER:
-        {
-            VX_LOG_INFO << "MOUSE_HOVER " << e.mouse_hover.value;
-            return;
-        }
-        case vx::app::event_type::MOUSE_BUTTON_DOWN:
-        {
-            VX_LOG_INFO << "MOUSE_BUTTON_DOWN " << e.mouse_button.button << " { " << e.mouse_button.x << ", " << e.mouse_button.y << " }";
-            return;
-        }
-        case vx::app::event_type::MOUSE_BUTTON_UP:
-        {
-            VX_LOG_INFO << "MOUSE_BUTTON_UP " << e.mouse_button.button << " { " << e.mouse_button.x << ", " << e.mouse_button.y << " }";
-            return;
-        }
-        case vx::app::event_type::MOUSE_SCROLL:
-        {
-            VX_LOG_INFO << "MOUSE_SCROLL " << e.mouse_scroll.wheel << " { " << e.mouse_scroll.x << ", " << e.mouse_scroll.y << " }";
-            return;
-        }
-        case vx::app::event_type::JOYSTICK_CONNECTION:
-        {
-            return;
-        }
-    }
-}
+#include "vertex/image/io_write.h"
+#include "vertex/image/iterator.h"
+#include "vertex/image/fn_edit.h"
+#include "vertex/math/sample/sdf.h"
+#include "vertex/math/sample/filter/filter_bicubic.h"
 
 int main()
 {
     using namespace vx;
 
-    bool err;
-    img::image icon = img::load("../../assets/michael.png", err);
-    
-    math::vec2i position = { 200, 200 };
-    math::vec2i size = { 800, 600 };
-    std::string title = u8"English 日本語 русский язык 官話";
-    auto window = vx::app::window(title, size, position);
-    
-    app::event e;
-    bool running = window.is_open();
-    
-    window.set_icon(icon.data(), icon.size());
-    //window.set_cursor_visibility(false);
-    
-    app::cursor cursor = app::cursor::make_custom(icon.data(), icon.size());
-    //window.set_cursor(cursor);
-    
-    //window.set_resizable(false);
+    bool status;
+    img::image i = img::load("../../assets/michael.png", status);
 
-    auto last = std::chrono::system_clock::now();
-    bool timer_set = false;
-    
-    while (running)
+    using pixel_type = pixel::pixel_rgb_332;
+    using channel_type = typename pixel_type::channel_type;
+
+    std::vector<pixel_type> surf(i.width() * i.height());
+
+    for (size_t y = 0; y < i.height(); ++y)
     {
-        if (timer_set && (std::chrono::system_clock::now() - last).count() > 50000000)
+        for (size_t x = 0; x < i.width(); ++x)
         {
-            window.maximize();
-            timer_set = false;
-        }
-
-        while (window.pop_event(e))
-        {
-            print_event(e);
-
-            if (e.type == app::event_type::WINDOW_CLOSE)
-            {
-                running = false;
-                break;
-            }
-            if (e.type == app::event_type::MOUSE_BUTTON_DOWN)
-            {
-                if (!window.is_maximized())
-                {
-                    last = std::chrono::system_clock::now();
-                    timer_set = true;
-                    window.minimize();
-                }
-                else
-                {
-                    running = false;
-                    break;
-                }
-            }
+            surf[i.width() * y + x] = i.get_pixel(x, y);
         }
     }
+
+    std::vector<pixel_type> surf2(i.width() * i.height() * 4);
+    
+    pixel_type::pixel_type masks[4] = {
+        pixel_type::info.channels.mask.r,
+        pixel_type::info.channels.mask.g,
+        pixel_type::info.channels.mask.b,
+        pixel_type::info.channels.mask.a
+    };
+    
+    uint8_t shifts[4] = {
+        pixel_type::info.channels.shift.r,
+        pixel_type::info.channels.shift.g,
+        pixel_type::info.channels.shift.b,
+        pixel_type::info.channels.shift.a
+    };
+    
+    math::filter_bicubic<pixel_type::pixel_type>(
+        (uint8_t*)surf.data(), i.width(), i.height(), (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
+        pixel_type::info.channel_count, masks, shifts
+    );
+
+    //math::filter_bicubic<uint8_t>(
+    //    (uint8_t*)surf.data(), i.width(), i.height(),
+    //    (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
+    //    pixel_type::info.channel_count
+    //);
+
+    img::image i2(i.width() * 2, i.height() * 2, i.format());
+
+    for (size_t y = 0; y < i2.height(); ++y)
+    {
+        for (size_t x = 0; x < i2.width(); ++x)
+        {
+            i2.set_pixel(x, y, surf2[i2.width() * y + x]);
+        }
+    }
+
+    //auto it = img::begin<img::PIXEL_FORMAT_RGBA_8>(i);
+    //while (it != img::end<img::PIXEL_FORMAT_RGBA_8>(i))
+    //{
+    //    const float circle = math::sdf::sd_circle(it.local(), math::cmin(it.resolution()) / 2);
+    //    if (circle <= 0)
+    //    {
+    //        *it = math::color::RED();
+    //    }
+    //    else
+    //    {
+    //        *it = math::color::BLUE();
+    //    }
+    //
+    //    ++it;
+    //}
+
+    status = img::write_png("../../assets/pixel_resize_test.png", i2);
+
+    VX_LOG_INFO << "Status: " << status;
 
     return 0;
 }

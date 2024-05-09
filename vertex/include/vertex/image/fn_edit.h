@@ -3,7 +3,7 @@
 #include "image.h"
 #include "raw/transform.h"
 
-#include "enum_image_filter.h"
+#include "vertex/pixel/enum_filter.h"
 #include "vertex/math/sample/filter/filter_nearest.h"
 #include "vertex/math/sample/filter/filter_bilinear.h"
 
@@ -12,6 +12,7 @@
 
 #include "vertex/math/color/fn/color_fn_common.h"
 #include "vertex/math/color/fn/color_fn_comparison.h"
+#include "vertex/math/math/fn/vec_fn_comparison.h"
 
 namespace vx {
 namespace img {
@@ -30,7 +31,7 @@ namespace img {
 inline image copy(const image& img)
 {
     image out = img;
-    raw::copy(out.data(), out.width(), out.height(), out.data(), out.channels());
+    raw::copy(out.data(), out.width(), out.height(), out.data(), out.pixel_size());
     return out;
 }
 
@@ -48,7 +49,7 @@ inline image copy(const image& img)
 inline image flip_x(const image& img)
 {
     image out = img;
-    raw::flip_x(out.data(), out.width(), out.height(), out.channels());
+    raw::flip_x(out.data(), out.width(), out.height(), out.pixel_size());
     return out;
 }
 
@@ -62,7 +63,7 @@ inline image flip_x(const image& img)
 inline image flip_y(const image& img)
 {
     image out = img;
-    raw::flip_y(out.data(), out.width(), out.height(), out.channels());
+    raw::flip_y(out.data(), out.width(), out.height(), out.pixel_size());
     return out;
 }
 
@@ -80,7 +81,7 @@ inline image flip_y(const image& img)
 inline image rotate_90_cw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    raw::rotate_90_cw(img.data(), img.width(), img.height(), out.data(), img.channels());
+    raw::rotate_90_cw(img.data(), img.width(), img.height(), out.data(), img.pixel_size());
     return out;
 }
 
@@ -94,7 +95,7 @@ inline image rotate_90_cw(const image& img)
 inline image rotate_90_ccw(const image& img)
 {
     image out(img.height(), img.width(), img.format());
-    raw::rotate_90_ccw(img.data(), img.width(), img.height(), out.data(), img.channels());
+    raw::rotate_90_ccw(img.data(), img.width(), img.height(), out.data(), img.pixel_size());
     return out;
 }
 
@@ -108,7 +109,7 @@ inline image rotate_90_ccw(const image& img)
 inline image rotate_180(const image& img)
 {
     image out = img;
-    raw::rotate_180(out.data(), out.width(), out.height(), out.channels());
+    raw::rotate_180(out.data(), out.width(), out.height(), out.pixel_size());
     return out;
 }
 
@@ -130,7 +131,7 @@ inline image crop(const image& img, const math::recti& area)
     image out(cropped.size.x, cropped.size.y, img.format());
 
     const std::array<int32_t, 4> r{ cropped.position.x, cropped.position.y, cropped.size.x, cropped.size.y };
-    raw::crop(img.data(), img.width(), img.height(), out.data(), img.channels(), r);
+    raw::crop(img.data(), img.width(), img.height(), out.data(), img.pixel_size(), r);
 
     return out;
 }
@@ -202,13 +203,13 @@ inline image crop_alpha(const image& img, float threshold = 0.0f)
 /// 
 /// @return The resized image.
 ///////////////////////////////////////////////////////////////////////////////
-inline image resize(const image& img, const math::vec2i& size, image_filter filter)
+inline image resize(const image& img, const math::vec2i& size, pixel::filter filter)
 {
     image out(size.x, size.y, img.format());
 
     switch (filter)
     {
-        case image_filter::NEAREST:
+        case pixel::filter::NEAREST:
         {
             math::filter_nearest(
                 img.data(), img.width(), img.height(),
@@ -217,15 +218,15 @@ inline image resize(const image& img, const math::vec2i& size, image_filter filt
             );
             break;
         }
-        case image_filter::LINEAR:
-        {
-            math::filter_bilinear(
-                img.data(), img.width(), img.height(),
-                out.data(), out.width(), out.height(),
-                img.channels()
-            );
-            break;
-        }
+        //case pixel::filter::LINEAR:
+        //{
+        //    math::filter_bilinear(
+        //        img.data(), img.width(), img.height(),
+        //        out.data(), out.width(), out.height(),
+        //        img.channels()
+        //    );
+        //    break;
+        //}
         default:
         {
             break;
@@ -257,7 +258,7 @@ inline image resize(const image& img, const math::vec2i& size)
         (static_cast<float>(size.y) / static_cast<float>(img.height()))
         );
 
-    const image_filter filter = (pixel_area < 1.0f) ? image_filter::NEAREST : image_filter::LINEAR;
+    const pixel::filter filter = (pixel_area < 1.0f) ? pixel::filter::NEAREST : pixel::filter::LINEAR;
     return resize(img, size, filter);
 }
 
@@ -306,7 +307,7 @@ inline image resize_canvas(const image& img, const math::vec2i& size, const math
 /// 
 /// @return The resized image.
 ///////////////////////////////////////////////////////////////////////////////
-inline image resize_pow2(const image& img, bool square = false, image_filter filter = image_filter::LINEAR)
+inline image resize_pow2(const image& img, bool square = false, pixel::filter filter = pixel::filter::LINEAR)
 {
     size_t w = math::next_pow2(img.width());
     size_t h = math::next_pow2(img.height());

@@ -132,13 +132,31 @@ struct quat_t
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
-        return (&w)[i];
+
+        switch (i)
+        {
+            case 0: return w;
+            case 1: return x;
+            case 2: return y;
+            case 3: return z;
+        }
+
+        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
-        return (&w)[i];
+
+        switch (i)
+        {
+            case 0: return w;
+            case 1: return x;
+            case 2: return y;
+            case 3: return z;
+        }
+
+        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

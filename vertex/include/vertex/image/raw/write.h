@@ -5,7 +5,7 @@
 
 #include <vector>
 
-#include "vertex/config.h"
+#include "../_priv/base_types.h"
 #include "../image_info.h"
 
 namespace vx {

@@ -5,7 +5,7 @@
 
 #include <vector>
 
-#include "vertex/config.h"
+#include "../_priv/base_types.h"
 #include "../image_info.h"
 
 namespace vx {
@@ -54,7 +54,7 @@ VX_NODISCARD bool load_image(const char* filename, image_info& info, std::vector
 /// 
 /// @return True if the image was loaded without error, otherwise false.
 ///////////////////////////////////////////////////////////////////////////////
-VX_NODISCARD bool load_image(const char* filename, image_info& info, image_format target_format, std::vector<byte_type>& data, bool flip_vertically_on_load = false);
+VX_NODISCARD bool load_image(const char* filename, image_info& info, image_pixel_format target_format, std::vector<byte_type>& data, bool flip_vertically_on_load = false);
 
 }
 }

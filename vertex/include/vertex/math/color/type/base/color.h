@@ -23,7 +23,7 @@ struct color_t
     static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(4); }
 
     static constexpr T MIN_CHANNEL_VALUE = static_cast<T>(0);
-    static constexpr T MAX_CHANNEL_VALUE = std::is_same<T, float>::value ? 1.0f : 255;
+    static constexpr T MAX_CHANNEL_VALUE = static_cast<T>(std::is_same<T, float>::value ? 1 : 255);
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
@@ -171,13 +171,31 @@ struct color_t
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
-        return (&r)[i];
+
+        switch (i)
+        {
+            case 0: return r;
+            case 1: return g;
+            case 2: return b;
+            case 3: return a;
+        }
+
+        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
-        return (&r)[i];
+
+        switch (i)
+        {
+            case 0: return r;
+            case 1: return g;
+            case 2: return b;
+            case 3: return a;
+        }
+
+        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

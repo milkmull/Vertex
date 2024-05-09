@@ -2,9 +2,9 @@
 
 #include <vector>
 
-#include "pixel.h"
 #include "util/image_info_helpers.h"
 #include "util/size_limit.h"
+#include "vertex/pixel/pixel_color.h"
 
 #include "vertex/math/geometry/type/recti.h"
 
@@ -22,14 +22,14 @@ public:
     image()
         : m_width(0)
         , m_height(0)
-        , m_format(image_format::RGBA8) {}
+        , m_format(PIXEL_FORMAT_RGBA_8) {}
 
     // basic constructors
 
-    image(size_t width, size_t height, image_format format)
+    image(size_t width, size_t height, image_pixel_format format)
         : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
+        , m_format(is_valid_pixel_format(format) ? format : PIXEL_FORMAT_R_8)
         , m_data(m_width * m_height * pixel_size(), 0) {}
 
     image(const image_info& info)
@@ -37,10 +37,10 @@ public:
 
     // data constructors
 
-    image(const byte_type* data, size_t width, size_t height, image_format format)
+    image(const byte_type* data, size_t width, size_t height, image_pixel_format format)
         : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_format((format != image_format::UNKNOWN) ? format : image_format::R8)
+        , m_format(is_valid_pixel_format(format) ? format : PIXEL_FORMAT_R_8)
         , m_data(data, data + (m_width * m_height * pixel_size())) {}
 
     image(const byte_type* data, const image_info& info)
@@ -94,16 +94,15 @@ public:
 
     inline constexpr size_t width() const { return m_width; }
     inline constexpr size_t height() const { return m_height; }
-    inline constexpr image_format format() const { return m_format; }
-    inline constexpr bool is_valid_format() const { return m_format != image_format::UNKNOWN; }
+    inline constexpr image_pixel_format format() const { return m_format; }
+    inline constexpr bool is_valid_format() const { return is_valid_pixel_format(m_format); }
 
     inline constexpr image_info get_info() const { return image_info{ m_width, m_height, m_format }; }
 
-    inline constexpr size_t channels() const { return util::get_channel_count(m_format); }
-    inline constexpr size_t bitdepth() const { return util::get_bitdepth(m_format); }
-    inline constexpr bool has_alpha() const { return util::has_alpha(m_format); }
+    inline constexpr size_t channels() const { return pixel::get_channel_count(static_cast<pixel::pixel_format>(m_format)); }
+    inline constexpr bool has_alpha() const { return pixel::has_alpha(static_cast<pixel::pixel_format>(m_format)); }
+    inline constexpr size_t pixel_size() const { return pixel::get_pixel_size(static_cast<pixel::pixel_format>(m_format)); }
 
-    inline constexpr size_t pixel_size() const { return util::get_pixel_size(m_format); }
     inline constexpr size_t stride() const { return m_width * pixel_size(); }
 
     inline byte_type* data() { return m_data.data(); }
@@ -156,10 +155,10 @@ public:
 
         switch (m_format)
         {
-            case image_format::R8:		return static_cast<math::color>(*(pixel_r8*)      (&m_data[offset]));
-            case image_format::RG8:		return static_cast<math::color>(*(pixel_rg8*)     (&m_data[offset]));
-            case image_format::RGB8:	return static_cast<math::color>(*(pixel_rgb8*)    (&m_data[offset]));
-            case image_format::RGBA8:	return static_cast<math::color>(*(pixel_rgba8*)   (&m_data[offset]));
+            case PIXEL_FORMAT_R_8:	    return static_cast<math::color>(*(pixel::pixel_r_8*)      (&m_data[offset]));
+            case PIXEL_FORMAT_RG_8:	    return static_cast<math::color>(*(pixel::pixel_rg_8*)     (&m_data[offset]));
+            case PIXEL_FORMAT_RGB_8:	return static_cast<math::color>(*(pixel::pixel_rgb_8*)    (&m_data[offset]));
+            case PIXEL_FORMAT_RGBA_8:	return static_cast<math::color>(*(pixel::pixel_rgba_8*)   (&m_data[offset]));
 
             default:					break;
         }
@@ -199,10 +198,10 @@ public:
 
         switch (m_format)
         {
-            case image_format::R8:      return (void)(*(pixel_r8*)      (&m_data[offset]) = color);
-            case image_format::RG8:     return (void)(*(pixel_rg8*)     (&m_data[offset]) = color);
-            case image_format::RGB8:    return (void)(*(pixel_rgb8*)    (&m_data[offset]) = color);
-            case image_format::RGBA8:   return (void)(*(pixel_rgba8*)   (&m_data[offset]) = color);
+            case PIXEL_FORMAT_R_8:	    return (void)(*(pixel::pixel_r_8*)      (&m_data[offset]) = color);
+            case PIXEL_FORMAT_RG_8:	    return (void)(*(pixel::pixel_rg_8*)     (&m_data[offset]) = color);
+            case PIXEL_FORMAT_RGB_8:	return (void)(*(pixel::pixel_rgb_8*)    (&m_data[offset]) = color);
+            case PIXEL_FORMAT_RGBA_8:	return (void)(*(pixel::pixel_rgba_8*)   (&m_data[offset]) = color);
 
             default:                    break;
         }
@@ -246,7 +245,7 @@ public:
     ///
     /// @param format The target image format to convert to.
     ///////////////////////////////////////////////////////////////////////////////
-    void convert(image_format format)
+    void convert(image_pixel_format format)
     {
         if (format == m_format)
         {
@@ -276,7 +275,7 @@ public:
     /// 
     /// @return True if reinterpretation was successful, false otherwise.
     ///////////////////////////////////////////////////////////////////////////////
-    VX_NODISCARD bool reinterpret(image_format format)
+    VX_NODISCARD bool reinterpret(image_pixel_format format)
     {
         image_info info = get_info();
 
@@ -330,7 +329,7 @@ private:
 
     size_t m_width;
     size_t m_height;
-    image_format m_format;
+    image_pixel_format m_format;
     std::vector<byte_type> m_data;
 
 };

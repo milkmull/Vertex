@@ -23,34 +23,29 @@ namespace math {
 /// @param dst Pointer to the destination image data.
 /// @param dst_width Width of the destination image.
 /// @param dst_height Height of the destination image.
-/// @param channels Number of channels in the image pixels.
+/// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-template <typename T>
-inline constexpr void filter_nearest(
-    const T* src, size_t src_width, size_t src_height,
-    T* dst, size_t dst_width, size_t dst_height,
-    size_t channels
+inline void filter_nearest(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t dst_width, size_t dst_height,
+    size_t pixel_size
 )
 {
-    static_assert(std::is_arithmetic<T>::value, "T must be arithmatic type");
-
     assert(src != nullptr);
     assert(dst != nullptr);
 
-    if (dst_width == 0 || dst_height == 0)
+    if (dst_width == 0 || dst_height == 0 || pixel_size == 0)
     {
         return;
     }
     if (src_width == 0 || src_height == 0)
     {
-        std::memset(dst, 0, dst_width * dst_height * sizeof(T) * channels);
+        std::memset(dst, 0, dst_width * dst_height * pixel_size);
         return;
     }
 
-    const size_t pxsz = sizeof(T) * channels;
-
-    const size_t src_row_size = src_width * channels;
-    const size_t dst_row_size = dst_width * channels;
+    const size_t src_row_size = src_width * pixel_size;
+    const size_t dst_row_size = dst_width * pixel_size;
 
     // Loop over each column in the destination image
     for (size_t y = 0; y < dst_height; ++y)
@@ -59,17 +54,17 @@ inline constexpr void filter_nearest(
         const size_t srcy = y * src_height / dst_height;
 
         // Calculate pointers to the current row in the source and destination images
-        const T* srcrow = &src[src_row_size * srcy];
-        T* dstpx = &dst[dst_row_size * y];
+        const uint8_t* srcrow = &src[src_row_size * srcy];
+        uint8_t* dstpx = &dst[dst_row_size * y];
 
         // Loop over each column in the destination image
-        for (size_t x = 0; x < dst_width; ++x, dstpx += channels)
+        for (size_t x = 0; x < dst_width; ++x, dstpx += pixel_size)
         {
             // Calculate pointer to the source pixel to sample from
-            const T* srcpx = &srcrow[x * src_width / dst_width * channels];
+            const uint8_t* srcpx = &srcrow[x * src_width / dst_width * pixel_size];
 
             // Copy the pixel data from source to destination
-            std::memcpy(dstpx, srcpx, pxsz);
+            std::memcpy(dstpx, srcpx, pixel_size);
         }
     }
 }

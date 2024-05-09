@@ -16,7 +16,7 @@ namespace util {
 ///////////////////////////////////////////////////////////////////////////////
 inline constexpr image_error_code get_image_info_error(const image_info& info)
 {
-    if (info.format == image_format::UNKNOWN)
+    if (!is_valid_pixel_format(info.format))
     {
         return image_error_code::UNSUPPORTED_IMAGE_FORMAT;
     }
@@ -25,24 +25,6 @@ inline constexpr image_error_code get_image_info_error(const image_info& info)
         return image_error_code::MAX_SIZE;
     }
     return image_error_code::NONE;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Get the image_info object for an 8-bit representation of the
-/// provided image_info.
-///
-/// @param info The original image_info object.
-/// 
-/// @return The image_info object representing the 8-bit version of the
-/// original image.
-///////////////////////////////////////////////////////////////////////////////
-inline constexpr image_info get_8_bit_info(const image_info& info)
-{
-    const image_format format = to_8_bit(info.format);
-    const size_t width = (info.width * info.pixel_size()) / get_pixel_size(format);
-    const size_t height = info.height;
-
-    return image_info{ width, height, format };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -55,30 +37,32 @@ inline constexpr image_info get_8_bit_info(const image_info& info)
 /// 
 /// @return True if reinterpretation was successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////////
-inline constexpr image_error_code reinterpret_info(image_info& info, image_format target_format, bool resize_vertically = false)
+inline constexpr image_error_code reinterpret_info(image_info& info, image_pixel_format target_format, bool resize_vertically = false)
 {
-    if (info.format == image_format::UNKNOWN || target_format == image_format::UNKNOWN)
+    if (!is_valid_pixel_format(info.format) || !is_valid_pixel_format(target_format))
     {
         return image_error_code::UNSUPPORTED_IMAGE_FORMAT;
     }
 
+    const size_t target_pixel_size = pixel::get_pixel_size(static_cast<pixel::pixel_format>(target_format));
+
     if (resize_vertically)
     {
-        if ((info.height * info.pixel_size()) % get_pixel_size(target_format) != 0)
+        if ((info.height * info.pixel_size()) % target_pixel_size != 0)
         {
             return image_error_code::REINTERPRETATION_ERROR;
         }
 
-        info.height = (info.height * info.pixel_size()) / get_pixel_size(target_format);
+        info.height = (info.height * info.pixel_size()) / target_pixel_size;
     }
     else
     {
-        if ((info.width * info.pixel_size()) % get_pixel_size(target_format) != 0)
+        if ((info.width * info.pixel_size()) % target_pixel_size != 0)
         {
             return image_error_code::REINTERPRETATION_ERROR;
         }
 
-        info.width = (info.width * info.pixel_size()) / get_pixel_size(target_format);
+        info.width = (info.width * info.pixel_size()) / target_pixel_size;
     }
 
     info.format = target_format;

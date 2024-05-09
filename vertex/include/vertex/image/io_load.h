@@ -38,7 +38,7 @@ inline image load(const std::string& filename, bool& status)
 /// 
 /// @return The loaded image.
 ///////////////////////////////////////////////////////////////////////////////
-inline image load(const std::string& filename, image_format format, bool& status)
+inline image load(const std::string& filename, image_pixel_format format, bool& status)
 {
     image_info info;
     std::vector<byte_type> data;
