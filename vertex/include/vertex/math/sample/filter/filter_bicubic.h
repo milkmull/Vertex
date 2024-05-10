@@ -129,6 +129,8 @@ inline constexpr void filter_bicubic(
                 }
             }
 
+            channel_type* dst_pixel = reinterpret_cast<channel_type*>(dstpx);
+
             // Loop over each channel
             for (size_t c = 0; c < channels; ++c)
             {
@@ -140,7 +142,7 @@ inline constexpr void filter_bicubic(
                     (pixels[3][0][c] * qx[0] + pixels[3][1][c] * qx[1] + pixels[3][2][c] * qx[2] + pixels[3][3][c] * qx[3]) * qy[3]
                 );
 
-                dstpx[c] = static_cast<channel_type>(std::clamp(px, min, max));
+                dst_pixel[c] = static_cast<channel_type>(std::clamp(px, min, max));
             }
         }
     }

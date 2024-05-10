@@ -1,5 +1,7 @@
 ﻿#include "sandbox/sandbox.h"
 
+#define VX_ADDITIONAL_PIXEL_FORMATS
+
 #include "vertex/image/io_load.h"
 #include "vertex/image/io_write.h"
 #include "vertex/image/iterator.h"
@@ -14,7 +16,7 @@ int main()
     bool status;
     img::image i = img::load("../../assets/michael.png", status);
 
-    using pixel_type = pixel::pixel_rgb_332;
+    using pixel_type = pixel::pixel_rgb_64;
     using channel_type = typename pixel_type::channel_type;
 
     std::vector<pixel_type> surf(i.width() * i.height());
@@ -29,30 +31,30 @@ int main()
 
     std::vector<pixel_type> surf2(i.width() * i.height() * 4);
     
-    pixel_type::pixel_type masks[4] = {
-        pixel_type::info.channels.mask.r,
-        pixel_type::info.channels.mask.g,
-        pixel_type::info.channels.mask.b,
-        pixel_type::info.channels.mask.a
-    };
-    
-    uint8_t shifts[4] = {
-        pixel_type::info.channels.shift.r,
-        pixel_type::info.channels.shift.g,
-        pixel_type::info.channels.shift.b,
-        pixel_type::info.channels.shift.a
-    };
-    
-    math::filter_bicubic<pixel_type::pixel_type>(
-        (uint8_t*)surf.data(), i.width(), i.height(), (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
-        pixel_type::info.channel_count, masks, shifts
-    );
-
-    //math::filter_bicubic<uint8_t>(
-    //    (uint8_t*)surf.data(), i.width(), i.height(),
-    //    (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
-    //    pixel_type::info.channel_count
+    //pixel_type::pixel_type masks[4] = {
+    //    pixel_type::info.channels.mask.r,
+    //    pixel_type::info.channels.mask.g,
+    //    pixel_type::info.channels.mask.b,
+    //    pixel_type::info.channels.mask.a
+    //};
+    //
+    //uint8_t shifts[4] = {
+    //    pixel_type::info.channels.shift.r,
+    //    pixel_type::info.channels.shift.g,
+    //    pixel_type::info.channels.shift.b,
+    //    pixel_type::info.channels.shift.a
+    //};
+    //
+    //math::filter_bicubic<pixel_type::pixel_type>(
+    //    (uint8_t*)surf.data(), i.width(), i.height(), (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
+    //    pixel_type::info.channel_count, masks, shifts
     //);
+
+    math::filter_bicubic<pixel_type::channel_type, pixel_type::float_type>(
+        (uint8_t*)surf.data(), i.width(), i.height(),
+        (uint8_t*)surf2.data(), i.width() * 2, i.height() * 2,
+        pixel_type::info.channel_count
+    );
 
     img::image i2(i.width() * 2, i.height() * 2, i.format());
 

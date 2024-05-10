@@ -7,7 +7,7 @@ namespace pixel {
 
 // https://docs.vulkan.org/spec/latest/chapters/formats.html
 
-enum pixel_type : uint32_t
+enum class pixel_type : uint32_t
 {
     PIXEL_TYPE_NONE          = 0,
                              
@@ -18,7 +18,7 @@ enum pixel_type : uint32_t
     PIXEL_TYPE_FLOAT_ARRAY   = 5
 };
 
-enum pixel_channel_order : uint32_t
+enum class pixel_channel_order : uint32_t
 {
     PIXEL_CHANNEL_ORDER_NONE = 0,
 
@@ -32,7 +32,7 @@ enum pixel_channel_order : uint32_t
     PIXEL_CHANNEL_ORDER_ABGR = 8
 };
 
-enum pixel_pack_layout : uint32_t
+enum class pixel_pack_layout : uint32_t
 {
     PIXEL_PACK_LAYOUT_NONE    = 0,
                         
@@ -54,66 +54,304 @@ inline constexpr uint32_t create_pixel_format(
     bool alpha
 )
 {
-    return (type                          << 28) | // type         = 4 bits
-           (channel_order                 << 24) | // order        = 4 bits
-           (pack_layout                   << 20) | // layout       = 4 bits
-           (channel_count                 << 16) | // channel_cout = 4 bits
-           (static_cast<uint32_t>(alpha)  << 11) | // alpha        = 1 bit
-           (pixel_size                    <<  0);  // size         = 11 bits
+    return (static_cast<uint32_t>(type)          << 28) | // type         = 4 bits
+           (static_cast<uint32_t>(channel_order) << 24) | // order        = 4 bits
+           (static_cast<uint32_t>(pack_layout)   << 20) | // layout       = 4 bits
+           (channel_count                        << 16) | // channel_cout = 4 bits
+           (static_cast<uint32_t>(alpha)         << 11) | // alpha        = 1 bit
+           (pixel_size                           <<  0);  // size         = 11 bits
 }
 
-enum pixel_format : uint32_t
+enum class pixel_format : uint32_t
 {
-    PIXEL_FORMAT_UNKNOWN = create_pixel_format(PIXEL_TYPE_NONE, PIXEL_CHANNEL_ORDER_NONE, PIXEL_PACK_LAYOUT_NONE, 0, 0, false),
+    ///////////////////////////////////////////////////////////////////////////////
 
-    PIXEL_FORMAT_RGB_332 = create_pixel_format(PIXEL_TYPE_PACKED_8, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_332, 3, 1, false),
+    PIXEL_FORMAT_UNKNOWN = create_pixel_format(
+        pixel_type::PIXEL_TYPE_NONE,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_NONE,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        0, 0, false
+    ),
 
-    PIXEL_FORMAT_RGBA_4444 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_4444, 4, 2, true),
-    PIXEL_FORMAT_BGRA_4444 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_BGRA, PIXEL_PACK_LAYOUT_4444, 4, 2, true),
+    ///////////////////////////////////////////////////////////////////////////////
 
-    PIXEL_FORMAT_RGB_565 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_565, 3, 2, false),
-    PIXEL_FORMAT_BGR_565 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_BGR, PIXEL_PACK_LAYOUT_565, 3, 2, false),
+    PIXEL_FORMAT_RGB_332 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_8,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_332,
+        3, 1, false
+    ),
 
-    PIXEL_FORMAT_RGBA_5551 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_5551, 4, 2, true),
-    PIXEL_FORMAT_BGRA_5551 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_BGRA, PIXEL_PACK_LAYOUT_5551, 4, 2, true),
-    PIXEL_FORMAT_ARGB_1555 = create_pixel_format(PIXEL_TYPE_PACKED_16, PIXEL_CHANNEL_ORDER_ARGB, PIXEL_PACK_LAYOUT_1555, 4, 2, true),
+    ///////////////////////////////////////////////////////////////////////////////
 
-    PIXEL_FORMAT_R_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_R, PIXEL_PACK_LAYOUT_NONE, 1, 1, false),
-    PIXEL_FORMAT_RG_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RG, PIXEL_PACK_LAYOUT_NONE, 2, 2, false),
+    PIXEL_FORMAT_RGBA_4444 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA, 
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_4444,
+        4, 2, true
+    ),
 
-    PIXEL_FORMAT_RGB_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_NONE, 3, 3, false),
-    PIXEL_FORMAT_BGR_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_BGR, PIXEL_PACK_LAYOUT_NONE, 3, 3, false),
+    PIXEL_FORMAT_BGRA_4444 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_4444,
+        4, 2, true
+    ),
 
-    PIXEL_FORMAT_RGBA_8888 = create_pixel_format(PIXEL_TYPE_PACKED_32, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_8888, 4, 4, true),
-    PIXEL_FORMAT_BGRA_8888 = create_pixel_format(PIXEL_TYPE_PACKED_32, PIXEL_CHANNEL_ORDER_BGRA, PIXEL_PACK_LAYOUT_8888, 4, 4, true),
-    PIXEL_FORMAT_ABGR_8888 = create_pixel_format(PIXEL_TYPE_PACKED_32, PIXEL_CHANNEL_ORDER_ABGR, PIXEL_PACK_LAYOUT_8888, 4, 4, true),
+    ///////////////////////////////////////////////////////////////////////////////
 
-    PIXEL_FORMAT_RGBA_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_NONE, 4, 4, true),
-    PIXEL_FORMAT_BGRA_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_BGRA, PIXEL_PACK_LAYOUT_NONE, 4, 4, true),
-    PIXEL_FORMAT_ABGR_8 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_ABGR, PIXEL_PACK_LAYOUT_NONE, 4, 4, true),
+    PIXEL_FORMAT_RGB_565 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_565,
+        3, 2, false
+    ),
 
-    PIXEL_FORMAT_ARGB_2101010 = create_pixel_format(PIXEL_TYPE_PACKED_32, PIXEL_CHANNEL_ORDER_ARGB, PIXEL_PACK_LAYOUT_2101010, 4, 4, true),
-    PIXEL_FORMAT_ABGR_2101010 = create_pixel_format(PIXEL_TYPE_PACKED_32, PIXEL_CHANNEL_ORDER_ABGR, PIXEL_PACK_LAYOUT_2101010, 4, 4, true),
+    PIXEL_FORMAT_BGR_565 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGR,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_565,
+        3, 2, false
+    ),
 
-    PIXEL_FORMAT_R_16 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_R, PIXEL_PACK_LAYOUT_NONE, 1, 2, false),
-    PIXEL_FORMAT_RG_16 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RG, PIXEL_PACK_LAYOUT_NONE, 2, 4, false),
-    PIXEL_FORMAT_RGB_16 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_NONE, 3, 6, false),
-    PIXEL_FORMAT_RGBA_16 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_NONE, 4, 8, true),
+    ///////////////////////////////////////////////////////////////////////////////
 
-    PIXEL_FORMAT_R_32 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_R, PIXEL_PACK_LAYOUT_NONE, 1, 4, false),
-    PIXEL_FORMAT_RG_32 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RG, PIXEL_PACK_LAYOUT_NONE, 1, 8, false),
-    PIXEL_FORMAT_RGB_32 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_NONE, 1, 12, false),
-    PIXEL_FORMAT_RGBA_32 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_NONE, 1, 16, true),
+    PIXEL_FORMAT_RGBA_5551 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_5551,
+        4, 2, true
+    ),
 
-    PIXEL_FORMAT_R_32F = create_pixel_format(PIXEL_TYPE_FLOAT_ARRAY, PIXEL_CHANNEL_ORDER_R, PIXEL_PACK_LAYOUT_NONE, 1, 4, false),
-    PIXEL_FORMAT_RG_32F = create_pixel_format(PIXEL_TYPE_FLOAT_ARRAY, PIXEL_CHANNEL_ORDER_RG, PIXEL_PACK_LAYOUT_NONE, 1, 8, false),
-    PIXEL_FORMAT_RGB_32F = create_pixel_format(PIXEL_TYPE_FLOAT_ARRAY, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_NONE, 1, 12, false),
-    PIXEL_FORMAT_RGBA_32F = create_pixel_format(PIXEL_TYPE_FLOAT_ARRAY, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_NONE, 1, 16, true),
+    PIXEL_FORMAT_BGRA_5551 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_5551,
+        4, 2, true
+    ),
 
-    PIXEL_FORMAT_R_64 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_R, PIXEL_PACK_LAYOUT_NONE, 1, 8, false),
-    PIXEL_FORMAT_RG_64 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RG, PIXEL_PACK_LAYOUT_NONE, 1, 16, false),
-    PIXEL_FORMAT_RGB_64 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGB, PIXEL_PACK_LAYOUT_NONE, 1, 24, false),
-    PIXEL_FORMAT_RGBA_64 = create_pixel_format(PIXEL_TYPE_UINT_ARRAY, PIXEL_CHANNEL_ORDER_RGBA, PIXEL_PACK_LAYOUT_NONE, 1, 32, true)
+    PIXEL_FORMAT_ARGB_1555 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_16,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_ARGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_1555,
+        4, 2, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_R_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        1, 1, false
+    ),
+
+    PIXEL_FORMAT_RG_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        2, 2, false
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_RGB_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 3, false
+    ),
+
+    PIXEL_FORMAT_BGR_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGR,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 3, false
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_RGBA_8888 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_32,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+        4, 4, true
+    ),
+
+    PIXEL_FORMAT_BGRA_8888 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_32,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+        4, 4, true
+    ),
+
+    PIXEL_FORMAT_ABGR_8888 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_32,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+        4, 4, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_RGBA_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 4, true
+    ),
+
+    PIXEL_FORMAT_BGRA_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 4, true
+    ),
+
+    PIXEL_FORMAT_ABGR_8 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 4, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_ARGB_2101010 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_32,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_ARGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_2101010,
+        4, 4, true
+    ),
+
+    PIXEL_FORMAT_ABGR_2101010 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_PACKED_32,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_2101010,
+        4, 4, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_R_16 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        1, 2, false
+    ),
+
+    PIXEL_FORMAT_RG_16 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        2, 4, false
+    ),
+
+    PIXEL_FORMAT_RGB_16 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 6, false
+    ),
+
+    PIXEL_FORMAT_RGBA_16 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 8, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_R_32 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        1, 4, false
+    ),
+
+    PIXEL_FORMAT_RG_32 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        2, 8, false
+    ),
+
+    PIXEL_FORMAT_RGB_32 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 12, false
+    ),
+
+    PIXEL_FORMAT_RGBA_32 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 16, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_R_32F = create_pixel_format(
+        pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        1, 4, false
+    ),
+
+    PIXEL_FORMAT_RG_32F = create_pixel_format(
+        pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        2, 8, false
+    ),
+
+    PIXEL_FORMAT_RGB_32F = create_pixel_format(
+        pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 12, false
+    ),
+
+    PIXEL_FORMAT_RGBA_32F = create_pixel_format(
+        pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 16, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    PIXEL_FORMAT_R_64 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        1, 8, false
+    ),
+
+    PIXEL_FORMAT_RG_64 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        2, 16, false
+    ),
+
+    PIXEL_FORMAT_RGB_64 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        3, 24, false
+    ),
+
+    PIXEL_FORMAT_RGBA_64 = create_pixel_format(
+        pixel_type::PIXEL_TYPE_UINT_ARRAY,
+        pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
+        pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+        4, 32, true
+    )
+
+    ///////////////////////////////////////////////////////////////////////////////
 };
 
 inline constexpr bool is_packed_format(pixel_format format)
