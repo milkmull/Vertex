@@ -3,7 +3,7 @@
 namespace vx {
 namespace pixel {
 
-enum class filter
+enum class filter_mode
 {
     NEAREST,
     LINEAR

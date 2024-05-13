@@ -135,13 +135,12 @@ struct quat_t
 
         switch (i)
         {
+            default:
             case 0: return w;
             case 1: return x;
             case 2: return y;
             case 3: return z;
         }
-
-        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
@@ -150,13 +149,12 @@ struct quat_t
 
         switch (i)
         {
+            default:
             case 0: return w;
             case 1: return x;
             case 2: return y;
             case 3: return z;
         }
-
-        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

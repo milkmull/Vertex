@@ -9,6 +9,7 @@
 
 namespace vx {
 namespace pixel {
+namespace iter {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Iterator for accessing pixels in an image.
@@ -240,51 +241,48 @@ private:
 // iterators
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace iter {
-
 template <pixel_format f>
-inline constexpr auto begin(void* pixels, size_t width, size_t height) noexcept
+inline constexpr auto begin(uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
-    return pixel_iterator<pixel_t>((pixel_t*)pixels, 0, 0, width, height);
+    return pixel_iterator<pixel_t>(reinterpret_cast<pixel_t*>(pixels), 0, 0, width, height);
 }
 
 template <pixel_format f>
-inline auto cbegin(const void* pixels, size_t width, size_t height) noexcept
+inline auto cbegin(const uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
-    return pixel_iterator<typename std::add_const<pixel_t>::type>((const pixel_t*)pixels, 0, 0, width, height);
+    return pixel_iterator<typename std::add_const<pixel_t>::type>(reinterpret_cast<const pixel_t*>(pixels), 0, 0, width, height);
 }
 
 template <pixel_format f>
-inline auto begin(const void* pixels, size_t width, size_t height) noexcept
+inline auto begin(const uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
     return cbegin<pixel_t>(pixels, width, height);
 }
 
 template <pixel_format f>
-inline constexpr auto end(void* pixels, size_t width, size_t height) noexcept
+inline constexpr auto end(uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
-    return pixel_iterator<pixel_t>((pixel_t*)pixels + (width * height), 0, height, width, height);
+    return pixel_iterator<pixel_t>(reinterpret_cast<pixel_t*>(pixels) + (width * height), 0, height, width, height);
 }
 
 template <pixel_format f>
-inline auto cend(const void* pixels, size_t width, size_t height) noexcept
+inline auto cend(const uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
-    return pixel_iterator<typename std::add_const<pixel_t>::type>((const pixel_t*)pixels + (width * height), 0, height, width, height);
+    return pixel_iterator<typename std::add_const<pixel_t>::type>(reinterpret_cast<const pixel_t*>(pixels) + (width * height), 0, height, width, height);
 }
 
 template <pixel_format f>
-inline auto end(const void* pixels, size_t width, size_t height) noexcept
+inline auto end(const uint8_t* pixels, size_t width, size_t height) noexcept
 {
     using pixel_t = pixel<f>;
     return cend<pixel_t>(pixels, width, height);
 }
 
-} // namespace iter
-
+}
 }
 }

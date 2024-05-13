@@ -1,6 +1,6 @@
 #pragma once
 
-#include "image_format.h"
+#include "util/image_format_helpers.h"
 
 namespace vx {
 namespace img {
@@ -20,7 +20,7 @@ struct image_info
         return !(*this == other);
     }
 
-    inline constexpr bool is_valid_format() const { return is_valid_pixel_format(format); }
+    inline constexpr bool is_valid_format() const { return util::is_valid_pixel_format(format); }
 
     inline constexpr size_t channels() const { return pixel::get_channel_count(static_cast<pixel::pixel_format>(format)); }
     inline constexpr bool has_alpha() const { return pixel::has_alpha(static_cast<pixel::pixel_format>(format)); }

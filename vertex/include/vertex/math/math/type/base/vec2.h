@@ -115,11 +115,10 @@ struct vec<2, T>
 
         switch (i)
         {
+            default:
             case 0: return x;
             case 1: return y;
         }
-
-        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
@@ -128,11 +127,10 @@ struct vec<2, T>
 
         switch (i)
         {
+            default:
             case 0: return x;
             case 1: return y;
         }
-
-        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

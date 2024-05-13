@@ -1,5 +1,6 @@
 #include "vertex/image/raw/load.h"
 
+#include "vertex/image/util/image_format_helpers.h"
 #include "vertex/image/util/image_info_helpers.h"
 #include "vertex/system/error.h"
 
@@ -61,7 +62,7 @@ static void image_process_error(const char* filename, util::image_error_code cod
 bool get_file_info(const char* filename, image_info& info)
 {
     info.width = info.height = 0;
-    info.format = PIXEL_FORMAT_UNKNOWN;
+    info.format = image_pixel_format::PIXEL_FORMAT_UNKNOWN;
 
     int width, height, channels;
     const bool success = stbi_info(filename, &width, &height, &channels);
@@ -74,7 +75,7 @@ bool get_file_info(const char* filename, image_info& info)
     info = image_info{
         static_cast<size_t>(width),
         static_cast<size_t>(height),
-        pixel_format_from_channels(static_cast<size_t>(channels))
+        util::pixel_format_from_channels(static_cast<size_t>(channels))
     };
 
     return true;
@@ -111,7 +112,7 @@ static bool load_image_internal(
     util::image_error_code err;
 
     // reinterpret info as target format
-    if (is_valid_pixel_format(target_format))
+    if (util::is_valid_pixel_format(target_format))
     {
         err = util::reinterpret_info(info, target_format);
 
@@ -148,7 +149,7 @@ static bool load_image_internal(
 
 bool load_image(const char* filename, image_info& info, std::vector<byte_type>& data, bool flip_vertically_on_load)
 {
-    return load_image_internal(filename, info, PIXEL_FORMAT_UNKNOWN, data, flip_vertically_on_load);
+    return load_image_internal(filename, info, image_pixel_format::PIXEL_FORMAT_UNKNOWN, data, flip_vertically_on_load);
 }
 
 bool load_image(const char* filename, image_info& info, image_pixel_format target_format, std::vector<byte_type>& data, bool flip_vertically_on_load)

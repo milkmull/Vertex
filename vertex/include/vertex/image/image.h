@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "util/image_format_helpers.h"
 #include "util/image_info_helpers.h"
 #include "util/size_limit.h"
 #include "vertex/pixel/pixel_color.h"
@@ -22,14 +23,14 @@ public:
     image()
         : m_width(0)
         , m_height(0)
-        , m_format(PIXEL_FORMAT_RGBA_8) {}
+        , m_format(image_pixel_format::PIXEL_FORMAT_RGBA_8) {}
 
     // basic constructors
 
     image(size_t width, size_t height, image_pixel_format format)
         : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_format(is_valid_pixel_format(format) ? format : PIXEL_FORMAT_R_8)
+        , m_format(util::is_valid_pixel_format(format) ? format : image_pixel_format::PIXEL_FORMAT_R_8)
         , m_data(m_width * m_height * pixel_size(), 0) {}
 
     image(const image_info& info)
@@ -40,7 +41,7 @@ public:
     image(const byte_type* data, size_t width, size_t height, image_pixel_format format)
         : m_width (math::min(width,  static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
         , m_height(math::min(height, static_cast<size_t>(util::IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)))
-        , m_format(is_valid_pixel_format(format) ? format : PIXEL_FORMAT_R_8)
+        , m_format(util::is_valid_pixel_format(format) ? format : image_pixel_format::PIXEL_FORMAT_R_8)
         , m_data(data, data + (m_width * m_height * pixel_size())) {}
 
     image(const byte_type* data, const image_info& info)
@@ -92,10 +93,12 @@ public:
     // info
     ///////////////////////////////////////////////////////////////////////////////
 
+    using channel_type = uint8_t;
+
     inline constexpr size_t width() const { return m_width; }
     inline constexpr size_t height() const { return m_height; }
     inline constexpr image_pixel_format format() const { return m_format; }
-    inline constexpr bool is_valid_format() const { return is_valid_pixel_format(m_format); }
+    inline constexpr bool is_valid_format() const { return util::is_valid_pixel_format(m_format); }
 
     inline constexpr image_info get_info() const { return image_info{ m_width, m_height, m_format }; }
 
@@ -155,12 +158,12 @@ public:
 
         switch (m_format)
         {
-            case PIXEL_FORMAT_R_8:	    return static_cast<math::color>(*(pixel::pixel_r_8*)      (&m_data[offset]));
-            case PIXEL_FORMAT_RG_8:	    return static_cast<math::color>(*(pixel::pixel_rg_8*)     (&m_data[offset]));
-            case PIXEL_FORMAT_RGB_8:	return static_cast<math::color>(*(pixel::pixel_rgb_8*)    (&m_data[offset]));
-            case PIXEL_FORMAT_RGBA_8:	return static_cast<math::color>(*(pixel::pixel_rgba_8*)   (&m_data[offset]));
+            case image_pixel_format::PIXEL_FORMAT_R_8:	    return static_cast<math::color>(*(pixel::pixel_r_8*)      (&m_data[offset]));
+            case image_pixel_format::PIXEL_FORMAT_RG_8:	    return static_cast<math::color>(*(pixel::pixel_rg_8*)     (&m_data[offset]));
+            case image_pixel_format::PIXEL_FORMAT_RGB_8:	return static_cast<math::color>(*(pixel::pixel_rgb_8*)    (&m_data[offset]));
+            case image_pixel_format::PIXEL_FORMAT_RGBA_8:	return static_cast<math::color>(*(pixel::pixel_rgba_8*)   (&m_data[offset]));
 
-            default:					break;
+            default:					                    break;
         }
 
         return default_color;
@@ -198,12 +201,12 @@ public:
 
         switch (m_format)
         {
-            case PIXEL_FORMAT_R_8:	    return (void)(*(pixel::pixel_r_8*)      (&m_data[offset]) = color);
-            case PIXEL_FORMAT_RG_8:	    return (void)(*(pixel::pixel_rg_8*)     (&m_data[offset]) = color);
-            case PIXEL_FORMAT_RGB_8:	return (void)(*(pixel::pixel_rgb_8*)    (&m_data[offset]) = color);
-            case PIXEL_FORMAT_RGBA_8:	return (void)(*(pixel::pixel_rgba_8*)   (&m_data[offset]) = color);
+            case image_pixel_format::PIXEL_FORMAT_R_8:	    return (void)(*(pixel::pixel_r_8*)      (&m_data[offset]) = color);
+            case image_pixel_format::PIXEL_FORMAT_RG_8:	    return (void)(*(pixel::pixel_rg_8*)     (&m_data[offset]) = color);
+            case image_pixel_format::PIXEL_FORMAT_RGB_8:	return (void)(*(pixel::pixel_rgb_8*)    (&m_data[offset]) = color);
+            case image_pixel_format::PIXEL_FORMAT_RGBA_8:	return (void)(*(pixel::pixel_rgba_8*)   (&m_data[offset]) = color);
 
-            default:                    break;
+            default:                                        break;
         }
 
         return;

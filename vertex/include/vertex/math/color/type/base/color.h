@@ -174,13 +174,12 @@ struct color_t
 
         switch (i)
         {
+            default:
             case 0: return r;
             case 1: return g;
             case 2: return b;
             case 3: return a;
         }
-
-        return static_cast<T>(0);
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
@@ -189,13 +188,12 @@ struct color_t
 
         switch (i)
         {
+            default:
             case 0: return r;
             case 1: return g;
             case 2: return b;
             case 3: return a;
         }
-
-        return static_cast<T>(0);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

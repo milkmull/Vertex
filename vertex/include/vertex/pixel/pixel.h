@@ -1,5 +1,7 @@
 #pragma once
 
+#include <unordered_map>
+
 #include "vertex/config.h"
 
 namespace vx {
@@ -416,234 +418,217 @@ inline constexpr pixel_format_info::channel_info get_pixel_format_channel_info(p
     {
         case pixel_format::PIXEL_FORMAT_UNKNOWN:
         {
-            return info;
+            break;
         }
         case pixel_format::PIXEL_FORMAT_RGB_332:
         {
             info.mask = { 0x07, 0x38, 0xC0, 0x00 };
+            info.bits = { 3, 3, 2, 0 };
+            info.shift = { 0, 3, 6, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_4444:
         {
             info.mask = { 0x000F, 0x00F0, 0x0F00, 0xF000 };
+            info.bits = { 4, 4, 4, 4 };
+            info.shift = { 0, 4, 8, 16 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_BGRA_4444:
         {
             info.mask = { 0x0F00, 0x00F0, 0x000F, 0xF000 };
+            info.bits = { 4, 4, 4, 4 };
+            info.shift = { 8, 4, 0, 16 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGB_565:
         {
             info.mask = { 0x001F, 0x07E0, 0xF800, 0x0000 };
+            info.bits = { 5, 6, 5, 0 };
+            info.shift = { 0, 5, 11, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_BGR_565:
         {
             info.mask = { 0xF800, 0x07E0, 0x001F, 0x0000 };
+            info.bits = { 5, 6, 5, 0 };
+            info.shift = { 11, 5, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_5551:
         {
             info.mask = { 0x001F, 0x03E0, 0x7C00, 0x8000 };
+            info.bits = { 5, 5, 5, 1 };
+            info.shift = { 0, 5, 10, 15 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_BGRA_5551:
         {
             info.mask = { 0x7C00, 0x03E0, 0x001F, 0x8000 };
+            info.bits = { 5, 5, 5, 1 };
+            info.shift = { 10, 5, 0, 15};
             break;
         }
         case pixel_format::PIXEL_FORMAT_ARGB_1555:
         {
             info.mask = { 0x003E, 0x07C0, 0XF800, 0x0001 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_R_8:
-        {
-            info.mask = { 0, 0, 0, 0 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_RG_8:
-        {
-            info.mask = { 0, 1, 0, 0 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_RGB_8:
-        {
-            info.mask = { 0, 1, 2, 0 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_BGR_8:
-        {
-            info.mask = { 2, 1, 0, 0 };
+            info.bits = { 5, 5, 5, 1 };
+            info.shift = { 1, 6, 11, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_8888:
         {
             info.mask = { 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000 };
+            info.bits = { 8, 8, 8, 8 };
+            info.shift = { 0, 8, 16, 24 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_BGRA_8888:
         {
             info.mask = { 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000 };
+            info.bits = { 8, 8, 8, 8 };
+            info.shift = { 16, 8, 0, 24 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_ABGR_8888:
         {
             info.mask = { 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_RGBA_8:
-        {
-            info.mask = { 0, 1, 2, 3 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_BGRA_8:
-        {
-            info.mask = { 2, 1, 0, 3 };
-            break;
-        }
-        case pixel_format::PIXEL_FORMAT_ABGR_8:
-        {
-            info.mask = { 3, 2, 1, 0 };
+            info.bits = { 8, 8, 8, 8 };
+            info.shift = { 24, 16, 8, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_ARGB_2101010:
         {
             info.mask = { 0x00000FFC, 0x003FF000, 0xFFC00000, 0x00000003 };
+            info.bits = { 10, 10, 10, 2 };
+            info.shift = { 2, 12, 22, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_ABGR_2101010:
         {
             info.mask = { 0xFFC00000, 0x003FF000, 0x00000FFC, 0x00000003 };
+            info.bits = { 10, 10, 10, 2 };
+            info.shift = { 22, 12, 2, 0 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_R_8:
+        {
+            info.mask = { 0, 0, 0, 0 };
+            info.bits = { 8, 0, 0, 0 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_RG_8:
+        {
+            info.mask = { 0, 1, 0, 0 };
+            info.bits = { 8, 8, 0, 0 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_RGB_8:
+        {
+            info.mask = { 0, 1, 2, 0 };
+            info.bits = { 8, 8, 8, 0 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_BGR_8:
+        {
+            info.mask = { 2, 1, 0, 0 };
+            info.bits = { 8, 8, 8, 0 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_RGBA_8:
+        {
+            info.mask = { 0, 1, 2, 3 };
+            info.bits = { 8, 8, 8, 8 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_BGRA_8:
+        {
+            info.mask = { 2, 1, 0, 3 };
+            info.bits = { 8, 8, 8, 8 };
+            break;
+        }
+        case pixel_format::PIXEL_FORMAT_ABGR_8:
+        {
+            info.mask = { 3, 2, 1, 0 };
+            info.bits = { 8, 8, 8, 8 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_R_16:
         {
             info.mask = { 0, 0, 0, 0 };
+            info.bits = { 16, 0, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RG_16:
         {
             info.mask = { 0, 1, 0, 0 };
+            info.bits = { 16, 16, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGB_16:
         {
             info.mask = { 0, 1, 2, 0 };
+            info.bits = { 16, 16, 16, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_16:
         {
             info.mask = { 0, 1, 2, 3 };
+            info.bits = { 16, 16, 16, 16 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_R_32:
         case pixel_format::PIXEL_FORMAT_R_32F:
         {
             info.mask = { 0, 0, 0, 0 };
+            info.bits = { 32, 0, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RG_32:
         case pixel_format::PIXEL_FORMAT_RG_32F:
         {
             info.mask = { 0, 1, 0, 0 };
+            info.bits = { 32, 32, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGB_32:
         case pixel_format::PIXEL_FORMAT_RGB_32F:
         {
             info.mask = { 0, 1, 2, 0 };
+            info.bits = { 32, 32, 32, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_32:
         case pixel_format::PIXEL_FORMAT_RGBA_32F:
         {
             info.mask = { 0, 1, 2, 3 };
+            info.bits = { 32, 32, 32, 32 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_R_64:
         {
             info.mask = { 0, 0, 0, 0 };
+            info.bits = { 64, 0, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RG_64:
         {
             info.mask = { 0, 1, 0, 0 };
+            info.bits = { 64, 64, 0, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGB_64:
         {
             info.mask = { 0, 1, 2, 0 };
+            info.bits = { 64, 64, 64, 0 };
             break;
         }
         case pixel_format::PIXEL_FORMAT_RGBA_64:
         {
             info.mask = { 0, 1, 2, 3 };
+            info.bits = { 64, 64, 64, 64 };
             break;
         }
-    }
-
-    if (is_packed_format(format))
-    {
-        uint32_t mask = 0;
-
-        // red
-        {
-            for (mask = info.mask.r; mask && !(mask & 0x01); mask >>= 1)
-            {
-                ++info.shift.r;
-            }
-
-            for (; (mask & 0x01); mask >>= 1)
-            {
-                ++info.bits.r;
-            }
-        }
-
-        // green
-        {
-            for (mask = info.mask.g; mask && !(mask & 0x01); mask >>= 1)
-            {
-                ++info.shift.g;
-            }
-
-            for (; (mask & 0x01); mask >>= 1)
-            {
-                ++info.bits.g;
-            }
-        }
-
-        // blue
-        {
-            for (mask = info.mask.b; mask && !(mask & 0x01); mask >>= 1)
-            {
-                ++info.shift.b;
-            }
-
-            for (; (mask & 0x01); mask >>= 1)
-            {
-                ++info.bits.b;
-            }
-        }
-
-        // alpha
-        {
-            for (mask = info.mask.a; mask && !(mask & 0x01); mask >>= 1)
-            {
-                ++info.shift.a;
-            }
-
-            for (; (mask & 0x01); mask >>= 1)
-            {
-                ++info.bits.a;
-            }
-        }
-    }
-    else
-    {
-        info.bits.r = info.bits.g = info.bits.b = info.bits.a = static_cast<uint32_t>(get_pixel_bit_count(format) / get_channel_count(format));
-        info.shift.r = info.shift.g = info.shift.b = info.shift.a = 0;
     }
 
     return info;

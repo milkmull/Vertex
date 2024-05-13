@@ -116,13 +116,29 @@ struct rect_t
     VX_FORCE_INLINE constexpr T& operator[](size_t i)
     {
         assert(i < 4);
-        return (&position.x)[i];
+
+        switch (i)
+        {
+            default:
+            case 0: return position.x;
+            case 1: return position.y;
+            case 2: return size.x;
+            case 3: return size.y;
+        }
     }
 
     VX_FORCE_INLINE constexpr const T& operator[](size_t i) const
     {
         assert(i < 4);
-        return (&position.x)[i];
+
+        switch (i)
+        {
+            default:
+            case 0: return position.x;
+            case 1: return position.y;
+            case 2: return size.x;
+            case 3: return size.y;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
