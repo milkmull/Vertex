@@ -1,6 +1,6 @@
 #pragma once
 
-#include "enum_filter.h"
+#include "enum_filter_mode.h"
 #include "enum_wrap_mode.h"
 #include "pixel_color.h"
 

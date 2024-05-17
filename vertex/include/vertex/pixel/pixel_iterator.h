@@ -9,7 +9,7 @@
 
 namespace vx {
 namespace pixel {
-namespace iter {
+namespace iterator {
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Iterator for accessing pixels in an image.

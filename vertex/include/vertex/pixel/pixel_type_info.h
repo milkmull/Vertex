@@ -150,7 +150,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_ABGR_8888>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[1];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -160,7 +160,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[2];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -170,7 +170,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[3];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -180,7 +180,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[4];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -190,7 +190,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_BGR_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[3];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -200,7 +200,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_BGR_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_BGRA_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[4];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -210,7 +210,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_BGRA_8>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_ABGR_8>
 {
-    using pixel_type = void;
+    using pixel_type = uint8_t[4];
     using channel_type = uint8_t;
     using float_type = float;
 };
@@ -244,7 +244,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_ABGR_2101010>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_16>
 {
-    using pixel_type = void;
+    using pixel_type = uint16_t[1];
     using channel_type = uint16_t;
     using float_type = float;
 };
@@ -254,7 +254,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_16>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_16>
 {
-    using pixel_type = void;
+    using pixel_type = uint16_t[2];
     using channel_type = uint16_t;
     using float_type = float;
 };
@@ -264,7 +264,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_16>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_16>
 {
-    using pixel_type = void;
+    using pixel_type = uint16_t[3];
     using channel_type = uint16_t;
     using float_type = float;
 };
@@ -274,7 +274,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_16>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_16>
 {
-    using pixel_type = void;
+    using pixel_type = uint16_t[4];
     using channel_type = uint16_t;
     using float_type = float;
 };
@@ -286,7 +286,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_16>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_32>
 {
-    using pixel_type = void;
+    using pixel_type = uint32_t[1];
     using channel_type = uint32_t;
     using float_type = double;
 };
@@ -296,7 +296,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_32>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_32>
 {
-    using pixel_type = void;
+    using pixel_type = uint32_t[2];
     using channel_type = uint32_t;
     using float_type = double;
 };
@@ -306,7 +306,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_32>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_32>
 {
-    using pixel_type = void;
+    using pixel_type = uint32_t[3];
     using channel_type = uint32_t;
     using float_type = double;
 };
@@ -316,7 +316,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_32>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_32>
 {
-    using pixel_type = void;
+    using pixel_type = uint32_t[4];
     using channel_type = uint32_t;
     using float_type = double;
 };
@@ -328,7 +328,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_32>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_32F>
 {
-    using pixel_type = void;
+    using pixel_type = float[1];
     using channel_type = float;
     using float_type = float;
 };
@@ -338,7 +338,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_32F>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_32F>
 {
-    using pixel_type = void;
+    using pixel_type = float[2];
     using channel_type = float;
     using float_type = float;
 };
@@ -348,7 +348,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_32F>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_32F>
 {
-    using pixel_type = void;
+    using pixel_type = float[3];
     using channel_type = float;
     using float_type = float;
 };
@@ -358,7 +358,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_32F>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_32F>
 {
-    using pixel_type = void;
+    using pixel_type = float[4];
     using channel_type = float;
     using float_type = float;
 };
@@ -370,7 +370,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_32F>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_64>
 {
-    using pixel_type = void;
+    using pixel_type = uint64_t[1];
     using channel_type = uint64_t;
     using float_type = double;
 };
@@ -380,7 +380,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_R_64>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_64>
 {
-    using pixel_type = void;
+    using pixel_type = uint64_t[2];
     using channel_type = uint64_t;
     using float_type = double;
 };
@@ -390,7 +390,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RG_64>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_64>
 {
-    using pixel_type = void;
+    using pixel_type = uint64_t[3];
     using channel_type = uint64_t;
     using float_type = double;
 };
@@ -400,7 +400,7 @@ struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGB_64>
 template <>
 struct pixel_type_info<pixel_format::PIXEL_FORMAT_RGBA_64>
 {
-    using pixel_type = void;
+    using pixel_type = uint64_t[4];
     using channel_type = uint64_t;
     using float_type = double;
 };

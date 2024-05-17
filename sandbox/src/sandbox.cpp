@@ -6,6 +6,11 @@
 #include "vertex/image/io_load.h"
 #include "vertex/image/io_write.h"
 #include "vertex/image/sampler.h"
+#include "vertex/pixel/filter/filter_bicubic.h"
+
+#include "vertex/image/fn_transform.h"
+#include "vertex/image/fn_color.h"
+#include "vertex/image/fn_blit.h"
 
 int main()
 {

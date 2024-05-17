@@ -5,6 +5,7 @@
 #include "../math/fn/vec_fn_common.h"
 
 namespace vx {
+namespace math {
 
 enum class blend_mode
 {
@@ -38,8 +39,6 @@ enum class blend_operator
     MIN,
     MAX
 };
-
-namespace math {
 
 // https://learnopengl.com/Advanced-OpenGL/Blending
 

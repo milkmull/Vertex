@@ -107,7 +107,7 @@ struct array_pixel<f, 1>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[1];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr array_pixel() : data{ 0 } {}
 
@@ -135,7 +135,7 @@ struct array_pixel<f, 2>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[2];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr array_pixel() : data{ 0 } {}
 
@@ -164,7 +164,7 @@ struct array_pixel<f, 3>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[3];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr array_pixel() : data{ 0 } {}
 
@@ -194,7 +194,7 @@ struct array_pixel<f, 4>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[4];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr array_pixel() : data{ 0 } {}
 
@@ -229,7 +229,7 @@ struct norm_array_pixel<f, 1>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[1];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr norm_array_pixel() : data{ 0 } {}
 
@@ -257,7 +257,7 @@ struct norm_array_pixel<f, 2>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[2];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr norm_array_pixel() : data{ 0 } {}
 
@@ -286,7 +286,7 @@ struct norm_array_pixel<f, 3>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[3];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr norm_array_pixel() : data{ 0 } {}
 
@@ -316,7 +316,7 @@ struct norm_array_pixel<f, 4>
     using float_type = typename pixel_type_info<f>::float_type;
 
     static constexpr pixel_format_info info = get_pixel_format_info(f);
-    channel_type data[4];
+    pixel_type data;
 
     VX_FORCE_INLINE constexpr norm_array_pixel() : data{ 0 } {}
 
@@ -346,7 +346,10 @@ struct norm_array_pixel<f, 4>
 template <>
 struct pixel<pixel_format::PIXEL_FORMAT_UNKNOWN>
 {
-    using channel_type = uint8_t;
+    using pixel_type = typename pixel_type_info<pixel_format::PIXEL_FORMAT_UNKNOWN>::pixel_type;
+    using channel_type = typename pixel_type_info<pixel_format::PIXEL_FORMAT_UNKNOWN>::channel_type;
+    using float_type = typename pixel_type_info<pixel_format::PIXEL_FORMAT_UNKNOWN>::float_type;
+
     static constexpr pixel_format_info info = get_pixel_format_info(pixel_format::PIXEL_FORMAT_UNKNOWN);
 
     VX_FORCE_INLINE constexpr pixel() {}
@@ -501,27 +504,10 @@ static_assert(sizeof(pixel_abgr_8888) == sizeof(pixel_abgr_8888::data));
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct pixel<pixel_format::PIXEL_FORMAT_R_8>
+struct pixel<pixel_format::PIXEL_FORMAT_R_8> : public array_pixel<pixel_format::PIXEL_FORMAT_R_8, 1>
 {
-    using channel_type = uint8_t;
-    using float_type = float;
-    static constexpr pixel_format_info info = get_pixel_format_info(pixel_format::PIXEL_FORMAT_R_8);
-    channel_type data[1];
-
-    VX_FORCE_INLINE constexpr pixel() : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr pixel(const math::color& c)
-        : data{ static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)) } {}
-
-    VX_FORCE_INLINE constexpr operator math::color() const
-    {
-        return math::color(
-            data[0] / 255.0f,
-            0.0f,
-            0.0f,
-            1.0f
-        );
-    }
+    VX_FORCE_INLINE constexpr pixel() = default;
+    VX_FORCE_INLINE constexpr pixel(const math::color& c) : array_pixel(c) {}
 };
 
 using pixel_r_8 = pixel<pixel_format::PIXEL_FORMAT_R_8>;
@@ -530,28 +516,10 @@ static_assert(sizeof(pixel_r_8) == sizeof(pixel_r_8::data));
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct pixel<pixel_format::PIXEL_FORMAT_RG_8>
+struct pixel<pixel_format::PIXEL_FORMAT_RG_8> : public array_pixel<pixel_format::PIXEL_FORMAT_RG_8, 2>
 {
-    using channel_type = uint8_t;
-    using float_type = float;
-    static constexpr pixel_format_info info = get_pixel_format_info(pixel_format::PIXEL_FORMAT_RG_8);
-    channel_type data[2];
-
-    VX_FORCE_INLINE constexpr pixel() : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr pixel(const math::color& c)
-        : data{ static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f)) } {}
-
-    VX_FORCE_INLINE constexpr operator math::color() const
-    {
-        return math::color(
-            data[0] / 255.0f,
-            data[1] / 255.0f,
-            0.0f,
-            1.0f
-        );
-    }
+    VX_FORCE_INLINE constexpr pixel() = default;
+    VX_FORCE_INLINE constexpr pixel(const math::color& c) : array_pixel(c) {}
 };
 
 using pixel_rg_8 = pixel<pixel_format::PIXEL_FORMAT_RG_8>;
@@ -560,29 +528,10 @@ static_assert(sizeof(pixel_rg_8) == sizeof(pixel_rg_8::data));
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct pixel<pixel_format::PIXEL_FORMAT_RGB_8>
+struct pixel<pixel_format::PIXEL_FORMAT_RGB_8> : public array_pixel<pixel_format::PIXEL_FORMAT_RGB_8, 3>
 {
-    using channel_type = uint8_t;
-    using float_type = float;
-    static constexpr pixel_format_info info = get_pixel_format_info(pixel_format::PIXEL_FORMAT_RGB_8);
-    channel_type data[3];
-
-    VX_FORCE_INLINE constexpr pixel() : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr pixel(const math::color& c)
-        : data{ static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.b * 255.0f, 0.0f, 255.0f)) } {}
-
-    VX_FORCE_INLINE constexpr operator math::color() const
-    {
-        return math::color(
-            data[0] / 255.0f,
-            data[1] / 255.0f,
-            data[2] / 255.0f,
-            1.0f
-        );
-    }
+    VX_FORCE_INLINE constexpr pixel() = default;
+    VX_FORCE_INLINE constexpr pixel(const math::color& c) : array_pixel(c) {}
 };
 
 using pixel_rgb_8 = pixel<pixel_format::PIXEL_FORMAT_RGB_8>;
@@ -591,30 +540,10 @@ static_assert(sizeof(pixel_rgb_8) == sizeof(pixel_rgb_8::data));
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct pixel<pixel_format::PIXEL_FORMAT_RGBA_8>
+struct pixel<pixel_format::PIXEL_FORMAT_RGBA_8> : public array_pixel<pixel_format::PIXEL_FORMAT_RGBA_8, 4>
 {
-    using channel_type = uint8_t;
-    using float_type = float;
-    static constexpr pixel_format_info info = get_pixel_format_info(pixel_format::PIXEL_FORMAT_RGBA_8);
-    channel_type data[4];
-
-    VX_FORCE_INLINE constexpr pixel() : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr pixel(const math::color& c)
-        : data{ static_cast<channel_type>(math::clamp(c.r * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.g * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.b * 255.0f, 0.0f, 255.0f)),
-                static_cast<channel_type>(math::clamp(c.a * 255.0f, 0.0f, 255.0f)) } {}
-
-    VX_FORCE_INLINE constexpr operator math::color() const
-    {
-        return math::color(
-            data[0] / 255.0f,
-            data[1] / 255.0f,
-            data[2] / 255.0f,
-            data[3] / 255.0f
-        );
-    }
+    VX_FORCE_INLINE constexpr pixel() = default;
+    VX_FORCE_INLINE constexpr pixel(const math::color& c) : array_pixel(c) {}
 };
 
 using pixel_rgba_8 = pixel<pixel_format::PIXEL_FORMAT_RGBA_8>;
