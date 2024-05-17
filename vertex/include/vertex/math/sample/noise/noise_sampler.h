@@ -1,17 +1,15 @@
 #pragma once
 
-#include "image.h"
+#include "../../math/type/vec2.h"
+#include "../../math/type/vec3.h"
+#include "../../math/type/vec4.h"
 
-#include "vertex/math/math/type/vec2.h"
-#include "vertex/math/math/type/vec3.h"
-#include "vertex/math/math/type/vec4.h"
-
-#include "vertex/math/sample/noise/perlin_noise.h"
-#include "vertex/math/sample/noise/simplex_noise.h"
-#include "vertex/math/sample/noise/cellular_noise.h"
+#include "perlin_noise.h"
+#include "simplex_noise.h"
+#include "cellular_noise.h"
 
 namespace vx {
-namespace img {
+namespace math {
 
 struct noise_sampler
 {

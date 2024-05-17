@@ -10,10 +10,10 @@ namespace img {
 // types
 ///////////////////////////////////////////////////////////////////////////////
 
-using image_iterator_r_8 = pixel::iter::pixel_iterator<pixel::pixel_r_8>;
-using image_iterator_rg_8 = pixel::iter::pixel_iterator<pixel::pixel_rg_8>;
-using image_iterator_rgb_8 = pixel::iter::pixel_iterator<pixel::pixel_rgb_8>;
-using image_iterator_rgba_8 = pixel::iter::pixel_iterator<pixel::pixel_rgba_8>;
+using image_iterator_r_8 = pixel::iterator::pixel_iterator<pixel::pixel_r_8>;
+using image_iterator_rg_8 = pixel::iterator::pixel_iterator<pixel::pixel_rg_8>;
+using image_iterator_rgb_8 = pixel::iterator::pixel_iterator<pixel::pixel_rgb_8>;
+using image_iterator_rgba_8 = pixel::iterator::pixel_iterator<pixel::pixel_rgba_8>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // iterators

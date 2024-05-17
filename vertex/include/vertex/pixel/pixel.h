@@ -47,6 +47,21 @@ enum class pixel_pack_layout : uint32_t
     PIXEL_PACK_LAYOUT_2101010 = 10
 };
 
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Creates a pixel format.
+///
+/// This function creates a pixel format by combining various parameters into a
+/// single uint32_t value.
+///
+/// @param type The type of pixel.
+/// @param channel_order The order of pixel channels.
+/// @param pack_layout The layout of pixel packing.
+/// @param channel_count The number of channels in the pixel.
+/// @param pixel_size The size of the pixel in bytes.
+/// @param alpha Indicates if the pixel has an alpha channel.
+///
+/// @return The created pixel format as a uint32_t value.
+///////////////////////////////////////////////////////////////////////////////
 inline constexpr uint32_t create_pixel_format(
     pixel_type type,
     pixel_channel_order channel_order,
@@ -511,6 +526,7 @@ inline constexpr pixel_format_info::channel_info get_pixel_format_channel_info(p
             info.shift = { 22, 12, 2, 0 };
             break;
         }
+        // For array pixel types, the mask struct holds the array index of the channel.
         case pixel_format::PIXEL_FORMAT_R_8:
         {
             info.mask = { 0, 0, 0, 0 };
