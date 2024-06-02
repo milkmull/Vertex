@@ -14,15 +14,10 @@ namespace app {
 // constructors
 ///////////////////////////////////////////////////////////////////////////////
 
-window::window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
-    : m_window(std::make_unique<window_impl>(title, size, position, style)) {}
+window::window(const config& config)
+    : m_window(std::make_unique<window_impl>(config)) {}
 
 window::~window() {}
-
-const window_handle window::get_native_handle() const
-{
-    return m_window->get_native_handle();
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // event
@@ -99,6 +94,11 @@ void window::set_size(const math::vec2i& size)
     m_window->set_size(size);
 }
 
+math::recti window::get_rect() const
+{
+    return math::recti(get_position(), get_size());
+}
+
 math::vec2i window::get_min_size() const
 {
     return m_window->get_min_size();
@@ -143,14 +143,19 @@ bool window::is_maximized() const
     return m_window->is_maximized();
 }
 
+bool window::is_fullscreen() const
+{
+    return false;
+}
+
 void window::restore()
 {
     m_window->restore();
 }
 
-bool window::request_focus()
+void window::focus()
 {
-    return m_window->request_focus();
+    m_window->focus();
 }
 
 bool window::is_focused() const
@@ -206,15 +211,15 @@ void window::set_cursor_visibility(bool visible)
     m_window->set_cursor_visibility(visible);
 }
 
-cursor window::get_cursor() const
-{
-    return m_window->get_cursor();
-}
-
-bool window::set_cursor(cursor cursor)
-{
-    return m_window->set_cursor(cursor);
-}
+//cursor window::get_cursor() const
+//{
+//    return m_window->get_cursor();
+//}
+//
+//bool window::set_cursor(cursor cursor)
+//{
+//    return true;// m_window->set_cursor(cursor);
+//}
 
 }
 }

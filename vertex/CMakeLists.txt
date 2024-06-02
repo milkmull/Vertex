@@ -28,19 +28,19 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/video/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/video/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/video/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_CORE_FILES})
 

@@ -174,9 +174,9 @@ struct rect_t
     // anchors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr T x()		const { return position.x; }
-    VX_FORCE_INLINE constexpr T y()		const { return position.y; }
-    VX_FORCE_INLINE constexpr T width()	const { return size.x; }
+    VX_FORCE_INLINE constexpr T x()		 const { return position.x; }
+    VX_FORCE_INLINE constexpr T y()		 const { return position.y; }
+    VX_FORCE_INLINE constexpr T width()	 const { return size.x; }
     VX_FORCE_INLINE constexpr T height() const { return size.y; }
 
     VX_FORCE_INLINE constexpr void set_x(T x) { position.x = x; }
@@ -184,10 +184,10 @@ struct rect_t
     VX_FORCE_INLINE constexpr void set_width(T width) { size.x = width; }
     VX_FORCE_INLINE constexpr void set_height(T height) { size.y = height; }
 
-    VX_FORCE_INLINE constexpr T left()	 const { return position.x; }
-    VX_FORCE_INLINE constexpr T right()	 const { return position.x + size.x; }
-    VX_FORCE_INLINE constexpr T top()	 const { return position.y; }
-    VX_FORCE_INLINE constexpr T bottom()	 const { return position.y + size.y; }
+    VX_FORCE_INLINE constexpr T left()	  const { return position.x; }
+    VX_FORCE_INLINE constexpr T right()	  const { return position.x + size.x; }
+    VX_FORCE_INLINE constexpr T top()	  const { return position.y; }
+    VX_FORCE_INLINE constexpr T bottom()  const { return position.y + size.y; }
     VX_FORCE_INLINE constexpr T centerx() const { return position.x + size.x / static_cast<T>(2); }
     VX_FORCE_INLINE constexpr T centery() const { return position.y + size.y / static_cast<T>(2); }
 
@@ -370,6 +370,21 @@ struct rect_t
             nt,
             nr - nl,
             nb - nt
+        );
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    /// @brief Returns a new point clipped inside of the rectangle.
+    ///
+    /// @param p The point to clip.
+    /// 
+    /// @return The clipped point.
+    ///////////////////////////////////////////////////////////////////////////////
+    VX_FORCE_INLINE constexpr vec<2, T> clip(const vec<2, T>& p) const
+    {
+        return vec<2, T>(
+            math::clamp(p.x, left(), right()),
+            math::clamp(p.y, top(), bottom())
         );
     }
 

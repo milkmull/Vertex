@@ -3,13 +3,12 @@
 #include <memory>
 #include <queue>
 
+#include "video.h"
 #include "../event/event.h"
 #include "../event/cursor.h"
 
 namespace vx {
 namespace app {
-
-using window_handle = void*;
 
 class window
 {
@@ -17,10 +16,47 @@ public:
 
     enum style : int
     {
-        RESIZABLE  = 1 << 0, // Title bar + resizable border + maximize button
-        BORDERLESS = 1 << 1, // No border
+        RESIZABLE         = 1 << 0, // Title bar + resizable border + maximize button
+        VISIBLE           = 1 << 1,
+        DECORATED         = 1 << 2,
+        FOCUSED           = 1 << 3,
+        AUTO_ICONIFY      = 1 << 4,
+        FLOATING          = 1 << 5,
+        MAXIMIZED         = 1 << 6,
+        CENTER_CURSOR     = 1 << 7,
+        FOCUS_ON_SHOW     = 1 << 8,
+        MOUSE_PASSTHROUGH = 1 << 9,
+        SCALE_TO_MONITOR  = 1 << 10,
+        SCALE_FRAMEBUFFER = 1 << 11,
 
-        DEFAULT = RESIZABLE // Default window style
+        DEFAULT           = RESIZABLE | VISIBLE | DECORATED | FOCUSED // Default window style
+    };
+
+    struct config
+    {
+        std::string title;
+        math::vec2i size;
+        math::vec2i position = math::vec2i(VX_DEFAULT_INT);
+
+        struct
+        {            
+            bool borderless = false;
+            bool visible = true;
+            bool focused = true;
+            bool floating = false;
+
+            bool resizable = true;
+            bool maximized = false;
+            bool fullscreen = false;
+
+            bool scale_to_monitor = true;
+            bool scale_framebuffer = false;
+
+            bool center_cursor = false;
+            bool mouse_passthrough = false;
+        } hint;
+
+
     };
 
 public:
@@ -29,7 +65,7 @@ public:
     // constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    window(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style = style::DEFAULT);
+    window(const config& config);
     ~window();
 
     window(const window&) = delete;
@@ -37,8 +73,6 @@ public:
 
     window& operator=(const window&) = delete;
     window& operator=(window&&) = delete;
-
-    const window_handle get_native_handle() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // event
@@ -86,6 +120,8 @@ public:
 
     math::vec2i get_size() const;
     void set_size(const math::vec2i& size);
+
+    math::recti get_rect() const;
     
     math::vec2i get_min_size() const;
     math::vec2i get_max_size() const;
@@ -116,10 +152,12 @@ public:
     
     void maximize();
     bool is_maximized() const;
+
+    bool is_fullscreen() const;
     
     void restore();
 
-    bool request_focus();
+    void focus();
     bool is_focused() const;
     
     void request_attention();
@@ -143,8 +181,8 @@ public:
     bool get_cursor_visibility() const;
     void set_cursor_visibility(bool visible);
 
-    cursor get_cursor() const;
-    bool set_cursor(cursor cursor);
+    //cursor get_cursor() const;
+    //bool set_cursor(cursor cursor);
 
     bool is_cursor_grabbed() const;
     void set_cursor_grabbed(bool grabbed);

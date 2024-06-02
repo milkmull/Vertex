@@ -1,27 +1,18 @@
 #pragma once
 
-#include "../win32_header.h"
+#include "win32_video.h"
 #include "vertex/app/video/window.h"
 
 namespace vx {
 namespace app {
 
-typedef HWND window_handel;
-
 class window::window_impl
 {
 public:
 
-    // =============== win32 class stuff ===============
-
-    static constexpr const wchar_t* s_class_name = L"Vertex_Window";
-    static size_t s_window_count;
-
-    static void register_window_class();
-
     // =============== constructors ===============
 
-    window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style = style::DEFAULT);
+    window_impl(const config& config);
     ~window_impl();
 
     window_impl(const window_impl&) = delete;
@@ -30,17 +21,23 @@ public:
     window_impl& operator=(const window_impl&) = delete;
     window_impl& operator=(window_impl&&) = delete;
 
-    const window_handle get_native_handle() const;
-
 private:
 
+    bool create_window(const config& config);
     void on_destroy();
 
 public:
 
     bool is_open() const;
 
+private:
+
     // =============== style ===============
+
+    DWORD get_window_style() const;
+    DWORD get_window_ex_style() const;
+
+public:
 
     void update_style(int flags, bool enable);
     bool has_style(int flag) const;
@@ -106,7 +103,7 @@ public:
 
     void restore();
 
-    bool request_focus();
+    void focus();
     bool is_focused() const;
 
     void request_attention();
@@ -133,8 +130,8 @@ public:
     bool get_cursor_visibility() const;
     void set_cursor_visibility(bool visible);
 
-    cursor get_cursor() const;
-    bool set_cursor(cursor cursor);
+    //cursor get_cursor() const;
+    //bool set_cursor(cursor cursor);
 
     bool is_cursor_grabbed() const;
     void set_cursor_grabbed(bool grabbed);
@@ -145,11 +142,20 @@ private:
 
     std::queue<event> m_events;
 
+    bool m_borderless;
     bool m_visible;
     bool m_focussed;
+    bool m_floating;
+
+    bool m_resizable;
     bool m_minimized;
     bool m_maximized;
     bool m_fullscreen;
+
+    bool m_scale_to_monitor;
+    bool m_scale_framebuffer;
+
+    bool m_mouse_passthrough;
 
     bool m_resizing_or_moving;
     math::vec2i m_last_size;
@@ -161,7 +167,7 @@ private:
     math::vec2i m_last_mouse_position;
     bool m_mouse_inside_window;
 
-    cursor m_last_cursor_object;
+    //cursor m_last_cursor_object;
     HCURSOR m_last_cursor;
     bool m_cursor_visible;
     bool m_cursor_grabbed;

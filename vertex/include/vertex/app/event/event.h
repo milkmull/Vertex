@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "keyboard.h"
 #include "mouse.h"
 #include "joystick.h"
@@ -9,16 +11,15 @@
 namespace vx {
 namespace app {
 
-enum category : int
-{
-    CATEGORY_WINDOW,
-    CATEGORY_KEY,
-    CATEGORY_MOUSE,
-    CATEGORY_JOYSTICK
-};
-
 enum event_type : int
 {
+    // display events
+    DISPLAY_ORIENTATION,
+    DISPLAY_CONNECTION,
+    DISPLAY_MOVE,
+    DISPLAY_CONTENT_SCALE,
+
+    // window events
     WINDOW_CLOSE,
     WINDOW_RESIZE,
     WINDOW_MINIMIZE,
@@ -27,15 +28,15 @@ enum event_type : int
     WINDOW_FOCUS,
     WINDOW_SHOW,
 
+    // key events
     KEY_DOWN,
     KEY_REPEAT,
     KEY_UP,
-
     TEXT_INPUT,
 
+    // mouse events
     MOUSE_MOVE,
     MOUSE_HOVER,
-
     MOUSE_BUTTON_DOWN,
     MOUSE_BUTTON_UP,
     MOUSE_SCROLL,
@@ -43,8 +44,16 @@ enum event_type : int
     JOYSTICK_CONNECTION
 };
 
-struct event
+class event
 {
+public:
+
+    struct device_event
+    {
+        uint32_t id;
+        bool connected;
+    };
+
     struct state_event
     {
         bool value;
@@ -88,16 +97,13 @@ struct event
         int y;
     };
 
-    struct joystick_connection_event
-    {
-        joystick::joystick id;
-        bool connected;
-    };
-
     event_type type;
+    window* window;
 
     union
     {
+        device_event monitor_added;
+
         size_event window_resize;
         state_event window_minimize;
         state_event window_maximize;
@@ -113,13 +119,43 @@ struct event
 
         mouse_button_event mouse_button;
         mouse_scroll_event mouse_scroll;
-
-        state_event joystick_connection;
     };
 
-};
+private:
 
-using event_callback_fn = void(*)(event&);
+    static std::mutex s_mutex;
+    static std::queue<event> s_events;
+
+public:
+
+    static void push_event(const event& e)
+    {
+        s_mutex.lock();
+        s_events.push(e);
+        s_mutex.unlock();
+    }
+
+    static bool pop_event(event& e, bool block = false)
+    {
+        s_mutex.lock();
+
+        bool found = false;
+
+        // If there are any events in the queue return the next one
+        if (!s_events.empty())
+        {
+            e = s_events.front();
+            s_events.pop();
+
+            found = true;
+        }
+
+        s_mutex.unlock();
+
+        return found;
+    }
+
+};
 
 }
 }

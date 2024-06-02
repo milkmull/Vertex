@@ -2,51 +2,28 @@
 
 #include "vertex/system/error.h"
 
-#include "vertex/image/image.h"
-#include "vertex/image/io_load.h"
-#include "vertex/image/io_write.h"
-#include "vertex/image/sampler.h"
-#include "vertex/pixel/filter/filter_bicubic.h"
-
-#include "vertex/image/fn_transform.h"
-#include "vertex/image/fn_color.h"
-#include "vertex/image/fn_blit.h"
+#include "vertex/app/video/window.h"
 
 int main()
 {
     using namespace vx;
 
-    bool status;
-    img::image i = img::load("../../assets/michael.png", status);
+    vx::app::video_device::init();
 
-    if (!status)
-    {
-        VX_LOG_ERROR << error::get_error().message;
-        return 1;
-    }
+    auto displays = app::video_device::list_displays();
+    auto video_modes = app::video_device::list_display_modes(displays.front());
 
-    img::image i2(i.width() * 2, i.height() * 2, i.format());
+    app::window::config wconfig;
+    //wconfig.hint.maximized = true;
+    //wconfig.hint.scale_to_monitor = true;
+    wconfig.hint.borderless = true;
+    wconfig.size = { 1024, 576 };
 
-    img::image_sampler_rgba_8 s = img::create_sampler<img::image_pixel_format::PIXEL_FORMAT_RGBA_8>(i);
-    s.resolution = math::vec2(0.2);
-    
-    for (size_t y = 0; y < i2.height(); ++y)
-    {
-        for (size_t x = 0; x < i2.width(); ++x)
-        {
-            math::color c = s.sample((float)x / (float)i2.width(), (float)y / (float)i2.height());
-            i2.set_pixel(x, y, math::clamp(c));
-        }
-    }
+    app::window w(wconfig);// , displays.front());
 
-    status = img::write_png("../../assets/pixel_sampler_test.png", i2);
-    if (!status)
-    {
-        VX_LOG_ERROR << error::get_error().message;
-        return 1;
-    }
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 
-    VX_LOG_INFO << "SUCCESS";
+    vx::app::video_device::quit();
 
     return 0;
 }

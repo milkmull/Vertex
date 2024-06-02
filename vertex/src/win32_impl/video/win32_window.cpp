@@ -16,181 +16,357 @@ namespace app {
 // - popup windows
 //
 
-#define STYLE_BASIC               (WS_CLIPSIBLINGS | WS_CLIPCHILDREN)
-#define STYLE_FULLSCREEN          (WS_POPUP | WS_MINIMIZEBOX)
-#define STYLE_BORDERLESS          (WS_POPUP | WS_MINIMIZEBOX)
-#define STYLE_BORDERLESS_WINDOWED (WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
-#define STYLE_NORMAL              (WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
-#define STYLE_RESIZABLE           (WS_THICKFRAME | WS_MAXIMIZEBOX)
-#define STYLE_MASK                (STYLE_FULLSCREEN | STYLE_BORDERLESS | STYLE_NORMAL | STYLE_RESIZABLE)
-
 // =============== win32 class stuff ===============
 
-static bool make_process_dpi_aware()
+static bool register_window_class(WNDPROC proc)
 {
-    // https://learn.microsoft.com/en-gb/windows/win32/hidpi/high-dpi-desktop-application-development-on-windows?redirectedfrom=MSDN
+    WNDCLASSW wc{};
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.lpfnWndProc = proc;
+    wc.hInstance = driver_data.instance; // needed for dll
+    wc.hIcon = driver_data.window_default_icon ? driver_data.window_default_icon : NULL;
+    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
+    wc.lpszClassName = video_data::window_class_name;
 
-    bool success = false;
+    driver_data.window_class = RegisterClassW(&wc);
 
-    // Try SetProcessDpiAwareness first
-    HINSTANCE sh_core_dll = LoadLibrary(L"Shcore.dll");
-
-    if (sh_core_dll)
-    {
-        // https://learn.microsoft.com/en-us/windows/win32/api/shellscalingapi/ne-shellscalingapi-process_dpi_awareness
-
-        enum PROCESS_DPI_AWARENESS
-        {
-            PROCESS_DPI_UNAWARE = 0,
-            PROCESS_SYSTEM_DPI_AWARE = 1,
-            PROCESS_PER_MONITOR_DPI_AWARE = 2
-        };
-
-        using SetProcessDpiAwarenessFuncType = HRESULT(WINAPI*)(PROCESS_DPI_AWARENESS);
-        auto SetProcessDpiAwareness = reinterpret_cast<SetProcessDpiAwarenessFuncType>(
-            reinterpret_cast<void*>(GetProcAddress(sh_core_dll, "SetProcessDpiAwareness"))
-        );
-
-        // Check for E_INVALIDARG. A value of E_ACCESSDENIED incicates
-        // that the dpi has already been set, and a value of S_OK
-        // indicates that the process was successful.
-        // 
-        // We intentionally don't use Per Monitor V2 which can be
-        // enabled with SetProcessDpiAwarenessContext, because that
-        // would scale the title bar and thus change window size
-        // by default when moving the window between monitors.
-
-        if (SetProcessDpiAwareness && SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE) != E_INVALIDARG)
-        {
-            success = true;
-        }
-
-        FreeLibrary(sh_core_dll);
-    }
-
-    if (!success)
-    {
-        // Fall back to SetProcessDPIAware if SetProcessDpiAwareness
-        // is not available on this system
-        HINSTANCE user_32_dll = LoadLibrary(L"user32.dll");
-
-        if (user_32_dll)
-        {
-            using SetProcessDPIAwareFuncType = BOOL(WINAPI*)();
-            auto SetProcessDPIAware = reinterpret_cast<SetProcessDPIAwareFuncType>(
-                reinterpret_cast<void*>(GetProcAddress(user_32_dll, "SetProcessDPIAware"))
-            );
-
-            if (SetProcessDPIAware && SetProcessDPIAware())
-            {
-                success = true;
-            }
-
-            FreeLibrary(user_32_dll);
-        }
-    }
-
-    if (!success)
-    {
-        VX_ERROR(error::error_code::PLATFORM_ERROR) << "Failed to set process DPI awareness";
-    }
-
-    return success;
+    return driver_data.window_class != NULL;
 }
 
-size_t window::window_impl::s_window_count = 0;
-
-void window::window_impl::register_window_class()
+static void unregister_window_class()
 {
-    WNDCLASSW windowClass{};
-    windowClass.style = 0;
-    windowClass.lpfnWndProc = window_proc;
-    windowClass.cbClsExtra = 0;
-    windowClass.cbWndExtra = 0;
-    windowClass.hInstance = GetModuleHandleW(NULL);
-    windowClass.hIcon = NULL;
-    windowClass.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    windowClass.hbrBackground = NULL;
-    windowClass.lpszMenuName = NULL;
-    windowClass.lpszClassName = s_class_name;
+    UnregisterClassW(video_data::window_class_name, driver_data.instance);
+    driver_data.window_class = NULL;
+}
 
-    RegisterClassW(&windowClass);
+static bool set_default_window_icon(const uint8_t* pixels, const math::vec2i& size)
+{
+    // Destroy existing icon
+    if (driver_data.window_default_icon)
+    {
+        DestroyIcon(driver_data.window_default_icon);
+        driver_data.window_default_icon = NULL;
+    }
+
+    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
+
+    // Format is expected to have 4 8-bit channels in RGBA format
+    if (image_size % 4)
+    {
+        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
+        return false;
+    }
+
+    // Convert the image to an BGRA
+    std::vector<uint8_t> formatted_pixels(image_size);
+    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    {
+        formatted_pixels[pixel + 0] = pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = pixels[pixel + 3];
+    }
+
+    // MSVC warns about arument 6 being NULL
+    VX_DISABLE_WARNING("", 6387);
+    VX_DISABLE_WARNING_PUSH();
+
+    // Create the icon
+    driver_data.window_default_icon = CreateIcon(
+        driver_data.instance,
+        size.x, size.y,
+        1,
+        32,
+        NULL,
+        formatted_pixels.data()
+    );
+
+    VX_DISABLE_WARNING_POP();
+
+    return driver_data.window_default_icon != NULL;
+}
+
+static bool make_custom_cursor(HCURSOR& cursor, const uint8_t* pixels, const math::vec2i& size, const math::vec2i& hotspot)
+{
+    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
+
+    // Format is expected to have 4 8-bit channels in RGBA format
+    if (image_size % 4)
+    {
+        return false;
+    }
+
+    // Convert the image to an BGRA
+    std::vector<uint8_t> formatted_pixels(image_size);
+    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    {
+        formatted_pixels[pixel + 0] = pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = pixels[pixel + 3];
+    }
+
+    // Create empty bitmap for monochrome mask
+    HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
+    if (!mask)
+    {
+        return false;
+    }
+
+    // Create color bitmap
+    HBITMAP color = CreateBitmap(size.x, size.y, 1, 32, formatted_pixels.data());
+    if (!color)
+    {
+        DeleteObject(mask);
+        return false;
+    }
+
+    // Create icon info
+    ICONINFO info{};
+    info.fIcon = FALSE;
+    info.xHotspot = hotspot.x;
+    info.yHotspot = hotspot.y;
+    info.hbmMask = mask;
+    info.hbmColor = color;
+
+    cursor = CreateIconIndirect(&info);
+
+    DeleteObject(color);
+    DeleteObject(mask);
+
+    return cursor != NULL;
+}
+
+static bool make_blank_cursor()
+{
+    if (driver_data.blank_cursor != NULL)
+    {
+        return true;
+    }
+
+    const int w = GetSystemMetrics(SM_CXCURSOR);
+    const int h = GetSystemMetrics(SM_CYCURSOR);
+    std::vector<uint8_t> pixels(w * h * 4);
+
+    // Windows checks whether the image is fully transparent and if so just
+    // ignores the alpha channel and makes the whole cursor opaque. To fix this
+    // we make one pixel slightly less transparent.
+    pixels[3] = 1;
+
+    return make_custom_cursor(driver_data.blank_cursor, pixels.data(), math::vec2i(w, h), math::vec2i(0));
 }
 
 // =============== window init helpers ===============
 
-window::window_impl::window_impl(const std::string& title, const math::vec2i& size, const math::vec2i& position, style style)
+window::window_impl::window_impl(const config& config)
     : m_handle(NULL)
-    , m_visible(true)
-    , m_focussed(true)
+    , m_borderless(config.hint.borderless)
+    , m_visible(config.hint.visible)
+    , m_focussed(config.hint.focused)
+    , m_floating(config.hint.floating)
+    , m_resizable(config.hint.resizable)
     , m_minimized(false)
-    , m_maximized(false)
-    , m_fullscreen(false)
+    , m_maximized(config.hint.maximized)
+    , m_fullscreen(config.hint.fullscreen)
+    , m_scale_to_monitor(config.hint.scale_to_monitor)
+    , m_scale_framebuffer(config.hint.scale_framebuffer)
+    , m_mouse_passthrough(config.hint.mouse_passthrough)
     , m_resizing_or_moving(false)
-    , m_last_size(size)
-    , m_last_position(position)
+    , m_last_size(config.size)
+    , m_last_position(config.position)
     , m_min_size(s_default_min_size)
     , m_max_size(s_default_max_size)
-    , m_icon(NULL)
-    , m_last_cursor_object(cursor::cursor_shape::SHAPE_ARROW)
+    , m_icon(driver_data.window_default_icon)
+    //, m_last_cursor_object(cursor::cursor_shape::SHAPE_ARROW)
 {
-    make_process_dpi_aware();
-
     // If this is our first window, we register our window class
-    if (s_window_count == 0)
+    if (driver_data.window_class == NULL)
     {
-        register_window_class();
+        register_window_class(window_proc); // TODO: check return value
     }
 
-    // Configure window style (https://learn.microsoft.com/en-us/windows/win32/winmsg/window-styles)
-    DWORD win32_style = STYLE_NORMAL;
-
-    if (style & style::BORDERLESS)
+    // On Remote Desktop, setting the cursor to NULL does not hide it. To fix
+    // this we create a transparent cursor and always set that instead of NULL.
+    // When not on Remote Desktop, this handle is NULL and normal hiding is
+    // used.
+    if (GetSystemMetrics(SM_REMOTESESSION))
     {
-        win32_style |= STYLE_BORDERLESS;
-    }
-    if (style & style::RESIZABLE && !(style & style::BORDERLESS))
-    {
-        // You can have a borderless resizable window, but Windows doesn't always draw
-        // it correctly, see https://bugzilla.libsdl.org/show_bug.cgi?id=4466
-        win32_style |= STYLE_RESIZABLE;
+        make_blank_cursor(); // TODO: check return value
     }
 
-    // Adjust window size to match requested area
-    RECT rect = { 0, 0, size.x, size.y };
-    AdjustWindowRect(&rect, win32_style, FALSE);
+    create_window(config); // TODO: check return value
 
-    const int frame_x = position.x + rect.left;
-    const int frame_y = position.y + rect.top;
+    if (config.hint.fullscreen)
+    {
+        show();
+        focus();
+        //acquireMonitor(window);
+        //fitToMonitor(window);
+        //
+        //if (wndconfig->centerCursor)
+        //    _glfwCenterCursorInContentArea(window);
+    }
+    else
+    {
+        if (config.hint.visible)
+        {
+            show();
 
-    const int frame_width = rect.right - rect.left;
-    const int frame_height = rect.bottom - rect.top;
+            if (config.hint.focused)
+            {
+                focus();
+            }
+        }
+    }
+}
+
+bool window::window_impl::create_window(const config& config)
+{
+    // Get the size and position of the window as requested
+
+    DWORD style = get_window_style();
+    DWORD ex_style = get_window_ex_style();
+
+    int frame_x, frame_y, frame_width, frame_height;
+
+    if (config.hint.fullscreen)
+    {
+        frame_x = display->bounds.position.x;
+        frame_y = display->bounds.position.y;
+        frame_width = display->bounds.size.x;
+        frame_height = display->bounds.size.y;
+    }
+    else
+    {
+        // Adjust window size to match requested area
+
+        RECT rect = { 0, 0, config.size.x, config.size.y };
+
+        if (m_maximized)
+        {
+            style |= WS_MAXIMIZE;
+        }
+
+        AdjustWindowRectEx(&rect, style, FALSE, ex_style);
+
+        // Adjust window position to match requested position
+
+        if (config.position.x == VX_DEFAULT_INT && config.position.y == VX_DEFAULT_INT)
+        {
+            frame_x = CW_USEDEFAULT;
+            frame_y = CW_USEDEFAULT;
+        }
+        else
+        {
+            frame_x = config.position.x + rect.left;
+            frame_y = config.position.y + rect.top;
+        }
+
+        frame_width = rect.right - rect.left;
+        frame_height = rect.bottom - rect.top;
+    }
 
     // Create window
-    m_handle = CreateWindowW(
-        s_class_name,
-        str::string_to_wstring(title).c_str(),
-        win32_style,
+    m_handle = CreateWindowExW(
+        ex_style,
+        video_data::window_class_name,
+        str::string_to_wstring(config.title).c_str(),
+        style,
         frame_x, frame_y,
         frame_width, frame_height,
         NULL, // no parent window
         NULL, // no window menu
-        GetModuleHandleW(NULL),
+        driver_data.instance,
         this
     );
 
+    if (m_handle == NULL)
+    {
+        return false;
+    }
+
+    //if (IsWindows7OrGreater())
+    //{
+    //    ChangeWindowMessageFilterEx(m_handle, WM_DROPFILES, MSGFLT_ALLOW, NULL);
+    //    ChangeWindowMessageFilterEx(m_handle, WM_COPYDATA, MSGFLT_ALLOW, NULL);
+    //}
+
+    if (!display)
+    {
+        RECT rect = { 0, 0, config.size.x, config.size.y };
+        WINDOWPLACEMENT wp = { sizeof(wp) };
+        const HMONITOR mh = MonitorFromWindow(m_handle, MONITOR_DEFAULTTONEAREST);
+
+        // Obtain the content scale of the monitor that contains the window
+
+        float xscale = 0.0f;
+        float yscale = 0.0f;
+        get_content_scale(mh, xscale, yscale);
+
+        // Optionally scale the window content area to account for dpi scaling
+
+        if (m_scale_to_monitor)
+        {
+            if (xscale > 0.0f && yscale > 0.0f)
+            {
+                rect.right = static_cast<LONG>(rect.right * xscale);
+                rect.bottom = static_cast<LONG>(rect.bottom * yscale);
+            }
+        }
+
+        // Scale the window size to account for dpi scaling
+
+        if (driver_data.user32.AdjustWindowRectExForDpi)
+        {
+            driver_data.user32.AdjustWindowRectExForDpi(&rect, style, FALSE, ex_style, GetDpiForWindow(m_handle));
+        }
+        else
+        {
+            AdjustWindowRectEx(&rect, style, FALSE, ex_style);
+        }
+
+        // Move the rect to the restored window position
+
+        GetWindowPlacement(m_handle, &wp);
+        OffsetRect(&rect, wp.rcNormalPosition.left - rect.left, wp.rcNormalPosition.top - rect.top);
+
+        // Set the restored window rect to the new adjusted rect
+
+        wp.rcNormalPosition = rect;
+        wp.showCmd = SW_HIDE;
+        SetWindowPlacement(m_handle, &wp);
+
+        // Adjust rect of maximized undecorated window, because by default Windows will
+        // make such a window cover the whole monitor instead of its workarea
+
+        if (m_maximized && m_borderless)
+        {
+            MONITORINFO mi = { sizeof(mi) };
+            GetMonitorInfoW(mh, &mi);
+
+            SetWindowPos(
+                m_handle,
+                HWND_TOP,
+                mi.rcWork.left,
+                mi.rcWork.top,
+                mi.rcWork.right - mi.rcWork.left,
+                mi.rcWork.bottom - mi.rcWork.top,
+                SWP_NOACTIVATE | SWP_NOZORDER
+            );
+        }
+    }
+
     // Set initial mouse position
-    m_last_mouse_position = get_mouse_position();
-    m_mouse_inside_window = is_hovered();
+    //m_last_mouse_position = get_mouse_position();
+    //m_mouse_inside_window = is_hovered();
 
     // Set the default cursor
-    set_cursor(m_last_cursor_object);
+    //set_cursor(m_last_cursor_object);
 
     // Finally show the window
-    show();
+    //show();
 
-    // Increment the window count
-    ++s_window_count;
+    return true;
 }
 
 window::window_impl::~window_impl()
@@ -205,19 +381,14 @@ window::window_impl::~window_impl()
     }
 
     // Decrement the window count
-    --s_window_count;
-
-    // If we were the last window...
-    if (s_window_count == 0)
-    {
-        // Unregister window class
-        UnregisterClassW(s_class_name, GetModuleHandleW(NULL));
-    }
-}
-
-const window_handle window::window_impl::get_native_handle() const
-{
-    return static_cast<window_handle>(m_handle);
+    //--s_window_count;
+    //
+    //// If we were the last window...
+    //if (s_window_count == 0)
+    //{
+    //    // Unregister window class
+    //    unregister_window_class();
+    //}
 }
 
 void window::window_impl::on_destroy()
@@ -237,6 +408,48 @@ bool window::window_impl::is_open() const
 }
 
 // =============== style ===============
+
+DWORD window::window_impl::get_window_style() const
+{
+    DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+
+    if (false)//(window->monitor)
+    {
+        style |= WS_POPUP;
+    }
+    else
+    {
+        style |= WS_SYSMENU | WS_MINIMIZEBOX;
+
+        if (!m_borderless)
+        {
+            style |= WS_CAPTION;
+
+            if (m_resizable)
+            {
+                style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
+            }
+        }
+        else
+        {
+            style |= WS_POPUP;
+        }
+    }
+
+    return style;
+}
+
+DWORD window::window_impl::get_window_ex_style() const
+{
+    DWORD style = WS_EX_APPWINDOW;
+
+    if (false)//window->monitor || window->floating)
+    {
+        style |= WS_EX_TOPMOST;
+    }
+
+    return style;
+}
 
 void window::window_impl::update_style(int flags, bool enable)
 {
@@ -925,30 +1138,16 @@ void window::window_impl::restore()
     ShowWindow(m_handle, SW_RESTORE);
 }
 
-bool window::window_impl::request_focus()
+void window::window_impl::focus()
 {
-    // We only want to steal focus from a window if it belongs to the same process as the current window
-    DWORD this_pid;
-    DWORD foreground_pid;
-    GetWindowThreadProcessId(m_handle, &this_pid);
-    GetWindowThreadProcessId(GetForegroundWindow(), &foreground_pid);
-
-    if (this_pid == foreground_pid)
-    {
-        // The window requesting focus belongs to the same process as the current window: steal focus
-        SetForegroundWindow(m_handle);
-        return true;
-    }
-
-    // Different process: don't steal focus, but raquest attention
-    request_attention();
-    return false;
+    BringWindowToTop(m_handle);
+    SetForegroundWindow(m_handle);
+    SetFocus(m_handle);
 }
 
 bool window::window_impl::is_focused() const
 {
-    // GetForegroundWindow returns the active window of any process
-    return m_handle == GetForegroundWindow();
+    return m_handle == GetActiveWindow();
 }
 
 void window::window_impl::request_attention()
@@ -1022,8 +1221,7 @@ void window::window_impl::clear_icon()
 
 void window::window_impl::set_mouse_tracking(bool enabled)
 {
-    TRACKMOUSEEVENT e{};
-    e.cbSize = sizeof(e);
+    TRACKMOUSEEVENT e{ sizeof(e) };
     e.dwFlags = enabled ? TME_LEAVE : TME_CANCEL;
     e.hwndTrack = m_handle;
     e.dwHoverTime = 0;
@@ -1106,10 +1304,10 @@ void window::window_impl::set_cursor_visibility(bool visible)
     SetCursor(m_cursor_visible ? m_last_cursor : NULL);
 }
 
-cursor window::window_impl::get_cursor() const
-{
-    return m_last_cursor_object;
-}
+//cursor window::window_impl::get_cursor() const
+//{
+//    return m_last_cursor_object;
+//}
 
 //bool window::window_impl::set_cursor(cursor cursor)
 //{
