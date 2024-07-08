@@ -6,24 +6,55 @@
 
 int main()
 {
-    using namespace vx;
+    using namespace vx::app;
 
-    vx::app::video_device::init();
+    video::init();
 
-    auto displays = app::video_device::list_displays();
-    auto video_modes = app::video_device::list_display_modes(displays.front());
+    vx::app::event e;
 
-    app::window::config wconfig;
-    //wconfig.hint.maximized = true;
-    //wconfig.hint.scale_to_monitor = true;
-    wconfig.hint.borderless = true;
-    wconfig.size = { 1024, 576 };
+    video::display* d = video::get_primary_display();
 
-    app::window w(wconfig);// , displays.front());
+    video::display_mode mode = d->list_modes().front();
 
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    d->set_mode(mode);
 
-    vx::app::video_device::quit();
+    while (true)
+    {
+        vx::app::video::update_displays();
+
+        if (vx::app::event::poll_event(e))
+        {
+            switch (e.type)
+            {
+                case event_type::DISPLAY_ADDED:
+                {
+                    std::cout << "Display Added: " << e.display_event.display_id << std::endl;
+                    break;
+                }
+                case event_type::DISPLAY_REMOVED:
+                {
+                    std::cout << "Display Removed: " << e.display_event.display_id << std::endl;
+                    break;
+                }
+                case event_type::DISPLAY_MOVED:
+                {
+                    std::cout << "Display Moved: " << e.display_event.display_id << std::endl;
+                    break;
+                }
+                default:
+                {
+                    break;
+                }
+            }
+        }
+    }
+
+    while (vx::app::event::poll_event(e))
+    {
+        std::cout << e.type << std::endl;
+    }
+
+    vx::app::video::quit();
 
     return 0;
 }

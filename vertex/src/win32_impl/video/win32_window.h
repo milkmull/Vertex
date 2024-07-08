@@ -5,14 +5,17 @@
 
 namespace vx {
 namespace app {
+namespace video {
 
 class window::window_impl
 {
+    friend window;
+
 public:
 
     // =============== constructors ===============
 
-    window_impl(const config& config);
+    window_impl(window* window, const state_data& state);
     ~window_impl();
 
     window_impl(const window_impl&) = delete;
@@ -23,7 +26,8 @@ public:
 
 private:
 
-    bool create_window(const config& config);
+    bool create_window();
+    void setup_data();
     void on_destroy();
 
 public:
@@ -47,7 +51,6 @@ private:
     // =============== events ===============
 
     static LRESULT CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-    bool process_event(UINT Msg, WPARAM wParam, LPARAM lParam);
     void process_events();
 
 public:
@@ -69,16 +72,14 @@ private:
 
 public:
 
+    void adjust_rect(RECT& rect, window_rect_type rect_type) const;
+    void set_position_internal(UINT flags, window_rect_type rect_type);
+
     math::vec2i get_position() const;
     void set_position(const math::vec2i& position);
 
     math::vec2i get_size() const;
     void set_size(const math::vec2i& size);
-
-private:
-
-    static constexpr math::vec2i s_default_min_size = math::vec2i(0);
-    static constexpr math::vec2i s_default_max_size = math::vec2i(50000);
 
 public:
 
@@ -103,13 +104,18 @@ public:
 
     void restore();
 
+    bool is_fullscreen() const;
+
     void focus();
     bool is_focused() const;
 
     void request_attention();
 
+    void set_topmost(bool enabled);
+    bool is_topmost() const;
+
     // =============== icon ===============
-    
+
     bool set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
 
@@ -138,7 +144,10 @@ public:
 
 private:
 
+    window* m_window;
     HWND m_handle;
+
+    state_data m_state;
 
     std::queue<event> m_events;
 
@@ -150,7 +159,10 @@ private:
     bool m_resizable;
     bool m_minimized;
     bool m_maximized;
+
     bool m_fullscreen;
+    const video::display* m_fullscreen_display;
+    video::display_mode m_fullscreen_mode;
 
     bool m_scale_to_monitor;
     bool m_scale_framebuffer;
@@ -176,5 +188,6 @@ private:
 
 };
 
+}
 }
 }

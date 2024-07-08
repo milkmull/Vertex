@@ -1,10 +1,11 @@
 #pragma once
 
 #include "win32_impl/win32_header.h"
-#include "vertex/app/video/video.h"
+#include "vertex_impl/app/video/video.h"
 
 namespace vx {
 namespace app {
+namespace video {
 
 ///////////////////////////////////////////////////////////////////////////////
 // user32.dll
@@ -39,34 +40,80 @@ struct shcore
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// driver data
+// display_mode
 ///////////////////////////////////////////////////////////////////////////////
 
-class video::display::display_impl
+struct display_mode_driver_data
+{
+    DEVMODE devmode;
+};
+
+class display_mode::display_mode_impl
 {
 public:
 
-    static bool create_display(size_t index, display& display, HMONITOR hMonitor, const MONITORINFOEX* info);
+    display_mode_data data = display_mode_data{};
+    display_mode_driver_data driver_data = display_mode_driver_data{};
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_state
+{
+    using type = uint32_t;
+
+    static const type NONE = 0;
+    static const type ADDED = (1 << 0);
+    static const type REMOVED = (1 << 1);
+    static const type MOVED = (1 << 2);
+    static const type ORIENTATION_CHANGED = (1 << 3);
+};
+
+struct display_driver_data
+{
+    HMONITOR handle;
+    std::wstring device_name;
+    display_state::type state;
+    math::recti bounds;
+};
+
+class display::display_impl
+{
+public:
+
+    static bool create_display(size_t& index, std::vector<std::unique_ptr<display>>& displays, HMONITOR hMonitor, const MONITORINFOEX* info);
+    static void update_displays(std::vector<std::unique_ptr<display>>& displays);
+    static BOOL CALLBACK enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam);
+
+    static bool get_display_mode(
+        const std::wstring& device_name,
+        std::unique_ptr<display_mode::display_mode_impl>& mode,
+        DWORD index,
+        display_orientation* orientation
+    );
 
 public:
 
-    bool get_mode(display_mode& mode) const;
-    bool get_mode(display_mode& mode, DWORD index) const;
-    const std::vector<display_mode> list_modes() const;
-
-    display_orientation get_orientation() const;
-    math::vec2 get_content_scale() const;
+    void list_display_modes();
+    bool set_display_mode(display_mode& mode);
 
     bool get_bounds(math::recti& bounds) const;
     bool get_work_area(math::recti& work_area) const;
 
 public:
 
-    HMONITOR monitor_handle;
-    LPCWSTR device_name;
+    display_data data = display_data{};
+    display_driver_data driver_data = display_driver_data{};
+
 };
 
-struct video_data
+///////////////////////////////////////////////////////////////////////////////
+// video
+///////////////////////////////////////////////////////////////////////////////
+
+struct video_driver_data
 {
     // library stuff
 
@@ -84,36 +131,19 @@ struct video_data
     // cursor stuff
 
     HCURSOR blank_cursor;
-
-    // display stuff
-
-    std::vector<video::display> displays;
-    size_t primary_display_index = 0;
-
 };
 
-extern video_data driver_data;
+namespace video_impl {
 
-class video::video_impl
-{
-public:
+    bool init();
+    void quit();
 
-    static bool init();
-    static void quit();
+    bool set_dpi_awareness(process_dpi_awareness awareness);
+    process_dpi_awareness get_dpi_awareness();
+}
 
-    static bool set_dpi_awareness(process_dpi_awareness awareness);
-    static process_dpi_awareness get_dpi_awareness();
+extern video_driver_data s_driver_data;
 
-    static BOOL CALLBACK enum_display_monitors_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam);
-    static void update_displays();
-    static const display* get_primary_display();
-    static const std::vector<const display*> list_displays();
-
-};
-
-// extra functions
-
-void get_content_scale(HMONITOR hMonitor, float& xscale, float& yscale);
-
+}
 }
 }
