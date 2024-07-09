@@ -4,9 +4,13 @@
 
 #include "vertex/app/video/window.h"
 
+#include "vertex/math/random/rng.h"
+
 int main()
 {
     using namespace vx::app;
+
+    vx::math::rng rng;
 
     video::init();
 
@@ -14,7 +18,8 @@ int main()
 
     video::display* d = video::get_primary_display();
 
-    video::display_mode mode = d->list_modes().front();
+    auto& modes = d->list_modes();
+    video::display_mode mode = rng.choice(modes.begin(), modes.end());
 
     d->set_mode(mode);
 

@@ -255,12 +255,7 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
     }
 }
 
-bool display::display_impl::get_display_mode(
-    const std::wstring& device_name,
-    std::unique_ptr<display_mode::display_mode_impl>& mode,
-    DWORD index,
-    display_orientation* orientation
-)
+bool display::display_impl::get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation)
 {
     DEVMODE dm{ sizeof(dm) };
 
@@ -274,16 +269,16 @@ bool display::display_impl::get_display_mode(
         return false;
     }
 
-    mode = std::make_unique<display_mode::display_mode_impl>();
+    mode.m_impl = std::make_unique<display_mode::display_mode_impl>();
 
-    mode->data.resolution.x = dm.dmPelsWidth;
-    mode->data.resolution.y = dm.dmPelsHeight;
-    mode->data.bpp = dm.dmBitsPerPel;
-    mode->data.pixel_format = pixel::pixel_format::PIXEL_FORMAT_UNKNOWN; // TODO: figure out how to get the pixel format
-    mode->data.pixel_density = 1.0f;
-    mode->data.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
+    mode.resolution.x = dm.dmPelsWidth;
+    mode.resolution.y = dm.dmPelsHeight;
+    mode.bpp = dm.dmBitsPerPel;
+    mode.pixel_format = pixel::pixel_format::PIXEL_FORMAT_UNKNOWN; // TODO: figure out how to get the pixel format
+    mode.pixel_density = 1.0f;
+    mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
 
-    mode->driver_data.devmode = dm;
+    mode.m_impl->driver_data.devmode = dm;
 
     if (orientation)
     {
@@ -302,7 +297,7 @@ void display::display_impl::list_display_modes()
 
     while (true)
     {
-        if (!get_display_mode(driver_data.device_name, mode.m_impl, display_mode_index++, nullptr))
+        if (!get_display_mode(driver_data.device_name, mode, display_mode_index++, nullptr))
         {
             break;
         }
@@ -315,7 +310,7 @@ void display::display_impl::list_display_modes()
     }
 }
 
-bool display::display_impl::set_display_mode(display_mode& mode)
+bool display::display_impl::set_display_mode(display_mode& mode) const
 {
     LONG status = ChangeDisplaySettingsExW(driver_data.device_name.c_str(), &mode.m_impl->driver_data.devmode, NULL, CDS_FULLSCREEN, NULL);
 
@@ -353,7 +348,7 @@ bool display::display_impl::set_display_mode(display_mode& mode)
     }
 
     EnumDisplaySettingsW(driver_data.device_name.c_str(), ENUM_CURRENT_SETTINGS, &mode.m_impl->driver_data.devmode);
-    get_display_mode(driver_data.device_name.c_str(), mode.m_impl, ENUM_CURRENT_SETTINGS, nullptr);
+    get_display_mode(driver_data.device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
 
     return true;
 }
@@ -451,7 +446,7 @@ bool video::display::display_impl::create_display(
     display_mode current_mode;
     display_orientation current_orientation;
 
-    if (!get_display_mode(info->szDevice, current_mode.m_impl, ENUM_CURRENT_SETTINGS, &current_orientation))
+    if (!get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation))
     {
         return false;
     }

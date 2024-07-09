@@ -12,61 +12,63 @@ namespace vx {
 namespace app {
 namespace video {
 
-display_mode::display_mode() {}
+display_mode::display_mode()
+    : bpp(0)
+    , pixel_format(pixel::pixel_format::PIXEL_FORMAT_UNKNOWN)
+    , pixel_density(0.0f)
+    , refresh_rate(0.0f) {}
 
 display_mode::display_mode(const display_mode& dm)
-    : m_impl(std::make_unique<display_mode_impl>(*dm.m_impl)) {}
+    : resolution(dm.resolution)
+    , bpp(dm.bpp)
+    , pixel_format(dm.pixel_format)
+    , pixel_density(dm.pixel_density)
+    , refresh_rate(dm.refresh_rate)
+    , m_impl(std::make_unique<display_mode_impl>(*dm.m_impl)) {}
 
 display_mode::display_mode(display_mode&& dm) noexcept
-    : m_impl(std::move(dm.m_impl)) {}
+    : resolution(dm.resolution)
+    , bpp(dm.bpp)
+    , pixel_format(dm.pixel_format)
+    , pixel_density(dm.pixel_density)
+    , refresh_rate(dm.refresh_rate)
+    , m_impl(std::move(dm.m_impl)) {}
 
 display_mode::~display_mode() {}
 
 display_mode& display_mode::operator=(const display_mode& dm)
 {
+    resolution = dm.resolution;
+    bpp = dm.bpp;
+    pixel_format = dm.pixel_format;
+    pixel_density = dm.pixel_density;
+    refresh_rate = dm.refresh_rate;
     m_impl = std::make_unique<display_mode_impl>(*dm.m_impl);
     return *this;
 }
 
 display_mode& display_mode::operator=(display_mode&& dm) noexcept
 {
+    resolution = dm.resolution;
+    bpp = dm.bpp;
+    pixel_format = dm.pixel_format;
+    pixel_density = dm.pixel_density;
+    refresh_rate = dm.refresh_rate;
     m_impl = std::move(dm.m_impl);
     return *this;
 }
 
 bool display_mode::operator==(const display_mode& dm) const
 {
-    return m_impl && dm.m_impl && (m_impl->data == dm.m_impl->data);
+    return resolution == dm.resolution
+        && bpp == dm.bpp
+        && pixel_format == dm.pixel_format
+        && refresh_rate == dm.refresh_rate;
 }
 
 bool display_mode::operator!=(const display_mode& dm) const
 {
     return !((*this) == dm);
-}
-
-const math::vec2i& display_mode::resolution() const
-{
-    return m_impl->data.resolution;
-}
-
-int display_mode::bits_per_pixel() const
-{
-    return m_impl->data.bpp;
-}
-
-pixel::pixel_format display_mode::pixel_format() const
-{
-    return m_impl->data.pixel_format;
-}
-
-float display_mode::pixel_density() const
-{
-    return m_impl->data.pixel_density;
-}
-
-float display_mode::refresh_rate() const
-{
-    return m_impl->data.refresh_rate;
 }
 
 //===========================================================================
@@ -113,9 +115,21 @@ const display_mode& display::get_mode() const
     return m_impl->data.current_mode;
 }
 
-bool display::set_mode(display_mode& mode)
+bool display::set_mode(display_mode& mode) const
 {
-    if (!has_mode(mode))
+    bool found = false;
+
+    for (const display_mode& m : m_impl->data.modes)
+    {
+        if (m == mode)
+        {
+            mode = m;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
     {
         // requested mode is not supported by this display
         return false;
@@ -315,6 +329,18 @@ const display* get_display_for_window_position(const window* window)
 const display* get_display_for_window(const window* window)
 {
     return nullptr;
+}
+
+math::recti get_desktop_area()
+{
+    math::recti area;
+
+    for (const auto& d : s_video_data.displays)
+    {
+        area = math::recti::merge(area, d->get_bounds());
+    }
+
+    return area;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

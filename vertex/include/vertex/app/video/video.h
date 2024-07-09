@@ -33,7 +33,7 @@ enum class display_orientation
 
 class display;
 
-class display_mode
+struct display_mode
 {
     friend display;
 
@@ -42,7 +42,6 @@ public:
     display_mode();
     display_mode(const display_mode&);
     display_mode(display_mode&&) noexcept;
-
     ~display_mode();
 
     display_mode& operator=(const display_mode&);
@@ -50,18 +49,16 @@ public:
 
 public:
 
-    bool operator==(const display_mode& dm) const;
-    bool operator!=(const display_mode&) const;
+    math::vec2i resolution;
+    int bpp;
+    pixel::pixel_format pixel_format;
+    float pixel_density;
+    float refresh_rate;
 
 public:
 
-    const math::vec2i& resolution() const;
-
-    int bits_per_pixel() const;
-    pixel::pixel_format pixel_format() const;
-    float pixel_density() const;
-
-    float refresh_rate() const;
+    bool operator==(const display_mode& dm) const;
+    bool operator!=(const display_mode& dm) const;
 
 private:
 
@@ -93,7 +90,7 @@ public:
     const display_mode& get_desktop_mode() const;
 
     const display_mode& get_mode() const;
-    bool set_mode(display_mode& mode);
+    bool set_mode(display_mode& mode) const;
 
     const std::vector<display_mode>& list_modes() const;
     bool has_mode(const display_mode& mode) const;
@@ -134,6 +131,8 @@ const display* get_display_for_point(const math::vec2i& p);
 const display* get_display_for_rect(const math::recti& rect);
 const display* get_display_for_window_position(const window* window);
 const display* get_display_for_window(const window* window);
+
+math::recti get_desktop_area();
 
 }
 }

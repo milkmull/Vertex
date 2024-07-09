@@ -52,7 +52,6 @@ class display_mode::display_mode_impl
 {
 public:
 
-    display_mode_data data = display_mode_data{};
     display_mode_driver_data driver_data = display_mode_driver_data{};
 };
 
@@ -87,17 +86,12 @@ public:
     static void update_displays(std::vector<std::unique_ptr<display>>& displays);
     static BOOL CALLBACK enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam);
 
-    static bool get_display_mode(
-        const std::wstring& device_name,
-        std::unique_ptr<display_mode::display_mode_impl>& mode,
-        DWORD index,
-        display_orientation* orientation
-    );
+    static bool get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation);
 
 public:
 
     void list_display_modes();
-    bool set_display_mode(display_mode& mode);
+    bool set_display_mode(display_mode& mode) const;
 
     bool get_bounds(math::recti& bounds) const;
     bool get_work_area(math::recti& work_area) const;

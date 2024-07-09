@@ -177,7 +177,7 @@ public:
     /// @return A reference to the randomly selected element.
     ////////////////////////////////////////////////////////////////////////////////
     template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
-    inline typename std::iterator_traits<IT>::value_type& choice(IT first, IT last)
+    inline typename std::iterator_traits<IT>::reference choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
 
@@ -247,7 +247,7 @@ public:
     /// @return A const reference to the selected element.
     ////////////////////////////////////////////////////////////////////////////////
     template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
-    inline const typename std::iterator_traits<IT>::value_type& weighted_choice(
+    inline typename std::iterator_traits<IT>::reference weighted_choice(
         IT first,
         IT last,
         const weights& w
