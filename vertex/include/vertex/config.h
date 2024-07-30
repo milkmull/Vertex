@@ -205,7 +205,7 @@
        defined(__sparc__)
 #       define VX_BYTE_ORDER VX_BIG_ENDIAN
 #   else
-#       define VX_BYTE_ORDER VX_LIL__ENDIAN
+#       define VX_BYTE_ORDER VX_LIL_ENDIAN
 #endif
 
 #endif

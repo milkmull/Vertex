@@ -1,267 +1,134 @@
 #include "win32_window.h"
+#include "vertex/app/event/event.h"
 #include "vertex/system/string/string_fn.h"
 #include "vertex/system/error.h"
 
 namespace vx {
 namespace app {
-namespace video {
-
-//
-// TODO:
-// - hide cursor
-// - grab cursor
-// - raw mouse motion?
-// - moving or resizing while minimzed or maximized
-// - borderless and transparent window
-// - popup windows
-//
-
-// =============== win32 class stuff ===============
-
-static bool register_window_class(WNDPROC proc)
-{
-    WNDCLASSW wc{};
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc = proc;
-    wc.hInstance = s_driver_data.instance; // needed for dll
-    wc.hIcon = s_driver_data.window_default_icon ? s_driver_data.window_default_icon : NULL;
-    wc.hCursor = LoadCursorW(NULL, IDC_ARROW);
-    wc.lpszClassName = s_driver_data.window_class_name;
-
-    s_driver_data.window_class = RegisterClassW(&wc);
-
-    return s_driver_data.window_class != NULL;
-}
-
-static void unregister_window_class()
-{
-    UnregisterClassW(s_driver_data.window_class_name, s_driver_data.instance);
-    s_driver_data.window_class = NULL;
-}
-
-static bool set_default_window_icon(const uint8_t* pixels, const math::vec2i& size)
-{
-    // Destroy existing icon
-    if (s_driver_data.window_default_icon)
-    {
-        DestroyIcon(s_driver_data.window_default_icon);
-        s_driver_data.window_default_icon = NULL;
-    }
-
-    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
-
-    // Format is expected to have 4 8-bit channels in RGBA format
-    if (image_size % 4)
-    {
-        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
-        return false;
-    }
-
-    // Convert the image to an BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
-    {
-        formatted_pixels[pixel + 0] = pixels[pixel + 2];
-        formatted_pixels[pixel + 1] = pixels[pixel + 1];
-        formatted_pixels[pixel + 2] = pixels[pixel + 0];
-        formatted_pixels[pixel + 3] = pixels[pixel + 3];
-    }
-
-    // MSVC warns about arument 6 being NULL
-    VX_DISABLE_WARNING("", 6387);
-    VX_DISABLE_WARNING_PUSH();
-
-    // Create the icon
-    s_driver_data.window_default_icon = CreateIcon(
-        s_driver_data.instance,
-        size.x, size.y,
-        1,
-        32,
-        NULL,
-        formatted_pixels.data()
-    );
-
-    VX_DISABLE_WARNING_POP();
-
-    return s_driver_data.window_default_icon != NULL;
-}
-
-static bool make_custom_cursor(HCURSOR& cursor, const uint8_t* pixels, const math::vec2i& size, const math::vec2i& hotspot)
-{
-    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
-
-    // Format is expected to have 4 8-bit channels in RGBA format
-    if (image_size % 4)
-    {
-        return false;
-    }
-
-    // Convert the image to an BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
-    {
-        formatted_pixels[pixel + 0] = pixels[pixel + 2];
-        formatted_pixels[pixel + 1] = pixels[pixel + 1];
-        formatted_pixels[pixel + 2] = pixels[pixel + 0];
-        formatted_pixels[pixel + 3] = pixels[pixel + 3];
-    }
-
-    // Create empty bitmap for monochrome mask
-    HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
-    if (!mask)
-    {
-        return false;
-    }
-
-    // Create color bitmap
-    HBITMAP color = CreateBitmap(size.x, size.y, 1, 32, formatted_pixels.data());
-    if (!color)
-    {
-        DeleteObject(mask);
-        return false;
-    }
-
-    // Create icon info
-    ICONINFO info{};
-    info.fIcon = FALSE;
-    info.xHotspot = hotspot.x;
-    info.yHotspot = hotspot.y;
-    info.hbmMask = mask;
-    info.hbmColor = color;
-
-    cursor = CreateIconIndirect(&info);
-
-    DeleteObject(color);
-    DeleteObject(mask);
-
-    return cursor != NULL;
-}
-
-static bool make_blank_cursor()
-{
-    if (s_driver_data.blank_cursor != NULL)
-    {
-        return true;
-    }
-
-    const int w = GetSystemMetrics(SM_CXCURSOR);
-    const int h = GetSystemMetrics(SM_CYCURSOR);
-    std::vector<uint8_t> pixels(w * h * 4);
-
-    // Windows checks whether the image is fully transparent and if so just
-    // ignores the alpha channel and makes the whole cursor opaque. To fix this
-    // we make one pixel slightly less transparent.
-    pixels[3] = 1;
-
-    return make_custom_cursor(s_driver_data.blank_cursor, pixels.data(), math::vec2i(w, h), math::vec2i(0));
-}
 
 // =============== window init helpers ===============
 
-window::window_impl::window_impl(window* window, const state_data& state)
-    : m_window(window)
-    , m_handle(NULL)
-    , m_state(state)
-    , m_borderless(false)
-    , m_visible(false)
-    , m_focussed(false)
-    , m_floating(false)
-    , m_resizable(false)
-    , m_minimized(false)
-    , m_maximized(false)
-    , m_fullscreen(false)
-    , m_scale_to_monitor(false)
-    , m_scale_framebuffer(false)
-    , m_mouse_passthrough(false)
-    , m_icon(s_driver_data.window_default_icon)
+// DWM setting support
+
+static void update_window_handle_theme(HWND hwnd)
 {
-    // If this is our first window, we register our window class
-    if (s_driver_data.window_class == NULL)
+    HMODULE dwmapi_dll = LoadLibrary(L"dwmapi.dll");
+    if (dwmapi_dll)
     {
-        register_window_class(window_proc); // TODO: check return value
-    }
+        DwmSetWindowAttribute_t DwmSetWindowAttribute = reinterpret_cast<DwmSetWindowAttribute_t>(
+            GetProcAddress(dwmapi_dll, "DwmSetWindowAttribute"));
+        if (DwmSetWindowAttribute)
+        {
+            BOOL value = (video::get_system_theme() == video::system_theme::DARK) ? TRUE : FALSE;
+            DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, &value, sizeof(value));
+        }
 
-    // On Remote Desktop, setting the cursor to NULL does not hide it. To fix
-    // this we create a transparent cursor and always set that instead of NULL.
-    // When not on Remote Desktop, this handle is NULL and normal hiding is
-    // used.
-    if (GetSystemMetrics(SM_REMOTESESSION))
-    {
-        make_blank_cursor(); // TODO: check return value
+        FreeLibrary(dwmapi_dll);
     }
-
-    create_window(); // TODO: check return value
 }
 
-bool window::window_impl::create_window()
+void video::window::window_impl::create(window& w)
 {
+    w.m_impl = std::make_unique<window_impl>(&w);
+    if (w.m_impl->m_handle == NULL)
+    {
+        w.m_impl.reset();
+    }
+}
+
+video::window::window_impl::window_impl(window* w)
+    : m_owner(w)
+    , m_handle(NULL)
+    , m_icon(NULL)
+    , m_floating_rect_pending(false)
+    , m_windowed_mode_was_maximized(false)
+    , m_in_window_deactivation(false)
+    , m_cleared(false)
+{
+    if (!m_owner)
+    {
+        // critical error
+        return;
+    }
+
     // Adjust window size and position to match requested area
 
+    DWORD style = get_window_style();
+    DWORD ex_style = get_window_ex_style();
+
     RECT rect;
-    adjust_rect(rect, window_rect_type::FLOATING);
+    adjust_rect_with_style(rect, window_rect_type::FLOATING, style, ex_style);
 
     // Create window
     m_handle = CreateWindowEx(
-        get_window_ex_style(),
-        s_driver_data.window_class_name,
-        str::string_to_wstring(m_state.title).c_str(),
-        get_window_style(),
+        ex_style,
+        VIDEO_DRIVER_DATA.window_class_name,
+        str::string_to_wstring(m_owner->m_title).c_str(),
+        style,
         rect.left, rect.top,
         rect.right - rect.left, rect.bottom - rect.top,
         NULL, // no parent window
         NULL, // no window menu
-        s_driver_data.instance,
+        VIDEO_DRIVER_DATA.instance,
         this
     );
 
     if (m_handle == NULL)
     {
-        return false;
+        // critical error
+        return;
     }
 
-    // set up out current flags based on the internal style of the window
+    // Set window theme to match system theme
+    update_window_handle_theme(m_handle);
+
+    event::pump_events(true);
+
+    m_owner->m_initializing = true;
+
+    // set up current flags based on the internal style of the window
     {
-        DWORD style = GetWindowLong(m_handle, GWL_STYLE);
+        style = GetWindowLong(m_handle, GWL_STYLE);
 
         if (style & WS_VISIBLE)
         {
-            m_state.flags &= ~flags::HIDDEN;
+            m_owner->m_flags &= ~flags::HIDDEN;
         }
         else
         {
-            m_state.flags |= flags::HIDDEN;
+            m_owner->m_flags |= flags::HIDDEN;
         }
         if (style & WS_POPUP)
         {
-            m_state.flags |= flags::BORDERLESS;
+            m_owner->m_flags |= flags::BORDERLESS;
         }
         else
         {
-            m_state.flags &= ~flags::BORDERLESS;
+            m_owner->m_flags &= ~flags::BORDERLESS;
         }
         if (style & WS_THICKFRAME)
         {
-            m_state.flags |= flags::RESIZABLE;
+            m_owner->m_flags |= flags::RESIZABLE;
         }
         else
         {
-            m_state.flags &= ~flags::RESIZABLE;
+            m_owner->m_flags &= ~flags::RESIZABLE;
         }
         if (style & WS_MAXIMIZE)
         {
-            m_state.flags |= flags::MAXIMIZED;
+            m_owner->m_flags |= flags::MAXIMIZED;
         }
         else
         {
-            m_state.flags &= ~flags::MAXIMIZED;
+            m_owner->m_flags &= ~flags::MAXIMIZED;
         }
         if (style & WS_MINIMIZE)
         {
-            m_state.flags |= flags::MINIMIZED;
+            m_owner->m_flags |= flags::MINIMIZED;
         }
         else
         {
-            m_state.flags &= ~flags::MINIMIZED;
+            m_owner->m_flags &= ~flags::MINIMIZED;
         }
     }
 
@@ -269,18 +136,19 @@ bool window::window_impl::create_window()
     // created in a size larger than the display they are on. If this happens
     // we can catch and override it.
 
-    if (!(m_state.flags & flags::MINIMIZED))
+    if (!(m_owner->m_flags & flags::MINIMIZED))
     {
         RECT rect;
 
         if (GetClientRect(m_handle, &rect))
         {
-            if ((m_state.windowed.size.x && m_state.windowed.size.x != rect.right) ||
-                (m_state.windowed.size.y && m_state.windowed.size.y != rect.bottom))
+            if ((m_owner->m_windowed_rect.size.x && m_owner->m_windowed_rect.size.x != rect.right) ||
+                (m_owner->m_windowed_rect.size.y && m_owner->m_windowed_rect.size.y != rect.bottom))
             {
+                // Window size is currently not what we are expecting it to be
                 adjust_rect(rect, window_rect_type::WINDOWED);
 
-                m_state.moving_or_resizing = true;
+                m_owner->m_moving_or_resizing = true;
                 SetWindowPos(
                     m_handle,
                     NULL,
@@ -288,191 +156,30 @@ bool window::window_impl::create_window()
                     rect.right - rect.left, rect.bottom - rect.top,
                     SWP_NOCOPYBITS | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE
                 );
-                m_state.moving_or_resizing = false;
+                m_owner->m_moving_or_resizing = false;
             }
             else
             {
-                m_state.position.x = rect.left;
-                m_state.position.y = rect.top;
-                m_state.size.x = rect.right - rect.left;
-                m_state.size.y = rect.bottom - rect.top;
+                m_owner->m_position.x = rect.left;
+                m_owner->m_position.y = rect.top;
+                m_owner->m_size.x = rect.right - rect.left;
+                m_owner->m_size.y = rect.bottom - rect.top;
             }
         }
     }
 
     if (GetFocus() == m_handle)
     {
-        m_state.flags |= flags::FOCUSSED;
+        m_owner->m_flags |= flags::FOCUSSED;
         //SDL_SetKeyboardFocus(window);
         //WIN_UpdateClipCursor(window);
     }
 
-    //if (IsWindows7OrGreater())
-    //{
-    //    ChangeWindowMessageFilterEx(m_handle, WM_DROPFILES, MSGFLT_ALLOW, NULL);
-    //    ChangeWindowMessageFilterEx(m_handle, WM_COPYDATA, MSGFLT_ALLOW, NULL);
-    //}
-
-    //if (true)//!display)
-    //{
-    //    RECT rect = { 0, 0, config.size.x, config.size.y };
-    //    WINDOWPLACEMENT wp = { sizeof(wp) };
-    //    const HMONITOR mh = MonitorFromWindow(m_handle, MONITOR_DEFAULTTONEAREST);
-    //
-    //    const video::display* 
-    //
-    //    // Obtain the content scale of the monitor that contains the window
-    //
-    //    float xscale = 0.0f;
-    //    float yscale = 0.0f;
-    //    get_content_scale(mh, xscale, yscale);
-    //
-    //    // Optionally scale the window content area to account for dpi scaling
-    //
-    //    if (m_scale_to_monitor)
-    //    {
-    //        if (xscale > 0.0f && yscale > 0.0f)
-    //        {
-    //            rect.right = static_cast<LONG>(rect.right * xscale);
-    //            rect.bottom = static_cast<LONG>(rect.bottom * yscale);
-    //        }
-    //    }
-    //
-    //    // Scale the window size to account for dpi scaling
-    //
-    //    if (driver_data.user32.AdjustWindowRectExForDpi)
-    //    {
-    //        driver_data.user32.AdjustWindowRectExForDpi(&rect, style, FALSE, ex_style, GetDpiForWindow(m_handle));
-    //    }
-    //    else
-    //    {
-    //        AdjustWindowRectEx(&rect, style, FALSE, ex_style);
-    //    }
-    //
-    //    // Move the rect to the restored window position
-    //
-    //    GetWindowPlacement(m_handle, &wp);
-    //    OffsetRect(&rect, wp.rcNormalPosition.left - rect.left, wp.rcNormalPosition.top - rect.top);
-    //
-    //    // Set the restored window rect to the new adjusted rect
-    //
-    //    wp.rcNormalPosition = rect;
-    //    wp.showCmd = SW_HIDE;
-    //    SetWindowPlacement(m_handle, &wp);
-    //
-    //    // Adjust rect of maximized undecorated window, because by default Windows will
-    //    // make such a window cover the whole monitor instead of its workarea
-    //
-    //    if (m_maximized && m_borderless)
-    //    {
-    //        MONITORINFO mi = { sizeof(mi) };
-    //        GetMonitorInfoW(mh, &mi);
-    //
-    //        SetWindowPos(
-    //            m_handle,
-    //            HWND_TOP,
-    //            mi.rcWork.left,
-    //            mi.rcWork.top,
-    //            mi.rcWork.right - mi.rcWork.left,
-    //            mi.rcWork.bottom - mi.rcWork.top,
-    //            SWP_NOACTIVATE | SWP_NOZORDER
-    //        );
-    //    }
-    //}
-
-    // Set initial mouse position
-    //m_last_mouse_position = get_mouse_position();
-    //m_mouse_inside_window = is_hovered();
-
-    // Set the default cursor
-    //set_cursor(m_last_cursor_object);
-
-    // Finally show the window
-    show();
-
-    return true;
+    // Update the position to allow topmost flag to be set if desired
+    set_position_internal(SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE, window_rect_type::CURRENT);
 }
 
-void window::window_impl::setup_data()
-{
-    {
-        DWORD style = GetWindowLong(m_handle, GWL_STYLE);
-
-        if (style & WS_VISIBLE)
-        {
-            m_state.flags &= ~flags::HIDDEN;
-        }
-        else 
-        {
-            m_state.flags |= flags::HIDDEN;
-        }
-        if (style & WS_POPUP) 
-        {
-            m_state.flags |= flags::BORDERLESS;
-        }
-        else 
-        {
-            m_state.flags &= ~flags::BORDERLESS;
-        }
-        if (style & WS_THICKFRAME) 
-        {
-            m_state.flags |= flags::RESIZABLE;
-        }
-        else 
-        {
-            m_state.flags &= ~flags::RESIZABLE;
-        }
-        if (style & WS_MAXIMIZE) 
-        {
-            m_state.flags |= flags::MAXIMIZED;
-        }
-        else
-        {
-            m_state.flags &= ~flags::MAXIMIZED;
-        }
-        if (style & WS_MINIMIZE) 
-        {
-            m_state.flags |= flags::MINIMIZED;
-        }
-        else
-        {
-            m_state.flags &= ~flags::MINIMIZED;
-        }
-    }
-
-    if (!(m_state.flags & flags::MINIMIZED))
-    {
-        RECT rect;
-
-        if (GetClientRect(m_handle, &rect))// && !WIN_IsRectEmpty(&rect))
-        {
-            if ((m_state.windowed.size.x && m_state.windowed.size.x != rect.right) || 
-                (m_state.windowed.size.y && m_state.windowed.size.y != rect.bottom))
-            {
-                rect.left = 0;
-                rect.top = 0;
-                rect.right = m_state.windowed.size.x;
-                rect.bottom = m_state.windowed.size.y;
-
-                AdjustWindowRectEx(&rect, get_window_style(), FALSE, get_window_ex_style()); // TODO: check return value
-
-                m_state.moving_or_resizing = true;
-                SetWindowPos(
-                    m_handle,
-                    NULL,
-                    rect.left, rect.top,
-                    rect.right - rect.left, rect.bottom - rect.top,
-                    SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE
-                );
-                m_state.moving_or_resizing = false;
-            }
-        }
-    }
-
-    auto z = get_size();
-}
-
-window::window_impl::~window_impl()
+video::window::window_impl::~window_impl()
 {
     // Destroy the custom icon
     clear_icon();
@@ -481,42 +188,21 @@ window::window_impl::~window_impl()
     if (m_handle)
     {
         DestroyWindow(m_handle);
+        m_handle = NULL;
     }
-
-    // Decrement the window count
-    //--s_window_count;
-    //
-    //// If we were the last window...
-    //if (s_window_count == 0)
-    //{
-    //    // Unregister window class
-    //    unregister_window_class();
-    //}
-}
-
-void window::window_impl::on_destroy()
-{
-    // Restore cursor visibility
-    set_cursor_visibility(true);
-
-    // Remove tracking
-    set_mouse_tracking(false);
-}
-
-// =============== open ===============
-
-bool window::window_impl::is_open() const
-{
-    return m_handle;
 }
 
 // =============== style ===============
 
-DWORD window::window_impl::get_window_style() const
+// define a mask of styles that we want to be able to control ourselves
+
+#define STYLE_MASK (WS_POPUP | WS_MINIMIZEBOX | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME)
+
+DWORD video::window::window_impl::get_window_style() const
 {
     DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
 
-    if (m_state.flags & flags::FULLSCREEN)
+    if (m_owner->m_flags & flags::FULLSCREEN)
     {
         style |= WS_POPUP | WS_MINIMIZEBOX;
     }
@@ -524,7 +210,7 @@ DWORD window::window_impl::get_window_style() const
     {
         style |= WS_SYSMENU | WS_MINIMIZEBOX;
 
-        if (m_state.flags & flags::BORDERLESS)
+        if (m_owner->m_flags & flags::BORDERLESS)
         {
             style |= WS_POPUP;
         }
@@ -532,7 +218,7 @@ DWORD window::window_impl::get_window_style() const
         {
             style |= WS_CAPTION;
 
-            if (m_state.flags & flags::RESIZABLE)
+            if (m_owner->m_flags & flags::RESIZABLE)
             {
                 style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
             }
@@ -542,7 +228,9 @@ DWORD window::window_impl::get_window_style() const
     return style;
 }
 
-DWORD window::window_impl::get_window_ex_style() const
+
+
+DWORD video::window::window_impl::get_window_ex_style() const
 {
     DWORD style = 0;
 
@@ -554,9 +242,18 @@ DWORD window::window_impl::get_window_ex_style() const
     return style;
 }
 
-void window::window_impl::update_style(int flags, bool enable)
+void video::window::window_impl::sync_window_style()
 {
-    LONG_PTR style = GetWindowLongPtrW(m_handle, GWL_STYLE);
+    DWORD style;
+    style = GetWindowLong(m_handle, GWL_STYLE);
+    style &= ~STYLE_MASK;
+    style |= get_window_style();
+    SetWindowLong(m_handle, GWL_STYLE, style);
+}
+
+void video::window::window_impl::update_style(int flags, bool enable)
+{
+    LONG_PTR style = GetWindowLongPtr(m_handle, GWL_STYLE);
 
     if (enable)
     {
@@ -567,23 +264,23 @@ void window::window_impl::update_style(int flags, bool enable)
         style &= ~flags;
     }
 
-    SetWindowLongPtrW(m_handle, GWL_STYLE, style);
+    SetWindowLongPtr(m_handle, GWL_STYLE, style);
 
     // Redraw the window
     SetWindowPos(m_handle, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
-bool window::window_impl::has_style(int flag) const
+bool video::window::window_impl::has_style(int flag) const
 {
-    LONG_PTR style = GetWindowLongPtrW(m_handle, GWL_STYLE);
+    LONG_PTR style = GetWindowLongPtr(m_handle, GWL_STYLE);
     return style & flag;
 }
 
 // =============== events ===============
 
-LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    window::window_impl* window = nullptr;
+    video::window::window_impl* window = nullptr;
     LRESULT return_code = -1;
 
     if (Msg == WM_CREATE)
@@ -592,15 +289,15 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // argument which was a pointer to the window instance. We can then
         // set the user data of the win32 window to a pointer to our window.
         auto window_ptr = reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
-        SetWindowLongPtrW(hWnd, GWLP_USERDATA, window_ptr);
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, window_ptr);
     }
 
     // Get the pointer to our associated window
-    window = reinterpret_cast<window::window_impl*>(GetWindowLongPtrW(hWnd, GWLP_USERDATA));
+    window = reinterpret_cast<window::window_impl*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
     if (!window || !window->m_handle)
     {
-        return DefWindowProcW(hWnd, Msg, wParam, lParam);
+        return DefWindowProc(hWnd, Msg, wParam, lParam);
     }
 
     switch (Msg)
@@ -610,20 +307,20 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // Destroy window
         case WM_DESTROY:
         {
-            window->on_destroy();
+            //window->on_destroy();
             break;
         }
 
         // Close window
-        case WM_CLOSE:
-        {
-            event e;
-            e.type = event_type::WINDOW_CLOSE_REQUESTED;
-            e.window_event.window_id = window->m_window->m_window->m_state.id;
-            event::post_event(e);
-
-            break;
-        }
+        //case WM_CLOSE:
+        //{
+        //    event e;
+        //    e.type = event_type::WINDOW_CLOSE_REQUESTED;
+        //    e.window_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    event::post_event(e);
+        //
+        //    break;
+        //}
 
         // Resize or move window start
         //case WM_ENTERSIZEMOVE:
@@ -670,7 +367,7 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
 
         case WM_WINDOWPOSCHANGING:
         {
-            if (window->m_state.moving_or_resizing)
+            if (window->m_owner->m_moving_or_resizing)
             {
                 return_code = 0;
             }
@@ -678,11 +375,11 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
             // If we are going from a fixed size state to a floating state, we
             // update the position to reflect the cached floating rect position
             // and size.
-            if (window->m_state.adjust_floating_rect &&
+            if (window->m_floating_rect_pending &&
                 !IsIconic(window->m_handle) &&
                 !IsZoomed(window->m_handle) &&
-                (window->m_state.flags & (flags::MINIMIZED | flags::MAXIMIZED)) &&
-                !(window->m_state.flags & flags::FULLSCREEN))
+                (window->m_owner->m_flags & (flags::MINIMIZED | flags::MAXIMIZED)) &&
+                !(window->m_owner->m_flags & flags::FULLSCREEN))
             {
                 WINDOWPOS* wp = reinterpret_cast<WINDOWPOS*>(lParam);
 
@@ -695,7 +392,7 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
                 wp->cy = rect.bottom - rect.top;
                 wp->flags &= ~(SWP_NOSIZE | SWP_NOMOVE);
 
-                window->m_state.adjust_floating_rect = false;
+                window->m_floating_rect_pending = false;
             }
 
             break;
@@ -710,7 +407,7 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
 
             if (wp->flags & SWP_SHOWWINDOW)
             {
-                window->m_window->on_show();
+                //window->m_window->on_show();
             }
 
             //if (minimize)
@@ -789,25 +486,25 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
             // - When we get the move messages, new_position should be the same as
             //   the last recorded position, we will not post move event.
 
-            if (!window->is_minimized())
-            {
-                const math::vec2i new_position = window->get_position();
-
-                if (!window->m_resizing_or_moving && window->m_last_position != new_position)
-                {
-                    window->m_last_position = new_position;
-
-                    event e;
-                    e.type = event_type::WINDOW_MOVED;
-                    e.window_event.window_id = window->m_window->m_window->m_state.id;
-                    e.window_event.data1 = new_position.x;
-                    e.window_event.data2 = new_position.y;
-                    window->post_event(e);
-
-                    // Update the cursor tracking incase the window moved away from the cursor.
-                    window->update_mouse_tracking();
-                }
-            }
+            //if (!window->is_minimized())
+            //{
+            //    const math::vec2i new_position = window->get_position();
+            //
+            //    if (!window->m_resizing_or_moving && window->m_last_position != new_position)
+            //    {
+            //        window->m_last_position = new_position;
+            //
+            //        event e;
+            //        e.type = event_type::WINDOW_MOVED;
+            //        e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
+            //        e.window_event.data1 = new_position.x;
+            //        e.window_event.data2 = new_position.y;
+            //        window->post_event(e);
+            //
+            //        // Update the cursor tracking incase the window moved away from the cursor.
+            //        window->update_mouse_tracking();
+            //    }
+            //}
 
             break;
         }
@@ -815,7 +512,7 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // Fix violations of minimum or maximum size
         case WM_GETMINMAXINFO:
         {
-            if (window->m_state.moving_or_resizing)
+            if (window->m_owner->m_moving_or_resizing)
             {
                 break;
             }
@@ -830,9 +527,9 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
             int w = frame.right - frame.left;
             int h = frame.bottom - frame.top;
 
-            if (window->m_state.flags && flags::RESIZABLE)
+            if (window->m_owner->m_flags && flags::RESIZABLE)
             {
-                if (window->m_state.flags && flags::BORDERLESS)
+                if (window->m_owner->m_flags && flags::BORDERLESS)
                 {
                     const int screen_w = GetSystemMetrics(SM_CXSCREEN);
                     const int screen_h = GetSystemMetrics(SM_CYSCREEN);
@@ -843,16 +540,16 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
                     mmi->ptMaxPosition.y = std::max(0, (screen_h - h) / 2);
                 }
 
-                if (window->m_state.min_size.x && window->m_state.min_size.y)
+                if (window->m_owner->m_min_size.x && window->m_owner->m_min_size.y)
                 {
-                    mmi->ptMinTrackSize.x = window->m_state.min_size.x + w;
-                    mmi->ptMinTrackSize.y = window->m_state.min_size.y + h;
+                    mmi->ptMinTrackSize.x = window->m_owner->m_min_size.x + w;
+                    mmi->ptMinTrackSize.y = window->m_owner->m_min_size.y + h;
                 }
 
-                if (window->m_state.max_size.x && window->m_state.max_size.y)
+                if (window->m_owner->m_max_size.x && window->m_owner->m_max_size.y)
                 {
-                    mmi->ptMaxTrackSize.x = window->m_state.max_size.x + w;
-                    mmi->ptMaxTrackSize.y = window->m_state.max_size.y + h;
+                    mmi->ptMaxTrackSize.x = window->m_owner->m_max_size.x + w;
+                    mmi->ptMaxTrackSize.y = window->m_owner->m_max_size.y + h;
                 }
             }
             else
@@ -877,15 +574,15 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // Focus window
         case WM_SETFOCUS:
         {
-            if (!window->m_focussed)
-            {
-                window->m_focussed = true;
-
-                event e;
-                e.type = event_type::WINDOW_GAINED_FOCUS;
-                e.window_event.window_id = window->m_window->m_window->m_state.id;
-                window->post_event(e);
-            }
+            //if (!window->m_focussed)
+            //{
+            //    window->m_focussed = true;
+            //
+            //    event e;
+            //    e.type = event_type::WINDOW_GAINED_FOCUS;
+            //    e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
+            //    window->post_event(e);
+            //}
 
             break;
         }
@@ -893,15 +590,15 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // Un-focus window
         case WM_KILLFOCUS:
         {
-            if (window->m_focussed)
-            {
-                window->m_focussed = false;
-
-                event e;
-                e.type = event_type::WINDOW_LOST_FOCUS;
-                e.window_event.window_id = window->m_window->m_window->m_state.id;
-                window->post_event(e);
-            }
+            //if (window->m_focussed)
+            //{
+            //    window->m_focussed = false;
+            //
+            //    event e;
+            //    e.type = event_type::WINDOW_LOST_FOCUS;
+            //    e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
+            //    window->post_event(e);
+            //}
 
             break;
         }
@@ -960,182 +657,182 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         // Set the cursor
         case WM_SETCURSOR:
         {
-            if (LOWORD(lParam) == HTCLIENT && window->is_hovered())
-            {
-                SetCursor(window->m_cursor_visible ? window->m_last_cursor : NULL);
-                return_code = 0;
-            }
+            //if (LOWORD(lParam) == HTCLIENT && window->is_hovered())
+            //{
+            //    SetCursor(window->m_cursor_visible ? window->m_last_cursor : NULL);
+            //    return_code = 0;
+            //}
 
             break;
         }
 
         // Left mouse button down
-        case WM_LBUTTONDOWN:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_DOWN;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_LEFT;
-            e.mouse_button_event.x = static_cast<int>(LOWORD(lParam));
-            e.mouse_button_event.y = static_cast<int>(HIWORD(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Left mouse button up
-        case WM_LBUTTONUP:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_UP;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_LEFT;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Right mouse button down
-        case WM_RBUTTONDOWN:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_DOWN;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_RIGHT;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Right mouse button up
-        case WM_RBUTTONUP:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_UP;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_RIGHT;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Mouse wheel button down
-        case WM_MBUTTONDOWN:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_DOWN;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Mouse wheel button up
-        case WM_MBUTTONUP:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_UP;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Extra mouse button down
-        case WM_XBUTTONDOWN:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_DOWN;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Extra mouse button up
-        case WM_XBUTTONUP:
-        {
-            event e;
-            e.type = event_type::MOUSE_BUTTON_UP;
-            e.mouse_button_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
-            e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Vertical mouse scroll
-        case WM_MOUSEWHEEL:
-        {
-            const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-            const math::vec2i mouse_position = window->get_mouse_position();
-
-            event e;
-            e.type = event_type::MOUSE_WHEEL;
-            e.mouse_wheel_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_wheel_event.wheel = mouse::wheel::VERTICAL;
-            e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-            e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
-
-        // Horizontal mouse scroll
-        case WM_MOUSEHWHEEL:
-        {
-            const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-            const math::vec2i mouse_position = window->get_mouse_position();
-
-            event e;
-            e.type = event_type::MOUSE_WHEEL;
-            e.mouse_wheel_event.window_id = window->m_window->m_window->m_state.id;
-            e.mouse_wheel_event.wheel = mouse::wheel::HORIZONTAL;
-            e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-            e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-            e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-            window->post_event(e);
-
-            break;
-        }
+        //case WM_LBUTTONDOWN:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_DOWN;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_LEFT;
+        //    e.mouse_button_event.x = static_cast<int>(LOWORD(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(HIWORD(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Left mouse button up
+        //case WM_LBUTTONUP:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_UP;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_LEFT;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Right mouse button down
+        //case WM_RBUTTONDOWN:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_DOWN;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_RIGHT;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Right mouse button up
+        //case WM_RBUTTONUP:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_UP;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_RIGHT;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Mouse wheel button down
+        //case WM_MBUTTONDOWN:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_DOWN;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Mouse wheel button up
+        //case WM_MBUTTONUP:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_UP;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Extra mouse button down
+        //case WM_XBUTTONDOWN:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_DOWN;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Extra mouse button up
+        //case WM_XBUTTONUP:
+        //{
+        //    event e;
+        //    e.type = event_type::MOUSE_BUTTON_UP;
+        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
+        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Vertical mouse scroll
+        //case WM_MOUSEWHEEL:
+        //{
+        //    const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+        //    const math::vec2i mouse_position = window->get_mouse_position();
+        //
+        //    event e;
+        //    e.type = event_type::MOUSE_WHEEL;
+        //    e.mouse_wheel_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_wheel_event.wheel = mouse::wheel::VERTICAL;
+        //    e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+        //    e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
+        //
+        //// Horizontal mouse scroll
+        //case WM_MOUSEHWHEEL:
+        //{
+        //    const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+        //    const math::vec2i mouse_position = window->get_mouse_position();
+        //
+        //    event e;
+        //    e.type = event_type::MOUSE_WHEEL;
+        //    e.mouse_wheel_event.window_id = window->m_window->m_impl->m_owner->m_id;
+        //    e.mouse_wheel_event.wheel = mouse::wheel::HORIZONTAL;
+        //    e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
+        //    e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
+        //    e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
+        //    window->post_event(e);
+        //
+        //    break;
+        //}
 
         // Mouse move
         case WM_MOUSEMOVE:
         {
-            const math::vec2i new_mouse_position = window->get_mouse_position();
-
-            if (window->m_last_mouse_position != new_mouse_position)
-            {
-                window->m_last_mouse_position = new_mouse_position;
-
-                event e;
-                e.type = event_type::MOUSE_MOVED;
-                e.mouse_motion_event.window_id = window->m_window->m_window->m_state.id;
-                e.mouse_motion_event.x = new_mouse_position.x;
-                e.mouse_motion_event.y = new_mouse_position.y;
-                window->post_event(e);
-
-                // Update the cursor tracking incase the cursor moved outside the window.
-                window->update_mouse_tracking();
-            }
+            //const math::vec2i new_mouse_position = window->get_mouse_position();
+            //
+            //if (window->m_last_mouse_position != new_mouse_position)
+            //{
+            //    window->m_last_mouse_position = new_mouse_position;
+            //
+            //    event e;
+            //    e.type = event_type::MOUSE_MOVED;
+            //    e.mouse_motion_event.window_id = window->m_window->m_window->m_owner->m_id;
+            //    e.mouse_motion_event.x = new_mouse_position.x;
+            //    e.mouse_motion_event.y = new_mouse_position.y;
+            //    window->post_event(e);
+            //
+            //    // Update the cursor tracking incase the cursor moved outside the window.
+            //    window->update_mouse_tracking();
+            //}
 
             break;
         }
@@ -1154,156 +851,134 @@ LRESULT CALLBACK window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wP
         return return_code;
     }
 
-    return DefWindowProcW(hWnd, Msg, wParam, lParam);
+    return DefWindowProc(hWnd, Msg, wParam, lParam);
 }
 
-void window::window_impl::process_events()
+// =============== sync ===============
+
+void video::window::window_impl::sync()
 {
-    MSG Msg;
-
-    while (PeekMessageW(&Msg, NULL, 0u, 0u, PM_REMOVE))
-    {
-        TranslateMessage(&Msg);
-        DispatchMessageW(&Msg);
-    }
-}
-
-void window::window_impl::post_event(const event& e)
-{
-    m_events.push(e);
-}
-
-bool window::window_impl::pop_event(event& e, bool block)
-{
-    if (m_events.empty())
-    {
-        process_events();
-
-        if (block)
-        {
-            // While blocking, sleep in periods of 10 ms while checking for new events
-            while (m_events.empty())
-            {
-                Sleep(10);
-                process_events();
-            }
-        }
-    }
-
-    // If there are any events in the queue return the next one
-    if (!m_events.empty())
-    {
-        e = m_events.front();
-        m_events.pop();
-
-        return true;
-    }
-
-    return false;
+    // Does nothing
 }
 
 // =============== title ===============
 
-std::string window::window_impl::get_title() const
+std::string video::window::window_impl::get_title() const
 {
     // Check the title length
-    int length = GetWindowTextLengthW(m_handle);
+    int length = GetWindowTextLength(m_handle);
 
     // Create a buffer to hold the wide title
     std::wstring wtitle(static_cast<size_t>(length), 0);
-    GetWindowTextW(m_handle, reinterpret_cast<LPWSTR>(wtitle.data()), length);
+    GetWindowText(m_handle, reinterpret_cast<LPWSTR>(wtitle.data()), length);
 
     // Convert the wide string
     return str::wstring_to_string(wtitle);
 }
 
-void window::window_impl::set_title(const std::string& title)
+void video::window::window_impl::set_title(const std::string& title)
 {
-    SetWindowTextW(m_handle, str::string_to_wstring(title).c_str());
+    SetWindowText(m_handle, str::string_to_wstring(title).c_str());
 }
 
 // =============== position and size ===============
 
-math::vec2i window::window_impl::content_position_to_window_position(const math::vec2i& position) const
+math::vec2i video::window::window_impl::content_position_to_window_position(const math::vec2i& position) const
 {
     // We specify a rect with the desired position, then call AdjustWindowRect to
     // which will return a new rect adjusted by the window frame position and size.
     RECT rect = { position.x, position.y, 0, 0 };
-    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtrW(m_handle, GWL_STYLE)), false);
+    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtr(m_handle, GWL_STYLE)), false);
     return math::vec2i(rect.left, rect.top);
 }
 
-math::vec2i window::window_impl::content_size_to_window_size(const math::vec2i& size) const
+math::vec2i video::window::window_impl::content_size_to_window_size(const math::vec2i& size) const
 {
     // We specify a rect with the desired size, then call AdjustWindowRect to
     // which will return a new rect adjusted by the window frame position and size.
     RECT rect = { 0, 0, size.x, size.y };
-    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtrW(m_handle, GWL_STYLE)), false);
+    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtr(m_handle, GWL_STYLE)), false);
     return math::vec2i(rect.right - rect.left, rect.bottom - rect.top);
 }
 
-void window::window_impl::adjust_rect(RECT& rect, window_rect_type rect_type) const
+void video::window::window_impl::adjust_rect_with_style(RECT& rect, window_rect_type rect_type, DWORD style, DWORD ex_style) const
 {
     switch (rect_type)
     {
         case window_rect_type::CURRENT:
         {
-            rect.left = m_state.position.x;
-            rect.top = m_state.position.y;
-            rect.right = m_state.position.x + m_state.size.x;
-            rect.bottom = m_state.position.y + m_state.size.y;
+            rect.left = m_owner->m_position.x;
+            rect.top = m_owner->m_position.y;
+            rect.right = m_owner->m_position.x + m_owner->m_size.x;
+            rect.bottom = m_owner->m_position.y + m_owner->m_size.y;
 
             break;
         }
         case window_rect_type::WINDOWED:
         {
-            rect.left = m_state.windowed.position.x;
-            rect.top = m_state.windowed.position.y;
-            rect.right = m_state.windowed.position.x + m_state.windowed.size.x;
-            rect.bottom = m_state.windowed.position.y + m_state.windowed.size.y;
+            rect.left = m_owner->m_windowed_rect.position.x;
+            rect.top = m_owner->m_windowed_rect.position.y;
+            rect.right = m_owner->m_windowed_rect.position.x + m_owner->m_windowed_rect.size.x;
+            rect.bottom = m_owner->m_windowed_rect.position.y + m_owner->m_windowed_rect.size.y;
 
             break;
         }
         case window_rect_type::FLOATING:
         {
-            rect.left = m_state.floating.position.x;
-            rect.top = m_state.floating.position.y;
-            rect.right = m_state.floating.position.x + m_state.floating.size.x;
-            rect.bottom = m_state.floating.position.y + m_state.floating.size.y;
+            rect.left = m_owner->m_floating_rect.position.x;
+            rect.top = m_owner->m_floating_rect.position.y;
+            rect.right = m_owner->m_floating_rect.position.x + m_owner->m_floating_rect.size.x;
+            rect.bottom = m_owner->m_floating_rect.position.y + m_owner->m_floating_rect.size.y;
 
             break;
         }
     }
 
-    AdjustWindowRectEx(&rect, GetWindowLong(m_handle, GWL_STYLE), FALSE, GetWindowLong(m_handle, GWL_EXSTYLE));
+    AdjustWindowRectEx(&rect, style, FALSE, ex_style);
 }
 
-void window::window_impl::set_position_internal(UINT flags, window_rect_type rect_type)
+void video::window::window_impl::adjust_rect(RECT& rect, window_rect_type rect_type) const
+{
+    adjust_rect_with_style(
+        rect,
+        rect_type,
+        GetWindowLong(m_handle, GWL_STYLE),
+        GetWindowLong(m_handle, GWL_EXSTYLE)
+    );
+}
+
+void video::window::window_impl::set_position_internal(UINT flags, window_rect_type rect_type)
 {
     RECT rect;
     adjust_rect(rect, rect_type);
 
-    HWND top = (m_state.flags & flags::TOPMOST) ? HWND_TOPMOST : HWND_NOTOPMOST;
+    HWND top = (m_owner->m_flags & flags::TOPMOST) ? HWND_TOPMOST : HWND_NOTOPMOST;
 
-    m_state.moving_or_resizing = true;
-    const bool result = SetWindowPos(m_handle, top, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, flags);
-    m_state.moving_or_resizing = false;
+    m_owner->m_moving_or_resizing = true;
+    const bool result = SetWindowPos(
+        m_handle,
+        top,
+        rect.left, rect.top,
+        rect.right - rect.left, rect.bottom - rect.top,
+        flags
+    );
+    m_owner->m_moving_or_resizing = false;
 
     assert(result);
 }
 
-math::vec2i window::window_impl::get_position() const
+math::vec2i video::window::window_impl::get_position() const
 {
     POINT pos{};
     ClientToScreen(m_handle, &pos);
     return math::vec2i(pos.x, pos.y);
 }
 
-void window::window_impl::set_position(const math::vec2i& position)
+void video::window::window_impl::set_position()
 {
-    if (!(m_state.flags & flags::FULLSCREEN))
+    if (!(m_owner->m_flags & flags::FULLSCREEN))
     {
-        if (!(m_state.flags & (flags::MAXIMIZED | flags::MINIMIZED)))
+        if (!(m_owner->m_flags & (flags::MAXIMIZED | flags::MINIMIZED)))
         {
             set_position_internal(SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE, window_rect_type::FLOATING);
         }
@@ -1311,133 +986,222 @@ void window::window_impl::set_position(const math::vec2i& position)
         {
             // window::set_position already set the new floating rect position.
             // We will wait to apply the changes until we are in a valid mode.
-            m_state.adjust_floating_rect = true;
+            m_floating_rect_pending = true;
         }
     }
     else
     {
-        // updatewindowfullscreenmode
+        m_owner->update_fullscreen_mode(true, true);
     }
 }
 
-math::vec2i window::window_impl::get_size() const
+math::vec2i video::window::window_impl::get_size() const
 {
     RECT rect;
     GetClientRect(m_handle, &rect);
     return math::vec2i(rect.right, rect.bottom);
 }
 
-void window::window_impl::set_size(const math::vec2i& size)
+void video::window::window_impl::set_size()
 {
-    const math::vec2i new_size = content_size_to_window_size(size);
-    SetWindowPos(m_handle, NULL, 0, 0, new_size.x, new_size.y, SWP_NOMOVE | SWP_NOZORDER);
+    if (!(m_owner->m_flags & (flags::FULLSCREEN | flags::MAXIMIZED)))
+    {
+        set_position_internal(SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE, window_rect_type::FLOATING);
+    }
+    else
+    {
+        m_floating_rect_pending = true;
+    }
 }
 
-math::vec2i window::window_impl::get_min_size() const
+math::vec2i video::window::window_impl::get_min_size() const
 {
-    return m_min_size;
+    return m_owner->m_min_size;
 }
 
-math::vec2i window::window_impl::get_max_size() const
+math::vec2i video::window::window_impl::get_max_size() const
 {
-    return m_max_size;
+    return m_owner->m_max_size;
 }
 
-void window::window_impl::set_min_size(const math::vec2i& size)
+void video::window::window_impl::set_min_size(const math::vec2i& size)
 {
-    m_min_size = size;
-
-    // Adjust the size to trigger WM_GETMINMAXINFO
-    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    //m_min_size = size;
+    //
+    //// Adjust the size to trigger WM_GETMINMAXINFO
+    //SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
-void window::window_impl::set_max_size(const math::vec2i& size)
+void video::window::window_impl::set_max_size(const math::vec2i& size)
 {
-    m_max_size = size;
-
-    // Adjust the size to trigger WM_GETMINMAXINFO
-    SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+    //m_max_size = size;
+    //
+    //// Adjust the size to trigger WM_GETMINMAXINFO
+    //SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
 }
 
-void window::window_impl::set_resizable(bool resizable)
+void video::window::window_impl::set_resizable(bool resizable)
 {
-    update_style(WS_THICKFRAME | WS_MAXIMIZEBOX, resizable);
-}
-
-bool window::window_impl::is_resizable() const
-{
-    return has_style(WS_THICKFRAME | WS_MAXIMIZEBOX);
+    sync_window_style();
 }
 
 // =============== window ops ===============
 
-void window::window_impl::show()
+void video::window::window_impl::show()
 {
     ShowWindow(m_handle, SW_SHOWNA);
 }
 
-void window::window_impl::minimize()
+void video::window::window_impl::minimize()
 {
     // We need to call show or else we will not receive a WM_SHOWWINDOW message
     ShowWindow(m_handle, SW_MINIMIZE);
 }
 
-bool window::window_impl::is_minimized() const
+bool video::window::window_impl::is_minimized() const
 {
     return IsIconic(m_handle);
 }
 
-void window::window_impl::maximize()
+void video::window::window_impl::maximize()
 {
     // We need to call show or else we will not receive a WM_SHOWWINDOW message
     ShowWindow(m_handle, SW_MAXIMIZE);
 }
 
-bool window::window_impl::is_maximized() const
+bool video::window::window_impl::is_maximized() const
 {
     return IsZoomed(m_handle);
 }
 
-void window::window_impl::restore()
+void video::window::window_impl::restore()
 {
     ShowWindow(m_handle, SW_RESTORE);
 }
 
-bool window::window_impl::is_fullscreen() const
+bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* d)
 {
-    return m_fullscreen;
+    // no-op
+    if (!(m_owner->m_flags & flags::FULLSCREEN) && !fullscreen)
+    {
+        return true;
+    }
+
+    HWND top = is_topmost() ? HWND_TOPMOST : HWND_NOTOPMOST;
+
+    MONITORINFO mi{ sizeof(mi) };
+    if (!GetMonitorInfo(d->m_impl->get_handle(), &mi))
+    {
+        VX_ERROR(error::error_code::PLATFORM_ERROR) << "GetMonitorInfo failed";
+        return false;
+    }
+
+    if (fullscreen)
+    {
+        video::post_window_enter_fullscreen(this->m_owner);
+    }
+    else
+    {
+        video::post_window_leave_fullscreen(this->m_owner);
+    }
+    
+    DWORD style = GetWindowLong(m_handle, GWL_STYLE);
+    DWORD ex_style = GetWindowLong(m_handle, GWL_EXSTYLE);
+
+    // Mask out any resigual style bits and set the new style bits that reflect
+    // the window style changes (to or from fullscreen)
+    style &= ~STYLE_MASK;
+    style |= get_window_style();
+
+    bool maximize_on_exit = false;
+    RECT rect;
+
+    if (fullscreen)
+    {
+        rect = mi.rcMonitor;
+
+        if (style & WS_MAXIMIZE)
+        {
+            m_windowed_mode_was_maximized = true;
+            style &= ~WS_MAXIMIZE;
+        }
+
+        // update corner rounding
+    }
+    else
+    {
+        // restore corner rounding
+
+        // Restore maximized state if window was maximized when entering
+        // fullscreen
+        if (m_windowed_mode_was_maximized && !m_in_window_deactivation)
+        {
+            style |= WS_MAXIMIZE;
+            maximize_on_exit = true;
+        }
+
+        window_rect_type type = m_windowed_mode_was_maximized ? window_rect_type::WINDOWED : window_rect_type::FLOATING;
+        adjust_rect_with_style(rect, type, style, ex_style);
+
+        m_windowed_mode_was_maximized = false;
+    }
+
+    SetWindowLong(m_handle, GWL_STYLE, style);
+
+    m_owner->m_moving_or_resizing = true;
+
+    if (!maximize_on_exit)
+    {
+        SetWindowPos(
+            m_handle,
+            top,
+            rect.left,
+            rect.top,
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_NOCOPYBITS | SWP_NOACTIVATE
+        );
+    }
+    else
+    {
+        maximize();
+    }
+
+    m_owner->m_moving_or_resizing = false;
+
+    return true;
 }
 
-void window::window_impl::focus()
+void video::window::window_impl::focus()
 {
     BringWindowToTop(m_handle);
     SetForegroundWindow(m_handle);
     SetFocus(m_handle);
 }
 
-bool window::window_impl::is_focused() const
+bool video::window::window_impl::is_focused() const
 {
     return m_handle == GetActiveWindow();
 }
 
-void window::window_impl::request_attention()
+void video::window::window_impl::request_attention()
 {
     FlashWindow(m_handle, TRUE);
 }
 
-void window::window_impl::set_topmost(bool enabled)
+void video::window::window_impl::set_topmost(bool enabled)
 {
     set_position_internal(SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE, window_rect_type::CURRENT);
 }
 
-bool window::window_impl::is_topmost() const
+bool video::window::window_impl::is_topmost() const
 {
     return false;
 }
 
 // =============== icon ===============
 
-bool window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
+bool video::window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
 {
     clear_icon();
 
@@ -1466,7 +1230,7 @@ bool window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& siz
 
     // Create the icon
     m_icon = CreateIcon(
-        GetModuleHandleW(NULL),
+        GetModuleHandle(NULL),
         size.x, size.y,
         1,
         32,
@@ -1482,13 +1246,13 @@ bool window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& siz
     }
 
     // Set it as both big and small icon of the window
-    SendMessageW(m_handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_icon));
-    SendMessageW(m_handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_icon));
+    SendMessage(m_handle, WM_SETICON, ICON_BIG, reinterpret_cast<LPARAM>(m_icon));
+    SendMessage(m_handle, WM_SETICON, ICON_SMALL, reinterpret_cast<LPARAM>(m_icon));
 
     return true;
 }
 
-void window::window_impl::clear_icon()
+void video::window::window_impl::clear_icon()
 {
     if (m_icon)
     {
@@ -1499,7 +1263,7 @@ void window::window_impl::clear_icon()
 
 // =============== mouse ===============
 
-void window::window_impl::set_mouse_tracking(bool enabled)
+void video::window::window_impl::set_mouse_tracking(bool enabled)
 {
     TRACKMOUSEEVENT e{ sizeof(e) };
     e.dwFlags = enabled ? TME_LEAVE : TME_CANCEL;
@@ -1508,37 +1272,37 @@ void window::window_impl::set_mouse_tracking(bool enabled)
     TrackMouseEvent(&e);
 }
 
-void window::window_impl::update_mouse_tracking()
+void video::window::window_impl::update_mouse_tracking()
 {
-    if (!is_hovered())
-    {
-        if (m_mouse_inside_window)
-        {
-            m_mouse_inside_window = false;
-            set_mouse_tracking(false);
-
-            //event e;
-            //e.type = event_type::MOUSE_HOVER;
-            //e.mouse_hover.value = false;
-            //post_event(e);
-        }
-    }
-    else
-    {
-        if (!m_mouse_inside_window)
-        {
-            m_mouse_inside_window = true;
-            set_mouse_tracking(true);
-
-            //event e;
-            //e.type = event_type::MOUSE_HOVER;
-            //e.mouse_hover.value = true;
-            //post_event(e);
-        }
-    }
+    //if (!is_hovered())
+    //{
+    //    if (m_mouse_inside_window)
+    //    {
+    //        m_mouse_inside_window = false;
+    //        set_mouse_tracking(false);
+    //
+    //        //event e;
+    //        //e.type = event_type::MOUSE_HOVER;
+    //        //e.mouse_hover.value = false;
+    //        //post_event(e);
+    //    }
+    //}
+    //else
+    //{
+    //    if (!m_mouse_inside_window)
+    //    {
+    //        m_mouse_inside_window = true;
+    //        set_mouse_tracking(true);
+    //
+    //        //event e;
+    //        //e.type = event_type::MOUSE_HOVER;
+    //        //e.mouse_hover.value = true;
+    //        //post_event(e);
+    //    }
+    //}
 }
 
-math::vec2i window::window_impl::get_mouse_position() const
+math::vec2i video::window::window_impl::get_mouse_position() const
 {
     POINT point;
     GetCursorPos(&point);
@@ -1546,42 +1310,44 @@ math::vec2i window::window_impl::get_mouse_position() const
     return math::vec2i(point.x, point.y);
 }
 
-void window::window_impl::set_mouse_position(const math::vec2i& position)
+void video::window::window_impl::set_mouse_position(const math::vec2i& position)
 {
     POINT point = { position.x, position.y };
     ClientToScreen(m_handle, &point);
     SetCursorPos(point.x, point.y);
 }
 
-bool window::window_impl::is_hovered() const
+bool video::window::window_impl::is_hovered() const
 {
-    if (!m_visible)
-    {
-        return false;
-    }
-
-    POINT point;
-    if (!GetCursorPos(&point))
-    {
-        return false;
-    }
-
-    RECT rect;
-    ScreenToClient(m_handle, &point);
-    GetClientRect(m_handle, &rect);
-
-    return PtInRect(&rect, point);
+    //if (!m_visible)
+    //{
+    //    return false;
+    //}
+    //
+    //POINT point;
+    //if (!GetCursorPos(&point))
+    //{
+    //    return false;
+    //}
+    //
+    //RECT rect;
+    //ScreenToClient(m_handle, &point);
+    //GetClientRect(m_handle, &rect);
+    //
+    //return PtInRect(&rect, point);
+    return false;
 }
 
-bool window::window_impl::get_cursor_visibility() const
+bool video::window::window_impl::get_cursor_visibility() const
 {
-    return m_cursor_visible;
+    //return m_cursor_visible;
+    return true;
 }
 
-void window::window_impl::set_cursor_visibility(bool visible)
+void video::window::window_impl::set_cursor_visibility(bool visible)
 {
-    m_cursor_visible = visible;
-    SetCursor(m_cursor_visible ? m_last_cursor : NULL);
+    //m_cursor_visible = visible;
+    //SetCursor(m_cursor_visible ? m_last_cursor : NULL);
 }
 
 //cursor window::window_impl::get_cursor() const
@@ -1604,12 +1370,13 @@ void window::window_impl::set_cursor_visibility(bool visible)
 //    return false;
 //}
 
-bool window::window_impl::is_cursor_grabbed() const
+bool video::window::window_impl::is_cursor_grabbed() const
 {
-    return m_cursor_grabbed;
+    //return m_cursor_grabbed;
+    return false;
 }
 
-void window::window_impl::set_cursor_grabbed(bool grabbed)
+void video::window::window_impl::set_cursor_grabbed(bool grabbed)
 {
     if (grabbed)
     {
@@ -1624,6 +1391,5 @@ void window::window_impl::set_cursor_grabbed(bool grabbed)
     }
 }
 
-}
 }
 }

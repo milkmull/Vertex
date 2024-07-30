@@ -2,50 +2,48 @@
 
 #include "vertex/system/error.h"
 
+#include "vertex/app/event/event.h"
 #include "vertex/app/video/window.h"
-
-#include "vertex/math/random/rng.h"
 
 int main()
 {
     using namespace vx::app;
 
-    vx::math::rng rng;
-
+    vx::app::event e;
     video::init();
 
-    vx::app::event e;
+    const video::display* d = video::get_primary_display();
 
-    video::display* d = video::get_primary_display();
-
-    auto& modes = d->list_modes();
-    video::display_mode mode = rng.choice(modes.begin(), modes.end());
-
-    d->set_mode(mode);
+    video::window_config config;
+    config.size = vx::math::vec2i(100);
+    config.center_on_display = true;
+    config.title = "window";
+    config.resizable = true;
+    video::window* w = video::create_window(config);
 
     while (true)
     {
-        vx::app::video::update_displays();
+        //vx::app::video::update_displays();
 
         if (vx::app::event::poll_event(e))
         {
             switch (e.type)
             {
-                case event_type::DISPLAY_ADDED:
-                {
-                    std::cout << "Display Added: " << e.display_event.display_id << std::endl;
-                    break;
-                }
-                case event_type::DISPLAY_REMOVED:
-                {
-                    std::cout << "Display Removed: " << e.display_event.display_id << std::endl;
-                    break;
-                }
-                case event_type::DISPLAY_MOVED:
-                {
-                    std::cout << "Display Moved: " << e.display_event.display_id << std::endl;
-                    break;
-                }
+                //case event_type::DISPLAY_ADDED:
+                //{
+                //    std::cout << "Display Added: " << e.display_event.display_id << std::endl;
+                //    break;
+                //}
+                //case event_type::DISPLAY_REMOVED:
+                //{
+                //    std::cout << "Display Removed: " << e.display_event.display_id << std::endl;
+                //    break;
+                //}
+                //case event_type::DISPLAY_MOVED:
+                //{
+                //    std::cout << "Display Moved: " << e.display_event.display_id << std::endl;
+                //    break;
+                //}
                 default:
                 {
                     break;

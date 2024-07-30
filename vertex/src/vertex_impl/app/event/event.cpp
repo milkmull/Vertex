@@ -43,11 +43,13 @@ bool event::has_event(event_type type)
     return found;
 }
 
-void event::post_event(const event& e)
+bool event::post_event(const event& e)
 {
     s_mutex.lock();
     s_events.push_back(e);
     s_mutex.unlock();
+
+    return true;
 }
 
 bool event::poll_event(event& e)

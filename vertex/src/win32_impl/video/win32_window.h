@@ -5,17 +5,19 @@
 
 namespace vx {
 namespace app {
-namespace video {
 
-class window::window_impl
+class video::window::window_impl
 {
+    friend video;
     friend window;
 
 public:
 
     // =============== constructors ===============
 
-    window_impl(window* window, const state_data& state);
+    static void create(window& w);
+
+    window_impl(window* w);
     ~window_impl();
 
     window_impl(const window_impl&) = delete;
@@ -26,37 +28,28 @@ public:
 
 private:
 
-    bool create_window();
-    void setup_data();
-    void on_destroy();
-
-public:
-
-    bool is_open() const;
-
-private:
-
     // =============== style ===============
 
     DWORD get_window_style() const;
     DWORD get_window_ex_style() const;
+    void sync_window_style();
 
 public:
 
     void update_style(int flags, bool enable);
     bool has_style(int flag) const;
 
-private:
+public:
 
     // =============== events ===============
 
     static LRESULT CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-    void process_events();
 
 public:
 
-    void post_event(const event& e);
-    bool pop_event(event& e, bool block);
+    // =============== sync ===============
+
+    void sync();
 
     // =============== title ===============
 
@@ -72,14 +65,15 @@ private:
 
 public:
 
+    void adjust_rect_with_style(RECT& rect, window_rect_type rect_type, DWORD style, DWORD ex_style) const;
     void adjust_rect(RECT& rect, window_rect_type rect_type) const;
     void set_position_internal(UINT flags, window_rect_type rect_type);
 
     math::vec2i get_position() const;
-    void set_position(const math::vec2i& position);
+    void set_position();
 
     math::vec2i get_size() const;
-    void set_size(const math::vec2i& size);
+    void set_size();
 
 public:
 
@@ -90,7 +84,6 @@ public:
     void set_max_size(const math::vec2i& size);
 
     void set_resizable(bool resizable);
-    bool is_resizable() const;
 
     // =============== window ops ===============
 
@@ -104,7 +97,7 @@ public:
 
     void restore();
 
-    bool is_fullscreen() const;
+    bool set_fullscreen(bool fullscreen, const display* d);
 
     void focus();
     bool is_focused() const;
@@ -144,50 +137,30 @@ public:
 
 private:
 
-    window* m_window;
+    window* m_owner;
     HWND m_handle;
-
-    state_data m_state;
-
-    std::queue<event> m_events;
-
-    bool m_borderless;
-    bool m_visible;
-    bool m_focussed;
-    bool m_floating;
-
-    bool m_resizable;
-    bool m_minimized;
-    bool m_maximized;
-
-    bool m_fullscreen;
-    const video::display* m_fullscreen_display;
-    video::display_mode m_fullscreen_mode;
-
-    bool m_scale_to_monitor;
-    bool m_scale_framebuffer;
-
-    bool m_mouse_passthrough;
-
-    bool m_resizing_or_moving;
-    math::vec2i m_last_size;
-    math::vec2i m_last_position;
-
-    math::vec2i m_min_size;
-    math::vec2i m_max_size;
-
-    math::vec2i m_last_mouse_position;
-    bool m_mouse_inside_window;
-
-    //cursor m_last_cursor_object;
-    HCURSOR m_last_cursor;
-    bool m_cursor_visible;
-    bool m_cursor_grabbed;
-
     HICON m_icon;
+
+    // Used to indicate when the position or size of the window should
+    // change to match that of the floating rect after exiting a special
+    // state such as fullscreen or maximized.
+    bool m_floating_rect_pending;
+
+    // Used to indicate when the window was maximized before entering a new
+    // state such as fullscreen. When the window is restored, if this flag
+    // is set, it will return to a maximized state.
+    bool m_windowed_mode_was_maximized;
+
+    // True when losing focus
+    bool m_in_window_deactivation;
+
+    // True after clearing the contents of the window
+    bool m_cleared;
+
+    //bool m_windowed_mode_corner_rounding;
+    //COLORREF m_dwma_border_color;
 
 };
 
-}
 }
 }

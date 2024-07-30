@@ -1,193 +1,336 @@
-#include "vertex/config.h"
-#include "vertex_impl/app/video/video.h"
 #include "vertex/app/video/window.h"
+#include "vertex/app/event/event.h"
 
 #if defined(VX_SYSTEM_WINDOWS)
 
 #include "win32_impl/video/win32_video.h"
+#include "win32_impl/video/win32_window.h"
 
 #endif
 
 namespace vx {
 namespace app {
-namespace video {
 
-display_mode::display_mode()
+///////////////////////////////////////////////////////////////////////////////
+// display_mode
+///////////////////////////////////////////////////////////////////////////////
+
+video::display_mode::display_mode()
     : bpp(0)
     , pixel_format(pixel::pixel_format::PIXEL_FORMAT_UNKNOWN)
     , pixel_density(0.0f)
-    , refresh_rate(0.0f) {}
+    , refresh_rate(0.0f)
+    , m_display_id(0) {}
 
-display_mode::display_mode(const display_mode& dm)
+video::display_mode::display_mode(const display_mode& dm)
     : resolution(dm.resolution)
     , bpp(dm.bpp)
     , pixel_format(dm.pixel_format)
     , pixel_density(dm.pixel_density)
     , refresh_rate(dm.refresh_rate)
-    , m_impl(std::make_unique<display_mode_impl>(*dm.m_impl)) {}
+    , m_display_id(dm.m_display_id)
+    , m_impl(std::make_unique<display_mode_impl>(*dm.m_impl))
+{
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+}
 
-display_mode::display_mode(display_mode&& dm) noexcept
+
+video::display_mode::display_mode(display_mode&& dm) noexcept
     : resolution(dm.resolution)
     , bpp(dm.bpp)
     , pixel_format(dm.pixel_format)
     , pixel_density(dm.pixel_density)
     , refresh_rate(dm.refresh_rate)
-    , m_impl(std::move(dm.m_impl)) {}
+    , m_display_id(dm.m_display_id)
+    , m_impl(std::move(dm.m_impl))
+{
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+}
 
-display_mode::~display_mode() {}
+video::display_mode::~display_mode() {}
 
-display_mode& display_mode::operator=(const display_mode& dm)
+video::display_mode& video::display_mode::operator=(const display_mode& dm)
 {
     resolution = dm.resolution;
     bpp = dm.bpp;
     pixel_format = dm.pixel_format;
     pixel_density = dm.pixel_density;
     refresh_rate = dm.refresh_rate;
-    m_impl = std::make_unique<display_mode_impl>(*dm.m_impl);
+    m_display_id = dm.m_display_id;
+
+    if (dm.m_impl)
+    {
+        m_impl = std::make_unique<display_mode_impl>(*dm.m_impl);
+        m_impl->m_owner = this;
+    }
+
     return *this;
 }
 
-display_mode& display_mode::operator=(display_mode&& dm) noexcept
+video::display_mode& video::display_mode::operator=(display_mode&& dm) noexcept
 {
     resolution = dm.resolution;
     bpp = dm.bpp;
     pixel_format = dm.pixel_format;
     pixel_density = dm.pixel_density;
     refresh_rate = dm.refresh_rate;
+    m_display_id = dm.m_display_id;
+
     m_impl = std::move(dm.m_impl);
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+
     return *this;
 }
 
-bool display_mode::operator==(const display_mode& dm) const
+bool video::display_mode::compare(const display_mode& mode1, const display_mode& mode2)
 {
-    return resolution == dm.resolution
-        && bpp == dm.bpp
-        && pixel_format == dm.pixel_format
-        && refresh_rate == dm.refresh_rate;
+    return mode1.resolution == mode2.resolution
+        && mode1.bpp == mode2.bpp
+        && mode1.pixel_format == mode2.pixel_format
+        && mode1.pixel_density == mode2.pixel_density
+        && mode1.refresh_rate == mode2.refresh_rate;
 }
 
-bool display_mode::operator!=(const display_mode& dm) const
+///////////////////////////////////////////////////////////////////////////////
+// display
+///////////////////////////////////////////////////////////////////////////////
+
+video::display::display()
+    : m_id(0)
+    , m_orientation(display_orientation::UNKNOWN)
+    , m_fullscreen_window_id(0) {}
+
+video::display::display(const display& d)
+    : m_id(0)
+    , m_orientation(display_orientation::UNKNOWN)
+    , m_fullscreen_window_id(0)
+    , m_impl(std::make_unique<display_impl>(*d.m_impl))
 {
-    return !((*this) == dm);
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
 }
 
-//===========================================================================
-
-display::display() {}
-
-display::display(const display& d)
-    : m_impl(std::make_unique<display_impl>(*d.m_impl)) {}
-
-display::display(display&& d) noexcept
-    : m_impl(std::move(d.m_impl)) {}
-
-display::~display() {}
-
-display& display::operator=(const display& d)
+video::display::display(display&& d) noexcept
+    : m_id(d.m_id)
+    , m_name(std::move(d.m_name))
+    , m_desktop_mode(std::move(d.m_desktop_mode))
+    , m_current_mode(std::move(d.m_current_mode))
+    , m_modes(std::move(d.m_modes))
+    , m_orientation(d.m_orientation)
+    , m_content_scale(d.m_content_scale)
+    , m_fullscreen_window_id(d.m_fullscreen_window_id)
+    , m_impl(std::move(d.m_impl))
 {
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+}
+
+video::display::~display() {}
+
+video::display& video::display::operator=(const display& d)
+{
+    m_id = d.m_id;
+    m_name = d.m_name;
+    m_desktop_mode = d.m_desktop_mode;
+    m_current_mode = d.m_current_mode;
+    m_modes = d.m_modes;
+    m_orientation = d.m_orientation;
+    m_content_scale = d.m_content_scale;
+    m_fullscreen_window_id = d.m_fullscreen_window_id;
+
     m_impl = std::make_unique<display_impl>(*d.m_impl);
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+
     return *this;
 }
 
-display& display::operator=(display&& d) noexcept
+video::display& video::display::operator=(display&& d) noexcept
 {
+    m_id = d.m_id;
+    m_name = std::move(d.m_name);
+    m_desktop_mode = std::move(d.m_desktop_mode);
+    m_current_mode = std::move(d.m_current_mode);
+    m_modes = std::move(d.m_modes);
+    m_orientation = d.m_orientation;
+    m_content_scale = d.m_content_scale;
+    m_fullscreen_window_id = d.m_fullscreen_window_id;
+
     m_impl = std::move(d.m_impl);
+    if (m_impl)
+    {
+        m_impl->m_owner = this;
+    }
+
     return *this;
 }
 
-device_id display::id() const
+device_id video::display::id() const
 {
-    return m_impl->data.id;
+    return m_id;
 }
 
-const std::string& display::name() const
+const std::string& video::display::name() const
 {
-    return m_impl->data.name;
+    return m_name;
 }
 
-const display_mode& display::get_desktop_mode() const
+const video::display_mode& video::display::get_desktop_mode() const
 {
-    return m_impl->data.desktop_mode;
-}
-
-const display_mode& display::get_mode() const
-{
-    return m_impl->data.current_mode;
-}
-
-bool display::set_mode(display_mode& mode) const
-{
-    bool found = false;
-
-    for (const display_mode& m : m_impl->data.modes)
+    if (m_modes.empty())
     {
-        if (m == mode)
-        {
-            mode = m;
-            found = true;
-            break;
-        }
+        m_impl->list_display_modes();
     }
 
-    if (!found)
+    return m_desktop_mode;
+}
+
+const video::display_mode& video::display::get_current_mode() const
+{
+    if (m_modes.empty())
     {
-        // requested mode is not supported by this display
-        return false;
+        m_impl->list_display_modes();
     }
 
-    if (m_impl->data.current_mode == mode)
+    return m_current_mode;
+}
+
+bool video::display::set_current_mode(display_mode& mode)
+{
+    const display_mode& current_mode = get_current_mode();
+
+    if (display_mode::compare(current_mode, mode))
     {
         // already set
+        mode = current_mode;
         return true;
     }
 
+    if (!find_mode(mode))
+    {
+        return false;
+    }
+
+    s_video_data.setting_display_mode = true;
     bool set = m_impl->set_display_mode(mode);
+    s_video_data.setting_display_mode = false;
+
     if (set)
     {
-        m_impl->data.current_mode = mode;
+        mode.m_display_id = id();
+        post_display_current_mode_changed(this, mode);
     }
 
     return set;
 }
 
-const std::vector<display_mode>& display::list_modes() const
+void video::display::clear_mode()
 {
-    if (m_impl->data.modes.empty())
+    display_mode mode = get_desktop_mode();
+    set_current_mode(mode);
+}
+
+const std::vector<video::display_mode>& video::display::list_modes() const
+{
+    if (m_modes.empty())
     {
         m_impl->list_display_modes();
     }
 
-    return m_impl->data.modes;
+    return m_modes;
 }
 
-bool display::has_mode(const display_mode& mode) const
+const video::display_mode* video::display::find_mode(const display_mode& mode) const
 {
-    for (const display_mode& m : m_impl->data.modes)
+    for (const display_mode& m : m_modes)
     {
-        if (m == mode) return true;
+        if (display_mode::compare(m, mode))
+        {
+            return &m;
+        }
     }
 
-    return false;
+    return nullptr;
 }
 
-display_orientation display::get_orientation() const
+const video::display_mode* video::display::find_closest_mode(int width, int height, float refresh_rate) const
 {
-    return m_impl->data.orientation;
+    float aspect_ratio = (height > 0) ? (static_cast<float>(width) / height) : 1.0f;
+    if (refresh_rate <= 0.0f)
+    {
+        refresh_rate = get_desktop_mode().refresh_rate;
+    }
+
+    const display_mode* closest_mode = nullptr;
+
+    for (const display_mode& mode : list_modes())
+    {
+        if (width > mode.resolution.x)
+        {
+            break;
+        }
+        if (height > mode.resolution.y)
+        {
+            continue;
+        }
+        if (mode.pixel_density != 1.0f)
+        {
+            continue;
+        }
+        if (closest_mode)
+        {
+            float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / mode.resolution.y;
+            float closest_mode_aspect_ratio = static_cast<float>(closest_mode->resolution.x) / closest_mode->resolution.y;
+            if (math::abs(aspect_ratio - closest_mode_aspect_ratio) < math::abs(aspect_ratio - current_mode_aspect_ratio))
+            {
+                continue;
+            }
+            if ((mode.resolution == closest_mode->resolution) &&
+                (math::abs(refresh_rate - closest_mode->refresh_rate) < math::abs(refresh_rate - mode.refresh_rate)))
+            {
+                continue;
+            }
+        }
+
+        closest_mode = &mode;
+    }
+
+    return closest_mode;
 }
 
-const math::vec2& display::get_content_scale() const
+video::display_orientation video::display::get_orientation() const
 {
-    return m_impl->data.content_scale;
+    return m_orientation;
 }
 
-math::recti display::get_bounds() const
+const math::vec2& video::display::get_content_scale() const
+{
+    return m_content_scale;
+}
+
+math::recti video::display::get_bounds() const
 {
     math::recti bounds;
     m_impl->get_bounds(bounds);
     return bounds;
 }
 
-math::recti display::get_work_area() const
+math::recti video::display::get_work_area() const
 {
     math::recti work_area;
     m_impl->get_work_area(work_area);
@@ -198,8 +341,13 @@ math::recti display::get_work_area() const
 // video
 ///////////////////////////////////////////////////////////////////////////////
 
-bool init()
+bool video::init()
 {
+    if (s_video_data.is_init)
+    {
+        quit();
+    }
+
     if (!video_impl::init())
     {
         return false;
@@ -214,56 +362,71 @@ bool init()
     return true;
 }
 
-void quit()
+void video::quit()
 {
+    // Destroy any existing windows
+    auto it = s_video_data.windows.begin();
+    while (it != s_video_data.windows.end())
+    {
+        it = s_video_data.windows.erase(it);
+    }
+
     video_impl::quit();
 }
 
-process_dpi_awareness get_dpi_awareness()
+video::process_dpi_awareness video::get_dpi_awareness()
 {
     return video_impl::get_dpi_awareness();
 }
 
-void update_displays()
+video::system_theme video::get_system_theme()
 {
-    display::display_impl::update_displays(s_video_data.displays);
+    return video_impl::get_system_theme();
 }
 
-const display* get_display(device_id id)
+void video::update_displays()
 {
-    for (const auto& d : s_video_data.displays)
+    video_impl::update_displays(s_video_data.displays);
+}
+
+video::display* video::get_display(device_id id)
+{
+    for (display& d : s_video_data.displays)
     {
-        if (d->id() == id) return d.get();
+        if (d.id() == id)
+        {
+            return &d;
+        }
     }
 
     return nullptr;
 }
 
-display* get_primary_display()
+video::display* video::get_primary_display()
 {
-    return !s_video_data.displays.empty() ? s_video_data.displays.front().get() : nullptr;
+    return !s_video_data.displays.empty() ? &s_video_data.displays.front() : nullptr;
 }
 
-std::vector<const display*> list_displays()
+std::vector<video::display*> video::list_displays()
 {
-    std::vector<const display*> displays(s_video_data.displays.size());
+    std::vector<display*> displays(s_video_data.displays.size());
 
     for (size_t i = 0; i < s_video_data.displays.size(); ++i)
     {
-        displays[i] = s_video_data.displays[i].get();
+        displays[i] = &s_video_data.displays[i];
     }
 
     return displays;
 }
 
-const display* get_display_for_point(const math::vec2i& p)
+video::display* video::get_display_for_point(const math::vec2i& p)
 {
-    const display* closest = nullptr;
-    int32_t closest_dist = 0x7FFFFFFF;
+    display* closest = nullptr;
+    int32_t closest_dist = std::numeric_limits<int32_t>::max();
 
-    for (const auto& d : s_video_data.displays)
+    for (display& d : s_video_data.displays)
     {
-        math::recti bounds(d->get_bounds());
+        math::recti bounds = d.get_bounds();
         if (bounds.empty())
         {
             continue;
@@ -271,7 +434,7 @@ const display* get_display_for_point(const math::vec2i& p)
 
         if (math::contains(bounds, p))
         {
-            return d.get();
+            return &d;
         }
 
         math::vec2i c = bounds.clip(p);
@@ -280,7 +443,7 @@ const display* get_display_for_point(const math::vec2i& p)
         int32_t dist = (pc.x * pc.x) + (pc.y * pc.y);
         if (dist < closest_dist)
         {
-            closest = d.get();
+            closest = &d;
             closest_dist = dist;
         }
     }
@@ -288,67 +451,596 @@ const display* get_display_for_point(const math::vec2i& p)
     return closest;
 }
 
-const display* get_display_for_rect(const math::recti& rect)
+video::display* video::get_display_for_rect(const math::recti& rect)
 {
     return get_display_for_point(rect.center());
 }
 
-const display* get_display_for_window_position(const window* window)
+video::display* video::get_display_for_window_position(const window* w)
 {
-    /* Fullscreen windows may be larger than the display if they were moved between differently sized
-     * displays and the new position was received before the new size or vice versa. Using the center
-     * of the window rect in this case can report the wrong display, so use the origin.
-     */
+    display* d = nullptr;
 
-    const display* d = nullptr;
-
-    // In some cases, fullscreen windows may be larger than the display if they
-    // were moved between differently sized displays. In this case getting the
-    // display from the center of the image may give the incorrect display, so
-    // we use the topleft of the window instead.
-
-    if (window->is_fullscreen())
+    if (w)
     {
-        d = get_display_for_point(window->get_position());
-    }
-    else
-    {
-        d = get_display_for_rect(window->get_rect());
-    }
+        // In some cases, fullscreen windows may be larger than the display if they
+        // were moved between differently sized displays. In this case getting the
+        // display from the center of the image may give the incorrect display, so
+        // we use the topleft of the window instead.
+        if (w->is_fullscreen())
+        {
+            d = get_display_for_point(w->get_position());
+        }
+        else
+        {
+            d = get_display_for_rect(w->get_rect());
+        }
 
-    // The primary display is a good default
-
-    if (!d)
-    {
-        d = get_primary_display();
+        // The primary display is a good default
+        if (!d)
+        {
+            d = get_primary_display();
+        }
     }
 
     return d;
 }
 
-const display* get_display_for_window(const window* window)
+video::display* video::get_display_for_fullscreen_window(const window* w)
 {
-    return nullptr;
+    if (!w)
+    {
+        return nullptr;
+    }
+
+    display* d = nullptr;
+
+    if (w->m_current_fullscreen_mode.m_display_id)
+    {
+        d = get_display(w->m_current_fullscreen_mode.m_display_id);
+    }
+    else
+    {
+        if (w->is_fullscreen() && !w->m_moving_or_resizing)
+        {
+            // If we are currently just a regular fullscreen window, we can use
+            // the position
+            d = get_display_for_point(w->m_position);
+        }
+        else
+        {
+            // In some cases, the actual position of the window may be not
+            // fully set at this time. In this case we will use the floating
+            // position which should contain the most up-to-date position of
+            // the window as of this call.
+            d = get_display_for_rect(w->m_floating_rect);
+        }
+
+        if (!d)
+        {
+            d = get_primary_display();
+        }
+    }
+
+    return d;
 }
 
-math::recti get_desktop_area()
+video::display* video::get_display_for_window(const window* w)
+{
+    display* d = nullptr;
+
+    if (w)
+    {
+        if (w->is_fullscreen())
+        {
+            d = get_display(w->m_current_fullscreen_mode.m_display_id);
+        }
+
+        if (!d)
+        {
+            d = get_display_for_window_position(w);
+        }
+    }
+
+    return d;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// window display
+///////////////////////////////////////////////////////////////////////////////
+
+void video::check_window_display_changed(window* w)
+{
+    if (!w)
+    {
+        return;
+    }
+
+    if (!(s_video_data.video_caps & caps::SEND_DISPLAY_CHANGES))
+    {
+        return;
+    }
+
+    display* new_display = get_display_for_window_position(w);
+    if (!new_display)
+    {
+        // Should never happen
+        return;
+    }
+
+    device_id window_id = w->id();
+
+    device_id new_window_display_id = new_display->id();
+    device_id old_window_display_id = w->m_last_display_id;
+
+    device_id new_display_fullscreen_window_id = new_display->m_fullscreen_window_id;
+
+    if (new_window_display_id != old_window_display_id)
+    {
+        for (display& d : s_video_data.displays)
+        {
+            device_id display_id = d.id();
+            device_id display_fullscreen_window_id = d.m_fullscreen_window_id;
+
+            if (display_fullscreen_window_id == window_id)
+            {
+                if (display_id != new_window_display_id)
+                {
+                    // We found an old display that still has the window set as
+                    // its fullscreen window
+
+                    if (new_display_fullscreen_window_id && new_display_fullscreen_window_id != window_id)
+                    {
+                        // If the new display already has a fullscreen window, minimize it
+
+                        window* ow = get_window(new_display_fullscreen_window_id);
+                        if (ow)
+                        {
+                            ow->minimize();
+                        }
+                    }
+
+                    new_display->m_fullscreen_window_id = window_id;
+                    d.m_fullscreen_window_id = 0;
+                }
+
+                break;
+            }
+        }
+
+        post_window_display_changed(w, new_display);
+    }
+}
+
+math::recti video::get_desktop_area()
 {
     math::recti area;
 
-    for (const auto& d : s_video_data.displays)
+    for (const display& d : s_video_data.displays)
     {
-        area = math::recti::merge(area, d->get_bounds());
+        area = math::recti::merge(area, d.get_bounds());
     }
 
     return area;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+video::window* video::create_window(const window_config& config)
+{
+    window w(config);
+
+    if (!w.m_impl)
+    {
+        return nullptr;
+    }
+
+    s_video_data.windows.push_back(std::move(w));
+    return &s_video_data.windows.back();
+}
+
+void video::destroy_window(window* w)
+{
+    if (!w)
+    {
+        return;
+    }
+
+    w->m_destroying = true;
+
+    post_window_destroyed(w);
+
+    w->update_fullscreen_mode(false, true);
+    //w->hide();
+
+    // Make sure no displays reference the window
+    for (display& d : s_video_data.displays)
+    {
+        if (d.m_fullscreen_window_id == w->id())
+        {
+            d.m_fullscreen_window_id = 0;
+        }
+    }
+
+    // Kill focus
+
+    for (auto it = s_video_data.windows.begin(); it != s_video_data.windows.end(); ++it)
+    {
+        if (it->id() == w->id())
+        {
+            s_video_data.windows.erase(it);
+            break;
+        }
+    }
+}
+
+video::window* video::get_window(device_id id)
+{
+    for (window& w : s_video_data.windows)
+    {
+        if (w.id() == id)
+        {
+            return &w;
+        }
+    }
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// display events
+///////////////////////////////////////////////////////////////////////////////
+
+bool video::post_display_added(const display* d)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    event e;
+    e.type = event_type::DISPLAY_ADDED;
+    e.display_added.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    on_display_added();
+
+    return posted;
+}
+
+void video::on_display_added()
+{
+    for (window& w : s_video_data.windows)
+    {
+        check_window_display_changed(&w);
+    }
+}
+
+bool video::post_display_removed(const display* d)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    event e;
+    e.type = event_type::DISPLAY_REMOVED;
+    e.display_removed.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_display_moved(const display* d)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    event e;
+    e.type = event_type::DISPLAY_MOVED;
+    e.display_moved.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_display_orientation_changed(display* d, display_orientation orientation)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    if (orientation == display_orientation::UNKNOWN || d->get_orientation() == orientation)
+    {
+        return false;
+    }
+
+    d->m_orientation = orientation;
+
+    event e;
+    e.type = event_type::DISPLAY_ORIENTATION_CHANGED;
+    e.display_orientation_changed.display_id = d->id();
+    e.display_orientation_changed.orientation = orientation;
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_display_desktop_mode_changed(display* d, const display_mode& mode)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    if (display_mode::compare(mode, d->get_desktop_mode()))
+    {
+        return false;
+    }
+
+    d->m_desktop_mode = mode;
+
+    event e;
+    e.type = event_type::DISPLAY_DESKTOP_MODE_CHANGED;
+    e.display_desktop_mode_changed.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_display_current_mode_changed(display* d, const display_mode& mode)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    if (display_mode::compare(mode, d->get_current_mode()))
+    {
+        return false;
+    }
+
+    d->m_current_mode = mode;
+
+    event e;
+    e.type = event_type::DISPLAY_CURRENT_MODE_CHANGED;
+    e.display_current_mode_changed.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_display_content_scale_changed(display* d, const math::vec2& content_scale)
+{
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    if (d->get_content_scale() == content_scale)
+    {
+        return false;
+    }
+
+    d->m_content_scale = content_scale;
+
+    event e;
+    e.type = event_type::DISPLAY_CONTENT_SCALE_CHANGED;
+    e.display_content_scale_changed.display_id = d->id();
+    e.display_content_scale_changed.x = content_scale.x;
+    e.display_content_scale_changed.y = content_scale.y;
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// window events
+///////////////////////////////////////////////////////////////////////////////
+
+bool video::post_window_shown(window* w)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    if (!(w->m_flags & window::flags::HIDDEN))
+    {
+        return false;
+    }
+
+    w->m_flags &= ~(window::flags::HIDDEN | window::flags::MINIMIZED);
+
+    event e;
+    e.type = event_type::WINDOW_SHOWN;
+    e.window_shown.window_id = w->m_id;
+    bool posted = event::post_event(e);
+
+    on_window_shown(w);
+    return posted;
+}
+
+void video::on_window_shown(window* w)
+{
+    if (!w)
+    {
+        return;
+    }
+
+    w->apply_flags(w->m_pending_flags);
+    w->m_pending_flags = window::flags::NONE;
+}
+
+bool video::post_window_resized(window* w, const math::vec2i& size)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    if (!w->is_fullscreen())
+    {
+        w->m_windowed_rect.size = size;
+        if (!w->is_maximized() || w->m_tiled)
+        {
+            w->m_floating_rect.size = size;
+        }
+    }
+
+    if (size == w->m_size)
+    {
+        return false;
+    }
+
+    w->m_size = size;
+
+    event e;
+    e.type = event_type::WINDOW_RESIZED;
+    e.window_resized.window_id = w->m_id;
+    e.window_resized.w = size.x;
+    e.window_resized.h = size.y;
+    bool posted = event::post_event(e);
+
+    on_window_resized(w);
+    return posted;
+}
+
+void video::on_window_resized(window* w)
+{
+    if (!w)
+    {
+        return;
+    }
+
+    check_window_display_changed(w);
+
+    // udate window shape
+}
+
+bool video::post_window_enter_fullscreen(window* w)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    if (w->m_flags & window::flags::FULLSCREEN)
+    {
+        return false;
+    }
+
+    w->m_flags |= window::flags::FULLSCREEN;
+
+    event e;
+    e.type = event_type::WINDOW_ENTER_FULLSCREEN;
+    e.window_enter_fullscreen.window_id = w->m_id;
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_window_leave_fullscreen(window* w)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    if (!(w->m_flags & window::flags::FULLSCREEN))
+    {
+        return false;
+    }
+
+    w->m_flags &= ~window::flags::FULLSCREEN;
+
+    event e;
+    e.type = event_type::WINDOW_LEAVE_FULLSCREEN;
+    e.window_leave_fullscreen.window_id = w->m_id;
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+bool video::post_window_display_changed(window* w, display* d)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    if (w->id() == 0)
+    {
+        return false;
+    }
+
+    if (!d || d->id() == 0)
+    {
+        return false;
+    }
+
+    if (w->m_last_display_id == d->id())
+    {
+        return false;
+    }
+
+    w->m_last_display_id = d->id();
+
+    event e;
+    e.type = event_type::WINDOW_DISPLAY_CHANGED;
+    e.window_display_changed.window_id = w->id();
+    e.window_display_changed.display_id = d->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+void video::on_window_display_changed(window* w, display* d)
+{
+    if (!w)
+    {
+        return;
+    }
+
+    if (w->is_fullscreen())
+    {
+        const display_mode* new_mode = nullptr;
+
+        if (w->m_requested_fullscreen_mode_set)
+        {
+            new_mode = d->find_closest_mode(
+                w->m_requested_fullscreen_mode.resolution.x,
+                w->m_requested_fullscreen_mode.resolution.y,
+                w->m_requested_fullscreen_mode.refresh_rate
+            );
+        }
+        
+        w->update_fullscreen_mode(static_cast<bool>(new_mode), true);
+    }
+}
+
+bool video::post_window_destroyed(const window* w)
+{
+    if (!w || w->m_destroying)
+    {
+        return false;
+    }
+
+    event e;
+    e.type = event_type::WINDOW_DESTROYED;
+    e.window_destroyed.window_id = w->id();
+    bool posted = event::post_event(e);
+
+    return posted;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // video_data
 ///////////////////////////////////////////////////////////////////////////////
 
-video_data s_video_data = video_data{};
+video::video_data video::s_video_data = video::video_data{};
 
-}
 }
 }

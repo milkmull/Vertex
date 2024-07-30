@@ -1,140 +1,135 @@
 #pragma once
 
-#include <memory>
-#include <queue>
-#include <optional>
-
 #include "video.h"
-#include "../event/event.h"
-#include "../event/cursor.h"
 
 namespace vx {
 namespace app {
-namespace video {
 
-class window
+class video::window
 {
-public:
+private:
 
-    struct config
+    class window_impl;
+
+private:
+
+    friend video;
+    friend window_impl;
+
+private:
+
+private:
+
+    struct flags
     {
-        std::string title;
-        math::vec2i size;
-        math::vec2i position;
+        using type = uint64_t;
 
-        bool auto_position = false;
+        enum : type
+        {
+            NONE = 0,
 
-        bool fullscreen = false;
-        bool minimized = false;
-        bool maximized = false;
+            FULLSCREEN = (1 << 0),
+            MINIMIZED = (1 << 1),
+            MAXIMIZED = (1 << 2),
 
-        bool borderless = false;
-        bool resizable = true;
-        bool topmost = false;
+            BORDERLESS = (1 << 3),
+            RESIZABLE = (1 << 4),
+            TOPMOST = (1 << 5),
 
-        bool hidden = false;
-        bool focussed = true;
+            HIDDEN = (1 << 6),
+            FOCUSSED = (1 << 7),
 
-        bool mouse_grabbed = false;
-        bool mouse_capture = false;
+            MOUSE_GRABBED = (1 << 8),
+            MOUSE_CAPTURE = (1 << 9)
+        };
+    };
+
+    enum class window_rect_type
+    {
+        CURRENT,
+        WINDOWED,
+        FLOATING
     };
 
 public:
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // constructors
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static window create(const config& window_config);
-
-    window();
+    window(const window_config& config);
     ~window();
-
-private:
-
-    struct state_data;
-    window(const state_data& state);
-
+    
     window(const window&) = delete;
     window(window&&) noexcept;
 
     window& operator=(const window&) = delete;
     window& operator=(window&&) noexcept;
 
+private:
+
+    void finish_creation(flags::type new_flags);
+    void apply_flags(flags::type new_flags);
+
 public:
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // event
-    ///////////////////////////////////////////////////////////////////////////////
+    device_id id() const;
+    void sync();
 
-    void post_event(const event& e);
-    bool pop_event(event& e, bool block = false);
-
-    //inline void set_event_callback(const event_callback_fn callback);
-    ////void poll_events();
-    //
-    ///////////////////////////////////////////////////////////////////////////////
-    // open
-    ///////////////////////////////////////////////////////////////////////////////
-
-    bool is_open() const;
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // close
-    ///////////////////////////////////////////////////////////////////////////////
-    //
-    //bool should_close() const;
-    //void set_should_close(bool should_close);
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // window style
-    ///////////////////////////////////////////////////////////////////////////////
-
-    void set_resizable(bool resizable);
-    bool is_resizable() const;
+public:
 
     ///////////////////////////////////////////////////////////////////////////////
     // title
     ///////////////////////////////////////////////////////////////////////////////
 
-    std::string get_title() const;
+    const std::string& get_title() const;
     void set_title(const std::string& title);
 
     ///////////////////////////////////////////////////////////////////////////////
     // position and size
     ///////////////////////////////////////////////////////////////////////////////
 
+    void set_resizable(bool resizable);
+    bool is_resizable() const;
+
     math::vec2i get_position() const;
     void set_position(const math::vec2i& position);
 
-    math::vec2i get_size() const;
+    const math::vec2i& get_size() const;
     void set_size(const math::vec2i& size);
 
     math::recti get_rect() const;
 
-    math::vec2i get_min_size() const;
-    math::vec2i get_max_size() const;
+    const math::vec2i& get_min_size() const;
+    const math::vec2i& get_max_size() const;
 
     void set_min_size(const math::vec2i& size);
     void set_max_size(const math::vec2i& size);
 
+    float get_min_aspect() const;
+    float get_max_aspect() const;
+
+    void set_min_aspect(float aspect);
+    void set_max_aspect(float aspect);
+
     ///////////////////////////////////////////////////////////////////////////////
     // bordered
     ///////////////////////////////////////////////////////////////////////////////
-    //
-    //void set_bordered(bool bordered);
-    //bool is_bordered() const;
-    //
+    
+    void set_bordered(bool bordered);
+    bool is_bordered() const;
+    
     ///////////////////////////////////////////////////////////////////////////////
     // always on top
     ///////////////////////////////////////////////////////////////////////////////
-    //
-    //void set_always_on_top(bool always_on_top);
-    //bool is_always_on_top() const;
-    //
+    
+    void set_always_on_top(bool always_on_top);
+    bool is_always_on_top() const;
+    
     ///////////////////////////////////////////////////////////////////////////////
     // window operators
     ///////////////////////////////////////////////////////////////////////////////
+
+    void hide();
+    void show();
+    bool is_visible() const;
+    bool is_hidden() const;
 
     void minimize();
     bool is_minimized() const;
@@ -144,17 +139,28 @@ public:
 
     void restore();
 
-    bool is_fullscreen() const;
-    bool set_fullscreen(bool fullscreen);
-    bool set_fullscreen_mode(const video::display_mode& mode);
-
-    const video::display* get_display() const;
-    bool get_display_mode(video::display_mode& mode) const;
-
     void focus();
     bool is_focused() const;
 
     void request_attention();
+
+public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fullscreen
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const display_mode* get_fullscreen_mode() const;
+    bool set_fullscreen_mode(const display_mode& mode);
+
+private:
+
+    bool update_fullscreen_mode(bool fullscreen, bool commit);
+
+public:
+
+    bool is_fullscreen() const;
+    bool set_fullscreen(bool fullscreen);
 
     ///////////////////////////////////////////////////////////////////////////////
     // icon
@@ -183,93 +189,52 @@ public:
 
 private:
 
-    struct flags
-    {
-        using type = uint64_t;
+    device_id m_id;
 
-        static constexpr type NONE = 0;
+    std::string m_title;
+    math::vec2i m_position;
+    math::vec2i m_size;
 
-        static constexpr type FULLSCREEN = (1 << 0);
-        static constexpr type MINIMIZED = (1 << 1);
-        static constexpr type MAXIMIZED = (1 << 2);
+    math::vec2i m_min_size, m_max_size;
+    float m_min_aspect, m_max_aspect;
 
-        static constexpr type BORDERLESS = (1 << 3);
-        static constexpr type RESIZABLE = (1 << 4);
-        static constexpr type TOPMOST = (1 << 5);
+    // Position and size for a non-fullscreen window, including when
+    // maximized or tiled. Window should return to this size and position
+    // when leaving fullscreen.
+    math::recti m_windowed_rect;
 
-        static constexpr type HIDDEN = (1 << 6);
-        static constexpr type FOCUSSED = (1 << 7);
+    // Position and size for a base window in 'floating' state. Floating
+    // state excludes maximized and fullscreen windows. Window should
+    // return to this size and position when being restored from a
+    // maximized state.
+    math::recti m_floating_rect;
 
-        static constexpr type MOUSE_GRABBED = (1 << 8);
-        static constexpr type MOUSE_CAPTURE = (1 << 9);
-    };
+    flags::type m_flags, m_pending_flags;
 
-    struct state_data
-    {
-        device_id id;
+    device_id m_last_display_id;
+    display_mode m_requested_fullscreen_mode, m_current_fullscreen_mode;
+    bool m_requested_fullscreen_mode_set;
 
-        std::string title;
-        math::vec2i position;
-        math::vec2i size;
+    bool m_fullscreen_exclusive;
+    device_id m_last_fullscreen_exclusive_display_id;
 
-        math::vec2i min_size;
-        math::vec2i max_size;
+    //math::vec2 m_display_scale;
+    float m_opacity;
 
-        float min_aspect = 0.0f;
-        float maz_aspect = 0.0f;
+    bool m_initializing;
+    bool m_destroying;
+    bool m_moving_or_resizing;
+    bool m_hiding;
 
-        // Position and size for a non-fullscreen window, including when
-        // maximized or tiled. Window should return to this size and position
-        // when leaving fullscreen.
-        math::recti windowed;
+    bool m_tiled;
 
-        // Position and size for a base window in 'floating' state. Floating
-        // state excludes maximized and fullscreen windows. Window should
-        // return to this size and position when being restored from a
-        // maximized state.
-        math::recti floating;
-
-        // Used to indicate when the position or size of the window should
-        // change to match that of the floating rect after exiting a special
-        // state such as fullscreen or maximized.
-        bool adjust_floating_rect = false;
-
-        flags::type flags = 0;
-        flags::type pending_flags = 0;
-
-        const video::display* last_display;
-
-        video::display_mode requested_fullscreen_mode;
-        video::display_mode current_fullscreen_mode;
-
-        float opacity;
-
-        bool moving_or_resizing = false;
-    };
-
-    enum class window_rect_type
-    {
-        CURRENT,
-        WINDOWED,
-        FLOATING
-    };
-
-    class window_impl;
-    std::unique_ptr<window_impl> m_window;
+    bool m_sync_requested;
 
 private:
 
-    void apply_flags(flags::type new_flags);
-
-    void on_hide();
-    void on_show();
-
-    void on_minimize();
-    void on_maximize();
-    void on_restore();
+    std::unique_ptr<window_impl> m_impl;
 
 };
 
-}
 }
 }

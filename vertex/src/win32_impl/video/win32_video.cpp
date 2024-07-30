@@ -1,23 +1,25 @@
 #include <unordered_set>
 
 #include "win32_video.h"
+#include "win32_window.h"
 #include "vertex/system/error.h"
 #include "vertex/system/log.h"
 #include "vertex/system/string/string_fn.h"
-#include "vertex_impl/app/event/display_events.h"
 
 namespace vx {
 namespace app {
-namespace video {
 
 ///////////////////////////////////////////////////////////////////////////////
 // init stuff
 ///////////////////////////////////////////////////////////////////////////////
 
-const LPCWSTR video::video_driver_data::window_class_name = L"Vertex_Window";
-video_driver_data s_driver_data = video_driver_data{};
+const char* video::video_data::driver_name = "win32";
+const video::caps::type video::video_data::video_caps = video::caps::SENDS_FULLSCREEN_DIMENSIONS;
 
-static bool load_libraries()
+const LPCWSTR video::video_impl::video_driver_data::window_class_name = L"Vertex_Window";
+video::video_impl::video_driver_data video::video_impl::s_driver_data = video::video_impl::video_driver_data{};
+
+bool video::video_impl::load_libraries()
 {
     {
         s_driver_data.user32.dll = LoadLibrary(L"user32.dll");
@@ -28,25 +30,25 @@ static bool load_libraries()
         }
 
         s_driver_data.user32.SetProcessDPIAware = reinterpret_cast<decltype(s_driver_data.user32.SetProcessDPIAware)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "SetProcessDPIAware")));
+            GetProcAddress(s_driver_data.user32.dll, "SetProcessDPIAware"));
         s_driver_data.user32.SetProcessDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.SetProcessDpiAwarenessContext)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "SetProcessDpiAwarenessContext")));
+            GetProcAddress(s_driver_data.user32.dll, "SetProcessDpiAwarenessContext"));
         s_driver_data.user32.SetThreadDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.SetThreadDpiAwarenessContext)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "SetThreadDpiAwarenessContext")));
+            GetProcAddress(s_driver_data.user32.dll, "SetThreadDpiAwarenessContext"));
         s_driver_data.user32.GetThreadDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.GetThreadDpiAwarenessContext)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "GetThreadDpiAwarenessContext")));
+            GetProcAddress(s_driver_data.user32.dll, "GetThreadDpiAwarenessContext"));
         s_driver_data.user32.GetAwarenessFromDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.GetAwarenessFromDpiAwarenessContext)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "GetAwarenessFromDpiAwarenessContext")));
+            GetProcAddress(s_driver_data.user32.dll, "GetAwarenessFromDpiAwarenessContext"));
         s_driver_data.user32.EnableNonClientDpiScaling = reinterpret_cast<decltype(s_driver_data.user32.EnableNonClientDpiScaling)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "EnableNonClientDpiScaling")));
+            GetProcAddress(s_driver_data.user32.dll, "EnableNonClientDpiScaling"));
         s_driver_data.user32.AdjustWindowRectExForDpi = reinterpret_cast<decltype(s_driver_data.user32.AdjustWindowRectExForDpi)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "AdjustWindowRectExForDpi")));
+            GetProcAddress(s_driver_data.user32.dll, "AdjustWindowRectExForDpi"));
         s_driver_data.user32.GetDpiForWindow = reinterpret_cast<decltype(s_driver_data.user32.GetDpiForWindow)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "GetDpiForWindow")));
+            GetProcAddress(s_driver_data.user32.dll, "GetDpiForWindow"));
         s_driver_data.user32.AreDpiAwarenessContextsEqual = reinterpret_cast<decltype(s_driver_data.user32.AreDpiAwarenessContextsEqual)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "AreDpiAwarenessContextsEqual")));
+            GetProcAddress(s_driver_data.user32.dll, "AreDpiAwarenessContextsEqual"));
         s_driver_data.user32.IsValidDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.IsValidDpiAwarenessContext)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.user32.dll, "IsValidDpiAwarenessContext")));
+            GetProcAddress(s_driver_data.user32.dll, "IsValidDpiAwarenessContext"));
     }
 
     {
@@ -58,15 +60,15 @@ static bool load_libraries()
         }
 
         s_driver_data.shcore.GetDpiForMonitor = reinterpret_cast<decltype(s_driver_data.shcore.GetDpiForMonitor)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.shcore.dll, "GetDpiForMonitor")));
+            GetProcAddress(s_driver_data.shcore.dll, "GetDpiForMonitor"));
         s_driver_data.shcore.SetProcessDpiAwareness = reinterpret_cast<decltype(s_driver_data.shcore.SetProcessDpiAwareness)>(
-            reinterpret_cast<void*>(GetProcAddress(s_driver_data.shcore.dll, "SetProcessDpiAwareness")));
+            GetProcAddress(s_driver_data.shcore.dll, "SetProcessDpiAwareness"));
     }
 
     return true;
 }
 
-static void free_libraries()
+void video::video_impl::free_libraries()
 {
     if (s_driver_data.user32.dll)
     {
@@ -78,7 +80,7 @@ static void free_libraries()
     }
 }
 
-bool video_impl::set_dpi_awareness(process_dpi_awareness awareness)
+bool video::video_impl::set_dpi_awareness(process_dpi_awareness awareness)
 {
     // https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process
 
@@ -141,7 +143,7 @@ bool video_impl::set_dpi_awareness(process_dpi_awareness awareness)
     return false;
 }
 
-process_dpi_awareness video_impl::get_dpi_awareness()
+video::process_dpi_awareness video::video_impl::get_dpi_awareness()
 {
     if (s_driver_data.user32.dll && s_driver_data.user32.GetAwarenessFromDpiAwarenessContext && s_driver_data.user32.AreDpiAwarenessContextsEqual)
     {
@@ -164,7 +166,7 @@ process_dpi_awareness video_impl::get_dpi_awareness()
     return process_dpi_awareness::UNAWARE;
 }
 
-bool video_impl::init()
+bool video::video_impl::init()
 {
     if (!load_libraries())
     {
@@ -175,10 +177,31 @@ bool video_impl::init()
         return false;
     }
 
+    // If this is our first window, we register our window class
+    if (s_driver_data.window_class == NULL)
+    {
+        if (!register_window_class(window::window_impl::window_proc))
+        {
+            return false;
+        }
+    }
+
+    // On Remote Desktop, setting the cursor to NULL does not hide it. To fix
+    // this we create a transparent cursor and always set that instead of NULL.
+    // When not on Remote Desktop, this handle is NULL and normal hiding is
+    // used.
+    if (GetSystemMetrics(SM_REMOTESESSION))
+    {
+        if (!make_blank_cursor())
+        {
+            return false;
+        }
+    }
+
     return true;
 }
 
-void video_impl::quit()
+void video::video_impl::quit()
 {
     if (s_driver_data.window_default_icon != NULL)
     {
@@ -192,7 +215,168 @@ void video_impl::quit()
         s_driver_data.blank_cursor = NULL;
     }
 
+    unregister_window_class();
     free_libraries();
+}
+
+bool video::video_impl::register_window_class(WNDPROC proc)
+{
+    WNDCLASSW wc{};
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.lpfnWndProc = proc;
+    wc.hInstance = s_driver_data.instance; // needed for dll
+    wc.hIcon = s_driver_data.window_default_icon ? s_driver_data.window_default_icon : NULL;
+    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
+    wc.lpszClassName = s_driver_data.window_class_name;
+
+    s_driver_data.window_class = RegisterClass(&wc);
+
+    return s_driver_data.window_class != NULL;
+}
+
+void video::video_impl::unregister_window_class()
+{
+    UnregisterClass(s_driver_data.window_class_name, s_driver_data.instance);
+    s_driver_data.window_class = NULL;
+}
+
+bool video::video_impl::set_default_window_icon(const uint8_t* pixels, const math::vec2i& size)
+{
+    // Destroy existing icon
+    if (s_driver_data.window_default_icon)
+    {
+        DestroyIcon(s_driver_data.window_default_icon);
+        s_driver_data.window_default_icon = NULL;
+    }
+
+    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
+
+    // Format is expected to have 4 8-bit channels in RGBA format
+    if (image_size % 4)
+    {
+        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
+        return false;
+    }
+
+    // Convert the image to an BGRA
+    std::vector<uint8_t> formatted_pixels(image_size);
+    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    {
+        formatted_pixels[pixel + 0] = pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = pixels[pixel + 3];
+    }
+
+    // MSVC warns about arument 6 being NULL
+    VX_DISABLE_WARNING("", 6387);
+    VX_DISABLE_WARNING_PUSH();
+
+    // Create the icon
+    s_driver_data.window_default_icon = CreateIcon(
+        s_driver_data.instance,
+        size.x, size.y,
+        1,
+        32,
+        NULL,
+        formatted_pixels.data()
+    );
+
+    VX_DISABLE_WARNING_POP();
+
+    return s_driver_data.window_default_icon != NULL;
+}
+
+bool video::video_impl::make_custom_cursor(HCURSOR& cursor, const uint8_t* pixels, const math::vec2i& size, const math::vec2i& hotspot)
+{
+    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
+
+    // Format is expected to have 4 8-bit channels in RGBA format
+    if (image_size % 4)
+    {
+        return false;
+    }
+
+    // Convert the image to an BGRA
+    std::vector<uint8_t> formatted_pixels(image_size);
+    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    {
+        formatted_pixels[pixel + 0] = pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = pixels[pixel + 3];
+    }
+
+    // Create empty bitmap for monochrome mask
+    HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
+    if (!mask)
+    {
+        return false;
+    }
+
+    // Create color bitmap
+    HBITMAP color = CreateBitmap(size.x, size.y, 1, 32, formatted_pixels.data());
+    if (!color)
+    {
+        DeleteObject(mask);
+        return false;
+    }
+
+    // Create icon info
+    ICONINFO info{};
+    info.fIcon = FALSE;
+    info.xHotspot = hotspot.x;
+    info.yHotspot = hotspot.y;
+    info.hbmMask = mask;
+    info.hbmColor = color;
+
+    cursor = CreateIconIndirect(&info);
+
+    DeleteObject(color);
+    DeleteObject(mask);
+
+    return cursor != NULL;
+}
+
+bool video::video_impl::make_blank_cursor()
+{
+    if (s_driver_data.blank_cursor != NULL)
+    {
+        return true;
+    }
+
+    const int w = GetSystemMetrics(SM_CXCURSOR);
+    const int h = GetSystemMetrics(SM_CYCURSOR);
+    std::vector<uint8_t> pixels(w * h * 4);
+
+    // Windows checks whether the image is fully transparent and if so just
+    // ignores the alpha channel and makes the whole cursor opaque. To fix this
+    // we make one pixel slightly less transparent.
+    pixels[3] = 1;
+
+    return make_custom_cursor(s_driver_data.blank_cursor, pixels.data(), math::vec2i(w, h), math::vec2i(0));
+}
+
+video::system_theme video::video_impl::get_system_theme()
+{
+    const wchar_t* subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    const wchar_t* value = L"AppsUseLightTheme";
+    DWORD data = 0;
+    DWORD size = sizeof(data);
+    DWORD type = 0;
+
+    if (RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
+    {
+        // Dark mode if 0, light mode if 1
+        switch (data)
+        {
+            case 0:  return system_theme::DARK;
+            case 1:  return system_theme::LIGHT;
+            default: break;
+        }
+    }
+
+    return system_theme::UNKNOWN;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -255,11 +439,11 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
     }
 }
 
-bool display::display_impl::get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation)
+bool video::video_impl::get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation)
 {
     DEVMODE dm{ sizeof(dm) };
 
-    if (!EnumDisplaySettingsW(device_name.c_str(), index, &dm))
+    if (!EnumDisplaySettings(device_name.c_str(), index, &dm))
     {
         return false;
     }
@@ -278,7 +462,8 @@ bool display::display_impl::get_display_mode(const std::wstring& device_name, di
     mode.pixel_density = 1.0f;
     mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
 
-    mode.m_impl->driver_data.devmode = dm;
+    mode.m_impl->m_owner = &mode;
+    mode.m_impl->m_devmode = dm;
 
     if (orientation)
     {
@@ -288,31 +473,47 @@ bool display::display_impl::get_display_mode(const std::wstring& device_name, di
     return true;
 }
 
-void display::display_impl::list_display_modes()
+HMONITOR video::display::display_impl::get_handle() const
 {
-    data.modes.clear();
-    DWORD display_mode_index = 0;
+    return m_handle;
+}
 
+void video::display::display_impl::list_display_modes()
+{
+    m_owner->m_modes.clear();
+
+    DWORD display_mode_index = 0;
     display_mode mode;
 
     while (true)
     {
-        if (!get_display_mode(driver_data.device_name, mode, display_mode_index++, nullptr))
+        if (!video_impl::get_display_mode(m_device_name, mode, display_mode_index++, nullptr))
         {
             break;
         }
 
         // don't add duplicates
-        if (std::find(data.modes.begin(), data.modes.end(), mode) == data.modes.end())
+        bool found = false;
+        for (const display_mode& m : m_owner->m_modes)
         {
-            data.modes.push_back(mode);
+            if (display_mode::compare(m, mode))
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            mode.m_display_id = m_owner->m_id;
+            m_owner->m_modes.push_back(mode);
         }
     }
 }
 
-bool display::display_impl::set_display_mode(display_mode& mode) const
+bool video::display::display_impl::set_display_mode(display_mode& mode) const
 {
-    LONG status = ChangeDisplaySettingsExW(driver_data.device_name.c_str(), &mode.m_impl->driver_data.devmode, NULL, CDS_FULLSCREEN, NULL);
+    LONG status = ChangeDisplaySettingsEx(m_device_name.c_str(), &mode.m_impl->m_devmode, NULL, CDS_FULLSCREEN, NULL);
 
     if (status != DISP_CHANGE_SUCCESSFUL)
     {
@@ -343,17 +544,15 @@ bool display::display_impl::set_display_mode(display_mode& mode) const
         }
 
         VX_ERROR(error::error_code::PLATFORM_ERROR) << "ChangeDisplaySettingsEx() failed: " << reason;
-
         return false;
     }
 
-    EnumDisplaySettingsW(driver_data.device_name.c_str(), ENUM_CURRENT_SETTINGS, &mode.m_impl->driver_data.devmode);
-    get_display_mode(driver_data.device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
+    video_impl::get_display_mode(m_device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
 
     return true;
 }
 
-static math::vec2 get_display_content_scale(const HMONITOR handle)
+math::vec2 video::video_impl::get_display_content_scale(const HMONITOR handle)
 {
     UINT xdpi, ydpi;
     bool dpi_set = false;
@@ -395,7 +594,7 @@ bool video::display::display_impl::get_bounds(math::recti& bounds) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(driver_data.handle, &info))
+    if (!GetMonitorInfo(m_handle, &info))
     {
         return false;
     }
@@ -412,7 +611,7 @@ bool video::display::display_impl::get_work_area(math::recti& work_area) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(driver_data.handle, &info))
+    if (!GetMonitorInfo(m_handle, &info))
     {
         return false;
     }
@@ -433,12 +632,12 @@ struct poll_display_data
 {
     size_t index;
     bool find_primary;
-    std::vector<std::unique_ptr<video::display>>* displays;
+    std::vector<video::display>* displays;
 };
 
-bool video::display::display_impl::create_display(
+bool video::video_impl::create_display(
     size_t& index,
-    std::vector<std::unique_ptr<display>>& displays,
+    std::vector<display>& displays,
     HMONITOR hMonitor,
     const MONITORINFOEX* info
 )
@@ -458,15 +657,14 @@ bool video::display::display_impl::create_display(
     // Check to see if the monitor already exists
     for (size_t i = 0; i < displays.size(); ++i)
     {
-        display* d = displays[i].get();
-        display_data& data = d->m_impl->data;
-        display_driver_data& driver_data = d->m_impl->driver_data;
+        display* d = &displays[i];
+        display::display_impl* d_impl = d->m_impl.get();
 
-        if (driver_data.device_name == info->szDevice)
+        if (d_impl->m_device_name == info->szDevice)
         {
             bool moved = (index != i);
 
-            if (driver_data.state != display_state::REMOVED)
+            if (d_impl->m_state != display_state::REMOVED)
             {
                 return false;
             }
@@ -481,26 +679,22 @@ bool video::display::display_impl::create_display(
                 std::swap(displays[index], displays[i]);
             }
 
-            driver_data.handle = hMonitor;
-            driver_data.state = display_state::NONE;
+            d_impl->m_handle = hMonitor;
+            d_impl->m_state = display_state::NONE;
 
+            if (!s_video_data.setting_display_mode)
             {
                 math::recti current_bounds = d->get_bounds();
 
-                if (moved || d->get_bounds() != driver_data.bounds)
+                if (moved || d->get_bounds() != d_impl->m_last_bounds)
                 {
                     // moved
-                    driver_data.bounds = current_bounds;
-                    driver_data.state |= display_state::MOVED;
-                }
-                if (current_orientation != data.orientation)
-                {
-                    // orientation change
-                    data.orientation = current_orientation;
-                    driver_data.state |= display_state::ORIENTATION_CHANGED;
+                    d_impl->m_last_bounds = current_bounds;
+                    post_display_moved(d);
                 }
 
-                data.content_scale = current_content_scale;
+                post_display_orientation_changed(d, current_orientation);
+                post_display_content_scale_changed(d, current_content_scale);
             }
 
             found = true;
@@ -510,39 +704,39 @@ bool video::display::display_impl::create_display(
 
     if (!found)
     {
-        display* d = displays.emplace_back(std::make_unique<display>()).get();
-        d->m_impl = std::make_unique<display_impl>();
+        display* d = &displays.emplace_back();
+        d->m_impl = std::make_unique<video::display::display_impl>();
+        display::display_impl* d_impl = d->m_impl.get();
 
-        display_data& data = d->m_impl->data;
-        display_driver_data& driver_data = d->m_impl->driver_data;
+        d_impl->m_owner = d;
+        d_impl->m_handle = hMonitor;
+        d_impl->m_device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
+        d_impl->m_state = display_state::ADDED; // Mark as added by default
 
-        driver_data.handle = hMonitor;
-        driver_data.device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
-        driver_data.state = display_state::ADDED; // Mark as added by default
-
-        data.id = get_next_device_id();
+        d->m_id = get_next_device_id();
 
         // Get the display device name (printable)
         {
             DISPLAY_DEVICE dev{ sizeof(dev) };
 
-            if (EnumDisplayDevicesW(info->szDevice, 0, &dev, NULL))
+            if (EnumDisplayDevices(info->szDevice, 0, &dev, NULL))
             {
-                data.name = str::wstring_to_string(dev.DeviceString);
+                d->m_name = str::wstring_to_string(dev.DeviceString);
             }
         }
 
         {
-            data.current_mode = data.desktop_mode = current_mode;
-            data.content_scale = current_content_scale;
-            driver_data.bounds = d->get_bounds();
+            current_mode.m_display_id = d->m_id;
+            d->m_desktop_mode = d->m_current_mode = current_mode;
+            d->m_content_scale = current_content_scale;
+            d_impl->m_last_bounds = d->get_bounds();
         }
     }
 
     return true;
 }
 
-BOOL CALLBACK display::display_impl::enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam)
+BOOL CALLBACK video::video_impl::enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam)
 {
     poll_display_data& data = *(poll_display_data*)(lParam);
 
@@ -552,7 +746,7 @@ BOOL CALLBACK display::display_impl::enum_displays_callback(HMONITOR hMonitor, H
     {
         if (data.find_primary == static_cast<bool>(info.dwFlags & MONITORINFOF_PRIMARY))
         {
-            display::display_impl::create_display(data.index, *data.displays, hMonitor, &info);
+            create_display(data.index, *data.displays, hMonitor, &info);
             ++data.index;
         }
     }
@@ -572,14 +766,14 @@ static void poll_displays_internal(poll_display_data& data, MONITORENUMPROC call
     EnumDisplayMonitors(NULL, NULL, callback, (LPARAM)&data);
 }
 
-void display::display_impl::update_displays(std::vector<std::unique_ptr<display>>& displays)
+void video::video_impl::update_displays(std::vector<display>& displays)
 {
     poll_display_data data{ 0 };
     data.displays = &displays;
 
-    for (auto& d : displays)
+    for (display& d : displays)
     {
-        d->m_impl->driver_data.state = display_state::REMOVED;
+        d.m_impl->m_state = display_state::REMOVED;
     }
 
     data.find_primary = true;
@@ -592,11 +786,11 @@ void display::display_impl::update_displays(std::vector<std::unique_ptr<display>
     auto it = displays.begin();
     while (it != displays.end())
     {
-        auto& d = *it;
+        const display& d = *it;
 
-        if (d->m_impl->driver_data.state == display_state::REMOVED)
+        if (d.m_impl->m_state == display_state::REMOVED)
         {
-            post_display_event(event_type::DISPLAY_REMOVED, *d);
+            post_display_removed(&d);
             it = displays.erase(it);
         }
         else
@@ -605,29 +799,15 @@ void display::display_impl::update_displays(std::vector<std::unique_ptr<display>
         }
     }
 
-    // update existing displays
-    for (auto& d : displays)
-    {
-        if (d->m_impl->driver_data.state & display_state::MOVED)
-        {
-            post_display_event(event_type::DISPLAY_MOVED, *d);
-        }
-        if (d->m_impl->driver_data.state & display_state::ORIENTATION_CHANGED)
-        {
-            post_display_event(event_type::DISPLAY_ORIENTATION_CHANGED, *d);
-        }
-    }
-
     // add new displays
-    for (auto& d : displays)
+    for (const display& d : displays)
     {
-        if (d->m_impl->driver_data.state == display_state::ADDED)
+        if (d.m_impl->m_state == display_state::ADDED)
         {
-            post_display_event(event_type::DISPLAY_ADDED, *d);
+            post_display_added(&d);
         }
     }
 }
 
-}
 }
 }

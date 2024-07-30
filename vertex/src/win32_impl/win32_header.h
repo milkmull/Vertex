@@ -17,9 +17,9 @@
 #endif
 
 #include <windows.h>
-#include <VersionHelpers.h>
 
-#define WIN32_LOAD_FUNCTION(module, name) module ? reinterpret_cast<void*>(GetProcAddress(module, name)) : NULL
+// Dropfile support
+#include <shellapi.h>
 
 // macros for extracting signed values from WM_* lparam stolen from windowsx.h
 
@@ -44,3 +44,27 @@ enum MONITOR_DPI_TYPE
     MDT_RAW_DPI = 2,
     MDT_DEFAULT
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// DWM support
+///////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+
+// Dark mode
+#ifndef DWMWA_USE_IMMERSIVE_DARK_MODE
+#   define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+
+// Corner rounding (Win 11+)
+#ifndef DWMWA_WINDOW_CORNER_PREFERENCE 
+#   define DWMWA_WINDOW_CORNER_PREFERENCE 33
+#endif
+
+// Border color (Win 11+)
+#ifndef DWMWA_BORDER_COLOR
+#   define DWMWA_BORDER_COLOR 0xFFFFFFFF
+#endif
+
+using DwmSetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+using DwmGetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);

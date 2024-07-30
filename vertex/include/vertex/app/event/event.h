@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "../_priv/device_id.h"
+#include "../video/video.h"
 #include "keyboard.h"
 #include "mouse.h"
-#include "joystick.h"
 
 // https://www.glfw.org/docs/3.3/input_guide.html
 
@@ -28,6 +28,8 @@ enum event_type : uint32_t
     DISPLAY_REMOVED,
     DISPLAY_MOVED,
     DISPLAY_ORIENTATION_CHANGED,
+    DISPLAY_DESKTOP_MODE_CHANGED,
+    DISPLAY_CURRENT_MODE_CHANGED,
     DISPLAY_CONTENT_SCALE_CHANGED,
 
     // window events
@@ -61,80 +63,228 @@ enum event_type : uint32_t
     MOUSE_WHEEL
 };
 
-enum button_state : uint32_t
-{
-    PRESSED,
-    RELEASED
-};
-
 class event
 {
 public:
-
-    struct display_event_data
-    {
-        device_id display_id;
-    };
-
-    struct window_event_data
-    {
-        device_id window_id;
-        int32_t data1, data2;
-    };
-
-    struct keyboard_event_data
-    {
-        device_id window_id;
-        int32_t scancode;
-        keyboard::key key;
-        button_state state;
-        uint8_t repeate;
-    };
-
-    struct text_input_event_data
-    {
-        device_id window_id;
-        char32_t text;
-    };
-
-    struct mouse_motion_event_data
-    {
-        device_id window_id;
-        int32_t x, y;
-        int32_t dx, dy;
-    };
-
-    struct mouse_button_event_data
-    {
-        device_id window_id;
-        mouse::button button;
-        button_state state;
-        uint8_t clicks;
-        int32_t x, y;
-    };
-
-    struct mouse_wheel_event_data
-    {
-        device_id window_id;
-        mouse::wheel wheel;
-        float delta;
-        int32_t x, y;
-    };
 
     event_type type;
 
     union
     {
-        display_event_data display_event;
+        // display events
 
-        window_event_data window_event;
+        struct
+        {
+            device_id display_id;
+        }
+        display_added;
 
-        keyboard_event_data keyboard_event;
-        text_input_event_data text_input_event;
+        struct
+        {
+            device_id display_id;
+        }
+        display_removed;
 
-        mouse_motion_event_data mouse_motion_event;
-        mouse_button_event_data mouse_button_event;
-        mouse_wheel_event_data mouse_wheel_event;
+        struct
+        {
+            device_id display_id;
+        }
+        display_moved;
+
+        struct
+        {
+            device_id display_id;
+            video::display_orientation orientation;
+        }
+        display_orientation_changed;
+
+        struct
+        {
+            device_id display_id;
+        }
+        display_desktop_mode_changed;
+
+        struct
+        {
+            device_id display_id;
+        }
+        display_current_mode_changed;
+
+        struct
+        {
+            device_id display_id;
+            float x, y;
+        }
+        display_content_scale_changed;
+
+        // window events
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_shown;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_hidden;
+
+        struct
+        {
+            device_id window_id;
+            int32_t x, y;
+        }
+        window_moved;
+
+        struct
+        {
+            device_id window_id;
+            int32_t w, h;
+        }
+        window_resized;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_minimized;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_maximized;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_restored;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_enter_fullscreen;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_leave_fullscreen;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_gained_focus;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_lost_focus;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_mouse_enter;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_mouse_leave;
+
+        struct
+        {
+            device_id window_id;
+            device_id display_id;
+        }
+        window_display_changed;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_display_scale_changed;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_close_requested;
+
+        struct
+        {
+            device_id window_id;
+        }
+        window_destroyed;
+
+        // key events
+
+        struct
+        {
+            device_id window_id;
+            int32_t scancode;
+            keyboard::key key;
+            uint8_t repeate;
+        }
+        key_down;
+
+        struct
+        {
+            device_id window_id;
+            int32_t scancode;
+            keyboard::key key;
+        }
+        key_up;
+
+        struct
+        {
+            device_id window_id;
+            char32_t text;
+        }
+        text_input;
+
+        // mouse events
+
+        struct
+        {
+            device_id window_id;
+            int32_t x, y;
+            int32_t dx, dy;
+        }
+        mouse_moved;
+
+        struct
+        {
+            device_id window_id;
+            mouse::button button;
+            int32_t x, y;
+            uint8_t clicks;
+        }
+        mouse_button_down;
+
+        struct
+        {
+            device_id window_id;
+            mouse::button button;
+            int32_t x, y;
+        }
+        mouse_button_up;
+
+        struct
+        {
+            device_id window_id;
+            mouse::wheel wheel;
+            float delta;
+            int32_t x, y;
+        }
+        mouse_wheel;
     };
 
 private:
@@ -149,7 +299,7 @@ public:
     static std::vector<event> peek_events();
     static bool has_event(event_type type);
 
-    static void post_event(const event& e);
+    static bool post_event(const event& e);
     static bool poll_event(event& e);
     static void wait_events();
     static void wait_events_timeout(unsigned int timeout_ms);
