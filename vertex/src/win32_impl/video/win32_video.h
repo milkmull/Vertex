@@ -43,8 +43,8 @@ public:
 
     static math::vec2 get_display_content_scale(const HMONITOR handle);
 
-    static bool create_display(size_t& index, std::vector<display>& displays, HMONITOR hMonitor, const MONITORINFOEX* info);
-    static void update_displays(std::vector<display>& displays);
+    static bool create_display(size_t& index, std::vector<std::unique_ptr<display>>& displays, HMONITOR hMonitor, const MONITORINFOEX* info);
+    static void update_displays(std::vector<std::unique_ptr<display>>& displays);
     static BOOL CALLBACK enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPARAM lParam);
 
 public:

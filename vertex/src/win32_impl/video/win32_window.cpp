@@ -6,6 +6,8 @@
 namespace vx {
 namespace app {
 
+#define IS_RECT_EMPTY(rect) ((rect.right <= rect.left) || (rect.bottom <= rect.top))
+
 // =============== window init helpers ===============
 
 // DWM setting support
@@ -40,6 +42,7 @@ video::window::window_impl::window_impl(window* w)
     : m_owner(w)
     , m_handle(NULL)
     , m_icon(NULL)
+    , m_expected_resize(false)
     , m_floating_rect_pending(false)
     , m_windowed_mode_was_maximized(false)
     , m_in_window_deactivation(false)
@@ -56,7 +59,7 @@ video::window::window_impl::window_impl(window* w)
     DWORD style = get_window_style();
     DWORD ex_style = get_window_ex_style();
 
-    RECT rect;
+    RECT rect{};
     adjust_rect_with_style(rect, window_rect_type::FLOATING, style, ex_style);
 
     // Create window
@@ -70,7 +73,7 @@ video::window::window_impl::window_impl(window* w)
         NULL, // no parent window
         NULL, // no window menu
         VIDEO_DRIVER_DATA.instance,
-        this
+        m_owner
     );
 
     if (m_handle == NULL)
@@ -81,10 +84,7 @@ video::window::window_impl::window_impl(window* w)
 
     // Set window theme to match system theme
     update_window_handle_theme(m_handle);
-
     event::pump_events(true);
-
-    m_owner->m_initializing = true;
 
     // set up current flags based on the internal style of the window
     {
@@ -138,9 +138,7 @@ video::window::window_impl::window_impl(window* w)
 
     if (!(m_owner->m_flags & flags::MINIMIZED))
     {
-        RECT rect;
-
-        if (GetClientRect(m_handle, &rect))
+        if (GetClientRect(m_handle, &rect) && !IS_RECT_EMPTY(rect))
         {
             if ((m_owner->m_windowed_rect.size.x && m_owner->m_windowed_rect.size.x != rect.right) ||
                 (m_owner->m_windowed_rect.size.y && m_owner->m_windowed_rect.size.y != rect.bottom))
@@ -148,7 +146,7 @@ video::window::window_impl::window_impl(window* w)
                 // Window size is currently not what we are expecting it to be
                 adjust_rect(rect, window_rect_type::WINDOWED);
 
-                m_owner->m_moving_or_resizing = true;
+                m_expected_resize = true;
                 SetWindowPos(
                     m_handle,
                     NULL,
@@ -156,7 +154,7 @@ video::window::window_impl::window_impl(window* w)
                     rect.right - rect.left, rect.bottom - rect.top,
                     SWP_NOCOPYBITS | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE
                 );
-                m_owner->m_moving_or_resizing = false;
+                m_expected_resize = false;
             }
             else
             {
@@ -190,6 +188,11 @@ video::window::window_impl::~window_impl()
         DestroyWindow(m_handle);
         m_handle = NULL;
     }
+}
+
+bool video::window::window_impl::validate() const
+{
+    return m_owner && m_handle;
 }
 
 // =============== style ===============
@@ -228,17 +231,9 @@ DWORD video::window::window_impl::get_window_style() const
     return style;
 }
 
-
-
 DWORD video::window::window_impl::get_window_ex_style() const
 {
     DWORD style = 0;
-
-    //if (
-    //{
-    //    style |= WS_EX_TOPMOST;
-    //}
-
     return style;
 }
 
@@ -251,36 +246,11 @@ void video::window::window_impl::sync_window_style()
     SetWindowLong(m_handle, GWL_STYLE, style);
 }
 
-void video::window::window_impl::update_style(int flags, bool enable)
-{
-    LONG_PTR style = GetWindowLongPtr(m_handle, GWL_STYLE);
-
-    if (enable)
-    {
-        style |= flags;
-    }
-    else
-    {
-        style &= ~flags;
-    }
-
-    SetWindowLongPtr(m_handle, GWL_STYLE, style);
-
-    // Redraw the window
-    SetWindowPos(m_handle, nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-}
-
-bool video::window::window_impl::has_style(int flag) const
-{
-    LONG_PTR style = GetWindowLongPtr(m_handle, GWL_STYLE);
-    return style & flag;
-}
-
 // =============== events ===============
 
 LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-    video::window::window_impl* window = nullptr;
+    window* win = nullptr;
     LRESULT return_code = -1;
 
     if (Msg == WM_CREATE)
@@ -288,86 +258,53 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         // From the data passed into CreateWindow, we can extract the last
         // argument which was a pointer to the window instance. We can then
         // set the user data of the win32 window to a pointer to our window.
-        auto window_ptr = reinterpret_cast<LONG_PTR>(reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, window_ptr);
+        CREATESTRUCT* create_struct = reinterpret_cast<CREATESTRUCT*>(lParam);
+        win = reinterpret_cast<window*>(create_struct->lpCreateParams);
+        SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(win));
     }
-
-    // Get the pointer to our associated window
-    window = reinterpret_cast<window::window_impl*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-
-    if (!window || !window->m_handle)
+    else
     {
-        return DefWindowProc(hWnd, Msg, wParam, lParam);
+        // Get the pointer to our associated window
+        win = reinterpret_cast<window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
     }
+
+    if (!win || !win->validate())
+    {
+        return CallWindowProc(DefWindowProc, hWnd, Msg, wParam, lParam);
+    }
+
+    window_impl* win_impl = win->m_impl.get();
 
     switch (Msg)
     {
-        // =============== window events ===============
+        ///////////////////////////////////////////////////////////////////////////////
+        // window events
+        ///////////////////////////////////////////////////////////////////////////////
 
-        // Destroy window
-        case WM_DESTROY:
+        case WM_CLOSE:
         {
-            //window->on_destroy();
+            win->post_window_close_requested();
+            return_code = 0;
             break;
         }
 
-        // Close window
-        //case WM_CLOSE:
-        //{
-        //    event e;
-        //    e.type = event_type::WINDOW_CLOSE_REQUESTED;
-        //    e.window_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    event::post_event(e);
-        //
-        //    break;
-        //}
+        case WM_SHOWWINDOW:
+        {
+            if (wParam)
+            {
+                win->post_window_shown();
+            }
+            else
+            {
+                win->post_window_hidden();
+            }
 
-        // Resize or move window start
-        //case WM_ENTERSIZEMOVE:
-        //{
-        //    window->m_resizing_or_moving = true;
-        //    break;
-        //}
-        //
-        //// Resize or move window end
-        //case WM_EXITSIZEMOVE:
-        //{
-        //    window->m_resizing_or_moving = false;
-        //
-        //    // Check if the size changed
-        //    const math::vec2i new_size = window->get_size();
-        //
-        //    if (window->m_last_size != new_size)
-        //    {
-        //        window->m_last_size = new_size;
-        //
-        //        event e;
-        //        e.type = event_type::WINDOW_RESIZE;
-        //        e.window_resize.width = new_size.x;
-        //        e.window_resize.height = new_size.y;
-        //        window->post_event(e);
-        //    }
-        //
-        //    // Check if the position changed
-        //    const math::vec2i new_position = window->get_position();
-        //
-        //    if (window->m_last_position != new_position)
-        //    {
-        //        window->m_last_position = new_position;
-        //
-        //        event e;
-        //        e.type = event_type::WINDOW_MOVE;
-        //        e.window_move.x = new_position.x;
-        //        e.window_move.y = new_position.y;
-        //        window->post_event(e);
-        //    }
-        //
-        //    break;
-        //}
+            break;
+        }
 
         case WM_WINDOWPOSCHANGING:
         {
-            if (window->m_owner->m_moving_or_resizing)
+            if (win_impl->m_expected_resize)
             {
                 return_code = 0;
             }
@@ -375,16 +312,16 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             // If we are going from a fixed size state to a floating state, we
             // update the position to reflect the cached floating rect position
             // and size.
-            if (window->m_floating_rect_pending &&
-                !IsIconic(window->m_handle) &&
-                !IsZoomed(window->m_handle) &&
-                (window->m_owner->m_flags & (flags::MINIMIZED | flags::MAXIMIZED)) &&
-                !(window->m_owner->m_flags & flags::FULLSCREEN))
+            if (win_impl->m_floating_rect_pending &&
+                !IsIconic(hWnd) &&
+                !IsZoomed(hWnd) &&
+                (win->m_flags & (flags::MINIMIZED | flags::MAXIMIZED)) &&
+                !(win->m_flags & flags::FULLSCREEN))
             {
                 WINDOWPOS* wp = reinterpret_cast<WINDOWPOS*>(lParam);
 
-                RECT rect;
-                window->adjust_rect(rect, window_rect_type::FLOATING);
+                RECT rect{};
+                win_impl->adjust_rect(rect, window_rect_type::FLOATING);
 
                 wp->x = rect.left;
                 wp->y = rect.top;
@@ -392,7 +329,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 wp->cy = rect.bottom - rect.top;
                 wp->flags &= ~(SWP_NOSIZE | SWP_NOMOVE);
 
-                window->m_floating_rect_pending = false;
+                win_impl->m_floating_rect_pending = false;
             }
 
             break;
@@ -400,163 +337,272 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
         case WM_WINDOWPOSCHANGED:
         {
-            const bool minimized = IsIconic(window->m_handle);
-            const bool maximized = IsZoomed(window->m_handle);
+            bool minimized = IsIconic(hWnd);
+            bool maximized = IsZoomed(hWnd);
 
             const WINDOWPOS* wp = reinterpret_cast<const WINDOWPOS*>(lParam);
 
             if (wp->flags & SWP_SHOWWINDOW)
             {
-                //window->m_window->on_show();
+                win->post_window_shown();
             }
 
-            //if (minimize)
-            //{
-            //
-            //}
+            if (minimized)
+            {
+                win->post_window_minimized();
+            }
+            else if (maximized)
+            {
+                // If we are going from a minimized state to maximized, restore
+                // first
+                if (win->m_flags & flags::MINIMIZED)
+                {
+                    win->post_window_restored();
+                }
+
+                win->post_window_maximized();
+            }
+            else if (win->m_flags & (flags::MINIMIZED | flags::MAXIMIZED))
+            {
+                win->post_window_restored();
+            }
+            
+            if (wp->flags & SWP_HIDEWINDOW)
+            {
+                win->post_window_hidden();
+            }
+
+            /* When the window is minimized it's resized to the dock icon size, ignore this */
+            if (minimized)
+            {
+                break;
+            }
+
+            if (win->m_initializing)
+            {
+                break;
+            }
+
+            RECT rect{};
+
+            if (GetClientRect(hWnd, &rect) && !IS_RECT_EMPTY(rect))
+            {
+                ClientToScreen(hWnd, reinterpret_cast<LPPOINT>(&rect));
+                ClientToScreen(hWnd, reinterpret_cast<LPPOINT>(&rect) + 1);
+
+                win->post_window_moved(rect.left, rect.top);
+            }
+
+            /* Moving the window from one display to another can change the size of the window (in the handling of SDL_EVENT_WINDOW_MOVED), so we need to re-query the bounds */
+            if (GetClientRect(hWnd, &rect) && !IS_RECT_EMPTY(rect))
+            {
+                win->post_window_resized(rect.right, rect.bottom);
+            }
+
+            // update clip cursor
+
+            /* Forces a WM_PAINT event */
+            InvalidateRect(hWnd, NULL, FALSE);
 
             break;
         }
 
-        // Maximize & minimize window
-        case WM_SIZE:
+        case WM_SIZING:
         {
-            //const math::vec2i new_size = get_size();
-            //
-            //if (m_last_size != new_size)
-            //{
-            //    if (wParam == SIZE_MINIMIZED && !m_minimized)
-            //    {
-            //        m_maximized = false;
-            //        m_minimized = true;
-            //
-            //        event e;
-            //        e.type = event_type::WINDOW_MINIMIZE;
-            //        post_event(e);
-            //    }
-            //    if (wParam == SIZE_MAXIMIZED && !m_maximized)
-            //    {
-            //        m_minimized = false;
-            //        m_maximized = true;
-            //
-            //        event e;
-            //        e.type = event_type::WINDOW_MAXIMIZE;
-            //        post_event(e);
-            //    }
-            //    if (wParam == SIZE_RESTORED)
-            //    {
-            //        m_maximized = m_minimized = false;
-            //    }
-            //
-            //    // Only publish a resize event if we are not currently moving or resizing the window.
-            //    // If we are resizing or moving, a resize or move event will be published when the
-            //    // process finishes anyways.
-            //
-            //    if (!m_resizing_or_moving)
-            //    {
-            //        m_last_size = new_size;
-            //
-            //        event e;
-            //        e.type = event_type::WINDOW_RESIZE;
-            //        e.window_resize.width = new_size.x;
-            //        e.window_resize.height = new_size.y;
-            //        post_event(e);
-            //    }
-            //
-            //    // Update the cursor tracking incase the window moved away from the cursor.
-            //    update_mouse_tracking();
-            //}
-
-            break;
-        }
-
-        // Move window
-        case WM_MOVE:
-        {
-            // We only want to process move messages if the window actually moved.
-            // We don't count minimizing or restoring from a minimized state as 
-            // moving.
-            // 
-            // When minimizing:
-            // - is_minimized will return true, we will not post move event.
-            // 
-            // When restoring from minimized state:
-            // - While minimized, the position of the window is not allowed to be
-            //   changed.
-            // - When we get the move messages, new_position should be the same as
-            //   the last recorded position, we will not post move event.
-
-            //if (!window->is_minimized())
-            //{
-            //    const math::vec2i new_position = window->get_position();
-            //
-            //    if (!window->m_resizing_or_moving && window->m_last_position != new_position)
-            //    {
-            //        window->m_last_position = new_position;
-            //
-            //        event e;
-            //        e.type = event_type::WINDOW_MOVED;
-            //        e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
-            //        e.window_event.data1 = new_position.x;
-            //        e.window_event.data2 = new_position.y;
-            //        window->post_event(e);
-            //
-            //        // Update the cursor tracking incase the window moved away from the cursor.
-            //        window->update_mouse_tracking();
-            //    }
-            //}
-
+            // If aspect is not locked, skip
+            if (win->m_locked_aspect <= 0.0f)
+            {
+                break;
+            }
+        
+            // Retrieve the rectangle being dragged by the user, which represents
+            // the full window's new size and position, including non-client areas.
+            RECT* drag_rect = reinterpret_cast<RECT*>(lParam);
+            RECT client_drag_rect = *drag_rect;
+            RECT rect{};
+        
+            if (!win_impl->adjust_rect(rect, window_rect_type::INPUT))
+            {
+                break;
+            }
+        
+            // Subtract the non-client area dimensions (borders, title bar, etc.)
+            // from the drag rectangle to calculate the client area size.
+            // This ensures that we can maintain the correct client area size or
+            // aspect ratio by focusing on the actual drawable area within the window.
+            client_drag_rect.left -= rect.left;
+            client_drag_rect.top -= rect.top;
+            client_drag_rect.right -= rect.right;
+            client_drag_rect.bottom -= rect.bottom;
+        
+            int w = client_drag_rect.right - client_drag_rect.left;
+            int h = client_drag_rect.bottom - client_drag_rect.top;
+            float new_aspect = static_cast<float>(w) / static_cast<float>(h);
+        
+            switch (wParam)
+            {
+                case WMSZ_LEFT:
+                case WMSZ_RIGHT:
+                {
+                    h = static_cast<int>(math::round(w / win->m_locked_aspect));
+                    break;
+                }
+                default:
+                {
+                    // Resizing by corners or top or bottom
+                    w = static_cast<int>(math::round(h * win->m_locked_aspect));
+                    break;
+                }
+            }
+        
+            switch (wParam)
+            {
+                case WMSZ_LEFT:
+                {
+                    client_drag_rect.left = client_drag_rect.right - w;
+                    client_drag_rect.top = (client_drag_rect.bottom + client_drag_rect.top - h) / 2;
+                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    break;
+                }
+                case WMSZ_BOTTOMLEFT:
+                {
+                    client_drag_rect.left = client_drag_rect.right - w;
+                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    break;
+                }
+                case WMSZ_RIGHT:
+                {
+                    client_drag_rect.right = w + client_drag_rect.left;
+                    client_drag_rect.top = (client_drag_rect.bottom + client_drag_rect.top - h) / 2;
+                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    break;
+                }
+                case WMSZ_TOPRIGHT:
+                {
+                    client_drag_rect.right = w + client_drag_rect.left;
+                    client_drag_rect.top = client_drag_rect.bottom - h;
+                    break;
+                }
+                case WMSZ_TOP:
+                {
+                    client_drag_rect.left = (client_drag_rect.right + client_drag_rect.left - w) / 2;
+                    client_drag_rect.right = w + client_drag_rect.left;
+                    client_drag_rect.top = client_drag_rect.bottom - h;
+                    break;
+                }
+                case WMSZ_TOPLEFT:
+                {
+                    client_drag_rect.left = client_drag_rect.right - w;
+                    client_drag_rect.top = client_drag_rect.bottom - h;
+                    break;
+                }
+                case WMSZ_BOTTOM:
+                {
+                    client_drag_rect.left = (client_drag_rect.right + client_drag_rect.left - w) / 2;
+                    client_drag_rect.right = w + client_drag_rect.left;
+                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    break;
+                }
+                case WMSZ_BOTTOMRIGHT:
+                {
+                    client_drag_rect.right = w + client_drag_rect.left;
+                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    break;
+                }
+            }
+        
+            /* convert the client rect to a window rect */
+            if (!win_impl->adjust_rect(client_drag_rect, window_rect_type::INPUT))
+            {
+                break;
+            }
+            
+            *drag_rect = client_drag_rect;
+        
             break;
         }
 
         // Fix violations of minimum or maximum size
         case WM_GETMINMAXINFO:
         {
-            if (window->m_owner->m_moving_or_resizing)
+            if (win_impl->m_expected_resize)
             {
                 break;
             }
 
             // Get the size of the window including the frame
-
             MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
-
+            
             RECT frame{};
-            AdjustWindowRectEx(&frame, window->get_window_style(), FALSE, window->get_window_ex_style());
+            GetWindowRect(hWnd, &frame);
 
-            int w = frame.right - frame.left;
-            int h = frame.bottom - frame.top;
+            int x = frame.left;
+            int y = frame.top;
+            int w = win->m_size.x;
+            int h = win->m_size.y;
 
-            if (window->m_owner->m_flags && flags::RESIZABLE)
+            // If the window has a border, it must be accounted for in the size
+            if (!(win->m_flags & flags::BORDERLESS))
             {
-                if (window->m_owner->m_flags && flags::BORDERLESS)
+                frame.top = 0;
+                frame.left = 0;
+                frame.bottom = h;
+                frame.right = w;
+
+                win_impl->adjust_rect(frame, window_rect_type::INPUT);
+                w = frame.right - frame.left;
+                h = frame.bottom - frame.top;
+            }
+            
+            if (win->m_flags & flags::RESIZABLE)
+            {
+                if (win->m_flags & flags::BORDERLESS)
                 {
                     const int screen_w = GetSystemMetrics(SM_CXSCREEN);
                     const int screen_h = GetSystemMetrics(SM_CYSCREEN);
-
-                    mmi->ptMaxSize.x = std::max(w, screen_w);
-                    mmi->ptMaxSize.y = std::max(h, screen_h);
-                    mmi->ptMaxPosition.x = std::min(0, (screen_w - w) / 2);
-                    mmi->ptMaxPosition.y = std::max(0, (screen_h - h) / 2);
+            
+                    mmi->ptMaxSize.x = math::max(w, screen_w);
+                    mmi->ptMaxSize.y = math::max(h, screen_h);
+                    mmi->ptMaxPosition.x = math::min(0, (screen_w - w) / 2);
+                    mmi->ptMaxPosition.y = math::max(0, (screen_h - h) / 2);
                 }
-
-                if (window->m_owner->m_min_size.x && window->m_owner->m_min_size.y)
+            
+                if (win->m_min_size.x)
                 {
-                    mmi->ptMinTrackSize.x = window->m_owner->m_min_size.x + w;
-                    mmi->ptMinTrackSize.y = window->m_owner->m_min_size.y + h;
+                    mmi->ptMinTrackSize.x = win->m_min_size.x + w;
                 }
-
-                if (window->m_owner->m_max_size.x && window->m_owner->m_max_size.y)
+                else
                 {
-                    mmi->ptMaxTrackSize.x = window->m_owner->m_max_size.x + w;
-                    mmi->ptMaxTrackSize.y = window->m_owner->m_max_size.y + h;
+                    mmi->ptMinTrackSize.x = w;
+                }
+                if (win->m_min_size.y)
+                {
+                    mmi->ptMinTrackSize.y = win->m_min_size.y + h;
+                }
+                else
+                {
+                    mmi->ptMinTrackSize.y = h;
+                }
+            
+                if (win->m_max_size.x)
+                {
+                    mmi->ptMaxTrackSize.x = win->m_max_size.x + w;
+                }
+                else
+                {
+                    mmi->ptMaxTrackSize.x = w;
+                }
+                if (win->m_max_size.y)
+                {
+                    mmi->ptMaxTrackSize.y = win->m_max_size.y + h;
+                }
+                else
+                {
+                    mmi->ptMaxTrackSize.y = h;
                 }
             }
             else
             {
-                int x = frame.left;
-                int y = frame.top;
-
                 mmi->ptMaxSize.x = w;
                 mmi->ptMaxSize.y = h;
                 mmi->ptMaxPosition.x = x;
@@ -566,8 +612,29 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 mmi->ptMaxTrackSize.x = w;
                 mmi->ptMaxTrackSize.y = h;
             }
-
+            
             return_code = 0;
+            break;
+        }
+
+        case WM_NCCALCSIZE:
+        {
+            if (wParam == TRUE && (win->m_flags & flags::BORDERLESS) && !(win->m_flags & flags::FULLSCREEN))
+            {
+                // If the window is not resizable, we need to manually adjustthe client area size.
+                // This is necessary because, without a border, the default behavior might not
+                // correctly calculate the size, leading to layout issues or incorrect rendering.
+                if (!(win->m_flags & flags::RESIZABLE))
+                {
+                    NCCALCSIZE_PARAMS* params = reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam);
+
+                    params->rgrc[0].right = params->rgrc[0].left + win->m_floating_rect.size.x;
+                    params->rgrc[0].bottom = params->rgrc[0].top + win->m_floating_rect.size.y;
+                }
+
+                return 0;
+            }
+
             break;
         }
 
@@ -602,33 +669,13 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
             break;
         }
-
-        // Show or hide window
-        case WM_SHOWWINDOW:
-        {
-            //if (window->m_visible != static_cast<bool>(wParam))
-            //{
-            //    window->m_visible = wParam;
-            //
-            //    event e;
-            //    e.type = event_type::WINDOW_SHOW;
-            //    e.window_show.value = wParam;
-            //    window->post_event(e);
-            //
-            //    // Update the cursor tracking incase the cursor moved outside the window.
-            //    window->update_mouse_tracking();
-            //}
-
-            break;
-        }
-
         case WM_PAINT:
         {
-            RECT rect;
+            RECT rect{};
 
-            if (GetUpdateRect(window->m_handle, &rect, FALSE))
+            if (GetUpdateRect(hWnd, &rect, FALSE))
             {
-                const LONG ex_style = GetWindowLong(window->m_handle, GWL_EXSTYLE);
+                const LONG ex_style = GetWindowLong(hWnd, GWL_EXSTYLE);
 
                 // Composited windows will continue to receive WM_PAINT
                 // messages for update regions until the window is actually
@@ -636,11 +683,11 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 if (ex_style & WS_EX_COMPOSITED)
                 {
                     PAINTSTRUCT ps;
-                    BeginPaint(window->m_handle, &ps);
-                    EndPaint(window->m_handle, &ps);
+                    BeginPaint(hWnd, &ps);
+                    EndPaint(hWnd, &ps);
                 }
 
-                ValidateRect(window->m_handle, NULL);
+                ValidateRect(hWnd, NULL);
             }
 
             return_code = 0;
@@ -838,12 +885,12 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         }
 
         // Mouse leave
-        case WM_MOUSELEAVE:
-        {
-            // Update the cursor tracking incase the cursor moved outside the window.
-            window->update_mouse_tracking();
-            break;
-        }
+        //case WM_MOUSELEAVE:
+        //{
+        //    // Update the cursor tracking incase the cursor moved outside the window.
+        //    window->update_mouse_tracking();
+        //    break;
+        //}
     }
 
     if (return_code >= 0)
@@ -851,7 +898,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         return return_code;
     }
 
-    return DefWindowProc(hWnd, Msg, wParam, lParam);
+    return CallWindowProc(DefWindowProc, hWnd, Msg, wParam, lParam);
 }
 
 // =============== sync ===============
@@ -883,28 +930,15 @@ void video::window::window_impl::set_title(const std::string& title)
 
 // =============== position and size ===============
 
-math::vec2i video::window::window_impl::content_position_to_window_position(const math::vec2i& position) const
-{
-    // We specify a rect with the desired position, then call AdjustWindowRect to
-    // which will return a new rect adjusted by the window frame position and size.
-    RECT rect = { position.x, position.y, 0, 0 };
-    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtr(m_handle, GWL_STYLE)), false);
-    return math::vec2i(rect.left, rect.top);
-}
-
-math::vec2i video::window::window_impl::content_size_to_window_size(const math::vec2i& size) const
-{
-    // We specify a rect with the desired size, then call AdjustWindowRect to
-    // which will return a new rect adjusted by the window frame position and size.
-    RECT rect = { 0, 0, size.x, size.y };
-    AdjustWindowRect(&rect, static_cast<DWORD>(GetWindowLongPtr(m_handle, GWL_STYLE)), false);
-    return math::vec2i(rect.right - rect.left, rect.bottom - rect.top);
-}
-
-void video::window::window_impl::adjust_rect_with_style(RECT& rect, window_rect_type rect_type, DWORD style, DWORD ex_style) const
+bool video::window::window_impl::adjust_rect_with_style(RECT& rect, window_rect_type::type rect_type, DWORD style, DWORD ex_style) const
 {
     switch (rect_type)
     {
+        case window_rect_type::INPUT:
+        default:
+        {
+            break;
+        }
         case window_rect_type::CURRENT:
         {
             rect.left = m_owner->m_position.x;
@@ -934,12 +968,12 @@ void video::window::window_impl::adjust_rect_with_style(RECT& rect, window_rect_
         }
     }
 
-    AdjustWindowRectEx(&rect, style, FALSE, ex_style);
+    return AdjustWindowRectEx(&rect, style, (GetMenu(m_handle) != NULL), ex_style);
 }
 
-void video::window::window_impl::adjust_rect(RECT& rect, window_rect_type rect_type) const
+bool video::window::window_impl::adjust_rect(RECT& rect, window_rect_type::type rect_type) const
 {
-    adjust_rect_with_style(
+    return adjust_rect_with_style(
         rect,
         rect_type,
         GetWindowLong(m_handle, GWL_STYLE),
@@ -947,14 +981,14 @@ void video::window::window_impl::adjust_rect(RECT& rect, window_rect_type rect_t
     );
 }
 
-void video::window::window_impl::set_position_internal(UINT flags, window_rect_type rect_type)
+void video::window::window_impl::set_position_internal(UINT flags, window_rect_type::type rect_type)
 {
-    RECT rect;
+    RECT rect{};
     adjust_rect(rect, rect_type);
 
     HWND top = (m_owner->m_flags & flags::TOPMOST) ? HWND_TOPMOST : HWND_NOTOPMOST;
 
-    m_owner->m_moving_or_resizing = true;
+    m_expected_resize = true;
     const bool result = SetWindowPos(
         m_handle,
         top,
@@ -962,16 +996,9 @@ void video::window::window_impl::set_position_internal(UINT flags, window_rect_t
         rect.right - rect.left, rect.bottom - rect.top,
         flags
     );
-    m_owner->m_moving_or_resizing = false;
+    m_expected_resize = false;
 
     assert(result);
-}
-
-math::vec2i video::window::window_impl::get_position() const
-{
-    POINT pos{};
-    ClientToScreen(m_handle, &pos);
-    return math::vec2i(pos.x, pos.y);
 }
 
 void video::window::window_impl::set_position()
@@ -995,13 +1022,6 @@ void video::window::window_impl::set_position()
     }
 }
 
-math::vec2i video::window::window_impl::get_size() const
-{
-    RECT rect;
-    GetClientRect(m_handle, &rect);
-    return math::vec2i(rect.right, rect.bottom);
-}
-
 void video::window::window_impl::set_size()
 {
     if (!(m_owner->m_flags & (flags::FULLSCREEN | flags::MAXIMIZED)))
@@ -1014,72 +1034,117 @@ void video::window::window_impl::set_size()
     }
 }
 
-math::vec2i video::window::window_impl::get_min_size() const
+void video::window::window_impl::get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const
 {
-    return m_owner->m_min_size;
+    RECT client_rect{};
+    RECT window_rect{};
+    POINT shift{};
+
+    if (!GetClientRect(m_handle, &client_rect) || !GetWindowRect(m_handle, &window_rect))
+    {
+        return;
+    }
+
+    // Find the shift needed to move the client rect to window coordinates
+    if (!ClientToScreen(m_handle, &shift))
+    {
+        return;
+    }
+
+    left = shift.x - window_rect.left;
+    top = shift.y - window_rect.top;
+    right = (window_rect.right - window_rect.left) - client_rect.right - left;
+    bottom = (window_rect.bottom - window_rect.top) - client_rect.bottom - top;
 }
 
-math::vec2i video::window::window_impl::get_max_size() const
-{
-    return m_owner->m_max_size;
-}
-
-void video::window::window_impl::set_min_size(const math::vec2i& size)
-{
-    //m_min_size = size;
-    //
-    //// Adjust the size to trigger WM_GETMINMAXINFO
-    //SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-}
-
-void video::window::window_impl::set_max_size(const math::vec2i& size)
-{
-    //m_max_size = size;
-    //
-    //// Adjust the size to trigger WM_GETMINMAXINFO
-    //SetWindowPos(m_handle, NULL, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
-}
-
-void video::window::window_impl::set_resizable(bool resizable)
+void video::window::window_impl::set_resizable()
 {
     sync_window_style();
+}
+
+void video::window::window_impl::set_bordered()
+{
+    sync_window_style();
+    set_position_internal(SWP_FRAMECHANGED | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE, window_rect_type::CURRENT);
+}
+
+void video::window::window_impl::set_always_on_top()
+{
+    sync_window_style();
+    set_position_internal(SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE, window_rect_type::CURRENT);
 }
 
 // =============== window ops ===============
 
 void video::window::window_impl::show()
 {
-    ShowWindow(m_handle, SW_SHOWNA);
+    ShowWindow(m_handle, SW_SHOW);
+}
+
+void video::window::window_impl::hide()
+{
+    ShowWindow(m_handle, SW_HIDE);
 }
 
 void video::window::window_impl::minimize()
 {
-    // We need to call show or else we will not receive a WM_SHOWWINDOW message
     ShowWindow(m_handle, SW_MINIMIZE);
-}
-
-bool video::window::window_impl::is_minimized() const
-{
-    return IsIconic(m_handle);
 }
 
 void video::window::window_impl::maximize()
 {
-    // We need to call show or else we will not receive a WM_SHOWWINDOW message
-    ShowWindow(m_handle, SW_MAXIMIZE);
-}
+    if (m_owner->is_fullscreen())
+    {
+        m_windowed_mode_was_maximized = true;
+        return;
+    }
 
-bool video::window::window_impl::is_maximized() const
-{
-    return IsZoomed(m_handle);
+    m_expected_resize = true;
+    ShowWindow(m_handle, SW_MAXIMIZE);
+    m_expected_resize = false;
+
+    // Is this needed for min size too?
+
+    const math::vec2i& max_size = m_owner->m_max_size;
+    if (max_size.x || max_size.y)
+    {
+        const math::vec2i& size = m_owner->m_size;
+        math::recti& windowed_rect = m_owner->m_windowed_rect;
+
+        windowed_rect.size.x = max_size.x ? math::min(size.x, max_size.x) : windowed_rect.size.x;
+        windowed_rect.size.y = max_size.y ? math::min(size.y, max_size.y) : windowed_rect.size.y;
+
+        RECT rect{};
+        adjust_rect(rect, window_rect_type::WINDOWED);
+
+        m_expected_resize = true;
+        SetWindowPos(
+            m_handle,
+            HWND_TOP,
+            rect.left,
+            rect.top,
+            rect.right - rect.left,
+            rect.bottom - rect.top,
+            SWP_NOCOPYBITS | SWP_NOMOVE | SWP_NOOWNERZORDER | SWP_NOACTIVATE
+        );
+        m_expected_resize = false;
+    }
 }
 
 void video::window::window_impl::restore()
 {
+    if (m_owner->is_fullscreen())
+    {
+        m_windowed_mode_was_maximized = false;
+        return;
+    }
+
+    m_expected_resize = true;
     ShowWindow(m_handle, SW_RESTORE);
+    m_expected_resize = false;
 }
 
-bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* d)
+bool video::window::window_impl::set_fullscreen(fullscreen_op::type fullscreen, const display* d)
 {
     // no-op
     if (!(m_owner->m_flags & flags::FULLSCREEN) && !fullscreen)
@@ -1092,17 +1157,17 @@ bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* 
     MONITORINFO mi{ sizeof(mi) };
     if (!GetMonitorInfo(d->m_impl->get_handle(), &mi))
     {
-        VX_ERROR(error::error_code::PLATFORM_ERROR) << "GetMonitorInfo failed";
+        VX_ERROR(error::error_code::PLATFORM_ERROR) << "GetMonitorInfo() failed";
         return false;
     }
 
     if (fullscreen)
     {
-        video::post_window_enter_fullscreen(this->m_owner);
+        m_owner->post_window_enter_fullscreen();
     }
     else
     {
-        video::post_window_leave_fullscreen(this->m_owner);
+        m_owner->post_window_leave_fullscreen();
     }
     
     DWORD style = GetWindowLong(m_handle, GWL_STYLE);
@@ -1114,12 +1179,14 @@ bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* 
     style |= get_window_style();
 
     bool maximize_on_exit = false;
-    RECT rect;
+    RECT rect{};
 
     if (fullscreen)
     {
         rect = mi.rcMonitor;
 
+        // Unset the maximized flag
+        // This fixes https://bugzilla.libsdl.org/show_bug.cgi?id=3215
         if (style & WS_MAXIMIZE)
         {
             m_windowed_mode_was_maximized = true;
@@ -1140,15 +1207,14 @@ bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* 
             maximize_on_exit = true;
         }
 
-        window_rect_type type = m_windowed_mode_was_maximized ? window_rect_type::WINDOWED : window_rect_type::FLOATING;
+        window_rect_type::type type = m_windowed_mode_was_maximized ? window_rect_type::WINDOWED : window_rect_type::FLOATING;
         adjust_rect_with_style(rect, type, style, ex_style);
-
         m_windowed_mode_was_maximized = false;
     }
 
     SetWindowLong(m_handle, GWL_STYLE, style);
 
-    m_owner->m_moving_or_resizing = true;
+    m_expected_resize = true;
 
     if (!maximize_on_exit)
     {
@@ -1167,7 +1233,7 @@ bool video::window::window_impl::set_fullscreen(bool fullscreen, const display* 
         maximize();
     }
 
-    m_owner->m_moving_or_resizing = false;
+    m_expected_resize = false;
 
     return true;
 }
@@ -1330,7 +1396,7 @@ bool video::window::window_impl::is_hovered() const
     //    return false;
     //}
     //
-    //RECT rect;
+    //RECT rect{};
     //ScreenToClient(m_handle, &point);
     //GetClientRect(m_handle, &rect);
     //
@@ -1380,7 +1446,7 @@ void video::window::window_impl::set_cursor_grabbed(bool grabbed)
 {
     if (grabbed)
     {
-        RECT rect;
+        RECT rect{};
         GetClientRect(m_handle, &rect);
         MapWindowPoints(m_handle, nullptr, reinterpret_cast<LPPOINT>(&rect), 2);
         ClipCursor(&rect);

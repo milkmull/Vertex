@@ -632,12 +632,12 @@ struct poll_display_data
 {
     size_t index;
     bool find_primary;
-    std::vector<video::display>* displays;
+    std::vector<std::unique_ptr<video::display>>* displays;
 };
 
 bool video::video_impl::create_display(
     size_t& index,
-    std::vector<display>& displays,
+    std::vector<std::unique_ptr<display>>& displays,
     HMONITOR hMonitor,
     const MONITORINFOEX* info
 )
@@ -657,7 +657,7 @@ bool video::video_impl::create_display(
     // Check to see if the monitor already exists
     for (size_t i = 0; i < displays.size(); ++i)
     {
-        display* d = &displays[i];
+        display* d = displays[i].get();
         display::display_impl* d_impl = d->m_impl.get();
 
         if (d_impl->m_device_name == info->szDevice)
@@ -704,7 +704,7 @@ bool video::video_impl::create_display(
 
     if (!found)
     {
-        display* d = &displays.emplace_back();
+        display* d = displays.emplace_back(std::make_unique<display>()).get();
         d->m_impl = std::make_unique<video::display::display_impl>();
         display::display_impl* d_impl = d->m_impl.get();
 
@@ -766,14 +766,14 @@ static void poll_displays_internal(poll_display_data& data, MONITORENUMPROC call
     EnumDisplayMonitors(NULL, NULL, callback, (LPARAM)&data);
 }
 
-void video::video_impl::update_displays(std::vector<display>& displays)
+void video::video_impl::update_displays(std::vector<std::unique_ptr<display>>& displays)
 {
     poll_display_data data{ 0 };
     data.displays = &displays;
 
-    for (display& d : displays)
+    for (const std::unique_ptr<display>& d : displays)
     {
-        d.m_impl->m_state = display_state::REMOVED;
+        d->m_impl->m_state = display_state::REMOVED;
     }
 
     data.find_primary = true;
@@ -786,7 +786,7 @@ void video::video_impl::update_displays(std::vector<display>& displays)
     auto it = displays.begin();
     while (it != displays.end())
     {
-        const display& d = *it;
+        const display& d = *(it->get());
 
         if (d.m_impl->m_state == display_state::REMOVED)
         {
@@ -800,11 +800,11 @@ void video::video_impl::update_displays(std::vector<display>& displays)
     }
 
     // add new displays
-    for (const display& d : displays)
+    for (const std::unique_ptr<display>& d : displays)
     {
-        if (d.m_impl->m_state == display_state::ADDED)
+        if (d->m_impl->m_state == display_state::ADDED)
         {
-            post_display_added(&d);
+            post_display_added(d.get());
         }
     }
 }

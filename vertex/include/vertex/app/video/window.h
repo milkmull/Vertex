@@ -44,11 +44,17 @@ private:
         };
     };
 
-    enum class window_rect_type
+    struct window_rect_type
     {
-        CURRENT,
-        WINDOWED,
-        FLOATING
+        using type = uint32_t;
+
+        enum : type
+        {
+            INPUT = 0,
+            CURRENT,
+            WINDOWED,
+            FLOATING
+        };
     };
 
 public:
@@ -63,6 +69,8 @@ public:
     window& operator=(window&&) noexcept;
 
 private:
+
+    bool validate() const;
 
     void finish_creation(flags::type new_flags);
     void apply_flags(flags::type new_flags);
@@ -95,6 +103,7 @@ public:
     void set_size(const math::vec2i& size);
 
     math::recti get_rect() const;
+    void get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const;
 
     const math::vec2i& get_min_size() const;
     const math::vec2i& get_max_size() const;
@@ -102,11 +111,8 @@ public:
     void set_min_size(const math::vec2i& size);
     void set_max_size(const math::vec2i& size);
 
-    float get_min_aspect() const;
-    float get_max_aspect() const;
-
-    void set_min_aspect(float aspect);
-    void set_max_aspect(float aspect);
+    float get_aspect_ratio() const;
+    void lock_aspect_ratio(float aspect_ratio);
 
     ///////////////////////////////////////////////////////////////////////////////
     // bordered
@@ -126,8 +132,8 @@ public:
     // window operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    void hide();
     void show();
+    void hide();
     bool is_visible() const;
     bool is_hidden() const;
 
@@ -155,7 +161,19 @@ public:
 
 private:
 
-    bool update_fullscreen_mode(bool fullscreen, bool commit);
+    struct fullscreen_op
+    {
+        using type = uint32_t;
+
+        enum : type
+        {
+            LEAVE = 0,
+            ENTER = 1,
+            UPDATE
+        };
+    };
+
+    bool update_fullscreen_mode(fullscreen_op::type fullscreen, bool commit);
 
 public:
 
@@ -196,7 +214,7 @@ private:
     math::vec2i m_size;
 
     math::vec2i m_min_size, m_max_size;
-    float m_min_aspect, m_max_aspect;
+    float m_locked_aspect;
 
     // Position and size for a non-fullscreen window, including when
     // maximized or tiled. Window should return to this size and position
@@ -223,7 +241,7 @@ private:
 
     bool m_initializing;
     bool m_destroying;
-    bool m_moving_or_resizing;
+    bool m_moving;
     bool m_hiding;
 
     bool m_tiled;
@@ -233,6 +251,47 @@ private:
 private:
 
     std::unique_ptr<window_impl> m_impl;
+
+private:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // window events
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool post_window_shown();
+    void on_window_shown();
+
+    bool post_window_hidden();
+    void on_window_hidden();
+
+    bool post_window_moved(int32_t x, int32_t y);
+    void on_window_moved();
+
+    bool post_window_resized(int32_t w, int32_t h);
+    void on_window_resized();
+
+    bool post_window_minimized();
+    void on_window_minimized();
+
+    bool post_window_maximized();
+    void on_window_maximized();
+
+    bool post_window_restored();
+    void on_window_restored();
+
+    bool post_window_enter_fullscreen();
+    bool post_window_leave_fullscreen();
+
+    //bool post_window_gained_focus();
+    //bool post_window_lost_focus();
+    //bool post_window_mouse_enter();
+    //bool post_window_mouse_leave();
+    bool post_window_display_changed(const display& d);
+    void on_window_display_changed(const display& d);
+
+    //bool post_window_display_scale_changed();
+    bool post_window_close_requested();
+    bool post_window_destroyed();
 
 };
 

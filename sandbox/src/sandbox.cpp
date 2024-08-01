@@ -15,46 +15,40 @@ int main()
     const video::display* d = video::get_primary_display();
 
     video::window_config config;
-    config.size = vx::math::vec2i(100);
+    config.size = vx::math::vec2i(500);
     config.center_on_display = true;
     config.title = "window";
     config.resizable = true;
+    //config.borderless = true;
     video::window* w = video::create_window(config);
+    //w->set_min_size({ 10, 10 });
+    //w->set_max_size({ 300, 300 });
+    w->lock_aspect_ratio(1.0f);
 
-    while (true)
+    //w->set_size({ 300, 300 });
+
+    bool running = true;
+    while (running)
     {
-        //vx::app::video::update_displays();
-
         if (vx::app::event::poll_event(e))
         {
             switch (e.type)
             {
-                //case event_type::DISPLAY_ADDED:
-                //{
-                //    std::cout << "Display Added: " << e.display_event.display_id << std::endl;
-                //    break;
-                //}
-                //case event_type::DISPLAY_REMOVED:
-                //{
-                //    std::cout << "Display Removed: " << e.display_event.display_id << std::endl;
-                //    break;
-                //}
-                //case event_type::DISPLAY_MOVED:
-                //{
-                //    std::cout << "Display Moved: " << e.display_event.display_id << std::endl;
-                //    break;
-                //}
+                case event_type::WINDOW_CLOSE_REQUESTED:
+                {
+                    int left, right, bottom, top;
+                    w->get_border_size(left, right, bottom, top);
+                    std::cout << "{ " << left << ' ' << right << ' ' << bottom << ' ' << top << " }" << std::endl;
+
+                    running = false;
+                    VX_FALLTHROUGH;
+                }
                 default:
                 {
                     break;
                 }
             }
         }
-    }
-
-    while (vx::app::event::poll_event(e))
-    {
-        std::cout << e.type << std::endl;
     }
 
     vx::app::video::quit();

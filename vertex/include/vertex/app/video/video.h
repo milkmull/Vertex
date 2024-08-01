@@ -276,39 +276,6 @@ private:
     static bool post_display_current_mode_changed(display* d, const display_mode& mode);
     static bool post_display_content_scale_changed(display* d, const math::vec2& content_scale);
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // window events
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static bool post_window_shown(window* w);
-    static void on_window_shown(window* w);
-
-    static bool post_window_hidden(const window* w);
-
-    static bool post_window_moved(const window* w);
-
-    static bool post_window_resized(window* w, const math::vec2i& size);
-    static void on_window_resized(window* w);
-
-    static bool post_window_minimized(const window* w);
-    static bool post_window_maximized(const window* w);
-    static bool post_window_restored(const window* w);
-
-    static bool post_window_enter_fullscreen(window* w);
-    static bool post_window_leave_fullscreen(window* w);
-
-    static bool post_window_gained_focus(const window* w);
-    static bool post_window_lost_focus(const window* w);
-    static bool post_window_mouse_enter(const window* w);
-    static bool post_window_mouse_leave(const window* w);
-
-    static bool post_window_display_changed(window* w, display* d);
-    static void on_window_display_changed(window* w, display* d);
-
-    static bool post_window_display_scale_changed(const window* w);
-    static bool post_window_close_requested(const window* w);
-    static bool post_window_destroyed(const window* w);
-
 private:
 
     struct video_data
@@ -318,8 +285,8 @@ private:
 
         bool is_init = false;
 
-        std::vector<display> displays;
-        std::vector<window> windows;
+        std::vector<std::unique_ptr<display>> displays;
+        std::vector<std::unique_ptr<window>> windows;
 
         bool setting_display_mode = false;
     };

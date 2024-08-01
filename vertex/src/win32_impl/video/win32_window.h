@@ -28,16 +28,15 @@ public:
 
 private:
 
+    bool validate() const;
+
+private:
+
     // =============== style ===============
 
     DWORD get_window_style() const;
     DWORD get_window_ex_style() const;
     void sync_window_style();
-
-public:
-
-    void update_style(int flags, bool enable);
-    bool has_style(int flag) const;
 
 public:
 
@@ -58,46 +57,34 @@ public:
 
     // =============== position and size ===============
 
-private:
-
-    math::vec2i content_position_to_window_position(const math::vec2i& position) const;
-    math::vec2i content_size_to_window_size(const math::vec2i& size) const;
-
 public:
 
-    void adjust_rect_with_style(RECT& rect, window_rect_type rect_type, DWORD style, DWORD ex_style) const;
-    void adjust_rect(RECT& rect, window_rect_type rect_type) const;
-    void set_position_internal(UINT flags, window_rect_type rect_type);
+    bool adjust_rect_with_style(RECT& rect, window_rect_type::type rect_type, DWORD style, DWORD ex_style) const;
+    bool adjust_rect(RECT& rect, window_rect_type::type rect_type) const;
+    void set_position_internal(UINT flags, window_rect_type::type rect_type);
 
-    math::vec2i get_position() const;
     void set_position();
-
-    math::vec2i get_size() const;
     void set_size();
 
+    void get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const;
+
 public:
 
-    math::vec2i get_min_size() const;
-    math::vec2i get_max_size() const;
-
-    void set_min_size(const math::vec2i& size);
-    void set_max_size(const math::vec2i& size);
-
-    void set_resizable(bool resizable);
+    void set_resizable();
+    void set_bordered();
+    void set_always_on_top();
 
     // =============== window ops ===============
 
     void show();
+    void hide();
 
     void minimize();
-    bool is_minimized() const;
-
     void maximize();
-    bool is_maximized() const;
 
     void restore();
 
-    bool set_fullscreen(bool fullscreen, const display* d);
+    bool set_fullscreen(fullscreen_op::type fullscreen, const display* d);
 
     void focus();
     bool is_focused() const;
@@ -140,6 +127,9 @@ private:
     window* m_owner;
     HWND m_handle;
     HICON m_icon;
+
+    // True when we are expecting to receive a resize event
+    bool m_expected_resize;
 
     // Used to indicate when the position or size of the window should
     // change to match that of the floating rect after exiting a special
