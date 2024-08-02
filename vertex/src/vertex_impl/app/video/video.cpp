@@ -456,89 +456,44 @@ video::display* video::get_display_for_rect(const math::recti& rect)
     return get_display_for_point(rect.center());
 }
 
-video::display* video::get_display_for_window_position(const window* w)
+video::display* video::get_display_for_window(const window& w)
 {
     display* d = nullptr;
 
-    if (w)
+    if (w.is_fullscreen())
     {
-        // In some cases, fullscreen windows may be larger than the display if they
-        // were moved between differently sized displays. In this case getting the
-        // display from the center of the image may give the incorrect display, so
-        // we use the topleft of the window instead.
-        if (w->is_fullscreen())
-        {
-            d = get_display_for_point(w->get_position());
-        }
-        else
-        {
-            d = get_display_for_rect(w->get_rect());
-        }
+        d = get_display(w.m_current_fullscreen_mode.m_display_id);
 
-        // The primary display is a good default
         if (!d)
         {
-            d = get_primary_display();
+            if (!w.m_repositioning)
+            {
+                // When fullscreen windows are moved between displays of different sizes,
+                // the window size and position updates may arrive out of order. This can
+                // temporarily make the window larger than the display. In such cases,
+                // using the center of the window rectangle might incorrectly identify the
+                // display, so we use the origin instead.
+                d = get_display_for_point(w.m_position);
+            }
+            else
+            {
+                // In some backends, the actual window position may not be updated at the
+                // time of this call. If the window is being repositioned via a call to
+                // set_position, the floating rect will have the most up-to-date area for
+                // the window. 
+                d = get_display_for_rect(w.m_floating_rect);
+            }
         }
-    }
-
-    return d;
-}
-
-video::display* video::get_display_for_fullscreen_window(const window* w)
-{
-    if (!w)
-    {
-        return nullptr;
-    }
-
-    display* d = nullptr;
-
-    if (w->m_current_fullscreen_mode.m_display_id)
-    {
-        d = get_display(w->m_current_fullscreen_mode.m_display_id);
     }
     else
     {
-        if (w->is_fullscreen() && !w->m_moving)
-        {
-            // If we are currently just a regular fullscreen window, we can use
-            // the position
-            d = get_display_for_point(w->m_position);
-        }
-        else
-        {
-            // In some cases, the actual position of the window may be not
-            // fully set at this time. In this case we will use the floating
-            // position which should contain the most up-to-date position of
-            // the window as of this call.
-            d = get_display_for_rect(w->m_floating_rect);
-        }
-
-        if (!d)
-        {
-            d = get_primary_display();
-        }
+        d = get_display_for_rect(w.get_rect());
     }
 
-    return d;
-}
-
-video::display* video::get_display_for_window(const window* w)
-{
-    display* d = nullptr;
-
-    if (w)
+    // The primary display is a good default
+    if (!d)
     {
-        if (w->is_fullscreen())
-        {
-            d = get_display(w->m_current_fullscreen_mode.m_display_id);
-        }
-
-        if (!d)
-        {
-            d = get_display_for_window_position(w);
-        }
+        d = get_primary_display();
     }
 
     return d;
@@ -548,29 +503,24 @@ video::display* video::get_display_for_window(const window* w)
 // window display
 ///////////////////////////////////////////////////////////////////////////////
 
-void video::check_window_display_changed(window* w)
+void video::check_window_display_changed(window& w)
 {
-    if (!w)
-    {
-        return;
-    }
-
     if (!(s_video_data.video_caps & caps::SEND_DISPLAY_CHANGES))
     {
         return;
     }
 
-    display* new_display = get_display_for_window_position(w);
+    display* new_display = get_display_for_window(w);
     if (!new_display)
     {
         // Should never happen
         return;
     }
 
-    device_id window_id = w->id();
+    device_id window_id = w.id();
 
     device_id new_window_display_id = new_display->id();
-    device_id old_window_display_id = w->m_last_display_id;
+    device_id old_window_display_id = w.m_last_display_id;
 
     device_id new_display_fullscreen_window_id = new_display->m_fullscreen_window_id;
 
@@ -607,7 +557,7 @@ void video::check_window_display_changed(window* w)
             }
         }
 
-        w->post_window_display_changed(*new_display);
+        w.post_window_display_changed(*new_display);
     }
 }
 
@@ -698,7 +648,7 @@ bool video::post_display_added(const display* d)
 
     event e{};
     e.type = event_type::DISPLAY_ADDED;
-    e.display_added.display_id = d->id();
+    e.display_id = d->id();
     bool posted = event::post_event(e);
 
     on_display_added();
@@ -710,7 +660,7 @@ void video::on_display_added()
 {
     for (const std::unique_ptr<window>& w : s_video_data.windows)
     {
-        check_window_display_changed(w.get());
+        check_window_display_changed(*w);
     }
 }
 
@@ -723,7 +673,7 @@ bool video::post_display_removed(const display* d)
 
     event e{};
     e.type = event_type::DISPLAY_REMOVED;
-    e.display_removed.display_id = d->id();
+    e.display_id = d->id();
     bool posted = event::post_event(e);
 
     return posted;
@@ -738,7 +688,7 @@ bool video::post_display_moved(const display* d)
 
     event e{};
     e.type = event_type::DISPLAY_MOVED;
-    e.display_moved.display_id = d->id();
+    e.display_id = d->id();
     bool posted = event::post_event(e);
 
     return posted;
@@ -760,7 +710,7 @@ bool video::post_display_orientation_changed(display* d, display_orientation ori
 
     event e{};
     e.type = event_type::DISPLAY_ORIENTATION_CHANGED;
-    e.display_orientation_changed.display_id = d->id();
+    e.display_id = d->id();
     e.display_orientation_changed.orientation = orientation;
     bool posted = event::post_event(e);
 
@@ -783,7 +733,7 @@ bool video::post_display_desktop_mode_changed(display* d, const display_mode& mo
 
     event e{};
     e.type = event_type::DISPLAY_DESKTOP_MODE_CHANGED;
-    e.display_desktop_mode_changed.display_id = d->id();
+    e.display_id = d->id();
     bool posted = event::post_event(e);
 
     return posted;
@@ -805,7 +755,7 @@ bool video::post_display_current_mode_changed(display* d, const display_mode& mo
 
     event e{};
     e.type = event_type::DISPLAY_CURRENT_MODE_CHANGED;
-    e.display_current_mode_changed.display_id = d->id();
+    e.display_id = d->id();
     bool posted = event::post_event(e);
 
     return posted;
@@ -827,7 +777,7 @@ bool video::post_display_content_scale_changed(display* d, const math::vec2& con
 
     event e{};
     e.type = event_type::DISPLAY_CONTENT_SCALE_CHANGED;
-    e.display_content_scale_changed.display_id = d->id();
+    e.display_id = d->id();
     e.display_content_scale_changed.x = content_scale.x;
     e.display_content_scale_changed.y = content_scale.y;
     bool posted = event::post_event(e);

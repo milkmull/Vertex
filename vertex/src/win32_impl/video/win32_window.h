@@ -89,7 +89,7 @@ public:
     void focus();
     bool is_focused() const;
 
-    void request_attention();
+    void flash(flash_op operation);
 
     void set_topmost(bool enabled);
     bool is_topmost() const;

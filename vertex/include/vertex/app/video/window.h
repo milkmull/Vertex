@@ -102,6 +102,7 @@ public:
     const math::vec2i& get_size() const;
     void set_size(const math::vec2i& size);
 
+    math::vec2i get_center() const;
     math::recti get_rect() const;
     void get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const;
 
@@ -148,7 +149,14 @@ public:
     void focus();
     bool is_focused() const;
 
-    void request_attention();
+    enum class flash_op
+    {
+        CANCEL,
+        BRIEF,
+        UNTIL_FOCUSED
+    };
+
+    void flash(flash_op operation);
 
 public:
 
@@ -187,24 +195,6 @@ public:
     bool set_icon(const uint8_t* pixels, const math::vec2i& size);
     void clear_icon();
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // mouse
-    ///////////////////////////////////////////////////////////////////////////////
-
-    math::vec2i get_mouse_position() const;
-    void set_mouse_position(const math::vec2i& position);
-
-    bool is_hovered() const;
-
-    bool get_cursor_visibility() const;
-    void set_cursor_visibility(bool visible);
-
-    //cursor get_cursor() const;
-    //bool set_cursor(cursor cursor);
-
-    bool is_cursor_grabbed() const;
-    void set_cursor_grabbed(bool grabbed);
-
 private:
 
     device_id m_id;
@@ -241,7 +231,7 @@ private:
 
     bool m_initializing;
     bool m_destroying;
-    bool m_moving;
+    bool m_repositioning;
     bool m_hiding;
 
     bool m_tiled;

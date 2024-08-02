@@ -71,48 +71,22 @@ public:
 
     union
     {
+        device_id window_id;
+        device_id display_id;
+    };
+
+    union
+    {
         // display events
 
         struct
         {
-            device_id display_id;
-        }
-        display_added;
-
-        struct
-        {
-            device_id display_id;
-        }
-        display_removed;
-
-        struct
-        {
-            device_id display_id;
-        }
-        display_moved;
-
-        struct
-        {
-            device_id display_id;
             video::display_orientation orientation;
         }
         display_orientation_changed;
 
         struct
         {
-            device_id display_id;
-        }
-        display_desktop_mode_changed;
-
-        struct
-        {
-            device_id display_id;
-        }
-        display_current_mode_changed;
-
-        struct
-        {
-            device_id display_id;
             float x, y;
         }
         display_content_scale_changed;
@@ -121,114 +95,26 @@ public:
 
         struct
         {
-            device_id window_id;
-        }
-        window_shown;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_hidden;
-
-        struct
-        {
-            device_id window_id;
             int32_t x, y;
         }
         window_moved;
 
         struct
         {
-            device_id window_id;
             int32_t w, h;
         }
         window_resized;
 
         struct
         {
-            device_id window_id;
-        }
-        window_minimized;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_maximized;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_restored;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_enter_fullscreen;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_leave_fullscreen;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_gained_focus;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_lost_focus;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_mouse_enter;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_mouse_leave;
-
-        struct
-        {
-            device_id window_id;
             device_id display_id;
         }
         window_display_changed;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_display_scale_changed;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_close_requested;
-
-        struct
-        {
-            device_id window_id;
-        }
-        window_destroyed;
 
         // key events
 
         struct
         {
-            device_id window_id;
             int32_t scancode;
             keyboard::key key;
             uint8_t repeate;
@@ -237,7 +123,6 @@ public:
 
         struct
         {
-            device_id window_id;
             int32_t scancode;
             keyboard::key key;
         }
@@ -245,7 +130,6 @@ public:
 
         struct
         {
-            device_id window_id;
             char32_t text;
         }
         text_input;
@@ -254,7 +138,6 @@ public:
 
         struct
         {
-            device_id window_id;
             int32_t x, y;
             int32_t dx, dy;
         }
@@ -262,7 +145,6 @@ public:
 
         struct
         {
-            device_id window_id;
             mouse::button button;
             int32_t x, y;
             uint8_t clicks;
@@ -271,7 +153,6 @@ public:
 
         struct
         {
-            device_id window_id;
             mouse::button button;
             int32_t x, y;
         }
@@ -279,7 +160,6 @@ public:
 
         struct
         {
-            device_id window_id;
             mouse::wheel wheel;
             float delta;
             int32_t x, y;
@@ -294,6 +174,15 @@ private:
 
 public:
 
+    using event_process_callback = void(*)();
+    static void set_event_process_callback(event_process_callback callback);
+
+private:
+
+    static event_process_callback s_event_process_callback;
+
+public:
+
     static void pump_events(bool process_all);
 
     static std::vector<event> peek_events();
@@ -305,6 +194,9 @@ public:
     static void wait_events_timeout(unsigned int timeout_ms);
 
     static size_t flush_events(event_type type);
+
+    using event_filter = bool(*)(void*, const event&);
+    static size_t filter_events(event_filter filter, void* user_data);
 
 private:
 

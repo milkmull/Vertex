@@ -337,9 +337,6 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
         case WM_WINDOWPOSCHANGED:
         {
-            bool minimized = IsIconic(hWnd);
-            bool maximized = IsZoomed(hWnd);
-
             const WINDOWPOS* wp = reinterpret_cast<const WINDOWPOS*>(lParam);
 
             if (wp->flags & SWP_SHOWWINDOW)
@@ -347,14 +344,16 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 win->post_window_shown();
             }
 
+            bool minimized = IsIconic(hWnd);
+            bool maximized = IsZoomed(hWnd);
+
             if (minimized)
             {
                 win->post_window_minimized();
             }
             else if (maximized)
             {
-                // If we are going from a minimized state to maximized, restore
-                // first
+                // If we are going from a minimized state to maximized, restore first
                 if (win->m_flags & flags::MINIMIZED)
                 {
                     win->post_window_restored();
@@ -373,12 +372,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             }
 
             /* When the window is minimized it's resized to the dock icon size, ignore this */
-            if (minimized)
-            {
-                break;
-            }
-
-            if (win->m_initializing)
+            if (minimized || win->m_initializing)
             {
                 break;
             }
@@ -387,13 +381,12 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
             if (GetClientRect(hWnd, &rect) && !IS_RECT_EMPTY(rect))
             {
-                ClientToScreen(hWnd, reinterpret_cast<LPPOINT>(&rect));
-                ClientToScreen(hWnd, reinterpret_cast<LPPOINT>(&rect) + 1);
-
-                win->post_window_moved(rect.left, rect.top);
+                POINT shift{};
+                ClientToScreen(hWnd, &shift);
+                win->post_window_moved(rect.left + shift.x, rect.top + shift.y);
             }
 
-            /* Moving the window from one display to another can change the size of the window (in the handling of SDL_EVENT_WINDOW_MOVED), so we need to re-query the bounds */
+            // If the window moved between displays when handling window move event, the size may have changed
             if (GetClientRect(hWnd, &rect) && !IS_RECT_EMPTY(rect))
             {
                 win->post_window_resized(rect.right, rect.bottom);
@@ -401,9 +394,8 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
             // update clip cursor
 
-            /* Forces a WM_PAINT event */
+            // Forces a WM_PAINT event
             InvalidateRect(hWnd, NULL, FALSE);
-
             break;
         }
 
@@ -457,13 +449,13 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         
             switch (wParam)
             {
-                case WMSZ_LEFT:
+                case WMSZ_TOPLEFT:
                 {
                     client_drag_rect.left = client_drag_rect.right - w;
-                    client_drag_rect.top = (client_drag_rect.bottom + client_drag_rect.top - h) / 2;
-                    client_drag_rect.bottom = h + client_drag_rect.top;
+                    client_drag_rect.top = client_drag_rect.bottom - h;
                     break;
                 }
+                case WMSZ_LEFT:
                 case WMSZ_BOTTOMLEFT:
                 {
                     client_drag_rect.left = client_drag_rect.right - w;
@@ -471,47 +463,23 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                     break;
                 }
                 case WMSZ_RIGHT:
+                case WMSZ_BOTTOMRIGHT:
+                case WMSZ_BOTTOM:
                 {
                     client_drag_rect.right = w + client_drag_rect.left;
-                    client_drag_rect.top = (client_drag_rect.bottom + client_drag_rect.top - h) / 2;
                     client_drag_rect.bottom = h + client_drag_rect.top;
                     break;
                 }
+                case WMSZ_TOP:
                 case WMSZ_TOPRIGHT:
                 {
                     client_drag_rect.right = w + client_drag_rect.left;
                     client_drag_rect.top = client_drag_rect.bottom - h;
                     break;
                 }
-                case WMSZ_TOP:
-                {
-                    client_drag_rect.left = (client_drag_rect.right + client_drag_rect.left - w) / 2;
-                    client_drag_rect.right = w + client_drag_rect.left;
-                    client_drag_rect.top = client_drag_rect.bottom - h;
-                    break;
-                }
-                case WMSZ_TOPLEFT:
-                {
-                    client_drag_rect.left = client_drag_rect.right - w;
-                    client_drag_rect.top = client_drag_rect.bottom - h;
-                    break;
-                }
-                case WMSZ_BOTTOM:
-                {
-                    client_drag_rect.left = (client_drag_rect.right + client_drag_rect.left - w) / 2;
-                    client_drag_rect.right = w + client_drag_rect.left;
-                    client_drag_rect.bottom = h + client_drag_rect.top;
-                    break;
-                }
-                case WMSZ_BOTTOMRIGHT:
-                {
-                    client_drag_rect.right = w + client_drag_rect.left;
-                    client_drag_rect.bottom = h + client_drag_rect.top;
-                    break;
-                }
             }
         
-            /* convert the client rect to a window rect */
+            // Adjust the client drag rect to aaccount for borders
             if (!win_impl->adjust_rect(client_drag_rect, window_rect_type::INPUT))
             {
                 break;
@@ -532,73 +500,58 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
 
             // Get the size of the window including the frame
             MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
-            
-            RECT frame{};
-            GetWindowRect(hWnd, &frame);
 
-            int x = frame.left;
-            int y = frame.top;
-            int w = win->m_size.x;
-            int h = win->m_size.y;
+            RECT window_rect{};
+            RECT client_rect{};
+
+            GetWindowRect(hWnd, &window_rect);
+            GetClientRect(hWnd, &client_rect);
+
+            int x = window_rect.left;
+            int y = window_rect.top;
+
+            int w, h;
 
             // If the window has a border, it must be accounted for in the size
             if (!(win->m_flags & flags::BORDERLESS))
             {
-                frame.top = 0;
-                frame.left = 0;
-                frame.bottom = h;
-                frame.right = w;
-
-                win_impl->adjust_rect(frame, window_rect_type::INPUT);
-                w = frame.right - frame.left;
-                h = frame.bottom - frame.top;
+                w = window_rect.right - window_rect.left;
+                h = window_rect.bottom - window_rect.top;
             }
-            
+            else
+            {
+                w = client_rect.right;
+                h = client_rect.bottom;
+            }
+
             if (win->m_flags & flags::RESIZABLE)
             {
                 if (win->m_flags & flags::BORDERLESS)
                 {
-                    const int screen_w = GetSystemMetrics(SM_CXSCREEN);
-                    const int screen_h = GetSystemMetrics(SM_CYSCREEN);
-            
+                    int screen_w = GetSystemMetrics(SM_CXSCREEN);
+                    int screen_h = GetSystemMetrics(SM_CYSCREEN);
+
                     mmi->ptMaxSize.x = math::max(w, screen_w);
                     mmi->ptMaxSize.y = math::max(h, screen_h);
                     mmi->ptMaxPosition.x = math::min(0, (screen_w - w) / 2);
                     mmi->ptMaxPosition.y = math::max(0, (screen_h - h) / 2);
                 }
-            
-                if (win->m_min_size.x)
+
+                if (win->m_min_size.x > 0)
                 {
-                    mmi->ptMinTrackSize.x = win->m_min_size.x + w;
+                    mmi->ptMinTrackSize.x = w + (win->m_min_size.x - client_rect.right);
                 }
-                else
+                if (win->m_min_size.y > 0)
                 {
-                    mmi->ptMinTrackSize.x = w;
+                    mmi->ptMinTrackSize.y = h + (win->m_min_size.y - client_rect.bottom);
                 }
-                if (win->m_min_size.y)
+                if (win->m_max_size.x > 0)
                 {
-                    mmi->ptMinTrackSize.y = win->m_min_size.y + h;
+                    mmi->ptMaxTrackSize.x = w + (win->m_max_size.x - client_rect.right);
                 }
-                else
+                if (win->m_max_size.y > 0)
                 {
-                    mmi->ptMinTrackSize.y = h;
-                }
-            
-                if (win->m_max_size.x)
-                {
-                    mmi->ptMaxTrackSize.x = win->m_max_size.x + w;
-                }
-                else
-                {
-                    mmi->ptMaxTrackSize.x = w;
-                }
-                if (win->m_max_size.y)
-                {
-                    mmi->ptMaxTrackSize.y = win->m_max_size.y + h;
-                }
-                else
-                {
-                    mmi->ptMaxTrackSize.y = h;
+                    mmi->ptMaxTrackSize.y = h + (win->m_max_size.y - client_rect.bottom);
                 }
             }
             else
@@ -612,10 +565,37 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 mmi->ptMaxTrackSize.x = w;
                 mmi->ptMaxTrackSize.y = h;
             }
-            
+
             return_code = 0;
             break;
         }
+
+        //case WM_ENTERSIZEMOVE:
+        //case WM_ENTERMENULOOP:
+        //{
+        //    SetTimer(hWnd, (UINT_PTR)SDL_IterateMainCallbacks, USER_TIMER_MINIMUM, NULL);
+        //    break;
+        //}
+
+        //case WM_TIMER:
+        //{
+        //    if (wParam == (UINT_PTR)SDL_IterateMainCallbacks) {
+        //        if (SDL_HasMainCallbacks()) {
+        //            SDL_IterateMainCallbacks(SDL_FALSE);
+        //        }
+        //        else {
+        //            // Send an expose event so the application can redraw
+        //            SDL_SendWindowEvent(data->window, SDL_EVENT_WINDOW_EXPOSED, 0, 0);
+        //        }
+        //        return 0;
+        //    }
+        //} break;
+        //
+        //case WM_EXITSIZEMOVE:
+        //case WM_EXITMENULOOP:
+        //{
+        //    KillTimer(hwnd, (UINT_PTR)SDL_IterateMainCallbacks);
+        //} break;
 
         case WM_NCCALCSIZE:
         {
@@ -635,6 +615,59 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 return 0;
             }
 
+            break;
+        }
+
+        case WM_PAINT:
+        {
+            RECT rect{};
+
+            // Get the area that needs to be repainted
+            if (GetUpdateRect(hWnd, &rect, FALSE))
+            {
+                const LONG ex_style = GetWindowLong(hWnd, GWL_EXSTYLE);
+
+                // Composited windows will continue to receive WM_PAINT messages for
+                // update regions until the window is actually painted through Begin/EndPaint.
+                if (ex_style & WS_EX_COMPOSITED)
+                {
+                    PAINTSTRUCT ps;
+                    BeginPaint(hWnd, &ps);
+                    EndPaint(hWnd, &ps);
+                }
+
+                // Mark the update region as painted, which prevents redundant repainting
+                ValidateRect(hWnd, NULL);
+            }
+
+            return_code = 0;
+            break;
+        }
+
+        // Fill the background with black to prevent flicker
+        case WM_ERASEBKGND:
+        {
+            if (!win_impl->m_cleared)
+            {
+                RECT client_rect{};
+                HBRUSH brush;
+                win_impl->m_cleared = true;
+                GetClientRect(hWnd, &client_rect);
+                brush = CreateSolidBrush(0);
+                FillRect(GetDC(hWnd), &client_rect, brush);
+                DeleteObject(brush);
+            }
+            return 1;
+        }
+
+        ///////////////////////////////////////////////////////////////////////////////
+        // display events
+        ///////////////////////////////////////////////////////////////////////////////
+
+        case WM_DISPLAYCHANGE:
+        {
+            // Reacquire displays if any were added or removed
+            video::update_displays();
             break;
         }
 
@@ -668,35 +701,6 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             //}
 
             break;
-        }
-        case WM_PAINT:
-        {
-            RECT rect{};
-
-            if (GetUpdateRect(hWnd, &rect, FALSE))
-            {
-                const LONG ex_style = GetWindowLong(hWnd, GWL_EXSTYLE);
-
-                // Composited windows will continue to receive WM_PAINT
-                // messages for update regions until the window is actually
-                // painted through Begin/EndPaint.
-                if (ex_style & WS_EX_COMPOSITED)
-                {
-                    PAINTSTRUCT ps;
-                    BeginPaint(hWnd, &ps);
-                    EndPaint(hWnd, &ps);
-                }
-
-                ValidateRect(hWnd, NULL);
-            }
-
-            return_code = 0;
-            break;
-        }
-
-        case WM_ERASEBKGND:
-        {
-            return 1;
         }
 
         // =============== mouse events ===============
@@ -1036,25 +1040,16 @@ void video::window::window_impl::set_size()
 
 void video::window::window_impl::get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const
 {
-    RECT client_rect{};
-    RECT window_rect{};
-    POINT shift{};
-
-    if (!GetClientRect(m_handle, &client_rect) || !GetWindowRect(m_handle, &window_rect))
+    RECT rect{};
+    if (!adjust_rect(rect, window_rect_type::INPUT))
     {
         return;
     }
 
-    // Find the shift needed to move the client rect to window coordinates
-    if (!ClientToScreen(m_handle, &shift))
-    {
-        return;
-    }
-
-    left = shift.x - window_rect.left;
-    top = shift.y - window_rect.top;
-    right = (window_rect.right - window_rect.left) - client_rect.right - left;
-    bottom = (window_rect.bottom - window_rect.top) - client_rect.bottom - top;
+    left = -rect.left;
+    right = rect.right;
+    bottom = rect.bottom;
+    top = -rect.top;
 }
 
 void video::window::window_impl::set_resizable()
@@ -1250,9 +1245,36 @@ bool video::window::window_impl::is_focused() const
     return m_handle == GetActiveWindow();
 }
 
-void video::window::window_impl::request_attention()
+void video::window::window_impl::flash(flash_op operation)
 {
-    FlashWindow(m_handle, TRUE);
+    FLASHWINFO fi{ sizeof(fi) };
+    fi.hwnd = m_handle;
+
+    switch (operation)
+    {
+        case flash_op::CANCEL:
+        {
+            fi.dwFlags = FLASHW_STOP;
+            break;
+        }
+        case flash_op::BRIEF:
+        {
+            fi.dwFlags = FLASHW_TRAY;
+            fi.uCount = 1;
+            break;
+        }
+        case flash_op::UNTIL_FOCUSED:
+        {
+            fi.dwFlags = (FLASHW_TRAY | FLASHW_TIMERNOFG);
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
+    FlashWindowEx(&fi);
 }
 
 void video::window::window_impl::set_topmost(bool enabled)

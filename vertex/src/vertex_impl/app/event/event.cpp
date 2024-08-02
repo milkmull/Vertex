@@ -11,6 +11,7 @@ namespace app {
 
 std::deque<event> event::s_events = std::deque<event>();
 std::mutex event::s_mutex = std::mutex();
+event::event_process_callback s_event_process_callback = nullptr;
 
 void event::pump_events(bool process_all)
 {
@@ -104,6 +105,35 @@ size_t event::flush_events(event_type type)
     s_mutex.unlock();
     return count;
 }
+
+size_t event::filter_events(event_filter filter, void* user_data)
+{
+    size_t count = 0;
+
+    if (filter)
+    {
+        s_mutex.lock();
+
+        auto it = s_events.begin();
+        while (it != s_events.end())
+        {
+            if (filter(user_data, *it))
+            {
+                it = s_events.erase(it);
+                ++count;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        s_mutex.unlock();
+    }
+
+    return count;
+}
+
 
 }
 }

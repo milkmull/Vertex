@@ -231,18 +231,13 @@ public:
     // window display
     ///////////////////////////////////////////////////////////////////////////////
 
-private:
-
-    static display* get_display_for_window_position(const window* w);
-    static display* get_display_for_fullscreen_window(const window* w);
-
 public:
 
-    static display* get_display_for_window(const window* w);
+    static display* get_display_for_window(const window& w);
 
 private:
 
-    static void check_window_display_changed(window* w);
+    static void check_window_display_changed(window& w);
 
 public:
 
