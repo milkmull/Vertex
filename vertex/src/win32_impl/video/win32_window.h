@@ -15,9 +15,7 @@ public:
 
     // =============== constructors ===============
 
-    static void create(window& w);
-
-    window_impl(window* w);
+    window_impl();
     ~window_impl();
 
     window_impl(const window_impl&) = delete;
@@ -27,6 +25,9 @@ public:
     window_impl& operator=(window_impl&&) = delete;
 
 private:
+
+    bool create(window* w);
+    void destroy();
 
     bool validate() const;
 
@@ -142,13 +143,13 @@ private:
     bool m_windowed_mode_was_maximized;
 
     // True when losing focus
-    bool m_in_window_deactivation;
+    bool m_losing_focus;
 
     // True after clearing the contents of the window
     bool m_cleared;
 
-    //bool m_windowed_mode_corner_rounding;
-    //COLORREF m_dwma_border_color;
+    DWM_WINDOW_CORNER_PREFERENCE m_windowed_mode_corner_rounding;
+    COLORREF m_dwma_border_color;
 
 };
 

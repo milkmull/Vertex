@@ -61,9 +61,24 @@ enum MONITOR_DPI_TYPE
 #   define DWMWA_WINDOW_CORNER_PREFERENCE 33
 #endif
 
-// Border color (Win 11+)
+typedef enum {
+    DWMWCP_DEFAULT = 0,
+    DWMWCP_DONOTROUND = 1,
+    DWMWCP_ROUND = 2,
+    DWMWCP_ROUNDSMALL = 3
+} DWM_WINDOW_CORNER_PREFERENCE;
+
+// Border Color support (Win 11+)
 #ifndef DWMWA_BORDER_COLOR
-#   define DWMWA_BORDER_COLOR 0xFFFFFFFF
+#   define DWMWA_BORDER_COLOR 34
+#endif
+
+#ifndef DWMWA_COLOR_DEFAULT
+#   define DWMWA_COLOR_DEFAULT 0xFFFFFFFF
+#endif
+
+#ifndef DWMWA_COLOR_NONE
+#   define DWMWA_COLOR_NONE 0xFFFFFFFE
 #endif
 
 using DwmSetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);

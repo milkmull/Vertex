@@ -460,34 +460,40 @@ video::display* video::get_display_for_window(const window& w)
 {
     display* d = nullptr;
 
-    if (w.is_fullscreen())
+    if (w.m_current_fullscreen_mode.m_display_id)
     {
         d = get_display(w.m_current_fullscreen_mode.m_display_id);
+    }
 
-        if (!d)
+    if (!d)
+    {
+        if (w.is_fullscreen())
         {
-            if (!w.m_repositioning)
+            if (!d)
             {
-                // When fullscreen windows are moved between displays of different sizes,
-                // the window size and position updates may arrive out of order. This can
-                // temporarily make the window larger than the display. In such cases,
-                // using the center of the window rectangle might incorrectly identify the
-                // display, so we use the origin instead.
-                d = get_display_for_point(w.m_position);
-            }
-            else
-            {
-                // In some backends, the actual window position may not be updated at the
-                // time of this call. If the window is being repositioned via a call to
-                // set_position, the floating rect will have the most up-to-date area for
-                // the window. 
-                d = get_display_for_rect(w.m_floating_rect);
+                if (!w.m_repositioning)
+                {
+                    // When fullscreen windows are moved between displays of different sizes,
+                    // the window size and position updates may arrive out of order. This can
+                    // temporarily make the window larger than the display. In such cases,
+                    // using the center of the window rectangle might incorrectly identify the
+                    // display, so we use the origin instead.
+                    d = get_display_for_point(w.m_position);
+                }
+                else
+                {
+                    // In some backends, the actual window position may not be updated at the
+                    // time of this call. If the window is being repositioned via a call to
+                    // set_position, the floating rect will have the most up-to-date area for
+                    // the window. 
+                    d = get_display_for_rect(w.m_floating_rect);
+                }
             }
         }
-    }
-    else
-    {
-        d = get_display_for_rect(w.get_rect());
+        else
+        {
+            d = get_display_for_rect(w.get_rect());
+        }
     }
 
     // The primary display is a good default
@@ -577,44 +583,21 @@ math::recti video::get_desktop_area()
 
 video::window* video::create_window(const window_config& config)
 {
-    auto w = std::make_unique<window>(config);
-
-    if (!w || !w->validate())
+    auto& w = s_video_data.windows.emplace_back(std::make_unique<window>());
+    if (!w || !w->create(config) || !w->validate())
     {
+        s_video_data.windows.pop_back();
         return nullptr;
     }
 
-    s_video_data.windows.push_back(std::move(w));
     return s_video_data.windows.back().get();
 }
 
-void video::destroy_window(window* w)
+void video::destroy_window(window& w)
 {
-    if (!w)
-    {
-        return;
-    }
-
-    w->m_destroying = true;
-    w->post_window_destroyed();
-
-    w->update_fullscreen_mode(window::fullscreen_op::LEAVE, true);
-    w->hide();
-
-    // Make sure no displays reference the window
-    for (const std::unique_ptr<display>& d : s_video_data.displays)
-    {
-        if (d->m_fullscreen_window_id == w->id())
-        {
-            d->m_fullscreen_window_id = 0;
-        }
-    }
-
-    // Kill focus
-
     for (auto it = s_video_data.windows.begin(); it != s_video_data.windows.end(); ++it)
     {
-        if (it->get()->id() == w->id())
+        if (it->get()->m_id == w.m_id)
         {
             s_video_data.windows.erase(it);
             break;

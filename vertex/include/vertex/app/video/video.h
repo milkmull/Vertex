@@ -248,12 +248,8 @@ public:
     //===========================================================================
 
     static window* create_window(const window_config& config);
-    static void destroy_window(window* w);
+    static void destroy_window(window& w);
     static window* get_window(device_id id);
-
-private:
-
-
 
 private:
 

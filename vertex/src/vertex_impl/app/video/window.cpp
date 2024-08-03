@@ -17,10 +17,8 @@ namespace app {
 // constructors
 ///////////////////////////////////////////////////////////////////////////////
 
-video::window::window(const window_config& config)
+video::window::window()
     : m_id(get_next_device_id())
-    , m_position(config.position)
-    , m_size(config.size)
     , m_locked_aspect(0.0f)
     , m_flags(flags::NONE), m_pending_flags(flags::NONE)
     , m_last_display_id(0)
@@ -28,123 +26,19 @@ video::window::window(const window_config& config)
     , m_fullscreen_exclusive(false)
     , m_last_fullscreen_exclusive_display_id(0)
     , m_opacity(0.0f)
-    , m_initializing(true)
+    , m_initializing(false)
     , m_destroying(false)
     , m_repositioning(false)
     , m_hiding(false)
     , m_tiled(false)
     , m_sync_requested(false)
 {
-    // Some backends don't support 0 sized windows
-
-    if (m_size.x <= 0)
-    {
-        m_size.x = 1;
-    }
-    if (m_size.y <= 0)
-    {
-        m_size.y = 1;
-    }
-
-    // Find the display for the window
-
-    const video::display* display = nullptr;
-    video::update_displays();
-
-    display = video::get_display_for_rect(math::recti(m_position, m_size));
-    if (!display)
-    {
-        display = video::get_primary_display();
-    }
-    if (!display)
-    {
-        return;
-    }
-
-    // If auto position is true, we center the window on the display
-
-    if (config.center_on_display)
-    {
-        math::recti bounds = display->get_work_area();
-        m_position = bounds.position + (bounds.size - m_size) / 2;
-    }
-
-    m_floating_rect.position = m_windowed_rect.position = m_position;
-    m_floating_rect.size = m_windowed_rect.size = m_size;
-
-    //flags::type creation_flags = flags::HIDDEN;
-    flags::type window_flags = flags::NONE;
-
-    if (config.minimized)
-    {
-        window_flags |= flags::MINIMIZED;
-    }
-    if (config.maximized)
-    {
-        window_flags |= flags::MAXIMIZED;
-    }
-    if (config.hidden)
-    {
-        window_flags |= flags::HIDDEN;
-    }
-    if (config.borderless)
-    {
-        window_flags |= flags::BORDERLESS;
-    }
-    if (config.resizable)
-    {
-        window_flags |= flags::RESIZABLE;
-    }
-    if (config.topmost)
-    {
-        window_flags |= flags::TOPMOST;
-    }
-
-    if (config.fullscreen || (s_video_data.video_caps & caps::IS_FULLSCREEN_ONLY))
-    {
-        math::recti bounds = display->get_bounds();
-
-        m_position = bounds.position;
-        m_size = bounds.size;
-
-        m_pending_flags |= flags::FULLSCREEN;
-        window_flags |= flags::FULLSCREEN;
-    }
-
-    display = video::get_display_for_window(*this);
-    if (display)
-    {
-        m_last_display_id = display->id();
-    }
-
-    // Flags that should be set when the window is created
-    m_flags = window_flags & (flags::HIDDEN | flags::BORDERLESS | flags::RESIZABLE | flags::TOPMOST);
-
-    window_impl::create(*this);
-    if (!m_impl)
-    {
-        return;
-    }
-
-    // Clear minimized if not on windows, only windows handles it at create rather than FinishWindowCreation,
-    // but it's important or window focus will get broken on windows!
-#   if !defined(VX_SYSTEM_WINDOWS)
-    {
-        if (m_flags & flags::MINIMIZED)
-        {
-            m_flags &= ~flags::MINIMIZED;
-        }
-    }
-#   endif
-
-    m_initializing = false;
-
-    set_title(config.title);
-    finish_creation(window_flags);
-
 }
 
-video::window::~window() {}
+video::window::~window()
+{
+    destroy();
+}
 
 video::window::window(window&& w) noexcept
     : m_id(w.m_id)
@@ -209,9 +103,120 @@ video::window& video::window::operator=(window&& w) noexcept
     return *this;
 }
 
-bool video::window::validate() const
+bool video::window::create(const window_config& config)
 {
-    return m_impl && m_impl->validate();
+    m_initializing = true;
+
+    m_position = config.position;
+    m_size = config.size;
+
+    // Some backends don't support 0 sized windows
+
+    if (m_size.x <= 0)
+    {
+        m_size.x = 1;
+    }
+    if (m_size.y <= 0)
+    {
+        m_size.y = 1;
+    }
+
+    // Find the display for the window
+
+    const video::display* display = nullptr;
+    video::update_displays();
+
+    display = video::get_display_for_rect(math::recti(m_position, m_size));
+    if (!display)
+    {
+        display = video::get_primary_display();
+    }
+    if (!display)
+    {
+        return false;
+    }
+
+    // If auto position is true, we center the window on the display
+
+    if (config.center_on_display)
+    {
+        math::recti bounds = display->get_work_area();
+        m_position = bounds.position + (bounds.size - m_size) / 2;
+    }
+
+    m_floating_rect.position = m_windowed_rect.position = m_position;
+    m_floating_rect.size = m_windowed_rect.size = m_size;
+
+    flags::type window_flags = flags::NONE;
+
+    if (config.minimized)
+    {
+        window_flags |= flags::MINIMIZED;
+    }
+    if (config.maximized)
+    {
+        window_flags |= flags::MAXIMIZED;
+    }
+    if (config.hidden)
+    {
+        window_flags |= flags::HIDDEN;
+    }
+    if (config.borderless)
+    {
+        window_flags |= flags::BORDERLESS;
+    }
+    if (config.resizable)
+    {
+        window_flags |= flags::RESIZABLE;
+    }
+    if (config.topmost)
+    {
+        window_flags |= flags::TOPMOST;
+    }
+
+    if (config.fullscreen || (s_video_data.video_caps & caps::IS_FULLSCREEN_ONLY))
+    {
+        math::recti bounds = display->get_bounds();
+
+        m_position = bounds.position;
+        m_size = bounds.size;
+
+        m_pending_flags |= flags::FULLSCREEN;
+        window_flags |= flags::FULLSCREEN;
+    }
+
+    display = video::get_display_for_window(*this);
+    if (display)
+    {
+        m_last_display_id = display->id();
+    }
+
+    // Flags that should be set when the window is created
+    m_flags = window_flags & (flags::HIDDEN | flags::MINIMIZED | flags::BORDERLESS | flags::RESIZABLE | flags::TOPMOST);
+
+    m_impl = std::make_unique<window_impl>();
+    if (!m_impl || !m_impl->create(this))
+    {
+        return false;
+    }
+
+    // Clear minimized if not on windows, only windows handles it at create rather than FinishWindowCreation,
+    // but it's important or window focus will get broken on windows!
+#   if !defined(VX_SYSTEM_WINDOWS)
+    {
+        if (m_flags & flags::MINIMIZED)
+        {
+            m_flags &= ~flags::MINIMIZED;
+        }
+    }
+#   endif
+
+    m_initializing = false;
+
+    set_title(config.title);
+    finish_creation(window_flags);
+
+    return true;
 }
 
 void video::window::finish_creation(flags::type new_flags)
@@ -223,6 +228,40 @@ void video::window::finish_creation(flags::type new_flags)
     {
         show();
     }
+}
+
+void video::window::destroy()
+{
+    m_destroying = true;
+    post_window_destroyed();
+
+    if (m_impl)
+    {
+        update_fullscreen_mode(window::fullscreen_op::LEAVE, true);
+        hide();
+    }
+
+    // Make sure no displays reference the window
+    for (display* d : video::list_displays())
+    {
+        if (d->m_fullscreen_window_id == m_id)
+        {
+            d->m_fullscreen_window_id = 0;
+        }
+    }
+
+    // Kill focus
+
+    if (m_impl)
+    {
+        m_impl->destroy();
+        m_impl = nullptr;
+    }
+}
+
+bool video::window::validate() const
+{
+    return m_impl && m_impl->validate();
 }
 
 void video::window::apply_flags(flags::type new_flags)
@@ -309,14 +348,16 @@ bool video::window::is_resizable() const
 
 math::vec2i video::window::get_position() const
 {
-    //if (is_fullscreen())
-    //{
-    //    const display* d = video::get_display_for_window(this);
-    //    if (d)
-    //    {
-    //        return d->get_bounds().position;
-    //    }
-    //}
+    if (m_flags & flags::FULLSCREEN)
+    {
+        // Fullscreen windows should always be at the origin
+        // of their displays event when minimized or hidden.
+        const display* d = video::get_display_for_window(*this);
+        if (d)
+        {
+            return d->get_bounds().position;
+        }
+    }
     
     return m_position;
 }
@@ -559,7 +600,7 @@ void video::window::hide()
 
 bool video::window::is_visible() const
 {
-    return (m_flags & ~flags::HIDDEN);
+    return !(m_flags & flags::HIDDEN);
 }
 
 bool video::window::is_hidden() const
@@ -571,7 +612,7 @@ void video::window::minimize()
 {
     // check support
 
-    if (is_hidden())
+    if (m_flags & flags::HIDDEN)
     {
         m_pending_flags |= flags::MINIMIZED;
         return;
@@ -590,12 +631,12 @@ void video::window::maximize()
 {
     // check support
 
-    if (!is_resizable())
+    if (!(m_flags & flags::RESIZABLE))
     {
         return;
     }
     
-    if (is_hidden())
+    if (m_flags & flags::HIDDEN)
     {
         m_pending_flags |= flags::MAXIMIZED;
         return;
@@ -648,11 +689,8 @@ const video::display_mode* video::window::get_fullscreen_mode() const
 
     if (d)
     {
-        if (is_fullscreen())
-        {
-            // Try to find our current fullscreen mode first
-            mode = d->find_mode(m_current_fullscreen_mode);
-        }
+        // Try to find our current fullscreen mode first
+        mode = d->find_mode(m_current_fullscreen_mode);
 
         if (!mode && m_requested_fullscreen_mode_set)
         {
@@ -704,7 +742,7 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
         if (!d)
         {
             // Should never happen
-            goto error;
+            goto done;
         }
     }
     else
@@ -756,8 +794,8 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
             }
         }
 
-        m_current_fullscreen_mode = *mode;
-        if (!d->set_current_mode(m_current_fullscreen_mode))
+        display_mode final_mode = *mode;
+        if (!d->set_current_mode(final_mode))
         {
             goto error;
         }
@@ -768,6 +806,9 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
             {
                 goto error;
             }
+
+            // Set the current fullscreen mode
+            m_current_fullscreen_mode = final_mode;
 
             // Post the enter fullscreen event if it has not been posted yet
             if (!(m_flags & flags::FULLSCREEN))
@@ -783,7 +824,11 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
             // Some backends don't send a new window size event when fullscreening
             if (!(s_video_data.video_caps & caps::SENDS_FULLSCREEN_DIMENSIONS))
             {
-                if (!post_window_resized(mode->resolution.x, mode->resolution.y))
+                if (m_size != mode->resolution)
+                {
+                    post_window_resized(mode->resolution.x, mode->resolution.y);
+                }
+                else
                 {
                     on_window_resized();
                 }
@@ -810,6 +855,9 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
                 goto error;
             }
 
+            // Clear the current fullscreen mode
+            m_current_fullscreen_mode.m_display_id = 0;
+
             // Post the leave fullscreen event if it has not been posted yet
             if (m_flags & flags::FULLSCREEN)
             {
@@ -819,8 +867,6 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
 
         if (!(m_flags & flags::FULLSCREEN))
         {
-            m_current_fullscreen_mode.m_display_id = 0;
-
             if (d)
             {
                 d->m_fullscreen_window_id = 0;
@@ -829,10 +875,9 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
             // Some backends don't send a new window size event when fullscreening
             if (!(s_video_data.video_caps & caps::SENDS_FULLSCREEN_DIMENSIONS))
             {
-                assert(mode);
-                if (m_size != mode->resolution)
+                if (m_size != m_windowed_rect.size)
                 {
-                    post_window_resized(mode->resolution.x, mode->resolution.y);
+                    post_window_resized(m_windowed_rect.size.x, m_windowed_rect.size.y);
                 }
                 else
                 {
@@ -847,16 +892,19 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
         }
     }
 
-    if (d && is_fullscreen() && m_fullscreen_exclusive)
+    done:
     {
-        m_last_fullscreen_exclusive_display_id = d->m_id;
-    }
-    else
-    {
-        m_last_fullscreen_exclusive_display_id = 0;
-    }
+        if (d && (m_flags & flags::FULLSCREEN) && m_fullscreen_exclusive)
+        {
+            m_last_fullscreen_exclusive_display_id = d->m_id;
+        }
+        else
+        {
+            m_last_fullscreen_exclusive_display_id = 0;
+        }
 
-    return true;
+        return true;
+    }
 
     error:
     {
@@ -877,7 +925,7 @@ bool video::window::is_fullscreen() const
 
 bool video::window::set_fullscreen(bool fullscreen)
 {
-    if (is_hidden())
+    if (m_flags & flags::HIDDEN)
     {
         if (fullscreen)
         {
@@ -1003,7 +1051,7 @@ bool video::window::post_window_moved(int32_t x, int32_t y)
         m_windowed_rect.position.x = x;
         m_windowed_rect.position.y = y;
 
-        if (!is_maximized() && !m_tiled)
+        if (!(m_flags & flags::MAXIMIZED) && !m_tiled)
         {
             m_floating_rect.position.x = x;
             m_floating_rect.position.y = y;
@@ -1050,7 +1098,7 @@ bool video::window::post_window_resized(int32_t w, int32_t h)
         m_windowed_rect.size.x = w;
         m_windowed_rect.size.y = h;
 
-        if (!is_maximized() && !m_tiled)
+        if (!(m_flags & flags::MAXIMIZED) && !m_tiled)
         {
             m_floating_rect.size.x = w;
             m_floating_rect.size.y = h;

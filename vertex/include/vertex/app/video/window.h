@@ -59,7 +59,7 @@ private:
 
 public:
 
-    window(const window_config& config);
+    window();
     ~window();
     
     window(const window&) = delete;
@@ -70,9 +70,11 @@ public:
 
 private:
 
-    bool validate() const;
-
+    bool create(const window_config& config);
     void finish_creation(flags::type new_flags);
+    void destroy();
+
+    bool validate() const;
     void apply_flags(flags::type new_flags);
 
 public:

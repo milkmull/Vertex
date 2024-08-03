@@ -728,6 +728,7 @@ bool video::video_impl::create_display(
         {
             current_mode.m_display_id = d->m_id;
             d->m_desktop_mode = d->m_current_mode = current_mode;
+            d->m_orientation = current_orientation;
             d->m_content_scale = current_content_scale;
             d_impl->m_last_bounds = d->get_bounds();
         }

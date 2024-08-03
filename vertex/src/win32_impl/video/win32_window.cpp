@@ -29,36 +29,40 @@ static void update_window_handle_theme(HWND hwnd)
     }
 }
 
-void video::window::window_impl::create(window& w)
-{
-    w.m_impl = std::make_unique<window_impl>(&w);
-    if (w.m_impl->m_handle == NULL)
-    {
-        w.m_impl.reset();
-    }
-}
-
-video::window::window_impl::window_impl(window* w)
-    : m_owner(w)
+video::window::window_impl::window_impl()
+    : m_owner(nullptr)
     , m_handle(NULL)
     , m_icon(NULL)
     , m_expected_resize(false)
     , m_floating_rect_pending(false)
     , m_windowed_mode_was_maximized(false)
-    , m_in_window_deactivation(false)
+    , m_losing_focus(false)
     , m_cleared(false)
+    , m_windowed_mode_corner_rounding(DWMWCP_DEFAULT)
+    , m_dwma_border_color(DWMWA_COLOR_DEFAULT)
 {
-    if (!m_owner)
+}
+
+video::window::window_impl::~window_impl()
+{
+    destroy();
+}
+
+bool video::window::window_impl::create(window* w)
+{
+    if (!w)
     {
         // critical error
-        return;
+        return false;
     }
 
-    // Adjust window size and position to match requested area
+    m_owner = w;
 
+    // Get the window style
     DWORD style = get_window_style();
     DWORD ex_style = get_window_ex_style();
 
+    // Adjust window size and position to match requested area
     RECT rect{};
     adjust_rect_with_style(rect, window_rect_type::FLOATING, style, ex_style);
 
@@ -66,7 +70,7 @@ video::window::window_impl::window_impl(window* w)
     m_handle = CreateWindowEx(
         ex_style,
         VIDEO_DRIVER_DATA.window_class_name,
-        str::string_to_wstring(m_owner->m_title).c_str(),
+        NULL, // We will set the title later
         style,
         rect.left, rect.top,
         rect.right - rect.left, rect.bottom - rect.top,
@@ -76,14 +80,15 @@ video::window::window_impl::window_impl(window* w)
         m_owner
     );
 
-    if (m_handle == NULL)
+    if (!m_handle)
     {
         // critical error
-        return;
+        return false;
     }
 
     // Set window theme to match system theme
     update_window_handle_theme(m_handle);
+
     event::pump_events(true);
 
     // set up current flags based on the internal style of the window
@@ -158,10 +163,15 @@ video::window::window_impl::window_impl(window* w)
             }
             else
             {
-                m_owner->m_position.x = rect.left;
-                m_owner->m_position.y = rect.top;
                 m_owner->m_size.x = rect.right - rect.left;
                 m_owner->m_size.y = rect.bottom - rect.top;
+
+                POINT position{};
+                if (ClientToScreen(m_handle, &position))
+                {
+                    m_owner->m_position.x = position.x;
+                    m_owner->m_position.y = position.y;
+                }
             }
         }
     }
@@ -173,11 +183,13 @@ video::window::window_impl::window_impl(window* w)
         //WIN_UpdateClipCursor(window);
     }
 
-    // Update the position to allow topmost flag to be set if desired
-    set_position_internal(SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE, window_rect_type::CURRENT);
+    set_always_on_top();
+    set_bordered();
+
+    return true;
 }
 
-video::window::window_impl::~window_impl()
+void video::window::window_impl::destroy()
 {
     // Destroy the custom icon
     clear_icon();
@@ -198,33 +210,45 @@ bool video::window::window_impl::validate() const
 // =============== style ===============
 
 // define a mask of styles that we want to be able to control ourselves
-
-#define STYLE_MASK (WS_POPUP | WS_MINIMIZEBOX | WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME)
+#define STYLE_MASK (WS_POPUP | WS_MINIMIZEBOX | WS_CAPTION | WS_SYSMENU | WS_OVERLAPPED | WS_THICKFRAME | WS_MAXIMIZEBOX)
 
 DWORD video::window::window_impl::get_window_style() const
 {
-    DWORD style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
+    DWORD style = (WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 
     if (m_owner->m_flags & flags::FULLSCREEN)
     {
-        style |= WS_POPUP | WS_MINIMIZEBOX;
+        style |= (WS_POPUP | WS_MINIMIZEBOX);
     }
     else
     {
-        style |= WS_SYSMENU | WS_MINIMIZEBOX;
+        style |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX);
 
         if (m_owner->m_flags & flags::BORDERLESS)
         {
-            style |= WS_POPUP;
+            style |= WS_POPUP; // (WS_POPUP | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX)
         }
         else
         {
-            style |= WS_CAPTION;
+            style |= WS_OVERLAPPED;
+        }
 
-            if (m_owner->m_flags & flags::RESIZABLE)
+        if (m_owner->m_flags & flags::RESIZABLE)
+        {
+            // Via SDL: disallow for borderless resizable windows
+            // because Windows doesn't always draw it correctly.
+            // https://bugzilla.libsdl.org/show_bug.cgi?id=4466
+            if (!(m_owner->m_flags & flags::BORDERLESS))
             {
-                style |= WS_MAXIMIZEBOX | WS_THICKFRAME;
+                style |= (WS_THICKFRAME | WS_MAXIMIZEBOX);
             }
+        }
+
+        // Via SDL: Need to set initialize minimize style, or when we
+        // call ShowWindow with WS_MINIMIZE it will activate a random window.
+        if (m_owner->m_flags & flags::MINIMIZED)
+        {
+            style |= WS_MINIMIZE;
         }
     }
 
@@ -266,6 +290,19 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
     {
         // Get the pointer to our associated window
         win = reinterpret_cast<window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+        if (!win)
+        {
+            // If we have not yet gotten the WM_CREATE event, search for a match
+            for (auto& w : s_video_data.windows)
+            {
+                if (w && w->m_impl && w->m_impl->m_handle == hWnd)
+                {
+                    win = w.get();
+                    break;
+                }
+            }
+        }
     }
 
     if (!win || !win->validate())
@@ -399,6 +436,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             break;
         }
 
+        // Correct aspect ratio if desired
         case WM_SIZING:
         {
             // If aspect is not locked, skip
@@ -501,30 +539,28 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             // Get the size of the window including the frame
             MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(lParam);
 
-            RECT window_rect{};
-            RECT client_rect{};
+            RECT rect{};
+            GetWindowRect(hWnd, &rect);
 
-            GetWindowRect(hWnd, &window_rect);
-            GetClientRect(hWnd, &client_rect);
-
-            int x = window_rect.left;
-            int y = window_rect.top;
-
-            int w, h;
+            int x = rect.left;
+            int y = rect.top;
+            int w = win->m_size.x;
+            int h = win->m_size.y;
 
             // If the window has a border, it must be accounted for in the size
             if (!(win->m_flags & flags::BORDERLESS))
             {
-                w = window_rect.right - window_rect.left;
-                h = window_rect.bottom - window_rect.top;
-            }
-            else
-            {
-                w = client_rect.right;
-                h = client_rect.bottom;
+                rect.top = 0;
+                rect.left = 0;
+                rect.bottom = h;
+                rect.right = w;
+                win_impl->adjust_rect(rect, window_rect_type::INPUT);
+
+                w = rect.right - rect.left;
+                h = rect.bottom - rect.top;
             }
 
-            if (win->m_flags & flags::RESIZABLE)
+            if ((win->m_flags & flags::RESIZABLE))
             {
                 if (win->m_flags & flags::BORDERLESS)
                 {
@@ -537,21 +573,26 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                     mmi->ptMaxPosition.y = math::max(0, (screen_h - h) / 2);
                 }
 
+                if (!GetClientRect(hWnd, &rect) || IS_RECT_EMPTY(rect))
+                {
+                    break;
+                }
+
                 if (win->m_min_size.x > 0)
                 {
-                    mmi->ptMinTrackSize.x = w + (win->m_min_size.x - client_rect.right);
+                    mmi->ptMinTrackSize.x = w + (win->m_min_size.x - rect.right);
                 }
                 if (win->m_min_size.y > 0)
                 {
-                    mmi->ptMinTrackSize.y = h + (win->m_min_size.y - client_rect.bottom);
+                    mmi->ptMinTrackSize.y = h + (win->m_min_size.y - rect.bottom);
                 }
                 if (win->m_max_size.x > 0)
                 {
-                    mmi->ptMaxTrackSize.x = w + (win->m_max_size.x - client_rect.right);
+                    mmi->ptMaxTrackSize.x = w + (win->m_max_size.x - rect.right);
                 }
                 if (win->m_max_size.y > 0)
                 {
-                    mmi->ptMaxTrackSize.y = h + (win->m_max_size.y - client_rect.bottom);
+                    mmi->ptMaxTrackSize.y = h + (win->m_max_size.y - rect.bottom);
                 }
             }
             else
@@ -601,8 +642,8 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         {
             if (wParam == TRUE && (win->m_flags & flags::BORDERLESS) && !(win->m_flags & flags::FULLSCREEN))
             {
-                // If the window is not resizable, we need to manually adjustthe client area size.
-                // This is necessary because, without a border, the default behavior might not
+                // If the window is not resizable, we need to manually adjust the client area size.
+                // This is necessary because without a border, the default behavior might not
                 // correctly calculate the size, leading to layout issues or incorrect rendering.
                 if (!(win->m_flags & flags::RESIZABLE))
                 {
@@ -972,6 +1013,14 @@ bool video::window::window_impl::adjust_rect_with_style(RECT& rect, window_rect_
         }
     }
 
+    /* borderless windows will have WM_NCCALCSIZE return 0 for the non-client area. When this happens, it looks like windows will send a resize message
+       expanding the window client area to the previous window + chrome size, so shouldn't need to adjust the window size for the set styles.
+     */
+    if (m_owner->m_flags & flags::BORDERLESS)
+    {
+        return true;
+    }
+
     return AdjustWindowRectEx(&rect, style, (GetMenu(m_handle) != NULL), ex_style);
 }
 
@@ -1128,7 +1177,7 @@ void video::window::window_impl::maximize()
 
 void video::window::window_impl::restore()
 {
-    if (m_owner->is_fullscreen())
+    if (m_owner->m_flags & flags::FULLSCREEN)
     {
         m_windowed_mode_was_maximized = false;
         return;
@@ -1137,6 +1186,48 @@ void video::window::window_impl::restore()
     m_expected_resize = true;
     ShowWindow(m_handle, SW_RESTORE);
     m_expected_resize = false;
+}
+
+static DWM_WINDOW_CORNER_PREFERENCE update_window_corner_rounding(HWND hwnd, DWM_WINDOW_CORNER_PREFERENCE new_corner_pref)
+{
+    DWM_WINDOW_CORNER_PREFERENCE old_corner_pref = DWMWCP_DEFAULT;
+
+    HMODULE dwmapi_dll = LoadLibrary(L"dwmapi.dll");
+    if (dwmapi_dll)
+    {
+        DwmGetWindowAttribute_t DwmGetWindowAttribute = reinterpret_cast<DwmGetWindowAttribute_t>(GetProcAddress(dwmapi_dll, "DwmGetWindowAttribute"));
+        DwmSetWindowAttribute_t DwmSetWindowAttribute = reinterpret_cast<DwmSetWindowAttribute_t>(GetProcAddress(dwmapi_dll, "DwmSetWindowAttribute"));
+        if (DwmGetWindowAttribute && DwmSetWindowAttribute)
+        {
+            DwmGetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &old_corner_pref, sizeof(old_corner_pref));
+            DwmSetWindowAttribute(hwnd, DWMWA_WINDOW_CORNER_PREFERENCE, &new_corner_pref, sizeof(new_corner_pref));
+        }
+
+        FreeLibrary(dwmapi_dll);
+    }
+
+    return old_corner_pref;
+}
+
+static COLORREF update_window_border_color(HWND hwnd, COLORREF new_color_pref)
+{
+    COLORREF old_color_pref = DWMWA_COLOR_DEFAULT;
+
+    HMODULE dwmapi_dll = LoadLibrary(L"dwmapi.dll");
+    if (dwmapi_dll)
+    {
+        DwmGetWindowAttribute_t DwmGetWindowAttribute = reinterpret_cast<DwmGetWindowAttribute_t>(GetProcAddress(dwmapi_dll, "DwmGetWindowAttribute"));
+        DwmSetWindowAttribute_t DwmSetWindowAttribute = reinterpret_cast<DwmSetWindowAttribute_t>(GetProcAddress(dwmapi_dll, "DwmSetWindowAttribute"));
+        if (DwmGetWindowAttribute && DwmSetWindowAttribute)
+        {
+            DwmGetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &old_color_pref, sizeof(old_color_pref));
+            DwmSetWindowAttribute(hwnd, DWMWA_BORDER_COLOR, &new_color_pref, sizeof(new_color_pref));
+        }
+
+        FreeLibrary(dwmapi_dll);
+    }
+
+    return old_color_pref;
 }
 
 bool video::window::window_impl::set_fullscreen(fullscreen_op::type fullscreen, const display* d)
@@ -1180,7 +1271,7 @@ bool video::window::window_impl::set_fullscreen(fullscreen_op::type fullscreen, 
     {
         rect = mi.rcMonitor;
 
-        // Unset the maximized flag
+        // Via SDL: we save the maxmized state of the window to restore later.
         // This fixes https://bugzilla.libsdl.org/show_bug.cgi?id=3215
         if (style & WS_MAXIMIZE)
         {
@@ -1188,15 +1279,21 @@ bool video::window::window_impl::set_fullscreen(fullscreen_op::type fullscreen, 
             style &= ~WS_MAXIMIZE;
         }
 
-        // update corner rounding
+        // Disable corner rounding and border color (Windows 11+) so the window fills the full screen
+        m_windowed_mode_corner_rounding = update_window_corner_rounding(m_handle, DWMWCP_DONOTROUND);
+        m_dwma_border_color = update_window_border_color(m_handle, DWMWA_COLOR_NONE);
     }
     else
     {
-        // restore corner rounding
+        // Restore corner rounding and border color (Windows 11+)
+        update_window_corner_rounding(m_handle, m_windowed_mode_corner_rounding);
+        update_window_border_color(m_handle, m_dwma_border_color);
 
-        // Restore maximized state if window was maximized when entering
-        // fullscreen
-        if (m_windowed_mode_was_maximized && !m_in_window_deactivation)
+        // Via SDL: we restore the maxmized state of the window.
+        // This fixes https://bugzilla.libsdl.org/show_bug.cgi?id=3215
+        // Special care is taken to not do this if and when the window
+        // is losing focus, which can cause the above bug on some systems.
+        if (m_windowed_mode_was_maximized && !m_losing_focus)
         {
             style |= WS_MAXIMIZE;
             maximize_on_exit = true;

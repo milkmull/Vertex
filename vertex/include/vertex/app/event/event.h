@@ -174,12 +174,12 @@ private:
 
 public:
 
-    using event_process_callback = void(*)();
-    static void set_event_process_callback(event_process_callback callback);
+    using event_process_callback_t = void(*)();
+    static void set_event_process_callback(event_process_callback_t callback);
 
 private:
 
-    static event_process_callback s_event_process_callback;
+    static event_process_callback_t s_event_process_callback;
 
 public:
 
@@ -197,6 +197,12 @@ public:
 
     using event_filter = bool(*)(void*, const event&);
     static size_t filter_events(event_filter filter, void* user_data);
+
+#define VX_LOG_APP_EVENTS 1
+
+#if defined(VX_LOG_APP_EVENTS)
+    static void log_event(const event& e);
+#endif
 
 private:
 
