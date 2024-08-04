@@ -28,11 +28,13 @@ int main()
     config.center_on_display = true;
     config.title = "window";
     //config.resizable = false;
-    //config.borderless = true;
-    config.hidden = true;
-    config.minimized = true;
+    config.borderless = true;
     video::window* w = video::create_window(config);
-    w->set_icon(i.data(), i.size());
+    w->set_icon(i);
+
+    auto cursor = vx::app::mouse::create_custom_cursor(i, { 0, 0 });
+    vx::app::mouse::set_cursor(cursor);
+
     //w->set_min_size({ 100, 100 });
     //w->set_max_size({ 300, 300 });
     //w->lock_aspect_ratio(16.0f / 9.0f);

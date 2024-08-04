@@ -1,5 +1,6 @@
 #include "vertex/app/video/window.h"
 #include "vertex/app/event/event.h"
+#include "vertex/app/event/mouse.h"
 
 #if defined(VX_SYSTEM_WINDOWS)
 
@@ -151,7 +152,14 @@ video::display& video::display::operator=(const display& d)
     m_content_scale = d.m_content_scale;
     m_fullscreen_window_id = d.m_fullscreen_window_id;
 
-    m_impl = std::make_unique<display_impl>(*d.m_impl);
+    if (d.m_impl)
+    {
+        m_impl = std::make_unique<display_impl>(*d.m_impl);
+    }
+    else
+    {
+        m_impl = nullptr;
+    }
     if (m_impl)
     {
         m_impl->m_owner = this;
@@ -348,6 +356,12 @@ bool video::init()
         quit();
     }
 
+    if (!mouse::init())
+    {
+        mouse::quit();
+        return false;
+    }
+
     if (!video_impl::init())
     {
         return false;
@@ -371,6 +385,7 @@ void video::quit()
         it = s_video_data.windows.erase(it);
     }
 
+    mouse::quit();
     video_impl::quit();
 }
 

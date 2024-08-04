@@ -28,7 +28,6 @@ private:
 
     bool create(window* w);
     void destroy();
-
     bool validate() const;
 
 private:
@@ -97,7 +96,7 @@ public:
 
     // =============== icon ===============
 
-    bool set_icon(const uint8_t* pixels, const math::vec2i& size);
+    bool set_icon(const img::image& image);
     void clear_icon();
 
     // =============== mouse ===============

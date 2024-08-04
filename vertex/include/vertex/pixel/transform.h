@@ -350,36 +350,39 @@ inline void rotate_180(
 /// @param dst Pointer to the destination buffer where the cropped image will
 /// be copied.
 /// @param pixel_size The the size in bytes of the pixels.
-/// @param area An array containing the coordinates and size of the area to be
-/// cropped. The format is [x, y, width, height].
+/// @param area_x The x coordinate of the crop area within the image.
+/// @param area_y The y coordinate of the crop area within the image.
+/// @param area_width The width of the crop area within the image.
+/// @param area_height The height of the crop area within the image.
 /// 
 /// @return True if the crop operation was successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename U>
-inline constexpr bool crop(
+inline bool crop(
     const uint8_t* src, size_t src_width, size_t src_height,
     uint8_t* dst, size_t pixel_size,
-    const std::array<U, 4>& area
+    U area_x, U area_y,
+    U area_width, U area_height
 )
 {
     assert(src);
     assert(dst);
 
     // check crop area is within area of image
-    if ((area[0] < static_cast<U>(0)) || (static_cast<size_t>(area[0] + area[2]) > src_width) ||
-        (area[1] < static_cast<U>(0)) || (static_cast<size_t>(area[1] + area[3]) > src_height))
+    if ((area_x < static_cast<U>(0)) || (static_cast<size_t>(area_x + area_width) > src_width) ||
+        (area_y < static_cast<U>(0)) || (static_cast<size_t>(area_y + area_height) > src_height))
     {
         return false;
     }
 
-    for (size_t y = 0; y < static_cast<size_t>(area[3]); ++y)
+    for (size_t y = 0; y < static_cast<size_t>(area_height); ++y)
     {
-        const uint8_t* srcrow = &src[src_width * (static_cast<size_t>(area[1]) + y) * pixel_size];
-        uint8_t* dstrow = &dst[static_cast<size_t>(area[2]) * y * pixel_size];
+        const uint8_t* srcrow = &src[src_width * (static_cast<size_t>(area_y) + y) * pixel_size];
+        uint8_t* dstrow = &dst[static_cast<size_t>(area_width) * y * pixel_size];
 
-        for (size_t x = 0; x < static_cast<size_t>(area[2]); ++x)
+        for (size_t x = 0; x < static_cast<size_t>(area_width); ++x)
         {
-            const uint8_t* srcpx = &srcrow[(static_cast<size_t>(area[0]) + x) * pixel_size];
+            const uint8_t* srcpx = &srcrow[(static_cast<size_t>(area_x) + x) * pixel_size];
             uint8_t* dstpx = &dstrow[x * pixel_size];
 
             std::memcpy(dstpx, srcpx, pixel_size);

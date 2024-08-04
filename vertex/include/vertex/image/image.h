@@ -107,6 +107,7 @@ public:
     inline constexpr size_t pixel_size() const { return pixel::get_pixel_size(static_cast<pixel::pixel_format>(m_format)); }
 
     inline constexpr size_t stride() const { return m_width * pixel_size(); }
+    inline constexpr size_t pixel_count() const { return m_width * m_height; }
 
     inline byte_type* data() { return m_data.data(); }
     inline const byte_type* data() const { return m_data.data(); }
@@ -265,7 +266,7 @@ public:
             }
         }
 
-        *this = converted;
+        *this = std::move(converted);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

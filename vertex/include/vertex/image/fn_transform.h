@@ -126,8 +126,10 @@ inline image crop(const image& img, const math::recti& area)
     const math::recti cropped = img.get_rect().crop(area);
     image out(cropped.size.x, cropped.size.y, img.format());
 
-    const std::array<int32_t, 4> r{ cropped.position.x, cropped.position.y, cropped.size.x, cropped.size.y };
-    pixel::transform::crop(img.data(), img.width(), img.height(), out.data(), img.pixel_size(), r);
+    pixel::transform::crop(
+        img.data(), img.width(), img.height(), out.data(), img.pixel_size(),
+        cropped.position.x, cropped.position.y, cropped.size.x, cropped.size.y
+    );
 
     return out;
 }

@@ -208,6 +208,15 @@ public:
     // video
     ///////////////////////////////////////////////////////////////////////////////
 
+    video() = delete;
+    ~video() = delete;
+
+    video(const video&) = delete;
+    video(video&&) noexcept = delete;
+
+    video& operator=(const video&) = delete;
+    video& operator=(video&&) noexcept = delete;
+
     static bool init();
     static void quit();
 

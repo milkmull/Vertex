@@ -13,5 +13,10 @@ inline device_id get_next_device_id()
     return ++id;
 }
 
+inline bool is_valid_device_id(device_id id)
+{
+    return id != 0;
+}
+
 }
 }

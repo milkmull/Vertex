@@ -261,7 +261,7 @@ void video::window::destroy()
 
 bool video::window::validate() const
 {
-    return m_impl && m_impl->validate();
+    return m_id && m_impl && m_impl->validate();
 }
 
 void video::window::apply_flags(flags::type new_flags)
@@ -949,14 +949,17 @@ bool video::window::set_fullscreen(bool fullscreen)
 // icon
 ///////////////////////////////////////////////////////////////////////////////
 
-bool video::window::set_icon(const uint8_t* pixels, const math::vec2i& size)
+bool video::window::set_icon(const img::image& image)
 {
-    if (!pixels)
+    if (image.empty())
     {
         return false;
     }
 
-    return m_impl->set_icon(pixels, size);
+    img::image icon_image(image);
+    icon_image.convert(img::image_pixel_format::PIXEL_FORMAT_RGBA_8);
+
+    return m_impl->set_icon(icon_image);
 }
 
 void video::window::clear_icon()

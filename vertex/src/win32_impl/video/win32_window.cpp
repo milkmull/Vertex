@@ -1,5 +1,6 @@
 #include "win32_window.h"
 #include "vertex/app/event/event.h"
+#include "win32_impl/event/win32_mouse.h"
 #include "vertex/system/string/string_fn.h"
 #include "vertex/system/error.h"
 
@@ -564,6 +565,8 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             {
                 if (win->m_flags & flags::BORDERLESS)
                 {
+                    // Constrain borderless resizable windows to the screen
+
                     int screen_w = GetSystemMetrics(SM_CXSCREEN);
                     int screen_h = GetSystemMetrics(SM_CYSCREEN);
 
@@ -712,6 +715,28 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             break;
         }
 
+        ///////////////////////////////////////////////////////////////////////////////
+        // mouse events
+        ///////////////////////////////////////////////////////////////////////////////
+
+        case WM_SETCURSOR:
+        {
+            uint16_t hittest = LOWORD(lParam);
+
+            if (hittest == HTCLIENT)
+            {
+                SetCursor(mouse::mouse_impl::get_current_cursor_handle());
+                return_code = 1;
+            }
+            //else if (!g_WindowFrameUsableWhileCursorHidden && !SDL_cursor)
+            //{
+            //    SetCursor(NULL);
+            //    returnCode = TRUE;
+            //}
+
+            break;
+        }
+
         // Focus window
         case WM_SETFOCUS:
         {
@@ -745,18 +770,6 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         }
 
         // =============== mouse events ===============
-
-        // Set the cursor
-        case WM_SETCURSOR:
-        {
-            //if (LOWORD(lParam) == HTCLIENT && window->is_hovered())
-            //{
-            //    SetCursor(window->m_cursor_visible ? window->m_last_cursor : NULL);
-            //    return_code = 0;
-            //}
-
-            break;
-        }
 
         // Left mouse button down
         //case WM_LBUTTONDOWN:
@@ -1386,18 +1399,12 @@ bool video::window::window_impl::is_topmost() const
 
 // =============== icon ===============
 
-bool video::window::window_impl::set_icon(const uint8_t* pixels, const math::vec2i& size)
+bool video::window::window_impl::set_icon(const img::image& image)
 {
     clear_icon();
 
-    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
-
-    // Format is expected to have 4 8-bit channels in RGBA format
-    if (image_size % 4)
-    {
-        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
-        return false;
-    }
+    const size_t image_size = image.data_size();
+    const uint8_t* pixels = image.data();
 
     // Convert the image to an BGRA
     std::vector<uint8_t> formatted_pixels(image_size);
@@ -1416,7 +1423,7 @@ bool video::window::window_impl::set_icon(const uint8_t* pixels, const math::vec
     // Create the icon
     m_icon = CreateIcon(
         GetModuleHandle(NULL),
-        size.x, size.y,
+        image.width(), image.height(),
         1,
         32,
         NULL,

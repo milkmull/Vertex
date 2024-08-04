@@ -1,6 +1,7 @@
 #pragma once
 
 #include "video.h"
+#include "vertex/image/image.h"
 
 namespace vx {
 namespace app {
@@ -194,7 +195,7 @@ public:
     // icon
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_icon(const uint8_t* pixels, const math::vec2i& size);
+    bool set_icon(const img::image& image);
     void clear_icon();
 
 private:
