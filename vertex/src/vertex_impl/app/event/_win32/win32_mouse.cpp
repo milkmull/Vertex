@@ -1,5 +1,5 @@
 #include "win32_mouse.h"
-#include "vertex/image/fn_mask.h"
+#include "vertex/pixel/mask.h"
 
 namespace vx {
 namespace app {
@@ -187,38 +187,39 @@ bool mouse::mouse_impl::create_system_cursor(cursor& c, cursor_shape shape)
     return true;
 }
 
-static HCURSOR create_cursor(const img::image& image, const math::vec2i& hotspot)
+static HCURSOR create_cursor(const pixel::surface& surf, const math::vec2i& hotspot)
 {
-    const int image_width = static_cast<int>(image.width());
-    const int image_height = static_cast<int>(image.height());
+    const int surf_width = static_cast<int>(surf.width());
+    const int surf_height = static_cast<int>(surf.height());
 
-    const size_t image_size = image.data_size();
-    const uint8_t* image_pixels = image.data();
+    const size_t surf_size = surf.data_size();
+    const uint8_t* surf_pixels = surf.data();
 
-    std::vector<uint8_t> image_mask;
-    img::create_xor_mask(image, image_mask);
+    std::vector<uint8_t> surf_mask;
+    size_t surf_mask_width, surf_mask_height;
+    pixel::create_alpha_bitmask(surf, surf_mask, surf_mask_width, surf_mask_height);
 
-    HBITMAP mask = CreateBitmap(image_width, image_height, 1, 1, image_mask.data());
+    HBITMAP mask = CreateBitmap(surf_width, surf_height, 1, 1, surf_mask.data());
     if (!mask)
     {
         return nullptr;
     }
 
-    // Convert the image to BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    // Convert the surf to BGRA
+    std::vector<uint8_t> formatted_pixels(surf_size);
+    for (size_t pixel = 0; pixel < surf_size; pixel += 4)
     {
-        formatted_pixels[pixel + 0] = image_pixels[pixel + 2];
-        formatted_pixels[pixel + 1] = image_pixels[pixel + 1];
-        formatted_pixels[pixel + 2] = image_pixels[pixel + 0];
-        formatted_pixels[pixel + 3] = image_pixels[pixel + 3];
+        formatted_pixels[pixel + 0] = surf_pixels[pixel + 2];
+        formatted_pixels[pixel + 1] = surf_pixels[pixel + 1];
+        formatted_pixels[pixel + 2] = surf_pixels[pixel + 0];
+        formatted_pixels[pixel + 3] = surf_pixels[pixel + 3];
     }
 
     // Create color bitmap
     BITMAPINFO bi{};
     bi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bi.bmiHeader.biWidth = image_width;
-    bi.bmiHeader.biHeight = -image_height; // Negative for top-down bitmap
+    bi.bmiHeader.biWidth = surf_width;
+    bi.bmiHeader.biHeight = -surf_height; // Negative for top-down bitmap
     bi.bmiHeader.biPlanes = 1;
     bi.bmiHeader.biBitCount = 32;
     bi.bmiHeader.biCompression = BI_RGB;
@@ -255,7 +256,7 @@ static HCURSOR create_cursor(const img::image& image, const math::vec2i& hotspot
     return handle;
 }
 
-bool mouse::mouse_impl::create_custom_cursor(cursor& c, const img::image& image, const math::vec2i& hotspot)
+bool mouse::mouse_impl::create_custom_cursor(cursor& c, const pixel::surface& surf, const math::vec2i& hotspot)
 {
     c.m_impl = std::make_unique<cursor::cursor_impl>();
     if (!c.m_impl)
@@ -263,7 +264,7 @@ bool mouse::mouse_impl::create_custom_cursor(cursor& c, const img::image& image,
         return false;
     }
 
-    HCURSOR handle = create_cursor(image, hotspot);
+    HCURSOR handle = create_cursor(surf, hotspot);
     if (!handle)
     {
         return false;

@@ -1,6 +1,6 @@
 #include "win32_window.h"
 #include "vertex/app/event/event.h"
-#include "win32_impl/event/win32_mouse.h"
+#include "vertex_impl/app/event/_win32/win32_mouse.h"
 #include "vertex/system/string/string_fn.h"
 #include "vertex/system/error.h"
 
@@ -40,9 +40,7 @@ video::window::window_impl::window_impl()
     , m_losing_focus(false)
     , m_cleared(false)
     , m_windowed_mode_corner_rounding(DWMWCP_DEFAULT)
-    , m_dwma_border_color(DWMWA_COLOR_DEFAULT)
-{
-}
+    , m_dwma_border_color(DWMWA_COLOR_DEFAULT) {}
 
 video::window::window_impl::~window_impl()
 {
@@ -90,6 +88,7 @@ bool video::window::window_impl::create(window* w)
     // Set window theme to match system theme
     update_window_handle_theme(m_handle);
 
+    // Why doesn't this dispatch WM_CREATE?
     event::pump_events(true);
 
     // set up current flags based on the internal style of the window
@@ -737,218 +736,10 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
             break;
         }
 
-        // Focus window
-        case WM_SETFOCUS:
+        default:
         {
-            //if (!window->m_focussed)
-            //{
-            //    window->m_focussed = true;
-            //
-            //    event e;
-            //    e.type = event_type::WINDOW_GAINED_FOCUS;
-            //    e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
-            //    window->post_event(e);
-            //}
-
             break;
         }
-
-        // Un-focus window
-        case WM_KILLFOCUS:
-        {
-            //if (window->m_focussed)
-            //{
-            //    window->m_focussed = false;
-            //
-            //    event e;
-            //    e.type = event_type::WINDOW_LOST_FOCUS;
-            //    e.window_event.window_id = window->m_window->m_window->m_owner->m_id;
-            //    window->post_event(e);
-            //}
-
-            break;
-        }
-
-        // =============== mouse events ===============
-
-        // Left mouse button down
-        //case WM_LBUTTONDOWN:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_DOWN;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_LEFT;
-        //    e.mouse_button_event.x = static_cast<int>(LOWORD(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(HIWORD(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Left mouse button up
-        //case WM_LBUTTONUP:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_UP;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_LEFT;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Right mouse button down
-        //case WM_RBUTTONDOWN:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_DOWN;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_RIGHT;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Right mouse button up
-        //case WM_RBUTTONUP:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_UP;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_RIGHT;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Mouse wheel button down
-        //case WM_MBUTTONDOWN:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_DOWN;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Mouse wheel button up
-        //case WM_MBUTTONUP:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_UP;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = mouse::BUTTON_MIDDLE;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Extra mouse button down
-        //case WM_XBUTTONDOWN:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_DOWN;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Extra mouse button up
-        //case WM_XBUTTONUP:
-        //{
-        //    event e;
-        //    e.type = event_type::MOUSE_BUTTON_UP;
-        //    e.mouse_button_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_button_event.button = (HIWORD(wParam) == XBUTTON1) ? mouse::BUTTON_EXTRA_1 : mouse::button::BUTTON_EXTRA_2;
-        //    e.mouse_button_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_button_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Vertical mouse scroll
-        //case WM_MOUSEWHEEL:
-        //{
-        //    const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-        //    const math::vec2i mouse_position = window->get_mouse_position();
-        //
-        //    event e;
-        //    e.type = event_type::MOUSE_WHEEL;
-        //    e.mouse_wheel_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_wheel_event.wheel = mouse::wheel::VERTICAL;
-        //    e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-        //    e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-        //
-        //// Horizontal mouse scroll
-        //case WM_MOUSEHWHEEL:
-        //{
-        //    const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-        //    const math::vec2i mouse_position = window->get_mouse_position();
-        //
-        //    event e;
-        //    e.type = event_type::MOUSE_WHEEL;
-        //    e.mouse_wheel_event.window_id = window->m_window->m_impl->m_owner->m_id;
-        //    e.mouse_wheel_event.wheel = mouse::wheel::HORIZONTAL;
-        //    e.mouse_wheel_event.delta = static_cast<float>(delta) / static_cast<float>(WHEEL_DELTA);
-        //    e.mouse_wheel_event.x = static_cast<int>(GET_X_LPARAM(lParam));
-        //    e.mouse_wheel_event.y = static_cast<int>(GET_Y_LPARAM(lParam));
-        //    window->post_event(e);
-        //
-        //    break;
-        //}
-
-        // Mouse move
-        case WM_MOUSEMOVE:
-        {
-            //const math::vec2i new_mouse_position = window->get_mouse_position();
-            //
-            //if (window->m_last_mouse_position != new_mouse_position)
-            //{
-            //    window->m_last_mouse_position = new_mouse_position;
-            //
-            //    event e;
-            //    e.type = event_type::MOUSE_MOVED;
-            //    e.mouse_motion_event.window_id = window->m_window->m_window->m_owner->m_id;
-            //    e.mouse_motion_event.x = new_mouse_position.x;
-            //    e.mouse_motion_event.y = new_mouse_position.y;
-            //    window->post_event(e);
-            //
-            //    // Update the cursor tracking incase the cursor moved outside the window.
-            //    window->update_mouse_tracking();
-            //}
-
-            break;
-        }
-
-        // Mouse leave
-        //case WM_MOUSELEAVE:
-        //{
-        //    // Update the cursor tracking incase the cursor moved outside the window.
-        //    window->update_mouse_tracking();
-        //    break;
-        //}
     }
 
     if (return_code >= 0)
@@ -1399,16 +1190,16 @@ bool video::window::window_impl::is_topmost() const
 
 // =============== icon ===============
 
-bool video::window::window_impl::set_icon(const img::image& image)
+bool video::window::window_impl::set_icon(const pixel::surface& surf)
 {
     clear_icon();
 
-    const size_t image_size = image.data_size();
-    const uint8_t* pixels = image.data();
+    const size_t surf_size = surf.data_size();
+    const uint8_t* pixels = surf.data();
 
-    // Convert the image to an BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
+    // Convert the surf to an BGRA
+    std::vector<uint8_t> formatted_pixels(surf_size);
+    for (size_t pixel = 0; pixel < surf_size; pixel += 4)
     {
         formatted_pixels[pixel + 0] = pixels[pixel + 2];
         formatted_pixels[pixel + 1] = pixels[pixel + 1];
@@ -1423,7 +1214,7 @@ bool video::window::window_impl::set_icon(const img::image& image)
     // Create the icon
     m_icon = CreateIcon(
         GetModuleHandle(NULL),
-        image.width(), image.height(),
+        surf.width(), surf.height(),
         1,
         32,
         NULL,

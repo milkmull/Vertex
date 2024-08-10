@@ -2,7 +2,7 @@
 
 #if defined(VX_SYSTEM_WINDOWS)
 
-#include "win32_impl/event/win32_mouse.h"
+#include "_win32/win32_mouse.h"
 
 #endif
 
@@ -82,20 +82,18 @@ const mouse::cursor* mouse::create_system_cursor(cursor_shape shape)
     return s_mouse_data.cursors.at(id).get();
 }
 
-const mouse::cursor* mouse::create_custom_cursor(const img::image& image, const math::vec2i& hotspot)
+const mouse::cursor* mouse::create_custom_cursor(const pixel::surface& surf, const math::vec2i& hotspot)
 {
-    if (image.empty())
+    if (surf.empty())
     {
         return nullptr;
     }
 
-    img::image cursor_image = image;
-    cursor_image.convert(img::image_pixel_format::PIXEL_FORMAT_RGBA_8);
-
-    math::vec2i cursor_hotspot = image.get_rect().clip(hotspot);
+    pixel::surface cursor_surf = surf.convert(pixel::pixel_format::RGBA_8);
+    math::vec2i cursor_hotspot = cursor_surf.get_rect().clip(hotspot);
 
     auto c = std::make_unique<cursor>();
-    if (!mouse_impl::create_custom_cursor(*c, cursor_image, cursor_hotspot))
+    if (!mouse_impl::create_custom_cursor(*c, cursor_surf, cursor_hotspot))
     {
         return nullptr;
     }
@@ -193,8 +191,8 @@ bool mouse::init()
 {
     s_mouse_data.default_cursor = create_system_cursor(cursor_shape::DEFAULT);
 
-    img::image image(1, 1, img::image_pixel_format::PIXEL_FORMAT_RGBA_8);
-    s_mouse_data.blank_cursor = create_custom_cursor(image, math::vec2i(0));
+    pixel::surface surf(1, 1, pixel::pixel_format::RGBA_8);
+    s_mouse_data.blank_cursor = create_custom_cursor(surf, math::vec2i(0));
 
     if (!s_mouse_data.default_cursor)
     {

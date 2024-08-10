@@ -51,42 +51,12 @@ public:
         W_RESIZE      /**< Window resize left. May be EW_RESIZE. */
     };
 
-    class cursor
-    {
-    private:
-
-        friend mouse;
-
-    public:
-
-        cursor();
-        ~cursor();
-
-    private:
-
-        cursor(const cursor&);
-        cursor(cursor&&) noexcept;
-
-        cursor& operator=(const cursor&);
-        cursor& operator=(cursor&&) noexcept;
-
-        bool validate() const;
-
-    private:
-
-        cursor_id m_id;
-        math::vec2i m_hotspot;
-
-    private:
-
-        class cursor_impl;
-        std::shared_ptr<cursor_impl> m_impl;
-    };
+    class cursor;
 
 public:
 
     static const cursor* create_system_cursor(cursor_shape shape);
-    static const cursor* create_custom_cursor(const img::image& image, const math::vec2i& hotspot);
+    static const cursor* create_custom_cursor(const pixel::surface& surf, const math::vec2i& hotspot);
 
     static void destroy_cursor(const cursor* c);
 
@@ -175,6 +145,38 @@ private:
 
     static mouse_data s_mouse_data;
 
+};
+
+class mouse::cursor
+{
+private:
+
+    friend mouse;
+
+public:
+
+    cursor();
+    ~cursor();
+
+private:
+
+    cursor(const cursor&);
+    cursor(cursor&&) noexcept;
+
+    cursor& operator=(const cursor&);
+    cursor& operator=(cursor&&) noexcept;
+
+    bool validate() const;
+
+private:
+
+    cursor_id m_id;
+    math::vec2i m_hotspot;
+
+private:
+
+    class cursor_impl;
+    std::shared_ptr<cursor_impl> m_impl;
 };
 
 }

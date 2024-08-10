@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../win32_header.h"
+#include "vertex_impl/app/_win32/win32_header.h"
 #include "vertex/app/event/mouse.h"
 
 namespace vx {
@@ -34,7 +34,7 @@ class mouse::mouse_impl
 public:
 
     static bool create_system_cursor(cursor& c, cursor_shape shape);
-    static bool create_custom_cursor(cursor& c, const img::image& image, const math::vec2i& hotspot);
+    static bool create_custom_cursor(cursor& c, const pixel::surface& surf, const math::vec2i& hotspot);
 
     static HCURSOR get_current_cursor_handle();
     static bool show_cursor(const cursor* c);

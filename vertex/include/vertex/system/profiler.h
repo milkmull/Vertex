@@ -185,7 +185,7 @@ private:
 
 #if defined(VX_ENABLE_PROFILING)
 
-#   define VX_PROFILE_SCOPE(name) ::vx::profiler::timer timer##VX_LINE(name)
+#   define VX_PROFILE_SCOPE(name) ::vx::profile::profiler::timer timer##VX_LINE(name)
 #   define VX_PROFILE_FUNCTION()  VX_PROFILE_SCOPE(VX_FUNC)
 
 #else

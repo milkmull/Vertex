@@ -60,6 +60,8 @@ private:
 
 public:
 
+    // these should be made private
+
     window();
     ~window();
     
@@ -195,7 +197,7 @@ public:
     // icon
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_icon(const img::image& image);
+    bool set_icon(const pixel::surface& surf);
     void clear_icon();
 
 private:

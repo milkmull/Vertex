@@ -19,65 +19,85 @@ const video::caps::type video::video_data::video_caps = video::caps::SENDS_FULLS
 const LPCWSTR video::video_impl::video_driver_data::window_class_name = L"Vertex_Window";
 video::video_impl::video_driver_data video::video_impl::s_driver_data = video::video_impl::video_driver_data{};
 
-bool video::video_impl::load_libraries()
+static bool load_libraries(user32& user32_data, shcore& shcore_data)
 {
     {
-        s_driver_data.user32.dll = LoadLibrary(L"user32.dll");
-        if (!s_driver_data.user32.dll)
+        user32_data.dll = LoadLibrary(L"user32.dll");
+        if (!user32_data.dll)
         {
             VX_ERROR(error::error_code::PLATFORM_ERROR) << "Failed to load user32.dll";
             return false;
         }
 
-        s_driver_data.user32.SetProcessDPIAware = reinterpret_cast<decltype(s_driver_data.user32.SetProcessDPIAware)>(
-            GetProcAddress(s_driver_data.user32.dll, "SetProcessDPIAware"));
-        s_driver_data.user32.SetProcessDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.SetProcessDpiAwarenessContext)>(
-            GetProcAddress(s_driver_data.user32.dll, "SetProcessDpiAwarenessContext"));
-        s_driver_data.user32.SetThreadDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.SetThreadDpiAwarenessContext)>(
-            GetProcAddress(s_driver_data.user32.dll, "SetThreadDpiAwarenessContext"));
-        s_driver_data.user32.GetThreadDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.GetThreadDpiAwarenessContext)>(
-            GetProcAddress(s_driver_data.user32.dll, "GetThreadDpiAwarenessContext"));
-        s_driver_data.user32.GetAwarenessFromDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.GetAwarenessFromDpiAwarenessContext)>(
-            GetProcAddress(s_driver_data.user32.dll, "GetAwarenessFromDpiAwarenessContext"));
-        s_driver_data.user32.EnableNonClientDpiScaling = reinterpret_cast<decltype(s_driver_data.user32.EnableNonClientDpiScaling)>(
-            GetProcAddress(s_driver_data.user32.dll, "EnableNonClientDpiScaling"));
-        s_driver_data.user32.AdjustWindowRectExForDpi = reinterpret_cast<decltype(s_driver_data.user32.AdjustWindowRectExForDpi)>(
-            GetProcAddress(s_driver_data.user32.dll, "AdjustWindowRectExForDpi"));
-        s_driver_data.user32.GetDpiForWindow = reinterpret_cast<decltype(s_driver_data.user32.GetDpiForWindow)>(
-            GetProcAddress(s_driver_data.user32.dll, "GetDpiForWindow"));
-        s_driver_data.user32.AreDpiAwarenessContextsEqual = reinterpret_cast<decltype(s_driver_data.user32.AreDpiAwarenessContextsEqual)>(
-            GetProcAddress(s_driver_data.user32.dll, "AreDpiAwarenessContextsEqual"));
-        s_driver_data.user32.IsValidDpiAwarenessContext = reinterpret_cast<decltype(s_driver_data.user32.IsValidDpiAwarenessContext)>(
-            GetProcAddress(s_driver_data.user32.dll, "IsValidDpiAwarenessContext"));
+        user32_data.SetProcessDPIAware = reinterpret_cast<decltype(user32_data.SetProcessDPIAware)>(
+            GetProcAddress(user32_data.dll, "SetProcessDPIAware"));
+        user32_data.SetProcessDpiAwarenessContext = reinterpret_cast<decltype(user32_data.SetProcessDpiAwarenessContext)>(
+            GetProcAddress(user32_data.dll, "SetProcessDpiAwarenessContext"));
+        user32_data.SetThreadDpiAwarenessContext = reinterpret_cast<decltype(user32_data.SetThreadDpiAwarenessContext)>(
+            GetProcAddress(user32_data.dll, "SetThreadDpiAwarenessContext"));
+        user32_data.GetThreadDpiAwarenessContext = reinterpret_cast<decltype(user32_data.GetThreadDpiAwarenessContext)>(
+            GetProcAddress(user32_data.dll, "GetThreadDpiAwarenessContext"));
+        user32_data.GetAwarenessFromDpiAwarenessContext = reinterpret_cast<decltype(user32_data.GetAwarenessFromDpiAwarenessContext)>(
+            GetProcAddress(user32_data.dll, "GetAwarenessFromDpiAwarenessContext"));
+        user32_data.EnableNonClientDpiScaling = reinterpret_cast<decltype(user32_data.EnableNonClientDpiScaling)>(
+            GetProcAddress(user32_data.dll, "EnableNonClientDpiScaling"));
+        user32_data.AdjustWindowRectExForDpi = reinterpret_cast<decltype(user32_data.AdjustWindowRectExForDpi)>(
+            GetProcAddress(user32_data.dll, "AdjustWindowRectExForDpi"));
+        user32_data.GetDpiForWindow = reinterpret_cast<decltype(user32_data.GetDpiForWindow)>(
+            GetProcAddress(user32_data.dll, "GetDpiForWindow"));
+        user32_data.AreDpiAwarenessContextsEqual = reinterpret_cast<decltype(user32_data.AreDpiAwarenessContextsEqual)>(
+            GetProcAddress(user32_data.dll, "AreDpiAwarenessContextsEqual"));
+        user32_data.IsValidDpiAwarenessContext = reinterpret_cast<decltype(user32_data.IsValidDpiAwarenessContext)>(
+            GetProcAddress(user32_data.dll, "IsValidDpiAwarenessContext"));
     }
 
     {
-        s_driver_data.shcore.dll = LoadLibrary(L"shcore.dll");
-        if (!s_driver_data.shcore.dll)
+        shcore_data.dll = LoadLibrary(L"shcore.dll");
+        if (!shcore_data.dll)
         {
             VX_ERROR(error::error_code::PLATFORM_ERROR) << "Failed to load shcore.dll";
             return false;
         }
 
-        s_driver_data.shcore.GetDpiForMonitor = reinterpret_cast<decltype(s_driver_data.shcore.GetDpiForMonitor)>(
-            GetProcAddress(s_driver_data.shcore.dll, "GetDpiForMonitor"));
-        s_driver_data.shcore.SetProcessDpiAwareness = reinterpret_cast<decltype(s_driver_data.shcore.SetProcessDpiAwareness)>(
-            GetProcAddress(s_driver_data.shcore.dll, "SetProcessDpiAwareness"));
+        shcore_data.GetDpiForMonitor = reinterpret_cast<decltype(shcore_data.GetDpiForMonitor)>(
+            GetProcAddress(shcore_data.dll, "GetDpiForMonitor"));
+        shcore_data.SetProcessDpiAwareness = reinterpret_cast<decltype(shcore_data.SetProcessDpiAwareness)>(
+            GetProcAddress(shcore_data.dll, "SetProcessDpiAwareness"));
     }
 
     return true;
 }
 
-void video::video_impl::free_libraries()
+static void free_libraries(user32& user32_data, shcore& shcore_data)
 {
-    if (s_driver_data.user32.dll)
+    if (user32_data.dll)
     {
-        FreeLibrary(s_driver_data.user32.dll);
+        FreeLibrary(user32_data.dll);
+        user32_data.dll = NULL;
     }
-    if (s_driver_data.shcore.dll)
+    if (shcore_data.dll)
     {
-        FreeLibrary(s_driver_data.shcore.dll);
+        FreeLibrary(shcore_data.dll);
+        shcore_data.dll = NULL;
     }
+}
+
+static ATOM register_window_class(WNDPROC proc, HINSTANCE instance, LPCWSTR class_name)
+{
+    WNDCLASSW wc{};
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.lpfnWndProc = proc;
+    wc.hInstance = instance; // needed for dll
+    wc.hIcon = NULL;
+    wc.hCursor = NULL;
+    wc.lpszClassName = class_name;
+
+    return RegisterClass(&wc);
+}
+
+static void unregister_window_class(LPCWSTR class_name, HINSTANCE instance)
+{
+    UnregisterClass(class_name, instance);
 }
 
 bool video::video_impl::set_dpi_awareness(process_dpi_awareness awareness)
@@ -168,7 +188,7 @@ video::process_dpi_awareness video::video_impl::get_dpi_awareness()
 
 bool video::video_impl::init()
 {
-    if (!load_libraries())
+    if (!load_libraries(s_driver_data.user32, s_driver_data.shcore))
     {
         return false;
     }
@@ -177,22 +197,15 @@ bool video::video_impl::init()
         return false;
     }
 
-    // If this is our first window, we register our window class
-    if (s_driver_data.window_class == NULL)
+    if (!s_driver_data.window_class)
     {
-        if (!register_window_class(window::window_impl::window_proc))
-        {
-            return false;
-        }
-    }
+        s_driver_data.window_class = register_window_class(
+            window::window_impl::window_proc,
+            s_driver_data.instance,
+            s_driver_data.window_class_name
+        );
 
-    // On Remote Desktop, setting the cursor to NULL does not hide it. To fix
-    // this we create a transparent cursor and always set that instead of NULL.
-    // When not on Remote Desktop, this handle is NULL and normal hiding is
-    // used.
-    if (GetSystemMetrics(SM_REMOTESESSION))
-    {
-        if (!make_blank_cursor())
+        if (!s_driver_data.window_class)
         {
             return false;
         }
@@ -203,158 +216,10 @@ bool video::video_impl::init()
 
 void video::video_impl::quit()
 {
-    if (s_driver_data.window_default_icon != NULL)
-    {
-        DestroyIcon(s_driver_data.window_default_icon);
-        s_driver_data.window_default_icon = NULL;
-    }
-
-    if (s_driver_data.blank_cursor != NULL)
-    {
-        DestroyCursor(s_driver_data.blank_cursor);
-        s_driver_data.blank_cursor = NULL;
-    }
-
-    unregister_window_class();
-    free_libraries();
-}
-
-bool video::video_impl::register_window_class(WNDPROC proc)
-{
-    WNDCLASSW wc{};
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc = proc;
-    wc.hInstance = s_driver_data.instance; // needed for dll
-    wc.hIcon = s_driver_data.window_default_icon ? s_driver_data.window_default_icon : NULL;
-    wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.lpszClassName = s_driver_data.window_class_name;
-
-    s_driver_data.window_class = RegisterClass(&wc);
-
-    return s_driver_data.window_class != NULL;
-}
-
-void video::video_impl::unregister_window_class()
-{
-    UnregisterClass(s_driver_data.window_class_name, s_driver_data.instance);
+    unregister_window_class(s_driver_data.window_class_name, s_driver_data.instance);
     s_driver_data.window_class = NULL;
-}
 
-bool video::video_impl::set_default_window_icon(const uint8_t* pixels, const math::vec2i& size)
-{
-    // Destroy existing icon
-    if (s_driver_data.window_default_icon)
-    {
-        DestroyIcon(s_driver_data.window_default_icon);
-        s_driver_data.window_default_icon = NULL;
-    }
-
-    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
-
-    // Format is expected to have 4 8-bit channels in RGBA format
-    if (image_size % 4)
-    {
-        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "Window icon pixels must be RGBA format";
-        return false;
-    }
-
-    // Convert the image to an BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
-    {
-        formatted_pixels[pixel + 0] = pixels[pixel + 2];
-        formatted_pixels[pixel + 1] = pixels[pixel + 1];
-        formatted_pixels[pixel + 2] = pixels[pixel + 0];
-        formatted_pixels[pixel + 3] = pixels[pixel + 3];
-    }
-
-    // MSVC warns about arument 6 being NULL
-    VX_DISABLE_WARNING("", 6387);
-    VX_DISABLE_WARNING_PUSH();
-
-    // Create the icon
-    s_driver_data.window_default_icon = CreateIcon(
-        s_driver_data.instance,
-        size.x, size.y,
-        1,
-        32,
-        NULL,
-        formatted_pixels.data()
-    );
-
-    VX_DISABLE_WARNING_POP();
-
-    return s_driver_data.window_default_icon != NULL;
-}
-
-bool video::video_impl::make_custom_cursor(HCURSOR& cursor, const uint8_t* pixels, const math::vec2i& size, const math::vec2i& hotspot)
-{
-    const size_t image_size = static_cast<size_t>(size.x * size.y * 4);
-
-    // Format is expected to have 4 8-bit channels in RGBA format
-    if (image_size % 4)
-    {
-        return false;
-    }
-
-    // Convert the image to an BGRA
-    std::vector<uint8_t> formatted_pixels(image_size);
-    for (size_t pixel = 0; pixel < image_size; pixel += 4)
-    {
-        formatted_pixels[pixel + 0] = pixels[pixel + 2];
-        formatted_pixels[pixel + 1] = pixels[pixel + 1];
-        formatted_pixels[pixel + 2] = pixels[pixel + 0];
-        formatted_pixels[pixel + 3] = pixels[pixel + 3];
-    }
-
-    // Create empty bitmap for monochrome mask
-    HBITMAP mask = CreateBitmap(size.x, size.y, 1, 1, NULL);
-    if (!mask)
-    {
-        return false;
-    }
-
-    // Create color bitmap
-    HBITMAP color = CreateBitmap(size.x, size.y, 1, 32, formatted_pixels.data());
-    if (!color)
-    {
-        DeleteObject(mask);
-        return false;
-    }
-
-    // Create icon info
-    ICONINFO info{};
-    info.fIcon = FALSE;
-    info.xHotspot = hotspot.x;
-    info.yHotspot = hotspot.y;
-    info.hbmMask = mask;
-    info.hbmColor = color;
-
-    cursor = CreateIconIndirect(&info);
-
-    DeleteObject(color);
-    DeleteObject(mask);
-
-    return cursor != NULL;
-}
-
-bool video::video_impl::make_blank_cursor()
-{
-    if (s_driver_data.blank_cursor != NULL)
-    {
-        return true;
-    }
-
-    const int w = GetSystemMetrics(SM_CXCURSOR);
-    const int h = GetSystemMetrics(SM_CYCURSOR);
-    std::vector<uint8_t> pixels(w * h * 4);
-
-    // Windows checks whether the image is fully transparent and if so just
-    // ignores the alpha channel and makes the whole cursor opaque. To fix this
-    // we make one pixel slightly less transparent.
-    pixels[3] = 1;
-
-    return make_custom_cursor(s_driver_data.blank_cursor, pixels.data(), math::vec2i(w, h), math::vec2i(0));
+    free_libraries(s_driver_data.user32, s_driver_data.shcore);
 }
 
 video::system_theme video::video_impl::get_system_theme()
@@ -380,7 +245,7 @@ video::system_theme video::video_impl::get_system_theme()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// display mode
+// display mode info
 ///////////////////////////////////////////////////////////////////////////////
 
 static float get_refresh_rate(DWORD rate)
@@ -439,118 +304,9 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
     }
 }
 
-bool video::video_impl::get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation)
-{
-    DEVMODE dm{ sizeof(dm) };
-
-    if (!EnumDisplaySettings(device_name.c_str(), index, &dm))
-    {
-        return false;
-    }
-
-    if (dm.dmBitsPerPel == 0)
-    {
-        return false;
-    }
-
-    mode.m_impl = std::make_unique<display_mode::display_mode_impl>();
-
-    mode.resolution.x = dm.dmPelsWidth;
-    mode.resolution.y = dm.dmPelsHeight;
-    mode.bpp = dm.dmBitsPerPel;
-    mode.pixel_format = pixel::pixel_format::PIXEL_FORMAT_UNKNOWN; // TODO: figure out how to get the pixel format
-    mode.pixel_density = 1.0f;
-    mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
-
-    mode.m_impl->m_owner = &mode;
-    mode.m_impl->m_devmode = dm;
-
-    if (orientation)
-    {
-        *orientation = get_display_orientation(&dm);
-    }
-
-    return true;
-}
-
-HMONITOR video::display::display_impl::get_handle() const
-{
-    return m_handle;
-}
-
-void video::display::display_impl::list_display_modes()
-{
-    m_owner->m_modes.clear();
-
-    DWORD display_mode_index = 0;
-    display_mode mode;
-
-    while (true)
-    {
-        if (!video_impl::get_display_mode(m_device_name, mode, display_mode_index++, nullptr))
-        {
-            break;
-        }
-
-        // don't add duplicates
-        bool found = false;
-        for (const display_mode& m : m_owner->m_modes)
-        {
-            if (display_mode::compare(m, mode))
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            mode.m_display_id = m_owner->m_id;
-            m_owner->m_modes.push_back(mode);
-        }
-    }
-}
-
-bool video::display::display_impl::set_display_mode(display_mode& mode) const
-{
-    LONG status = ChangeDisplaySettingsEx(m_device_name.c_str(), &mode.m_impl->m_devmode, NULL, CDS_FULLSCREEN, NULL);
-
-    if (status != DISP_CHANGE_SUCCESSFUL)
-    {
-        const char* reason = "Unknown reason";
-
-        switch (status)
-        {
-            case DISP_CHANGE_BADFLAGS:
-            {
-                reason = "DISP_CHANGE_BADFLAGS";
-                break;
-            }
-            case DISP_CHANGE_BADMODE:
-            {
-                reason = "DISP_CHANGE_BADMODE";
-                break;
-            }
-            case DISP_CHANGE_BADPARAM:
-            {
-                reason = "DISP_CHANGE_BADPARAM";
-                break;
-            }
-            case DISP_CHANGE_FAILED:
-            {
-                reason = "DISP_CHANGE_FAILED";
-                break;
-            }
-        }
-
-        VX_ERROR(error::error_code::PLATFORM_ERROR) << "ChangeDisplaySettingsEx() failed: " << reason;
-        return false;
-    }
-
-    video_impl::get_display_mode(m_device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
-
-    return true;
-}
+///////////////////////////////////////////////////////////////////////////////
+// display content scale
+///////////////////////////////////////////////////////////////////////////////
 
 math::vec2 video::video_impl::get_display_content_scale(const HMONITOR handle)
 {
@@ -586,40 +342,35 @@ math::vec2 video::video_impl::get_display_content_scale(const HMONITOR handle)
     );
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// display bounds
-///////////////////////////////////////////////////////////////////////////////
-
-bool video::display::display_impl::get_bounds(math::recti& bounds) const
+bool video::video_impl::get_display_mode(const std::wstring& device_name, display_mode& mode, DWORD index, display_orientation* orientation)
 {
-    MONITORINFO info{ sizeof(info) };
+    DEVMODE dm{ sizeof(dm) };
 
-    if (!GetMonitorInfo(m_handle, &info))
+    if (!EnumDisplaySettings(device_name.c_str(), index, &dm))
     {
         return false;
     }
 
-    bounds.position.x = info.rcMonitor.left;
-    bounds.position.y = info.rcMonitor.top;
-    bounds.size.x = info.rcMonitor.right - info.rcMonitor.left;
-    bounds.size.y = info.rcMonitor.bottom - info.rcMonitor.top;
-
-    return true;
-}
-
-bool video::display::display_impl::get_work_area(math::recti& work_area) const
-{
-    MONITORINFO info{ sizeof(info) };
-
-    if (!GetMonitorInfo(m_handle, &info))
+    if (dm.dmBitsPerPel == 0)
     {
         return false;
     }
 
-    work_area.position.x = info.rcWork.left;
-    work_area.position.y = info.rcWork.top;
-    work_area.size.x = info.rcWork.right - info.rcWork.left;
-    work_area.size.y = info.rcWork.bottom - info.rcWork.top;
+    mode.m_impl = std::make_unique<display_mode::display_mode_impl>();
+
+    mode.resolution.x = dm.dmPelsWidth;
+    mode.resolution.y = dm.dmPelsHeight;
+    mode.bpp = dm.dmBitsPerPel;
+    mode.pixel_format = pixel::pixel_format::UNKNOWN; // TODO: figure out how to get the pixel format
+    mode.pixel_density = 1.0f;
+    mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
+
+    mode.m_impl->m_devmode = dm;
+
+    if (orientation)
+    {
+        *orientation = get_display_orientation(&dm);
+    }
 
     return true;
 }
@@ -708,7 +459,6 @@ bool video::video_impl::create_display(
         d->m_impl = std::make_unique<video::display::display_impl>();
         display::display_impl* d_impl = d->m_impl.get();
 
-        d_impl->m_owner = d;
         d_impl->m_handle = hMonitor;
         d_impl->m_device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
         d_impl->m_state = display_state::ADDED; // Mark as added by default
@@ -808,6 +558,122 @@ void video::video_impl::update_displays(std::vector<std::unique_ptr<display>>& d
             post_display_added(d.get());
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// display_impl
+///////////////////////////////////////////////////////////////////////////////
+
+HMONITOR video::display::display_impl::get_handle() const
+{
+    return m_handle;
+}
+
+void video::display::display_impl::list_display_modes(std::vector<display_mode>& modes)
+{
+    modes.clear();
+
+    DWORD display_mode_index = 0;
+    display_mode mode;
+
+    while (true)
+    {
+        if (!video_impl::get_display_mode(m_device_name, mode, display_mode_index++, nullptr))
+        {
+            break;
+        }
+
+        // don't add duplicates
+        bool found = false;
+        for (const display_mode& m : modes)
+        {
+            if (display_mode::compare(m, mode))
+            {
+                found = true;
+                break;
+            }
+        }
+
+        if (!found)
+        {
+            modes.push_back(mode);
+        }
+    }
+}
+
+bool video::display::display_impl::set_display_mode(display_mode& mode) const
+{
+    LONG status = ChangeDisplaySettingsEx(m_device_name.c_str(), &mode.m_impl->m_devmode, NULL, CDS_FULLSCREEN, NULL);
+
+    if (status != DISP_CHANGE_SUCCESSFUL)
+    {
+        const char* reason = "Unknown reason";
+
+        switch (status)
+        {
+            case DISP_CHANGE_BADFLAGS:
+            {
+                reason = "DISP_CHANGE_BADFLAGS";
+                break;
+            }
+            case DISP_CHANGE_BADMODE:
+            {
+                reason = "DISP_CHANGE_BADMODE";
+                break;
+            }
+            case DISP_CHANGE_BADPARAM:
+            {
+                reason = "DISP_CHANGE_BADPARAM";
+                break;
+            }
+            case DISP_CHANGE_FAILED:
+            {
+                reason = "DISP_CHANGE_FAILED";
+                break;
+            }
+        }
+
+        VX_ERROR(error::error_code::PLATFORM_ERROR) << "ChangeDisplaySettingsEx() failed: " << reason;
+        return false;
+    }
+
+    video_impl::get_display_mode(m_device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
+
+    return true;
+}
+
+bool video::display::display_impl::get_bounds(math::recti& bounds) const
+{
+    MONITORINFO info{ sizeof(info) };
+
+    if (!GetMonitorInfo(m_handle, &info))
+    {
+        return false;
+    }
+
+    bounds.position.x = info.rcMonitor.left;
+    bounds.position.y = info.rcMonitor.top;
+    bounds.size.x = info.rcMonitor.right - info.rcMonitor.left;
+    bounds.size.y = info.rcMonitor.bottom - info.rcMonitor.top;
+
+    return true;
+}
+
+bool video::display::display_impl::get_work_area(math::recti& work_area) const
+{
+    MONITORINFO info{ sizeof(info) };
+
+    if (!GetMonitorInfo(m_handle, &info))
+    {
+        return false;
+    }
+
+    work_area.position.x = info.rcWork.left;
+    work_area.position.y = info.rcWork.top;
+    work_area.size.x = info.rcWork.right - info.rcWork.left;
+    work_area.size.y = info.rcWork.bottom - info.rcWork.top;
+
+    return true;
 }
 
 }

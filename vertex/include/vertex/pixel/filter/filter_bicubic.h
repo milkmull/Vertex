@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace pixel {
-namespace filter {
+namespace raw {
 
 using math::filter_bicubic;
 

@@ -1,9 +1,11 @@
 #pragma once
 
-#include "vertex/pixel/pixel.h"
+#include <vector>
+
 #include "vertex/math/math/type/vec2.h"
 #include "vertex/math/geometry/type/recti.h"
 #include "vertex/app/_priv/device_id.h"
+#include "vertex/pixel/pixel.h"
 
 namespace vx {
 namespace app {
@@ -29,7 +31,7 @@ public:
         PER_MONITOR
     };
 
-    enum class display_orientation : int32_t
+    enum class display_orientation
     {
         UNKNOWN,
 
@@ -58,124 +60,9 @@ public:
             SENDS_FULLSCREEN_DIMENSIONS   = (1 << 1),
             IS_FULLSCREEN_ONLY            = (1 << 2),
             SEND_DISPLAY_CHANGES          = (1 << 3),
-            DISABLE_FULLSCREEN_MOUSE_WARP = (1 << 4),
-            ASYNCHRONOUS_WINDOWING        = (1 << 5),
-            STATIC_WINDOW                 = (1 << 6)
+            DISABLE_FULLSCREEN_MOUSE_WARP = (1 << 4)
         };
     };
-
-public:
-
-    //===========================================================================
-
-    struct display_mode
-    {
-    private:
-
-        friend video;
-        friend video_impl;
-        friend display;
-        friend window;
-
-    public:
-
-        display_mode();
-        display_mode(const display_mode&);
-        display_mode(display_mode&&) noexcept;
-        ~display_mode();
-
-        display_mode& operator=(const display_mode&);
-        display_mode& operator=(display_mode&&) noexcept;
-
-    public:
-
-        static bool compare(const display_mode& mode1, const display_mode& mode2);
-
-    public:
-
-        math::vec2i resolution;
-        int bpp;
-        pixel::pixel_format pixel_format;
-        float pixel_density;
-        float refresh_rate;
-
-    private:
-
-        device_id m_display_id;
-
-    private:
-
-        class display_mode_impl;
-        std::unique_ptr<display_mode_impl> m_impl;
-    };
-
-    //===========================================================================
-
-public:
-
-    class display
-    {
-    private:
-
-        friend video;
-        friend video_impl;
-        friend window;
-
-    public:
-
-        display();
-        display(const display&);
-        display(display&&) noexcept;
-
-        ~display();
-
-        display& operator=(const display&);
-        display& operator=(display&&) noexcept;
-
-    public:
-
-        device_id id() const;
-        const std::string& name() const;
-
-        const display_mode& get_desktop_mode() const;
-
-        const display_mode& get_current_mode() const;
-        bool set_current_mode(display_mode& mode);
-        void clear_mode();
-
-        const std::vector<display_mode>& list_modes() const;
-        const display_mode* find_mode(const display_mode& mode) const;
-        const display_mode* find_closest_mode(int width, int height, float refresh_rate) const;
-
-    private:
-
-        display_orientation get_orientation() const;
-        const math::vec2& get_content_scale() const;
-
-        math::recti get_bounds() const;
-        math::recti get_work_area() const;
-
-    private:
-
-        device_id m_id;
-        std::string m_name;
-
-        display_mode m_desktop_mode;
-        display_mode m_current_mode;
-        std::vector<display_mode> m_modes;
-
-        display_orientation m_orientation;
-        math::vec2 m_content_scale;
-
-        device_id m_fullscreen_window_id;
-
-    private:
-
-        class display_impl;
-        std::unique_ptr<display_impl> m_impl;
-    };
-
-    //===========================================================================
 
     struct window_config
     {
@@ -205,7 +92,7 @@ public:
 public:
 
     ///////////////////////////////////////////////////////////////////////////////
-    // video
+    // init stuff
     ///////////////////////////////////////////////////////////////////////////////
 
     video() = delete;
@@ -219,6 +106,8 @@ public:
 
     static bool init();
     static void quit();
+
+    static bool is_init();
 
     static process_dpi_awareness get_dpi_awareness();
     static system_theme get_system_theme();
@@ -235,14 +124,9 @@ public:
 
     static display* get_display_for_point(const math::vec2i& p);
     static display* get_display_for_rect(const math::recti& rect);
+    static display* get_display_for_window(const window* w);
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // window display
-    ///////////////////////////////////////////////////////////////////////////////
-
-public:
-
-    static display* get_display_for_window(const window& w);
+    static math::recti get_desktop_area();
 
 private:
 
@@ -250,14 +134,12 @@ private:
 
 public:
 
-    //===========================================================================
-
-    static math::recti get_desktop_area();
-
-    //===========================================================================
+    ///////////////////////////////////////////////////////////////////////////////
+    // window
+    ///////////////////////////////////////////////////////////////////////////////
 
     static window* create_window(const window_config& config);
-    static void destroy_window(window& w);
+    static void destroy_window(window* w);
     static window* get_window(device_id id);
 
 private:
@@ -285,6 +167,7 @@ private:
 
         bool is_init = false;
 
+        // Consider making these unordered maps in the future
         std::vector<std::unique_ptr<display>> displays;
         std::vector<std::unique_ptr<window>> windows;
 
@@ -293,6 +176,118 @@ private:
 
     static video_data s_video_data;
 
+};
+
+struct video::display_mode
+{
+private:
+
+    friend video;
+    friend video_impl;
+    friend display;
+    friend window;
+
+public:
+
+    display_mode();
+    display_mode(const display_mode&);
+    display_mode(display_mode&&) noexcept;
+    ~display_mode();
+
+    display_mode& operator=(const display_mode&);
+    display_mode& operator=(display_mode&&) noexcept;
+
+public:
+
+    static bool compare(const display_mode& mode1, const display_mode& mode2);
+
+public:
+
+    math::vec2i resolution;
+    int bpp;
+    pixel::pixel_format pixel_format;
+    float pixel_density;
+    float refresh_rate;
+
+private:
+
+    device_id m_display_id;
+
+private:
+
+    class display_mode_impl;
+    std::unique_ptr<display_mode_impl> m_impl;
+};
+
+class video::display
+{
+private:
+
+    friend video;
+    friend video_impl;
+    friend window;
+
+public:
+
+    // need to make these private
+
+    display();
+    display(const display&);
+    display(display&&) noexcept;
+
+    ~display();
+
+    display& operator=(const display&);
+    display& operator=(display&&) noexcept;
+
+public:
+
+    device_id id() const;
+    const std::string& name() const;
+
+private:
+
+    void update_modes() const;
+
+public:
+
+    const display_mode& get_desktop_mode() const;
+    const display_mode& get_current_mode() const;
+    bool set_current_mode(display_mode& mode);
+    void clear_mode();
+
+public:
+
+    const std::vector<display_mode>& list_modes() const;
+    const display_mode* find_mode(const display_mode& mode) const;
+    const display_mode* find_closest_mode(int width, int height, float refresh_rate) const;
+
+private:
+
+    display_orientation get_orientation() const;
+    const math::vec2& get_content_scale() const;
+
+    math::recti get_bounds() const;
+    math::recti get_work_area() const;
+
+private:
+
+    device_id m_id;
+    std::string m_name;
+
+    display_mode m_desktop_mode;
+    display_mode m_current_mode;
+    mutable std::vector<display_mode> m_modes;
+
+    display_orientation m_orientation;
+    math::vec2 m_content_scale;
+
+    device_id m_fullscreen_window_id;
+
+private:
+
+    class display_impl;
+    std::unique_ptr<display_impl> m_impl;
 };
 
 }

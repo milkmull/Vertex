@@ -11,7 +11,7 @@
 
 // https://www.glfw.org/docs/3.3/input_guide.html
 
-#ifdef MOUSE_MOVED
+#if defined(MOUSE_MOVED)
 #   undef MOUSE_MOVED
 #endif
 

@@ -1,13 +1,14 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstring>
 #include <vector>
 
 namespace vx {
-namespace img {
-namespace raw {
+namespace pixel {
+namespace transform {
 
 ///////////////////////////////////////////////////////////////////////////////
 // copy
@@ -22,15 +23,18 @@ namespace raw {
 /// @param dst Pointer to the destination buffer to store the coppied image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void copy(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool copy_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     std::memcpy(dst, src, src_width * src_height * pixel_size);
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,22 +49,26 @@ inline void copy(
 /// @param height The height of the image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void flip_x(byte_type* data, size_t width, size_t height, size_t pixel_size)
+inline bool flip_x_raw(uint8_t* data, size_t width, size_t height, size_t pixel_size)
 {
-    assert(data);
+    if (!data)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < height; ++y)
     {
-        byte_type* row = &data[width * y * pixel_size];
+        uint8_t* row = &data[width * y * pixel_size];
 
         for (size_t x = 0; x < width / 2; ++x)
         {
-            byte_type* srcpx = &row[x * pixel_size];
-            byte_type* dstpx = &row[(width - x - 1) * pixel_size];
-
+            uint8_t* srcpx = &row[x * pixel_size];
+            uint8_t* dstpx = &row[(width - x - 1) * pixel_size];
             std::swap_ranges(srcpx, srcpx + pixel_size, dstpx);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -72,27 +80,30 @@ inline void flip_x(byte_type* data, size_t width, size_t height, size_t pixel_si
 /// @param dst Pointer to the destination buffer to store the flipped image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void flip_x(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool flip_x_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < src_height; ++y)
     {
-        const byte_type* srcrow = &src[src_width * y * pixel_size];
-        byte_type* dstrow = &dst[src_width * y * pixel_size];
+        const uint8_t* srcrow = &src[src_width * y * pixel_size];
+        uint8_t* dstrow = &dst[src_width * y * pixel_size];
 
         for (size_t x = 0; x < src_width; ++x)
         {
-            const byte_type* srcpx = &srcrow[x * pixel_size];
-            byte_type* dstpx = &dstrow[(src_width - x - 1) * pixel_size];
-
+            const uint8_t* srcpx = &srcrow[x * pixel_size];
+            uint8_t* dstpx = &dstrow[(src_width - x - 1) * pixel_size];
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,19 +118,23 @@ inline void flip_x(
 /// @param height The height of the image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void flip_y(byte_type* data, size_t width, size_t height, size_t pixel_size)
+inline bool flip_y_raw(uint8_t* data, size_t width, size_t height, size_t pixel_size)
 {
-    assert(data);
+    if (!data)
+    {
+        return false;
+    }
 
     const size_t rowsz = width * pixel_size;
 
     for (size_t y = 0; y < height / 2; ++y)
     {
-        byte_type* row1 = &data[width * y * pixel_size];
-        byte_type* row2 = &data[width * (height - y - 1) * pixel_size];
-
+        uint8_t* row1 = &data[width * y * pixel_size];
+        uint8_t* row2 = &data[width * (height - y - 1) * pixel_size];
         std::swap_ranges(row1, &row1[rowsz], row2);
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -131,23 +146,26 @@ inline void flip_y(byte_type* data, size_t width, size_t height, size_t pixel_si
 /// @param dst Pointer to the destination buffer to store the flipped image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void flip_y(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool flip_y_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     const size_t rowsz = src_width * pixel_size;
 
     for (size_t y = 0; y < src_height; ++y)
     {
-        const byte_type* srcrow = &src[src_width * y * pixel_size];
-        byte_type* dstrow = &dst[src_width * (src_height - y - 1) * pixel_size];
-
+        const uint8_t* srcrow = &src[src_width * y * pixel_size];
+        uint8_t* dstrow = &dst[src_width * (src_height - y - 1) * pixel_size];
         std::memcpy(dstrow, srcrow, rowsz);
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,27 +181,30 @@ inline void flip_y(
 /// @param dst Pointer to the destination buffer to store the rotated image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_90_cw(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool rotate_90_cw_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < src_height; ++y)
     {
-        const byte_type* srcrow = &src[src_width * y * pixel_size];
-        byte_type* dstcol = &dst[(src_height - y - 1) * pixel_size];
+        const uint8_t* srcrow = &src[src_width * y * pixel_size];
+        uint8_t* dstcol = &dst[(src_height - y - 1) * pixel_size];
 
         for (size_t x = 0; x < src_width; ++x)
         {
-            const byte_type* srcpx = &srcrow[x * pixel_size];
-            byte_type* dstpx = &dstcol[x * src_height * pixel_size];
-
+            const uint8_t* srcpx = &srcrow[x * pixel_size];
+            uint8_t* dstpx = &dstcol[x * src_height * pixel_size];
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -194,14 +215,18 @@ inline void rotate_90_cw(
 /// @param height The height of the image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_90_cw(byte_type* data, size_t width, size_t height, size_t pixel_size)
+inline bool rotate_90_cw_raw(uint8_t* data, size_t width, size_t height, size_t pixel_size)
 {
-    assert(data);
+    if (!data)
+    {
+        return false;
+    }
 
-    std::vector<byte_type> dst(width * height * pixel_size);
-
-    rotate_90_cw(data, width, height, dst.data(), pixel_size);
+    std::vector<uint8_t> dst(width * height * pixel_size);
+    rotate_90_cw_raw(data, width, height, dst.data(), pixel_size);
     std::move(dst.begin(), dst.end(), data);
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -217,27 +242,30 @@ inline void rotate_90_cw(byte_type* data, size_t width, size_t height, size_t pi
 /// @param dst Pointer to the destination buffer to store the rotated image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_90_ccw(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool rotate_90_ccw_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < src_height; ++y)
     {
-        const byte_type* srcrow = &src[src_width * y * pixel_size];
-        byte_type* dstcol = &dst[y * pixel_size];
+        const uint8_t* srcrow = &src[src_width * y * pixel_size];
+        uint8_t* dstcol = &dst[y * pixel_size];
 
         for (size_t x = 0; x < src_width; ++x)
         {
-            const byte_type* srcpx = &srcrow[(src_width - x - 1) * pixel_size];
-            byte_type* dstpx = &dstcol[x * src_height * pixel_size];
-
+            const uint8_t* srcpx = &srcrow[(src_width - x - 1) * pixel_size];
+            uint8_t* dstpx = &dstcol[x * src_height * pixel_size];
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,14 +276,18 @@ inline void rotate_90_ccw(
 /// @param height The height of the image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_90_ccw(byte_type* data, size_t width, size_t height, size_t pixel_size)
+inline bool rotate_90_ccw_raw(uint8_t* data, size_t width, size_t height, size_t pixel_size)
 {
-    assert(data);
+    if (!data)
+    {
+        return false;
+    }
 
-    std::vector<byte_type> dst(width * height * pixel_size);
-
-    rotate_90_ccw(data, width, height, dst.data(), pixel_size);
+    std::vector<uint8_t> dst(width * height * pixel_size);
+    rotate_90_ccw_raw(data, width, height, dst.data(), pixel_size);
     std::move(dst.begin(), dst.end(), data);
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -270,36 +302,39 @@ inline void rotate_90_ccw(byte_type* data, size_t width, size_t height, size_t p
 /// @param height The height of the image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_180(byte_type* data, size_t width, size_t height, size_t pixel_size)
+inline bool rotate_180_raw(uint8_t* data, size_t width, size_t height, size_t pixel_size)
 {
-    assert(data);
+    if (!data)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < height / 2; ++y)
     {
-        byte_type* srcrow = &data[width * y * pixel_size];
-        byte_type* dstrow = &data[width * (height - y - 1) * pixel_size];
+        uint8_t* srcrow = &data[width * y * pixel_size];
+        uint8_t* dstrow = &data[width * (height - y - 1) * pixel_size];
 
         for (size_t x = 0; x < width; ++x)
         {
-            byte_type* srcpx = &srcrow[x * pixel_size];
-            byte_type* dstpx = &dstrow[(width - x - 1) * pixel_size];
-
+            uint8_t* srcpx = &srcrow[x * pixel_size];
+            uint8_t* dstpx = &dstrow[(width - x - 1) * pixel_size];
             std::swap_ranges(srcpx, &srcpx[pixel_size], dstpx);
         }
     }
 
     if (height % 2)
     {
-        byte_type* midrow = &data[width * (height / 2) * pixel_size];
+        uint8_t* midrow = &data[width * (height / 2) * pixel_size];
 
         for (size_t x = 0; x < width / 2; ++x)
         {
-            byte_type* srcpx = &midrow[x * pixel_size];
-            byte_type* dstpx = &midrow[(width - x - 1) * pixel_size];
-
+            uint8_t* srcpx = &midrow[x * pixel_size];
+            uint8_t* dstpx = &midrow[(width - x - 1) * pixel_size];
             std::swap_ranges(srcpx, srcpx + pixel_size, dstpx);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -311,27 +346,30 @@ inline void rotate_180(byte_type* data, size_t width, size_t height, size_t pixe
 /// @param dst Pointer to the destination buffer to store the rotated image.
 /// @param pixel_size The the size in bytes of the pixels.
 ///////////////////////////////////////////////////////////////////////////////
-inline void rotate_180(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size
+inline bool rotate_180_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size
 )
 {
-    assert(src);
-    assert(dst);
+    if (!src || !dst)
+    {
+        return false;
+    }
 
     for (size_t y = 0; y < src_height; ++y)
     {
-        const byte_type* srcrow = &src[src_width * y * pixel_size];
-        byte_type* dstrow = &dst[src_width * (src_height - y - 1) * pixel_size];
+        const uint8_t* srcrow = &src[src_width * y * pixel_size];
+        uint8_t* dstrow = &dst[src_width * (src_height - y - 1) * pixel_size];
 
         for (size_t x = 0; x < src_width; ++x)
         {
-            const byte_type* srcpx = &srcrow[x * pixel_size];
-            byte_type* dstpx = &dstrow[(src_width - x - 1) * pixel_size];
-
+            const uint8_t* srcpx = &srcrow[x * pixel_size];
+            uint8_t* dstpx = &dstrow[(src_width - x - 1) * pixel_size];
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -349,38 +387,41 @@ inline void rotate_180(
 /// @param dst Pointer to the destination buffer where the cropped image will
 /// be copied.
 /// @param pixel_size The the size in bytes of the pixels.
-/// @param area An array containing the coordinates and size of the area to be
-/// cropped. The format is [x, y, width, height].
+/// @param area_x The x coordinate of the crop area within the image.
+/// @param area_y The y coordinate of the crop area within the image.
+/// @param area_width The width of the crop area within the image.
+/// @param area_height The height of the crop area within the image.
 /// 
-/// @return byte_typerue if the crop operation was successful, false otherwise.
+/// @return True if the crop operation was successful, false otherwise.
 ///////////////////////////////////////////////////////////////////////////////
 template <typename U>
-inline constexpr bool crop(
-    const byte_type* src, size_t src_width, size_t src_height,
-    byte_type* dst, size_t pixel_size,
-    const std::array<U, 4>& area
+inline bool crop_raw(
+    const uint8_t* src, size_t src_width, size_t src_height,
+    uint8_t* dst, size_t pixel_size,
+    U area_x, U area_y, U area_width, U area_height
 )
 {
-    assert(src);
-    assert(dst);
-
-    // check crop area is within area of image
-    if ((area[0] < static_cast<U>(0)) || (static_cast<size_t>(area[0] + area[2]) > src_width) ||
-        (area[1] < static_cast<U>(0)) || (static_cast<size_t>(area[1] + area[3]) > src_height))
+    if (!src || !dst)
     {
         return false;
     }
 
-    for (size_t y = 0; y < static_cast<size_t>(area[3]); ++y)
+    // check crop area is within area of image
+    if ((area_x < static_cast<U>(0)) || (static_cast<size_t>(area_x + area_width) > src_width) ||
+        (area_y < static_cast<U>(0)) || (static_cast<size_t>(area_y + area_height) > src_height))
     {
-        const byte_type* srcrow = &src[src_width * (static_cast<size_t>(area[1]) + y) * pixel_size];
-        byte_type* dstrow = &dst[static_cast<size_t>(area[2]) * y * pixel_size];
+        return false;
+    }
 
-        for (size_t x = 0; x < static_cast<size_t>(area[2]); ++x)
+    for (size_t y = 0; y < static_cast<size_t>(area_height); ++y)
+    {
+        const uint8_t* srcrow = &src[src_width * (static_cast<size_t>(area_y) + y) * pixel_size];
+        uint8_t* dstrow = &dst[static_cast<size_t>(area_width) * y * pixel_size];
+
+        for (size_t x = 0; x < static_cast<size_t>(area_width); ++x)
         {
-            const byte_type* srcpx = &srcrow[(static_cast<size_t>(area[0]) + x) * pixel_size];
-            byte_type* dstpx = &dstrow[x * pixel_size];
-
+            const uint8_t* srcpx = &srcrow[(static_cast<size_t>(area_x) + x) * pixel_size];
+            uint8_t* dstpx = &dstrow[x * pixel_size];
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }

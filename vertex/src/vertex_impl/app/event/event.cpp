@@ -1,7 +1,7 @@
 #include "vertex/app/event/event.h"
 
 #if defined(VX_SYSTEM_WINDOWS)
-#   include "win32_impl/event/win32_event.h"
+#   include "_win32/win32_event.h"
 #endif
 
 #if defined(VX_LOG_APP_EVENTS)

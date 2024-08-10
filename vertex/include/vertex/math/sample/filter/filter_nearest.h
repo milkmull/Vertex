@@ -31,8 +31,10 @@ inline void filter_nearest(
     size_t pixel_size
 )
 {
-    assert(src != nullptr);
-    assert(dst != nullptr);
+    if (!src || !dst)
+    {
+        return;
+    }
 
     if (dst_width == 0 || dst_height == 0 || pixel_size == 0)
     {
@@ -47,23 +49,15 @@ inline void filter_nearest(
     const size_t src_row_size = src_width * pixel_size;
     const size_t dst_row_size = dst_width * pixel_size;
 
-    // Loop over each column in the destination image
     for (size_t y = 0; y < dst_height; ++y)
     {
-        // Calculate the corresponding y-coordinate in the source image
-        const size_t srcy = y * src_height / dst_height;
-
-        // Calculate pointers to the current row in the source and destination images
-        const uint8_t* srcrow = &src[src_row_size * srcy];
+        // Calculate the corresponding row in the source image
+        const uint8_t* srcrow = &src[src_row_size * (y * src_height / dst_height)];
         uint8_t* dstpx = &dst[dst_row_size * y];
 
-        // Loop over each column in the destination image
         for (size_t x = 0; x < dst_width; ++x, dstpx += pixel_size)
         {
-            // Calculate pointer to the source pixel to sample from
             const uint8_t* srcpx = &srcrow[x * src_width / dst_width * pixel_size];
-
-            // Copy the pixel data from source to destination
             std::memcpy(dstpx, srcpx, pixel_size);
         }
     }

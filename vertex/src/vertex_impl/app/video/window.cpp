@@ -3,9 +3,7 @@
 #include "vertex/app/video/window.h"
 
 #if defined(VX_SYSTEM_WINDOWS)
-
-#include "win32_impl/video/win32_window.h"
-
+#   include "_win32/win32_window.h"
 #endif
 
 namespace vx {
@@ -185,7 +183,7 @@ bool video::window::create(const window_config& config)
         window_flags |= flags::FULLSCREEN;
     }
 
-    display = video::get_display_for_window(*this);
+    display = video::get_display_for_window(this);
     if (display)
     {
         m_last_display_id = display->id();
@@ -292,7 +290,7 @@ device_id video::window::id() const
 
 void video::window::sync()
 {
-    if ((s_video_data.video_caps & caps::ASYNCHRONOUS_WINDOWING) && m_sync_requested)
+    if (m_sync_requested)
     {
         m_impl->sync();
         m_sync_requested = false;
@@ -352,7 +350,7 @@ math::vec2i video::window::get_position() const
     {
         // Fullscreen windows should always be at the origin
         // of their displays event when minimized or hidden.
-        const display* d = video::get_display_for_window(*this);
+        const display* d = video::get_display_for_window(this);
         if (d)
         {
             return d->get_bounds().position;
@@ -366,13 +364,10 @@ void video::window::set_position(const math::vec2i& position)
 {
     m_floating_rect.position = position;
 
-    if (!(s_video_data.video_caps & caps::STATIC_WINDOW))
-    {
-        m_repositioning = true;
-        m_impl->set_position();
-        m_repositioning = false;
-        sync();
-    }
+    m_repositioning = true;
+    m_impl->set_position();
+    m_repositioning = false;
+    sync();
 }
 
 const math::vec2i& video::window::get_size() const
@@ -431,11 +426,8 @@ void video::window::set_size(const math::vec2i& size)
     m_floating_rect.size.x = w;
     m_floating_rect.size.y = h;
 
-    if (!(s_video_data.video_caps & caps::STATIC_WINDOW))
-    {
-        m_impl->set_size();
-        sync();
-    }
+    m_impl->set_size();
+    sync();
 }
 
 math::vec2i video::window::get_center() const
@@ -684,7 +676,7 @@ void video::window::flash(flash_op operation)
 
 const video::display_mode* video::window::get_fullscreen_mode() const
 {
-    const display* d = video::get_display_for_window(*this);
+    const display* d = video::get_display_for_window(this);
     const display_mode* mode = nullptr;
 
     if (d)
@@ -738,7 +730,7 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
 
     if (fullscreen)
     {
-        d = video::get_display_for_window(*this);
+        d = video::get_display_for_window(this);
         if (!d)
         {
             // Should never happen
@@ -850,7 +842,7 @@ bool video::window::update_fullscreen_mode(fullscreen_op::type fullscreen, bool 
 
         if (commit)
         {
-            if (!m_impl->set_fullscreen(fullscreen_op::LEAVE, (d ? d : video::get_display_for_window(*this))))
+            if (!m_impl->set_fullscreen(fullscreen_op::LEAVE, (d ? d : video::get_display_for_window(this))))
             {
                 goto error;
             }
@@ -949,17 +941,15 @@ bool video::window::set_fullscreen(bool fullscreen)
 // icon
 ///////////////////////////////////////////////////////////////////////////////
 
-bool video::window::set_icon(const img::image& image)
+bool video::window::set_icon(const pixel::surface& surf)
 {
-    if (image.empty())
+    if (surf.empty())
     {
         return false;
     }
 
-    img::image icon_image(image);
-    icon_image.convert(img::image_pixel_format::PIXEL_FORMAT_RGBA_8);
-
-    return m_impl->set_icon(icon_image);
+    pixel::surface icon_surf = surf.convert(pixel::pixel_format::RGBA_8);
+    return m_impl->set_icon(icon_surf);
 }
 
 void video::window::clear_icon()

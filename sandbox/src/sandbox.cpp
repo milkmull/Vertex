@@ -1,72 +1,79 @@
 ﻿#include "sandbox/sandbox.h"
+#include "vertex/system/profiler.h"
 
-#include "vertex/system/error.h"
+#include "vertex/image/image.h"
 
-#include "vertex/app/event/event.h"
-#include "vertex/app/video/window.h"
+#include "vertex/pixel/surface.h"
+#include "vertex/pixel/blend.h"
+#include "vertex/pixel/blit.h"
 
-#include "vertex/image/io_load.h"
+using namespace vx;
 
-int main()
+static void double_loop(pixel::surface& surf)
 {
-    using namespace vx::app;
+    math::color c = math::color::MAGENTA();
 
-    vx::app::event e;
-    video::init();
-
-    bool status;
-    vx::img::image i = vx::img::load("../../assets/michael.png", status);
-
-    VX_LOG_INFO << "status: " << status;
-
-    const video::display* d = video::get_primary_display();
-
-    // is minimized flag handeled correctly when showing and hiding window?
-
-    video::window_config config;
-    config.size = vx::math::vec2i(500);
-    config.center_on_display = true;
-    config.title = "window";
-    //config.resizable = false;
-    config.borderless = true;
-    video::window* w = video::create_window(config);
-    w->set_icon(i);
-
-    auto cursor = vx::app::mouse::create_custom_cursor(i, { 0, 0 });
-    vx::app::mouse::set_cursor(cursor);
-
-    //w->set_min_size({ 100, 100 });
-    //w->set_max_size({ 300, 300 });
-    //w->lock_aspect_ratio(16.0f / 9.0f);
-
-    //w->set_size({ 300, 700 });
-
-    //w->minimize();
-    //w->hide();
-    w->show();
-
-    bool running = true;
-    while (running)
+    for (int i = 0; i < 50000; ++i)
     {
-        if (vx::app::event::poll_event(e))
+        VX_PROFILE_SCOPE("double_loop");
+
+        for (size_t y = 0; y < surf.height(); ++y)
         {
-            switch (e.type)
+            for (size_t x = 0; x < surf.width(); ++x)
             {
-                case event_type::WINDOW_CLOSE_REQUESTED:
-                {
-                    //w->show();
-                    running = false;
-                    break;
-                }
-                default:
-                {
-                    break;
-                }
+                surf.set_pixel(x, y, c);
             }
         }
     }
+}
 
-    vx::app::video::quit();
+static void iter_loop(pixel::surface& surf)
+{
+    math::color c = math::color::MAGENTA();
+
+    for (int i = 0; i < 50000; ++i)
+    {
+        VX_PROFILE_SCOPE("iter_loop");
+
+        for (auto it = surf.begin(); it != surf.end(); ++it)
+        {
+            it.set_pixel(c);
+        }
+    }
+}
+
+int main()
+{
+    bool status;
+    pixel::surface sunflower_surf;
+    pixel::surface frog_surf;
+
+    status = img::load("../../assets/sunflower.png", sunflower_surf);
+    if (!status)
+    {
+        return -1;
+    }
+
+    status = img::load("../../assets/seth_frog_resized.png", frog_surf);
+    if (!status)
+    {
+        return -1;
+    }
+
+    //pixel::blend_func blend;
+    //pixel::blit(frog_surf, frog_surf.get_rect(), sunflower_surf, { 0, 0 }, blend);
+
+    pixel::surface half_surf(sunflower_surf.width(), sunflower_surf.height() / 2, sunflower_surf.format());
+    for (auto it = half_surf.begin(); it != half_surf.end(); ++it)
+    {
+        half_surf.set_pixel(it.position(), sunflower_surf.get_pixel(it.position()));
+    }
+
+    status = img::save_png("../../assets/order_test.png", half_surf);
+    if (!status)
+    {
+        return -1;
+    }
 
     return 0;
 }

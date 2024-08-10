@@ -61,18 +61,6 @@ target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
 # Window
 #--------------------------------------------------------------------
 
-if(VX_OS_WINDOWS)
-
-    file(GLOB_RECURSE VX_WINDOWS_APP_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/*.h"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/win32_impl/*.cpp"
-    )
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_WINDOWS_APP_FILES})
-    
-    target_sources(${PROJECT_NAME} PRIVATE ${VX_WINDOWS_APP_FILES})
-
-endif()
-
 #--------------------------------------------------------------------
 # Install
 #--------------------------------------------------------------------
