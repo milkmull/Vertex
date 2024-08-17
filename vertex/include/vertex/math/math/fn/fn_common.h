@@ -347,7 +347,35 @@ VX_FORCE_INLINE constexpr T ldexp(T x, I exp)
 template <typename T>
 VX_FORCE_INLINE constexpr T clamp(T x, T min, T max)
 {
-    return std::clamp(x, min, max);
+    const T t = x < min ? min : x;
+    return t > max ? max : t;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Computes the greatest common divisor (GCD) of two integers using
+/// the Euclidean algorithm.
+///
+/// @tparam T The type of the integers. Must be an integral type.
+/// @param a The first integer.
+/// @param b The second integer.
+///
+/// @return The greatest common divisor of a and b. If b is 0, the function
+/// returns a.
+///
+/// @note The function uses a recursive implementation of the Euclidean
+/// algorithm. The GCD of two numbers is the largest integer that divides
+/// both without leaving a remainder. If either input is negative, the
+/// result will be positive, as the GCD is always positive.
+///////////////////////////////////////////////////////////////////////////////
+template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
+VX_FORCE_INLINE constexpr T gcd(T a, T b)
+{
+    if (b == static_cast<T>(0))
+    {
+        return a;
+    }
+
+    return gcd(b, a % b);
 }
 
 }

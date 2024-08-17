@@ -2,7 +2,7 @@
 
 #include <locale>
 
-#include "vertex/config.h"
+#include "vertex/system/compiler.h"
 
 namespace vx {
 namespace str {
@@ -36,7 +36,7 @@ inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
 
     static uint8_t lead_bytes[5] = { 0b00000000, 0b00000000, 0b11000000, 0b11100000, 0b11110000 };
 
-    uint8_t bytes[4];
+    uint8_t bytes[4]{};
 
     switch (byte_count)
     {
@@ -177,11 +177,11 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
+inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint = utf32::decode_ansi(*begin++, locale);
+        uint32_t codepoint = utf32::decode_ansi(*begin++);
         output = encode(codepoint, output);
     }
 
@@ -189,13 +189,13 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
     while (begin < end)
     {
         uint32_t codepoint;
         begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, locale);
+        output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
     }
 
     return output;
@@ -406,11 +406,11 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale = std::locale())
+inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint = utf32::decode_ansi(*begin++, locale);
+        uint32_t codepoint = utf32::decode_ansi(*begin++, std::locale());
         output = encode(codepoint, output);
     }
 
@@ -418,13 +418,13 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
 {
     while (begin < end)
     {
         uint32_t codepoint;
         begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, locale);
+        output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
     }
 
     return output;
@@ -566,19 +566,19 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0, const std::locale& locale = std::locale())
+inline IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0)
 {
     // We use the locale character conversion facet to translate each character to ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
+    const auto& facet = std::use_facet<std::ctype<wchar_t>>(std::locale());
     *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
     return output;
 }
 
 template <typename IT>
-inline uint32_t decode_ansi(IT input, const std::locale& locale = std::locale())
+inline uint32_t decode_ansi(IT input)
 {
     // We use the locale character conversion facet to translate each character from ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
+    const auto& facet = std::use_facet<std::ctype<wchar_t>>(std::locale());
     return static_cast<uint32_t>(facet.widen(input));
 }
 

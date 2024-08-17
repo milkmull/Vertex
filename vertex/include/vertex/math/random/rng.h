@@ -162,7 +162,7 @@ public:
     /// @param begin Iterator to the beginning of the range.
     /// @param end Iterator to the end of the range.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
+    template <typename IT>
     inline void shuffle(IT begin, IT end)
     {
         std::shuffle(begin, end, m_rng);
@@ -176,20 +176,22 @@ public:
     /// 
     /// @return A reference to the randomly selected element.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
-    inline typename std::iterator_traits<IT>::reference choice(IT first, IT last)
+    template <typename IT>
+    inline typename std::iterator_traits<IT>::pointer choice(IT first, IT last)
     {
         using diff_type = typename std::iterator_traits<IT>::difference_type;
 
-        assert(first != last);
-
         const diff_type size = std::distance(first, last);
-        std::uniform_int_distribution<diff_type> dist(0, size - 1);
+        if (size == 0)
+        {
+            return nullptr;
+        }
 
+        std::uniform_int_distribution<diff_type> dist(0, size - 1);
         const diff_type i = dist(m_rng);
         std::advance(first, i);
 
-        return *first;
+        return &(*first);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -203,25 +205,21 @@ public:
     /// 
     /// @return Iterator pointing to the end of the destination range after assignment.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT1, typename IT2,
-        typename std::enable_if<
-        ::vx::type_traits::is_iterator<IT1>::value &&
-        ::vx::type_traits::is_iterator<IT2>::value,
-        bool>::type = true>
+    template <typename IT1, typename IT2>
     inline IT2 choices(
-        IT1 first1,
-        IT1 last1,
-        IT2 first2,
-        IT2 last2
+        IT1 first1, IT1 last1,
+        IT2 first2, IT2 last2
     )
     {
         using diff_type = typename std::iterator_traits<IT1>::difference_type;
 
-        assert(first1 != last1);
-        assert(first2 != last2);
-
         const diff_type size1 = std::distance(first1, last1);
         const diff_type size2 = std::distance(first2, last2);
+
+        if (size1 == 0 || size2 == 0)
+        {
+            return first2;
+        }
 
         std::uniform_int_distribution<diff_type> dist(0, size1 - 1);
 
@@ -246,8 +244,8 @@ public:
     /// 
     /// @return A const reference to the selected element.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT, typename std::enable_if<::vx::type_traits::is_iterator<IT>::value, bool>::type = true>
-    inline typename std::iterator_traits<IT>::reference weighted_choice(
+    template <typename IT>
+    inline typename std::iterator_traits<IT>::pointer weighted_choice(
         IT first,
         IT last,
         const weights& w
@@ -256,23 +254,26 @@ public:
         using diff_type = typename std::iterator_traits<IT>::difference_type;
         using weight_type = typename weights::weight_type;
 
-        assert(first != last);
-
         const diff_type size = std::distance(first, last);
-
-        assert(size == static_cast<diff_type>(w.size()));
+        if (size == 0)
+        {
+            return nullptr;
+        }
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
         const weight_type r = dist(m_rng);
-        auto it = std::upper_bound(w.begin(), w.end(), r);
+        auto it = w.upper_bound(r);
 
         // If we fail here it means the weights are all <= 0
-        assert(it != w.end());
+        if (it == w.end())
+        {
+            return nullptr;
+        }
 
         const diff_type i = std::distance(w.begin(), it);
         std::advance(first, i);
 
-        return *first;
+        return &(*first);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -287,41 +288,45 @@ public:
     /// 
     /// @return Iterator pointing to the end of the destination range after assignment.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT1, typename IT2,
-        typename std::enable_if<
-        ::vx::type_traits::is_iterator<IT1>::value &&
-        ::vx::type_traits::is_iterator<IT2>::value,
-        bool>::type = true>
+    template <typename IT1, typename IT2>
     inline IT2 weighted_choices(
-        IT1 first1,
-        IT1 last1,
-        IT2 first2,
-        IT2 last2,
+        IT1 first1, IT1 last1,
+        IT2 first2, IT2 last2,
         const weights& w
     )
     {
         using diff_type = typename std::iterator_traits<IT1>::difference_type;
         using weight_type = typename weights::weight_type;
 
-        assert(first1 != last1);
-        assert(first2 != last2);
-
+        const diff_type size1 = std::distance(first1, last1);
         const diff_type size2 = std::distance(first2, last2);
 
-        assert(std::distance(first1, last1) == static_cast<diff_type>(w.size()));
+        if (size1 == 0 || size2 == 0)
+        {
+            return first2;
+        }
+
+        // Make sure there are the same number of weights as choices
+        if (size1 != static_cast<diff_type>(w.size()))
+        {
+            return first2;
+        }
 
         std::uniform_real_distribution<weight_type> dist(static_cast<weight_type>(0), w.back());
 
         for (diff_type i = 0; i < size2; ++i)
         {
             const weight_type r = dist(m_rng);
-            auto wit = std::upper_bound(w.begin(), w.end(), r);
+            auto wit = w.upper_bound(r);
 
             // If we fail here it means the weights are all <= 0
-            assert(wit != w.end());
+            if (wit == w.end())
+            {
+                return nullptr;
+            }
 
             IT1 it = first1;
-            const diff_type j = std::distance(w.begin(), wit);;
+            const diff_type j = std::distance(w.begin(), wit);
 
             std::advance(it, j);
             *first2++ = *it;

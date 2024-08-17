@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "vertex/config.h"
+#include "vertex/system/compiler.h"
 
 namespace vx {
 namespace pixel {

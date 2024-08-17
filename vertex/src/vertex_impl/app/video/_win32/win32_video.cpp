@@ -4,7 +4,7 @@
 #include "win32_window.h"
 #include "vertex/system/error.h"
 #include "vertex/system/log.h"
-#include "vertex/system/string/string_fn.h"
+#include "vertex/stdlib/string.h"
 
 namespace vx {
 namespace app {
@@ -455,7 +455,8 @@ bool video::video_impl::create_display(
 
     if (!found)
     {
-        display* d = displays.emplace_back(std::make_unique<display>()).get();
+        displays.emplace_back(std::make_unique<display>());
+        display* d = displays.back().get();
         d->m_impl = std::make_unique<video::display::display_impl>();
         display::display_impl* d_impl = d->m_impl.get();
 
@@ -491,7 +492,8 @@ BOOL CALLBACK video::video_impl::enum_displays_callback(HMONITOR hMonitor, HDC, 
 {
     poll_display_data& data = *(poll_display_data*)(lParam);
 
-    MONITORINFOEX info{ sizeof(info) };
+    MONITORINFOEX info{};
+    info.cbSize = sizeof(info);
 
     if (GetMonitorInfo(hMonitor, (MONITORINFO*)(&info)))
     {

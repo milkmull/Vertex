@@ -1,8 +1,9 @@
-#include "vertex/config.h"
+#include "vertex/system/platform.h"
+
 #include "vertex/app/event/event.h"
 #include "vertex/app/video/window.h"
 
-#if defined(VX_SYSTEM_WINDOWS)
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "_win32/win32_window.h"
 #endif
 

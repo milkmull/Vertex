@@ -3,9 +3,6 @@
 #include <vector>
 #include <numeric>
 
-#include "vertex/system/iterator/type_traits.h"
-#include "vertex/system/container/type_traits.h"
-
 namespace vx {
 namespace math {
 
@@ -24,10 +21,10 @@ public:
     using value_type = weight_type;
     using size_type = size_t;
 
-    using iterator = typename std::vector<value_type>::iterator;
-    using const_iterator = typename std::vector<value_type>::const_iterator;
-    using reverse_iterator = typename std::vector<value_type>::reverse_iterator;
-    using const_reverse_iterator = typename std::vector<value_type>::const_reverse_iterator;
+    using iterator = typename std::vector<value_type>::const_iterator;
+    using const_iterator = iterator;
+    using reverse_iterator = typename std::vector<value_type>::const_reverse_iterator;
+    using const_reverse_iterator = reverse_iterator;
 
     ////////////////////////////////////////////////////////////////////////////////
     // constructors
@@ -41,17 +38,13 @@ public:
     /// @param wfirst Iterator to the beginning of the weights range.
     /// @param wlast Iterator to the end of the weights range.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename IT,
-        typename std::enable_if<
-        ::vx::type_traits::is_iterator<IT>::value &&
-        std::is_arithmetic<typename std::iterator_traits<IT>::value_type>::value,
-        bool>::type = true>
-    weights(IT wfirst, IT wlast)
-        : m_weights(std::distance(wfirst, wlast))
+    template <typename IT>
+    weights(IT wfirst, IT wlast) : m_weights(std::distance(wfirst, wlast))
     {
-        assert(wfirst != wlast);
         std::partial_sum(wfirst, wlast, m_weights.begin());
     }
+
+    weights(std::initializer_list<value_type> ilist) : weights(ilist.begin(), ilist.end()) {}
 
     ////////////////////////////////////////////////////////////////////////////////
     /// @brief Constructor with weights range specified by an STL container.
@@ -61,18 +54,11 @@ public:
     ///
     /// @param w STL container containing weights.
     ////////////////////////////////////////////////////////////////////////////////
-    template <typename T,
-        typename std::enable_if<
-        ::vx::type_traits::is_stl_container<T>::value &&
-        std::is_arithmetic<typename T::value_type>::value,
-        bool>::type = true>
-    weights(const T& w)
-        : weights(w.begin(), w.end()) {}
+    template <typename T>
+    weights(const T& w) : weights(w.begin(), w.end()) {}
 
     weights(const weights&) = default;
-
-    weights(weights&& other) noexcept
-        : m_weights(std::move(other.m_weights)) {}
+    weights(weights&&) noexcept = default;
 
     ////////////////////////////////////////////////////////////////////////////////
     // destructors
@@ -85,26 +71,14 @@ public:
     ////////////////////////////////////////////////////////////////////////////////
 
     weights& operator=(const weights&) = default;
-
-    weights& operator=(weights&& other) noexcept
-    {
-        m_weights = std::move(other.m_weights);
-        return *this;
-    }
+    weights& operator=(weights&&) noexcept = default;
 
     ////////////////////////////////////////////////////////////////////////////////
     // index operators
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline value_type& operator[](size_type i)
-    {
-        assert(i < m_weights.size());
-        return m_weights[i];
-    }
-
     inline const value_type& operator[](size_type i) const
     {
-        assert(i < m_weights.size());
         return m_weights[i];
     }
 
@@ -112,18 +86,12 @@ public:
     // comparison operators
     ////////////////////////////////////////////////////////////////////////////////
 
-    friend inline bool operator==(
-        const weights& w1,
-        const weights& w2
-    )
+    friend inline bool operator==(const weights& w1, const weights& w2)
     {
         return w1.m_weights == w2.m_weights;
     }
 
-    friend inline bool operator!=(
-        const weights& w1,
-        const weights& w2
-    )
+    friend inline bool operator!=(const weights& w1, const weights& w2)
     {
         return !(w1 == w2);
     }
@@ -136,7 +104,7 @@ public:
     inline bool empty() const noexcept { return m_weights.empty(); }
 
     inline const value_type& back() const noexcept { return m_weights.back(); }
-    inline const value_type& front() const noexcept { return m_weights.back(); }
+    inline const value_type& front() const noexcept { return m_weights.front(); }
 
     inline value_type max() const noexcept { return back(); }
     inline value_type min() const noexcept { return front(); }
@@ -145,19 +113,9 @@ public:
     // iterators
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline iterator begin() noexcept
-    {
-        return m_weights.begin();
-    }
-
     inline const_iterator begin() const noexcept
     {
         return m_weights.cbegin();
-    }
-
-    inline iterator end() noexcept
-    {
-        return m_weights.end();
     }
 
     inline const_iterator end() const noexcept
@@ -165,29 +123,9 @@ public:
         return m_weights.cend();
     }
 
-    inline const_iterator cbegin() const noexcept
-    {
-        return m_weights.cbegin();
-    }
-
-    inline const_iterator cend() const noexcept
-    {
-        return m_weights.cend();
-    }
-
-    inline reverse_iterator rbegin() noexcept
-    {
-        return m_weights.rbegin();
-    }
-
     inline const_reverse_iterator rbegin() const noexcept
     {
         return m_weights.crbegin();
-    }
-
-    inline reverse_iterator rend() noexcept
-    {
-        return m_weights.rend();
     }
 
     inline const_reverse_iterator rend() const noexcept
@@ -195,14 +133,13 @@ public:
         return m_weights.crend();
     }
 
-    inline const_reverse_iterator crbegin() const noexcept
-    {
-        return m_weights.crbegin();
-    }
+    ////////////////////////////////////////////////////////////////////////////////
+    // stats
+    ////////////////////////////////////////////////////////////////////////////////
 
-    inline const_reverse_iterator crend() const noexcept
+    inline const_iterator upper_bound(weight_type r) const
     {
-        return m_weights.crend();
+        return std::upper_bound(begin(), end(), r);
     }
 
 private:

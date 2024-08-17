@@ -1,8 +1,10 @@
-#include "vertex/app/video/window.h"
-#include "vertex/app/event/event.h"
+#include "vertex/system/platform.h"
 #include "vertex/system/error.h"
 
-#if defined(VX_SYSTEM_WINDOWS)
+#include "vertex/app/video/window.h"
+#include "vertex/app/event/event.h"
+
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "_win32/win32_video.h"
 #   include "_win32/win32_window.h"
 #endif
@@ -295,7 +297,8 @@ video::window* video::create_window(const window_config& config)
 {
     CHECK_VIDEO_INIT(nullptr);
 
-    auto& w = s_video_data.windows.emplace_back(std::make_unique<window>());
+    s_video_data.windows.emplace_back(std::make_unique<window>());
+    auto& w = s_video_data.windows.back();
     if (!w || !w->create(config) || !w->validate())
     {
         s_video_data.windows.pop_back();

@@ -3,43 +3,74 @@
 #include "vertex/image/image.h"
 #include "vertex/system/error.h"
 
-#define VX_IMG_LOAD 1
-#define VX_IMG_SAVE 1
+#define VX_IMG_LOAD_IMPLEMENTATION
+#define VX_IMG_SAVE_IMPLEMENTATION
 
-#define VX_IMG_BMP 1
-#define VX_IMG_JPG 1
-#define VX_IMG_PNG 1
+#if defined(VX_IMG_LOAD_IMPLEMENTATION) || defined(VX_IMG_SAVE_IMPLEMENTATION)
+
+#if defined(VX_IMG_ONLY_BMP) || defined(VX_IMG_ONLY_JPG) || defined(VX_IMG_ONLY_PNG)
+
+#   if defined(VX_IMG_ONLY_BMP)
+#       define VX_IMG_NO_BMP
+#   endif
+
+#   if !defined(VX_IMG_ONLY_JPG)
+#       define VX_IMG_NO_JPG
+#   endif
+
+#   if !defined(VX_IMG_ONLY_PNG)
+#       define VX_IMG_NO_PNG
+#   endif
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // stb_image
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_IMG_LOAD)
+#if defined(VX_IMG_LOAD_IMPLEMENTATION)
 
-#define STB_IMAGE_IMPLEMENTATION
+#   define STB_IMAGE_IMPLEMENTATION
 
-#define STBI_ONLY_BMP
-#define STBI_ONLY_JPEG
-#define STBI_ONLY_PNG
+#   if !defined(VX_IMG_NO_BMP)
+#      define STBI_ONLY_BMP
+#   endif
+
+#   if !defined(VX_IMG_NO_JPG)
+#      define STBI_ONLY_JPEG
+#   endif
+
+#   if !defined(VX_IMG_NO_PNG)
+#      define STBI_ONLY_PNG
+#   endif
+
+#   define STBI_NO_HDR
+
+#   define STB_IMAGE_STATIC
+#   define STBI_NO_THREAD_LOCALS
+#   define STBI_NO_GIF
+#   define STBI_NO_HDR
+#   define STBI_NO_LINEAR
+#   define STBI_ASSERT assert
 
 VX_DISABLE_WARNING_PUSH()
 VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
 VX_DISABLE_WARNING("-Wconversion", 4244)
-#include "stb_image/stb_image.h"
+#   include "stb_image/stb_image.h"
 VX_DISABLE_WARNING_POP()
 
-#endif
+#endif // VX_IMG_LOAD_IMPLEMENTATION
 
-#if defined(VX_IMG_SAVE)
+#if defined(VX_IMG_SAVE_IMPLEMENTATION)
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
+#   define STB_IMAGE_WRITE_IMPLEMENTATION
 
 VX_DISABLE_WARNING_PUSH()
 VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
-#include "stb_image/stb_image_write.h"
+#   include "stb_image/stb_image_write.h"
 VX_DISABLE_WARNING_POP()
 
-#endif
+#endif // VX_IMG_SAVE_IMPLEMENTATION
 
 namespace vx {
 namespace img {
@@ -113,7 +144,7 @@ static error_code get_image_info_error(const image_info& info)
 // load
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_IMG_LOAD)
+#if defined(VX_IMG_LOAD_IMPLEMENTATION)
 
 static void load_error(const char* filename)
 {
@@ -224,13 +255,13 @@ bool load(const std::string& filename, pixel::surface& surf)
     return false;
 }
 
-#endif
+#endif // VX_IMG_LOAD_IMPLEMENTATION
 
 ///////////////////////////////////////////////////////////////////////////////
 // save
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_IMG_SAVE)
+#if defined(VX_IMG_SAVE_IMPLEMENTATION)
 
 ///////////////////////////////////////////////////////////////////////////////
 // error handling
@@ -249,10 +280,10 @@ static void save_process_error(const char* filename, error_code code)
 
 struct image_save_data
 {
-    image_info info;
-    const pixel::byte_type* data;
+    image_info info{};
+    const pixel::byte_type* data = nullptr;
     pixel::surface converted_surface;
-    error_code error;
+    error_code error = error_code::NONE;
 };
 
 static bool get_save_data(const char* filename, const pixel::surface& surf, image_save_data& data)
@@ -283,6 +314,12 @@ static bool get_save_data(const char* filename, const pixel::surface& surf, imag
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// save bmp
+///////////////////////////////////////////////////////////////////////////////
+
+#if !defined(VX_IMG_NO_BMP)
+
 bool save_bmp(const std::string& filename, pixel::surface& surf)
 {
     image_save_data data;
@@ -302,6 +339,21 @@ bool save_bmp(const std::string& filename, pixel::surface& surf)
 
     return success;
 }
+
+#else // VX_IMG_NO_BMP
+
+bool save_bmp(const std::string& filename, pixel::surface& surf)
+{
+    return false;
+}
+
+#endif // VX_IMG_NO_BMP
+
+///////////////////////////////////////////////////////////////////////////////
+// save jpg
+///////////////////////////////////////////////////////////////////////////////
+
+#if !defined(VX_IMG_NO_JPG)
 
 bool save_jpg(const std::string& filename, pixel::surface& surf, int quality)
 {
@@ -324,6 +376,21 @@ bool save_jpg(const std::string& filename, pixel::surface& surf, int quality)
     return success;
 }
 
+#else // VX_IMG_NO_JPG
+
+bool save_jpg(const std::string& filename, pixel::surface& surf, int quality)
+{
+    return false;
+}
+
+#endif // VX_IMG_NO_JPG
+
+///////////////////////////////////////////////////////////////////////////////
+// save png
+///////////////////////////////////////////////////////////////////////////////
+
+#if !defined(VX_IMG_NO_PNG)
+
 bool save_png(const std::string& filename, pixel::surface& surf)
 {
     image_save_data data;
@@ -345,14 +412,18 @@ bool save_png(const std::string& filename, pixel::surface& surf)
     return success;
 }
 
-#else
+#else // VX_IMG_NO_PNG
 
-bool save(file_format format, const std::string& filename, pixel::surface& surf)
+bool save_png(const std::string& filename, pixel::surface& surf)
 {
     return false;
 }
 
-#endif
+#endif // VX_IMG_NO_PNG
+
+#endif // VX_IMG_SAVE_IMPLEMENTATION
 
 }
 }
+
+#endif // VX_IMG_LOAD_IMPLEMENTATION || VX_IMG_LOAD_IMPLEMENTATION

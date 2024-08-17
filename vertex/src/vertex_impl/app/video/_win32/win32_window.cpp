@@ -1,7 +1,7 @@
 #include "win32_window.h"
 #include "vertex/app/event/event.h"
 #include "vertex_impl/app/event/_win32/win32_mouse.h"
-#include "vertex/system/string/string_fn.h"
+#include "vertex/stdlib/string.h"
 #include "vertex/system/error.h"
 
 namespace vx {
@@ -467,7 +467,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
         
             int w = client_drag_rect.right - client_drag_rect.left;
             int h = client_drag_rect.bottom - client_drag_rect.top;
-            float new_aspect = static_cast<float>(w) / static_cast<float>(h);
+            //float new_aspect = static_cast<float>(w) / static_cast<float>(h);
         
             switch (wParam)
             {
@@ -766,7 +766,7 @@ std::string video::window::window_impl::get_title() const
 
     // Create a buffer to hold the wide title
     std::wstring wtitle(static_cast<size_t>(length), 0);
-    GetWindowText(m_handle, reinterpret_cast<LPWSTR>(wtitle.data()), length);
+    GetWindowText(m_handle, reinterpret_cast<LPWSTR>(const_cast<wchar_t*>(wtitle.data())), length);
 
     // Convert the wide string
     return str::wstring_to_string(wtitle);

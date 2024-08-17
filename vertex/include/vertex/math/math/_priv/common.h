@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cassert>
-#include <algorithm>
 #include <cmath>
 
+#include "vertex/system/compiler.h"
 #include "../util/type_traits.h"
 #include "../../config.h"

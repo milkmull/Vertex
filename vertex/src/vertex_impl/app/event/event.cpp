@@ -1,6 +1,8 @@
+#include "vertex/system/platform.h"
+
 #include "vertex/app/event/event.h"
 
-#if defined(VX_SYSTEM_WINDOWS)
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "_win32/win32_event.h"
 #endif
 
@@ -15,8 +17,8 @@
 namespace vx {
 namespace app {
 
-std::deque<event> event::s_events = std::deque<event>();
-std::mutex event::s_mutex = std::mutex();
+std::deque<event> event::s_events{};
+std::mutex event::s_mutex{};
 event::event_process_callback_t s_event_process_callback = nullptr;
 
 void event::pump_events(bool process_all)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex_impl/app/_win32/win32_header.h"
+#include "vertex_impl/_platform/_win32/win32_header.h"
 #include "vertex/app/video/video.h"
 
 namespace vx {
@@ -135,7 +135,7 @@ public:
 
 private:
 
-    HMONITOR m_handle;
+    HMONITOR m_handle = NULL;
     std::wstring m_device_name;
     video_impl::display_state::type m_state;
     math::recti m_last_bounds;

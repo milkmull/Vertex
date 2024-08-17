@@ -1,7 +1,7 @@
 #pragma once
 
+#include "vertex_impl/_platform/_win32/win32_header.h"
 #include "vertex/app/event/event.h"
-#include "vertex_impl/app/_win32/win32_header.h"
 
 namespace vx {
 namespace app {

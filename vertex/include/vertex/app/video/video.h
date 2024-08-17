@@ -1,6 +1,8 @@
 #pragma once
 
+#include <string>
 #include <vector>
+#include <memory>
 
 #include "vertex/math/math/type/vec2.h"
 #include "vertex/math/geometry/type/recti.h"

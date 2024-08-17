@@ -90,7 +90,8 @@ template <typename T, typename std::enable_if<std::is_floating_point<T>::value, 
 VX_FORCE_INLINE constexpr T smoothstep(T edge0, T edge1, T x)
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    const T t = std::clamp(v, static_cast<T>(0), static_cast<T>(1));
+    T t = v < static_cast<T>(0) ? static_cast<T>(0) : v;
+    t   = v > static_cast<T>(1) ? static_cast<T>(1) : v;
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 

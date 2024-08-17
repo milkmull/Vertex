@@ -1,4 +1,4 @@
-/* stb_image - v2.29 - public domain image loader - http://nothings.org/stb
+/* stb_image - v2.30 - public domain image loader - http://nothings.org/stb
                                   no warranty implied; use at your own risk
 
    Do this:
@@ -48,6 +48,7 @@ LICENSE
 
 RECENT REVISION HISTORY:
 
+      2.30  (2024-05-31) avoid erroneous gcc warning
       2.29  (2023-05-xx) optimizations
       2.28  (2023-01-29) many error fixes, security errors, just tons of stuff
       2.27  (2021-07-11) document stbi_info better, 16-bit PNM support, bug fixes
@@ -1385,7 +1386,6 @@ STBIDEF stbi_uc* stbi_load_from_file(FILE* f, int* x, int* y, int* comp, int req
     return result;
 }
 
-#if 0
 STBIDEF stbi__uint16* stbi_load_from_file_16(FILE* f, int* x, int* y, int* comp, int req_comp)
 {
     stbi__uint16* result;
@@ -1398,9 +1398,7 @@ STBIDEF stbi__uint16* stbi_load_from_file_16(FILE* f, int* x, int* y, int* comp,
     }
     return result;
 }
-#endif
 
-#if 0
 STBIDEF stbi_us* stbi_load_16(char const* filename, int* x, int* y, int* comp, int req_comp)
 {
     FILE* f = stbi__fopen(filename, "rb");
@@ -1410,29 +1408,24 @@ STBIDEF stbi_us* stbi_load_16(char const* filename, int* x, int* y, int* comp, i
     fclose(f);
     return result;
 }
-#endif
+
 
 #endif //!STBI_NO_STDIO
 
-#if 0
 STBIDEF stbi_us* stbi_load_16_from_memory(stbi_uc const* buffer, int len, int* x, int* y, int* channels_in_file, int desired_channels)
 {
     stbi__context s;
     stbi__start_mem(&s, buffer, len);
     return stbi__load_and_postprocess_16bit(&s, x, y, channels_in_file, desired_channels);
 }
-#endif
 
-#if 0
 STBIDEF stbi_us* stbi_load_16_from_callbacks(stbi_io_callbacks const* clbk, void* user, int* x, int* y, int* channels_in_file, int desired_channels)
 {
     stbi__context s;
     stbi__start_callbacks(&s, (stbi_io_callbacks*)clbk, user);
     return stbi__load_and_postprocess_16bit(&s, x, y, channels_in_file, desired_channels);
 }
-#endif
 
-#if 0
 STBIDEF stbi_uc* stbi_load_from_memory(stbi_uc const* buffer, int len, int* x, int* y, int* comp, int req_comp)
 {
     stbi__context s;
@@ -1440,16 +1433,12 @@ STBIDEF stbi_uc* stbi_load_from_memory(stbi_uc const* buffer, int len, int* x, i
     return stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
 }
 
-#endif
-
-#if 0
 STBIDEF stbi_uc* stbi_load_from_callbacks(stbi_io_callbacks const* clbk, void* user, int* x, int* y, int* comp, int req_comp)
 {
     stbi__context s;
     stbi__start_callbacks(&s, (stbi_io_callbacks*)clbk, user);
     return stbi__load_and_postprocess_8bit(&s, x, y, comp, req_comp);
 }
-#endif
 
 #ifndef STBI_NO_GIF
 STBIDEF stbi_uc* stbi_load_gif_from_memory(stbi_uc const* buffer, int len, int** delays, int* x, int* y, int* z, int* comp, int req_comp)
@@ -5230,10 +5219,12 @@ static int stbi__parse_png_file(stbi__png* z, int scan, int req_comp)
                     // non-paletted with tRNS = constant alpha. if header-scanning, we can stop now.
                     if (scan == STBI__SCAN_header) { ++s->img_n; return 1; }
                     if (z->depth == 16) {
-                        for (k = 0; k < s->img_n; ++k) tc16[k] = (stbi__uint16)stbi__get16be(s); // copy the values as-is
+                        for (k = 0; k < s->img_n && k < 3; ++k) // extra loop test to suppress false GCC warning
+                            tc16[k] = (stbi__uint16)stbi__get16be(s); // copy the values as-is
                     }
                     else {
-                        for (k = 0; k < s->img_n; ++k) tc[k] = (stbi_uc)(stbi__get16be(s) & 255) * stbi__depth_scale_table[z->depth]; // non 8-bit images will be larger
+                        for (k = 0; k < s->img_n && k < 3; ++k)
+                            tc[k] = (stbi_uc)(stbi__get16be(s) & 255) * stbi__depth_scale_table[z->depth]; // non 8-bit images will be larger
                     }
                 }
                 break;

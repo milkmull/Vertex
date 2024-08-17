@@ -4,15 +4,6 @@
 namespace vx {
 namespace app {
 
-bool init(subsystem::type systems)
-{
-    if (systems & subsystem::VIDEO)
-    {
-        return video::init();
-    }
-
-    return true;
-}
 
 }
 }

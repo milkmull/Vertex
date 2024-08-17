@@ -242,7 +242,7 @@ public:
     /// from the target dimensions and format does not match the existing data
     /// size.
     ///////////////////////////////////////////////////////////////////////////////
-    VX_NODISCARD bool reinterpret(size_t target_width, size_t target_height, pixel_format target_format)
+    bool reinterpret(size_t target_width, size_t target_height, pixel_format target_format)
     {
         if (target_format == pixel_format::UNKNOWN)
         {

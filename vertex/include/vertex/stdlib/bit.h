@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/config.h"
+#include "vertex/system/compiler.h"
 
 namespace vx {
 namespace bit {
@@ -25,10 +25,12 @@ namespace bit {
     {
         return (x >> 8) | (x << 8);
     }
+
     VX_FORCE_INLINE constexpr uint32_t _vx_byteswap_32(uint32_t x) noexcept
     {
         return ((x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24));
     }
+
     VX_FORCE_INLINE constexpr uint64_t _vx_byteswap_64(uint64_t x) noexcept
     {
         x = (x & 0x00000000FFFFFFFF) << 32 | (x & 0xFFFFFFFF00000000) >> 32;

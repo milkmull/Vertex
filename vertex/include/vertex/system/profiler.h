@@ -7,7 +7,7 @@
 #include <sstream>
 #include <thread>
 
-#include "vertex/config.h"
+#include "vertex/stdlib/time.h"
 
 namespace vx {
 namespace profile {
@@ -25,6 +25,13 @@ private:
         std::string name;
         std::chrono::duration<double, std::micro> start;
         std::chrono::microseconds elapsed_time;
+    };
+
+    struct result2
+    {
+        std::string name;
+        uint64_t start;
+        uint64_t elapsed_time;
     };
 
     struct session
@@ -60,6 +67,28 @@ public:
         const char* m_name;
         std::chrono::time_point<std::chrono::steady_clock> m_start_time;
         bool m_stopped;
+    };
+
+    class timer2
+    {
+    public:
+
+        timer2(const char* name) : m_name(name), high_res_start(m_timer.start()) {}
+        ~timer2() { if (m_timer.running()) stop(); }
+
+        void stop()
+        {
+            m_timer.stop();
+            uint64_t elapsed_time = time::nanoseconds_to_microseconds(m_timer.elapsed());
+
+            profiler::get().write_profile2(result2{ m_name, high_res_start, elapsed_time });
+        }
+
+    private:
+
+        const char* m_name;
+        uint64_t high_res_start;
+        time::timer m_timer;
     };
 
 private:
@@ -174,6 +203,27 @@ private:
         }
     }
 
+    void write_profile2(const result2& result)
+    {
+        std::ostringstream entry;
+
+        entry << std::setprecision(3) << std::fixed;
+        entry << result.name << ',';
+        entry << std::this_thread::get_id() << ',';
+        entry << result.start << ',';
+        entry << result.elapsed_time << '\n';
+
+        if (m_current_session && m_output_stream.is_open())
+        {
+            m_mutex.lock();
+
+            m_output_stream << entry.str();
+            m_output_stream.flush();
+
+            m_mutex.unlock();
+        }
+    }
+
 private:
 
     std::mutex m_mutex;
@@ -184,15 +234,11 @@ private:
 };
 
 #if defined(VX_ENABLE_PROFILING)
-
-#   define VX_PROFILE_SCOPE(name) ::vx::profile::profiler::timer timer##VX_LINE(name)
-#   define VX_PROFILE_FUNCTION()  VX_PROFILE_SCOPE(VX_FUNC)
-
+#   define VX_PROFILE_SCOPE1(name) ::vx::profile::profiler::timer  timer##VX_LINE(name)
+#   define VX_PROFILE_SCOPE2(name) ::vx::profile::profiler::timer2 timer##VX_LINE(name)
 #else
-
-#   define VX_PROFILE_SCOPE(name) 
-#   define VX_PROFILE_FUNCTION() 
-
+#   define VX_PROFILE_SCOPE1(name) 
+#   define VX_PROFILE_SCOPE2(name) 
 #endif
 
 }

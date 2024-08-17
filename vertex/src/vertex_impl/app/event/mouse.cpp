@@ -1,9 +1,9 @@
+#include "vertex/system/platform.h"
+
 #include "vertex/app/event/mouse.h"
 
-#if defined(VX_SYSTEM_WINDOWS)
-
-#include "_win32/win32_mouse.h"
-
+#if defined(VX_PLATFORM_WINDOWS)
+#   include "_win32/win32_mouse.h"
 #endif
 
 namespace vx {

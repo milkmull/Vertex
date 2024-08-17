@@ -4,8 +4,9 @@
 #include <mutex>
 #include <sstream>
 #include <thread>
+#include <iostream>
 
-#include "vertex/config.h"
+#include "vertex/system/compiler.h"
 
 #ifdef ERROR
 #   undef ERROR

@@ -5,7 +5,7 @@
 namespace vx {
 namespace pixel {
 
-inline math::color pixel_to_color(const uint8_t* pixel, pixel_format format)
+inline math::color pixel_to_color(const byte_type* pixel, pixel_format format)
 {
     switch (format)
     {
@@ -45,7 +45,7 @@ inline math::color pixel_to_color(const uint8_t* pixel, pixel_format format)
     }
 }
 
-inline void color_to_pixel(const math::color& color, uint8_t* pixel, pixel_format format)
+inline void color_to_pixel(const math::color& color, byte_type* pixel, pixel_format format)
 {
     if (!pixel)
     {
