@@ -1,7 +1,5 @@
 ﻿#include "sandbox/sandbox.h"
 
-#define VX_ENABLE_PROFILING 1
-
 #include "vertex/system/profiler.h"
 #include "vertex/pixel/surface.h"
 
@@ -34,7 +32,7 @@ static void timer_test()
     }
 }
 
-int main()
+int main(int argc, char* argv[])
 {
     profile::profiler::begin_session("sesh", "../../assets/results.txt");
 

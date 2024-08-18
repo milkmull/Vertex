@@ -1,0 +1,25 @@
+#--------------------------------------------------------------------
+# CMake Setup
+#--------------------------------------------------------------------
+
+cmake_minimum_required(VERSION 3.12)
+
+# Prevent source code and build files from being mixed together
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
+    message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the Vertex source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
+endif()
+
+# Project name
+project(Vertex LANGUAGES CXX VERSION "0.1.0")
+
+if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+    set(VX_MAIN_PROJECT OFF)
+else()
+    set(VX_MAIN_PROJECT ON)
+endif()
+
+# Includes
+
+# Extra CMake files
+list(APPEND CMAKE_MODULE_PATH "${VX_SOURCE_DIR}/cmake")
+include("${VX_SOURCE_DIR}/cmake/macros.cmake")

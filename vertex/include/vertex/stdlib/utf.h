@@ -16,7 +16,7 @@ namespace utf8 {
 template <typename IT>
 inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
 {
-    if (codepoint < 0x00 || codepoint > 0x10FFFF)
+    if (codepoint < 0x00000000 || codepoint > 0x0010FFFF)
     {
         // Codepoint is outside valid range
         *output++ = replacement;
@@ -26,15 +26,15 @@ inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
     size_t byte_count = 1;
 
     // 1-byte characters: 0xxxxxxx (ASCII)
-    if      (codepoint <  0x80)       byte_count = 1;
+    if      (codepoint <  0x00000080) byte_count = 1;
     // 2-byte characters: 110xxxxx 10xxxxxx
-    else if (codepoint <  0x800)      byte_count = 2;
+    else if (codepoint <  0x00000800) byte_count = 2;
     // 3-byte characters: 1110xxxx 10xxxxxx 10xxxxxx
-    else if (codepoint <  0x10000)    byte_count = 3;
+    else if (codepoint <  0x00010000) byte_count = 3;
     // 4-byte characters: 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
     else if (codepoint <= 0x0010FFFF) byte_count = 4;
 
-    static uint8_t lead_bytes[5] = { 0b00000000, 0b00000000, 0b11000000, 0b11100000, 0b11110000 };
+    static const uint8_t lead_bytes[5] = { 0b00000000, 0b00000000, 0b11000000, 0b11100000, 0b11110000 };
 
     uint8_t bytes[4]{};
 
@@ -60,7 +60,7 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
     uint8_t lead = static_cast<uint8_t>(*begin);
     uint8_t trail_bytes = 0;
 
-    if ((lead & 0b10000000) == 0b00000000)
+    if      ((lead & 0b10000000) == 0b00000000)
     {
         // 1-byte characters: 0xxxxxxx (ASCII)
         trail_bytes = 0;
@@ -95,7 +95,7 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
     }
 
     // Values to shave off leading bits after assembling final codepoint
-    static uint32_t lead_masks[4] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080 };
+    static const uint32_t lead_masks[4] = { 0x00000000, 0x00003080, 0x000E2080, 0x03C82080 };
 
     codepoint = 0;
 
@@ -114,7 +114,7 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
 template <typename IT>
 inline IT next(IT begin, IT end)
 {
-    uint32_t codepoint;
+    uint32_t codepoint{};
     return decode(begin, end, codepoint);
 }
 
@@ -151,7 +151,7 @@ inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf16::encode(codepoint, output);
     }
@@ -164,7 +164,7 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode(codepoint, output);
     }
@@ -193,7 +193,7 @@ inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
     }
@@ -223,7 +223,7 @@ inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement 
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
 
         // Make sure codepoint is in valid latin1 range
@@ -254,7 +254,7 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode_wide(codepoint, output, replacement);
     }
@@ -273,9 +273,9 @@ namespace utf16 {
 template <typename IT>
 inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
 {
-    if (codepoint < 0xFFFF)
+    if (codepoint < 0x0000FFFF)
     {
-        if (codepoint >= 0xD800 && codepoint <= 0xDFFF)
+        if (codepoint >= 0x0000D800 && codepoint <= 0x0000DFFF)
         {
             // Invalid codepoint in reserved range
             *output++ = replacement;
@@ -287,7 +287,7 @@ inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
         return output;
     }
 
-    if (codepoint > 0x10FFFF)
+    if (codepoint > 0x0010FFFF)
     {
         // Out of valid range
         *output++ = replacement;
@@ -295,9 +295,9 @@ inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
     }
 
     // Build surrogate pair
-    codepoint -= 0x10000;
-    *output++ = static_cast<uint16_t>((codepoint >> 10)   + 0xD800);
-    *output++ = static_cast<uint16_t>((codepoint & 0x3FF) + 0xDC00);
+    codepoint -= 0x00010000;
+    *output++ = static_cast<uint16_t>((codepoint >> 10)        + 0x0000D800);
+    *output++ = static_cast<uint16_t>((codepoint & 0x000003FF) + 0x0000DC00);
 
     return output;
 }
@@ -308,7 +308,7 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
     const uint16_t first = *begin++;
 
     // Check for expected surrogate pair
-    if (first >= 0xD800 && first <= 0xDBFF)
+    if (first >= 0x0000D800 && first <= 0x0000DBFF)
     {
         if (begin >= end)
         {
@@ -319,10 +319,10 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
 
         const uint32_t second = *begin++;
 
-        if (second >= 0xDC00 && second <= 0xDFFF)
+        if (second >= 0x0000DC00 && second <= 0x0000DFFF)
         {
             // Valid second surrogate, combine surrogate pair
-            codepoint = ((first - 0xD800) << 10) + (second - 0xDC00) + 0x10000;
+            codepoint = ((first - 0x0000D800) << 10) + (second - 0x0000DC00) + 0x00010000;
             return begin;
         }
         else
@@ -342,7 +342,7 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0
 template <typename IT>
 inline IT next(IT begin, IT end)
 {
-    uint32_t codepoint;
+    uint32_t codepoint{};
     return decode(begin, end, codepoint);
 }
 
@@ -369,7 +369,7 @@ inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf8::encode(codepoint, output);
     }
@@ -393,7 +393,7 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode(codepoint, output);
     }
@@ -422,7 +422,7 @@ inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
     }
@@ -452,7 +452,7 @@ inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement 
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
 
         // Make sure codepoint is in valid latin1 range
@@ -483,7 +483,7 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 {
     while (begin < end)
     {
-        uint32_t codepoint;
+        uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
         output = utf32::encode_wide(codepoint, output, replacement);
     }
@@ -502,7 +502,7 @@ namespace utf32 {
 template <typename IT>
 inline IT encode(uint32_t codepoint, IT output, uint32_t replacement = 0)
 {
-    *output++ = codepoint;
+    *output++ = codepoint{};
     return output;
 }
 
@@ -652,7 +652,7 @@ inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement = 0)
         case 2:
         {
             // UCS-2, is utf16, and a subset of UCS-4 that uses 16 bit characters
-            if (codepoint <= 0xFFFF && (codepoint < 0xD800 || codepoint > 0xDFFF))
+            if (codepoint <= 0x0000FFFF && (codepoint < 0x0000D800 || codepoint > 0x0000DFFF))
             {
                 // In the valid range for a single character utf16 codepoint
                 *output++ = static_cast<wchar_t>(codepoint);

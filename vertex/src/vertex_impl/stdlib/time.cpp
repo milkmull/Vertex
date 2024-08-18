@@ -22,11 +22,13 @@ namespace time {
 
 static int32_t civil_to_days(int32_t year, month month, int32_t day, weekday* day_of_week, int32_t* day_of_year)
 {
-    year -= month <= 2;
+    const int32_t imonth = static_cast<int32_t>(month);
+
+    year -= imonth <= 2;
     const int32_t era = (year >= 0 ? year : year - 399) / 400;
-    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);                         // [0, 399]
-    const uint32_t doy = (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1;   // [0, 365]
-    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;                           // [0, 146096]
+    const uint32_t yoe = static_cast<uint32_t>(year - era * 400);                               // [0, 399]
+    const uint32_t doy = (153 * (imonth > 2 ? imonth - 3 : imonth + 9) + 2) / 5 + day - 1;      // [0, 365]
+    const uint32_t doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;                                 // [0, 146096]
     const int32_t z = era * 146097 + static_cast<int32_t>(doe) - 719468;
 
     if (day_of_week)
@@ -66,13 +68,13 @@ int32_t days_in_month(int32_t year, month month)
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
     };
 
-    if (month <= 0 || month > 12)
+    if (month < month::JANUARY || month > month::DECEMBER)
     {
         error::set_error(error::error_code::INVALID_ARGUMENT);
         return 0;
     }
 
-    int32_t days = DAYS_IN_MONTH[month];
+    int32_t days = DAYS_IN_MONTH[static_cast<int32_t>(month)];
     if (month == month::FEBRUARY && is_leap_year(year))
     {
         ++days;
@@ -148,7 +150,7 @@ time_t datetime_to_time(const datetime& dt)
 
 bool is_valid_datetime(const datetime& dt)
 {
-    if (dt.month <= 0 || dt.month > 12)
+    if (dt.month < month::JANUARY || dt.month > month::DECEMBER)
     {
         return false;
     }
@@ -292,13 +294,14 @@ std::string datetime_to_string(const datetime& dt)
     }
 
     std::ostringstream oss;
+    const int32_t imonth = static_cast<int32_t>(dt.month);
 
     // Format the date and time in ISO 8601 format
-    oss << std::setw(4) << std::setfill('0') << dt.year << '-'
-        << std::setw(2) << std::setfill('0') << dt.month << '-'
-        << std::setw(2) << std::setfill('0') << dt.day << 'T'
-        << std::setw(2) << std::setfill('0') << dt.hour << ':'
-        << std::setw(2) << std::setfill('0') << dt.minute << ':'
+    oss << std::setw(4) << std::setfill('0') << dt.year     << '-'
+        << std::setw(2) << std::setfill('0') << imonth      << '-'
+        << std::setw(2) << std::setfill('0') << dt.day      << 'T'
+        << std::setw(2) << std::setfill('0') << dt.hour     << ':'
+        << std::setw(2) << std::setfill('0') << dt.minute   << ':'
         << std::setw(2) << std::setfill('0') << dt.second;
 
     if (dt.utc_offset_seconds == 0)

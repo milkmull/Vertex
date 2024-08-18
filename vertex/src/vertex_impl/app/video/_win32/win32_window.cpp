@@ -517,7 +517,7 @@ LRESULT CALLBACK video::window::window_impl::window_proc(HWND hWnd, UINT Msg, WP
                 }
             }
         
-            // Adjust the client drag rect to aaccount for borders
+            // Adjust the client drag rect to account for borders
             if (!win_impl->adjust_rect(client_drag_rect, window_rect_type::INPUT))
             {
                 break;

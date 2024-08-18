@@ -25,6 +25,7 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/config.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/build_config/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/main/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
@@ -32,6 +33,7 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
@@ -40,6 +42,7 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.h"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"

@@ -11,7 +11,7 @@ namespace time {
 // Enums
 ///////////////////////////////////////////////////////////////////////////////
 
-enum weekday : int32_t
+enum class weekday : int32_t
 {
     SUNDAY      = 0,
     MONDAY      = 1,
@@ -22,7 +22,7 @@ enum weekday : int32_t
     SATURDAY    = 6
 };
 
-enum month : int32_t
+enum class month : int32_t
 {
     JANUARY     = 1,
     FEBRUARY    = 2,
