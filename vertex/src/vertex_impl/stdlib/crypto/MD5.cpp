@@ -3,6 +3,11 @@
 
 #include "vertex/stdlib/crypto/MD5.hpp"
 
+// https://www.boost.org/doc/libs/1_70_0/boost/uuid/detail/md5.hpp
+// https://en.wikipedia.org/wiki/MD5
+// http://www.zedwood.com/article/cpp-md5-function
+// https://www.ietf.org/rfc/rfc1321.txt
+
 namespace vx {
 namespace crypto {
 

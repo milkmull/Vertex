@@ -2,25 +2,21 @@
 
 #include <string>
 
+#include "vertex/system/compiler.hpp"
+
 namespace vx {
 namespace crypto {
 
-class MD5
+class VX_API SHA256
 {
-private:
-
-    static const uint32_t k[64];
-    static const uint32_t r[64];
-    static const uint32_t s0[4];
-
-    static uint32_t left_rotate(uint32_t x, uint32_t c);
-
 public:
 
-    MD5();
+    SHA256();
     void update(const uint8_t* data, size_t size);
     void finalize();
     std::string to_string() const;
+
+    void clear();
 
 private:
 
@@ -29,7 +25,7 @@ private:
 
     struct state
     {
-        uint32_t a, b, c, d;
+        uint32_t a, b, c, d, e, f, g, h;
     };
 
     state m_state;                          // Hash state
@@ -39,7 +35,7 @@ private:
     size_t m_buffer_size;                   // Current buffer size
 
     bool m_finalized;                       // Is finalized
-    uint8_t m_result[16];                   // Final result
+    uint8_t m_result[32];                   // Final result
 
 };
 

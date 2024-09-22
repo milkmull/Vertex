@@ -6,6 +6,11 @@
 namespace vx {
 namespace crypto {
 
+// https://www.boost.org/doc/libs/1_70_0/boost/uuid/detail/sha1.hpp
+// https://en.wikipedia.org/wiki/SHA1
+// http://www.zedwood.com/article/cpp-sha1-function
+// https://datatracker.ietf.org/doc/html/rfc3174
+
 static inline uint32_t left_rotate(uint32_t x, uint32_t n)
 {
     return (x << n) | (x >> (32 - n));
@@ -77,15 +82,15 @@ void SHA1::finalize()
 
 void SHA1::process_block(const uint8_t* block)
 {
-    uint32_t x[80]{};
+    uint32_t w[80]{};
     for (int i = 0; i < 16; ++i)
     {
-        x[i] = (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
+        w[i] = (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
                (block[i * 4 + 2] <<  8) | (block[i * 4 + 3] <<  0);
     }
     for (int i = 16; i < 80; ++i)
     {
-        x[i] = left_rotate(x[i - 3] ^ x[i - 8] ^ x[i - 14] ^ x[i - 16], 1);
+        w[i] = left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
     }
 
     uint32_t a = m_state.a;
@@ -118,12 +123,12 @@ void SHA1::process_block(const uint8_t* block)
             k = 0xCA62C1D6;
         }
 
-        uint32_t temp = left_rotate(a, 5) + f + e + k + x[i];
+        uint32_t t = left_rotate(a, 5) + f + e + k + w[i];
         e = d;
         d = c;
         c = left_rotate(b, 30);
         b = a;
-        a = temp;
+        a = t;
     }
 
     m_state.a += a;

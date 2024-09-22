@@ -1,17 +1,18 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/crypto/MD5.hpp"
+#include "vertex/stdlib/crypto/SHA256.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    vx::crypto::MD5 md5;
-    const uint8_t data[] = "abc";
-    md5.update(data, sizeof(data) - 1); // Exclude null terminator
-    md5.finalize();
+    vx::crypto::SHA256 sha256;
+    const uint8_t data[] = "";
+    sha256.update(data, sizeof(data) - 1); // Exclude null terminator
+    sha256.finalize();
 
-    // 900150983cd24fb0d6963f7d28e17f72
-    VX_LOG_INFO << md5.to_string();
+    // e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    // e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+    VX_LOG_INFO << sha256.to_string();
 
     return 0;
 }
