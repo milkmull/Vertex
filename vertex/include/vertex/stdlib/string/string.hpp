@@ -3,8 +3,8 @@
 #include <sstream>
 #include <vector>
 
-#include "vertex/system/error.h"
-#include "utf.h"
+#include "vertex/system/error.hpp"
+#include "utf.hpp"
 
 namespace vx {
 namespace str {

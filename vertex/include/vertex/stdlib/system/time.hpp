@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "vertex/build_config/build_config.h"
+#include "vertex/system/platform.hpp"
 
 namespace vx {
 namespace time {

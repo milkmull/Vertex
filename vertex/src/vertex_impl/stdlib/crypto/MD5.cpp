@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "vertex/stdlib/crypto/MD5.h"
+#include "vertex/stdlib/crypto/MD5.hpp"
 
 namespace vx {
 namespace crypto {

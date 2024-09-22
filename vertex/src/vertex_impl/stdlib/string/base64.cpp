@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex/system/error.h"
-#include "vertex/stdlib/string/base64.h"
+#include "vertex/system/error.hpp"
+#include "vertex/stdlib/string/base64.hpp"
 
 namespace vx {
 namespace str {
@@ -88,6 +88,11 @@ bool encode(const uint8_t* data, size_t size, std::string& encoded)
     return true;
 }
 
+bool encode(const char* data, size_t size, std::string& encoded)
+{
+    return encode(reinterpret_cast<const uint8_t*>(data), size, encoded);
+}
+
 // Table to map ascii characters back to the base64 character set
 static constexpr char decode_table[256] = {
     64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, 64, // 0 - 15
@@ -112,12 +117,12 @@ bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validat
 {
     data.clear();
     const size_t size = encoded.size();
-
+    
     if (size == 0)
     {
         return true;
     }
-
+    
     if (size % 4 != 0)
     {
         error::set_error(error::error_code::SIZE_ERROR);
@@ -136,13 +141,13 @@ bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validat
         const uint32_t c2 = static_cast<uint32_t>(decode_table[static_cast<int>(encoded[i + 1])]);
         const uint32_t c3 = static_cast<uint32_t>(decode_table[static_cast<int>(encoded[i + 2])]);
         const uint32_t c4 = static_cast<uint32_t>(decode_table[static_cast<int>(encoded[i + 3])]);
-
+        
         if (validate && (c1 == 64 || c2 == 64 || c3 == 64 || c4 == 64))
         {
             error::set_error(error::error_code::INVALID_ARGUMENT);
             return false;
         }
-
+        
         // 24-bit value with the 3 final bytes
         const uint32_t combined = (c1 << 18) | (c2 << 12) | (c3 << 6) | (c4 << 0);
 

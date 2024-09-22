@@ -2,7 +2,7 @@
 
 #include <locale>
 
-#include "vertex/system/compiler.h"
+#include "utf.hpp"
 
 namespace vx {
 namespace str {
@@ -14,7 +14,7 @@ namespace str {
 namespace utf8 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint8_t replacement)
 {
     if (codepoint < 0x00000000 || codepoint > 0x0010FFFF)
     {
@@ -55,7 +55,7 @@ inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0)
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
 {
     uint8_t lead = static_cast<uint8_t>(*begin);
     uint8_t trail_bytes = 0;
@@ -146,6 +146,7 @@ inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 
     return output;
 }
+
 template <typename IN_IT, typename OUT_IT>
 inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
@@ -189,7 +190,7 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
 {
     while (begin < end)
     {
@@ -218,7 +219,7 @@ inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
@@ -250,7 +251,7 @@ inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
 {
     while (begin < end)
     {
@@ -271,7 +272,7 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf16 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint16_t replacement)
 {
     if (codepoint < 0x0000FFFF)
     {
@@ -303,7 +304,7 @@ inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0)
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
 {
     const uint16_t first = *begin++;
 
@@ -418,7 +419,7 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
 {
     while (begin < end)
     {
@@ -447,7 +448,7 @@ inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
     while (begin < end)
@@ -479,7 +480,7 @@ inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
 {
     while (begin < end)
     {
@@ -500,14 +501,14 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf32 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint32_t replacement = 0)
+inline IT encode(uint32_t codepoint, IT output, uint32_t replacement)
 {
-    *output++ = codepoint{};
+    *output++ = codepoint;
     return output;
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0)
+inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
 {
     codepoint = *begin++;
     return begin;
@@ -539,6 +540,7 @@ inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
 
     return output;
 }
+
 template <typename IN_IT, typename OUT_IT>
 inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
 {
@@ -566,7 +568,7 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline IT encode_ansi(uint32_t codepoint, IT output, char replacement = 0)
+inline IT encode_ansi(uint32_t codepoint, IT output, char replacement)
 {
     // We use the locale character conversion facet to translate each character to ansi
     const auto& facet = std::use_facet<std::ctype<wchar_t>>(std::locale());
@@ -599,7 +601,7 @@ inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement = 0)
+inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
 {
     // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
     while (begin < end)
@@ -628,7 +630,7 @@ inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0)
+inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
 {
     while (begin < end)
     {
@@ -639,7 +641,7 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 }
 
 template <typename IT>
-inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement = 0)
+inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement)
 {
     switch (sizeof(wchar_t))
     {

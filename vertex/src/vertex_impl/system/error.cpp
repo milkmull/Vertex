@@ -1,4 +1,4 @@
-#include "vertex/system/error.h"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace error {

@@ -1,11 +1,11 @@
 #include <cassert>
 
-#include "vertex/system/platform.h"
-#include "vertex/stdlib/system/time.h"
+#include "vertex/system/platform.hpp"
+#include "vertex/stdlib/system/time.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
 
-#include "vertex_impl/_platform/_win32/win32_header.h"
+#include "vertex_impl/_platform/_win32/win32_header.hpp"
 
 namespace vx {
 namespace time {

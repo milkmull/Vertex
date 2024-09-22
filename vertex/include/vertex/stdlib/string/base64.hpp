@@ -1,6 +1,9 @@
 #pragma once
 
 #include <vector>
+#include <string>
+
+#include "vertex/system/compiler.hpp"
 
 namespace vx {
 namespace str {
@@ -20,7 +23,23 @@ namespace base64 {
  /// @return 'true' if the encoding is successful, 'false' if there is an
  /// invalid argument.
  ///////////////////////////////////////////////////////////////////////////////
-bool encode(const uint8_t* data, size_t size, std::string& encoded);
+bool VX_API encode(const uint8_t* data, size_t size, std::string& encoded);
+
+///////////////////////////////////////////////////////////////////////////////
+/// @brief Encodes binary data to a Base64-encoded string.
+///
+/// This function takes binary data and encodes it into a Base64 string.
+/// The resulting encoded string is stored in the provided 'encoded' parameter.
+///
+/// @param data Pointer to the binary data to be encoded.
+/// @param size The size of the binary data in bytes.
+/// @param encoded Reference to a string where the encoded Base64 data will be
+/// stored.
+///
+/// @return 'true' if the encoding is successful, 'false' if there is an
+/// invalid argument.
+///////////////////////////////////////////////////////////////////////////////
+bool VX_API encode(const char* data, size_t size, std::string& encoded);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Decodes a Base64-encoded string into binary data.
@@ -38,7 +57,7 @@ bool encode(const uint8_t* data, size_t size, std::string& encoded);
 /// @return 'true' if the decoding is successful, 'false' if there is an error
 /// in size or invalid argument.
 ///////////////////////////////////////////////////////////////////////////////
-bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate = false);
+bool VX_API decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate = false);
 
 }
 }

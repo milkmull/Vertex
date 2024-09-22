@@ -48,10 +48,33 @@
 // DLL Export/Import
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_BUILD_SHARED_LIBS)
-#   define VX_DLL_EXPORT __declspec(dllexport)
+// https://github.com/libsdl-org/SDL/blob/0e08d15cca61f59341858f7f239d9bce3dc99f54/include/SDL3/SDL_begin_code.h#L57
+
+#if !defined(VX_STATIC)
+
+#   if defined(_MSC_VER) // Should just be windows
+
+#       define VX_API_EXPORT __declspec(dllexport)
+#       define VX_API_IMPORT __declspec(dllimport)
+
+#   elif defined(__GNUC__) && __GNUC__ >= 4
+
+#       define VX_API_EXPORT __attribute__((__visibility__("default")))
+#       define VX_API_IMPORT __attribute__((__visibility__("default")))
+
+#   endif
+
 #else
-#   define VX_DLL_EXPORT 
+
+#   define VX_API_EXPORT
+#   define VX_API_IMPORT
+
+#endif
+
+#if defined(VX_DLL_EXPORT)
+#   define VX_API VX_API_EXPORT
+#else
+#   define VX_API VX_API_IMPORT
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

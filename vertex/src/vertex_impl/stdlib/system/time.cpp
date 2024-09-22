@@ -1,9 +1,11 @@
 #include <sstream>
 #include <iomanip>
 
-#include "vertex/stdlib/system/time.h"
-#include "vertex/stdlib/string/string.h"
-#include "vertex/math/math/fn/fn_common.h"
+#include "vertex/system/assert.hpp"
+#include "vertex/system/error.hpp"
+#include "vertex/stdlib/system/time.hpp"
+#include "vertex/stdlib/string/string.hpp"
+//#include "vertex/math/math/fn/fn_common.hpp"
 
 namespace vx {
 namespace time {
@@ -352,22 +354,22 @@ struct ticks_data
 
     uint64_t start_ticks;
 
-    ticks_data()
-    {
-        uint64_t ticks_per_second = get_performance_frequency();
-        assert(ticks_per_second <= static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
-        uint32_t gcd;
-
-        gcd = math::gcd(static_cast<uint32_t>(MS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
-        tick_numerator_ms = static_cast<uint32_t>(MS_PER_SEC / gcd);
-        tick_denominator_ms = static_cast<uint32_t>(ticks_per_second / gcd);
-
-        gcd = math::gcd(static_cast<uint32_t>(NS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
-        tick_numerator_ns = static_cast<uint32_t>(NS_PER_SEC / gcd);
-        tick_denominator_ns = static_cast<uint32_t>(ticks_per_second / gcd);
-
-        start_ticks = get_performance_counter();
-    }
+    //ticks_data()
+    //{
+    //    uint64_t ticks_per_second = get_performance_frequency();
+    //    assert(ticks_per_second <= static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
+    //    uint32_t gcd;
+    //
+    //    gcd = math::gcd(static_cast<uint32_t>(MS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
+    //    tick_numerator_ms = static_cast<uint32_t>(MS_PER_SEC / gcd);
+    //    tick_denominator_ms = static_cast<uint32_t>(ticks_per_second / gcd);
+    //
+    //    gcd = math::gcd(static_cast<uint32_t>(NS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
+    //    tick_numerator_ns = static_cast<uint32_t>(NS_PER_SEC / gcd);
+    //    tick_denominator_ns = static_cast<uint32_t>(ticks_per_second / gcd);
+    //
+    //    start_ticks = get_performance_counter();
+    //}
 };
 
 static ticks_data s_ticks_data{};

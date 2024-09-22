@@ -2,10 +2,12 @@
 
 #include <string>
 
+#include "vertex/system/compiler.hpp"
+
 namespace vx {
 namespace crypto {
 
-class MD5
+class VX_API MD5
 {
 private:
 

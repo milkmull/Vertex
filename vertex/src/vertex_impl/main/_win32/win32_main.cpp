@@ -1,13 +1,17 @@
-#include "vertex/build_config/build_config.h"
+#include "vertex/system/platform.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
 
-#include "vertex_impl/_platform/_win32/win32_header.h"
+#include "vertex_impl/_platform/_win32/win32_header.hpp"
 #include <cstdlib> // for '__argc' and '__argv'
 
-extern int main(int argc, char* argv[]);
+// Default main function, which can be overridden by the user
+extern "C" int main(int argc, char* argv[])
+{
+    return 0;
+}
 
-int WINAPI WinMain(
+extern "C" int WINAPI WinMain(
     _In_ HINSTANCE hInstance,
     _In_opt_ HINSTANCE hPrevInstance,
     _In_ LPSTR lpCmdLine,

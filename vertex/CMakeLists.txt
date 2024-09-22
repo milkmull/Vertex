@@ -2,74 +2,242 @@
 # Library
 #--------------------------------------------------------------------
 
-# Define library
+# Define header interface target
+add_library(Vertex_Headers INTERFACE)
+add_library(Vertex::Headers ALIAS Vertex_Headers)
+set_property(TARGET Vertex_Headers PROPERTY EXPORT_NAME "Headers")
+
+# Define library target for shared or static libraries
 if(VX_BUILD_SHARED_LIBS)
     message(STATUS "Building shared libraries")
-    add_library(${PROJECT_NAME} SHARED)
+    add_library(Vertex SHARED)
+    add_library(Vertex::Vertex_Shared ALIAS Vertex)
+    set_property(TARGET Vertex PROPERTY EXPORT_NAME "Vertex_Shared")
 else()
     message(STATUS "Building static libraries")
-    add_library(${PROJECT_NAME} STATIC)
+    add_library(Vertex STATIC)
+    add_library(Vertex::Vertex_Static ALIAS Vertex)
+    set_property(TARGET Vertex PROPERTY EXPORT_NAME "Vertex_Static")
 endif()
 
-# Properties
-set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+#--------------------------------------------------------------------
+# Configure library properties
+#--------------------------------------------------------------------
 
-target_include_directories(${PROJECT_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src")
+set_target_properties(Vertex PROPERTIES LINKER_LANGUAGE CXX)
+vx_add_common_compiler_flags(Vertex)
 
-#--------------------------------------------------
-# Vertex Core
-#--------------------------------------------------
+# Output directories for binary, library, and PDB files
+set_target_properties(Vertex PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/bin"
+    
+    PDB_OUTPUT_DIRECTORY         "${PROJECT_BINARY_DIR}/lib"
+    COMPILE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
+)
 
+# Set postfix
+if(VX_BUILD_SHARED_LIBS)
+    set_target_properties(Vertex PROPERTIES
+        DEBUG_POSTFIX           "_d"
+    )
+else()
+    set_target_properties(Vertex PROPERTIES
+        DEBUG_POSTFIX           "_static_d"
+        RELEASE_POSTFIX         "_static"
+        MINSIZEREL_POSTFIX      "_static"
+        RELWITHDEBINFO_POSTFIX  "_static"
+    )
+endif()
+
+# Statically link to the c runtime libraries
+vx_set_stdlib(Vertex)
+
+if(VX_BUILD_SHARED_LIBS)
+
+    # Hide public symbols by default
+    vx_hide_public_symbols(Vertex)
+
+    set_target_properties(Vertex PROPERTIES
+        POSITION_INDEPENDENT_CODE TRUE
+        WINDOWS_EXPORT_ALL_SYMBOLS FALSE
+        DEFINE_SYMBOL "VX_DLL_EXPORT"
+    )
+    
+else()
+
+    # Define VX_STATIC for static libraries
+    target_compile_definitions(Vertex PUBLIC "VX_STATIC")
+   
+endif()
+
+#--------------------------------------------------------------------
+# Files
+#--------------------------------------------------------------------
+
+# Include directories for headers
+target_include_directories(Vertex
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"     # When building the project
+    PUBLIC "$<INSTALL_INTERFACE:include>"                               # When using the installed project
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
+)
+
+# Header-only interface
+target_include_directories(Vertex_Headers INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"            # When building the project
+    "$<INSTALL_INTERFACE:include>"                                      # When using the installed project
+)
+
+# Source files for the library
 file(GLOB_RECURSE VX_CORE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/config.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/main/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.inl"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/test/*.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/build_config/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/main/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.hpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
+    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.cpp"
 )
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${VX_CORE_FILES})
 
-target_sources(${PROJECT_NAME} PRIVATE ${VX_CORE_FILES})
+# Create source group for organizing source files
+vx_create_source_group(VX_CORE_FILES "${CMAKE_CURRENT_SOURCE_DIR}")
+target_sources(Vertex PRIVATE ${VX_CORE_FILES})
 
 # stb_image
-target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
+#target_include_directories(Vertex PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
+#
+#file(GLOB_RECURSE STB_IMAGE_FILES
+#    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h"
+#    "${CMAKE_CURRENT_SOURCE_DIR}/src/stb_image_impl/*.cpp"
+#)
+#vx_create_source_group(STB_IMAGE_FILES "${CMAKE_CURRENT_SOURCE_DIR}")
+#
+#target_sources(Vertex PRIVATE ${STB_IMAGE_FILES})
 
-file(GLOB_RECURSE STB_IMAGE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/stb_image_impl/*.cpp"
-)
-source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES ${STB_IMAGE_FILES})
-
-target_sources(${PROJECT_NAME} PRIVATE ${STB_IMAGE_FILES})
-
-#--------------------------------------------------------------------
-# Window
-#--------------------------------------------------------------------
+# Handle Windows resource file for shared library builds
+if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/_win32/version.rc.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
+        @ONLY
+    )
+    
+    # Add rc to sources
+    target_sources(Vertex PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc")
+    
+endif()
 
 #--------------------------------------------------------------------
 # Install
 #--------------------------------------------------------------------
+
+# Install headers
+install(
+    DIRECTORY "include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+    FILES_MATCHING PATTERN "*.h"
+)
+
+# Install and export headers interface
+install(
+    TARGETS Vertex_Headers
+    EXPORT VertexHeaderTargets
+    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+)
+
+# Install library (Vertex shared or static)
+install(
+    TARGETS Vertex
+    EXPORT VertexTargets
+    ARCHIVE       DESTINATION "${CMAKE_INSTALL_LIBDIR}"   # For static libraries
+    LIBRARY       DESTINATION "${CMAKE_INSTALL_LIBDIR}"   # For shared libraries
+    RUNTIME       DESTINATION "${CMAKE_INSTALL_BINDIR}"   # For executables (if any)
+    FRAMEWORK     DESTINATION "."
+)
+
+# Install PDB files (for debugging on Windows)
+if(MSVC)
+
+    if(VX_BUILD_SHARED_LIBS)
+        # For shared libs we can just set it up like this
+        install(FILES "$<TARGET_PDB_FILE:Vertex>" DESTINATION "${CMAKE_INSTALL_BINDIR}" OPTIONAL)
+    else()
+        # For static libs we need to manually locate the pdb files in the install directory and install them
+        install(CODE "
+            file(GLOB_RECURSE PDB_FILES \"${CMAKE_BINARY_DIR}/lib/Vertex*.pdb\")
+            foreach(PDB \${PDB_FILES})
+                file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE FILES \${PDB})
+            endforeach()
+        ")
+    endif()
+    
+endif()
+
+# Install the cmake config files
+include(CMakePackageConfigHelpers)
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/VertexConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    "${PROJECT_SOURCE_DIR}/cmake/VertexConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/VertexConfig.cmake"
+    PATH_VARS CMAKE_INSTALL_PREFIX
+    INSTALL_DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
+)
+
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/VertexConfigVersion.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/VertexConfig.cmake"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
+)
+
+#--------------------------------------------------------------------
+# Export Library Targets
+#--------------------------------------------------------------------
+
+# Install export file for headers
+install(EXPORT VertexHeaderTargets
+    FILE "VertexHeaderTargets.cmake"
+    NAMESPACE Vertex::
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
+)
+
+# Export shared or static library targets based on the build
+if(VX_BUILD_SHARED_LIBS)
+    install(EXPORT VertexTargets
+        FILE "VertexSharedTargets.cmake"
+        NAMESPACE Vertex::
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
+    )
+else()
+    install(EXPORT VertexTargets
+        FILE "VertexStaticTargets.cmake"
+        NAMESPACE Vertex::
+        DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
+    )
+endif()

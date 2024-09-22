@@ -164,7 +164,7 @@ bool mouse::mouse_impl::create_system_cursor(cursor& c, cursor_shape shape)
         }
         default:
         {
-            return nullptr;
+            return false;
         }
     }
 

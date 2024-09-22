@@ -1,7 +1,7 @@
 #include <sstream>
 #include <iomanip>
 
-#include "vertex/stdlib/crypto/SHA1.h"
+#include "vertex/stdlib/crypto/SHA1.hpp"
 
 namespace vx {
 namespace crypto {

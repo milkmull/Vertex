@@ -6,7 +6,7 @@
 #include <thread>
 #include <iostream>
 
-#include "vertex/system/compiler.h"
+#include "vertex/system/compiler.hpp"
 
 #ifdef ERROR
 #   undef ERROR
