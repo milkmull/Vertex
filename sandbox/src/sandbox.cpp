@@ -1,20 +1,17 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/string/base64.hpp"
+#include "vertex/stdlib/crypto/MD5.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    const char test[] = "hello";
+    vx::crypto::MD5 md5;
+    const uint8_t data[] = "abc";
+    md5.update(data, sizeof(data) - 1); // Exclude null terminator
+    md5.finalize();
 
-    std::string encoded;
-    std::vector<uint8_t> decoded;
-    
-    str::base64::encode(reinterpret_cast<const uint8_t*>(test), sizeof(test) - 1, encoded);
-    VX_LOG_INFO << encoded;
-    
-    str::base64::decode(encoded, decoded, true);
-    VX_LOG_INFO << std::string(decoded.begin(), decoded.end());
+    // 900150983cd24fb0d6963f7d28e17f72
+    VX_LOG_INFO << md5.to_string();
 
     return 0;
 }

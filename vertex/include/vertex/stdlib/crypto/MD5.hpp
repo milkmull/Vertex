@@ -9,13 +9,6 @@ namespace crypto {
 
 class VX_API MD5
 {
-private:
-
-    static const uint32_t k[64];
-    static const uint32_t r[64];
-
-    static uint32_t left_rotate(uint32_t x, uint32_t c);
-
 public:
 
     MD5();
