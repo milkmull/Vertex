@@ -6,9 +6,9 @@
 namespace vx {
 namespace crypto {
 
-uint32_t SHA1::left_rotate(uint32_t x, uint32_t c)
+static inline uint32_t left_rotate(uint32_t x, uint32_t n)
 {
-    return (x << c) | (x >> (32 - c));
+    return (x << n) | (x >> (32 - n));
 }
 
 SHA1::SHA1()
@@ -77,15 +77,15 @@ void SHA1::finalize()
 
 void SHA1::process_block(const uint8_t* block)
 {
-    uint32_t w[80]{};
+    uint32_t x[80]{};
     for (int i = 0; i < 16; ++i)
     {
-        w[i] = (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
+        x[i] = (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
                (block[i * 4 + 2] <<  8) | (block[i * 4 + 3] <<  0);
     }
     for (int i = 16; i < 80; ++i)
     {
-        w[i] = left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        x[i] = left_rotate(x[i - 3] ^ x[i - 8] ^ x[i - 14] ^ x[i - 16], 1);
     }
 
     uint32_t a = m_state.a;
@@ -118,7 +118,7 @@ void SHA1::process_block(const uint8_t* block)
             k = 0xCA62C1D6;
         }
 
-        uint32_t temp = left_rotate(a, 5) + f + e + k + w[i];
+        uint32_t temp = left_rotate(a, 5) + f + e + k + x[i];
         e = d;
         d = c;
         c = left_rotate(b, 30);

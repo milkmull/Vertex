@@ -69,16 +69,16 @@ public:
     }
 };
 
-#define VX_TEST(SECTION, NAME) class NAME : public ::vx::test::test_case \
-{                                                                        \
-public:                                                                  \
-    NAME() { ::vx::test::test_suite::get_suite().add_test(this); }       \
-    void run() override;                                                 \
-    const char* get_name() const override { return #NAME; }              \
-    const char* get_section() const override { return #SECTION; }        \
-};                                                                       \
-NAME NAME##_test;                                                        \
-void NAME::run()
+#define VX_TEST(SECTION, NAME) class SECTION##_##NAME : public ::vx::test::test_case \
+{                                                                                    \
+public:                                                                              \
+    SECTION##_##NAME() { ::vx::test::test_suite::get_suite().add_test(this); }       \
+    void run() override;                                                             \
+    const char* get_name() const override { return #NAME; }                          \
+    const char* get_section() const override { return #SECTION; }                    \
+};                                                                                   \
+SECTION##_##NAME SECTION##NAME##_test;                                               \
+void SECTION##_##NAME::run()
 
 }
 }

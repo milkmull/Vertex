@@ -3,8 +3,13 @@
 #include "vertex/stdlib/string/base64.hpp"
 
 #include "vertex/stdlib/crypto/MD5.hpp"
+#include "vertex/stdlib/crypto/SHA1.hpp"
 
 using namespace vx::test;
+
+///////////////////////////////////////////////////////////////////////////////
+// base64
+///////////////////////////////////////////////////////////////////////////////
 
 // Test for encoding empty data
 VX_TEST(base64, encode_empty_data)
@@ -103,8 +108,12 @@ VX_TEST(base64, decode_null_pointer)
     assert::that(decoded.size() == 0, "Decoded should have size of 0");
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// MD5
+///////////////////////////////////////////////////////////////////////////////
+
 // Test for MD5 initialization and empty input
-VX_TEST(MD5, InitialState)
+VX_TEST(MD5, initial_state)
 {
     vx::crypto::MD5 md5;
     md5.finalize(); // Finalize without any input
@@ -112,7 +121,7 @@ VX_TEST(MD5, InitialState)
 }
 
 // Test for MD5 hashing of simple input
-VX_TEST(MD5, HashSimpleInput)
+VX_TEST(MD5, hash_simple_input)
 {
     vx::crypto::MD5 md5;
     const uint8_t data[] = "abc";
@@ -122,7 +131,7 @@ VX_TEST(MD5, HashSimpleInput)
 }
 
 // Test for MD5 hashing of longer input
-VX_TEST(MD5, HashLongInput)
+VX_TEST(MD5, hash_long_input)
 {
     vx::crypto::MD5 md5;
     const uint8_t data[] = "The quick brown fox jumps over the lazy dog";
@@ -132,7 +141,7 @@ VX_TEST(MD5, HashLongInput)
 }
 
 // Test for MD5 hashing of large input data
-VX_TEST(MD5, HashLargeInput)
+VX_TEST(MD5, hash_large_input)
 {
     vx::crypto::MD5 md5;
     std::string large_input(1000, 'a'); // Create a string of 1000 'a' characters
@@ -140,6 +149,50 @@ VX_TEST(MD5, HashLargeInput)
     md5.finalize();
     assert::that(md5.to_string() == "cabe45dcc9ae5b66ba86600cca6b8ba8", "MD5 of 1000 'a' characters should match expected hash");
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// SHA1
+///////////////////////////////////////////////////////////////////////////////
+
+// Test for SHA1 initialization and empty input
+VX_TEST(SHA1, initial_state)
+{
+    vx::crypto::SHA1 sha1;
+    sha1.finalize(); // Finalize without any input
+    assert::that(sha1.to_string() == "da39a3ee5e6b4b0d3255bfef95601890afd80709", "SHA1 of empty input should match expected hash");
+}
+
+// Test for SHA1 hashing of simple input
+VX_TEST(SHA1, hash_simple_input)
+{
+    vx::crypto::SHA1 sha1;
+    const uint8_t data[] = "abc";
+    sha1.update(data, sizeof(data) - 1); // Exclude null terminator
+    sha1.finalize();
+    assert::that(sha1.to_string() == "a9993e364706816aba3e25717850c26c9cd0d89d", "SHA1 of 'abc' should match expected hash");
+}
+
+// Test for SHA1 hashing of longer input
+VX_TEST(SHA1, hash_long_input)
+{
+    vx::crypto::SHA1 sha1;
+    const uint8_t data[] = "The quick brown fox jumps over the lazy dog";
+    sha1.update(data, sizeof(data) - 1);
+    sha1.finalize();
+    assert::that(sha1.to_string() == "2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", "SHA1 of 'The quick brown fox jumps over the lazy dog' should match expected hash");
+}
+
+// Test for SHA1 hashing of large input data
+VX_TEST(SHA1, hash_large_input)
+{
+    vx::crypto::SHA1 sha1;
+    std::string large_input(1000, 'a'); // Create a string of 1000 'a' characters
+    sha1.update(reinterpret_cast<const uint8_t*>(large_input.data()), large_input.size());
+    sha1.finalize();
+    assert::that(sha1.to_string() == "291e9a6c66994949b57ba5e650361e98fc36b1ba", "SHA1 of 1000 'a' characters should match expected hash");
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
