@@ -1,7 +1,7 @@
 #include <cassert>
 
 #include "vertex/system/platform.h"
-#include "vertex/stdlib/time.h"
+#include "vertex/stdlib/system/time.h"
 
 #if defined(VX_PLATFORM_WINDOWS)
 
@@ -10,7 +10,7 @@
 namespace vx {
 namespace time {
 
-time_t now()
+time_t get_current_time()
 {
     FILETIME ft{};
     GetSystemTimeAsFileTime(&ft);

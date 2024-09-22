@@ -1,42 +1,23 @@
 ﻿#include "sandbox/sandbox.h"
 
-#include "vertex/system/profiler.h"
-#include "vertex/pixel/surface.h"
+#include "vertex/stdlib/string/base64.h"
+
+#include "vertex/image/image.h"
 
 using namespace vx;
 
-static void timer_test()
-{
-    pixel::surface s(300, 300, pixel::pixel_format::RGBA_8);
-
-    for (int i = 0; i < 2000; ++i)
-    {
-        if (i % 2)
-        {
-            VX_PROFILE_SCOPE1("timer1");
-
-            for (auto it = s.begin(); it != s.end(); ++it)
-            {
-                it.set_pixel(math::color::RED());
-            }
-        }
-        else
-        {
-            VX_PROFILE_SCOPE2("timer2");
-
-            for (auto it = s.begin(); it != s.end(); ++it)
-            {
-                it.set_pixel(math::color::RED());
-            }
-        }
-    }
-}
-
 int main(int argc, char* argv[])
 {
-    profile::profiler::begin_session("sesh", "../../assets/results.txt");
+    const char test[] = "";
 
-    timer_test();
+    //std::string encoded;
+    //std::vector<uint8_t> decoded;
+    //
+    //str::base64::encode(reinterpret_cast<const uint8_t*>(test), sizeof(test) - 1, encoded);
+    //VX_LOG_INFO << encoded;
+    //
+    //str::base64::decode(encoded, decoded, true);
+    //VX_LOG_INFO << std::string(decoded.begin(), decoded.end());
 
     return 0;
 }

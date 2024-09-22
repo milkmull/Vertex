@@ -1,8 +1,7 @@
 #include "win32_window.h"
 #include "vertex/app/event/event.h"
 #include "vertex_impl/app/event/_win32/win32_mouse.h"
-#include "vertex/stdlib/string.h"
-#include "vertex/system/error.h"
+#include "vertex/stdlib/string/string.h"
 
 namespace vx {
 namespace app {

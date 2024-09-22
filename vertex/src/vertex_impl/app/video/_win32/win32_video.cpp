@@ -2,9 +2,8 @@
 
 #include "win32_video.h"
 #include "win32_window.h"
-#include "vertex/system/error.h"
 #include "vertex/system/log.h"
-#include "vertex/stdlib/string.h"
+#include "vertex/stdlib/string/string.h"
 
 namespace vx {
 namespace app {

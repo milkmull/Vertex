@@ -137,7 +137,7 @@ private:
 
     HMONITOR m_handle = NULL;
     std::wstring m_device_name;
-    video_impl::display_state::type m_state;
+    video_impl::display_state::type m_state = video_impl::display_state::NONE;
     math::recti m_last_bounds;
 };
 
