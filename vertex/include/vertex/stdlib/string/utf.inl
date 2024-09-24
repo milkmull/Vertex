@@ -2,8 +2,6 @@
 
 #include <locale>
 
-#include "utf.hpp"
-
 namespace vx {
 namespace str {
 

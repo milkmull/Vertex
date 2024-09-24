@@ -2,3 +2,4 @@
 
 #include "vertex/main/main.hpp"
 #include "vertex/system/log.hpp"
+#include "vertex/system/error.hpp"

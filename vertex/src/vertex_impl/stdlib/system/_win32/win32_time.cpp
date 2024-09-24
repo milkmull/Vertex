@@ -1,10 +1,10 @@
-#include <cassert>
-
 #include "vertex/system/platform.hpp"
-#include "vertex/stdlib/system/time.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
 
+#include <cassert>
+
+#include "vertex/stdlib/system/time.hpp"
 #include "vertex_impl/_platform/_win32/win32_header.hpp"
 
 namespace vx {

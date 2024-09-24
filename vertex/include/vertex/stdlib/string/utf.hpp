@@ -1,7 +1,5 @@
 #pragma once
 
-#include <locale>
-
 #include "vertex/system/compiler.hpp"
 
 namespace vx {
@@ -204,3 +202,5 @@ inline uint32_t decode_wide(T input);
 
 }
 }
+
+#include "utf.inl"
