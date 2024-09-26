@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include "vertex/system/compiler.hpp"
+
 #ifdef ERROR
 #   undef ERROR
 #endif
@@ -31,14 +33,16 @@ enum class error_code : int
     UNSUPPORTED_CONVERSION,
     UNSUPPORTED_OPERATION,
 
-    FILE_NOT_FOUND,
-    FILE_BAD_DRIVE,
-    FILE_BAD_PATH,
-    FILE_NO_PERMISSION,
-    FILE_IN_USE,
+    FILE_PATH_NOT_FOUND,
+    FILE_PATH_ALREADY_EXISTS,
+
+    FILE_OPERATION_FAILED,
     FILE_OPEN_FAILED,
     FILE_READ_FAILED,
     FILE_WRITE_FAILED,
+
+    FILE_NO_PERMISSION,
+    FILE_IN_USE,
     FILE_CORRUPT,
     FILE_ERROR,
 
@@ -52,7 +56,7 @@ enum class error_code : int
 /// 
 /// @return A string representaion of the error code.
 ///////////////////////////////////////////////////////////////////////////////
-const char* error_code_to_string(error_code code);
+VX_API const char* error_code_to_string(error_code code);
 
 struct error_info
 {
@@ -76,7 +80,7 @@ struct error_info
 /// @return Error info structure containing the error code and message. An
 /// error code of error_code::NONE indicates no error.
 ///////////////////////////////////////////////////////////////////////////////
-error_info get_error();
+VX_API error_info get_error();
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread.
@@ -84,7 +88,7 @@ error_info get_error();
 /// @param code The error code.
 /// @param msg The error message.
 ///////////////////////////////////////////////////////////////////////////////
-void set_error(error_code code, const std::string& msg);
+VX_API void set_error(error_code code, const std::string& msg);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread using the default error
@@ -92,12 +96,12 @@ void set_error(error_code code, const std::string& msg);
 /// 
 /// @param code The error code.
 ///////////////////////////////////////////////////////////////////////////////
-void set_error(error_code code);
+VX_API void set_error(error_code code);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Clears all error information for the current thread.
 ///////////////////////////////////////////////////////////////////////////////
-void clear_error();
+VX_API void clear_error();
 
 struct error_stream
 {

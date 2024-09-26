@@ -258,47 +258,56 @@ inline std::string to_lower(const std::string& s)
 // Join
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-inline std::string join(const T& container, const std::string& delimiter = "")
+template <typename IT>
+inline std::string join(IT begin, IT end, const std::string& delimiter = std::string())
 {
     std::ostringstream oss;
     bool is_first = true;
 
-    for (const auto& element : container)
+    IT it = begin;
+    while (it != end)
     {
         if (is_first)
         {
-            oss << element;
+            oss << *it;
             is_first = false;
         }
         else
         {
-            oss << delimiter << element;
+            oss << delimiter << *it;
         }
     }
 
     return oss.str();
 }
 
+template <typename IT>
+inline std::string join_path(IT begin, IT end)
+{
+    return join(begin, end, "\\");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Strip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string strip(const std::string& s, const std::string& characters = " \t\n\v\f\r")
+inline std::string strip(const std::string& s, const std::string& characters = std::string(" \t\n\v\f\r"))
 {
     std::string result;
+    size_t start = 0;
+    size_t end = 0;
 
-    size_t start = s.find_first_not_of(characters);
+    start = s.find_first_not_of(characters);
     if (start != std::string::npos)
     {
-        size_t end = s.find_last_not_of(characters);
+        end = s.find_last_not_of(characters);
         result = s.substr(start, end - start + 1);
     }
 
     return result;
 }
 
-inline std::string lstrip(const std::string& s, const std::string& characters = " \t\n\v\f\r")
+inline std::string lstrip(const std::string& s, const std::string& characters = std::string(" \t\n\v\f\r"))
 {
     std::string result;
 
@@ -311,7 +320,7 @@ inline std::string lstrip(const std::string& s, const std::string& characters = 
     return result;
 }
 
-inline std::string rstrip(const std::string& s, const std::string& characters = " \t\n\v\f\r")
+inline std::string rstrip(const std::string& s, const std::string& characters = std::string(" \t\n\v\f\r"))
 {
     std::string result;
 
@@ -352,15 +361,11 @@ inline std::vector<std::string> split(const std::string& s, const std::string& d
     size_t start = 0;
     size_t end = 0;
 
-    while ((end = s.find(delimiter, start)) != std::string::npos)
+    while (end != std::string::npos)
     {
+        end = s.find(delimiter, start);
         result.push_back(s.substr(start, end - start));
         start = end + delimiter.size();
-    }
-
-    if (start < s.size())
-    {
-        result.push_back(s.substr(start));
     }
 
     return result;
@@ -372,15 +377,10 @@ inline std::vector<std::string> split_words(const std::string& s)
     size_t start = 0;
     size_t end = 0;
 
-    while ((end = s.find_first_of(" \t\n\v\f\r", start)) != std::string::npos)
+    while ((start = s.find_first_not_of(" \t\n\v\f\r", end)) != std::string::npos)
     {
+        end = s.find_first_of(" \t\n\v\f\r", start);
         result.push_back(s.substr(start, end - start));
-        start = s.find_first_not_of(" \t\n\v\f\r", end + 1);
-    }
-
-    if (start < s.size())
-    {
-        result.push_back(s.substr(start));
     }
 
     return result;
@@ -400,6 +400,11 @@ inline std::vector<std::string> split_lines(const std::string& s)
     return lines;
 }
 
+inline std::vector<std::string> split_path(const std::string& s)
+{
+    return split(s, "/\\");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
@@ -411,13 +416,13 @@ inline bool to_int(const std::string& s, T& value, int32_t base = 10)
 
     if (base < 2 || base > 36)
     {
-        error::set_error(error::error_code::INVALID_ARGUMENT, "Base must be between 2 and 36");
+        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "base must be between 2 and 36";
         return false;
     }
 
     if (s.empty())
     {
-        error::set_error(error::error_code::INVALID_ARGUMENT);
+        VX_ERROR(error::error_code::INVALID_ARGUMENT) << "empty string";
         return false;
     }
 
@@ -443,23 +448,23 @@ inline bool to_int(const std::string& s, T& value, int32_t base = 10)
     {
         ++start;
 
-        if (to_upper(s[start]) == 'B')
+        if (to_lower(s[start]) == 'b')
         {
             // Binary
             if (base != 2)
             {
-                error::set_error(error::error_code::INVALID_ARGUMENT);
+                VX_ERROR(error::error_code::INVALID_ARGUMENT) << s[start];
                 return false;
             }
 
             ++start;
         }
-        else if (to_upper(s[start]) == 'X')
+        else if (to_lower(s[start]) == 'x')
         {
             // Hex
             if (base != 16)
             {
-                error::set_error(error::error_code::INVALID_ARGUMENT);
+                VX_ERROR(error::error_code::INVALID_ARGUMENT) << s[start];
                 return false;
             }
 
@@ -481,7 +486,7 @@ inline bool to_int(const std::string& s, T& value, int32_t base = 10)
         }
         else
         {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
+            VX_ERROR(error::error_code::INVALID_ARGUMENT) << s[i];
             return false;
         }
 

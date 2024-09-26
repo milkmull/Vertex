@@ -3,6 +3,7 @@
 #include <string>
 
 #include "vertex/system/platform.hpp"
+#include "vertex/system/compiler.hpp"
 
 namespace vx {
 namespace time {

@@ -66,7 +66,7 @@ int32_t days_in_year(int32_t year)
 
 int32_t days_in_month(int32_t year, month month)
 {
-    static const uint8_t DAYS_IN_MONTH[12] = {
+    static const uint8_t days_in_month[12] = {
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
     };
 
@@ -76,7 +76,7 @@ int32_t days_in_month(int32_t year, month month)
         return 0;
     }
 
-    int32_t days = DAYS_IN_MONTH[static_cast<int32_t>(month)];
+    int32_t days = days_in_month[static_cast<int32_t>(month)];
     if (month == month::FEBRUARY && is_leap_year(year))
     {
         ++days;
@@ -292,7 +292,7 @@ std::string datetime_to_string(const datetime& dt)
     if (!is_valid_datetime(dt))
     {
         error::set_error(error::error_code::INVALID_ARGUMENT, "Invalid datetime");
-        return "";
+        return {};
     }
 
     std::ostringstream oss;

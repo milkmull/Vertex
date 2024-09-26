@@ -1,7 +1,5 @@
 #pragma once
 
-#include <locale>
-
 namespace vx {
 namespace str {
 
@@ -188,13 +186,13 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement, const std::locale& locale)
 {
     while (begin < end)
     {
         uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
+        output = utf32::encode_ansi(codepoint, output, replacement, locale);
     }
 
     return output;
@@ -405,11 +403,11 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
+inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale)
 {
     while (begin < end)
     {
-        uint32_t codepoint = utf32::decode_ansi(*begin++, std::locale());
+        uint32_t codepoint = utf32::decode_ansi(*begin++, locale);
         output = encode(codepoint, output);
     }
 
@@ -417,13 +415,13 @@ inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
+inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement, const std::locale& locale)
 {
     while (begin < end)
     {
         uint32_t codepoint{};
         begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, std::locale());
+        output = utf32::encode_ansi(codepoint, output, replacement, locale);
     }
 
     return output;
@@ -566,19 +564,19 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline IT encode_ansi(uint32_t codepoint, IT output, char replacement)
+inline IT encode_ansi(uint32_t codepoint, IT output, char replacement, const std::locale& locale)
 {
     // We use the locale character conversion facet to translate each character to ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(std::locale());
+    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
     *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
     return output;
 }
 
 template <typename IT>
-inline uint32_t decode_ansi(IT input)
+inline uint32_t decode_ansi(IT input, const std::locale& locale)
 {
     // We use the locale character conversion facet to translate each character from ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(std::locale());
+    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
     return static_cast<uint32_t>(facet.widen(input));
 }
 

@@ -172,7 +172,7 @@ std::string SHA256::to_string() const
 {
     if (!m_finalized)
     {
-        return "";
+        return std::string();
     }
 
     std::ostringstream oss;

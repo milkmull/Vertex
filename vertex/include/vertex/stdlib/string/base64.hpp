@@ -23,7 +23,7 @@ namespace base64 {
  /// @return 'true' if the encoding is successful, 'false' if there is an
  /// invalid argument.
  ///////////////////////////////////////////////////////////////////////////////
-bool VX_API encode(const uint8_t* data, size_t size, std::string& encoded);
+VX_API bool encode(const uint8_t* data, size_t size, std::string& encoded);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Encodes binary data to a Base64-encoded string.
@@ -39,7 +39,7 @@ bool VX_API encode(const uint8_t* data, size_t size, std::string& encoded);
 /// @return 'true' if the encoding is successful, 'false' if there is an
 /// invalid argument.
 ///////////////////////////////////////////////////////////////////////////////
-bool VX_API encode(const char* data, size_t size, std::string& encoded);
+VX_API bool encode(const char* data, size_t size, std::string& encoded);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Decodes a Base64-encoded string into binary data.
@@ -57,7 +57,7 @@ bool VX_API encode(const char* data, size_t size, std::string& encoded);
 /// @return 'true' if the decoding is successful, 'false' if there is an error
 /// in size or invalid argument.
 ///////////////////////////////////////////////////////////////////////////////
-bool VX_API decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate = false);
+VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate = false);
 
 }
 }

@@ -16,11 +16,11 @@ namespace filesystem {
 // File Ops
 ///////////////////////////////////////////////////////////////////////////////
 
-bool exists(const std::string& path);
-bool create_file(const std::string& path, bool fail_if_exists = true);
-bool create_directory(const std::string& path, bool fail_if_exists = true);
-bool rename(const std::string& old_path, const std::string& new_path);
-bool remove(const std::string& path);
+VX_API bool exists(const std::string& path);
+VX_API bool create_directory(const std::string& path);
+VX_API bool create_directories(const std::string& path);
+VX_API bool rename(const std::string& old_path, const std::string& new_path, bool overwrite_existing = false);
+VX_API bool remove(const std::string& path);
 
 struct copy_options
 {
@@ -36,18 +36,19 @@ struct copy_options
     };
 };
 
-bool copy(const std::string& old_path, const std::string& new_path, copy_options::type options = copy_options::NONE);
+VX_API bool copy(const std::string& old_path, const std::string& new_path, copy_options::type options = copy_options::NONE);
 
 ///////////////////////////////////////////////////////////////////////////////
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
-std::string get_absolute_path(const std::string& path);
+VX_API std::string get_absolute_path(const std::string& path);
 
-std::string get_current_directory();
-bool set_current_directory(const std::string& path);
+VX_API std::string get_current_directory();
+VX_API bool change_current_directory(const std::string& path);
 
-std::vector<std::string> list(const std::string& path, bool absolute = false);
+VX_API std::vector<std::string> list();
+VX_API std::vector<std::string> list(const std::string& path, bool absolute = false);
 
 enum class path_type
 {
@@ -66,9 +67,11 @@ struct path_info
     time::time_t access_time;
 };
 
-path_info get_path_info(const std::string& path);
+VX_API path_info get_path_info(const std::string& path);
 
-enum class system_folder
+VX_API std::string get_app_data_folder(const std::string& app);
+
+enum class user_folder
 {
     HOME,
     DESKTOP,
@@ -79,7 +82,7 @@ enum class system_folder
     VIDEOS
 };
 
-std::string get_system_folder(system_folder folder);
+VX_API std::string get_user_folder(user_folder folder);
 
 }
 }

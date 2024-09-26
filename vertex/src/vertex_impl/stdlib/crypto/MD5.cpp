@@ -208,7 +208,7 @@ std::string MD5::to_string() const
 {
     if (!m_finalized)
     {
-        return "";
+        return std::string();
     }
 
     std::ostringstream oss;

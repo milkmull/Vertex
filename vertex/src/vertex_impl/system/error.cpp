@@ -20,14 +20,16 @@ const char* error_code_to_string(error_code code)
         case error_code::UNSUPPORTED_CONVERSION:    return "unsupported conversion";
         case error_code::UNSUPPORTED_OPERATION:     return "unsupported operation";
 
-        case error_code::FILE_NOT_FOUND:            return "file not found";
-        case error_code::FILE_BAD_DRIVE:            return "file bad drive";
-        case error_code::FILE_BAD_PATH:             return "file bad path";
-        case error_code::FILE_NO_PERMISSION:        return "file no permission";
-        case error_code::FILE_IN_USE:               return "file in use";
+        case error_code::FILE_PATH_NOT_FOUND:       return "path not found";
+        case error_code::FILE_PATH_ALREADY_EXISTS:  return "path already exists";
+
+        case error_code::FILE_OPERATION_FAILED:     return "file operation failed";
         case error_code::FILE_OPEN_FAILED:          return "file open failed";
         case error_code::FILE_READ_FAILED:          return "file read failed";
         case error_code::FILE_WRITE_FAILED:         return "file write failed";
+
+        case error_code::FILE_NO_PERMISSION:        return "file no permission";
+        case error_code::FILE_IN_USE:               return "file in use";
         case error_code::FILE_CORRUPT:              return "file corrupt";
         case error_code::FILE_ERROR:                return "file error";
 

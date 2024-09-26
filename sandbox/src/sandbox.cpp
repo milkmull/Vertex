@@ -1,17 +1,24 @@
 ﻿#include "sandbox/sandbox.hpp"
+#include "vertex/stdlib/string/string.hpp"
 #include "vertex/stdlib/file/filesystem.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    VX_LOG_INFO << filesystem::copy(
-        "C:/Users/Owner/Desktop/Pergatory/Sandbox.dir",
-        "C:/Users/Owner/Desktop/Pergatory/Sandbox.dir2",
-        filesystem::copy_options::RECURSIVE | filesystem::copy_options::DIRECTORY_ONLY
-    );
+    const char* abcs = "a b c d e f g h i j k l m n o p q r s t u v w x y z ";
+    
+    for (const auto& w : str::split(abcs, " "))
+    {
+        VX_LOG_INFO << w;
+    }
 
-    VX_LOG_INFO << error::get_error().message;
+    VX_LOG_INFO << "hello";
+
+    for (const auto& w : str::split_words(abcs))
+    {
+        VX_LOG_INFO << w;
+    }
 
     return 0;
 }
