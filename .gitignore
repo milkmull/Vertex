@@ -6,6 +6,7 @@
 /assets/
 /lib/
 /ext/
+/out/
 
 # Files
 *.user
