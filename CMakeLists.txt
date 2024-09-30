@@ -68,6 +68,8 @@ vx_set_option(VX_BUILD_SANDBOX              BOOL TRUE  "h")
 # Subdirectories
 #--------------------------------------------------------------------
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 add_subdirectory("${CMAKE_SOURCE_DIR}/vertex")
 
 if(VX_BUILD_TESTS)

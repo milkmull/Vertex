@@ -11,14 +11,16 @@ namespace test {
 class test_case
 {
 public:
+
     virtual void run() = 0;
-    virtual const char* get_name() const = 0; // Method to get the test name
-    virtual const char* get_section() const = 0; // Method to get the section name
+    virtual const char* get_name() const = 0;
+    virtual const char* get_section() const = 0;
 };
 
 class test_suite
 {
 public:
+
     static test_suite& get_suite()
     {
         static test_suite suite;
@@ -27,39 +29,46 @@ public:
 
     void add_test(test_case* test)
     {
-        tests.push_back(test);
+        m_tests.push_back(test);
     }
 
     void run_tests()
     {
         std::string current_section;
-        for (auto test : tests)
+
+        for (test_case* test : m_tests)
         {
-            const std::string section = test->get_section();
+            const char* section = test->get_section();
+
             if (section != current_section)
             {
                 std::cout << "\nRunning tests in section: " << section << std::endl;
                 current_section = section;
             }
 
-            std::cout << "Running test: " << test->get_name() << "..." << std::endl;
-            try {
+            std::cout << "\tRunning test: " << test->get_name() << "..." << std::endl;
+
+            try
+            {
                 test->run();
-                std::cout << "Test passed: " << test->get_name() << std::endl;
+                std::cout << "\tTest passed: " << test->get_name() << std::endl;
             }
-            catch (const std::exception& e) {
-                std::cerr << "Test failed: " << test->get_name() << " - " << e.what() << std::endl;
+            catch (const std::exception& e)
+            {
+                std::cerr << "\tTest failed: " << test->get_name() << " - " << e.what() << std::endl;
             }
         }
     }
 
 private:
-    std::vector<test_case*> tests;
+
+    std::vector<test_case*> m_tests;
 };
 
 class assert
 {
 public:
+
     static void that(bool condition, const std::string& message)
     {
         if (!condition)

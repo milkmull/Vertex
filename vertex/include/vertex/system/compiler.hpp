@@ -174,3 +174,13 @@
 #else
 #   define VX_FALLTHROUGH do {} while (0)
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+// If Constexpr
+///////////////////////////////////////////////////////////////////////////////
+
+#if VX_CPP_STANDARD >= 17 // C++17 or later
+#   define VX_IF_CONSTEXPR(x) if constexpr (x)
+#else // Fallback for pre-C++17
+#   define VX_IF_CONSTEXPR if
+#endif

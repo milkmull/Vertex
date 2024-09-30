@@ -10,6 +10,8 @@ const char* error_code_to_string(error_code code)
         case error_code::NONE:                      return "none";
         case error_code::ERROR:                     return "error";
 
+        case error_code::RUNTIME_ERROR:             return "runtime error";
+
         case error_code::OUT_OF_RANGE:              return "out of range";
         case error_code::OUT_OF_MEMORY:             return "out of memory";
         case error_code::SIZE_ERROR:                return "size error";

@@ -230,25 +230,25 @@ datetime datetime_from_string(const std::string& s)
         bool negative_year = (ymd.size() == 4) && (ymd[0].empty());
         size_t offset = negative_year ? 1 : 0;
 
-        if (ymd[0 + offset].size() != 4 || !str::to_int(ymd[0 + offset], dt.year))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-        if (negative_year)
-        {
-            dt.year *= -1;
-        }
-        if (ymd[1 + offset].size() != 2 || !str::to_int(ymd[1 + offset], *reinterpret_cast<int32_t*>(&dt.month)))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-        if (ymd[2 + offset].size() != 2 || !str::to_int(ymd[2 + offset], dt.day))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
+        //if (ymd[0 + offset].size() != 4 || !str::to_int(ymd[0 + offset], dt.year))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
+        //if (negative_year)
+        //{
+        //    dt.year *= -1;
+        //}
+        //if (ymd[1 + offset].size() != 2 || !str::to_int(ymd[1 + offset], *reinterpret_cast<int32_t*>(&dt.month)))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
+        //if (ymd[2 + offset].size() != 2 || !str::to_int(ymd[2 + offset], dt.day))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
 
         dt.weekday = get_day_of_week(dt.year, dt.month, dt.day);
     }
@@ -267,21 +267,21 @@ datetime datetime_from_string(const std::string& s)
             hms[2].pop_back();
         }
 
-        if (hms[0].size() != 2 || !str::to_int(hms[0], dt.hour))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-        if (hms[1].size() != 2 || !str::to_int(hms[1], dt.minute))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-        if (hms[2].size() != 2 || !str::to_int(hms[2], dt.second))
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
+        //if (hms[0].size() != 2 || !str::to_int(hms[0], dt.hour))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
+        //if (hms[1].size() != 2 || !str::to_int(hms[1], dt.minute))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
+        //if (hms[2].size() != 2 || !str::to_int(hms[2], dt.second))
+        //{
+        //    error::set_error(error::error_code::INVALID_ARGUMENT);
+        //    return dt;
+        //}
     }
 
     return dt;

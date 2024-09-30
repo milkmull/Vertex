@@ -1,0 +1,159 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"vertex/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 156,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 170,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 184,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 213,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 224,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 232,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include",
+			"paths" : 
+			[
+				{
+					"from" : "vertex/include",
+					"to" : "."
+				}
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"lib/Vertex_d.lib"
+			],
+			"targetId" : "Vertex::@d3873823b2bab5240ce2",
+			"targetIndex" : 1,
+			"targetIsImportLibrary" : true,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "bin",
+			"paths" : 
+			[
+				"bin/Vertex_d.dll"
+			],
+			"targetId" : "Vertex::@d3873823b2bab5240ce2",
+			"targetIndex" : 1,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "Unspecified",
+			"destination" : "bin",
+			"isOptional" : true,
+			"paths" : 
+			[
+				"out/build/x64-Debug/lib/Vertex_d.pdb"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "Unspecified",
+			"destination" : "C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/install/x64-Debug/cmake",
+			"paths" : 
+			[
+				"out/build/x64-Debug/vertex/VertexConfigVersion.cmake",
+				"out/build/x64-Debug/vertex/VertexConfig.cmake"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "Unspecified",
+			"destination" : "C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/install/x64-Debug/cmake",
+			"exportName" : "VertexHeaderTargets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "Vertex_Headers::@d3873823b2bab5240ce2",
+					"index" : 0
+				}
+			],
+			"paths" : 
+			[
+				"vertex/CMakeFiles/Export/8f7f269710eba612354578be1bf97c15/VertexHeaderTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 6,
+			"component" : "Unspecified",
+			"destination" : "C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/install/x64-Debug/cmake",
+			"exportName" : "VertexTargets",
+			"exportTargets" : 
+			[
+				{
+					"id" : "Vertex::@d3873823b2bab5240ce2",
+					"index" : 1
+				}
+			],
+			"paths" : 
+			[
+				"vertex/CMakeFiles/Export/8f7f269710eba612354578be1bf97c15/VertexSharedTargets.cmake"
+			],
+			"type" : "export"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "vertex",
+		"source" : "vertex"
+	}
+}

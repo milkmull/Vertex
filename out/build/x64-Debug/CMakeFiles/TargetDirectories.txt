@@ -1,0 +1,17 @@
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/CMakeFiles/edit_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/CMakeFiles/list_install_components.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/CMakeFiles/install.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/CMakeFiles/install/local.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/Vertex.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/edit_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/rebuild_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/list_install_components.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/install.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/vertex/CMakeFiles/install/local.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/Sandbox.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/edit_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/rebuild_cache.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/list_install_components.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/install.dir
+C:/Users/Owner/Desktop/Milk_Stuff/2024/code/cpp/Vertex/out/build/x64-Debug/sandbox/CMakeFiles/install/local.dir

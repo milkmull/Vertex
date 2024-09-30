@@ -23,6 +23,8 @@ enum class error_code : int
     ERROR = 1,
     FAILED = ERROR,
 
+    RUNTIME_ERROR,
+
     OUT_OF_RANGE,
     OUT_OF_MEMORY,
     SIZE_ERROR,

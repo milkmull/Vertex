@@ -2,5 +2,10 @@
 // such as names of functions and macros.
 // For more information see https://go.microsoft.com/fwlink/?linkid=865984
 
+#define VX_API
+#define VX_LIKELY
+#define VX_UNLIKELY
 #define VX_FORCE_INLINE
-#define VX_NODISCARD
+#define VX_FALLTHROUGH
+#define VX_IF_CONSTEXPR
+#define VX_TEST

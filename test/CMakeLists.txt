@@ -32,9 +32,8 @@ function(vx_add_test TARGET SOURCES)
 
 endfunction()
 
-file(GLOB STDLIB_SRC
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/*.cpp"
-)
-vx_create_source_group(STDLIB_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
-vx_add_test(vx_test_stdlib "${STDLIB_SRC}")
+# String Tests
+
+vx_add_test(vx_test_string "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/string.cpp")
+vx_add_test(vx_test_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/crypto.cpp")
+vx_add_test(vx_test_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/base64.cpp")
