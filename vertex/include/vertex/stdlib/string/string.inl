@@ -1,7 +1,6 @@
 #pragma once
 
 #include <sstream>
-#include <vector>
 
 #include "vertex/system/error.hpp"
 #include "utf.hpp"
@@ -30,68 +29,143 @@ inline T from_string(const std::string& s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Contains
+// contains
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool contains(const std::string& s, const char c)
+inline bool contains(const str_arg_t& s, const char val)
 {
-    return s.find(c) != std::string::npos;
+    return s.find(val) != str_arg_t::npos;
 }
 
-inline bool contains(const std::string& s1, const std::string& s2)
+inline bool contains(const wstr_arg_t& s, const wchar_t val)
 {
-    return s1.find(s2) != std::string::npos;
+    return s.find(val) != wstr_arg_t::npos;
+}
+
+inline bool contains(const str_arg_t& s, const str_arg_t& val)
+{
+    return s.find(val) != str_arg_t::npos;
+}
+
+inline bool contains(const wstr_arg_t& s, const wstr_arg_t& val)
+{
+    return s.find(val) != wstr_arg_t::npos;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Count
+// count
 ///////////////////////////////////////////////////////////////////////////////
 
-inline size_t count(const std::string& s, const char c)
+inline size_t count(const str_arg_t& s, const char val)
 {
-    return std::count(s.begin(), s.end(), c);
+    size_t count = 0;
+
+    for (const char c : s)
+    {
+        if (c == val)
+        {
+            ++count;
+        }
+    }
+
+    return count;
 }
 
-inline size_t count(const std::string& s1, const std::string& s2)
+inline size_t count(const wstr_arg_t& s, const wchar_t val)
+{
+    size_t count = 0;
+
+    for (const wchar_t c : s)
+    {
+        if (c == val)
+        {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+inline size_t count(const str_arg_t& s, const str_arg_t& val)
 {
     size_t count = 0;
     size_t i = 0;
+    const size_t step = val.size();
 
-    while ((i = s1.find(s2, i)) != std::string::npos)
+    while ((i = s.find(val, i)) != str_arg_t::npos)
     {
         ++count;
-        i += s2.size();
+        i += step;
+    }
+
+    return count;
+}
+
+inline size_t count(const wstr_arg_t& s, const wstr_arg_t& val)
+{
+    size_t count = 0;
+    size_t i = 0;
+    const size_t step = val.size();
+
+    while ((i = s.find(val, i)) != wstr_arg_t::npos)
+    {
+        ++count;
+        i += step;
     }
 
     return count;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Starts/Ends With
+// starts_with
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool starts_with(const std::string& s, const char value)
+inline bool starts_with(const str_arg_t& s, const char prefix)
 {
-    return s.find(value) == 0;
+    return !s.empty() && s[0] == prefix;
 }
 
-inline bool starts_with(const std::string& s, const std::string& value)
+inline bool starts_with(const wstr_arg_t& s, const wchar_t prefix)
 {
-    return s.find(value) == 0;
+    return !s.empty() && s[0] == prefix;
 }
 
-inline bool ends_with(const std::string& s, const char value)
+inline bool starts_with(const str_arg_t& s, const str_arg_t& prefix)
 {
-    return s.find(value) == (s.size() - 1);
+    return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
 }
 
-inline bool ends_with(const std::string& s, const std::string& value)
+inline bool starts_with(const wstr_arg_t& s, const wstr_arg_t& prefix)
 {
-    return s.find(value) == (s.size() - value.size() - 1);
+    return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Boolean Checks
+// ends_with
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool ends_with(const str_arg_t& s, const char suffix)
+{
+    return s.rfind(suffix) == (s.size() - 1);
+}
+
+inline bool ends_with(const wstr_arg_t& s, const wchar_t suffix)
+{
+    return s.rfind(suffix) == (s.size() - 1);
+}
+
+inline bool ends_with(const str_arg_t& s, const str_arg_t& suffix)
+{
+    return s.rfind(suffix) == (s.size() - suffix.size());
+}
+
+inline bool ends_with(const wstr_arg_t& s, const wstr_arg_t& suffix)
+{
+    return s.rfind(suffix) == (s.size() - suffix.size());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// alpha
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_alpha(const char c)
@@ -99,7 +173,12 @@ inline bool is_alpha(const char c)
     return std::isalpha(c);
 }
 
-inline bool is_alpha(const std::string& s)
+inline bool is_alpha(const wchar_t c)
+{
+    return std::isalpha(c);
+}
+
+inline bool is_alpha(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -111,16 +190,11 @@ inline bool is_alpha(const std::string& s)
     return true;
 }
 
-inline bool is_digit(const char c)
+inline bool is_alpha(const wstr_arg_t& s)
 {
-    return std::isdigit(c);
-}
-
-inline bool is_numeric(const std::string& s)
-{
-    for (const char c : s)
+    for (const wchar_t c : s)
     {
-        if (!is_digit(c))
+        if (!is_alpha(c))
         {
             return false;
         }
@@ -128,12 +202,97 @@ inline bool is_numeric(const std::string& s)
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// numeric
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_digit(const char c)
+{
+    return std::isdigit(c);
+}
+
+inline bool is_digit(const wchar_t c)
+{
+    return std::isdigit(c);
+}
+
+inline bool is_numeric(const str_arg_t& s, const bool allow_sign)
+{
+    const size_t size = s.size();
+
+    if (size == 0)
+    {
+        return false;
+    }
+
+    size_t start = 0;
+    if (allow_sign && (s[0] == '+' || s[0] == '-'))
+    {
+        ++start;
+
+        if (start >= size)
+        {
+            return false;
+        }
+    }
+
+    for (size_t i = start; i < size; ++i)
+    {
+        if (!is_digit(s[i]))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline bool is_numeric(const wstr_arg_t& s, const bool allow_sign)
+{
+    const size_t size = s.size();
+
+    if (size == 0)
+    {
+        return false;
+    }
+
+    size_t start = 0;
+    if (allow_sign && (s[0] == L'+' || s[0] == L'-'))
+    {
+        ++start;
+
+        if (start >= size)
+        {
+            return false;
+        }
+    }
+
+    for (size_t i = start; i < size; ++i)
+    {
+        if (!is_digit(s[i]))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// alnum
+///////////////////////////////////////////////////////////////////////////////
+
 inline bool is_alnum(const char c)
 {
     return std::isalnum(c);
 }
 
-inline bool is_alnum(const std::string& s)
+inline bool is_alnum(const wchar_t c)
+{
+    return std::isalnum(c);
+}
+
+inline bool is_alnum(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -145,12 +304,33 @@ inline bool is_alnum(const std::string& s)
     return true;
 }
 
+inline bool is_alnum(const wstr_arg_t& s)
+{
+    for (const wchar_t c : s)
+    {
+        if (!is_alnum(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// ascii
+///////////////////////////////////////////////////////////////////////////////
+
 inline bool is_ascii(const char c)
 {
     return 0x00 <= c && c < 0x80;
 }
 
-inline bool is_ascii(const std::string& s)
+inline bool is_ascii(const wchar_t c)
+{
+    return 0x00 <= c && c < 0x80;
+}
+
+inline bool is_ascii(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -162,12 +342,33 @@ inline bool is_ascii(const std::string& s)
     return true;
 }
 
+inline bool is_ascii(const wstr_arg_t& s)
+{
+    for (const wchar_t c : s)
+    {
+        if (!is_ascii(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// space
+///////////////////////////////////////////////////////////////////////////////
+
 inline bool is_space(const char c)
 {
     return std::isspace(c);
 }
 
-inline bool is_space(const std::string& s)
+inline bool is_space(const wchar_t c)
+{
+    return std::isspace(c);
+}
+
+inline bool is_space(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -179,16 +380,11 @@ inline bool is_space(const std::string& s)
     return true;
 }
 
-inline bool is_printable(const char c)
+inline bool is_space(const wstr_arg_t& s)
 {
-    return std::isprint(c);
-}
-
-inline bool is_printable(const std::string& s)
-{
-    for (const char c : s)
+    for (const wchar_t c : s)
     {
-        if (!is_printable(c))
+        if (!is_space(c))
         {
             return false;
         }
@@ -197,7 +393,7 @@ inline bool is_printable(const std::string& s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Hex
+// hex
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_hex_digit(const char c)
@@ -205,26 +401,34 @@ inline bool is_hex_digit(const char c)
     return std::isxdigit(c);
 }
 
-inline bool is_hex(const std::string& s)
+inline bool is_hex_digit(const wchar_t c)
 {
-    if (s.empty() || s.size() < 3)
+    return std::isxdigit(c);
+}
+
+inline bool is_hex(const str_arg_t& s)
+{
+    const size_t size = s.size();
+
+    if (size == 0)
     {
         return false;
     }
 
     // Check for optional '0x' or '0X' prefix
     size_t start = 0;
-    if (s.size() > 2 && (s[0] == '0') && (s[1] == 'x' || s[1] == 'X'))
+    if (size > 2 && (s[0] == '0') && (s[1] == 'x' || s[1] == 'X'))
     {
         start = 2;
+
+        if (start >= size)
+        {
+            return false;
+        }
     }
 
-    if (start >= s.size())
-    {
-        return false;
-    }
-
-    for (size_t i = start; i < s.size(); ++i)
+    // Validate the remaining characters are hex digits
+    for (size_t i = start; i < size; ++i)
     {
         if (!is_hex_digit(s[i]))
         {
@@ -235,27 +439,62 @@ inline bool is_hex(const std::string& s)
     return true;
 }
 
-inline std::string to_hex_string(const uint8_t* data, size_t size)
+inline bool is_hex(const wstr_arg_t& s)
 {
-    static const char hex[] = "0123456789ABCDEF";
+    const size_t size = s.size();
 
-    std::string result;
-    result.reserve(2 * size);
+    if (size == 0)
+    {
+        return false;
+    }
+
+    // Check for optional '0x' or '0X' prefix
+    size_t start = 0;
+    if (size > 2 && (s[0] == L'0') && (s[1] == L'x' || s[1] == L'X'))
+    {
+        start = 2;
+
+        if (start >= size)
+        {
+            return false;
+        }
+    }
+
+    // Validate the remaining characters are hex digits
+    for (size_t i = start; i < size; ++i)
+    {
+        if (!is_hex_digit(s[i]))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline std::string to_hex_string(const void* data, size_t size)
+{
+    static constexpr char hex[] = "0123456789ABCDEF";
+
+    std::string res;
+    res.reserve(2 * size);
+
+    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
 
     for (int i = 0; i < size; ++i)
     {
-        const char x1 = hex[(data[i] >> 4) & 0xF]; // High nibble
-        const char x2 = hex[(data[i] >> 0) & 0xF]; // Low nibble
+        const char x1 = hex[(bytes[i] >> 4) & 0xF]; // High nibble
+        const char x2 = hex[(bytes[i] >> 0) & 0xF]; // Low nibble
 
-        result.push_back(x1);
-        result.push_back(x2);
+        res.push_back(x1);
+        res.push_back(x2);
     }
 
-    return result;
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Upper/Lower
+// lower
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_lower(const char c)
@@ -263,7 +502,12 @@ inline bool is_lower(const char c)
     return std::islower(c);
 }
 
-inline bool is_lower(const std::string& s)
+inline bool is_lower(const wchar_t c)
+{
+    return std::islower(c);
+}
+
+inline bool is_lower(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -275,12 +519,73 @@ inline bool is_lower(const std::string& s)
     return true;
 }
 
+inline bool is_lower(const wstr_arg_t& s)
+{
+    for (const wchar_t c : s)
+    {
+        if (!is_lower(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// to_lower
+///////////////////////////////////////////////////////////////////////////////
+
+inline char to_lower(const char c)
+{
+    return static_cast<char>(std::tolower(c));
+}
+
+inline wchar_t to_lower(const wchar_t c)
+{
+    return static_cast<wchar_t>(std::tolower(c));
+}
+
+inline std::string to_lower(const str_arg_t& s)
+{
+    std::string res;
+    res.reserve(s.size());
+
+    for (const char c : s)
+    {
+        res.push_back(to_lower(c));
+    }
+
+    return res;
+}
+
+inline std::wstring to_lower(const wstr_arg_t& s)
+{
+    std::wstring res;
+    res.reserve(s.size());
+
+    for (const wchar_t c : s)
+    {
+        res.push_back(to_lower(c));
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// upper
+///////////////////////////////////////////////////////////////////////////////
+
 inline bool is_upper(const char c)
 {
     return std::isupper(c);
 }
 
-inline bool is_upper(const std::string& s)
+inline bool is_upper(const wchar_t c)
+{
+    return std::isupper(c);
+}
+
+inline bool is_upper(const str_arg_t& s)
 {
     for (const char c : s)
     {
@@ -292,175 +597,350 @@ inline bool is_upper(const std::string& s)
     return true;
 }
 
-inline char to_lower(const char c)
+inline bool is_upper(const wstr_arg_t& s)
 {
-    return static_cast<char>(std::tolower(c));
-}
-
-inline std::string to_lower(const std::string& s)
-{
-    std::string result;
-    result.reserve(s.size());
-
-    for (const char c : s)
+    for (const wchar_t c : s)
     {
-        result.push_back(to_lower(c));
+        if (!is_upper(c))
+        {
+            return false;
+        }
     }
-
-    return result;
+    return true;
 }
+
+///////////////////////////////////////////////////////////////////////////////
+// to_upper
+///////////////////////////////////////////////////////////////////////////////
 
 inline char to_upper(const char c)
 {
     return static_cast<char>(std::toupper(c));
 }
 
-inline std::string to_upper(const std::string& s)
+inline wchar_t to_upper(const wchar_t c)
 {
-    std::string result;
-    result.reserve(s.size());
+    return static_cast<wchar_t>(std::toupper(c));
+}
+
+inline std::string to_upper(const str_arg_t& s)
+{
+    std::string res;
+    res.reserve(s.size());
 
     for (const char c : s)
     {
-        result.push_back(to_upper(c));
+        res.push_back(to_upper(c));
     }
 
-    return result;
+    return res;
 }
 
-inline std::string title(const std::string& s)
+inline std::wstring to_upper(const wstr_arg_t& s)
 {
-    std::string result;
-    result.reserve(s.size());
+    std::wstring res;
+    res.reserve(s.size());
+
+    for (const wchar_t c : s)
+    {
+        res.push_back(to_upper(c));
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// title
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string title(const str_arg_t& s)
+{
+    std::string res;
+    res.reserve(s.size());
 
     bool new_word = true;
     for (const char c : s)
     {
         if (is_alpha(c))
         {
-            result.push_back(new_word ? to_upper(c) : to_lower(c));
+            res.push_back(new_word ? to_upper(c) : to_lower(c));
             new_word = false;
         }
         else
         {
-            result.push_back(c);
+            res.push_back(c);
             new_word = true;
         }
     }
 
-    return result;
+    return res;
 }
 
-inline bool case_insensitive_compare(const std::string& s1, const std::string& s2)
+inline std::wstring title(const wstr_arg_t& s)
+{
+    std::wstring res;
+    res.reserve(s.size());
+
+    bool new_word = true;
+    for (const wchar_t c : s)
+    {
+        if (is_alpha(c))
+        {
+            res.push_back(new_word ? to_upper(c) : to_lower(c));
+            new_word = false;
+        }
+        else
+        {
+            res.push_back(c);
+            new_word = true;
+        }
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// case_insensitive_compare
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2)
+{
+    return to_lower(s1) == to_lower(s2);
+}
+
+inline bool case_insensitive_compare(const wstr_arg_t& s1, const wstr_arg_t& s2)
 {
     return to_lower(s1) == to_lower(s2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Strip
+// strip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string strip(const std::string& s)
+inline std::string strip(const str_arg_t& s, const str_arg_t& characters)
 {
-    return strip(s, std::string(" \t\n\v\f\r"));
+    std::string res;
+
+    const size_t start = s.find_first_not_of(characters);
+    if (start != str_arg_t::npos)
+    {
+        const size_t end = s.find_last_not_of(characters);
+        res = s.substr(start, end - start + 1);
+    }
+
+    return res;
 }
 
-inline std::string strip(const std::string& s, const std::string& characters)
+inline std::wstring strip(const wstr_arg_t& s, const wstr_arg_t& characters)
 {
-    std::string result;
+    std::wstring res;
+
+    const size_t start = s.find_first_not_of(characters);
+    if (start != wstr_arg_t::npos)
+    {
+        const size_t end = s.find_last_not_of(characters);
+        res = s.substr(start, end - start + 1);
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// lstrip
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters)
+{
+    std::string res;
+
+    const size_t start = s.find_first_not_of(characters);
+    if (start != str_arg_t::npos)
+    {
+        res = s.substr(start);
+    }
+
+    return res;
+}
+
+inline std::wstring lstrip(const wstr_arg_t& s, const wstr_arg_t& characters)
+{
+    std::wstring res;
+
+    const size_t start = s.find_first_not_of(characters);
+    if (start != wstr_arg_t::npos)
+    {
+        res = s.substr(start);
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// rstrip
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters)
+{
+    std::string res;
+
+    const size_t end = s.find_last_not_of(characters);
+    if (end != str_arg_t::npos)
+    {
+        res = s.substr(0, end + 1);
+    }
+
+    return res;
+}
+
+inline std::wstring rstrip(const wstr_arg_t& s, const wstr_arg_t& characters)
+{
+    std::wstring res;
+
+    const size_t end = s.find_last_not_of(characters);
+    if (end != wstr_arg_t::npos)
+    {
+        res = s.substr(0, end + 1);
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// trim_prefix
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string trim_prefix(const str_arg_t& s, const str_arg_t& prefix)
+{
+    return std::string(starts_with(s, prefix) ? s.substr(prefix.size()) : s);
+}
+
+inline std::wstring trim_prefix(const wstr_arg_t& s, const wstr_arg_t& prefix)
+{
+    return std::wstring(starts_with(s, prefix) ? s.substr(prefix.size()) : s);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// trim_suffix
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string trim_suffix(const str_arg_t& s, const str_arg_t& suffix)
+{
+    return std::string(ends_with(s, suffix) ? s.substr(0, s.size() - suffix.size()) : s);
+}
+
+inline std::wstring trim_suffix(const wstr_arg_t& s, const wstr_arg_t& suffix)
+{
+    return std::wstring(ends_with(s, suffix) ? s.substr(0, s.size() - suffix.size()) : s);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// replace
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string replace(
+    const str_arg_t& s,
+    const char old_val,
+    const char new_val
+)
+{
+    std::string res;
+    res.reserve(s.size());
+
+    for (const char c : s)
+    {
+        res.push_back((c == old_val) ? new_val : c);
+    }
+
+    return res;
+}
+
+inline std::wstring replace(
+    const wstr_arg_t& s,
+    const wchar_t old_val,
+    const wchar_t new_val
+)
+{
+    std::wstring res;
+    res.reserve(s.size());
+
+    for (const wchar_t c : s)
+    {
+        res.push_back((c == old_val) ? new_val : c);
+    }
+
+    return res;
+}
+
+inline std::string replace(
+    const str_arg_t& s,
+    const str_arg_t& old_val,
+    const str_arg_t& new_val
+)
+{
+    std::string res;
+
     size_t start = 0;
     size_t end = 0;
+    const size_t step = old_val.size();
 
-    start = s.find_first_not_of(characters);
-    if (start != std::string::npos)
+    const size_t new_size = s.size() + count(s, old_val) * (new_val.size() - step);
+    res.reserve(new_size);
+
+    while (true)
     {
-        end = s.find_last_not_of(characters);
-        result = s.substr(start, end - start + 1);
+        end = s.find(old_val, start);
+        res.append(s.substr(start, end - start));
+
+        if (end == str_arg_t::npos)
+        {
+            break;
+        }
+
+        res.append(new_val);
+        start = end + step;
     }
 
-    return result;
+    return res;
 }
 
-inline std::string lstrip(const std::string& s)
+inline std::wstring replace(
+    const wstr_arg_t& s,
+    const wstr_arg_t& old_val,
+    const wstr_arg_t& new_val
+)
 {
-    return lstrip(s, std::string(" \t\n\v\f\r"));
-}
+    std::wstring res;
 
-inline std::string lstrip(const std::string& s, const std::string& characters)
-{
-    std::string result;
+    size_t start = 0;
+    size_t end = 0;
+    const size_t step = old_val.size();
 
-    size_t start = s.find_first_not_of(characters);
-    if (start != std::string::npos)
+    const size_t new_size = s.size() + count(s, old_val) * (new_val.size() - step);
+    res.reserve(new_size);
+
+    while (true)
     {
-        result = s.substr(start);
+        end = s.find(old_val, start);
+        res.append(s.substr(start, end - start));
+
+        if (end == wstr_arg_t::npos)
+        {
+            break;
+        }
+
+        res.append(new_val);
+        start = end + step;
     }
 
-    return result;
-}
-
-inline std::string rstrip(const std::string& s)
-{
-    return rstrip(s, std::string(" \t\n\v\f\r"));
-}
-
-inline std::string rstrip(const std::string& s, const std::string& characters)
-{
-    std::string result;
-
-    size_t end = s.find_last_not_of(characters);
-    if (end != std::string::npos)
-    {
-        result = s.substr(0, end + 1);
-    }
-
-    return result;
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Trim Perfix/Suffix
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::string trim_prefix(const std::string& s, const std::string& prefix)
-{
-    return starts_with(s, prefix) ? s.substr(0, prefix.size()) : s;
-}
-
-inline std::string trim_suffix(const std::string& s, const std::string& suffix)
-{
-    return ends_with(s, suffix) ? s.substr(s.size() - suffix.size()) : s;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Replace
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::string replace(const std::string& s, const std::string old_val, const std::string& new_val)
-{
-    std::string result = s;
-    size_t i = 0;
-
-    while ((i = result.find(old_val, i)) != std::string::npos)
-    {
-        result.replace(i, old_val.size(), new_val);
-        i += new_val.size();
-    }
-
-    return result;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// Join
+// join
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline std::string join(IT first, IT last)
-{
-    return join(first, last, std::string());
-}
-
-template <typename IT>
-inline std::string join(IT first, IT last, const std::string& delimiter)
+inline std::string join(IT first, IT last, const str_arg_t& delimiter)
 {
     std::ostringstream oss;
 
@@ -478,118 +958,281 @@ inline std::string join(IT first, IT last, const std::string& delimiter)
 }
 
 template <typename IT>
+inline std::wstring wjoin(IT first, IT last, const wstr_arg_t& delimiter)
+{
+    std::wostringstream oss;
+
+    for (IT it = first; it != last; ++it)
+    {
+        if (it != first)
+        {
+            oss << delimiter;
+        }
+
+        oss << *it;
+    }
+
+    return oss.str();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// join_path
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename IT>
 inline std::string join_path(IT first, IT last)
 {
     return join(first, last, "\\");
 }
 
-inline std::string join_path(const std::string& s1, const std::string& s2)
+template <typename IT>
+inline std::wstring wjoin_path(IT first, IT last)
 {
-    const char* pair[2] = { s1.c_str(), s2.c_str() };
-    return join(std::begin(pair), std::end(pair), "\\");
+    return wjoin(first, last, L"\\");
+}
+
+inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2)
+{
+    const str_arg_t pair[2] = { s1, s2 };
+    return join_path(std::begin(pair), std::end(pair));
+}
+
+inline std::wstring wjoin_path(const wstr_arg_t& s1, const wstr_arg_t& s2)
+{
+    const wstr_arg_t pair[2] = { s1, s2 };
+    return wjoin_path(std::begin(pair), std::end(pair));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Split
+// split
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split(const std::string& s, const std::string& delimiter)
+inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
 {
-    std::vector<std::string> result;
+    std::vector<std::string> res(count(s, delimiter) + 1);
+
     size_t start = 0;
     size_t end = 0;
 
-    while (end != std::string::npos)
+    while (end != str_arg_t::npos)
     {
         end = s.find(delimiter, start);
-        result.push_back(s.substr(start, end - start));
-        start = end + delimiter.size();
-    }
-
-    return result;
-}
-
-inline std::vector<std::string> split_any(const std::string& s, const std::string& characters)
-{
-    std::vector<std::string> result;
-    size_t start = 0;
-    size_t end = 0;
-
-    while (end != std::string::npos)
-    {
-        end = s.find_first_of(characters, start);
-        result.push_back(s.substr(start, end - start));
+        res.emplace_back(s.substr(start, end - start));
         start = end + 1;
     }
 
-    return result;
+    return res;
 }
 
-inline std::vector<std::string> split_words(const std::string& s)
+inline std::vector<std::wstring> split(const wstr_arg_t& s, const wchar_t delimiter)
 {
-    std::vector<std::string> result;
+    std::vector<std::wstring> res(count(s, delimiter) + 1);
+
     size_t start = 0;
     size_t end = 0;
 
-    while ((start = s.find_first_not_of(" \t\n\v\f\r", end)) != std::string::npos)
+    while (end != wstr_arg_t::npos)
     {
-        end = s.find_first_of(" \t\n\v\f\r", start);
-        result.push_back(s.substr(start, end - start));
+        end = s.find(delimiter, start);
+        res.emplace_back(s.substr(start, end - start));
+        start = end + 1;
     }
 
-    return result;
+    return res;
 }
 
-inline std::vector<std::string> split_lines(const std::string& s)
+inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter)
 {
-    std::vector<std::string> lines;
-    std::string line;
-    std::istringstream iss(s);
+    std::vector<std::string> res(count(s, delimiter) + 1);
 
-    while (std::getline(iss, line))
+    size_t start = 0;
+    size_t end = 0;
+
+    while (end != str_arg_t::npos)
     {
-        lines.push_back(line);
+        end = s.find(delimiter, start);
+        res.emplace_back(s.substr(start, end - start));
+        start = end + delimiter.size();
     }
 
-    return lines;
+    return res;
 }
 
-inline std::vector<std::string> split_path(const std::string& s)
+inline std::vector<std::wstring> split(const wstr_arg_t& s, const wstr_arg_t& delimiter)
+{
+    std::vector<std::wstring> res(count(s, delimiter) + 1);
+
+    size_t start = 0;
+    size_t end = 0;
+
+    while (end != wstr_arg_t::npos)
+    {
+        end = s.find(delimiter, start);
+        res.emplace_back(s.substr(start, end - start));
+        start = end + delimiter.size();
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// split_any
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_any(const str_arg_t& s, const str_arg_t& characters)
+{
+    std::vector<std::string> res;
+
+    size_t start = 0;
+    size_t end = 0;
+
+    while (end != str_arg_t::npos)
+    {
+        end = s.find_first_of(characters, start);
+        res.emplace_back(s.substr(start, end - start));
+        start = end + 1;
+    }
+
+    return res;
+}
+
+inline std::vector<std::wstring> split_any(const wstr_arg_t& s, const wstr_arg_t& characters)
+{
+    std::vector<std::wstring> res;
+
+    size_t start = 0;
+    size_t end = 0;
+
+    while (end != wstr_arg_t::npos)
+    {
+        end = s.find_first_of(characters, start);
+        res.emplace_back(s.substr(start, end - start));
+        start = end + 1;
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// split_words
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_words(const str_arg_t& s)
+{
+    std::vector<std::string> res;
+
+    size_t start = 0;
+    size_t end = 0;
+
+    constexpr const char* chars = " \t\n\v\f\r";
+
+    while ((start = s.find_first_not_of(chars, end)) != str_arg_t::npos)
+    {
+        end = s.find_first_of(chars, start);
+        res.emplace_back(s.substr(start, end - start));
+    }
+
+    return res;
+}
+
+inline std::vector<std::wstring> split_words(const wstr_arg_t& s)
+{
+    std::vector<std::wstring> res;
+
+    size_t start = 0;
+    size_t end = 0;
+
+    constexpr const wchar_t* chars = L" \t\n\v\f\r";
+
+    while ((start = s.find_first_not_of(chars, end)) != wstr_arg_t::npos)
+    {
+        end = s.find_first_of(chars, start);
+        res.emplace_back(s.substr(start, end - start));
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// split_lines
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_lines(const str_arg_t& s)
+{
+    return split(s, '\n');
+}
+
+inline std::vector<std::wstring> split_lines(const wstr_arg_t& s)
+{
+    return split(s, L'\n');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// split_path
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_path(const str_arg_t& s)
 {
     return split_any(s, "/\\");
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Repeat
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::string repeat(const char c, size_t n)
+inline std::vector<std::wstring> split_path(const wstr_arg_t& s)
 {
-    return std::string(n, c);
+    return split_any(s, L"/\\");
 }
 
-inline std::string repeat(const std::string& s, size_t n)
+///////////////////////////////////////////////////////////////////////////////
+// repeat
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string repeat(const char s, size_t n)
 {
-    std::string result;
-    result.reserve(result.size() * n);
+    return std::string(n, s);
+}
+
+inline std::wstring repeat(const wchar_t s, size_t n)
+{
+    return std::wstring(n, s);
+}
+
+inline std::string repeat(const str_arg_t& s, size_t n)
+{
+    std::string res;
+    res.reserve(s.size() * n);
 
     for (size_t i = 0; i < n; ++i)
     {
-        result.append(s);
+        res.append(s);
     }
 
-    return result;
+    return res;
+}
+
+inline std::wstring repeat(const wstr_arg_t& s, size_t n)
+{
+    std::wstring res;
+    res.reserve(s.size() * n);
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        res.append(s);
+    }
+
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Reverse
+// reverse
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string reverse(const std::string& s)
+inline std::string reverse(const str_arg_t& s)
 {
-    std::string result(s);
-    std::reverse(result.begin(), result.end());
-    return result;
+    return std::string(s.rbegin(), s.rend());
+}
+
+inline std::wstring reverse(const wstr_arg_t& s)
+{
+    return std::wstring(s.rbegin(), s.rend());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -599,16 +1242,16 @@ inline std::string reverse(const std::string& s)
 inline std::wstring string_to_wstring(const std::string& s)
 {
     const size_t count = utf8::count(s.begin(), s.end());
-    std::wstring wstr(count, 0);
-    utf8::to_wide(s.begin(), s.end(), wstr.begin());
-    return wstr;
+    std::wstring res(count, 0);
+    utf8::to_wide(s.begin(), s.end(), res.begin());
+    return res;
 }
 
 inline std::string wstring_to_string(const std::wstring& ws)
 {
-    std::vector<typename std::string::value_type> str_data;
-    utf8::from_wide(ws.begin(), ws.end(), std::back_inserter(str_data));
-    return std::string(str_data.begin(), str_data.end());
+    std::string res;
+    utf8::from_wide(ws.begin(), ws.end(), std::back_inserter(res));
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

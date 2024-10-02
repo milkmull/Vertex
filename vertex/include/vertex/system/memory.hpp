@@ -1,21 +1,19 @@
 #pragma once
 
-#include "error.h"
+#include <iostream>
 
-namespace vx {
-namespace mem {
+#if defined(VX_LOG_MEM)
 
-inline void* malloc(size_t size)
+void* operator new(std::size_t size)
 {
-    void* block = std::malloc(size);
-    if (!block) VX_ERROR_DEFAULT(error::error_code::OUT_OF_MEMORY);
-    return block;
+    std::cout << "Allocating " << size << " bytes\n";
+    return std::malloc(size);
 }
 
-inline void free(void* block)
+void operator delete(void* ptr, std::size_t size) noexcept
 {
-    std::free(block);
+    std::cout << "Deallocating " << size << " bytes\n";
+    std::free(ptr);
 }
 
-}
-}
+#endif

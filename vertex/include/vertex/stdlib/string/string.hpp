@@ -1,6 +1,26 @@
 #pragma once
 
-#include <string>
+#include "vertex/system/compiler.hpp"
+
+#if (VX_CPP_STANDARD == 17)
+
+#   include <string_view>
+
+#   define str_arg_t std::string_view
+#   define wstr_arg_t std::wstring_view
+#   define basic_str_arg_t std::basic_string_view 
+
+#else
+
+#   include <string>
+
+#   define str_arg_t std::string
+#   define wstr_arg_t std::wstring
+#   define basic_str_arg_t std::basic_string
+
+#endif
+
+#include <vector>
 
 namespace vx {
 namespace str {
@@ -16,143 +36,301 @@ template <typename T>
 inline T from_string(const std::string& s);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Contains
+// contains
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool contains(const std::string& s, const char c);
-inline bool contains(const std::string& s1, const std::string& s2);
+inline bool contains(const str_arg_t& s, const char val);
+inline bool contains(const wstr_arg_t& s, const wchar_t val);
+
+inline bool contains(const str_arg_t& s, const str_arg_t& val);
+inline bool contains(const wstr_arg_t& s, const wstr_arg_t& val);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Count
+// count
 ///////////////////////////////////////////////////////////////////////////////
 
-inline size_t count(const std::string& s, const char c);
-inline size_t count(const std::string& s1, const std::string& s2);
+inline size_t count(const str_arg_t& s, const char val);
+inline size_t count(const wstr_arg_t& s, const wchar_t val);
+
+inline size_t count(const str_arg_t& s, const str_arg_t& val);
+inline size_t count(const wstr_arg_t& s, const wstr_arg_t& val);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Starts/Ends With
+// starts_with
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool starts_with(const std::string& s, const char value);
-inline bool starts_with(const std::string& s, const std::string& value);
+inline bool starts_with(const str_arg_t& s, const char prefix);
+inline bool starts_with(const wstr_arg_t& s, const wchar_t prefix);
 
-inline bool ends_with(const std::string& s, const char value);
-inline bool ends_with(const std::string& s, const std::string& value);
+inline bool starts_with(const str_arg_t& s, const str_arg_t& prefix);
+inline bool starts_with(const wstr_arg_t& s, const wstr_arg_t& prefix);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Boolean Checks
+// ends_with
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool ends_with(const str_arg_t& s, const char suffix);
+inline bool ends_with(const wstr_arg_t& s, const wchar_t suffix);
+
+inline bool ends_with(const str_arg_t& s, const str_arg_t& suffix);
+inline bool ends_with(const wstr_arg_t& s, const wstr_arg_t& suffix);
+
+///////////////////////////////////////////////////////////////////////////////
+// alpha
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_alpha(const char c);
-inline bool is_alpha(const std::string& s);
+inline bool is_alpha(const wchar_t c);
 
-inline bool is_digit(const char c);
-inline bool is_numeric(const std::string& s);
-
-inline bool is_alnum(const char c);
-inline bool is_alnum(const std::string& s);
-
-inline bool is_ascii(const char c);
-inline bool is_ascii(const std::string& s);
-
-inline bool is_space(const char c);
-inline bool is_space(const std::string& s);
-
-inline bool is_printable(const char c);
-inline bool is_printable(const std::string& s);
+inline bool is_alpha(const str_arg_t& s);
+inline bool is_alpha(const wstr_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Hex
+// numeric
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_digit(const char c);
+inline bool is_digit(const wchar_t c);
+
+inline bool is_numeric(const str_arg_t& s, const bool allow_sign = false);
+inline bool is_numeric(const wstr_arg_t& s, const bool allow_sign = false);
+
+///////////////////////////////////////////////////////////////////////////////
+// alnum
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_alnum(const char c);
+inline bool is_alnum(const wchar_t c);
+
+inline bool is_alnum(const str_arg_t& s);
+inline bool is_alnum(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// ascii
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_ascii(const char c);
+inline bool is_ascii(const wchar_t c);
+
+inline bool is_ascii(const str_arg_t& s);
+inline bool is_ascii(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// space
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_space(const char c);
+inline bool is_space(const wchar_t c);
+
+inline bool is_space(const str_arg_t& s);
+inline bool is_space(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// hex
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_hex_digit(const char c);
-inline bool is_hex(const std::string& s);
+inline bool is_hex_digit(const wchar_t c);
 
-inline std::string to_hex_string(const uint8_t* data, size_t size);
+inline bool is_hex(const str_arg_t& s);
+inline bool is_hex(const wstr_arg_t& s);
+
+inline std::string to_hex_string(const void* data, size_t size);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Upper/Lower
+// lower
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_lower(const char c);
-inline bool is_lower(const std::string& s);
+inline bool is_lower(const wchar_t c);
 
-inline bool is_upper(const char c);
-inline bool is_upper(const std::string& s);
+inline bool is_lower(const str_arg_t& s);
+inline bool is_lower(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// to_lower
+///////////////////////////////////////////////////////////////////////////////
 
 inline char to_lower(const char c);
-inline std::string to_lower(const std::string& s);
+inline wchar_t to_lower(const wchar_t c);
+
+inline std::string to_lower(const str_arg_t& s);
+inline std::wstring to_lower(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// upper
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_upper(const char c);
+inline bool is_upper(const wchar_t c);
+
+inline bool is_upper(const str_arg_t& s);
+inline bool is_upper(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// to_upper
+///////////////////////////////////////////////////////////////////////////////
 
 inline char to_upper(const char c);
-inline std::string to_upper(const std::string& s);
+inline wchar_t to_upper(const wchar_t c);
 
-inline std::string title(const std::string& s);
-
-inline bool case_insensitive_compare(const std::string& s1, const std::string& s2);
-
-///////////////////////////////////////////////////////////////////////////////
-// Strip
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::string strip(const std::string& s);
-inline std::string strip(const std::string& s, const std::string& characters);
-
-inline std::string lstrip(const std::string& s);
-inline std::string lstrip(const std::string& s, const std::string& characters);
-
-inline std::string rstrip(const std::string& s);
-inline std::string rstrip(const std::string& s, const std::string& characters);
+inline std::string to_upper(const str_arg_t& s);
+inline std::wstring to_upper(const wstr_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Trim Perfix/Suffix
+// title
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string trim_prefix(const std::string& s, const std::string& prefix);
-inline std::string trim_suffix(const std::string& s, const std::string& suffix);
+inline std::string title(const str_arg_t& s);
+inline std::wstring title(const wstr_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Replace
+// case_insensitive_compare
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string replace(const std::string& s, const std::string old_val, const std::string& new_val);
+inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2);
+inline bool case_insensitive_compare(const wstr_arg_t& s1, const wstr_arg_t& s2);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Join
+// strip
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string strip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::wstring strip(const wstr_arg_t& s, const wstr_arg_t& characters = wstr_arg_t(L" \t\n\v\f\r"));
+
+///////////////////////////////////////////////////////////////////////////////
+// lstrip
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::wstring lstrip(const wstr_arg_t& s, const wstr_arg_t& characters = wstr_arg_t(L" \t\n\v\f\r"));
+
+///////////////////////////////////////////////////////////////////////////////
+// rstrip
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::wstring rstrip(const wstr_arg_t& s, const wstr_arg_t& characters = wstr_arg_t(L" \t\n\v\f\r"));
+
+///////////////////////////////////////////////////////////////////////////////
+// trim_prefix
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string trim_prefix(const str_arg_t& s, const str_arg_t& prefix);
+inline std::wstring trim_prefix(const wstr_arg_t& s, const wstr_arg_t& prefix);
+
+///////////////////////////////////////////////////////////////////////////////
+// trim_suffix
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string trim_suffix(const str_arg_t& s, const str_arg_t& suffix);
+inline std::wstring trim_suffix(const wstr_arg_t& s, const wstr_arg_t& suffix);
+
+///////////////////////////////////////////////////////////////////////////////
+// replace
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string replace(
+    const str_arg_t& s,
+    const char old_val,
+    const char new_val
+);
+
+inline std::wstring replace(
+    const wstr_arg_t& s,
+    const wchar_t old_val,
+    const wchar_t new_val
+);
+
+inline std::string replace(
+    const str_arg_t& s,
+    const str_arg_t& old_val,
+    const str_arg_t& new_val
+);
+
+inline std::wstring replace(
+    const wstr_arg_t& s,
+    const wstr_arg_t& old_val,
+    const wstr_arg_t& new_val
+);
+
+///////////////////////////////////////////////////////////////////////////////
+// join
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
-inline std::string join(IT first, IT last);
+inline std::string join(IT first, IT last, const str_arg_t& delimiter = str_arg_t());
 
 template <typename IT>
-inline std::string join(IT first, IT last, const std::string& delimiter);
+inline std::wstring wjoin(IT first, IT last, const wstr_arg_t& delimiter = wstr_arg_t());
+
+///////////////////////////////////////////////////////////////////////////////
+// join_path
+///////////////////////////////////////////////////////////////////////////////
 
 template <typename IT>
 inline std::string join_path(IT first, IT last);
 
-inline std::string join_path(const std::string& s1, const std::string& s2);
+template <typename IT>
+inline std::wstring wjoin_path(IT first, IT last);
+
+inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2);
+inline std::wstring wjoin_path(const wstr_arg_t& s1, const wstr_arg_t& s2);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Split
+// split
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split(const std::string& s, const std::string& delimiter);
-inline std::vector<std::string> split_any(const std::string& s, const std::string& characters);
-inline std::vector<std::string> split_words(const std::string& s);
-inline std::vector<std::string> split_lines(const std::string& s);
-inline std::vector<std::string> split_path(const std::string& s);
+inline std::vector<std::string> split(const str_arg_t& s, const char delimiter);
+inline std::vector<std::wstring> split(const wstr_arg_t& s, const wchar_t delimiter);
+
+inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter);
+inline std::vector<std::wstring> split(const wstr_arg_t& s, const wstr_arg_t& delimiter);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Repeat
+// split_any
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string repeat(const char c, size_t n);
-inline std::string repeat(const std::string& s, size_t n);
+inline std::vector<std::string> split_any(const str_arg_t& s, const str_arg_t& characters);
+inline std::vector<std::wstring> split_any(const wstr_arg_t& s, const wstr_arg_t& characters);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Reverse
+// split_words
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string reverse(const std::string& s);
+inline std::vector<std::string> split_words(const str_arg_t& s);
+inline std::vector<std::wstring> split_words(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// split_lines
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_lines(const str_arg_t& s);
+inline std::vector<std::wstring> split_lines(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// split_path
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::vector<std::string> split_path(const str_arg_t& s);
+inline std::vector<std::wstring> split_path(const wstr_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// repeat
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string repeat(const char s, size_t n);
+inline std::wstring repeat(const wchar_t s, size_t n);
+
+inline std::string repeat(const str_arg_t& s, size_t n);
+inline std::wstring repeat(const wstr_arg_t& s, size_t n);
+
+///////////////////////////////////////////////////////////////////////////////
+// reverse
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string reverse(const str_arg_t& s);
+inline std::wstring reverse(const wstr_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
 // wstring
@@ -178,3 +356,6 @@ inline double to_double(const std::string& s, size_t* count = nullptr);
 }
 
 #include "string.inl"
+
+#undef  str_arg_t
+#undef wstr_arg_t
