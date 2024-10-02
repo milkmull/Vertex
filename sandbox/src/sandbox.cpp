@@ -8,7 +8,12 @@ int main(int argc, char* argv[])
     std::string x1 = "hello my name is name is michael";
     std::string x2 = "HELLO MY NAME IS NAME IS MICHAEL";
 
-    VX_LOG_INFO << str::to_lower(str::to_hex_string(x1.c_str(), x1.size()));
+    auto words = str::split_lines(str::replace(x1, ' ', '\n'));
+
+    for (const auto& w : words)
+    {
+        VX_LOG_INFO << w;
+    }
 
     return 0;
 }

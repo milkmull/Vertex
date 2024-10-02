@@ -227,6 +227,16 @@ inline std::string trim_suffix(const str_arg_t& s, const str_arg_t& suffix);
 inline std::wstring trim_suffix(const wstr_arg_t& s, const wstr_arg_t& suffix);
 
 ///////////////////////////////////////////////////////////////////////////////
+// remove
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string remove(const str_arg_t& s, const char val);
+inline std::wstring remove(const wstr_arg_t& s, const wchar_t val);
+
+inline std::string remove(const str_arg_t& s, const str_arg_t& val);
+inline std::wstring remove(const wstr_arg_t& s, const wstr_arg_t& val);
+
+///////////////////////////////////////////////////////////////////////////////
 // replace
 ///////////////////////////////////////////////////////////////////////////////
 

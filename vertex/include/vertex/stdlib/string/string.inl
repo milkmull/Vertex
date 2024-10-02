@@ -834,6 +834,84 @@ inline std::wstring trim_suffix(const wstr_arg_t& s, const wstr_arg_t& suffix)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// remove
+///////////////////////////////////////////////////////////////////////////////
+
+inline std::string remove(const str_arg_t& s, const char val)
+{
+    std::string res;
+    res.reserve(s.size() - count(s, val));
+
+    for (const char c : s)
+    {
+        if (c != val)
+        {
+            res.push_back(c);
+        }
+    }
+
+    return res;
+}
+
+inline std::wstring remove(const wstr_arg_t& s, const wchar_t val)
+{
+    std::wstring res;
+    res.reserve(s.size() - count(s, val));
+
+    for (const wchar_t c : s)
+    {
+        if (c != val)
+        {
+            res.push_back(c);
+        }
+    }
+
+    return res;
+}
+
+inline std::string remove(const str_arg_t& s, const str_arg_t& val)
+{
+    std::string res;
+
+    size_t start = 0;
+    size_t end = 0;
+    const size_t step = val.size();
+
+    const size_t size = s.size() - count(s, val) * step;
+    res.reserve(size);
+
+    while (end == str_arg_t::npos)
+    {
+        end = s.find(val, start);
+        res.append(s.substr(start, end - start));
+        start = end + step;
+    }
+
+    return res;
+}
+
+inline std::wstring remove(const wstr_arg_t& s, const wstr_arg_t& val)
+{
+    std::wstring res;
+
+    size_t start = 0;
+    size_t end = 0;
+    const size_t step = val.size();
+
+    const size_t size = s.size() - count(s, val) * step;
+    res.reserve(size);
+
+    while (end == wstr_arg_t::npos)
+    {
+        end = s.find(val, start);
+        res.append(s.substr(start, end - start));
+        start = end + step;
+    }
+
+    return res;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // replace
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -883,8 +961,8 @@ inline std::string replace(
     size_t end = 0;
     const size_t step = old_val.size();
 
-    const size_t new_size = s.size() + count(s, old_val) * (new_val.size() - step);
-    res.reserve(new_size);
+    const size_t size = s.size() + count(s, old_val) * (new_val.size() - step);
+    res.reserve(size);
 
     while (true)
     {
@@ -915,8 +993,8 @@ inline std::wstring replace(
     size_t end = 0;
     const size_t step = old_val.size();
 
-    const size_t new_size = s.size() + count(s, old_val) * (new_val.size() - step);
-    res.reserve(new_size);
+    const size_t size = s.size() + count(s, old_val) * (new_val.size() - step);
+    res.reserve(size);
 
     while (true)
     {
@@ -1009,7 +1087,8 @@ inline std::wstring wjoin_path(const wstr_arg_t& s1, const wstr_arg_t& s2)
 
 inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
 {
-    std::vector<std::string> res(count(s, delimiter) + 1);
+    std::vector<std::string> res;
+    res.reserve(count(s, delimiter) + 1);
 
     size_t start = 0;
     size_t end = 0;
@@ -1026,7 +1105,8 @@ inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
 
 inline std::vector<std::wstring> split(const wstr_arg_t& s, const wchar_t delimiter)
 {
-    std::vector<std::wstring> res(count(s, delimiter) + 1);
+    std::vector<std::wstring> res;
+    res.reserve(count(s, delimiter) + 1);
 
     size_t start = 0;
     size_t end = 0;
@@ -1043,7 +1123,8 @@ inline std::vector<std::wstring> split(const wstr_arg_t& s, const wchar_t delimi
 
 inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter)
 {
-    std::vector<std::string> res(count(s, delimiter) + 1);
+    std::vector<std::string> res;
+    res.reserve(count(s, delimiter) + 1);
 
     size_t start = 0;
     size_t end = 0;
@@ -1060,7 +1141,8 @@ inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delim
 
 inline std::vector<std::wstring> split(const wstr_arg_t& s, const wstr_arg_t& delimiter)
 {
-    std::vector<std::wstring> res(count(s, delimiter) + 1);
+    std::vector<std::wstring> res;
+    res.reserve(count(s, delimiter) + 1);
 
     size_t start = 0;
     size_t end = 0;
