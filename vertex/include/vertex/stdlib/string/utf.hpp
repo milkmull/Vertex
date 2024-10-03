@@ -2,8 +2,6 @@
 
 #include <locale>
 
-#include "vertex/system/compiler.hpp"
-
 namespace vx {
 namespace str {
 
