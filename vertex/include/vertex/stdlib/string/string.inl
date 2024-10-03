@@ -648,7 +648,7 @@ inline std::string reverse(const str_arg_t& s)
 // wstring
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::wstring string_to_wstring(const std::string& s)
+inline std::wstring string_to_wstring(const str_arg_t& s)
 {
     const size_t count = utf8::count(s.begin(), s.end());
     std::wstring res(count, 0);
@@ -656,7 +656,7 @@ inline std::wstring string_to_wstring(const std::string& s)
     return res;
 }
 
-inline std::string wstring_to_string(const std::wstring& ws)
+inline std::string wstring_to_string(const wstr_arg_t& ws)
 {
     std::string res;
     utf8::from_wide(ws.begin(), ws.end(), std::back_inserter(res));

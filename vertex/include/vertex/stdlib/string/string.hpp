@@ -264,8 +264,8 @@ inline std::string reverse(const str_arg_t& s);
 // wstring
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::wstring string_to_wstring(const std::string& s);
-inline std::string wstring_to_string(const std::wstring& ws);
+inline std::wstring string_to_wstring(const str_arg_t& s);
+inline std::string wstring_to_string(const wstr_arg_t& ws);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Numeric Conversions

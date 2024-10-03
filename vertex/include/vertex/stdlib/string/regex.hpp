@@ -2,6 +2,8 @@
 
 #include <regex>
 
+#include "vertex/system/error.hpp"
+
 namespace vx {
 namespace str {
 
