@@ -1,18 +1,13 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/string/regex.hpp"
+#include "vertex/stdlib/string/format.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    str::regex re("[");
+    VX_LOG_INFO << str::format("{0} {{{}}}!", "hello", "{{{");
 
-    VX_LOG_INFO << re.is_valid();
-
-    str::regex_cmatch m;
-    VX_LOG_INFO << re.match("[", m);
-
-
+    VX_LOG_ERROR << error::get_error().message;
 
     return 0;
 }

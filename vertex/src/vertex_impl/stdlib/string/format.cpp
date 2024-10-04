@@ -55,11 +55,7 @@ bool parse_format_string(const std::string& fmt, std::vector<format_token>& stac
                 return false;
             }
 
-            if (!index_found)
-            {
-                token->index = arg_index++;
-            }
-
+            token->index = arg_index++;
             token->size = (i - token->off) + 1;
             in_field = false;
             index_found = false;
@@ -75,6 +71,12 @@ bool parse_format_string(const std::string& fmt, std::vector<format_token>& stac
             }
 
             continue;
+        }
+        
+        if (in_field)
+        {
+            VX_ERROR(error::error_code::INVALID_ARGUMENT) << "invalid character " << c << " in field";
+            return false;
         }
     }
 
