@@ -6,7 +6,6 @@
 #include "vertex/system/compiler.hpp"
 
 namespace vx {
-namespace str {
 namespace base64 {
 
  ///////////////////////////////////////////////////////////////////////////////
@@ -59,6 +58,5 @@ VX_API bool encode(const char* data, size_t size, std::string& encoded);
 ///////////////////////////////////////////////////////////////////////////////
 VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate = false);
 
-}
 }
 }

@@ -1,13 +1,13 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/string/format.hpp"
+#include "vertex/stdlib/iostream.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    VX_LOG_INFO << str::format("{0} {{{}}}!", "hello", "{{{");
-
-    VX_LOG_ERROR << error::get_error().message;
+    io::print_err("please enter a number: ");
+    int x;
+    io::read_input(x);
 
     return 0;
 }

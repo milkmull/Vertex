@@ -5,7 +5,7 @@
 #include "vertex/system/error.hpp"
 
 namespace vx {
-namespace str {
+namespace re {
 
 template <typename IT>
 using regex_match_results = std::match_results<IT>;
