@@ -214,7 +214,16 @@ inline std::string join(IT first, IT last, const str_arg_t& delimiter = str_arg_
 template <typename IT>
 inline std::string join_path(IT first, IT last);
 
+inline std::string join_path(const char* s1, const char* s2);
+inline std::string join_path(const char* s1, const std::string& s2);
+inline std::string join_path(const std::string& s1, const char* s2);
+inline std::string join_path(const std::string& s1, const std::string& s2);
+
+#if (VX_CPP_STANDARD == 17)
+
 inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2);
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // split
@@ -270,6 +279,9 @@ inline std::string wstring_to_string(const wstr_arg_t& ws);
 ///////////////////////////////////////////////////////////////////////////////
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
+
+template <typename IT, typename T>
+inline IT parse_digits(IT first, IT last, T& value, size_t* count = nullptr);
 
 inline int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
 inline int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);

@@ -91,42 +91,6 @@ void delay_ns(uint32_t ns)
     delay(static_cast<uint32_t>(nanoseconds_to_milliseconds(ns)));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// Timer
-///////////////////////////////////////////////////////////////////////////////
-
-//time_t timer::start()
-//{
-//    m_running = true;
-//    return (m_start_time = get_ticks());
-//}
-//
-//time_t timer::stop()
-//{
-//    m_running = false;
-//    return (m_stop_time = get_ticks());
-//}
-//
-//void timer::reset()
-//{
-//    m_running = false;
-//    m_start_time = m_stop_time = 0;
-//}
-//
-//bool timer::running() const
-//{
-//    return m_running;
-//}
-//
-//time_t timer::elapsed() const
-//{
-//    if (m_running)
-//    {
-//        return get_ticks() - m_start_time;
-//    }
-//    return m_stop_time - m_start_time;
-//}
-
 }
 }
 

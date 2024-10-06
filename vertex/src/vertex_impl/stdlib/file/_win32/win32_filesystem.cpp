@@ -42,25 +42,30 @@ static void file_operation_error(const std::string& old_path, const std::string&
         << "faild to " << operation << ": " << old_path << " -> " << new_path;
 }
 
+static void directory_creation_error(const std::string& path)
+{
+    file_operation_error(path, "create directory");
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // File Ops
 ///////////////////////////////////////////////////////////////////////////////
 
 bool exists(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
     const DWORD attributes = GetFileAttributesW(wpath.c_str());
     return (attributes != INVALID_FILE_ATTRIBUTES);
 }
 
 bool create_directory(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
 
     // Don't throw an error if the directory already exists
     if (!CreateDirectoryW(wpath.c_str(), NULL) && (GetLastError() != ERROR_ALREADY_EXISTS))
     {
-        file_operation_error(path, "create directory");
+        directory_creation_error(path);
         return false;
     }
 
@@ -69,7 +74,7 @@ bool create_directory(const std::string& path)
 
 VX_API bool create_directories(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
     std::wstring wcurrent_path;
 
     size_t i = 0;
@@ -80,7 +85,7 @@ VX_API bool create_directories(const std::string& path)
 
         if (!CreateDirectoryW(wcurrent_path.c_str(), NULL) && (GetLastError() != ERROR_ALREADY_EXISTS))
         {
-            file_operation_error(str::wstring_to_string(wcurrent_path), "create directory");
+            directory_creation_error(str::wstring_to_string(wcurrent_path));
             return false;
         }
     }
@@ -90,8 +95,8 @@ VX_API bool create_directories(const std::string& path)
 
 bool copy(const std::string& old_path, const std::string& new_path, copy_options::type options)
 {
-    const std::wstring wold_path = vx::str::string_to_wstring(old_path);
-    const std::wstring wnew_path = vx::str::string_to_wstring(new_path);
+    const std::wstring wold_path = str::string_to_wstring(old_path);
+    const std::wstring wnew_path = str::string_to_wstring(new_path);
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(wold_path.c_str(), GetFileExInfoStandard, &data))
@@ -112,7 +117,7 @@ bool copy(const std::string& old_path, const std::string& new_path, copy_options
     {
         if (!CreateDirectoryW(wnew_path.c_str(), NULL) && (GetLastError() != ERROR_ALREADY_EXISTS))
         {
-            file_operation_error(new_path, "create directory");
+            directory_creation_error(new_path);
             return false;
         }
 
@@ -162,7 +167,7 @@ bool copy(const std::string& old_path, const std::string& new_path, copy_options
             }
             else
             {
-                file_operation_error(old_path, new_path, "copy file");
+                file_operation_error(old_path, new_path, "copy");
             }
 
             return false;
@@ -174,8 +179,8 @@ bool copy(const std::string& old_path, const std::string& new_path, copy_options
 
 bool rename(const std::string& old_path, const std::string& new_path, bool overwrite_existing)
 {
-    const std::wstring wold_path = vx::str::string_to_wstring(old_path);
-    const std::wstring wnew_path = vx::str::string_to_wstring(new_path);
+    const std::wstring wold_path = str::string_to_wstring(old_path);
+    const std::wstring wnew_path = str::string_to_wstring(new_path);
 
     const DWORD dwFalgs = (overwrite_existing ? MOVEFILE_REPLACE_EXISTING : 0);
     if (!MoveFileExW(wold_path.c_str(), wnew_path.c_str(), dwFalgs))
@@ -197,7 +202,7 @@ bool rename(const std::string& old_path, const std::string& new_path, bool overw
 
 bool remove(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &data))
@@ -231,7 +236,7 @@ bool remove(const std::string& path)
 std::string get_absolute_path(const std::string& path)
 {
     std::string abs_path;
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
 
     const DWORD size = GetFullPathNameW(wpath.c_str(), 0, NULL, NULL);
     std::vector<WCHAR> data(size);
@@ -261,7 +266,7 @@ std::string get_current_directory()
     }
     else
     {
-        VX_ERROR(error::error_code::FILE_ERROR) << "failed to get current directory";
+        file_operation_error(path, "get current directory");
     }
 
     return path;
@@ -269,7 +274,7 @@ std::string get_current_directory()
 
 bool change_current_directory(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
 
     if (!SetCurrentDirectoryW(wpath.c_str()))
     {
@@ -282,13 +287,22 @@ bool change_current_directory(const std::string& path)
 
 std::vector<std::string> list()
 {
-    return list(get_current_directory());
+    std::vector<std::string> ls;
+    error::clear_error();
+
+    const std::string dir = get_current_directory();
+    if (!error::get_error())
+    {
+        ls = list();
+    }
+
+    return ls;
 }
 
 std::vector<std::string> list(const std::string& path, bool absolute)
 {
     // Append wildcard to search for all items
-    const std::wstring wpath = vx::str::string_to_wstring(path) + L"\\*";
+    const std::wstring wpath = str::string_to_wstring(path) + L"\\*";
     std::vector<std::string> subdirectories;
 
     WIN32_FIND_DATAW data{};
@@ -330,13 +344,13 @@ std::vector<std::string> list(const std::string& path, bool absolute)
 
 path_info get_path_info(const std::string& path)
 {
-    const std::wstring wpath = vx::str::string_to_wstring(path);
+    const std::wstring wpath = str::string_to_wstring(path);
     path_info info{};
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &data))
     {
-        VX_ERROR(error::error_code::FILE_ERROR) << "failed to obtain path info: " << path;
+        file_operation_error(path, "obtain path info");
         return info;
     }
 
@@ -372,7 +386,7 @@ std::string get_app_data_folder(const std::string& app)
     // Get the path to the AppData folder
     if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, wpath)))
     {
-        VX_ERROR(error::error_code::FILE_ERROR) << "failed to locate app data directory";
+        file_operation_error(app, "locate app data directory");
         return path;
     }
 

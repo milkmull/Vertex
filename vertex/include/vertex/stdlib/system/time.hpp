@@ -64,6 +64,8 @@ struct datetime
     int32_t second;                 // second [0-59] leap seconds not supported
     int32_t nanosecond;             // nanosecond [0-999999999]
     int32_t utc_offset_seconds;     // seconds east of utc
+
+    std::string str() const;
 };
 
 // https://docs.godotengine.org/en/stable/classes/class_time.html
@@ -208,6 +210,18 @@ weekday get_day_of_week(int32_t year, month month, int32_t day);
 ///////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Validates a 'datetime' structure.
+///
+/// This function checks if the provided 'datetime' structure contains valid 
+/// values for the year, month, day, hour, minute, second, and nanosecond fields.
+///
+/// @param dt The 'datetime' structure to validate.
+/// 
+/// @return 'true' if the 'datetime' is valid, 'false' otherwise.
+///////////////////////////////////////////////////////////////////////////////
+bool is_valid_datetime(const datetime& dt);
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Converts a timestamp to a 'datetime' structure.
 ///
 /// This function converts a 'time_t' value, representing the number of 
@@ -234,32 +248,6 @@ datetime time_to_datetime(time_t ticks, bool local);
 /// is invalid.
 ///////////////////////////////////////////////////////////////////////////////
 time_t datetime_to_time(const datetime& dt);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Validates a 'datetime' structure.
-///
-/// This function checks if the provided 'datetime' structure contains valid 
-/// values for the year, month, day, hour, minute, second, and nanosecond fields.
-///
-/// @param dt The 'datetime' structure to validate.
-/// 
-/// @return 'true' if the 'datetime' is valid, 'false' otherwise.
-///////////////////////////////////////////////////////////////////////////////
-bool is_valid_datetime(const datetime& dt);
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Parses a datetime string in ISO 8601 format to a 'datetime' structure.
-///
-/// This function parses a string representing a date and time in ISO 8601 format 
-/// and converts it to a 'datetime' structure. It handles both date-only and 
-/// time-only strings, as well as combined date-time strings.
-///
-/// @param s The string to parse.
-/// 
-/// @return The parsed 'datetime' structure, or an empty 'datetime' if the 
-/// string is invalid.
-///////////////////////////////////////////////////////////////////////////////
-datetime datetime_from_string(const std::string& str);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Converts a 'datetime' structure to an ISO 8601 formatted string.

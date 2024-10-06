@@ -370,12 +370,14 @@ VX_FORCE_INLINE constexpr T clamp(T x, T min, T max)
 template <typename T, typename std::enable_if<std::is_integral<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr T gcd(T a, T b)
 {
-    if (b == static_cast<T>(0))
+    while (b != static_cast<T>(0))
     {
-        return a;
+        T temp = b;
+        b = a % b;
+        a = temp;
     }
 
-    return gcd(b, a % b);
+    return a;
 }
 
 }

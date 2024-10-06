@@ -1,11 +1,6 @@
-#include <sstream>
-#include <iomanip>
-
 #include "vertex/system/assert.hpp"
-#include "vertex/system/error.hpp"
 #include "vertex/stdlib/system/time.hpp"
 #include "vertex/stdlib/string/string.hpp"
-//#include "vertex/math/math/fn/fn_common.hpp"
 
 namespace vx {
 namespace time {
@@ -127,11 +122,61 @@ weekday get_day_of_week(int32_t year, month month, int32_t day)
 // Datetime
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool check_datetime(const datetime& dt, error::error_code code)
+{
+    if (dt.month < month::JANUARY || dt.month > month::DECEMBER)
+    {
+        if (code != error::error_code::NONE)
+        {
+            VX_ERROR(code) << "invalid month: " << static_cast<int32_t>(dt.month);
+        }
+        return false;
+    }
+    if (dt.hour < 0 || dt.hour > 23)
+    {
+        if (code != error::error_code::NONE)
+        {
+            VX_ERROR(code) << "invalid hour: " << dt.hour;
+        }
+        return false;
+    }
+    if (dt.minute < 0 || dt.minute > 59)
+    {
+        if (code != error::error_code::NONE)
+        {
+            VX_ERROR(code) << "invalid minute: " << dt.minute;
+        }
+        return false;
+    }
+    if (dt.second < 0 || dt.second > 59) // leap second not supported
+    {
+        if (code != error::error_code::NONE)
+        {
+            VX_ERROR(code) << "invalid second: " << dt.second;
+        }
+        return false;
+    }
+    if (dt.nanosecond < 0 || dt.nanosecond > NS_PER_SEC)
+    {
+        if (code != error::error_code::NONE)
+        {
+            VX_ERROR(code) << "invalid nanosecond: " << dt.nanosecond;
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool is_valid_datetime(const datetime& dt)
+{
+    return check_datetime(dt, error::error_code::NONE);
+}
+
 time_t datetime_to_time(const datetime& dt)
 {
-    if (!is_valid_datetime(dt))
+    if (!check_datetime(dt, error::error_code::INVALID_ARGUMENT))
     {
-        error::set_error(error::error_code::INVALID_ARGUMENT);
         return 0;
     }
 
@@ -150,168 +195,43 @@ time_t datetime_to_time(const datetime& dt)
     return ticks;
 }
 
-bool is_valid_datetime(const datetime& dt)
-{
-    if (dt.month < month::JANUARY || dt.month > month::DECEMBER)
-    {
-        return false;
-    }
-    if (dt.hour < 0 || dt.hour > 23)
-    {
-        return false;
-    }
-    if (dt.minute < 0 || dt.minute > 59)
-    {
-        return false;
-    }
-    if (dt.second < 0 || dt.second > 59) // leap second not supported
-    {
-        return false;
-    }
-    if (dt.nanosecond < 0 || dt.nanosecond > NS_PER_SEC)
-    {
-        return false;
-    }
-
-    return true;
-}
-
 // https://en.wikipedia.org/wiki/ISO_8601
 // https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.isoparse
 
-datetime datetime_from_string(const std::string& s)
+std::string datetime::str() const
 {
-    datetime dt{};
-    if (s.empty())
-    {
-        error::set_error(error::error_code::INVALID_ARGUMENT);
-        return dt;
-    }
-
-    std::vector<std::string> date_time;
-    const std::string* date = nullptr;
-    const std::string* time = nullptr;
-
-    if (s.find('T') != std::string::npos)
-    {
-        date_time = str::split(s, "T");
-        if (date_time.size() != 2)
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-
-        date = &date_time[0];
-        time = &date_time[1];
-    }
-    else if (s.find('-') != std::string::npos)
-    {
-        date = &s;
-    }
-    else if (s.find(':') != std::string::npos)
-    {
-        time = &s;
-    }
-    else
-    {
-        error::set_error(error::error_code::INVALID_ARGUMENT);
-        return dt;
-    }
-
-    if (date)
-    {
-        std::vector<std::string> ymd = str::split(*date, "-");
-        if (ymd.size() < 3 || ymd.size() > 4)
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-
-        bool negative_year = (ymd.size() == 4) && (ymd[0].empty());
-        size_t offset = negative_year ? 1 : 0;
-
-        //if (ymd[0 + offset].size() != 4 || !str::to_int(ymd[0 + offset], dt.year))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-        //if (negative_year)
-        //{
-        //    dt.year *= -1;
-        //}
-        //if (ymd[1 + offset].size() != 2 || !str::to_int(ymd[1 + offset], *reinterpret_cast<int32_t*>(&dt.month)))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-        //if (ymd[2 + offset].size() != 2 || !str::to_int(ymd[2 + offset], dt.day))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-
-        dt.weekday = get_day_of_week(dt.year, dt.month, dt.day);
-    }
-    if (time)
-    {
-        std::vector<std::string> hms = str::split(*time, ":");
-        if (hms.size() != 3)
-        {
-            error::set_error(error::error_code::INVALID_ARGUMENT);
-            return dt;
-        }
-
-        // Remove UTC if present
-        if (!hms[2].empty() && hms[2].back() == 'Z')
-        {
-            hms[2].pop_back();
-        }
-
-        //if (hms[0].size() != 2 || !str::to_int(hms[0], dt.hour))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-        //if (hms[1].size() != 2 || !str::to_int(hms[1], dt.minute))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-        //if (hms[2].size() != 2 || !str::to_int(hms[2], dt.second))
-        //{
-        //    error::set_error(error::error_code::INVALID_ARGUMENT);
-        //    return dt;
-        //}
-    }
-
-    return dt;
+    return datetime_to_string(*this);
 }
+
+// https://en.wikipedia.org/wiki/ISO_8601
 
 std::string datetime_to_string(const datetime& dt)
 {
-    if (!is_valid_datetime(dt))
+    if (!check_datetime(dt, error::error_code::INVALID_ARGUMENT))
     {
-        error::set_error(error::error_code::INVALID_ARGUMENT, "Invalid datetime");
-        return {};
+        return std::string();
     }
 
-    std::ostringstream oss;
-    const int32_t imonth = static_cast<int32_t>(dt.month);
+    // YYYY-MM-DDTHH:MM:SSZ
+    char buffer[21]{ 0 };
 
     // Format the date and time in ISO 8601 format
-    oss << std::setw(4) << std::setfill('0') << dt.year     << '-'
-        << std::setw(2) << std::setfill('0') << imonth      << '-'
-        << std::setw(2) << std::setfill('0') << dt.day      << 'T'
-        << std::setw(2) << std::setfill('0') << dt.hour     << ':'
-        << std::setw(2) << std::setfill('0') << dt.minute   << ':'
-        << std::setw(2) << std::setfill('0') << dt.second;
+    sprintf(buffer, "%04d-%02d-%02dT%02d:%02d:%02d",
+        dt.year,
+        static_cast<int32_t>(dt.month),
+        dt.day,
+        dt.hour,
+        dt.minute,
+        dt.second
+    );
 
+    // If the offset is 0, append 'Z' (for UTC)
     if (dt.utc_offset_seconds == 0)
     {
-        oss << 'Z'; // Z indicates UTC
+        buffer[19] = 'Z';
     }
 
-    return oss.str();
+    return buffer;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -354,22 +274,38 @@ struct ticks_data
 
     uint64_t start_ticks;
 
-    //ticks_data()
-    //{
-    //    uint64_t ticks_per_second = get_performance_frequency();
-    //    assert(ticks_per_second <= static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
-    //    uint32_t gcd;
-    //
-    //    gcd = math::gcd(static_cast<uint32_t>(MS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
-    //    tick_numerator_ms = static_cast<uint32_t>(MS_PER_SEC / gcd);
-    //    tick_denominator_ms = static_cast<uint32_t>(ticks_per_second / gcd);
-    //
-    //    gcd = math::gcd(static_cast<uint32_t>(NS_PER_SEC), static_cast<uint32_t>(ticks_per_second));
-    //    tick_numerator_ns = static_cast<uint32_t>(NS_PER_SEC / gcd);
-    //    tick_denominator_ns = static_cast<uint32_t>(ticks_per_second / gcd);
-    //
-    //    start_ticks = get_performance_counter();
-    //}
+    ticks_data()
+    {
+        uint64_t ticks_per_second = get_performance_frequency();
+        assert(ticks_per_second <= static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
+
+#       define GCD(a, b, gcd)  \
+        while (b)              \
+        {                      \
+            uint32_t temp = b; \
+            b = a % b;         \
+            a = temp;          \
+        }                      \
+        gcd = a;
+
+        uint32_t a, b, gcd;
+
+        a = static_cast<uint32_t>(MS_PER_SEC);
+        b = static_cast<uint32_t>(ticks_per_second);
+        GCD(a, b, gcd);
+        tick_numerator_ms = static_cast<uint32_t>(MS_PER_SEC / gcd);
+        tick_denominator_ms = static_cast<uint32_t>(ticks_per_second / gcd);
+    
+        a = static_cast<uint32_t>(NS_PER_SEC);
+        b = static_cast<uint32_t>(ticks_per_second);
+        GCD(a, b, gcd);
+        tick_numerator_ns = static_cast<uint32_t>(NS_PER_SEC / gcd);
+        tick_denominator_ns = static_cast<uint32_t>(ticks_per_second / gcd);
+    
+        start_ticks = get_performance_counter();
+
+#       undef GCD
+    }
 };
 
 static ticks_data s_ticks_data{};
