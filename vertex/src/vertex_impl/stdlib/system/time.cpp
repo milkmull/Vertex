@@ -5,6 +5,39 @@
 namespace vx {
 namespace time {
 
+const char* weekday_to_string(weekday d)
+{
+    switch (d)
+    {
+        case weekday::SUNDAY:       return "Sunday";
+        case weekday::MONDAY:       return "Monday";
+        case weekday::TUESDAY:      return "Tuesady";
+        case weekday::WEDNESDAY:    return "Wednesday";
+        case weekday::THURSDAY:     return "Thurday";
+        case weekday::FRIDAY:       return "Friday";
+        case weekday::SATURDAY:     return "Saturday";
+    }
+}
+
+const char* month_to_string(month m)
+{
+    switch (m)
+    {
+        case month::JANUARY:        return "January";
+        case month::FEBRUARY:       return "February";
+        case month::MARCH:          return "March";
+        case month::APRIL:          return "April";
+        case month::MAY:            return "May";
+        case month::JUNE:           return "June";
+        case month::JULY:           return "July";
+        case month::AUGUST:         return "August";
+        case month::SEPTEMBER:      return "September";
+        case month::OCTOBER:        return "October";
+        case month::NOVEMBER:       return "November";
+        case month::DECEMBER:       return "December";
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Date Helpers
 ///////////////////////////////////////////////////////////////////////////////

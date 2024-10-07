@@ -81,14 +81,14 @@ uint64_t get_performance_frequency()
 // Delay
 ///////////////////////////////////////////////////////////////////////////////
 
-void delay(uint32_t ms)
+void sleep(uint32_t ms)
 {
     Sleep(static_cast<DWORD>(ms));
 }
 
-void delay_ns(uint32_t ns)
+void sleep_ns(uint32_t ns)
 {
-    delay(static_cast<uint32_t>(nanoseconds_to_milliseconds(ns)));
+    sleep(static_cast<uint32_t>(nanoseconds_to_milliseconds(ns)));
 }
 
 }

@@ -5,10 +5,7 @@
 namespace vx {
 namespace io {
 
-inline void print()
-{
-    std::cout << std::endl;
-}
+inline void print() {}
 
 template <typename Arg, typename... Args>
 inline void print(Arg&& arg, Args&&... args)
@@ -17,16 +14,16 @@ inline void print(Arg&& arg, Args&&... args)
     print(std::forward<Args>(args)...);
 }
 
-inline void print_err()
+inline void println()
 {
     std::cout << std::endl;
 }
 
 template <typename Arg, typename... Args>
-inline void print_err(Arg&& arg, Args&&... args)
+inline void println(Arg&& arg, Args&&... args)
 {
-    std::cerr << std::forward<Arg>(arg) << ' ';
-    print(std::forward<Args>(args)...);
+    std::cout << std::forward<Arg>(arg) << ' ';
+    println(std::forward<Args>(args)...);
 }
 
 template <typename T>

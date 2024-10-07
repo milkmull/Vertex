@@ -72,6 +72,33 @@ else()
    
 endif()
 
+# Debug macro
+target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_DEBUG>)
+
+# On some platforms (e.g. Raspberry Pi 3 armhf), GCC requires linking libatomic
+# to use <atomic> features that aren't supported by native CPU instructions
+# (64-bit atomic operations on 32-bit architecture)
+#if(VX_CMAKE_COMPILER_GCC)
+#
+#    include(CheckCXXSourceCompiles)
+#    check_cxx_source_compiles(
+#    
+#        "#include <atomic>
+#        int main()
+#        {
+#            std::atomic_ullong x(1);
+#            return x.fetch_add(1);
+#        }"
+#        
+#    VX_ATOMIC_TEST)
+#    
+#    if(NOT VX_ATOMIC_TEST)
+#        message(WARNING "Linking against libatomic due to lack of support for atomic operations.")
+#        target_link_libraries(Vertex PRIVATE atomic)
+#    endif()
+#    
+#endif()
+
 #--------------------------------------------------------------------
 # Files
 #--------------------------------------------------------------------

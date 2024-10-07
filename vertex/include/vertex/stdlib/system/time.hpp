@@ -23,6 +23,8 @@ enum class weekday : int32_t
     SATURDAY    = 6
 };
 
+const char* weekday_to_string(weekday d);
+
 enum class month : int32_t
 {
     JANUARY     = 1,
@@ -38,6 +40,8 @@ enum class month : int32_t
     NOVEMBER    = 11,
     DECEMBER    = 12
 };
+
+const char* month_to_string(month m);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Types
@@ -351,7 +355,7 @@ uint64_t get_ticks_ns();
 ///
 /// @param ms The number of milliseconds to delay.
 ///////////////////////////////////////////////////////////////////////////////
-void delay(uint32_t ms);
+void sleep(uint32_t ms);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Pauses execution for a specified number of nanoseconds.
@@ -361,7 +365,7 @@ void delay(uint32_t ms);
 ///
 /// @param ns The number of nanoseconds to delay.
 ///////////////////////////////////////////////////////////////////////////////
-void delay_ns(uint32_t ns);
+void sleep_ns(uint32_t ns);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Timer
