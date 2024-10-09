@@ -1,36 +1,29 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/iostream.hpp"
-#include "vertex/stdlib/system/time.hpp"
-#include "vertex/stdlib/thread/thread.hpp"
+#include "vertex/stdlib/file/filesystem.hpp"
+#include "vertex/stdlib/file/file.hpp"
 
 using namespace vx;
 
-static void run(int id)
-{
-    time::sleep(5000);
-    io::println(id);
-}
-
 int main(int argc, char* argv[])
 {
-    thread threads[10];
+    VX_LOG_INFO << filesystem::get_current_directory();
 
-    for (int i = 0; i < 10; ++i)
-    {
-        threads[i] = thread(run, i);
-    }
+    file f;
+    f.open("hello.txt", file_mode::WRITE);
+    int a = 12345;
+    f.write_from(a);
+    f.close();
 
-    for (int i = 0; i < 10; ++i)
-    {
-        io::print(threads[i].get_id());
-        threads[i].start();
-        io::println(threads[i].get_id());
-    }
-
-    for (int i = 0; i < 10; ++i)
-    {
-        threads[i].join();
-    }
+    f.open("hello.txt", file_mode::READ);
+    
+    int b;
+    VX_LOG_INFO << f.read_to(b);
+    VX_LOG_INFO << b;
+    //
+    ////auto data = f.read();
+    ////VX_LOG_INFO << std::string(data.begin(), data.end());
+    //
+    //f.close();
 
     return 0;
 }
