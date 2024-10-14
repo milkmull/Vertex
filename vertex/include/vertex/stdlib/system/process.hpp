@@ -27,7 +27,6 @@ enum class process_io
 
 struct process_config
 {
-    std::string path;
     std::vector<std::string> args;
     std::unordered_map<std::string, std::string> environment;
 

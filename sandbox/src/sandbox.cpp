@@ -6,9 +6,8 @@ using namespace vx;
 int main(int argc, char* argv[])
 {
     proc::process_config config;
-    config.path = "";
-
-    config.args = { "cmd", "/C ping localhost" };
+    config.args = { "cmd", "/C", "ping", "localhost" };
+    //config.environment["test"] = "1";
 
     proc::process p;
     p.start(config);

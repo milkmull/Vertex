@@ -89,6 +89,7 @@ static std::string join_arguments(const std::vector<std::string>& args)
     const bool batch_file = str::ends_with(args[0], ".bat") || str::ends_with(args[0], ".cmd");
 
     std::vector<bool> need_quotes(count, false);
+
     for (size_t i = 0; i < count; ++i)
     {
         if ((args[i].find_first_of(" \t\"()=!") != std::string::npos) ||
@@ -106,7 +107,7 @@ static std::string join_arguments(const std::vector<std::string>& args)
         {
             out.push_back('"');
 
-            for (auto it = args[i].c_str(); *it; ++it)
+            for (const char* it = args[i].data(); *it; ++it)
             {
                 // Only escape backslashes that precede a double quote
                 if (*it == '"' || (*it == '\\' && (it[1] == '"' || it[1] == '\0')))
@@ -133,6 +134,22 @@ static std::string join_arguments(const std::vector<std::string>& args)
     return out;
 }
 
+static std::string join_environment(const std::unordered_map<std::string, std::string>& environment)
+{
+    std::string out;
+
+    for (const auto& pair : environment)
+    {
+        out.append(pair.first);
+        out.push_back('=');
+        out.append(pair.second);
+        out.push_back('\0');
+    }
+    out.push_back('\0');
+
+    return out;
+}
+
 bool process::process_impl::start(process* p, const process_config& config)
 {
     m_process_information.hProcess = INVALID_HANDLE_VALUE;
@@ -148,6 +165,24 @@ bool process::process_impl::start(process* p, const process_config& config)
     SECURITY_ATTRIBUTES security_attributes{ sizeof(SECURITY_ATTRIBUTES) };
     security_attributes.bInheritHandle = TRUE;
     security_attributes.lpSecurityDescriptor = NULL;
+
+    std::wstring wargs;
+    LPWSTR command_line = NULL;
+
+    if (!config.args.empty())
+    {
+        wargs = str::string_to_wstring(join_arguments(config.args));
+        command_line = wargs.data();
+    }
+
+    std::wstring wenv;
+    LPVOID environment = NULL;
+
+    if (!config.environment.empty())
+    {
+        wenv = str::string_to_wstring(join_environment(config.environment));
+        environment = wenv.data();
+    }
 
     process_io stdin  = config.stdin;
     process_io stdout = config.stdout;
@@ -191,14 +226,11 @@ bool process::process_impl::start(process* p, const process_config& config)
         }
     }
 
-    const std::wstring wpath = str::string_to_wstring(config.path);
-    const std::wstring wargs = str::string_to_wstring(join_arguments(config.args));
-
     if (!CreateProcessW(
         // Path to the executable
         NULL,
         // Command line arguments
-        const_cast<LPWSTR>(wargs.c_str()),
+        command_line,
         // Process attributes
         NULL,
         // Thread attributes
@@ -208,7 +240,7 @@ bool process::process_impl::start(process* p, const process_config& config)
         // Creation flags
         creation_flags,
         // Environment (same as calling)
-        NULL,
+        environment,
         // Directory (same as calling)
         NULL,
 
