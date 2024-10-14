@@ -9,6 +9,7 @@ const char* weekday_to_string(weekday d)
 {
     switch (d)
     {
+        default:
         case weekday::SUNDAY:       return "Sunday";
         case weekday::MONDAY:       return "Monday";
         case weekday::TUESDAY:      return "Tuesady";
@@ -23,6 +24,7 @@ const char* month_to_string(month m)
 {
     switch (m)
     {
+        default:
         case month::JANUARY:        return "January";
         case month::FEBRUARY:       return "February";
         case month::MARCH:          return "March";

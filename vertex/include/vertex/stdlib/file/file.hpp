@@ -3,6 +3,8 @@
 #include <fstream>
 #include <vector>
 
+#include "vertex/system/error.hpp"
+
 namespace vx {
 
 enum class file_mode
@@ -84,7 +86,8 @@ public:
     {
         if (!is_open())
         {
-            throw std::runtime_error("File not open for reading");
+            VX_ERROR(error::error_code::FILE_READ_FAILED);
+            return std::vector<uint8_t>();
         }
 
         const size_t filesize = size();
@@ -98,7 +101,8 @@ public:
     {
         if (!is_open())
         {
-            throw std::runtime_error("File not open for reading");
+            VX_ERROR(error::error_code::FILE_READ_FAILED);
+            return 0;
         }
 
         size_t count = tell();
@@ -111,9 +115,12 @@ public:
     template <typename T>
     size_t read_to(T& value)
     {
+        value = T{};
+
         if (!is_open())
         {
-            throw std::runtime_error("File not open for reading");
+            VX_ERROR(error::error_code::FILE_READ_FAILED);
+            return 0;
         }
 
         size_t count = tell();
@@ -123,32 +130,37 @@ public:
         return count;
     }
 
-    void write(const uint8_t* data, size_t size)
+    bool write(const uint8_t* data, size_t size)
     {
         if (!is_open())
         {
-            throw std::runtime_error("File not open for writing");
+            VX_ERROR(error::error_code::FILE_WRITE_FAILED);
+            return false;
         }
 
         m_file.write(reinterpret_cast<const char*>(data), size);
+        return true;
     }
 
     template <typename T>
-    void write_from(const T& data)
+    bool write_from(const T& data)
     {
         if (!is_open())
         {
-            throw std::runtime_error("File not open for writing");
+            VX_ERROR(error::error_code::FILE_WRITE_FAILED);
+            return false;
         }
 
         m_file.write(reinterpret_cast<const char*>(&data), sizeof(T));
+        return true;
     }
 
     size_t size()
     {
         if (!is_open())
         {
-            throw std::runtime_error("File not open");
+            VX_ERROR(error::error_code::FILE_READ_FAILED);
+            return 0;
         }
 
         const std::streampos position = m_file.tellg();

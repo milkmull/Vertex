@@ -1,29 +1,19 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/file/filesystem.hpp"
-#include "vertex/stdlib/file/file.hpp"
+#include "vertex/stdlib/system/process.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    VX_LOG_INFO << filesystem::get_current_directory();
+    proc::process_config config;
+    config.path = "";
 
-    file f;
-    f.open("hello.txt", file_mode::WRITE);
-    int a = 12345;
-    f.write_from(a);
-    f.close();
+    config.args = { "cmd", "/C ping localhost" };
 
-    f.open("hello.txt", file_mode::READ);
-    
-    int b;
-    VX_LOG_INFO << f.read_to(b);
-    VX_LOG_INFO << b;
-    //
-    ////auto data = f.read();
-    ////VX_LOG_INFO << std::string(data.begin(), data.end());
-    //
-    //f.close();
+    proc::process p;
+    p.start(config);
+
+    VX_LOG_ERROR << error::get_error().message;
 
     return 0;
 }

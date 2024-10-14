@@ -87,3 +87,7 @@ typedef enum {
 
 using DwmSetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
 using DwmGetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);
+
+#include <string>
+
+void WindowsErrorMessage(const std::string& msg);

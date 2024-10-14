@@ -14,6 +14,11 @@ public:
 
     using id = std::thread::id;
 
+    static id get_current_thread_id()
+    {
+        return std::this_thread::get_id();
+    }
+
     thread() noexcept
         : m_alive(false) {}
 
