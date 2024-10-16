@@ -1,5 +1,9 @@
 #include "vertex/system/error.hpp"
 
+#if defined(VX_DEBUG)
+#   include "vertex/system/log.hpp"
+#endif
+
 namespace vx {
 namespace error {
 
@@ -53,6 +57,10 @@ error_info get_error()
 
 void set_error(error_code code, const std::string& msg)
 {
+#if defined(VX_DEBUG)
+    VX_LOG_ERROR << static_cast<int>(code) << ": " << msg;
+#endif
+
     s_error.code = code;
     s_error.message = msg;
 }
