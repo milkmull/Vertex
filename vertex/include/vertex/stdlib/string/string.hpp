@@ -3,27 +3,33 @@
 #include "vertex/system/compiler.hpp"
 
 #if (VX_CPP_STANDARD == 17)
-
 #   include <string_view>
-
-#   define str_arg_t std::string_view
-#   define wstr_arg_t std::wstring_view
-#   define basic_str_arg_t std::basic_string_view 
-
 #else
-
 #   include <string>
-
-#   define str_arg_t std::string
-#   define wstr_arg_t std::wstring
-#   define basic_str_arg_t std::basic_string
-
 #endif
 
 #include <vector>
 
 namespace vx {
 namespace str {
+
+#if (VX_CPP_STANDARD == 17)
+
+using str_arg_t = std::string_view;
+using wstr_arg_t = std::wstring_view;
+
+template <typename char_t>
+using basic_str_arg_t = std::basic_string_view<char_t>;
+
+#else
+
+using str_arg_t = std::string;
+using wstr_arg_t = std::wstring;
+
+template <typename char_t>
+using basic_str_arg_t = std::basic_string<char_t>;
+
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // To/From String
@@ -103,7 +109,7 @@ inline bool is_space(const str_arg_t& s);
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_hex_digit(const char c);
-inline bool is_hex(const str_arg_t& s);
+inline bool is_hex(const str_arg_t& s, const bool allow_prefix = false);
 
 inline std::string to_hex_string(const void* data, size_t size);
 

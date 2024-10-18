@@ -15,7 +15,7 @@ void WindowsErrorMessage(const std::string& msg)
     );
 
     // Kill CR/LF that FormatMessage() sticks at the end
-    for (auto it = buffer; *it; ++it)
+    for (WCHAR* it = buffer; *it; ++it)
     {
         if (*it == L'\r')
         {

@@ -109,7 +109,15 @@ private:
     std::atomic<bool> m_alive;
     std::function<void()> m_function;
     std::thread m_thread;
-
 };
+
+namespace this_thread {
+
+inline thread::id get_id() noexcept
+{
+    return std::this_thread::get_id();
+}
+
+} // namespace this_thread
 
 } // namespace vx

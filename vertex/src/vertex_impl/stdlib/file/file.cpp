@@ -17,7 +17,8 @@ static void file_not_open_error()
 #define IS_WRITE_MODE(mode) (mode != file_mode::READ)
 #define IS_APPEND_MODE(mode) (mode == file_mode::APPEND)
 
-file::file() : m_mode{} {}
+file::file()
+    : m_mode(file_mode::NONE) {}
 
 file::~file()
 {
@@ -33,6 +34,11 @@ file& file::operator=(file&& f) noexcept
     m_mode = f.m_mode;
     m_impl = std::move(f.m_impl);
     return *this;
+}
+
+bool file::exists(const std::string& path)
+{
+    return file_impl::exists(path);
 }
 
 bool file::create(const std::string& path)
@@ -108,7 +114,7 @@ bool file::open(const std::string& path, file_mode mode)
 
 bool file::is_open() const
 {
-    return m_impl && m_impl->is_open();
+    return (m_mode != file_mode::NONE) && m_impl && m_impl->is_open();
 }
 
 void file::close()
@@ -118,6 +124,23 @@ void file::close()
         m_impl->close();
         m_impl = nullptr;
     }
+
+    m_mode = file_mode::NONE;
+}
+
+bool file::can_read() const
+{
+    return IS_READ_MODE(m_mode);
+}
+
+bool file::can_write() const
+{
+    return IS_WRITE_MODE(m_mode);
+}
+
+file_mode file::mode() const
+{
+    return m_mode;
 }
 
 size_t file::size() const
@@ -220,6 +243,13 @@ bool file::flush()
     }
 
     return m_impl->flush();
+}
+
+file::ostream_proxy file::operator<<(std::ostream& (*func)(std::ostream&))
+{
+    ostream_proxy stream(*this);
+    stream << func;
+    return stream;
 }
 
 } // namespace vx

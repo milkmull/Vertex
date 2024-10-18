@@ -16,6 +16,12 @@ public:
     file_impl();
     ~file_impl();
 
+public:
+
+    static bool exists(const std::string& path);
+
+public:
+
     bool open(const std::string& path, file_mode mode);
     bool is_open() const;
     void close();
@@ -28,6 +34,11 @@ public:
     size_t read(uint8_t* data, size_t size);
     size_t write(const uint8_t* data, size_t size);
     bool flush();
+
+public:
+
+    static file from_handle(HANDLE handle, file_mode mode);
+    HANDLE get_handle();
 
 private:
 

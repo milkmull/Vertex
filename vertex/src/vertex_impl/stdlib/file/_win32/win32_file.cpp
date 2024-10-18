@@ -17,6 +17,13 @@ file::file_impl::~file_impl()
     close();
 }
 
+bool file::file_impl::exists(const std::string& path)
+{
+    const std::wstring wpath(str::string_to_wstring(path));
+    const DWORD fileAttr = GetFileAttributesW(wpath.c_str());
+    return (fileAttr != INVALID_FILE_ATTRIBUTES && !(fileAttr & FILE_ATTRIBUTE_DIRECTORY));
+}
+
 bool file::file_impl::open(const std::string& path, file_mode mode)
 {
     VX_ASSERT(!is_open(), "file already open");
@@ -209,6 +216,32 @@ bool file::file_impl::flush()
     }
 
     return true;
+}
+
+file file::file_impl::from_handle(HANDLE handle, file_mode mode)
+{
+    file f;
+
+    if (handle == INVALID_HANDLE_VALUE)
+    {
+        return f;
+    }
+
+    f.m_impl = std::make_unique<file_impl>();
+    if (!f.m_impl)
+    {
+        return f;
+    }
+
+    f.m_impl->m_handle = handle;
+    f.m_mode = mode;
+
+    return f;
+}
+
+HANDLE file::file_impl::get_handle()
+{
+    return m_handle;
 }
 
 } // namespace vx
