@@ -73,7 +73,7 @@ else()
 endif()
 
 # Debug macro
-target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_DEBUG>)
+target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_CMAKE_DEBUG>)
 
 # On some platforms (e.g. Raspberry Pi 3 armhf), GCC requires linking libatomic
 # to use <atomic> features that aren't supported by native CPU instructions

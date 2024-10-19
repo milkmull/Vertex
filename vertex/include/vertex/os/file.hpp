@@ -6,20 +6,11 @@
 #include "vertex/system/error.hpp"
 
 namespace vx {
+namespace os {
 
-namespace os { class process; }
+class process;
 
 // https://man7.org/linux/man-pages/man3/fopen.3.html
-
-enum class file_mode
-{
-    NONE,
-    READ,
-    WRITE,
-    APPEND,
-    READ_WRITE_EXISTS,
-    READ_WRITE_CREATE
-};
 
 enum class stream_position
 {
@@ -34,7 +25,19 @@ class file
 
 public:
 
+    enum class mode
+    {
+        NONE,
+        READ,
+        WRITE,
+        APPEND,
+        READ_WRITE_EXISTS,
+        READ_WRITE_CREATE
+    };
+
     enum : size_t { INVALID_SIZE = -1, INVALID_POSITION = -1 };
+
+public:
 
     file();
     ~file();
@@ -44,6 +47,8 @@ public:
 
     file& operator=(const file&) = delete;
     file& operator=(file&&) noexcept;
+
+    friend void swap(file& lhs, file& rhs) noexcept;
 
 public:
 
@@ -58,11 +63,11 @@ public:
 
 public:
 
-    bool open(const std::string& path, file_mode mode);
+    bool open(const std::string& path, mode mode);
     bool is_open() const;
     void close();
 
-    file_mode mode() const;
+    mode get_mode() const;
     bool can_read() const;
     bool can_write() const;
 
@@ -111,7 +116,7 @@ public:
 
 private:
 
-    file_mode m_mode;
+    mode m_mode;
 
     class file_impl;
     std::unique_ptr<file_impl> m_impl;
@@ -159,4 +164,5 @@ private:
     std::ostringstream m_oss;
 };
 
+} // namespace os
 } // namespace vx

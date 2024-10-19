@@ -7,7 +7,7 @@
 #undef min
 #undef max
 
-#include "vertex/stdlib/file/filesystem.hpp"
+#include "vertex/os/filesystem.hpp"
 #include "vertex/stdlib/string/string.hpp"
 
 // https://docs.godotengine.org/en/stable/classes/class_fileaccess.html
@@ -17,6 +17,7 @@
 // https://en.cppreference.com/w/cpp/filesystem
 
 namespace vx {
+namespace os {
 namespace filesystem {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -335,8 +336,8 @@ std::vector<std::string> list(const std::string& path, bool absolute)
         }
 
         subdirectories.push_back(name);
-    }
-    while (FindNextFileW(handle, &data));
+
+    } while (FindNextFileW(handle, &data));
 
     FindClose(handle);
     return subdirectories;
@@ -460,7 +461,8 @@ std::string get_user_folder(user_folder folder)
     return path;
 }
 
-}
-}
+} // namespace filesystem
+} // namespace os
+} // namespace vx
 
 #endif

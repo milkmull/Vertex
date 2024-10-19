@@ -314,14 +314,17 @@ struct ticks_data
         uint64_t ticks_per_second = get_performance_frequency();
         assert(ticks_per_second <= static_cast<uint64_t>(std::numeric_limits<uint32_t>::max()));
 
-#       define GCD(a, b, gcd)  \
-        while (b)              \
-        {                      \
-            uint32_t temp = b; \
-            b = a % b;         \
-            a = temp;          \
-        }                      \
-        gcd = a;
+#       define GCD(a, b, gcd) \
+        do \
+        { \
+            while (b) \
+            { \
+                uint32_t temp = b; \
+                b = a % b; \
+                a = temp; \
+            } \
+            gcd = a; \
+        } while (VX_NULL_WHILE_LOOP_CONDITION) \
 
         uint32_t a, b, gcd;
 

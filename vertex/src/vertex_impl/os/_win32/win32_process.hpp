@@ -19,12 +19,16 @@ public:
 
     bool start(process* p, const config& config);
 
-    bool is_initialized() const;
-    process_id get_pid() const;
+    id get_pid() const;
 
+    bool is_valid() const;
     bool is_alive() const;
+    bool is_complete() const;
+
+    bool join();
     bool kill(bool force);
-    bool wait(bool block, int* exit_code);
+
+    bool get_exit_code(int* exit_code) const;
 
 private:
 

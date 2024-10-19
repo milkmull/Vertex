@@ -3,7 +3,8 @@
 #if defined(VX_PLATFORM_WINDOWS)
 
 #include "vertex/stdlib/string/string.hpp"
-#include "vertex_impl/stdlib/file/_win32/win32_file.hpp"
+#include "vertex_impl/os/_win32/win32_file.hpp"
+#include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace os {
@@ -12,15 +13,15 @@ namespace os {
 // this_process
 ///////////////////////////////////////////////////////////////////////////////
 
-process_id this_process::get_pid()
+process::id this_process::get_pid()
 {
     const DWORD pid = GetCurrentProcessId();
-    return static_cast<process_id>(pid);
+    return static_cast<process::id>(pid);
 }
 
-process_environment this_process::get_environment()
+process::environment this_process::get_environment()
 {
-    process_environment environment;
+    process::environment environment;
 
     LPWCH environment_strings = GetEnvironmentStringsW();
     if (!environment_strings)
@@ -169,7 +170,7 @@ static std::string join_arguments(const std::vector<std::string>& args)
     return out;
 }
 
-static std::string join_environment(const process_environment& environment)
+static std::string join_environment(const process::environment& environment)
 {
     std::string out;
 
@@ -187,6 +188,11 @@ static std::string join_environment(const process_environment& environment)
 
 bool process::process_impl::start(process* p, const config& config)
 {
+    VX_ASSERT(!is_valid(), "process already configured");
+
+    m_process_information.hProcess = INVALID_HANDLE_VALUE;
+    m_process_information.hThread = INVALID_HANDLE_VALUE;
+
     bool success = false;
     DWORD creation_flags = CREATE_UNICODE_ENVIRONMENT;
 
@@ -240,8 +246,8 @@ bool process::process_impl::start(process* p, const config& config)
         HANDLE& user_pipe() { return pipes[user_pipe_index()]; }
         HANDLE& proc_pipe() { return pipes[proc_pipe_index()]; }
 
-        file_mode user_file_mode() const { return (type == STD_INPUT_HANDLE) ? file_mode::WRITE : file_mode::READ; }
-        file_mode proc_file_mode() const { return (type == STD_INPUT_HANDLE) ? file_mode::READ : file_mode::WRITE; }
+        file::mode user_file_mode() const { return (type == STD_INPUT_HANDLE) ? file::mode::WRITE : file::mode::READ; }
+        file::mode proc_file_mode() const { return (type == STD_INPUT_HANDLE) ? file::mode::READ : file::mode::WRITE; }
     };
 
     stream_data streams[STREAM_COUNT] = {
@@ -454,22 +460,21 @@ bool process::process_impl::start(process* p, const config& config)
     return success;
 }
 
-bool process::process_impl::is_initialized() const
+process::id process::process_impl::get_pid() const
 {
-    return m_process_information.hProcess != INVALID_HANDLE_VALUE;
+    return static_cast<id>(
+        is_valid() ? m_process_information.dwProcessId : 0
+    );
 }
 
-process_id process::process_impl::get_pid() const
+bool process::process_impl::is_valid() const
 {
-    return is_initialized() ? m_process_information.dwProcessId : 0;
+    return (m_process_information.hProcess != INVALID_HANDLE_VALUE);
 }
 
 bool process::process_impl::is_alive() const
 {
-    if (!is_initialized())
-    {
-        return false;
-    }
+    VX_ASSERT(is_valid(), "process not configured");
 
     DWORD exit_code;
     if (!GetExitCodeProcess(m_process_information.hProcess, &exit_code))
@@ -478,15 +483,48 @@ bool process::process_impl::is_alive() const
         return false;
     }
 
-    return exit_code == STILL_ACTIVE;
+    return (exit_code == STILL_ACTIVE);
+}
+
+bool process::process_impl::is_complete() const
+{
+    VX_ASSERT(is_valid(), "process not configured");
+
+    const DWORD result = WaitForSingleObject(
+        m_process_information.hProcess,
+        0
+    );
+
+    if (result == WAIT_FAILED)
+    {
+        WindowsErrorMessage("WaitForSingleObject() returned WAIT_FAILED");
+        return false;
+    }
+
+    return (result == WAIT_OBJECT_0);
+}
+
+bool process::process_impl::join()
+{
+    VX_ASSERT(is_valid(), "process not configured");
+
+    const DWORD result = WaitForSingleObject(
+        m_process_information.hProcess,
+        INFINITE
+    );
+
+    if (result == WAIT_FAILED)
+    {
+        WindowsErrorMessage("WaitForSingleObject() returned WAIT_FAILED");
+        return false;
+    }
+
+    return true;
 }
 
 bool process::process_impl::kill(bool force)
 {
-    if (!is_initialized())
-    {
-        return false;
-    }
+    VX_ASSERT(is_valid(), "process not configured");
 
     if (!TerminateProcess(m_process_information.hProcess, 1))
     {
@@ -494,22 +532,17 @@ bool process::process_impl::kill(bool force)
         return false;
     }
 
+    m_process_information.hProcess = INVALID_HANDLE_VALUE;
+    m_process_information.hThread = INVALID_HANDLE_VALUE;
+
     return true;
 }
 
-bool process::process_impl::wait(bool block, int* exit_code)
+bool process::process_impl::get_exit_code(int* exit_code) const
 {
-    if (!is_initialized())
-    {
-        return false;
-    }
+    VX_ASSERT(is_valid(), "process not configured");
 
-    const DWORD result = WaitForSingleObject(
-        m_process_information.hProcess,
-        block ? INFINITE : 0
-    );
-
-    if (result == WAIT_OBJECT_0)
+    if (exit_code)
     {
         DWORD rc;
         if (!GetExitCodeProcess(m_process_information.hProcess, &rc))
@@ -517,20 +550,11 @@ bool process::process_impl::wait(bool block, int* exit_code)
             WindowsErrorMessage("GetExitCodeProcess()");
             return false;
         }
-        if (exit_code)
-        {
-            *exit_code = static_cast<int>(rc);
-        }
-        return true;
-    }
-    if (result == WAIT_FAILED)
-    {
-        WindowsErrorMessage("WaitForSingleObject() returned WAIT_FAILED");
-        return false;
+
+        *exit_code = static_cast<int>(rc);
     }
 
-    // process is still running
-    return false;
+    return true;
 }
 
 } // namespace os

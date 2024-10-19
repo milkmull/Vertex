@@ -1,24 +1,31 @@
 ﻿#include "sandbox/sandbox.hpp"
 #include "vertex/stdlib/system/time.hpp"
 #include "vertex/os/process.hpp"
+#include "vertex/os/thread.hpp"
+#include "vertex/stdlib/system/time.hpp"
 
 using namespace vx;
 
+static bool thread_test(int x)
+{
+    time::sleep(5000);
+    VX_LOG_INFO << "thread: " << x;
+    return true;
+}
+
 int main(int argc, char* argv[])
 {
-    os::process::config config;
-    config.background = false;
-    config.args = { "cmd", "/C", "ping localhost" };
-    config.stdout_option = os::process::io_option::CREATE;
-    
-    os::process p;
-    p.start(config);
+    os::thread threads[10]{};
 
-    p.wait(true);
+    for (int i = 0; i < 10; ++i)
+    {
+        threads[i].start(thread_test, i);
+    }
 
-    //std::string text;
-    //p.get_stdout().read_text(text, 1000);
-    //VX_LOG_INFO << text;
+    for (int i = 0; i < 10; ++i)
+    {
+        threads[i].join();
+    }
 
     return 0;
 }

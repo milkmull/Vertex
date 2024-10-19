@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 
-#include "vertex/stdlib/file/file.hpp"
+#include "vertex/os/file.hpp"
 
 #undef stdin
 #undef stdout
@@ -11,26 +11,7 @@
 namespace vx {
 namespace os {
 
-using process_id = int;
-using process_environment = std::unordered_map<std::string, std::string>;
-
-///////////////////////////////////////////////////////////////////////////////
-// this_process
-///////////////////////////////////////////////////////////////////////////////
-
-namespace this_process {
-
-process_id get_pid();
-
-process_environment get_environment();
-std::string get_environment_variable(const std::string& name);
-bool set_environment_variable(const std::string& name, const std::string& value);
-bool clear_environment_variable(const std::string& name);
-
-size_t get_memory_usage();
-size_t get_cpu_usage();
-
-} // namespace this_process
+using io_stream = file;
 
 ///////////////////////////////////////////////////////////////////////////////
 // process
@@ -39,6 +20,9 @@ size_t get_cpu_usage();
 class process
 {
 public:
+
+    using id = int;
+    using environment = std::unordered_map<std::string, std::string>;
 
     enum class io_option
     {
@@ -51,7 +35,7 @@ public:
     struct config
     {
         std::vector<std::string> args;
-        process_environment environment;
+        environment environment;
 
         bool background = true;
 
@@ -85,28 +69,49 @@ public:
     process& operator=(const process&) = delete;
     process& operator=(process&&) noexcept;
 
+    friend void swap(process& lhs, process& rhs) noexcept;
+
 public:
 
     bool start(const config& config);
 
-    bool is_initialized() const;
-    process_id get_pid() const;
+    id get_pid() const;
 
+    bool is_valid() const;
     bool is_alive() const;
-    bool kill(bool force = false);
-    bool wait(bool block, int* exit_code = nullptr);
+    bool is_complete() const;
 
-    file& get_stdin();
-    file& get_stdout();
-    file& get_stderr();
+    bool join();
+    bool kill(bool force = false);
+
+    bool get_exit_code(int* exit_code) const;
+
+    io_stream& get_stdin();
+    io_stream& get_stdout();
+    io_stream& get_stderr();
 
 private:
 
-    file m_streams[STREAM_COUNT]{};
+    io_stream m_streams[STREAM_COUNT]{};
 
     class process_impl;
     std::unique_ptr<process_impl> m_impl;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// this_process
+///////////////////////////////////////////////////////////////////////////////
+
+namespace this_process {
+
+process::id get_pid();
+
+process::environment get_environment();
+std::string get_environment_variable(const std::string& name);
+bool set_environment_variable(const std::string& name, const std::string& value);
+bool clear_environment_variable(const std::string& name);
+
+} // namespace this_process
 
 } // namespace os
 } // namespace vx

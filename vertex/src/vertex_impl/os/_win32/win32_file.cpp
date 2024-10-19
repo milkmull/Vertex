@@ -1,13 +1,14 @@
-#include "vertex_impl/stdlib/file/_win32/win32_file.hpp"
+#include "vertex_impl/os/_win32/win32_file.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
 
 #include "vertex_impl/_platform/_win32/win32_header.hpp"
-#include "vertex/stdlib/file/file.hpp"
+#include "vertex/os/file.hpp"
 #include "vertex/stdlib/string/string.hpp"
 #include "vertex/system/assert.hpp"
 
 namespace vx {
+namespace os {
 
 file::file_impl::file_impl()
     : m_handle(INVALID_HANDLE_VALUE) {}
@@ -24,7 +25,7 @@ bool file::file_impl::exists(const std::string& path)
     return (fileAttr != INVALID_FILE_ATTRIBUTES && !(fileAttr & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-bool file::file_impl::open(const std::string& path, file_mode mode)
+bool file::file_impl::open(const std::string& path, mode mode)
 {
     VX_ASSERT(!is_open(), "file already open");
 
@@ -36,7 +37,7 @@ bool file::file_impl::open(const std::string& path, file_mode mode)
     switch (mode)
     {
         // File must exist
-        case file_mode::READ:
+        case mode::READ:
         {
             access = GENERIC_READ;
             creation = OPEN_EXISTING;
@@ -45,28 +46,28 @@ bool file::file_impl::open(const std::string& path, file_mode mode)
             break;
         }
         // Always create or truncate the file
-        case file_mode::WRITE:
+        case mode::WRITE:
         {
             access = GENERIC_WRITE;
             creation = CREATE_ALWAYS;
             break;
         }
         // Create if not exists, otherwise open existing
-        case file_mode::APPEND:
+        case mode::APPEND:
         {
             access = FILE_APPEND_DATA;
             creation = OPEN_ALWAYS;
             break;
         }
         // File must exist
-        case file_mode::READ_WRITE_EXISTS:
+        case mode::READ_WRITE_EXISTS:
         {
             access = GENERIC_READ | GENERIC_WRITE;
             creation = OPEN_EXISTING;
             break;
         }
         // Truncate if file exists, or create a new one
-        case file_mode::READ_WRITE_CREATE:
+        case mode::READ_WRITE_CREATE:
         {
             access = GENERIC_READ | GENERIC_WRITE;
             creation = CREATE_ALWAYS;
@@ -218,7 +219,7 @@ bool file::file_impl::flush()
     return true;
 }
 
-file file::file_impl::from_handle(HANDLE handle, file_mode mode)
+file file::file_impl::from_handle(HANDLE handle, mode mode)
 {
     file f;
 
@@ -244,6 +245,7 @@ HANDLE file::file_impl::get_handle()
     return m_handle;
 }
 
+} // namespace os
 } // namespace vx
 
 #endif

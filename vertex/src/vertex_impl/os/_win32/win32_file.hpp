@@ -5,9 +5,10 @@
 #if defined(VX_PLATFORM_WINDOWS)
 
 #include "vertex_impl/_platform/_win32/win32_header.hpp"
-#include "vertex/stdlib/file/file.hpp"
+#include "vertex/os/file.hpp"
 
 namespace vx {
+namespace os {
 
 class file::file_impl
 {
@@ -22,7 +23,7 @@ public:
 
 public:
 
-    bool open(const std::string& path, file_mode mode);
+    bool open(const std::string& path, mode mode);
     bool is_open() const;
     void close();
 
@@ -37,7 +38,7 @@ public:
 
 public:
 
-    static file from_handle(HANDLE handle, file_mode mode);
+    static file from_handle(HANDLE handle, mode mode);
     HANDLE get_handle();
 
 private:
@@ -45,6 +46,7 @@ private:
     HANDLE m_handle;
 };
 
+} // namespace os
 } // namespace vx
 
 #endif

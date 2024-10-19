@@ -7,33 +7,53 @@
 #endif
 
 namespace vx {
+namespace os {
 
 static void file_not_open_error()
 {
     VX_ERROR(error::error_code::FILE_OPERATION_FAILED) << "file not open";
 }
 
-#define IS_READ_MODE(mode) (mode == file_mode::READ || mode == file_mode::READ_WRITE_EXISTS || mode == file_mode::READ_WRITE_CREATE)
-#define IS_WRITE_MODE(mode) (mode != file_mode::READ)
-#define IS_APPEND_MODE(mode) (mode == file_mode::APPEND)
+#define IS_READ_MODE(m) (m == file::mode::READ || m == file::mode::READ_WRITE_EXISTS || m == file::mode::READ_WRITE_CREATE)
+#define IS_WRITE_MODE(m) (m != file::mode::READ)
+#define IS_APPEND_MODE(m) (m == file::mode::APPEND)
 
 file::file()
-    : m_mode(file_mode::NONE) {}
+    : m_mode(mode::NONE) {}
 
 file::~file()
 {
     close();
 }
 
-file::file(file&& f) noexcept
-    : m_mode(f.m_mode)
-    , m_impl(std::move(f.m_impl)) {}
-
-file& file::operator=(file&& f) noexcept
+file::file(file&& other) noexcept
+    : m_mode(other.m_mode)
+    , m_impl(std::move(other.m_impl))
 {
-    m_mode = f.m_mode;
-    m_impl = std::move(f.m_impl);
+    other.m_mode = mode::NONE;
+    other.m_impl = nullptr;
+}
+
+file& file::operator=(file&& other) noexcept
+{
+    if (this != &other)
+    {
+        close();
+
+        m_mode = other.m_mode;
+        m_impl = std::move(other.m_impl);
+
+        other.m_mode = mode::NONE;
+        other.m_impl = nullptr;
+    }
+
     return *this;
+}
+
+void swap(file& lhs, file& rhs) noexcept
+{
+    std::swap(lhs.m_mode, rhs.m_mode);
+    std::swap(lhs.m_impl, rhs.m_impl);
 }
 
 bool file::exists(const std::string& path)
@@ -44,7 +64,7 @@ bool file::exists(const std::string& path)
 bool file::create(const std::string& path)
 {
     file f;
-    return f.open(path, file_mode::WRITE);
+    return f.open(path, mode::WRITE);
 }
 
 bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
@@ -52,7 +72,7 @@ bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
     bool success = false;
 
     file f;
-    if (f.open(path, file_mode::READ))
+    if (f.open(path, mode::READ))
     {
         const size_t size = f.size();
         data.resize(size);
@@ -65,7 +85,7 @@ bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
 bool file::write_file(const std::string& path, const uint8_t* data, size_t size)
 {
     file f;
-    return f.open(path, file_mode::WRITE) && f.write(data, size);
+    return f.open(path, mode::WRITE) && f.write(data, size);
 }
 
 bool file::read_text_file(const std::string& path, std::string& text)
@@ -73,7 +93,7 @@ bool file::read_text_file(const std::string& path, std::string& text)
     bool success = false;
 
     file f;
-    if (f.open(path, file_mode::READ))
+    if (f.open(path, mode::READ))
     {
         const size_t size = f.size();
         text.resize(size);
@@ -88,7 +108,7 @@ bool file::write_text_file(const std::string& path, const std::string& text)
     return write_file(path, reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
-bool file::open(const std::string& path, file_mode mode)
+bool file::open(const std::string& path, mode mode)
 {
     if (is_open())
     {
@@ -114,7 +134,7 @@ bool file::open(const std::string& path, file_mode mode)
 
 bool file::is_open() const
 {
-    return (m_mode != file_mode::NONE) && m_impl && m_impl->is_open();
+    return (m_mode != mode::NONE) && m_impl && m_impl->is_open();
 }
 
 void file::close()
@@ -125,7 +145,7 @@ void file::close()
         m_impl = nullptr;
     }
 
-    m_mode = file_mode::NONE;
+    m_mode = mode::NONE;
 }
 
 bool file::can_read() const
@@ -138,7 +158,7 @@ bool file::can_write() const
     return IS_WRITE_MODE(m_mode);
 }
 
-file_mode file::mode() const
+file::mode file::get_mode() const
 {
     return m_mode;
 }
@@ -252,4 +272,5 @@ file::ostream_proxy file::operator<<(std::ostream& (*func)(std::ostream&))
     return stream;
 }
 
+} // namespace os
 } // namespace vx

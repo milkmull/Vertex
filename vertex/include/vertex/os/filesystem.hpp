@@ -10,6 +10,7 @@
 // https://en.cppreference.com/w/cpp/filesystem
 
 namespace vx {
+namespace os {
 namespace filesystem {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -84,5 +85,6 @@ enum class user_folder
 
 VX_API std::string get_user_folder(user_folder folder);
 
-}
-}
+} // namespace filesystem
+} // namespace os
+} // namespace vx
