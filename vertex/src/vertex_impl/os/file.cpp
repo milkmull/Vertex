@@ -9,11 +9,6 @@
 namespace vx {
 namespace os {
 
-static void file_not_open_error()
-{
-    VX_ERROR(error::error_code::FILE_OPERATION_FAILED) << "file not open";
-}
-
 #define IS_READ_MODE(m) (m == file::mode::READ || m == file::mode::READ_WRITE_EXISTS || m == file::mode::READ_WRITE_CREATE)
 #define IS_WRITE_MODE(m) (m != file::mode::READ)
 #define IS_APPEND_MODE(m) (m == file::mode::APPEND)
@@ -167,7 +162,6 @@ size_t file::size() const
 {
     if (!is_open())
     {
-        file_not_open_error();
         return 0;
     }
 
@@ -178,7 +172,6 @@ bool file::seek(size_t off, stream_position from)
 {
     if (!is_open())
     {
-        file_not_open_error();
         return false;
     }
 
@@ -189,7 +182,6 @@ size_t file::tell() const
 {
     if (!is_open())
     {
-        file_not_open_error();
         return INVALID_POSITION;
     }
 
@@ -205,7 +197,6 @@ size_t file::read(uint8_t* data, size_t size)
 {
     if (!is_open())
     {
-        file_not_open_error();
         return 0;
     }
 
@@ -222,7 +213,6 @@ size_t file::write(const uint8_t* data, size_t size)
 {
     if (!is_open())
     {
-        file_not_open_error();
         return false;
     }
 
@@ -258,7 +248,6 @@ bool file::flush()
 {
     if (!is_open())
     {
-        file_not_open_error();
         return false;
     }
 

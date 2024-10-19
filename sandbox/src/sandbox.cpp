@@ -1,31 +1,20 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/stdlib/system/time.hpp"
-#include "vertex/os/process.hpp"
-#include "vertex/os/thread.hpp"
-#include "vertex/stdlib/system/time.hpp"
+#include "vertex/os/info.hpp"
 
 using namespace vx;
 
-static bool thread_test(int x)
-{
-    time::sleep(5000);
-    VX_LOG_INFO << "thread: " << x;
-    return true;
-}
-
 int main(int argc, char* argv[])
 {
-    os::thread threads[10]{};
+    VX_LOG_INFO << "Name: " << os::get_name();
+    VX_LOG_INFO << "Model Name: " << os::get_model_name();
+    VX_LOG_INFO << "System Name: " << os::get_system_name();
 
-    for (int i = 0; i < 10; ++i)
-    {
-        threads[i].start(thread_test, i);
-    }
+    VX_LOG_INFO << "Processor Name: " << os::get_processor_name();
+    VX_LOG_INFO << "Processor Count: " << os::get_processor_count();
 
-    for (int i = 0; i < 10; ++i)
-    {
-        threads[i].join();
-    }
+    uint32_t major, minor, patch;
+    os::get_version(&major, &minor, &patch);
+    VX_LOG_INFO << "Version: " << major << '.' << minor << '.' << patch;
 
     return 0;
 }

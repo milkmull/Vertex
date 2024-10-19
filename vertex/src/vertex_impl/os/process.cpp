@@ -11,11 +11,6 @@
 namespace vx {
 namespace os {
 
-static void process_not_initialized()
-{
-    VX_ERROR(error::error_code::RUNTIME_ERROR) << "process not configured";
-}
-
 process::process() {}
 
 process::~process() {}
@@ -87,7 +82,6 @@ process::id process::get_pid() const
 {
     if (!is_valid())
     {
-        process_not_initialized();
         return 0;
     }
 
@@ -113,7 +107,6 @@ bool process::join()
 {
     if (!is_valid())
     {
-        process_not_initialized();
         return false;
     }
 
@@ -124,7 +117,6 @@ bool process::kill(bool force)
 {
     if (!is_valid())
     {
-        process_not_initialized();
         return false;
     }
 
