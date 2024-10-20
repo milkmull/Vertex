@@ -21,14 +21,14 @@
 #endif
 
 #include <windows.h>
-
-// Dropfile support
-#include <shellapi.h>
+#include <versionhelpers.h>
+#include <psapi.h>  // Performance Info
+#include <shellapi.h> // Dropfile support
 
 // macros for extracting signed values from WM_* lparam stolen from windowsx.h
 
-#define GET_X_LPARAM(lp)    ((int)(short)LOWORD(lp))
-#define GET_Y_LPARAM(lp)    ((int)(short)HIWORD(lp))
+#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
+#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 
 ///////////////////////////////////////////////////////////////////////////////
 // dpi
@@ -65,12 +65,13 @@ enum MONITOR_DPI_TYPE
 #   define DWMWA_WINDOW_CORNER_PREFERENCE 33
 #endif
 
-typedef enum {
+enum DWM_WINDOW_CORNER_PREFERENCE
+{
     DWMWCP_DEFAULT = 0,
     DWMWCP_DONOTROUND = 1,
     DWMWCP_ROUND = 2,
     DWMWCP_ROUNDSMALL = 3
-} DWM_WINDOW_CORNER_PREFERENCE;
+};
 
 // Border Color support (Win 11+)
 #ifndef DWMWA_BORDER_COLOR
@@ -85,8 +86,8 @@ typedef enum {
 #   define DWMWA_COLOR_NONE 0xFFFFFFFE
 #endif
 
-using DwmSetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
-using DwmGetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);
+using DwmSetWindowAttributePtr = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+using DwmGetWindowAttributePtr = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);
 
 #include <string>
 

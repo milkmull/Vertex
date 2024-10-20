@@ -17,6 +17,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     HKEY key;
     LSTATUS status;
+    DWORD type;
 
     std::vector<BYTE> data;
     DWORD size = 0;
@@ -34,14 +35,22 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
         key,
         name,
         NULL,
-        NULL,
+        &type,
         NULL,
         &size
     );
 
-    if (status != ERROR_SUCCESS || size == 0)
+    if (status != ERROR_SUCCESS)
     {
         WindowsErrorMessage("RegQueryValueExW()");
+        goto cleanup;
+    }
+
+    // Make sure type is null terminated unicode string
+    if (!(type == REG_SZ || type == REG_EXPAND_SZ))
+    {
+        VX_ERROR(error::error_code::PLATFORM_ERROR)
+            << "unsupported registry value type: " << type;
         goto cleanup;
     }
 

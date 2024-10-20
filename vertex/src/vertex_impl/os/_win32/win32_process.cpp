@@ -4,96 +4,11 @@
 
 #include "vertex/stdlib/string/string.hpp"
 #include "vertex_impl/os/_win32/win32_file.hpp"
+#include "vertex/stdlib/system/time.hpp"
 #include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace os {
-
-///////////////////////////////////////////////////////////////////////////////
-// this_process
-///////////////////////////////////////////////////////////////////////////////
-
-process::id this_process::get_pid()
-{
-    const DWORD pid = GetCurrentProcessId();
-    return static_cast<process::id>(pid);
-}
-
-process::environment this_process::get_environment()
-{
-    process::environment environment;
-
-    LPWCH environment_strings = GetEnvironmentStringsW();
-    if (!environment_strings)
-    {
-        WindowsErrorMessage("GetEnvironmentStringsW()");
-        return environment;
-    }
-
-    LPCWSTR current = environment_strings;
-    while (*current)
-    {
-        const std::wstring entry(current);
-
-        size_t pos = entry.find(L'=');
-        if (pos != std::wstring::npos)
-        {
-            const std::wstring wname = entry.substr(0, pos);
-            const std::wstring wvalue = entry.substr(pos + 1);
-
-            environment.emplace(
-                str::wstring_to_string(wname),
-                str::wstring_to_string(wvalue)
-            );
-        }
-
-        current += entry.size() + 1;
-    }
-
-    FreeEnvironmentStringsW(environment_strings);
-    return environment;
-}
-
-std::string this_process::get_environment_variable(const std::string& name)
-{
-    const std::wstring wname(str::string_to_wstring(name));
-
-    DWORD buffer_size = GetEnvironmentVariableW(wname.c_str(), NULL, 0);
-    if (buffer_size == 0)
-    {
-        WindowsErrorMessage("GetEnvironmentVariableW()");
-        return std::string();
-    }
-
-    std::wstring wvalue(buffer_size, 0);
-    GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
-    return str::wstring_to_string(wvalue);
-}
-
-bool this_process::set_environment_variable(const std::string& name, const std::string& value)
-{
-    const std::wstring wname(str::string_to_wstring(name));
-    const std::wstring wvalue(str::string_to_wstring(value));
-
-    if (SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
-    {
-        WindowsErrorMessage("SetEnvironmentVariableW()");
-        return false;
-    }
-    return true;
-}
-
-bool this_process::clear_environment_variable(const std::string& name)
-{
-    const std::wstring wname(str::string_to_wstring(name));
-
-    if (SetEnvironmentVariableW(wname.c_str(), NULL) == 0)
-    {
-        WindowsErrorMessage("SetEnvironmentVariableW()");
-        return false;
-    }
-    return true;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // process
@@ -554,6 +469,92 @@ bool process::process_impl::get_exit_code(int* exit_code) const
         *exit_code = static_cast<int>(rc);
     }
 
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// this_process
+///////////////////////////////////////////////////////////////////////////////
+
+process::id this_process::get_pid()
+{
+    const DWORD pid = GetCurrentProcessId();
+    return static_cast<process::id>(pid);
+}
+
+process::environment this_process::get_environment()
+{
+    process::environment environment;
+
+    LPWCH environment_strings = GetEnvironmentStringsW();
+    if (!environment_strings)
+    {
+        WindowsErrorMessage("GetEnvironmentStringsW()");
+        return environment;
+    }
+
+    LPCWSTR current = environment_strings;
+    while (*current)
+    {
+        const std::wstring entry(current);
+
+        size_t pos = entry.find(L'=');
+        if (pos != std::wstring::npos)
+        {
+            const std::wstring wname = entry.substr(0, pos);
+            const std::wstring wvalue = entry.substr(pos + 1);
+
+            environment.emplace(
+                str::wstring_to_string(wname),
+                str::wstring_to_string(wvalue)
+            );
+        }
+
+        current += entry.size() + 1;
+    }
+
+    FreeEnvironmentStringsW(environment_strings);
+    return environment;
+}
+
+std::string this_process::get_environment_variable(const std::string& name)
+{
+    const std::wstring wname(str::string_to_wstring(name));
+
+    DWORD buffer_size = GetEnvironmentVariableW(wname.c_str(), NULL, 0);
+    if (buffer_size == 0)
+    {
+        WindowsErrorMessage("GetEnvironmentVariableW()");
+        return std::string();
+    }
+
+    std::wstring wvalue(buffer_size, 0);
+    GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
+    return str::wstring_to_string(wvalue);
+}
+
+bool this_process::set_environment_variable(const std::string& name, const std::string& value)
+{
+    const std::wstring wname(str::string_to_wstring(name));
+    const std::wstring wvalue(str::string_to_wstring(value));
+
+    if (SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
+    {
+        WindowsErrorMessage("SetEnvironmentVariableW()");
+        return false;
+    }
+    return true;
+}
+
+bool this_process::clear_environment_variable(const std::string& name)
+{
+    const std::wstring wname(str::string_to_wstring(name));
+
+    if (SetEnvironmentVariableW(wname.c_str(), NULL) == 0)
+    {
+        WindowsErrorMessage("SetEnvironmentVariableW()");
+        return false;
+    }
     return true;
 }
 
