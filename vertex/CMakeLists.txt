@@ -119,10 +119,10 @@ target_include_directories(Vertex_Headers INTERFACE
 # Source files for the library
 file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/main/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/core/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/os/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/stdlib/*.inl"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.inl"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/test/*.hpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
@@ -130,9 +130,9 @@ file(GLOB_RECURSE VX_CORE_FILES
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/core/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.hpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
@@ -140,9 +140,9 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/core/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/stdlib/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.cpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
@@ -168,7 +168,7 @@ target_sources(Vertex PRIVATE ${VX_CORE_FILES})
 # Handle Windows resource file for shared library builds
 if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/_win32/version.rc.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/_windows/version.rc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
         @ONLY
     )

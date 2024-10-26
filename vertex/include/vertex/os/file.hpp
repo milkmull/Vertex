@@ -3,14 +3,12 @@
 #include <vector>
 #include <sstream>
 
-#include "vertex/system/error.hpp"
+#include "vertex/core/compiler.hpp"
 
 namespace vx {
 namespace os {
 
 class process;
-
-// https://man7.org/linux/man-pages/man3/fopen.3.html
 
 enum class stream_position
 {
@@ -24,6 +22,8 @@ class file
     friend os::process;
 
 public:
+
+    // https://man7.org/linux/man-pages/man3/fopen.3.html
 
     enum class mode
     {
@@ -39,51 +39,51 @@ public:
 
 public:
 
-    file();
-    ~file();
+    VX_API file();
+    VX_API ~file();
 
     file(const file&) = delete;
-    file(file&&) noexcept;
+    VX_API file(file&&) noexcept;
 
     file& operator=(const file&) = delete;
-    file& operator=(file&&) noexcept;
+    VX_API file& operator=(file&&) noexcept;
 
-    friend void swap(file& lhs, file& rhs) noexcept;
-
-public:
-
-    static bool exists(const std::string& path);
-    static bool create(const std::string& path);
-
-    static bool read_file(const std::string& path, std::vector<uint8_t>& data);
-    static bool write_file(const std::string& path, const uint8_t* data, size_t size);
-
-    static bool read_text_file(const std::string& path, std::string& text);
-    static bool write_text_file(const std::string& path, const std::string& text);
+    VX_API friend void swap(file& lhs, file& rhs) noexcept;
 
 public:
 
-    bool open(const std::string& path, mode mode);
-    bool is_open() const;
-    void close();
+    VX_API static bool exists(const std::string& path);
+    VX_API static bool create(const std::string& path);
 
-    mode get_mode() const;
-    bool can_read() const;
-    bool can_write() const;
+    VX_API static bool read_file(const std::string& path, std::vector<uint8_t>& data);
+    VX_API static bool write_file(const std::string& path, const uint8_t* data, size_t size);
 
-    size_t size() const;
+    VX_API static bool read_text_file(const std::string& path, std::string& text);
+    VX_API static bool write_text_file(const std::string& path, const std::string& text);
 
-    bool seek(size_t off, stream_position from = stream_position::BEGIN);
-    size_t tell() const;
-    bool eof() const;
+public:
 
-    size_t read(uint8_t* data, size_t size);
-    size_t write(const uint8_t* data, size_t size);
+    VX_API bool open(const std::string& path, mode mode);
+    VX_API bool is_open() const;
+    VX_API void close();
 
-    size_t read_text(std::string& text, size_t count);
-    size_t write_text(const std::string& text);
+    VX_API mode get_mode() const;
+    VX_API bool can_read() const;
+    VX_API bool can_write() const;
 
-    bool flush();
+    VX_API size_t size() const;
+
+    VX_API bool seek(size_t off, stream_position from = stream_position::BEGIN);
+    VX_API size_t tell() const;
+    VX_API bool eof() const;
+
+    VX_API size_t read(uint8_t* data, size_t size);
+    VX_API size_t write(const uint8_t* data, size_t size);
+
+    VX_API size_t read_text(std::string& text, size_t count);
+    VX_API size_t write_text(const std::string& text);
+
+    VX_API bool flush();
 
 public:
 
@@ -112,7 +112,7 @@ public:
         return stream;
     }
 
-    ostream_proxy operator<<(std::ostream& (*func)(std::ostream&));
+    VX_API ostream_proxy operator<<(std::ostream& (*func)(std::ostream&));
 
 private:
 

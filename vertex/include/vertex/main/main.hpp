@@ -1,3 +1,3 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/core/platform_config.hpp"

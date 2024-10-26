@@ -1,10 +1,11 @@
 #pragma once
 
-#include "vertex/system/error.hpp"
-
 #include <future>
 #include <functional>
 #include <thread>
+
+#include "vertex/core/compiler.hpp"
+#include "vertex/core/error.hpp"
 
 namespace vx {
 namespace os {
@@ -33,7 +34,7 @@ public:
     {
         if (is_alive())
         {
-            VX_ERROR(error::error_code::RUNTIME_ERROR) << "thread already running";
+            VX_ERR(err::RUNTIME_ERROR) << "thread already running";
             return false;
         }
 
@@ -75,7 +76,7 @@ private:
 
 namespace this_thread {
 
-inline thread::id get_id() noexcept;
+VX_API thread::id get_id() noexcept;
 
 } // namespace this_thread
 

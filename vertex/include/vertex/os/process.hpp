@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "vertex/core/compiler.hpp"
 #include "vertex/os/file.hpp"
 
 #undef stdin
@@ -104,12 +105,12 @@ private:
 
 namespace this_process {
 
-process::id get_pid();
+VX_API process::id get_pid();
 
-process::environment get_environment();
-std::string get_environment_variable(const std::string& name);
-bool set_environment_variable(const std::string& name, const std::string& value);
-bool clear_environment_variable(const std::string& name);
+VX_API process::environment get_environment();
+VX_API std::string get_environment_variable(const std::string& name);
+VX_API bool set_environment_variable(const std::string& name, const std::string& value);
+VX_API bool clear_environment_variable(const std::string& name);
 
 } // namespace this_process
 

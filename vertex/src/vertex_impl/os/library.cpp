@@ -1,49 +1,49 @@
-#include "vertex/system/platform.hpp"
+#include "vertex/core/platform.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/os/_win32/win32_library.hpp"
+#   include "vertex_impl/os/_windows/windows_library.hpp"
 #endif
 
-#include "vertex/system/error.hpp"
+#include "vertex/core/error.hpp"
 
 namespace vx {
 namespace os {
 
-library::library() {}
+VX_API library::library() {}
 
 library::~library()
 {
     free();
 }
 
-library::library(const library& l)
+VX_API library::library(const library& l)
     : m_impl(l.m_impl) {}
 
-library::library(library&& l) noexcept
+VX_API library::library(library&& l) noexcept
     : m_impl(std::move(l.m_impl)) {}
 
-library& library::operator=(const library& l)
+VX_API library& library::operator=(const library& l)
 {
     m_impl = l.m_impl;
     return *this;
 }
 
-library& library::operator=(library&& l) noexcept
+VX_API library& library::operator=(library&& l) noexcept
 {
     m_impl = std::move(l.m_impl);
     return *this;
 }
 
-library::library(const std::string& name)
+VX_API library::library(const std::string& name)
 {
     load(name);
 }
 
-bool library::load(const std::string& lib)
+VX_API bool library::load(const std::string& lib)
 {
     if (is_loaded())
     {
-        VX_ERROR(error::error_code::UNSUPPORTED_OPERATION) << "library already loaded";
+        VX_ERR(err::UNSUPPORTED_OPERATION) << "library already loaded";
         return false;
     }
 
@@ -62,12 +62,12 @@ bool library::load(const std::string& lib)
     return true;
 }
 
-bool library::is_loaded() const
+VX_API bool library::is_loaded() const
 {
     return m_impl && m_impl->is_loaded();
 }
 
-void library::free()
+VX_API void library::free()
 {
     if (m_impl)
     {

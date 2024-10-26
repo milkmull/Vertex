@@ -3,6 +3,8 @@
 #include <string>
 #include <memory>
 
+#include "vertex/core/compiler.hpp"
+
 namespace vx {
 namespace os {
 
@@ -10,22 +12,22 @@ class library
 {
 public:
 
-    library();
-    ~library();
+    VX_API library();
+    VX_API ~library();
 
-    library(const library&);
-    library(library&&) noexcept;
+    VX_API library(const library&);
+    VX_API library(library&&) noexcept;
 
-    library& operator=(const library&);
-    library& operator=(library&&) noexcept;
+    VX_API library& operator=(const library&);
+    VX_API library& operator=(library&&) noexcept;
 
 public:
 
-    library(const std::string& name);
+    VX_API library(const std::string& name);
 
-    bool load(const std::string& lib);
-    bool is_loaded() const;
-    void free();
+    VX_API bool load(const std::string& lib);
+    VX_API bool is_loaded() const;
+    VX_API void free();
 
     template <typename Func>
     Func get_function(const std::string& name)

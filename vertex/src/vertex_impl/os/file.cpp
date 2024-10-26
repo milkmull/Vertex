@@ -1,7 +1,7 @@
-#include "vertex/system/platform.hpp"
+#include "vertex/core/platform_config.hpp"
 
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "_win32/win32_file.hpp"
+#if defined(VX_OS_WINDOWS_FILE)
+#   include "_windows/windows_file.hpp"
 #else
 
 #endif
@@ -9,19 +9,19 @@
 namespace vx {
 namespace os {
 
-#define IS_READ_MODE(m) (m == file::mode::READ || m == file::mode::READ_WRITE_EXISTS || m == file::mode::READ_WRITE_CREATE)
-#define IS_WRITE_MODE(m) (m != file::mode::READ)
+#define IS_READ_MODE(m)   (m == file::mode::READ || m == file::mode::READ_WRITE_EXISTS || m == file::mode::READ_WRITE_CREATE)
+#define IS_WRITE_MODE(m)  (m != file::mode::READ)
 #define IS_APPEND_MODE(m) (m == file::mode::APPEND)
 
-file::file()
+VX_API file::file()
     : m_mode(mode::NONE) {}
 
-file::~file()
+VX_API file::~file()
 {
     close();
 }
 
-file::file(file&& other) noexcept
+VX_API file::file(file&& other) noexcept
     : m_mode(other.m_mode)
     , m_impl(std::move(other.m_impl))
 {
@@ -29,7 +29,7 @@ file::file(file&& other) noexcept
     other.m_impl = nullptr;
 }
 
-file& file::operator=(file&& other) noexcept
+VX_API file& file::operator=(file&& other) noexcept
 {
     if (this != &other)
     {
@@ -45,24 +45,24 @@ file& file::operator=(file&& other) noexcept
     return *this;
 }
 
-void swap(file& lhs, file& rhs) noexcept
+VX_API void swap(file& lhs, file& rhs) noexcept
 {
     std::swap(lhs.m_mode, rhs.m_mode);
     std::swap(lhs.m_impl, rhs.m_impl);
 }
 
-bool file::exists(const std::string& path)
+VX_API bool file::exists(const std::string& path)
 {
     return file_impl::exists(path);
 }
 
-bool file::create(const std::string& path)
+VX_API bool file::create(const std::string& path)
 {
     file f;
     return f.open(path, mode::WRITE);
 }
 
-bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
+VX_API bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
 {
     bool success = false;
 
@@ -77,13 +77,13 @@ bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
     return success;
 }
 
-bool file::write_file(const std::string& path, const uint8_t* data, size_t size)
+VX_API bool file::write_file(const std::string& path, const uint8_t* data, size_t size)
 {
     file f;
     return f.open(path, mode::WRITE) && f.write(data, size);
 }
 
-bool file::read_text_file(const std::string& path, std::string& text)
+VX_API bool file::read_text_file(const std::string& path, std::string& text)
 {
     bool success = false;
 
@@ -98,16 +98,16 @@ bool file::read_text_file(const std::string& path, std::string& text)
     return success;
 }
 
-bool file::write_text_file(const std::string& path, const std::string& text)
+VX_API bool file::write_text_file(const std::string& path, const std::string& text)
 {
     return write_file(path, reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
-bool file::open(const std::string& path, mode mode)
+VX_API bool file::open(const std::string& path, mode mode)
 {
     if (is_open())
     {
-        VX_ERROR(error::error_code::FILE_OPEN_FAILED) << "file already open";
+        VX_ERR(err::FILE_OPEN_FAILED) << "file already open";
         return false;
     }
 
@@ -127,12 +127,12 @@ bool file::open(const std::string& path, mode mode)
     return true;
 }
 
-bool file::is_open() const
+VX_API bool file::is_open() const
 {
     return (m_mode != mode::NONE) && m_impl && m_impl->is_open();
 }
 
-void file::close()
+VX_API void file::close()
 {
     if (m_impl)
     {
@@ -143,22 +143,22 @@ void file::close()
     m_mode = mode::NONE;
 }
 
-bool file::can_read() const
+VX_API bool file::can_read() const
 {
     return IS_READ_MODE(m_mode);
 }
 
-bool file::can_write() const
+VX_API bool file::can_write() const
 {
     return IS_WRITE_MODE(m_mode);
 }
 
-file::mode file::get_mode() const
+VX_API file::mode file::get_mode() const
 {
     return m_mode;
 }
 
-size_t file::size() const
+VX_API size_t file::size() const
 {
     if (!is_open())
     {
@@ -168,7 +168,7 @@ size_t file::size() const
     return m_impl->size();
 }
 
-bool file::seek(size_t off, stream_position from)
+VX_API bool file::seek(size_t off, stream_position from)
 {
     if (!is_open())
     {
@@ -178,7 +178,7 @@ bool file::seek(size_t off, stream_position from)
     return m_impl->seek(off, from);
 }
 
-size_t file::tell() const
+VX_API size_t file::tell() const
 {
     if (!is_open())
     {
@@ -188,12 +188,12 @@ size_t file::tell() const
     return m_impl->tell();
 }
 
-bool file::eof() const
+VX_API bool file::eof() const
 {
     return tell() >= size();
 }
 
-size_t file::read(uint8_t* data, size_t size)
+VX_API size_t file::read(uint8_t* data, size_t size)
 {
     if (!is_open())
     {
@@ -202,14 +202,14 @@ size_t file::read(uint8_t* data, size_t size)
 
     if (!IS_READ_MODE(m_mode))
     {
-        VX_ERROR(error::error_code::FILE_READ_FAILED) << "file not open in read mode";
+        VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
         return 0;
     }
 
     return m_impl->read(data, size);
 }
 
-size_t file::write(const uint8_t* data, size_t size)
+VX_API size_t file::write(const uint8_t* data, size_t size)
 {
     if (!is_open())
     {
@@ -218,7 +218,7 @@ size_t file::write(const uint8_t* data, size_t size)
 
     if (!IS_WRITE_MODE(m_mode))
     {
-        VX_ERROR(error::error_code::FILE_WRITE_FAILED) << "file not open in write mode";
+        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
         return 0;
     }
 
@@ -233,18 +233,18 @@ size_t file::write(const uint8_t* data, size_t size)
     return m_impl->write(data, size);
 }
 
-size_t file::read_text(std::string& text, size_t count)
+VX_API size_t file::read_text(std::string& text, size_t count)
 {
     text.resize(count);
     return read(reinterpret_cast<uint8_t*>(text.data()), count);
 }
 
-size_t file::write_text(const std::string& text)
+VX_API size_t file::write_text(const std::string& text)
 {
     return write(reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
-bool file::flush()
+VX_API bool file::flush()
 {
     if (!is_open())
     {
@@ -254,7 +254,7 @@ bool file::flush()
     return m_impl->flush();
 }
 
-file::ostream_proxy file::operator<<(std::ostream& (*func)(std::ostream&))
+VX_API file::ostream_proxy file::operator<<(std::ostream& (*func)(std::ostream&))
 {
     ostream_proxy stream(*this);
     stream << func;

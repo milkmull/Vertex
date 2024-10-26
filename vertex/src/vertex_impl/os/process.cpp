@@ -1,12 +1,14 @@
-#include "vertex/system/platform.hpp"
+#include <algorithm>
 
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "_win32/win32_process.hpp"
+#include "vertex/core/platform_config.hpp"
+
+#if defined(VX_OS_WINDOWS_PROCESS)
+#   include "_windows/windows_process.hpp"
 #else
 
 #endif
 
-#include <algorithm>
+#include "vertex/core/error.hpp"
 
 namespace vx {
 namespace os {
@@ -58,7 +60,7 @@ bool process::start(const config& config)
 {
     if (is_valid())
     {
-        VX_ERROR(error::error_code::UNSUPPORTED_OPERATION) << "process already started";
+        VX_ERR(err::UNSUPPORTED_OPERATION) << "process already started";
         return false;
     }
 

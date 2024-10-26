@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "vertex/stdlib/system/time.hpp"
+#include "vertex/core/compiler.hpp"
+#include "vertex/os/time.hpp"
 
 // https://docs.godotengine.org/en/stable/classes/class_fileaccess.html#class-fileaccess
 // https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_filesystem.h

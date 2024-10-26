@@ -1,5 +1,5 @@
 #include "vertex/os/thread.hpp"
-#include "vertex/system/error.hpp"
+#include "vertex/core/error.hpp"
 
 namespace vx {
 namespace os {
@@ -91,7 +91,7 @@ bool thread::detatch()
     return true;
 }
 
-inline thread::id this_thread::get_id() noexcept
+VX_API thread::id this_thread::get_id() noexcept
 {
     return std::this_thread::get_id();
 }
