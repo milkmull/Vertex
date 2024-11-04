@@ -24,29 +24,30 @@ public:
     timer() = default;
     ~timer() = default;
 
-    inline uint64_t start()
+    inline time::time_point start()
     {
         m_running = true;
-        return (m_start_time = os::time::get_ticks_ns());
+        return (m_start_time = os::get_ticks());
     }
 
-    inline uint64_t stop()
+    inline time::time_point stop()
     {
         m_running = false;
-        return (m_stop_time = os::time::get_ticks_ns());
+        return (m_stop_time = os::get_ticks());
     }
 
     inline void reset()
     {
         m_running = false;
-        m_start_time = m_stop_time = 0;
+        m_start_time.zero();
+        m_stop_time.zero();
     }
 
     inline bool running() const
     {
         return m_running;
     }
-    inline uint64_t start_time() const
+    inline time::time_point start_time() const
     {
         return m_start_time;
     }
@@ -60,11 +61,11 @@ public:
     ///
     /// @return The elapsed time in nanoseconds.
     ///////////////////////////////////////////////////////////////////////////
-    inline uint64_t elapsed() const
+    inline time::time_point elapsed() const
     {
         if (m_running)
         {
-            return os::time::get_ticks_ns() - m_start_time;
+            return os::get_ticks() - m_start_time;
         }
         return m_stop_time - m_start_time;
     }
@@ -72,8 +73,8 @@ public:
 private:
 
     bool m_running;
-    uint64_t m_start_time;
-    uint64_t m_stop_time;
+    time::time_point m_start_time;
+    time::time_point m_stop_time;
 
 };
 

@@ -44,9 +44,9 @@ public:
         io_option stdout_option = io_option::NONE;
         io_option stderr_option = io_option::NONE;
 
-        file* stdin_redirect  = nullptr;
-        file* stdout_redirect = nullptr;
-        file* stderr_redirect = nullptr;
+        io_stream* stdin_redirect  = nullptr;
+        io_stream* stdout_redirect = nullptr;
+        io_stream* stderr_redirect = nullptr;
     };
 
 private:

@@ -371,9 +371,9 @@ path_info get_path_info(const std::string& path)
         info.size = ((static_cast<uint64_t>(data.nFileSizeHigh)) << 32) | data.nFileSizeLow;
     }
 
-    info.create_time = time::time_from_windows_file_time(data.ftCreationTime.dwLowDateTime, data.ftCreationTime.dwHighDateTime);
-    info.modify_time = time::time_from_windows_file_time(data.ftLastWriteTime.dwLowDateTime, data.ftLastWriteTime.dwHighDateTime);
-    info.access_time = time::time_from_windows_file_time(data.ftLastAccessTime.dwLowDateTime, data.ftLastAccessTime.dwHighDateTime);
+    info.create_time = time::time_point::from_windows_file_time(data.ftCreationTime.dwLowDateTime, data.ftCreationTime.dwHighDateTime);
+    info.modify_time = time::time_point::from_windows_file_time(data.ftLastWriteTime.dwLowDateTime, data.ftLastWriteTime.dwHighDateTime);
+    info.access_time = time::time_point::from_windows_file_time(data.ftLastAccessTime.dwLowDateTime, data.ftLastAccessTime.dwHighDateTime);
 
     return info;
 }

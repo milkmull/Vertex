@@ -1,14 +1,21 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/util/system/iostream.hpp"
-#include "vertex/util/string/format.hpp"
+#include "vertex/os/time.hpp"
+#include "vertex/util/system/timer.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    std::string fmt = "Coordinates: ({1:}, {0})";
+    using tp = time::time_point;
 
-    io::print(str::format(fmt, 1.22222, 4.883638));
+    timer t;
+    t.start();
+
+    os::sleep(time::seconds(5));
+
+    t.stop();
+
+    VX_LOG_INFO << t.elapsed().as_float_seconds();
 
     return 0;
 }

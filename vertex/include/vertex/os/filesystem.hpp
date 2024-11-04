@@ -64,9 +64,9 @@ struct path_info
 {
     path_type type;
     size_t size;
-    time::time_t create_time;
-    time::time_t modify_time;
-    time::time_t access_time;
+    time::time_point create_time;
+    time::time_point modify_time;
+    time::time_point access_time;
 };
 
 VX_API path_info get_path_info(const std::string& path);
