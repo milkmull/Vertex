@@ -1,48 +1,37 @@
 #pragma once
 
-#include <random>
-
-#include "vertex/core/assert.hpp"
+#include "vertex/util/random/generate_canonical.hpp"
 
 namespace vx {
 namespace rand {
 
 // https://github.com/gcc-mirror/gcc/blob/440be01b07941506d1c8819448bd17c8717d55f5/libstdc%2B%2B-v3/include/bits/random.h#L3727
 
-template <typename T = double>
-class uniform_real_distribution
+class bernoulli_distribution
 {
-    static_assert(std::is_floating_point<T>::value, "T must be an floating point type");
-
 public:
 
-    using result_type = T;
+    using result_type = bool;
 
     struct param_type
     {
-        using distribution_type = uniform_real_distribution<T>;
+        using distribution_type = bernoulli_distribution;
 
-        param_type() : param_type(0) {}
+        param_type() : param_type(0.5) {}
 
-        explicit param_type(T min_value, T max_value = std::numeric_limits<T>::max())
-            : m_a(min_value), m_b(max_value)
+        explicit param_type(double p) : m_p(p)
         {
-            assert(m_a <= m_b);
+            assert(0.0 <= m_p && m_p <= 1.0);
         }
 
-        result_type a() const
+        double p() const
         {
-            return m_a;
-        }
-
-        result_type b() const
-        {
-            return m_b;
+            return m_p;
         }
 
         friend bool operator==(const param_type& lhs, const param_type& rhs)
         {
-            return lhs.m_a == rhs.m_a && lhs.m_b == rhs.m_b;
+            return lhs.m_p == rhs.m_p;
         }
 
         friend bool operator!=(const param_type& lhs, const param_type& rhs)
@@ -52,21 +41,16 @@ public:
 
     private:
 
-        result_type m_a;
-        result_type m_b;
+        double m_p;
     };
 
 public:
 
-    uniform_real_distribution() : uniform_real_distribution(0) {}
+    bernoulli_distribution() : bernoulli_distribution(0.5) {}
+    explicit bernoulli_distribution(double p) : m_param(p) {}
+    explicit bernoulli_distribution(const param_type& p) : m_param(p) {}
 
-    explicit uniform_real_distribution(T min_value, T max_value = static_cast<T>(1))
-        : m_param(min_value, max_value) {}
-
-    explicit uniform_real_distribution(const param_type& p) : m_param(p) {}
-
-    result_type a() const { return m_param.a(); }
-    result_type b() const { return m_param.b(); }
+    double p() const { return m_param.p(); }
 
     param_type param() const
     {
@@ -78,20 +62,22 @@ public:
         m_param = p;
     }
 
-    result_type min() const { return a(); }
-    result_type max() const { return b(); }
+    result_type min() const { return std::numeric_limits<result_type>::min(); }
+    result_type max() const { return std::numeric_limits<result_type>::max(); }
+
+    void reset() {}
 
     friend bool operator==(
-        const uniform_real_distribution& lhs,
-        const uniform_real_distribution& rhs
+        const bernoulli_distribution& lhs,
+        const bernoulli_distribution& rhs
         )
     {
         return lhs.m_param == rhs.m_param;
     }
 
     friend bool operator!=(
-        const uniform_real_distribution& lhs,
-        const uniform_real_distribution& rhs
+        const bernoulli_distribution& lhs,
+        const bernoulli_distribution& rhs
         )
     {
         return !(lhs == rhs);
@@ -108,80 +94,17 @@ public:
 
 private:
 
-    // For a URBG type 'G' with range == '(G::max() - G::min()) + 1', 
-    // returns the number of calls to generate at least '_Bits' bits of entropy.
-    // Specifically, this function returns 'max(1, ceil(_Bits / log2(range)))'.
-    static constexpr size_t iteration_count(size_t bits, uintmax_t rng_min, uintmax_t rng_max)
-    {
-        // Make sure bits is in a valid range
-        constexpr uintmax_t max_bits = sizeof(uintmax_t) * 8;
-        assert(0 <= bits && bits <= max_bits);
-
-        if (bits == 0 || (rng_max == std::numeric_limits<uintmax_t>::max() && rng_min == 0))
-        {
-            return 1;
-        }
-
-        const uintmax_t range = (rng_max - rng_min) + 1;
-        const uintmax_t target = ~static_cast<uintmax_t>(0) >> (max_bits - bits);
-
-        uintmax_t prod = static_cast<uintmax_t>(1);
-        size_t ceil = static_cast<size_t>(0);
-
-        while (prod <= target)
-        {
-            ++ceil;
-
-            // check to avoid overflow
-            if (prod > std::numeric_limits<uintmax_t>::max() / range)
-            {
-                break;
-            }
-
-            prod *= range;
-        }
-
-        return ceil;
-    }
-
-private:
-
     param_type m_param;
 };
 
-template <typename T>
 template <typename RNG>
-typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>::operator()(RNG& rng, const param_type& p)
+typename bernoulli_distribution::result_type bernoulli_distribution::operator()(RNG& rng, const param_type& p)
 {
-    using range_type = T;
-    using rng_type = typename RNG::result_type;
-    using common_type = long double;
+#   define generate_canonical(rng) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(rng)
 
-    // Determine the number of bits we need to work with for precision.
-    // We use the minimum between the number of digits that T can hold
-    // and the number of bits requested by the user.
-    constexpr size_t bits = std::numeric_limits<T>::digits;
+    return static_cast<result_type>(generate_canonical(rng) < p.p());
 
-    // Calculate the range size from the random number generator.
-    // This is the difference between the maximum and minimum possible values of the RNG.
-    constexpr common_type frng_min = static_cast<common_type>((RNG::min)());
-    constexpr common_type frng_max = static_cast<common_type>((RNG::max)());
-    constexpr common_type frng_range = frng_max - frng_min + static_cast<common_type>(1);
-
-    constexpr size_t k = iteration_count(bits, (RNG::min)(), (RNG::max)());
-
-    common_type ret = static_cast<common_type>(0);
-    common_type factor = static_cast<common_type>(1);
-
-    for (size_t i = 0; i < k; ++i)
-    {
-        ret += (static_cast<common_type>(rng()) - frng_min) * factor;
-        factor *= frng_range;
-    }
-
-    ret /= factor;
-
-    return ret * (p.b() - p.a()) + p.a();
+#   undef generate_canonical
 }
 
 } // namespace rand

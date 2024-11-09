@@ -115,6 +115,8 @@ private:
 
 // https://github.com/gcc-mirror/gcc/blob/440be01b07941506d1c8819448bd17c8717d55f5/libstdc%2B%2B-v3/include/bits/random.tcc#L1809
 
+// https://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
+
 template <typename T>
 template <typename RNG>
 typename normal_distribution<T>::result_type normal_distribution<T>::operator()(RNG& rng, const param_type& p)
