@@ -45,7 +45,7 @@
 #define VX_ASSERT_HANDLER(condition, msg, file, line, function) \
     do \
     { \
-        if (condition) \
+        if (!condition) \
         { \
             std::cerr << "Assertion failed: " << #condition << '\n' \
             << "Message: " << msg << '\n' \

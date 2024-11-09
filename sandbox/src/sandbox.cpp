@@ -1,21 +1,12 @@
 ﻿#include "sandbox/sandbox.hpp"
-#include "vertex/os/time.hpp"
-#include "vertex/util/system/timer.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    using tp = time::time_point;
+    size_t num_samples = 100000000; // Number of random samples to generate
+    constexpr long double min_value = -100;
+    constexpr long double max_value = 100;
 
-    timer t;
-    t.start();
-
-    os::sleep(time::seconds(5));
-
-    t.stop();
-
-    VX_LOG_INFO << t.elapsed().as_float_seconds();
-
-    return 0;
+    test_pcg32_distribution(num_samples, min_value, max_value);
 }
