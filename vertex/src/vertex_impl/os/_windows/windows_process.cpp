@@ -103,7 +103,7 @@ static std::string join_environment(const process::environment& environment)
 
 bool process::process_impl::start(process* p, const config& config)
 {
-    VX_ASSERT(!is_valid(), "process already configured");
+    VX_ASSERT_MESSAGE(!is_valid(), "process already configured");
 
     m_process_information.hProcess = INVALID_HANDLE_VALUE;
     m_process_information.hThread = INVALID_HANDLE_VALUE;
@@ -389,7 +389,7 @@ bool process::process_impl::is_valid() const
 
 bool process::process_impl::is_alive() const
 {
-    VX_ASSERT(is_valid(), "process not configured");
+    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
 
     DWORD exit_code;
     if (!GetExitCodeProcess(m_process_information.hProcess, &exit_code))
@@ -403,7 +403,7 @@ bool process::process_impl::is_alive() const
 
 bool process::process_impl::is_complete() const
 {
-    VX_ASSERT(is_valid(), "process not configured");
+    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
 
     const DWORD result = WaitForSingleObject(
         m_process_information.hProcess,
@@ -421,7 +421,7 @@ bool process::process_impl::is_complete() const
 
 bool process::process_impl::join()
 {
-    VX_ASSERT(is_valid(), "process not configured");
+    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
 
     const DWORD result = WaitForSingleObject(
         m_process_information.hProcess,
@@ -439,7 +439,7 @@ bool process::process_impl::join()
 
 bool process::process_impl::kill(bool force)
 {
-    VX_ASSERT(is_valid(), "process not configured");
+    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
 
     if (!TerminateProcess(m_process_information.hProcess, 1))
     {
@@ -455,7 +455,7 @@ bool process::process_impl::kill(bool force)
 
 bool process::process_impl::get_exit_code(int* exit_code) const
 {
-    VX_ASSERT(is_valid(), "process not configured");
+    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
 
     if (exit_code)
     {

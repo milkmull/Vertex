@@ -11,7 +11,7 @@ namespace rand {
 // https://en.wikipedia.org/wiki/Permuted_congruential_generator
 
 template <uint64_t multiplier = 6364136223846793005ull, uint64_t increment = 1442695040888963407ull>
-class pcg32
+class pcg32_gen
 {
 public:
 
@@ -19,12 +19,18 @@ public:
     static VX_FORCE_INLINE constexpr result_type min() { return std::numeric_limits<result_type>::min(); }
     static VX_FORCE_INLINE constexpr result_type max() { return std::numeric_limits<result_type>::max(); }
 
+    static constexpr uint64_t default_seed = 0xCAFEF00DD15EA5E5ull;
+
 public:
 
-    VX_FORCE_INLINE constexpr pcg32() : m_state(0xCAFEF00DD15EA5E5ull + increment) { operator()(); }
-    VX_FORCE_INLINE constexpr pcg32(uint64_t seed) : m_state(seed + increment) { operator()(); }
+    VX_FORCE_INLINE pcg32_gen() : m_state(default_seed + increment) { operator()(); }
+    VX_FORCE_INLINE pcg32_gen(uint64_t seed) : m_state(seed + increment) { operator()(); }
 
-    VX_FORCE_INLINE void seed(uint64_t seed) { m_state = seed + increment; }
+    VX_FORCE_INLINE void seed(uint64_t seed)
+    {
+        m_state = seed + increment;
+        operator()();
+    }
 
 private:
 
@@ -36,7 +42,7 @@ private:
 
 public:
 
-    VX_FORCE_INLINE constexpr uint32_t operator()()
+    VX_FORCE_INLINE uint32_t operator()()
     {
         uint64_t old_state = m_state;
         m_state = m_state * multiplier + increment;
@@ -50,6 +56,8 @@ private:
 
     uint64_t m_state = 0;
 };
+
+using pcg32 = pcg32_gen<>;
 
 } // namespace rand
 } // namespace vx

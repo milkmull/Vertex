@@ -25,8 +25,17 @@
 #include <psapi.h>              // Performance Info
 #include <shellapi.h>           // Dropfile support
 #include <objbase.h>            // CoInitialize
+#include <bcrypt.h>             // Random
 
 #include <string>               // Error handling
+
+///////////////////////////////////////////////////////////////////////////////
+// status
+///////////////////////////////////////////////////////////////////////////////
+
+#define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
+
+///////////////////////////////////////////////////////////////////////////////
 
 // macros for extracting signed values from WM_* lparam stolen from windowsx.h
 

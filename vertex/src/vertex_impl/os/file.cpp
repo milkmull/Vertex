@@ -213,7 +213,7 @@ VX_API size_t file::write(const uint8_t* data, size_t size)
 {
     if (!is_open())
     {
-        return false;
+        return 0;
     }
 
     if (!IS_WRITE_MODE(m_mode))

@@ -11,7 +11,7 @@
 
 #if !defined(VX_ASSERT_LEVEL)
 
-#   if defined(VX_DEBUG)
+#   if defined(VX_DEBUG) && (VX_DEBUG)
 #       define VX_ASSERT_LEVEL 2
 #   else
 #       define VX_ASSERT_LEVEL 1
@@ -45,7 +45,7 @@
 #define VX_ASSERT_HANDLER(condition, msg, file, line, function) \
     do \
     { \
-        if (!condition) \
+        if (!(condition)) \
         { \
             std::cerr << "Assertion failed: " << #condition << '\n' \
             << "Message: " << msg << '\n' \
@@ -58,18 +58,21 @@
 
 #if VX_ASSERT_LEVEL >= 2
 
-#   define VX_ASSERT_RELEASE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
-#   define VX_ASSERT(condition, msg) VX_ASSERT_RELEASE(condition, msg)
+#   define VX_ASSERT_RELEASE_MESSAGE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
+#   define VX_ASSERT_MESSAGE(condition, msg) VX_ASSERT_RELEASE_MESSAGE(condition, msg)
 
 #elif VX_ASSERT_LEVEL == 1
 
-#   define VX_ASSERT_RELEASE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
-#   define VX_ASSERT(condition, msg) ((void)0)
+#   define VX_ASSERT_RELEASE_MESSAGE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
+#   define VX_ASSERT_MESSAGE(condition, msg) ((void)0)
 
 #else
 
-#   define VX_ASSERT_RELEASE(condition, msg) ((void)0)
-#   define VX_ASSERT(condition, msg) ((void)0)
+#   define VX_ASSERT_RELEASE_MESSAGE(condition, msg) ((void)0)
+#   define VX_ASSERT_MESSAGE(condition, msg) ((void)0)
 
 #endif
+
+#define VX_ASSERT_RELEASE(condition) VX_ASSERT_RELEASE_MESSAGE(condition, "assertion failed")
+#define VX_ASSERT(condition) VX_ASSERT_MESSAGE(condition, "assertion failed")
 

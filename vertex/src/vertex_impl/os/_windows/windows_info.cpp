@@ -163,9 +163,7 @@ VX_API uint32_t get_processor_count()
 
 VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
 {
-    typedef long NTSTATUS;
     using RtlGetVersionPtr = NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW lpVersionInformation);
-#   define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
 
     library ntdll;
     if (!ntdll.load("ntdll.dll"))
@@ -185,8 +183,6 @@ VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
         windows_error_message("RtlGetVersion");
         return false;
     }
-
-#   undef STATUS_SUCCESS
 
     if (major)
     {

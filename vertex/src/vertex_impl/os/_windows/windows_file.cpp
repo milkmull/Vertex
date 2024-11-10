@@ -26,7 +26,7 @@ bool file::file_impl::exists(const std::string& path)
 
 bool file::file_impl::open(const std::string& path, mode mode)
 {
-    VX_ASSERT(!is_open(), "file already open");
+    VX_ASSERT_MESSAGE(!is_open(), "file already open");
 
     DWORD access = 0;
     DWORD creation = 0;
@@ -111,7 +111,7 @@ void file::file_impl::close()
 
 size_t file::file_impl::size() const
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     LARGE_INTEGER size;
 
@@ -126,7 +126,7 @@ size_t file::file_impl::size() const
 
 bool file::file_impl::seek(size_t off, stream_position from)
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     LARGE_INTEGER distance{ 0 };
     distance.QuadPart = off;
@@ -162,7 +162,7 @@ bool file::file_impl::seek(size_t off, stream_position from)
 
 size_t file::file_impl::tell() const
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     LARGE_INTEGER off{ 0 };
     off.QuadPart = 0;
@@ -179,7 +179,7 @@ size_t file::file_impl::tell() const
 
 size_t file::file_impl::read(uint8_t* data, size_t size)
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     DWORD count = 0;
     if (!ReadFile(m_handle, data, static_cast<DWORD>(size), &count, nullptr))
@@ -193,7 +193,7 @@ size_t file::file_impl::read(uint8_t* data, size_t size)
 
 size_t file::file_impl::write(const uint8_t* data, size_t size)
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     DWORD count = 0;
     if (!WriteFile(m_handle, data, static_cast<DWORD>(size), &count, NULL))
@@ -207,7 +207,7 @@ size_t file::file_impl::write(const uint8_t* data, size_t size)
 
 bool file::file_impl::flush()
 {
-    VX_ASSERT(is_open(), "file not open");
+    VX_ASSERT_MESSAGE(is_open(), "file not open");
 
     if (!FlushFileBuffers(m_handle))
     {

@@ -1,49 +1,51 @@
 ﻿#include "sandbox/sandbox.hpp"
 
+#include <vector>
 #include <map>
 
 using namespace vx;
 
-static void test_discrete_distribution()
+static void test()
 {
-    // Define a set of weights for the discrete distribution
-    std::initializer_list<double> weights = { 0.0, 1.0, 2.0, 3.0, 4.0 };
-    vx::rand::discrete_distribution<int> dist(weights);
+    rng rng;
 
-    // Display the probabilities of each category
-    std::cout << "Probabilities: ";
-    for (double p : dist.probabilities())
+    std::vector<int> pop;
+    std::vector<double> weights;
+
+    for (int i = 0; i < 5; ++i)
     {
-        std::cout << std::fixed << std::setprecision(2) << p << " ";
-    }
-    std::cout << "\n";
-
-    // Set up a random number generator
-    std::random_device rd;
-    rand::pcg32<> rng(rd());
-
-    // Generate samples and count the occurrences of each outcome
-    std::map<int, int> histogram;
-    const int num_samples = 10000000;
-    for (int i = 0; i < num_samples; ++i)
-    {
-        int sample = dist(rng);
-        ++histogram[sample];
+        pop.push_back(i);
+        weights.push_back(i);
     }
 
-    // Display results as a histogram
-    std::cout << "Histogram of generated samples:\n";
-    for (const auto& [outcome, count] : histogram)
+    size_t trials = 1000000;
+    size_t sample_size = 10;
+    std::map<int, size_t> counts;
+    rand::discrete_distribution<> dist(weights.begin(), weights.end());
+
+    for (size_t i = 0; i < trials; ++i)
     {
-        double probability = static_cast<double>(count) / num_samples;
-        int bar_width = static_cast<int>(probability * 50);  // Scale for visualization
-        std::cout << outcome << ": " << std::string(bar_width, '*')
-            << " (" << probability * 100 << "%)\n";
+        std::vector<int> samples;
+        rand::sample(pop.begin(), pop.end(), std::back_inserter(samples), sample_size, dist, rng);
+
+        for (const auto& x : samples)
+        {
+            ++counts[x];
+        }
+    }
+
+    // Calculate and display histogram
+    VX_LOG_INFO << "Histogram of sample selections (each '*' represents ~1%):\n";
+    for (const auto& [value, count] : counts)
+    {
+        double percentage = (static_cast<double>(count) / (trials * sample_size)) * 100;
+        int num_stars = static_cast<int>(percentage);
+        VX_LOG_INFO << value << ": " << std::string(num_stars, '*') << " (" << percentage << "%)\n";
     }
 }
 
 int main(int argc, char* argv[])
 {
-    test_discrete_distribution();
+    test();
     return 0;
 }

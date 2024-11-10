@@ -2,8 +2,6 @@
 
 #include "vertex/core/assert.hpp"
 
-#include <random>
-
 namespace vx {
 namespace rand {
 

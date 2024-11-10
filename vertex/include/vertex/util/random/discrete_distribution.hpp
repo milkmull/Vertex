@@ -173,6 +173,8 @@ private:
     param_type m_param;
 };
 
+// https://github.com/gcc-mirror/gcc/blob/440be01b07941506d1c8819448bd17c8717d55f5/libstdc%2B%2B-v3/include/bits/random.tcc#L2700
+
 template <typename T>
 template <typename RNG>
 typename discrete_distribution<T>::result_type discrete_distribution<T>::operator()(RNG& rng, const param_type& p)
@@ -185,9 +187,8 @@ typename discrete_distribution<T>::result_type discrete_distribution<T>::operato
 #   define generate_canonical(rng) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(rng)
     const double x = generate_canonical(rng);
     // Find the position in cumulative probabilities where x would fit
-    const auto pos = std::lower_bound(p.m_cp.begin(), p.m_cp.end(), x);
-
-    return static_cast<result_type>(std::distance(p.m_cp.begin(), pos));
+    const auto it = std::lower_bound(p.m_cp.begin(), p.m_cp.end(), x);
+    return static_cast<result_type>(std::distance(p.m_cp.begin(), it));
 #   undef generate_canonical
 }
 
