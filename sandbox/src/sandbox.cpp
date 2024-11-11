@@ -18,7 +18,7 @@ static void test()
         weights.push_back(i);
     }
 
-    size_t trials = 1000000;
+    size_t trials = 10000;
     size_t sample_size = 10;
     std::map<int, size_t> counts;
     rand::discrete_distribution<> dist(weights.begin(), weights.end());
@@ -26,7 +26,11 @@ static void test()
     for (size_t i = 0; i < trials; ++i)
     {
         std::vector<int> samples;
-        rand::sample(pop.begin(), pop.end(), std::back_inserter(samples), sample_size, dist, rng);
+
+        {
+            VX_PROFILE_SCOPE("shuffle");
+            rand::sample(pop.begin(), pop.end(), std::back_inserter(samples), sample_size, dist, rng);
+        }
 
         for (const auto& x : samples)
         {
@@ -46,6 +50,8 @@ static void test()
 
 int main(int argc, char* argv[])
 {
+    profile::start("test_profile.txt");
     test();
+
     return 0;
 }

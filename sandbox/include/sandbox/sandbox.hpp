@@ -8,3 +8,5 @@
 
 #include "vertex/util/random/rng.hpp"
 #include "vertex/util/random/algorithm.hpp"
+
+#include "vertex/core/profiler.hpp"

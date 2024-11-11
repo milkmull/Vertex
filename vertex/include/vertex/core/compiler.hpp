@@ -189,14 +189,3 @@
 #else // Fallback for pre-C++17
 #   define VX_IF_CONSTEXPR if
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Non-Constructable Class
-///////////////////////////////////////////////////////////////////////////////
-
-#define VX_NONCONSTRUCTABLE(class_name) \
-private: \
-    class_name() = delete; \
-    ~class_name() = delete; \
-    class_name(const class_name&) = delete; \
-    class_name& operator=(const class_name&) = delete;

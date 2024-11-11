@@ -102,7 +102,49 @@ public:
 
 public:
 
-    class ostream_proxy;
+    class ostream_proxy
+    {
+    public:
+
+        ostream_proxy(file& f) : m_file(f) {}
+        ~ostream_proxy() { flush(); }
+
+        ostream_proxy(const ostream_proxy&) = delete;
+        ostream_proxy(ostream_proxy&&) noexcept = default;
+
+        ostream_proxy& operator=(const ostream_proxy&) = delete;
+        ostream_proxy& operator=(ostream_proxy&&) noexcept = default;
+
+    public:
+
+        template <typename T>
+        ostream_proxy& operator<<(const T& value)
+        {
+            m_stream << value;
+            return *this;
+        }
+
+        ostream_proxy& operator<<(std::ostream& (*func)(std::ostream&))
+        {
+            m_stream << func;
+            return *this;
+        }
+
+        void flush()
+        {
+            if (m_stream.tellp())
+            {
+                m_file.write_text(m_stream.str());
+                m_stream.str("");
+                m_stream.clear();
+            }
+        }
+
+    private:
+
+        file& m_file;
+        std::ostringstream m_stream;
+    };
 
     template <typename T>
     ostream_proxy operator<<(const T& value)
@@ -112,7 +154,12 @@ public:
         return stream;
     }
 
-    VX_API ostream_proxy operator<<(std::ostream& (*func)(std::ostream&));
+    ostream_proxy operator<<(std::ostringstream& (*func)(std::ostringstream&))
+    {
+        ostream_proxy stream(*this);
+        stream << func;
+        return stream;
+    }
 
 private:
 
@@ -120,48 +167,6 @@ private:
 
     class file_impl;
     std::unique_ptr<file_impl> m_impl;
-};
-
-class file::ostream_proxy
-{
-public:
-
-    ostream_proxy(file& f) : m_file(f) {}
-    ~ostream_proxy() { flush(); }
-
-    ostream_proxy(const ostream_proxy&) = delete;
-    ostream_proxy(ostream_proxy&&) noexcept = default;
-
-    ostream_proxy& operator=(const ostream_proxy&) = delete;
-    ostream_proxy& operator=(ostream_proxy&&) noexcept = default;
-
-    template <typename T>
-    ostream_proxy& operator<<(const T& value)
-    {
-        m_oss << value;
-        return *this;
-    }
-
-    ostream_proxy& operator<<(std::ostream& (*func)(std::ostream&))
-    {
-        m_oss << func;
-        return *this;
-    }
-
-    void flush()
-    {
-        if (m_oss.tellp())
-        {
-            m_file.write_text(m_oss.str());
-            m_oss.str("");
-            m_oss.clear();
-        }
-    }
-
-private:
-
-    file& m_file;
-    std::ostringstream m_oss;
 };
 
 } // namespace os

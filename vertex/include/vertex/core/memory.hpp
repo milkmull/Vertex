@@ -16,7 +16,7 @@ void operator delete(void* ptr, std::size_t size) noexcept
     std::free(ptr);
 }
 
-#endif
+#endif // VX_LOG_MEM
 
 namespace vx {
 
@@ -27,7 +27,7 @@ inline constexpr size_t array_size(const T(&)[N]) noexcept
 }
 
 template <typename T>
-inline constexpr T* align_ptr(T* ptr, size_t alignment) noexcept
+inline constexpr T* align_pointer(T* ptr, size_t alignment) noexcept
 {
     uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
     addr = (addr + (alignment - 1)) & ~(alignment - 1);

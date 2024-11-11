@@ -61,7 +61,7 @@ public:
     ///
     /// @return The elapsed time in nanoseconds.
     ///////////////////////////////////////////////////////////////////////////
-    inline time::time_point elapsed() const
+    inline time::time_point elapsed_time() const
     {
         if (m_running)
         {

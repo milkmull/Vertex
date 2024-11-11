@@ -1,24 +1,18 @@
 #pragma once
 
-#include <fstream>
-#include <mutex>
 #include <sstream>
-#include <thread>
-#include <iostream>
 
 #include "vertex/core/compiler.hpp"
+#include "vertex/core/assert.hpp"
 
 #ifdef ERROR
 #   undef ERROR
 #endif
 
 namespace vx {
+namespace log {
 
-///////////////////////////////////////////////////////////////////////////////
-// log level
-///////////////////////////////////////////////////////////////////////////////
-
-enum class log_level
+enum class level
 {
     TRACE = 0,
     DEBUG = 1,
@@ -28,129 +22,75 @@ enum class log_level
     CRITICAL = 5
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// internal
-///////////////////////////////////////////////////////////////////////////////
+VX_API level get_level();
+VX_API void set_level(level l);
 
-namespace _priv {
+VX_API bool start(const char* output_file);
+VX_API void stop();
+VX_API bool is_enabled();
 
-class logger
+VX_API void write(level l, const std::string& msg);
+
+namespace __detail {
+
+class log_stream
 {
-private:
-
-    logger() {}
-    ~logger() { close_file(); }
-
 public:
 
-    static logger& get()
+    log_stream(level level) : m_level(level) { prefix(); }
+    ~log_stream() { flush(); }
+
+    log_stream(level level, int line, const char* file)
     {
-        static logger instance;
-        return instance;
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // file
-    ///////////////////////////////////////////////////////////////////////////////
-
-    void open_file(const char* filename)
-    {
-        close_file();
-
-        m_filename = filename;
-        m_output_stream.open(m_filename, std::ios_base::app);
-
-        if (!m_output_stream.is_open())
-        {
-            std::cout << "[ERROR] Logger: Failed to open file at " << m_filename << std::endl;
-            close_file();
-        }
-    }
-
-    void close_file()
-    {
-        if (m_output_stream.is_open())
-        {
-            m_output_stream.close();
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // logging
-    ///////////////////////////////////////////////////////////////////////////////
-
-    log_level get_log_level() const { return m_level; }
-    void set_log_level(log_level level) { m_level = level; }
-
-    void log(log_level level, const std::string& msg)
-    {
-        m_mutex.lock();
-
-        std::cout << msg;
-
-        if (m_output_stream.is_open())
-        {
-            m_output_stream << msg;
-            m_output_stream.flush();
-        }
-
-        m_mutex.unlock();
+        prefix();
+        m_stream << "line " << line << " file " << file << ": ";
     }
 
 private:
-
-    log_level m_level = log_level::TRACE;
-
-    const char* m_filename = nullptr;
-    std::ofstream m_output_stream;
-
-    mutable std::mutex m_mutex;
-
-};
-
-struct log_stream
-{
-    log_stream(log_level level)
-        : level(level)
-    {
-        prefix();
-    }
-
-    log_stream(log_level level, int line, const char* filename)
-        : level(level)
-    {
-        prefix();
-        stream << "line " << line << " file " << filename << ": ";
-    }
-
-    ~log_stream()
-    {
-        if (level >= logger::get().get_log_level())
-        {
-            if (stream.str().back() != '\n')
-            {
-                stream << '\n';
-            }
-            logger::get().log(level, stream.str());
-        }
-    }
 
     void prefix()
     {
-        switch (level)
+        switch (m_level)
         {
-            case log_level::TRACE:    stream << "[TRACE] ";    break;
-            case log_level::DEBUG:    stream << "[DEBUG] ";    break;
-            case log_level::INFO:     stream << "[INFO] ";     break;
-            case log_level::WARNING:  stream << "[WARNING] ";  break;
-            case log_level::ERROR:    stream << "[ERROR] ";    break;
-            case log_level::CRITICAL: stream << "[CRITICAL] "; break;
+            case level::TRACE:    m_stream << "[TRACE] ";    break;
+            case level::DEBUG:    m_stream << "[DEBUG] ";    break;
+            case level::INFO:     m_stream << "[INFO] ";     break;
+            case level::WARNING:  m_stream << "[WARNING] ";  break;
+            case level::ERROR:    m_stream << "[ERROR] ";    break;
+            case level::CRITICAL: m_stream << "[CRITICAL] "; break;
         }
     }
 
-    log_level level;
-    std::ostringstream stream;
+public:
 
+    template <typename T>
+    log_stream& operator<<(const T& value)
+    {
+        m_stream << value;
+        return *this;
+    }
+
+    log_stream& operator<<(std::ostream& (*func)(std::ostream&))
+    {
+        m_stream << func;
+        return *this;
+    }
+
+    void flush()
+    {
+        std::string msg(m_stream.str());
+        if (msg.back() != '\n')
+        {
+            msg.push_back('\n');
+        }
+
+        write(m_level, m_stream.str());
+    }
+
+private:
+
+    level m_level;
+    std::ostringstream m_stream;
 };
 
 struct dummy_log_stream
@@ -159,66 +99,9 @@ struct dummy_log_stream
     dummy_log_stream operator<<(T) { return dummy_log_stream(); }
 };
 
-} // namespace _priv
+} // namespace __detail
 
-///////////////////////////////////////////////////////////////////////////////
-// log level
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Gets the current global log level.
-/// 
-/// @return The current global log level.
-///////////////////////////////////////////////////////////////////////////////
-inline log_level get_log_level() { return _priv::logger::get().get_log_level(); }
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Sets the current global log level.
-/// 
-/// Logging messages that have a severity below this level will not be shown.
-///////////////////////////////////////////////////////////////////////////////
-inline void set_log_level(log_level level) { _priv::logger::get().set_log_level(level); }
-
-///////////////////////////////////////////////////////////////////////////////
-// callback
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-// file
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Begins logging all messages to an output file.
-///
-/// @param filename The path to the output file. Default is "log.txt".
-///////////////////////////////////////////////////////////////////////////////
-inline void start_file_output(const char* filename = "log.txt")
-{
-    _priv::logger::get().open_file(filename);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Stops logging messages to an output file if one was specified.
-///////////////////////////////////////////////////////////////////////////////
-inline void stop_file_output()
-{
-    _priv::logger::get().close_file();
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// logging
-///////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Log a message of a specified level.
-///
-/// @param level The level of the message being logged.
-/// @param msg The message to log.
-///////////////////////////////////////////////////////////////////////////////
-inline void log(log_level level, const std::string& msg)
-{
-    _priv::logger::get().log(level, msg);
-}
+} // namespace log
 
 ///////////////////////////////////////////////////////////////////////////////
 // logging macros
@@ -228,36 +111,36 @@ inline void log(log_level level, const std::string& msg)
 
 #if defined(VX_ENABLE_LOGGING)
 
-#   define VX_LOG_TRACE         ::vx::_priv::log_stream(::vx::log_level::TRACE).stream
-#   define VX_LOG_DEBUG         ::vx::_priv::log_stream(::vx::log_level::DEBUG).stream
-#   define VX_LOG_INFO          ::vx::_priv::log_stream(::vx::log_level::INFO).stream
-#   define VX_LOG_WARNING       ::vx::_priv::log_stream(::vx::log_level::WARNING).stream
-#   define VX_LOG_ERROR         ::vx::_priv::log_stream(::vx::log_level::ERROR).stream
-#   define VX_LOG_CRITICAL      ::vx::_priv::log_stream(::vx::log_level::CRITICAL).stream
+#   define VX_LOG_TRACE         ::vx::log::__detail::log_stream(::vx::log::level::TRACE)
+#   define VX_LOG_DEBUG         ::vx::log::__detail::log_stream(::vx::log::level::DEBUG)
+#   define VX_LOG_INFO          ::vx::log::__detail::log_stream(::vx::log::level::INFO)
+#   define VX_LOG_WARNING       ::vx::log::__detail::log_stream(::vx::log::level::WARNING)
+#   define VX_LOG_ERROR         ::vx::log::__detail::log_stream(::vx::log::level::ERROR)
+#   define VX_LOG_CRITICAL      ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL)
 
-#   define VX_LOG_TRACE_FULL    ::vx::_priv::log_stream(::vx::log_level::TRACE,    VX_LINE, VX_FILE).stream
-#   define VX_LOG_DEBUG_FULL    ::vx::_priv::log_stream(::vx::log_level::DEBUG,    VX_LINE, VX_FILE).stream
-#   define VX_LOG_INFO_FULL     ::vx::_priv::log_stream(::vx::log_level::INFO,     VX_LINE, VX_FILE).stream
-#   define VX_LOG_WARNING_FULL  ::vx::_priv::log_stream(::vx::log_level::WARNING,  VX_LINE, VX_FILE).stream
-#   define VX_LOG_ERROR_FULL    ::vx::_priv::log_stream(::vx::log_level::ERROR,    VX_LINE, VX_FILE).stream
-#   define VX_LOG_CRITICAL_FULL ::vx::_priv::log_stream(::vx::log_level::CRITICAL, VX_LINE, VX_FILE).stream
+#   define VX_LOG_TRACE_FULL    ::vx::log::__detail::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE)
+#   define VX_LOG_DEBUG_FULL    ::vx::log::__detail::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE)
+#   define VX_LOG_INFO_FULL     ::vx::log::__detail::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE)
+#   define VX_LOG_WARNING_FULL  ::vx::log::__detail::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE)
+#   define VX_LOG_ERROR_FULL    ::vx::log::__detail::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE)
+#   define VX_LOG_CRITICAL_FULL ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE)
 
 #else
 
-#   define VX_LOG_TRACE         ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_DEBUG         ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_INFO          ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_WARNING       ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_ERROR         ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_CRITICAL      ::vx::_priv::dummy_log_stream()
+#   define VX_LOG_TRACE         ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_DEBUG         ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_INFO          ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_WARNING       ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_ERROR         ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_CRITICAL      ::vx::log::__detail::dummy_log_stream()
 
-#   define VX_LOG_TRACE_FULL    ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_DEBUG_FULL    ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_INFO_FULL     ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_WARNING_FULL  ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_ERROR_FULL    ::vx::_priv::dummy_log_stream()
-#   define VX_LOG_CRITICAL_FULL ::vx::_priv::dummy_log_stream()
+#   define VX_LOG_TRACE_FULL    ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_DEBUG_FULL    ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_INFO_FULL     ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_WARNING_FULL  ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_ERROR_FULL    ::vx::log::__detail::dummy_log_stream()
+#   define VX_LOG_CRITICAL_FULL ::vx::log::__detail::dummy_log_stream()
 
 #endif
 
-}
+} // namespace vx

@@ -11,7 +11,7 @@
 
 #if !defined(VX_ASSERT_LEVEL)
 
-#   if defined(VX_DEBUG) && (VX_DEBUG)
+#   if (VX_DEBUG)
 #       define VX_ASSERT_LEVEL 2
 #   else
 #       define VX_ASSERT_LEVEL 1

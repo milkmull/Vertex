@@ -254,12 +254,5 @@ VX_API bool file::flush()
     return m_impl->flush();
 }
 
-VX_API file::ostream_proxy file::operator<<(std::ostream& (*func)(std::ostream&))
-{
-    ostream_proxy stream(*this);
-    stream << func;
-    return stream;
-}
-
 } // namespace os
 } // namespace vx

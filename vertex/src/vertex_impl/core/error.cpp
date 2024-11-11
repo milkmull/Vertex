@@ -1,13 +1,13 @@
 #include "vertex/core/error.hpp"
 
-#if defined(VX_DEBUG)
+#if (VX_DEBUG)
 #   include <iostream>
 #endif
 
 namespace vx {
 namespace err {
 
-const char* code_to_string(code err)
+VX_API const char* code_to_string(code err)
 {
     switch (err)
     {
@@ -50,14 +50,14 @@ static thread_local info s_err;
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
-info get()
+VX_API info get()
 {
     return s_err;
 }
 
-void set(code err, const std::string& msg)
+VX_API void set(code err, const std::string& msg)
 {
-#if defined(VX_DEBUG)
+#if (VX_DEBUG)
     std::cerr << static_cast<int>(err) << ": " << msg;
 #endif
 
@@ -65,12 +65,12 @@ void set(code err, const std::string& msg)
     s_err.message = msg;
 }
 
-void set(code err)
+VX_API void set(code err)
 {
     set(err, code_to_string(err));
 }
 
-void clear()
+VX_API void clear()
 {
     set(code::NONE, std::string());
 }
