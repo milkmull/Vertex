@@ -1,4 +1,4 @@
-#include "vertex/util/system/time.hpp"
+#include "vertex/util/time.hpp"
 #include "vertex/core/assert.hpp"
 #include "vertex/util/string/string.hpp"
 

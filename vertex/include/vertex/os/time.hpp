@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/util/system/time.hpp"
+#include "vertex/util/time.hpp"
 
 namespace vx {
 namespace os {

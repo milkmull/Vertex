@@ -2,6 +2,7 @@
 #include <iomanip>
 
 #include "vertex/util/crypto/SHA1.hpp"
+#include "vertex/util/bit.hpp"
 
 namespace vx {
 namespace crypto {
@@ -10,11 +11,6 @@ namespace crypto {
 // https://en.wikipedia.org/wiki/SHA1
 // http://www.zedwood.com/article/cpp-sha1-function
 // https://datatracker.ietf.org/doc/html/rfc3174
-
-static inline uint32_t left_rotate(uint32_t x, uint32_t n)
-{
-    return (x << n) | (x >> (32 - n));
-}
 
 SHA1::SHA1()
     : m_state{ 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 }
@@ -90,7 +86,7 @@ void SHA1::process_block(const uint8_t* block)
     }
     for (int i = 16; i < 80; ++i)
     {
-        w[i] = left_rotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        w[i] = rotl(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
     }
 
     uint32_t a = m_state.a;
@@ -123,10 +119,10 @@ void SHA1::process_block(const uint8_t* block)
             k = 0xCA62C1D6;
         }
 
-        uint32_t t = left_rotate(a, 5) + f + e + k + w[i];
+        uint32_t t = rotl(a, 5) + f + e + k + w[i];
         e = d;
         d = c;
-        c = left_rotate(b, 30);
+        c = rotl(b, 30);
         b = a;
         a = t;
     }

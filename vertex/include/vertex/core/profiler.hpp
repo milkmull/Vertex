@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex/core/assert.hpp"
-#include "vertex/util/system/timer.hpp"
+#include "vertex/util/timer.hpp"
 
 namespace vx {
 namespace profile {

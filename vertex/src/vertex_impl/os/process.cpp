@@ -135,9 +135,9 @@ bool process::get_exit_code(int* exit_code) const
     return m_impl->get_exit_code(exit_code);
 }
 
-file& process::get_stdin()  { return m_streams[STDIN ]; }
-file& process::get_stdout() { return m_streams[STDOUT]; }
-file& process::get_stderr() { return m_streams[STDERR]; }
+io_stream& process::get_stdin()  { return m_streams[STDIN ]; }
+io_stream& process::get_stdout() { return m_streams[STDOUT]; }
+io_stream& process::get_stderr() { return m_streams[STDERR]; }
 
 } // namespace os
 } // namespace vx

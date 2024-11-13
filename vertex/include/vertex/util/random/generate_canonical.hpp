@@ -45,7 +45,7 @@ constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, u
     return ceil;
 }
 
-} // __detail
+} // namespace __detail
 
 // https://github.com/microsoft/STL/blob/25dc2b72b6f594326253cf3a05543f7a5750f802/stl/inc/random#L297
 

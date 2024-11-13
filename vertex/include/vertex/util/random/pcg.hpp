@@ -1,9 +1,6 @@
 #pragma once
 
-#include <cstdint>
-#include <limits>
-
-#include "vertex/core/compiler.hpp"
+#include "vertex/util/bit.hpp"
 
 namespace vx {
 namespace rand {
@@ -32,14 +29,6 @@ public:
         operator()();
     }
 
-private:
-
-    static VX_FORCE_INLINE constexpr uint32_t rotr32(uint32_t x, uint32_t r)
-    {
-        constexpr uint32_t bits = sizeof(x) * 8;
-        return (x >> r) | (x << ((bits - r) & 31));
-    }
-
 public:
 
     VX_FORCE_INLINE uint32_t operator()()
@@ -49,7 +38,7 @@ public:
 
         uint32_t count = static_cast<uint32_t>(old_state >> 59) & 31;
         old_state ^= old_state >> 18;
-        return rotr32(static_cast<uint32_t>(old_state >> 27), count);
+        return rotr(static_cast<uint32_t>(old_state >> 27), count);
     }
 
 private:
