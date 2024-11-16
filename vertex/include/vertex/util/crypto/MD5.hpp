@@ -7,16 +7,24 @@
 namespace vx {
 namespace crypto {
 
-class VX_API MD5
+class MD5
 {
 public:
 
-    MD5();
-    void update(const uint8_t* data, size_t size);
-    void finalize();
-    std::string to_string() const;
+    VX_API MD5();
 
-    void clear();
+    static inline std::string hash(const uint8_t* data, size_t size)
+    {
+        MD5 md5;
+        md5.update(data, size);
+        md5.finalize();
+        return md5.to_string();
+    }
+
+    VX_API void update(const uint8_t* data, size_t size);
+    VX_API void finalize();
+    VX_API std::string to_string() const;
+    VX_API void reset();
 
 private:
 
@@ -39,5 +47,5 @@ private:
 
 };
 
-}
-}
+} // namespace crypto
+} // namespace vx

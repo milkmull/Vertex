@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "vertex/util/string/string_compare.hpp"
+#include "vertex/system/validate.hpp"
 
 namespace vx {
 namespace str {
@@ -12,6 +13,9 @@ namespace __detail {
 template <typename IT1, typename IT2>
 inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2, const bool damerau)
 {
+    VX_ITERATOR_VALID_RANGE(first1, last1);
+    VX_ITERATOR_VALID_RANGE(first2, last2);
+
     const size_t size1 = static_cast<size_t>(std::distance(first1, last1));
     const size_t size2 = static_cast<size_t>(std::distance(first2, last2));
 

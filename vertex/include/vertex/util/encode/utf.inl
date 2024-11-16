@@ -1,5 +1,7 @@
 #pragma once
 
+#include "vertex/system/validate.hpp"
+
 namespace vx {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -9,13 +11,13 @@ namespace vx {
 namespace utf8 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint8_t replacement)
+inline IT encode(uint32_t codepoint, IT out, uint8_t replacement)
 {
     if (codepoint < 0x00000000 || codepoint > 0x0010FFFF)
     {
         // Codepoint is outside valid range
-        *output++ = replacement;
-        return output;
+        *out++ = replacement;
+        return out;
     }
 
     size_t byte_count = 1;
@@ -43,16 +45,18 @@ inline IT encode(uint32_t codepoint, IT output, uint8_t replacement)
 
     for (size_t i = 0; i < byte_count; ++i)
     {
-        *output++ = bytes[i];
+        *out++ = bytes[i];
     }
 
-    return output;
+    return out;
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement)
 {
-    uint8_t lead = static_cast<uint8_t>(*begin);
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    uint8_t lead = static_cast<uint8_t>(*first);
     uint8_t trail_bytes = 0;
 
     if      ((lead & 0b10000000) == 0b00000000)
@@ -79,14 +83,14 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
     {
         // Invalid lead byte
         codepoint = replacement;
-        return end;
+        return last;
     }
 
-    if (trail_bytes >= std::distance(begin, end))
+    if (trail_bytes >= std::distance(first, last))
     {
         // Not enough space to contain expected trailing bytes
         codepoint = replacement;
-        return end;
+        return last;
     }
 
     // Values to shave off leading bits after assembling final codepoint
@@ -96,31 +100,35 @@ inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
 
     switch (trail_bytes)
     {
-        case 3: codepoint += static_cast<uint8_t>(*begin++); codepoint <<= 6; VX_FALLTHROUGH;
-        case 2: codepoint += static_cast<uint8_t>(*begin++); codepoint <<= 6; VX_FALLTHROUGH;
-        case 1: codepoint += static_cast<uint8_t>(*begin++); codepoint <<= 6; VX_FALLTHROUGH;
-        case 0: codepoint += static_cast<uint8_t>(*begin++);
+        case 3: codepoint += static_cast<uint8_t>(*first++); codepoint <<= 6; VX_FALLTHROUGH;
+        case 2: codepoint += static_cast<uint8_t>(*first++); codepoint <<= 6; VX_FALLTHROUGH;
+        case 1: codepoint += static_cast<uint8_t>(*first++); codepoint <<= 6; VX_FALLTHROUGH;
+        case 0: codepoint += static_cast<uint8_t>(*first++);
     }
     codepoint -= lead_masks[trail_bytes];
 
-    return begin;
+    return first;
 }
 
 template <typename IT>
-inline IT next(IT begin, IT end)
+inline IT next(IT first, IT last)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     uint32_t codepoint{};
-    return decode(begin, end, codepoint);
+    return decode(first, last, codepoint);
 }
 
 template <typename IT>
-inline size_t count(IT begin, IT end)
+inline size_t count(IT first, IT last)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     size_t count = 0;
 
-    while (begin < end)
+    while (first < last)
     {
-        begin = next(begin, end);
+        first = next(first, last);
         ++count;
     }
 
@@ -131,70 +139,80 @@ inline size_t count(IT begin, IT end)
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        *output++ = *begin++;
+        *out++ = *first++;
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf16::encode(codepoint, output);
+        first = decode(first, last, codepoint);
+        out = utf16::encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode(codepoint, output);
+        first = decode(first, last, codepoint);
+        out = utf32::encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        uint32_t codepoint = utf32::decode_wide(*begin++);
-        output = encode(codepoint, output);
+        uint32_t codepoint = utf32::decode_wide(*first++);
+        out = encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode_wide(codepoint, output, replacement);
+        first = decode(first, last, codepoint);
+        out = utf32::encode_wide(codepoint, out, replacement);
     }
 
-    return output;
+    return out;
 }
 
 } // namespace utf8
@@ -206,89 +224,95 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf16 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint16_t replacement)
+inline IT encode(uint32_t codepoint, IT out, uint16_t replacement)
 {
     if (codepoint < 0x0000FFFF)
     {
         if (codepoint >= 0x0000D800 && codepoint <= 0x0000DFFF)
         {
             // Invalid codepoint in reserved range
-            *output++ = replacement;
-            return output;
+            *out++ = replacement;
+            return out;
         }
 
         // Codepoint is directly convertable
-        *output++ = static_cast<uint16_t>(codepoint);
-        return output;
+        *out++ = static_cast<uint16_t>(codepoint);
+        return out;
     }
 
     if (codepoint > 0x0010FFFF)
     {
         // Out of valid range
-        *output++ = replacement;
-        return output;
+        *out++ = replacement;
+        return out;
     }
 
     // Build surrogate pair
     codepoint -= 0x00010000;
-    *output++ = static_cast<uint16_t>((codepoint >> 10)        + 0x0000D800);
-    *output++ = static_cast<uint16_t>((codepoint & 0x000003FF) + 0x0000DC00);
+    *out++ = static_cast<uint16_t>((codepoint >> 10)        + 0x0000D800);
+    *out++ = static_cast<uint16_t>((codepoint & 0x000003FF) + 0x0000DC00);
 
-    return output;
+    return out;
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement)
 {
-    const uint16_t first = *begin++;
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    const uint16_t first = *first++;
 
     // Check for expected surrogate pair
     if (first >= 0x0000D800 && first <= 0x0000DBFF)
     {
-        if (begin >= end)
+        if (first >= last)
         {
             // Not enough space to contain second surrogate
             codepoint = replacement;
-            return begin;
+            return first;
         }
 
-        const uint32_t second = *begin++;
+        const uint32_t second = *first++;
 
         if (second >= 0x0000DC00 && second <= 0x0000DFFF)
         {
             // Valid second surrogate, combine surrogate pair
             codepoint = ((first - 0x0000D800) << 10) + (second - 0x0000DC00) + 0x00010000;
-            return begin;
+            return first;
         }
         else
         {
             // Invalid second surrogate
             codepoint = replacement;
-            return begin;
+            return first;
         }
     }
 
     // Codepoint is directly convertable
     codepoint = first;
 
-    return begin;
+    return first;
 }
 
 template <typename IT>
-inline IT next(IT begin, IT end)
+inline IT next(IT first, IT last)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     uint32_t codepoint{};
-    return decode(begin, end, codepoint);
+    return decode(first, last, codepoint);
 }
 
 template <typename IT>
-inline size_t count(IT begin, IT end)
+inline size_t count(IT first, IT last)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     size_t count = 0;
 
-    while (begin < end)
+    while (first < last)
     {
-        begin = next(begin, end);
+        first = next(first, last);
         ++count;
     }
 
@@ -299,70 +323,80 @@ inline size_t count(IT begin, IT end)
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf8::encode(codepoint, output);
+        first = decode(first, last, codepoint);
+        out = utf8::encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        *output++ = *begin++;
+        *out++ = *first++;
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode(codepoint, output);
+        first = decode(first, last, codepoint);
+        out = utf32::encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        uint32_t codepoint = utf32::decode_wide(*begin++);
-        output = encode(codepoint, output);
+        uint32_t codepoint = utf32::decode_wide(*first++);
+        out = encode(codepoint, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
         uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode_wide(codepoint, output, replacement);
+        first = decode(first, last, codepoint);
+        out = utf32::encode_wide(codepoint, out, replacement);
     }
 
-    return output;
+    return out;
 }
 
 } // namespace utf16
@@ -374,103 +408,119 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf32 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint32_t replacement)
+inline IT encode(uint32_t codepoint, IT out, uint32_t replacement)
 {
-    *output++ = codepoint;
-    return output;
+    *out++ = codepoint;
+    return out;
 }
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement)
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement)
 {
-    codepoint = *begin++;
-    return begin;
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    codepoint = *first++;
+    return first;
 }
 
 template <typename IT>
-inline IT next(IT begin, IT end)
+inline IT next(IT first, IT last)
 {
-    return ++begin;
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    return ++first;
 }
 
 template <typename IT>
-inline size_t count(IT begin, IT end)
+inline size_t count(IT first, IT last)
 {
-    return std::distance(begin, end);
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    return static_cast<size_t>(std::distance(first, last));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        output = utf8::encode(*begin++, output);
+        out = utf8::encode(*first++, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        output = utf16::encode(*begin++, output);
+        out = utf16::encode(*first++, out);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        *output++ = *begin++;
+        *out++ = *first++;
     }
 
-    return output;
+    return out;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output)
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        *output++ = decode_wide(*begin++);
+        *out++ = decode_wide(*first++);
     }
 
-    return output;
+    return out;
 }
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement)
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement)
 {
-    while (begin < end)
+    VX_ITERATOR_VALID_RANGE(first, last);
+
+    while (first < last)
     {
-        output = encode_wide(*begin++, output, replacement);
+        out = encode_wide(*first++, out, replacement);
     }
 
-    return output;
+    return out;
 }
 
 template <typename IT>
-inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement)
+inline IT encode_wide(uint32_t codepoint, IT out, wchar_t replacement)
 {
     switch (sizeof(wchar_t))
     {
         case 4:
         {
             // UCS-4, is utf32, we can directly copy the codepoint
-            *output++ = static_cast<wchar_t>(codepoint);
+            *out++ = static_cast<wchar_t>(codepoint);
             break;
         }
         case 2:
@@ -479,7 +529,7 @@ inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement)
             if (codepoint <= 0x0000FFFF && (codepoint < 0x0000D800 || codepoint > 0x0000DFFF))
             {
                 // In the valid range for a single character utf16 codepoint
-                *output++ = static_cast<wchar_t>(codepoint);
+                *out++ = static_cast<wchar_t>(codepoint);
                 break;
             }
 
@@ -487,12 +537,12 @@ inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement)
         }
         default:
         {
-            *output++ = replacement;
+            *out++ = replacement;
             break;
         }
     }
 
-    return output;
+    return out;
 }
 
 template <typename T>

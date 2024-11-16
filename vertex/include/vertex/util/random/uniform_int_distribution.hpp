@@ -3,7 +3,7 @@
 #include "vertex/system/assert.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/e97179bacd067ccd3ee765632e0c034df152ccb6/libstdc%2B%2B-v3/include/bits/uniform_int_dist.h
 
@@ -25,7 +25,7 @@ public:
         explicit param_type(T min_value, T max_value = std::numeric_limits<T>::max())
             : m_a(min_value), m_b(max_value)
         {
-            assert(m_a <= m_b);
+            VX_ASSERT(m_a <= m_b);
         }
 
         result_type a() const
@@ -212,5 +212,5 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
     return ret + p.a();
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

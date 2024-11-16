@@ -2,7 +2,7 @@
 
 #include "vertex/system/platform.hpp"
 #include "vertex/system/compiler.hpp"
-#include "vertex_impl/system/platform_defines.hpp"
+#include "vertex/system/platform_defines.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Config

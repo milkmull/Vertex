@@ -8,12 +8,13 @@
 #include "vertex/util/random/bernoulli_distribution.hpp"
 
 namespace vx {
+namespace random {
 
 class rng
 {
 public:
 
-    using generator_type = rand::pcg32;
+    using generator_type = pcg32;
     using result_type = typename generator_type::result_type;
 
     static constexpr result_type min() { return generator_type::min(); }
@@ -67,24 +68,24 @@ public:
 
     inline double randf()
     {
-        return rand::uniform_real_distribution<double>()(m_rng);
+        return random::uniform_real_distribution<double>()(m_rng);
     }
 
     inline bool randb()
     {
-        return rand::bernoulli_distribution()(m_rng);
+        return random::bernoulli_distribution()(m_rng);
     }
 
     template <typename T>
     inline T randi_range(T min, T max)
     {
-        return rand::uniform_int_distribution<T>(min, max)(m_rng);
+        return random::uniform_int_distribution<T>(min, max)(m_rng);
     }
 
     template <typename T>
     inline T randf_range(T min, T max)
     {
-        return rand::uniform_real_distribution<T>(min, max)(m_rng);
+        return random::uniform_real_distribution<T>(min, max)(m_rng);
     }
 
 private:
@@ -92,4 +93,5 @@ private:
     generator_type m_rng;
 };
 
+} // namespace random
 } // namespace vx

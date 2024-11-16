@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "vertex/system/compiler.hpp"
+#include "vertex/system/platform_defines.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Assert Level

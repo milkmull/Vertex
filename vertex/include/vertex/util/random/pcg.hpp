@@ -3,9 +3,10 @@
 #include "vertex/util/bit.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://en.wikipedia.org/wiki/Permuted_congruential_generator
+// https://github.com/imneme/pcg-cpp
 
 template <uint64_t multiplier = 6364136223846793005ull, uint64_t increment = 1442695040888963407ull>
 class pcg32_gen
@@ -48,5 +49,5 @@ private:
 
 using pcg32 = pcg32_gen<>;
 
-} // namespace rand
+} // namespace random
 } // namespace vx

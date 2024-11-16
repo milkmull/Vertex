@@ -8,14 +8,14 @@
 #include "vertex/util/random/discrete_distribution.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/d7ef7d1258d8ef715be29dea0788a3e410c1d279/libstdc%2B%2B-v3/include/bits/stl_algo.h#L3680
 
 template <typename Iterator, typename RNG>
 void shuffle(Iterator first, Iterator last, RNG& rng)
 {
-    __VX_ITERATOR_VALID_RANGE(first, last);
+    VX_ITERATOR_VALID_RANGE(first, last);
 
     if (first == last)
     {
@@ -102,7 +102,7 @@ SampleIterator sample(
     size_t n, RNG& rng
 )
 {
-    __VX_ITERATOR_VALID_RANGE(first, last);
+    VX_ITERATOR_VALID_RANGE(first, last);
 
     if (first == last || n == 0)
     {
@@ -176,7 +176,7 @@ SampleIterator sample(
     RNG& rng
 )
 {
-    __VX_ITERATOR_VALID_RANGE(first, last);
+    VX_ITERATOR_VALID_RANGE(first, last);
 
     if (first == last || n == 0)
     {
@@ -218,5 +218,5 @@ SampleIterator sample(
     return out;
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

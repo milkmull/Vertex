@@ -3,7 +3,7 @@
 #include "vertex/util/random/generate_canonical.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/7e1d9f58858153bee4bcbab45aa862442859d958/libstdc%2B%2B-v3/include/bits/random.h#L1880
 
@@ -25,7 +25,7 @@ public:
         explicit param_type(T min_value, T max_value = static_cast<T>(1))
             : m_a(min_value), m_b(max_value)
         {
-            assert(m_a <= m_b);
+            VX_ASSERT(m_a <= m_b);
         }
 
         result_type a() const
@@ -119,5 +119,5 @@ typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>:
     return x * (p.b() - p.a()) + p.a();
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

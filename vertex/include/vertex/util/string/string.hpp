@@ -294,8 +294,8 @@ inline std::string wstring_to_string(const wstr_arg_t& ws);
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename Num>
-inline IT parse_digits(IT first, IT last, Num& value, size_t* count = nullptr);
+template <typename IT, typename T>
+inline IT parse_digits(IT first, IT last, T& value, size_t* count = nullptr);
 
 int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
 int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);

@@ -3,7 +3,7 @@
 #include "vertex/util/random/generate_canonical.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/440be01b07941506d1c8819448bd17c8717d55f5/libstdc%2B%2B-v3/include/bits/random.h#L3727
 
@@ -21,7 +21,7 @@ public:
 
         explicit param_type(double p) : m_p(p)
         {
-            assert(0.0 <= m_p && m_p <= 1.0);
+            VX_ASSERT(0.0 <= m_p && m_p <= 1.0);
         }
 
         double p() const
@@ -100,12 +100,12 @@ private:
 template <typename RNG>
 typename bernoulli_distribution::result_type bernoulli_distribution::operator()(RNG& rng, const param_type& p)
 {
-#   define generate_canonical(rng) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(rng)
+#   define generate_canonical(gen) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
 
     return static_cast<result_type>(generate_canonical(rng) < p.p());
 
 #   undef generate_canonical
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

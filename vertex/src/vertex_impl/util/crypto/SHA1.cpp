@@ -12,7 +12,7 @@ namespace crypto {
 // http://www.zedwood.com/article/cpp-sha1-function
 // https://datatracker.ietf.org/doc/html/rfc3174
 
-SHA1::SHA1()
+VX_API SHA1::SHA1()
     : m_state{ 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 }
     , m_bit_count(0)
     , m_buffer{}
@@ -20,7 +20,7 @@ SHA1::SHA1()
     , m_finalized(false)
     , m_result{} {}
 
-void SHA1::update(const uint8_t* data, size_t size)
+VX_API void SHA1::update(const uint8_t* data, size_t size)
 {
     if (m_finalized)
     {
@@ -40,7 +40,7 @@ void SHA1::update(const uint8_t* data, size_t size)
     }
 }
 
-void SHA1::finalize()
+VX_API void SHA1::finalize()
 {
     if (m_finalized)
     {
@@ -146,7 +146,7 @@ void SHA1::make_result()
     }
 }
 
-std::string SHA1::to_string() const
+VX_API std::string SHA1::to_string() const
 {
     if (!m_finalized)
     {
@@ -166,10 +166,10 @@ std::string SHA1::to_string() const
     return oss.str();
 }
 
-void SHA1::clear()
+VX_API void SHA1::reset()
 {
     *this = SHA1();
 }
 
-}
-}
+} // namespace crypto
+} // namespace vx

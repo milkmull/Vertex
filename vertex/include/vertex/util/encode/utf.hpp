@@ -9,39 +9,39 @@ namespace vx {
 namespace utf8 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint8_t replacement = 0);
+inline IT encode(uint32_t codepoint, IT out, uint8_t replacement = 0);
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0);
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement = 0);
 
 template <typename IT>
-inline IT next(IT begin, IT end);
+inline IT next(IT first, IT last);
 
 template <typename IT>
-inline size_t count(IT begin, IT end);
+inline size_t count(IT first, IT last);
 
 ///////////////////////////////////////////////////////////////////////////////
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out);
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0);
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement = 0);
 
 } // namespace utf8
 
@@ -52,39 +52,39 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf16 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint16_t replacement = 0);
+inline IT encode(uint32_t codepoint, IT out, uint16_t replacement = 0);
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0);
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement = 0);
 
 template <typename IT>
-inline IT next(IT begin, IT end);
+inline IT next(IT first, IT last);
 
 template <typename IT>
-inline size_t count(IT begin, IT end);
+inline size_t count(IT first, IT last);
 
 ///////////////////////////////////////////////////////////////////////////////
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out);
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0);
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement = 0);
 
 } // namespace utf16
 
@@ -95,42 +95,42 @@ inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement
 namespace utf32 {
 
 template <typename IT>
-inline IT encode(uint32_t codepoint, IT output, uint32_t replacement = 0);
+inline IT encode(uint32_t codepoint, IT out, uint32_t replacement = 0);
 
 template <typename IT>
-inline IT decode(IT begin, IT end, uint32_t& codepoint, uint32_t replacement = 0);
+inline IT decode(IT first, IT last, uint32_t& codepoint, uint32_t replacement = 0);
 
 template <typename IT>
-inline IT next(IT begin, IT end);
+inline IT next(IT first, IT last);
 
 template <typename IT>
-inline size_t count(IT begin, IT end);
+inline size_t count(IT first, IT last);
 
 ///////////////////////////////////////////////////////////////////////////////
 // utf conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf8(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf8(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf16(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf16(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 to_utf32(IT1 first, IT1 last, IT2 out);
 
 ///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_wide(IN_IT begin, IN_IT end, OUT_IT output);
+template <typename IT1, typename IT2>
+inline IT2 from_wide(IT1 first, IT1 last, IT2 out);
 
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_wide(IN_IT begin, IN_IT end, OUT_IT output, wchar_t replacement = 0);
+template <typename IT1, typename IT2>
+inline IT2 to_wide(IT1 first, IT1 last, IT2 out, wchar_t replacement = 0);
 
 template <typename IT>
-inline IT encode_wide(uint32_t codepoint, IT output, wchar_t replacement = 0);
+inline IT encode_wide(uint32_t codepoint, IT out, wchar_t replacement = 0);
 
 template <typename T>
 inline uint32_t decode_wide(T input);

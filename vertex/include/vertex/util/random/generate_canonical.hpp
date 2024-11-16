@@ -3,7 +3,7 @@
 #include "vertex/system/assert.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 namespace __detail {
 
@@ -16,7 +16,7 @@ constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, u
 {
     // Make sure bits is in a valid range
     constexpr uintmax_t max_bits = sizeof(uintmax_t) * 8;
-    assert(0 <= bits && bits <= max_bits);
+    VX_ASSERT(0 <= bits && bits <= max_bits);
 
     if (bits == 0 || (rng_max == std::numeric_limits<uintmax_t>::max() && rng_min == 0))
     {
@@ -84,5 +84,5 @@ constexpr T generate_canonical(RNG& rng)
     return ret;
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

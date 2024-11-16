@@ -7,16 +7,24 @@
 namespace vx {
 namespace crypto {
 
-class VX_API SHA256
+class SHA256
 {
 public:
 
-    SHA256();
-    void update(const uint8_t* data, size_t size);
-    void finalize();
-    std::string to_string() const;
+    VX_API SHA256();
 
-    void clear();
+    static inline std::string hash(const uint8_t* data, size_t size)
+    {
+        SHA256 sha256;
+        sha256.update(data, size);
+        sha256.finalize();
+        return sha256.to_string();
+    }
+
+    VX_API void update(const uint8_t* data, size_t size);
+    VX_API void finalize();
+    VX_API std::string to_string() const;
+    VX_API void reset();
 
 private:
 
@@ -39,5 +47,5 @@ private:
 
 };
 
-}
-}
+} // namespace crypto
+} // namespace vx

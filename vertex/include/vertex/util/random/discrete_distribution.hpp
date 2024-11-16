@@ -6,7 +6,7 @@
 #include "vertex/util/random/generate_canonical.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/440be01b07941506d1c8819448bd17c8717d55f5/libstdc%2B%2B-v3/include/bits/random.h#L5546
 
@@ -68,7 +68,7 @@ public:
             }
 
             const double sum = std::accumulate(m_prob.begin(), m_prob.end(), 0.0);
-            assert(sum > 0.0);
+            VX_ASSERT(sum > 0.0);
 
             // Normalize weights
             for (double& w : m_prob)
@@ -184,13 +184,15 @@ typename discrete_distribution<T>::result_type discrete_distribution<T>::operato
         return static_cast<result_type>(0.0);
     }
 
-#   define generate_canonical(rng) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(rng)
+#   define generate_canonical(gen) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
+
     const double x = generate_canonical(rng);
     // Find the position in cumulative probabilities where x would fit
     const auto it = std::lower_bound(p.m_cp.begin(), p.m_cp.end(), x);
     return static_cast<result_type>(std::distance(p.m_cp.begin(), it));
+
 #   undef generate_canonical
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

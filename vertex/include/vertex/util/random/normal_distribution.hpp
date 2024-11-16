@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cmath>
+
 #include "vertex/util/random/generate_canonical.hpp"
 
 namespace vx {
-namespace rand {
+namespace random {
 
 // https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/bits/random.h#L2118
 
@@ -25,7 +27,7 @@ public:
         explicit param_type(T mean, T stddev = static_cast<T>(1))
             : m_mean(mean), m_stddev(stddev)
         {
-            assert(m_stddev > 0);
+            VX_ASSERT(m_stddev > 0);
         }
 
         result_type mean() const
@@ -129,7 +131,7 @@ typename normal_distribution<T>::result_type normal_distribution<T>::operator()(
         "RNG::result_type must be an unsigned integral type"
     );
 
-#   define generate_canonical(rng) generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(rng)
+#   define generate_canonical(gen) generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(gen)
 
     result_type ret;
 
@@ -163,5 +165,5 @@ typename normal_distribution<T>::result_type normal_distribution<T>::operator()(
 #   undef generate_canonical
 }
 
-} // namespace rand
+} // namespace random
 } // namespace vx

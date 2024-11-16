@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "vertex/util/encode/utf.hpp"
+#include "vertex/system/validate.hpp"
 
 namespace vx {
 namespace str {
@@ -469,6 +470,8 @@ inline std::string concat(IT first, IT last)
 template <typename IT, typename Delim>
 inline std::string join(IT first, IT last, const Delim& delimiter)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     std::ostringstream oss;
 
     for (IT it = first; it != last; ++it)
@@ -679,15 +682,17 @@ inline std::string wstring_to_string(const wstr_arg_t& ws)
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename Num>
-inline IT parse_digits(IT first, IT last, Num& value, size_t* count)
+template <typename IT, typename T>
+inline IT parse_digits(IT first, IT last, T& value, size_t* count)
 {
+    VX_ITERATOR_VALID_RANGE(first, last);
+
     const IT start = first;
-    value = static_cast<Num>(0);
+    value = static_cast<T>(0);
 
     while (first != last && is_digit(*first))
     {
-        value = (value * 10) + static_cast<Num>(*first - '0');
+        value = (value * 10) + static_cast<T>(*first - '0');
         ++first;
     }
 
