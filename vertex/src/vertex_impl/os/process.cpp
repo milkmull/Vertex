@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_PROCESS)
 #   include "_windows/windows_process.hpp"
@@ -8,7 +8,7 @@
 
 #endif
 
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {

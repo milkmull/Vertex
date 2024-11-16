@@ -1,8 +1,9 @@
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_LOCALE)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex/system/error.hpp"
 #include "vertex/os/locale.hpp"
 #include "vertex/util/string/string.hpp"
 

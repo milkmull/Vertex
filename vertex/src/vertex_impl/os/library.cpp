@@ -1,10 +1,10 @@
-#include "vertex/core/platform.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_windows/windows_library.hpp"
 #endif
 
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {

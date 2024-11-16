@@ -3,7 +3,6 @@
 #include <sstream>
 #include <algorithm>
 
-#include "vertex/core/error.hpp"
 #include "vertex/util/encode/utf.hpp"
 
 namespace vx {
@@ -33,12 +32,12 @@ inline T from_string(const std::string& s)
 // contains
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool contains(const str_arg_t& s, const char val)
+constexpr bool contains(const str_arg_t& s, const char val)
 {
     return s.find(val) != str_arg_t::npos;
 }
 
-constexpr inline bool contains(const str_arg_t& s, const str_arg_t& val)
+constexpr bool contains(const str_arg_t& s, const str_arg_t& val)
 {
     return s.find(val) != str_arg_t::npos;
 }
@@ -71,12 +70,12 @@ inline size_t count(const str_arg_t& s, const str_arg_t& val)
 // starts_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool starts_with(const str_arg_t& s, const char prefix)
+constexpr bool starts_with(const str_arg_t& s, const char prefix)
 {
     return !s.empty() && s[0] == prefix;
 }
 
-constexpr inline bool starts_with(const str_arg_t& s, const str_arg_t& prefix)
+constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix)
 {
     return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
 }
@@ -85,12 +84,12 @@ constexpr inline bool starts_with(const str_arg_t& s, const str_arg_t& prefix)
 // ends_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool ends_with(const str_arg_t& s, const char suffix)
+constexpr bool ends_with(const str_arg_t& s, const char suffix)
 {
     return s.rfind(suffix) == (s.size() - 1);
 }
 
-constexpr inline bool ends_with(const str_arg_t& s, const str_arg_t& suffix)
+constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix)
 {
     return s.rfind(suffix) == (s.size() - suffix.size());
 }
@@ -197,27 +196,6 @@ inline bool is_hex(const str_arg_t& s, const bool allow_prefix)
     }
 
     return std::all_of(s.begin() + start, s.end(), static_cast<bool(*)(const char)>(is_hex_digit));
-}
-
-inline std::string to_hex_string(const void* data, size_t size)
-{
-    static constexpr char hex[] = "0123456789ABCDEF";
-
-    std::string res;
-    res.reserve(2 * size);
-
-    const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
-
-    for (int i = 0; i < size; ++i)
-    {
-        const char x1 = hex[(bytes[i] >> 4) & 0xF]; // High nibble
-        const char x2 = hex[(bytes[i] >> 0) & 0xF]; // Low nibble
-
-        res.push_back(x1);
-        res.push_back(x2);
-    }
-
-    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -488,8 +466,8 @@ inline std::string concat(IT first, IT last)
 // join
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename U>
-inline std::string join(IT first, IT last, const U& delimiter)
+template <typename IT, typename Delim>
+inline std::string join(IT first, IT last, const Delim& delimiter)
 {
     std::ostringstream oss;
 
@@ -701,15 +679,15 @@ inline std::string wstring_to_string(const wstr_arg_t& ws)
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename T>
-inline IT parse_digits(IT first, IT last, T& value, size_t* count)
+template <typename IT, typename Num>
+inline IT parse_digits(IT first, IT last, Num& value, size_t* count)
 {
     const IT start = first;
-    value = static_cast<T>(0);
+    value = static_cast<Num>(0);
 
     while (first != last && is_digit(*first))
     {
-        value = (value * 10) + static_cast<T>(*first - '0');
+        value = (value * 10) + static_cast<Num>(*first - '0');
         ++first;
     }
 
@@ -719,182 +697,6 @@ inline IT parse_digits(IT first, IT last, T& value, size_t* count)
     }
 
     return first;
-}
-
-inline int32_t to_int32(const std::string& s, size_t* count, int base)
-{
-    int32_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = std::stol(s, &i, base);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
-inline int64_t to_int64(const std::string& s, size_t* count, int base)
-{
-    int64_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = std::stoll(s, &i, base);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
-inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
-{
-    uint32_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = std::stoul(s, &i, base);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
-inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
-{
-    uint64_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = std::stoull(s, &i, base);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
-inline float to_float(const std::string& s, size_t* count)
-{
-    float value = 0.0f;
-    size_t i = 0;
-
-    try
-    {
-        value = std::stof(s, &i);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
-inline double to_double(const std::string& s, size_t* count)
-{
-    double value = 0.0;
-    size_t i = 0;
-
-    try
-    {
-        value = std::stod(s, &i);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
 }
 
 } // namespace str

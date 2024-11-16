@@ -1,4 +1,4 @@
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_FILESYSTEM)
 
@@ -8,6 +8,7 @@
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include "vertex/os/filesystem.hpp"
+#include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 
 // https://docs.godotengine.org/en/stable/classes/class_fileaccess.html

@@ -1,6 +1,7 @@
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 
-#include "vertex/core/memory.hpp"
+#include "vertex/util/memory/memory.hpp"
+#include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -15,7 +16,7 @@ void windows_error_message(const std::string& msg)
     FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
         NULL, code, 0,
-        buffer, static_cast<DWORD>(vx::array_size(buffer)), NULL
+        buffer, static_cast<DWORD>(vx::mem::array_size(buffer)), NULL
     );
 
     // Kill CR/LF that FormatMessage() sticks at the end

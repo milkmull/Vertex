@@ -2,7 +2,7 @@
 
 #include <regex>
 
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace re {
@@ -29,7 +29,7 @@ private:
 
 public:
 
-    basic_regex(const char_t* pattern)
+    inline basic_regex(const char_t* pattern)
     {
         try
         {
@@ -39,11 +39,11 @@ public:
         catch (const std::regex_error& e)
         {
             m_valid = false;
-            VX_ERROR(error::error_code::INVALID_ARGUMENT) << e.what();
+            VX_ERR(err::code::INVALID_ARGUMENT) << e.what();
         }
     }
 
-    basic_regex(const std::basic_string<char_t>& pattern)
+    inline basic_regex(const std::basic_string<char_t>& pattern)
     {
         try
         {
@@ -53,16 +53,16 @@ public:
         catch (const std::regex_error& e)
         {
             m_valid = false;
-            VX_ERROR(error::error_code::INVALID_ARGUMENT) << e.what();
+            VX_ERR(err::code::INVALID_ARGUMENT) << e.what();
         }
     }
 
-    bool is_valid() const
+    inline bool is_valid() const
     {
         return m_valid;
     }
 
-    size_t group_count() const
+    inline size_t group_count() const
     {
         return m_valid ? m_re.mark_count() : 0;
     }
@@ -72,17 +72,17 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT>
-    bool match(IT first, IT last, regex_match_results<IT>& m) const
+    inline bool match(IT first, IT last, regex_match_results<IT>& m) const
     {
         return std::regex_match(first, last, m, m_re);
     }
 
-    bool match(const char_t* s, regex_match_results<const char_t*>& m) const
+    inline bool match(const char_t* s, regex_match_results<const char_t*>& m) const
     {
         return std::regex_match(s, m, m_re);
     }
 
-    bool match(
+    inline bool match(
         const std::basic_string<char_t>& s,
         regex_match_results<typename std::basic_string<char_t>::const_iterator>& m
     ) const
@@ -100,17 +100,17 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT>
-    bool search(IT first, IT last, regex_match_results<IT>& m) const
+    inline bool search(IT first, IT last, regex_match_results<IT>& m) const
     {
         return std::regex_search(first, last, m, m_re);
     }
 
-    bool search(const char_t* s, regex_match_results<const char_t*>& m) const
+    inline bool search(const char_t* s, regex_match_results<const char_t*>& m) const
     {
         return std::regex_search(s, m, m_re);
     }
 
-    bool search(
+    inline bool search(
         const std::basic_string<char_t>& s,
         regex_match_results<typename std::basic_string<char_t>::const_iterator>& m
     ) const
@@ -128,7 +128,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT>
-    std::vector<regex_match_results<IT>> search_all(IT first, IT last) const
+    inline std::vector<regex_match_results<IT>> search_all(IT first, IT last) const
     {
         std::vector<regex_match_results<IT>> matches;
         regex_match_results<IT> m;
@@ -143,12 +143,12 @@ public:
         return matches;
     }
 
-    std::vector<regex_match_results<const char_t*>> search_all(const char_t* s) const
+    inline std::vector<regex_match_results<const char_t*>> search_all(const char_t* s) const
     {
         return search_all(s, s + std::char_traits<char_t>::length(s));
     }
 
-    std::vector<regex_match_results<typename std::basic_string<char_t>::const_iterator>>
+    inline std::vector<regex_match_results<typename std::basic_string<char_t>::const_iterator>>
         search_all(const std::basic_string<typename std::basic_string<char_t>::const_iterator>& s) const
     {
         return search_all(s.begin(), s.end());
@@ -162,7 +162,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT>
-    std::basic_string<char_t> replace(IT first, IT last, const char_t* fmt) const
+    inline std::basic_string<char_t> replace(IT first, IT last, const char_t* fmt) const
     {
         std::basic_string<char_t> out;
         std::regex_replace(out, first, last, m_re, fmt);
@@ -170,19 +170,19 @@ public:
     }
 
     template <typename IT>
-    std::basic_string<char_t> replace(IT first, IT last, const std::basic_string<char_t>& fmt) const
+    inline std::basic_string<char_t> replace(IT first, IT last, const std::basic_string<char_t>& fmt) const
     {
         std::basic_string<char_t> out;
         std::regex_replace(out, first, last, m_re, fmt);
         return out;
     }
 
-    std::basic_string<char_t> replace(const char_t* s, const char_t* fmt) const
+    inline std::basic_string<char_t> replace(const char_t* s, const char_t* fmt) const
     {
         return std::regex_replace(s, m_re, fmt);
     }
 
-    std::basic_string<char_t> replace(
+    inline std::basic_string<char_t> replace(
         const char_t* s,
         const std::basic_string<char_t>& fmt
     ) const
@@ -190,7 +190,7 @@ public:
         return std::regex_replace(s, m_re, fmt);
     }
 
-    std::basic_string<char_t> replace(
+    inline std::basic_string<char_t> replace(
         const std::basic_string<char_t>& s,
         const char_t* fmt
     ) const
@@ -198,7 +198,7 @@ public:
         return std::regex_replace(s, m_re, fmt);
     }
 
-    std::basic_string<char_t> replace(
+    inline std::basic_string<char_t> replace(
         const std::basic_string<char_t>& s,
         const std::basic_string<char_t>& fmt
     ) const
@@ -211,17 +211,17 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename IT>
-    regex_iterator<IT> begin(IT first, IT last) const
+    inline regex_iterator<IT> begin(IT first, IT last) const
     {
         return regex_iterator<IT>(first, last, m_re);
     }
 
-    regex_iterator<const char_t*> begin(const char_t* s) const
+    inline regex_iterator<const char_t*> begin(const char_t* s) const
     {
         return begin(s, std::char_traits<char_t>::length(s));
     }
 
-    regex_iterator<typename std::basic_string<char_t>::const_iterator>
+    inline regex_iterator<typename std::basic_string<char_t>::const_iterator>
         begin(const std::basic_string<char_t>& s) const
     {
         return begin(s.begin(), s.end());
@@ -231,17 +231,17 @@ public:
         begin(const std::basic_string<char_t>&&) const = delete;
 
     template <typename IT>
-    regex_iterator<IT> end(regex_iterator<IT> it) const
+    inline regex_iterator<IT> end(regex_iterator<IT> it) const
     {
         return regex_iterator<IT>();
     }
 
-    regex_iterator<const char_t*> end(const char_t* s) const
+    inline regex_iterator<const char_t*> end(const char_t* s) const
     {
         return regex_iterator<const char*>();
     }
 
-    regex_iterator<typename std::basic_string<char_t>::const_iterator>
+    inline regex_iterator<typename std::basic_string<char_t>::const_iterator>
         end(const std::basic_string<char_t>& s) const
     {
         return regex_iterator<typename std::basic_string<char_t>::const_iterator>();

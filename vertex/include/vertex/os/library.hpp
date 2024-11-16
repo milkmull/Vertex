@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-#include "vertex/core/compiler.hpp"
+#include "vertex/system/compiler.hpp"
 
 namespace vx {
 namespace os {

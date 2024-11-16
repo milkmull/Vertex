@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/core/compiler.hpp"
+#include "vertex/system/compiler.hpp"
 
 #if (VX_CPP_STANDARD == 17)
 #   include <string_view>
@@ -45,8 +45,8 @@ inline T from_string(const std::string& s);
 // contains
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool contains(const str_arg_t& s, const char val);
-constexpr inline bool contains(const str_arg_t& s, const str_arg_t& val);
+constexpr bool contains(const str_arg_t& s, const char val);
+constexpr bool contains(const str_arg_t& s, const str_arg_t& val);
 
 ///////////////////////////////////////////////////////////////////////////////
 // count
@@ -59,15 +59,15 @@ inline size_t count(const str_arg_t& s, const str_arg_t& val);
 // starts_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool starts_with(const str_arg_t& s, const char prefix);
-constexpr inline bool starts_with(const str_arg_t& s, const str_arg_t& prefix);
+constexpr bool starts_with(const str_arg_t& s, const char prefix);
+constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix);
 
 ///////////////////////////////////////////////////////////////////////////////
 // ends_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr inline bool ends_with(const str_arg_t& s, const char suffix);
-constexpr inline bool ends_with(const str_arg_t& s, const str_arg_t& suffix);
+constexpr bool ends_with(const str_arg_t& s, const char suffix);
+constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix);
 
 ///////////////////////////////////////////////////////////////////////////////
 // alpha
@@ -111,7 +111,7 @@ inline bool is_space(const str_arg_t& s);
 inline bool is_hex_digit(const char c);
 inline bool is_hex(const str_arg_t& s, const bool allow_prefix = false);
 
-inline std::string to_hex_string(const void* data, size_t size);
+std::string to_hex_string(const void* data, size_t size);
 
 ///////////////////////////////////////////////////////////////////////////////
 // lower
@@ -217,8 +217,8 @@ inline std::string concat(IT first, IT last);
 // join
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename U>
-inline std::string join(IT first, IT last, const U& delimiter);
+template <typename IT, typename Delim>
+inline std::string join(IT first, IT last, const Delim& delimiter);
 
 ///////////////////////////////////////////////////////////////////////////////
 // join_path
@@ -234,6 +234,7 @@ inline std::string join_path(const std::string& s1, const std::string& s2);
 
 #if (VX_CPP_STANDARD == 17)
 
+// Special version for std::string_view if it is available
 inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2);
 
 #endif
@@ -293,17 +294,17 @@ inline std::string wstring_to_string(const wstr_arg_t& ws);
 // Numeric Conversions
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename IT, typename T>
-inline IT parse_digits(IT first, IT last, T& value, size_t* count = nullptr);
+template <typename IT, typename Num>
+inline IT parse_digits(IT first, IT last, Num& value, size_t* count = nullptr);
 
-inline int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
-inline int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);
+int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
+int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);
 
-inline uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
-inline uint64_t to_uint64(const std::string& s, size_t* count = nullptr, int base = 10);
+uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
+uint64_t to_uint64(const std::string& s, size_t* count = nullptr, int base = 10);
 
-inline float to_float(const std::string& s, size_t* count = nullptr);
-inline double to_double(const std::string& s, size_t* count = nullptr);
+float to_float(const std::string& s, size_t* count = nullptr);
+double to_double(const std::string& s, size_t* count = nullptr);
 
 } // namespace str
 } // namespace vx

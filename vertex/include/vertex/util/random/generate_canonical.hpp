@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/core/assert.hpp"
+#include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace rand {

@@ -1,10 +1,10 @@
 #include "vertex/util/string/format.hpp"
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace str {
 
-namespace _priv {
+namespace __detail {
 
 bool parse_format_string(const std::string& fmt, std::vector<format_token>& stack)
 {
@@ -134,7 +134,7 @@ std::string build_format_string(const std::string& fmt, const std::vector<format
     return out;
 }
 
-} // namespace _priv
+} // namespace __detail
 
 } // namespace str
 } // namespace vx

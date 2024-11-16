@@ -2,8 +2,8 @@
 
 #include <algorithm>
 
-#include "vertex/core/error.hpp"
-#include "vertex/core/validate.hpp"
+#include "vertex/system/error.hpp"
+#include "vertex/system/validate.hpp"
 #include "vertex/util/random/uniform_int_distribution.hpp"
 #include "vertex/util/random/discrete_distribution.hpp"
 

@@ -1,6 +1,6 @@
 
 # Read the file content
-file(READ "vertex/include/vertex/core/version.hpp" VX_VERSION_HEADER_CONTENT)
+file(READ "vertex/include/vertex/system/version.hpp" VX_VERSION_HEADER_CONTENT)
 
 # Extract the major, minor, and patch versions using regex
 string(REGEX MATCH "#define[ \t]+VX_VERSION_MAJOR[ \t]+([0-9]+)" _ ${VX_VERSION_HEADER_CONTENT})

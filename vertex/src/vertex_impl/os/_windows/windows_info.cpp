@@ -1,10 +1,11 @@
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_INFO)
 
 #include <vector>
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/library.hpp"
 

@@ -5,7 +5,7 @@
 #include "vertex_impl/os/_windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/time.hpp"
-#include "vertex/core/assert.hpp"
+#include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace os {
@@ -412,7 +412,7 @@ bool process::process_impl::is_complete() const
 
     if (result == WAIT_FAILED)
     {
-        windows_error_message("WaitForSingleObject() returned WAIT_FAILED");
+        windows_error_message("WaitForSingleObject(): WAIT_FAILED");
         return false;
     }
 
@@ -430,7 +430,7 @@ bool process::process_impl::join()
 
     if (result == WAIT_FAILED)
     {
-        windows_error_message("WaitForSingleObject() returned WAIT_FAILED");
+        windows_error_message("WaitForSingleObject(): WAIT_FAILED");
         return false;
     }
 

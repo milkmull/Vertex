@@ -86,7 +86,7 @@ void SHA1::process_block(const uint8_t* block)
     }
     for (int i = 16; i < 80; ++i)
     {
-        w[i] = rotl(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+        w[i] = bit::rotl(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
     }
 
     uint32_t a = m_state.a;
@@ -119,10 +119,10 @@ void SHA1::process_block(const uint8_t* block)
             k = 0xCA62C1D6;
         }
 
-        uint32_t t = rotl(a, 5) + f + e + k + w[i];
+        uint32_t t = bit::rotl(a, 5) + f + e + k + w[i];
         e = d;
         d = c;
-        c = rotl(b, 30);
+        c = bit::rotl(b, 30);
         b = a;
         a = t;
     }

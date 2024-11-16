@@ -1,5 +1,5 @@
 #include "vertex/os/thread.hpp"
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {

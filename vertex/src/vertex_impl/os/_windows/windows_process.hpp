@@ -1,4 +1,4 @@
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_PROCESS)
 

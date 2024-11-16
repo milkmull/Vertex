@@ -169,67 +169,6 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// ansi
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output)
-{
-    while (begin < end)
-    {
-        uint32_t codepoint = utf32::decode_ansi(*begin++);
-        output = encode(codepoint, output);
-    }
-
-    return output;
-}
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement, const std::locale& locale)
-{
-    while (begin < end)
-    {
-        uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, locale);
-    }
-
-    return output;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// latin-1
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
-    while (begin < end)
-    {
-        output = encode(*begin++, output);
-    }
-
-    return output;
-}
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
-    while (begin < end)
-    {
-        uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-
-        // Make sure codepoint is in valid latin1 range
-        *output++ = codepoint < 256 ? static_cast<char>(codepoint) : replacement;
-    }
-
-    return output;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -398,67 +337,6 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// ansi
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_ansi(IN_IT begin, IN_IT end, OUT_IT output, const std::locale& locale)
-{
-    while (begin < end)
-    {
-        uint32_t codepoint = utf32::decode_ansi(*begin++, locale);
-        output = encode(codepoint, output);
-    }
-
-    return output;
-}
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_ansi(IN_IT begin, IN_IT end, OUT_IT output, char replacement, const std::locale& locale)
-{
-    while (begin < end)
-    {
-        uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-        output = utf32::encode_ansi(codepoint, output, replacement, locale);
-    }
-
-    return output;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// latin-1
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16, we can directly encode
-    while (begin < end)
-    {
-        *output++ = *begin++;
-    }
-
-    return output;
-}
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32 and utf16
-    while (begin < end)
-    {
-        uint32_t codepoint{};
-        begin = decode(begin, end, codepoint);
-
-        // Make sure codepoint is in valid latin1 range
-        *output++ = codepoint < 256 ? static_cast<char>(codepoint) : replacement;
-    }
-
-    return output;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // wide
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -553,57 +431,6 @@ inline OUT_IT to_utf32(IN_IT begin, IN_IT end, OUT_IT output)
     while (begin < end)
     {
         *output++ = *begin++;
-    }
-
-    return output;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// ansi
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IT>
-inline IT encode_ansi(uint32_t codepoint, IT output, char replacement, const std::locale& locale)
-{
-    // We use the locale character conversion facet to translate each character to ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
-    *output++ = facet.narrow(static_cast<wchar_t>(codepoint), replacement);
-    return output;
-}
-
-template <typename IT>
-inline uint32_t decode_ansi(IT input, const std::locale& locale)
-{
-    // We use the locale character conversion facet to translate each character from ansi
-    const auto& facet = std::use_facet<std::ctype<wchar_t>>(locale);
-    return static_cast<uint32_t>(facet.widen(input));
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// latin-1
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT from_latin1(IN_IT begin, IN_IT end, OUT_IT output)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32, we can directly encode
-    while (begin < end)
-    {
-        *output++ = *begin++;
-    }
-
-    return output;
-}
-
-template <typename IN_IT, typename OUT_IT>
-inline OUT_IT to_latin1(IN_IT begin, IN_IT end, OUT_IT output, char replacement)
-{
-    // Latin-1 uses 256 (1 byte) codepoints that are a subset of utf32
-    while (begin < end)
-    {
-        // Make sure codepoint is in valid latin1 range
-        *output++ = *begin < 256 ? static_cast<char>(*begin) : replacement;
-        ++begin;
     }
 
     return output;

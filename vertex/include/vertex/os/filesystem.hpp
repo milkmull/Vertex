@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-#include "vertex/core/compiler.hpp"
+#include "vertex/system/compiler.hpp"
 #include "vertex/os/time.hpp"
 
 // https://docs.godotengine.org/en/stable/classes/class_fileaccess.html#class-fileaccess

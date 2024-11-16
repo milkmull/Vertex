@@ -38,7 +38,7 @@ public:
 
         uint32_t count = static_cast<uint32_t>(old_state >> 59) & 31;
         old_state ^= old_state >> 18;
-        return rotr(static_cast<uint32_t>(old_state >> 27), count);
+        return bit::rotr(static_cast<uint32_t>(old_state >> 27), count);
     }
 
 private:

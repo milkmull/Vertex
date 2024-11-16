@@ -1,12 +1,12 @@
 #pragma once
 
-#include "vertex/core/platform_config.hpp"
+#include "vertex_impl/system/platform_config.hpp"
 
 #if defined(VX_OS_WINDOWS_FILE)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include "vertex/os/file.hpp"
-#include "vertex/core/error.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {

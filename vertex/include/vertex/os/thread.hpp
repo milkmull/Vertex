@@ -4,8 +4,8 @@
 #include <functional>
 #include <thread>
 
-#include "vertex/core/compiler.hpp"
-#include "vertex/core/error.hpp"
+#include "vertex/system/compiler.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {

@@ -4,7 +4,7 @@
 
 #include "vertex_impl/os/_windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
-#include "vertex/core/assert.hpp"
+#include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace os {

@@ -118,8 +118,7 @@ target_include_directories(Vertex_Headers INTERFACE
 
 # Source files for the library
 file(GLOB_RECURSE VX_CORE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/main/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/core/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/os/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.inl"
@@ -130,7 +129,7 @@ file(GLOB_RECURSE VX_CORE_FILES
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/core/*.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.hpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
@@ -140,7 +139,7 @@ file(GLOB_RECURSE VX_CORE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/core/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.cpp"
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
