@@ -1,82 +1,68 @@
 ﻿#include "sandbox/sandbox.hpp"
 
+#include "vertex/util/string.hpp"
 #include "vertex/util/string/string_compare.hpp"
+#include "vertex/util/encode/utf.hpp"
+#include "vertex/os/filesystem.hpp"
 
 using namespace vx;
 
-static void test_levenshtein_distance()
-{
-    // Test 1: Identical strings (expected distance = 0)
-    {
-        std::string str1 = "hello";
-        std::string str2 = "hello";
-        assert(vx::str::levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 0);
-    }
-
-    // Test 2: Single substitution (expected distance = 1)
-    {
-        std::string str1 = "hello";
-        std::string str2 = "hxllo";
-        assert(vx::str::levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 1);
-    }
-
-    // Test 3: Insertion (expected distance = 4)
-    {
-        std::string str1 = "kitten";
-        std::string str2 = "sitting";
-        assert(vx::str::levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 3); // insertion, substitution, insertion
-    }
-
-    // Test 4: Empty string (expected distance = 5)
-    {
-        std::string str1 = "kitten";
-        std::string str2 = "";
-        assert(vx::str::levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 6); // all characters must be deleted
-    }
-}
-
-static void test_damerau_levenshtein_distance()
-{
-    // Test 1: Identical strings (expected distance = 0)
-    {
-        std::string str1 = "hello";
-        std::string str2 = "hello";
-        assert(vx::str::damerau_levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 0);
-    }
-
-    // Test 2: Single substitution (expected distance = 1)
-    {
-        std::string str1 = "hello";
-        std::string str2 = "hxllo";
-        assert(vx::str::damerau_levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 1);
-    }
-
-    // Test 3: Insertion (expected distance = 3)
-    {
-        std::string str1 = "kitten";
-        std::string str2 = "sitting";
-        assert(vx::str::damerau_levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 3); // insertion, substitution, insertion
-    }
-
-    // Test 4: Transposition (expected distance = 2 for Damerau-Levenshtein)
-    {
-        std::string str1 = "ab";
-        std::string str2 = "ba";
-        assert(vx::str::damerau_levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 1); // Transposition (Damerau only)
-    }
-
-    // Test 5: Empty string (expected distance = 6 for "kitten" to "")
-    {
-        std::string str1 = "kitten";
-        std::string str2 = "";
-        assert(vx::str::damerau_levenshtein_distance(str1.begin(), str1.end(), str2.begin(), str2.end()) == 6); // all characters must be deleted
-    }
-}
-
 int main(int argc, char* argv[])
 {
-    test_levenshtein_distance();
-    test_damerau_levenshtein_distance();
+    using decoder = utf::utf_traits<char, 1>;
+    using code_point = utf::code_point;
+
+    // Invalid first byte
+    {
+        const std::vector<uint8_t> data = { 0xFF };
+        auto it = data.begin();
+        code_point cp;
+        it = decoder::decode(it, data.end(), cp);
+
+        assert(cp == utf::INVALID_CODE_POINT);
+    }
+
+    // Truncated two-byte sequence
+    {
+        const std::vector<uint8_t> data = { 0xC3 };
+        auto it = data.begin();
+        code_point cp;
+        it = decoder::decode(it, data.end(), cp);
+
+        assert(cp == utf::INVALID_CODE_POINT);
+    }
+
+    // Overlong encoding for ASCII 'A'
+    {
+        const std::vector<uint8_t> data = { 0xC1, 0x81 }; // Overlong encoding for 0x41
+        auto it = data.begin();
+        code_point cp;
+        it = decoder::decode(it, data.end(), cp);
+
+        assert(cp == utf::INVALID_CODE_POINT);
+    }
+
+    // Invalid surrogate pair
+    {
+        const std::vector<uint8_t> data = { 0xED, 0xA0, 0x80 }; // Surrogate code point
+        auto it = data.begin();
+        code_point cp;
+        it = decoder::decode(it, data.end(), cp);
+
+        assert(cp == utf::INVALID_CODE_POINT);
+    }
+
+    // Overlog encoding
+    {
+        const std::vector<uint8_t> data = { 0xC0, 0xAF }; // Overlong encoding of '/'
+        auto it = data.begin();
+        code_point cp;
+        it = decoder::decode(it, data.end(), cp);
+
+        // Expect the decoder to reject this as an invalid code point
+        assert(cp == utf::INVALID_CODE_POINT);
+        assert(it == data.end()); // The iterator should move past the invalid sequence
+    }
 
     return 0;
 }

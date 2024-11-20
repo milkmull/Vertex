@@ -3,8 +3,9 @@
 #include <vector>
 #include <string>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/system/platform_config.hpp"
 #include "vertex/os/time.hpp"
+#include "vertex/util/string/string.hpp"
 
 // https://docs.godotengine.org/en/stable/classes/class_fileaccess.html#class-fileaccess
 // https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_filesystem.h
@@ -13,6 +14,55 @@
 namespace vx {
 namespace os {
 namespace filesystem {
+
+///////////////////////////////////////////////////////////////////////////////
+// path
+///////////////////////////////////////////////////////////////////////////////
+
+class path
+{
+public:
+
+#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+
+    using value_type = wchar_t;
+    static constexpr value_type preferred_separator = L'\\';
+
+#else
+
+    using value_type = char;
+    static constexpr value_type preferred_separator = '/';
+
+#endif // __VX_OS_WINDOWS_FILESYSTEM
+
+    using string_type = std::basic_string<value_type>;
+
+public:
+
+    path() noexcept = default;
+    ~path() = default;
+
+    path(const path&) = default;
+    path(path&&) noexcept = default;
+
+    path& operator=(const path&) = default;
+    path& operator=(path&&) noexcept = default;
+
+public:
+
+    path(const string_type& s) : m_path(s) {}
+
+    template <typename char_t>
+    path(const std::basic_string<char_t>& s)
+        : m_path(utf::convert<char_t, value_type>(s)) {}
+
+    template <typename IT>
+    path(IT first, IT last) : m_path(first, last) {}
+
+private:
+
+    string_type m_path;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // File Ops
@@ -71,6 +121,7 @@ struct path_info
 
 VX_API path_info get_path_info(const std::string& path);
 
+// GetTempPath2W
 VX_API std::string get_app_data_folder(const std::string& app);
 
 enum class user_folder

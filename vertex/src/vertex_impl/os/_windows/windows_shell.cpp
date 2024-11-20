@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_SHELL)
+#if defined(__VX_OS_WINDOWS_SHELL)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include "vertex/os/shell.hpp"

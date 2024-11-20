@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_FILE)
+#if defined(__VX_OS_WINDOWS_FILE)
 #   include "_windows/windows_file.hpp"
 #else
 

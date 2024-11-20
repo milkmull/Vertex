@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_FILESYSTEM)
+#if defined(__VX_OS_WINDOWS_FILESYSTEM)
 
 #include <shlobj.h>
 #undef min
@@ -245,7 +245,7 @@ std::string get_absolute_path(const std::string& path)
 
     if (GetFullPathNameW(wpath.c_str(), size, data.data(), NULL))
     {
-        utf8::from_wide(data.begin(), data.end() - 1, std::back_inserter(abs_path));
+        utf::from_wide::convert(data.begin(), data.end() - 1, std::back_inserter(abs_path));
     }
     else
     {
@@ -264,7 +264,7 @@ std::string get_current_directory()
 
     if (GetCurrentDirectoryW(size, data.data()))
     {
-        utf8::from_wide(data.begin(), data.end() - 1, std::back_inserter(path));
+        utf::from_wide::convert(data.begin(), data.end() - 1, std::back_inserter(path));
     }
     else
     {

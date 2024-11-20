@@ -517,7 +517,7 @@ inline std::string join_path(const std::string& s1, const std::string& s2)
     return join_path(str_arg_t(s1), str_arg_t(s2));
 }
 
-#if (VX_CPP_STANDARD == 17)
+#if defined(__cpp_lib_string_view)
 
 inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2)
 {
@@ -525,7 +525,7 @@ inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2)
     return join(std::begin(pair), std::end(pair), "\\");
 }
 
-#endif
+#endif // __cpp_lib_string_view
 
 ///////////////////////////////////////////////////////////////////////////////
 // split
@@ -665,17 +665,12 @@ inline std::string reverse(const str_arg_t& s)
 
 inline std::wstring string_to_wstring(const str_arg_t& s)
 {
-    const size_t count = utf8::count(s.begin(), s.end());
-    std::wstring res(count, 0);
-    utf8::to_wide(s.begin(), s.end(), res.begin());
-    return res;
+    return utf::to_wide::convert(s);
 }
 
 inline std::string wstring_to_string(const wstr_arg_t& ws)
 {
-    std::string res;
-    utf8::from_wide(ws.begin(), ws.end(), std::back_inserter(res));
-    return res;
+    return utf::from_wide::convert(ws);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

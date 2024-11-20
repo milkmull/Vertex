@@ -9,7 +9,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/system/config/windows.hpp"
+#   include "vertex/system/config/windows.hpp"
 #else
-#   include "vertex_impl/system/config/dummy.hpp"
+#   include "vertex/system/config/dummy.hpp"
 #endif

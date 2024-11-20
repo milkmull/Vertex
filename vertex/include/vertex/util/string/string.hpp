@@ -1,35 +1,11 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
-
-#if (VX_CPP_STANDARD == 17)
-#   include <string_view>
-#else
-#   include <string>
-#endif
+#include "vertex/util/string/string_arg_type.hpp"
 
 #include <vector>
 
 namespace vx {
 namespace str {
-
-#if (VX_CPP_STANDARD == 17)
-
-using str_arg_t = std::string_view;
-using wstr_arg_t = std::wstring_view;
-
-template <typename char_t>
-using basic_str_arg_t = std::basic_string_view<char_t>;
-
-#else
-
-using str_arg_t = std::string;
-using wstr_arg_t = std::wstring;
-
-template <typename char_t>
-using basic_str_arg_t = std::basic_string<char_t>;
-
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // To/From String
@@ -232,12 +208,12 @@ inline std::string join_path(const char* s1, const std::string& s2);
 inline std::string join_path(const std::string& s1, const char* s2);
 inline std::string join_path(const std::string& s1, const std::string& s2);
 
-#if (VX_CPP_STANDARD == 17)
+#if defined(__cpp_lib_string_view)
 
 // Special version for std::string_view if it is available
 inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2);
 
-#endif
+#endif // __cpp_lib_string_view
 
 ///////////////////////////////////////////////////////////////////////////////
 // split
@@ -310,3 +286,5 @@ double to_double(const std::string& s, size_t* count = nullptr);
 } // namespace vx
 
 #include "string.inl"
+
+#undef STD_STRING_VIEW_AVAILABLE

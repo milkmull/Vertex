@@ -172,7 +172,9 @@
 // Fallthrough
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_COMPILER_MSVC)
+#if (VX_CPP_STANDARD >= 17)
+#   define VX_FALLTHROUGH [[fallthrough]]
+#elif defined(VX_COMPILER_MSVC)
 #   define VX_FALLTHROUGH __fallthrough
 #elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
 #   define VX_FALLTHROUGH [[clang::fallthrough]]
@@ -184,7 +186,7 @@
 // If Constexpr
 ///////////////////////////////////////////////////////////////////////////////
 
-#if VX_CPP_STANDARD >= 17 // C++17 or later
+#if (VX_CPP_STANDARD >= 17) // C++17 or later
 #   define VX_IF_CONSTEXPR(x) if constexpr (x)
 #else // Fallback for pre-C++17
 #   define VX_IF_CONSTEXPR if

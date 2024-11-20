@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_WINDOWS_MAIN)
+#if defined(__VX_WINDOWS_MAIN)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include <cstdlib> // for '__argc' and '__argv'

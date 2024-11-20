@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_FILE)
+#if defined(__VX_OS_WINDOWS_FILE)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include "vertex/os/file.hpp"

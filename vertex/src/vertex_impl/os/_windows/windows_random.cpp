@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_RANDOM)
+#if defined(__VX_OS_WINDOWS_RANDOM)
 
 #define _CRT_RAND_S
 #include <stdlib.h>

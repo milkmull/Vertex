@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_LOCALE)
+#if defined(__VX_OS_WINDOWS_LOCALE)
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
 #include "vertex/system/error.hpp"

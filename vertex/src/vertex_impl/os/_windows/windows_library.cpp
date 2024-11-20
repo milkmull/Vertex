@@ -1,6 +1,6 @@
-#include "vertex_impl/system/platform_config.hpp"
+#include "vertex/system/platform_config.hpp"
 
-#if defined(VX_OS_WINDOWS_LIBRARY)
+#if defined(__VX_OS_WINDOWS_LIBRARY)
 
 #include "vertex_impl/os/_windows/windows_library.hpp"
 #include "vertex/util/string/string.hpp"
