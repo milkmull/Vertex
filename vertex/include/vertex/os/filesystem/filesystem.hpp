@@ -3,7 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "vertex/system/platform_config.hpp"
+#include "vertex/system/platform.hpp"
+#include "vertex/util/type_traits.hpp"
 #include "vertex/os/time.hpp"
 #include "vertex/util/string/string.hpp"
 
@@ -14,55 +15,6 @@
 namespace vx {
 namespace os {
 namespace filesystem {
-
-///////////////////////////////////////////////////////////////////////////////
-// path
-///////////////////////////////////////////////////////////////////////////////
-
-class path
-{
-public:
-
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
-    using value_type = wchar_t;
-    static constexpr value_type preferred_separator = L'\\';
-
-#else
-
-    using value_type = char;
-    static constexpr value_type preferred_separator = '/';
-
-#endif // __VX_OS_WINDOWS_FILESYSTEM
-
-    using string_type = std::basic_string<value_type>;
-
-public:
-
-    path() noexcept = default;
-    ~path() = default;
-
-    path(const path&) = default;
-    path(path&&) noexcept = default;
-
-    path& operator=(const path&) = default;
-    path& operator=(path&&) noexcept = default;
-
-public:
-
-    path(const string_type& s) : m_path(s) {}
-
-    template <typename char_t>
-    path(const std::basic_string<char_t>& s)
-        : m_path(utf::convert<char_t, value_type>(s)) {}
-
-    template <typename IT>
-    path(IT first, IT last) : m_path(first, last) {}
-
-private:
-
-    string_type m_path;
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 // File Ops

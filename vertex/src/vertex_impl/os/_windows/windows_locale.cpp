@@ -19,7 +19,7 @@ std::string get_country_code()
         VX_ERR(err::PLATFORM_ERROR) << "GetLocaleInfoEx()";
     }
 
-    return str::wstring_to_string(winfo);
+    return str::string_cast<char>(winfo);
 }
 
 std::string get_language()
@@ -31,7 +31,7 @@ std::string get_language()
         VX_ERR(err::PLATFORM_ERROR) << "GetLocaleInfoEx()";
     }
 
-    return str::wstring_to_string(winfo);
+    return str::string_cast<char>(winfo);
 }
 
 } // namespace os

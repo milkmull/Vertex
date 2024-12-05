@@ -1,6 +1,6 @@
 #include "vertex_impl/os/_windows/windows_file.hpp"
 
-#if defined(VX_OS_WINDOWS_FILE)
+#if defined(__VX_OS_WINDOWS_FILE)
 
 #include "vertex_impl/os/_windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
@@ -19,7 +19,7 @@ file::file_impl::~file_impl()
 
 bool file::file_impl::exists(const std::string& path)
 {
-    const std::wstring wpath(str::string_to_wstring(path));
+    const std::wstring wpath(str::string_cast<wchar_t>(path));
     const DWORD fileAttr = GetFileAttributesW(wpath.c_str());
     return (fileAttr != INVALID_FILE_ATTRIBUTES && !(fileAttr & FILE_ATTRIBUTE_DIRECTORY));
 }
@@ -74,7 +74,7 @@ bool file::file_impl::open(const std::string& path, mode mode)
         }
     }
 
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath(str::string_cast<wchar_t>(path));
 
     m_handle = CreateFileW(
         wpath.c_str(),
@@ -247,4 +247,4 @@ HANDLE file::file_impl::get_handle()
 } // namespace os
 } // namespace vx
 
-#endif // VX_OS_WINDOWS_FILE
+#endif // __VX_OS_WINDOWS_FILE

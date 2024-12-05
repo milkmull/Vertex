@@ -79,7 +79,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
         goto cleanup;
     }
 
-    value = str::wstring_to_string(
+    value = str::string_cast<char>(
         reinterpret_cast<const wchar_t*>(data.data())
     );
     success = true;
@@ -129,7 +129,7 @@ VX_API std::string get_system_name()
         }
         else
         {
-            cache.value = str::wstring_to_string(data);
+            cache.value = str::string_cast<char>(data);
         }
 
         cache.set = true;

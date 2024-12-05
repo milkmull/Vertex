@@ -7,7 +7,7 @@
 #undef max
 
 #include "vertex_impl/_platform/_windows/windows_header.hpp"
-#include "vertex/os/filesystem.hpp"
+#include "vertex/os/filesystem/filesystem.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 
@@ -55,14 +55,14 @@ static void directory_creation_error(const std::string& path)
 
 bool exists(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
     const DWORD attributes = GetFileAttributesW(wpath.c_str());
     return (attributes != INVALID_FILE_ATTRIBUTES);
 }
 
 bool create_directory(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
 
     // Don't throw an error if the directory already exists
     if (!CreateDirectoryW(wpath.c_str(), NULL) && (GetLastError() != ERROR_ALREADY_EXISTS))
@@ -76,7 +76,7 @@ bool create_directory(const std::string& path)
 
 VX_API bool create_directories(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
     std::wstring wcurrent_path;
 
     size_t i = 0;
@@ -87,7 +87,7 @@ VX_API bool create_directories(const std::string& path)
 
         if (!CreateDirectoryW(wcurrent_path.c_str(), NULL) && (GetLastError() != ERROR_ALREADY_EXISTS))
         {
-            directory_creation_error(str::wstring_to_string(wcurrent_path));
+            directory_creation_error(str::string_cast<char>(wcurrent_path));
             return false;
         }
     }
@@ -97,8 +97,8 @@ VX_API bool create_directories(const std::string& path)
 
 bool copy(const std::string& old_path, const std::string& new_path, copy_options::type options)
 {
-    const std::wstring wold_path = str::string_to_wstring(old_path);
-    const std::wstring wnew_path = str::string_to_wstring(new_path);
+    const std::wstring wold_path = str::string_cast<wchar_t>(old_path);
+    const std::wstring wnew_path = str::string_cast<wchar_t>(new_path);
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(wold_path.c_str(), GetFileExInfoStandard, &data))
@@ -181,8 +181,8 @@ bool copy(const std::string& old_path, const std::string& new_path, copy_options
 
 bool rename(const std::string& old_path, const std::string& new_path, bool overwrite_existing)
 {
-    const std::wstring wold_path = str::string_to_wstring(old_path);
-    const std::wstring wnew_path = str::string_to_wstring(new_path);
+    const std::wstring wold_path = str::string_cast<wchar_t>(old_path);
+    const std::wstring wnew_path = str::string_cast<wchar_t>(new_path);
 
     const DWORD dwFalgs = (overwrite_existing ? MOVEFILE_REPLACE_EXISTING : 0);
     if (!MoveFileExW(wold_path.c_str(), wnew_path.c_str(), dwFalgs))
@@ -204,7 +204,7 @@ bool rename(const std::string& old_path, const std::string& new_path, bool overw
 
 bool remove(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(wpath.c_str(), GetFileExInfoStandard, &data))
@@ -238,14 +238,14 @@ bool remove(const std::string& path)
 std::string get_absolute_path(const std::string& path)
 {
     std::string abs_path;
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
 
     const DWORD size = GetFullPathNameW(wpath.c_str(), 0, NULL, NULL);
     std::vector<WCHAR> data(size);
 
     if (GetFullPathNameW(wpath.c_str(), size, data.data(), NULL))
     {
-        utf::from_wide::convert(data.begin(), data.end() - 1, std::back_inserter(abs_path));
+        str::string_cast<char>(data.begin(), data.end() - 1, std::back_inserter(abs_path));
     }
     else
     {
@@ -264,7 +264,7 @@ std::string get_current_directory()
 
     if (GetCurrentDirectoryW(size, data.data()))
     {
-        utf::from_wide::convert(data.begin(), data.end() - 1, std::back_inserter(path));
+        str::string_cast<char>(data.begin(), data.end() - 1, std::back_inserter(path));
     }
     else
     {
@@ -276,7 +276,7 @@ std::string get_current_directory()
 
 bool change_current_directory(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
 
     if (!SetCurrentDirectoryW(wpath.c_str()))
     {
@@ -304,7 +304,7 @@ std::vector<std::string> list()
 std::vector<std::string> list(const std::string& path, bool absolute)
 {
     // Append wildcard to search for all items
-    const std::wstring wpath = str::string_to_wstring(path) + L"\\*";
+    const std::wstring wpath = str::string_cast<wchar_t>(path) + L"\\*";
     std::vector<std::string> subdirectories;
 
     WIN32_FIND_DATAW data{};
@@ -330,7 +330,7 @@ std::vector<std::string> list(const std::string& path, bool absolute)
             }
         }
 
-        std::string name(str::wstring_to_string(wname));
+        std::string name(str::string_cast<char>(wname));
         if (absolute)
         {
             name.insert(0, path + '\\');
@@ -346,7 +346,7 @@ std::vector<std::string> list(const std::string& path, bool absolute)
 
 path_info get_path_info(const std::string& path)
 {
-    const std::wstring wpath = str::string_to_wstring(path);
+    const std::wstring wpath = str::string_cast<wchar_t>(path);
     path_info info{};
 
     WIN32_FILE_ATTRIBUTE_DATA data{};
@@ -381,7 +381,7 @@ path_info get_path_info(const std::string& path)
 
 std::string get_app_data_folder(const std::string& app)
 {
-    const std::wstring wapp = str::string_to_wstring(app);
+    const std::wstring wapp = str::string_cast<wchar_t>(app);
     std::string path;
     WCHAR wpath[MAX_PATH]{};
 
@@ -392,7 +392,7 @@ std::string get_app_data_folder(const std::string& app)
         return path;
     }
 
-    path = str::wstring_to_string(wpath);
+    path = str::string_cast<char>(wpath);
     // Append application specific directory within the app data folder
     path.append("\\").append(app);
 
@@ -452,7 +452,7 @@ std::string get_user_folder(user_folder folder)
     PWSTR szPath;
     if (SUCCEEDED(SHGetKnownFolderPath(id, 0, nullptr, &szPath)))
     {
-        path = str::wstring_to_string(szPath);
+        path = str::string_cast<char>(szPath);
     }
     else
     {

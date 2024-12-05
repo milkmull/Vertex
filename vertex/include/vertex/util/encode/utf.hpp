@@ -2,7 +2,6 @@
 
 #include "vertex/system/compiler.hpp"
 #include "vertex/system/validate.hpp"
-#include "vertex/util/string/string_arg_type.hpp"
 
 namespace vx {
 namespace utf {
@@ -440,72 +439,6 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
         return out;
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-// converter
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename from_char_t, typename to_char_t>
-struct converter
-{
-    using from_char_type = from_char_t;
-    using to_char_type = to_char_t;
-
-    using from_string_type = str::basic_str_arg_t<from_char_type>;
-    using to_string_type = std::basic_string<to_char_type>;
-
-    using encoder_type = utf_traits<to_char_type>;
-    using decoder_type = utf_traits<from_char_type>;
-
-    template <typename IT1, typename IT2>
-    static inline IT2 convert(IT1 first, IT1 last, IT2 out, to_char_type replacement = 0)
-    {
-        VX_ITERATOR_VALID_RANGE(first, last);
-
-        while (first != last)
-        {
-            uint32_t c{};
-            first = decoder_type::decode(first, last, c);
-            out = encoder_type::encode(c, out, replacement);
-        }
-
-        return out;
-    }
-
-    static inline to_string_type convert(const from_string_type& s, to_char_type replacement = 0)
-    {
-        to_string_type res;
-        res.reserve(s.size());
-        convert(s.begin(), s.end(), std::back_inserter(res), replacement);
-        return res;
-    }
-};
-
-using from_wide = converter<wchar_t, char>;
-using to_wide = converter<char, wchar_t>;
-
-template <typename from_char_t, typename to_char_t>
-inline std::basic_string<to_char_t> convert(const str::basic_str_arg_t<from_char_t>& s, to_char_t replacement = 0)
-{
-    return converter<from_char_t, to_char_t>::convert(s, replacement);
-}
-
-template <typename from_char_t, typename to_char_t, typename IT1, typename IT2>
-inline IT2 convert(IT1 first, IT1 last, IT2 out, to_char_t replacement = 0)
-{
-    VX_ITERATOR_VALID_RANGE(first, last);
-    return converter<from_char_t, to_char_t>::convert(first, last, out, replacement);
-}
-
-template <typename from_char_t, typename to_char_t, typename IT>
-std::basic_string<to_char_t> convert(IT first, IT last, to_char_t replacement = 0)
-{
-    VX_ITERATOR_VALID_RANGE(first, last);
-    std::basic_string<to_char_t> res;
-    res.reserve(static_cast<size_t>(std::distance(first, last)));
-    convert<from_char_t, to_char_t>(first, last, std::back_inserter(res), replacement);
-    return res;
-}
 
 } // namespace utf
 } // namespace vx

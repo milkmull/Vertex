@@ -18,7 +18,7 @@ library::library_impl::~library_impl()
 
 bool library::library_impl::load(const std::string& lib)
 {
-    const std::wstring wlib(str::string_to_wstring(lib));
+    const std::wstring wlib(str::string_cast<wchar_t>(lib));
 
     m_handle = LoadLibraryW(wlib.c_str());
     if (m_handle == NULL)

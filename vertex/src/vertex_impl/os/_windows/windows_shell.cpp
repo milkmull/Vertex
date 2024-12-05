@@ -20,7 +20,7 @@ VX_API bool shell_open(const std::string& uri)
         return false;
     }
 
-    const std::wstring wuri(str::string_to_wstring(uri));
+    const std::wstring wuri(str::string_cast<wchar_t>(uri));
 
     const INT_PTR code = reinterpret_cast<INT_PTR>(ShellExecuteW(
         NULL,

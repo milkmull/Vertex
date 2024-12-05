@@ -5,6 +5,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_os_operating_system_macros.html
+// https://sourceforge.net/p/predef/wiki/OperatingSystems/
 
 #if defined(linux) || defined(__linux) || defined(__linux__)
 

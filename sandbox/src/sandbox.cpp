@@ -1,67 +1,58 @@
 ﻿#include "sandbox/sandbox.hpp"
 
-#include "vertex/util/string.hpp"
-#include "vertex/util/string/string_compare.hpp"
-#include "vertex/util/encode/utf.hpp"
-#include "vertex/os/filesystem.hpp"
+#include "vertex/os/filesystem/path.hpp"
+
+#include <filesystem>
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    using decoder = utf::utf_traits<char, 1>;
-    using code_point = utf::code_point;
+    std::vector<const char*> test_paths = {
+        "/",
+        "C:\\",
+        "./dir/file",
+        ".\\dir\\file",
+        "~/",
+        "%USERPROFILE%\\",
+        "\\\\Server\\Share\\Folder\\File",
+        "/usr//local///bin",
+        "C:\\\\Windows\\\\System32\\\\",
+        "/usr/local/bin/",
+        "C:\\Windows\\System32\\",
+        "/usr/local/../bin",
+        "C:\\Windows\\System32\\..\\",
+        "/path/with space/file.txt",
+        "C:\\Path\\With Space\\File.txt",
+        //"/path/with/𝓾𝓷𝓲𝓬𝓸𝓭𝓮",
+        //R"(C:\Path\With\𝓾𝓷𝓲𝓬𝓸𝓭𝓮)",
+        "/dev/null",
+        "NUL",
+        "",
+        "../..",
+        "..\\.."
+    };
 
-    // Invalid first byte
+    for (int i = 0; i < test_paths.size(); ++i)
     {
-        const std::vector<uint8_t> data = { 0xFF };
-        auto it = data.begin();
-        code_point cp;
-        it = decoder::decode(it, data.end(), cp);
+        const auto& path = test_paths[i];
 
-        assert(cp == utf::INVALID_CODE_POINT);
-    }
+        VX_LOG_INFO << "testing path: " << i << ": " << path;
 
-    // Truncated two-byte sequence
-    {
-        const std::vector<uint8_t> data = { 0xC3 };
-        auto it = data.begin();
-        code_point cp;
-        it = decoder::decode(it, data.end(), cp);
+        std::filesystem::path std_p(path);
+        os::filesystem::path os_p(path);
 
-        assert(cp == utf::INVALID_CODE_POINT);
-    }
+        std::cout << "std::filesystem:\n";
+        for (const auto& p : std_p)
+        {
+            std::cout << "  " << p << "\n";
+        }
 
-    // Overlong encoding for ASCII 'A'
-    {
-        const std::vector<uint8_t> data = { 0xC1, 0x81 }; // Overlong encoding for 0x41
-        auto it = data.begin();
-        code_point cp;
-        it = decoder::decode(it, data.end(), cp);
-
-        assert(cp == utf::INVALID_CODE_POINT);
-    }
-
-    // Invalid surrogate pair
-    {
-        const std::vector<uint8_t> data = { 0xED, 0xA0, 0x80 }; // Surrogate code point
-        auto it = data.begin();
-        code_point cp;
-        it = decoder::decode(it, data.end(), cp);
-
-        assert(cp == utf::INVALID_CODE_POINT);
-    }
-
-    // Overlog encoding
-    {
-        const std::vector<uint8_t> data = { 0xC0, 0xAF }; // Overlong encoding of '/'
-        auto it = data.begin();
-        code_point cp;
-        it = decoder::decode(it, data.end(), cp);
-
-        // Expect the decoder to reject this as an invalid code point
-        assert(cp == utf::INVALID_CODE_POINT);
-        assert(it == data.end()); // The iterator should move past the invalid sequence
+        std::cout << "os::filesystem:\n";
+        for (const auto& p : os_p)
+        {
+            std::cout << "  " << p << "\n";
+        }
     }
 
     return 0;

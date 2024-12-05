@@ -1,8 +1,8 @@
 #pragma once
 
-#include "vertex/util/string/string_arg_type.hpp"
-
 #include <vector>
+
+#include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
 namespace str {
@@ -258,13 +258,6 @@ inline std::string repeat(const str_arg_t& s, size_t n);
 ///////////////////////////////////////////////////////////////////////////////
 
 inline std::string reverse(const str_arg_t& s);
-
-///////////////////////////////////////////////////////////////////////////////
-// wstring
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::wstring string_to_wstring(const str_arg_t& s);
-inline std::string wstring_to_string(const wstr_arg_t& ws);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Numeric Conversions
