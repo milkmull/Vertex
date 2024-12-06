@@ -249,7 +249,7 @@ path& path::operator/=(const path& rhs)
         return operator=(rhs);
     }
 
-    // if rhs.has_root_directory() removes any root directory and relative-path from *this
+    // if rhs.has_root_directory() removes any root directory and relative path from *this
     if (rhs_root_name.pos + rhs_root_name.size != rhs_size &&
         parser::is_directory_separator(rhs.m_path[rhs_root_name.pos + rhs_root_name.size]))
     {

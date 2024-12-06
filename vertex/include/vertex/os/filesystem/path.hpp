@@ -30,10 +30,19 @@ class path;
 
 namespace __detail {
 
+enum parse_state
+{
+    BEGIN,
+    ROOT_NAME,
+    ROOT_DIRECTORY,
+    RELATIVE_PATH,
+    END
+};
+
 template <typename path_t>
 class path_iterator
 {
-    friend path;
+    friend path_t;
 
 public:
 
@@ -45,14 +54,14 @@ public:
 
 public:
 
-    path_iterator() = default;
-
     path_iterator(const path_t* path) noexcept
         : m_path(path)
     {
         operator++();
     }
 
+    path_iterator() = default;
+    ~path_iterator() = default;
     path_iterator(const path_iterator&) = default;
     path_iterator(path_iterator&&) = default;
     path_iterator& operator=(const path_iterator&) = default;
@@ -60,16 +69,7 @@ public:
 
 private:
 
-    enum state
-    {
-        BEGIN,
-        ROOT_NAME,
-        ROOT_DIRECTORY,
-        RELATIVE_PATH,
-        END
-    };
-
-    path_iterator(const path_t* path, state s) noexcept
+    path_iterator(const path_t* path, parse_state s) noexcept
         : m_path(path), m_position(path->m_path.size()), m_state(s) {}
 
 public:
@@ -79,23 +79,23 @@ public:
 
     path_iterator& operator++()
     {
-        if (m_state == state::END)
+        if (m_state == parse_state::END)
         {
             return *this;
         }
 
         const auto& path = m_path->native();
 
-        if (m_state <= state::ROOT_NAME)
+        if (m_state <= parse_state::ROOT_NAME)
         {
             const auto root_directory = path_t::parser::parse_root_directory(path);
             
-            if (m_state == state::BEGIN && root_directory.pos != 0)
+            if (m_state == parse_state::BEGIN && root_directory.pos != 0)
             {
                 // The iterator was just initialized and the first element is the root name
                 m_element.m_path = path.substr(0, root_directory.pos);
                 m_position = root_directory.pos;
-                m_state = state::ROOT_NAME;
+                m_state = parse_state::ROOT_NAME;
                 return *this;
             }
             else if (root_directory.size != 0)
@@ -103,7 +103,7 @@ public:
                 // Root directory exists, so next is root directory
                 m_element.m_path = path.substr(root_directory.pos, root_directory.size);
                 m_position = root_directory.pos + root_directory.size;
-                m_state = state::ROOT_DIRECTORY;
+                m_state = parse_state::ROOT_DIRECTORY;
                 return *this;
             }
         }
@@ -115,7 +115,7 @@ public:
             // We are at the end of the path
             m_element.clear();
             m_position = path_size;
-            m_state = state::END;
+            m_state = parse_state::END;
             return *this;
         }
 
@@ -133,7 +133,7 @@ public:
         const size_t start = m_position;
         m_position = path_t::parser::find_separator(path.data(), start, path_size);
         m_element.m_path = path.substr(start, m_position - start);
-        m_state = state::RELATIVE_PATH;
+        m_state = parse_state::RELATIVE_PATH;
 
         return *this;
     }
@@ -155,7 +155,7 @@ private:
     const path_t* m_path;
     path_t m_element;
     size_t m_position = 0;
-    state m_state = state::BEGIN;
+    parse_state m_state = parse_state::BEGIN;
 };
 
 } // namespace __detail
@@ -351,6 +351,121 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////
+    // generation
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // https://en.cppreference.com/w/cpp/filesystem/path
+
+    path lexically_normal() const
+    {
+        using parse_state = __detail::parse_state;
+
+        if (empty())
+        {
+            // 1. If the path is empty, stop (normal form of an empty path is an empty path).
+            return path();
+        }
+
+        string_type normalized;
+        normalized.reserve(m_path.size());
+
+        std::vector<size_t> stack;
+        stack.reserve(15);
+        bool has_root_directory = false;
+
+#       define last_is_dotdot() ( \
+            normalized.size() >= 3 && \
+            normalized.compare(stack.back(), 2, __VX_FS_TEXT("..")) == 0 && \
+            normalized.back() == preferred_separator \
+        )
+
+        for (auto it = begin(); it != end(); ++it)
+        {
+            if (it.m_state == parse_state::ROOT_NAME)
+            {
+                // 3. Replace each slash character in the root-name with path::preferred_separator.
+                for (const value_type c : it->native())
+                {
+                    normalized.push_back((c == separator) ? preferred_separator : c);
+                }
+
+                continue;
+            }
+
+            else if (it.m_state == parse_state::ROOT_DIRECTORY)
+            {
+                // Root-directory will only ever be made up of separators.
+                // We can just replace it with a single preferred separator.
+                normalized.push_back(preferred_separator);
+                has_root_directory = true;
+                continue;
+            }
+
+            const string_type p = it->native();
+            
+            if (p.empty())
+            {
+                continue;
+            }
+
+            // 4. Remove each dot and any immediately following directory-separator.
+            else if (p == __VX_FS_TEXT("."))
+            {
+                continue;
+            }
+
+            else if (p == __VX_FS_TEXT(".."))
+            {
+                // 5. Remove each non-dot-dot filename immediately followed by a
+                // directory-separator and a dot-dot, along with any immediately
+                // following directory-separator.
+                if (!stack.empty() && !last_is_dotdot())
+                {
+                    normalized.erase(stack.back());
+                    stack.pop_back();
+                    continue;
+                }
+
+                // 6. If there is root-directory, remove all dot-dots and
+                // any directory-separators immediately following them.
+                else if (has_root_directory)
+                {
+                    continue;
+                }
+            }
+
+            stack.push_back(normalized.size());
+            normalized.append(p);
+
+            // 2. Replace each directory-separator (which may consist of
+            // multiple slashes) with a single path::preferred_separator.
+            if (parser::is_directory_separator(m_path[it.m_position]))
+            {
+                normalized.push_back(preferred_separator);
+            }
+        }
+
+        // 8. If the path is empty, add a dot (normal form of ./ is .).
+        if (normalized.empty())
+        {
+            normalized.push_back(dot);
+        }
+
+        // 7. If the last filename is dot-dot, remove any trailing directory-separator.
+        if (!stack.empty() && last_is_dotdot())
+        {
+            normalized.pop_back();
+        }
+
+#       undef last_is_dotdot
+
+        return path(normalized);
+    }
+
+    path lexically_relative(const path& base) const;
+    path lexically_proximate(const path& base) const;
+
+    ///////////////////////////////////////////////////////////////////////////////
     // decomposition
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -418,12 +533,15 @@ public:
     bool has_extension() const      { return parser::parse_extension(m_path).size != 0; }
 
     bool is_relative() const { return !is_absolute(); }
+     
     bool is_absolute() const
     {
+        const auto root_directory = parser::parse_root_directory(m_path);
+
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
-        return has_root_name() && has_root_directory();
+        return root_directory.pos != 0 && root_directory.size != 0;
 #else
-        return has_root_directory();
+        return root_directory.size != 0;
 #endif // __VX_OS_WINDOWS_FILESYSTEM
     }
 
@@ -438,7 +556,17 @@ public:
 
     inline iterator end() const
     {
-        return iterator(this, iterator::state::END);
+        return iterator(this, __detail::parse_state::END);
+    }
+
+    inline iterator cbegin() const
+    {
+        return begin();
+    }
+
+    inline iterator cend() const
+    {
+        return end();
     }
 
     ///////////////////////////////////////////////////////////////////////////////

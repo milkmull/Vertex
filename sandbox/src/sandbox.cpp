@@ -8,51 +8,32 @@ using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    std::vector<const char*> test_paths = {
-        "/",
-        "C:\\",
-        "./dir/file",
-        ".\\dir\\file",
-        "~/",
-        "%USERPROFILE%\\",
-        "\\\\Server\\Share\\Folder\\File",
-        "/usr//local///bin",
-        "C:\\\\Windows\\\\System32\\\\",
-        "/usr/local/bin/",
-        "C:\\Windows\\System32\\",
-        "/usr/local/../bin",
-        "C:\\Windows\\System32\\..\\",
-        "/path/with space/file.txt",
-        "C:\\Path\\With Space\\File.txt",
-        //"/path/with/𝓾𝓷𝓲𝓬𝓸𝓭𝓮",
-        //R"(C:\Path\With\𝓾𝓷𝓲𝓬𝓸𝓭𝓮)",
-        "/dev/null",
-        "NUL",
-        "",
-        "../..",
-        "..\\.."
+    const std::vector<std::string> test_cases = {
+        "c:../../file///////",                    // Test redundant separators and dot-dot segments.
+        "/home/user/../././folder////file.txt",   // Test absolute path with redundant segments.
+        "C:\\\\..\\..\\folder\\file.txt",         // Windows-style path with dot-dots.
+        "C:/a/b/../../c/./d/e/f//g/h/..",         // Complex mixed relative path.
+        "../..//..//file",                        // Relative path with multiple dot-dots.
+        ".",                                      // Current directory.
+        "..",                                     // Parent directory.
+        "C:/folder/..",                           // Path with parent directory reference at the end.
+        "C:/folder/../",                          // Path ending with a parent directory reference and trailing slash.
+        "/../folder/../../file.txt",              // Complex path starting at the root.
+        "/",                                      // Root directory.
+        "///////",                                // Path with only redundant separators.
+        "C:/",                                    // Drive root.
+        "C:../folder/file",                       // Relative path within a drive.
+        "/folder/./subfolder/..",                 // Path with dot and dot-dot in a subfolder.
     };
 
-    for (int i = 0; i < test_paths.size(); ++i)
+    for (const auto& test_case : test_cases)
     {
-        const auto& path = test_paths[i];
+        std::filesystem::path std_path(test_case);
+        os::filesystem::path os_path(test_case);
 
-        VX_LOG_INFO << "testing path: " << i << ": " << path;
-
-        std::filesystem::path std_p(path);
-        os::filesystem::path os_p(path);
-
-        std::cout << "std::filesystem:\n";
-        for (const auto& p : std_p)
-        {
-            std::cout << "  " << p << "\n";
-        }
-
-        std::cout << "os::filesystem:\n";
-        for (const auto& p : os_p)
-        {
-            std::cout << "  " << p << "\n";
-        }
+        std::cout << "Test Case: " << test_case << "\n";
+        std::cout << "std::filesystem: " << std_path.lexically_normal() << "\n";
+        std::cout << "os::filesystem: " << os_path.lexically_normal() << "\n\n";
     }
 
     return 0;
