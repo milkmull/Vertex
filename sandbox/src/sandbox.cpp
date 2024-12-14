@@ -1,39 +1,79 @@
-﻿#include "sandbox/sandbox.hpp"
-
-#include "vertex/os/filesystem/path.hpp"
+﻿#include "vertex/os/filesystem/path.hpp"
 
 #include <filesystem>
+#include <iostream>
+#include <vector>
 
 using namespace vx;
 
-int main(int argc, char* argv[])
+int main()
 {
-    const std::vector<std::string> test_cases = {
-        "c:../../file///////",                    // Test redundant separators and dot-dot segments.
-        "/home/user/../././folder////file.txt",   // Test absolute path with redundant segments.
-        "C:\\\\..\\..\\folder\\file.txt",         // Windows-style path with dot-dots.
-        "C:/a/b/../../c/./d/e/f//g/h/..",         // Complex mixed relative path.
-        "../..//..//file",                        // Relative path with multiple dot-dots.
-        ".",                                      // Current directory.
-        "..",                                     // Parent directory.
-        "C:/folder/..",                           // Path with parent directory reference at the end.
-        "C:/folder/../",                          // Path ending with a parent directory reference and trailing slash.
-        "/../folder/../../file.txt",              // Complex path starting at the root.
-        "/",                                      // Root directory.
-        "///////",                                // Path with only redundant separators.
-        "C:/",                                    // Drive root.
-        "C:../folder/file",                       // Relative path within a drive.
-        "/folder/./subfolder/..",                 // Path with dot and dot-dot in a subfolder.
+    struct TestCase {
+        const char* path;
+        const char* base;
     };
 
-    for (const auto& test_case : test_cases)
-    {
-        std::filesystem::path std_path(test_case);
-        os::filesystem::path os_path(test_case);
+    std::vector<TestCase> test_cases = {
+        // Basic Tests
+        {"c:/hello/world/filename.txt", "c:/hello"},
+        {"c:/hello/world", "c:/hello/world"},
+        {"c:/hello/world/filename.txt", "d:/other/folder"},
+        
+        // Tests Without Root
+        {"hello/world/filename.txt", "hello"},
+        {"hello/world/filename.txt", "other/folder"},
+        
+        // Trailing Separators
+        {"c:/hello/world/filename.txt", "c:/hello/"},
+        //{"c:/hello/world/", "c:/hello/"},
+        
+        // Root Directory
+        {"c:/", "c:/"},
+        {"c:/hello/world/filename.txt", "c:/"},
+        
+        // Parent Directory
+        {"c:/hello/world/filename.txt", "c:/hello/world"},
+        
+        // Dot and Dot-Dot
+        {"c:/hello/world/../folder/./file.txt", "c:/hello"},
+        {"c:/hello/./world/./file.txt", "c:/hello/world"},
 
-        std::cout << "Test Case: " << test_case << "\n";
-        std::cout << "std::filesystem: " << std_path.lexically_normal() << "\n";
-        std::cout << "os::filesystem: " << os_path.lexically_normal() << "\n\n";
+        // Mixed Separators (Cross-Platform Compatibility)
+        {"c:\\hello\\world\\filename.txt", "c:/hello"},
+        {"c:/hello\\world/../folder/file.txt", "c:/hello"},
+        
+        // Case Sensitivity (Linux vs. Windows)
+        {"c:/Hello/World/File.txt", "c:/hello/world"},
+        {"c:/hello/world/file.txt", "c:/hello/world"},
+        
+        // Complex Relative Paths
+        {"c:/hello/world/../folder/./../file.txt", "c:/hello"},
+        {"c:/../file.txt", "c:/"},
+    };
+
+    for (const auto& test : test_cases)
+    {
+        std::filesystem::path std_path(test.path);
+        os::filesystem::path os_path(test.path);
+
+        std::cout << "Testing:\n"
+            << "Path: " << test.path << "\n"
+            << "Base: " << test.base << "\n";
+
+        auto std_result = std_path.lexically_relative(test.base);
+        auto os_result = os_path.lexically_relative(test.base);
+
+        std::cout << "std::filesystem: " << std_result << "\n";
+        std::cout << "os::filesystem:  " << os_result << "\n";
+
+        if (std_result.native() != os_result.native()) {
+            std::cout << "Test FAILED!\n";
+        }
+        else {
+            std::cout << "Test PASSED!\n";
+        }
+
+        std::cout << "-------------------------\n";
     }
 
     return 0;

@@ -342,12 +342,92 @@ public:
     // compare
     ///////////////////////////////////////////////////////////////////////////////
 
-    int compare(const path& rhs) const noexcept;
+    int compare(const path& rhs) const
+    {
+        return compare(rhs.m_path);
+    }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     int compare(const Src& src) const
     {
         return compare(path(src));
+    }
+
+    int compare(const string_type& rhs) const noexcept
+    {
+        const auto lhs_root_directory = parser::parse_root_directory(m_path);
+        const auto rhs_root_directory = parser::parse_root_directory(rhs);
+
+        const auto lhs_first = m_path.begin();
+        const auto rhs_first = rhs.begin();
+
+        const auto lhs_root_name_end = lhs_first + lhs_root_directory.pos;
+        const auto rhs_root_name_end = rhs_first + rhs_root_directory.pos;
+
+        // If root_name().native().compare(p.root_name().native()) is nonzero,
+        // returns that value.
+        const auto pair = std::mismatch(lhs_first, lhs_root_name_end, rhs_first, rhs_root_name_end);
+        if (pair.first != lhs_root_name_end || pair.second != rhs_root_name_end)
+        {
+            return *pair.first - *pair.second;
+        }
+
+        // Otherwise, if has_root_directory() != p.has_root_directory(),
+        // returns a value less than zero if has_root_directory() is false
+        // and a value greater than zero otherwise.
+        const int root_directory_cmp = static_cast<int>(lhs_root_directory.size != 0) - static_cast<int>(rhs_root_directory.size != 0);
+        if (root_directory_cmp != 0)
+        {
+            return root_directory_cmp;
+        }
+
+        // Otherwise returns a value less than, equal to or greater than 0
+        // if the relative portion of the path (relative_path()) is respectively
+        // lexicographically less than, equal to or greater than the relative
+        // portion of p (p.relative_path()). Comparison is performed element-wise,
+        // as if by iterating both paths from begin() to end() and comparing the
+        // result of native() for each element.
+
+        auto lhs_it = pair.first;
+        auto rhs_it = pair.second;
+
+        const auto lhs_last = m_path.end();
+        const auto rhs_last = rhs.end();
+
+        while (true)
+        {
+            const bool lhs_empty = lhs_it == lhs_last;
+            const bool rhs_empty = rhs_it == rhs_last;
+            const int empty_cmp = static_cast<int>(lhs_empty) - static_cast<int>(rhs_empty);
+            if (lhs_empty || empty_cmp != 0)
+            {
+                return empty_cmp;
+            }
+
+            const bool lhs_is_sep = parser::is_directory_separator(*lhs_it);
+            const bool rhs_is_sep = parser::is_directory_separator(*rhs_it);
+            const int sep_cmp = static_cast<int>(lhs_is_sep) - static_cast<int>(rhs_is_sep);
+            if (sep_cmp != 0)
+            {
+                return sep_cmp;
+            }
+
+            if (lhs_is_sep)
+            {
+                lhs_it = std::find_if_not(lhs_it + 1, lhs_last, parser::is_directory_separator);
+                rhs_it = std::find_if_not(rhs_it + 1, rhs_last, parser::is_directory_separator);
+                continue;
+            }
+
+            const int cmp = static_cast<int>(*lhs_it) - static_cast<int>(*rhs_it);
+            if (cmp != 0)
+            {
+                return cmp;
+            }
+
+            ++lhs_it;
+            ++rhs_it;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -462,8 +542,98 @@ public:
         return path(normalized);
     }
 
-    path lexically_relative(const path& base) const;
-    path lexically_proximate(const path& base) const;
+     // https://en.cppreference.com/w/cpp/filesystem/path/lexically_normal
+
+    path lexically_relative(const path& base) const
+    {
+        // If root_name() != base.root_name() or 
+        // is_absolute() != base.is_absolute() or 
+        // (!has_root_directory() && base.has_root_directory()) or
+        // any filename in relative_path() or
+        // base.relative_path() can be interpreted as a root-name,
+        // returns a default-constructed path.
+
+        if (root_name() != base.root_name() ||
+            is_absolute() != base.is_absolute() ||
+            (!has_root_directory() && base.has_root_directory()))
+        {
+            return path();
+        }
+
+        // Otherwise, first determines the first mismatched element
+        // of *this and base as if by
+        // auto [a, b] = mismatch(begin(), end(), base.begin(), base.end()).
+
+        const auto this_last = end();
+        const auto base_last = base.end();
+
+        auto pair = std::mismatch(begin(), this_last, base.begin(), base_last);
+
+        // If a == end() and b == base.end(), returns path(".").
+        if (pair.first == this_last && pair.second == base_last)
+        {
+            return path(__VX_FS_TEXT("."));
+        }
+
+        // Otherwise, define N as the number of nonempty filename elements
+        // that are neither dot nor dot-dot in [b, base.end()), minus the
+        // number of dot-dot filename elements.
+
+        int n = 0;
+
+        for (; pair.second != base_last; ++pair.second)
+        {
+            if (pair.second->empty())
+            {
+                continue;
+            }
+            else if (*pair.second == __VX_FS_TEXT(".."))
+            {
+                --n;
+            }
+            else if (*pair.second != __VX_FS_TEXT("."))
+            {
+                ++n;
+            }
+        }
+
+        // If N < 0, returns a default-constructed path
+        if (n < 0)
+        {
+            return path();
+        }
+
+        // If N = 0 and a == end() || a->empty(), returns path("."),
+        if (n == 0 && (pair.first == this_last || pair.first->empty()))
+        {
+            return path(__VX_FS_TEXT("."));
+        }
+
+        // Otherwise returns an object composed from a default-constructed
+        // path() followed by N applications of operator/=(path("..")),
+        // followed by one application of operator/= for each element in
+        // the half-open range[a, end()).
+
+        path ret;
+
+        while (n--)
+        {
+            ret /= __VX_FS_TEXT("..");
+        }
+
+        for (; pair.first != this_last; ++pair.first)
+        {
+            ret /= *pair.first;
+        }
+
+        return ret;
+    }
+
+    path lexically_proximate(const path& base) const
+    {
+        const path& p = lexically_relative(base);
+        return !p.empty() ? p : *this;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // decomposition
@@ -575,7 +745,7 @@ public:
 
     friend inline bool operator==(const path& lhs, const path& rhs) noexcept
     {
-        return lhs.m_path == rhs.m_path;
+        return lhs.compare(rhs) == 0;
     }
 
     friend inline bool operator!=(const path& lhs, const path& rhs) noexcept
@@ -661,7 +831,7 @@ private:
             return pos;
         }
 
-        static size_t find_root_name_off(const value_type* first, size_t size);
+        static size_t find_root_name_end(const value_type* first, size_t size);
 
         static substring parse_root_name(const string_type& s);
         static substring parse_root_directory(const string_type& s);

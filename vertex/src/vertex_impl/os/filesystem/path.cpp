@@ -11,7 +11,7 @@ using value_type = typename path::value_type;
 ///////////////////////////////////////////////////////////////////////////////
 
 // Returns a pointer to the end of the root name if it exists, otherwise last
-size_t path::parser::find_root_name_off(const value_type* first, size_t size)
+size_t path::parser::find_root_name_end(const value_type* first, size_t size)
 {
     if (size < 2)
     {
@@ -80,14 +80,14 @@ size_t path::parser::find_root_name_off(const value_type* first, size_t size)
 
 path::parser::substring path::parser::parse_root_name(const string_type& s)
 {
-    const size_t size = find_root_name_off(s.c_str(), s.size());
+    const size_t size = find_root_name_end(s.c_str(), s.size());
     return substring{ 0, size };
 }
 
 path::parser::substring path::parser::parse_root_directory(const string_type& s)
 {
     const size_t size = s.size();
-    const size_t off = find_root_name_off(s.c_str(), size);
+    const size_t off = find_root_name_end(s.c_str(), size);
 
     // Count consecutive directory separators starting from offset.
     size_t count = 0;
