@@ -488,46 +488,6 @@ inline std::string join(IT first, IT last, const Delim& delimiter)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// join_path
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IT>
-inline std::string join_path(IT first, IT last)
-{
-    return join(first, last, "\\");
-}
-
-inline std::string join_path(const char* s1, const char* s2)
-{
-    return join_path(str_arg_t(s1), str_arg_t(s2));
-}
-
-inline std::string join_path(const char* s1, const std::string& s2)
-{
-    return join_path(str_arg_t(s1), str_arg_t(s2));
-}
-
-inline std::string join_path(const std::string& s1, const char* s2)
-{
-    return join_path(str_arg_t(s1), str_arg_t(s2));
-}
-
-inline std::string join_path(const std::string& s1, const std::string& s2)
-{
-    return join_path(str_arg_t(s1), str_arg_t(s2));
-}
-
-#if defined(__cpp_lib_string_view)
-
-inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2)
-{
-    const str_arg_t pair[2] = { s1, s2 };
-    return join(std::begin(pair), std::end(pair), "\\");
-}
-
-#endif // __cpp_lib_string_view
-
-///////////////////////////////////////////////////////////////////////////////
 // split
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -617,15 +577,6 @@ inline std::vector<std::string> split_words(const str_arg_t& s)
 inline std::vector<std::string> split_lines(const str_arg_t& s)
 {
     return split(s, '\n');
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// split_path
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::vector<std::string> split_path(const str_arg_t& s)
-{
-    return split_any(s, "/\\");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

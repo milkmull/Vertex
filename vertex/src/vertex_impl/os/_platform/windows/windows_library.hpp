@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_LIBRARY)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/library.hpp"
 
 namespace vx {

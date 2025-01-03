@@ -2,12 +2,8 @@
 
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
 
-#include <shlobj.h>
-#undef min
-#undef max
-
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
-#include "vertex/os/filesystem/filesystem.hpp"
+#include "vertex_impl/os/_platform/windows/windows_header.hpp"
+#include "vertex/os/filesystem_old.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 

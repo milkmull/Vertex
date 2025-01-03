@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_POWER)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/power.hpp"
 
 namespace vx {
@@ -18,7 +18,7 @@ VX_API bool get_power_info(power_info& info)
     SYSTEM_POWER_STATUS status{};
     if (!GetSystemPowerStatus(&status))
     {
-        windows_error_message("GetSystemPowerStatus()");
+        windows::error_message("GetSystemPowerStatus()");
         return false;
     }
 

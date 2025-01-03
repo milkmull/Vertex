@@ -1,10 +1,11 @@
-#include "vertex_impl/os/_windows/windows_process.hpp"
+#include "vertex_impl/os/_platform/windows/windows_process.hpp"
 
-#if defined(VX_OS_WINDOWS_PROCESS)
+#if defined(__VX_OS_WINDOWS_PROCESS)
 
-#include "vertex_impl/os/_windows/windows_file.hpp"
+#include "vertex_impl/os/_platform/windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/time.hpp"
+#include "vertex/system/error.hpp"
 #include "vertex/system/assert.hpp"
 
 namespace vx {
@@ -126,7 +127,7 @@ bool process::process_impl::start(process* p, const config& config)
 
     if (!config.args.empty())
     {
-        wargs = str::string_to_wstring(join_arguments(config.args));
+        wargs = str::string_cast<wchar_t>(join_arguments(config.args));
         command_line = wargs.data();
     }
 
@@ -135,7 +136,7 @@ bool process::process_impl::start(process* p, const config& config)
 
     if (!config.environment.empty())
     {
-        wenv = str::string_to_wstring(join_environment(config.environment));
+        wenv = str::string_cast<wchar_t>(join_environment(config.environment));
         environment = wenv.data();
     }
 
@@ -222,7 +223,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 if (stream.proc_pipe() == INVALID_HANDLE_VALUE)
                 {
-                    windows_error_message("CreateFileW()");
+                    windows::error_message("CreateFileW()");
                     goto cleanup;
                 }
 
@@ -233,20 +234,20 @@ bool process::process_impl::start(process* p, const config& config)
                 // Create a pipe for communication between parent and child process
                 if (!CreatePipe(&stream.read_pipe(), &stream.write_pipe(), &security_attributes, 0))
                 {
-                    windows_error_message("CreatePipe()");
+                    windows::error_message("CreatePipe()");
                     goto cleanup;
                 }
                 // Set the pipe to non-blocking mode
                 DWORD pipe_mode = PIPE_NOWAIT;
                 if (!SetNamedPipeHandleState(stream.user_pipe(), &pipe_mode, NULL, NULL))
                 {
-                    windows_error_message("SetNamedPipeHandleState()");
+                    windows::error_message("SetNamedPipeHandleState()");
                     goto cleanup;
                 }
                 // Ensure the user pipe handle is not inherited by the child process
                 if (!SetHandleInformation(stream.user_pipe(), HANDLE_FLAG_INHERIT, 0))
                 {
-                    windows_error_message("SetHandleInformation()");
+                    windows::error_message("SetHandleInformation()");
                     goto cleanup;
                 }
 
@@ -270,7 +271,7 @@ bool process::process_impl::start(process* p, const config& config)
                     DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
-                    windows_error_message("DuplicateHandle()");
+                    windows::error_message("DuplicateHandle()");
                     goto cleanup;
                 }
 
@@ -290,7 +291,7 @@ bool process::process_impl::start(process* p, const config& config)
                     DUPLICATE_SAME_ACCESS))
                 {
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
-                    windows_error_message("DuplicateHandle()");
+                    windows::error_message("DuplicateHandle()");
                     goto cleanup;
                 }
 
@@ -316,7 +317,7 @@ bool process::process_impl::start(process* p, const config& config)
         &startup_info,              // Startup information (with redirected stdin/stdout/stderr)
         &m_process_information))    // Process information
     {
-        windows_error_message("CreateProcess()");
+        windows::error_message("CreateProcess()");
         goto cleanup;
     }
 
@@ -394,7 +395,7 @@ bool process::process_impl::is_alive() const
     DWORD exit_code;
     if (!GetExitCodeProcess(m_process_information.hProcess, &exit_code))
     {
-        windows_error_message("GetExitCodeProcess()");
+        windows::error_message("GetExitCodeProcess()");
         return false;
     }
 
@@ -412,7 +413,7 @@ bool process::process_impl::is_complete() const
 
     if (result == WAIT_FAILED)
     {
-        windows_error_message("WaitForSingleObject(): WAIT_FAILED");
+        windows::error_message("WaitForSingleObject(): WAIT_FAILED");
         return false;
     }
 
@@ -430,7 +431,7 @@ bool process::process_impl::join()
 
     if (result == WAIT_FAILED)
     {
-        windows_error_message("WaitForSingleObject(): WAIT_FAILED");
+        windows::error_message("WaitForSingleObject(): WAIT_FAILED");
         return false;
     }
 
@@ -443,7 +444,7 @@ bool process::process_impl::kill(bool force)
 
     if (!TerminateProcess(m_process_information.hProcess, 1))
     {
-        windows_error_message("TerminateProcess()");
+        windows::error_message("TerminateProcess()");
         return false;
     }
 
@@ -462,7 +463,7 @@ bool process::process_impl::get_exit_code(int* exit_code) const
         DWORD rc;
         if (!GetExitCodeProcess(m_process_information.hProcess, &rc))
         {
-            windows_error_message("GetExitCodeProcess()");
+            windows::error_message("GetExitCodeProcess()");
             return false;
         }
 
@@ -489,7 +490,7 @@ VX_API process::environment this_process::get_environment()
     LPWCH environment_strings = GetEnvironmentStringsW();
     if (!environment_strings)
     {
-        windows_error_message("GetEnvironmentStringsW()");
+        windows::error_message("GetEnvironmentStringsW()");
         return environment;
     }
 
@@ -505,8 +506,8 @@ VX_API process::environment this_process::get_environment()
             const std::wstring wvalue = entry.substr(pos + 1);
 
             environment.emplace(
-                str::wstring_to_string(wname),
-                str::wstring_to_string(wvalue)
+                str::string_cast<char>(wname),
+                str::string_cast<char>(wvalue)
             );
         }
 
@@ -519,28 +520,28 @@ VX_API process::environment this_process::get_environment()
 
 VX_API std::string this_process::get_environment_variable(const std::string& name)
 {
-    const std::wstring wname(str::string_to_wstring(name));
+    const std::wstring wname(str::string_cast<wchar_t>(name));
 
     DWORD buffer_size = GetEnvironmentVariableW(wname.c_str(), NULL, 0);
     if (buffer_size == 0)
     {
-        windows_error_message("GetEnvironmentVariableW()");
+        windows::error_message("GetEnvironmentVariableW()");
         return std::string();
     }
 
     std::wstring wvalue(buffer_size, 0);
     GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
-    return str::wstring_to_string(wvalue);
+    return str::string_cast<char>(wvalue);
 }
 
 VX_API bool this_process::set_environment_variable(const std::string& name, const std::string& value)
 {
-    const std::wstring wname(str::string_to_wstring(name));
-    const std::wstring wvalue(str::string_to_wstring(value));
+    const std::wstring wname(str::string_cast<wchar_t>(name));
+    const std::wstring wvalue(str::string_cast<wchar_t>(value));
 
     if (SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
     {
-        windows_error_message("SetEnvironmentVariableW()");
+        windows::error_message("SetEnvironmentVariableW()");
         return false;
     }
     return true;
@@ -548,11 +549,11 @@ VX_API bool this_process::set_environment_variable(const std::string& name, cons
 
 VX_API bool this_process::clear_environment_variable(const std::string& name)
 {
-    const std::wstring wname(str::string_to_wstring(name));
+    const std::wstring wname(str::string_cast<wchar_t>(name));
 
     if (SetEnvironmentVariableW(wname.c_str(), NULL) == 0)
     {
-        windows_error_message("SetEnvironmentVariableW()");
+        windows::error_message("SetEnvironmentVariableW()");
         return false;
     }
     return true;
@@ -561,4 +562,4 @@ VX_API bool this_process::clear_environment_variable(const std::string& name)
 } // namespace os
 } // namespace vx
 
-#endif // VX_OS_WINDOWS_PROCESS
+#endif // __VX_OS_WINDOWS_PROCESS

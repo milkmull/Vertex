@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/library.hpp"
@@ -33,7 +33,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     status = RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey, 0, KEY_READ, &key);
     if (status != ERROR_SUCCESS)
     {
-        windows_error_message("RegOpenKeyExW()");
+        windows::error_message("RegOpenKeyExW()");
         goto cleanup;
     }
 
@@ -49,7 +49,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     if (status != ERROR_SUCCESS)
     {
-        windows_error_message("RegQueryValueExW()");
+        windows::error_message("RegQueryValueExW()");
         goto cleanup;
     }
 
@@ -75,7 +75,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     if (status != ERROR_SUCCESS)
     {
-        windows_error_message("RegQueryValueExW()");
+        windows::error_message("RegQueryValueExW()");
         goto cleanup;
     }
 
@@ -125,7 +125,7 @@ VX_API std::string get_system_name()
 
         if (!GetComputerNameW(data, &size))
         {
-            windows_error_message("GetComputerNameW()");
+            windows::error_message("GetComputerNameW()");
         }
         else
         {
@@ -181,7 +181,7 @@ VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
     RTL_OSVERSIONINFOW info{ sizeof(RTL_OSVERSIONINFOW) };
     if (RtlGetVersion(&info) != STATUS_SUCCESS)
     {
-        windows_error_message("RtlGetVersion");
+        windows::error_message("RtlGetVersion");
         return false;
     }
 

@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_LIBRARY)
 
-#include "vertex_impl/os/_windows/windows_library.hpp"
+#include "vertex_impl/os/_platform/windows/windows_library.hpp"
 #include "vertex/util/string/string.hpp"
 
 namespace vx {
@@ -23,7 +23,7 @@ bool library::library_impl::load(const std::string& lib)
     m_handle = LoadLibraryW(wlib.c_str());
     if (m_handle == NULL)
     {
-        windows_error_message(lib);
+        windows::error_message(lib);
         return false;
     }
 

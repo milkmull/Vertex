@@ -11,7 +11,6 @@
 
 namespace vx {
 namespace os {
-namespace filesystem {
 
 ///////////////////////////////////////////////////////////////////////////////
 // path
@@ -467,7 +466,10 @@ public:
     path(const Src& src) : m_path(str::string_cast<value_type>(src)) {}
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
-    path(IT first, IT last) : m_path(str::string_cast<value_type>(first, last)) {}
+    path(IT first, IT last)
+    {
+        str::string_cast<value_type>(first, last, std::back_inserter(m_path));
+    }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     inline path& operator=(const Src& rhs)
@@ -1145,7 +1147,6 @@ private:
 #undef PATH_PREFERRED_SEPARATOR
 #undef PATH_DOT
 
-} // namespace filesystem
 } // namespace os
 } // namespace vx
 
@@ -1158,9 +1159,9 @@ namespace std {
 // https://github.com/microsoft/STL/blob/fec1c8b6a13e5411edebbddc3ad98258f5e282d2/stl/inc/filesystem#L1634
 
 template <>
-struct hash<vx::os::filesystem::path>
+struct hash<vx::os::path>
 {
-    size_t operator()(const vx::os::filesystem::path& p) noexcept
+    size_t operator()(const vx::os::path& p) noexcept
     {
         vx::crypto::FNV1a fnv1a;
 
@@ -1169,17 +1170,17 @@ struct hash<vx::os::filesystem::path>
         auto it = text.data();
         const auto last = it + size;
 
-        const auto root_name_end = vx::os::filesystem::__detail::parser::find_root_name_end(it, size);
+        const auto root_name_end = vx::os::__detail::parser::find_root_name_end(it, size);
         fnv1a.update(it, it += root_name_end);
 
         bool last_was_slash = false;
         for (; it != last; ++it)
         {
-            if (vx::os::filesystem::__detail::parser::is_directory_separator(*it))
+            if (vx::os::__detail::parser::is_directory_separator(*it))
             {
                 if (!last_was_slash)
                 {
-                    fnv1a.update(vx::os::filesystem::path::preferred_separator);
+                    fnv1a.update(vx::os::path::preferred_separator);
                     last_was_slash = true;
                 }
             }

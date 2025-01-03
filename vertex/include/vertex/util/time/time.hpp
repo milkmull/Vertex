@@ -70,7 +70,7 @@ public:
 
 public:
 
-    VX_API datetime to_datetime(bool local) const;
+    VX_API datetime to_datetime(bool local = true) const;
 
 public:
 

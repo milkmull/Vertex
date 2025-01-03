@@ -1,8 +1,7 @@
-#include "vertex_impl/os/_windows/windows_file.hpp"
+#include "vertex_impl/os/_platform/windows/windows_file.hpp"
 
 #if defined(__VX_OS_WINDOWS_FILE)
 
-#include "vertex_impl/os/_windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/system/assert.hpp"
 
@@ -97,7 +96,7 @@ bool file::file_impl::open(const std::string& path, mode mode)
 
 bool file::file_impl::is_open() const
 {
-    return (m_handle != INVALID_HANDLE_VALUE);
+    return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
 }
 
 void file::file_impl::close()
@@ -117,7 +116,7 @@ size_t file::file_impl::size() const
 
     if (!GetFileSizeEx(m_handle, &size))
     {
-        windows_error_message("GetFileSizeEx()");
+        windows::error_message("GetFileSizeEx()");
         return INVALID_SIZE;
     }
 
@@ -153,7 +152,7 @@ bool file::file_impl::seek(size_t off, stream_position from)
 
     if (!SetFilePointerEx(m_handle, distance, &distance, method))
     {
-        windows_error_message("SetFilePointerEx()");
+        windows::error_message("SetFilePointerEx()");
         return false;
     }
 
@@ -170,7 +169,7 @@ size_t file::file_impl::tell() const
     // Use SetFilePointerEx to query the current position
     if (!SetFilePointerEx(m_handle, off, &off, FILE_CURRENT))
     {
-        windows_error_message("SetFilePointerEx()");
+        windows::error_message("SetFilePointerEx()");
         return INVALID_POSITION;
     }
 
@@ -184,7 +183,7 @@ size_t file::file_impl::read(uint8_t* data, size_t size)
     DWORD count = 0;
     if (!ReadFile(m_handle, data, static_cast<DWORD>(size), &count, nullptr))
     {
-        windows_error_message("ReadFile()");
+        windows::error_message("ReadFile()");
         return 0;
     }
 
@@ -198,7 +197,7 @@ size_t file::file_impl::write(const uint8_t* data, size_t size)
     DWORD count = 0;
     if (!WriteFile(m_handle, data, static_cast<DWORD>(size), &count, NULL))
     {
-        windows_error_message("WriteFile()");
+        windows::error_message("WriteFile()");
         return 0;
     }
 
@@ -211,7 +210,7 @@ bool file::file_impl::flush()
 
     if (!FlushFileBuffers(m_handle))
     {
-        windows_error_message("FlushFileBuffers()");
+        windows::error_message("FlushFileBuffers()");
         return false;
     }
 

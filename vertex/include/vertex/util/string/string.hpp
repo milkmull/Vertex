@@ -197,25 +197,6 @@ template <typename IT, typename Delim>
 inline std::string join(IT first, IT last, const Delim& delimiter);
 
 ///////////////////////////////////////////////////////////////////////////////
-// join_path
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename IT>
-inline std::string join_path(IT first, IT last);
-
-inline std::string join_path(const char* s1, const char* s2);
-inline std::string join_path(const char* s1, const std::string& s2);
-inline std::string join_path(const std::string& s1, const char* s2);
-inline std::string join_path(const std::string& s1, const std::string& s2);
-
-#if defined(__cpp_lib_string_view)
-
-// Special version for std::string_view if it is available
-inline std::string join_path(const str_arg_t& s1, const str_arg_t& s2);
-
-#endif // __cpp_lib_string_view
-
-///////////////////////////////////////////////////////////////////////////////
 // split
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -239,12 +220,6 @@ inline std::vector<std::string> split_words(const str_arg_t& s);
 ///////////////////////////////////////////////////////////////////////////////
 
 inline std::vector<std::string> split_lines(const str_arg_t& s);
-
-///////////////////////////////////////////////////////////////////////////////
-// split_path
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::vector<std::string> split_path(const str_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
 // repeat

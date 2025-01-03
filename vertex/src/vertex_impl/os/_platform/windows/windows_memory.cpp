@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_MEMORY)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/memory.hpp"
 
 namespace vx {
@@ -14,7 +14,7 @@ VX_API bool get_memory_info(memory_info& info)
 
     if (!GetPerformanceInfo(&pi, pi.cb))
     {
-        windows_error_message("GetPerformanceInfo()");
+        windows::error_message("GetPerformanceInfo()");
         return false;
     }
 

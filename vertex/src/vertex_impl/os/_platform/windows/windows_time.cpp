@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_TIME)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/time.hpp"
 
 namespace vx {
@@ -22,7 +22,7 @@ datetime time_point::to_datetime(bool local) const
 
     if (!FileTimeToSystemTime(&ft, &utc_st))
     {
-        windows_error_message("FileTimeToSystemTime()");
+        os::windows::error_message("FileTimeToSystemTime()");
         return dt;
     }
 
@@ -30,14 +30,14 @@ datetime time_point::to_datetime(bool local) const
     {
         if (!SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
         {
-            windows_error_message("SystemTimeToTzSpecificLocalTime()");
+            os::windows::error_message("SystemTimeToTzSpecificLocalTime()");
             return dt;
         }
 
         FILETIME local_ft{};
         if (!SystemTimeToFileTime(&local_st, &local_ft))
         {
-            windows_error_message("SystemTimeToFileTime()");
+            os::windows::error_message("SystemTimeToFileTime()");
             return dt;
         }
 
@@ -81,7 +81,7 @@ VX_API int64_t get_performance_counter()
     LARGE_INTEGER counter{};
     if (!QueryPerformanceCounter(&counter))
     {
-        windows_error_message("QueryPerformanceCounter()");
+        windows::error_message("QueryPerformanceCounter()");
     }
     return static_cast<int64_t>(counter.QuadPart);
 }
@@ -91,7 +91,7 @@ VX_API int64_t get_performance_frequency()
     LARGE_INTEGER frequency{};
     if (!QueryPerformanceFrequency(&frequency))
     {
-        windows_error_message("QueryPerformanceFrequency()");
+        windows::error_message("QueryPerformanceFrequency()");
     }
     return static_cast<int64_t>(frequency.QuadPart);
 }

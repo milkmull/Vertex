@@ -2,7 +2,7 @@
 
 #if defined(__VX_OS_WINDOWS_SHELL)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/shell.hpp"
 #include "vertex/util/string/string.hpp"
 
@@ -14,7 +14,7 @@ namespace os {
 VX_API bool shell_open(const std::string& uri)
 {
     // MSDN says to make sure COM is initialized for safety
-    com_scoped_initializer com;
+    windows::com_scoped_initializer com;
     if (!com.succeeded())
     {
         return false;
@@ -34,7 +34,7 @@ VX_API bool shell_open(const std::string& uri)
     // Success returns value greater than 32, otherwise an error
     if (code <= 32)
     {
-        windows_error_message("ShellExecuteW()");
+        windows::error_message("ShellExecuteW()");
         return false;
     }
 

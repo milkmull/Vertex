@@ -26,6 +26,7 @@
 #include <shellapi.h>           // Dropfile support
 #include <objbase.h>            // CoInitialize
 #include <bcrypt.h>             // Random
+#include <winioctl.h>
 
 #include <string>               // Error handling
 
@@ -127,3 +128,28 @@ private:
 
     HRESULT m_hr;
 };
+
+typedef struct REPARSE_DATA_BUFFER {
+    ULONG ReparseTag;
+    USHORT ReparseDataLength;
+    USHORT Reserved;
+    union {
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            WCHAR PathBuffer[1];
+        } SymbolicLinkReparseBuffer;
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            WCHAR PathBuffer[1];
+        } MountPointReparseBuffer;
+        struct {
+            UCHAR DataBuffer[1];
+        } GenericReparseBuffer;
+    };
+} REPARSE_DATA_BUFFER, * PREPARSE_DATA_BUFFER;

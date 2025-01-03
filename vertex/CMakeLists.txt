@@ -167,7 +167,7 @@ target_sources(Vertex PRIVATE ${VX_CORE_FILES})
 # Handle Windows resource file for shared library builds
 if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/_windows/version.rc.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/_platform/windows/version.rc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
         @ONLY
     )

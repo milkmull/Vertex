@@ -80,10 +80,9 @@ inline auto string_cast(IT first, to_char_t replacement = 0)
     using encoder_type = utf::utf_traits<to_char_type>;
     using decoder_type = utf::utf_traits<from_char_type>;
 
-    constexpr from_char_type null = 0;
     // Find the null terminator
     IT last = first;
-    while (*last != null) { ++last; }
+    while (*last != static_cast<from_char_type>(0)) { ++last; }
     const size_t size = static_cast<size_t>(std::distance(first, last));
 
     std::basic_string<to_char_type> res;

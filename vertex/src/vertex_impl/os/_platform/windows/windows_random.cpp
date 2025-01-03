@@ -2,10 +2,11 @@
 
 #if defined(__VX_OS_WINDOWS_RANDOM)
 
+// should probably explicitly check for this function in cmake
 #define _CRT_RAND_S
 #include <stdlib.h>
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_header.hpp"
 #include "vertex/os/random.hpp"
 #include "vertex/system/error.hpp"
 

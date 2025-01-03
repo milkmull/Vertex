@@ -2,7 +2,7 @@
 
 #if defined(__VX_WINDOWS_MAIN)
 
-#include "vertex_impl/_platform/_windows/windows_header.hpp"
+#include "vertex_impl/os/_platform/windows/windows_header.hpp"
 #include <cstdlib> // for '__argc' and '__argv'
 
 // Default main function, which can be overridden by the user
