@@ -42,9 +42,17 @@ class handle
 public:
 
     handle() : m_handle(INVALID_HANDLE_VALUE) {}
-    handle(HANDLE handle) : m_handle(handle) {}
-
+    handle(HANDLE h) : m_handle(h) {}
     ~handle() { close(); }
+
+    handle& operator=(const HANDLE h)
+    {
+        close();
+        m_handle = h;
+        return *this;
+    }
+
+public:
 
     bool is_valid() const
     {
@@ -52,6 +60,7 @@ public:
     }
 
     HANDLE get() const { return m_handle; }
+    void reset() { m_handle = INVALID_HANDLE_VALUE; }
 
 private:
 
@@ -60,7 +69,7 @@ private:
         if (is_valid())
         {
             CloseHandle(m_handle);
-            m_handle = INVALID_HANDLE_VALUE;
+            reset();
         }
     }
 

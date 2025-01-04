@@ -475,6 +475,7 @@ public:
     inline path& operator=(const Src& rhs)
     {
         m_path = str::string_cast<value_type>(rhs);
+        return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
@@ -1028,6 +1029,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     bool empty() const noexcept { return m_path.empty(); }
+
+    bool is_dot_or_dotdot() const noexcept { return m_path == PATH_TEXT(".") || m_path == PATH_TEXT(".."); }
 
     bool has_root_path() const      { return __detail::parser::parse_root_path(m_path).size != 0; }
     bool has_root_name() const      { return __detail::parser::parse_root_name(m_path).size != 0; }

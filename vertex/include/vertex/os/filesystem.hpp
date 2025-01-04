@@ -67,10 +67,7 @@ struct file_info
 {
     file_type type;
     typename file_permissions::type permissions;
-
     size_t size;
-    size_t hard_link_count;
-
     time::time_point create_time;
     time::time_point modify_time;
 };
@@ -97,42 +94,23 @@ inline bool exists(const path& p)
 // Directory Entry
 ///////////////////////////////////////////////////////////////////////////////
 
-class directory_entry
+struct directory_entry
 {
-public:
-
-    directory_entry() noexcept = default;
-    explicit directory_entry(const os::path& p) : m_path(p), m_info(get_file_info(p)) {}
-
-public:
-
     void refresh()
     {
-        if (!m_path.empty())
+        if (!path.empty())
         {
-            m_info = get_file_info(m_path);
+            info = get_file_info(path);
         }
     }
 
-    const os::path& path() const { return m_path; }
+    constexpr bool is_regular_file() const { return info.type == file_type::REGULAR; }
+    constexpr bool is_directory() const { return info.type == file_type::DIRECTORY; }
+    constexpr bool is_symlink() const { return info.type == file_type::SYMLINK; }
+    constexpr bool is_other() const { return !(is_regular_file() || is_directory() || is_symlink()); }
 
-    bool exists() const { return m_info.type != file_type::NONE; }
-
-    bool is_regular_file() const { return m_info.type == file_type::REGULAR; }
-    bool is_directory() const { return m_info.type == file_type::DIRECTORY; }
-    bool is_symlink() const { return m_info.type == file_type::SYMLINK; }
-    bool is_other() const { return !(is_regular_file() || is_directory() || is_symlink()); }
-
-    size_t file_size() const { return m_info.size; }
-    size_t hard_link_count() const { return m_info.hard_link_count; }
-
-    time::time_point create_time() const { return m_info.create_time; }
-    time::time_point modify_time() const { return m_info.modify_time; }
-
-private:
-
-    os::path m_path;
-    file_info m_info;
+    os::path path;
+    file_info info;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -143,11 +121,61 @@ class directory_iterator
 {
 public:
 
+    using value_type = directory_entry;
+    using difference_type = ptrdiff_t;
+    using pointer = const directory_entry*;
+    using reference = const directory_entry&;
+    using iterator_category = std::input_iterator_tag;
+
+public:
+
+    VX_API directory_iterator(const path& p);
+
+    directory_iterator() noexcept = default;
+    ~directory_iterator() noexcept = default;
+
+    directory_iterator(const directory_iterator&) noexcept = default;
+    directory_iterator(directory_iterator&&) noexcept = default;
+
+    directory_iterator& operator=(const directory_iterator&) noexcept = default;
+    directory_iterator& operator=(directory_iterator&&) noexcept = default;
+
+public:
+
+    VX_API reference operator*() const noexcept;
+    VX_API pointer operator->() const noexcept;
+
+    VX_API directory_iterator& operator++();
+
+    bool operator==(const directory_iterator& rhs) const noexcept
+    {
+        return m_impl == rhs.m_impl;
+    }
+
+    bool operator!=(const directory_iterator& rhs) const noexcept
+    {
+        return m_impl != rhs.m_impl;
+    }
+
+private:
+
+    void skip_dots();
+
 private:
 
     class directory_iterator_impl;
-    std::unique_ptr<directory_iterator_impl> m_impl;
+    std::shared_ptr<directory_iterator_impl> m_impl;
 };
+
+inline directory_iterator begin(directory_iterator it) noexcept
+{
+    return it;
+}
+
+inline directory_iterator end(directory_iterator) noexcept
+{
+    return {};
+}
 
 } // namespace filesystem
 } // namespace os

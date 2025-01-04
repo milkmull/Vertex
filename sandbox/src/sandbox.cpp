@@ -11,12 +11,11 @@ int main()
 {
     const char* path = "../../assets/michael_shortcut";
 
-    const auto result1 = os::filesystem::get_file_info(path);
-
-    VX_LOG_INFO << result1.create_time.to_datetime().to_string();
-
-
-    std::filesystem::directory_iterator
+    os::filesystem::directory_iterator it("../../assets");
+    for (const auto& dir : it)
+    {
+        VX_LOG_INFO << dir.path;
+    }
 
     return 0;
 }

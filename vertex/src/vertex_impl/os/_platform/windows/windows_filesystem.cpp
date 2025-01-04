@@ -2,9 +2,8 @@
 
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
 
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+#include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
 #include "vertex/system/error.hpp"
-#include "vertex/os/filesystem.hpp"
 
 namespace vx {
 namespace os {
@@ -145,6 +144,24 @@ static file_permissions::type get_file_permissions(const path& p, const DWORD at
     return permissions;
 }
 
+static file_info create_file_info(
+    const path& p,
+    const DWORD dwFileAttributes,
+    const DWORD nFileSizeHigh,
+    const DWORD nFileSizeLow,
+    const FILETIME ftCreationTime,
+    const FILETIME ftLastWriteTime
+)
+{
+    return file_info{
+        get_file_type(p, dwFileAttributes),
+        get_file_permissions(p, dwFileAttributes),
+        (static_cast<size_t>(nFileSizeHigh) << 32) | nFileSizeLow,
+        time::time_point::from_windows_file_time(ftCreationTime.dwLowDateTime, ftCreationTime.dwHighDateTime),
+        time::time_point::from_windows_file_time(ftLastWriteTime.dwLowDateTime, ftLastWriteTime.dwHighDateTime)
+    };
+}
+
 static file_info file_info_from_handle(const windows::handle& h, const path& p)
 {
     file_info info{};
@@ -161,15 +178,14 @@ static file_info file_info_from_handle(const windows::handle& h, const path& p)
         return info;
     }
 
-    const DWORD attrs = fi.dwFileAttributes;
-    info.type = get_file_type(p, attrs);
-    info.permissions = get_file_permissions(p, attrs);
-
-    info.size = (static_cast<size_t>(fi.nFileSizeHigh) << 32) | fi.nFileSizeLow;
-    info.hard_link_count = fi.nNumberOfLinks;
-
-    info.create_time = time::time_point::from_windows_file_time(fi.ftCreationTime.dwLowDateTime, fi.ftCreationTime.dwHighDateTime);
-    info.modify_time = time::time_point::from_windows_file_time(fi.ftLastWriteTime.dwLowDateTime, fi.ftLastWriteTime.dwHighDateTime);
+    info = create_file_info(
+        p,
+        fi.dwFileAttributes,
+        fi.nFileSizeHigh,
+        fi.nFileSizeLow,
+        fi.ftCreationTime,
+        fi.ftLastWriteTime
+    );
 
     return info;
 }
@@ -275,6 +291,70 @@ VX_API path read_symlink(const path& p)
 
     symlink_path.assign(buffer + offset, buffer + offset + size);
     return symlink_path;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Directory Iterator Helpers
+///////////////////////////////////////////////////////////////////////////////
+
+void open_directory_iterator(const path& p, windows::handle& h, WIN32_FIND_DATAW& find_data, directory_entry& entry)
+{
+    close_directory_iterator(h);
+
+    // Append wildcard to search for all items
+    const path pattern = p / L"*";
+
+    h = FindFirstFileExW(
+        pattern.c_str(),
+        FindExInfoBasic,
+        &find_data,
+        FindExSearchNameMatch,
+        NULL,
+        0
+    );
+
+    update_directory_iterator_entry(p, h, find_data, entry);
+}
+
+void advance_directory_iterator(const path& p, windows::handle& h, WIN32_FIND_DATAW& find_data, directory_entry& entry)
+{
+    if (!FindNextFileW(h.get(), &find_data))
+    {
+        close_directory_iterator(h);
+        return;
+    }
+
+    update_directory_iterator_entry(p, h, find_data, entry);
+}
+
+void update_directory_iterator_entry(const path& p, windows::handle& h, const WIN32_FIND_DATAW& find_data, directory_entry& entry)
+{
+    if (h.is_valid())
+    {
+        entry.path = p / find_data.cFileName;
+        entry.info = create_file_info(
+            entry.path,
+            find_data.dwFileAttributes,
+            find_data.nFileSizeHigh,
+            find_data.nFileSizeLow,
+            find_data.ftCreationTime,
+            find_data.ftLastAccessTime
+        );
+    }
+    else
+    {
+        close_directory_iterator(h);
+    }
+}
+
+void close_directory_iterator(windows::handle& h)
+{
+    if (h.is_valid() && !FindClose(h.get()))
+    {
+        std::abort();
+    }
+
+    h.reset();
 }
 
 } // namespace filesystem
