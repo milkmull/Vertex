@@ -297,7 +297,40 @@ VX_API path read_symlink(const path& p)
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-void open_directory_iterator(const path& p, windows::handle& h, WIN32_FIND_DATAW& find_data, directory_entry& entry)
+static bool is_dot_or_dotdot(const wchar_t* filename)
+{
+    if (filename[0] != L'.')
+    {
+        return false;
+    }
+
+    const auto second_char = filename[1];
+    if (second_char == 0)
+    {
+        return true;
+    }
+
+    if (second_char != L'.')
+    {
+        return false;
+    }
+
+    return filename[2] == 0;
+}
+
+static void advance_directory_iterator_once(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+{
+    if (FindNextFileW(h.get(), &find_data))
+    {
+        update_directory_iterator_entry(p, entry, h, find_data);
+    }
+    else
+    {
+        close_directory_iterator(h);
+    }
+}
+
+void open_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
 {
     close_directory_iterator(h);
 
@@ -313,21 +346,22 @@ void open_directory_iterator(const path& p, windows::handle& h, WIN32_FIND_DATAW
         0
     );
 
-    update_directory_iterator_entry(p, h, find_data, entry);
-}
-
-void advance_directory_iterator(const path& p, windows::handle& h, WIN32_FIND_DATAW& find_data, directory_entry& entry)
-{
-    if (!FindNextFileW(h.get(), &find_data))
+    while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName))
     {
-        close_directory_iterator(h);
-        return;
+        advance_directory_iterator_once(p, entry, h, find_data);
     }
-
-    update_directory_iterator_entry(p, h, find_data, entry);
 }
 
-void update_directory_iterator_entry(const path& p, windows::handle& h, const WIN32_FIND_DATAW& find_data, directory_entry& entry)
+void advance_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+{
+    do
+    {
+        advance_directory_iterator_once(p, entry, h, find_data);
+
+    } while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName));
+}
+
+void update_directory_iterator_entry(const path& p, directory_entry& entry, windows::handle& h, const WIN32_FIND_DATAW& find_data)
 {
     if (h.is_valid())
     {

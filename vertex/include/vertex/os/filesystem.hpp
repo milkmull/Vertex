@@ -159,7 +159,7 @@ public:
 
 private:
 
-    void skip_dots();
+    void validate();
 
 private:
 
@@ -173,6 +173,70 @@ inline directory_iterator begin(directory_iterator it) noexcept
 }
 
 inline directory_iterator end(directory_iterator) noexcept
+{
+    return {};
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Recursive Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
+
+class recursive_directory_iterator
+{
+public:
+
+    using value_type = directory_entry;
+    using difference_type = ptrdiff_t;
+    using pointer = const directory_entry*;
+    using reference = const directory_entry&;
+    using iterator_category = std::input_iterator_tag;
+
+public:
+
+    VX_API recursive_directory_iterator(const path& p);
+
+    recursive_directory_iterator() noexcept = default;
+    ~recursive_directory_iterator() noexcept = default;
+
+    recursive_directory_iterator(const recursive_directory_iterator&) noexcept = default;
+    recursive_directory_iterator(recursive_directory_iterator&&) noexcept = default;
+
+    recursive_directory_iterator& operator=(const recursive_directory_iterator&) noexcept = default;
+    recursive_directory_iterator& operator=(recursive_directory_iterator&&) noexcept = default;
+
+public:
+
+    VX_API reference operator*() const noexcept;
+    VX_API pointer operator->() const noexcept;
+
+    VX_API recursive_directory_iterator& operator++();
+
+    bool operator==(const recursive_directory_iterator& rhs) const noexcept
+    {
+        return m_impl == rhs.m_impl;
+    }
+
+    bool operator!=(const recursive_directory_iterator& rhs) const noexcept
+    {
+        return m_impl != rhs.m_impl;
+    }
+
+private:
+
+    void validate();
+
+private:
+
+    class recursive_directory_iterator_impl;
+    std::shared_ptr<recursive_directory_iterator_impl> m_impl;
+};
+
+inline recursive_directory_iterator begin(recursive_directory_iterator it) noexcept
+{
+    return it;
+}
+
+inline recursive_directory_iterator end(recursive_directory_iterator) noexcept
 {
     return {};
 }

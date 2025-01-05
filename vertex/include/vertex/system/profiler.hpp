@@ -56,12 +56,12 @@ private:
 #if defined(VX_ENABLE_PROFILING)
 
 #   define VX_PROFILE_SCOPE(name) ::vx::profile::__detail::profile_timer timer##VX_LINE(name)
-#   define VX_PROFILE_FUNCTION(name) ::vx::profile::__detail::profile_timer timer##VX_FUNCTION(name)
+#   define VX_PROFILE_FUNCTION() ::vx::profile::__detail::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
 
 #else
 
 #   define VX_PROFILE_SCOPE(name)
-#   define VX_PROFILE_FUNCTION(name)
+#   define VX_PROFILE_FUNCTION()
 
 #endif
 

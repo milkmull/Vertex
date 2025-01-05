@@ -631,14 +631,26 @@ public:
     inline path& remove_filename()
     {
         const auto filename = __detail::parser::parse_filename(m_path);
-        m_path.erase(m_path.begin() + filename.pos);
+        m_path.erase(filename.pos);
         return *this;
     }
 
     inline path& remove_extension()
     {
         const auto extension = __detail::parser::parse_extension(m_path);
-        m_path.erase(m_path.begin() + extension.pos);
+        m_path.erase(extension.pos);
+        return *this;
+    }
+
+    inline path& pop_back()
+    {
+        size_t pos = __detail::parser::parse_filename(m_path).pos;
+        while (pos != 0 && __detail::parser::is_directory_separator(m_path[pos - 1]))
+        {
+            --pos;
+        }
+
+        m_path.erase(pos);
         return *this;
     }
 

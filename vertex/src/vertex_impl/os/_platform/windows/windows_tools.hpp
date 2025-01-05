@@ -42,7 +42,19 @@ class handle
 public:
 
     handle() : m_handle(INVALID_HANDLE_VALUE) {}
-    handle(HANDLE h) : m_handle(h) {}
+
+    handle(const HANDLE h) : m_handle(h) {}
+
+    handle(handle&& h) noexcept
+        : m_handle(INVALID_HANDLE_VALUE)
+    {
+        if (this != &h)
+        {
+            m_handle = h.m_handle;
+            h.reset();
+        }
+    }
+
     ~handle() { close(); }
 
     handle& operator=(const HANDLE h)
@@ -51,6 +63,10 @@ public:
         m_handle = h;
         return *this;
     }
+
+    handle(const handle&) = delete;
+    handle& operator=(const handle&) = delete;
+    handle& operator=(handle&&) noexcept = delete;
 
 public:
 

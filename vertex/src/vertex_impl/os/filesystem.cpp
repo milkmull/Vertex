@@ -15,9 +15,9 @@ namespace filesystem {
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_API directory_iterator::directory_iterator(const path& p)
-    : m_impl(std::make_unique<directory_iterator_impl>(p))
+    : m_impl(std::make_shared<directory_iterator_impl>(p))
 {
-    skip_dots();
+    validate();
 }
 
 VX_API typename directory_iterator::reference directory_iterator::operator*() const noexcept
@@ -36,17 +36,50 @@ VX_API directory_iterator& directory_iterator::operator++()
 {
     VX_ASSERT(m_impl);
     m_impl->advance();
-    skip_dots();
+    validate();
     return *this;
 }
 
-void directory_iterator::skip_dots()
+void directory_iterator::validate()
 {
-    while (m_impl->m_entry.path.filename().is_dot_or_dotdot())
+    if (!m_impl->is_valid())
     {
-        m_impl->advance();
+        m_impl.reset();
     }
+}
 
+///////////////////////////////////////////////////////////////////////////////
+// Recursive Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API recursive_directory_iterator::recursive_directory_iterator(const path& p)
+    : m_impl(std::make_shared<recursive_directory_iterator_impl>(p))
+{
+    validate();
+}
+
+VX_API typename recursive_directory_iterator::reference recursive_directory_iterator::operator*() const noexcept
+{
+    VX_ASSERT(m_impl);
+    return m_impl->m_entry;
+}
+
+VX_API typename recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const noexcept
+{
+    VX_ASSERT(m_impl);
+    return &**this;
+}
+
+VX_API recursive_directory_iterator& recursive_directory_iterator::operator++()
+{
+    VX_ASSERT(m_impl);
+    m_impl->advance();
+    validate();
+    return *this;
+}
+
+void recursive_directory_iterator::validate()
+{
     if (!m_impl->is_valid())
     {
         m_impl.reset();
