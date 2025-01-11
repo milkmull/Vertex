@@ -119,13 +119,14 @@ public:
     {
         windows::handle* current = &m_stack.back();
 
-        if (m_entry.is_directory() && push_stack())
+        if (m_recursion_pending && push_stack())
         {
             current = &m_stack.back();
         }
         else
         {
             advance_directory_iterator(m_path, m_entry, *current, m_find_data);
+            m_recursion_pending = m_entry.is_directory();
         }
 
         while (!current->is_valid())
@@ -145,12 +146,16 @@ public:
 
     size_t depth() const { return m_stack.size(); }
 
+    bool recursion_pending() const { return m_recursion_pending; }
+    void disable_pending_recursion() { m_recursion_pending = false; }
+
 private:
 
     path m_path;
     directory_entry m_entry;
     std::vector<windows::handle> m_stack;
     WIN32_FIND_DATAW m_find_data{};
+    bool m_recursion_pending = false;
 };
 
 } // namespace filesystem

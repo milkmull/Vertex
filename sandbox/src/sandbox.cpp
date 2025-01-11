@@ -39,13 +39,9 @@ int main()
 {
     profile::start("../../assets/directory_iterator_timer.txt");
 
-    for (int i = 0; i < 1000; ++i)
+    for (int i = 0; i < 5000; ++i)
     {
         vx_list();
-    }
-
-    for (int i = 0; i < 1000; ++i)
-    {
         std_list();
     }
 

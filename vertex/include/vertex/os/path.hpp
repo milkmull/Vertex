@@ -48,267 +48,268 @@ using string_type = std::basic_string<value_type>;
 // parsing
 ///////////////////////////////////////////////////////////////////////////////
 
-struct parser
+namespace parser {
+
+enum state
 {
-    enum state
-    {
-        BEGIN,
-        ROOT_NAME,
-        ROOT_DIRECTORY,
-        RELATIVE_PATH,
-        END
-    };
+    BEGIN,
+    ROOT_NAME,
+    ROOT_DIRECTORY,
+    RELATIVE_PATH,
+    END
+};
 
-    struct substring
-    {
-        size_t pos;
-        size_t size;
-    };
+struct substring
+{
+    size_t pos;
+    size_t size;
+};
 
-    static constexpr bool is_directory_separator(value_type c)
-    {
-        return c == PATH_SEPARATOR
+static constexpr bool is_directory_separator(value_type c)
+{
+    return c == PATH_SEPARATOR
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
-            || c == PATH_PREFERRED_SEPARATOR
+        || c == PATH_PREFERRED_SEPARATOR
 #endif // __VX_OS_WINDOWS_FILESYSTEM
-            ;
-    }
+        ;
+}
 
-    static constexpr bool is_element_separator(value_type c)
-    {
-        return is_directory_separator(c)
+static constexpr bool is_element_separator(value_type c)
+{
+    return is_directory_separator(c)
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
-            || c == L':'
+        || c == L':'
 #endif // __VX_OS_WINDOWS_FILESYSTEM
-            ;
+        ;
+}
+
+static constexpr bool is_letter(value_type c)
+{
+    return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
+        || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
+}
+
+static inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
+{
+    size_t pos = off;
+
+    while (pos < size && !is_directory_separator(p[pos]))
+    {
+        ++pos;
     }
 
-    static constexpr bool is_letter(value_type c)
+    return pos;
+}
+
+// Returns a pointer to the end of the root name if it exists, otherwise last
+static size_t find_root_name_end(const value_type* first, size_t size)
+{
+    if (size < 2)
     {
-        return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
-            || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
+        return 0;
     }
-
-    static inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
-    {
-        size_t pos = off;
-
-        while (pos < size && !is_directory_separator(p[pos]))
-        {
-            ++pos;
-        }
-
-        return pos;
-    }
-
-    // Returns a pointer to the end of the root name if it exists, otherwise last
-    static size_t find_root_name_end(const value_type* first, size_t size)
-    {
-        if (size < 2)
-        {
-            return 0;
-        }
 
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
 
-        if (is_letter(first[0]) && first[1] == L':')
+    if (is_letter(first[0]) && first[1] == L':')
+    {
+        return 2;
+    }
+
+#endif // __VX_OS_WINDOWS_FILESYSTEM
+
+    if (!is_directory_separator(first[0]))
+    {
+        return 0;
+    }
+
+    // case "//", possibly followed by more characters
+    if (is_directory_separator(first[1]))
+    {
+        if (size == 2)
         {
+            // The whole path is just a pair of separators "\\"
             return 2;
         }
 
-#endif // __VX_OS_WINDOWS_FILESYSTEM
-
-        if (!is_directory_separator(first[0]))
-        {
-            return 0;
-        }
-
-        // case "//", possibly followed by more characters
-        if (is_directory_separator(first[1]))
-        {
-            if (size == 2)
-            {
-                // The whole path is just a pair of separators "\\"
-                return 2;
-            }
-
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
 
-            // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
-            // cases "\\?\" and "\\.\"
-            else if (size >= 4 && (first[2] == L'?' || first[2] == L'.') && is_directory_separator(first[3]))
-            {
-                return find_separator(first, 3, size);
-            }
-
-#endif // __VX_OS_WINDOWS_FILESYSTEM
-
-            else if (is_directory_separator(first[2]))
-            {
-                // The path starts with three directory separators, which is interpreted as a root directory followed by redundant separators
-                return 0;
-            }
-            else
-            {
-                // case "//net{/}"
-                return find_separator(first, 2, size);
-            }
-        }
-
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
-        // https://stackoverflow.com/questions/23041983/path-prefixes-and
-        // case "\??\" (NT path prefix)
-        else if (size >= 4 && first[1] == L'?' && first[2] == L'?' && is_directory_separator(first[3]))
+        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+        // cases "\\?\" and "\\.\"
+        else if (size >= 4 && (first[2] == L'?' || first[2] == L'.') && is_directory_separator(first[3]))
         {
             return find_separator(first, 3, size);
         }
 
 #endif // __VX_OS_WINDOWS_FILESYSTEM
 
-        return 0;
-    }
-
-    static substring parse_root_name(const string_type& s)
-    {
-        const size_t size = find_root_name_end(s.c_str(), s.size());
-        return substring{ 0, size };
-    }
-
-    static substring parse_root_directory(const string_type& s)
-    {
-        const size_t size = s.size();
-        const size_t off = find_root_name_end(s.c_str(), size);
-
-        // Count consecutive directory separators starting from offset.
-        size_t count = 0;
-        while (off + count < size && is_directory_separator(s[off + count]))
+        else if (is_directory_separator(first[2]))
         {
-            ++count;
+            // The path starts with three directory separators, which is interpreted as a root directory followed by redundant separators
+            return 0;
         }
-
-        return substring{ off, count };
-    }
-
-    static substring parse_root_path(const string_type& s)
-    {
-        const auto root_directory = parse_root_directory(s);
-        return substring{ 0, root_directory.pos + root_directory.size };
-    }
-
-    static substring parse_relative_path(const string_type& s)
-    {
-        const auto root_path = parse_root_path(s);
-        return substring{ root_path.size, s.size() - root_path.size };
-    }
-
-    static substring parse_parent_path(const string_type& s)
-    {
-        const auto relative_path = parse_relative_path(s);
-        size_t i = relative_path.pos + relative_path.size;
-
-        // case 1: relative-path ends in a directory-separator,
-        // remove the separator to remove "magic empty path".
-        // example: R"(/cat/dog/\//\)"
-
-        // case 2: relative-path doesn't end in a directory-separator,
-        // remove the filename and last directory-separator to prevent
-        // creation of a "magic empty path".
-        // example: "/cat/dog"
-
-        while (i > relative_path.pos && !is_directory_separator(s[i - 1]))
+        else
         {
-            // handle case 2 by removing trailing filename, puts us into case 1
-            --i;
+            // case "//net{/}"
+            return find_separator(first, 2, size);
         }
-
-        while (i > relative_path.pos && is_directory_separator(s[i - 1]))
-        {
-            // handle case 1 by removing trailing slashes
-            --i;
-        }
-
-        return substring{ 0, i };
     }
 
-    static substring parse_filename(const string_type& s)
+#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+
+    // https://stackoverflow.com/questions/23041983/path-prefixes-and
+    // case "\??\" (NT path prefix)
+    else if (size >= 4 && first[1] == L'?' && first[2] == L'?' && is_directory_separator(first[3]))
     {
-        const size_t size = s.size();
-
-        // Start searching backward from the end of the string
-        for (size_t i = size; i > 0; --i)
-        {
-            if (is_element_separator(s[i - 1]))
-            {
-                return substring{ i, size - i };
-            }
-        }
-
-        // If no directory separator is found, the entire string is the filename
-        return substring{ 0, size };
+        return find_separator(first, 3, size);
     }
 
-    static substring parse_stem(const string_type& s)
+#endif // __VX_OS_WINDOWS_FILESYSTEM
+
+    return 0;
+}
+
+static substring parse_root_name(const string_type& s)
+{
+    const size_t size = find_root_name_end(s.c_str(), s.size());
+    return substring{ 0, size };
+}
+
+static substring parse_root_directory(const string_type& s)
+{
+    const size_t size = s.size();
+    const size_t off = find_root_name_end(s.c_str(), size);
+
+    // Count consecutive directory separators starting from offset.
+    size_t count = 0;
+    while (off + count < size && is_directory_separator(s[off + count]))
     {
-        const auto extension = parse_extension(s);
-
-        // Start searching backward from the end of the string
-        for (size_t i = extension.pos; i > 0; --i)
-        {
-            if (is_element_separator(s[i - 1]))
-            {
-                return substring{ i, extension.pos - i };
-            }
-        }
-
-        // If no directory separator is found, the entire string is the stem
-        return substring{ 0, extension.pos };
+        ++count;
     }
 
-    static substring parse_extension(const string_type& s)
-    {
-        const size_t size = s.size();
+    return substring{ off, count };
+}
 
-        if (size <= 1)
+static substring parse_root_path(const string_type& s)
+{
+    const auto root_directory = parse_root_directory(s);
+    return substring{ 0, root_directory.pos + root_directory.size };
+}
+
+static substring parse_relative_path(const string_type& s)
+{
+    const auto root_path = parse_root_path(s);
+    return substring{ root_path.size, s.size() - root_path.size };
+}
+
+static substring parse_parent_path(const string_type& s)
+{
+    const auto relative_path = parse_relative_path(s);
+    size_t i = relative_path.pos + relative_path.size;
+
+    // case 1: relative-path ends in a directory-separator,
+    // remove the separator to remove "magic empty path".
+    // example: R"(/cat/dog/\//\)"
+
+    // case 2: relative-path doesn't end in a directory-separator,
+    // remove the filename and last directory-separator to prevent
+    // creation of a "magic empty path".
+    // example: "/cat/dog"
+
+    while (i > relative_path.pos && !is_directory_separator(s[i - 1]))
+    {
+        // handle case 2 by removing trailing filename, puts us into case 1
+        --i;
+    }
+
+    while (i > relative_path.pos && is_directory_separator(s[i - 1]))
+    {
+        // handle case 1 by removing trailing slashes
+        --i;
+    }
+
+    return substring{ 0, i };
+}
+
+static substring parse_filename(const string_type& s)
+{
+    const size_t size = s.size();
+
+    // Start searching backward from the end of the string
+    for (size_t i = size; i > 0; --i)
+    {
+        if (is_element_separator(s[i - 1]))
+        {
+            return substring{ i, size - i };
+        }
+    }
+
+    // If no directory separator is found, the entire string is the filename
+    return substring{ 0, size };
+}
+
+static substring parse_extension(const string_type& s)
+{
+    const size_t size = s.size();
+
+    if (size <= 1)
+    {
+        return substring{ size, 0 };
+    }
+
+    // size >= 2
+    size_t i = size;
+
+    if (s[--i] == PATH_DOT)
+    {
+        if (
+            // case "/." or ":."
+            is_element_separator(s[i]) ||
+            // case "..", "x/..", or "x:.."
+            (s[i] == PATH_DOT && (size == 2 || is_element_separator(s[i - 1])))
+            )
         {
             return substring{ size, 0 };
         }
 
-        // size >= 2
-        size_t i = size;
+        // case "x." or "x.."
+        return substring{ size - 1, 1 };
+    }
 
+    // Start searching backward from the end of the string
+    while (i > 0)
+    {
         if (s[--i] == PATH_DOT)
         {
-            if (
-                // case "/." or ":."
-                is_element_separator(s[i]) ||
-                // case "..", "x/..", or "x:.."
-                (s[i] == PATH_DOT && (size == 2 || is_element_separator(s[i - 1])))
-            )
-            {
-                return substring{ size, 0 };
-            }
-
-            // case "x." or "x.."
-            return substring{ size - 1, 1 };
+            return substring{ i, size - i };
         }
-
-        // Start searching backward from the end of the string
-        while (i > 0)
+        else if (is_element_separator(s[i]))
         {
-            if (s[--i] == PATH_DOT)
-            {
-                return substring{ i, size - i };
-            }
-            else if (is_element_separator(s[i]))
-            {
-                break;
-            }
+            break;
         }
-
-        return substring{ size, 0 };
     }
-};
+
+    return substring{ size, 0 };
+}
+
+static substring parse_stem(const string_type& s)
+{
+    const auto extension = parse_extension(s);
+
+    // Start searching backward from the end of the string
+    for (size_t i = extension.pos; i > 0; --i)
+    {
+        if (is_element_separator(s[i - 1]))
+        {
+            return substring{ i, extension.pos - i };
+        }
+    }
+
+    // If no directory separator is found, the entire string is the stem
+    return substring{ 0, extension.pos };
+}
+
+} // namespace parser
 
 template <typename path_t>
 class path_iterator

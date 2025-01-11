@@ -221,6 +221,15 @@ public:
         return m_impl != rhs.m_impl;
     }
 
+public:
+
+    size_t depth() const;
+
+    bool recursion_pending() const;
+    void disable_pending_recursion();
+
+    void pop();
+
 private:
 
     void validate();
