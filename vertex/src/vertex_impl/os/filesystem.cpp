@@ -105,7 +105,7 @@ void recursive_directory_iterator::pop()
     }
     else
     {
-        m_impl->pop_stack();
+        m_impl->pop();
     }
 }
 

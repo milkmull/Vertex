@@ -82,7 +82,7 @@ public:
         close();
     }
 
-public:
+private:
 
     void close()
     {
@@ -115,6 +115,8 @@ public:
         m_stack.pop_back();
     }
 
+public:
+
     void advance()
     {
         windows::handle* current = &m_stack.back();
@@ -126,7 +128,6 @@ public:
         else
         {
             advance_directory_iterator(m_path, m_entry, *current, m_find_data);
-            m_recursion_pending = m_entry.is_directory();
         }
 
         while (!current->is_valid())
@@ -140,6 +141,8 @@ public:
             current = &m_stack.back();
             advance_directory_iterator(m_path, m_entry, *current, m_find_data);
         }
+
+        m_recursion_pending = m_entry.is_directory();
     }
 
     bool is_valid() const { return !m_stack.empty() && m_stack.back().is_valid(); }
@@ -148,6 +151,8 @@ public:
 
     bool recursion_pending() const { return m_recursion_pending; }
     void disable_pending_recursion() { m_recursion_pending = false; }
+
+    void pop() { pop_stack(); }
 
 private:
 
