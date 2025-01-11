@@ -66,9 +66,9 @@ filesystem:
     x directory iterator
     x recursive directory iterator
     
-    - path manipulators (absolute, canonical, relative)
-    - equivalent (are 2 paths the same?)
-    - current path (get or set the current path)
+    x path manipulators (absolute, canonical, relative)
+    x equivalent (are 2 paths the same?)
+    x current path (get or set the current path)
     - get temp directory path
 
     - copy operators

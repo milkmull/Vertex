@@ -103,6 +103,16 @@ VX_API path relative(const path& p, const path& base = get_current_path());
 VX_API bool equivalent(const path& p1, const path& p2);
 
 ///////////////////////////////////////////////////////////////////////////////
+// Create
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool create_file(const path& p);
+VX_API bool create_symlink(const path& target, const path& link);
+VX_API bool create_directory_symlink(const path& target, const path& link);
+VX_API bool create_directory(const path& p);
+VX_API bool create_directories(const path& p);
+
+///////////////////////////////////////////////////////////////////////////////
 // Directory Entry
 ///////////////////////////////////////////////////////////////////////////////
 

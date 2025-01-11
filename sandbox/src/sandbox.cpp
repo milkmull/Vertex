@@ -39,18 +39,9 @@ int main()
 {
     //profile::start("../../assets/directory_iterator_timer.txt");
 
-    const auto p1 = os::filesystem::get_current_path();
-    VX_LOG_INFO << p1;
-
     os::filesystem::set_current_path("../../assets");
 
-    const auto p2 = os::filesystem::get_current_path();
-    VX_LOG_INFO << p2;
-
-    const auto rel = os::filesystem::relative(p1, p2);
-    VX_LOG_INFO << rel;
-
-    VX_LOG_INFO << os::filesystem::equivalent(p1, rel);
+    os::filesystem::create_directories("hello/world/michael/mullins");
 
     //profile::stop();
 

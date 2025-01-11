@@ -337,6 +337,69 @@ VX_API path absolute(const path& p)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Create
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool create_file(const path& p)
+{
+    const windows::handle h = CreateFileW(
+        p.c_str(),
+        GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_ALWAYS, // Open the file if it exists, or create it if it doesn't
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return false;
+    }
+
+    return true;
+}
+
+static bool create_symlink_impl(const path& target, const path& link, DWORD flags)
+{
+    if (!CreateSymbolicLinkW(link.c_str(), target.c_str(), flags))
+    {
+        if (GetLastError() != ERROR_ALREADY_EXISTS)
+        {
+            windows::error_message("CreateSymbolicLinkW()");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+VX_API bool create_symlink(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link, 0);
+}
+
+VX_API bool create_directory_symlink(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link, SYMBOLIC_LINK_FLAG_DIRECTORY);
+}
+
+VX_API bool create_directory(const path& p)
+{
+    if (!CreateDirectoryW(p.c_str(), NULL))
+    {
+        if (GetLastError() != ERROR_ALREADY_EXISTS)
+        {
+            windows::error_message("CreateDirectoryW()");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
