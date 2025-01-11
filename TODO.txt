@@ -37,7 +37,7 @@ system:
     x Organize cmake
     x Install support
     x DLL support
-    - Asserts and debugging system
+    x Asserts and debugging system
     - Header guards
     - Decide on comment format
     - move api macros to api system header file
@@ -55,7 +55,6 @@ string:
     x Review to_int errors
     x Float parsing
     x format function
-    - locale
     - tests
 }
 
@@ -68,9 +67,9 @@ filesystem:
     x recursive directory iterator
     
     - path manipulators (absolute, canonical, relative)
+    - equivalent (are 2 paths the same?)
     - current path (get or set the current path)
     - get temp directory path
-    - equivalent
 
     - copy operators
     - create operators
@@ -82,7 +81,7 @@ std:
 {
     x time (use std::chrono ?)
     
-    - filesystem (copy, move, mkdir, getcwd, chdir, isdir, exists, etc....)
+    - filesystem
     x file io
     
     x string
@@ -106,22 +105,26 @@ std:
     x os info
 
     x update logger, profiler
-    - build config for platform
     x assert and debug files
-    - documentation break
-    
+    - build config for platform
+    - header guards
+    - check platform specific functions and files in cmake
     - finalize test library
-    - add tests for stdlib
+
+    - test and document stdlib
+    - test cmake installation process
 }
 
 math:
 {
     - simd instructions
     - reorganize, impliment simd where appropriate
+    - collision matrix
 }
 
 pixel:
 {
+    - templated image types using pixel format
     - finish removing dead code from stb image files
     - clean up image and pixel libraries
     - move color to pixel library?
