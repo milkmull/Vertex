@@ -294,6 +294,49 @@ VX_API path read_symlink(const path& p)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Path Operators
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API path get_current_path()
+{
+    const DWORD size = GetCurrentDirectoryW(0, NULL);
+    std::vector<WCHAR> data(size);
+
+    if (!GetCurrentDirectoryW(size, data.data()))
+    {
+        windows::error_message("GetCurrentDirectoryW()");
+        return {};
+    }
+
+    return path{ data.data() };
+}
+
+VX_API bool set_current_path(const path& p)
+{
+    if (!SetCurrentDirectoryW(p.c_str()))
+    {
+        windows::error_message("SetCurrentDirectoryW()");
+        return false;
+    }
+
+    return true;
+}
+
+VX_API path absolute(const path& p)
+{
+    const DWORD size = GetFullPathNameW(p.c_str(), 0, NULL, NULL);
+    std::vector<WCHAR> data(size);
+
+    if (!GetFullPathNameW(p.c_str(), size, data.data(), NULL))
+    {
+        windows::error_message("GetFullPathNameW()");
+        return {};
+    }
+
+    return path{ data.data() };
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
 

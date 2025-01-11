@@ -37,15 +37,22 @@ static void std_list()
 
 int main()
 {
-    profile::start("../../assets/directory_iterator_timer.txt");
+    //profile::start("../../assets/directory_iterator_timer.txt");
 
-    for (int i = 0; i < 5000; ++i)
-    {
-        vx_list();
-        std_list();
-    }
+    const auto p1 = os::filesystem::get_current_path();
+    VX_LOG_INFO << p1;
 
-    profile::stop();
+    os::filesystem::set_current_path("../../assets");
+
+    const auto p2 = os::filesystem::get_current_path();
+    VX_LOG_INFO << p2;
+
+    const auto rel = os::filesystem::relative(p1, p2);
+    VX_LOG_INFO << rel;
+
+    VX_LOG_INFO << os::filesystem::equivalent(p1, rel);
+
+    //profile::stop();
 
     return 0;
 }
