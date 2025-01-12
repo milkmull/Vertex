@@ -132,7 +132,7 @@ static file_permissions::type get_file_permissions(const path& p, const DWORD at
         permissions |= file_permissions::OWNER_WRITE | file_permissions::GROUP_WRITE | file_permissions::OTHERS_WRITE;
     }
 
-    const auto ext = p.extension().native();
+    const auto& ext = p.extension().native();
     if ((ext == L".exe" || ext == L".EXE") ||
         (ext == L".com" || ext == L".COM") ||
         (ext == L".bat" || ext == L".BAT") ||
@@ -237,7 +237,7 @@ VX_API file_info get_symlink_info(const path& p)
 
     if (!h.is_valid())
     {
-        windows::error_message("CreateFileW()");
+        //windows::error_message("CreateFileW()");
         return info;
     }
 
@@ -414,6 +414,71 @@ VX_API bool copy_file_impl(const path& from, const path& to, bool overwrite_exis
     }
 
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Rename
+///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/microsoft/STL/blob/04081522161549b18fa0b0fae0d2a531ee967958/stl/src/filesystem.cpp#L720
+
+VX_API bool rename(const path& from, const path& to)
+{
+    if (!MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+    {
+        windows::error_message("MoveFileExW()");
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Remove
+///////////////////////////////////////////////////////////////////////////////
+
+__detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
+{
+    WIN32_FILE_ATTRIBUTE_DATA data{};
+    if (!GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &data))
+    {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND)
+        {
+            // Path is already gone
+            return __detail::remove_error::FILE_NOT_FOUND;
+        }
+
+        windows::error_message("GetFileAttributesExW()");
+        return __detail::remove_error::OTHER;
+    }
+
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        if (!RemoveDirectoryW(p.c_str()))
+        {
+            if (GetLastError() == ERROR_DIR_NOT_EMPTY)
+            {
+                if (!in_recursive_remove)
+                {
+                    windows::error_message("RemoveDirectoryW()");
+                }
+                return __detail::remove_error::DIRECTORY_NOT_EMPTY;
+            }
+
+            windows::error_message("RemoveDirectoryW()");
+            return __detail::remove_error::OTHER;
+        }
+    }
+    else
+    {
+        if (!DeleteFileW(p.c_str()))
+        {
+            windows::error_message("DeleteFileW()");
+            return __detail::remove_error::OTHER;
+        }
+    }
+
+    return __detail::remove_error::NONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

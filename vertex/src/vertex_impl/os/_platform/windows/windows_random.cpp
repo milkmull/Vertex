@@ -31,7 +31,7 @@ VX_API bool get_entropy(uint8_t* bytes, size_t count)
     while (off != count)
     {
         unsigned int r;
-        errno_t err = rand_s(&r);
+        const errno_t err = rand_s(&r);
 
         if (err != 0)
         {

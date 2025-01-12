@@ -71,7 +71,7 @@ filesystem:
     x current path (get or set the current path)
     - get temp directory path
 
-    - copy operators
+    x copy operators
     x create operators
     - remove operators
     - rename operators

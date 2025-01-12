@@ -224,10 +224,10 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
         // If to is a directory, creates a copy of from as a file in the directory to
         if (to_info.is_directory())
         {
-            return copy_file(from, to / from.filename(), (options & copy_options::OVERWRITE_EXISTING));
+            return copy_file_impl(from, to / from.filename(), (options & copy_options::OVERWRITE_EXISTING));
         }
 
-        return copy_file(from, to, (options & copy_options::OVERWRITE_EXISTING));
+        return copy_file_impl(from, to, (options & copy_options::OVERWRITE_EXISTING));
     }
     else // from_info.is_directory()
     {
@@ -250,6 +250,61 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
     }
 
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Remove
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool remove(const path& p)
+{
+    const auto res = remove_impl(p, false);
+    return (res == __detail::remove_error::NONE || res == __detail::remove_error::FILE_NOT_FOUND);
+}
+
+static size_t recursive_remove(const path& p)
+{
+    size_t count = 0;
+
+    for (const auto& dir : directory_iterator(p))
+    {
+        if (dir.is_directory())
+        {
+            count += remove_all(dir.path);
+        }
+
+        if (remove_impl(dir.path, true) == __detail::remove_error::NONE)
+        {
+            ++count;
+        }
+    }
+
+    if (remove_impl(p, true) == __detail::remove_error::NONE)
+    {
+        ++count;
+    }
+
+    return count;
+}
+
+VX_API size_t remove_all(const path& p)
+{
+    switch (remove_impl(p, true))
+    {
+        case __detail::remove_error::NONE:
+        {
+            return 1;
+        }
+        case __detail::remove_error::DIRECTORY_NOT_EMPTY:
+        {
+            return recursive_remove(p);
+        }
+        default:
+        {
+            return 0;
+        }
+
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

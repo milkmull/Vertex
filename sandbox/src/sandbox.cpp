@@ -43,6 +43,10 @@ int main()
 
     os::filesystem::copy("directory_test", "directory_test2");
 
+    os::filesystem::rename("directory_test2", "directory_test3");
+
+    os::filesystem::remove_all("directory_test3");
+
     //profile::stop();
 
     return 0;

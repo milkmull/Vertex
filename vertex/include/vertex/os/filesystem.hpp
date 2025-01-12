@@ -65,9 +65,9 @@ struct file_permissions
 
 struct file_info
 {
-    file_type type;
-    typename file_permissions::type permissions;
-    size_t size;
+    file_type type{};
+    typename file_permissions::type permissions{};
+    size_t size{};
     time::time_point create_time;
     time::time_point modify_time;
 
@@ -144,6 +144,31 @@ struct copy_options
 VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing = true);
 VX_API bool copy_symlink(const path& from, const path& to);
 VX_API bool copy(const path& from, const path& to, typename copy_options::type options = copy_options::RECURSIVE);
+
+///////////////////////////////////////////////////////////////////////////////
+// Rename
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool rename(const path& from, const path& to);
+
+///////////////////////////////////////////////////////////////////////////////
+// Remove
+///////////////////////////////////////////////////////////////////////////////
+
+namespace __detail {
+
+enum class remove_error
+{
+    NONE,
+    FILE_NOT_FOUND,
+    DIRECTORY_NOT_EMPTY,
+    OTHER
+};
+
+} // namespace __detail
+
+VX_API bool remove(const path& p);
+VX_API size_t remove_all(const path& p);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directory Entry
