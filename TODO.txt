@@ -61,7 +61,7 @@ string:
 filesystem:
 {
     x file info
-    - permissions (get or set file permissions)
+    x permissions (get or set file permissions)
     
     x directory iterator
     x recursive directory iterator
@@ -69,12 +69,29 @@ filesystem:
     x path manipulators (absolute, canonical, relative)
     x equivalent (are 2 paths the same?)
     x current path (get or set the current path)
-    - get temp directory path
+    x get temp directory path
+    x get user directory
 
     x copy operators
     x create operators
-    - remove operators
-    - rename operators
+    x remove operators
+    x rename operators
+}
+
+os revisions:
+{
+    - file use windows managed handle
+    - investigate file from handle function placement
+    - update library (dll) class, consider opening already loaded modules too, replace use in os::filesystem::get_temp_path
+    - locale make lookup table to convert platform strings to enum values
+}
+
+formatting:
+{
+    - fix struct { enum {} } types
+    - header guards
+    - figure out platform includes
+    - platform configs
 }
 
 std:

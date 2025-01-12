@@ -10,6 +10,129 @@ namespace os {
 namespace filesystem {
 
 ///////////////////////////////////////////////////////////////////////////////
+// File Permissions
+///////////////////////////////////////////////////////////////////////////////
+
+static bool update_file_permissions_impl(
+    const path& p,
+    bool read_only,
+    bool follow_symlinks
+)
+{
+    const DWORD attrs = GetFileAttributesW(p.c_str());
+    if (attrs == INVALID_FILE_ATTRIBUTES)
+    {
+        windows::error_message("GetFileAttributesW()");
+        return false;
+    }
+
+    const DWORD read_only_test = read_only ? FILE_ATTRIBUTE_READONLY : 0;
+
+    if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) && follow_symlinks)
+    {
+        // Resolve the symbolic link
+        windows::handle h = CreateFileW(
+            p.c_str(),
+            FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
+            NULL,
+            NULL,
+            OPEN_EXISTING,
+            FILE_FLAG_BACKUP_SEMANTICS,
+            NULL
+        );
+
+        if (!h.is_valid())
+        {
+            windows::error_message("CreateFileW()");
+            return false;
+        }
+        
+        FILE_BASIC_INFO basic_info{};
+        if (!GetFileInformationByHandleEx(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        {
+            windows::error_message("GetFileInformationByHandleEx()");
+            return false;
+        }
+
+        if ((basic_info.FileAttributes & FILE_ATTRIBUTE_READONLY) == read_only_test)
+        {
+            // Nothing to do
+            return true;
+        }
+
+        basic_info.FileAttributes ^= FILE_ATTRIBUTE_READONLY;
+        if (!SetFileInformationByHandle(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        {
+            windows::error_message("SetFileInformationByHandle()");
+            return false;
+        }
+    }
+    else
+    {
+        if ((attrs & FILE_ATTRIBUTE_READONLY) == read_only_test)
+        {
+            // Nothing to do
+            return true;
+        }
+
+        if (!SetFileAttributesW(p.c_str(), attrs ^ FILE_ATTRIBUTE_READONLY))
+        {
+            windows::error_message("SetFileAttributesW()");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+VX_API bool update_file_permissions(
+    const path& p,
+    typename file_permissions::type permissions,
+    file_permission_operator op,
+    bool follow_symlinks
+)
+{
+    const auto write_perms = (permissions & file_permissions::ALL_WRITE);
+    bool read_only = false;
+
+    switch (op)
+    {
+        case file_permission_operator::REPLACE:
+        {
+            // always apply FILE_ATTRIBUTE_READONLY according to permissions
+            read_only = (write_perms == file_permissions::NONE);
+            break;
+        }
+        case file_permission_operator::ADD:
+        {
+            if (write_perms == file_permissions::NONE)
+            {
+                // if we aren't adding any write bits, then we won't change
+                // FILE_ATTRIBUTE_READONLY, so there's nothing to do
+                return true;
+            }
+
+            read_only = false;
+            break;
+        }
+        case file_permission_operator::REMOVE:
+        {
+            if (write_perms != file_permissions::ALL_WRITE)
+            {
+                // if we aren't removing all write bits, then we won't change
+                // FILE_ATTRIBUTE_READONLY, so there's nothing to do
+                return true;
+            }
+
+            read_only = true;
+            break;
+        }
+    }
+
+    return update_file_permissions_impl(p, read_only, follow_symlinks);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -334,6 +457,107 @@ VX_API path absolute(const path& p)
     }
 
     return path{ data.data() };
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// System Paths
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API path get_temp_path()
+{
+    static path temp_path_cache;
+
+    if (temp_path_cache.empty())
+    {
+        wchar_t buffer[MAX_PATH];
+        DWORD size = 0;
+
+        HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+        if (kernel32)
+        {
+            using GetTempPath2W_t = DWORD(WINAPI*)(DWORD, LPWSTR, PSID);
+            auto GetTempPath2W = reinterpret_cast<GetTempPath2W_t>(GetProcAddress(kernel32, "GetTempPath2W"));
+            if (GetTempPath2W)
+            {
+                size = GetTempPath2W(MAX_PATH, buffer, NULL);
+            }
+        }
+
+        if (size == 0)
+        {
+            size = GetTempPathW(MAX_PATH, buffer);
+        }
+
+        if (size == 0)
+        {
+            windows::error_message("GetTempPathW()");
+        }
+        else
+        {
+            // Set the cache
+            temp_path_cache.assign(buffer);
+        }
+    }
+
+    return temp_path_cache;
+}
+
+VX_API path get_user_folder(user_folder folder)
+{
+    path p;
+
+    KNOWNFOLDERID id{};
+    switch (folder)
+    {
+        case user_folder::HOME:
+        {
+            id = FOLDERID_Profile;
+            break;
+        }
+        case user_folder::DESKTOP:
+        {
+            id = FOLDERID_Desktop;
+            break;
+        }
+        case user_folder::DOCUMENTS:
+        {
+            id = FOLDERID_Documents;
+            break;
+        }
+        case user_folder::DOWNLOADS:
+        {
+            id = FOLDERID_Downloads;
+            break;
+        }
+        case user_folder::MUSIC:
+        {
+            id = FOLDERID_Music;
+            break;
+        }
+        case user_folder::PICTURES:
+        {
+            id = FOLDERID_Pictures;
+            break;
+        }
+        case user_folder::VIDEOS:
+        {
+            id = FOLDERID_Videos;
+            break;
+        }
+    }
+
+    PWSTR szPath;
+    if (SUCCEEDED(SHGetKnownFolderPath(id, 0, NULL, &szPath)))
+    {
+        p.assign(szPath);
+    }
+    else
+    {
+        windows::error_message("SHGetKnownFolderPath()");
+    }
+    CoTaskMemFree(szPath);
+
+    return p;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

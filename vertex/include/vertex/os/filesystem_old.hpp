@@ -85,7 +85,7 @@ enum class user_folder
     VIDEOS
 };
 
-VX_API std::string get_user_folder(user_folder folder);
+//VX_API std::string get_user_folder(user_folder folder);
 
 } // namespace filesystem
 } // namespace os

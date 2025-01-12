@@ -39,13 +39,7 @@ int main()
 {
     //profile::start("../../assets/directory_iterator_timer.txt");
 
-    os::filesystem::set_current_path("../../assets");
-
-    os::filesystem::copy("directory_test", "directory_test2");
-
-    os::filesystem::rename("directory_test2", "directory_test3");
-
-    os::filesystem::remove_all("directory_test3");
+    VX_LOG_INFO << os::filesystem::get_temp_path();
 
     //profile::stop();
 

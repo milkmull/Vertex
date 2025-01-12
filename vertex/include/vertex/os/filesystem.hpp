@@ -49,6 +49,10 @@ struct file_permissions
         OTHERS_EXEC = 01,
         OTHERS_ALL = 07,
 
+        ALL_READ = OWNER_READ | GROUP_READ | OTHERS_READ,
+        ALL_WRITE = OWNER_WRITE | GROUP_WRITE | OTHERS_WRITE,
+        ALL_EXEC = OWNER_EXEC | GROUP_EXEC | OTHERS_EXEC,
+
         ALL = 0777,
 
         SET_UID = 04000,
@@ -58,6 +62,20 @@ struct file_permissions
         UNKNOWN = 0xFFFF
     };
 };
+
+enum class file_permission_operator
+{
+    REPLACE,
+    ADD,
+    REMOVE
+};
+
+VX_API bool update_file_permissions(
+    const path& p,
+    typename file_permissions::type permissions,
+    file_permission_operator op = file_permission_operator::REPLACE,
+    bool follow_symlinks = false
+);
 
 ///////////////////////////////////////////////////////////////////////////////
 // File Info
@@ -107,6 +125,25 @@ VX_API path absolute(const path& p);
 VX_API path relative(const path& p, const path& base = get_current_path());
 
 VX_API bool equivalent(const path& p1, const path& p2);
+
+///////////////////////////////////////////////////////////////////////////////
+// System Paths
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API path get_temp_path();
+
+enum class user_folder
+{
+    HOME,
+    DESKTOP,
+    DOCUMENTS,
+    DOWNLOADS,
+    MUSIC,
+    PICTURES,
+    VIDEOS
+};
+
+VX_API path get_user_folder(user_folder folder);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Create
