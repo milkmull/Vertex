@@ -41,7 +41,7 @@ int main()
 
     os::filesystem::set_current_path("../../assets");
 
-    os::filesystem::create_directories("hello/world/michael/mullins");
+    os::filesystem::copy("directory_test", "directory_test2");
 
     //profile::stop();
 

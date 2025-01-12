@@ -70,6 +70,12 @@ struct file_info
     size_t size;
     time::time_point create_time;
     time::time_point modify_time;
+
+    constexpr bool exists() const { return !(type == file_type::NONE || type == file_type::NOT_FOUND); }
+    constexpr bool is_regular_file() const { return type == file_type::REGULAR; }
+    constexpr bool is_directory() const { return type == file_type::DIRECTORY; }
+    constexpr bool is_symlink() const { return type == file_type::SYMLINK; }
+    constexpr bool is_other() const { return !(is_regular_file() || is_directory() || is_symlink()); }
 };
 
 VX_API file_info get_file_info(const path& p);
@@ -87,7 +93,7 @@ VX_API path read_symlink(const path& p);
 
 inline bool exists(const path& p)
 {
-    return get_file_info(p).type != file_type::NONE;
+    return get_file_info(p).exists();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,6 +119,33 @@ VX_API bool create_directory(const path& p);
 VX_API bool create_directories(const path& p);
 
 ///////////////////////////////////////////////////////////////////////////////
+// Copy
+///////////////////////////////////////////////////////////////////////////////
+
+struct copy_options
+{
+    using type = uint32_t;
+
+    enum : type
+    {
+        NONE                    = 0,
+
+        SKIP_EXISTING           = (1 << 0),
+        OVERWRITE_EXISTING      = (1 << 1),
+
+        COPY_SYMLINKS           = (1 << 2),
+        SKIP_SYMLINKS           = (1 << 3),
+
+        DIRECTORIES_ONLY        = (1 << 4),
+        RECURSIVE               = (1 << 5)
+    };
+};
+
+VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing = true);
+VX_API bool copy_symlink(const path& from, const path& to);
+VX_API bool copy(const path& from, const path& to, typename copy_options::type options = copy_options::RECURSIVE);
+
+///////////////////////////////////////////////////////////////////////////////
 // Directory Entry
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -126,10 +159,10 @@ struct directory_entry
         }
     }
 
-    constexpr bool is_regular_file() const { return info.type == file_type::REGULAR; }
-    constexpr bool is_directory() const { return info.type == file_type::DIRECTORY; }
-    constexpr bool is_symlink() const { return info.type == file_type::SYMLINK; }
-    constexpr bool is_other() const { return !(is_regular_file() || is_directory() || is_symlink()); }
+    constexpr bool is_regular_file() const { return info.is_regular_file(); }
+    constexpr bool is_directory() const { return info.is_directory(); }
+    constexpr bool is_symlink() const { return info.is_symlink(); }
+    constexpr bool is_other() const { return info.is_other(); }
 
     os::path path;
     file_info info;
