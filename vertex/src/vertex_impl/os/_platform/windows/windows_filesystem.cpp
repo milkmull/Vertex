@@ -4,6 +4,7 @@
 
 #include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
 #include "vertex/system/error.hpp"
+#include "vertex/os/shared_library.hpp"
 
 namespace vx {
 namespace os {
@@ -472,16 +473,25 @@ VX_API path get_temp_path()
         wchar_t buffer[MAX_PATH];
         DWORD size = 0;
 
-        HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
-        if (kernel32)
+        // Attermpt to call GetTempPath2W first
+        do
         {
-            using GetTempPath2W_t = DWORD(WINAPI*)(DWORD, LPWSTR, PSID);
-            auto GetTempPath2W = reinterpret_cast<GetTempPath2W_t>(GetProcAddress(kernel32, "GetTempPath2W"));
-            if (GetTempPath2W)
+            shared_library kernel32;
+            if (!kernel32.load("kernel32.dll"))
             {
-                size = GetTempPath2W(MAX_PATH, buffer, NULL);
+                break;
             }
-        }
+
+            using GetTempPath2W_t = DWORD(WINAPI*)(DWORD, LPWSTR, PSID);
+            auto GetTempPath2W = kernel32.get_function<GetTempPath2W_t>("GetTempPath2W");
+            if (!GetTempPath2W)
+            {
+                break;
+            }
+
+            size = GetTempPath2W(MAX_PATH, buffer, NULL);
+
+        } while (0);
 
         if (size == 0)
         {
@@ -629,7 +639,7 @@ VX_API bool create_directory(const path& p)
 
 // https://en.cppreference.com/w/cpp/filesystem/copy_file
 
-VX_API bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
+bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 {
     if (!CopyFileW(from.c_str(), to.c_str(), !overwrite_existing))
     {

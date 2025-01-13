@@ -3,17 +3,17 @@
 #if defined(__VX_OS_WINDOWS_LIBRARY)
 
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
-#include "vertex/os/library.hpp"
+#include "vertex/os/shared_library.hpp"
 
 namespace vx {
 namespace os {
 
-class library::library_impl
+class shared_library::shared_library_impl
 {
 public:
 
-    library_impl();
-    ~library_impl();
+    shared_library_impl();
+    ~shared_library_impl();
 
 public:
 

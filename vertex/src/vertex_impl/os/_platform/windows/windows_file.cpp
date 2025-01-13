@@ -8,22 +8,15 @@
 namespace vx {
 namespace os {
 
-file::file_impl::file_impl()
-    : m_handle(INVALID_HANDLE_VALUE) {}
+#define assert_is_open() VX_ASSERT_MESSAGE(is_open(), "file not open")
 
-file::file_impl::~file_impl()
+bool file::file_impl::exists(const path& p)
 {
-    close();
+    const DWORD attrs = GetFileAttributesW(p.c_str());
+    return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
 }
 
-bool file::file_impl::exists(const std::string& path)
-{
-    const std::wstring wpath(str::string_cast<wchar_t>(path));
-    const DWORD fileAttr = GetFileAttributesW(wpath.c_str());
-    return (fileAttr != INVALID_FILE_ATTRIBUTES && !(fileAttr & FILE_ATTRIBUTE_DIRECTORY));
-}
-
-bool file::file_impl::open(const std::string& path, mode mode)
+bool file::file_impl::open(const path& p, mode mode)
 {
     VX_ASSERT_MESSAGE(!is_open(), "file already open");
 
@@ -73,10 +66,8 @@ bool file::file_impl::open(const std::string& path, mode mode)
         }
     }
 
-    const std::wstring wpath(str::string_cast<wchar_t>(path));
-
     m_handle = CreateFileW(
-        wpath.c_str(),
+        p.c_str(),
         access,
         share,
         NULL,
@@ -85,36 +76,24 @@ bool file::file_impl::open(const std::string& path, mode mode)
         NULL
     );
 
-    if (m_handle == INVALID_HANDLE_VALUE)
+    if (!m_handle.is_valid())
     {
-        VX_ERR(err::FILE_OPEN_FAILED) << "failed to open file: " << path;
+        VX_ERR(err::FILE_OPEN_FAILED) << "failed to open file: " << p;
         return false;
     }
 
     return true;
 }
 
-bool file::file_impl::is_open() const
-{
-    return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
-}
-
-void file::file_impl::close()
-{
-    if (m_handle != INVALID_HANDLE_VALUE)
-    {
-        CloseHandle(m_handle);
-        m_handle = INVALID_HANDLE_VALUE;
-    }
-}
+void file::file_impl::close() {}
 
 size_t file::file_impl::size() const
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
     LARGE_INTEGER size;
 
-    if (!GetFileSizeEx(m_handle, &size))
+    if (!GetFileSizeEx(m_handle.get(), &size))
     {
         windows::error_message("GetFileSizeEx()");
         return INVALID_SIZE;
@@ -125,7 +104,7 @@ size_t file::file_impl::size() const
 
 bool file::file_impl::seek(size_t off, stream_position from)
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
     LARGE_INTEGER distance{ 0 };
     distance.QuadPart = off;
@@ -150,7 +129,7 @@ bool file::file_impl::seek(size_t off, stream_position from)
         }
     }
 
-    if (!SetFilePointerEx(m_handle, distance, &distance, method))
+    if (!SetFilePointerEx(m_handle.get(), distance, &distance, method))
     {
         windows::error_message("SetFilePointerEx()");
         return false;
@@ -161,13 +140,13 @@ bool file::file_impl::seek(size_t off, stream_position from)
 
 size_t file::file_impl::tell() const
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
     LARGE_INTEGER off{ 0 };
     off.QuadPart = 0;
 
     // Use SetFilePointerEx to query the current position
-    if (!SetFilePointerEx(m_handle, off, &off, FILE_CURRENT))
+    if (!SetFilePointerEx(m_handle.get(), off, &off, FILE_CURRENT))
     {
         windows::error_message("SetFilePointerEx()");
         return INVALID_POSITION;
@@ -178,10 +157,10 @@ size_t file::file_impl::tell() const
 
 size_t file::file_impl::read(uint8_t* data, size_t size)
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
     DWORD count = 0;
-    if (!ReadFile(m_handle, data, static_cast<DWORD>(size), &count, nullptr))
+    if (!ReadFile(m_handle.get(), data, static_cast<DWORD>(size), &count, nullptr))
     {
         windows::error_message("ReadFile()");
         return 0;
@@ -192,10 +171,10 @@ size_t file::file_impl::read(uint8_t* data, size_t size)
 
 size_t file::file_impl::write(const uint8_t* data, size_t size)
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
     DWORD count = 0;
-    if (!WriteFile(m_handle, data, static_cast<DWORD>(size), &count, NULL))
+    if (!WriteFile(m_handle.get(), data, static_cast<DWORD>(size), &count, NULL))
     {
         windows::error_message("WriteFile()");
         return 0;
@@ -206,9 +185,9 @@ size_t file::file_impl::write(const uint8_t* data, size_t size)
 
 bool file::file_impl::flush()
 {
-    VX_ASSERT_MESSAGE(is_open(), "file not open");
+    assert_is_open();
 
-    if (!FlushFileBuffers(m_handle))
+    if (!FlushFileBuffers(m_handle.get()))
     {
         windows::error_message("FlushFileBuffers()");
         return false;
@@ -240,7 +219,7 @@ file file::file_impl::from_handle(HANDLE handle, mode mode)
 
 HANDLE file::file_impl::get_handle()
 {
-    return m_handle;
+    return m_handle.get();
 }
 
 } // namespace os

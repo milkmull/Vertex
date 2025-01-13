@@ -75,6 +75,13 @@ endif()
 # Debug macro
 target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_CMAKE_DEBUG>)
 
+# Propagate the Windows subsystem requirement to executables linking against
+# this library. This allows for WinMain entry point to be used for any
+# executable that link against Vertex.
+#if(VX_CMAKE_PLATFORM_WINDOWS)
+#    target_link_options(Vertex INTERFACE "/SUBSYSTEM:WINDOWS")
+#endif()
+
 # On some platforms (e.g. Raspberry Pi 3 armhf), GCC requires linking libatomic
 # to use <atomic> features that aren't supported by native CPU instructions
 # (64-bit atomic operations on 32-bit architecture)
@@ -128,7 +135,6 @@ file(GLOB_RECURSE VX_CORE_FILES
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
     #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.hpp"
@@ -138,7 +144,6 @@ file(GLOB_RECURSE VX_CORE_FILES
     #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.hpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/main/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.cpp"

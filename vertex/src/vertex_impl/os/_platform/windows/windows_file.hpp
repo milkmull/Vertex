@@ -15,17 +15,17 @@ class file::file_impl
 {
 public:
 
-    file_impl();
-    ~file_impl();
+    file_impl() {}
+    ~file_impl() { close(); }
 
 public:
 
-    static bool exists(const std::string& path);
+    static bool exists(const path& p);
 
 public:
 
-    bool open(const std::string& path, mode mode);
-    bool is_open() const;
+    bool open(const path& p, mode mode);
+    bool is_open() const { return m_handle.is_valid(); }
     void close();
 
     size_t size() const;
@@ -44,7 +44,7 @@ public:
 
 private:
 
-    HANDLE m_handle;
+    windows::handle m_handle;
 };
 
 } // namespace os

@@ -8,22 +8,22 @@
 namespace vx {
 namespace os {
 
-class library
+class shared_library
 {
 public:
 
-    VX_API library();
-    VX_API ~library();
+    VX_API shared_library();
+    VX_API ~shared_library();
 
-    VX_API library(const library&);
-    VX_API library(library&&) noexcept;
+    VX_API shared_library(const shared_library&);
+    VX_API shared_library(shared_library&&) noexcept;
 
-    VX_API library& operator=(const library&);
-    VX_API library& operator=(library&&) noexcept;
+    VX_API shared_library& operator=(const shared_library&);
+    VX_API shared_library& operator=(shared_library&&) noexcept;
 
 public:
 
-    VX_API library(const std::string& name);
+    VX_API shared_library(const std::string& name);
 
     VX_API bool load(const std::string& lib);
     VX_API bool is_loaded() const;
@@ -41,8 +41,8 @@ private:
 
 private:
 
-    class library_impl;
-    std::shared_ptr<library_impl> m_impl;
+    class shared_library_impl;
+    std::shared_ptr<shared_library_impl> m_impl;
 };
 
 } // namespace os

@@ -2,21 +2,21 @@
 
 #if defined(__VX_OS_WINDOWS_LIBRARY)
 
-#include "vertex_impl/os/_platform/windows/windows_library.hpp"
+#include "vertex_impl/os/_platform/windows/windows_shared_library.hpp"
 #include "vertex/util/string/string.hpp"
 
 namespace vx {
 namespace os {
 
-library::library_impl::library_impl()
+shared_library::shared_library_impl::shared_library_impl()
     : m_handle(NULL) {}
 
-library::library_impl::~library_impl()
+shared_library::shared_library_impl::~shared_library_impl()
 {
     free();
 }
 
-bool library::library_impl::load(const std::string& lib)
+bool shared_library::shared_library_impl::load(const std::string& lib)
 {
     const std::wstring wlib(str::string_cast<wchar_t>(lib));
 
@@ -30,12 +30,12 @@ bool library::library_impl::load(const std::string& lib)
     return true;
 }
 
-bool library::library_impl::is_loaded() const
+bool shared_library::shared_library_impl::is_loaded() const
 {
     return m_handle != NULL;
 }
 
-void library::library_impl::free()
+void shared_library::shared_library_impl::free()
 {
     if (m_handle != NULL)
     {
@@ -44,7 +44,7 @@ void library::library_impl::free()
     }
 }
 
-void* library::library_impl::get_function(const std::string& name) const
+void* shared_library::shared_library_impl::get_function(const std::string& name) const
 {
     return is_loaded() ? GetProcAddress(m_handle, name.c_str()) : NULL;
 }

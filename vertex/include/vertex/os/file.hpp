@@ -4,9 +4,67 @@
 #include <sstream>
 
 #include "vertex/system/compiler.hpp"
+#include "vertex/os/path.hpp"
 
 namespace vx {
 namespace os {
+
+///////////////////////////////////////////////////////////////////////////////
+// ostream
+///////////////////////////////////////////////////////////////////////////////
+
+namespace __detail {
+
+template <typename file_t>
+class ostream_proxy
+{
+public:
+
+    ostream_proxy(file_t& f) : m_file(f) {}
+    ~ostream_proxy() { flush(); }
+
+    ostream_proxy(const ostream_proxy&) = delete;
+    ostream_proxy(ostream_proxy&&) noexcept = default;
+
+    ostream_proxy& operator=(const ostream_proxy&) = delete;
+    ostream_proxy& operator=(ostream_proxy&&) noexcept = default;
+
+public:
+
+    template <typename T>
+    ostream_proxy& operator<<(const T& value)
+    {
+        m_stream << value;
+        return *this;
+    }
+
+    ostream_proxy& operator<<(std::ostream& (*func)(std::ostream&))
+    {
+        m_stream << func;
+        return *this;
+    }
+
+    void flush()
+    {
+        if (m_stream.tellp())
+        {
+            m_file.write_text(m_stream.str());
+            m_stream.str("");
+            m_stream.clear();
+        }
+    }
+
+private:
+
+    file_t& m_file;
+    std::ostringstream m_stream;
+};
+
+} // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
+// file
+///////////////////////////////////////////////////////////////////////////////
 
 class process;
 
@@ -48,22 +106,20 @@ public:
     file& operator=(const file&) = delete;
     VX_API file& operator=(file&&) noexcept;
 
-    VX_API friend void swap(file& lhs, file& rhs) noexcept;
+public:
+
+    VX_API static bool exists(const path& p);
+    VX_API static bool create(const path& p);
+
+    VX_API static bool read_file(const path& p, std::vector<uint8_t>& data);
+    VX_API static bool write_file(const path& p, const uint8_t* data, size_t size);
+
+    VX_API static bool read_text_file(const path& p, std::string& text);
+    VX_API static bool write_text_file(const path& p, const std::string& text);
 
 public:
 
-    VX_API static bool exists(const std::string& path);
-    VX_API static bool create(const std::string& path);
-
-    VX_API static bool read_file(const std::string& path, std::vector<uint8_t>& data);
-    VX_API static bool write_file(const std::string& path, const uint8_t* data, size_t size);
-
-    VX_API static bool read_text_file(const std::string& path, std::string& text);
-    VX_API static bool write_text_file(const std::string& path, const std::string& text);
-
-public:
-
-    VX_API bool open(const std::string& path, mode mode);
+    VX_API bool open(const path& p, mode mode);
     VX_API bool is_open() const;
     VX_API void close();
 
@@ -102,61 +158,17 @@ public:
 
 public:
 
-    class ostream_proxy
-    {
-    public:
-
-        ostream_proxy(file& f) : m_file(f) {}
-        ~ostream_proxy() { flush(); }
-
-        ostream_proxy(const ostream_proxy&) = delete;
-        ostream_proxy(ostream_proxy&&) noexcept = default;
-
-        ostream_proxy& operator=(const ostream_proxy&) = delete;
-        ostream_proxy& operator=(ostream_proxy&&) noexcept = default;
-
-    public:
-
-        template <typename T>
-        ostream_proxy& operator<<(const T& value)
-        {
-            m_stream << value;
-            return *this;
-        }
-
-        ostream_proxy& operator<<(std::ostream& (*func)(std::ostream&))
-        {
-            m_stream << func;
-            return *this;
-        }
-
-        void flush()
-        {
-            if (m_stream.tellp())
-            {
-                m_file.write_text(m_stream.str());
-                m_stream.str("");
-                m_stream.clear();
-            }
-        }
-
-    private:
-
-        file& m_file;
-        std::ostringstream m_stream;
-    };
-
     template <typename T>
-    ostream_proxy operator<<(const T& value)
+    auto operator<<(const T& value)
     {
-        ostream_proxy stream(*this);
+        __detail::ostream_proxy<file> stream(*this);
         stream << value;
         return stream;
     }
 
-    ostream_proxy operator<<(std::ostringstream& (*func)(std::ostringstream&))
+    auto operator<<(std::ostringstream& (*func)(std::ostringstream&))
     {
-        ostream_proxy stream(*this);
+        __detail::ostream_proxy<file> stream(*this);
         stream << func;
         return stream;
     }

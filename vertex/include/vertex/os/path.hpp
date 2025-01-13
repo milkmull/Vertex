@@ -24,8 +24,6 @@ namespace __detail {
 
 using value_type = wchar_t;
 
-#   define PATH_TEXT(x) L##x
-
 #   define PATH_SEPARATOR L'/'
 #   define PATH_PREFERRED_SEPARATOR L'\\'
 #   define PATH_DOT L'.'
@@ -85,8 +83,8 @@ static constexpr bool is_element_separator(value_type c)
 
 static constexpr bool is_letter(value_type c)
 {
-    return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
-        || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
+    return (c >= VX_TEXT('A') && c <= VX_TEXT('Z'))
+        || (c >= VX_TEXT('a') && c <= VX_TEXT('z'));
 }
 
 static inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
@@ -805,7 +803,7 @@ public:
 
 #       define last_is_dotdot() ( \
             normalized.size() >= 3 && \
-            normalized.compare(stack.back(), 2, PATH_TEXT("..")) == 0 && \
+            normalized.compare(stack.back(), 2, VX_TEXT("..")) == 0 && \
             normalized.back() == preferred_separator \
         )
 
@@ -839,12 +837,12 @@ public:
             }
 
             // 4. Remove each dot and any immediately following directory-separator.
-            else if (p == PATH_TEXT("."))
+            else if (p == VX_TEXT("."))
             {
                 continue;
             }
 
-            else if (p == PATH_TEXT(".."))
+            else if (p == VX_TEXT(".."))
             {
                 // 5. Remove each non-dot-dot filename immediately followed by a
                 // directory-separator and a dot-dot, along with any immediately
@@ -922,7 +920,7 @@ public:
         // If a == end() and b == base.end(), returns path(".").
         if (pair.first == this_last && pair.second == base_last)
         {
-            return path(PATH_TEXT("."));
+            return path(VX_TEXT("."));
         }
 
         // Otherwise, define N as the number of nonempty filename elements
@@ -937,11 +935,11 @@ public:
             {
                 continue;
             }
-            else if (*pair.second == PATH_TEXT(".."))
+            else if (*pair.second == VX_TEXT(".."))
             {
                 --n;
             }
-            else if (*pair.second != PATH_TEXT("."))
+            else if (*pair.second != VX_TEXT("."))
             {
                 ++n;
             }
@@ -956,7 +954,7 @@ public:
         // If N = 0 and a == end() || a->empty(), returns path("."),
         if (n == 0 && (pair.first == this_last || pair.first->empty()))
         {
-            return path(PATH_TEXT("."));
+            return path(VX_TEXT("."));
         }
 
         // Otherwise returns an object composed from a default-constructed
@@ -968,7 +966,7 @@ public:
 
         while (n--)
         {
-            ret /= PATH_TEXT("..");
+            ret /= VX_TEXT("..");
         }
 
         for (; pair.first != this_last; ++pair.first)
@@ -1043,7 +1041,7 @@ public:
 
     bool empty() const noexcept { return m_path.empty(); }
 
-    bool is_dot_or_dotdot() const noexcept { return m_path == PATH_TEXT(".") || m_path == PATH_TEXT(".."); }
+    bool is_dot_or_dotdot() const noexcept { return m_path == VX_TEXT(".") || m_path == VX_TEXT(".."); }
 
     bool has_root_path() const      { return __detail::parser::parse_root_path(m_path).size != 0; }
     bool has_root_name() const      { return __detail::parser::parse_root_name(m_path).size != 0; }
@@ -1158,7 +1156,6 @@ private:
     string_type m_path;
 };
 
-#undef PATH_TEXT
 #undef PATH_SEPARATOR
 #undef PATH_PREFERRED_SEPARATOR
 #undef PATH_DOT

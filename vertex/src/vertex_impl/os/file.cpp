@@ -45,29 +45,23 @@ VX_API file& file::operator=(file&& other) noexcept
     return *this;
 }
 
-VX_API void swap(file& lhs, file& rhs) noexcept
+VX_API bool file::exists(const path& p)
 {
-    std::swap(lhs.m_mode, rhs.m_mode);
-    std::swap(lhs.m_impl, rhs.m_impl);
+    return file_impl::exists(p);
 }
 
-VX_API bool file::exists(const std::string& path)
-{
-    return file_impl::exists(path);
-}
-
-VX_API bool file::create(const std::string& path)
+VX_API bool file::create(const path& p)
 {
     file f;
-    return f.open(path, mode::WRITE);
+    return f.open(p, mode::WRITE);
 }
 
-VX_API bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
+VX_API bool file::read_file(const path& p, std::vector<uint8_t>& data)
 {
     bool success = false;
 
     file f;
-    if (f.open(path, mode::READ))
+    if (f.open(p, mode::READ))
     {
         const size_t size = f.size();
         data.resize(size);
@@ -77,18 +71,18 @@ VX_API bool file::read_file(const std::string& path, std::vector<uint8_t>& data)
     return success;
 }
 
-VX_API bool file::write_file(const std::string& path, const uint8_t* data, size_t size)
+VX_API bool file::write_file(const path& p, const uint8_t* data, size_t size)
 {
     file f;
-    return f.open(path, mode::WRITE) && f.write(data, size);
+    return f.open(p, mode::WRITE) && f.write(data, size);
 }
 
-VX_API bool file::read_text_file(const std::string& path, std::string& text)
+VX_API bool file::read_text_file(const path& p, std::string& text)
 {
     bool success = false;
 
     file f;
-    if (f.open(path, mode::READ))
+    if (f.open(p, mode::READ))
     {
         const size_t size = f.size();
         text.resize(size);
@@ -98,12 +92,12 @@ VX_API bool file::read_text_file(const std::string& path, std::string& text)
     return success;
 }
 
-VX_API bool file::write_text_file(const std::string& path, const std::string& text)
+VX_API bool file::write_text_file(const path& p, const std::string& text)
 {
-    return write_file(path, reinterpret_cast<const uint8_t*>(text.data()), text.size());
+    return write_file(p, reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
-VX_API bool file::open(const std::string& path, mode mode)
+VX_API bool file::open(const path& p, mode mode)
 {
     if (is_open())
     {
@@ -117,7 +111,7 @@ VX_API bool file::open(const std::string& path, mode mode)
         return false;
     }
 
-    if (!m_impl->open(path, mode))
+    if (!m_impl->open(p, mode))
     {
         m_impl = nullptr;
         return false;

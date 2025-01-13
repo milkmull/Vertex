@@ -33,11 +33,13 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// Native Text
+// Text
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_PLATFORM_WINDOWS)
-#   define VX_NATIVE_TEXT(x) L##x
+#if defined(_WIN32)
+#   define __VX_TEXT(x) L##x
 #else
-#   define VX_NATIVE_TEXT(x) x
+#   define __VX_TEXT(x) x
 #endif
+
+#define VX_TEXT(x) __VX_TEXT(x)

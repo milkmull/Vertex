@@ -32,16 +32,11 @@ cmake:
 system:
 {
     - platform dependant build config, macros for which library sections should be defined for each platform
-    - Main function
-    - min/max numeric value defines?
     x Organize cmake
     x Install support
     x DLL support
     x Asserts and debugging system
-    - Header guards
-    - Decide on comment format
-    - move api macros to api system header file
-    - dll load/unload
+    x dll load/unload
 }
 
 string:
@@ -78,27 +73,11 @@ filesystem:
     x rename operators
 }
 
-os revisions:
-{
-    - file use windows managed handle
-    - investigate file from handle function placement
-    - update library (dll) class, consider opening already loaded modules too, replace use in os::filesystem::get_temp_path
-    - locale make lookup table to convert platform strings to enum values
-}
-
-formatting:
-{
-    - fix struct { enum {} } types
-    - header guards
-    - figure out platform includes
-    - platform configs
-}
-
 std:
 {
     x time (use std::chrono ?)
     
-    - filesystem
+    x filesystem
     x file io
     
     x string
@@ -107,7 +86,7 @@ std:
     x iostream
     
     x time (get ticks, timer class)
-    x locale (language, timezone, country)
+    - locale (language, timezone, country)
     
     x thread, mutex, atomic wrapers
 
@@ -123,11 +102,29 @@ std:
 
     x update logger, profiler
     x assert and debug files
-    - build config for platform
-    - header guards
-    - check platform specific functions and files in cmake
     - finalize test library
+}
 
+os revisions:
+{
+    x file use windows managed handle
+    x investigate file from handle function placement
+    x update library (dll) class, consider opening already loaded modules too, replace use in os::filesystem::get_temp_path
+    - locale make lookup table to convert platform strings to enum values
+}
+
+formatting:
+{
+    - fix struct { enum {} } types
+    - figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
+    - header guards
+    - figure out platform includes
+    - build config for platform
+}
+
+finish std:
+{
+    - formatting
     - test and document stdlib
     - test cmake installation process
 }
@@ -154,6 +151,7 @@ pixel:
 
 app:
 {
+    - main function
     - message box
     - consider INVALID_HANDLE_VALUE for window and other objects that use handles
     - finish safety proofing functions and pointers

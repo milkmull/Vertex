@@ -35,6 +35,8 @@ process::process_impl::~process_impl()
     }
 }
 
+// https://github.com/libsdl-org/SDL/blob/f79083d9bb7726b2592e31f68dc25f3a6f337320/src/process/windows/SDL_windowsprocess.c#L93
+
 static std::string join_arguments(const std::vector<std::string>& args)
 {
     const size_t count = args.size();
@@ -101,6 +103,8 @@ static std::string join_environment(const process::environment& environment)
 
     return out;
 }
+
+// https://github.com/libsdl-org/SDL/blob/f79083d9bb7726b2592e31f68dc25f3a6f337320/src/process/windows/SDL_windowsprocess.c#L93
 
 bool process::process_impl::start(process* p, const config& config)
 {
@@ -212,7 +216,7 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 // Redirect to a null device if the stream is null
                 stream.proc_pipe() = CreateFileW(
-                    TEXT(VX_NULL_DEVICE),
+                    VX_TEXT(VX_NULL_DEVICE),
                     GENERIC_READ | GENERIC_WRITE,
                     0,
                     &security_attributes,
@@ -388,9 +392,11 @@ bool process::process_impl::is_valid() const
     return (m_process_information.hProcess != INVALID_HANDLE_VALUE);
 }
 
+#define assert_process_configured() VX_ASSERT_MESSAGE(is_valid(), "process not configured")
+
 bool process::process_impl::is_alive() const
 {
-    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
+    assert_process_configured();
 
     DWORD exit_code;
     if (!GetExitCodeProcess(m_process_information.hProcess, &exit_code))
@@ -404,7 +410,7 @@ bool process::process_impl::is_alive() const
 
 bool process::process_impl::is_complete() const
 {
-    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
+    assert_process_configured();
 
     const DWORD result = WaitForSingleObject(
         m_process_information.hProcess,
@@ -422,7 +428,7 @@ bool process::process_impl::is_complete() const
 
 bool process::process_impl::join()
 {
-    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
+    assert_process_configured();
 
     const DWORD result = WaitForSingleObject(
         m_process_information.hProcess,
@@ -440,7 +446,7 @@ bool process::process_impl::join()
 
 bool process::process_impl::kill(bool force)
 {
-    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
+    assert_process_configured();
 
     if (!TerminateProcess(m_process_information.hProcess, 1))
     {
@@ -456,7 +462,7 @@ bool process::process_impl::kill(bool force)
 
 bool process::process_impl::get_exit_code(int* exit_code) const
 {
-    VX_ASSERT_MESSAGE(is_valid(), "process not configured");
+    assert_process_configured();
 
     if (exit_code)
     {

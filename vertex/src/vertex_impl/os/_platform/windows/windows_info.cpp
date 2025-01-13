@@ -7,7 +7,7 @@
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"
-#include "vertex/os/library.hpp"
+#include "vertex/os/shared_library.hpp"
 
 namespace vx {
 namespace os {
@@ -164,15 +164,15 @@ VX_API uint32_t get_processor_count()
 
 VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
 {
-    using RtlGetVersionPtr = NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW lpVersionInformation);
+    using RtlGetVersion_t = NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW lpVersionInformation);
 
-    library ntdll;
+    shared_library ntdll;
     if (!ntdll.load("ntdll.dll"))
     {
         return false;
     }
 
-    RtlGetVersionPtr RtlGetVersion = ntdll.get_function<RtlGetVersionPtr>("RtlGetVersion");
+    auto RtlGetVersion = ntdll.get_function<RtlGetVersion_t>("RtlGetVersion");
     if (!RtlGetVersion)
     {
         return false;
