@@ -85,7 +85,7 @@ VX_API bool update_file_permissions(
 struct file_info
 {
     file_type type{};
-    file_permissions permissions{};
+    typename file_permissions::type permissions{};
     size_t size{};
     time::time_point create_time;
     time::time_point modify_time;

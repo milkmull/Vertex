@@ -1,13 +1,12 @@
 ﻿#include "vertex/system/log.hpp"
 
-#include "vertex/os/file.hpp"
-#include "vertex/os/filesystem.hpp"
+#include "vertex/util/bit.hpp"
 
 using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    os::filesystem::get_temp_path();
+    bit::byteswap(5u);
 
     return 0;
 }
