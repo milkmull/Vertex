@@ -9,7 +9,13 @@
 #   undef ERROR
 #endif
 
-#define VX_ENABLE_LOGGING 1
+#if VX_DEBUG
+#   define VX_ENABLE_LOGGING 1
+#endif
+
+#ifndef VX_ENABLE_LOGGING
+#   define VX_ENABLE_LOGGING 0
+#endif
 
 namespace vx {
 namespace log {
@@ -113,38 +119,18 @@ static dummy_log_stream null;
 // logging macros
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_ENABLE_LOGGING)
+#define VX_LOG_TRACE         if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::TRACE)
+#define VX_LOG_DEBUG         if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::DEBUG)
+#define VX_LOG_INFO          if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::INFO)
+#define VX_LOG_WARNING       if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::WARNING)
+#define VX_LOG_ERROR         if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::ERROR)
+#define VX_LOG_CRITICAL      if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL)
 
-#   define VX_LOG_TRACE         ::vx::log::__detail::log_stream(::vx::log::level::TRACE)
-#   define VX_LOG_DEBUG         ::vx::log::__detail::log_stream(::vx::log::level::DEBUG)
-#   define VX_LOG_INFO          ::vx::log::__detail::log_stream(::vx::log::level::INFO)
-#   define VX_LOG_WARNING       ::vx::log::__detail::log_stream(::vx::log::level::WARNING)
-#   define VX_LOG_ERROR         ::vx::log::__detail::log_stream(::vx::log::level::ERROR)
-#   define VX_LOG_CRITICAL      ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL)
-
-#   define VX_LOG_TRACE_FULL    ::vx::log::__detail::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE)
-#   define VX_LOG_DEBUG_FULL    ::vx::log::__detail::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE)
-#   define VX_LOG_INFO_FULL     ::vx::log::__detail::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE)
-#   define VX_LOG_WARNING_FULL  ::vx::log::__detail::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE)
-#   define VX_LOG_ERROR_FULL    ::vx::log::__detail::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE)
-#   define VX_LOG_CRITICAL_FULL ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE)
-
-#else
-
-#   define VX_LOG_TRACE         ::vx::log::__detail::null
-#   define VX_LOG_DEBUG         ::vx::log::__detail::null
-#   define VX_LOG_INFO          ::vx::log::__detail::null
-#   define VX_LOG_WARNING       ::vx::log::__detail::null
-#   define VX_LOG_ERROR         ::vx::log::__detail::null
-#   define VX_LOG_CRITICAL      ::vx::log::__detail::null
-
-#   define VX_LOG_TRACE_FULL    ::vx::log::__detail::null
-#   define VX_LOG_DEBUG_FULL    ::vx::log::__detail::null
-#   define VX_LOG_INFO_FULL     ::vx::log::__detail::null
-#   define VX_LOG_WARNING_FULL  ::vx::log::__detail::null
-#   define VX_LOG_ERROR_FULL    ::vx::log::__detail::null
-#   define VX_LOG_CRITICAL_FULL ::vx::log::__detail::null
-
-#endif
+#define VX_LOG_TRACE_FULL    if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE)
+#define VX_LOG_DEBUG_FULL    if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE)
+#define VX_LOG_INFO_FULL     if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE)
+#define VX_LOG_WARNING_FULL  if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE)
+#define VX_LOG_ERROR_FULL    if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE)
+#define VX_LOG_CRITICAL_FULL if (!VX_ENABLE_LOGGING); else ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE)
 
 } // namespace vx

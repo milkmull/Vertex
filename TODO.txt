@@ -115,11 +115,12 @@ os revisions:
 
 formatting:
 {
-    - fix struct { enum {} } types
+    x fix struct { enum {} } types
     - figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
-    - header guards
+    x header guards
     - figure out platform includes
     - build config for platform
+    - dummy os code
 }
 
 finish std:

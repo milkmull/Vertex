@@ -6,7 +6,7 @@ using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    bit::byteswap(5u);
+    VX_LOG_INFO << bit::byteswap(5u);
 
     return 0;
 }
