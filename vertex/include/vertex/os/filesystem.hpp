@@ -2,6 +2,7 @@
 
 #include "vertex/os/path.hpp"
 #include "vertex/util/time.hpp"
+#include "vertex/util/bit/enum_bitwise_operators.hpp"
 
 namespace vx {
 namespace os {
@@ -84,7 +85,7 @@ VX_API bool update_file_permissions(
 struct file_info
 {
     file_type type{};
-    typename file_permissions::type permissions{};
+    file_permissions permissions{};
     size_t size{};
     time::time_point create_time;
     time::time_point modify_time;
@@ -248,14 +249,14 @@ public:
 
     VX_API directory_iterator(const path& p);
 
-    directory_iterator() noexcept = default;
-    ~directory_iterator() noexcept = default;
+    VX_API directory_iterator() noexcept = default;
+    VX_API ~directory_iterator() noexcept = default;
 
-    directory_iterator(const directory_iterator&) noexcept = default;
-    directory_iterator(directory_iterator&&) noexcept = default;
+    VX_API directory_iterator(const directory_iterator&) noexcept = default;
+    VX_API directory_iterator(directory_iterator&&) noexcept = default;
 
-    directory_iterator& operator=(const directory_iterator&) noexcept = default;
-    directory_iterator& operator=(directory_iterator&&) noexcept = default;
+    VX_API directory_iterator& operator=(const directory_iterator&) noexcept = default;
+    VX_API directory_iterator& operator=(directory_iterator&&) noexcept = default;
 
 public:
 
@@ -312,14 +313,14 @@ public:
 
     VX_API recursive_directory_iterator(const path& p);
 
-    recursive_directory_iterator() noexcept = default;
-    ~recursive_directory_iterator() noexcept = default;
+    VX_API recursive_directory_iterator() noexcept = default;
+    VX_API ~recursive_directory_iterator() noexcept = default;
 
-    recursive_directory_iterator(const recursive_directory_iterator&) noexcept = default;
-    recursive_directory_iterator(recursive_directory_iterator&&) noexcept = default;
+    VX_API recursive_directory_iterator(const recursive_directory_iterator&) noexcept = default;
+    VX_API recursive_directory_iterator(recursive_directory_iterator&&) noexcept = default;
 
-    recursive_directory_iterator& operator=(const recursive_directory_iterator&) noexcept = default;
-    recursive_directory_iterator& operator=(recursive_directory_iterator&&) noexcept = default;
+    VX_API recursive_directory_iterator& operator=(const recursive_directory_iterator&) noexcept = default;
+    VX_API recursive_directory_iterator& operator=(recursive_directory_iterator&&) noexcept = default;
 
 public:
 
@@ -340,12 +341,12 @@ public:
 
 public:
 
-    size_t depth() const;
+    VX_API size_t depth() const;
 
-    bool recursion_pending() const;
-    void disable_pending_recursion();
+    VX_API bool recursion_pending() const;
+    VX_API void disable_pending_recursion();
 
-    void pop();
+    VX_API void pop();
 
 private:
 

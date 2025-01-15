@@ -3,10 +3,12 @@
 #include <string>
 
 namespace vx {
+namespace os {
 namespace locale {
 
-std::string get_country_code();
-std::string get_language();
+VX_API bool get_country_code(std::string& country_code);
+VX_API bool get_language(std::string& language);
 
 } // namespace locale
+} // namespace os
 } // namespace vx

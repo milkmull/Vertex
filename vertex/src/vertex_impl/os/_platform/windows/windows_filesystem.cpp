@@ -242,14 +242,14 @@ static file_type file_type_from_error(const DWORD error)
 
 // https://github.com/boostorg/filesystem/blob/0848f5347b69bd9f8f0459dc0cb88e7a52714448/src/windows_tools.hpp#L89
 
-static file_permissions::type get_file_permissions(const path& p, const DWORD attrs)
+static file_permissions get_file_permissions(const path& p, const DWORD attrs)
 {
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
         return file_permissions::NONE;
     }
 
-    file_permissions::type permissions = file_permissions::OWNER_READ | file_permissions::GROUP_READ | file_permissions::OTHERS_READ;
+    file_permissions permissions = file_permissions::OWNER_READ | file_permissions::GROUP_READ | file_permissions::OTHERS_READ;
 
     if (!(attrs & FILE_ATTRIBUTE_READONLY))
     {

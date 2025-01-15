@@ -86,7 +86,7 @@ std:
     x iostream
     
     x time (get ticks, timer class)
-    - locale (language, timezone, country)
+    x locale (language, timezone, country)
     
     x thread, mutex, atomic wrapers
 

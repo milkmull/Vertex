@@ -8,32 +8,38 @@
 #include "vertex/util/string/string.hpp"
 
 namespace vx {
+namespace os {
 namespace locale {
 
-std::string get_country_code()
+VX_API bool get_country_code(std::string& country_code)
 {
-    wchar_t winfo[LOCALE_NAME_MAX_LENGTH]{};
+    WCHAR winfo[LOCALE_NAME_MAX_LENGTH]{};
 
     if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SISO3166CTRYNAME, winfo, LOCALE_NAME_MAX_LENGTH))
     {
-        VX_ERR(err::PLATFORM_ERROR) << "GetLocaleInfoEx()";
+        windows::error_message("GetLocaleInfoEx()");
+        return false;
     }
 
-    return str::string_cast<char>(winfo);
+    country_code = str::string_cast<char>(winfo);
+    return true;
 }
 
-std::string get_language()
+VX_API bool get_language(std::string& language)
 {
-    wchar_t winfo[LOCALE_NAME_MAX_LENGTH]{};
+    WCHAR winfo[LOCALE_NAME_MAX_LENGTH]{};
 
     if (!GetLocaleInfoEx(LOCALE_NAME_USER_DEFAULT, LOCALE_SISO639LANGNAME, winfo, LOCALE_NAME_MAX_LENGTH))
     {
-        VX_ERR(err::PLATFORM_ERROR) << "GetLocaleInfoEx()";
+        windows::error_message("GetLocaleInfoEx()");
+        return false;
     }
 
-    return str::string_cast<char>(winfo);
+    language = str::string_cast<char>(winfo);
+    return true;
 }
 
+} // namespace locale
 } // namespace os
 } // namespace vx
 

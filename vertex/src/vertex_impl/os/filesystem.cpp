@@ -375,25 +375,25 @@ VX_API recursive_directory_iterator& recursive_directory_iterator::operator++()
     return *this;
 }
 
-size_t recursive_directory_iterator::depth() const
+VX_API size_t recursive_directory_iterator::depth() const
 {
     VX_ASSERT(m_impl);
     return m_impl->depth();
 }
 
-bool recursive_directory_iterator::recursion_pending() const
+VX_API bool recursive_directory_iterator::recursion_pending() const
 {
     VX_ASSERT(m_impl);
     return m_impl->recursion_pending();
 }
 
-void recursive_directory_iterator::disable_pending_recursion()
+VX_API void recursive_directory_iterator::disable_pending_recursion()
 {
     VX_ASSERT(m_impl);
     m_impl->disable_pending_recursion();
 }
 
-void recursive_directory_iterator::pop()
+VX_API void recursive_directory_iterator::pop()
 {
     VX_ASSERT(m_impl);
     if (depth() == 0)
