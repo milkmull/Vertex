@@ -4,7 +4,7 @@
 
 #include "vertex/system/compiler.hpp"
 
-#ifdef ERROR
+#if defined(ERROR)
 #   undef ERROR
 #endif
 

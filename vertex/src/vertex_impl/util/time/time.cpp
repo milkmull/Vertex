@@ -50,17 +50,17 @@ static int32_t civil_to_days(int32_t year, month month, int32_t day, weekday* da
     return z;
 }
 
-bool is_leap_year(int32_t year)
+VX_API bool is_leap_year(int32_t year)
 {
     return IS_LEAP_YEAR(year);
 }
 
-int32_t get_days_in_year(int32_t year)
+VX_API int32_t get_days_in_year(int32_t year)
 {
     return is_leap_year(year) ? 366 : 365;
 }
 
-int32_t get_days_in_month(int32_t year, month month)
+VX_API int32_t get_days_in_month(int32_t year, month month)
 {
     static const uint8_t days_in_month[12] = {
         31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
@@ -81,7 +81,7 @@ int32_t get_days_in_month(int32_t year, month month)
     return days;
 }
 
-int32_t get_day_of_year(int32_t year, month month, int32_t day)
+VX_API int32_t get_day_of_year(int32_t year, month month, int32_t day)
 {
     if (month < month::JANUARY || month > month::DECEMBER)
     {
@@ -100,7 +100,7 @@ int32_t get_day_of_year(int32_t year, month month, int32_t day)
     return doy;
 }
 
-weekday get_day_of_week(int32_t year, month month, int32_t day)
+VX_API weekday get_day_of_week(int32_t year, month month, int32_t day)
 {
     if (month < month::JANUARY || month > month::DECEMBER)
     {
@@ -169,12 +169,12 @@ static bool check_datetime(const datetime& dt, err::code code)
     return true;
 }
 
-bool datetime::is_valid() const
+VX_API bool datetime::is_valid() const
 {
     return check_datetime(*this, err::NONE);
 }
 
-time_point datetime::to_time_point() const
+VX_API time_point datetime::to_time_point() const
 {
     time_point t;
 
@@ -205,7 +205,7 @@ time_point datetime::to_time_point() const
 // https://en.wikipedia.org/wiki/ISO_8601
 // https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.isoparse
 
-std::string datetime::to_string() const
+VX_API std::string datetime::to_string() const
 {
     if (!check_datetime(*this, err::INVALID_ARGUMENT))
     {

@@ -1,18 +1,19 @@
 #pragma once
 
-#if defined(VX_STREAM_MEMORY)
+#if defined(VX_LOG_MEMORY)
 
-#include <iostream>
+#define VX_ENABLE_LOGGING 1
+#include "vertex/system/log.hpp"
 
 void* operator new(std::size_t size)
 {
-    std::cout << "Allocating " << size << " bytes\n";
+    VX_LOG_TRACE << "Allocating " << size << " bytes\n";
     return std::malloc(size);
 }
 
 void operator delete(void* ptr, std::size_t size) noexcept
 {
-    std::cout << "Deallocating " << size << " bytes\n";
+    VX_LOG_TRACE << "Deallocating " << size << " bytes\n";
     std::free(ptr);
 }
 

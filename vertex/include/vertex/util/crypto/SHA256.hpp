@@ -12,6 +12,7 @@ class SHA256
 public:
 
     VX_API SHA256();
+    VX_API ~SHA256() = default;
 
     static inline std::string hash(const uint8_t* data, size_t size)
     {

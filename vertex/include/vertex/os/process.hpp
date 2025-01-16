@@ -61,35 +61,33 @@ private:
 
 public:
 
-    process();
-    ~process();
+    VX_API process();
+    VX_API ~process();
 
     process(const process&) = delete;
-    process(process&&) noexcept;
+    VX_API process(process&&) noexcept;
 
     process& operator=(const process&) = delete;
-    process& operator=(process&&) noexcept;
-
-    friend void swap(process& lhs, process& rhs) noexcept;
+    VX_API process& operator=(process&&) noexcept;
 
 public:
 
-    bool start(const config& config);
+    VX_API bool start(const config& config);
 
-    id get_pid() const;
+    VX_API id get_pid() const;
 
-    bool is_valid() const;
-    bool is_alive() const;
-    bool is_complete() const;
+    VX_API bool is_valid() const;
+    VX_API bool is_alive() const;
+    VX_API bool is_complete() const;
 
-    bool join();
-    bool kill(bool force = false);
+    VX_API bool join();
+    VX_API bool kill(bool force = false);
 
-    bool get_exit_code(int* exit_code) const;
+    VX_API bool get_exit_code(int* exit_code) const;
 
-    io_stream& get_stdin();
-    io_stream& get_stdout();
-    io_stream& get_stderr();
+    VX_API io_stream& get_stdin();
+    VX_API io_stream& get_stdout();
+    VX_API io_stream& get_stderr();
 
 private:
 

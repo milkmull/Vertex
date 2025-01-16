@@ -16,16 +16,14 @@ public:
 
     using id = std::thread::id;
 
-    thread() noexcept;
-    ~thread();
+    VX_API thread() noexcept;
+    VX_API ~thread();
 
     thread(const thread&) = delete;
-    thread(thread&& other) noexcept;
+    VX_API thread(thread&& other) noexcept;
 
     thread& operator=(const thread&) = delete;
-    thread& operator=(thread&& other) noexcept;
-
-    friend void swap(thread& lhs, thread& rhs) noexcept;
+    VX_API thread& operator=(thread&& other) noexcept;
 
 public:
 
@@ -58,15 +56,15 @@ public:
         return true;
     }
 
-    id get_id() const noexcept;
+    VX_API id get_id() const noexcept;
 
-    bool is_valid() const noexcept;
-    bool is_alive() const noexcept;
-    bool is_joinable() const noexcept;
-    bool is_complete() const noexcept;
+    VX_API bool is_valid() const noexcept;
+    VX_API bool is_alive() const noexcept;
+    VX_API bool is_joinable() const noexcept;
+    VX_API bool is_complete() const noexcept;
 
-    bool join();
-    bool detatch();
+    VX_API bool join();
+    VX_API bool detatch();
 
 private:
 

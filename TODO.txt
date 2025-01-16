@@ -113,6 +113,14 @@ os revisions:
     - locale make lookup table to convert platform strings to enum values
 }
 
+final touches:
+{
+    x refactor base64
+    x move numeric string functions to inline
+    x fix VX_API mismatch for time functions
+    x finish marking VX_API functions in os
+}
+
 formatting:
 {
     x fix struct { enum {} } types

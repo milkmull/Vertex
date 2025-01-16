@@ -1,7 +1,4 @@
 #include "vertex/os/time.hpp"
-#include "vertex/system/assert.hpp"
-#include "vertex/system/platform_defines.hpp"
-#include "vertex/util/string/string.hpp"
 
 namespace vx {
 namespace os {

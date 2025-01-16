@@ -5,7 +5,7 @@
 #include "vertex/system/compiler.hpp"
 #include "vertex/system/assert.hpp"
 
-#ifdef ERROR
+#if defined(ERROR)
 #   undef ERROR
 #endif
 
@@ -13,7 +13,7 @@
 #   define VX_ENABLE_LOGGING 1
 #endif
 
-#ifndef VX_ENABLE_LOGGING
+#if !defined(VX_ENABLE_LOGGING)
 #   define VX_ENABLE_LOGGING 0
 #endif
 

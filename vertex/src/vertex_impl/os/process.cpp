@@ -13,11 +13,11 @@
 namespace vx {
 namespace os {
 
-process::process() {}
+VX_API process::process() {}
 
-process::~process() {}
+VX_API process::~process() {}
 
-process::process(process&& other) noexcept
+VX_API process::process(process&& other) noexcept
     : m_impl(std::move(other.m_impl))
 {
     std::move(
@@ -29,7 +29,7 @@ process::process(process&& other) noexcept
     other.m_impl = nullptr;
 }
 
-process& process::operator=(process&& other) noexcept
+VX_API process& process::operator=(process&& other) noexcept
 {
     if (this != &other)
     {
@@ -46,17 +46,7 @@ process& process::operator=(process&& other) noexcept
     return *this;
 }
 
-void swap(process& lhs, process& rhs) noexcept
-{
-    std::swap(lhs.m_impl, rhs.m_impl);
-    std::swap_ranges(
-        std::begin(rhs.m_streams),
-        std::end(rhs.m_streams),
-        std::begin(lhs.m_streams)
-    );
-}
-
-bool process::start(const config& config)
+VX_API bool process::start(const config& config)
 {
     if (is_valid())
     {
@@ -80,7 +70,7 @@ bool process::start(const config& config)
     return true;
 }
 
-process::id process::get_pid() const
+VX_API process::id process::get_pid() const
 {
     if (!is_valid())
     {
@@ -90,22 +80,22 @@ process::id process::get_pid() const
     return m_impl->get_pid();
 }
 
-bool process::is_valid() const
+VX_API bool process::is_valid() const
 {
     return m_impl && m_impl->is_valid();
 }
 
-bool process::is_alive() const
+VX_API bool process::is_alive() const
 {
     return is_valid() ? m_impl->is_alive() : false;
 }
 
-bool process::is_complete() const
+VX_API bool process::is_complete() const
 {
     return is_valid() ? m_impl->is_complete() : false;
 }
 
-bool process::join()
+VX_API bool process::join()
 {
     if (!is_valid())
     {
@@ -115,7 +105,7 @@ bool process::join()
     return m_impl->join();
 }
 
-bool process::kill(bool force)
+VX_API bool process::kill(bool force)
 {
     if (!is_valid())
     {
@@ -125,7 +115,7 @@ bool process::kill(bool force)
     return m_impl->kill(force);
 }
 
-bool process::get_exit_code(int* exit_code) const
+VX_API bool process::get_exit_code(int* exit_code) const
 {
     if (!is_complete())
     {
@@ -135,9 +125,9 @@ bool process::get_exit_code(int* exit_code) const
     return m_impl->get_exit_code(exit_code);
 }
 
-io_stream& process::get_stdin()  { return m_streams[STDIN ]; }
-io_stream& process::get_stdout() { return m_streams[STDOUT]; }
-io_stream& process::get_stderr() { return m_streams[STDERR]; }
+VX_API io_stream& process::get_stdin()  { return m_streams[STDIN ]; }
+VX_API io_stream& process::get_stdout() { return m_streams[STDOUT]; }
+VX_API io_stream& process::get_stderr() { return m_streams[STDERR]; }
 
 } // namespace os
 } // namespace vx

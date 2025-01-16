@@ -4,18 +4,18 @@
 namespace vx {
 namespace os {
 
-thread::thread() noexcept {}
+VX_API thread::thread() noexcept {}
 
-thread::~thread()
+VX_API thread::~thread()
 {
     join();
 }
 
-thread::thread(thread&& other) noexcept
+VX_API thread::thread(thread&& other) noexcept
     : m_thread(std::move(other.m_thread))
     , m_future(std::move(other.m_future)) {}
 
-thread& thread::operator=(thread&& other) noexcept
+VX_API thread& thread::operator=(thread&& other) noexcept
 {
     if (this != &other)
     {
@@ -28,23 +28,17 @@ thread& thread::operator=(thread&& other) noexcept
     return *this;
 }
 
-void swap(thread& lhs, thread& rhs) noexcept
-{
-    std::swap(lhs.m_thread, rhs.m_thread);
-    std::swap(lhs.m_future, rhs.m_future);
-}
-
-thread::id thread::get_id() const noexcept
+VX_API thread::id thread::get_id() const noexcept
 {
     return m_thread.get_id();
 }
 
-bool thread::is_valid() const noexcept
+VX_API bool thread::is_valid() const noexcept
 {
     return m_future.valid() && is_joinable();
 }
 
-bool thread::is_alive() const noexcept
+VX_API bool thread::is_alive() const noexcept
 {
     if (!is_valid())
     {
@@ -54,12 +48,12 @@ bool thread::is_alive() const noexcept
     return m_future.wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
 }
 
-bool thread::is_joinable() const noexcept
+VX_API bool thread::is_joinable() const noexcept
 {
     return m_thread.joinable();
 }
 
-bool thread::is_complete() const noexcept
+VX_API bool thread::is_complete() const noexcept
 {
     if (!is_valid())
     {
@@ -69,7 +63,7 @@ bool thread::is_complete() const noexcept
     return m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
-bool thread::join()
+VX_API bool thread::join()
 {
     if (!is_joinable())
     {
@@ -80,7 +74,7 @@ bool thread::join()
     return true;
 }
 
-bool thread::detatch()
+VX_API bool thread::detatch()
 {
     if (!is_joinable())
     {
