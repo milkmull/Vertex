@@ -71,6 +71,7 @@ filesystem:
     x create operators
     x remove operators
     x rename operators
+    - filesystem space
 }
 
 std:
@@ -124,7 +125,7 @@ final touches:
 formatting:
 {
     x fix struct { enum {} } types
-    - figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
+    x figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
     x header guards
     - figure out platform includes
     - build config for platform

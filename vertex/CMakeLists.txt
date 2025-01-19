@@ -124,39 +124,9 @@ target_include_directories(Vertex_Headers INTERFACE
 )
 
 # Source files for the library
-file(GLOB_RECURSE VX_CORE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/system/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/os/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/util/*.inl"
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/test/*.hpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/math/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/pixel/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/image/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/include/vertex/app/*.h"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.hpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.h"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.h"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.hpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/system/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/util/*.cpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/math/*.cpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/pixel/*.cpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/image/*.cpp"
-    #"${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/app/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/_platform/*.cpp"
-)
-
-# Create source group for organizing source files
-vx_create_source_group(VX_CORE_FILES "${CMAKE_CURRENT_SOURCE_DIR}")
-target_sources(Vertex PRIVATE ${VX_CORE_FILES})
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/include/vertex")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl")
+vx_create_source_groups(Vertex "${CMAKE_CURRENT_SOURCE_DIR}")
 
 # stb_image
 #target_include_directories(Vertex PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
@@ -171,6 +141,7 @@ target_sources(Vertex PRIVATE ${VX_CORE_FILES})
 
 # Handle Windows resource file for shared library builds
 if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
+
     configure_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/_platform/windows/version.rc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
@@ -263,15 +234,19 @@ install(EXPORT VertexHeaderTargets
 
 # Export shared or static library targets based on the build
 if(VX_BUILD_SHARED_LIBS)
+
     install(EXPORT VertexTargets
         FILE "VertexSharedTargets.cmake"
         NAMESPACE Vertex::
         DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
     )
+    
 else()
+
     install(EXPORT VertexTargets
         FILE "VertexStaticTargets.cmake"
         NAMESPACE Vertex::
         DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
     )
+    
 endif()

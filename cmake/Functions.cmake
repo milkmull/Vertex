@@ -113,9 +113,16 @@ function(vx_add_common_compiler_flags TARGET)
   
 endfunction()
 
-function(vx_create_source_group SRC_FILES ROOT_DIR)
+function(vx_create_source_groups TARGET_NAME ROOT_DIR)
 
-    foreach(SOURCE_FILE IN LISTS ${SRC_FILES})
+    # Get the source files from the target
+    get_target_property(SRC_FILES ${TARGET_NAME} SOURCES)
+    if(NOT SRC_FILES)
+        message(WARNING "Target ${TARGET_NAME} has no sources.")
+        return()
+    endif()
+
+    foreach(SOURCE_FILE IN LISTS SRC_FILES)
         # Get the relative path of the source file from the root directory
         file(RELATIVE_PATH RELATIVE_FILE "${ROOT_DIR}" "${SOURCE_FILE}")
         

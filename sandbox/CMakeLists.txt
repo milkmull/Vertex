@@ -5,12 +5,9 @@ add_executable(Sandbox "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
 vx_set_stdlib(Sandbox)
 
 # Files
-file(GLOB_RECURSE SB_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/include/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-)
-vx_create_source_group(SB_FILES "${CMAKE_CURRENT_SOURCE_DIR}")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/include/sandbox")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
+vx_create_source_groups(Sandbox "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_sources(Sandbox PRIVATE ${SB_FILES})
 
