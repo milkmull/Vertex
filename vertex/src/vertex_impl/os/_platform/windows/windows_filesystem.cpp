@@ -744,6 +744,29 @@ __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Space
+///////////////////////////////////////////////////////////////////////////////
+
+bool space_impl(const path& p, space_info& info)
+{
+    ULARGE_INTEGER capacity{};
+    ULARGE_INTEGER free{};
+    ULARGE_INTEGER available{};
+
+    if (!GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
+    {
+        windows::error_message("GetDiskFreeSpaceExW()");
+        return false;
+    }
+
+    info.capacity = capacity.QuadPart;
+    info.free = free.QuadPart;
+    info.available = available.QuadPart;
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
