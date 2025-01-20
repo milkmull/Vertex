@@ -14,7 +14,7 @@ function(vx_add_test TARGET SOURCES)
     # Apply the appropriate C++ standard library settings
     vx_set_stdlib(${TARGET})
     # Link the test target with its dependencies and test framework
-    target_link_libraries(${TARGET} PRIVATE ${DEPENDS} Vertex)
+    target_link_libraries(${TARGET} PRIVATE Vertex)
     # Apply common compiler flags and hide public symbols
     vx_add_common_compiler_flags(${TARGET})
     vx_hide_public_symbols(${TARGET})

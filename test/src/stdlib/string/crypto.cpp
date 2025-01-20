@@ -1,8 +1,8 @@
-#include "vertex/test/test.hpp"
+#include "vertex/_test/test.hpp"
 
-#include "vertex/stdlib/crypto/MD5.hpp"
-#include "vertex/stdlib/crypto/SHA1.hpp"
-#include "vertex/stdlib/crypto/SHA256.hpp"
+#include "vertex/util/crypto/MD5.hpp"
+#include "vertex/util/crypto/SHA1.hpp"
+#include "vertex/util/crypto/SHA256.hpp"
 
 using namespace vx::test;
 
@@ -136,7 +136,7 @@ VX_TEST(SHA256, hash_large_input)
 
 int main()
 {
-    test_suite::get_suite().run_tests();
+    test_suite::instance().run_tests();
 
     return 0;
 }

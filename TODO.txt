@@ -71,7 +71,7 @@ filesystem:
     x create operators
     x remove operators
     x rename operators
-    - filesystem space
+    x filesystem space
 }
 
 std:
@@ -136,7 +136,7 @@ formatting:
 
 finish std:
 {
-    - formatting
+    x formatting
     - test and document stdlib
     - test cmake installation process
 }

@@ -1,16 +1,12 @@
-#include "vertex/test/test.hpp"
-
-#include "vertex/stdlib/string/string.hpp"
+#include "vertex/_test/test.hpp"
 
 using namespace vx::test;
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
-    test_suite::get_suite().run_tests();
+    test_suite::instance().run_tests();
 
     return 0;
 }

@@ -1,10 +1,7 @@
-#pragma once
-
 #include "vertex/system/error.hpp"
 #include "vertex/util/encode/base64.hpp"
 
 namespace vx {
-namespace str {
 namespace base64 {
 
 // https://www.boost.org/doc/libs/1_68_0/boost/beast/core/detail/base64.hpp
@@ -157,6 +154,5 @@ VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool 
 
 #undef PADDING
 
-}
 }
 }
