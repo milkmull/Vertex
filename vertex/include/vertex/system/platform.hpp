@@ -61,6 +61,7 @@
 #   define VX_PLATFORM_WINDOWS
 
 // Need to add support for other types of windows platforms
+// https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_platform_defines.h#L336
 
 #else
 

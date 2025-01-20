@@ -14,7 +14,7 @@ enum : code_point { INVALID_CODE_POINT = 0xFFFFFFFF };
 
 enum : size_t { INVALID_TRAIL_COUNT = -1 };
 
-constexpr bool is_valid_codepoint(code_point c)
+constexpr bool is_valid_codepoint(code_point c) noexcept
 {
     // Check if the codepoint is within the valid range
     if (c > 0x0010FFFF)
@@ -41,7 +41,7 @@ struct utf_base_traits<1> // utf8
 {
     using utype = uint8_t;
 
-    static constexpr size_t trail_count(utype lead)
+    static constexpr size_t trail_count(utype lead) noexcept
     {
         if ((lead & 0b10000000) == 0b00000000)
         {
@@ -67,9 +67,9 @@ struct utf_base_traits<1> // utf8
         return INVALID_TRAIL_COUNT;
     }
 
-    static constexpr size_t max_width() { return 4; }
+    static constexpr size_t max_width() noexcept { return 4; }
 
-    static constexpr size_t width(code_point c)
+    static constexpr size_t width(code_point c) noexcept
     {
         if (c <= 0x0000007F)
         {
@@ -87,12 +87,12 @@ struct utf_base_traits<1> // utf8
         return 4;
     }
 
-    static constexpr bool is_trail(utype c)
+    static constexpr bool is_trail(utype c) noexcept
     {
         return (c & 0b11000000) == 0b10000000;
     }
 
-    static constexpr bool is_lead(utype c)
+    static constexpr bool is_lead(utype c) noexcept
     {
         return !is_trail(c);
     }
@@ -263,15 +263,15 @@ struct utf_base_traits<2> // utf16
     using utype = uint16_t;
 
     // See RFC 2781
-    static constexpr bool is_first_surrogate (utype w1) { return 0xD800 <= w1 && w1 <= 0xDBFF; }
-    static constexpr bool is_second_surrogate(utype w2) { return 0xDC00 <= w2 && w2 <= 0xDFFF; }
+    static constexpr bool is_first_surrogate (utype w1) noexcept { return 0xD800 <= w1 && w1 <= 0xDBFF; }
+    static constexpr bool is_second_surrogate(utype w2) noexcept { return 0xDC00 <= w2 && w2 <= 0xDFFF; }
 
-    static constexpr code_point combine_surrogate(utype w1, utype w2)
+    static constexpr code_point combine_surrogate(utype w1, utype w2) noexcept
     {
         return ((static_cast<code_point>(w1 & 0x03FF) << 10) | (w2 & 0x03FF)) + 0x10000;
     }
 
-    static constexpr size_t trail_count(utype c)
+    static constexpr size_t trail_count(utype c) noexcept
     {
         if (is_first_surrogate(c))
         {
@@ -285,11 +285,11 @@ struct utf_base_traits<2> // utf16
         return 0;
     }
 
-    static constexpr bool is_trail(utype c) { return is_second_surrogate(c); }
-    static constexpr bool is_lead(utype c) { return !is_second_surrogate(c); }
+    static constexpr bool is_trail(utype c) noexcept { return is_second_surrogate(c); }
+    static constexpr bool is_lead(utype c) noexcept { return !is_second_surrogate(c); }
 
-    static constexpr size_t max_width() { return 2; }
-    static constexpr size_t width(code_point c) { return c >= 0x10000 ? 2 : 1; }
+    static constexpr size_t max_width() noexcept { return 2; }
+    static constexpr size_t width(code_point c) noexcept { return c >= 0x10000 ? 2 : 1; }
 };
 
 template <typename char_t>
@@ -376,7 +376,7 @@ struct utf_base_traits<4> // utf32
 {
     using utype = uint32_t;
 
-    static constexpr size_t trail_count(utype c)
+    static constexpr size_t trail_count(utype c) noexcept
     {
         if (is_valid_codepoint(c))
         {
@@ -386,11 +386,11 @@ struct utf_base_traits<4> // utf32
         return INVALID_TRAIL_COUNT;
     }
 
-    static constexpr bool is_trail(utype c) { return false; }
-    static constexpr bool is_lead(utype c) { return true; }
+    static constexpr bool is_trail(utype c) noexcept { return false; }
+    static constexpr bool is_lead(utype c) noexcept { return true; }
 
-    static constexpr size_t max_width() { return 1; }
-    static constexpr size_t width(code_point c) { return 1; }
+    static constexpr size_t max_width() noexcept { return 1; }
+    static constexpr size_t width(code_point c) noexcept { return 1; }
 };
 
 template <typename char_t>

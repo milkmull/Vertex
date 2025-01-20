@@ -1,7 +1,3 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_LIBRARY)
-
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/shared_library.hpp"
 
@@ -30,5 +26,3 @@ private:
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_LIBRARY

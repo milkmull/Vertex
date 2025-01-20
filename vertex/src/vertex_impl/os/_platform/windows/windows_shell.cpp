@@ -1,9 +1,5 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_SHELL)
-
+#include "vertex_impl/os/_platform/windows/windows_shell.hpp"
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
-#include "vertex/os/shell.hpp"
 #include "vertex/util/string/string.hpp"
 
 namespace vx {
@@ -11,7 +7,7 @@ namespace os {
 
 // https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shellexecutew
 
-VX_API bool shell_open(const std::string& uri)
+bool shell_open_impl(const std::string& uri)
 {
     // MSDN says to make sure COM is initialized for safety
     windows::com_scoped_initializer com;
@@ -43,5 +39,3 @@ VX_API bool shell_open(const std::string& uri)
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_SHELL

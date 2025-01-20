@@ -36,8 +36,8 @@ private:
 
 public:
 
-    constexpr time_point() : m_count(0) {}
-    constexpr explicit time_point(int64_t ns) : m_count(ns) {}
+    constexpr time_point() noexcept : m_count(0) {}
+    constexpr explicit time_point(int64_t ns) noexcept : m_count(ns) {}
 
 public:
 
@@ -81,7 +81,7 @@ public:
     // Epoch difference between 1601-01-01 and 1970-01-01 in 100 nanosecond units
 #   define DELTA_EPOCH_1601_100NS (11644473600ull * 10000000ull)
 
-    static constexpr time_point from_windows_file_time(uint32_t low, uint32_t high)
+    static constexpr time_point from_windows_file_time(uint32_t low, uint32_t high) noexcept
     {
         // Convert FILETIME (100-nanosecond intervals since 1601-01-01) to a 64-bit integer
         uint64_t wtime = (static_cast<uint64_t>(high) << 32) | low;
@@ -91,7 +91,7 @@ public:
         return time_point{ static_cast<int64_t>(ticks) };
     }
 
-    constexpr void to_windows_file_time(uint32_t& low, uint32_t& high) const
+    constexpr void to_windows_file_time(uint32_t& low, uint32_t& high) const noexcept
     {
         // Convert time_point from nanoseconds since Unix epoch to 100-nanosecond intervals since 1601-01-01
         uint64_t wtime = static_cast<uint64_t>((m_count / 100) + DELTA_EPOCH_1601_100NS);
@@ -109,32 +109,32 @@ public:
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count == rhs.m_count;
     }
 
-    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
-    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count < rhs.m_count;
     }
 
-    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count > rhs.m_count;
     }
 
-    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count <= rhs.m_count;
     }
 
-    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count >= rhs.m_count;
     }
@@ -143,12 +143,12 @@ public:
     // unary const operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    constexpr time_point operator+() const
+    constexpr time_point operator+() const noexcept
     {
         return time_point(+m_count);
     }
 
-    constexpr time_point operator-() const
+    constexpr time_point operator-() const noexcept
     {
         return time_point(-m_count);
     }

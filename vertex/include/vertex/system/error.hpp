@@ -59,7 +59,8 @@ enum code : error_t
     FILE_CORRUPT,           // File is corrupted or unreadable
 
     // Platform-specific error
-    PLATFORM_ERROR          // Error specific to the platform, e.g., system-level failures
+    PLATFORM_ERROR,         // Error specific to the platform, e.g., system-level failures
+    UNSUPPORTED             // Operation is unsupported on the current platform
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -69,14 +70,14 @@ enum code : error_t
 /// 
 /// @return A string representaion of the error code.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API const char* code_to_string(code err);
+VX_API const char* code_to_string(code err) noexcept;
 
 struct info
 {
     code err = code::NONE;
     std::string message;
 
-    inline explicit operator bool() const { return (err != code::NONE); }
+    inline explicit operator bool() const noexcept { return (err != code::NONE); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,7 +94,7 @@ struct info
 /// @return Error info structure containing the error code and message. An
 /// error code of code::NONE indicates no error.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API info get();
+VX_API info get() noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread.
@@ -101,7 +102,7 @@ VX_API info get();
 /// @param err The error code.
 /// @param msg The error message.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err, const std::string& msg);
+VX_API void set(code err, const std::string& msg) noexcept(!VX_DEBUG);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread using the default error
@@ -109,28 +110,34 @@ VX_API void set(code err, const std::string& msg);
 /// 
 /// @param err The error code.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err);
+VX_API void set(code err) noexcept(!VX_DEBUG);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Clears all error information for the current thread.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void clear();
+VX_API void clear() noexcept(!VX_DEBUG);
 
 namespace __detail {
 
 struct error_stream
 {
-    error_stream(code err) : err(err) {}
-    ~error_stream() { set(err, stream.str()); }
+    error_stream(code err) noexcept(!VX_DEBUG) : err(err) {}
+    ~error_stream() noexcept(!VX_DEBUG) { set(err, stream.str()); }
 
     code err;
     std::ostringstream stream;
 };
 
+inline void unsupported(const char* operation)
+{
+    error_stream(UNSUPPORTED).stream << operation << " is not a supported operation on this platform";
+}
+
 } // namespace __detail
 
 #define VX_ERR(ec) ::vx::err::__detail::error_stream(ec).stream
 #define VX_ERR_DEFAULT(ec) ::vx::err::__detail::set_error(ec)
+#define VX_UNSUPPORTED(op) ::vx::err::__detail::unsupported(op)
 
 } // namespace err
 } // namespace vx

@@ -1,14 +1,10 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_MEMORY)
-
+#include "vertex_impl/os/_platform/windows/windows_memory.hpp"
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
-#include "vertex/os/memory.hpp"
 
 namespace vx {
 namespace os {
 
-VX_API bool get_memory_info(memory_info& info)
+bool get_memory_info_impl(memory_info& info)
 {
     PERFORMANCE_INFORMATION pi{ sizeof(PERFORMANCE_INFORMATION) };
 
@@ -27,5 +23,3 @@ VX_API bool get_memory_info(memory_info& info)
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_MEMORY

@@ -1,12 +1,7 @@
 #pragma once
 
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_FILE)
-
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/file.hpp"
-#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {
@@ -49,5 +44,3 @@ private:
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_FILE

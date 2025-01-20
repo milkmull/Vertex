@@ -1,8 +1,6 @@
-#include <algorithm>
-
 #include "vertex/system/platform_config.hpp"
 
-#if defined(__VX_OS_WINDOWS_PROCESS)
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_platform/windows/windows_process.hpp"
 #else
 

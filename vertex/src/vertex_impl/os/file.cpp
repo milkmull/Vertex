@@ -1,9 +1,7 @@
 #include "vertex/system/platform_config.hpp"
 
-#if defined(__VX_OS_WINDOWS_FILE)
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_platform/windows/windows_file.hpp"
-#else
-
 #endif
 
 namespace vx {

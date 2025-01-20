@@ -1,7 +1,3 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_LIBRARY)
-
 #include "vertex_impl/os/_platform/windows/windows_shared_library.hpp"
 #include "vertex/util/string/string.hpp"
 
@@ -51,5 +47,3 @@ void* shared_library::shared_library_impl::get_function(const std::string& name)
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_LIBRARY

@@ -7,7 +7,7 @@
 namespace vx {
 namespace err {
 
-VX_API const char* code_to_string(code err)
+VX_API const char* code_to_string(code err) noexcept
 {
     switch (err)
     {
@@ -40,6 +40,7 @@ VX_API const char* code_to_string(code err)
         case code::FILE_CORRUPT:                return "file corrupt";
 
         case code::PLATFORM_ERROR:              return "platform error";
+        case code::UNSUPPORTED:                 return "unsupported operation";
         default:                                return "";
     }
 }
@@ -50,12 +51,12 @@ static thread_local info s_err;
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API info get()
+VX_API info get() noexcept
 {
     return s_err;
 }
 
-VX_API void set(code err, const std::string& msg)
+VX_API void set(code err, const std::string& msg) noexcept(!VX_DEBUG)
 {
 #if (VX_DEBUG)
     std::cerr << static_cast<int>(err) << ": " << msg;
@@ -65,12 +66,12 @@ VX_API void set(code err, const std::string& msg)
     s_err.message = msg;
 }
 
-VX_API void set(code err)
+VX_API void set(code err) noexcept(!VX_DEBUG)
 {
     set(err, code_to_string(err));
 }
 
-VX_API void clear()
+VX_API void clear() noexcept(!VX_DEBUG)
 {
     set(code::NONE, std::string());
 }

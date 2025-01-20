@@ -2,7 +2,6 @@
 file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/info.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mutex.hpp"
@@ -11,6 +10,7 @@ file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/process.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shared_library.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/system_info.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shell.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/thread.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"

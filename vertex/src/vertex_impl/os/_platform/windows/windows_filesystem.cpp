@@ -1,7 +1,3 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
 #include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/os/shared_library.hpp"
@@ -14,7 +10,7 @@ namespace filesystem {
 // File Permissions
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool update_file_permissions_impl(
+static bool update_file_permissions_internal(
     const path& p,
     bool read_only,
     bool follow_symlinks
@@ -86,7 +82,7 @@ static bool update_file_permissions_impl(
     return true;
 }
 
-VX_API bool update_file_permissions(
+bool update_file_permissions_impl(
     const path& p,
     typename file_permissions::type permissions,
     file_permission_operator op,
@@ -130,7 +126,7 @@ VX_API bool update_file_permissions(
         }
     }
 
-    return update_file_permissions_impl(p, read_only, follow_symlinks);
+    return update_file_permissions_internal(p, read_only, follow_symlinks);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -314,7 +310,7 @@ static file_info file_info_from_handle(const windows::handle& h, const path& p)
     return info;
 }
 
-VX_API file_info get_file_info(const path& p)
+file_info get_file_info_impl(const path& p)
 {
     file_info info = get_symlink_info(p);
 
@@ -345,7 +341,7 @@ VX_API file_info get_file_info(const path& p)
     return info;
 }
 
-VX_API file_info get_symlink_info(const path& p)
+file_info get_symlink_info_impl(const path& p)
 {
     file_info info{};
 
@@ -374,7 +370,7 @@ VX_API file_info get_symlink_info(const path& p)
 
 // https://github.com/microsoft/STL/blob/90820002693fe6eaaec2e55884472c654186207e/stl/src/filesystem.cpp#L542
 
-VX_API path read_symlink(const path& p)
+path read_symlink_impl(const path& p)
 {
     path symlink_path;
 
@@ -421,7 +417,7 @@ VX_API path read_symlink(const path& p)
 // Path Operators
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API path get_current_path()
+path get_current_path_impl()
 {
     const DWORD size = GetCurrentDirectoryW(0, NULL);
     std::vector<WCHAR> data(size);
@@ -435,7 +431,7 @@ VX_API path get_current_path()
     return path{ data.data() };
 }
 
-VX_API bool set_current_path(const path& p)
+bool set_current_path_impl(const path& p)
 {
     if (!SetCurrentDirectoryW(p.c_str()))
     {
@@ -446,7 +442,7 @@ VX_API bool set_current_path(const path& p)
     return true;
 }
 
-VX_API path absolute(const path& p)
+path absolute_impl(const path& p)
 {
     const DWORD size = GetFullPathNameW(p.c_str(), 0, NULL, NULL);
     std::vector<WCHAR> data(size);
@@ -464,7 +460,7 @@ VX_API path absolute(const path& p)
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API path get_temp_path()
+path get_temp_path_impl()
 {
     static path temp_path_cache;
 
@@ -512,7 +508,7 @@ VX_API path get_temp_path()
     return temp_path_cache;
 }
 
-VX_API path get_user_folder(user_folder folder)
+path get_user_folder_impl(user_folder folder)
 {
     path p;
 
@@ -574,7 +570,7 @@ VX_API path get_user_folder(user_folder folder)
 // Create
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool create_file(const path& p)
+bool create_file_impl(const path& p)
 {
     const windows::handle h = CreateFileW(
         p.c_str(),
@@ -609,17 +605,17 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
     return true;
 }
 
-VX_API bool create_symlink(const path& target, const path& link)
+bool create_symlink_impl(const path& target, const path& link)
 {
     return create_symlink_impl(target, link, 0);
 }
 
-VX_API bool create_directory_symlink(const path& target, const path& link)
+bool create_directory_symlink_impl(const path& target, const path& link)
 {
     return create_symlink_impl(target, link, SYMBOLIC_LINK_FLAG_DIRECTORY);
 }
 
-VX_API bool create_directory(const path& p)
+bool create_directory_impl(const path& p)
 {
     if (!CreateDirectoryW(p.c_str(), NULL))
     {
@@ -656,7 +652,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 
 // https://github.com/microsoft/STL/blob/04081522161549b18fa0b0fae0d2a531ee967958/stl/src/filesystem.cpp#L720
 
-VX_API bool rename(const path& from, const path& to)
+bool rename_impl(const path& from, const path& to)
 {
     if (!MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
     {
@@ -740,6 +736,36 @@ static bool is_dot_or_dotdot(const wchar_t* filename)
     return filename[2] == 0;
 }
 
+static void close_directory_iterator(windows::handle& h)
+{
+    if (h.is_valid() && !FindClose(h.get()))
+    {
+        std::abort();
+    }
+
+    h.reset();
+}
+
+static void update_directory_iterator_entry(const path& p, directory_entry& entry, windows::handle& h, const WIN32_FIND_DATAW& find_data)
+{
+    if (h.is_valid())
+    {
+        entry.path = p / find_data.cFileName;
+        entry.info = create_file_info(
+            entry.path,
+            find_data.dwFileAttributes,
+            find_data.nFileSizeHigh,
+            find_data.nFileSizeLow,
+            find_data.ftCreationTime,
+            find_data.ftLastAccessTime
+        );
+    }
+    else
+    {
+        close_directory_iterator(h);
+    }
+}
+
 static void advance_directory_iterator_once(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
 {
     if (FindNextFileW(h.get(), &find_data))
@@ -752,7 +778,16 @@ static void advance_directory_iterator_once(const path& p, directory_entry& entr
     }
 }
 
-void open_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+static void advance_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+{
+    do
+    {
+        advance_directory_iterator_once(p, entry, h, find_data);
+
+    } while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName));
+}
+
+static void open_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
 {
     close_directory_iterator(h);
 
@@ -774,47 +809,80 @@ void open_directory_iterator(const path& p, directory_entry& entry, windows::han
     }
 }
 
-void advance_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
-{
-    do
-    {
-        advance_directory_iterator_once(p, entry, h, find_data);
+///////////////////////////////////////////////////////////////////////////////
+// Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
 
-    } while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName));
+void directory_iterator::directory_iterator_impl::open()
+{
+    open_directory_iterator(m_path, m_entry, m_handle, m_find_data);
 }
 
-void update_directory_iterator_entry(const path& p, directory_entry& entry, windows::handle& h, const WIN32_FIND_DATAW& find_data)
+void directory_iterator::directory_iterator_impl::close()
 {
-    if (h.is_valid())
+    close_directory_iterator(m_handle);
+}
+
+void directory_iterator::directory_iterator_impl::advance()
+{
+    advance_directory_iterator(m_path, m_entry, m_handle, m_find_data);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Recursive Directory Iterator
+///////////////////////////////////////////////////////////////////////////////
+
+bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack()
+{
+    m_path /= m_entry.path.filename();
+    windows::handle h;
+    open_directory_iterator(m_path, m_entry, h, m_find_data);
+
+    if (!h.is_valid())
     {
-        entry.path = p / find_data.cFileName;
-        entry.info = create_file_info(
-            entry.path,
-            find_data.dwFileAttributes,
-            find_data.nFileSizeHigh,
-            find_data.nFileSizeLow,
-            find_data.ftCreationTime,
-            find_data.ftLastAccessTime
-        );
+        close_directory_iterator(h);
+        return false;
+    }
+
+    m_stack.push_back(std::move(h));
+    return true;
+}
+
+void recursive_directory_iterator::recursive_directory_iterator_impl::pop_stack()
+{
+    m_path.pop_back();
+    close_directory_iterator(m_stack.back());
+    m_stack.pop_back();
+}
+
+void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
+{
+    windows::handle* current = &m_stack.back();
+
+    if (m_recursion_pending && push_stack())
+    {
+        current = &m_stack.back();
     }
     else
     {
-        close_directory_iterator(h);
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
     }
-}
 
-void close_directory_iterator(windows::handle& h)
-{
-    if (h.is_valid() && !FindClose(h.get()))
+    while (!current->is_valid())
     {
-        std::abort();
+        pop_stack();
+        if (m_stack.empty())
+        {
+            break;
+        }
+
+        current = &m_stack.back();
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
     }
 
-    h.reset();
+    m_recursion_pending = m_entry.is_directory();
 }
 
 } // namespace filesystem
 } // namespace os
 } // namespace vx
-
-#endif // __VX_OS_WINDOWS_FILESYSTEM

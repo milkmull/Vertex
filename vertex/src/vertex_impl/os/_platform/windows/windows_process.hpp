@@ -1,9 +1,7 @@
-#include "vertex/system/platform_config.hpp"
+#pragma once
 
-#if defined(__VX_OS_WINDOWS_PROCESS)
-
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/process.hpp"
+#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -37,5 +35,3 @@ private:
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_PROCESS

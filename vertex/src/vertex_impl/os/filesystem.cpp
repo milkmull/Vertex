@@ -1,9 +1,7 @@
 #include "vertex/system/platform_config.hpp"
 
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+#if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
-#else
-
 #endif
 
 #include "vertex/system/error.hpp"
@@ -13,8 +11,60 @@ namespace os {
 namespace filesystem {
 
 ///////////////////////////////////////////////////////////////////////////////
+// File Permissions
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool update_file_permissions(
+    const path& p,
+    typename file_permissions::type permissions,
+    file_permission_operator op,
+    bool follow_symlinks
+)
+{
+    return update_file_permissions_impl(p, permissions, op, follow_symlinks);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// File Info
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API file_info get_file_info(const path& p)
+{
+    return get_file_info_impl(p);
+}
+
+VX_API file_info get_symlink_info(const path& p)
+{
+    return get_symlink_info_impl(p);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Read Symlink
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API path read_symlink(const path& p)
+{
+    return read_symlink_impl(p);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Path Operators
 ///////////////////////////////////////////////////////////////////////////////
+
+VX_API path get_current_path()
+{
+    return get_current_path_impl();
+}
+
+VX_API bool set_current_path(const path& p)
+{
+    return set_current_path_impl(p);
+}
+
+VX_API path absolute(const path& p)
+{
+    return absolute_impl(p);
+}
 
 VX_API path relative(const path& p, const path& base)
 {
@@ -29,8 +79,46 @@ VX_API bool equivalent(const path& p1, const path& p2)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// System Paths
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API path get_temp_path()
+{
+    return get_temp_path_impl();
+}
+
+VX_API path get_user_folder(user_folder folder)
+{
+    return get_user_folder_impl(folder);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // Create
 ///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// Create
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool create_file(const path& p)
+{
+    return create_file_impl(p);
+}
+
+VX_API bool create_symlink(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link);
+}
+
+VX_API bool create_directory_symlink(const path& target, const path& link)
+{
+    return create_directory_symlink_impl(target, link);
+}
+
+VX_API bool create_directory(const path& p)
+{
+    return create_directory_impl(p);
+}
 
 VX_API bool create_directories(const path& p)
 {
@@ -250,6 +338,15 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
     }
 
     return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Rename
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool rename(const path& from, const path& to)
+{
+    return rename_impl(from, to);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -18,12 +18,12 @@ struct is_unsigned_integral : std::bool_constant<std::is_integral<T>::value&& st
 // byteswap
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_FORCE_INLINE uint8_t byteswap(uint8_t x)
+VX_FORCE_INLINE uint8_t byteswap(uint8_t x) noexcept
 {
     return x;
 }
 
-VX_FORCE_INLINE uint16_t byteswap(uint16_t x)
+VX_FORCE_INLINE uint16_t byteswap(uint16_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap16)
 
@@ -40,7 +40,7 @@ VX_FORCE_INLINE uint16_t byteswap(uint16_t x)
 #endif
 }
 
-VX_FORCE_INLINE uint32_t byteswap(uint32_t x)
+VX_FORCE_INLINE uint32_t byteswap(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap32)
 
@@ -57,7 +57,7 @@ VX_FORCE_INLINE uint32_t byteswap(uint32_t x)
 #endif
 }
 
-VX_FORCE_INLINE uint64_t byteswap(uint64_t x)
+VX_FORCE_INLINE uint64_t byteswap(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap64)
 
@@ -82,7 +82,7 @@ VX_FORCE_INLINE uint64_t byteswap(uint64_t x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE T rotl(T x, unsigned int shift)
+VX_FORCE_INLINE T rotl(T x, unsigned int shift) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -91,7 +91,7 @@ VX_FORCE_INLINE T rotl(T x, unsigned int shift)
     return (x << shift) | (x >> ((-shift) & mask));
 }
 
-VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift)
+VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
@@ -104,7 +104,7 @@ VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint16_t rotl(uint16_t x, unsigned int shift)
+VX_FORCE_INLINE uint16_t rotl(uint16_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
@@ -117,7 +117,7 @@ VX_FORCE_INLINE uint16_t rotl(uint16_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift)
+VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft32)
 
@@ -134,7 +134,7 @@ VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift)
+VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft64)
 
@@ -156,7 +156,7 @@ VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE T rotr(T x, unsigned int shift)
+VX_FORCE_INLINE T rotr(T x, unsigned int shift) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -165,7 +165,7 @@ VX_FORCE_INLINE T rotr(T x, unsigned int shift)
     return (x >> shift) | (x << ((-shift) & mask));
 }
 
-VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift)
+VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
@@ -178,7 +178,7 @@ VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint16_t rotr(uint16_t x, unsigned int shift)
+VX_FORCE_INLINE uint16_t rotr(uint16_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
@@ -191,7 +191,7 @@ VX_FORCE_INLINE uint16_t rotr(uint16_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift)
+VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright32)
 
@@ -208,7 +208,7 @@ VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift)
 #endif
 }
 
-VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift)
+VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright64)
 
@@ -230,7 +230,7 @@ VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int countl_zero(T x)
+VX_FORCE_INLINE int countl_zero(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -251,7 +251,7 @@ VX_FORCE_INLINE int countl_zero(T x)
     return n;
 }
 
-VX_FORCE_INLINE int countl_zero(uint32_t x)
+VX_FORCE_INLINE int countl_zero(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clz)
 
@@ -274,7 +274,7 @@ VX_FORCE_INLINE int countl_zero(uint32_t x)
 #endif
 }
 
-VX_FORCE_INLINE int countl_zero(uint64_t x)
+VX_FORCE_INLINE int countl_zero(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clzll)
 
@@ -302,7 +302,7 @@ VX_FORCE_INLINE int countl_zero(uint64_t x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int countl_one(T x)
+VX_FORCE_INLINE int countl_one(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -314,7 +314,7 @@ VX_FORCE_INLINE int countl_one(T x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int countr_zero(T x)
+VX_FORCE_INLINE int countr_zero(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -333,7 +333,7 @@ VX_FORCE_INLINE int countr_zero(T x)
     return n;
 }
 
-VX_FORCE_INLINE int countr_zero(uint32_t x)
+VX_FORCE_INLINE int countr_zero(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctz)
 
@@ -356,7 +356,7 @@ VX_FORCE_INLINE int countr_zero(uint32_t x)
 #endif
 }
 
-VX_FORCE_INLINE int countr_zero(uint64_t x)
+VX_FORCE_INLINE int countr_zero(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctzll)
 
@@ -384,7 +384,7 @@ VX_FORCE_INLINE int countr_zero(uint64_t x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int countr_one(T x)
+VX_FORCE_INLINE int countr_one(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -396,7 +396,7 @@ VX_FORCE_INLINE int countr_one(T x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int popcount(T x)
+VX_FORCE_INLINE int popcount(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -411,7 +411,7 @@ VX_FORCE_INLINE int popcount(T x)
     return n;
 }
 
-VX_FORCE_INLINE int popcount(uint32_t x)
+VX_FORCE_INLINE int popcount(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcount)
 
@@ -428,7 +428,7 @@ VX_FORCE_INLINE int popcount(uint32_t x)
 #endif
 }
 
-VX_FORCE_INLINE int popcount(uint64_t x)
+VX_FORCE_INLINE int popcount(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcountll)
 
@@ -450,7 +450,7 @@ VX_FORCE_INLINE int popcount(uint64_t x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int has_single_bit(T x)
+VX_FORCE_INLINE int has_single_bit(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -462,7 +462,7 @@ VX_FORCE_INLINE int has_single_bit(T x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int bit_width(T x)
+VX_FORCE_INLINE int bit_width(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -474,7 +474,7 @@ VX_FORCE_INLINE int bit_width(T x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int bit_ceil(T x)
+VX_FORCE_INLINE int bit_ceil(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
@@ -496,7 +496,7 @@ VX_FORCE_INLINE int bit_ceil(T x)
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int bit_floor(T x)
+VX_FORCE_INLINE int bit_floor(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 

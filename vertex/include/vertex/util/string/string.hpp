@@ -21,8 +21,8 @@ inline T from_string(const std::string& s);
 // contains
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr bool contains(const str_arg_t& s, const char val);
-constexpr bool contains(const str_arg_t& s, const str_arg_t& val);
+constexpr bool contains(const str_arg_t& s, const char val) noexcept;
+constexpr bool contains(const str_arg_t& s, const str_arg_t& val) noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 // count
@@ -35,15 +35,15 @@ inline size_t count(const str_arg_t& s, const str_arg_t& val);
 // starts_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr bool starts_with(const str_arg_t& s, const char prefix);
-constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix);
+constexpr bool starts_with(const str_arg_t& s, const char prefix) noexcept;
+constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix) noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 // ends_with
 ///////////////////////////////////////////////////////////////////////////////
 
-constexpr bool ends_with(const str_arg_t& s, const char suffix);
-constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix);
+constexpr bool ends_with(const str_arg_t& s, const char suffix) noexcept;
+constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix) noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 // alpha

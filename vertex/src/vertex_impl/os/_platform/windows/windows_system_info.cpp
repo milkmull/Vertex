@@ -1,7 +1,3 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_INFO)
-
 #include <vector>
 
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
@@ -92,12 +88,12 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     return success;
 }
 
-VX_API const char* get_name()
+const char* get_name_impl()
 {
     return "Windows";
 }
 
-VX_API std::string get_model_name()
+std::string get_model_name_impl()
 {
     static value_cache cache = { false, "Unknown" };
 
@@ -114,7 +110,7 @@ VX_API std::string get_model_name()
     return cache.value;
 }
 
-VX_API std::string get_system_name()
+std::string get_system_name_impl()
 {
     static value_cache cache = { false, "Unknown" };
 
@@ -138,7 +134,7 @@ VX_API std::string get_system_name()
     return cache.value;
 }
 
-VX_API std::string get_processor_name()
+std::string get_processor_name_impl()
 {
     static value_cache cache = { false, "Unknown" };
 
@@ -155,14 +151,14 @@ VX_API std::string get_processor_name()
     return cache.value;
 }
 
-VX_API uint32_t get_processor_count()
+uint32_t get_processor_count_impl()
 {
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     return static_cast<uint32_t>(sysInfo.dwNumberOfProcessors);
 }
 
-VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
+bool get_version_impl(uint32_t* major, uint32_t* minor, uint32_t* patch)
 {
     using RtlGetVersion_t = NTSTATUS(WINAPI*)(PRTL_OSVERSIONINFOW lpVersionInformation);
 
@@ -203,5 +199,3 @@ VX_API bool get_version(uint32_t* major, uint32_t* minor, uint32_t* patch)
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_INFO

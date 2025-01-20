@@ -1,28 +1,23 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_TIME)
-
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/time.hpp"
 
 namespace vx {
+namespace os {
 
-namespace time {
-
-datetime time_point::to_datetime(bool local) const
+time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool local)
 {
     uint32_t low, high;
-    to_windows_file_time(low, high);
+    tp.to_windows_file_time(low, high);
     FILETIME ft{ static_cast<DWORD>(low), static_cast<DWORD>(high) };
 
     SYSTEMTIME utc_st, local_st;
     SYSTEMTIME* st = NULL;
 
-    datetime dt{};
+    time::datetime dt{};
 
     if (!FileTimeToSystemTime(&ft, &utc_st))
     {
-        os::windows::error_message("FileTimeToSystemTime()");
+        windows::error_message("FileTimeToSystemTime()");
         return dt;
     }
 
@@ -30,20 +25,20 @@ datetime time_point::to_datetime(bool local) const
     {
         if (!SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
         {
-            os::windows::error_message("SystemTimeToTzSpecificLocalTime()");
+            windows::error_message("SystemTimeToTzSpecificLocalTime()");
             return dt;
         }
 
         FILETIME local_ft{};
         if (!SystemTimeToFileTime(&local_st, &local_ft))
         {
-            os::windows::error_message("SystemTimeToFileTime()");
+            windows::error_message("SystemTimeToFileTime()");
             return dt;
         }
 
-        time_point local_ticks = time_point::from_windows_file_time(local_ft.dwLowDateTime, local_ft.dwHighDateTime);
+        time::time_point local_ticks = time::time_point::from_windows_file_time(local_ft.dwLowDateTime, local_ft.dwHighDateTime);
         // Convert from nanoseconds to seconds
-        dt.utc_offset_seconds = static_cast<int32_t>((local_ticks - *this).as_seconds());
+        dt.utc_offset_seconds = static_cast<int32_t>((local_ticks - tp).as_seconds());
         st = &local_st;
     }
     else
@@ -60,23 +55,23 @@ datetime time_point::to_datetime(bool local) const
     dt.minute = static_cast<int32_t>(st->wMinute);
     dt.second = static_cast<int32_t>(st->wSecond);
     // Extract nanoseconds within the second
-    dt.nanosecond = static_cast<int32_t>(as_nanoseconds() % std::nano::den);
+    dt.nanosecond = static_cast<int32_t>(tp.as_nanoseconds() % std::nano::den);
 
     return dt;
 }
 
-} // namespace time
+///////////////////////////////////////////////////////////////////////////////
+// Current Time
+///////////////////////////////////////////////////////////////////////////////
 
-namespace os {
-
-VX_API time::time_point system_time()
+time::time_point system_time_impl() noexcept
 {
     FILETIME ft{};
-    GetSystemTimeAsFileTime(&ft);
+    GetSystemTimePreciseAsFileTime(&ft);
     return time::time_point::from_windows_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
 }
 
-VX_API int64_t get_performance_counter()
+int64_t get_performance_counter_impl() noexcept
 {
     LARGE_INTEGER counter{};
     if (!QueryPerformanceCounter(&counter))
@@ -86,7 +81,7 @@ VX_API int64_t get_performance_counter()
     return static_cast<int64_t>(counter.QuadPart);
 }
 
-VX_API int64_t get_performance_frequency()
+int64_t get_performance_frequency_impl() noexcept
 {
     LARGE_INTEGER frequency{};
     if (!QueryPerformanceFrequency(&frequency))
@@ -100,7 +95,7 @@ VX_API int64_t get_performance_frequency()
 // Delay
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API void sleep(const time::time_point& t)
+void sleep_impl(const time::time_point& t) noexcept
 {
     Sleep(static_cast<DWORD>(t.as_milliseconds()));
 }
@@ -108,5 +103,3 @@ VX_API void sleep(const time::time_point& t)
 } // namespace os
 
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_TIME

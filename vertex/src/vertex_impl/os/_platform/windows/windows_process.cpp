@@ -1,7 +1,4 @@
 #include "vertex_impl/os/_platform/windows/windows_process.hpp"
-
-#if defined(__VX_OS_WINDOWS_PROCESS)
-
 #include "vertex_impl/os/_platform/windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/time.hpp"
@@ -567,5 +564,3 @@ VX_API bool this_process::clear_environment_variable(const std::string& name)
 
 } // namespace os
 } // namespace vx
-
-#endif // __VX_OS_WINDOWS_PROCESS

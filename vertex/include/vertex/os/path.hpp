@@ -20,9 +20,11 @@ class path;
 
 namespace __detail {
 
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+#if defined(VX_PLATFORM_WINDOWS)
 
 using value_type = wchar_t;
+
+#   define PATH_TEXT(x) L##x
 
 #   define PATH_SEPARATOR L'/'
 #   define PATH_PREFERRED_SEPARATOR L'\\'
@@ -63,7 +65,7 @@ struct substring
     size_t size;
 };
 
-static constexpr bool is_directory_separator(value_type c)
+inline constexpr bool is_directory_separator(value_type c) noexcept
 {
     return c == PATH_SEPARATOR
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
@@ -72,7 +74,7 @@ static constexpr bool is_directory_separator(value_type c)
         ;
 }
 
-static constexpr bool is_element_separator(value_type c)
+inline constexpr bool is_element_separator(value_type c) noexcept
 {
     return is_directory_separator(c)
 #if defined(__VX_OS_WINDOWS_FILESYSTEM)
@@ -81,10 +83,10 @@ static constexpr bool is_element_separator(value_type c)
         ;
 }
 
-static constexpr bool is_letter(value_type c)
+inline constexpr bool is_letter(value_type c) noexcept
 {
-    return (c >= VX_TEXT('A') && c <= VX_TEXT('Z'))
-        || (c >= VX_TEXT('a') && c <= VX_TEXT('z'));
+    return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
+        || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
 }
 
 static inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
@@ -100,7 +102,7 @@ static inline size_t find_separator(const value_type* p, size_t off, size_t size
 }
 
 // Returns a pointer to the end of the root name if it exists, otherwise last
-static size_t find_root_name_end(const value_type* first, size_t size)
+inline size_t find_root_name_end(const value_type* first, size_t size)
 {
     if (size < 2)
     {
@@ -167,13 +169,13 @@ static size_t find_root_name_end(const value_type* first, size_t size)
     return 0;
 }
 
-static substring parse_root_name(const string_type& s)
+inline substring parse_root_name(const string_type& s)
 {
     const size_t size = find_root_name_end(s.c_str(), s.size());
     return substring{ 0, size };
 }
 
-static substring parse_root_directory(const string_type& s)
+inline substring parse_root_directory(const string_type& s)
 {
     const size_t size = s.size();
     const size_t off = find_root_name_end(s.c_str(), size);
@@ -188,19 +190,19 @@ static substring parse_root_directory(const string_type& s)
     return substring{ off, count };
 }
 
-static substring parse_root_path(const string_type& s)
+inline substring parse_root_path(const string_type& s)
 {
     const auto root_directory = parse_root_directory(s);
     return substring{ 0, root_directory.pos + root_directory.size };
 }
 
-static substring parse_relative_path(const string_type& s)
+inline substring parse_relative_path(const string_type& s)
 {
     const auto root_path = parse_root_path(s);
     return substring{ root_path.size, s.size() - root_path.size };
 }
 
-static substring parse_parent_path(const string_type& s)
+inline substring parse_parent_path(const string_type& s)
 {
     const auto relative_path = parse_relative_path(s);
     size_t i = relative_path.pos + relative_path.size;
@@ -229,7 +231,7 @@ static substring parse_parent_path(const string_type& s)
     return substring{ 0, i };
 }
 
-static substring parse_filename(const string_type& s)
+inline substring parse_filename(const string_type& s)
 {
     const size_t size = s.size();
 
@@ -246,7 +248,7 @@ static substring parse_filename(const string_type& s)
     return substring{ 0, size };
 }
 
-static substring parse_extension(const string_type& s)
+inline substring parse_extension(const string_type& s)
 {
     const size_t size = s.size();
 
@@ -290,7 +292,7 @@ static substring parse_extension(const string_type& s)
     return substring{ size, 0 };
 }
 
-static substring parse_stem(const string_type& s)
+inline substring parse_stem(const string_type& s)
 {
     const auto extension = parse_extension(s);
 
@@ -803,7 +805,7 @@ public:
 
 #       define last_is_dotdot() ( \
             normalized.size() >= 3 && \
-            normalized.compare(stack.back(), 2, VX_TEXT("..")) == 0 && \
+            normalized.compare(stack.back(), 2, PATH_TEXT("..")) == 0 && \
             normalized.back() == preferred_separator \
         )
 
@@ -837,12 +839,12 @@ public:
             }
 
             // 4. Remove each dot and any immediately following directory-separator.
-            else if (p == VX_TEXT("."))
+            else if (p == PATH_TEXT("."))
             {
                 continue;
             }
 
-            else if (p == VX_TEXT(".."))
+            else if (p == PATH_TEXT(".."))
             {
                 // 5. Remove each non-dot-dot filename immediately followed by a
                 // directory-separator and a dot-dot, along with any immediately
@@ -920,7 +922,7 @@ public:
         // If a == end() and b == base.end(), returns path(".").
         if (pair.first == this_last && pair.second == base_last)
         {
-            return path(VX_TEXT("."));
+            return path(PATH_TEXT("."));
         }
 
         // Otherwise, define N as the number of nonempty filename elements
@@ -935,11 +937,11 @@ public:
             {
                 continue;
             }
-            else if (*pair.second == VX_TEXT(".."))
+            else if (*pair.second == PATH_TEXT(".."))
             {
                 --n;
             }
-            else if (*pair.second != VX_TEXT("."))
+            else if (*pair.second != PATH_TEXT("."))
             {
                 ++n;
             }
@@ -954,7 +956,7 @@ public:
         // If N = 0 and a == end() || a->empty(), returns path("."),
         if (n == 0 && (pair.first == this_last || pair.first->empty()))
         {
-            return path(VX_TEXT("."));
+            return path(PATH_TEXT("."));
         }
 
         // Otherwise returns an object composed from a default-constructed
@@ -966,7 +968,7 @@ public:
 
         while (n--)
         {
-            ret /= VX_TEXT("..");
+            ret /= PATH_TEXT("..");
         }
 
         for (; pair.first != this_last; ++pair.first)
@@ -1041,7 +1043,7 @@ public:
 
     bool empty() const noexcept { return m_path.empty(); }
 
-    bool is_dot_or_dotdot() const noexcept { return m_path == VX_TEXT(".") || m_path == VX_TEXT(".."); }
+    bool is_dot_or_dotdot() const noexcept { return m_path == PATH_TEXT(".") || m_path == PATH_TEXT(".."); }
 
     bool has_root_path() const      { return __detail::parser::parse_root_path(m_path).size != 0; }
     bool has_root_name() const      { return __detail::parser::parse_root_name(m_path).size != 0; }
@@ -1207,5 +1209,7 @@ struct hash<vx::os::path>
         return fnv1a.result();
     }
 };
+
+#undef PATH_TEXT
 
 } // namespace std

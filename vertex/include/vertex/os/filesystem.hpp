@@ -2,7 +2,6 @@
 
 #include "vertex/os/path.hpp"
 #include "vertex/util/time.hpp"
-#include "vertex/util/bit/enum_bitwise_operators.hpp"
 
 namespace vx {
 namespace os {

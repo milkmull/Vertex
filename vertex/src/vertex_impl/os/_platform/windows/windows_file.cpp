@@ -1,9 +1,5 @@
 #include "vertex_impl/os/_platform/windows/windows_file.hpp"
-
-#if defined(__VX_OS_WINDOWS_FILE)
-
 #include "vertex/util/string/string.hpp"
-#include "vertex/system/assert.hpp"
 
 namespace vx {
 namespace os {
@@ -224,5 +220,3 @@ HANDLE file::file_impl::get_handle()
 
 } // namespace os
 } // namespace vx
-
-#endif // __VX_OS_WINDOWS_FILE

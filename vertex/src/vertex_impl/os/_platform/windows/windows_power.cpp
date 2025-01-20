@@ -1,16 +1,11 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(__VX_OS_WINDOWS_POWER)
-
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
-#include "vertex/os/power.hpp"
+#include "vertex_impl/os/_platform/windows/windows_power.hpp"
 
 namespace vx {
 namespace os {
 
 // https://learn.microsoft.com/en-us/windows/win32/api/winbase/ns-winbase-system_power_status
 
-VX_API bool get_power_info(power_info& info)
+bool get_power_info_impl(power_info& info)
 {
     info.state = power_state::UNKNOWN;
     info.percent = BATTERY_PERCENT_UNKNOWN;
@@ -56,5 +51,3 @@ VX_API bool get_power_info(power_info& info)
 
 } // namespace os
 } // namespace vx
-
-#endif // VX_OS_WINDOWS_POWER
