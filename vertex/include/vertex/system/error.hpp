@@ -10,7 +10,7 @@
 
 namespace vx {
 
-using error_t = int;
+using error_t = uint32_t;
 
 namespace err {
 

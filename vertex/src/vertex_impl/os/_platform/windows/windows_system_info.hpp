@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"

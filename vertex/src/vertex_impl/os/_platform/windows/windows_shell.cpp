@@ -1,5 +1,8 @@
-#include "vertex_impl/os/_platform/windows/windows_shell.hpp"
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+
+#include <shellapi.h>
+
+#include "vertex_impl/os/_platform/windows/windows_shell.hpp"
 #include "vertex/util/string/string.hpp"
 
 namespace vx {

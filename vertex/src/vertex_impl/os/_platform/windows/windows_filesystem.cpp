@@ -1,6 +1,38 @@
 #include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
+
+#include <shlobj_core.h>
+#include <winioctl.h> // FSCTL_GET_REPARSE_POINT
+
 #include "vertex/system/error.hpp"
 #include "vertex/os/shared_library.hpp"
+
+// https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_reparse_data_buffer
+
+typedef struct REPARSE_DATA_BUFFER {
+    ULONG  ReparseTag;
+    USHORT ReparseDataLength;
+    USHORT Reserved;
+    union {
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            ULONG  Flags;
+            WCHAR  PathBuffer[1];
+        } SymbolicLinkReparseBuffer;
+        struct {
+            USHORT SubstituteNameOffset;
+            USHORT SubstituteNameLength;
+            USHORT PrintNameOffset;
+            USHORT PrintNameLength;
+            WCHAR  PathBuffer[1];
+        } MountPointReparseBuffer;
+        struct {
+            UCHAR DataBuffer[1];
+        } GenericReparseBuffer;
+    } DUMMYUNIONNAME;
+} REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
 namespace vx {
 namespace os {

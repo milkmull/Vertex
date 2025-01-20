@@ -10,7 +10,7 @@ namespace bit {
 namespace __detail {
 
 template <typename T>
-struct is_unsigned_integral : std::bool_constant<std::is_integral<T>::value&& std::is_unsigned<T>::value> {};
+struct is_unsigned_integral : std::bool_constant<std::is_integral<T>::value && std::is_unsigned<T>::value> {};
 
 } // namespace __detail
 

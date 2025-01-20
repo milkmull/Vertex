@@ -39,6 +39,7 @@ public:
     {
         return m_running;
     }
+
     inline time_point start_time() const
     {
         return m_start_time;

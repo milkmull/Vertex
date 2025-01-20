@@ -480,13 +480,13 @@ bool process::process_impl::get_exit_code(int* exit_code) const
 // this_process
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API process::id this_process::get_pid()
+process::id this_process::get_pid_impl() noexcept
 {
     const DWORD pid = GetCurrentProcessId();
     return static_cast<process::id>(pid);
 }
 
-VX_API process::environment this_process::get_environment()
+process::environment this_process::get_environment_impl()
 {
     process::environment environment;
 
@@ -521,7 +521,7 @@ VX_API process::environment this_process::get_environment()
     return environment;
 }
 
-VX_API std::string this_process::get_environment_variable(const std::string& name)
+std::string this_process::get_environment_variable_impl(const std::string& name)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
 
@@ -537,7 +537,7 @@ VX_API std::string this_process::get_environment_variable(const std::string& nam
     return str::string_cast<char>(wvalue);
 }
 
-VX_API bool this_process::set_environment_variable(const std::string& name, const std::string& value)
+bool this_process::set_environment_variable_impl(const std::string& name, const std::string& value)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
     const std::wstring wvalue(str::string_cast<wchar_t>(value));
@@ -550,7 +550,7 @@ VX_API bool this_process::set_environment_variable(const std::string& name, cons
     return true;
 }
 
-VX_API bool this_process::clear_environment_variable(const std::string& name)
+bool this_process::clear_environment_variable_impl(const std::string& name)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
 

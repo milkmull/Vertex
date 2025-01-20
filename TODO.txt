@@ -127,9 +127,11 @@ formatting:
     x fix struct { enum {} } types
     x figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
     x header guards
-    - figure out platform includes
-    - build config for platform
-    - dummy os code
+    x figure out platform includes
+    x dummy os code
+    x double check pragma once in all headers
+    x no VX_API in platform code
+    - optional compilation (crypto, some os modules)
 }
 
 finish std:

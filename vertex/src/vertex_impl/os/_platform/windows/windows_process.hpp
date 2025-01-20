@@ -33,5 +33,20 @@ private:
     PROCESS_INFORMATION m_process_information;
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// this_process
+///////////////////////////////////////////////////////////////////////////////
+
+namespace this_process {
+
+process::id get_pid_impl() noexcept;
+
+process::environment get_environment_impl();
+std::string get_environment_variable_impl(const std::string& name);
+bool set_environment_variable_impl(const std::string& name, const std::string& value);
+bool clear_environment_variable_impl(const std::string& name);
+
+} // namespace this_process
+
 } // namespace os
 } // namespace vx

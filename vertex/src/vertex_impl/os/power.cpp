@@ -1,7 +1,8 @@
 #include "vertex/system/platform_config.hpp"
-
 #if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_platform/windows/windows_power.hpp"
+#else
+#   include "vertex_impl/os/_platform/dummy/dummy_power.hpp"
 #endif
 
 namespace vx {

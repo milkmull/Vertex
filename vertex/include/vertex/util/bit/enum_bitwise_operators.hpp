@@ -1,3 +1,4 @@
+#pragma once
 
 #define VX_ENABLE_ENUM_BITWISE_OPERATORS(enum_type) \
 \

@@ -3,32 +3,11 @@
 #include <sstream>
 #include <algorithm>
 
-#include "vertex/util/encode/utf.hpp"
 #include "vertex/system/validate.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
 namespace str {
-
-///////////////////////////////////////////////////////////////////////////////
-// To/From String
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-inline std::string to_string(const T& value)
-{
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
-}
-
-template <typename T>
-inline T from_string(const std::string& s)
-{
-    T value{};
-    std::istringstream(s) >> value;
-    return value;
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // contains

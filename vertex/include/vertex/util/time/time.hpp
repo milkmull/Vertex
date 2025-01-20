@@ -2,7 +2,6 @@
 
 #include <string>
 #include <chrono>
-#include <thread>
 
 #include "vertex/system/compiler.hpp"
 
@@ -109,32 +108,32 @@ public:
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs)
     {
         return lhs.m_count == rhs.m_count;
     }
 
-    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs)
     {
         return !(lhs == rhs);
     }
 
-    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs)
     {
         return lhs.m_count < rhs.m_count;
     }
 
-    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs)
     {
         return lhs.m_count > rhs.m_count;
     }
 
-    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs)
     {
         return lhs.m_count <= rhs.m_count;
     }
 
-    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs) noexcept
+    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs)
     {
         return lhs.m_count >= rhs.m_count;
     }
@@ -143,12 +142,12 @@ public:
     // unary const operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    constexpr time_point operator+() const noexcept
+    constexpr time_point operator+() const
     {
         return time_point(+m_count);
     }
 
-    constexpr time_point operator-() const noexcept
+    constexpr time_point operator-() const
     {
         return time_point(-m_count);
     }

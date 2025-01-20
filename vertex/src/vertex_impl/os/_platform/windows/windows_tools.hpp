@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 #include "vertex_impl/os/_platform/windows/windows_header.hpp"
 
 namespace vx {

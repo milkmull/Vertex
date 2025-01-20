@@ -101,18 +101,7 @@ private:
     std::ostringstream m_stream;
 };
 
-struct dummy_log_stream
-{
-    template <typename T>
-    dummy_log_stream& operator<<(T) { return dummy_log_stream(); }
-};
-
-#if defined(VX_ENABLE_LOGGING)
-static dummy_log_stream null;
-#endif
-
 } // namespace __detail
-
 } // namespace log
 
 ///////////////////////////////////////////////////////////////////////////////

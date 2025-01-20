@@ -1,12 +1,11 @@
-#include "vertex/system/platform_config.hpp"
+#include "vertex/system/error.hpp"
 
+#include "vertex/system/platform_config.hpp"
 #if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex_impl/os/_platform/windows/windows_process.hpp"
 #else
-
+#   include "vertex_impl/os/_platform/dummy/dummy_process.hpp"
 #endif
-
-#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {
@@ -126,6 +125,39 @@ VX_API bool process::get_exit_code(int* exit_code) const
 VX_API io_stream& process::get_stdin()  { return m_streams[STDIN ]; }
 VX_API io_stream& process::get_stdout() { return m_streams[STDOUT]; }
 VX_API io_stream& process::get_stderr() { return m_streams[STDERR]; }
+
+///////////////////////////////////////////////////////////////////////////////
+// this_process
+///////////////////////////////////////////////////////////////////////////////
+
+namespace this_process {
+
+VX_API process::id get_pid()
+{
+    return get_pid_impl();
+}
+
+VX_API process::environment get_environment()
+{
+    return get_environment_impl();
+}
+
+VX_API std::string get_environment_variable(const std::string& name)
+{
+    return get_environment_variable_impl(name);
+}
+
+VX_API bool set_environment_variable(const std::string& name, const std::string& value)
+{
+    return set_environment_variable_impl(name, value);
+}
+
+VX_API bool clear_environment_variable(const std::string& name)
+{
+    return clear_environment_variable_impl(name);
+}
+
+} // namespace this_process
 
 } // namespace os
 } // namespace vx

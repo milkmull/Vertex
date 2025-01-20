@@ -1,12 +1,13 @@
-#include "vertex/system/platform_config.hpp"
-
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/os/_platform/windows/windows_shared_library.hpp"
-#endif
-
 #include <unordered_map>
 
 #include "vertex/system/error.hpp"
+
+#include "vertex/system/platform_config.hpp"
+#if defined(VX_PLATFORM_WINDOWS)
+#   include "vertex_impl/os/_platform/windows/windows_shared_library.hpp"
+#else
+#   include "vertex_impl/os/_platform/dummy/dummy_shared_library.hpp"
+#endif
 
 namespace vx {
 namespace os {
