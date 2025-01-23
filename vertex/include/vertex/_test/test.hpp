@@ -91,5 +91,7 @@ private:
 
 #define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
 
+#define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
+
 }
 }

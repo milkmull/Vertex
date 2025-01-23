@@ -8,6 +8,8 @@
 #   undef ERROR
 #endif
 
+#define VX_ERROR_PRINTING_AVAILABLE VX_DEBUG
+
 namespace vx {
 
 using error_t = uint32_t;
@@ -81,6 +83,25 @@ struct info
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// error printing
+///////////////////////////////////////////////////////////////////////////////
+
+namespace __detail {
+
+#if VX_ERROR_PRINTING_AVAILABLE
+
+    VX_API void set_error_printing_enabled(bool enabled);
+#   define VX_PRINT_ERRORS(enabled) ::vx::err::__detail::set_error_printing_enabled(enabled)
+
+#else
+
+#   define VX_PRINT_ERRORS(enabled)
+
+#endif // VX_ERROR_PRINTING_AVAILABLE
+
+} // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +123,7 @@ VX_API info get() noexcept;
 /// @param err The error code.
 /// @param msg The error message.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err, const std::string& msg) noexcept(!VX_DEBUG);
+VX_API void set(code err, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread using the default error
@@ -110,19 +131,23 @@ VX_API void set(code err, const std::string& msg) noexcept(!VX_DEBUG);
 /// 
 /// @param err The error code.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err) noexcept(!VX_DEBUG);
+VX_API void set(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Clears all error information for the current thread.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void clear() noexcept(!VX_DEBUG);
+VX_API void clear() noexcept(!VX_ERROR_PRINTING_AVAILABLE);
+
+///////////////////////////////////////////////////////////////////////////////
+// error stream
+///////////////////////////////////////////////////////////////////////////////
 
 namespace __detail {
 
 struct error_stream
 {
-    error_stream(code err) noexcept(!VX_DEBUG) : err(err) {}
-    ~error_stream() noexcept(!VX_DEBUG) { set(err, stream.str()); }
+    error_stream(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE) : err(err) {}
+    ~error_stream() noexcept(!VX_ERROR_PRINTING_AVAILABLE) { set(err, stream.str()); }
 
     code err;
     std::ostringstream stream;

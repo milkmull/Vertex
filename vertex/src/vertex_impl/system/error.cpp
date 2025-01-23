@@ -1,6 +1,6 @@
 #include "vertex/system/error.hpp"
 
-#if (VX_DEBUG)
+#if VX_ERROR_PRINTING_AVAILABLE
 #   include <iostream>
 #endif
 
@@ -48,6 +48,21 @@ VX_API const char* code_to_string(code err) noexcept
 static thread_local info s_err;
 
 ///////////////////////////////////////////////////////////////////////////////
+// error printing
+///////////////////////////////////////////////////////////////////////////////
+
+#if VX_ERROR_PRINTING_AVAILABLE
+
+static bool s_print_errors = false;
+
+VX_API void __detail::set_error_printing_enabled(bool enabled)
+{
+    s_print_errors = enabled;
+}
+
+#endif // VX_ERROR_PRINTING_AVAILABLE
+
+///////////////////////////////////////////////////////////////////////////////
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -56,22 +71,27 @@ VX_API info get() noexcept
     return s_err;
 }
 
-VX_API void set(code err, const std::string& msg) noexcept(!VX_DEBUG)
+VX_API void set(code err, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
 {
-#if (VX_DEBUG)
-    std::cerr << static_cast<int>(err) << ": " << msg;
-#endif
+#if (VX_ERROR_PRINTING_AVAILABLE)
+
+    if (s_print_errors)
+    {
+        std::cerr << "[ERROR] " << static_cast<int>(err) << ": " << msg << std::endl;
+    }
+
+#endif // VX_ERROR_PRINTING_AVAILABLE
 
     s_err.err = err;
     s_err.message = msg;
 }
 
-VX_API void set(code err) noexcept(!VX_DEBUG)
+VX_API void set(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
 {
     set(err, code_to_string(err));
 }
 
-VX_API void clear() noexcept(!VX_DEBUG)
+VX_API void clear() noexcept(!VX_ERROR_PRINTING_AVAILABLE)
 {
     set(code::NONE, std::string());
 }

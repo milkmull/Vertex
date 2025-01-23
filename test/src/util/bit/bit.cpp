@@ -8,7 +8,7 @@
 
 VX_TEST_CASE(byteswap)
 {
-    VX_SECTION("byteswap8")
+    VX_SECTION("byteswap uint8_t")
     {
         constexpr uint16_t value = 0x1234;
         constexpr uint16_t expected = 0x3412;
@@ -16,7 +16,7 @@ VX_TEST_CASE(byteswap)
         VX_CHECK(vx::bit::byteswap(value) == expected);
     }
 
-    VX_SECTION("byteswap_16")
+    VX_SECTION("byteswap uint16_t")
     {
         constexpr uint16_t value = 0x1234;
         constexpr uint16_t expected = 0x3412;
@@ -24,7 +24,7 @@ VX_TEST_CASE(byteswap)
         VX_CHECK(vx::bit::byteswap(value) == expected);
     }
 
-    VX_SECTION("byteswap_32")
+    VX_SECTION("byteswap uint32_t")
     {
         constexpr uint32_t value = 0x12345678;
         constexpr uint32_t expected = 0x78563412;
@@ -32,7 +32,7 @@ VX_TEST_CASE(byteswap)
         VX_CHECK(vx::bit::byteswap(value) == expected);
     }
 
-    VX_SECTION("byteswap_64")
+    VX_SECTION("byteswap uint64_t")
     {
         constexpr uint64_t value = 0x123456789ABCDEF0;
         constexpr uint64_t expected = 0xF0DEBC9A78563412;
@@ -48,7 +48,7 @@ VX_TEST_CASE(byteswap)
 
 VX_TEST_CASE(rotl)
 {
-    VX_SECTION("rotl_8")
+    VX_SECTION("rotl uint8_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotl(static_cast<uint8_t>(0b10101010), 3) == static_cast<uint8_t>(0b01010101));
@@ -65,7 +65,7 @@ VX_TEST_CASE(rotl)
         VX_CHECK(vx::bit::rotl(static_cast<uint8_t>(0b10101010), 8) == static_cast<uint8_t>(0b10101010));
     }
 
-    VX_SECTION("rotl_16")
+    VX_SECTION("rotl uint16_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotl(static_cast<uint16_t>(0b1010101010101010), 5) == static_cast<uint16_t>(0b0101010101010101));
@@ -82,7 +82,7 @@ VX_TEST_CASE(rotl)
         VX_CHECK(vx::bit::rotl(static_cast<uint16_t>(0b1010101010101010), 16) == static_cast<uint16_t>(0b1010101010101010));
     }
 
-    VX_SECTION("rotl_32")
+    VX_SECTION("rotl uint32_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotl(static_cast<uint32_t>(0xAAAAAAAA), 5) == static_cast<uint32_t>(0x55555555));
@@ -99,7 +99,7 @@ VX_TEST_CASE(rotl)
         VX_CHECK(vx::bit::rotl(static_cast<uint32_t>(0xAAAAAAAA), 32) == static_cast<uint32_t>(0xAAAAAAAA));
     }
 
-    VX_SECTION("rotl_64")
+    VX_SECTION("rotl uint64_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotl(static_cast<uint64_t>(0xAAAAAAAAAAAAAAAA), 5) == static_cast<uint64_t>(0x5555555555555555));
@@ -123,7 +123,7 @@ VX_TEST_CASE(rotl)
 
 VX_TEST_CASE(rotr)
 {
-    VX_SECTION("rotr_8")
+    VX_SECTION("rotr uint8_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotr(static_cast<uint8_t>(0b10101010), 3) == static_cast<uint8_t>(0b01010101));
@@ -140,7 +140,7 @@ VX_TEST_CASE(rotr)
         VX_CHECK(vx::bit::rotr(static_cast<uint8_t>(0b10101010), 8) == static_cast<uint8_t>(0b10101010));
     }
 
-    VX_SECTION("rotr_16")
+    VX_SECTION("rotr uint16_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotr(static_cast<uint16_t>(0b1010101010101010), 5) == static_cast<uint16_t>(0b0101010101010101));
@@ -157,7 +157,7 @@ VX_TEST_CASE(rotr)
         VX_CHECK(vx::bit::rotr(static_cast<uint16_t>(0b1010101010101010), 16) == static_cast<uint16_t>(0b1010101010101010));
     }
 
-    VX_SECTION("rotr_32")
+    VX_SECTION("rotr uint32_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotr(static_cast<uint32_t>(0xAAAAAAAA), 5) == static_cast<uint32_t>(0x55555555));
@@ -174,7 +174,7 @@ VX_TEST_CASE(rotr)
         VX_CHECK(vx::bit::rotr(static_cast<uint32_t>(0xAAAAAAAA), 32) == static_cast<uint32_t>(0xAAAAAAAA));
     }
 
-    VX_SECTION("rotr_64")
+    VX_SECTION("rotr uint64_t")
     {
         // Alternating bits
         VX_CHECK(vx::bit::rotr(static_cast<uint64_t>(0xAAAAAAAAAAAAAAAA), 5) == static_cast<uint64_t>(0x5555555555555555));
@@ -198,7 +198,7 @@ VX_TEST_CASE(rotr)
 
 VX_TEST_CASE(countl_zero)
 {
-    VX_SECTION("countl_zero_8")
+    VX_SECTION("countl_zero uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_zero(static_cast<uint8_t>(0b00000000)) == 8);
@@ -210,7 +210,7 @@ VX_TEST_CASE(countl_zero)
         VX_CHECK(vx::bit::countl_zero(static_cast<uint8_t>(0b10000000)) == 0);
     }
 
-    VX_SECTION("countl_zero_16")
+    VX_SECTION("countl_zero uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_zero(static_cast<uint16_t>(0x0000)) == 16);
@@ -222,7 +222,7 @@ VX_TEST_CASE(countl_zero)
         VX_CHECK(vx::bit::countl_zero(static_cast<uint16_t>(0x8000)) == 0);
     }
 
-    VX_SECTION("countl_zero_32")
+    VX_SECTION("countl_zero uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_zero(static_cast<uint32_t>(0x00000000)) == 32);
@@ -234,7 +234,7 @@ VX_TEST_CASE(countl_zero)
         VX_CHECK(vx::bit::countl_zero(static_cast<uint32_t>(0x80000000)) == 0);
     }
 
-    VX_SECTION("countl_zero_64")
+    VX_SECTION("countl_zero uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_zero(static_cast<uint64_t>(0x0000000000000000)) == 64);
@@ -253,7 +253,7 @@ VX_TEST_CASE(countl_zero)
 
 VX_TEST_CASE(countl_one)
 {
-    VX_SECTION("countl_one_8")
+    VX_SECTION("countl_one uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_one(static_cast<uint8_t>(0b00000000)) == 0);
@@ -265,7 +265,7 @@ VX_TEST_CASE(countl_one)
         VX_CHECK(vx::bit::countl_one(static_cast<uint8_t>(0b10000000)) == 1);
     }
 
-    VX_SECTION("countl_one_16")
+    VX_SECTION("countl_one uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_one(static_cast<uint16_t>(0x0000)) == 0);
@@ -277,7 +277,7 @@ VX_TEST_CASE(countl_one)
         VX_CHECK(vx::bit::countl_one(static_cast<uint16_t>(0x8000)) == 1);
     }
 
-    VX_SECTION("countl_one_32")
+    VX_SECTION("countl_one uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_one(static_cast<uint32_t>(0x00000000)) == 0);
@@ -289,7 +289,7 @@ VX_TEST_CASE(countl_one)
         VX_CHECK(vx::bit::countl_one(static_cast<uint32_t>(0x80000000)) == 1);
     }
 
-    VX_SECTION("countl_one_64")
+    VX_SECTION("countl_one uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countl_one(static_cast<uint64_t>(0x0000000000000000)) == 0);
@@ -308,7 +308,7 @@ VX_TEST_CASE(countl_one)
 
 VX_TEST_CASE(countr_zero)
 {
-    VX_SECTION("countr_zero_8")
+    VX_SECTION("countr_zero uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_zero(static_cast<uint8_t>(0b00000000)) == 8);
@@ -320,7 +320,7 @@ VX_TEST_CASE(countr_zero)
         VX_CHECK(vx::bit::countr_zero(static_cast<uint8_t>(0b10000000)) == 7);
     }
 
-    VX_SECTION("countr_zero_16")
+    VX_SECTION("countr_zero uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_zero(static_cast<uint16_t>(0x0000)) == 16);
@@ -332,7 +332,7 @@ VX_TEST_CASE(countr_zero)
         VX_CHECK(vx::bit::countr_zero(static_cast<uint16_t>(0x8000)) == 15);
     }
 
-    VX_SECTION("countr_zero_32")
+    VX_SECTION("countr_zero uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_zero(static_cast<uint32_t>(0x00000000)) == 32);
@@ -344,7 +344,7 @@ VX_TEST_CASE(countr_zero)
         VX_CHECK(vx::bit::countr_zero(static_cast<uint32_t>(0x80000000)) == 31);
     }
 
-    VX_SECTION("countr_zero_64")
+    VX_SECTION("countr_zero uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_zero(static_cast<uint64_t>(0x0000000000000000)) == 64);
@@ -363,7 +363,7 @@ VX_TEST_CASE(countr_zero)
 
 VX_TEST_CASE(countr_one)
 {
-    VX_SECTION("countr_one_8")
+    VX_SECTION("countr_one uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_one(static_cast<uint8_t>(0b00000000)) == 0);
@@ -375,7 +375,7 @@ VX_TEST_CASE(countr_one)
         VX_CHECK(vx::bit::countr_one(static_cast<uint8_t>(0b10000000)) == 0);
     }
 
-    VX_SECTION("countr_one_16")
+    VX_SECTION("countr_one uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_one(static_cast<uint16_t>(0x0000)) == 0);
@@ -387,7 +387,7 @@ VX_TEST_CASE(countr_one)
         VX_CHECK(vx::bit::countr_one(static_cast<uint16_t>(0x8000)) == 0);
     }
 
-    VX_SECTION("countr_one_32")
+    VX_SECTION("countr_one uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_one(static_cast<uint32_t>(0x00000000)) == 0);
@@ -399,7 +399,7 @@ VX_TEST_CASE(countr_one)
         VX_CHECK(vx::bit::countr_one(static_cast<uint32_t>(0x80000000)) == 0);
     }
 
-    VX_SECTION("countr_one_64")
+    VX_SECTION("countr_one uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::countr_one(static_cast<uint64_t>(0x0000000000000000)) == 0);
@@ -418,7 +418,7 @@ VX_TEST_CASE(countr_one)
 
 VX_TEST_CASE(popcount)
 {
-    VX_SECTION("popcount_8")
+    VX_SECTION("popcount uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::popcount(static_cast<uint8_t>(0b00000000)) == 0);
@@ -432,7 +432,7 @@ VX_TEST_CASE(popcount)
         VX_CHECK(vx::bit::popcount(static_cast<uint8_t>(0b01010101)) == 4);
     }
 
-    VX_SECTION("popcount_16")
+    VX_SECTION("popcount uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::popcount(static_cast<uint16_t>(0x0000)) == 0);
@@ -446,7 +446,7 @@ VX_TEST_CASE(popcount)
         VX_CHECK(vx::bit::popcount(static_cast<uint16_t>(0x5555)) == 8);
     }
 
-    VX_SECTION("popcount_32")
+    VX_SECTION("popcount uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::popcount(static_cast<uint32_t>(0x00000000)) == 0);
@@ -460,7 +460,7 @@ VX_TEST_CASE(popcount)
         VX_CHECK(vx::bit::popcount(static_cast<uint32_t>(0x55555555)) == 16);
     }
 
-    VX_SECTION("popcount_64")
+    VX_SECTION("popcount uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::popcount(static_cast<uint64_t>(0x0000000000000000)) == 0);
@@ -481,7 +481,7 @@ VX_TEST_CASE(popcount)
 
 VX_TEST_CASE(has_single_bit)
 {
-    VX_SECTION("has_single_bit_8")
+    VX_SECTION("has_single_bit uint8_t")
     {
         // No bits set
         VX_CHECK(!vx::bit::has_single_bit(static_cast<uint8_t>(0b00000000)));
@@ -493,7 +493,7 @@ VX_TEST_CASE(has_single_bit)
         VX_CHECK(vx::bit::has_single_bit(static_cast<uint8_t>(0b00010000)));
     }
 
-    VX_SECTION("has_single_bit_16")
+    VX_SECTION("has_single_bit uint16_t")
     {
         // No bits set
         VX_CHECK(!vx::bit::has_single_bit(static_cast<uint16_t>(0x0000)));
@@ -505,7 +505,7 @@ VX_TEST_CASE(has_single_bit)
         VX_CHECK(vx::bit::has_single_bit(static_cast<uint16_t>(0x0100)));
     }
 
-    VX_SECTION("has_single_bit_32")
+    VX_SECTION("has_single_bit uint32_t")
     {
         // No bits set
         VX_CHECK(!vx::bit::has_single_bit(static_cast<uint32_t>(0x00000000)));
@@ -517,7 +517,7 @@ VX_TEST_CASE(has_single_bit)
         VX_CHECK(vx::bit::has_single_bit(static_cast<uint32_t>(0x00010000)));
     }
 
-    VX_SECTION("has_single_bit_64")
+    VX_SECTION("has_single_bit uint64_t")
     {
         // No bits set
         VX_CHECK(!vx::bit::has_single_bit(static_cast<uint64_t>(0x0000000000000000)));
@@ -536,7 +536,7 @@ VX_TEST_CASE(has_single_bit)
 
 VX_TEST_CASE(bit_width)
 {
-    VX_SECTION("bit_width_8")
+    VX_SECTION("bit_width uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_width(static_cast<uint8_t>(0b00000000)) == 0);
@@ -548,7 +548,7 @@ VX_TEST_CASE(bit_width)
         VX_CHECK(vx::bit::bit_width(static_cast<uint8_t>(0b10000000)) == 8);
     }
 
-    VX_SECTION("bit_width_16")
+    VX_SECTION("bit_width uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_width(static_cast<uint16_t>(0x0000)) == 0);
@@ -560,7 +560,7 @@ VX_TEST_CASE(bit_width)
         VX_CHECK(vx::bit::bit_width(static_cast<uint16_t>(0x8000)) == 16);
     }
 
-    VX_SECTION("bit_width_32")
+    VX_SECTION("bit_width uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_width(static_cast<uint32_t>(0x00000000)) == 0);
@@ -572,7 +572,7 @@ VX_TEST_CASE(bit_width)
         VX_CHECK(vx::bit::bit_width(static_cast<uint32_t>(0x80000000)) == 32);
     }
 
-    VX_SECTION("bit_width_64")
+    VX_SECTION("bit_width uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_width(static_cast<uint64_t>(0x0000000000000000)) == 0);
@@ -591,7 +591,7 @@ VX_TEST_CASE(bit_width)
 
 VX_TEST_CASE(bit_ceil)
 {
-    VX_SECTION("bit_ceil_8")
+    VX_SECTION("bit_ceil uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint8_t>(0b00000000)) == 0b00000001);
@@ -605,7 +605,7 @@ VX_TEST_CASE(bit_ceil)
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint8_t>(0b00010000)) == 0b00010000);
     }
 
-    VX_SECTION("bit_ceil_16")
+    VX_SECTION("bit_ceil uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint16_t>(0x0000)) == 0x0001);
@@ -619,7 +619,7 @@ VX_TEST_CASE(bit_ceil)
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint16_t>(0x0100)) == 0x0100);
     }
 
-    VX_SECTION("bit_ceil_32")
+    VX_SECTION("bit_ceil uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint32_t>(0x00000000)) == 0x00000001);
@@ -633,7 +633,7 @@ VX_TEST_CASE(bit_ceil)
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint32_t>(0x00010000)) == 0x00010000);
     }
 
-    VX_SECTION("bit_ceil_64")
+    VX_SECTION("bit_ceil uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_ceil(static_cast<uint64_t>(0x0000000000000000)) == 0x0000000000000001);
@@ -654,7 +654,7 @@ VX_TEST_CASE(bit_ceil)
 
 VX_TEST_CASE(bit_floor)
 {
-    VX_SECTION("bit_floor_8")
+    VX_SECTION("bit_floor uint8_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_floor(static_cast<uint8_t>(0b00000000)) == 0b00000000);
@@ -668,7 +668,7 @@ VX_TEST_CASE(bit_floor)
         VX_CHECK(vx::bit::bit_floor(static_cast<uint8_t>(0b00010000)) == 0b00010000);
     }
 
-    VX_SECTION("bit_floor_16")
+    VX_SECTION("bit_floor uint16_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_floor(static_cast<uint16_t>(0x0000)) == 0x0000);
@@ -682,7 +682,7 @@ VX_TEST_CASE(bit_floor)
         VX_CHECK(vx::bit::bit_floor(static_cast<uint16_t>(0x0100)) == 0x0100);
     }
 
-    VX_SECTION("bit_floor_32")
+    VX_SECTION("bit_floor uint32_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_floor(static_cast<uint32_t>(0x00000000)) == 0x00000000);
@@ -696,7 +696,7 @@ VX_TEST_CASE(bit_floor)
         VX_CHECK(vx::bit::bit_floor(static_cast<uint32_t>(0x00010000)) == 0x00010000);
     }
 
-    VX_SECTION("bit_floor_64")
+    VX_SECTION("bit_floor uint64_t")
     {
         // No bits set
         VX_CHECK(vx::bit::bit_floor(static_cast<uint64_t>(0x0000000000000000)) == 0x0000000000000000);
@@ -715,6 +715,6 @@ VX_TEST_CASE(bit_floor)
 
 int main()
 {
-    vx::test::test_runner::instance().run();
+    VX_RUN_TESTS();
     return 0;
 }

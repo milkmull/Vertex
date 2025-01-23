@@ -136,8 +136,8 @@ formatting:
 
 testing:
 {
-    - util/bit/bit
-    - util/bit/endian
+    x util/bit/bit
+    x util/bit/endian
     
     - util/crypto/FNV1a
     x util/crypto/MD5

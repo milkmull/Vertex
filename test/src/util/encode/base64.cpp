@@ -4,107 +4,99 @@
 
 using namespace vx::test;
 
-// Test for encoding empty data
-VX_TEST(base64, encode_empty_data)
+VX_TEST_CASE(base64)
 {
-    std::string encoded;
-    assert::that(vx::base64::encode(reinterpret_cast<const uint8_t*>(""), 0, encoded), "Encoding empty data should succeed");
-    assert::that(encoded == "", "Encoded result should be empty for empty input");
-}
+    VX_SECTION("encode empty data")
+    {
+        std::string encoded;
+        VX_CHECK(vx::base64::encode(reinterpret_cast<const uint8_t*>(""), 0, encoded));
+        VX_CHECK(encoded == "");
+    }
 
-// Test for encoding simple data
-VX_TEST(base64, encode_simple_data)
-{
-    const uint8_t data[] = { 'a', 'b', 'c' };
-    std::string encoded;
-    assert::that(vx::base64::encode(data, sizeof(data), encoded), "Encoding should succeed");
-    assert::that(encoded == "YWJj", "Encoded result should match Base64 for 'abc'");
-}
+    VX_SECTION("encode simple data")
+    {
+        const uint8_t data[] = { 'a', 'b', 'c' };
+        std::string encoded;
+        VX_CHECK(vx::base64::encode(data, sizeof(data), encoded));
+        VX_CHECK(encoded == "YWJj");
+    }
 
-// Test for encoding with padding
-VX_TEST(base64, encode_with_padding)
-{
-    const uint8_t data[] = { 'a', 'b' }; // Two bytes, should pad
-    std::string encoded;
-    assert::that(vx::base64::encode(data, sizeof(data), encoded), "Encoding should succeed");
-    assert::that(encoded == "YWI=", "Encoded result should match Base64 for 'ab' with padding");
-}
+    VX_SECTION("encode with padding")
+    {
+        const uint8_t data[] = { 'a', 'b' }; // Two bytes, should pad
+        std::string encoded;
+        VX_CHECK(vx::base64::encode(data, sizeof(data), encoded));
+        VX_CHECK(encoded == "YWI=");
+    }
 
-// Test for decoding simple data
-VX_TEST(base64, decode_simple_data)
-{
-    std::vector<uint8_t> decoded;
-    assert::that(vx::base64::decode("YWJj", decoded), "Decoding should succeed");
-    assert::that(decoded.size() == 3, "Decoded size should be 3");
-    assert::that(decoded[0] == 'a', "First byte should be 'a'");
-    assert::that(decoded[1] == 'b', "Second byte should be 'b'");
-    assert::that(decoded[2] == 'c', "Third byte should be 'c'");
-}
+    VX_SECTION("decode simple data")
+    {
+        std::vector<uint8_t> decoded;
+        VX_CHECK(vx::base64::decode("YWJj", decoded));
+        VX_CHECK(decoded.size() == 3);
+        VX_CHECK(decoded[0] == 'a');
+        VX_CHECK(decoded[1] == 'b');
+        VX_CHECK(decoded[2] == 'c');
+    }
 
-// Test for decoding with padding
-VX_TEST(base64, decode_with_padding)
-{
-    std::vector<uint8_t> decoded;
-    assert::that(vx::base64::decode("YWI=", decoded), "Decoding should succeed");
-    assert::that(decoded.size() == 2, "Decoded size should be 2");
-    assert::that(decoded[0] == 'a', "First byte should be 'a'");
-    assert::that(decoded[1] == 'b', "Second byte should be 'b'");
-}
+    VX_SECTION("decode with padding")
+    {
+        std::vector<uint8_t> decoded;
+        VX_CHECK(vx::base64::decode("YWI=", decoded));
+        VX_CHECK(decoded.size() == 2);
+        VX_CHECK(decoded[0] == 'a');
+        VX_CHECK(decoded[1] == 'b');
+    }
 
-// Test for invalid decoding
-VX_TEST(base64, decode_invalid_input)
-{
-    std::vector<uint8_t> decoded;
-    assert::that(!vx::base64::decode("InvalidBase64", decoded), "Decoding invalid input should fail");
-    assert::that(decoded.size() == 0, "Decoded size should be 0 for invalid input");
-}
+    VX_SECTION("decode invalid input")
+    {
+        std::vector<uint8_t> decoded;
+        VX_CHECK(!vx::base64::decode("InvalidBase64", decoded));
+        VX_CHECK(decoded.size() == 0);
+    }
 
-// Test for decoding with validation
-VX_TEST(base64, decode_with_validation)
-{
-    std::vector<uint8_t> decoded;
-    assert::that(vx::base64::decode("YWJj", decoded, true), "Decoding should succeed with validation");
-    assert::that(decoded.size() == 3, "Decoded size should be 3");
+    VX_SECTION("decode with validation")
+    {
+        std::vector<uint8_t> decoded;
+        VX_CHECK(vx::base64::decode("YWJj", decoded, true));
+        VX_CHECK(decoded.size() == 3);
 
-    assert::that(!vx::base64::decode("InvalidBase64", decoded, true), "Decoding invalid input with validation should fail");
-    assert::that(decoded.size() == 0, "Decoded size should be 0 for invalid input");
-}
+        VX_CHECK(!vx::base64::decode("InvalidBase64", decoded, true));
+        VX_CHECK(decoded.size() == 0);
+    }
 
-// Test for encode-decode round trip
-VX_TEST(base64, encode_decode_round_trip)
-{
-    const uint8_t data[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-    std::string encoded;
-    std::vector<uint8_t> decoded;
+    VX_SECTION("encode decode round trip")
+    {
+        const uint8_t data[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+        std::string encoded;
+        std::vector<uint8_t> decoded;
 
-    assert::that(vx::base64::encode(data, sizeof(data), encoded), "Encoding should succeed");
-    assert::that(vx::base64::decode(encoded, decoded), "Decoding should succeed");
+        VX_CHECK(vx::base64::encode(data, sizeof(data), encoded));
+        VX_CHECK(vx::base64::decode(encoded, decoded));
 
-    assert::that(decoded.size() == sizeof(data), "Decoded size should match original data size");
-    assert::that(std::memcmp(data, decoded.data(), sizeof(data)) == 0, "Decoded data should match original data");
-}
+        VX_CHECK(decoded.size() == sizeof(data));
+        VX_CHECK(std::memcmp(data, decoded.data(), sizeof(data)) == 0);
+    }
 
-// Test for encoding null pointer
-VX_TEST(base64, encode_null_pointer)
-{
-    const uint8_t* data = nullptr;
-    std::string encoded;
-    assert::that(!vx::base64::encode(data, 5, encoded), "Encoding null pointer should fail");
-}
+    VX_SECTION("encode null pointer")
+    {
+        const uint8_t* data = nullptr;
+        std::string encoded;
+        VX_CHECK(!vx::base64::encode(data, 5, encoded));
+    }
 
-// Test for decoding null pointer
-VX_TEST(base64, decode_null_pointer)
-{
-    std::vector<uint8_t> decoded;
-    assert::that(vx::base64::decode("", decoded), "Decoding empty string should succeed");
-    assert::that(decoded.size() == 0, "Decoded should have size of 0");
+    VX_SECTION("decode null pointer")
+    {
+        std::vector<uint8_t> decoded;
+        VX_CHECK(vx::base64::decode("", decoded));
+        VX_CHECK(decoded.size() == 0);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 int main()
 {
-    test_suite::instance().run_tests();
-
+    VX_RUN_TESTS();
     return 0;
 }
