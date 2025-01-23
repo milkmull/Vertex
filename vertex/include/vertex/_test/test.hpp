@@ -2,90 +2,94 @@
 
 #include <vector>
 #include <iostream>
+#include <functional>
+#include <sstream>
 
 namespace vx {
 namespace test {
 
-class test_case
+// Central test runner
+class test_runner
 {
 public:
 
-    virtual void run() = 0;
-    virtual const char* get_name() const = 0;
-    virtual const char* get_section() const = 0;
-};
-
-class test_suite
-{
-public:
-
-    static test_suite& instance()
+    struct TestCase
     {
-        static test_suite i;
-        return i;
+        std::string name;
+        std::function<void()> func;
+    };
+
+    static test_runner& instance()
+    {
+        static test_runner runner;
+        return runner;
     }
 
-    void add_test(test_case* test)
+    void add_test(const std::string& name, std::function<void()> func)
     {
-        m_tests.push_back(test);
+        tests.push_back({ name, func });
     }
 
-    void run_tests()
+    void run()
     {
-        std::string current_section;
+        size_t failed_count = 0;
 
-        for (test_case* test : m_tests)
+        for (const auto& test : tests)
         {
-            const char* section = test->get_section();
-
-            if (section != current_section)
-            {
-                std::cout << "\nRunning tests in section: " << section << std::endl;
-                current_section = section;
-            }
-
-            std::cout << "\tRunning test: " << test->get_name() << "..." << std::endl;
-
             try
             {
-                test->run();
-                std::cout << "\tTest passed: " << test->get_name() << std::endl;
+                std::cout << "Running test: " << test.name << "..." << std::endl;
+                test.func();
+                std::cout << "  [PASS] " << test.name << std::endl;
             }
             catch (const std::exception& e)
             {
-                std::cerr << "\tTest failed: " << test->get_name() << " - " << e.what() << std::endl;
+                ++failed_count;
+                std::cerr << "  [FAIL] " << test.name << " - " << e.what() << std::endl;
             }
+
+            std::cout << '\n';
         }
+
+        std::cout << "\nTest Summary: "
+            << tests.size() - failed_count << " passed, "
+            << failed_count << " failed, "
+            << tests.size() << " total.\n";
     }
 
 private:
 
-    std::vector<test_case*> m_tests;
+    test_runner() = default;
+    std::vector<TestCase> tests;
 };
 
-class assert
-{
-public:
+// Macros for the test library
+#define VX_TEST_CASE(name) \
+    void name(); \
+    static struct name##_registrar \
+    { \
+        name##_registrar() \
+        { \
+            ::vx::test::test_runner::instance().add_test(#name, name); \
+        } \
+    } name##_instance; \
+    void name()
 
-    static void that(bool condition, const std::string& message)
-    {
-        if (!condition)
-        {
-            throw std::runtime_error("Assertion failed: " + message);
-        }
-    }
-};
+#define VX_SECTION(name) std::cout << "  [SECTION] " << name << std::endl;
 
-#define VX_TEST(SECTION, NAME) class SECTION##_##NAME : public ::vx::test::test_case \
-{ \
-public: \
-    SECTION##_##NAME() { ::vx::test::test_suite::instance().add_test(this); } \
-    void run() override; \
-    const char* get_name() const override { return #NAME; } \
-    const char* get_section() const override { return #SECTION; } \
-}; \
-SECTION##_##NAME SECTION##NAME##_test; \
-void SECTION##_##NAME::run()
+#define VX_CHECK(condition) \
+    do \
+    { \
+        if (!(condition)) \
+        { \
+            std::ostringstream oss; \
+            oss << "Check failed: " #condition \
+                << " at " << __FILE__ << ":" << __LINE__; \
+            throw std::runtime_error(oss.str()); \
+        } \
+    } while (0)
+
+#define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
 
 }
 }

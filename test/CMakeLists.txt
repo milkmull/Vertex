@@ -32,8 +32,8 @@ function(vx_add_test TARGET SOURCES)
 
 endfunction()
 
-# String Tests
-
-vx_add_test(vx_test_string "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/string.cpp")
-vx_add_test(vx_test_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/crypto.cpp")
-vx_add_test(vx_test_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/stdlib/string/base64.cpp")
+# Util tests
+vx_add_test(vx_test_util_bit "${CMAKE_CURRENT_SOURCE_DIR}/src/util/bit/bit.cpp")
+#vx_add_test(vx_test_util_utf "${CMAKE_CURRENT_SOURCE_DIR}/src/util/utf.cpp")
+#vx_add_test(vx_test_util_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/util/base64.cpp")
+#vx_add_test(vx_test_util_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/util/crypto.cpp")

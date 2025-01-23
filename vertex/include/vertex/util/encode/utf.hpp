@@ -94,7 +94,7 @@ struct utf_base_traits<1> // utf8
 
     static constexpr bool is_lead(utype c) noexcept
     {
-        return !is_trail(c);
+        return (c <= 0b01111111) || (c >= 0b11000010 && c <= 0b11110100);
     }
 };
 
@@ -439,6 +439,10 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
         return out;
     }
 };
+
+using utf8_traits = utf_base_traits<1>;
+using utf16_traits = utf_base_traits<2>;
+using utf32_traits = utf_base_traits<4>;
 
 } // namespace utf
 } // namespace vx

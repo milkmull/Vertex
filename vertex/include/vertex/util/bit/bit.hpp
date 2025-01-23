@@ -160,7 +160,7 @@ VX_FORCE_INLINE T rotr(T x, unsigned int shift) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
-    constexpr auto mask = (CHAR_BIT * sizeof(T) - 1);
+    constexpr auto mask = std::numeric_limits<T>::digits - 1;
     shift &= mask;
     return (x >> shift) | (x << ((-shift) & mask));
 }
@@ -233,13 +233,14 @@ template <typename T>
 VX_FORCE_INLINE int countl_zero(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
+    constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
 
     if (x == 0)
     {
-        return sizeof(T);
+        return bits;
     }
 
-    constexpr T mask = static_cast<T>(1) << (sizeof(T) - 1);
+    constexpr T mask = static_cast<T>(1) << (bits - 1);
 
     int n = 0;
     while ((x & mask) == 0)
@@ -317,10 +318,11 @@ template <typename T>
 VX_FORCE_INLINE int countr_zero(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
+    constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
 
     if (x == 0)
     {
-        return sizeof(T);
+        return bits;
     }
 
     int n = 0;
@@ -450,11 +452,11 @@ VX_FORCE_INLINE int popcount(uint64_t x) noexcept
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int has_single_bit(T x) noexcept
+VX_FORCE_INLINE bool has_single_bit(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
-    return popcount(x) == 1;
+    return (popcount(x) == 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -466,7 +468,7 @@ VX_FORCE_INLINE int bit_width(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
-    return std::numeric_limits<T>::digits - countl_zero(x);
+    return static_cast<int>(std::numeric_limits<T>::digits - countl_zero(x));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -474,13 +476,13 @@ VX_FORCE_INLINE int bit_width(T x) noexcept
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int bit_ceil(T x) noexcept
+VX_FORCE_INLINE T bit_ceil(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
-    if (x == static_cast<T>(0))
+    if (x <= static_cast<T>(1))
     {
-        return 1;
+        return static_cast<T>(1);
     }
 
     if ((x & (x - 1)) == static_cast<T>(0))
@@ -488,7 +490,7 @@ VX_FORCE_INLINE int bit_ceil(T x) noexcept
         return x;
     }
 
-    return static_cast<T>(1) << bit_width(x);
+    return static_cast<T>(1) << bit_width(static_cast<T>(x - 1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -496,16 +498,16 @@ VX_FORCE_INLINE int bit_ceil(T x) noexcept
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE int bit_floor(T x) noexcept
+VX_FORCE_INLINE T bit_floor(T x) noexcept
 {
     static_assert(__detail::is_unsigned_integral<T>::value, "T must be unsigned integral type");
 
     if (x == static_cast<T>(0))
     {
-        return 0;
+        return static_cast<T>(0);
     }
 
-    return static_cast<T>(1) << bit_width(x >> 1);
+    return static_cast<T>(1) << bit_width(static_cast<T>(x >> 1));
 }
 
 } // namespace bit

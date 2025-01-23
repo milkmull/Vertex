@@ -34,10 +34,10 @@ public:
 
     VX_FORCE_INLINE uint32_t operator()()
     {
-        uint64_t old_state = m_state;
+        const uint64_t old_state = m_state;
         m_state = m_state * multiplier + increment;
 
-        uint32_t count = static_cast<uint32_t>(old_state >> 59) & 31;
+        const uint32_t count = static_cast<uint32_t>(old_state >> 59) & 31;
         old_state ^= old_state >> 18;
         return bit::rotr(static_cast<uint32_t>(old_state >> 27), count);
     }

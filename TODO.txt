@@ -147,6 +147,12 @@ testing:
     x util/encode/base64
     - util/encode/utf
     
+    - util/string/regex
+    - util/string/string
+    - util/string/string_cast
+    - util/string/string_compare
+    
+    - os/random
     - util/random/algorithm
     - util/random/bernoulli_distribution
     - util/random/discrete_distribution
@@ -157,27 +163,23 @@ testing:
     - util/random/uniform_int_distribution
     - util/random/uniform_real_distribution
     
-    - util/string/regex
-    - util/string/string
-    - util/string/string_cast
-    - util/string/string_compare
-    
     - util/time/time
     - util/time/timer
+    - os/time
     
     - os/file
     - os/filesystem
+    - os/path
+    
+    - os/mutex
+    - os/thread
+    - os/process
+    
+    - os/system_info
+    - os/shared_library
     - os/locale
     - os/memory
-    - os/mutex
-    - os/path
-    - os/process
-    - os/random
-    - os/shared_library
-    - os/system_info
-    - os/thread
-    - os/time
-    
+
     - system/error (test thread local errors)
 }
 
