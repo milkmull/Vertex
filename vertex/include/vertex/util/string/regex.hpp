@@ -143,19 +143,17 @@ public:
         return matches;
     }
 
-    inline std::vector<regex_match_results<const char_t*>> search_all(const char_t* s) const
+    inline auto search_all(const char_t* s) const
     {
         return search_all(s, s + std::char_traits<char_t>::length(s));
     }
 
-    inline std::vector<regex_match_results<typename std::basic_string<char_t>::const_iterator>>
-        search_all(const std::basic_string<typename std::basic_string<char_t>::const_iterator>& s) const
+    inline auto search_all(const std::basic_string<char_t>& s) const
     {
         return search_all(s.begin(), s.end());
     }
 
-    std::vector<regex_match_results<typename std::basic_string<char_t>::const_iterator>>
-        search_all(const std::basic_string<typename std::basic_string<char_t>::const_iterator>&&) const = delete;
+    auto search_all(const std::basic_string<char_t>&&) const = delete;
 
     ///////////////////////////////////////////////////////////////////////////////
     // Replace

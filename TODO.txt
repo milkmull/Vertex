@@ -145,7 +145,7 @@ testing:
     
     x util/encode/base64
 
-    - util/string/regex
+    x util/string/regex
     x util/string/string
     x util/string/string_cast
     x util/string/string_compare
