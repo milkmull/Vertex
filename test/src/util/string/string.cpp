@@ -1,6 +1,7 @@
 #include "vertex/_test/test.hpp"
 
 #include "vertex/util/string/string.hpp"
+#include "vertex/util/string/string_compare.hpp"
 
 using namespace vx;
 
@@ -859,6 +860,116 @@ VX_TEST_CASE(to_float)
         size_t count = 0;
         str::to_double("  -123.45e-6", &count);
         VX_CHECK(count == 12);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(levenshtein_distance)
+{
+    VX_SECTION("Empty Strings")
+    {
+        const char* str1 = "";
+        const char* str2 = "";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 0);
+    }
+
+    VX_SECTION("One Empty String")
+    {
+        const char* str1 = "abc";
+        const char* str2 = "";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 3);
+        VX_CHECK(str::levenshtein_distance(str2, str2 + std::strlen(str2), str1, str1 + std::strlen(str1)) == 3);
+    }
+
+    VX_SECTION("Identical Strings")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "kitten";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 0);
+    }
+
+    VX_SECTION("Simple Replacements")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "sitten";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+
+        str1 = "flaw";
+        str2 = "lawn";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 2);
+    }
+
+    VX_SECTION("Insertions and Deletions")
+    {
+        const char* str1 = "cat";
+        const char* str2 = "cats";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+
+        str1 = "cat";
+        str2 = "at";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+    }
+
+    VX_SECTION("Mixed Operations")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "sitting";
+        VX_CHECK(str::levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 3);
+    }
+}
+
+VX_TEST_CASE(damerau_levenshtein_distance)
+{
+    VX_SECTION("Empty Strings")
+    {
+        const char* str1 = "";
+        const char* str2 = "";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 0);
+    }
+
+    VX_SECTION("One Empty String")
+    {
+        const char* str1 = "abc";
+        const char* str2 = "";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 3);
+        VX_CHECK(str::damerau_levenshtein_distance(str2, str2 + std::strlen(str2), str1, str1 + std::strlen(str1)) == 3);
+    }
+
+    VX_SECTION("Identical Strings")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "kitten";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 0);
+    }
+
+    VX_SECTION("Simple Replacements")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "sitten";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+
+        str1 = "flaw";
+        str2 = "lawn";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 2);
+    }
+
+    VX_SECTION("Transpositions")
+    {
+        const char* str1 = "abcd";
+        const char* str2 = "abdc";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+
+        str1 = "ca";
+        str2 = "ac";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 1);
+    }
+
+    VX_SECTION("Mixed Operations")
+    {
+        const char* str1 = "kitten";
+        const char* str2 = "sitting";
+        VX_CHECK(str::damerau_levenshtein_distance(str1, str1 + std::strlen(str1), str2, str2 + std::strlen(str2)) == 3);
     }
 }
 
