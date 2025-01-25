@@ -1,5 +1,6 @@
 #include "vertex/_test/test.hpp"
 
+#include "vertex/util/crypto/FNV1a.hpp"
 #include "vertex/util/crypto/MD5.hpp"
 #include "vertex/util/crypto/SHA1.hpp"
 #include "vertex/util/crypto/SHA256.hpp"

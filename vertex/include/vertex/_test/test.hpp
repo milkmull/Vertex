@@ -5,6 +5,8 @@
 #include <functional>
 #include <sstream>
 
+#include "vertex/system/error.hpp"
+
 namespace vx {
 namespace test {
 
@@ -90,6 +92,8 @@ private:
     } while (0)
 
 #define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
+
+#define VX_CHECK_ERROR(condition, error_code) (condition); VX_CHECK(err::get().code == (error_code))
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 

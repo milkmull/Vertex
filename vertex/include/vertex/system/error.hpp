@@ -76,10 +76,10 @@ VX_API const char* code_to_string(code err) noexcept;
 
 struct info
 {
-    code err = code::NONE;
+    code code = code::NONE;
     std::string message;
 
-    inline explicit operator bool() const noexcept { return (err != code::NONE); }
+    inline explicit operator bool() const noexcept { return (code != code::NONE); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

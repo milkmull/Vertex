@@ -337,7 +337,7 @@ struct utf_traits<char_t, 2> : utf_base_traits<2>
         if (!is_second_surrogate(w2))
         {
             // Invalid second surrogate
-            return first;
+            return --first;
         }
 
         c = combine_surrogate(w1, w2);
@@ -414,11 +414,9 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
         }
 
         c = static_cast<code_point>(*first++);
-
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {
             c = INVALID_CODE_POINT;
-            return first;
         }
 
         return first;
@@ -435,7 +433,6 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
         }
 
         *out++ = static_cast<char_type>(c);
-
         return out;
     }
 };

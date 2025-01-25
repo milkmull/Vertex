@@ -38,3 +38,5 @@ vx_add_test(vx_test_util_endian "${CMAKE_CURRENT_SOURCE_DIR}/src/util/bit/endian
 
 vx_add_test(vx_test_util_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/util/encode/base64.cpp")
 vx_add_test(vx_test_util_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/util/crypto/crypto.cpp")
+
+vx_add_test(vx_test_util_string "${CMAKE_CURRENT_SOURCE_DIR}/src/util/string/string.cpp")

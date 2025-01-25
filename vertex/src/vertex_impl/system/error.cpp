@@ -71,18 +71,18 @@ VX_API info get() noexcept
     return s_err;
 }
 
-VX_API void set(code err, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
+VX_API void set(code code, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 
     if (s_print_errors)
     {
-        std::cerr << "[ERROR] " << static_cast<int>(err) << ": " << msg << std::endl;
+        std::cerr << "[ERROR] " << static_cast<int>(code) << ": " << msg << std::endl;
     }
 
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
-    s_err.err = err;
+    s_err.code = code;
     s_err.message = msg;
 }
 

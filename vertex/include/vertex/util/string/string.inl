@@ -34,6 +34,11 @@ inline size_t count(const str_arg_t& s, const char val)
 
 inline size_t count(const str_arg_t& s, const str_arg_t& val)
 {
+    if (val.empty())
+    {
+        return s.size() + 1;
+    }
+
     size_t count = 0;
     size_t i = 0;
     const size_t step = val.size();
@@ -53,12 +58,12 @@ inline size_t count(const str_arg_t& s, const str_arg_t& val)
 
 constexpr bool starts_with(const str_arg_t& s, const char prefix) noexcept
 {
-    return !s.empty() && s[0] == prefix;
+    return !s.empty() && (s[0] == prefix);
 }
 
 constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix) noexcept
 {
-    return s.size() >= prefix.size() && s.compare(0, prefix.size(), prefix) == 0;
+    return (s.size() >= prefix.size()) && (s.compare(0, prefix.size(), prefix) == 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,7 +72,7 @@ constexpr bool starts_with(const str_arg_t& s, const str_arg_t& prefix) noexcept
 
 constexpr bool ends_with(const str_arg_t& s, const char suffix) noexcept
 {
-    return s.rfind(suffix) == (s.size() - 1);
+    return !s.empty() && (s.rfind(suffix) == (s.size() - 1));
 }
 
 constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix) noexcept
@@ -86,7 +91,7 @@ inline bool is_alpha(const char c)
 
 inline bool is_alpha(const str_arg_t& s)
 {
-    return std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_alpha));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_alpha));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,7 +105,7 @@ inline bool is_digit(const char c)
 
 inline bool is_numeric(const str_arg_t& s)
 {
-    return std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_digit));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_digit));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -114,7 +119,7 @@ inline bool is_alnum(const char c)
 
 inline bool is_alnum(const str_arg_t& s)
 {
-    return std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_alnum));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_alnum));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -128,7 +133,7 @@ inline bool is_ascii(const char c)
 
 inline bool is_ascii(const str_arg_t& s)
 {
-    return std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_ascii));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_ascii));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,7 +147,7 @@ inline bool is_space(const char c)
 
 inline bool is_space(const str_arg_t& s)
 {
-    return std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_space));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_space));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -369,6 +374,12 @@ inline std::string remove(const str_arg_t& s, const str_arg_t& val)
 {
     std::string res;
 
+    if (val.empty())
+    {
+        res = s;
+        return res;
+    }
+
     size_t start = 0;
     size_t end = 0;
     const size_t step = val.size();
@@ -376,7 +387,7 @@ inline std::string remove(const str_arg_t& s, const str_arg_t& val)
     const size_t size = s.size() - count(s, val) * step;
     res.reserve(size);
 
-    while (end == str_arg_t::npos)
+    while (end != str_arg_t::npos)
     {
         end = s.find(val, start);
         res.append(s.substr(start, end - start));
@@ -408,6 +419,11 @@ inline std::string replace(
 )
 {
     std::string res;
+
+    if (old_val.empty())
+    {
+        return res;
+    }
 
     size_t start = 0;
     size_t end = 0;
@@ -491,6 +507,11 @@ inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
 
 inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter)
 {
+    if (delimiter.empty())
+    {
+        return {};
+    }
+
     std::vector<std::string> res;
     res.reserve(count(s, delimiter) + 1);
 
@@ -502,27 +523,6 @@ inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delim
         end = s.find(delimiter, start);
         res.emplace_back(s.substr(start, end - start));
         start = end + delimiter.size();
-    }
-
-    return res;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// split_any
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::vector<std::string> split_any(const str_arg_t& s, const str_arg_t& characters)
-{
-    std::vector<std::string> res;
-
-    size_t start = 0;
-    size_t end = 0;
-
-    while (end != str_arg_t::npos)
-    {
-        end = s.find_first_of(characters, start);
-        res.emplace_back(s.substr(start, end - start));
-        start = end + 1;
     }
 
     return res;
@@ -610,7 +610,7 @@ inline IT parse_digits(IT first, IT last, T& value, size_t* count)
 
     if (count)
     {
-        *count = static_cast<size_t>(std::distance(first, start));
+        *count = static_cast<size_t>(std::distance(start, first));
     }
 
     return first;

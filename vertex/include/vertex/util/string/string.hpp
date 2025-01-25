@@ -194,12 +194,6 @@ inline std::vector<std::string> split(const str_arg_t& s, const char delimiter);
 inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter);
 
 ///////////////////////////////////////////////////////////////////////////////
-// split_any
-///////////////////////////////////////////////////////////////////////////////
-
-inline std::vector<std::string> split_any(const str_arg_t& s, const str_arg_t& characters);
-
-///////////////////////////////////////////////////////////////////////////////
 // split_words
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -231,14 +225,16 @@ inline std::string reverse(const str_arg_t& s);
 template <typename IT, typename T>
 inline IT parse_digits(IT first, IT last, T& value, size_t* count = nullptr);
 
-int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
-int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);
+inline std::string to_hex_string(const void* data, size_t size);
 
-uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
-uint64_t to_uint64(const std::string& s, size_t* count = nullptr, int base = 10);
+inline int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
+inline int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);
 
-float to_float(const std::string& s, size_t* count = nullptr);
-double to_double(const std::string& s, size_t* count = nullptr);
+inline uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
+inline uint64_t to_uint64(const std::string& s, size_t* count = nullptr, int base = 10);
+
+inline float to_float(const std::string& s, size_t* count = nullptr);
+inline double to_double(const std::string& s, size_t* count = nullptr);
 
 } // namespace str
 } // namespace vx
