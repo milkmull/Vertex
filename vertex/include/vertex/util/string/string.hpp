@@ -190,20 +190,20 @@ inline std::string join(IT first, IT last, const Delim& delimiter);
 // split
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split(const str_arg_t& s, const char delimiter);
-inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter);
+inline std::vector<str_arg_t> split(const str_arg_t& s, const char delimiter);
+inline std::vector<str_arg_t> split(const str_arg_t& s, const str_arg_t& delimiter);
 
 ///////////////////////////////////////////////////////////////////////////////
 // split_words
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split_words(const str_arg_t& s);
+inline std::vector<str_arg_t> split_words(const str_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
 // split_lines
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split_lines(const str_arg_t& s);
+inline std::vector<str_arg_t> split_lines(const str_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
 // repeat

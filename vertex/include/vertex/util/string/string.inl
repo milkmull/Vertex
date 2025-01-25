@@ -39,14 +39,14 @@ inline size_t count(const str_arg_t& s, const str_arg_t& val)
         return s.size() + 1;
     }
 
-    size_t count = 0;
-    size_t i = 0;
     const size_t step = val.size();
+    size_t count = 0;
+    size_t i = s.find(val);
 
-    while ((i = s.find(val, i)) != str_arg_t::npos)
+    while (i != str_arg_t::npos)
     {
         ++count;
-        i += step;
+        i = s.find(val, i + step);
     }
 
     return count;
@@ -209,8 +209,14 @@ inline char to_lower(const char c)
 
 inline std::string to_lower(const str_arg_t& s)
 {
-    std::string res(s);
-    std::transform(res.begin(), res.end(), res.begin(), static_cast<char(*)(const char)>(to_lower));
+    std::string res;
+    res.reserve(s.size());
+
+    for (const char c : s)
+    {
+        res.push_back(to_lower(c));
+    }
+
     return res;
 }
 
@@ -239,8 +245,14 @@ inline char to_upper(const char c)
 
 inline std::string to_upper(const str_arg_t& s)
 {
-    std::string res(s);
-    std::transform(res.begin(), res.end(), res.begin(), static_cast<char(*)(const char)>(to_upper));
+    std::string res;
+    res.reserve(s.size());
+
+    for (const char c : s)
+    {
+        res.push_back(to_upper(c));
+    }
+
     return res;
 }
 
@@ -356,42 +368,27 @@ inline std::string trim_suffix(const str_arg_t& s, const str_arg_t& suffix)
 
 inline std::string remove(const str_arg_t& s, const char val)
 {
-    std::string res;
-    res.reserve(s.size() - count(s, val));
-
-    for (const char c : s)
-    {
-        if (c != val)
-        {
-            res.push_back(c);
-        }
-    }
-
+    std::string res(s);
+    res.erase(std::remove(res.begin(), res.end(), val), res.end());
     return res;
 }
 
 inline std::string remove(const str_arg_t& s, const str_arg_t& val)
 {
-    std::string res;
+    std::string res(s);
 
     if (val.empty())
     {
-        res = s;
         return res;
     }
 
-    size_t start = 0;
-    size_t end = 0;
     const size_t step = val.size();
+    size_t i = res.find(val);
 
-    const size_t size = s.size() - count(s, val) * step;
-    res.reserve(size);
-
-    while (end != str_arg_t::npos)
+    while (i != str_arg_t::npos)
     {
-        end = s.find(val, start);
-        res.append(s.substr(start, end - start));
-        start = end + step;
+        res.erase(i, step);
+        i = res.find(val, i + step);
     }
 
     return res;
@@ -422,28 +419,36 @@ inline std::string replace(
 
     if (old_val.empty())
     {
-        return res;
-    }
+        const size_t size = s.size();
 
-    size_t start = 0;
-    size_t end = 0;
-    const size_t step = old_val.size();
-
-    const size_t size = s.size() + count(s, old_val) * (new_val.size() - step);
-    res.reserve(size);
-
-    while (true)
-    {
-        end = s.find(old_val, start);
-        res.append(s.substr(start, end - start));
-
-        if (end == str_arg_t::npos)
-        {
-            break;
-        }
-
+        res.reserve((size + 1) * new_val.size());
         res.append(new_val);
-        start = end + step;
+
+        for (size_t i = 0; i < size; ++i)
+        {
+            res.push_back(s[i]);
+            res.append(new_val);
+        }
+    }
+    else
+    {
+        size_t start = 0;
+        size_t end = 0;
+        const size_t step = old_val.empty() ? 1 : old_val.size();
+
+        while (true)
+        {
+            end = s.find(old_val, start);
+            res.append(s.substr(start, end - start));
+
+            if (end == str_arg_t::npos)
+            {
+                break;
+            }
+
+            res.append(new_val);
+            start = end + step;
+        }
     }
 
     return res;
@@ -487,10 +492,14 @@ inline std::string join(IT first, IT last, const Delim& delimiter)
 // split
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
+inline std::vector<str_arg_t> split(const str_arg_t& s, const char delimiter)
 {
-    std::vector<std::string> res;
-    res.reserve(count(s, delimiter) + 1);
+    std::vector<str_arg_t> res;
+
+    if (s.empty())
+    {
+        return res;
+    }
 
     size_t start = 0;
     size_t end = 0;
@@ -505,24 +514,37 @@ inline std::vector<std::string> split(const str_arg_t& s, const char delimiter)
     return res;
 }
 
-inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delimiter)
+inline std::vector<str_arg_t> split(const str_arg_t& s, const str_arg_t& delimiter)
 {
-    if (delimiter.empty())
+    std::vector<str_arg_t> res;
+
+    if (s.empty())
     {
-        return {};
+        return res;
     }
 
-    std::vector<std::string> res;
-    res.reserve(count(s, delimiter) + 1);
-
-    size_t start = 0;
-    size_t end = 0;
-
-    while (end != str_arg_t::npos)
+    if (delimiter.empty())
     {
-        end = s.find(delimiter, start);
-        res.emplace_back(s.substr(start, end - start));
-        start = end + delimiter.size();
+        const size_t size = s.size();
+        res.reserve(size);
+
+        for (size_t i = 0; i < size; ++i)
+        {
+            res.emplace_back(s.substr(i, 1));
+        }
+    }
+    else
+    {
+        const size_t step = delimiter.size();
+        size_t start = 0;
+        size_t end = 0;
+
+        while (end != str_arg_t::npos)
+        {
+            end = s.find(delimiter, start);
+            res.emplace_back(s.substr(start, end - start));
+            start = end + step;
+        }
     }
 
     return res;
@@ -532,19 +554,20 @@ inline std::vector<std::string> split(const str_arg_t& s, const str_arg_t& delim
 // split_words
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split_words(const str_arg_t& s)
+inline std::vector<str_arg_t> split_words(const str_arg_t& s)
 {
-    std::vector<std::string> res;
-
-    size_t start = 0;
-    size_t end = 0;
+    std::vector<str_arg_t> res;
 
     constexpr const char* chars = " \t\n\v\f\r";
 
-    while ((start = s.find_first_not_of(chars, end)) != str_arg_t::npos)
+    size_t start = s.find_first_not_of(chars);
+    size_t end = 0;
+
+    while (start != str_arg_t::npos)
     {
         end = s.find_first_of(chars, start);
         res.emplace_back(s.substr(start, end - start));
+        start = s.find_first_not_of(chars, end);
     }
 
     return res;
@@ -554,7 +577,7 @@ inline std::vector<std::string> split_words(const str_arg_t& s)
 // split_lines
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::vector<std::string> split_lines(const str_arg_t& s)
+inline std::vector<str_arg_t> split_lines(const str_arg_t& s)
 {
     return split(s, '\n');
 }

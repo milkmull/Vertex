@@ -565,10 +565,10 @@ VX_TEST_CASE(replace)
 
 VX_TEST_CASE(concat)
 {
-    const std::vector<std::string> v1 = { "hello", " ", "world" };
+    const std::vector<str::str_arg_t> v1 = { "hello", " ", "world" };
     VX_CHECK(str::concat(v1.begin(), v1.end()) == "hello world");
 
-    const std::vector<std::string> v2 = { "", "", "" };
+    const std::vector<str::str_arg_t> v2 = { "", "", "" };
     VX_CHECK(str::concat(v2.begin(), v2.end()) == "");
 }
 
@@ -576,13 +576,13 @@ VX_TEST_CASE(join)
 {
     VX_SECTION("string")
     {
-        const std::vector<std::string> v1 = { "hello", "world" };
+        const std::vector<str::str_arg_t> v1 = { "hello", "world" };
         VX_CHECK(str::join(v1.begin(), v1.end(), ", ") == "hello, world");
     }
 
     VX_SECTION("custom delimiter")
     {
-        const std::vector<std::string> v1 = { "1", "2", "3" };
+        const std::vector<str::str_arg_t> v1 = { "1", "2", "3" };
         VX_CHECK(str::join(v1.begin(), v1.end(), "-") == "1-2-3");
     }
 
@@ -594,7 +594,7 @@ VX_TEST_CASE(join)
 
     VX_SECTION("empty vector")
     {
-        const std::vector<std::string> v1;
+        const std::vector<str::str_arg_t> v1;
         VX_CHECK(str::join(v1.begin(), v1.end(), '-') == "");
     }
 }
@@ -603,34 +603,34 @@ VX_TEST_CASE(split)
 {
     VX_SECTION("char")
     {
-        VX_CHECK((str::split("hello world", ' ') == std::vector<std::string>{ "hello", "world" }));
+        VX_CHECK((str::split("hello world", ' ') == std::vector<str::str_arg_t>{ "hello", "world" }));
 
-        VX_CHECK((str::split("", ' ') == std::vector<std::string>{ "" }));
+        VX_CHECK((str::split("", ' ') == std::vector<str::str_arg_t>{}));
     }
 
     VX_SECTION("string")
     {
-        VX_CHECK((str::split("hello,world,again", ",") == std::vector<std::string>{ "hello", "world", "again" }));
-        VX_CHECK((str::split("hello,world,again", "world") == std::vector<std::string>{ "hello,", ",again" }));
+        VX_CHECK((str::split("hello,world,again", ",") == std::vector<str::str_arg_t>{ "hello", "world", "again" }));
+        VX_CHECK((str::split("hello,world,again", "world") == std::vector<str::str_arg_t>{ "hello,", ",again" }));
 
-        VX_CHECK((str::split("hello", "") == std::vector<std::string>{ "h", "e", "l", "l", "o" }));
-        VX_CHECK((str::split("", ",") == std::vector<std::string>{ "" }));
+        VX_CHECK((str::split("hello", "") == std::vector<str::str_arg_t>{ "h", "e", "l", "l", "o" }));
+        VX_CHECK((str::split("", ",") == std::vector<str::str_arg_t>{}));
     }
 }
 
 VX_TEST_CASE(split_words)
 {
-    VX_CHECK((str::split_words("\t\nhello wor\vld, how ar\fe you?\r\r   ") == std::vector<std::string>{ "hello", "wor", "ld,", "how", "ar", "e", "you?" }));
-    VX_CHECK((str::split_words("\t\n\v  \f \r\r   ") == std::vector<std::string>{ "" }));
-    VX_CHECK((str::split_words("") == std::vector<std::string>{ "" }));
+    VX_CHECK((str::split_words("\t\nhello wor\vld, how ar\fe you?\r\r   ") == std::vector<str::str_arg_t>{ "hello", "wor", "ld,", "how", "ar", "e", "you?" }));
+    VX_CHECK((str::split_words("\t\n\v  \f \r\r   ") == std::vector<str::str_arg_t>{}));
+    VX_CHECK((str::split_words("") == std::vector<str::str_arg_t>{}));
 }
 
 VX_TEST_CASE(split_lines)
 {
-    VX_CHECK((str::split_lines("first line\nsecond line\nthird line\n") == std::vector<std::string>{ "first line", "second line", "third line", "" }));
-    VX_CHECK((str::split_lines("first line") == std::vector<std::string>{ "first line" }));
-    VX_CHECK((str::split_lines("") == std::vector<std::string>{ "" }));
-    VX_CHECK((str::split_lines("\n") == std::vector<std::string>{ "", "" }));
+    VX_CHECK((str::split_lines("first line\nsecond line\nthird line\n") == std::vector<str::str_arg_t>{ "first line", "second line", "third line", "" }));
+    VX_CHECK((str::split_lines("first line") == std::vector<str::str_arg_t>{ "first line" }));
+    VX_CHECK((str::split_lines("") == std::vector<str::str_arg_t>{}));
+    VX_CHECK((str::split_lines("\n") == std::vector<str::str_arg_t>{ "", "" }));
 }
 
 VX_TEST_CASE(repeat)
@@ -730,27 +730,6 @@ VX_TEST_CASE(to_int)
         VX_CHECK(count == 5);
     }
 
-    VX_SECTION("uint32")
-    {
-        VX_CHECK(str::to_uint32("123") == 123);
-        VX_CHECK(str::to_uint32("+123") == 123);
-        VX_CHECK(str::to_uint32("-123") == -123); // Should wrap around
-        VX_CHECK(str::to_uint32("  123   ") == 123);
-        VX_CHECK(str::to_uint32("00123") == 123);
-
-        VX_CHECK(str::to_uint32("7B", nullptr, 16) == 123); // Hexadecimal
-        VX_CHECK(str::to_uint32("FFFFFFFF", nullptr, 16) == UINT32_MAX);
-        VX_CHECK(str::to_uint32("1010", nullptr, 2) == 10); // Binary
-        VX_CHECK(str::to_uint32("0123", nullptr, 8) == 83); // Octal
-
-        VX_CHECK_ERROR(str::to_uint32("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_uint32("+4294967296"), err::OUT_OF_RANGE); // UINT32_MAX + 1
-
-        size_t count = 0;
-        str::to_uint32("  123", &count);
-        VX_CHECK(count == 5);
-    }
-
     VX_SECTION("int64")
     {
         VX_CHECK(str::to_int64("123") == 123);
@@ -769,6 +748,30 @@ VX_TEST_CASE(to_int)
 
         size_t count = 0;
         str::to_int64("  123", &count);
+        VX_CHECK(count == 5);
+    }
+}
+
+VX_TEST_CASE(to_uint)
+{
+    VX_SECTION("uint32")
+    {
+        VX_CHECK(str::to_uint32("123") == 123);
+        VX_CHECK(str::to_uint32("+123") == 123);
+        VX_CHECK(str::to_uint32("-123") == -123); // Should wrap around
+        VX_CHECK(str::to_uint32("  123   ") == 123);
+        VX_CHECK(str::to_uint32("00123") == 123);
+
+        VX_CHECK(str::to_uint32("7B", nullptr, 16) == 123); // Hexadecimal
+        VX_CHECK(str::to_uint32("FFFFFFFF", nullptr, 16) == UINT32_MAX);
+        VX_CHECK(str::to_uint32("1010", nullptr, 2) == 10); // Binary
+        VX_CHECK(str::to_uint32("0123", nullptr, 8) == 83); // Octal
+
+        VX_CHECK_ERROR(str::to_uint32("abc"), err::INVALID_ARGUMENT);
+        VX_CHECK_ERROR(str::to_uint32("+4294967296"), err::OUT_OF_RANGE); // UINT32_MAX + 1
+
+        size_t count = 0;
+        str::to_uint32("  123", &count);
         VX_CHECK(count == 5);
     }
 
