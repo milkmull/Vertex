@@ -3,6 +3,7 @@
 
 #include "vertex/util/random/pcg.hpp"
 #include "vertex/util/random/uniform_int_distribution.hpp"
+#include "vertex/util/random/uniform_real_distribution.hpp"
 
 #include <random>
 
@@ -79,20 +80,120 @@ VX_TEST_CASE(pcg32)
 
 VX_TEST_CASE(uniform_int_distribution)
 {
-    VX_SECTION("Small Range (0-1) with 2 Bins using uint8_t")
+    using RNG = random::pcg32;
+
+    VX_SECTION("uniformity test: small range")
     {
-        random::pcg32 rng;
-        random::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX - 1);
-        VX_CHECK((test::test_uniform_distribution<decltype(rng), decltype(dist), 2>(rng, dist)));
+        using Dist = random::uniform_int_distribution<int>;
+
+        RNG rng;
+        Dist dist(1, 10); // range size == 10
+    
+        constexpr size_t bins = 10;
+        constexpr size_t samples = 10000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+    
+    VX_SECTION("uniformity test: larger range")
+    {
+        using Dist = random::uniform_int_distribution<int>;
+
+        RNG rng;
+        Dist dist(100, 199); // range size == 200
+    
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 100000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
-    //VX_SECTION("Small Range (-128 to 127) with 8 Bins using char")
-    //{
-    //    //random::pcg32 rng;
-    //    //random::uniform_int_distribution<char> dist(0, 20);
-    //    //VX_CHECK((test::test_uniform_distribution<decltype(rng), decltype(dist), 8>(rng, dist)));
-    //    random::uniform_int_distribution<char> dist;
-    //}
+    VX_SECTION("edge cases: single value range")
+    {
+        using Dist = random::uniform_int_distribution<int>;
+
+        RNG rng;
+        Dist dist(42, 42); // range size == 0
+    
+        constexpr size_t bins = 1;
+        constexpr size_t samples = 1000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("extreme range")
+    {
+        using Dist = random::uniform_int_distribution<int64_t>;
+
+        RNG rng;
+        Dist dist(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
+    
+        constexpr size_t bins = 10;
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+}
+
+VX_TEST_CASE(uniform_real_distribution)
+{
+    using RNG = random::pcg32;
+
+    VX_SECTION("uniformity test: small range")
+    {
+        using Dist = random::uniform_real_distribution<float>;
+
+        RNG rng;
+        Dist dist(0.0f, 1.0f);
+
+        constexpr size_t bins = 10;
+        constexpr size_t samples = 10000; // Smaller sample size for quicker tests
+        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("uniformity test: larger range")
+    {
+        using Dist = random::uniform_real_distribution<double>;
+
+        RNG rng;
+        Dist dist(50.0, 100.0);
+
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 100000;
+        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("edge cases: single value range")
+    {
+        using Dist = random::uniform_real_distribution<float>;
+
+        RNG rng;
+        Dist dist(42.0f, 42.0f);
+
+        constexpr size_t bins = 1;
+        constexpr size_t samples = 1000;
+        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("extreme range")
+    {
+        using Dist = random::uniform_real_distribution<long double>;
+
+        RNG rng;
+        Dist dist(std::numeric_limits<long double>::min(), std::numeric_limits<long double>::min() + 1000.0L);
+
+        constexpr size_t bins = 10;
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("negative range")
+    {
+        using Dist = random::uniform_real_distribution<float>;
+
+        RNG rng;
+        Dist dist(-100.0f, -50.0f);
+    
+        constexpr size_t bins = 10;
+        constexpr size_t samples = 50000;    
+        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
 }
 
 int main()

@@ -195,9 +195,10 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
     static_assert(urng_min < urng_max, "RNG must define min() < max()");
     constexpr common_type urng_range = urng_max - urng_min;
 
-    constexpr common_type udist_min = static_cast<common_type>(std::numeric_limits<range_type>::min());
-    constexpr common_type udist_max = static_cast<common_type>(std::numeric_limits<range_type>::max());
-    constexpr common_type udist_range = udist_max - udist_min;
+    // The full range of the distribution type is just
+    // the max value of the unsigned version of the type
+    constexpr common_type udist_range = static_cast<common_type>(std::numeric_limits<urange_type>::max());
+    constexpr bool possible_upscale = (urng_range < udist_range);
 
     const common_type urange = static_cast<common_type>(p.b()) - static_cast<common_type>(p.a());
     common_type ret = 0;
@@ -253,8 +254,8 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         // when this condition is met. If the RNG's range is large enough to cover 
         // the distribution, this branch is effectively a no-op and never executed.
 
-        VX_ASSERT(urng_range < udist_range);
-        ret = __detail::upscaler<(urng_range < udist_range)>::upscale(*this, rng, urange);
+        VX_ASSERT(possible_upscale);
+        ret = __detail::upscaler<possible_upscale>::upscale(*this, rng, urange);
     }
 
     return static_cast<range_type>(ret + p.a());
