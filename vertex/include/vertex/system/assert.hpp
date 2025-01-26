@@ -46,7 +46,8 @@
 #define VX_ASSERT_HANDLER(condition, msg, file, line, function) \
     do \
     { \
-        if (!(condition)) \
+        const bool condition_check = !!(condition); /* Do this to avoid constant expression warning */ \
+        if (!condition_check) \
         { \
             std::cerr << "Assertion failed: " << #condition << '\n' \
             << "Message: " << msg << '\n' \

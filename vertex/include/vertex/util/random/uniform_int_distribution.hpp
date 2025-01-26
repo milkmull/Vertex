@@ -111,6 +111,70 @@ private:
     param_type m_param;
 };
 
+namespace __detail {
+
+template <bool upscale>
+struct upscaler;
+
+template <>
+struct upscaler<false> // rng range is greater than or equal to dist max range
+{
+    template <typename Dist, typename RNG, typename common_type>
+    static VX_FORCE_INLINE common_type upscale(Dist& dist, RNG& rng, const common_type urange)
+    {
+        return 0;
+    }
+};
+
+template <>
+struct upscaler<true> // rng range is smaller than dist max range
+{
+    template <typename Dist, typename RNG, typename common_type>
+    static inline common_type upscale(Dist& dist, RNG& rng, const common_type urange)
+    {
+        using param_type = typename Dist::param_type;
+
+        constexpr common_type urng_min = static_cast<common_type>((RNG::min)());
+        constexpr common_type urng_max = static_cast<common_type>((RNG::max)());
+        constexpr common_type urng_range = urng_max - urng_min;
+
+        // Note that every value in [0, urange]
+        // can be written uniquely as
+        // 
+        // (urngrange + 1) * high + low
+        // 
+        // where
+        // 
+        // high in [0, urange / (urngrange + 1)]
+        // 
+        // and
+        // 
+        // low in [0, urngrange].
+    
+        // The while loop ensures uniformity by rejecting values outside the target range [0, urange].
+        // Upscaling may produce values that exceed urange (overshoot) or cause wraparound 
+        // if the sum overflows the type’s maximum. The condition 'ret > urange' handles overshoot, 
+        // discarding any values that exceed the target range, while 'ret < tmp' checks for wraparound, 
+        // where overflow would make ret unexpectedly smaller than tmp. By rejecting these out-of-bounds 
+        // or wrapped values, the loop preserves an unbiased distribution across [0, urange].
+
+        constexpr common_type uerng_range = urng_range + 1;
+        
+        common_type ret = 0;
+        common_type tmp = 0; // wraparound control
+        do
+        {
+            tmp = uerng_range * dist(rng, param_type(0, urange / uerng_range));
+            ret = tmp + (static_cast<common_type>(rng()) - urng_min);
+    
+        } while (ret > urange || ret < tmp);
+
+        return ret;
+    }
+};
+
+} // namespace __detail
+
 template <typename T>
 template <typename RNG>
 typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::operator()(RNG& rng, const param_type& p)
@@ -173,44 +237,24 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         ret /= scaling;
     }
 
-    // upscaling (only necessary if the distribution range could be larger than the rng range)
-    else if ((urng_range < udist_range) && (urng_range < urange))
-    {
-        // Note that every value in [0, urange]
-        // can be written uniquely as
-        // 
-        // (urngrange + 1) * high + low
-        // 
-        // where
-        // 
-        // high in [0, urange / (urngrange + 1)]
-        // 
-        // and
-        // 
-        // low in [0, urngrange].
-
-        // The while loop ensures uniformity by rejecting values outside the target range [0, urange].
-        // Upscaling may produce values that exceed urange (overshoot) or cause wraparound 
-        // if the sum overflows the type’s maximum. The condition 'ret > urange' handles overshoot, 
-        // discarding any values that exceed the target range, while 'ret < tmp' checks for wraparound, 
-        // where overflow would make ret unexpectedly smaller than tmp. By rejecting these out-of-bounds 
-        // or wrapped values, the loop preserves an unbiased distribution across [0, urange].
-
-        constexpr common_type uerng_range = urng_range + 1;
-
-        common_type tmp = 0; // wraparound control
-        do
-        {
-            tmp = uerng_range * operator()(rng, param_type(0, static_cast<range_type>(urange / uerng_range)));
-            ret = tmp + (static_cast<common_type>(rng()) - urng_min);
-
-        } while (ret > urange || ret < tmp);
-    }
-
     // same range
-    else
+    else if (urng_range == urange)
     {
         ret = common_type(rng()) - urng_min;
+    }
+
+    // upscaling
+    else // (urng_range < urange)
+    {
+        // Upscaling is only required if the range of the RNG (e.g., uint32_t) is smaller 
+        // than the range of the distribution (e.g., uint64_t). In such cases, the RNG 
+        // cannot directly generate values across the entire distribution range. 
+        // To handle this, we use template specialization to implement upscaling only 
+        // when this condition is met. If the RNG's range is large enough to cover 
+        // the distribution, this branch is effectively a no-op and never executed.
+
+        VX_ASSERT(urng_range < udist_range);
+        ret = __detail::upscaler<(urng_range < udist_range)>::upscale(*this, rng, urange);
     }
 
     return static_cast<range_type>(ret + p.a());
