@@ -132,6 +132,7 @@ formatting:
     x double check pragma once in all headers
     x no VX_API in platform code
     - optional compilation (crypto, some os modules)
+    - macros to check if a particular os mudule is available
 }
 
 testing:

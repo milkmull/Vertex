@@ -131,6 +131,10 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
     static_assert(urng_min < urng_max, "RNG must define min() < max()");
     constexpr common_type urng_range = urng_max - urng_min;
 
+    constexpr common_type udist_min = static_cast<common_type>(std::numeric_limits<range_type>::min());
+    constexpr common_type udist_max = static_cast<common_type>(std::numeric_limits<range_type>::max());
+    constexpr common_type udist_range = udist_max - udist_min;
+
     const common_type urange = static_cast<common_type>(p.b()) - static_cast<common_type>(p.a());
     common_type ret = 0;
 
@@ -169,8 +173,8 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         ret /= scaling;
     }
 
-    // upscaling
-    else if (urng_range < urange)
+    // upscaling (only necessary if the distribution range could be larger than the rng range)
+    else if ((urng_range < udist_range) && (urng_range < urange))
     {
         // Note that every value in [0, urange]
         // can be written uniquely as
@@ -192,12 +196,12 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         // where overflow would make ret unexpectedly smaller than tmp. By rejecting these out-of-bounds 
         // or wrapped values, the loop preserves an unbiased distribution across [0, urange].
 
-        const common_type uerng_range = urng_range + 1;
+        constexpr common_type uerng_range = urng_range + 1;
 
         common_type tmp = 0; // wraparound control
         do
         {
-            tmp = uerng_range * operator()(rng, param_type(0, urange / uerng_range));
+            tmp = uerng_range * operator()(rng, param_type(0, static_cast<range_type>(urange / uerng_range)));
             ret = tmp + (static_cast<common_type>(rng()) - urng_min);
 
         } while (ret > urange || ret < tmp);
@@ -209,7 +213,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         ret = common_type(rng()) - urng_min;
     }
 
-    return ret + p.a();
+    return static_cast<range_type>(ret + p.a());
 }
 
 } // namespace random

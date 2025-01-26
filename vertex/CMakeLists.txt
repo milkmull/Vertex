@@ -128,6 +128,13 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/include/vertex")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl")
 vx_create_source_groups(Vertex "${CMAKE_CURRENT_SOURCE_DIR}")
 
+# Third party header files for the library
+#target_include_directories(Vertex
+#    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party>" # When building the project
+#    PUBLIC "$<INSTALL_INTERFACE:include>"                               # When using the installed project
+#    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
+#)
+
 # stb_image
 #target_include_directories(Vertex PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
 #

@@ -34,7 +34,7 @@ public:
 
     VX_FORCE_INLINE uint32_t operator()()
     {
-        const uint64_t old_state = m_state;
+        uint64_t old_state = m_state;
         m_state = m_state * multiplier + increment;
 
         const uint32_t count = static_cast<uint32_t>(old_state >> 59) & 31;

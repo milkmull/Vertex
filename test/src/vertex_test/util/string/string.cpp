@@ -357,6 +357,7 @@ VX_TEST_CASE(is_hex)
 {
     VX_CHECK(str::is_hex("123abc", false));
     VX_CHECK(str::is_hex("0x123abc", true));
+    VX_CHECK(!str::is_hex("0x123abc", false));
     VX_CHECK(!str::is_hex("123xyz", false));
     VX_CHECK(!str::is_hex("123abcXYZ", false));
 
