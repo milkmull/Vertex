@@ -10,11 +10,12 @@
 namespace vx {
 namespace random {
 
-class rng
+template <typename RNG>
+class basic_rng
 {
 public:
 
-    using generator_type = pcg32;
+    using generator_type = RNG;
     using result_type = typename generator_type::result_type;
 
     static constexpr result_type min() { return generator_type::min(); }
@@ -22,8 +23,8 @@ public:
 
 public:
 
-    rng() { seed(); }
-    rng(uint32_t seed) { m_rng.seed(seed); }
+    basic_rng() { seed(); }
+    basic_rng(uint32_t seed) { m_rng.seed(seed); }
 
     ////////////////////////////////////////////////////////////////////////////////
     // seeding
@@ -92,6 +93,8 @@ private:
 
     generator_type m_rng;
 };
+
+using rng = basic_rng<pcg32>;
 
 } // namespace random
 } // namespace vx

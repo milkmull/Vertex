@@ -79,6 +79,14 @@ public:
     result_type min() const { return a(); }
     result_type max() const { return b(); }
 
+    auto range() const
+    {
+        using uresult_type = typename std::make_unsigned<result_type>::type;
+        const uresult_type range_min = static_cast<uresult_type>(a()) + std::numeric_limits<result_type>::max() + 1;
+        const uresult_type range_max = static_cast<uresult_type>(b()) + std::numeric_limits<result_type>::max() + 1;
+        return (range_max - range_min);
+    }
+
     void reset() {}
 
     friend bool operator==(

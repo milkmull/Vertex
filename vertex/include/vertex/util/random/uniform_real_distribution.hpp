@@ -79,6 +79,11 @@ public:
     result_type min() const { return a(); }
     result_type max() const { return b(); }
 
+    result_type range() const
+    {
+        return min() - max();
+    }
+
     void reset() {}
 
     friend bool operator==(
@@ -115,7 +120,7 @@ template <typename T>
 template <typename RNG>
 typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>::operator()(RNG& rng, const param_type& p)
 {
-    const T x = generate_canonical<T, std::numeric_limits<T>::digits, RNG>(rng);
+    const T x = random::generate_canonical<T, std::numeric_limits<T>::digits, RNG>(rng);
     return x * (p.b() - p.a()) + p.a();
 }
 

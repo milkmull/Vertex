@@ -4,10 +4,14 @@
 #include "vertex/util/random/pcg.hpp"
 #include "vertex/util/random/uniform_int_distribution.hpp"
 #include "vertex/util/random/uniform_real_distribution.hpp"
+#include "vertex/util/random/bernoulli_distribution.hpp"
+#include "vertex/util/random/normal_distribution.hpp"
 
 #include <random>
 
 using namespace vx;
+
+using RNG = random::pcg32;
 
 VX_TEST_CASE(pcg32)
 {
@@ -71,22 +75,26 @@ VX_TEST_CASE(pcg32)
         VX_CHECK(std::equal(std::begin(results), std::end(results), std::begin(expected3), std::end(expected3)));
     }
 
-    VX_SECTION("min and max")
+    VX_SECTION("chi squared")
     {
-        VX_CHECK(random::pcg32::min() == std::numeric_limits<uint32_t>::min());
-        VX_CHECK(random::pcg32::max() == std::numeric_limits<uint32_t>::max());
+        using Dist = random::uniform_int_distribution<typename RNG::result_type>;
+
+        RNG rng;
+        Dist dist;
+
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 10000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 }
 
 VX_TEST_CASE(uniform_int_distribution)
 {
-    using RNG = random::pcg32;
+    RNG rng;
 
-    VX_SECTION("uniformity test: small range")
+    VX_SECTION("small range")
     {
-        using Dist = random::uniform_int_distribution<int>;
-
-        RNG rng;
+        using Dist = random::uniform_int_distribution<uint8_t>;
         Dist dist(1, 10); // range size == 10
     
         constexpr size_t bins = 10;
@@ -94,105 +102,223 @@ VX_TEST_CASE(uniform_int_distribution)
         VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
     
-    VX_SECTION("uniformity test: larger range")
+    VX_SECTION("larger range")
     {
         using Dist = random::uniform_int_distribution<int>;
-
-        RNG rng;
-        Dist dist(100, 199); // range size == 200
+        Dist dist(100, 199); // range size == 100
     
         constexpr size_t bins = 20;
         constexpr size_t samples = 100000;
         VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
-    VX_SECTION("edge cases: single value range")
+    VX_SECTION("negative range")
     {
         using Dist = random::uniform_int_distribution<int>;
+        Dist dist(-199, -100); // range size == 100
 
-        RNG rng;
-        Dist dist(42, 42); // range size == 0
-    
-        constexpr size_t bins = 1;
-        constexpr size_t samples = 1000;
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 100000;
         VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
     VX_SECTION("extreme range")
     {
         using Dist = random::uniform_int_distribution<int64_t>;
-
-        RNG rng;
-        Dist dist(std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max());
+        Dist dist; // max range for int64
     
-        constexpr size_t bins = 10;
+        constexpr size_t bins = 20;
         constexpr size_t samples = 50000;
+        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+
+    VX_SECTION("single value range")
+    {
+        using Dist = random::uniform_int_distribution<int>;
+        Dist dist(42, 42); // range size == 1
+
+        constexpr size_t bins = 1;
+        constexpr size_t samples = 1000;
         VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 }
 
 VX_TEST_CASE(uniform_real_distribution)
 {
-    using RNG = random::pcg32;
+    RNG rng;
 
-    VX_SECTION("uniformity test: small range")
+    VX_SECTION("small range")
     {
         using Dist = random::uniform_real_distribution<float>;
-
-        RNG rng;
         Dist dist(0.0f, 1.0f);
 
         constexpr size_t bins = 10;
-        constexpr size_t samples = 10000; // Smaller sample size for quicker tests
+        constexpr size_t samples = 20000; // Smaller sample size for quicker tests
         VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
-    VX_SECTION("uniformity test: larger range")
+    VX_SECTION("larger range")
     {
         using Dist = random::uniform_real_distribution<double>;
-
-        RNG rng;
-        Dist dist(50.0, 100.0);
+        Dist dist(50.0, 150.0);
 
         constexpr size_t bins = 20;
         constexpr size_t samples = 100000;
         VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
-    VX_SECTION("edge cases: single value range")
+    VX_SECTION("negative range")
     {
         using Dist = random::uniform_real_distribution<float>;
+        Dist dist(-150.0f, -50.0f);
 
-        RNG rng;
-        Dist dist(42.0f, 42.0f);
-
-        constexpr size_t bins = 1;
-        constexpr size_t samples = 1000;
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 100000;
         VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
     VX_SECTION("extreme range")
     {
         using Dist = random::uniform_real_distribution<long double>;
+        Dist dist(std::numeric_limits<long double>::min(), std::numeric_limits<long double>::max());
 
-        RNG rng;
-        Dist dist(std::numeric_limits<long double>::min(), std::numeric_limits<long double>::min() + 1000.0L);
-
-        constexpr size_t bins = 10;
-        constexpr size_t samples = 50000;
+        constexpr size_t bins = 20;
+        constexpr size_t samples = 100000;
         VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
     }
 
-    VX_SECTION("negative range")
+    VX_SECTION("single value range")
     {
         using Dist = random::uniform_real_distribution<float>;
+        Dist dist(42.0f, 42.0f);
 
-        RNG rng;
-        Dist dist(-100.0f, -50.0f);
-    
-        constexpr size_t bins = 10;
-        constexpr size_t samples = 50000;    
+        constexpr size_t bins = 1;
+        constexpr size_t samples = 1000;
         VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+    }
+}
+
+VX_TEST_CASE(bernoulli_distribution)
+{
+    using Dist = random::bernoulli_distribution;
+    RNG rng;
+
+    VX_SECTION("default probability")
+    {
+        Dist dist;
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_bernoulli_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("skew true")
+    {
+        Dist dist(0.75);
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_bernoulli_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("skew false")
+    {
+        Dist dist(0.25);
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_bernoulli_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("all true")
+    {
+        Dist dist(1.0);
+
+        constexpr size_t samples = 50000;
+        size_t results[2]{};
+        for (int i = 0; i < samples; ++i)
+        {
+            const bool x = dist(rng);
+            ++results[static_cast<size_t>(x)];
+        }
+
+        VX_CHECK(results[0] == 0);
+        VX_CHECK(results[1] == samples);
+    }
+
+    VX_SECTION("all false")
+    {
+        Dist dist(0.0);
+
+        constexpr size_t samples = 50000;
+        size_t results[2]{};
+        for (int i = 0; i < samples; ++i)
+        {
+            const bool x = dist(rng);
+            ++results[static_cast<size_t>(x)];
+        }
+
+        VX_CHECK(results[0] == samples);
+        VX_CHECK(results[1] == 0);
+    }
+}
+
+VX_TEST_CASE(normal_distribution)
+{
+    using Dist = random::normal_distribution<>;
+    RNG rng;
+
+    VX_SECTION("default probability")
+    {
+        Dist dist;
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("custom mean and standard deviation")
+    {
+        Dist dist(10.0, 2.0); // mean = 10.0, stddev = 2.0
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("small standard deviation")
+    {
+        Dist dist(0.0, 0.0001); // mean = 0.0, stddev = 0.0001 (very narrow)
+
+        constexpr size_t samples = 200000; // Larger sample size for precision
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("large standard deviation")
+    {
+        Dist dist(0.0, 10000.0); // mean = 0.0, stddev = 10000 (very wide)
+
+        constexpr size_t samples = 200000; // Larger sample size to capture variability
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("large positive mean")
+    {
+        Dist dist(1e6, 1.0); // mean = 1000000, stddev = 1.0
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("large negative mean")
+    {
+        Dist dist(-1e6, 1.0); // mean = -1000000, stddev = 1.0
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+
+    VX_SECTION("zero variance")
+    {
+        Dist dist(5.0, 0.0); // mean = 5.0, stddev = 0.0 (constant distribution)
+
+        constexpr size_t samples = 100; // Small sample size is enough for zero variance
+        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
     }
 }
 

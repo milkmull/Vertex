@@ -184,7 +184,7 @@ typename discrete_distribution<T>::result_type discrete_distribution<T>::operato
         return static_cast<result_type>(0.0);
     }
 
-#   define generate_canonical(gen) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
+#   define generate_canonical(gen) random::generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
 
     const double x = generate_canonical(rng);
     // Find the position in cumulative probabilities where x would fit

@@ -100,7 +100,7 @@ private:
 template <typename RNG>
 typename bernoulli_distribution::result_type bernoulli_distribution::operator()(RNG& rng, const param_type& p)
 {
-#   define generate_canonical(gen) generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
+#   define generate_canonical(gen) random::generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
 
     return static_cast<result_type>(generate_canonical(rng) < p.p());
 

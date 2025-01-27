@@ -25,10 +25,7 @@ public:
         param_type() : param_type(0) {}
 
         explicit param_type(T mean, T stddev = static_cast<T>(1))
-            : m_mean(mean), m_stddev(stddev)
-        {
-            VX_ASSERT(m_stddev > 0);
-        }
+            : m_mean(mean), m_stddev(stddev) {}
 
         result_type mean() const
         {
@@ -131,7 +128,7 @@ typename normal_distribution<T>::result_type normal_distribution<T>::operator()(
         "RNG::result_type must be an unsigned integral type"
     );
 
-#   define generate_canonical(gen) generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(gen)
+#   define generate_canonical(gen) random::generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(gen)
 
     result_type ret;
 
