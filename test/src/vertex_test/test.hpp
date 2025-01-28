@@ -97,5 +97,17 @@ private:
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 
+namespace __detail {
+
+    template <typename... Args>
+    void message(Args&&... args)
+    {
+        (std::cout << ... << args) << std::endl;
+    }
+
+} // namespace __detail
+
+#define VX_MESSAGE(...) ::test::__detail::message(__VA_ARGS__)
+
 }
 }

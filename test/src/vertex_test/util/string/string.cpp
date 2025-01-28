@@ -1,4 +1,4 @@
-#include "vertex/_test/test.hpp"
+#include "vertex_test/test.hpp"
 
 #include "vertex/util/string/string.hpp"
 #include "vertex/util/string/string_compare.hpp"
@@ -384,7 +384,7 @@ VX_TEST_CASE(to_lower)
         VX_CHECK(str::to_lower("A1B2C3") == "a1b2c3");
         VX_CHECK(str::to_lower("12345") == "12345");
 
-        VX_CHECK(str::to_lower("") == "");
+        VX_CHECK(str::to_lower("").empty());
     }
 }
 
@@ -404,7 +404,7 @@ VX_TEST_CASE(to_upper)
         VX_CHECK(str::to_upper("a1b2c3") == "A1B2C3");
         VX_CHECK(str::to_upper("12345") == "12345");
 
-        VX_CHECK(str::to_upper("") == "");
+        VX_CHECK(str::to_upper("").empty());
     }
 }
 
@@ -416,7 +416,7 @@ VX_TEST_CASE(title)
     VX_CHECK(str::title("tItLe") == "Title");
     VX_CHECK(str::title("!!!!!hello&& &there!z") == "!!!!!Hello&& &There!Z");
 
-    VX_CHECK(str::title("") == "");
+    VX_CHECK(str::title("").empty());
 }
 
 VX_TEST_CASE(case_insensitive_compare)
@@ -436,18 +436,18 @@ VX_TEST_CASE(strip)
         VX_CHECK(str::strip("  hello  ") == "hello");
         VX_CHECK(str::strip("  \t \n hello \n ") == "hello");
         VX_CHECK(str::strip("no_strip") == "no_strip");
-        VX_CHECK(str::strip("\t\n\v\f\r") == "");
+        VX_CHECK(str::strip("\t\n\v\f\r").empty());
 
-        VX_CHECK(str::strip("") == "");
+        VX_CHECK(str::strip("").empty());
     }
 
     VX_SECTION("custom characters")
     {
         VX_CHECK(str::strip("xxhelloxx", "x") == "hello");
         VX_CHECK(str::strip("xx123xx", "x") == "123");
-        VX_CHECK(str::strip("aabbbbaa", "ab") == "");
+        VX_CHECK(str::strip("aabbbbaa", "ab").empty());
 
-        VX_CHECK(str::strip("", "ab") == "");
+        VX_CHECK(str::strip("", "ab").empty());
         VX_CHECK(str::strip("ab", "") == "ab");
     }
 }
@@ -459,18 +459,18 @@ VX_TEST_CASE(lstrip)
         VX_CHECK(str::lstrip("  hello  ") == "hello  ");
         VX_CHECK(str::lstrip("  \t \n hello \n ") == "hello \n ");
         VX_CHECK(str::lstrip("no_strip") == "no_strip");
-        VX_CHECK(str::lstrip("\t\n\v\f\r") == "");
+        VX_CHECK(str::lstrip("\t\n\v\f\r").empty());
 
-        VX_CHECK(str::lstrip("") == "");
+        VX_CHECK(str::lstrip("").empty());
     }
 
     VX_SECTION("custom characters")
     {
         VX_CHECK(str::lstrip("xxhelloxx", "x") == "helloxx");
         VX_CHECK(str::lstrip("xx123xx", "x") == "123xx");
-        VX_CHECK(str::lstrip("aabbbbaa", "ab") == "");
+        VX_CHECK(str::lstrip("aabbbbaa", "ab").empty());
 
-        VX_CHECK(str::lstrip("", "ab") == "");
+        VX_CHECK(str::lstrip("", "ab").empty());
         VX_CHECK(str::lstrip("ab", "") == "ab");
     }
 }
@@ -482,18 +482,18 @@ VX_TEST_CASE(rstrip)
         VX_CHECK(str::rstrip("  hello  ") == "  hello");
         VX_CHECK(str::rstrip("  \t \n hello \n ") == "  \t \n hello");
         VX_CHECK(str::rstrip("no_strip") == "no_strip");
-        VX_CHECK(str::rstrip("\t\n\v\f\r") == "");
+        VX_CHECK(str::rstrip("\t\n\v\f\r").empty());
 
-        VX_CHECK(str::rstrip("") == "");
+        VX_CHECK(str::rstrip("").empty());
     }
 
     VX_SECTION("custom characters")
     {
         VX_CHECK(str::rstrip("xxhelloxx", "x") == "xxhello");
         VX_CHECK(str::rstrip("xx123xx", "x") == "xx123");
-        VX_CHECK(str::rstrip("aabbbbaa", "ab") == "");
+        VX_CHECK(str::rstrip("aabbbbaa", "ab").empty());
 
-        VX_CHECK(str::rstrip("", "ab") == "");
+        VX_CHECK(str::rstrip("", "ab").empty());
         VX_CHECK(str::rstrip("ab", "") == "ab");
     }
 }
@@ -505,9 +505,9 @@ VX_TEST_CASE(trim_prefix)
     VX_CHECK(str::trim_prefix("12345", "123") == "45");
     VX_CHECK(str::trim_prefix("test", "hello") == "test");
 
-    VX_CHECK(str::trim_prefix("", "hello") == "");
+    VX_CHECK(str::trim_prefix("", "hello").empty());
     VX_CHECK(str::trim_prefix("hello", "") == "hello");
-    VX_CHECK(str::trim_prefix("", "") == "");
+    VX_CHECK(str::trim_prefix("", "").empty());
 }
 
 VX_TEST_CASE(trim_suffix)
@@ -517,9 +517,9 @@ VX_TEST_CASE(trim_suffix)
     VX_CHECK(str::trim_suffix("12345", "45") == "123");
     VX_CHECK(str::trim_suffix("test", "hello") == "test");
 
-    VX_CHECK(str::trim_prefix("", "hello") == "");
+    VX_CHECK(str::trim_prefix("", "hello").empty());
     VX_CHECK(str::trim_prefix("hello", "") == "hello");
-    VX_CHECK(str::trim_prefix("", "") == "");
+    VX_CHECK(str::trim_prefix("", "").empty());
 }
 
 VX_TEST_CASE(remove_)
@@ -530,7 +530,7 @@ VX_TEST_CASE(remove_)
         VX_CHECK(str::remove("abc123abc", 'a') == "bc123bc");
         VX_CHECK(str::remove("12345", '5') == "1234");
 
-        VX_CHECK(str::remove("", 'a') == "");
+        VX_CHECK(str::remove("", 'a').empty());
     }
 
     VX_SECTION("string")
@@ -539,9 +539,9 @@ VX_TEST_CASE(remove_)
         VX_CHECK(str::remove("abc123abc", "abc") == "123");
         VX_CHECK(str::remove("test", "hello") == "test");
 
-        VX_CHECK(str::remove("", "hello") == "");
+        VX_CHECK(str::remove("", "hello").empty());
         VX_CHECK(str::remove("hello", "") == "hello");
-        VX_CHECK(str::remove("", "") == "");
+        VX_CHECK(str::remove("", "").empty());
     }
 }
 
@@ -552,7 +552,7 @@ VX_TEST_CASE(replace)
         VX_CHECK(str::replace("hello world", 'o', 'O') == "hellO wOrld");
         VX_CHECK(str::replace("abc123abc", 'a', 'z') == "zbc123zbc");
 
-        VX_CHECK(str::replace("", 'a', 'z') == "");
+        VX_CHECK(str::replace("", 'a', 'z').empty());
     }
 
     VX_SECTION("string")
@@ -560,7 +560,7 @@ VX_TEST_CASE(replace)
         VX_CHECK(str::replace("hello world", "world", "everyone") == "hello everyone");
         VX_CHECK(str::replace("abc123abc", "abc", "xyz") == "xyz123xyz");
 
-        VX_CHECK(str::replace("", "abc", "xyz") == "");
+        VX_CHECK(str::replace("", "abc", "xyz").empty());
         VX_CHECK(str::replace("abc123abc", "", "xyz") == "xyzaxyzbxyzcxyz1xyz2xyz3xyzaxyzbxyzcxyz");
     }
 }
@@ -571,7 +571,7 @@ VX_TEST_CASE(concat)
     VX_CHECK(str::concat(v1.begin(), v1.end()) == "hello world");
 
     const std::vector<str::str_arg_t> v2 = { "", "", "" };
-    VX_CHECK(str::concat(v2.begin(), v2.end()) == "");
+    VX_CHECK(str::concat(v2.begin(), v2.end()).empty());
 }
 
 VX_TEST_CASE(join)
@@ -597,7 +597,7 @@ VX_TEST_CASE(join)
     VX_SECTION("empty vector")
     {
         const std::vector<str::str_arg_t> v1;
-        VX_CHECK(str::join(v1.begin(), v1.end(), '-') == "");
+        VX_CHECK(str::join(v1.begin(), v1.end(), '-').empty());
     }
 }
 
@@ -606,8 +606,7 @@ VX_TEST_CASE(split)
     VX_SECTION("char")
     {
         VX_CHECK((str::split("hello world", ' ') == std::vector<str::str_arg_t>{ "hello", "world" }));
-
-        VX_CHECK((str::split("", ' ') == std::vector<str::str_arg_t>{}));
+        VX_CHECK((str::split("", ' ').empty()));
     }
 
     VX_SECTION("string")
@@ -616,22 +615,22 @@ VX_TEST_CASE(split)
         VX_CHECK((str::split("hello,world,again", "world") == std::vector<str::str_arg_t>{ "hello,", ",again" }));
 
         VX_CHECK((str::split("hello", "") == std::vector<str::str_arg_t>{ "h", "e", "l", "l", "o" }));
-        VX_CHECK((str::split("", ",") == std::vector<str::str_arg_t>{}));
+        VX_CHECK((str::split("", ",").empty()));
     }
 }
 
 VX_TEST_CASE(split_words)
 {
     VX_CHECK((str::split_words("\t\nhello wor\vld, how ar\fe you?\r\r   ") == std::vector<str::str_arg_t>{ "hello", "wor", "ld,", "how", "ar", "e", "you?" }));
-    VX_CHECK((str::split_words("\t\n\v  \f \r\r   ") == std::vector<str::str_arg_t>{}));
-    VX_CHECK((str::split_words("") == std::vector<str::str_arg_t>{}));
+    VX_CHECK((str::split_words("\t\n\v  \f \r\r   ").empty()));
+    VX_CHECK((str::split_words("").empty()));
 }
 
 VX_TEST_CASE(split_lines)
 {
     VX_CHECK((str::split_lines("first line\nsecond line\nthird line\n") == std::vector<str::str_arg_t>{ "first line", "second line", "third line", "" }));
     VX_CHECK((str::split_lines("first line") == std::vector<str::str_arg_t>{ "first line" }));
-    VX_CHECK((str::split_lines("") == std::vector<str::str_arg_t>{}));
+    VX_CHECK((str::split_lines("").empty()));
     VX_CHECK((str::split_lines("\n") == std::vector<str::str_arg_t>{ "", "" }));
 }
 
@@ -640,15 +639,15 @@ VX_TEST_CASE(repeat)
     VX_SECTION("char")
     {
         VX_CHECK(str::repeat('a', 5) == "aaaaa");
-        VX_CHECK(str::repeat('a', 0) == "");
+        VX_CHECK(str::repeat('a', 0).empty());
     }
 
     VX_SECTION("string")
     {
-        VX_CHECK(str::repeat("abc", 0) == "");
+        VX_CHECK(str::repeat("abc", 0).empty());
         VX_CHECK(str::repeat("abc", 1) == "abc");
         VX_CHECK(str::repeat("abc", 3) == "abcabcabc");
-        VX_CHECK(str::repeat("", 1000) == "");
+        VX_CHECK(str::repeat("", 1000).empty());
     }
 }
 
@@ -657,7 +656,7 @@ VX_TEST_CASE(reverse)
     VX_CHECK(str::reverse("hello") == "olleh");
     VX_CHECK(str::reverse("abc123") == "321cba");
     VX_CHECK(str::reverse("a") == "a");
-    VX_CHECK(str::reverse("") == "");
+    VX_CHECK(str::reverse("").empty());
 }
 
 VX_TEST_CASE(parse_digits)
@@ -706,7 +705,7 @@ VX_TEST_CASE(to_hex_string)
     VX_CHECK(str::to_hex_string(data, sizeof(data)) == "0123456789ABCDEF");
 
     const uint8_t* empty_data = nullptr;
-    VX_CHECK(str::to_hex_string(empty_data, 0) == "");
+    VX_CHECK(str::to_hex_string(empty_data, 0).empty());
 }
 
 VX_TEST_CASE(to_int)

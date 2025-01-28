@@ -1,4 +1,4 @@
-#include "vertex/_test/test.hpp"
+#include "vertex_test/test.hpp"
 #include "vertex/util/bit/endian.hpp"
 
 VX_TEST_CASE(endian)

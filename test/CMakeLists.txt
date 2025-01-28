@@ -5,9 +5,6 @@
 
 function(vx_add_test TARGET SOURCES)
 
-    # Debugging: Print the source files list
-    message(STATUS "Source files: ${SOURCES}")
-    
     # Group source files for IDEs (e.g., Visual Studio)
     source_group("" FILES ${SOURCES})
     # Create the test executable target
@@ -41,11 +38,11 @@ function(vx_add_test TARGET SOURCES)
 endfunction()
 
 # Util tests
-#vx_add_test(vx_test_util_bit "${CMAKE_CURRENT_SOURCE_DIR}/src/util/bit/bit.cpp")
-#vx_add_test(vx_test_util_endian "${CMAKE_CURRENT_SOURCE_DIR}/src/util/bit/endian.cpp")
-#
-#vx_add_test(vx_test_util_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/util/encode/base64.cpp")
-#vx_add_test(vx_test_util_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/util/crypto/crypto.cpp")
+vx_add_test(vx_test_util_bit "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/bit.cpp")
+vx_add_test(vx_test_util_endian "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/endian.cpp")
+
+vx_add_test(vx_test_util_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/encode/base64.cpp")
+vx_add_test(vx_test_util_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/crypto/crypto.cpp")
 
 file(GLOB VX_RANDOM_SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.hpp"
@@ -53,6 +50,6 @@ file(GLOB VX_RANDOM_SRC_FILES
 )
 vx_add_test(vx_test_util_random "${VX_RANDOM_SRC_FILES}")
 
-#vx_add_test(vx_test_util_string "${CMAKE_CURRENT_SOURCE_DIR}/src/util/string/string.cpp")
-#vx_add_test(vx_test_util_regex "${CMAKE_CURRENT_SOURCE_DIR}/src/util/string/regex.cpp")
+vx_add_test(vx_test_util_string "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
+vx_add_test(vx_test_util_regex "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
 

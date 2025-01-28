@@ -1,4 +1,4 @@
-#include "vertex/_test/test.hpp"
+#include "vertex_test/test.hpp"
 
 #include "vertex/util/crypto/FNV1a.hpp"
 #include "vertex/util/crypto/MD5.hpp"

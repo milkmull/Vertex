@@ -1,5 +1,4 @@
-#include "vertex/_test/test.hpp"
-
+#include "vertex_test/test.hpp"
 #include "vertex/util/bit/bit.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////

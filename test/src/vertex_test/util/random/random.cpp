@@ -1,14 +1,6 @@
 #include "vertex_test/test.hpp"
 #include "vertex_test/util/random/random.hpp"
 
-#include "vertex/util/random/pcg.hpp"
-#include "vertex/util/random/uniform_int_distribution.hpp"
-#include "vertex/util/random/uniform_real_distribution.hpp"
-#include "vertex/util/random/bernoulli_distribution.hpp"
-#include "vertex/util/random/normal_distribution.hpp"
-
-#include <random>
-
 using namespace vx;
 
 using RNG = random::pcg32;
@@ -22,7 +14,7 @@ VX_TEST_CASE(pcg32)
 
         ///////////////////////////////////////////////////////////////////////////////
 
-        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/pcg_uint128.hpp
+        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/
         const typename random::pcg32::result_type expected1[n] = {
              676697322,  420258633, 3418632178, 3595600211, 3265791279,
              257272927, 3607051826, 1330014364, 1691133457, 2692391003,
@@ -40,7 +32,7 @@ VX_TEST_CASE(pcg32)
 
         ///////////////////////////////////////////////////////////////////////////////
 
-        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/pcg_uint128.hpp
+        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/
         const typename random::pcg32::result_type expected2[n] = {
             1411482639, 3165192603, 3360792183, 2433038347,  628889468,
             3778631550, 2430531221, 2504758782, 1116223725, 3013600377,
@@ -58,7 +50,7 @@ VX_TEST_CASE(pcg32)
 
         ///////////////////////////////////////////////////////////////////////////////
 
-        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/pcg_uint128.hpp
+        // These values are obtained from: https://github.com/imneme/pcg-cpp/blob/master/include/
         const typename random::pcg32::result_type expected3[n] = {
             1607305410, 1357112869, 3673902475, 3050389573, 2926792163,
             4067116395, 2792760830,  539878933, 2038219788, 1432098220,
@@ -137,9 +129,11 @@ VX_TEST_CASE(uniform_int_distribution)
         using Dist = random::uniform_int_distribution<int>;
         Dist dist(42, 42); // range size == 1
 
-        constexpr size_t bins = 1;
         constexpr size_t samples = 1000;
-        VX_CHECK((test::test_uniform_int_distribution<RNG, Dist, bins, samples>(rng, dist)));
+        for (size_t i = 0; i < samples; ++i)
+        {
+            VX_CHECK(dist(rng) == 42);
+        }
     }
 }
 
@@ -192,9 +186,11 @@ VX_TEST_CASE(uniform_real_distribution)
         using Dist = random::uniform_real_distribution<float>;
         Dist dist(42.0f, 42.0f);
 
-        constexpr size_t bins = 1;
         constexpr size_t samples = 1000;
-        VX_CHECK((test::test_uniform_real_distribution<RNG, Dist, bins, samples>(rng, dist)));
+        for (size_t i = 0; i < samples; ++i)
+        {
+            VX_CHECK(dist(rng) == 42.0f);
+        }
     }
 }
 
@@ -270,7 +266,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist;
 
         constexpr size_t samples = 50000;
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("custom mean and standard deviation")
@@ -278,7 +274,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(10.0, 2.0); // mean = 10.0, stddev = 2.0
 
         constexpr size_t samples = 50000;
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("small standard deviation")
@@ -286,7 +282,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(0.0, 0.0001); // mean = 0.0, stddev = 0.0001 (very narrow)
 
         constexpr size_t samples = 200000; // Larger sample size for precision
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("large standard deviation")
@@ -294,7 +290,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(0.0, 10000.0); // mean = 0.0, stddev = 10000 (very wide)
 
         constexpr size_t samples = 200000; // Larger sample size to capture variability
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("large positive mean")
@@ -302,7 +298,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(1e6, 1.0); // mean = 1000000, stddev = 1.0
 
         constexpr size_t samples = 50000;
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("large negative mean")
@@ -310,7 +306,7 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(-1e6, 1.0); // mean = -1000000, stddev = 1.0
 
         constexpr size_t samples = 50000;
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
     }
 
     VX_SECTION("zero variance")
@@ -318,7 +314,79 @@ VX_TEST_CASE(normal_distribution)
         Dist dist(5.0, 0.0); // mean = 5.0, stddev = 0.0 (constant distribution)
 
         constexpr size_t samples = 100; // Small sample size is enough for zero variance
-        VX_CHECK((test::test_real_distribution<RNG, Dist, samples>(rng, dist)));
+        VX_CHECK((test::test_normal_distribution<RNG, Dist, samples>(rng, dist)));
+    }
+}
+
+VX_TEST_CASE(discrete_distribution)
+{
+    using Dist = random::discrete_distribution<>;
+    RNG rng;
+
+    VX_SECTION("equal probabilities")
+    {
+        Dist dist({ 1.0, 1.0, 1.0, 1.0 });
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_discrete_distribution<RNG, Dist, 4, samples>(rng, dist)));
+    }
+
+    VX_SECTION("custom probabilities")
+    {
+        Dist dist({ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_discrete_distribution<RNG, Dist, 10, samples>(rng, dist)));
+    }
+
+    VX_SECTION("custom probabilities with zero weights")
+    {
+        Dist dist({ 0.0, 1.0, 0.0, 1.0 });
+
+        constexpr size_t samples = 50000;
+        VX_CHECK((test::test_discrete_distribution<RNG, Dist, 4, samples>(rng, dist)));
+    }
+}
+
+VX_TEST_CASE(algorithms)
+{
+    RNG rng;
+
+    VX_SECTION("shuffle")
+    {
+        int data[6]{};
+        std::iota(std::begin(data), std::end(data), 0);
+
+        constexpr size_t samples = 100000;
+        VX_CHECK((test::test_shuffle<RNG, 2, samples>(rng, data)));
+        VX_CHECK((test::test_shuffle<RNG, 3, samples>(rng, data)));
+        VX_CHECK((test::test_shuffle<RNG, 4, samples>(rng, data)));
+        VX_CHECK((test::test_shuffle<RNG, 5, samples>(rng, data)));
+        VX_CHECK((test::test_shuffle<RNG, 6, samples>(rng, data)));
+    }
+
+    VX_SECTION("sample")
+    {
+        int data[20]{};
+        std::iota(std::begin(data), std::end(data), 0);
+
+        constexpr size_t samples = 100000;
+        VX_CHECK((test::test_sample<RNG, 5, samples>(rng, data)));
+        VX_CHECK((test::test_sample<RNG, 10, samples>(rng, data)));
+        VX_CHECK((test::test_sample<RNG, 15, samples>(rng, data)));
+        VX_CHECK((test::test_sample<RNG, 20, samples>(rng, data)));
+    }
+
+    VX_SECTION("discrete sample")
+    {
+        using Dist = random::discrete_distribution<>;
+        Dist dist({ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
+
+        int data[10]{};
+        std::iota(std::begin(data), std::end(data), 0);
+
+        constexpr size_t samples = 100000;
+        VX_CHECK((test::test_discrete_sample<RNG, Dist, 10, samples>(rng, dist, data)));
     }
 }
 
