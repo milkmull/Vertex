@@ -6,7 +6,7 @@ file(GLOB VX_UTIL_SOURCE_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/encode/base64.cpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/time/time.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/datetime.cpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_UTIL_SOURCE_FILES})

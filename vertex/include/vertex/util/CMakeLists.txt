@@ -46,6 +46,7 @@ file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/regex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string.hpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/time/datetime.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/time.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time/timer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.hpp"
