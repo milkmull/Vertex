@@ -18,14 +18,20 @@ public:
 
     inline time_point start()
     {
+        m_stop_time.zero();
         m_running = true;
-        return (m_start_time = os::get_ticks());
+        m_start_time = os::get_ticks();
+        return m_start_time;
     }
 
     inline time_point stop()
     {
-        m_running = false;
-        return (m_stop_time = os::get_ticks());
+        if (m_running)
+        {
+            m_running = false;
+            m_stop_time = os::get_ticks();
+        }
+        return m_stop_time;
     }
 
     inline void reset()
@@ -45,15 +51,6 @@ public:
         return m_start_time;
     }
 
-    ///////////////////////////////////////////////////////////////////////////
-    /// @brief Retrieves the elapsed time since the timer was started.
-    ///
-    /// This method calculates the elapsed time in nanoseconds. If the timer is
-    /// running, it returns the time elapsed since the last start. If the timer
-    /// is stopped, it returns the time between the start and stop times.
-    ///
-    /// @return The elapsed time in nanoseconds.
-    ///////////////////////////////////////////////////////////////////////////
     inline time_point elapsed_time() const
     {
         if (m_running)

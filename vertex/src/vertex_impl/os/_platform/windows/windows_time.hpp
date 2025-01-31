@@ -21,8 +21,8 @@ time::time_point system_time_impl() noexcept;
 // Ticks
 ///////////////////////////////////////////////////////////////////////////////
 
-int64_t get_performance_counter_impl() noexcept;
-int64_t get_performance_frequency_impl() noexcept;
+int64_t get_performance_counter_impl();
+int64_t get_performance_frequency_impl();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Sleep

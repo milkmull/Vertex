@@ -71,7 +71,7 @@ time::time_point system_time_impl() noexcept
     return time::time_point::from_windows_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
 }
 
-int64_t get_performance_counter_impl() noexcept
+int64_t get_performance_counter_impl()
 {
     LARGE_INTEGER counter{};
     if (!QueryPerformanceCounter(&counter))
@@ -81,7 +81,7 @@ int64_t get_performance_counter_impl() noexcept
     return static_cast<int64_t>(counter.QuadPart);
 }
 
-int64_t get_performance_frequency_impl() noexcept
+int64_t get_performance_frequency_impl()
 {
     LARGE_INTEGER frequency{};
     if (!QueryPerformanceFrequency(&frequency))

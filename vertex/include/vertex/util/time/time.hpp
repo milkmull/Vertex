@@ -50,7 +50,8 @@ public:
 
 public:
 
-    constexpr void zero() { m_count = 0; }
+    constexpr void zero() noexcept { m_count = 0; }
+    constexpr bool is_zero() const noexcept { return m_count == 0; }
 
     constexpr int64_t as_nanoseconds()       const { return m_count; }
     constexpr int64_t as_microseconds()      const { return static_cast<microseconds_t>(*this).count(); }

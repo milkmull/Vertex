@@ -2,7 +2,7 @@
 
 #include "vertex/util/time/time.hpp"
 #include "vertex/util/time/datetime.hpp"
-#include "vertex/os/time.hpp"
+#include "vertex/util/time/timer.hpp"
 
 using namespace vx;
 
@@ -240,6 +240,37 @@ VX_TEST_CASE(conversions)
         const time::datetime pre_epoch{ 1969, time::month::DECEMBER, 31, time::weekday::WEDNESDAY, 23, 59, 59 };
         VX_CHECK(pre_epoch_tp.to_datetime() == pre_epoch);
     }
+}
+
+VX_TEST_CASE(timer)
+{
+    // Test starting the timer
+    time::timer t;
+    VX_CHECK(!t.running());
+    const auto start_time = t.start();
+    VX_CHECK(t.running());
+    VX_CHECK(start_time == t.start_time());
+
+    // Test stopping the timer
+    const auto stop_time = t.stop();
+    VX_CHECK(!t.running());
+    VX_CHECK(stop_time >= start_time);
+
+    // Test elapsed time when stopped
+    const auto elapsed = t.elapsed_time();
+    VX_CHECK(elapsed == stop_time - start_time);
+
+    // Test elapsed time while running
+    t.start();
+    VX_CHECK(t.running());
+    const auto running_elapsed = t.elapsed_time();
+    VX_CHECK(!running_elapsed.is_zero());
+
+    // Test reset functionality
+    t.reset();
+    VX_CHECK(!t.running());
+    VX_CHECK(t.start_time().is_zero());
+    VX_CHECK(t.elapsed_time().is_zero());
 }
 
 int main()
