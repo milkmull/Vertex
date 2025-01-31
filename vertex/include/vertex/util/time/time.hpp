@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <chrono>
 
 #include "vertex/system/compiler.hpp"

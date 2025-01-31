@@ -68,7 +68,7 @@ VX_API int64_t get_performance_frequency()
 
 VX_API void sleep(const time::time_point& t)
 {
-    return sleep_impl(t);
+    sleep_impl(t);
 }
 
 } // namespace os

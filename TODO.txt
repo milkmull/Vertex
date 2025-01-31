@@ -152,18 +152,19 @@ testing:
     x util/string/string_compare
     
     - os/random
-    - util/random/algorithm
-    - util/random/bernoulli_distribution
-    - util/random/discrete_distribution
-    - util/random/generate_canonical
-    - util/random/normal_distribution
-    - util/random/pcg
-    - util/random/rng
-    - util/random/uniform_int_distribution
-    - util/random/uniform_real_distribution
+    x util/random/algorithm
+    x util/random/bernoulli_distribution
+    x util/random/discrete_distribution
+    x util/random/generate_canonical
+    x util/random/normal_distribution
+    x util/random/pcg
+    x util/random/rng
+    x util/random/uniform_int_distribution
+    x util/random/uniform_real_distribution
     
     - util/time/time
     - util/time/timer
+    - util/time/datetime
     - os/time
     
     - os/file

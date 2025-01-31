@@ -250,10 +250,17 @@ template <typename RNG, size_t N, size_t SAMPLES>
 inline bool test_shuffle(RNG& rng, const int* data)
 {
     // Degrees of freedom (df) for the chi-squared test:
-    // Each of the N values can occupy N positions, giving N^2 cells in the NxN grid.
-    // However, there are N constraints (one for each value, ensuring its total count across all positions equals SAMPLES).
-    // This reduces the total degrees of freedom from N^2 to N * (N - 1).
-    constexpr size_t df = N * (N - 1);
+    // For a shuffle test, we analyze the distribution of N values across N
+    // positions, forming an NxN grid where each cell represents the count of a
+    // specific value in a specific position. The degrees of freedom are
+    // calculated as (N - 1) * (N - 1), since:
+    // - Each row (value) has N - 1 degrees of freedom due to the constraint
+    //   that the sum of counts for each value must equal SAMPLES.
+    // - Similarly, each column (position) has N - 1 degrees of freedom due to
+    //   the constraint that the sum of counts for each position must also
+    //   equal SAMPLES.
+    // This results in a total of (N - 1) * (N - 1) degrees of freedom.
+    constexpr size_t df = (N - 1) * (N - 1);
     static_assert(df <= mem::array_size(chi_squared_critical_values));
     constexpr double threshold = chi_squared_critical_values[df - 1];
 
