@@ -494,11 +494,11 @@ path absolute_impl(const path& p)
 
 path get_temp_path_impl()
 {
-    static path temp_path_cache;
+    static path cache;
 
-    if (temp_path_cache.empty())
+    if (cache.empty())
     {
-        wchar_t buffer[MAX_PATH];
+        WCHAR buffer[MAX_PATH];
         DWORD size = 0;
 
         // Attermpt to call GetTempPath2W first
@@ -511,7 +511,7 @@ path get_temp_path_impl()
             }
 
             using GetTempPath2W_t = DWORD(WINAPI*)(DWORD, LPWSTR, PSID);
-            auto GetTempPath2W = kernel32.get_function<GetTempPath2W_t>("GetTempPath2W");
+            auto GetTempPath2W = kernel32.get<GetTempPath2W_t>("GetTempPath2W");
             if (!GetTempPath2W)
             {
                 break;
@@ -533,11 +533,11 @@ path get_temp_path_impl()
         else
         {
             // Set the cache
-            temp_path_cache.assign(buffer);
+            cache.assign(buffer);
         }
     }
 
-    return temp_path_cache;
+    return cache;
 }
 
 path get_user_folder_impl(user_folder folder)

@@ -7,45 +7,13 @@
 namespace vx {
 namespace err {
 
-VX_API const char* code_to_string(code err) noexcept
+struct info_impl
 {
-    switch (err)
-    {
-        case code::NONE:                        return "none";
-        case code::ERROR:                       return "error";
+    code code;
+    char message[ERROR_MESSAGE_MAX_SIZE + 1];
+};
 
-        case code::RUNTIME_ERROR:               return "runtime error";
-        case code::NOT_CONFIGURED:              return "not configured";
-
-        case code::OUT_OF_RANGE:                return "out of range";
-        case code::OUT_OF_MEMORY:               return "out of memory";
-        case code::SIZE_ERROR:                  return "size error";
-
-        case code::INVALID_DATA:                return "invalid data";
-        case code::INVALID_ARGUMENT:            return "invalid argument";
-        case code::UNSUPPORTED_FORMAT:          return "unsupported format";
-        case code::UNSUPPORTED_CONVERSION:      return "unsupported conversion";
-        case code::UNSUPPORTED_OPERATION:       return "unsupported operation";
-
-        case code::RESOURCE_NOT_FOUND:          return "resource not found";
-        case code::RESOURCE_ALREADY_EXISTS:     return "resource already exists";
-
-        case code::FILE_OPERATION_FAILED:       return "file operation failed";
-        case code::FILE_OPEN_FAILED:            return "file open failed";
-        case code::FILE_READ_FAILED:            return "file read failed";
-        case code::FILE_WRITE_FAILED:           return "file write failed";
-
-        case code::FILE_NO_PERMISSION:          return "file no permission";
-        case code::FILE_IN_USE:                 return "file in use";
-        case code::FILE_CORRUPT:                return "file corrupt";
-
-        case code::PLATFORM_ERROR:              return "platform error";
-        case code::UNSUPPORTED:                 return "unsupported operation";
-        default:                                return "";
-    }
-}
-
-static thread_local info s_err;
+static thread_local info_impl s_err;
 
 ///////////////////////////////////////////////////////////////////////////////
 // error printing
@@ -55,7 +23,7 @@ static thread_local info s_err;
 
 static bool s_print_errors = false;
 
-VX_API void __detail::set_error_printing_enabled(bool enabled)
+VX_API void __detail::set_error_printing_enabled(bool enabled) noexcept
 {
     s_print_errors = enabled;
 }
@@ -68,10 +36,10 @@ VX_API void __detail::set_error_printing_enabled(bool enabled)
 
 VX_API info get() noexcept
 {
-    return s_err;
+    return { s_err.code, s_err.message };
 }
 
-VX_API void set(code code, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
+VX_API void set(code code, const char* msg) noexcept
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 
@@ -83,17 +51,10 @@ VX_API void set(code code, const std::string& msg) noexcept(!VX_ERROR_PRINTING_A
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
     s_err.code = code;
-    s_err.message = msg;
-}
 
-VX_API void set(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE)
-{
-    set(err, code_to_string(err));
-}
-
-VX_API void clear() noexcept(!VX_ERROR_PRINTING_AVAILABLE)
-{
-    set(code::NONE, std::string());
+    constexpr size_t max_size = ERROR_MESSAGE_MAX_SIZE;
+    const size_t msg_size = std::strlen(msg);
+    std::memcpy(s_err.message, msg, std::min(max_size, msg_size));
 }
 
 } // namespace err

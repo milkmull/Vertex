@@ -58,12 +58,12 @@
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#if VX_ASSERT_LEVEL >= 2
+#if (VX_ASSERT_LEVEL >= 2)
 
 #   define VX_ASSERT_RELEASE_MESSAGE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
 #   define VX_ASSERT_MESSAGE(condition, msg) VX_ASSERT_RELEASE_MESSAGE(condition, msg)
 
-#elif VX_ASSERT_LEVEL == 1
+#elif (VX_ASSERT_LEVEL == 1)
 
 #   define VX_ASSERT_RELEASE_MESSAGE(condition, msg) VX_ASSERT_HANDLER(condition, msg, VX_FILE, VX_LINE, VX_FUNCTION)
 #   define VX_ASSERT_MESSAGE(condition, msg) ((void)0)
@@ -77,4 +77,5 @@
 
 #define VX_ASSERT_RELEASE(condition) VX_ASSERT_RELEASE_MESSAGE(condition, "assertion failed")
 #define VX_ASSERT(condition) VX_ASSERT_MESSAGE(condition, "assertion failed")
+#define VX_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 

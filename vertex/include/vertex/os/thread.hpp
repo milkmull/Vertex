@@ -17,7 +17,7 @@ public:
     using id = std::thread::id;
 
     VX_API thread() noexcept;
-    VX_API ~thread();
+    VX_API ~thread() noexcept;
 
     thread(const thread&) = delete;
     VX_API thread(thread&& other) noexcept;
@@ -63,8 +63,8 @@ public:
     VX_API bool is_joinable() const noexcept;
     VX_API bool is_complete() const noexcept;
 
-    VX_API bool join();
-    VX_API bool detatch();
+    VX_API bool join() noexcept;
+    VX_API bool detatch() noexcept;
 
 private:
 

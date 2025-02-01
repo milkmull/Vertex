@@ -13,8 +13,10 @@ namespace windows {
 // Error Handling
 ///////////////////////////////////////////////////////////////////////////////
 
-void error_message(const std::string& msg)
+void error_message(const char* msg)
 {
+    const size_t msg_size = std::strlen(msg);
+
     DWORD code = GetLastError();
     WCHAR buffer[1024]{};
 
@@ -36,7 +38,7 @@ void error_message(const std::string& msg)
 
     VX_ERR(vx::err::PLATFORM_ERROR)
         << msg
-        << (msg.empty() ? "" : ": ")
+        << ((msg_size == 0) ? "" : ": ")
         << vx::str::string_cast<char>(buffer);
 }
 
@@ -44,7 +46,7 @@ void error_message(const std::string& msg)
 // COM
 ///////////////////////////////////////////////////////////////////////////////
 
-com_scoped_initializer::com_scoped_initializer()
+com_scoped_initializer::com_scoped_initializer() noexcept
 {
     m_hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
@@ -67,7 +69,7 @@ com_scoped_initializer::com_scoped_initializer()
     }
 }
 
-com_scoped_initializer::~com_scoped_initializer()
+com_scoped_initializer::~com_scoped_initializer() noexcept
 {
     if (succeeded())
     {
@@ -75,7 +77,7 @@ com_scoped_initializer::~com_scoped_initializer()
     }
 }
 
-bool com_scoped_initializer::succeeded() const
+bool com_scoped_initializer::succeeded() const noexcept
 {
     return SUCCEEDED(m_hr);
 }

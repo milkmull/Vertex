@@ -2,6 +2,7 @@
 
 #include <chrono>
 
+#include "vertex/util/type_traits.hpp"
 #include "vertex/system/compiler.hpp"
 
 namespace vx {
@@ -15,22 +16,6 @@ struct datetime;
 
 class time_point
 {
-private:
-
-    using nanoseconds_t = std::chrono::nanoseconds;
-    using microseconds_t = std::chrono::microseconds;
-    using milliseconds_t = std::chrono::milliseconds;
-    using seconds_t = std::chrono::seconds;
-    using minutes_t = std::chrono::minutes;
-    using hours_t = std::chrono::hours;
-
-    using float_nanoseconds_t = std::chrono::duration<double, std::nano>;
-    using float_microseconds_t = std::chrono::duration<double, std::micro>;
-    using float_milliseconds_t = std::chrono::duration<double, std::milli>;
-    using float_seconds_t = std::chrono::duration<double>;
-    using float_minutes_t = std::chrono::duration<double, std::ratio<60, 1>>;
-    using float_hours_t = std::chrono::duration<double, std::ratio<3600, 1>>;
-
 public:
 
     constexpr time_point() noexcept : m_count(0) {}
@@ -39,13 +24,20 @@ public:
 public:
 
     template <typename Rep, typename Period>
-    constexpr time_point(const std::chrono::duration<Rep, Period>& d)
-        : m_count(std::chrono::duration_cast<nanoseconds_t>(d).count()) {}
+    constexpr time_point(const std::chrono::duration<Rep, Period>& d) noexcept(
+        noexcept(std::chrono::duration_cast<std::chrono::nanoseconds>)
+        )
+        : m_count(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count()) {}
 
     template <typename Rep, typename Period>
-    constexpr operator std::chrono::duration<Rep, Period>() const
+    constexpr operator std::chrono::duration<Rep, Period>() const noexcept(
+        noexcept(std::chrono::nanoseconds(m_count)) &&
+        noexcept(std::chrono::duration_cast<std::chrono::duration<Rep, Period>>)
+        )
     {
-        return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>(nanoseconds_t(m_count));
+        return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>(
+            std::chrono::nanoseconds(m_count)
+        );
     }
 
 public:
@@ -53,18 +45,19 @@ public:
     constexpr void zero() noexcept { m_count = 0; }
     constexpr bool is_zero() const noexcept { return m_count == 0; }
 
-    constexpr int64_t as_nanoseconds()       const { return m_count; }
-    constexpr int64_t as_microseconds()      const { return static_cast<microseconds_t>(*this).count(); }
-    constexpr int64_t as_milliseconds()      const { return static_cast<milliseconds_t>(*this).count(); }
-    constexpr int64_t as_seconds()           const { return static_cast<seconds_t>(*this).count(); }
-    constexpr int64_t as_minutes()           const { return static_cast<minutes_t>(*this).count(); }
-    constexpr int64_t as_hours()             const { return static_cast<hours_t>(*this).count(); }
+    constexpr int64_t as_nanoseconds()       const noexcept { return m_count; }
+    constexpr int64_t as_microseconds()      const noexcept { return m_count / 1000ll; }
+    constexpr int64_t as_milliseconds()      const noexcept { return m_count / 1000000ll; }
+    constexpr int64_t as_seconds()           const noexcept { return m_count / 1000000000ll; }
+    constexpr int64_t as_minutes()           const noexcept { return m_count / 60000000000ll; }
+    constexpr int64_t as_hours()             const noexcept { return m_count / 3600000000000ll; }
 
-    constexpr double as_float_microseconds() const { return static_cast<float_microseconds_t>(*this).count(); }
-    constexpr double as_float_milliseconds() const { return static_cast<float_milliseconds_t>(*this).count(); }
-    constexpr double as_float_seconds()      const { return static_cast<float_seconds_t>(*this).count(); }
-    constexpr double as_float_minutes()      const { return static_cast<float_minutes_t>(*this).count(); }
-    constexpr double as_float_hours()        const { return static_cast<float_hours_t>(*this).count(); }
+    constexpr double as_float_nanoseconds()  const noexcept { return static_cast<double>(m_count); }
+    constexpr double as_float_microseconds() const noexcept { return m_count / 1000.0; }
+    constexpr double as_float_milliseconds() const noexcept { return m_count / 1000000.0; }
+    constexpr double as_float_seconds()      const noexcept { return m_count / 1000000000.0; }
+    constexpr double as_float_minutes()      const noexcept { return m_count / 60000000000.0; }
+    constexpr double as_float_hours()        const noexcept { return m_count / 3600000000000.0; }
 
 public:
 
@@ -107,32 +100,32 @@ public:
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator==(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count == rhs.m_count;
     }
 
-    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator!=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
-    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator<(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count < rhs.m_count;
     }
 
-    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator>(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count > rhs.m_count;
     }
 
-    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator<=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count <= rhs.m_count;
     }
 
-    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs)
+    friend constexpr bool operator>=(const time_point& lhs, const time_point& rhs) noexcept
     {
         return lhs.m_count >= rhs.m_count;
     }
@@ -141,12 +134,12 @@ public:
     // unary const operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    constexpr time_point operator+() const
+    constexpr time_point operator+() const noexcept
     {
         return time_point(+m_count);
     }
 
-    constexpr time_point operator-() const
+    constexpr time_point operator-() const noexcept
     {
         return time_point(-m_count);
     }
@@ -157,59 +150,59 @@ public:
 
     // addition (+)
 
-    friend constexpr time_point operator+(const time_point& lhs, const time_point& rhs)
+    friend constexpr time_point operator+(const time_point& lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs.m_count + rhs.m_count);
     }
 
     // subtraction (-)
 
-    friend constexpr time_point operator-(const time_point& lhs, const time_point& rhs)
+    friend constexpr time_point operator-(const time_point& lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs.m_count - rhs.m_count);
     }
 
     // multiplication (*)
 
-    friend constexpr time_point operator*(const time_point& lhs, const time_point& rhs)
+    friend constexpr time_point operator*(const time_point& lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs.m_count * rhs.m_count);
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    friend constexpr time_point operator*(const time_point& lhs, T rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    friend constexpr time_point operator*(const time_point& lhs, T rhs) noexcept
     {
         return time_point(lhs.m_count * rhs);
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    friend constexpr time_point operator*(T lhs, const time_point& rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    friend constexpr time_point operator*(T lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs * rhs.m_count);
     }
 
     // division (/)
 
-    friend constexpr time_point operator/(const time_point& lhs, const time_point& rhs)
+    friend constexpr time_point operator/(const time_point& lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs.m_count / rhs.m_count);
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    friend constexpr time_point operator/(const time_point& lhs, T rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    friend constexpr time_point operator/(const time_point& lhs, T rhs) noexcept
     {
         return time_point(lhs.m_count / rhs);
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    friend constexpr time_point operator/(T lhs, const time_point& rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    friend constexpr time_point operator/(T lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs / rhs.m_count);
     }
 
     // division (%)
 
-    friend constexpr time_point operator%(const time_point& lhs, const time_point& rhs)
+    friend constexpr time_point operator%(const time_point& lhs, const time_point& rhs) noexcept
     {
         return time_point(lhs.m_count % rhs.m_count);
     }
@@ -220,7 +213,7 @@ public:
 
     // addition (+=)
 
-    constexpr time_point& operator+=(const time_point& rhs)
+    constexpr time_point& operator+=(const time_point& rhs) noexcept
     {
         m_count += rhs.m_count;
         return *this;
@@ -228,7 +221,7 @@ public:
 
     // subtraction (-=)
 
-    constexpr time_point& operator-=(const time_point& rhs)
+    constexpr time_point& operator-=(const time_point& rhs) noexcept
     {
         m_count -= rhs.m_count;
         return *this;
@@ -236,14 +229,14 @@ public:
 
     // multiplication (*=)
 
-    constexpr time_point& operator*=(const time_point& rhs)
+    constexpr time_point& operator*=(const time_point& rhs) noexcept
     {
         m_count *= rhs.m_count;
         return *this;
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    constexpr time_point& operator*=(T rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    constexpr time_point& operator*=(T rhs) noexcept
     {
         m_count *= rhs;
         return *this;
@@ -251,14 +244,14 @@ public:
 
     // division (/=)
 
-    constexpr time_point& operator/=(const time_point& rhs)
+    constexpr time_point& operator/=(const time_point& rhs) noexcept
     {
         m_count /= rhs.m_count;
         return *this;
     }
 
-    template <typename T, typename std::enable_if<std::is_arithmetic<T>::value, bool>::type = true>
-    constexpr time_point& operator/=(T rhs)
+    template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
+    constexpr time_point& operator/=(T rhs) noexcept
     {
         m_count /= rhs;
         return *this;
@@ -266,7 +259,7 @@ public:
 
     // modulo (%=)
 
-    constexpr time_point& operator%=(const time_point& rhs)
+    constexpr time_point& operator%=(const time_point& rhs) noexcept
     {
         m_count %= rhs.m_count;
         return *this;
@@ -277,12 +270,12 @@ private:
     int64_t m_count; // nanoseconds
 };
 
-constexpr time_point nanoseconds(const int64_t& ns) { return time_point(std::chrono::nanoseconds(ns)); }
-constexpr time_point microseconds(const int64_t& us) { return time_point(std::chrono::microseconds(us)); }
-constexpr time_point milliseconds(const int64_t& ms) { return time_point(std::chrono::milliseconds(ms)); }
-constexpr time_point seconds(const int64_t& s) { return time_point(std::chrono::seconds(s)); }
-constexpr time_point minutes(const int64_t& m) { return time_point(std::chrono::minutes(m)); }
-constexpr time_point hours(const int64_t& h) { return time_point(std::chrono::hours(h)); }
+VX_FORCE_INLINE constexpr time_point nanoseconds(int64_t ns)    noexcept { return time_point(ns); }
+VX_FORCE_INLINE constexpr time_point microseconds(int64_t us)   noexcept { return time_point(us * 1000ll); }
+VX_FORCE_INLINE constexpr time_point milliseconds(int64_t ms)   noexcept { return time_point(ms * 1000000ll); }
+VX_FORCE_INLINE constexpr time_point seconds(int64_t s)         noexcept { return time_point(s * 1000000000ll); }
+VX_FORCE_INLINE constexpr time_point minutes(int64_t m)         noexcept { return time_point(m * 60000000000ll); }
+VX_FORCE_INLINE constexpr time_point hours(int64_t h)           noexcept { return time_point(h * 3600000000000ll); }
 
 } // namespace time
 } // namespace vx

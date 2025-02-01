@@ -326,7 +326,7 @@ public:
 
 public:
 
-    path_iterator(const path_t* path) noexcept
+    path_iterator(const path_t* path)
         : m_path(path)
     {
         operator++();
@@ -703,7 +703,7 @@ public:
         return compare(path(src));
     }
 
-    int compare(const string_type& rhs) const noexcept
+    int compare(const string_type& rhs) const
     {
         const auto lhs_root_directory = __detail::parser::parse_root_directory(m_path);
         const auto rhs_root_directory = __detail::parser::parse_root_directory(rhs);
@@ -1095,32 +1095,32 @@ public:
     // non member functions
     ///////////////////////////////////////////////////////////////////////////////
 
-    friend inline bool operator==(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator==(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) == 0;
     }
 
-    friend inline bool operator!=(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator!=(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) != 0;
     }
 
-    friend inline bool operator>(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator>(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) > 0;
     }
 
-    friend inline bool operator<(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator<(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) < 0;
     }
 
-    friend inline bool operator>=(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator>=(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) >= 0;
     }
 
-    friend inline bool operator<=(const path& lhs, const path& rhs) noexcept
+    friend inline bool operator<=(const path& lhs, const path& rhs)
     {
         return lhs.compare(rhs) <= 0;
     }
@@ -1176,7 +1176,7 @@ namespace std {
 template <>
 struct hash<vx::os::path>
 {
-    size_t operator()(const vx::os::path& p) noexcept
+    size_t operator()(const vx::os::path& p) const noexcept
     {
         vx::crypto::FNV1a fnv1a;
 

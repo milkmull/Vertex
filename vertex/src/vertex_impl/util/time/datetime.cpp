@@ -9,7 +9,7 @@ namespace time {
 // Datetime
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool check_datetime(const datetime& dt, err::code code)
+static bool check_datetime(const datetime& dt, err::code code) noexcept
 {
     if (dt.hour < 0 || dt.hour > 23)
     {
@@ -35,7 +35,7 @@ static bool check_datetime(const datetime& dt, err::code code)
         }
         return false;
     }
-    if (dt.nanosecond < 0 || dt.nanosecond > std::nano::den)
+    if (dt.nanosecond < 0 || dt.nanosecond > 1000000000)
     {
         if (code != err::NONE)
         {
@@ -47,7 +47,7 @@ static bool check_datetime(const datetime& dt, err::code code)
     return true;
 }
 
-VX_API bool datetime::is_valid() const
+VX_API bool datetime::is_valid() const noexcept
 {
     return check_datetime(*this, err::NONE);
 }

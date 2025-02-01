@@ -1,15 +1,27 @@
 #pragma once
 
-#include <string>
-#include <memory>
-
-#include "vertex/system/compiler.hpp"
+#include "vertex/os/path.hpp"
 
 namespace vx {
 namespace os {
 
 class shared_library
 {
+public:
+
+    // https://beta.boost.org/doc/libs/1_61_0/doc/html/boost/dll/shared_library.html
+
+    static constexpr const char* suffix()
+    {
+#   if defined(VX_PLATFORM_WINDOWS)
+        return ".dll";
+#   elif defined(VX_PLATFORM_APPLE)
+        return ".dylib";
+#   else
+        return ".so";
+#   endif
+    }
+
 public:
 
     VX_API shared_library();
@@ -29,15 +41,24 @@ public:
     VX_API bool is_loaded() const;
     VX_API void free();
 
-    template <typename Func>
-    Func get_function(const std::string& name)
+    VX_API path location() const;
+
+public:
+
+    inline bool has(const std::string& symbol_name) const
     {
-        return static_cast<Func>(get_function_internal(name));
+        return get_void(symbol_name);
+    }
+
+    template <typename Func>
+    inline Func get(const std::string& symbol_name) const
+    {
+        return static_cast<Func>(get_void(symbol_name));
     }
 
 private:
 
-    void* get_function_internal(const std::string& name);
+    void* get_void(const std::string& symbol_name) const;
 
 private:
 

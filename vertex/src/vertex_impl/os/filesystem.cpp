@@ -424,13 +424,13 @@ VX_API directory_iterator::directory_iterator(const path& p)
     validate();
 }
 
-VX_API typename directory_iterator::reference directory_iterator::operator*() const noexcept
+VX_API typename directory_iterator::reference directory_iterator::operator*() const
 {
     VX_ASSERT(m_impl);
     return m_impl->m_entry;
 }
 
-VX_API typename directory_iterator::pointer directory_iterator::operator->() const noexcept
+VX_API typename directory_iterator::pointer directory_iterator::operator->() const
 {
     VX_ASSERT(m_impl);
     return &**this;
@@ -444,7 +444,7 @@ VX_API directory_iterator& directory_iterator::operator++()
     return *this;
 }
 
-void directory_iterator::validate()
+void directory_iterator::validate() noexcept
 {
     if (!m_impl->is_valid())
     {
@@ -462,13 +462,13 @@ VX_API recursive_directory_iterator::recursive_directory_iterator(const path& p)
     validate();
 }
 
-VX_API typename recursive_directory_iterator::reference recursive_directory_iterator::operator*() const noexcept
+VX_API typename recursive_directory_iterator::reference recursive_directory_iterator::operator*() const
 {
     VX_ASSERT(m_impl);
     return m_impl->m_entry;
 }
 
-VX_API typename recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const noexcept
+VX_API typename recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const
 {
     VX_ASSERT(m_impl);
     return &**this;
@@ -482,19 +482,19 @@ VX_API recursive_directory_iterator& recursive_directory_iterator::operator++()
     return *this;
 }
 
-VX_API size_t recursive_directory_iterator::depth() const
+VX_API size_t recursive_directory_iterator::depth() const noexcept
 {
     VX_ASSERT(m_impl);
     return m_impl->depth();
 }
 
-VX_API bool recursive_directory_iterator::recursion_pending() const
+VX_API bool recursive_directory_iterator::recursion_pending() const noexcept
 {
     VX_ASSERT(m_impl);
     return m_impl->recursion_pending();
 }
 
-VX_API void recursive_directory_iterator::disable_pending_recursion()
+VX_API void recursive_directory_iterator::disable_pending_recursion() noexcept
 {
     VX_ASSERT(m_impl);
     m_impl->disable_pending_recursion();
@@ -513,7 +513,7 @@ VX_API void recursive_directory_iterator::pop()
     }
 }
 
-void recursive_directory_iterator::validate()
+void recursive_directory_iterator::validate() noexcept
 {
     if (!m_impl->is_valid())
     {

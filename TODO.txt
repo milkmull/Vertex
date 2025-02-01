@@ -135,6 +135,14 @@ formatting:
     - macros to check if a particular os mudule is available
 }
 
+more bonus:
+{
+    x add functions to shared_library
+    - add functions to get native handles for os classes
+    x check which time_point functions using the standard library can be inlined with noexcept
+    - reevaluate base64 functions
+}
+
 testing:
 {
     x util/bit/bit
@@ -162,9 +170,9 @@ testing:
     x util/random/uniform_int_distribution
     x util/random/uniform_real_distribution
     
-    - util/time/time
-    - util/time/timer
-    - util/time/datetime
+    x util/time/time
+    x util/time/timer
+    x util/time/datetime
     - os/time
     
     - os/file

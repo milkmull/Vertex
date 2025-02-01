@@ -112,7 +112,7 @@ private:
 public:
 
     void advance();
-    bool is_valid() const { return m_handle.is_valid(); }
+    bool is_valid() const noexcept { return m_handle.is_valid(); }
 
 private:
 
@@ -159,11 +159,11 @@ private:
 public:
 
     void advance();
-    bool is_valid() const { return !m_stack.empty() && m_stack.back().is_valid(); }
+    bool is_valid() const noexcept { return !m_stack.empty() && m_stack.back().is_valid(); }
 
-    size_t depth() const { return m_stack.size(); }
-    bool recursion_pending() const { return m_recursion_pending; }
-    void disable_pending_recursion() { m_recursion_pending = false; }
+    size_t depth() const noexcept { return m_stack.size(); }
+    bool recursion_pending() const noexcept { return m_recursion_pending; }
+    void disable_pending_recursion() noexcept { m_recursion_pending = false; }
     void pop() { pop_stack(); }
 
 private:

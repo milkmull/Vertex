@@ -19,7 +19,8 @@ public:
     bool is_loaded() const;
     void free();
 
-    void* get_function(const std::string& name) const;
+    path location() const;
+    void* get_addr(const std::string& name) const;
 
 private:
 

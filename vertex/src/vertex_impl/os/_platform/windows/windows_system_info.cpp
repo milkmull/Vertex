@@ -168,7 +168,7 @@ bool get_version_impl(uint32_t* major, uint32_t* minor, uint32_t* patch)
         return false;
     }
 
-    auto RtlGetVersion = ntdll.get_function<RtlGetVersion_t>("RtlGetVersion");
+    auto RtlGetVersion = ntdll.get<RtlGetVersion_t>("RtlGetVersion");
     if (!RtlGetVersion)
     {
         return false;

@@ -21,11 +21,11 @@
 #endif
 
 #include <windows.h>
-#include <versionhelpers.h>
+//#include <versionhelpers.h>
 
 ///////////////////////////////////////////////////////////////////////////////
 // definitions
 ///////////////////////////////////////////////////////////////////////////////
 
-typedef LONG NTSTATUS;
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)

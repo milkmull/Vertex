@@ -18,8 +18,8 @@ public:
     using generator_type = RNG;
     using result_type = typename generator_type::result_type;
 
-    static constexpr result_type min() { return generator_type::min(); }
-    static constexpr result_type max() { return generator_type::max(); }
+    static constexpr result_type min() noexcept { return generator_type::min(); }
+    static constexpr result_type max() noexcept { return generator_type::max(); }
 
 public:
 

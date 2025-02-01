@@ -6,7 +6,7 @@ namespace os {
 
 VX_API thread::thread() noexcept {}
 
-VX_API thread::~thread()
+VX_API thread::~thread() noexcept
 {
     join();
 }
@@ -63,7 +63,7 @@ VX_API bool thread::is_complete() const noexcept
     return m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
-VX_API bool thread::join()
+VX_API bool thread::join() noexcept
 {
     if (!is_joinable())
     {
@@ -74,7 +74,7 @@ VX_API bool thread::join()
     return true;
 }
 
-VX_API bool thread::detatch()
+VX_API bool thread::detatch() noexcept
 {
     if (!is_joinable())
     {

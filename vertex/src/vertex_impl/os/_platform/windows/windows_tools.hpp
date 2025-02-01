@@ -12,7 +12,7 @@ namespace windows {
 // Error Handling
 ///////////////////////////////////////////////////////////////////////////////
 
-void error_message(const std::string& msg);
+void error_message(const char* msg);
 
 ///////////////////////////////////////////////////////////////////////////////
 // COM
@@ -22,13 +22,13 @@ class com_scoped_initializer
 {
 public:
 
-    com_scoped_initializer();
-    ~com_scoped_initializer();
+    com_scoped_initializer() noexcept;
+    ~com_scoped_initializer() noexcept;
 
     com_scoped_initializer(const com_scoped_initializer&) = delete;
     com_scoped_initializer& operator=(const com_scoped_initializer&) = delete;
 
-    bool succeeded() const;
+    bool succeeded() const noexcept;
 
 private:
 
@@ -43,12 +43,11 @@ class handle
 {
 public:
 
-    handle() : m_handle(INVALID_HANDLE_VALUE) {}
+    handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
 
-    handle(const HANDLE h) : m_handle(h) {}
+    handle(const HANDLE h) noexcept : m_handle(h) {}
 
-    handle(handle&& h) noexcept
-        : m_handle(INVALID_HANDLE_VALUE)
+    handle(handle&& h) noexcept : m_handle(INVALID_HANDLE_VALUE)
     {
         if (this != &h)
         {
@@ -57,9 +56,9 @@ public:
         }
     }
 
-    ~handle() { close(); }
+    ~handle() noexcept { close(); }
 
-    handle& operator=(const HANDLE h)
+    handle& operator=(const HANDLE h) noexcept
     {
         close();
         m_handle = h;
@@ -72,17 +71,17 @@ public:
 
 public:
 
-    bool is_valid() const
+    bool is_valid() const noexcept
     {
         return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
     }
 
-    HANDLE get() const { return m_handle; }
-    void reset() { m_handle = INVALID_HANDLE_VALUE; }
+    HANDLE get() const noexcept { return m_handle; }
+    void reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
 
 private:
 
-    void close()
+    void close() noexcept
     {
         if (is_valid())
         {

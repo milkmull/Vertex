@@ -6,23 +6,23 @@
 // Compiler Identification
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(_MSC_VER)           // Microsoft Visual C++
-#   define VX_COMPILER_MSVC
-#elif defined(__GNUC__)         // GNU Compiler Collection
-#   define VX_COMPILER_GNU
-#elif defined(__clang__)        // Clang
+#if defined(__clang__)
 #   define VX_COMPILER_CLANG
+#elif defined(__GNUC__)
+#   define VX_COMPILER_GNU
+#elif defined(_MSC_VER)
+#   define VX_COMPILER_MSVC
 #else
-#   error Unsupported Compiler
+#   error Unknown Compiler
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // C++ Standard Detection
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_COMPILER_MSVC)
+#if defined(_MSC_VER) && defined(_MSVC_LANG)
 #   define VX_CPP_STD _MSVC_LANG
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__cplusplus)
 #   define VX_CPP_STD __cplusplus
 #else
 #   define VX_CPP_STD 0L
@@ -39,7 +39,7 @@
 #elif VX_CPP_STD >= 199711L
 #   define VX_CPP_STANDARD 98
 #else
-#   define VX_CPP_STANDARD 1 // Non-standard C++
+#   define VX_CPP_STANDARD 0
 #endif
 
 #undef VX_CPP_STD
@@ -49,12 +49,12 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(VX_CMAKE_DEBUG) || defined(_DEBUG) || defined(DEBUG)
-#   define VX_DEBUG   1
-#   define VX_RELEASE 0
+#   define VX_DEBUG 1
 #else
-#   define VX_DEBUG   0
-#   define VX_RELEASE 1
+#   define VX_DEBUG 0
 #endif
+
+#define VX_RELEASE (!VX_DEBUG)
 
 ///////////////////////////////////////////////////////////////////////////////
 // DLL Export/Import
@@ -93,18 +93,17 @@
 // Warning Suppression
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_COMPILER_MSVC)
+#if defined(_MSC_VER)
 
 #   define VX_DISABLE_WARNING_PUSH()                         __pragma(warning(push, 0))
 #   define VX_DISABLE_WARNING_POP()                          __pragma(warning(pop))
 #   define VX_DISABLE_WARNING(warning_name, warning_number)  __pragma(warning(disable: warning_number))
 
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__GNUC__) || defined(__clang__)
 
 #   define VX_DISABLE_WARNING_PUSH()                         _Pragma("GCC diagnostic push")
 #   define VX_DISABLE_WARNING_POP()                          _Pragma("GCC diagnostic pop")
-#   define VX_DISABLE_WARNING_IMPL(warning)                  _Pragma(#warning)
-#   define VX_DISABLE_WARNING(warning_name, warning_number)  VX_DISABLE_WARNING_IMPL(GCC diagnostic ignored warning_name)
+#   define VX_DISABLE_WARNING(warning_name, warning_number)  _Pragma("GCC diagnostic ignored \"-W" warning_name "\"")
 
 #else
 
@@ -118,15 +117,15 @@
 // Structure Packing
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_COMPILER_MSVC)
+#if defined(_MSC_VER)
 
 #   define VX_PACK_PUSH()   __pragma(pack(push, 1))
 #   define VX_PACK_POP()    __pragma(pack(pop))
 
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__GNUC__) || defined(__clang__)
 
-#   define VX_PACK_PUSH()   _Pragma("pack(1)")
-#   define VX_PACK_POP()    _Pragma("pack()")
+#   define VX_PACK_PUSH()   _Pragma("pack(push, 1)")
+#   define VX_PACK_POP()    _Pragma("pack(pop)")
 
 #else
 
@@ -144,7 +143,7 @@
 #   define VX_LIKELY(expr) [[likely]] (expr)
 #   define VX_UNLIKELY(expr) [[unlikely]] (expr)
 
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__GNUC__) || defined(__clang__)
 
 #   define VX_LIKELY(expr) (__builtin_expect(!!(expr), 1))
 #   define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
@@ -160,9 +159,9 @@
 // Force Inline
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_COMPILER_MSVC)
+#if defined(_MSC_VER)
 #   define VX_FORCE_INLINE __forceinline
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__GNUC__) || defined(__clang__)
 #   define VX_FORCE_INLINE inline __attribute__((always_inline))
 #else
 #   define VX_FORCE_INLINE inline
@@ -174,21 +173,45 @@
 
 #if (VX_CPP_STANDARD >= 17)
 #   define VX_FALLTHROUGH [[fallthrough]]
-#elif defined(VX_COMPILER_MSVC)
+#elif defined(_MSC_VER)
 #   define VX_FALLTHROUGH __fallthrough
-#elif defined(VX_COMPILER_GNU) || defined(VX_COMPILER_CLANG)
+#elif defined(__GNUC__) || defined(__clang__)
 #   define VX_FALLTHROUGH [[clang::fallthrough]]
 #else
 #   define VX_FALLTHROUGH do {} while (0)
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// No Throw
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER)
+#   define VX_NOTHROW __declspec(nothrow)
+#elif defined(__GNUC__) || defined(__clang__)
+#   define VX_NOTHROW __attribute__((nothrow))
+#else
+#   define VX_NOTHROW
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Deprecation
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER)
+#   define VX_DEPRECATED(msg) __declspec(deprecated(msg))
+#elif defined(__GNUC__) || defined(__clang__)
+#   define VX_DEPRECATED(msg) __attribute__((deprecated(msg)))
+#else
+#   define VX_DEPRECATED(msg)
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // If Constexpr
 ///////////////////////////////////////////////////////////////////////////////
 
-#if (VX_CPP_STANDARD >= 17) // C++17 or later
+#if (VX_CPP_STANDARD >= 17)
 #   define VX_IF_CONSTEXPR(x) if constexpr (x)
-#else // Fallback for pre-C++17
+#else
 #   define VX_IF_CONSTEXPR if
 #endif
 

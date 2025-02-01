@@ -12,9 +12,11 @@
 
 namespace vx {
 
-using error_t = uint32_t;
+using error_t = uint8_t;
 
 namespace err {
+
+enum { ERROR_MESSAGE_MAX_SIZE = 1024 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // error code
@@ -72,14 +74,50 @@ enum code : error_t
 /// 
 /// @return A string representaion of the error code.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API const char* code_to_string(code err) noexcept;
+constexpr const char* code_to_string(code err) noexcept
+{
+    switch (err)
+    {
+        case code::NONE:                        return "none";
+        case code::ERROR:                       return "error";
+
+        case code::RUNTIME_ERROR:               return "runtime error";
+        case code::NOT_CONFIGURED:              return "not configured";
+
+        case code::OUT_OF_RANGE:                return "out of range";
+        case code::OUT_OF_MEMORY:               return "out of memory";
+        case code::SIZE_ERROR:                  return "size error";
+
+        case code::INVALID_DATA:                return "invalid data";
+        case code::INVALID_ARGUMENT:            return "invalid argument";
+        case code::UNSUPPORTED_FORMAT:          return "unsupported format";
+        case code::UNSUPPORTED_CONVERSION:      return "unsupported conversion";
+        case code::UNSUPPORTED_OPERATION:       return "unsupported operation";
+
+        case code::RESOURCE_NOT_FOUND:          return "resource not found";
+        case code::RESOURCE_ALREADY_EXISTS:     return "resource already exists";
+
+        case code::FILE_OPERATION_FAILED:       return "file operation failed";
+        case code::FILE_OPEN_FAILED:            return "file open failed";
+        case code::FILE_READ_FAILED:            return "file read failed";
+        case code::FILE_WRITE_FAILED:           return "file write failed";
+
+        case code::FILE_NO_PERMISSION:          return "file no permission";
+        case code::FILE_IN_USE:                 return "file in use";
+        case code::FILE_CORRUPT:                return "file corrupt";
+
+        case code::PLATFORM_ERROR:              return "platform error";
+        case code::UNSUPPORTED:                 return "unsupported operation";
+        default:                                return "";
+    }
+}
 
 struct info
 {
     code code = code::NONE;
-    std::string message;
+    const char* message;
 
-    inline explicit operator bool() const noexcept { return (code != code::NONE); }
+    constexpr explicit operator bool() const noexcept { return (code != code::NONE); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -90,7 +128,7 @@ namespace __detail {
 
 #if VX_ERROR_PRINTING_AVAILABLE
 
-    VX_API void set_error_printing_enabled(bool enabled);
+    VX_API void set_error_printing_enabled(bool enabled) noexcept;
 #   define VX_PRINT_ERRORS(enabled) ::vx::err::__detail::set_error_printing_enabled(enabled)
 
 #else
@@ -123,7 +161,7 @@ VX_API info get() noexcept;
 /// @param err The error code.
 /// @param msg The error message.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AVAILABLE);
+VX_API void set(code err, const char* msg) noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Sets the error for the current thread using the default error
@@ -131,12 +169,18 @@ VX_API void set(code err, const std::string& msg) noexcept(!VX_ERROR_PRINTING_AV
 /// 
 /// @param err The error code.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void set(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE);
+inline void set(code err) noexcept
+{
+    set(err, code_to_string(err));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief Clears all error information for the current thread.
 ///////////////////////////////////////////////////////////////////////////////
-VX_API void clear() noexcept(!VX_ERROR_PRINTING_AVAILABLE);
+inline void clear() noexcept
+{
+    set(code::NONE, "");
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // error stream
@@ -146,8 +190,8 @@ namespace __detail {
 
 struct error_stream
 {
-    error_stream(code err) noexcept(!VX_ERROR_PRINTING_AVAILABLE) : err(err) {}
-    ~error_stream() noexcept(!VX_ERROR_PRINTING_AVAILABLE) { set(err, stream.str()); }
+    error_stream(code err) : err(err) {}
+    ~error_stream() { set(err, stream.str().c_str()); }
 
     code err;
     std::ostringstream stream;

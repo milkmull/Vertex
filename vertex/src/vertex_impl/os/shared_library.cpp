@@ -79,9 +79,14 @@ VX_API void shared_library::free()
     }
 }
 
-void* shared_library::get_function_internal(const std::string& name)
+VX_API path shared_library::location() const
 {
-    return is_loaded() ? m_impl->get_function(name) : nullptr;
+    return is_loaded() ? m_impl->location() : path{};
+}
+
+void* shared_library::get_void(const std::string& name) const
+{
+    return is_loaded() ? m_impl->get_addr(name) : nullptr;
 }
 
 } // namespace os

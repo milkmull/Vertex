@@ -13,10 +13,10 @@ class timer
 {
 public:
 
-    timer() = default;
-    ~timer() = default;
+    timer() noexcept = default;
+    ~timer() noexcept = default;
 
-    inline time_point start()
+    inline time_point start() noexcept
     {
         m_stop_time.zero();
         m_running = true;
@@ -24,7 +24,7 @@ public:
         return m_start_time;
     }
 
-    inline time_point stop()
+    inline time_point stop() noexcept
     {
         if (m_running)
         {
@@ -34,24 +34,24 @@ public:
         return m_stop_time;
     }
 
-    inline void reset()
+    inline void reset() noexcept
     {
         m_running = false;
         m_start_time.zero();
         m_stop_time.zero();
     }
 
-    inline bool running() const
+    inline bool running() const noexcept
     {
         return m_running;
     }
 
-    inline time_point start_time() const
+    inline time_point start_time() const noexcept
     {
         return m_start_time;
     }
 
-    inline time_point elapsed_time() const
+    inline time_point elapsed_time() const noexcept
     {
         if (m_running)
         {

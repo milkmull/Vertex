@@ -156,7 +156,7 @@ struct datetime
     int32_t nanosecond;             // nanosecond [0-999999999]
     int32_t utc_offset_seconds;     // seconds east of utc [-43200-50400]
 
-    VX_API bool is_valid() const;
+    VX_API bool is_valid() const noexcept;
     VX_API std::string to_string() const;
 
     constexpr datetime to_utc() const noexcept
@@ -198,7 +198,7 @@ struct datetime
         return utc_dt;
     }
 
-    constexpr time_point to_time_point() const
+    constexpr time_point to_time_point() const noexcept
     {
         time_point t;
 
@@ -219,12 +219,12 @@ struct datetime
         return t;
     }
 
-    constexpr bool operator==(const datetime& rhs) const
+    constexpr bool operator==(const datetime& rhs) const noexcept
     {
         return to_time_point() == rhs.to_time_point();
     }
 
-    constexpr bool operator!=(const datetime& rhs) const
+    constexpr bool operator!=(const datetime& rhs) const noexcept
     {
         return !(*this == rhs);
     }

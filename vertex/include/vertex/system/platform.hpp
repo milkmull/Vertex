@@ -10,63 +10,72 @@
 #if defined(linux) || defined(__linux) || defined(__linux__)
 
 #   define VX_PLATFORM_LINUX
+#   define VX_PLATFORM_DEFINED
 
-#elif defined(ANDROID) || defined(__ANDROID__)
+#endif // linux
+
+#if defined(ANDROID) || defined(__ANDROID__)
 
 #   define VX_PLATFORM_ANDROID
+#   undef VX_PLATFORM_LINUX
+#   define VX_PLATFORM_DEFINED
 
-#elif defined(__unix__) || defined(__unix) || defined(unix)
+#endif // android
+
+#if defined(__unix__) || defined(__unix) || defined(unix)
 
 #   define VX_PLATFORM_UNIX
+#   define VX_PLATFORM_DEFINED
 
-#elif defined(__APPLE__)
+#endif // unix
+
+#if defined(__APPLE__)
 
 #   define VX_PLATFORM_APPLE
 
-#   include <AvailabilityMacros.h>
-#   ifndef __has_extension
-#       define __has_extension(x) 0
-#       include <TargetConditionals.h>
-#       undef __has_extension
-#   else
-#       include <TargetConditionals.h>
-#   endif
+#   include <TargetConditionals.h>
 
-#   ifndef TARGET_OS_MACCATALYST
-#       define TARGET_OS_MACCATALYST 0
-#   endif
-#   ifndef TARGET_OS_IOS
-#       define TARGET_OS_IOS 0
-#   endif
-#   ifndef TARGET_OS_IPHONE
-#       define TARGET_OS_IPHONE 0
-#   endif
-#   ifndef TARGET_OS_VISION
-#       define TARGET_OS_VISION 0
-#   endif
+#   if TARGET_OS_IOS || TARGET_OS_IPHONE
 
-#   if TARGET_OS_VISION
-#       define VX_PLATFORM_VISIONOS
-#   elif TARGET_OS_IPHONE
 #       define VX_PLATFORM_IOS
-#   else
+
+#   elif TARGET_OS_MAC
+
 #       define VX_PLATFORM_MACOS
-#       if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
-#           error Vertex for macOS only supports deploying on 10.7 and above
+#       if MAC_OS_X_VERSION_MIN_REQUIRED <070
+#           error Vertex for macOS only supports deploying on0.7 and above
 #       endif
+
+#   else
+#       error Unsupported Apple platform
 #   endif
 
-#elif defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(__TOS_WIN__) || defined(__WINDOWS__)
+#   define VX_PLATFORM_DEFINED
+
+#endif // apple
+
+#if defined(_WIN32)
 
 #   define VX_PLATFORM_WINDOWS
 
-// Need to add support for other types of windows platforms
-// https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_platform_defines.h#L336
+#   if defined(__CYGWIN__)
+#       define VX_PLATFORM_CYGWIN
+#   endif
 
-#else
+#   define VX_PLATFORM_DEFINED
 
+#endif // windows
+
+#if defined(VX_PLATFORM_LINUX) || defined(VX_PLATFORM_ANDROID) || defined(VX_PLATFORM_UNIX) || defined(VX_PLATFORM_APPLE)
+
+#   define VX_PLATFORM_POSIX
+
+#endif // posix
+
+#if !defined(VX_PLATFORM_DEFINED)
 #   error Unsupported Platform
-
+#else
+#   undef VX_PLATFORM_DEFINED
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

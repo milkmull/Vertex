@@ -71,23 +71,17 @@ time::time_point system_time_impl() noexcept
     return time::time_point::from_windows_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
 }
 
-int64_t get_performance_counter_impl()
+int64_t get_performance_counter_impl() noexcept
 {
     LARGE_INTEGER counter{};
-    if (!QueryPerformanceCounter(&counter))
-    {
-        windows::error_message("QueryPerformanceCounter()");
-    }
+    QueryPerformanceCounter(&counter);
     return static_cast<int64_t>(counter.QuadPart);
 }
 
-int64_t get_performance_frequency_impl()
+int64_t get_performance_frequency_impl() noexcept
 {
     LARGE_INTEGER frequency{};
-    if (!QueryPerformanceFrequency(&frequency))
-    {
-        windows::error_message("QueryPerformanceFrequency()");
-    }
+    QueryPerformanceFrequency(&frequency);
     return static_cast<int64_t>(frequency.QuadPart);
 }
 

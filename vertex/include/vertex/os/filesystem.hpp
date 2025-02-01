@@ -272,8 +272,8 @@ public:
 
 public:
 
-    VX_API reference operator*() const noexcept;
-    VX_API pointer operator->() const noexcept;
+    VX_API reference operator*() const;
+    VX_API pointer operator->() const;
 
     VX_API directory_iterator& operator++();
 
@@ -289,7 +289,7 @@ public:
 
 private:
 
-    void validate();
+    void validate() noexcept;
 
 private:
 
@@ -336,8 +336,8 @@ public:
 
 public:
 
-    VX_API reference operator*() const noexcept;
-    VX_API pointer operator->() const noexcept;
+    VX_API reference operator*() const;
+    VX_API pointer operator->() const;
 
     VX_API recursive_directory_iterator& operator++();
 
@@ -353,16 +353,16 @@ public:
 
 public:
 
-    VX_API size_t depth() const;
+    VX_API size_t depth() const noexcept;
 
-    VX_API bool recursion_pending() const;
-    VX_API void disable_pending_recursion();
+    VX_API bool recursion_pending() const noexcept;
+    VX_API void disable_pending_recursion() noexcept;
 
     VX_API void pop();
 
 private:
 
-    void validate();
+    void validate() noexcept;
 
 private:
 

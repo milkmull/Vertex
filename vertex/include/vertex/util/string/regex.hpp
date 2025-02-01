@@ -29,7 +29,7 @@ private:
 
 public:
 
-    inline basic_regex(const char_t* pattern)
+    inline basic_regex(const char_t* pattern) noexcept
     {
         try
         {
@@ -43,7 +43,7 @@ public:
         }
     }
 
-    inline basic_regex(const std::basic_string<char_t>& pattern)
+    inline basic_regex(const std::basic_string<char_t>& pattern) noexcept
     {
         try
         {
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    inline bool is_valid() const
+    inline bool is_valid() const noexcept
     {
         return m_valid;
     }

@@ -23,7 +23,7 @@ public:
 
 public:
 
-    FNV1a() = default;
+    FNV1a() noexcept = default;
 
     void update(const uint8_t* data, const size_t size) noexcept
     {
