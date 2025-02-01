@@ -22,7 +22,7 @@ inline time::datetime time_point_to_datetime_impl(const time::time_point& tp, bo
 // Current Time
 ///////////////////////////////////////////////////////////////////////////////
 
-inline time::time_point system_time_impl() noexcept
+inline time::time_point system_time_impl()
 {
     unsupported("system_time");
     return {};
@@ -32,13 +32,13 @@ inline time::time_point system_time_impl() noexcept
 // Ticks
 ///////////////////////////////////////////////////////////////////////////////
 
-inline int64_t get_performance_counter_impl() noexcept
+inline int64_t get_performance_counter_impl()
 {
     unsupported("get_performance_counter");
     return 0;
 }
 
-inline int64_t get_performance_frequency_impl() noexcept
+inline int64_t get_performance_frequency_impl()
 {
     unsupported("get_performance_frequency");
     return 0;
@@ -48,7 +48,7 @@ inline int64_t get_performance_frequency_impl() noexcept
 // Sleep
 ///////////////////////////////////////////////////////////////////////////////
 
-inline void sleep_impl(const time::time_point& t) noexcept
+inline void sleep_impl(const time::time_point& t)
 {
     unsupported("sleep");
 }

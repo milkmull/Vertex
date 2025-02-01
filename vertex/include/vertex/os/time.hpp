@@ -10,22 +10,22 @@ namespace os {
 // Current Time
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API time::time_point system_time() noexcept;
+VX_API time::time_point system_time();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Ticks
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API time::time_point get_ticks() noexcept;
+VX_API time::time_point get_ticks();
 
-VX_API int64_t get_performance_counter() noexcept;
-VX_API int64_t get_performance_frequency() noexcept;
+VX_API int64_t get_performance_counter();
+VX_API int64_t get_performance_frequency();
 
 ///////////////////////////////////////////////////////////////////////////////
 // Sleep
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API void sleep(const time::time_point& t) noexcept;
+VX_API void sleep(const time::time_point& t);
 
 } // namespace os
 } // namespace vx

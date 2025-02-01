@@ -140,7 +140,6 @@ more bonus:
     x add functions to shared_library
     - add functions to get native handles for os classes
     x check which time_point functions using the standard library can be inlined with noexcept
-    - reevaluate base64 functions
 }
 
 testing:
