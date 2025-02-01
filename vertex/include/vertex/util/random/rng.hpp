@@ -48,7 +48,7 @@ public:
         return s;
     }
 
-    generator_type& use_generator()
+    generator_type& use_generator() noexcept
     {
         return m_rng;
     }

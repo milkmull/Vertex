@@ -22,27 +22,27 @@ public:
     {
         using distribution_type = normal_distribution<T>;
 
-        param_type() : param_type(0) {}
+        param_type() noexcept : param_type(0) {}
 
-        explicit param_type(T mean, T stddev = static_cast<T>(1))
+        explicit param_type(T mean, T stddev = static_cast<T>(1)) noexcept
             : m_mean(mean), m_stddev(stddev) {}
 
-        result_type mean() const
+        result_type mean() const noexcept
         {
             return m_mean;
         }
 
-        result_type stddev() const
+        result_type stddev() const noexcept
         {
             return m_stddev;
         }
 
-        friend bool operator==(const param_type& lhs, const param_type& rhs)
+        friend bool operator==(const param_type& lhs, const param_type& rhs) noexcept
         {
             return lhs.m_mean == rhs.m_mean && lhs.m_stddev == rhs.m_stddev;
         }
 
-        friend bool operator!=(const param_type& lhs, const param_type& rhs)
+        friend bool operator!=(const param_type& lhs, const param_type& rhs) noexcept
         {
             return !(lhs == rhs);
         }
@@ -55,35 +55,35 @@ public:
 
 public:
 
-    normal_distribution() : normal_distribution(0) {}
+    normal_distribution() noexcept : normal_distribution(0) {}
 
-    explicit normal_distribution(T mean, T stddev = static_cast<T>(1))
+    explicit normal_distribution(T mean, T stddev = static_cast<T>(1)) noexcept
         : m_param(mean, stddev) {}
 
-    explicit normal_distribution(const param_type& p) : m_param(p) {}
+    explicit normal_distribution(const param_type& p) noexcept : m_param(p) {}
 
-    result_type mean() const { return m_param.mean(); }
-    result_type stddev() const { return m_param.stddev(); }
+    result_type mean() const noexcept { return m_param.mean(); }
+    result_type stddev() const noexcept { return m_param.stddev(); }
 
-    param_type param() const
+    param_type param() const noexcept
     {
         return m_param;
     }
 
-    void param(const param_type& p)
+    void param(const param_type& p) noexcept
     {
         m_param = p;
     }
 
-    result_type min() const { return std::numeric_limits<T>::lowest(); }
-    result_type max() const { return std::numeric_limits<T>::max(); }
+    result_type min() const noexcept { return std::numeric_limits<T>::lowest(); }
+    result_type max() const noexcept { return std::numeric_limits<T>::max(); }
 
-    void reset() { m_saved_available = false; }
+    void reset() noexcept { m_saved_available = false; }
 
     friend bool operator==(
         const normal_distribution& lhs,
         const normal_distribution& rhs
-        )
+        ) noexcept
     {
         return lhs.m_param == rhs.m_param;
     }
@@ -91,7 +91,7 @@ public:
     friend bool operator!=(
         const normal_distribution& lhs,
         const normal_distribution& rhs
-        )
+        ) noexcept
     {
         return !(lhs == rhs);
     }

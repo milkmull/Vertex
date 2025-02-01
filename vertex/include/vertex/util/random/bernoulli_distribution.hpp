@@ -17,24 +17,24 @@ public:
     {
         using distribution_type = bernoulli_distribution;
 
-        param_type() : param_type(0.5) {}
+        param_type() noexcept : param_type(0.5) {}
 
-        explicit param_type(double p) : m_p(p)
+        explicit param_type(double p) noexcept : m_p(p)
         {
             VX_ASSERT(0.0 <= m_p && m_p <= 1.0);
         }
 
-        double p() const
+        double p() const noexcept
         {
             return m_p;
         }
 
-        friend bool operator==(const param_type& lhs, const param_type& rhs)
+        friend bool operator==(const param_type& lhs, const param_type& rhs) noexcept
         {
             return lhs.m_p == rhs.m_p;
         }
 
-        friend bool operator!=(const param_type& lhs, const param_type& rhs)
+        friend bool operator!=(const param_type& lhs, const param_type& rhs) noexcept
         {
             return !(lhs == rhs);
         }
@@ -46,31 +46,31 @@ public:
 
 public:
 
-    bernoulli_distribution() : bernoulli_distribution(0.5) {}
-    explicit bernoulli_distribution(double p) : m_param(p) {}
-    explicit bernoulli_distribution(const param_type& p) : m_param(p) {}
+    bernoulli_distribution() noexcept : bernoulli_distribution(0.5) {}
+    explicit bernoulli_distribution(double p) noexcept : m_param(p) {}
+    explicit bernoulli_distribution(const param_type& p) noexcept : m_param(p) {}
 
-    double p() const { return m_param.p(); }
+    double p() const noexcept { return m_param.p(); }
 
-    param_type param() const
+    param_type param() const noexcept
     {
         return m_param;
     }
 
-    void param(const param_type& p)
+    void param(const param_type& p) noexcept
     {
         m_param = p;
     }
 
-    result_type min() const { return std::numeric_limits<result_type>::min(); }
-    result_type max() const { return std::numeric_limits<result_type>::max(); }
+    result_type min() const noexcept { return std::numeric_limits<result_type>::min(); }
+    result_type max() const noexcept { return std::numeric_limits<result_type>::max(); }
 
-    void reset() {}
+    void reset() noexcept {}
 
     friend bool operator==(
         const bernoulli_distribution& lhs,
         const bernoulli_distribution& rhs
-        )
+        ) noexcept
     {
         return lhs.m_param == rhs.m_param;
     }
@@ -78,7 +78,7 @@ public:
     friend bool operator!=(
         const bernoulli_distribution& lhs,
         const bernoulli_distribution& rhs
-        )
+        ) noexcept
     {
         return !(lhs == rhs);
     }

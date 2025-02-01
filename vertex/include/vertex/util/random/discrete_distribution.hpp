@@ -85,7 +85,7 @@ public:
 
     public:
 
-        const std::vector<double>& probabilities() const
+        const std::vector<double>& probabilities() const noexcept
         {
             return m_prob;
         }
@@ -123,7 +123,7 @@ public:
 
     explicit discrete_distribution(const param_type& p) : m_param(p) {}
 
-    const std::vector<double>& probabilities() const
+    const std::vector<double>& probabilities() const noexcept
     {
         return m_param.probabilities();
     }
@@ -138,10 +138,10 @@ public:
         m_param = p;
     }
 
-    result_type min() const { return 0.0; }
-    result_type max() const { return m_param.m_prob.back(); }
+    result_type min() const noexcept { return 0.0; }
+    result_type max() const noexcept { return m_param.m_prob.back(); }
 
-    void reset() {}
+    void reset() noexcept {}
 
     friend bool operator==(
         const discrete_distribution& lhs,

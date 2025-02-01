@@ -12,7 +12,7 @@ namespace __detail {
 // For a URBG type 'G' with range == '(G::max() - G::min()) + 1', 
 // returns the number of calls to generate at least '_Bits' bits of entropy.
 // Specifically, this function returns 'max(1, ceil(_Bits / log2(range)))'.
-constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, uintmax_t rng_max)
+inline constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, uintmax_t rng_max) noexcept
 {
     // Make sure bits is in a valid range
     constexpr uintmax_t max_bits = sizeof(uintmax_t) * 8;
@@ -50,7 +50,7 @@ constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, u
 // https://github.com/microsoft/STL/blob/25dc2b72b6f594326253cf3a05543f7a5750f802/stl/inc/random#L297
 
 template <typename T, size_t bits, typename RNG>
-constexpr T generate_canonical(RNG& rng)
+inline constexpr T generate_canonical(RNG& rng) noexcept(noexcept((RNG::min)()) && noexcept((RNG::max)()))
 {
     using result_type = T;
     static_assert(std::is_floating_point<result_type>::value, "T must be an floating point type");

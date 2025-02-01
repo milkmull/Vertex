@@ -13,7 +13,7 @@ namespace random {
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 
 template <typename Iterator, typename RNG>
-void shuffle(Iterator first, Iterator last, RNG& rng)
+inline void shuffle(Iterator first, Iterator last, RNG& rng)
 {
     using rng_type = typename RNG::result_type;
     static_assert(
@@ -40,7 +40,7 @@ void shuffle(Iterator first, Iterator last, RNG& rng)
 }
 
 template <typename PopulationIterator, typename SampleIterator, typename RNG>
-SampleIterator sample(
+inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,
     SampleIterator out,
     size_t n, RNG& rng
@@ -78,7 +78,7 @@ SampleIterator sample(
 }
 
 template <typename Index, typename PopulationIterator, typename SampleIterator, typename RNG>
-SampleIterator sample(
+inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,
     SampleIterator out,
     size_t n, discrete_distribution<Index>& weights,

@@ -3,14 +3,14 @@
 # Create Tests
 #--------------------------------------------------------------------
 
-function(vx_add_test TARGET SOURCES)
+function(vx_add_test TARGET PATH SOURCES)
 
     # Group source files for IDEs (e.g., Visual Studio)
     source_group("" FILES ${SOURCES})
     # Create the test executable target
     add_executable(${TARGET} ${SOURCES})
     # Set target folder for IDEs (e.g., Visual Studio)
-    set_target_properties(${TARGET} PROPERTIES FOLDER "Tests")
+    set_target_properties(${TARGET} PROPERTIES FOLDER "Tests/${PATH}")
     # Apply the appropriate C++ standard library settings
     vx_set_stdlib(${TARGET})
     # Link the test target with its dependencies and test framework
@@ -37,21 +37,27 @@ function(vx_add_test TARGET SOURCES)
 
 endfunction()
 
-# Util tests
-#vx_add_test(vx_test_util_bit "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/bit.cpp")
-#vx_add_test(vx_test_util_endian "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/endian.cpp")
-#
-#vx_add_test(vx_test_util_base64 "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/encode/base64.cpp")
-#vx_add_test(vx_test_util_crypto "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/crypto/crypto.cpp")
-#
-#file(GLOB VX_RANDOM_SRC_FILES
-#    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.hpp"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.cpp"
-#)
-#vx_add_test(vx_test_util_random "${VX_RANDOM_SRC_FILES}")
-#
-#vx_add_test(vx_test_util_string "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
-#vx_add_test(vx_test_util_regex "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
+#--------------------------------------------------------------------
+# Util Tests
+#--------------------------------------------------------------------
 
-vx_add_test(vx_test_util_time "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/time/time.cpp")
+vx_add_test(test_bit "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/bit.cpp")
+vx_add_test(test_endian "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/endian.cpp")
 
+vx_add_test(test_base64 "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/encode/base64.cpp")
+vx_add_test(test_crypto "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/crypto/crypto.cpp")
+
+file(GLOB VX_RANDOM_SRC_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.cpp"
+)
+vx_add_test(test_random "os" "${VX_RANDOM_SRC_FILES}")
+
+vx_add_test(test_string "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
+vx_add_test(test_regex "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
+
+vx_add_test(test_time "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/time/time.cpp")
+
+#--------------------------------------------------------------------
+# OS Tests
+#--------------------------------------------------------------------
