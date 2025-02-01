@@ -41,22 +41,22 @@ endfunction()
 # Util Tests
 #--------------------------------------------------------------------
 
-vx_add_test(test_bit "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/bit.cpp")
-vx_add_test(test_endian "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/endian.cpp")
+vx_add_test(test_bit "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/bit.cpp")
+vx_add_test(test_endian "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/bit/endian.cpp")
 
-vx_add_test(test_base64 "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/encode/base64.cpp")
-vx_add_test(test_crypto "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/crypto/crypto.cpp")
+vx_add_test(test_base64 "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/encode/base64.cpp")
+vx_add_test(test_crypto "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/crypto/crypto.cpp")
 
 file(GLOB VX_RANDOM_SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/random/random.cpp"
 )
-vx_add_test(test_random "os" "${VX_RANDOM_SRC_FILES}")
+vx_add_test(test_random "util" "${VX_RANDOM_SRC_FILES}")
 
-vx_add_test(test_string "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
-vx_add_test(test_regex "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
+vx_add_test(test_string "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
+vx_add_test(test_regex "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
 
-vx_add_test(test_time "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/time/time.cpp")
+vx_add_test(test_time "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/time/time.cpp")
 
 #--------------------------------------------------------------------
 # OS Tests
