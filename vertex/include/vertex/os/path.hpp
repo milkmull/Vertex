@@ -5,8 +5,6 @@
 #include "vertex/util/io/quoted.hpp"
 #include "vertex/util/crypto/FNV1a.hpp"
 
-// https://docs.godotengine.org/en/stable/classes/class_fileaccess.html#class-fileaccess
-// https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_filesystem.h
 // https://en.cppreference.com/w/cpp/filesystem
 
 namespace vx {
@@ -40,7 +38,7 @@ using value_type = char;
 #   define PATH_PREFERRED_SEPARATOR '/'
 #   define PATH_DOT '.'
 
-#endif // __VX_OS_WINDOWS_FILESYSTEM
+#endif // VX_PLATFORM_WINDOWS
 
 using string_type = std::basic_string<value_type>;
 
@@ -68,18 +66,18 @@ struct substring
 inline constexpr bool is_directory_separator(value_type c) noexcept
 {
     return c == PATH_SEPARATOR
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+#if defined(VX_PLATFORM_WINDOWS)
         || c == PATH_PREFERRED_SEPARATOR
-#endif // __VX_OS_WINDOWS_FILESYSTEM
+#endif // VX_PLATFORM_WINDOWS
         ;
 }
 
 inline constexpr bool is_element_separator(value_type c) noexcept
 {
     return is_directory_separator(c)
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
+#if defined(VX_PLATFORM_WINDOWS)
         || c == L':'
-#endif // __VX_OS_WINDOWS_FILESYSTEM
+#endif // VX_PLATFORM_WINDOWS
         ;
 }
 
@@ -89,7 +87,7 @@ inline constexpr bool is_letter(value_type c) noexcept
         || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
 }
 
-static inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
+inline size_t find_separator(const value_type* p, size_t off, size_t size) noexcept
 {
     size_t pos = off;
 
@@ -101,86 +99,76 @@ static inline size_t find_separator(const value_type* p, size_t off, size_t size
     return pos;
 }
 
-// Returns a pointer to the end of the root name if it exists, otherwise last
-inline size_t find_root_name_end(const value_type* first, size_t size)
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/path.cpp#L983
+// https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L371
+
+// Returns the start position of the root directory
+inline size_t find_root_directory_start(const value_type* first, size_t size) noexcept
 {
+    // Only windows has root name
+#if defined(VX_PLATFORM_WINDOWS)
+
+    // A valid root name requires at least 2 characters (e.g., "C:")
     if (size < 2)
     {
         return 0;
     }
 
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
+    // Windows drive letter root name (e.g., "C:")
     if (is_letter(first[0]) && first[1] == L':')
     {
         return 2;
     }
 
-#endif // __VX_OS_WINDOWS_FILESYSTEM
-
+    // If the first character is not a directory separator, there is no root name
     if (!is_directory_separator(first[0]))
     {
         return 0;
     }
 
-    // case "//", possibly followed by more characters
-    if (is_directory_separator(first[1]))
-    {
-        if (size == 2)
-        {
-            // The whole path is just a pair of separators "\\"
-            return 2;
-        }
-
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
-        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
-        // cases "\\?\" and "\\.\"
-        else if (size >= 4 && (first[2] == L'?' || first[2] == L'.') && is_directory_separator(first[3]))
-        {
-            return find_separator(first, 3, size);
-        }
-
-#endif // __VX_OS_WINDOWS_FILESYSTEM
-
-        else if (is_directory_separator(first[2]))
-        {
-            // The path starts with three directory separators, which is interpreted as a root directory followed by redundant separators
-            return 0;
-        }
-        else
-        {
-            // case "//net{/}"
-            return find_separator(first, 2, size);
-        }
-    }
-
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
     // https://stackoverflow.com/questions/23041983/path-prefixes-and
-    // case "\??\" (NT path prefix)
-    else if (size >= 4 && first[1] == L'?' && first[2] == L'?' && is_directory_separator(first[3]))
+    // cases "\\?\*", "\\.\*", "\??\*" where * is anything EXCEPT a slash
+    if (size >= 4 && is_directory_separator(first[3]) && (size == 4 || !is_directory_separator(first[4])) // "\**\*"
+        && ((is_directory_separator(first[1]) && (first[2] == L'?' || first[2] == L'.')) // "\\?\*", "\\.\*"
+        || (first[1] == L'?' && first[2] == L'?'))) // "\??\" (NT path prefix)
     {
         return find_separator(first, 3, size);
     }
 
-#endif // __VX_OS_WINDOWS_FILESYSTEM
+    // Handle paths starting with double slashes "\\*"
+    if (is_directory_separator(first[1]))
+    {
+        if (size == 2 || is_directory_separator(first[2]))
+        {
+            // The path is either "\\" or "\\\*", which are both interpreted
+            // as a root directory followed by redundant separators
+            return 0;
+        }
+        else
+        {
+            // case "//server*" (UNC path in Windows, network path in POSIX)
+            return find_separator(first, 2, size);
+        }
+    }
+
+#endif // VX_PLATFORM_WINDOWS
 
     return 0;
 }
 
-inline substring parse_root_name(const string_type& s)
+inline substring parse_root_name(const string_type& s) noexcept
 {
-    const size_t size = find_root_name_end(s.c_str(), s.size());
+    const size_t size = find_root_directory_start(s.c_str(), s.size());
     return substring{ 0, size };
 }
 
-inline substring parse_root_directory(const string_type& s)
+inline substring parse_root_directory(const string_type& s) noexcept
 {
     const size_t size = s.size();
-    const size_t off = find_root_name_end(s.c_str(), size);
+    const size_t off = find_root_directory_start(s.c_str(), size);
 
-    // Count consecutive directory separators starting from offset.
+    // Count consecutive directory separators starting from off
     size_t count = 0;
     while (off + count < size && is_directory_separator(s[off + count]))
     {
@@ -190,19 +178,19 @@ inline substring parse_root_directory(const string_type& s)
     return substring{ off, count };
 }
 
-inline substring parse_root_path(const string_type& s)
+inline substring parse_root_path(const string_type& s) noexcept
 {
     const auto root_directory = parse_root_directory(s);
     return substring{ 0, root_directory.pos + root_directory.size };
 }
 
-inline substring parse_relative_path(const string_type& s)
+inline substring parse_relative_path(const string_type& s) noexcept
 {
     const auto root_path = parse_root_path(s);
     return substring{ root_path.size, s.size() - root_path.size };
 }
 
-inline substring parse_parent_path(const string_type& s)
+inline substring parse_parent_path(const string_type& s) noexcept
 {
     const auto relative_path = parse_relative_path(s);
     size_t i = relative_path.pos + relative_path.size;
@@ -231,24 +219,25 @@ inline substring parse_parent_path(const string_type& s)
     return substring{ 0, i };
 }
 
-inline substring parse_filename(const string_type& s)
+inline substring parse_filename(const string_type& s) noexcept
 {
     const size_t size = s.size();
+    const size_t root_name_end = find_root_directory_start(s.c_str(), size);
 
     // Start searching backward from the end of the string
-    for (size_t i = size; i > 0; --i)
+    for (size_t i = size; i > root_name_end; --i)
     {
-        if (is_element_separator(s[i - 1]))
+        if (is_directory_separator(s[i - 1]))
         {
             return substring{ i, size - i };
         }
     }
 
     // If no directory separator is found, the entire string is the filename
-    return substring{ 0, size };
+    return substring{ root_name_end, size - root_name_end };
 }
 
-inline substring parse_extension(const string_type& s)
+inline substring parse_extension(const string_type& s) noexcept
 {
     const size_t size = s.size();
 
@@ -292,7 +281,7 @@ inline substring parse_extension(const string_type& s)
     return substring{ size, 0 };
 }
 
-inline substring parse_stem(const string_type& s)
+inline substring parse_stem(const string_type& s) noexcept
 {
     const auto extension = parse_extension(s);
 
@@ -461,7 +450,7 @@ public:
 
 public:
 
-    path(string_type&& s) : m_path(std::move(s)) {}
+    path(string_type&& s) noexcept : m_path(std::move(s)) {}
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     path(const Src& src) : m_path(str::string_cast<value_type>(src)) {}
@@ -621,7 +610,7 @@ public:
     // modifiers
     ///////////////////////////////////////////////////////////////////////////////
 
-    inline void clear() { m_path.clear(); }
+    inline void clear() noexcept { m_path.clear(); }
 
     inline path& make_preferred()
     {
@@ -663,11 +652,6 @@ public:
             m_path.push_back(dot);
         }
         return operator+=(new_extension);
-    }
-
-    inline void swap(path& p) noexcept
-    {
-        m_path.swap(p.m_path);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1045,26 +1029,38 @@ public:
 
     bool is_dot_or_dotdot() const noexcept { return m_path == PATH_TEXT(".") || m_path == PATH_TEXT(".."); }
 
-    bool has_root_path() const      { return __detail::parser::parse_root_path(m_path).size != 0; }
-    bool has_root_name() const      { return __detail::parser::parse_root_name(m_path).size != 0; }
-    bool has_root_directory() const { return __detail::parser::parse_root_directory(m_path).size != 0; }
-    bool has_relative_path() const  { return __detail::parser::parse_relative_path(m_path).size != 0; }
-    bool has_parent_path() const    { return __detail::parser::parse_parent_path(m_path).size != 0; }
-    bool has_filename() const       { return __detail::parser::parse_filename(m_path).size != 0; }
-    bool has_stem() const           { return __detail::parser::parse_stem(m_path).size != 0; }
-    bool has_extension() const      { return __detail::parser::parse_extension(m_path).size != 0; }
+    bool has_root_path() const noexcept { return __detail::parser::parse_root_path(m_path).size != 0; }
+    bool has_root_name() const noexcept { return __detail::parser::parse_root_name(m_path).size != 0; }
+    bool has_root_directory() const noexcept { return __detail::parser::parse_root_directory(m_path).size != 0; }
+    bool has_relative_path() const noexcept { return __detail::parser::parse_relative_path(m_path).size != 0; }
+    bool has_parent_path() const noexcept { return __detail::parser::parse_parent_path(m_path).size != 0; }
+    bool has_filename() const noexcept { return __detail::parser::parse_filename(m_path).size != 0; }
+    bool has_stem() const noexcept { return __detail::parser::parse_stem(m_path).size != 0; }
+    bool has_extension() const noexcept { return __detail::parser::parse_extension(m_path).size != 0; }
 
-    bool is_relative() const { return !is_absolute(); }
+    bool is_relative() const noexcept { return !is_absolute(); }
      
-    bool is_absolute() const
-    {
-        const auto root_directory = __detail::parser::parse_root_directory(m_path);
+    // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1165
+    // https://github.com/gcc-mirror/gcc/blob/e8262c9041feddd7446840a9532cf458452f3587/libstdc%2B%2B-v3/include/bits/fs_path.h#L1333
 
-#if defined(__VX_OS_WINDOWS_FILESYSTEM)
-        return root_directory.pos != 0 && root_directory.size != 0;
+    bool is_absolute() const noexcept
+    {
+#if defined(VX_PLATFORM_WINDOWS)
+        const size_t size = m_path.size();
+        // Has drive letter "X:*"
+        if (size >= 2 && __detail::parser::is_letter(m_path[0]))
+        {
+            // Check for "X:/cat" but not "X:cat"
+            return size >= 3 && __detail::parser::is_directory_separator(m_path[2]);
+        }
+
+        return __detail::parser::find_root_directory_start(m_path.data(), size) != 0;
+
 #else
-        return root_directory.size != 0;
-#endif // __VX_OS_WINDOWS_FILESYSTEM
+
+        return __detail::parser::parse_root_directory(m_path).size != 0;
+
+#endif // VX_PLATFORM_WINDOWS
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1185,7 +1181,7 @@ struct hash<vx::os::path>
         auto it = text.data();
         const auto last = it + size;
 
-        const auto root_name_end = vx::os::__detail::parser::find_root_name_end(it, size);
+        const auto root_name_end = vx::os::__detail::parser::find_root_directory_start(it, size);
         fnv1a.update(it, it += root_name_end);
 
         bool last_was_slash = false;
