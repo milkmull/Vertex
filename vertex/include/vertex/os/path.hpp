@@ -75,7 +75,7 @@ inline constexpr bool is_directory_separator(value_type c) noexcept
 inline constexpr bool is_element_separator(value_type c) noexcept
 {
     return is_directory_separator(c)
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_PLATFORM_WINDOWS) && 0
         || c == L':'
 #endif // VX_PLATFORM_WINDOWS
         ;
@@ -237,9 +237,22 @@ inline substring parse_filename(const string_type& s) noexcept
     return substring{ root_name_end, size - root_name_end };
 }
 
-inline substring parse_extension(const string_type& s) noexcept
+inline substring find_extension(const string_type& s, size_t filename_start) noexcept
 {
+#if defined(VX_PLATFORM_WINDOWS)
+
+    // On Windows, file paths can contain alternate data streams (ADS), 
+    // specified using a colon (e.g., "file.txt:stream"). Since the extension 
+    // applies only to the main file and not to the stream, we must ensure 
+    // we stop parsing at the first ':' after the filename.
+    const size_t extension_end = s.find(L':', filename_start);
+    const size_t size = (extension_end != string_type::npos) ? extension_end : s.size();
+
+#else
+
     const size_t size = s.size();
+
+#endif // VX_PLATFORM_WINDOWS
 
     if (size <= 1)
     {
@@ -251,28 +264,29 @@ inline substring parse_extension(const string_type& s) noexcept
 
     if (s[--i] == PATH_DOT)
     {
-        if (
-            // case "/." or ":."
-            is_element_separator(s[i]) ||
-            // case "..", "x/..", or "x:.."
-            (s[i] == PATH_DOT && (size == 2 || is_element_separator(s[i - 1])))
-            )
+        if (i == 1 && s[1] == PATH_DOT)
         {
-            return substring{ size, 0 };
+            // ".."
+            return substring{ 2, 0 };
+}
+        else
+        {
+            // "x."
+            return substring{ i, 1 };
         }
-
-        // case "x." or "x.."
-        return substring{ size - 1, 1 };
     }
 
-    // Start searching backward from the end of the string
-    while (i > 0)
+    // Special case: If the filename starts with a dot (e.g., "/.config"), 
+    // it has no extension. Because of this, we can skip checking the first
+    // character
+
+    while (i > 1)
     {
         if (s[--i] == PATH_DOT)
         {
             return substring{ i, size - i };
         }
-        else if (is_element_separator(s[i]))
+        else if (is_directory_separator(s[i]))
         {
             break;
         }
@@ -281,21 +295,15 @@ inline substring parse_extension(const string_type& s) noexcept
     return substring{ size, 0 };
 }
 
+inline substring parse_extension(const string_type& s) noexcept
+{
+    return find_extension(s, parse_filename(s).pos);
+}
+
 inline substring parse_stem(const string_type& s) noexcept
 {
-    const auto extension = parse_extension(s);
-
-    // Start searching backward from the end of the string
-    for (size_t i = extension.pos; i > 0; --i)
-    {
-        if (is_element_separator(s[i - 1]))
-        {
-            return substring{ i, extension.pos - i };
-        }
-    }
-
-    // If no directory separator is found, the entire string is the stem
-    return substring{ 0, extension.pos };
+    const auto filename = parse_filename(s);
+    return substring{ filename.pos, find_extension(s, filename.pos).pos };
 }
 
 } // namespace parser

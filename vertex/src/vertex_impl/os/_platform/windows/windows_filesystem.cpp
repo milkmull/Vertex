@@ -777,7 +777,7 @@ static bool is_dot_or_dotdot(const wchar_t* filename)
         return false;
     }
 
-    const auto second_char = filename[1];
+    const wchar_t second_char = filename[1];
     if (second_char == 0)
     {
         return true;
