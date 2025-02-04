@@ -144,7 +144,7 @@ struct stem_test_case
 inline bool run_stem_test_case(const stem_test_case& test_case)
 {
 #   define failure_message(input, test, actual, expected) \
-        std::cout << "  Stem failed for " << input << "\n  " << \
+        std::cout << "  Stem decomposition failed for " << input << "\n  " << \
         "Test: " << test << " Result: " << actual << " Expected: " << expected << '\n'
 
     const os::path p(test_case.input);
@@ -163,6 +163,107 @@ inline bool run_stem_test_case(const stem_test_case& test_case)
     {
         failure_message(test_case.input, "extension", extension, test_case.extension);
         return false;
+    }
+
+#   undef failure_message
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// comparison
+///////////////////////////////////////////////////////////////////////////////
+
+enum class compare_result
+{
+    less,
+    greater,
+    equal
+};
+
+inline constexpr const char* compare_result_string(compare_result r)
+{
+    switch (r)
+    {
+        default:
+        case compare_result::less:      return "<";
+        case compare_result::greater:   return ">";
+        case compare_result::equal:     return "==";
+    }
+}
+
+struct compare_test_case
+{
+    str::str_arg_t lhs;
+    str::str_arg_t rhs;
+    compare_result expected;
+};
+
+inline bool run_compare_test_case(const compare_test_case& test_case)
+{
+#   define failure_message(lhs, rhs, actual, expected) \
+        std::cout << "  Comparison failed for " << lhs << " and " << rhs << '\n' << \
+        "  Result: " << actual << " Expected: " << expected << '\n'
+
+    const os::path lhs(test_case.lhs);
+    const os::path rhs(test_case.rhs);
+
+    const auto lhs_hash = std::hash<os::path>{}(lhs);
+    const auto rhs_hash = std::hash<os::path>{}(rhs);
+
+    const int comparison = lhs.compare(rhs);
+    const bool equal_hashes = (lhs_hash == rhs_hash);
+
+    if (comparison < 0)
+    {
+        if (test_case.expected != compare_result::less)
+        {
+            failure_message(
+                lhs, rhs,
+                compare_result_string(compare_result::less),
+                compare_result_string(test_case.expected)
+            );
+            return false;
+        }
+
+        if (equal_hashes)
+        {
+            return false;
+        }
+    }
+    else if (comparison > 0)
+    {
+        if (test_case.expected != compare_result::greater)
+        {
+            failure_message(
+                lhs, rhs,
+                compare_result_string(compare_result::greater),
+                compare_result_string(test_case.expected)
+            );
+            return false;
+        }
+
+        if (equal_hashes)
+        {
+            return false;
+        }
+    }
+    else // comparison == 0
+    {
+        if (test_case.expected != compare_result::equal)
+        {
+            failure_message(
+                lhs, rhs,
+                compare_result_string(compare_result::equal),
+                compare_result_string(test_case.expected)
+            );
+            return false;
+        }
+
+        if (!equal_hashes)
+        {
+            return false;
+        }
     }
 
 #   undef failure_message

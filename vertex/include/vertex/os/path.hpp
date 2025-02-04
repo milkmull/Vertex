@@ -72,15 +72,6 @@ inline constexpr bool is_directory_separator(value_type c) noexcept
         ;
 }
 
-inline constexpr bool is_element_separator(value_type c) noexcept
-{
-    return is_directory_separator(c)
-#if defined(VX_PLATFORM_WINDOWS) && 0
-        || c == L':'
-#endif // VX_PLATFORM_WINDOWS
-        ;
-}
-
 inline constexpr bool is_letter(value_type c) noexcept
 {
     return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
@@ -695,6 +686,8 @@ public:
         return compare(path(src));
     }
 
+    // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1017
+
     int compare(const string_type& rhs) const
     {
         const auto lhs_root_directory = __detail::parser::parse_root_directory(m_path);
@@ -740,7 +733,7 @@ public:
         {
             const bool lhs_empty = lhs_it == lhs_last;
             const bool rhs_empty = rhs_it == rhs_last;
-            const int empty_cmp = static_cast<int>(lhs_empty) - static_cast<int>(rhs_empty);
+            const int empty_cmp = static_cast<int>(rhs_empty) - static_cast<int>(lhs_empty);
             if (lhs_empty || empty_cmp != 0)
             {
                 return empty_cmp;
@@ -748,7 +741,7 @@ public:
 
             const bool lhs_is_sep = __detail::parser::is_directory_separator(*lhs_it);
             const bool rhs_is_sep = __detail::parser::is_directory_separator(*rhs_it);
-            const int sep_cmp = static_cast<int>(lhs_is_sep) - static_cast<int>(rhs_is_sep);
+            const int sep_cmp = static_cast<int>(rhs_is_sep) - static_cast<int>(lhs_is_sep);
             if (sep_cmp != 0)
             {
                 return sep_cmp;

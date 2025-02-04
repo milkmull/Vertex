@@ -270,6 +270,84 @@ VX_TEST_CASE(decomposition)
     }
 }
 
+VX_TEST_CASE(compare)
+{
+    constexpr test::compare_test_case compare_test_cases[] = {
+        // basic tests:
+        { "", "", test::compare_result::equal },
+        { "", "anything", test::compare_result::less },
+        { "anything", "", test::compare_result::greater },
+        { "c:", "c:", test::compare_result::equal },
+        
+        // different root_directory values compare equal:
+        { "/", "//", test::compare_result::equal },
+        { "//////", "//", test::compare_result::equal },
+        
+        // different counts of /s and different kinds compare:
+#   if defined(VX_PLATFORM_WINDOWS)
+        { "c://a/b", "c:/a//b", test::compare_result::equal },
+        { "c://a/b", R"(c:/a/\b)", test::compare_result::equal },
+        { "c:/a/b///c", "c:/a///b/c", test::compare_result::equal },
+        { R"(c:/a/b\//c)", R"(c:/a//\b/c)", test::compare_result::equal },
+#   else
+        { "//a/b", "/a//b", test::compare_result::equal },
+        { "//a/b", R"(/a/\b)", test::compare_result::greater },
+        { "/a/b///c", "/a///b/c", test::compare_result::equal },
+        { R"(/a/b\//c)", R"(/a//\b/c)", test::compare_result::greater },
+#   endif // VX_PLATFORM_WINDOWS
+        
+        // comparing root_name:
+#   if defined(VX_PLATFORM_WINDOWS)
+        { R"(\\server\share)", "C:/a", test::compare_result::greater },
+        { R"(//server\share)", "C:/a", test::compare_result::less },
+        // doesn't actually get to has_root_name test, since root_name comparison differs:
+        { R"(c:a)", R"(C:\a)", test::compare_result::greater },
+#   endif // VX_PLATFORM_WINDOWS
+
+        // different values of has_root_directory():
+#   if defined(VX_PLATFORM_WINDOWS)
+        { "c:/", "c:", test::compare_result::greater },
+        { "c:", "c:/", test::compare_result::less },
+        { "c:////", "c://", test::compare_result::equal },
+        { R"(c:\a)", R"(c:a)", test::compare_result::greater },
+        { R"(c:a)", R"(c:\a)", test::compare_result::less },
+#   else
+        { "/", "", test::compare_result::greater },
+        { "", "/", test::compare_result::less },
+        { "/a", "a", test::compare_result::greater},
+        { "a", "/a", test::compare_result::less},
+#   endif // VX_PLATFORM_WINDOWS
+        
+        // fewer path elements compare less:
+        { "/a", "/a/b", test::compare_result::less },
+        { "/a/b", "/a", test::compare_result::greater },
+        { "/a/", "/a/b", test::compare_result::less },
+        { "/a/b", "/a/", test::compare_result::greater },
+        // trailing empty element
+        { "/a/b", "/a/b/", test::compare_result::less },
+        { "/a/b/", "/a/b", test::compare_result::greater },
+
+        // comparisons inside path elements, note assumption L'A' < L'a':
+        { "/CASEMATTERS", "/casematters", test::compare_result::less },
+        { "/abcdefg", "/hijklmn", test::compare_result::less },
+        { "/casematters", "/CASEMATTERS", test::compare_result::greater },
+        { "/hijklmn", "/abcdefg", test::compare_result::greater },
+
+        // differ only in where the / goes:
+        { "/ap/ple", "/app/le", test::compare_result::less },
+#   if defined(VX_PLATFORM_WINDOWS)
+        { R"(c:/ap\ple)", R"(c:/app\le)", test::compare_result::less },
+        { "c:/ap/ple", R"(c:/app\le)", test::compare_result::less },
+        { R"(c:/ap\ple)", "c:/app/le", test::compare_result::less }
+#   endif // VX_PLATFORM_WINDOWS
+    };
+
+    for (const auto& t : compare_test_cases)
+    {
+        VX_CHECK(test::run_compare_test_case(t));
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 int main()
