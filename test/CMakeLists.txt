@@ -18,6 +18,8 @@ function(vx_add_test TARGET PATH SOURCES)
     # Apply common compiler flags and hide public symbols
     vx_add_common_compiler_flags(${TARGET})
     vx_hide_public_symbols(${TARGET})
+    # Add testing definition
+    target_compile_definitions(${TARGET} PRIVATE -DVX_TESTING)
     
     # Add include directories for the target
     target_include_directories(${TARGET} PRIVATE 

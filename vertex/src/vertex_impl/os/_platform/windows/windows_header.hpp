@@ -1,22 +1,22 @@
 #pragma once
 
-#ifndef NOMINMAX
+#if !defined(NOMINMAX)
 #   define NOMINMAX
 #endif
 
-#ifndef WIN32_LEAN_AND_MEAN
+#if !defined(WIN32_LEAN_AND_MEAN)
 #   define WIN32_LEAN_AND_MEAN 1
 #endif
 
-#ifndef STRICT
+#if !defined(STRICT)
 #   define STRICT 1
 #endif
 
-#ifndef UNICODE
+#if !defined(UNICODE)
 #   define UNICODE 1
 #endif
 
-#ifndef _UNICODE
+#if !defined(_UNICODE)
 #   define _UNICODE 1
 #endif
 

@@ -1,3 +1,4 @@
+//#define VX_TESTING_WINDOWS_PATH
 #include "vertex_test/os/path.hpp"
 
 using namespace vx;
@@ -32,27 +33,27 @@ VX_TEST_CASE(decomposition)
             { "hi", "", "", "hi", "", "hi", false },
 
             // empty drive-relative path
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { "c:", "c:", "", "", "c:", "", false },
             { "C:", "C:", "", "", "C:", "", false },
 #       else
             { "c:", "", "", "c:", "", "c:", false },
             { "C:", "", "", "C:", "", "C:", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // non-empty drive-relative path
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { "c:dog", "c:", "", "dog", "c:", "dog", false },
 #       else
             { "c:dog", "", "", "c:dog", "", "c:dog", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // malformed drive
             { "cc:dog", "", "", "cc:dog", "", "cc:dog", false },
             { "::dog", "", "", "::dog", "", "::dog", false },
             { " :dog", "", "", " :dog", "", " :dog", false },
             { ":dog", "", "", ":dog", "", ":dog", false },
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\:dog)", "", R"(\)", ":dog", R"(\)", ":dog", false },
             { R"(\:\dog)", "", R"(\)", R"(:\dog)", R"(\:)", "dog", false },
             { R"(1:\dog)", "", "", R"(1:\dog)", R"(1:)", "dog", false },
@@ -60,28 +61,28 @@ VX_TEST_CASE(decomposition)
             { R"(\:dog)", "", "", R"(\:dog)", "", R"(\:dog)", false },
             { R"(\:\dog)", "", "", R"(\:\dog)", "", R"(\:\dog)", false },
             { R"(1:\dog)", "", "", R"(1:\dog)", "", R"(1:\dog)", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // current drive root relative path
             { "Dev/msvc", "", "", "Dev/msvc", "Dev", "msvc", false },
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\Dev\msvc)", "", R"(\)", R"(Dev\msvc)", R"(\Dev)", "msvc", false },
             { R"(\Dev\msvc\)", "", R"(\)", R"(Dev\msvc\)", R"(\Dev\msvc)", "", false },
 #       else
             { "Dev/msvc/", "", "", "Dev/msvc/", "Dev/msvc", "", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // absolute path
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(c:\)", "c:", R"(\)", "", R"(c:\)", "", true },
             { "c:/", "c:", "/", "", "c:/", "", true },
 #       else
             { "/", "", "/", "", "/", "", true },
             { R"(\)", "", "", R"(\)", "", R"(\)", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // usual path form
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(c:\cat\dog\elk)", "c:", R"(\)", R"(cat\dog\elk)", R"(c:\cat\dog)", "elk", true },
             { R"(c:\cat\dog\elk\)", "c:", R"(\)", R"(cat\dog\elk\)", R"(c:\cat\dog\elk)", "", true },
             { R"(c:/cat\dog\elk)", "c:", R"(/)", R"(cat\dog\elk)", R"(c:/cat\dog)", "elk", true },
@@ -89,17 +90,17 @@ VX_TEST_CASE(decomposition)
 #       else
             { "/cat/dog/elk", "", "/", "cat/dog/elk", "/cat/dog", "elk", true},
             { "/cat/dog/elk/", "", "/", "cat/dog/elk/", "/cat/dog/elk", "", true },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
              // extra long root-directory
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(c:\\\\\cat\dog\elk)", "c:", R"(\\\\\)", R"(cat\dog\elk)", R"(c:\\\\\cat\dog)", "elk", true },
 #       else
             { "//////cat/dog/elk", "", "//////", "cat/dog/elk", "//////cat/dog", "elk", true },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // Special cases
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             // "\\?\"
             { R"(\\?\)", R"(\\?)", R"(\)", "", R"(\\?\)", "", true },
             { R"(\\?\x)", R"(\\?)", R"(\)", "x", R"(\\?\)", "x", true },
@@ -126,10 +127,10 @@ VX_TEST_CASE(decomposition)
             { R"(\\?\)", "", "", R"(\\?\)", "", R"(\\?\)", false },
             { R"(\\.\)", "", "", R"(\\.\)", "", R"(\\.\)", false },
             { R"(\??\)", "", "", R"(\??\)", "", R"(\??\)", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // network path
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\\server\share)", R"(\\server)", R"(\)", "share", R"(\\server\)", "share", true },
             { R"(/\server\share)", R"(/\server)", R"(\)", "share", R"(/\server\)", "share", true },
             { R"(/\server/share)", R"(/\server)", R"(/)", "share", R"(/\server/)", "share", true },
@@ -142,25 +143,25 @@ VX_TEST_CASE(decomposition)
             { R"(\\\dog)", "", R"(\\\)", "dog", R"(\\\)", "dog", false },
 #       else
             { R"(\\server)", "", "", R"(\\server)", "", R"(\\server)", false },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // document that we don't treat \\?\UNC special even if MSDN does:
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\\?\UNC\server\share)", R"(\\?)", R"(\)", R"(UNC\server\share)", R"(\\?\UNC\server)", "share", true },
             // other similar cases
             { R"(\\?\UNC)", R"(\\?)", R"(\)", R"(UNC)", R"(\\?\)", "UNC", true },
             { R"(\\?\UNC\server)", R"(\\?)", R"(\)", R"(UNC\server)", R"(\\?\UNC)", "server", true },
             { R"(\\?\UNC\server\)", R"(\\?)", R"(\)", R"(UNC\server\)", R"(\\?\UNC\server)", "", true },
             { R"(\\?\UNC\\)", R"(\\?)", R"(\)", R"(UNC\\)", R"(\\?\UNC)", "", true },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
             // document that drive letters aren't special with special prefixes:
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\\.\C:attempt_at_relative)", R"(\\.)", R"(\)", R"(C:attempt_at_relative)", R"(\\.\)", "C:attempt_at_relative", true },
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
 
         // other interesting user-submitted test cases:
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { R"(\)", "", R"(\)", "", R"(\)", "", false },
             { R"(\\)", "", R"(\\)", "", R"(\\)", "", false },
             { R"(\\\)", "", R"(\\\)", "", R"(\\\)", "", false },
@@ -208,7 +209,7 @@ VX_TEST_CASE(decomposition)
             { "/../..", "", "/", "../..", "/..", "..", true },
             { "/../../", "", "/", "../../", "/../..", "", true },
             { "//../../", "", "//", "../../", "//../..", "", true }
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
         };
 
         for (const auto& t : decomp_test_cases)
@@ -236,7 +237,7 @@ VX_TEST_CASE(decomposition)
             { "cat.", "cat", "." },
 
             // all of the above with alternate data streams
-#       if defined(VX_PLATFORM_WINDOWS)
+#       if defined(VX_TESTING_WINDOWS_PATH)
             { ".:alternate_meow", ".", "" },
             { "..:alternate_dog", "..", "" },
             { ".config:alternate_elk", ".config", "" },
@@ -260,7 +261,7 @@ VX_TEST_CASE(decomposition)
             { "cat.dog:even:if:this:curtain:is:malformed", "cat", ".dog:even:if:this:curtain:is:malformed" },
             { "cat:what?", "cat:what?", "" },
             { "cat.:alternate_fun", "cat", ".:alternate_fun" }
-#       endif // VX_PLATFORM_WINDOWS
+#       endif // VX_TESTING_WINDOWS_PATH
         };
 
         for (const auto& t : stem_test_cases)
@@ -284,7 +285,7 @@ VX_TEST_CASE(compare)
         { "//////", "//", test::compare_result::equal },
         
         // different counts of /s and different kinds compare:
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_TESTING_WINDOWS_PATH)
         { "c://a/b", "c:/a//b", test::compare_result::equal },
         { "c://a/b", R"(c:/a/\b)", test::compare_result::equal },
         { "c:/a/b///c", "c:/a///b/c", test::compare_result::equal },
@@ -294,18 +295,18 @@ VX_TEST_CASE(compare)
         { "//a/b", R"(/a/\b)", test::compare_result::greater },
         { "/a/b///c", "/a///b/c", test::compare_result::equal },
         { R"(/a/b\//c)", R"(/a//\b/c)", test::compare_result::greater },
-#   endif // VX_PLATFORM_WINDOWS
+#   endif // VX_TESTING_WINDOWS_PATH
         
         // comparing root_name:
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_TESTING_WINDOWS_PATH)
         { R"(\\server\share)", "C:/a", test::compare_result::greater },
         { R"(//server\share)", "C:/a", test::compare_result::less },
         // doesn't actually get to has_root_name test, since root_name comparison differs:
         { R"(c:a)", R"(C:\a)", test::compare_result::greater },
-#   endif // VX_PLATFORM_WINDOWS
+#   endif // VX_TESTING_WINDOWS_PATH
 
         // different values of has_root_directory():
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_TESTING_WINDOWS_PATH)
         { "c:/", "c:", test::compare_result::greater },
         { "c:", "c:/", test::compare_result::less },
         { "c:////", "c://", test::compare_result::equal },
@@ -316,7 +317,7 @@ VX_TEST_CASE(compare)
         { "", "/", test::compare_result::less },
         { "/a", "a", test::compare_result::greater},
         { "a", "/a", test::compare_result::less},
-#   endif // VX_PLATFORM_WINDOWS
+#   endif // VX_TESTING_WINDOWS_PATH
         
         // fewer path elements compare less:
         { "/a", "/a/b", test::compare_result::less },
@@ -335,16 +336,58 @@ VX_TEST_CASE(compare)
 
         // differ only in where the / goes:
         { "/ap/ple", "/app/le", test::compare_result::less },
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_TESTING_WINDOWS_PATH)
         { R"(c:/ap\ple)", R"(c:/app\le)", test::compare_result::less },
         { "c:/ap/ple", R"(c:/app\le)", test::compare_result::less },
         { R"(c:/ap\ple)", "c:/app/le", test::compare_result::less }
-#   endif // VX_PLATFORM_WINDOWS
+#   endif // VX_TESTING_WINDOWS_PATH
     };
 
     for (const auto& t : compare_test_cases)
     {
         VX_CHECK(test::run_compare_test_case(t));
+    }
+}
+
+VX_TEST_CASE(slash)
+{
+    constexpr test::slash_test_case slash_test_cases[] = {
+        { "", "", "" },
+#   if defined(VX_TESTING_WINDOWS_PATH)
+        { "relative", "other", R"(relative\other)" },
+        { "//server", "share", R"(//server\share)" },
+        { "//server", "share", R"(//server\share)" },
+        { "//server/", "share", R"(//server/share)" },
+        { "cat", "c:/dog", "c:/dog" },
+        { "cat", "c:", "c:" },
+        { "cat", "", R"(cat\)"}, // note addition of "magic empty path" in decomposition
+#   else
+        { "relative", "other", "relative/other" },
+        { "//server", "share", "//server/share" },
+        { "//server/", "share", "//server/share" },
+        { "cat", "/dog", "/dog" },
+        { "cat", "/", "/" },
+        { "cat", "", "cat/"}, // note addition of "magic empty path" in decomposition
+#   endif // VX_TESTING_WINDOWS_PATH
+        { "", "cat", "cat" },
+        { "./", "cat", "./cat" },
+#   if defined(VX_TESTING_WINDOWS_PATH)
+        { "c:", "", "c:" },
+        { "c:", "dog", "c:dog" },
+        { "c:cat", "/dog", "c:/dog" },
+        { "c:/cat", "/dog", "c:/dog" },
+        { "c:cat", "c:dog", R"(c:cat\dog)" },
+        { "c:cat", "d:dog", "d:dog" },
+        { "c:abc", "def", R"(c:abc\def)" },
+        { "c:abc", "dog/def", R"(c:abc\dog/def)" },
+        { "//?/frobinate", R"(\that's strange)", R"(//?\that's strange)" },
+        { "//?/", R"(\that's strange)", R"(//?\that's strange)" }
+#   endif // VX_TESTING_WINDOWS_PATH
+    };
+
+    for (const auto& t : slash_test_cases)
+    {
+        VX_CHECK(test::run_slash_test_case(t));
     }
 }
 

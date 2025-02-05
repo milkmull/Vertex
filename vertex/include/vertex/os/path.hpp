@@ -5,6 +5,14 @@
 #include "vertex/util/io/quoted.hpp"
 #include "vertex/util/crypto/FNV1a.hpp"
 
+#if defined(VX_TESTING)
+#   if defined(VX_TESTING_WINDOWS_PATH)
+#       define VX_WINDOWS_PATH
+#   endif
+#elif defined(VX_PLATFORM_WINDOWS)
+#   define VX_WINDOWS_PATH
+#endif
+
 // https://en.cppreference.com/w/cpp/filesystem
 
 namespace vx {
@@ -18,7 +26,7 @@ class path;
 
 namespace __detail {
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_WINDOWS_PATH)
 
 using value_type = wchar_t;
 
@@ -38,7 +46,7 @@ using value_type = char;
 #   define PATH_PREFERRED_SEPARATOR '/'
 #   define PATH_DOT '.'
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_WINDOWS_PATH
 
 using string_type = std::basic_string<value_type>;
 
@@ -66,9 +74,9 @@ struct substring
 inline constexpr bool is_directory_separator(value_type c) noexcept
 {
     return c == PATH_SEPARATOR
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_WINDOWS_PATH)
         || c == PATH_PREFERRED_SEPARATOR
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_WINDOWS_PATH
         ;
 }
 
@@ -97,7 +105,7 @@ inline size_t find_separator(const value_type* p, size_t off, size_t size) noexc
 inline size_t find_root_directory_start(const value_type* first, size_t size) noexcept
 {
     // Only windows has root name
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_WINDOWS_PATH)
 
     // A valid root name requires at least 2 characters (e.g., "C:")
     if (size < 2)
@@ -143,7 +151,7 @@ inline size_t find_root_directory_start(const value_type* first, size_t size) no
         }
     }
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_WINDOWS_PATH
 
     return 0;
 }
@@ -230,7 +238,7 @@ inline substring parse_filename(const string_type& s) noexcept
 
 inline substring find_extension(const string_type& s, size_t filename_start) noexcept
 {
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_WINDOWS_PATH)
 
     // On Windows, file paths can contain alternate data streams (ADS), 
     // specified using a colon (e.g., "file.txt:stream"). Since the extension 
@@ -243,7 +251,7 @@ inline substring find_extension(const string_type& s, size_t filename_start) noe
 
     const size_t size = s.size();
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_WINDOWS_PATH
 
     if (size <= 1)
     {
@@ -494,12 +502,16 @@ public:
             return operator=(rhs);
         }
 
-        const value_type* lhs_first = m_path.c_str();
-        const size_t lhs_size = m_path.size();
-        const auto lhs_root_name = __detail::parser::parse_root_name(m_path);
-
-        const value_type* rhs_first = rhs.m_path.c_str();
         const size_t rhs_size = rhs.m_path.size();
+        const value_type* rhs_first = rhs.m_path.data();
+
+        const size_t lhs_size = m_path.size();
+
+#if defined(VX_WINDOWS_PATH)
+
+        const value_type* lhs_first = m_path.data();
+
+        const auto lhs_root_name = __detail::parser::parse_root_name(m_path);
         const auto rhs_root_name = __detail::parser::parse_root_name(rhs.m_path);
 
         // if rhs.has_root_name() && rhs.root_name() != root_name(), then op=(rhs)
@@ -510,18 +522,28 @@ public:
             return operator=(rhs);
         }
 
+        const size_t rhs_start = rhs_root_name.size;
+#else
+        // No root names on POSIX
+        constexpr size_t rhs_start = 0;
+#endif // VX_WINDOWS_PATH
+
         // if rhs.has_root_directory() removes any root directory and relative path from *this
-        if (rhs_root_name.pos + rhs_root_name.size != rhs_size &&
-            __detail::parser::is_directory_separator(rhs.m_path[rhs_root_name.pos + rhs_root_name.size]))
+        if (rhs_start != rhs_size && __detail::parser::is_directory_separator(rhs.m_path[rhs_start]))
         {
+#if defined(VX_WINDOWS_PATH)
             m_path.erase(lhs_root_name.size);
+#else
+            m_path.clear();
+#endif // VX_WINDOWS_PATH
         }
         else
         {
-            // Otherwise, if (!has_root_directory && is_absolute) || has_filename appends path::preferred_separator
+#if defined(VX_WINDOWS_PATH)
+            // Otherwise, if (!has_root_directory() && is_absolute()) || has_filename() appends path::preferred_separator
             if (lhs_root_name.size == lhs_size)
             {
-                // Here, !has_root_directory && !has_filename
+                // Here, !has_root_directory() && !has_filename()
                 // Going through our root_name kinds:
                 // X: can't be absolute here, since those paths are absolute only when has_root_directory
                 // \\?\ can't exist without has_root_directory
@@ -532,12 +554,13 @@ public:
                 }
             }
             else
+#endif // VX_WINDOWS_PATH
             {
-                // Here, has_root_directory || has_filename
+                // Here, has_root_directory() || has_filename()
                 // If there is a trailing slash, the trailing slash might be part of root_directory.
-                // If it is, has_root_directory && !has_filename, so the test fails.
-                // If there is a trailing slash not part of root_directory, then !has_filename, so only
-                // (!has_root_directory && is_absolute) remains
+                // If it is, has_root_directory() && !has_filename(), so the test fails.
+                // If there is a trailing slash not part of root_directory, then !has_filename(), so only
+                // (!has_root_directory() && is_absolute()) remains
                 // Going through our root_name kinds:
                 // X:cat\ needs a root_directory to be absolute
                 // \\server\cat must have a root_directory to exist with a relative_path
@@ -545,7 +568,7 @@ public:
                 // As a result, the test fails if there is a trailing slash.
                 // If there is no trailing slash, then has_filename, so the test passes.
                 // Therefore, the test passes if and only if there is no trailing slash.
-                if (!__detail::parser::is_directory_separator(m_path[lhs_size - 1]))
+                if (lhs_size != 0 && !__detail::parser::is_directory_separator(m_path.back()))
                 {
                     m_path.push_back(preferred_separator);
                 }
@@ -554,7 +577,7 @@ public:
 
         // Then appends the native format pathname of rhs, omitting any root-name from its generic format
         // pathname, to the native format pathname.
-        m_path.append(rhs.m_path);
+        m_path.append(rhs_first + rhs_start, rhs_size - rhs_start);
         return *this;
     }
 
@@ -1046,7 +1069,8 @@ public:
 
     bool is_absolute() const noexcept
     {
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_WINDOWS_PATH)
+
         const size_t size = m_path.size();
         // Has drive letter "X:*"
         if (size >= 2 && __detail::parser::is_letter(m_path[0]))
@@ -1061,7 +1085,7 @@ public:
 
         return __detail::parser::parse_root_directory(m_path).size != 0;
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_WINDOWS_PATH
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1182,8 +1206,12 @@ struct hash<vx::os::path>
         auto it = text.data();
         const auto last = it + size;
 
+#   if defined (VX_WINDOWS_PATH)
+
         const auto root_name_end = vx::os::__detail::parser::find_root_directory_start(it, size);
         fnv1a.update(it, it += root_name_end);
+
+#   endif // VX_WINDOWS_PATH
 
         bool last_was_slash = false;
         for (; it != last; ++it)
@@ -1208,5 +1236,6 @@ struct hash<vx::os::path>
 };
 
 #undef PATH_TEXT
+#undef VX_WINDOWS_PATH
 
 } // namespace std

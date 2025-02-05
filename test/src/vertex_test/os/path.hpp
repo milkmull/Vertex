@@ -271,5 +271,36 @@ inline bool run_compare_test_case(const compare_test_case& test_case)
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// slash
+///////////////////////////////////////////////////////////////////////////////
+
+struct slash_test_case
+{
+    str::str_arg_t lhs;
+    str::str_arg_t rhs;
+    str::str_arg_t expected;
+};
+
+inline bool run_slash_test_case(const slash_test_case& test_case)
+{
+#   define failure_message(lhs, rhs, actual, expected) \
+        std::cout << "  Slash failed for " << lhs << " and " << rhs << '\n' << \
+        "  Result: " << actual << " Expected: " << expected << '\n'
+
+    const os::path p = os::path(test_case.lhs) / test_case.rhs;
+
+    const auto actual = p.string();
+    if (actual != test_case.expected)
+    {
+        failure_message(test_case.lhs, test_case.rhs, actual, test_case.expected);
+        return false;
+    }
+
+#   undef failure_message
+
+    return true;
+}
+
 } // namespace test
 } // namespace vx
