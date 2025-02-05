@@ -253,7 +253,7 @@ inline substring find_extension(const string_type& s, size_t filename_start) noe
 
 #endif // VX_WINDOWS_PATH
 
-    if (size <= 1)
+    if ((size - filename_start) <= 1)
     {
         return substring{ size, 0 };
     }
@@ -279,7 +279,7 @@ inline substring find_extension(const string_type& s, size_t filename_start) noe
     // it has no extension. Because of this, we can skip checking the first
     // character
 
-    while (i > 1)
+    while (i > filename_start + 1)
     {
         if (s[--i] == PATH_DOT)
         {
@@ -369,7 +369,7 @@ public:
             else if (root_directory.size != 0)
             {
                 // Root directory exists, so next is root directory
-                m_element.m_path = path.substr(root_directory.pos, root_directory.size);
+                m_element.m_path = path.substr(root_directory.pos, 1);
                 m_position = root_directory.pos + root_directory.size;
                 m_state = parser::state::ROOT_DIRECTORY;
                 return *this;
@@ -468,23 +468,36 @@ public:
         str::string_cast<value_type>(first, last, std::back_inserter(m_path));
     }
 
+    path& operator=(string_type&& s) noexcept
+    {
+        m_path = std::move(s);
+        return *this;
+    }
+
+    path& assign(string_type&& s) noexcept
+    {
+        m_path = std::move(s);
+    }
+
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
-    inline path& operator=(const Src& rhs)
+    path& operator=(const Src& rhs)
     {
         m_path = str::string_cast<value_type>(rhs);
         return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
-    inline path& assign(const Src& src)
+    path& assign(const Src& rhs)
     {
-        return operator=(src);
+        m_path = str::string_cast<value_type>(rhs);
+        return *this;
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
-    inline path& assign(IT first, IT last)
+    path& assign(IT first, IT last)
     {
-        return operator=(path(first, last));
+        m_path = str::string_cast<value_type>(first, last);
+        return *this;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -584,19 +597,19 @@ public:
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     path& operator/=(const Src& rhs)
     {
-        return operator/=(path(rhs));
+        return operator/=(path{ rhs });
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
-    path& append(const Src& src)
+    path& append(const Src& rhs)
     {
-        return operator/=(path(src));
+        return operator/=(path{ rhs });
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
     path& append(IT first, IT last)
     {
-        return operator/=(path(first, last));
+        return operator/=(path{ first, last });
     }
 
     path& operator+=(const path& rhs)
@@ -610,22 +623,50 @@ public:
         return *this;
     }
 
-    template <typename char_t>
-    path& operator+=(const char_t rhs)
+#if defined(__cpp_lib_string_view)
+
+    path& operator+=(const std::basic_string_view<value_type> rhs)
     {
-        return operator+=(path(&rhs, &rhs + 1));
+        m_path += rhs;
+        return *this;
+    }
+
+#endif // __cpp_lib_string_view
+
+    path& operator+=(const value_type* rhs)
+    {
+        m_path += rhs;
+        return *this;
+    }
+
+    path& operator+=(const value_type rhs)
+    {
+        m_path += rhs;
+        return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
-    path& concat(const Src& src)
+    path& operator+=(const Src& rhs)
     {
-        return operator+=(path(src));
+        return operator+=(path{ rhs }.m_path);
+    }
+
+    template <typename Src, VX_REQUIRES(type_traits::is_char<Src>::value)>
+    path& operator+=(const Src& rhs)
+    {
+        return operator+=(path{ &rhs, &rhs + 1 }.m_path);
+    }
+
+    template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
+    path& concat(const Src& rhs)
+    {
+        return operator+=(path{ rhs }.m_path);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
     path& concat(IT first, IT last)
     {
-        return operator+=(path(first, last));
+        return operator+=(path{ first, last }.m_path);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

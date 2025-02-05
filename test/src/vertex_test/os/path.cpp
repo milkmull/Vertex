@@ -1,4 +1,4 @@
-//#define VX_TESTING_WINDOWS_PATH
+#define VX_TESTING_WINDOWS_PATH
 #include "vertex_test/os/path.hpp"
 
 using namespace vx;
@@ -6,7 +6,18 @@ using namespace vx;
 // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/tests/std/tests/P0218R1_filesystem/test.cpp#L217
 
 ///////////////////////////////////////////////////////////////////////////////
-// decomposition
+
+VX_TEST_CASE(native)
+{
+#if defined(VX_TESTING_WINDOWS_PATH)
+    static_assert(std::is_same<typename os::path::string_type, std::wstring>::value);
+    static_assert(std::is_same<typename os::path::value_type, wchar_t>::value);
+#else
+    static_assert(std::is_same<typename os::path::string_type, std::string>::value);
+    static_assert(std::is_same<typename os::path::value_type, char>::value);
+#endif // VX_TESTING_WINDOWS_PATH
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 struct decomposition_test_case
@@ -271,6 +282,8 @@ VX_TEST_CASE(decomposition)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(compare)
 {
     constexpr test::compare_test_case compare_test_cases[] = {
@@ -349,6 +362,8 @@ VX_TEST_CASE(compare)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(slash)
 {
     constexpr test::slash_test_case slash_test_cases[] = {
@@ -392,6 +407,328 @@ VX_TEST_CASE(slash)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(iterators)
+{
+    static_assert(std::is_same<os::path::iterator::iterator_category, std::input_iterator_tag>::value);
+    static_assert(std::is_same<os::path::iterator::value_type, os::path>::value);
+    static_assert(std::is_same<os::path::iterator::difference_type, ptrdiff_t>::value);
+    static_assert(std::is_same<os::path::iterator::pointer, const os::path*>::value);
+    static_assert(std::is_same<os::path::iterator::reference, const os::path&>::value);
+
+    VX_SECTION("comparison")
+    {
+        const os::path::iterator a{};
+        const os::path::iterator b{};
+
+        VX_CHECK(a == b);
+        VX_CHECK(!(a != b));
+    }
+
+    VX_SECTION("empty")
+    {
+        const os::path empty;
+        VX_CHECK(empty.begin() == empty.end());
+    }
+
+    VX_SECTION("empty")
+    {
+        const os::path empty;
+        VX_CHECK(empty.begin() == empty.end());
+    }
+
+    VX_SECTION("dereference")
+    {
+        const char* s = "hello";
+        const os::path p(s);
+
+        const auto it = p.begin();
+        VX_CHECK(it->string() == s);
+        VX_CHECK((*it).string() == s);
+    }
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_SECTION("root name")
+    {
+        const os::path p("c:/cat");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "c:");
+        ++it;
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it->string() == "cat");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+    VX_SECTION("no root directory")
+    {
+        const os::path p("c:cat/dog");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "c:");
+        ++it;
+        VX_CHECK(it->string() == "cat");
+        ++it;
+        VX_CHECK(it->string() == "dog");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_SECTION("root directory")
+    {
+        const os::path p("/cat");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it->string() == "cat");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_SECTION("long root directory")
+    {
+        const os::path p("c://///cat");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "c:");
+        ++it;
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it->string() == "cat");
+        ++it;
+        VX_CHECK(it == p.end());
+}
+
+#else
+
+    VX_SECTION("long root directory")
+    {
+        const os::path p("/////cat");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it->string() == "cat");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_SECTION("relative")
+    {
+        const os::path p("hello world");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "hello world");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+    VX_SECTION("slashes")
+    {
+        const os::path p("a/b//c////d////e///");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "a");
+        ++it;
+        VX_CHECK(it->string() == "b");
+        ++it;
+        VX_CHECK(it->string() == "c");
+        ++it;
+        VX_CHECK(it->string() == "d");
+        ++it;
+        VX_CHECK(it->string() == "e");
+        ++it;
+        VX_CHECK(it->string() == ""); // empty path because it ends with a slash
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+    VX_SECTION("single slash")
+    {
+        const os::path p("/");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_SECTION("windows slash root")
+    {
+        const os::path p("//?/x:/a");
+        auto it = p.begin();
+
+        VX_CHECK(it->string() == "//?");
+        ++it;
+        VX_CHECK(it->string() == "/");
+        ++it;
+        VX_CHECK(it->string() == "x:");
+        ++it;
+        VX_CHECK(it->string() == "a");
+        ++it;
+        VX_CHECK(it == p.end());
+    }
+
+#endif // VX_TESTING_WINDOWS_PATH
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(append)
+{
+    os::path p;
+
+    p += os::path("abc");
+    VX_CHECK(p.string() == "abc");
+    p += "def";
+    VX_CHECK(p.string() == "abcdef");
+    p += std::string("ghi");
+    VX_CHECK(p.string() == "abcdefghi");
+    p += str::str_arg_t("jkl");
+    VX_CHECK(p.string() == "abcdefghijkl");
+    p += 'm';
+    VX_CHECK(p.string() == "abcdefghijklm");
+
+    VX_CHECK(!p.empty());
+    p.clear();
+    VX_CHECK(p.empty());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(make_preferred)
+{
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    os::path p("//?/a/b/c");
+    VX_CHECK(p.make_preferred().string() == R"(\\?\a\b\c)");
+
+#else
+
+    os::path p(R"(///a/b\c)");
+    VX_CHECK(p.make_preferred().string() == R"(///a/b\c)");
+
+#endif // VX_TESTING_WINDOWS_PATH
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(filename)
+{
+    VX_SECTION("remove_filename")
+    {
+        os::path p;
+        VX_CHECK(p.remove_filename().string() == "");
+
+        p = "/";
+        VX_CHECK(p.remove_filename().string() == "/");
+
+        p = "hello/there/";
+        VX_CHECK(p.remove_filename().string() == "hello/there/");
+
+        p = "hello/there";
+        VX_CHECK(p.remove_filename().string() == "hello/");
+
+        p = "hello/there.txt";
+        VX_CHECK(p.remove_filename().string() == "hello/");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+        p = "hello/there:extension";
+        VX_CHECK(p.remove_filename().string() == "hello/");
+
+        p = "c:";
+        VX_CHECK(p.remove_filename().string() == "c:");
+
+        p = "c:my_file.";
+        VX_CHECK(p.remove_filename().string() == "c:");
+
+        p = "c:/";
+        VX_CHECK(p.remove_filename().string() == "c:/");
+
+#endif // VX_TESTING_WINDOWS_PATH
+    }
+
+    VX_SECTION("remove_extension")
+    {
+        os::path p;
+        VX_CHECK(p.remove_extension() == "");
+
+        p = ".";
+        VX_CHECK(p.remove_extension() == ".");
+
+        p = "..";
+        VX_CHECK(p.remove_extension() == "..");
+
+        p = "...";
+        VX_CHECK(p.remove_extension() == "..");
+
+        // Files that start with a dot are special
+
+        p = "/.config";
+        VX_CHECK(p.remove_extension() == "/.config");
+
+        p = ".txt";
+        VX_CHECK(p.remove_extension() == ".txt");
+
+        p = "hello";
+        VX_CHECK(p.remove_extension() == "hello");
+
+        p = "hello.txt";
+        VX_CHECK(p.remove_extension() == "hello");
+
+        p = "/hello.txt:bonus";
+        VX_CHECK(p.remove_extension() == "/hello");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+        p = "c:.";
+        VX_CHECK(p.remove_filename().string() == "c:");
+
+        p = "c:hello.txt";
+        VX_CHECK(p.remove_filename().string() == "c:");
+
+#endif // VX_TESTING_WINDOWS_PATH
+    }
+
+    VX_SECTION("replace_extension")
+    {
+        os::path p;
+        VX_CHECK(p.replace_extension(".txt") == ".txt");
+
+        p = ".";
+        VX_CHECK(p.replace_extension(".txt") == "..txt");
+
+        p = "..";
+        VX_CHECK(p.replace_extension(".txt") == "...txt");
+
+        p = "...";
+        VX_CHECK(p.replace_extension(".txt") == "...txt");
+
+        // Files that start with a dot are special
+
+        p = "/.config";
+        VX_CHECK(p.replace_extension(".txt") == "/.config.txt");
+
+        p = "hello.txt";
+        VX_CHECK(p.replace_extension(".rgb") == "hello.rgb");
+
+        p = "/hello.txt:bonus";
+        VX_CHECK(p.replace_extension(".rgb") == "/hello.rgb");
+    }
+}
 
 int main()
 {

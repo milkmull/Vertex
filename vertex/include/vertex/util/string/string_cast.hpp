@@ -30,6 +30,28 @@ inline IT2 string_cast(IT1 first, IT1 last, IT2 out, to_char_t replacement = 0)
     return out;
 }
 
+template <typename to_char_t, typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
+inline auto string_cast(IT first, IT last, to_char_t replacement = 0)
+{
+    std::basic_string<to_char_t> res;
+    const size_t size = static_cast<size_t>(std::distance(first, last));
+    res.reserve(size);
+    string_cast<to_char_t>(first, last, std::back_inserter(res), replacement);
+    return res;
+}
+
+template <typename to_char_t, typename from_char_t, typename Traits, typename Alloc>
+inline auto string_cast(
+    const std::basic_string<from_char_t, Traits, Alloc>& s,
+    to_char_t replacement = 0
+)
+{
+    std::basic_string<to_char_t> res;
+    res.reserve(s.size());
+    string_cast<to_char_t>(s.begin(), s.end(), std::back_inserter(res), replacement);
+    return res;
+}
+
 #if defined(__cpp_lib_string_view)
 
 template <typename to_char_t, typename from_char_t, typename Traits>
@@ -45,18 +67,6 @@ inline auto string_cast(
 }
 
 #endif // __cpp_lib_string_view
-
-template <typename to_char_t, typename from_char_t, typename Traits, typename Alloc>
-inline auto string_cast(
-    const std::basic_string<from_char_t, Traits, Alloc>& s,
-    to_char_t replacement = 0
-)
-{
-    std::basic_string<to_char_t> res;
-    res.reserve(s.size());
-    string_cast<to_char_t>(s.begin(), s.end(), std::back_inserter(res), replacement);
-    return res;
-}
 
 template <typename to_char_t, typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
 inline auto string_cast(IT first, to_char_t replacement = 0)
