@@ -98,6 +98,11 @@ inline size_t find_separator(const value_type* p, size_t off, size_t size) noexc
     return pos;
 }
 
+inline constexpr bool mismatch(const value_type c1, const value_type c2) noexcept
+{
+    return (is_directory_separator(c1) && is_directory_separator(c2)) || (c1 == c2);
+}
+
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/path.cpp#L983
 // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L371
 
@@ -757,19 +762,25 @@ public:
         const auto lhs_root_directory = __detail::parser::parse_root_directory(m_path);
         const auto rhs_root_directory = __detail::parser::parse_root_directory(rhs);
 
-        const auto lhs_first = m_path.begin();
-        const auto rhs_first = rhs.begin();
+        auto lhs_it = m_path.begin();
+        auto rhs_it = rhs.begin();
 
-        const auto lhs_root_name_end = lhs_first + lhs_root_directory.pos;
-        const auto rhs_root_name_end = rhs_first + rhs_root_directory.pos;
+#if defined(VX_WINDOWS_PATH)
 
-        // If root_name().native().compare(p.root_name().native()) is nonzero,
-        // returns that value.
-        const auto pair = std::mismatch(lhs_first, lhs_root_name_end, rhs_first, rhs_root_name_end);
+        const auto lhs_root_name_end = lhs_it + lhs_root_directory.pos;
+        const auto rhs_root_name_end = rhs_it + rhs_root_directory.pos;
+
+        // If root_name().native().compare(p.root_name().native()) is nonzero, returns that value.
+        const auto pair = std::mismatch(lhs_it, lhs_root_name_end, rhs_it, rhs_root_name_end, __detail::parser::mismatch);
         if (pair.first != lhs_root_name_end || pair.second != rhs_root_name_end)
         {
             return *pair.first - *pair.second;
         }
+
+        lhs_it = pair.first;
+        rhs_it = pair.second;
+
+#endif // VX_WINDOWS_PATH
 
         // Otherwise, if has_root_directory() != p.has_root_directory(),
         // returns a value less than zero if has_root_directory() is false
@@ -786,9 +797,6 @@ public:
         // portion of p (p.relative_path()). Comparison is performed element-wise,
         // as if by iterating both paths from begin() to end() and comparing the
         // result of native() for each element.
-
-        auto lhs_it = pair.first;
-        auto rhs_it = pair.second;
 
         const auto lhs_last = m_path.end();
         const auto rhs_last = rhs.end();
@@ -839,9 +847,8 @@ public:
     {
         using parse_state = typename __detail::parser::state;
 
-        if (empty())
+        if (m_path.empty())
         {
-            // 1. If the path is empty, stop (normal form of an empty path is an empty path).
             return path();
         }
 
@@ -880,8 +887,7 @@ public:
                 continue;
             }
 
-            const string_type p = it->native();
-            
+            const string_type& p = it->native();
             if (p.empty())
             {
                 continue;

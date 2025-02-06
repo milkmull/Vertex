@@ -1,4 +1,4 @@
-#define VX_TESTING_WINDOWS_PATH
+//#define VX_TESTING_WINDOWS_PATH
 #include "vertex_test/os/path.hpp"
 
 using namespace vx;
@@ -12,9 +12,11 @@ VX_TEST_CASE(native)
 #if defined(VX_TESTING_WINDOWS_PATH)
     static_assert(std::is_same<typename os::path::string_type, std::wstring>::value);
     static_assert(std::is_same<typename os::path::value_type, wchar_t>::value);
+    static_assert(os::path::preferred_separator == L'\\');
 #else
     static_assert(std::is_same<typename os::path::string_type, std::string>::value);
     static_assert(std::is_same<typename os::path::value_type, char>::value);
+    static_assert(os::path::preferred_separator == '/');
 #endif // VX_TESTING_WINDOWS_PATH
 }
 
@@ -314,6 +316,7 @@ VX_TEST_CASE(compare)
 #   if defined(VX_TESTING_WINDOWS_PATH)
         { R"(\\server\share)", "C:/a", test::compare_result::greater },
         { R"(//server\share)", "C:/a", test::compare_result::less },
+        { "//server/share", "\\\\server/share", test::compare_result::equal },
         // doesn't actually get to has_root_name test, since root_name comparison differs:
         { R"(c:a)", R"(C:\a)", test::compare_result::greater },
 #   endif // VX_TESTING_WINDOWS_PATH
@@ -728,6 +731,87 @@ VX_TEST_CASE(filename)
         p = "/hello.txt:bonus";
         VX_CHECK(p.replace_extension(".rgb") == "/hello.rgb");
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(lexically_normal)
+{
+    VX_CHECK(os::path().lexically_normal() == "");
+
+    VX_CHECK(os::path("cat/./dog/..").lexically_normal() == "cat/");
+    VX_CHECK(os::path("cat/.///dog/../").lexically_normal() == "cat/");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("C:").lexically_normal() == "C:");
+    VX_CHECK(os::path("C:drive_relative").lexically_normal() == "C:drive_relative");
+
+    VX_CHECK(os::path("C:/").lexically_normal() == "C:/");
+    VX_CHECK(os::path("C:\\").lexically_normal() == "C:\\");
+
+    VX_CHECK(os::path("C:////").lexically_normal() == "C:/");
+    VX_CHECK(os::path("C:\\\\\\\\").lexically_normal() == "C:\\");
+
+    VX_CHECK(os::path("C:/absolute").lexically_normal() == "C:/absolute");
+    VX_CHECK(os::path("C://///absolute").lexically_normal() == "C://///absolute");
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_CHECK(os::path("/root_relative").lexically_normal() == "/root_relative");
+    VX_CHECK(os::path("////root_relative").lexically_normal() == "/root_relative");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("//server/share").lexically_normal() == "//server/share");
+    VX_CHECK(os::path("//server///share").lexically_normal() == "//server/share");
+
+#else
+
+    VX_CHECK(os::path("//server/share").lexically_normal() == "/server/share");
+    VX_CHECK(os::path("//server///share").lexically_normal() == "/server/share");
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("//?/device").lexically_normal() == "//?/device");
+    VX_CHECK(os::path("/??/device").lexically_normal() == "/??/device");
+    VX_CHECK(os::path("//./device").lexically_normal() == "//./device");
+    VX_CHECK(os::path("//?/UNC/server/share").lexically_normal() == "//?/UNC/server/share");
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_CHECK(os::path("/a/b//c//d//e//f").lexically_normal() == "/a/b/c/d/e/f");
+
+    VX_CHECK(os::path("/meow/").lexically_normal() == "/meow/");
+    VX_CHECK(os::path("/meow//").lexically_normal() == "/meow/");
+
+    VX_CHECK(os::path("/a/./b/././c/././.").lexically_normal() == "/a/b/c/");
+    VX_CHECK(os::path("/a/./b/././c/./././").lexically_normal() == "/a/b/c/");
+
+    VX_CHECK(os::path(".").lexically_normal() == ".");
+    VX_CHECK(os::path("./").lexically_normal() == ".");
+    VX_CHECK(os::path("./.").lexically_normal() == ".");
+    VX_CHECK(os::path("././").lexically_normal() == ".");
+
+    VX_CHECK(os::path("/a/b/c/d/e/../f/../../../g/h").lexically_normal() == "/a/b/g/h");
+    VX_CHECK(os::path("/a/b/c/d/e/../f/../../../g/h/..").lexically_normal() == "/a/b/g/");
+    VX_CHECK(os::path("/a/b/c/d/e/../f/../../../g/h/../").lexically_normal() == "/a/b/g/");
+
+    VX_CHECK(os::path("../../..").lexically_normal() == "../../..");
+    VX_CHECK(os::path("../../../").lexically_normal() == "../../..");
+    VX_CHECK(os::path("../../../a/b/c").lexically_normal() == "../../../a/b/c");
+
+    VX_CHECK(os::path("/../../..").lexically_normal() == "/");
+    VX_CHECK(os::path("/../../../").lexically_normal() == "/");
+
+    VX_CHECK(os::path("/../../../a/b/c").lexically_normal() == "/a/b/c");
+
+    VX_CHECK(os::path("a/..").lexically_normal() == ".");
+    VX_CHECK(os::path("a/../").lexically_normal() == ".");
+
+    VX_CHECK(os::path("/////hello//world//a//b/c/././d/../../../..//..///other/x/y//z/.././../file.txt").lexically_normal() == "/hello/other/x/file.txt");
 }
 
 int main()
