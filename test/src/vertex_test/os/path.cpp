@@ -874,6 +874,57 @@ VX_TEST_CASE(lexically_relative)
 #endif // VX_TESTING_WINDOWS_PATH
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(lexically_proximate)
+{
+    VX_CHECK(os::path("").lexically_proximate("") == ".");
+
+    VX_CHECK(os::path("/a/d").lexically_proximate("/a/b/c") == "../../d");
+    VX_CHECK(os::path("/a/b/c").lexically_proximate("/a/d") == "../b/c");
+    VX_CHECK(os::path("a/b/c").lexically_proximate("a") == "b/c");
+    VX_CHECK(os::path("a/b/c").lexically_proximate("a/b/c/x/y") == "../..");
+    VX_CHECK(os::path("a/b/c").lexically_proximate("a/b/c") == ".");
+    VX_CHECK(os::path("a/b").lexically_proximate("c/d") == "../../a/b");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("C:/Temp").lexically_proximate("D:/Temp") == "C:/Temp");
+    VX_CHECK(os::path("C:/Temp").lexically_proximate("Temp") == "C:/Temp");
+    VX_CHECK(os::path("Temp").lexically_proximate("C:/Temp") == "Temp");
+    VX_CHECK(os::path("C:Temp1").lexically_proximate("C:Temp2") == "../Temp1");
+
+#else
+
+    VX_CHECK(os::path("/Temp").lexically_proximate("Temp") == "");
+    VX_CHECK(os::path("Temp").lexically_proximate("/Temp") == "");
+    VX_CHECK(os::path("/Temp1").lexically_proximate("/Temp2") == "../Temp1");
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_CHECK(os::path("one").lexically_proximate("/two") == "one");
+
+    VX_CHECK(os::path("cat").lexically_proximate("../../../meow") == "cat");
+    VX_CHECK(os::path("cat").lexically_proximate("../../../meow/././././.") == "cat");
+
+    VX_CHECK(os::path("a/b/c/x/y/z").lexically_proximate("a/b/c/d/./e/../f/g") == "../../../x/y/z");
+    VX_CHECK(os::path("a/b/c/x/y/z").lexically_proximate("a/b/c/d/./e/../f/g/../../..") == "x/y/z");
+
+    // https://cplusplus.github.io/LWG/issue3070
+    VX_CHECK(os::path("/a:/b:").lexically_proximate("/a:/c:") == "../b:");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_proximate(R"(\\?\a:\meow)") == ".");
+    VX_CHECK(os::path(R"(\\?\a:\meow\a\b)").lexically_proximate(R"(\\?\a:\meow)") == "a/b");
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_proximate(R"(\\?\a:\meow\a\b)") == "../..");
+
+    VX_CHECK(os::path(R"(a:\meow)").lexically_proximate(R"(\\?\a:\meow)") == R"(a:\meow)");
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_proximate(R"(a:\meow)") == R"(\\?\a:\meow)");
+
+#endif // VX_TESTING_WINDOWS_PATH
+}
+
 int main()
 {
     VX_RUN_TESTS();
