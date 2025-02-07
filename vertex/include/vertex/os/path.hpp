@@ -98,9 +98,9 @@ inline size_t find_separator(const value_type* p, size_t off, size_t size) noexc
     return pos;
 }
 
-inline constexpr bool mismatch(const value_type c1, const value_type c2) noexcept
+inline constexpr int compare(const value_type c1, const value_type c2) noexcept
 {
-    return (is_directory_separator(c1) && is_directory_separator(c2)) || (c1 == c2);
+    return (is_directory_separator(c1) && is_directory_separator(c2)) ? 0 : (c1 - c2);
 }
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/path.cpp#L983
@@ -137,7 +137,14 @@ inline size_t find_root_directory_start(const value_type* first, size_t size) no
         && ((is_directory_separator(first[1]) && (first[2] == L'?' || first[2] == L'.')) // "\\?\*", "\\.\*"
         || (first[1] == L'?' && first[2] == L'?'))) // "\??\" (NT path prefix)
     {
-        return find_separator(first, 3, size);
+        // Special case when we have "\\?\C:*" for example
+        // fix for https://cplusplus.github.io/LWG/issue3699
+        if (size >= 6 && is_letter(first[4]) && first[5] == ':')
+        {
+            return 6;
+        }
+
+        return 3;
     }
 
     // Handle paths starting with double slashes "\\*"
@@ -411,6 +418,13 @@ public:
         return *this;
     }
 
+    path_iterator operator++(int)
+    {
+        path_iterator tmp = *this;
+        ++*this;
+        return tmp;
+    }
+
     friend bool operator==(const path_iterator& lhs, const path_iterator& rhs)
     {
         return lhs.m_path == rhs.m_path
@@ -425,7 +439,7 @@ public:
 
 private:
 
-    const path_t* m_path;
+    const path_t* m_path = nullptr;
     path_t m_element;
     size_t m_position = 0;
     typename parser::state m_state = parser::state::BEGIN;
@@ -771,14 +785,31 @@ public:
         const auto rhs_root_name_end = rhs_it + rhs_root_directory.pos;
 
         // If root_name().native().compare(p.root_name().native()) is nonzero, returns that value.
-        const auto pair = std::mismatch(lhs_it, lhs_root_name_end, rhs_it, rhs_root_name_end, __detail::parser::mismatch);
-        if (pair.first != lhs_root_name_end || pair.second != rhs_root_name_end)
+        while (lhs_it != lhs_root_name_end && rhs_it != rhs_root_name_end)
         {
-            return *pair.first - *pair.second;
+            const int root_name_cmp = __detail::parser::compare(*lhs_it, *rhs_it);
+            if (root_name_cmp != 0)
+            {
+                return root_name_cmp;
+            }
+
+            ++lhs_it;
+            ++rhs_it;
         }
 
-        lhs_it = pair.first;
-        rhs_it = pair.second;
+        if (lhs_it != lhs_root_name_end)
+        {
+            // lhs is longer, so it is greater
+            return 1;
+        }
+        if (rhs_it != rhs_root_name_end)
+        {
+            // rhs is longer, so it is greater
+            return -1;
+        }
+
+        lhs_it = lhs_root_name_end;
+        rhs_it = rhs_root_name_end;
 
 #endif // VX_WINDOWS_PATH
 
@@ -948,9 +979,12 @@ public:
     }
 
      // https://en.cppreference.com/w/cpp/filesystem/path/lexically_normal
+    // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1684
 
     path lexically_relative(const path& base) const
     {
+        path ret;
+
         // If root_name() != base.root_name() or 
         // is_absolute() != base.is_absolute() or 
         // (!has_root_directory() && base.has_root_directory()) or
@@ -962,22 +996,35 @@ public:
             is_absolute() != base.is_absolute() ||
             (!has_root_directory() && base.has_root_directory()))
         {
-            return path();
+            return ret;
         }
 
         // Otherwise, first determines the first mismatched element
         // of *this and base as if by
         // auto [a, b] = mismatch(begin(), end(), base.begin(), base.end()).
 
+        auto a_it = begin();
+        auto b_it = base.begin();
         const auto this_last = end();
         const auto base_last = base.end();
 
-        auto pair = std::mismatch(begin(), this_last, base.begin(), base_last);
+        // same as std::mismatch()
+        while (a_it != this_last && b_it != base_last)
+        {
+            if (*a_it != *b_it)
+            {
+                break;
+            }
+
+            ++a_it;
+            ++b_it;
+        }
 
         // If a == end() and b == base.end(), returns path(".").
-        if (pair.first == this_last && pair.second == base_last)
+        if (a_it == this_last && b_it == base_last)
         {
-            return path(PATH_TEXT("."));
+            ret = PATH_TEXT(".");
+            return ret;
         }
 
         // Otherwise, define N as the number of nonempty filename elements
@@ -986,17 +1033,17 @@ public:
 
         int n = 0;
 
-        for (; pair.second != base_last; ++pair.second)
+        for (; b_it != base_last; ++b_it)
         {
-            if (pair.second->empty())
+            if (b_it->empty())
             {
                 continue;
             }
-            else if (*pair.second == PATH_TEXT(".."))
+            else if (*b_it == PATH_TEXT(".."))
             {
                 --n;
             }
-            else if (*pair.second != PATH_TEXT("."))
+            else if (*b_it != PATH_TEXT("."))
             {
                 ++n;
             }
@@ -1005,13 +1052,14 @@ public:
         // If N < 0, returns a default-constructed path
         if (n < 0)
         {
-            return path();
+            return ret;
         }
 
         // If N = 0 and a == end() || a->empty(), returns path("."),
-        if (n == 0 && (pair.first == this_last || pair.first->empty()))
+        if (n == 0 && (a_it == this_last || a_it->empty()))
         {
-            return path(PATH_TEXT("."));
+            ret = PATH_TEXT(".");
+            return ret;
         }
 
         // Otherwise returns an object composed from a default-constructed
@@ -1019,16 +1067,21 @@ public:
         // followed by one application of operator/= for each element in
         // the half-open range[a, end()).
 
-        path ret;
-
         while (n--)
         {
             ret /= PATH_TEXT("..");
         }
 
-        for (; pair.first != this_last; ++pair.first)
+        // To fix this isse we use += instead of /= here
+        // https://cplusplus.github.io/LWG/issue3070
+        for (; a_it != this_last; ++a_it)
         {
-            ret /= *pair.first;
+            if (!ret.empty() && ret.m_path.back() != preferred_separator)
+            {
+                ret += preferred_separator;
+            }
+
+            ret += *a_it;
         }
 
         return ret;
@@ -1130,7 +1183,7 @@ public:
 
 #else
 
-        return __detail::parser::parse_root_directory(m_path).size != 0;
+        return !m_path.empty() && __detail::parser::is_directory_separator(m_path[0]);
 
 #endif // VX_WINDOWS_PATH
     }

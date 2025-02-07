@@ -1,4 +1,4 @@
-//#define VX_TESTING_WINDOWS_PATH
+#define VX_TESTING_WINDOWS_PATH
 #include "vertex_test/os/path.hpp"
 
 using namespace vx;
@@ -168,9 +168,19 @@ VX_TEST_CASE(decomposition)
             { R"(\\?\UNC\\)", R"(\\?)", R"(\)", R"(UNC\\)", R"(\\?\UNC)", "", true },
 #       endif // VX_TESTING_WINDOWS_PATH
 
-            // document that drive letters aren't special with special prefixes:
+            // driver letter after special prefix
+            // https://cplusplus.github.io/LWG/issue3699
 #       if defined(VX_TESTING_WINDOWS_PATH)
-            { R"(\\.\C:attempt_at_relative)", R"(\\.)", R"(\)", R"(C:attempt_at_relative)", R"(\\.\)", "C:attempt_at_relative", true },
+
+            { R"(\\.\C:\attempt_at_relative)", R"(\\.\C:)", R"(\)", R"(attempt_at_relative)", R"(\\.\C:\)", "attempt_at_relative", true },
+            { R"(\\.\C:attempt_at_relative)", R"(\\.\C:)", R"()", R"(attempt_at_relative)", R"(\\.\C:)", "attempt_at_relative", true },
+
+            { R"(\\?\C:\attempt_at_relative)", R"(\\?\C:)", R"(\)", R"(attempt_at_relative)", R"(\\?\C:\)", "attempt_at_relative", true },
+            { R"(\\?\C:attempt_at_relative)", R"(\\?\C:)", R"()", R"(attempt_at_relative)", R"(\\?\C:)", "attempt_at_relative", true },
+
+            { R"(\??\C:\attempt_at_relative)", R"(\??\C:)", R"(\)", R"(attempt_at_relative)", R"(\??\C:\)", "attempt_at_relative", true },
+            { R"(\??\C:attempt_at_relative)", R"(\??\C:)", R"()", R"(attempt_at_relative)", R"(\??\C:)", "attempt_at_relative", true },
+
 #       endif // VX_TESTING_WINDOWS_PATH
 
         // other interesting user-submitted test cases:
@@ -573,11 +583,9 @@ VX_TEST_CASE(iterators)
         const os::path p("//?/x:/a");
         auto it = p.begin();
 
-        VX_CHECK(it->string() == "//?");
+        VX_CHECK(it->string() == "//?/x:");
         ++it;
         VX_CHECK(it->string() == "/");
-        ++it;
-        VX_CHECK(it->string() == "x:");
         ++it;
         VX_CHECK(it->string() == "a");
         ++it;
@@ -812,6 +820,58 @@ VX_TEST_CASE(lexically_normal)
     VX_CHECK(os::path("a/../").lexically_normal() == ".");
 
     VX_CHECK(os::path("/////hello//world//a//b/c/././d/../../../..//..///other/x/y//z/.././../file.txt").lexically_normal() == "/hello/other/x/file.txt");
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(lexically_relative)
+{
+    VX_CHECK(os::path("").lexically_relative("") == ".");
+    
+    VX_CHECK(os::path("/a/d").lexically_relative("/a/b/c") == "../../d");
+    VX_CHECK(os::path("/a/b/c").lexically_relative("/a/d") == "../b/c");
+    VX_CHECK(os::path("a/b/c").lexically_relative("a") == "b/c");
+    VX_CHECK(os::path("a/b/c").lexically_relative("a/b/c/x/y") == "../..");
+    VX_CHECK(os::path("a/b/c").lexically_relative("a/b/c") == ".");
+    VX_CHECK(os::path("a/b").lexically_relative("c/d") == "../../a/b");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("C:/Temp").lexically_relative("D:/Temp") == "");
+    VX_CHECK(os::path("C:/Temp").lexically_relative("Temp") == "");
+    VX_CHECK(os::path("Temp").lexically_relative("C:/Temp") == "");
+    VX_CHECK(os::path("C:Temp1").lexically_relative("C:Temp2") == "../Temp1");
+
+#else
+
+    VX_CHECK(os::path("/Temp").lexically_relative("Temp") == "");
+    VX_CHECK(os::path("Temp").lexically_relative("/Temp") == "");
+    VX_CHECK(os::path("/Temp1").lexically_relative("/Temp2") == "../Temp1");
+
+#endif // VX_TESTING_WINDOWS_PATH
+
+    VX_CHECK(os::path("one").lexically_relative("/two") == "");
+    
+    VX_CHECK(os::path("cat").lexically_relative("../../../meow") == "");
+    VX_CHECK(os::path("cat").lexically_relative("../../../meow/././././.") == "");
+    
+    VX_CHECK(os::path("a/b/c/x/y/z").lexically_relative("a/b/c/d/./e/../f/g") == "../../../x/y/z");
+    VX_CHECK(os::path("a/b/c/x/y/z").lexically_relative("a/b/c/d/./e/../f/g/../../..") == "x/y/z");
+
+    // https://cplusplus.github.io/LWG/issue3070
+    VX_CHECK(os::path("/a:/b:").lexically_relative("/a:/c:") == "../b:");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_relative(R"(\\?\a:\meow)") == ".");
+    VX_CHECK(os::path(R"(\\?\a:\meow\a\b)").lexically_relative(R"(\\?\a:\meow)") == "a/b");
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_relative(R"(\\?\a:\meow\a\b)") == "../..");
+
+    // UNC/DOS together should return an empty path
+    VX_CHECK(os::path(R"(a:\meow)").lexically_relative(R"(\\?\a:\meow)") == "");
+    VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_relative(R"(a:\meow)") == "");
+
+#endif // VX_TESTING_WINDOWS_PATH
 }
 
 int main()
