@@ -5,7 +5,7 @@
 #include "vertex/util/io/quoted.hpp"
 #include "vertex/util/crypto/FNV1a.hpp"
 
-#if defined(VX_TESTING)
+#if defined(VX_TESTING_PATH)
 #   if defined(VX_TESTING_WINDOWS_PATH)
 #       define VX_WINDOWS_PATH
 #   endif

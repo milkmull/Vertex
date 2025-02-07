@@ -498,7 +498,7 @@ path get_temp_path_impl()
 
     if (cache.empty())
     {
-        WCHAR buffer[MAX_PATH];
+        WCHAR buffer[MAX_PATH]{};
         DWORD size = 0;
 
         // Attermpt to call GetTempPath2W first

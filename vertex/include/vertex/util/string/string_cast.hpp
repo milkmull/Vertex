@@ -11,7 +11,7 @@ namespace str {
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename to_char_t, typename IT1, typename IT2, VX_REQUIRES(type_traits::is_char_iterator<IT1>::value)>
-inline IT2 string_cast(IT1 first, IT1 last, IT2 out, to_char_t replacement = 0)
+inline IT2 string_cast(IT1 first, IT1 last, IT2 out, to_char_t replacement = '?')
 {
     VX_ITERATOR_VALID_RANGE(first, last);
 
@@ -31,7 +31,7 @@ inline IT2 string_cast(IT1 first, IT1 last, IT2 out, to_char_t replacement = 0)
 }
 
 template <typename to_char_t, typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
-inline auto string_cast(IT first, IT last, to_char_t replacement = 0)
+inline auto string_cast(IT first, IT last, to_char_t replacement = '?')
 {
     std::basic_string<to_char_t> res;
     const size_t size = static_cast<size_t>(std::distance(first, last));
@@ -57,7 +57,7 @@ inline auto string_cast(
 template <typename to_char_t, typename from_char_t, typename Traits>
 inline auto string_cast(
     const std::basic_string_view<from_char_t, Traits>& s,
-    to_char_t replacement = 0
+    to_char_t replacement = '?'
 )
 {
     std::basic_string<to_char_t> res;
@@ -69,7 +69,7 @@ inline auto string_cast(
 #endif // __cpp_lib_string_view
 
 template <typename to_char_t, typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
-inline auto string_cast(IT first, to_char_t replacement = 0)
+inline auto string_cast(IT first, to_char_t replacement = '?')
 {
     using from_char_t = typename type_traits::value_type<IT>::type;
 

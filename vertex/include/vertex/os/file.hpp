@@ -114,8 +114,22 @@ public:
     VX_API static bool read_file(const path& p, std::vector<uint8_t>& data);
     VX_API static bool write_file(const path& p, const uint8_t* data, size_t size);
 
+    template <typename IT>
+    static inline bool write_file(const path& p, IT first, IT last)
+    {
+        const std::vector<uint8_t> buf(first, last);
+        return write_file(p, buf);
+    }
+
     VX_API static bool read_text_file(const path& p, std::string& text);
     VX_API static bool write_text_file(const path& p, const std::string& text);
+
+    template <typename IT>
+    static inline bool write_text_file(const path& p, IT first, IT last)
+    {
+        const std::string buf(first, last);
+        return write_text_file(p, buf);
+    }
 
 public:
 
@@ -123,9 +137,9 @@ public:
     VX_API bool is_open() const;
     VX_API void close();
 
-    VX_API mode get_mode() const;
-    VX_API bool can_read() const;
-    VX_API bool can_write() const;
+    VX_API mode get_mode() const noexcept;
+    VX_API bool can_read() const noexcept;
+    VX_API bool can_write() const noexcept;
 
     VX_API size_t size() const;
 

@@ -136,17 +136,17 @@ VX_API void file::close()
     m_mode = mode::NONE;
 }
 
-VX_API bool file::can_read() const
+VX_API bool file::can_read() const noexcept
 {
     return IS_READ_MODE(m_mode);
 }
 
-VX_API bool file::can_write() const
+VX_API bool file::can_write() const noexcept
 {
     return IS_WRITE_MODE(m_mode);
 }
 
-VX_API file::mode file::get_mode() const
+VX_API file::mode file::get_mode() const noexcept
 {
     return m_mode;
 }
