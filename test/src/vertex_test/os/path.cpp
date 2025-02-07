@@ -896,8 +896,8 @@ VX_TEST_CASE(lexically_proximate)
 
 #else
 
-    VX_CHECK(os::path("/Temp").lexically_proximate("Temp") == "");
-    VX_CHECK(os::path("Temp").lexically_proximate("/Temp") == "");
+    VX_CHECK(os::path("/Temp").lexically_proximate("Temp") == "/Temp");
+    VX_CHECK(os::path("Temp").lexically_proximate("/Temp") == "Temp");
     VX_CHECK(os::path("/Temp1").lexically_proximate("/Temp2") == "../Temp1");
 
 #endif // VX_TESTING_WINDOWS_PATH
