@@ -59,7 +59,8 @@ private:
                 << "start_time" << ','
                 << "elapsed_time" << '\n';
 
-            m_file << oss.str();
+            const std::string s = oss.str();
+            m_file.write(s.data(), s.size());
             m_file.flush();
         }
     }
@@ -78,7 +79,8 @@ public:
                 << r.start.as_nanoseconds() << ','
                 << r.elapsed_time.as_nanoseconds() << '\n';
 
-            m_file << oss.str();
+            const std::string s = oss.str();
+            m_file.write(s.data(), s.size());
             m_file.flush();
         }
     }

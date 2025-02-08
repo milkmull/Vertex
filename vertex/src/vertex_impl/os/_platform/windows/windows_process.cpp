@@ -213,7 +213,7 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 // Redirect to a null device if the stream is null
                 stream.proc_pipe() = CreateFileW(
-                    VX_TEXT(VX_NULL_DEVICE),
+                    VX_NULL_DEVICE,
                     GENERIC_READ | GENERIC_WRITE,
                     0,
                     &security_attributes,
@@ -256,7 +256,7 @@ bool process::process_impl::start(process* p, const config& config)
             }
             case io_option::REDIRECT:
             {
-                if (!stream.redirect || !stream.redirect->is_open())
+                if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
                     VX_ERR(err::INVALID_ARGUMENT) << "redirect stream was null";
                     goto cleanup;

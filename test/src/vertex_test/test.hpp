@@ -65,9 +65,17 @@ private:
     std::vector<TestCase> tests;
 };
 
+inline void fail_test(const char* condition, const char* func, int line)
+{
+    std::ostringstream oss;
+    oss << "Check failed: " << condition
+        << " at " << func << ":" << line;
+    throw std::runtime_error(oss.str());
+}
+
 // Macros for the test library
 #define VX_TEST_CASE(name) \
-    void name(); \
+    static void name(); \
     static struct name##_registrar \
     { \
         name##_registrar() \
@@ -75,7 +83,7 @@ private:
             ::vx::test::test_runner::instance().add_test(#name, name); \
         } \
     } name##_instance; \
-    void name()
+    static void name()
 
 #define VX_SECTION(name) std::cout << "  [SECTION] " << name << std::endl;
 
@@ -84,10 +92,7 @@ private:
     { \
         if (!(condition)) \
         { \
-            std::ostringstream oss; \
-            oss << "Check failed: " #condition \
-                << " at " << __FILE__ << ":" << __LINE__; \
-            throw std::runtime_error(oss.str()); \
+            ::vx::test::fail_test(#condition, VX_FUNCTION, VX_LINE); \
         } \
     } while (0)
 

@@ -8,10 +8,6 @@
 namespace vx {
 namespace os {
 
-#define IS_READ_MODE(m)   (m == file::mode::READ || m == file::mode::READ_WRITE_EXISTS || m == file::mode::READ_WRITE_CREATE)
-#define IS_WRITE_MODE(m)  (m != file::mode::READ)
-#define IS_APPEND_MODE(m) (m == file::mode::APPEND)
-
 VX_API file::file()
     : m_mode(mode::NONE) {}
 
@@ -64,7 +60,7 @@ VX_API bool file::read_file(const path& p, std::vector<uint8_t>& data)
     {
         const size_t size = f.size();
         data.resize(size);
-        success = f.read(data.data(), size);
+        success = f.read_internal(data.data(), size);
     }
 
     return success;
@@ -73,27 +69,7 @@ VX_API bool file::read_file(const path& p, std::vector<uint8_t>& data)
 VX_API bool file::write_file(const path& p, const uint8_t* data, size_t size)
 {
     file f;
-    return f.open(p, mode::WRITE) && f.write(data, size);
-}
-
-VX_API bool file::read_text_file(const path& p, std::string& text)
-{
-    bool success = false;
-
-    file f;
-    if (f.open(p, mode::READ))
-    {
-        const size_t size = f.size();
-        text.resize(size);
-        success = f.read(reinterpret_cast<uint8_t*>(text.data()), size);
-    }
-
-    return success;
-}
-
-VX_API bool file::write_text_file(const path& p, const std::string& text)
-{
-    return write_file(p, reinterpret_cast<const uint8_t*>(text.data()), text.size());
+    return f.open(p, mode::WRITE) && f.write_internal(data, size);
 }
 
 VX_API bool file::open(const path& p, mode mode)
@@ -101,6 +77,12 @@ VX_API bool file::open(const path& p, mode mode)
     if (is_open())
     {
         VX_ERR(err::FILE_OPEN_FAILED) << "file already open";
+        return false;
+    }
+
+    if (mode == mode::NONE)
+    {
+        VX_ERR(err::FILE_OPEN_FAILED) << "invalid file mode";
         return false;
     }
 
@@ -136,21 +118,6 @@ VX_API void file::close()
     m_mode = mode::NONE;
 }
 
-VX_API bool file::can_read() const noexcept
-{
-    return IS_READ_MODE(m_mode);
-}
-
-VX_API bool file::can_write() const noexcept
-{
-    return IS_WRITE_MODE(m_mode);
-}
-
-VX_API file::mode file::get_mode() const noexcept
-{
-    return m_mode;
-}
-
 VX_API size_t file::size() const
 {
     if (!is_open())
@@ -161,7 +128,7 @@ VX_API size_t file::size() const
     return m_impl->size();
 }
 
-VX_API bool file::seek(size_t off, stream_position from)
+VX_API bool file::seek(int off, stream_position from)
 {
     if (!is_open())
     {
@@ -183,17 +150,22 @@ VX_API size_t file::tell() const
 
 VX_API bool file::eof() const
 {
+    if (!is_open())
+    {
+        return false;
+    }
+
     return tell() >= size();
 }
 
-VX_API size_t file::read(uint8_t* data, size_t size)
+size_t file::read_internal(uint8_t* data, size_t size)
 {
     if (!is_open())
     {
         return 0;
     }
 
-    if (!IS_READ_MODE(m_mode))
+    if (!can_read())
     {
         VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
         return 0;
@@ -202,39 +174,20 @@ VX_API size_t file::read(uint8_t* data, size_t size)
     return m_impl->read(data, size);
 }
 
-VX_API size_t file::write(const uint8_t* data, size_t size)
+size_t file::write_internal(const uint8_t* data, size_t size)
 {
     if (!is_open())
     {
         return 0;
     }
 
-    if (!IS_WRITE_MODE(m_mode))
+    if (!can_write())
     {
         VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
         return 0;
     }
 
-    if (IS_APPEND_MODE(m_mode))
-    {
-        if (!seek(0, stream_position::END))
-        {
-            return false;
-        }
-    }
-
     return m_impl->write(data, size);
-}
-
-VX_API size_t file::read_text(std::string& text, size_t count)
-{
-    text.resize(count);
-    return read(reinterpret_cast<uint8_t*>(text.data()), count);
-}
-
-VX_API size_t file::write_text(const std::string& text)
-{
-    return write(reinterpret_cast<const uint8_t*>(text.data()), text.size());
 }
 
 VX_API bool file::flush()
@@ -245,6 +198,16 @@ VX_API bool file::flush()
     }
 
     return m_impl->flush();
+}
+
+VX_API bool file::resize(size_t size)
+{
+    if (!is_open())
+    {
+        return false;
+    }
+
+    return m_impl->resize(size);
 }
 
 } // namespace os

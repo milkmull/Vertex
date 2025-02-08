@@ -58,7 +58,7 @@ public:
 
         if (m_file.is_open())
         {
-            m_file << msg;
+            m_file.write(msg.data(), msg.size());
             m_file.flush();
         }
     }

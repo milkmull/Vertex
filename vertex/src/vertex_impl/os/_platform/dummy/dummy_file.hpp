@@ -76,6 +76,12 @@ public:
         unsupported("flush");
         return false;
     }
+
+    bool resize(size_t size)
+    {
+        unsupported("resize");
+        return false;
+    }
 };
 
 #undef unsupported

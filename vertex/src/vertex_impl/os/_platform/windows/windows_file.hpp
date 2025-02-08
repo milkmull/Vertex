@@ -25,12 +25,13 @@ public:
 
     size_t size() const;
 
-    bool seek(size_t off, stream_position from);
+    bool seek(int off, stream_position from);
     size_t tell() const;
 
     size_t read(uint8_t* data, size_t size);
     size_t write(const uint8_t* data, size_t size);
     bool flush();
+    bool resize(size_t size);
 
 public:
 

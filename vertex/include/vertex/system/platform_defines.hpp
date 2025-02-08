@@ -7,7 +7,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_WIN32)
-#   define VX_NULL_DEVICE "NUL:"
+#   define VX_NULL_DEVICE L"NUL:"
 #else
 #   define VX_NULL_DEVICE "/dev/null"
 #endif

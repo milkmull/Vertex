@@ -98,7 +98,7 @@ size_t file::file_impl::size() const
     return static_cast<size_t>(size.QuadPart);
 }
 
-bool file::file_impl::seek(size_t off, stream_position from)
+bool file::file_impl::seek(int off, stream_position from)
 {
     assert_is_open();
 
@@ -192,11 +192,34 @@ bool file::file_impl::flush()
     return true;
 }
 
+bool file::file_impl::resize(size_t size)
+{
+    assert_is_open();
+
+    if (!seek(static_cast<int>(size), stream_position::BEGIN))
+    {
+        return false;
+    }
+
+    if (!SetEndOfFile(m_handle.get()))
+    {
+        windows::error_message("SetEndOfFile()");
+        return false;
+    }
+
+    return true;
+}
+
 file file::file_impl::from_handle(HANDLE handle, mode mode)
 {
     file f;
 
     if (handle == INVALID_HANDLE_VALUE)
+    {
+        return f;
+    }
+
+    if (mode == mode::NONE)
     {
         return f;
     }
