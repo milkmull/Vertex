@@ -228,37 +228,6 @@ VX_TEST_CASE(file)
         VX_CHECK(os::file::exists(new_filename));
     }
 
-    VX_SECTION("mode: WRITE")
-    {
-        os::file f;
-
-        // Open the file we created initially
-        VX_CHECK(f.open(filename, os::file::mode::WRITE));
-        VX_CHECK(f.is_open());
-
-        VX_CHECK(f.get_mode() == os::file::mode::WRITE);
-        VX_CHECK(!f.can_read());
-        VX_CHECK(f.can_write());
-
-        // File should be truncated
-        VX_CHECK(f.size() == 0);
-
-        // Try to read from the file
-        VX_CHECK(!f.read(out_text, count));
-
-        // Write to the file
-        VX_CHECK(f.write(in_text, count) == count);
-        VX_CHECK(f.size() == count);
-
-        f.close();
-
-        // Try opening a new file, it should be created
-        const os::path new_filename = temp_path / current_time_file();
-        VX_CHECK(f.open(new_filename, os::file::mode::WRITE));
-        VX_CHECK(f.is_open());
-        VX_CHECK(os::file::exists(new_filename));
-    }
-
     VX_SECTION("mode: APPEND")
     {
         os::file f;

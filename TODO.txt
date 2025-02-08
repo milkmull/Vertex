@@ -141,7 +141,7 @@ more bonus:
     - add functions to get native handles for os classes
     x check which time_point functions using the standard library can be inlined with noexcept
     x look again at noexcept err::unavailable function
-    - add iterator file::write overloads
+    x add iterator file::write overloads
 }
 
 testing:
@@ -176,7 +176,7 @@ testing:
     x util/time/datetime
     - os/time
     
-    - os/file
+    x os/file
     - os/filesystem
     x os/path
     
