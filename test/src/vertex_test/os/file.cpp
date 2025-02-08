@@ -13,11 +13,6 @@ static std::string current_time_file()
     return filename;
 }
 
-struct file_test_data
-{
-
-};
-
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(file)

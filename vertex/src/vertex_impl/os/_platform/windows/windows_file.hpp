@@ -24,14 +24,14 @@ public:
     void close();
 
     size_t size() const;
+    bool resize(size_t size);
 
     bool seek(int off, stream_position from);
     size_t tell() const;
+    bool flush();
 
     size_t read(uint8_t* data, size_t size);
     size_t write(const uint8_t* data, size_t size);
-    bool flush();
-    bool resize(size_t size);
 
 public:
 

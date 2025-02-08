@@ -51,27 +51,6 @@ VX_API bool file::create(const path& p)
     return f.open(p, mode::WRITE);
 }
 
-VX_API bool file::read_file(const path& p, std::vector<uint8_t>& data)
-{
-    bool success = false;
-
-    file f;
-    if (f.open(p, mode::READ))
-    {
-        const size_t size = f.size();
-        data.resize(size);
-        success = f.read_internal(data.data(), size);
-    }
-
-    return success;
-}
-
-VX_API bool file::write_file(const path& p, const uint8_t* data, size_t size)
-{
-    file f;
-    return f.open(p, mode::WRITE) && f.write_internal(data, size);
-}
-
 VX_API bool file::open(const path& p, mode mode)
 {
     if (is_open())
@@ -128,6 +107,16 @@ VX_API size_t file::size() const
     return m_impl->size();
 }
 
+VX_API bool file::resize(size_t size)
+{
+    if (!is_open())
+    {
+        return false;
+    }
+
+    return m_impl->resize(size);
+}
+
 VX_API bool file::seek(int off, stream_position from)
 {
     if (!is_open())
@@ -156,6 +145,16 @@ VX_API bool file::eof() const
     }
 
     return tell() >= size();
+}
+
+VX_API bool file::flush()
+{
+    if (!is_open())
+    {
+        return false;
+    }
+
+    return m_impl->flush();
 }
 
 size_t file::read_internal(uint8_t* data, size_t size)
@@ -188,26 +187,6 @@ size_t file::write_internal(const uint8_t* data, size_t size)
     }
 
     return m_impl->write(data, size);
-}
-
-VX_API bool file::flush()
-{
-    if (!is_open())
-    {
-        return false;
-    }
-
-    return m_impl->flush();
-}
-
-VX_API bool file::resize(size_t size)
-{
-    if (!is_open())
-    {
-        return false;
-    }
-
-    return m_impl->resize(size);
 }
 
 } // namespace os

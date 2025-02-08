@@ -83,17 +83,17 @@ VX_API bool update_file_permissions(
 
 struct file_info
 {
-    file_type type{};
-    typename file_permissions::type permissions{};
-    size_t size{};
+    file_type type = file_type::NONE;
+    typename file_permissions::type permissions = file_permissions::UNKNOWN;
+    size_t size = 0;
     time::time_point create_time;
     time::time_point modify_time;
 
-    constexpr bool exists() const { return !(type == file_type::NONE || type == file_type::NOT_FOUND); }
-    constexpr bool is_regular_file() const { return type == file_type::REGULAR; }
-    constexpr bool is_directory() const { return type == file_type::DIRECTORY; }
-    constexpr bool is_symlink() const { return type == file_type::SYMLINK; }
-    constexpr bool is_other() const { return !(is_regular_file() || is_directory() || is_symlink()); }
+    constexpr bool exists() const noexcept { return !(type == file_type::NONE || type == file_type::NOT_FOUND); }
+    constexpr bool is_regular_file() const noexcept { return type == file_type::REGULAR; }
+    constexpr bool is_directory() const noexcept { return type == file_type::DIRECTORY; }
+    constexpr bool is_symlink() const noexcept { return type == file_type::SYMLINK; }
+    constexpr bool is_other() const noexcept { return !(is_regular_file() || is_directory() || is_symlink()); }
 };
 
 VX_API file_info get_file_info(const path& p);
@@ -106,12 +106,32 @@ VX_API file_info get_symlink_info(const path& p);
 VX_API path read_symlink(const path& p);
 
 ///////////////////////////////////////////////////////////////////////////////
-// Exists
+// boolean checks
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool exists(const path& p)
 {
     return get_file_info(p).exists();
+}
+
+inline bool is_regular_file(const path& p)
+{
+    return get_file_info(p).is_regular_file();
+}
+
+inline bool is_directory(const path& p)
+{
+    return get_file_info(p).is_directory();
+}
+
+inline bool is_symlink(const path& p)
+{
+    return get_file_info(p).is_symlink();
+}
+
+inline bool is_other(const path& p)
+{
+    return get_file_info(p).is_other();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -234,10 +254,11 @@ struct directory_entry
         }
     }
 
-    constexpr bool is_regular_file() const { return info.is_regular_file(); }
-    constexpr bool is_directory() const { return info.is_directory(); }
-    constexpr bool is_symlink() const { return info.is_symlink(); }
-    constexpr bool is_other() const { return info.is_other(); }
+    constexpr bool exists() const noexcept { return info.exists(); }
+    constexpr bool is_regular_file() const noexcept { return info.is_regular_file(); }
+    constexpr bool is_directory() const noexcept { return info.is_directory(); }
+    constexpr bool is_symlink() const noexcept { return info.is_symlink(); }
+    constexpr bool is_other() const noexcept { return info.is_other(); }
 
     os::path path;
     file_info info;
@@ -378,6 +399,22 @@ inline recursive_directory_iterator begin(recursive_directory_iterator it) noexc
 inline recursive_directory_iterator end(recursive_directory_iterator) noexcept
 {
     return {};
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// is_empty
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_empty(const os::path& p)
+{
+    const file_info info = get_file_info(p);
+
+    if (info.is_directory())
+    {
+        return directory_iterator(p) == end(directory_iterator(p));
+    }
+
+    return info.size == 0;
 }
 
 } // namespace filesystem

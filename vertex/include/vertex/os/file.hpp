@@ -69,15 +69,13 @@ public:
     inline bool can_write() const noexcept { return (m_mode == mode::WRITE || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE || m_mode == mode::APPEND); }
 
     VX_API size_t size() const;
+    VX_API bool resize(size_t size);
 
     VX_API bool seek(int off, stream_position from = stream_position::BEGIN);
     VX_API size_t tell() const;
     VX_API bool eof() const;
 
-public:
-
-    VX_API static bool read_file(const path& p, std::vector<uint8_t>& data);
-    VX_API static bool write_file(const path& p, const uint8_t* data, size_t size);
+    VX_API bool flush();
 
 private:
 
@@ -110,8 +108,28 @@ public:
         return write_internal(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
-    VX_API bool flush();
-    VX_API bool resize(size_t size);
+public:
+
+    static inline bool read_file(const path& p, std::vector<uint8_t>& data)
+    {
+        bool success = false;
+
+        file f;
+        if (f.open(p, mode::READ))
+        {
+            const size_t size = f.size();
+            data.resize(size);
+            success = f.read_internal(data.data(), size);
+        }
+
+        return success;
+    }
+
+    static inline bool write_file(const path& p, const uint8_t* data, size_t size)
+    {
+        file f;
+        return f.open(p, mode::WRITE) && f.write_internal(data, size);
+    }
 
 private:
 

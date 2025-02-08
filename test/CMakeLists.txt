@@ -55,7 +55,7 @@ endfunction()
 #)
 #vx_add_test(test_random "util" "${VX_RANDOM_SRC_FILES}")
 #
-vx_add_test(test_string "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
+#vx_add_test(test_string "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/string.cpp")
 #vx_add_test(test_regex "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/string/regex.cpp")
 #
 #vx_add_test(test_time "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util/time/time.cpp")
@@ -64,10 +64,11 @@ vx_add_test(test_string "util" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util
 # OS Tests
 #--------------------------------------------------------------------
 
-#file(GLOB VX_OS_PATH_SRC_FILES
-#    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/path.hpp"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/path.cpp"
-#)
-#vx_add_test(test_path "os" "${VX_OS_PATH_SRC_FILES}")
+file(GLOB VX_OS_PATH_SRC_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/path.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/path.cpp"
+)
+vx_add_test(test_path "os" "${VX_OS_PATH_SRC_FILES}")
 
-vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.cpp")
+#vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.cpp")
+vx_add_test(test_filesystem "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/filesystem.cpp")

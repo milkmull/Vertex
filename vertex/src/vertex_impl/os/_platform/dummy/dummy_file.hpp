@@ -47,6 +47,12 @@ public:
         return 0;
     }
 
+    bool resize(size_t size)
+    {
+        unsupported("resize");
+        return false;
+    }
+
     bool seek(size_t off, stream_position from)
     {
         unsupported("seek");
@@ -59,6 +65,12 @@ public:
         return 0;
     }
 
+    bool flush()
+    {
+        unsupported("flush");
+        return false;
+    }
+
     size_t read(uint8_t* data, size_t size)
     {
         unsupported("read");
@@ -69,18 +81,6 @@ public:
     {
         unsupported("write");
         return 0;
-    }
-
-    bool flush()
-    {
-        unsupported("flush");
-        return false;
-    }
-
-    bool resize(size_t size)
-    {
-        unsupported("resize");
-        return false;
     }
 };
 

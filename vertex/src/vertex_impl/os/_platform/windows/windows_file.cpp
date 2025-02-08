@@ -98,6 +98,24 @@ size_t file::file_impl::size() const
     return static_cast<size_t>(size.QuadPart);
 }
 
+bool file::file_impl::resize(size_t size)
+{
+    assert_is_open();
+
+    if (!seek(static_cast<int>(size), stream_position::BEGIN))
+    {
+        return false;
+    }
+
+    if (!SetEndOfFile(m_handle.get()))
+    {
+        windows::error_message("SetEndOfFile()");
+        return false;
+    }
+
+    return true;
+}
+
 bool file::file_impl::seek(int off, stream_position from)
 {
     assert_is_open();
@@ -151,6 +169,19 @@ size_t file::file_impl::tell() const
     return static_cast<size_t>(off.QuadPart);
 }
 
+bool file::file_impl::flush()
+{
+    assert_is_open();
+
+    if (!FlushFileBuffers(m_handle.get()))
+    {
+        windows::error_message("FlushFileBuffers()");
+        return false;
+    }
+
+    return true;
+}
+
 size_t file::file_impl::read(uint8_t* data, size_t size)
 {
     assert_is_open();
@@ -177,37 +208,6 @@ size_t file::file_impl::write(const uint8_t* data, size_t size)
     }
 
     return static_cast<size_t>(count);
-}
-
-bool file::file_impl::flush()
-{
-    assert_is_open();
-
-    if (!FlushFileBuffers(m_handle.get()))
-    {
-        windows::error_message("FlushFileBuffers()");
-        return false;
-    }
-
-    return true;
-}
-
-bool file::file_impl::resize(size_t size)
-{
-    assert_is_open();
-
-    if (!seek(static_cast<int>(size), stream_position::BEGIN))
-    {
-        return false;
-    }
-
-    if (!SetEndOfFile(m_handle.get()))
-    {
-        windows::error_message("SetEndOfFile()");
-        return false;
-    }
-
-    return true;
 }
 
 file file::file_impl::from_handle(HANDLE handle, mode mode)
