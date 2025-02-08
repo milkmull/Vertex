@@ -6,7 +6,7 @@ using namespace vx;
 
 static bool create_file_containing(const os::path& filename, const char* text)
 {
-    return os::file::write_file(filename, reinterpret_cast<const uint8_t*>(text), std::strlen(text) - 1);
+    return os::file::write_file(filename, reinterpret_cast<const uint8_t*>(text), std::strlen(text));
 }
 
 static const os::path nonexistent_paths[] = {
@@ -76,13 +76,61 @@ VX_TEST_CASE(test_directory_entry)
         VX_CHECK(!entry.exists());
     }
 
-    os::filesystem::directory_entry good_entry{ file };
-    good_entry.refresh();
-    VX_CHECK(good_entry.exists());
-    VX_CHECK(good_entry.is_regular_file());
-    VX_CHECK(!good_entry.is_directory());
-    VX_CHECK(!good_entry.is_symlink());
-    VX_CHECK(!good_entry.is_other());
+    // regular file
+    {
+        os::filesystem::directory_entry file_entry{ file };
+        file_entry.refresh();
+
+        VX_CHECK(file_entry.info.type == os::filesystem::file_type::REGULAR);
+        VX_CHECK(file_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(file_entry.info.size != 0);
+        VX_CHECK(file_entry.info.create_time.as_nanoseconds() != 0);
+        VX_CHECK(file_entry.info.modify_time.as_nanoseconds() != 0);
+
+        VX_CHECK(file_entry.exists());
+        VX_CHECK(file_entry.is_regular_file());
+        VX_CHECK(!file_entry.is_directory());
+        VX_CHECK(!file_entry.is_symlink());
+        VX_CHECK(!file_entry.is_other());
+    }
+
+    // directory
+    {
+        os::filesystem::directory_entry directory_entry{ directory };
+        directory_entry.refresh();
+
+        VX_CHECK(directory_entry.info.type == os::filesystem::file_type::DIRECTORY);
+        VX_CHECK(directory_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_entry.info.size == 0);
+        VX_CHECK(directory_entry.info.create_time.as_nanoseconds() != 0);
+        VX_CHECK(directory_entry.info.modify_time.as_nanoseconds() != 0);
+
+        VX_CHECK(directory_entry.exists());
+        VX_CHECK(!directory_entry.is_regular_file());
+        VX_CHECK(directory_entry.is_directory());
+        VX_CHECK(!directory_entry.is_symlink());
+        VX_CHECK(!directory_entry.is_other());
+    }
+
+    // symlink
+    {
+        VX_CHECK(os::filesystem::create_directory_symlink(directory, symlink));
+
+        os::filesystem::directory_entry symlink_entry{ symlink };
+        symlink_entry.refresh();
+
+        VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
+        VX_CHECK(symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(symlink_entry.info.size == 0);
+        VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
+        VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
+
+        VX_CHECK(symlink_entry.exists());
+        VX_CHECK(!symlink_entry.is_regular_file());
+        VX_CHECK(!symlink_entry.is_directory());
+        VX_CHECK(symlink_entry.is_symlink());
+        VX_CHECK(!symlink_entry.is_other());
+    }
 }
 
 int main()

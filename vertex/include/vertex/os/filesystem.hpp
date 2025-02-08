@@ -51,6 +51,7 @@ struct file_permissions
 
         ALL_READ = OWNER_READ | GROUP_READ | OTHERS_READ,
         ALL_WRITE = OWNER_WRITE | GROUP_WRITE | OTHERS_WRITE,
+        ALL_READ_WRITE = ALL_READ | ALL_WRITE,
         ALL_EXEC = OWNER_EXEC | GROUP_EXEC | OTHERS_EXEC,
 
         ALL = 0777,
@@ -250,7 +251,7 @@ struct directory_entry
     {
         if (!path.empty())
         {
-            info = get_file_info(path);
+            info = get_symlink_info(path);
         }
     }
 

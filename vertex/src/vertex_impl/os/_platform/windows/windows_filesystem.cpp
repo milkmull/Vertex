@@ -235,11 +235,6 @@ static file_type get_file_type(const path& p, const DWORD attrs)
         return (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) ? file_type::NOT_FOUND : file_type::UNKNOWN;
     }
 
-    if (attrs & FILE_ATTRIBUTE_DIRECTORY)
-    {
-        return file_type::DIRECTORY;
-    }
-
     if (attrs & FILE_ATTRIBUTE_REPARSE_POINT)
     {
         std::unique_ptr<reparse_point_data> reparse_data;
@@ -249,6 +244,11 @@ static file_type get_file_type(const path& p, const DWORD attrs)
         {
             return file_type::SYMLINK;
         }
+    }
+
+    if (attrs & FILE_ATTRIBUTE_DIRECTORY)
+    {
+        return file_type::DIRECTORY;
     }
 
     return file_type::REGULAR;
@@ -344,7 +344,7 @@ static file_info file_info_from_handle(const windows::handle& h, const path& p)
 
 file_info get_file_info_impl(const path& p)
 {
-    file_info info = get_symlink_info(p);
+    file_info info = get_symlink_info_impl(p);
 
     if (info.type == file_type::SYMLINK)
     {
