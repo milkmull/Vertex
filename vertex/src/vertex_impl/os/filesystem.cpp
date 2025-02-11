@@ -67,11 +67,24 @@ VX_API path absolute(const path& p)
     return absolute_impl(p);
 }
 
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2570
+
+VX_API path canonical(const path& p)
+{
+    if (!exists(p))
+    {
+        VX_ERR(err::FILE_OPEN_FAILED) << "file not found: " << p;
+        return {};
+    }
+
+    return canonical_impl(p);
+}
+
 VX_API path relative(const path& p, const path& base)
 {
     const path p_abs = absolute(p);
     const path b_abs = absolute(base);
-    return p.lexically_relative(b_abs);
+    return p_abs.lexically_relative(b_abs);
 }
 
 VX_API bool equivalent(const path& p1, const path& p2)

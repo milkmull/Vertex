@@ -39,7 +39,9 @@ path read_symlink_impl(const path& p);
 
 path get_current_path_impl();
 bool set_current_path_impl(const path& p);
+
 path absolute_impl(const path& p);
+path canonical_impl(const path& p);
 
 ///////////////////////////////////////////////////////////////////////////////
 // System Paths

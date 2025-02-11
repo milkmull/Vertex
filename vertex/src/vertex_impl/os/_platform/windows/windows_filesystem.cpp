@@ -451,16 +451,14 @@ path read_symlink_impl(const path& p)
 
 path get_current_path_impl()
 {
-    const DWORD size = GetCurrentDirectoryW(0, NULL);
-    std::vector<WCHAR> data(size);
-
-    if (!GetCurrentDirectoryW(size, data.data()))
+    WCHAR buffer[MAX_PATH]{};
+    if (!GetCurrentDirectoryW(MAX_PATH, buffer))
     {
         windows::error_message("GetCurrentDirectoryW()");
         return {};
     }
 
-    return path{ data.data() };
+    return path{ buffer };
 }
 
 bool set_current_path_impl(const path& p)
@@ -477,6 +475,8 @@ bool set_current_path_impl(const path& p)
 path absolute_impl(const path& p)
 {
     const DWORD size = GetFullPathNameW(p.c_str(), 0, NULL, NULL);
+    // We use a vector here because we don't know how long the
+    // input path will be (may be longer than MAX_PATH)
     std::vector<WCHAR> data(size);
 
     if (!GetFullPathNameW(p.c_str(), size, data.data(), NULL))
@@ -486,6 +486,109 @@ path absolute_impl(const path& p)
     }
 
     return path{ data.data() };
+}
+
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2686
+
+path canonical_impl(const path& p)
+{
+    path res;
+
+    windows::handle h = CreateFileW(
+        p.c_str(),
+        FILE_READ_ATTRIBUTES | FILE_READ_EA,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return res;
+    }
+
+    DWORD flags = FILE_NAME_NORMALIZED;
+    DWORD size = GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+
+    if (size == 0)
+    {
+        if (!(flags & VOLUME_NAME_NT) && GetLastError() == ERROR_PATH_NOT_FOUND)
+        {
+            // Drive letter does not exist, obtain an NT path
+            flags |= VOLUME_NAME_NT;
+            size = GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+        }
+
+        if (size == 0)
+        {
+            windows::error_message("GetFinalPathNameByHandleW()");
+            return res;
+        }
+    }
+
+    std::vector<WCHAR> buffer(size, 0);
+    if (GetFinalPathNameByHandleW(h.get(), buffer.data(), size, flags) == 0)
+    {
+        windows::error_message("GetFinalPathNameByHandleW()");
+        return res;
+    }
+
+    WCHAR* data = buffer.data();
+
+    if (!(flags & VOLUME_NAME_NT))
+    {
+        // If the input path did not contain a long path prefix, convert
+        // "\\?\X:" to "X:" and "\\?\UNC\" to "\\". Otherwise, preserve the prefix.
+        const auto* p_str = p.c_str();
+
+        if (p.size() >= 4 &&
+            os::__detail::path_parser::is_directory_separator(p_str[0]) &&
+            p_str[1] == L'?' &&
+            os::__detail::path_parser::is_directory_separator(p_str[2]) &&
+            os::__detail::path_parser::is_directory_separator(p_str[3]))
+        {
+            // "\\?\*"
+            if (size > 6 && 
+                os::__detail::path_parser::is_directory_separator(data[0]) &&
+                data[1] == L'?' &&
+                os::__detail::path_parser::is_directory_separator(data[2]) &&
+                os::__detail::path_parser::is_directory_separator(data[3]))
+            {
+                // "\\?\X:"
+                if (os::__detail::path_parser::is_letter(data[4]) && data[5] == L':')
+                {
+                    data += 4;
+                    size -= 4;
+                }
+
+                // "\\?\UNC\*"
+                else if (size >= 8 &&
+                    (data[4] == L'U' || data[4] == L'u') &&
+                    (data[5] == L'N' || data[5] == L'n') &&
+                    (data[6] == L'C' || data[6] == L'c') &&
+                    os::__detail::path_parser::is_directory_separator(data[7]))
+                {
+                    // trim off "\\?\UN" and replace C with \ to end up with "\\" prefix
+                    data += 6;
+                    size -= 6;
+                    data[0] = path::preferred_separator;
+                }
+            }
+
+            res.assign(data, data + size);
+        }
+    }
+    else
+    {
+        // result is in the NT namespace, so apply the DOS to NT namespace prefix
+        res.assign(L"\\\\?\\GLOBALROOT");
+        res.concat(data, data + size);
+    }
+
+    return res;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

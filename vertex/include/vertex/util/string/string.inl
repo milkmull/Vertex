@@ -287,6 +287,11 @@ inline std::string title(const str_arg_t& s)
 // case_insensitive_compare
 ///////////////////////////////////////////////////////////////////////////////
 
+inline bool case_insensitive_compare(const char c1, const char c2)
+{
+    return to_lower(c1) == to_lower(c2);
+}
+
 inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2)
 {
     return to_lower(s1) == to_lower(s2);

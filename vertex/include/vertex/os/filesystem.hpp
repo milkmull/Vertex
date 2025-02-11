@@ -85,7 +85,7 @@ VX_API bool update_file_permissions(
 struct file_info
 {
     file_type type = file_type::NONE;
-    typename file_permissions::type permissions = file_permissions::UNKNOWN;
+    typename file_permissions::type permissions = file_permissions::NONE;
     size_t size = 0;
     time::time_point create_time;
     time::time_point modify_time;
@@ -142,8 +142,11 @@ inline bool is_other(const path& p)
 VX_API path get_current_path();
 VX_API bool set_current_path(const path& p);
 
+// https://en.cppreference.com/w/cpp/filesystem/absolute
+
 VX_API path absolute(const path& p);
 VX_API path relative(const path& p, const path& base = get_current_path());
+VX_API path canonical(const path& p);
 
 VX_API bool equivalent(const path& p1, const path& p2);
 

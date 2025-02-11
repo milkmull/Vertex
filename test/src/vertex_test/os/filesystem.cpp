@@ -4,19 +4,36 @@
 
 using namespace vx;
 
+/*
+
+- get/set current path
+- temp directory
+- user folders
+
+- creation and info (file, directory, symlink, directory symlink, directories)
+
+- absolute
+- relative
+- equivalent
+
+- read symlink
+- update permissions
+
+- directory iterators
+
+- copy
+- remove
+- rename
+
+- space
+- is_empty
+
+*/
+
 static bool create_file_containing(const os::path& filename, const char* text)
 {
     return os::file::write_file(filename, reinterpret_cast<const uint8_t*>(text), std::strlen(text));
 }
-
-static const os::path nonexistent_paths[] = {
-#if defined(VX_PLATFORM_WINDOWS)
-    "C:/This/Path/Should/Not/Exist",
-    "//this_path_does_not_exist_on_the_network_e9da301701f70ead24c65bd30f600d15/docs"
-#else
-    "//This/Path/Should/Not/Exist"
-#endif // VX_PLATFORM_WINDOWS
-};
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -50,40 +67,68 @@ VX_TEST_CASE(test_current_path_and_temp_path)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_TEST_CASE(test_directory_entry)
+VX_TEST_CASE(test_user_folders)
 {
-    const os::path file = "test_directory_entry.txt";
-    const os::path file2 = "test_directory_entry2.txt";
-    const os::path directory = "test_directory_entry.dir";
-    const os::path symlink = "test_directory_entry.link";
-    const os::path cache = "test_directory_entry_cache.txt";
+    std::pair<os::filesystem::user_folder, const char*> folders[] = {
+        { os::filesystem::user_folder::HOME, "Home" },
+        { os::filesystem::user_folder::DESKTOP, "Desktop" },
+        { os::filesystem::user_folder::DOCUMENTS, "Documents" },
+        { os::filesystem::user_folder::DOWNLOADS, "Downloads" },
+        { os::filesystem::user_folder::MUSIC, "Music" },
+        { os::filesystem::user_folder::PICTURES, "Pictures" },
+        { os::filesystem::user_folder::VIDEOS, "Videos" }
+    };
 
-    VX_CHECK(create_file_containing(file, "hello world"));
-    VX_CHECK(create_file_containing(file, "goodbye world"));
-    VX_CHECK(os::filesystem::create_directory(directory));
-
-    // Check default state
-    os::filesystem::directory_entry default_entry;
-    default_entry.refresh();
-    VX_CHECK(default_entry.path.empty());
-    VX_CHECK(!default_entry.exists());
-
-    // Check nonexistent entries
-    for (const auto& p : nonexistent_paths)
+    for (const auto& pair : folders)
     {
-        os::filesystem::directory_entry entry{ p };
-        entry.refresh();
-        VX_CHECK(!entry.exists());
+        const os::path folder = os::filesystem::get_user_folder(pair.first);
+
+        if (!folder.empty())
+        {
+            VX_MESSAGE("  User Folder ", pair.second, ": ", folder);
+        }
+        else
+        {
+            VX_WARNING("  User Folder ", pair.second, ": not found");
+        }
     }
+}
 
-    // regular file
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_default_file_info)
+{
+    os::filesystem::file_info info{};
+
+    VX_CHECK(info.type == os::filesystem::file_type::NONE);
+    VX_CHECK(info.permissions == os::filesystem::file_permissions::NONE);
+    VX_CHECK(info.size == 0);
+    VX_CHECK(info.create_time.as_nanoseconds() == 0);
+    VX_CHECK(info.modify_time.as_nanoseconds() == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_create)
+{
+    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
+
+    const os::path file = filename + ".txt";
+    const os::path directory = filename + ".dir";
+    const os::path symlink = filename + ".link";
+    const os::path directory_symlink = filename + ".dirlink";
+    const os::path nested_directories = filename + ".dir/subdir1/subdir2";
+
+    VX_SECTION("create file")
     {
+        VX_CHECK(!os::filesystem::exists(file));
+        VX_CHECK(os::filesystem::create_file(file));
+
         os::filesystem::directory_entry file_entry{ file };
         file_entry.refresh();
 
         VX_CHECK(file_entry.info.type == os::filesystem::file_type::REGULAR);
         VX_CHECK(file_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
-        VX_CHECK(file_entry.info.size != 0);
         VX_CHECK(file_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(file_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -94,8 +139,11 @@ VX_TEST_CASE(test_directory_entry)
         VX_CHECK(!file_entry.is_other());
     }
 
-    // directory
+    VX_SECTION("create directory")
     {
+        VX_CHECK(!os::filesystem::exists(directory));
+        VX_CHECK(os::filesystem::create_directory(directory));
+
         os::filesystem::directory_entry directory_entry{ directory };
         directory_entry.refresh();
 
@@ -112,9 +160,10 @@ VX_TEST_CASE(test_directory_entry)
         VX_CHECK(!directory_entry.is_other());
     }
 
-    // symlink
+    VX_SECTION("create symlink")
     {
-        VX_CHECK(os::filesystem::create_directory_symlink(directory, symlink));
+        VX_CHECK(!os::filesystem::exists(symlink));
+        VX_CHECK(os::filesystem::create_symlink(file, symlink));
 
         os::filesystem::directory_entry symlink_entry{ symlink };
         symlink_entry.refresh();
@@ -131,6 +180,104 @@ VX_TEST_CASE(test_directory_entry)
         VX_CHECK(symlink_entry.is_symlink());
         VX_CHECK(!symlink_entry.is_other());
     }
+
+    VX_SECTION("create directory symlink")
+    {
+        VX_CHECK(!os::filesystem::exists(directory_symlink));
+        VX_CHECK(os::filesystem::create_directory_symlink(directory, directory_symlink));
+
+        os::filesystem::directory_entry directory_symlink_entry{ directory_symlink };
+        directory_symlink_entry.refresh();
+
+        VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
+        VX_CHECK(directory_symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_symlink_entry.info.size == 0);
+        VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
+        VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
+
+        VX_CHECK(directory_symlink_entry.exists());
+        VX_CHECK(!directory_symlink_entry.is_regular_file());
+        VX_CHECK(!directory_symlink_entry.is_directory()); // directory symlinks should only be symlink and not directory
+        VX_CHECK(directory_symlink_entry.is_symlink());
+        VX_CHECK(!directory_symlink_entry.is_other());
+    }
+
+    VX_SECTION("create directories")
+    {
+        VX_CHECK(!os::filesystem::exists(nested_directories));
+        VX_CHECK(os::filesystem::create_directories(nested_directories));
+
+        os::filesystem::directory_entry nested_entry{ nested_directories };
+        nested_entry.refresh();
+
+        VX_CHECK(nested_entry.exists());
+        VX_CHECK(nested_entry.is_directory());
+        VX_CHECK(!nested_entry.is_regular_file());
+        VX_CHECK(!nested_entry.is_symlink());
+        VX_CHECK(!nested_entry.is_other());
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_absolute)
+{
+    VX_CHECK(os::filesystem::absolute({}) == os::path());
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_CHECK(os::filesystem::absolute("x:/cat/dog/../elk") == "x:/cat/elk");
+
+    VX_SECTION("windows long path")
+    {
+        // On windows MAX_PATH is 260
+        constexpr size_t MAX_PATH = 260;
+
+        std::wstring long_path = LR"(\\?\x:\some\)";
+        long_path.resize(MAX_PATH + 10, L'a');
+        VX_CHECK(long_path.size() > MAX_PATH);
+        VX_CHECK(os::filesystem::absolute(long_path) == long_path);
+
+        long_path.push_back(L'\\');
+        long_path.resize(40000, L'b');
+        // Path should be way too long
+        VX_CHECK_ERROR(
+            os::filesystem::absolute(long_path) == long_path,
+            err::PLATFORM_ERROR
+        );
+
+        long_path.resize(MAX_PATH);
+        VX_CHECK(os::filesystem::absolute(long_path) == long_path);
+    }
+
+#else
+
+#endif // VX_PLATFORM_WINDOWS
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_relative)
+{
+    const os::path directory = "test_relative/a/b/c";
+    const os::path file1 = "test_relative/a/b/c/file1.txt";
+    const os::path file2 = "test_relative/a/b/x/y/file2.txt";
+
+    VX_CHECK(os::filesystem::relative("", "") == ".");
+    VX_CHECK(os::filesystem::relative(file2, file1) == "../../x/y/file2.txt");
+    VX_CHECK(os::filesystem::relative(file1, file2) == "../../../c/file1.txt");
+    VX_CHECK(os::filesystem::relative(file1) == file1);
+    VX_CHECK(os::filesystem::relative(file2) == file2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_equivalent)
+{
+    VX_CHECK(os::filesystem::equivalent("", ""));
+    VX_CHECK(os::filesystem::equivalent("file1", "file1"));
+    VX_CHECK(!os::filesystem::equivalent("file1", "file2"));
+    VX_CHECK(!os::filesystem::equivalent("C:file1", "D:file1"));
 }
 
 int main()

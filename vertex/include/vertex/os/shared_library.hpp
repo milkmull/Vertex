@@ -11,7 +11,7 @@ public:
 
     // https://beta.boost.org/doc/libs/1_61_0/doc/html/boost/dll/shared_library.html
 
-    static constexpr const char* suffix()
+    static constexpr const char* suffix() noexcept
     {
 #   if defined(VX_PLATFORM_WINDOWS)
         return ".dll";
