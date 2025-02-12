@@ -536,6 +536,7 @@ path canonical_impl(const path& p)
         return res;
     }
 
+    size -= 1; // ignore null terminator
     WCHAR* data = buffer.data();
 
     if (!(flags & VOLUME_NAME_NT))
@@ -544,17 +545,17 @@ path canonical_impl(const path& p)
         // "\\?\X:" to "X:" and "\\?\UNC\" to "\\". Otherwise, preserve the prefix.
         const auto* p_str = p.c_str();
 
-        if (p.size() >= 4 &&
-            os::__detail::path_parser::is_directory_separator(p_str[0]) &&
-            p_str[1] == L'?' &&
-            os::__detail::path_parser::is_directory_separator(p_str[2]) &&
-            os::__detail::path_parser::is_directory_separator(p_str[3]))
+        if (p.size() < 4 ||
+            !os::__detail::path_parser::is_directory_separator(p_str[0]) ||
+            !os::__detail::path_parser::is_directory_separator(p_str[1]) ||
+            p_str[2] != L'?' ||
+            !os::__detail::path_parser::is_directory_separator(p_str[3]))
         {
             // "\\?\*"
             if (size > 6 && 
                 os::__detail::path_parser::is_directory_separator(data[0]) &&
-                data[1] == L'?' &&
-                os::__detail::path_parser::is_directory_separator(data[2]) &&
+                os::__detail::path_parser::is_directory_separator(data[1]) &&
+                data[2] == L'?' &&
                 os::__detail::path_parser::is_directory_separator(data[3]))
             {
                 // "\\?\X:"

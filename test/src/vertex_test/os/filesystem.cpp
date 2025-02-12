@@ -49,16 +49,14 @@ VX_TEST_CASE(test_current_path_and_temp_path)
 
     VX_SECTION("current path")
     {
-        current_path = os::filesystem::get_current_path();
-        VX_NO_ERROR();
+        VX_EXPECT_NO_ERROR(current_path = os::filesystem::get_current_path());
         VX_CHECK(os::filesystem::exists(current_path));
         VX_CHECK(os::filesystem::is_directory(current_path));
     }
 
     VX_SECTION("temp path")
     {
-        temp_path = os::filesystem::get_temp_path();
-        VX_NO_ERROR();
+        VX_EXPECT_NO_ERROR(temp_path = os::filesystem::get_temp_path());
         VX_CHECK(os::filesystem::exists(temp_path));
         VX_CHECK(os::filesystem::is_directory(temp_path));
     }
@@ -146,8 +144,7 @@ VX_TEST_CASE(test_create_file)
             const os::path fake_file = p / file;
 
             VX_CHECK(!os::filesystem::exists(fake_file));
-            VX_CHECK(!os::filesystem::create_file(fake_file));
-            VX_EXPECT_ERROR();
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_file(fake_file));
         }
     }
 }
@@ -187,8 +184,7 @@ VX_TEST_CASE(test_create_directory)
             const os::path fake_directory = p / directory;
 
             VX_CHECK(!os::filesystem::exists(fake_directory));
-            VX_CHECK(!os::filesystem::create_directory(fake_directory));
-            VX_EXPECT_ERROR();
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directory(fake_directory));
         }
     }
 }
@@ -275,8 +271,7 @@ VX_TEST_CASE(test_create_symlink)
 
         for (const auto& p : nonexistent_paths)
         {
-            VX_CHECK(!os::filesystem::create_symlink(symlink, p));
-            VX_EXPECT_ERROR();
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(symlink, p));
         }
     }
 }
@@ -344,8 +339,7 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         for (const auto& p : nonexistent_paths)
         {
-            VX_CHECK(!os::filesystem::create_directory_symlink(directory_symlink, p));
-            VX_EXPECT_ERROR();
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directory_symlink(directory_symlink, p));
         }
     }
 }
@@ -360,6 +354,10 @@ VX_TEST_CASE(test_absolute)
 
     VX_CHECK(os::filesystem::absolute("x:/cat/dog/../elk") == "x:/cat/elk");
 
+    const os::path current_path = os::filesystem::get_current_path();
+    const os::path fake_file = "fake_file.txt";
+    VX_CHECK(os::filesystem::absolute(fake_file) == current_path / fake_file);
+
     VX_SECTION("windows long path")
     {
         // On windows MAX_PATH is 260
@@ -373,10 +371,7 @@ VX_TEST_CASE(test_absolute)
         long_path.push_back(L'\\');
         long_path.resize(40000, L'b');
         // Path should be way too long
-        VX_CHECK_ERROR(
-            os::filesystem::absolute(long_path) == long_path,
-            err::PLATFORM_ERROR
-        );
+        VX_CHECK_AND_EXPECT_ERROR(os::filesystem::absolute(long_path) != long_path);
 
         long_path.resize(MAX_PATH);
         VX_CHECK(os::filesystem::absolute(long_path) == long_path);
@@ -404,22 +399,75 @@ VX_TEST_CASE(test_relative)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//VX_TEST_CASE(test_equivalent)
-//{
-//    const os::path directory = "equivalent";
-//    
-//    VX_CHECK(!os::filesystem::equivalent(directory / "file1.txt", ))
-//}
+// https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/tests/std/tests/P0218R1_filesystem/test.cpp#L2313
+
+VX_TEST_CASE(test_equivalent)
+{
+    const os::path directory = "equivalent.dir";
+    VX_CHECK(os::filesystem::create_directory(directory));
+
+    const os::path file1 = directory / "file1.txt";
+    const os::path file2 = directory / "file2.txt";
+    VX_CHECK(os::filesystem::create_file(file1));
+    VX_CHECK(os::filesystem::create_file(file2));
+
+    VX_SECTION("failure cases")
+    {
+        const os::path nonexistent = directory / "nonexistent.txt";
+
+        VX_CHECK(!os::filesystem::equivalent("", ""));
+        VX_CHECK(!os::filesystem::equivalent(nonexistent, nonexistent));
+        VX_CHECK(!os::filesystem::equivalent(nonexistent, file1));
+        VX_CHECK(!os::filesystem::equivalent(file1, nonexistent));
+    }
+
+    VX_SECTION("success cases")
+    {
+        VX_CHECK(os::filesystem::equivalent(file1, file1));
+        VX_CHECK(os::filesystem::equivalent(file1, directory / ".." / directory.filename() / file1.filename()));
+        VX_CHECK(!os::filesystem::equivalent(file1, file2));
+        VX_CHECK(os::filesystem::equivalent(directory, directory));
+        VX_CHECK(!os::filesystem::equivalent(directory, directory / ".."));
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//VX_TEST_CASE(test_canonical)
-//{
-//    VX_CHECK(os::filesystem::equivalent("", ""));
-//    VX_CHECK(os::filesystem::equivalent("file1", "file1"));
-//    VX_CHECK(!os::filesystem::equivalent("file1", "file2"));
-//    VX_CHECK(!os::filesystem::equivalent("C:file1", "D:file1"));
-//}
+VX_TEST_CASE(test_canonical)
+{
+    VX_CHECK_AND_EXPECT_ERROR(os::filesystem::canonical("nonexistent.txt").empty());
+
+    // test that canonical on a directory is not an error
+    VX_CHECK(!os::filesystem::canonical(".").empty());
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_SECTION("canonical DOS path")
+    {
+        // test that canonical on an ordinary file returns that file's DOS path
+        const os::path file = "test_canonical.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+        
+        const os::path canonical_file = os::filesystem::canonical(file);
+        VX_CHECK(!canonical_file.empty());
+
+        const auto& filename = file.native();
+        const auto& text = canonical_file.native();
+
+        // make sure the result starts with "X:"
+        VX_CHECK(text.size() > file.size() - 1);
+        VX_CHECK(os::__detail::path_parser::is_letter(text[0]) && text[1] == L':');
+
+        // make sure the result ends with "/filename"
+        const auto diff = static_cast<ptrdiff_t>(file.size());
+        VX_CHECK(*(text.end() - diff - 1) == L'\\');
+        VX_CHECK(std::equal(text.end() - diff, text.end(), filename.begin(), filename.end()));
+    }
+
+#else
+
+#endif // VX_PLATFORM_WINDOWS
+}
 
 int main()
 {
