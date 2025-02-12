@@ -327,7 +327,7 @@ class path_iterator
 public:
 
     using iterator_category = std::input_iterator_tag;
-    using path_value_type = path_t;
+    using value_type = path_t;
     using difference_type = ptrdiff_t;
     using pointer = const path_t*;
     using reference = const path_t&;
@@ -479,12 +479,12 @@ public:
     path(string_type&& s) noexcept : m_path(std::move(s)) {}
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
-    path(const Src& src) : m_path(str::string_cast<path_value_type>(src)) {}
+    path(const Src& src) : m_path(str::string_cast<value_type>(src)) {}
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
     path(IT first, IT last)
     {
-        str::string_cast<path_value_type>(first, last, std::back_inserter(m_path));
+        str::string_cast<value_type>(first, last, std::back_inserter(m_path));
     }
 
     path& operator=(string_type&& s) noexcept
@@ -501,21 +501,21 @@ public:
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     path& operator=(const Src& rhs)
     {
-        m_path = str::string_cast<path_value_type>(rhs);
+        m_path = str::string_cast<value_type>(rhs);
         return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     path& assign(const Src& rhs)
     {
-        m_path = str::string_cast<path_value_type>(rhs);
+        m_path = str::string_cast<value_type>(rhs);
         return *this;
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_char_iterator<IT>::value)>
     path& assign(IT first, IT last)
     {
-        m_path = str::string_cast<path_value_type>(first, last);
+        m_path = str::string_cast<value_type>(first, last);
         return *this;
     }
 

@@ -99,8 +99,9 @@ inline void fail_test(const char* condition, const char* func, int line)
 
 #define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
 
+#define VX_EXPECT_ERROR() VX_CHECK(::vx::err::get())
+#define VX_NO_ERROR() VX_CHECK(!::vx::err::get())
 #define VX_CHECK_ERROR(condition, error_code) (condition); VX_CHECK(err::get().code == (error_code))
-#define VX_NO_ERROR() VX_CHECK(!err::get())
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 

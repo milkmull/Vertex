@@ -529,7 +529,7 @@ path canonical_impl(const path& p)
         }
     }
 
-    std::vector<WCHAR> buffer(size, 0);
+    std::vector<WCHAR> buffer(size);
     if (GetFinalPathNameByHandleW(h.get(), buffer.data(), size, flags) == 0)
     {
         windows::error_message("GetFinalPathNameByHandleW()");
