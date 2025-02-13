@@ -15,6 +15,7 @@ using namespace vx;
 - absolute
 - relative
 - equivalent
+- canonical
 
 - read symlink
 - update permissions
@@ -238,6 +239,9 @@ VX_TEST_CASE(test_create_symlink)
         VX_CHECK(!symlink_entry.is_directory());
         VX_CHECK(symlink_entry.is_symlink());
         VX_CHECK(!symlink_entry.is_other());
+        
+        // creating a symlink that exists already should throw
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(file, symlink));
     }
 
     VX_SECTION("create symlink to nonexistent file")
@@ -305,6 +309,9 @@ VX_TEST_CASE(test_create_directory_symlink)
         VX_CHECK(!directory_symlink_entry.is_directory());
         VX_CHECK(directory_symlink_entry.is_symlink());
         VX_CHECK(!directory_symlink_entry.is_other());
+
+        // creating a symlink that exists already should throw
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(directory, directory_symlink));
     }
 
     VX_SECTION("create directory symlink to nonexistent directory")
@@ -415,19 +422,33 @@ VX_TEST_CASE(test_equivalent)
     {
         const os::path nonexistent = directory / "nonexistent.txt";
 
-        VX_CHECK(!os::filesystem::equivalent("", ""));
-        VX_CHECK(!os::filesystem::equivalent(nonexistent, nonexistent));
-        VX_CHECK(!os::filesystem::equivalent(nonexistent, file1));
-        VX_CHECK(!os::filesystem::equivalent(file1, nonexistent));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::equivalent("", ""));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::equivalent(nonexistent, nonexistent));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::equivalent(nonexistent, file1));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::equivalent(file1, nonexistent));
     }
 
     VX_SECTION("success cases")
     {
         VX_CHECK(os::filesystem::equivalent(file1, file1));
-        VX_CHECK(os::filesystem::equivalent(file1, directory / ".." / directory.filename() / file1.filename()));
         VX_CHECK(!os::filesystem::equivalent(file1, file2));
         VX_CHECK(os::filesystem::equivalent(directory, directory));
         VX_CHECK(!os::filesystem::equivalent(directory, directory / ".."));
+
+        const os::path same_as_file1 = directory / "./.././." / directory.filename() / file1.filename();
+        VX_CHECK(os::filesystem::equivalent(file1, same_as_file1));
+    }
+
+    VX_SECTION("symlink resolution")
+    {
+        const std::string symlink_filename = std::to_string(os::system_time().as_nanoseconds());
+        const os::path symlink = directory / (symlink_filename + ".link");
+        VX_CHECK(os::filesystem::create_symlink(os::filesystem::absolute(file1), symlink));
+        VX_CHECK(os::filesystem::exists(symlink));
+
+        VX_CHECK(os::filesystem::equivalent(symlink, symlink));
+        VX_CHECK(os::filesystem::equivalent(file1, symlink));
+        VX_CHECK(!os::filesystem::equivalent(symlink, file2));
     }
 }
 
@@ -469,8 +490,39 @@ VX_TEST_CASE(test_canonical)
 #endif // VX_PLATFORM_WINDOWS
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_read_symlink)
+{
+    const os::path file = "test_read_symlink.txt";
+    VX_CHECK(os::filesystem::create_file(file));
+
+    VX_SECTION("success")
+    {
+        const std::string symlink_filename = std::to_string(os::system_time().as_nanoseconds());
+        const os::path symlink = symlink_filename + ".link";
+        VX_CHECK(os::filesystem::create_symlink(file, symlink));
+
+        VX_CHECK(os::filesystem::equivalent(file, symlink));
+
+        const os::path read_symlink = os::filesystem::read_symlink(symlink);
+        VX_CHECK(file == read_symlink);
+    }
+
+    VX_SECTION("failure")
+    {
+        // file is not a symlink
+        VX_CHECK_AND_EXPECT_ERROR(os::filesystem::read_symlink(file).empty());
+
+        // file does not exist
+        const os::path fake_symlink = "fake_symlink.link";
+        VX_CHECK_AND_EXPECT_ERROR(os::filesystem::read_symlink(fake_symlink).empty());
+    }
+}
+
 int main()
 {
+    //VX_PRINT_ERRORS(true);
     VX_RUN_TESTS();
     return 0;
 }

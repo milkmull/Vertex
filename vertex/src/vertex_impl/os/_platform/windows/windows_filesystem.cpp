@@ -176,18 +176,7 @@ static bool get_reparse_point_data_from_handle(
     std::unique_ptr<reparse_point_data>& data
 )
 {
-    if (!h.is_valid())
-    {
-        return false;
-    }
-
     data = std::make_unique<reparse_point_data>();
-    if (!data)
-    {
-        VX_ERR(err::OUT_OF_MEMORY);
-        return false;
-    }
-
     DWORD count = 0;
 
     if (!DeviceIoControl(
@@ -207,7 +196,7 @@ static bool get_reparse_point_data_from_handle(
     return true;
 }
 
-static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_data>& data)
+static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_data>& data, bool throw_on_fail)
 {
     // Open the file to check if it's a symbolic link
     windows::handle h = CreateFileW(
@@ -220,7 +209,17 @@ static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_
         NULL
     );
 
-    return h.is_valid() && get_reparse_point_data_from_handle(h, data);
+    if (!h.is_valid())
+    {
+        if (throw_on_fail)
+        {
+            windows::error_message("CreateFileW()");
+        }
+
+        return false;
+    }
+
+    return get_reparse_point_data_from_handle(h, data);
 }
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1684
@@ -239,7 +238,7 @@ static file_type get_file_type(const path& p, const DWORD attrs)
     {
         std::unique_ptr<reparse_point_data> reparse_data;
 
-        if (get_reparse_point_data(p, reparse_data) &&
+        if (get_reparse_point_data(p, reparse_data, false) &&
             is_symlink_reparse_tag(reparse_data->rdb.ReparseTag))
         {
             return file_type::SYMLINK;
@@ -407,7 +406,7 @@ path read_symlink_impl(const path& p)
     path symlink_path;
 
     std::unique_ptr<reparse_point_data> reparse_data;
-    if (!get_reparse_point_data(p, reparse_data))
+    if (!get_reparse_point_data(p, reparse_data, true))
     {
         return symlink_path;
     }
@@ -592,6 +591,60 @@ path canonical_impl(const path& p)
     return res;
 }
 
+bool equivalent_impl(const path& p1, const path& p2)
+{
+    windows::handle h1 = CreateFileW(
+        p1.c_str(),
+        FILE_READ_ATTRIBUTES, // Only need attributes
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+        NULL
+    );
+
+    if (!h1.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return false;
+    }
+
+    windows::handle h2 = CreateFileW(
+        p2.c_str(),
+        FILE_READ_ATTRIBUTES, // Only need attributes
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS, // needed for directories
+        NULL
+    );
+
+    if (!h2.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return false;
+    }
+
+    BY_HANDLE_FILE_INFORMATION info1{};
+    if (!GetFileInformationByHandle(h1.get(), &info1))
+    {
+        windows::error_message("GetFileInformationByHandle()");
+        return false;
+    }
+
+    BY_HANDLE_FILE_INFORMATION info2{};
+    if (!GetFileInformationByHandle(h2.get(), &info2))
+    {
+        windows::error_message("GetFileInformationByHandle()");
+        return false;
+    }
+
+    // Compare volume serial numbers and file IDs
+    return (info1.dwVolumeSerialNumber == info2.dwVolumeSerialNumber)
+        && (info1.nFileIndexHigh == info2.nFileIndexHigh)
+        && (info1.nFileIndexLow == info2.nFileIndexLow);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////
@@ -727,11 +780,22 @@ bool create_file_impl(const path& p)
     return true;
 }
 
+// https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L26
+// https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L84
+
 static bool create_symlink_impl(const path& target, const path& link, DWORD flags)
 {
-    if (!CreateSymbolicLinkW(link.c_str(), target.c_str(), flags))
+#if defined(_CRT_APP)
+
+    SetLastError(ERROR_NOT_SUPPORTED);
+    windows::error_message("CreateSymbolicLinkW()");
+    return false;
+
+#else
+
+    if (!CreateSymbolicLinkW(link.c_str(), target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
     {
-        if (GetLastError() != ERROR_ALREADY_EXISTS)
+        if (GetLastError() != ERROR_INVALID_PARAMETER || !CreateSymbolicLinkW(link.c_str(), target.c_str(), flags))
         {
             windows::error_message("CreateSymbolicLinkW()");
             return false;
@@ -739,6 +803,8 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
     }
 
     return true;
+
+#endif // _CRT_APP
 }
 
 bool create_symlink_impl(const path& target, const path& link)
