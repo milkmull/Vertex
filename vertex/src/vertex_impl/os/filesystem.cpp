@@ -89,7 +89,7 @@ VX_API path relative(const path& p, const path& base)
 
 VX_API bool equivalent(const path& p1, const path& p2)
 {
-    return equivalent_impl(absolute(p1), absolute(p2));
+    return equivalent_impl(p1, p2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
