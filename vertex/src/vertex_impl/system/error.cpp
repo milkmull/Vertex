@@ -43,7 +43,7 @@ VX_API void set(code code, const char* msg) noexcept
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 
-    if (s_print_errors)
+    if (s_print_errors && code != NONE)
     {
         std::cerr << "[ERROR] " << static_cast<int>(code) << ": " << msg << std::endl;
     }

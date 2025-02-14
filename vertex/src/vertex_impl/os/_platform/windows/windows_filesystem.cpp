@@ -1053,19 +1053,33 @@ static void open_directory_iterator(const path& p, directory_entry& entry, windo
 {
     close_directory_iterator(h);
 
-    // Append wildcard to search for all items
-    const path pattern = p / L"*";
+    const size_t null_term_size = std::wcslen(p.c_str());
+    if (null_term_size == 0 || null_term_size != p.size())
+    {
+        SetLastError(ERROR_PATH_NOT_FOUND);
+    }
+    else
+    {
+        // Append wildcard to search for all items
+        const path pattern = p / L"*";
 
-    h = FindFirstFileExW(
-        pattern.c_str(),
-        FindExInfoBasic,
-        &find_data,
-        FindExSearchNameMatch,
-        NULL,
-        0
-    );
+        h = FindFirstFileExW(
+            pattern.c_str(),
+            FindExInfoBasic,
+            &find_data,
+            FindExSearchNameMatch,
+            NULL,
+            0
+        );
+    }
 
-    while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName))
+    if (!h.is_valid())
+    {
+        windows::error_message("FindFirstFileExW()");
+        return;
+    }
+
+    while (is_dot_or_dotdot(find_data.cFileName))
     {
         advance_directory_iterator_once(p, entry, h, find_data);
     }

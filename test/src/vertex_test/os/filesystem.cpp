@@ -21,6 +21,7 @@ using namespace vx;
 - update permissions
 
 - directory iterators
+- create directories, remove_all
 
 - copy
 - remove
@@ -603,9 +604,43 @@ VX_TEST_CASE(test_update_permissions)
 #endif // VX_PLATFORM_WINDOWS
 }
 
+VX_TEST_CASE(test_directory_iterator)
+{
+    static_assert(std::is_same<typename os::filesystem::directory_iterator::iterator_category, std::input_iterator_tag>::value);
+    static_assert(std::is_same<typename os::filesystem::directory_iterator::value_type, os::filesystem::directory_entry>::value);
+    static_assert(std::is_same<typename os::filesystem::directory_iterator::difference_type, ptrdiff_t>::value);
+    static_assert(std::is_same<typename os::filesystem::directory_iterator::pointer, const os::filesystem::directory_entry*>::value);
+    static_assert(std::is_same<typename os::filesystem::directory_iterator::reference, const os::filesystem::directory_entry&>::value);
+
+    VX_SECTION("default constructor")
+    {
+        os::filesystem::directory_iterator it;
+    }
+
+    VX_SECTION("nonexistent path")
+    {
+        for (const auto& p : nonexistent_paths)
+        {
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::directory_iterator(p).is_valid());
+        }
+    }
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_SECTION("edge cases")
+    {
+        // Test VSO-844835 "directory_iterator constructed with empty path iterates over the current directory"
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::directory_iterator(os::path{}).is_valid());
+        // Test VSO-583725 "recursive_directory_iterator blows up (memory leak + infinite loop) with embedded nulls"
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::directory_iterator(std::wstring(L".\0", 2)).is_valid());
+    }
+
+#endif // VX_PLATFORM_WINDOWS
+}
+
 int main()
 {
-    //VX_PRINT_ERRORS(true);
+    VX_PRINT_ERRORS(true);
     VX_RUN_TESTS();
     return 0;
 }

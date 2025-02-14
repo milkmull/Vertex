@@ -312,6 +312,8 @@ public:
         return m_impl != rhs.m_impl;
     }
 
+    VX_API bool is_valid() const noexcept;
+
 private:
 
     void validate() noexcept;

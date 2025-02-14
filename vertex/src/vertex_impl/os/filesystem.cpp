@@ -457,6 +457,11 @@ VX_API directory_iterator& directory_iterator::operator++()
     return *this;
 }
 
+VX_API bool directory_iterator::is_valid() const noexcept
+{
+    return m_impl && m_impl->is_valid();
+}
+
 void directory_iterator::validate() noexcept
 {
     if (!m_impl->is_valid())
