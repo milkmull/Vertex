@@ -34,9 +34,15 @@ public:
         unsupported("free");
     }
 
-    void* get_function(const std::string& name) const
+    path location() const
     {
-        unsupported("get_function");
+        unsupported("location");
+        return {};
+    }
+
+    void* get_addr(const std::string& name) const
+    {
+        unsupported("get_addr");
         return nullptr;
     }
 };

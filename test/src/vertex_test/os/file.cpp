@@ -57,7 +57,7 @@ VX_TEST_CASE(file)
         VX_CHECK(f.is_open());
 
         // File is already open, should fail
-        VX_CHECK(!f.open(filename, os::file::mode::READ));
+        VX_CHECK_AND_EXPECT_ERROR(!f.open(filename, os::file::mode::READ));
 
         f.close();
         VX_CHECK(!f.is_open());
@@ -81,7 +81,7 @@ VX_TEST_CASE(file)
         VX_CHECK(f.tell() == 1000000 - 5);
 
         // Cannot move pointer before the beginning
-        VX_CHECK(!f.seek(-1000000));
+        VX_CHECK_AND_EXPECT_ERROR(!f.seek(-1000000));
     }
 
     VX_SECTION("mode: NONE")
@@ -97,7 +97,7 @@ VX_TEST_CASE(file)
         os::file f;
 
         // First try to open a file that does not exist (should fail)
-        VX_CHECK(!f.open(temp_path / "fakefile", os::file::mode::READ_WRITE_EXISTS));
+        VX_CHECK_AND_EXPECT_ERROR(!f.open(temp_path / "fakefile", os::file::mode::READ_WRITE_EXISTS));
         // Open the file we created initially
         VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_EXISTS));
         VX_CHECK(f.is_open());
@@ -179,7 +179,7 @@ VX_TEST_CASE(file)
         VX_CHECK(size != 0);
 
         // Try to write to the file
-        VX_CHECK(!f.write(in_text, count));
+        VX_CHECK_AND_EXPECT_ERROR(!f.write(in_text, count));
         VX_CHECK(f.size() == size); // Size should not have changed
 
         // Read from the file
@@ -208,7 +208,7 @@ VX_TEST_CASE(file)
         VX_CHECK(f.size() == 0);
 
         // Try to read from the file
-        VX_CHECK(!f.read(out_text, count));
+        VX_CHECK_AND_EXPECT_ERROR(!f.read(out_text, count));
 
         // Write to the file
         VX_CHECK(f.write(in_text, count) == count);
@@ -239,7 +239,7 @@ VX_TEST_CASE(file)
         VX_CHECK(f.size() == count);
 
         // Try to read from the file
-        VX_CHECK(!f.read(out_text, count));
+        VX_CHECK_AND_EXPECT_ERROR(!f.read(out_text, count));
 
         // Seeking should still work
         VX_CHECK(f.seek(0));

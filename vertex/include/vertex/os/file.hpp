@@ -79,8 +79,8 @@ public:
 
 private:
 
-    size_t read_internal(uint8_t* data, size_t size);
-    size_t write_internal(const uint8_t* data, size_t size);
+    VX_API size_t read_internal(uint8_t* data, size_t size);
+    VX_API size_t write_internal(const uint8_t* data, size_t size);
 
 public:
 

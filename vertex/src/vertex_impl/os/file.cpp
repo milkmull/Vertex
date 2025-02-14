@@ -157,7 +157,7 @@ VX_API bool file::flush()
     return m_impl->flush();
 }
 
-size_t file::read_internal(uint8_t* data, size_t size)
+VX_API size_t file::read_internal(uint8_t* data, size_t size)
 {
     if (!is_open())
     {
@@ -173,7 +173,7 @@ size_t file::read_internal(uint8_t* data, size_t size)
     return m_impl->read(data, size);
 }
 
-size_t file::write_internal(const uint8_t* data, size_t size)
+VX_API size_t file::write_internal(const uint8_t* data, size_t size)
 {
     if (!is_open())
     {

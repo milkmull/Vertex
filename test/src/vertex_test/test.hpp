@@ -138,7 +138,7 @@ namespace __detail {
 
 #define VX_MESSAGE(...) ::test::__detail::message(__VA_ARGS__)
 
-#define VX_WARNING(...) VX_MESSAGE("[WARNING]: ", __VA_ARGS__)
+#define VX_WARNING(...) VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
 
 }
 }

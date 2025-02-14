@@ -73,6 +73,18 @@ inline path absolute_impl(const path& p)
     return {};
 }
 
+inline path canonical_impl(const path& p)
+{
+    unsupported("canonical");
+    return {};
+}
+
+inline bool equivalent_impl(const path& p1, const path& p2)
+{
+    unsupported("equivalent");
+    return {};
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////

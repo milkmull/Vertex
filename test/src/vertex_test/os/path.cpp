@@ -1,5 +1,8 @@
-#define VX_TESTING_WINDOWS_PATH
 #include "vertex_test/os/path.hpp"
+
+#if defined(VX_PLATFORM_WINDOWS)
+#   define VX_TESTING_WINDOWS_PATH
+#endif // VX_PLATFORM_WINDOWS
 
 using namespace vx;
 

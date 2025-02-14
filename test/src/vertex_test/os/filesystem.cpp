@@ -88,7 +88,7 @@ VX_TEST_CASE(test_user_folders)
         }
         else
         {
-            VX_WARNING("  User Folder ", pair.second, ": not found");
+            VX_WARNING("User Folder ", pair.second, ": not found");
         }
     }
 }
