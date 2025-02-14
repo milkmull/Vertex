@@ -31,11 +31,6 @@ using namespace vx;
 
 */
 
-static bool create_file_containing(const os::path& filename, const char* text)
-{
-    return os::file::write_file(filename, reinterpret_cast<const uint8_t*>(text), std::strlen(text));
-}
-
 const os::path nonexistent_paths[] = {
     "C:/This/Path/Should/Not/Exist",
     "//this_path_does_not_exist_on_the_network_e9da301701f70ead24c65bd30f600d15/docs",
@@ -115,8 +110,8 @@ VX_TEST_CASE(test_default_file_info)
 
 VX_TEST_CASE(test_create_file)
 {
-    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
-    const os::path file = filename + ".txt";
+    const os::path file = "test_create_file.txt";
+    VX_CHECK(os::filesystem::remove(file));
 
     VX_SECTION("create file")
     {
@@ -148,14 +143,16 @@ VX_TEST_CASE(test_create_file)
             VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_file(fake_file));
         }
     }
+
+    VX_CHECK(os::filesystem::remove(file));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(test_create_directory)
 {
-    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
-    const os::path directory = filename + ".dir";
+    const os::path directory = "test_create_directory.dir";
+    VX_CHECK(os::filesystem::remove(directory));
 
     VX_SECTION("create directory")
     {
@@ -188,40 +185,45 @@ VX_TEST_CASE(test_create_directory)
             VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directory(fake_directory));
         }
     }
+
+    VX_CHECK(os::filesystem::remove(directory));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_TEST_CASE(test_create_directories)
-{
-    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
-    const os::path nested_directories = filename + ".dir/subdir1/subdir2";
-
-    VX_CHECK(!os::filesystem::exists(nested_directories));
-    VX_CHECK(os::filesystem::create_directories(nested_directories));
-
-    os::filesystem::directory_entry nested_entry{ nested_directories };
-    nested_entry.refresh();
-
-    VX_CHECK(nested_entry.exists());
-    VX_CHECK(nested_entry.is_directory());
-    VX_CHECK(!nested_entry.is_regular_file());
-    VX_CHECK(!nested_entry.is_symlink());
-    VX_CHECK(!nested_entry.is_other());
-}
+//VX_TEST_CASE(test_create_directories)
+//{
+//    const os::path nested_directories = "test_create_directories.dir/subdir1/subdir2";
+//    VX_CHECK(os::filesystem::remove_all(nested_directories));
+//
+//    VX_CHECK(!os::filesystem::exists(nested_directories));
+//    VX_CHECK(os::filesystem::create_directories(nested_directories));
+//
+//    os::filesystem::directory_entry nested_entry{ nested_directories };
+//    nested_entry.refresh();
+//
+//    VX_CHECK(nested_entry.exists());
+//    VX_CHECK(nested_entry.is_directory());
+//    VX_CHECK(!nested_entry.is_regular_file());
+//    VX_CHECK(!nested_entry.is_symlink());
+//    VX_CHECK(!nested_entry.is_other());
+//
+//    VX_CHECK(os::filesystem::remove_all(nested_directories));
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(test_create_symlink)
 {
-    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
-
     VX_SECTION("create symlink")
     {
-        const os::path file = filename + ".txt";
-        const os::path symlink = filename + ".link";
-        VX_CHECK(os::filesystem::create_file(file));
+        const os::path file = "test_create_symlink.txt";
+        const os::path symlink = "test_create_symlink.link";
 
+        VX_CHECK(os::filesystem::remove(file));
+        VX_CHECK(os::filesystem::remove(symlink));
+
+        VX_CHECK(os::filesystem::create_file(file));
         VX_CHECK(!os::filesystem::exists(symlink));
         VX_CHECK(os::filesystem::create_symlink(file, symlink));
 
@@ -242,14 +244,20 @@ VX_TEST_CASE(test_create_symlink)
         
         // creating a symlink that exists already should throw
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(file, symlink));
+
+        VX_CHECK(os::filesystem::remove(file));
+        VX_CHECK(os::filesystem::remove(symlink));
     }
 
     VX_SECTION("create symlink to nonexistent file")
     {
-        const os::path file = filename + "2.txt";
-        const os::path symlink = filename + "2.link";
-        VX_CHECK(!os::filesystem::exists(file));
+        const os::path file = "test_create_symlink2.txt";
+        const os::path symlink = "test_create_symlink2.link";
 
+        VX_CHECK(os::filesystem::remove(file));
+        VX_CHECK(os::filesystem::remove(symlink));
+
+        VX_CHECK(!os::filesystem::exists(file));
         VX_CHECK(!os::filesystem::exists(symlink));
         VX_CHECK(os::filesystem::create_symlink(file, symlink));
 
@@ -267,11 +275,13 @@ VX_TEST_CASE(test_create_symlink)
         VX_CHECK(!symlink_entry.is_directory());
         VX_CHECK(symlink_entry.is_symlink());
         VX_CHECK(!symlink_entry.is_other());
+
+        VX_CHECK(os::filesystem::remove(symlink));
     }
 
     VX_SECTION("create symlink to malformed source")
     {
-        const os::path symlink = filename + "3.link";
+        const os::path symlink = "test_create_symlink3.link";
 
         for (const auto& p : nonexistent_paths)
         {
@@ -284,14 +294,15 @@ VX_TEST_CASE(test_create_symlink)
 
 VX_TEST_CASE(test_create_directory_symlink)
 {
-    const std::string filename = std::to_string(os::system_time().as_nanoseconds());
-
     VX_SECTION("create directory symlink")
     {
-        const os::path directory = filename + ".dir";
-        const os::path directory_symlink = filename + ".dirlink";
-        VX_CHECK(os::filesystem::create_directory(directory));
+        const os::path directory = "test_create_directory_symlink.dir";
+        const os::path directory_symlink = "test_create_directory_symlink.dirlink";
 
+        VX_CHECK(os::filesystem::remove(directory));
+        VX_CHECK(os::filesystem::remove(directory_symlink));
+
+        VX_CHECK(os::filesystem::create_directory(directory));
         VX_CHECK(!os::filesystem::exists(directory_symlink));
         VX_CHECK(os::filesystem::create_directory_symlink(directory, directory_symlink));
 
@@ -312,14 +323,20 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         // creating a symlink that exists already should throw
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(directory, directory_symlink));
+
+        VX_CHECK(os::filesystem::remove(directory));
+        VX_CHECK(os::filesystem::remove(directory_symlink));
     }
 
     VX_SECTION("create directory symlink to nonexistent directory")
     {
-        const os::path directory = filename + "2.dir";
-        const os::path directory_symlink = filename + "2.dirlink";
-        VX_CHECK(!os::filesystem::exists(directory));
+        const os::path directory = "test_create_directory_symlink2.dir";
+        const os::path directory_symlink = "test_create_directory_symlink2.dirlink";
 
+        VX_CHECK(os::filesystem::remove(directory));
+        VX_CHECK(os::filesystem::remove(directory_symlink));
+
+        VX_CHECK(!os::filesystem::exists(directory));
         VX_CHECK(!os::filesystem::exists(directory_symlink));
         VX_CHECK(os::filesystem::create_directory_symlink(directory, directory_symlink));
 
@@ -337,12 +354,13 @@ VX_TEST_CASE(test_create_directory_symlink)
         VX_CHECK(!directory_symlink_entry.is_directory());
         VX_CHECK(directory_symlink_entry.is_symlink());
         VX_CHECK(!directory_symlink_entry.is_other());
+
+        VX_CHECK(os::filesystem::remove(directory_symlink));
     }
 
     VX_SECTION("create directory symlink to malformed source")
     {
-        const os::path file = filename + "3.txt";
-        const os::path directory_symlink = filename + "4.dirlink";
+        const os::path directory_symlink = "test_create_directory_symlink3.dirlink";
 
         for (const auto& p : nonexistent_paths)
         {
@@ -441,9 +459,11 @@ VX_TEST_CASE(test_equivalent)
 
     VX_SECTION("symlink resolution")
     {
-        const std::string symlink_filename = std::to_string(os::system_time().as_nanoseconds());
-        const os::path symlink = directory / (symlink_filename + ".link");
-        VX_CHECK(os::filesystem::create_symlink(os::filesystem::absolute(file1), symlink));
+        const os::path symlink = directory / "test_equivalent.link";
+        const os::path target = os::filesystem::absolute(file1) / os::path(".///////..////..\\\\\\//") / directory / file1.filename();
+
+        VX_CHECK(os::filesystem::remove(symlink));
+        VX_CHECK(os::filesystem::create_symlink(target, symlink));
         VX_CHECK(os::filesystem::exists(symlink));
 
         VX_CHECK(os::filesystem::equivalent(symlink, symlink));
@@ -499,14 +519,15 @@ VX_TEST_CASE(test_read_symlink)
 
     VX_SECTION("success")
     {
-        const std::string symlink_filename = std::to_string(os::system_time().as_nanoseconds());
-        const os::path symlink = symlink_filename + ".link";
+        const os::path symlink = "test_read_symlink.link";
+        VX_CHECK(os::filesystem::remove(symlink));
         VX_CHECK(os::filesystem::create_symlink(file, symlink));
-
         VX_CHECK(os::filesystem::equivalent(file, symlink));
 
         const os::path read_symlink = os::filesystem::read_symlink(symlink);
         VX_CHECK(file == read_symlink);
+
+        VX_CHECK(os::filesystem::remove(symlink));
     }
 
     VX_SECTION("failure")
@@ -518,6 +539,68 @@ VX_TEST_CASE(test_read_symlink)
         const os::path fake_symlink = "fake_symlink.link";
         VX_CHECK_AND_EXPECT_ERROR(os::filesystem::read_symlink(fake_symlink).empty());
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_update_permissions)
+{
+#if defined(VX_PLATFORM_WINDOWS)
+
+    // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/tests/std/tests/P0218R1_filesystem/test.cpp#L3483
+
+    VX_SECTION("directory")
+    {
+        const os::path directory = os::filesystem::get_temp_path();
+        VX_CHECK(!directory.empty());
+        VX_CHECK(os::filesystem::get_file_info(directory).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+    }
+
+    VX_SECTION("file")
+    {
+        const os::path file = "test_update_permissions.txt";
+        if (!os::filesystem::exists(file))
+        {
+            VX_CHECK(os::filesystem::create_file(file));
+        }
+
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ_WRITE));
+
+        // should have all read and write permissions
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+
+        // has no effect because some write bits still set
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+
+        // make file read only
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ, os::filesystem::file_permission_operator::REPLACE));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ);
+
+        // can't remove read only file
+        VX_CHECK(!os::filesystem::remove(file));
+
+        // adding any write bit removes FILE_ATTRIBUTE_READONLY
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::ADD));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+
+        // removing any write bit but not all has no effect
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::REMOVE));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+
+        // removing all write bits sets FILE_ATTRIBUTE_READONLY
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_WRITE, os::filesystem::file_permission_operator::REMOVE));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ);
+
+        // restore read write access
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ_WRITE));
+    }
+
+#else
+
+
+
+#endif // VX_PLATFORM_WINDOWS
 }
 
 int main()

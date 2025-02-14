@@ -12,14 +12,14 @@ namespace filesystem {
 // File Permissions
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool update_file_permissions_impl(
+inline bool update_permissions_impl(
     const path& p,
     typename file_permissions::type permissions,
     file_permission_operator op,
     bool follow_symlinks
 )
 {
-    unsupported("update_file_permissions");
+    unsupported("update_permissions");
     return false;
 }
 

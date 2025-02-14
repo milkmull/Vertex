@@ -11,7 +11,7 @@ namespace filesystem {
 // File Permissions
 ///////////////////////////////////////////////////////////////////////////////
 
-bool update_file_permissions_impl(
+bool update_permissions_impl(
     const path& p,
     typename file_permissions::type permissions,
     file_permission_operator op,

@@ -114,7 +114,7 @@ static bool update_file_permissions_internal(
     return true;
 }
 
-bool update_file_permissions_impl(
+bool update_permissions_impl(
     const path& p,
     typename file_permissions::type permissions,
     file_permission_operator op,
@@ -220,6 +220,41 @@ static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_
     }
 
     return get_reparse_point_data_from_handle(h, data);
+}
+
+// https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L3117
+// transforms /s in the root-name to \s, and all other directory-separators into single \s
+// example: a/\/b -> a\b
+// example: //server/a////////b////////c////////d -> \\server\a\b\c\d
+static os::path normalize_symlink_target(const os::path& target)
+{
+    const os::path::string_type& text = target.native();
+    const size_t size = text.size();
+    const size_t root_directory_start = os::__detail::path_parser::find_root_directory_start(text.c_str(), size);
+
+    typename os::path::string_type normalized;
+    normalized.reserve(size);
+    bool last_was_slash = false;
+
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (os::__detail::path_parser::is_directory_separator(text[i]))
+        {
+            if (i < root_directory_start || !last_was_slash)
+            {
+                normalized.push_back(os::path::preferred_separator);
+            }
+
+            last_was_slash = true;
+        }
+        else
+        {
+            normalized.push_back(text[i]);
+            last_was_slash = false;
+        }
+    }
+
+    return normalized;
 }
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1684
@@ -793,9 +828,11 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
 
 #else
 
-    if (!CreateSymbolicLinkW(link.c_str(), target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
+    const os::path normalized_target = normalize_symlink_target(target);
+
+    if (!CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
     {
-        if (GetLastError() != ERROR_INVALID_PARAMETER || !CreateSymbolicLinkW(link.c_str(), target.c_str(), flags))
+        if (GetLastError() != ERROR_INVALID_PARAMETER || !CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags))
         {
             windows::error_message("CreateSymbolicLinkW()");
             return false;

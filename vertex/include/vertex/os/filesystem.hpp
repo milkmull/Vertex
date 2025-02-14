@@ -71,7 +71,7 @@ enum class file_permission_operator
     REMOVE
 };
 
-VX_API bool update_file_permissions(
+VX_API bool update_permissions(
     const path& p,
     typename file_permissions::type permissions,
     file_permission_operator op = file_permission_operator::REPLACE,
