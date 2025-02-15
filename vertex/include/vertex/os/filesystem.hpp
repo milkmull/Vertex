@@ -381,11 +381,11 @@ public:
 public:
 
     VX_API size_t depth() const noexcept;
-
     VX_API bool recursion_pending() const noexcept;
     VX_API void disable_pending_recursion() noexcept;
-
     VX_API void pop();
+
+    VX_API bool is_valid() const noexcept;
 
 private:
 

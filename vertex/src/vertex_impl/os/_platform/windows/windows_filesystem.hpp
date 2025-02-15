@@ -165,7 +165,7 @@ public:
     void advance();
     bool is_valid() const noexcept { return !m_stack.empty() && m_stack.back().is_valid(); }
 
-    size_t depth() const noexcept { return m_stack.size(); }
+    size_t depth() const noexcept { return m_stack.size() - 1; }
     bool recursion_pending() const noexcept { return m_recursion_pending; }
     void disable_pending_recursion() noexcept { m_recursion_pending = false; }
     void pop() { pop_stack(); }

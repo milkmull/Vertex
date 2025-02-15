@@ -531,6 +531,11 @@ VX_API void recursive_directory_iterator::pop()
     }
 }
 
+VX_API bool recursive_directory_iterator::is_valid() const noexcept
+{
+    return m_impl && m_impl->is_valid();
+}
+
 void recursive_directory_iterator::validate() noexcept
 {
     if (!m_impl->is_valid())

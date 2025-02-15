@@ -612,6 +612,9 @@ VX_TEST_CASE(test_directory_iterator)
     static_assert(std::is_same<typename os::filesystem::directory_iterator::pointer, const os::filesystem::directory_entry*>::value);
     static_assert(std::is_same<typename os::filesystem::directory_iterator::reference, const os::filesystem::directory_entry&>::value);
 
+    const os::path directory = "test_directory_iterator.dir";
+    VX_CHECK(os::filesystem::create_directory(directory));
+
     VX_SECTION("default constructor")
     {
         os::filesystem::directory_iterator it;
@@ -636,11 +639,271 @@ VX_TEST_CASE(test_directory_iterator)
     }
 
 #endif // VX_PLATFORM_WINDOWS
+
+    VX_SECTION("simple test")
+    {
+        const os::path file = directory / "file.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+
+        os::filesystem::directory_iterator it(directory);
+        VX_CHECK(it.is_valid());
+        VX_CHECK(it != os::filesystem::directory_iterator{});
+
+        VX_CHECK(it == it);
+        VX_CHECK(!(it != it));
+
+        const auto& first_entry = *it;
+        VX_CHECK(first_entry.path == it->path);
+
+        bool found_directory = false;
+        do
+        {
+            found_directory = found_directory || (it->path == file);
+            VX_EXPECT_NO_ERROR(++it);
+
+        } while (it != os::filesystem::directory_iterator{});
+
+        VX_CHECK(found_directory);
+    }
+
+    VX_SECTION("copy and assignment")
+    {
+        const os::filesystem::directory_iterator it1(directory);
+        VX_CHECK(it1.is_valid());
+        VX_CHECK(it1 != os::filesystem::directory_iterator{});
+
+        const os::filesystem::directory_iterator it2(it1);
+        VX_CHECK(it2.is_valid());
+        VX_CHECK(it2 != os::filesystem::directory_iterator{});
+
+        VX_CHECK(it1 == it2);
+        VX_CHECK(!(it1 != it2));
+
+        os::filesystem::directory_iterator it3;
+        it3 = it2;
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(it3 != os::filesystem::directory_iterator{});
+
+        VX_CHECK(it2 == it3);
+        VX_CHECK(!(it2 != it3));
+
+        // self assignment
+        it3 = it3;
+        VX_CHECK(it1 == it3);
+    }
+
+    VX_SECTION("move")
+    {
+        os::filesystem::directory_iterator it1(directory);
+        VX_CHECK(it1.is_valid());
+        VX_CHECK(it1 != os::filesystem::directory_iterator{});
+        const os::path first_entry = it1->path;
+
+        VX_DISABLE_WARNING("", 26800); // disable use after move warning
+        VX_DISABLE_WARNING_PUSH();
+
+        os::filesystem::directory_iterator it2(std::move(it1));
+        VX_CHECK(it2.is_valid());
+        VX_CHECK(!it1.is_valid());
+        VX_CHECK(it2 != os::filesystem::directory_iterator{});
+        VX_CHECK(it1 == os::filesystem::directory_iterator{});
+        VX_CHECK(first_entry == it2->path);
+
+        os::filesystem::directory_iterator it3;
+        it3 = std::move(it2);
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(!it2.is_valid());
+        VX_CHECK(it3 != os::filesystem::directory_iterator{});
+        VX_CHECK(it2 == os::filesystem::directory_iterator{});
+        VX_CHECK(first_entry == it3->path);
+
+        // self move assignment
+        it3 = std::move(it3);
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(it3 != os::filesystem::directory_iterator{});
+
+        VX_DISABLE_WARNING_POP();
+    }
+
+    VX_SECTION("operator++")
+    {
+        os::path file_a = directory / "a.txt";
+        os::path file_b = directory / "b.txt";
+
+        VX_CHECK(os::filesystem::create_file(file_a));
+        VX_CHECK(os::filesystem::create_file(file_b));
+
+        os::filesystem::directory_iterator it(directory);
+        VX_CHECK(it.is_valid());
+        VX_CHECK(it != os::filesystem::directory_iterator{});
+
+        const os::path first_path = it->path;
+
+        while (++it != os::filesystem::directory_iterator{})
+        {
+            VX_CHECK(it->path != first_path);
+        }
+    }
+}
+
+VX_TEST_CASE(test_recursive_directory_iterator)
+{
+    static_assert(std::is_same<typename os::filesystem::recursive_directory_iterator::iterator_category, std::input_iterator_tag>::value);
+    static_assert(std::is_same<typename os::filesystem::recursive_directory_iterator::value_type, os::filesystem::directory_entry>::value);
+    static_assert(std::is_same<typename os::filesystem::recursive_directory_iterator::difference_type, ptrdiff_t>::value);
+    static_assert(std::is_same<typename os::filesystem::recursive_directory_iterator::pointer, const os::filesystem::directory_entry*>::value);
+    static_assert(std::is_same<typename os::filesystem::recursive_directory_iterator::reference, const os::filesystem::directory_entry&>::value);
+
+    const os::path directory = "test_recursive_directory_iterator.dir";
+    VX_CHECK(os::filesystem::create_directory(directory));
+
+    VX_SECTION("default constructor")
+    {
+        os::filesystem::recursive_directory_iterator it;
+    }
+
+    VX_SECTION("nonexistent path")
+    {
+        for (const auto& p : nonexistent_paths)
+        {
+            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::recursive_directory_iterator(p).is_valid());
+        }
+    }
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_SECTION("edge cases")
+    {
+        // Test VSO-844835 "recursive_directory_iterator constructed with empty path iterates over the current directory"
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::recursive_directory_iterator(os::path{}).is_valid());
+        // Test VSO-583725 "recursive_recursive_directory_iterator blows up (memory leak + infinite loop) with embedded nulls"
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::recursive_directory_iterator(std::wstring(L".\0", 2)).is_valid());
+    }
+
+#endif // VX_PLATFORM_WINDOWS
+
+    VX_SECTION("simple test")
+    {
+        const os::path file = directory / "file.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+
+        os::filesystem::recursive_directory_iterator it(directory);
+        VX_CHECK(it.is_valid());
+        VX_CHECK(it != os::filesystem::recursive_directory_iterator{});
+
+        VX_CHECK(it == it);
+        VX_CHECK(!(it != it));
+
+        const auto& first_entry = *it;
+        VX_CHECK(first_entry.path == it->path);
+
+        bool found_directory = false;
+        do
+        {
+            found_directory = found_directory || (it->path == file);
+            VX_EXPECT_NO_ERROR(++it);
+
+        } while (it != os::filesystem::recursive_directory_iterator{});
+
+        VX_CHECK(found_directory);
+    }
+
+    VX_SECTION("copy and assignment")
+    {
+        const os::filesystem::recursive_directory_iterator it1(directory);
+        VX_CHECK(it1.is_valid());
+        VX_CHECK(it1 != os::filesystem::recursive_directory_iterator{});
+
+        const os::filesystem::recursive_directory_iterator it2(it1);
+        VX_CHECK(it2.is_valid());
+        VX_CHECK(it2 != os::filesystem::recursive_directory_iterator{});
+
+        VX_CHECK(it1 == it2);
+        VX_CHECK(!(it1 != it2));
+
+        os::filesystem::recursive_directory_iterator it3;
+        it3 = it2;
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(it3 != os::filesystem::recursive_directory_iterator{});
+
+        VX_CHECK(it2 == it3);
+        VX_CHECK(!(it2 != it3));
+
+        // self assignment
+        it3 = it3;
+        VX_CHECK(it1 == it3);
+    }
+
+    VX_SECTION("move")
+    {
+        os::filesystem::recursive_directory_iterator it1(directory);
+        VX_CHECK(it1.is_valid());
+        VX_CHECK(it1 != os::filesystem::recursive_directory_iterator{});
+        const os::path first_entry = it1->path;
+
+        VX_DISABLE_WARNING("", 26800); // disable use after move warning
+        VX_DISABLE_WARNING_PUSH();
+
+        os::filesystem::recursive_directory_iterator it2(std::move(it1));
+        VX_CHECK(it2.is_valid());
+        VX_CHECK(!it1.is_valid());
+        VX_CHECK(it2 != os::filesystem::recursive_directory_iterator{});
+        VX_CHECK(it1 == os::filesystem::recursive_directory_iterator{});
+        VX_CHECK(first_entry == it2->path);
+
+        os::filesystem::recursive_directory_iterator it3;
+        it3 = std::move(it2);
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(!it2.is_valid());
+        VX_CHECK(it3 != os::filesystem::recursive_directory_iterator{});
+        VX_CHECK(it2 == os::filesystem::recursive_directory_iterator{});
+        VX_CHECK(first_entry == it3->path);
+
+        // self move assignment
+        it3 = std::move(it3);
+        VX_CHECK(it3.is_valid());
+        VX_CHECK(it3 != os::filesystem::recursive_directory_iterator{});
+
+        VX_DISABLE_WARNING_POP();
+    }
+
+    VX_SECTION("operator++")
+    {
+        os::path file_a = directory / "a.txt";
+        os::path file_b = directory / "b.txt";
+
+        VX_CHECK(os::filesystem::create_file(file_a));
+        VX_CHECK(os::filesystem::create_file(file_b));
+
+        os::filesystem::recursive_directory_iterator it(directory);
+        VX_CHECK(it.is_valid());
+        VX_CHECK(it != os::filesystem::recursive_directory_iterator{});
+
+        const os::path first_path = it->path;
+
+        while (++it != os::filesystem::recursive_directory_iterator{})
+        {
+            VX_CHECK(it->path != first_path);
+        }
+    }
+
+    VX_SECTION("misc")
+    {
+        os::filesystem::recursive_directory_iterator it(directory);
+        VX_CHECK(it.is_valid());
+        VX_CHECK(it != os::filesystem::recursive_directory_iterator{});
+
+        VX_CHECK(it.depth() == 0);
+        VX_CHECK(!it.recursion_pending());
+
+        it.pop();
+        VX_CHECK(it == os::filesystem::recursive_directory_iterator{});
+    }
 }
 
 int main()
 {
-    VX_PRINT_ERRORS(true);
+    //VX_PRINT_ERRORS(true);
     VX_RUN_TESTS();
     return 0;
 }
