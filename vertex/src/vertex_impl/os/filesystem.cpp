@@ -370,7 +370,7 @@ VX_API bool rename(const path& from, const path& to)
 VX_API bool remove(const path& p)
 {
     const auto res = remove_impl(p, false);
-    return (res == __detail::remove_error::NONE || res == __detail::remove_error::FILE_NOT_FOUND);
+    return (res == __detail::remove_error::NONE);
 }
 
 static size_t recursive_remove(const path& p)

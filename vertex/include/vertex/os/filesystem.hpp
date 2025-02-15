@@ -221,7 +221,7 @@ namespace __detail {
 enum class remove_error
 {
     NONE,
-    FILE_NOT_FOUND,
+    PATH_NOT_FOUND,
     DIRECTORY_NOT_EMPTY,
     OTHER
 };

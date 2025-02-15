@@ -111,18 +111,12 @@ inline void fail_test(const char* condition, const char* func, int line)
     do \
     { \
         ::vx::err::clear(); \
-        (condition); \
+        condition; \
         VX_CHECK(!::vx::err::get()); \
     } while (0)
 
 #define VX_CHECK_AND_EXPECT_ERROR(condition) VX_EXPECT_ERROR(VX_CHECK(condition))
-
-#define VX_CHECK_ERROR_CODE(condition, error_code) \
-    do \
-    { \
-        (condition); \
-        VX_CHECK(::vx::err::get().code == (error_code)); \
-    } while (0)
+#define VX_CHECK_AND_EXPECT_NO_ERROR(condition) VX_EXPECT_NO_ERROR(VX_CHECK(condition))
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 

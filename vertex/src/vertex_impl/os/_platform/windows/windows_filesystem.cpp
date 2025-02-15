@@ -906,48 +906,101 @@ bool rename_impl(const path& from, const path& to)
 // Remove
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool clear_readonly_attribute(const path& p, DWORD attrs)
+{
+    if (!SetFileAttributesW(p.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY))
+    {
+        windows::error_message("SetFileAttributesW()");
+        return false;
+    }
+    return true;
+}
+
+static void restore_readonly_attributes(const path& p, DWORD attrs)
+{
+    SetFileAttributesW(p.c_str(), attrs);
+}
+
+static __detail::remove_error remove_directory(const path& p, bool in_recursive_remove, DWORD attrs)
+{
+    if (!RemoveDirectoryW(p.c_str()))
+    {
+        restore_readonly_attributes(p, attrs);
+
+        if (GetLastError() == ERROR_DIR_NOT_EMPTY)
+        {
+            // don't report an error in recursive remove
+            if (!in_recursive_remove)
+            {
+                windows::error_message("RemoveDirectoryW()");
+            }
+
+            return __detail::remove_error::DIRECTORY_NOT_EMPTY;
+        }
+
+        windows::error_message("RemoveDirectoryW()");
+        return __detail::remove_error::OTHER;
+    }
+
+    return __detail::remove_error::NONE;
+}
+
+static __detail::remove_error remove_file(const path& p, DWORD attrs)
+{
+    if (!DeleteFileW(p.c_str()))
+    {
+        restore_readonly_attributes(p, attrs);
+
+        windows::error_message("DeleteFileW()");
+        return __detail::remove_error::OTHER;
+    }
+
+    return __detail::remove_error::NONE;
+}
+
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1494
+
+#define not_found_error(e) ( \
+    e == ERROR_FILE_NOT_FOUND       || /* "tools/jam/src/:sys:stat.h", "//foo" */   \
+    e == ERROR_PATH_NOT_FOUND       ||                                              \
+    e == ERROR_INVALID_NAME         ||                                              \
+    e == ERROR_INVALID_DRIVE        || /* USB card reader with no card inserted */  \
+    e == ERROR_NOT_READY            || /* CD/DVD drive with no disc inserted */     \
+    e == ERROR_INVALID_PARAMETER    || /* ":sys:stat.h" */                          \
+    e == ERROR_BAD_PATHNAME         || /* "//no-host" on Win64 */                   \
+    e == ERROR_BAD_NETPATH          || /* "//no-host" on Win32 */                   \
+    e == ERROR_BAD_NET_NAME)           /* "//no-host/no-share" on Win10 x64 */
+
+
 __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 {
     WIN32_FILE_ATTRIBUTE_DATA data{};
     if (!GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &data))
     {
-        if (GetLastError() == ERROR_FILE_NOT_FOUND)
+        const DWORD e = GetLastError();
+        if (not_found_error(e))
         {
-            // Path is already gone
-            return __detail::remove_error::FILE_NOT_FOUND;
+            // path or file is already gone
+            return __detail::remove_error::PATH_NOT_FOUND;
         }
 
         windows::error_message("GetFileAttributesExW()");
         return __detail::remove_error::OTHER;
     }
 
-    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
     {
-        if (!RemoveDirectoryW(p.c_str()))
+        // RemoveDirectoryW and DeleteFileW do not allow to
+        // remove a read-only file, so we have to drop the attribute
+        if (!clear_readonly_attribute(p, data.dwFileAttributes))
         {
-            if (GetLastError() == ERROR_DIR_NOT_EMPTY)
-            {
-                if (!in_recursive_remove)
-                {
-                    windows::error_message("RemoveDirectoryW()");
-                }
-                return __detail::remove_error::DIRECTORY_NOT_EMPTY;
-            }
-
-            windows::error_message("RemoveDirectoryW()");
-            return __detail::remove_error::OTHER;
-        }
-    }
-    else
-    {
-        if (!DeleteFileW(p.c_str()))
-        {
-            windows::error_message("DeleteFileW()");
             return __detail::remove_error::OTHER;
         }
     }
 
-    return __detail::remove_error::NONE;
+    return (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        ? remove_directory(p, in_recursive_remove, data.dwFileAttributes)
+        : remove_file(p, data.dwFileAttributes);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

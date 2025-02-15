@@ -142,6 +142,35 @@ more bonus:
     x check which time_point functions using the standard library can be inlined with noexcept
     x look again at noexcept err::unavailable function
     x add iterator file::write overloads
+    - remove error boolean operator in favor of is_set and get_last
+}
+
+filesystem tests:
+{
+    x get/set current path
+    x temp directory
+    x user folders
+
+    x creation and info (file, directory, symlink, directory symlink)
+
+    x absolute
+    x relative
+    x equivalent
+    x canonical
+
+    x read symlink
+    x update permissions
+
+    x directory iterators
+    
+    - remove
+    - create directories, remove_all
+
+    - copy and recursive directory iterator
+    - rename
+
+    - space
+    - is_empty
 }
 
 testing:
