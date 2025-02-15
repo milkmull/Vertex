@@ -31,7 +31,7 @@ cmake:
 
 system:
 {
-    - platform dependant build config, macros for which library sections should be defined for each platform
+    x platform dependent build config, macros for which library sections should be defined for each platform
     x Organize cmake
     x Install support
     x DLL support
@@ -50,7 +50,7 @@ string:
     x Review to_int errors
     x Float parsing
     x format function
-    - tests
+    x tests
 }
 
 filesystem:
@@ -114,35 +114,38 @@ os revisions:
     - locale make lookup table to convert platform strings to enum values
 }
 
-final touches:
+cleanup and finalizaton for base library:
 {
-    x refactor base64
-    x move numeric string functions to inline
-    x fix VX_API mismatch for time functions
-    x finish marking VX_API functions in os
-}
+    final touches:
+    {
+        x refactor base64
+        x move numeric string functions to inline
+        x fix VX_API mismatch for time functions
+        x finish marking VX_API functions in os
+    }
 
-formatting:
-{
-    x fix struct { enum {} } types
-    x figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
-    x header guards
-    x figure out platform includes
-    x dummy os code
-    x double check pragma once in all headers
-    x no VX_API in platform code
-    - optional compilation (crypto, some os modules)
-    - macros to check if a particular os mudule is available
-}
+    formatting:
+    {
+        x fix struct { enum {} } types
+        x figure out when VX_API is needed and is not needed (destructors, inlines, etc.)
+        x header guards
+        x figure out platform includes
+        x dummy os code
+        x double check pragma once in all headers
+        x no VX_API in platform code
+        - optional compilation (crypto, some os modules)
+        - macros to check if a particular os mudule is available
+    }
 
-more bonus:
-{
-    x add functions to shared_library
-    - add functions to get native handles for os classes
-    x check which time_point functions using the standard library can be inlined with noexcept
-    x look again at noexcept err::unavailable function
-    x add iterator file::write overloads
-    - remove error boolean operator in favor of is_set and get_last
+    more bonus:
+    {
+        x add functions to shared_library
+        - add functions to get native handles for os classes
+        x check which time_point functions using the standard library can be inlined with noexcept
+        x look again at noexcept err::unavailable function
+        x add iterator file::write overloads
+        - remove error boolean operator in favor of is_set and get_last
+    }
 }
 
 filesystem tests:
@@ -221,11 +224,12 @@ testing:
     - system/error (test thread local errors)
 }
 
-finish std:
+finish base library:
 {
     x formatting
-    - test and document stdlib
-    - test cmake installation process
+    - test base library
+    - document library
+    - test cmake installation process (windows)
 }
 
 math:
@@ -273,6 +277,7 @@ renderer:
     - vertex buffer
     - index buffer
     - frame buffer
+    - command queue
 }
 
 bonus:
