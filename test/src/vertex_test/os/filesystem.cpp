@@ -413,6 +413,57 @@ VX_TEST_CASE(test_create_directory_symlink)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_create_hard_link)
+{
+    temp_directory temp_dir("test_create_hard_link.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path file = temp_dir.path / "file.txt";
+    const os::path hard_link = temp_dir.path / "file.hlink";
+
+    VX_CHECK(os::filesystem::create_file(file));
+    VX_CHECK(os::filesystem::create_hard_link(file, hard_link));
+    VX_CHECK(os::filesystem::equivalent(file, hard_link));
+
+    // creating hard link to self should fail
+    VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_hard_link(file, file));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_hard_link_count)
+{
+    temp_directory temp_dir("test_hard_link_count.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path file = temp_dir.path / "file.txt";
+    const os::path link1 = temp_dir.path / "link1.hlink";
+    const os::path link2 = temp_dir.path / "link2.hlink";
+
+    VX_CHECK_AND_EXPECT_ERROR(os::filesystem::hard_link_count(file) == 0);
+
+    VX_CHECK(os::filesystem::create_file(file));
+    VX_CHECK(os::filesystem::hard_link_count(file) == 1);
+
+    VX_CHECK(os::filesystem::create_hard_link(file, link1));
+    VX_CHECK(os::filesystem::hard_link_count(link1) == 2);
+
+    VX_CHECK(os::filesystem::create_hard_link(link1, link2));
+    VX_CHECK(os::filesystem::hard_link_count(link2) == 3);
+
+    VX_CHECK(os::filesystem::remove(link2));
+    VX_CHECK(os::filesystem::hard_link_count(link1) == 2);
+
+    VX_CHECK(os::filesystem::remove(link1));
+    VX_CHECK(os::filesystem::hard_link_count(file) == 1);
+
+    VX_CHECK(os::filesystem::remove(file));
+
+    VX_CHECK_AND_EXPECT_ERROR(os::filesystem::hard_link_count(file) == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_absolute)
 {
     VX_CHECK(os::filesystem::absolute({}) == os::path());

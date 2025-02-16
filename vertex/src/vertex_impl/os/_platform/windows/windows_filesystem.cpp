@@ -430,6 +430,34 @@ file_info get_symlink_info_impl(const path& p)
     return file_info_from_handle(h, p);
 }
 
+size_t hard_link_count_impl(const path& p)
+{
+    windows::handle h = CreateFileW(
+        p.c_str(),
+        FILE_READ_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return 0;
+    }
+
+    BY_HANDLE_FILE_INFORMATION fi;
+    if (!GetFileInformationByHandle(h.get(), &fi))
+    {
+        windows::error_message("GetFileInformationByHandle()");
+        return 0;
+    }
+    
+    return static_cast<size_t>(fi.nNumberOfLinks);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -815,6 +843,35 @@ bool create_file_impl(const path& p)
     return true;
 }
 
+bool create_directory_impl(const path& p)
+{
+    // Note: CreateDirectoryW will return error 123 ("The filename, directory name,  
+    // or volume label syntax is incorrect.") if any individual directory name  
+    // exceeds 255 characters. Using the long path prefix ("\\?\") allows the total  
+    // path length to exceed 260 characters, but each individual directory in the  
+    // path must still be 255 characters or fewer.
+
+    if (!CreateDirectoryW(p.c_str(), NULL))
+    {
+        if (GetLastError() == ERROR_ALREADY_EXISTS)
+        {
+            // Check if the existing path is a directory
+            const DWORD attrs = GetFileAttributesW(p.c_str());
+            if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
+            {
+                return true;
+            }
+
+            // Exists but is not a directory
+        }
+
+        windows::error_message("CreateDirectoryW()");
+        return false;
+    }
+
+    return true;
+}
+
 // https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L26
 // https://github.com/microsoft/STL/blob/main/stl/src/filesystem.cpp#L84
 
@@ -854,39 +911,25 @@ bool create_directory_symlink_impl(const path& target, const path& link)
     return create_symlink_impl(target, link, SYMBOLIC_LINK_FLAG_DIRECTORY);
 }
 
-bool create_directory_impl(const path& p)
+bool create_hard_link_impl(const path& target, const path& link)
 {
-    // Note: CreateDirectoryW will return error 123 ("The filename, directory name,  
-    // or volume label syntax is incorrect.") if any individual directory name  
-    // exceeds 255 characters. Using the long path prefix ("\\?\") allows the total  
-    // path length to exceed 260 characters, but each individual directory in the  
-    // path must still be 255 characters or fewer.
+#if defined(_CRT_APP)
 
-    if (!CreateDirectoryW(p.c_str(), NULL))
+    SetLastError(ERROR_NOT_SUPPORTED);
+    windows::error_message("CreateHardLinkW()");
+    return false;
+
+#else
+
+    if (!CreateHardLinkW(link.c_str(), target.c_str(), NULL))
     {
-        if (GetLastError() == ERROR_ALREADY_EXISTS)
-        {
-            // Check if the existing path is a directory
-            const DWORD attrs = GetFileAttributesW(p.c_str());
-            if (attrs == INVALID_FILE_ATTRIBUTES)
-            {
-                windows::error_message("GetFileAttributesW()");
-                return false;
-            }
-
-            if (attrs & FILE_ATTRIBUTE_DIRECTORY)
-            {
-                return true;
-            }
-
-            // Exists but is not a directory
-        }
-
-        windows::error_message("CreateDirectoryW()");
+        windows::error_message("CreateHardLinkW()");
         return false;
     }
 
     return true;
+
+#endif // _CRT_APP
 }
 
 ///////////////////////////////////////////////////////////////////////////////

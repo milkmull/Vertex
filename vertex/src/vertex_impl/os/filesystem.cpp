@@ -39,6 +39,11 @@ VX_API file_info get_symlink_info(const path& p)
     return get_symlink_info_impl(p);
 }
 
+VX_API size_t hard_link_count(const path& p)
+{
+    return hard_link_count_impl(p);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -119,16 +124,6 @@ VX_API bool create_file(const path& p)
     return create_file_impl(p);
 }
 
-VX_API bool create_symlink(const path& target, const path& link)
-{
-    return create_symlink_impl(target, link);
-}
-
-VX_API bool create_directory_symlink(const path& target, const path& link)
-{
-    return create_directory_symlink_impl(target, link);
-}
-
 VX_API bool create_directory(const path& p)
 {
     return create_directory_impl(p);
@@ -155,6 +150,21 @@ VX_API bool create_directories(const path& p)
     }
 
     return true;
+}
+
+VX_API bool create_symlink(const path& target, const path& link)
+{
+    return create_symlink_impl(target, link);
+}
+
+VX_API bool create_directory_symlink(const path& target, const path& link)
+{
+    return create_directory_symlink_impl(target, link);
+}
+
+VX_API bool create_hard_link(const path& target, const path& link)
+{
+    return create_hard_link_impl(target, link);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

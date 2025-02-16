@@ -25,6 +25,8 @@ bool update_permissions_impl(
 file_info get_file_info_impl(const path& p);
 file_info get_symlink_info_impl(const path& p);
 
+size_t hard_link_count_impl(const path& p);
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -57,9 +59,10 @@ path get_user_folder_impl(user_folder folder);
 ///////////////////////////////////////////////////////////////////////////////
 
 bool create_file_impl(const path& p);
+bool create_directory_impl(const path& p);
 bool create_symlink_impl(const path& target, const path& link);
 bool create_directory_symlink_impl(const path& target, const path& link);
-bool create_directory_impl(const path& p);
+bool create_hard_link_impl(const path& target, const path& link);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Copy

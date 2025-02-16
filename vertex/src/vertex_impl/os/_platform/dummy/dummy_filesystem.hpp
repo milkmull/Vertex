@@ -39,6 +39,12 @@ inline file_info get_symlink_info_impl(const path& p)
     return {};
 }
 
+size_t hard_link_count_impl(const path& p)
+{
+    unsupported("hard_link_count");
+    return 0;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,6 +117,12 @@ inline bool create_file_impl(const path& p)
     return false;
 }
 
+inline bool create_directory_impl(const path& p)
+{
+    unsupported("create_directory");
+    return false;
+}
+
 inline bool create_symlink_impl(const path& target, const path& link)
 {
     unsupported("create_symlink");
@@ -123,9 +135,9 @@ inline bool create_directory_symlink_impl(const path& target, const path& link)
     return false;
 }
 
-inline bool create_directory_impl(const path& p)
+bool create_hard_link_impl(const path& target, const path& link)
 {
-    unsupported("create_directory");
+    unsupported("create_hard_link");
     return false;
 }
 

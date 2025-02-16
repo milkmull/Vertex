@@ -100,6 +100,8 @@ struct file_info
 VX_API file_info get_file_info(const path& p);
 VX_API file_info get_symlink_info(const path& p);
 
+VX_API size_t hard_link_count(const path& p);
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -174,10 +176,11 @@ VX_API path get_user_folder(user_folder folder);
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_API bool create_file(const path& p);
-VX_API bool create_symlink(const path& target, const path& link);
-VX_API bool create_directory_symlink(const path& target, const path& link);
 VX_API bool create_directory(const path& p);
 VX_API bool create_directories(const path& p);
+VX_API bool create_symlink(const path& target, const path& link);
+VX_API bool create_directory_symlink(const path& target, const path& link);
+VX_API bool create_hard_link(const path& target, const path& link);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Copy

@@ -154,7 +154,8 @@ filesystem tests:
     x temp directory
     x user folders
 
-    x creation and info (file, directory, symlink, directory symlink)
+    x creation and info (file, directory, symlink, directory symlink, hard link)
+    - get hard link count
 
     x absolute
     x relative
@@ -167,10 +168,13 @@ filesystem tests:
     x directory iterators
     
     x remove
-    - create directories, remove_all
-
+    x create directories, remove_all
     - recursive directory iterator
+    
+    - copy file
+    - copy symlink
     - copy
+    
     - rename
 
     - space
