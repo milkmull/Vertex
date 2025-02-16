@@ -143,6 +143,7 @@ public:
         : m_path(p)
     {
         push_stack();
+        m_recursion_pending = m_entry.is_directory();
     }
 
     ~recursive_directory_iterator_impl()
@@ -171,7 +172,7 @@ public:
     size_t depth() const noexcept { return m_stack.size() - 1; }
     bool recursion_pending() const noexcept { return m_recursion_pending; }
     void disable_pending_recursion() noexcept { m_recursion_pending = false; }
-    void pop() { pop_stack(); }
+    void pop() { pop_stack(); advance(); }
 
 private:
 

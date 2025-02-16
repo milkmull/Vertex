@@ -544,6 +544,7 @@ VX_API void recursive_directory_iterator::pop()
     else
     {
         m_impl->pop();
+        validate();
     }
 }
 

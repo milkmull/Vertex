@@ -1125,45 +1125,40 @@ static void close_directory_iterator(windows::handle& h)
     h.reset();
 }
 
-static void update_directory_iterator_entry(const path& p, directory_entry& entry, windows::handle& h, const WIN32_FIND_DATAW& find_data)
+static void update_directory_iterator_entry(const path& p, directory_entry& entry, const WIN32_FIND_DATAW& find_data)
 {
-    if (h.is_valid())
-    {
-        entry.path = p / find_data.cFileName;
-        entry.info = create_file_info(
-            entry.path,
-            find_data.dwFileAttributes,
-            find_data.nFileSizeHigh,
-            find_data.nFileSizeLow,
-            find_data.ftCreationTime,
-            find_data.ftLastAccessTime
-        );
-    }
-    else
-    {
-        close_directory_iterator(h);
-    }
+    entry.path = p / find_data.cFileName;
+    entry.info = create_file_info(
+        entry.path,
+        find_data.dwFileAttributes,
+        find_data.nFileSizeHigh,
+        find_data.nFileSizeLow,
+        find_data.ftCreationTime,
+        find_data.ftLastAccessTime
+    );
 }
 
-static void advance_directory_iterator_once(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+static bool advance_directory_iterator_once(windows::handle& h, WIN32_FIND_DATAW& find_data)
 {
-    if (FindNextFileW(h.get(), &find_data))
+    do
     {
-        update_directory_iterator_entry(p, entry, h, find_data);
-    }
-    else
-    {
-        close_directory_iterator(h);
-    }
+        if (!FindNextFileW(h.get(), &find_data))
+        {
+            close_directory_iterator(h);
+            break;
+        }
+
+    } while (is_dot_or_dotdot(find_data.cFileName));
+
+    return h.is_valid();
 }
 
 static void advance_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
 {
-    do
+    if (advance_directory_iterator_once(h, find_data))
     {
-        advance_directory_iterator_once(p, entry, h, find_data);
-
-    } while (h.is_valid() && is_dot_or_dotdot(find_data.cFileName));
+        update_directory_iterator_entry(p, entry, find_data);
+    }
 }
 
 static void open_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
@@ -1196,9 +1191,9 @@ static void open_directory_iterator(const path& p, directory_entry& entry, windo
         return;
     }
 
-    while (is_dot_or_dotdot(find_data.cFileName))
+    if (h.is_valid() && is_dot_or_dotdot(find_data.cFileName))
     {
-        advance_directory_iterator_once(p, entry, h, find_data);
+        advance_directory_iterator(p, entry, h, find_data);
     }
 }
 
@@ -1233,7 +1228,7 @@ bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack
 
     if (!h.is_valid())
     {
-        close_directory_iterator(h);
+        m_path.pop_back();
         return false;
     }
 

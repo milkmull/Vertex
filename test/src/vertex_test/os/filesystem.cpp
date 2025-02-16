@@ -1,6 +1,9 @@
+#include <unordered_set>
+
 #include "vertex_test/test.hpp"
 #include "vertex/os/file.hpp"
 #include "vertex/os/filesystem.hpp"
+#include "vertex/util/memory/memory.hpp"
 
 using namespace vx;
 
@@ -696,6 +699,8 @@ VX_TEST_CASE(test_update_permissions)
 #endif // VX_PLATFORM_WINDOWS
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_directory_iterator)
 {
     temp_directory temp_dir("test_directory_iterator.dir");
@@ -837,6 +842,8 @@ VX_TEST_CASE(test_directory_iterator)
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(test_recursive_directory_iterator)
 {
@@ -993,6 +1000,121 @@ VX_TEST_CASE(test_recursive_directory_iterator)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_recursive_directory_iterator_traversal)
+{
+    temp_directory temp_dir("test_recursive_directory_iterator_traversal.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path directories[] = {
+        temp_dir.path / "A",
+        temp_dir.path / "A/A1",
+        temp_dir.path / "A/A2",
+        temp_dir.path / "B",
+        temp_dir.path / "B/B1",
+        temp_dir.path / "C",
+        temp_dir.path / "C/C1"
+    };
+
+    const os::path files[] = {
+        temp_dir.path / "file_root.txt",
+        temp_dir.path / "A/file_a.txt",
+        temp_dir.path / "A/A1/file_a1.txt",
+        temp_dir.path / "B/B1/file_b1.txt",
+        temp_dir.path / "C/file_c.txt"
+    };
+
+    // Create the pyramid directory structure
+    for (const os::path& p : directories)
+    {
+        VX_CHECK(os::filesystem::create_directory(p));
+    }
+
+    // Place files strategically
+    for (const os::path& p : files)
+    {
+        VX_CHECK(os::filesystem::create_file(p));
+    }
+
+    VX_SECTION("traverses all entries")
+    {
+        constexpr size_t expected_entry_count = mem::array_size(directories) + mem::array_size(files);
+
+        std::unordered_set<os::path> visited_directories;
+        std::unordered_set<os::path> visited_files;
+
+        os::filesystem::recursive_directory_iterator it(temp_dir.path);
+        VX_CHECK(it.is_valid());
+
+        while (it.is_valid())
+        {
+            if (it->is_directory())
+            {
+                visited_directories.insert(it->path);
+            }
+            else
+            {
+                visited_files.insert(it->path);
+            }
+
+            ++it;
+        }
+
+        VX_CHECK((visited_directories.size() + visited_files.size()) == expected_entry_count);
+
+        const std::unordered_set<os::path> expected_directories(std::begin(directories), std::end(directories));
+        VX_CHECK(visited_directories == expected_directories);
+
+        const std::unordered_set<os::path> expected_files(std::begin(files), std::end(files));
+        VX_CHECK(visited_files == expected_files);
+    }
+
+    VX_SECTION("pop method test")
+    {
+        os::filesystem::recursive_directory_iterator it(temp_dir.path);
+        VX_CHECK(it.is_valid());
+
+        while (it.is_valid())
+        {
+            if (it->path.filename() == "B1")
+            {
+                it.pop(); // Should jump back to the parent directory
+                VX_CHECK(it.is_valid());
+                VX_CHECK(it->path.filename() == "C");
+                break;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
+    VX_SECTION("disable_pending_recursion method test")
+    {
+        os::filesystem::recursive_directory_iterator it(temp_dir.path);
+        VX_CHECK(it.is_valid());
+
+        while (it.is_valid())
+        {
+            if (it->path.filename() == "B")
+            {
+                it.disable_pending_recursion(); // Should skip "B/B1"
+                ++it;
+                VX_CHECK(it->path.filename() == "C");
+                break;
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_remove)
 {
     temp_directory temp_dir("test_remove.dir");
@@ -1054,6 +1176,8 @@ VX_TEST_CASE(test_remove)
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
 
 int main()
 {

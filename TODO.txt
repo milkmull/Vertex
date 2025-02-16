@@ -145,6 +145,8 @@ cleanup and finalizaton for base library:
         x look again at noexcept err::unavailable function
         x add iterator file::write overloads
         - remove error boolean operator in favor of is_set and get_last
+        - staticly sized stack array
+        - test path.pop_back()
     }
 }
 
@@ -155,7 +157,7 @@ filesystem tests:
     x user folders
 
     x creation and info (file, directory, symlink, directory symlink, hard link)
-    - get hard link count
+    x get hard link count
 
     x absolute
     x relative
@@ -169,7 +171,7 @@ filesystem tests:
     
     x remove
     x create directories, remove_all
-    - recursive directory iterator
+    x recursive directory iterator
     
     - copy file
     - copy symlink
