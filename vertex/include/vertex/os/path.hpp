@@ -716,13 +716,20 @@ public:
 
     inline path& pop_back()
     {
-        size_t pos = __detail::path_parser::parse_filename(m_path).pos;
-        while (pos != 0 && __detail::path_parser::is_directory_separator(m_path[pos - 1]))
+        const auto root_directory = __detail::path_parser::parse_root_directory(m_path.c_str());
+        const size_t root_path_end = (root_directory.size > 0) ? root_directory.pos + 1 : root_directory.pos;
+
+        size_t new_end = m_path.size();
+        while (new_end != root_path_end && !__detail::path_parser::is_directory_separator(m_path[new_end - 1]))
         {
-            --pos;
+            --new_end;
+        }
+        while (new_end != root_path_end && __detail::path_parser::is_directory_separator(m_path[new_end - 1]))
+        {
+            --new_end;
         }
 
-        m_path.erase(pos);
+        m_path.erase(new_end);
         return *this;
     }
 

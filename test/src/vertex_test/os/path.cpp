@@ -622,6 +622,35 @@ VX_TEST_CASE(append)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(pop_back)
+{
+    VX_CHECK(os::path().pop_back() == "");
+    VX_CHECK(os::path("cat").pop_back() == "");
+    VX_CHECK(os::path("cat/dog").pop_back() == "cat");
+
+    VX_CHECK(os::path("//").pop_back() == "/");
+    VX_CHECK(os::path("//share/").pop_back() == "//share/");
+    VX_CHECK(os::path("//share//////").pop_back() == "//share/");
+    VX_CHECK(os::path("//share/cat").pop_back() == "//share/");
+    VX_CHECK(os::path("//share/cat/dog").pop_back() == "//share/cat");
+
+#if defined(VX_TESTING_WINDOWS_PATH)
+
+    VX_CHECK(os::path("c:cat").pop_back() == "c:");
+    VX_CHECK(os::path("c:/").pop_back() == "c:/");
+    VX_CHECK(os::path("c:/cat").pop_back() == "c:/");
+    VX_CHECK(os::path("c:/cat/").pop_back() == "c:/cat");
+    VX_CHECK(os::path("c:/cat/dog").pop_back() == "c:/cat");
+    VX_CHECK(os::path("c:/cat///////dog").pop_back() == "c:/cat");
+    VX_CHECK(os::path("c:///////dog").pop_back() == "c:/");
+
+#else
+
+#endif // VX_TESTING_WINDOWS_PATH
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(make_preferred)
 {
 #if defined(VX_TESTING_WINDOWS_PATH)
