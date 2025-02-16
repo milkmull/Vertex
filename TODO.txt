@@ -166,10 +166,11 @@ filesystem tests:
 
     x directory iterators
     
-    - remove
+    x remove
     - create directories, remove_all
 
-    - copy and recursive directory iterator
+    - recursive directory iterator
+    - copy
     - rename
 
     - space

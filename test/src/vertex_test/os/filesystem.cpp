@@ -4,10 +4,12 @@
 
 using namespace vx;
 
-const os::path nonexistent_paths[] = {
+static const os::path nonexistent_paths[] = {
     "C:/This/Path/Should/Not/Exist",
     "//this_path_does_not_exist_on_the_network_e9da301701f70ead24c65bd30f600d15/docs",
 };
+
+static const os::path bad_path = "// ?? ?? ///// ?? ?? ? ////";
 
 struct temp_directory
 {
@@ -160,24 +162,71 @@ VX_TEST_CASE(test_create_directory)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_TEST_CASE(test_create_directories)
+VX_TEST_CASE(test_create_directories_and_remove_all)
 {
-    const os::path nested_directories = "create_directories.dir/subdir1/subdir2";
-    VX_EXPECT_NO_ERROR(os::filesystem::remove_all(nested_directories));
+    temp_directory temp_dir("create_directories_and_remove_all.dir");
+    VX_CHECK(temp_dir.exists());
 
-    VX_CHECK(!os::filesystem::exists(nested_directories));
-    VX_CHECK(os::filesystem::create_directories(nested_directories));
+    const os::path directories = temp_dir.path / "a/b/c/d/e/f/g/h/i/j";
 
-    os::filesystem::directory_entry nested_entry{ nested_directories };
-    nested_entry.refresh();
+    VX_SECTION("create and remove")
+    {
+        VX_CHECK(os::filesystem::create_directories(directories));
+        VX_CHECK(os::filesystem::exists(directories));
 
-    VX_CHECK(nested_entry.exists());
-    VX_CHECK(nested_entry.is_directory());
-    VX_CHECK(!nested_entry.is_regular_file());
-    VX_CHECK(!nested_entry.is_symlink());
-    VX_CHECK(!nested_entry.is_other());
+        VX_CHECK_AND_EXPECT_NO_ERROR(os::filesystem::remove_all(directories) > 0);
+        VX_CHECK_AND_EXPECT_NO_ERROR(os::filesystem::remove_all(directories) == 0);
+    }
 
-    VX_EXPECT_NO_ERROR(os::filesystem::remove_all(nested_directories));
+    VX_SECTION("bad path")
+    {
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directories(bad_path));
+        VX_CHECK_AND_EXPECT_NO_ERROR(os::filesystem::remove_all(bad_path) == 0);
+    }
+
+    VX_SECTION("create directory empty path")
+    {
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directories(os::path{}));
+    }
+
+    VX_SECTION("create directories with dots")
+    {
+        const os::path p = temp_dir.path / "a/../b/../c";
+
+        VX_CHECK(os::filesystem::create_directories(p));
+        VX_CHECK(os::filesystem::exists(temp_dir.path / "a"));
+        VX_CHECK(os::filesystem::exists(temp_dir.path / "b"));
+        VX_CHECK(os::filesystem::exists(temp_dir.path / "c"));
+    }
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_SECTION("long path support")
+    {
+        // The long path prefix ("\\?\") requires the path to be absolute
+        const os::path long_root = R"(\\?\)" + os::filesystem::absolute(temp_dir.path).string();
+        const os::path long_full = long_root / std::string(255, 'a');
+
+        VX_CHECK(os::filesystem::create_directories(long_full));
+        VX_CHECK_AND_EXPECT_NO_ERROR(os::filesystem::remove(long_full));
+        VX_CHECK(!os::filesystem::exists(long_full));
+    }
+
+#endif // VX_PLATFORM_WINDOWS
+
+    VX_SECTION("create directory over file")
+    {
+        // Try to create a sub directory where one of the parents is already a file
+        const os::path file = temp_dir.path / "file.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+
+        const os::path sub = file / "sub.dir";
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directories(sub));
+
+        // Try to create a sub directory where the last directory is already a file
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directories(file));
+    }
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -381,17 +430,16 @@ VX_TEST_CASE(test_absolute)
         // On windows MAX_PATH is 260
         constexpr size_t MAX_PATH = 260;
 
-        std::wstring long_path = LR"(\\?\x:\some\)";
-        long_path.resize(MAX_PATH + 10, L'a');
+        os::path long_path = R"(\\?\x:\some\)";
+        long_path /= std::string(255, 'a');
         VX_CHECK(long_path.size() > MAX_PATH);
         VX_CHECK(os::filesystem::absolute(long_path) == long_path);
 
-        long_path.push_back(L'\\');
-        long_path.resize(40000, L'b');
         // Path should be way too long
+        long_path /= std::string(40000, 'b');
         VX_CHECK_AND_EXPECT_ERROR(os::filesystem::absolute(long_path) != long_path);
 
-        long_path.resize(MAX_PATH);
+        long_path = os::path(long_path.c_str(), long_path.c_str() + MAX_PATH);
         VX_CHECK(os::filesystem::absolute(long_path) == long_path);
     }
 

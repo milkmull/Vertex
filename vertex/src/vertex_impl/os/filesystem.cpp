@@ -136,13 +136,19 @@ VX_API bool create_directory(const path& p)
 
 VX_API bool create_directories(const path& p)
 {
-    path tmp = p.root_path();
+    if (p.empty())
+    {
+        err::set(err::INVALID_ARGUMENT);
+        return false;
+    }
+
+    path root = p.root_path();
 
     for (const auto& dir : p.relative_path())
     {
-        tmp /= dir;
+        root /= dir;
 
-        if (!create_directory(tmp))
+        if (!create_directory(root))
         {
             return false;
         }

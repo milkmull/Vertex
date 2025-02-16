@@ -856,13 +856,34 @@ bool create_directory_symlink_impl(const path& target, const path& link)
 
 bool create_directory_impl(const path& p)
 {
+    // Note: CreateDirectoryW will return error 123 ("The filename, directory name,  
+    // or volume label syntax is incorrect.") if any individual directory name  
+    // exceeds 255 characters. Using the long path prefix ("\\?\") allows the total  
+    // path length to exceed 260 characters, but each individual directory in the  
+    // path must still be 255 characters or fewer.
+
     if (!CreateDirectoryW(p.c_str(), NULL))
     {
-        if (GetLastError() != ERROR_ALREADY_EXISTS)
+        if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
-            windows::error_message("CreateDirectoryW()");
-            return false;
+            // Check if the existing path is a directory
+            const DWORD attrs = GetFileAttributesW(p.c_str());
+            if (attrs == INVALID_FILE_ATTRIBUTES)
+            {
+                windows::error_message("GetFileAttributesW()");
+                return false;
+            }
+
+            if (attrs & FILE_ATTRIBUTE_DIRECTORY)
+            {
+                return true;
+            }
+
+            // Exists but is not a directory
         }
+
+        windows::error_message("CreateDirectoryW()");
+        return false;
     }
 
     return true;
