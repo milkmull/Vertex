@@ -514,6 +514,35 @@ VX_TEST_CASE(test_modify_time)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_file_size)
+{
+    temp_directory temp_dir("test_file_size.dir");
+    VX_CHECK(temp_dir.exists());
+
+    VX_SECTION("existing file")
+    {
+        const os::path file = temp_dir.path / "file.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+        VX_CHECK(os::filesystem::get_file_info(file).size == 0);
+
+        const uint8_t text[] = "hello";
+        VX_CHECK(os::file::write_file(file, text, sizeof(text)));
+        VX_CHECK(os::filesystem::get_file_info(file).size == sizeof(text));
+    }
+
+    VX_SECTION("nonexistent path")
+    {
+        VX_CHECK(os::filesystem::get_file_info(os::path{}).size == 0);
+
+        for (const auto& p : nonexistent_paths)
+        {
+            VX_CHECK(os::filesystem::get_file_info(p).size == 0);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_absolute)
 {
     VX_CHECK(os::filesystem::absolute({}) == os::path());

@@ -158,7 +158,7 @@ filesystem tests:
     x creation and info (file, directory, symlink, directory symlink, hard link)
     x get hard link count
     
-    - last write time
+    x last write time
     - file size
 
     x absolute
