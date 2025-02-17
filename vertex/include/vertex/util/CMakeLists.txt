@@ -20,6 +20,7 @@ file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/iterator/proxy.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fixed_array.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"

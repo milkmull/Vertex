@@ -144,9 +144,8 @@ cleanup and finalizaton for base library:
         x check which time_point functions using the standard library can be inlined with noexcept
         x look again at noexcept err::unavailable function
         x add iterator file::write overloads
-        - remove error boolean operator in favor of is_set and get_last
         - staticly sized stack array
-        - test path.pop_back()
+        x test path.pop_back()
     }
 }
 

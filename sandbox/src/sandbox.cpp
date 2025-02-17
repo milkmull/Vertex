@@ -1,21 +1,51 @@
 ﻿#include "vertex/system/log.hpp"
+#include "vertex/util/fixed_array.hpp"
 
-#include "vertex/os/filesystem.hpp"
+#define VX_ENABLE_PROFILING
+#include "vertex/system/profiler.hpp"
+
+#include <vector>
+#include <numeric>
 
 using namespace vx;
 
+static void vector_iteration_test()
+{
+    constexpr size_t count = 10'000;
+    VX_PROFILE_FUNCTION();
+
+    std::vector<int> data(count);
+    std::iota(data.begin(), data.end(), 0);
+
+    volatile int sum = 0;
+    for (auto v : data)
+        sum += v;
+}
+
+static void fixed_array_iteration_test()
+{
+    constexpr size_t count = 10'000;
+    VX_PROFILE_FUNCTION();
+
+    fixed_array<int> data(count);
+    std::iota(data.begin(), data.end(), 0);
+
+    volatile int sum = 0;
+    for (auto v : data)
+        sum += v;
+}
+
 int main(int argc, char* argv[])
 {
-    os::filesystem::space_info info;
-    const auto p = os::filesystem::get_current_path();
+    VX_PROFILE_START("../../assets/profile_results.txt");
 
-    if (os::filesystem::space(p, info))
+    for (int i = 0; i < 10'000; ++i)
     {
-        VX_LOG_INFO << p;
-        VX_LOG_INFO << "capacity: " << info.capacity;
-        VX_LOG_INFO << "free: " << info.free;
-        VX_LOG_INFO << "available: " << info.available;
+        vector_iteration_test();
+        fixed_array_iteration_test();
     }
+
+    VX_PROFILE_STOP();
 
     return 0;
 }
