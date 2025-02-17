@@ -222,7 +222,7 @@ struct copy_options
 
 VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing = true);
 VX_API bool copy_symlink(const path& from, const path& to);
-VX_API bool copy(const path& from, const path& to, typename copy_options::type options = copy_options::RECURSIVE);
+VX_API bool copy(const path& from, const path& to, typename copy_options::type options = copy_options::NONE);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Rename

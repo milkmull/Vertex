@@ -175,8 +175,8 @@ filesystem tests:
     x create directories, remove_all
     x recursive directory iterator
     
-    - copy file
-    - copy symlink
+    x copy file
+    x copy symlink
     - copy
     
     - rename

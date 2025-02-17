@@ -268,8 +268,9 @@ VX_API bool copy_symlink(const path& from, const path& to)
 }
 
 // https://en.cppreference.com/w/cpp/filesystem/copy
+// https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2814
 
-VX_API bool copy(const path& from, const path& to, typename copy_options::type options)
+static bool copy_internal(const path& from, const path& to, typename copy_options::type options, bool recursing)
 {
     file_info from_info, to_info;
 
@@ -288,7 +289,7 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
     // If from does not exist, reports an error
     if (!from_info.exists())
     {
-        throw_copy_error(copy_error::EQUIVALENT_PATHS, from, to);
+        throw_copy_error(copy_error::FROM_NOT_FOUND, from, to);
         return false;
     }
 
@@ -296,25 +297,6 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
     if (equivalent(from, to))
     {
         throw_copy_error(copy_error::EQUIVALENT_PATHS, from, to);
-        return false;
-    }
-
-    // If either from or to is not a regular file, a directory, or a symlink, as determined by is_other, reports an error
-    if (from_info.is_other())
-    {
-        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from, to);
-        return false;
-    }
-    if (to_info.exists() && to_info.is_other())
-    {
-        throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from, to);
-        return false;
-    }
-
-    // If from is a directory, but to is a regular file, reports an error
-    if (from_info.is_directory() && to_info.is_regular_file())
-    {
-        throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from, to);
         return false;
     }
 
@@ -326,14 +308,13 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
             return true;
         }
 
-        VX_ASSERT(options & copy_options::COPY_SYMLINKS);
-
         if (to_info.exists())
         {
             throw_copy_error(copy_error::TO_PATH_ALREADY_EXISTS, from, to);
             return false;
         }
 
+        VX_ASSERT(options & copy_options::COPY_SYMLINKS);
         return copy_symlink(from, to);
     }
     else if (from_info.is_regular_file())
@@ -345,34 +326,55 @@ VX_API bool copy(const path& from, const path& to, typename copy_options::type o
         }
 
         // If to is a directory, creates a copy of from as a file in the directory to
-        if (to_info.is_directory())
+        const os::path to_path = to_info.is_directory() ? (to / from.filename()) : to;
+        return copy_file_impl(from, to_path, (options & copy_options::OVERWRITE_EXISTING));
+    }
+    else if (from_info.is_directory())
+    {
+        // If from is a directory, but to is a regular file, reports an error
+        if (to_info.is_regular_file())
         {
-            return copy_file_impl(from, to / from.filename(), (options & copy_options::OVERWRITE_EXISTING));
+            throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from, to);
+            return false;
         }
 
-        return copy_file_impl(from, to, (options & copy_options::OVERWRITE_EXISTING));
-    }
-    else // from_info.is_directory()
-    {
         // Create the directory
         if (!to_info.exists() && !create_directory(to))
         {
             return false;
         }
 
-        if (options & copy_options::RECURSIVE)
+        // we remove the overwrite existing flag here because it should have no say on if we recurse
+        const bool skip_directories = (!recursing && !(options & copy_options::RECURSIVE));
+
+        for (const auto& e : directory_iterator(from))
         {
-            for (const auto& e : directory_iterator(from))
+            // if we are at the top level and copy options
+            // is none, we skip any internal directories
+            if (e.is_directory() && skip_directories)
             {
-                if (!copy(e.path, to / e.path.filename(), options))
-                {
-                    return false;
-                }
+                continue;
+            }
+
+            if (!copy_internal(e.path, to / e.path.filename(), options, true))
+            {
+                return false;
             }
         }
     }
+    else // from_info.is_other()
+    {
+        // If from is not a regular file, a directory, or a symlink, as determined by is_other, reports an error
+        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from, to);
+        return false;
+    }
 
     return true;
+}
+
+VX_API bool copy(const path& from, const path& to, typename copy_options::type options)
+{
+    return copy_internal(from, to, options, false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
