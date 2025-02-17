@@ -51,6 +51,13 @@ struct temp_directory
     os::path path;
 };
 
+static bool compare_contents(const os::path& p, const std::string& text)
+{
+    std::vector<uint8_t> data;
+    os::file::read_file(p, data);
+    return std::equal(data.begin(), data.end(), text.begin(), text.end());
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(test_current_path_and_temp_path)
@@ -1243,13 +1250,6 @@ VX_TEST_CASE(test_remove)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool compare_contents(const os::path& p, const std::string& text)
-{
-    std::vector<uint8_t> data;
-    os::file::read_file(p, data);
-    return std::equal(data.begin(), data.end(), text.begin(), text.end());
-}
-
 VX_TEST_CASE(test_copy_file)
 {
     temp_directory temp_dir("test_copy_file.dir");
@@ -1503,7 +1503,7 @@ VX_TEST_CASE(test_copy)
         VX_CHECK(!it.is_valid());
     }
 
-    VX_SECTION("recursive copy")
+    VX_SECTION("copy directories only")
     {
         VX_CHECK(create_structure());
         VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::DIRECTORIES_ONLY));
@@ -1551,6 +1551,55 @@ VX_TEST_CASE(test_copy)
         }
 
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy(bad_path, temp_dir_path));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_rename)
+{
+    temp_directory temp_dir("test_rename.dir");
+    VX_CHECK(temp_dir.exists());
+
+    VX_SECTION("rename file")
+    {
+        const os::path file1 = temp_dir.path / "file1.txt";
+        const os::path file2 = temp_dir.path / "file2.txt";
+
+        const uint8_t text1[] = "hello";
+        const uint8_t text2[] = "world";
+
+        VX_CHECK(os::file::write_file(file1, text1, sizeof(text1)));
+        VX_CHECK(os::file::write_file(file2, text2, sizeof(text2)));
+
+        // rename should have no effect if source and target are the same
+        VX_CHECK(os::filesystem::rename(file1, file1));
+        VX_CHECK(compare_contents(file1, std::string(text1, text1 + sizeof(text1))));
+
+        // rename file1 to file2, file1 should be gone
+        VX_CHECK(os::filesystem::rename(file1, file2));
+        VX_CHECK(!os::filesystem::exists(file1));
+        VX_CHECK(compare_contents(file2, std::string(text1, text1 + sizeof(text1))));
+
+        // rename file2 back to file1, file2 should not exist anymore
+        VX_CHECK(os::filesystem::rename(file2, file1));
+        VX_CHECK(!os::filesystem::exists(file2));
+        VX_CHECK(compare_contents(file1, std::string(text1, text1 + sizeof(text1))));
+    }
+
+    VX_SECTION("rename directory")
+    {
+        const os::path dir1 = temp_dir.path / "dir1";
+        const os::path dir2 = temp_dir.path / "dir2";
+
+        VX_CHECK(os::filesystem::create_directory(dir1));
+        VX_CHECK(os::filesystem::create_directory(dir2));
+
+        // rename should have no effect if source and target are the same
+        VX_CHECK(os::filesystem::rename(dir1, dir1));
+
+        // bad case (can't overwrite existing directory)
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::rename(dir1, dir2));
     }
 }
 

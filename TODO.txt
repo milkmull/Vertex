@@ -177,7 +177,7 @@ filesystem tests:
     
     x copy file
     x copy symlink
-    - copy
+    x copy
     
     - rename
 
