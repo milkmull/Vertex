@@ -66,37 +66,6 @@ public:
 public:
 
     ///////////////////////////////////////////////////////////////////////////////
-    // Windows
-    ///////////////////////////////////////////////////////////////////////////////
-
-    // Epoch difference between 1601-01-01 and 1970-01-01 in 100 nanosecond units
-#   define DELTA_EPOCH_1601_100NS (11644473600ull * 10000000ull)
-
-    static constexpr time_point from_windows_file_time(uint32_t low, uint32_t high) noexcept
-    {
-        // Convert FILETIME (100-nanosecond intervals since 1601-01-01) to a 64-bit integer
-        uint64_t wtime = (static_cast<uint64_t>(high) << 32) | low;
-        // Adjust for Unix epoch and convert to nanoseconds (100-nanosecond intervals to nanoseconds)
-        uint64_t ticks = (wtime - DELTA_EPOCH_1601_100NS) * 100;
-        // Already in nanoseconds
-        return time_point{ static_cast<int64_t>(ticks) };
-    }
-
-    constexpr void to_windows_file_time(uint32_t& low, uint32_t& high) const noexcept
-    {
-        // Convert time_point from nanoseconds since Unix epoch to 100-nanosecond intervals since 1601-01-01
-        uint64_t wtime = static_cast<uint64_t>((m_count / 100) + DELTA_EPOCH_1601_100NS);
-
-        // Split the 64-bit ticks into two 32-bit parts for FILETIME
-        low = static_cast<uint32_t>(wtime);
-        high = static_cast<uint32_t>(wtime >> 32);
-    }
-
-#   undef DELTA_EPOCH_1601_100NS
-
-public:
-
-    ///////////////////////////////////////////////////////////////////////////////
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 

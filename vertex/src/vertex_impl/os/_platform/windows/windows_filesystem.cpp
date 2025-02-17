@@ -343,8 +343,8 @@ static file_info create_file_info(
         get_file_type(p, dwFileAttributes),
         get_file_permissions(p, dwFileAttributes),
         (static_cast<size_t>(nFileSizeHigh) << 32) | nFileSizeLow,
-        time::time_point::from_windows_file_time(ftCreationTime.dwLowDateTime, ftCreationTime.dwHighDateTime),
-        time::time_point::from_windows_file_time(ftLastWriteTime.dwLowDateTime, ftLastWriteTime.dwHighDateTime)
+        windows::time_point_from_file_time(ftCreationTime.dwLowDateTime, ftCreationTime.dwHighDateTime),
+        windows::time_point_from_file_time(ftLastWriteTime.dwLowDateTime, ftLastWriteTime.dwHighDateTime)
     };
 }
 
@@ -456,6 +456,36 @@ size_t hard_link_count_impl(const path& p)
     }
     
     return static_cast<size_t>(fi.nNumberOfLinks);
+}
+
+bool set_modify_time_impl(const path& p, time::time_point t)
+{
+    windows::handle h = CreateFileW(
+        p.c_str(),
+        FILE_WRITE_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS,
+        NULL
+    );
+
+    if (!h.is_valid())
+    {
+        windows::error_message("CreateFileW()");
+        return 0;
+    }
+
+    FILETIME ft{};
+    windows::time_point_to_file_time(t, ft.dwLowDateTime, ft.dwHighDateTime);
+
+    if (!SetFileTime(h.get(), NULL, NULL, &ft))
+    {
+        windows::error_message("SetFileTime()");
+        return false;
+    }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

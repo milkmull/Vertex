@@ -102,6 +102,21 @@ VX_API file_info get_symlink_info(const path& p);
 
 VX_API size_t hard_link_count(const path& p);
 
+inline time::time_point get_modify_time(const path& p)
+{
+    const file_info info = get_symlink_info(p);
+    
+    if (!info.exists())
+    {
+        err::set(err::INVALID_ARGUMENT);
+        return time::time_point{};
+    }
+
+    return info.modify_time;
+}
+
+VX_API bool set_modify_time(const path& p, time::time_point t);
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
@@ -233,19 +248,6 @@ enum class remove_error
 
 VX_API bool remove(const path& p);
 VX_API size_t remove_all(const path& p);
-
-///////////////////////////////////////////////////////////////////////////////
-// Space
-///////////////////////////////////////////////////////////////////////////////
-
-struct space_info
-{
-    size_t capacity;
-    size_t free;
-    size_t available;
-};
-
-VX_API bool space(const path& p, space_info& info);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directory Entry
@@ -411,19 +413,26 @@ inline recursive_directory_iterator end(recursive_directory_iterator) noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// Space
+///////////////////////////////////////////////////////////////////////////////
+
+struct space_info
+{
+    size_t capacity;
+    size_t free;
+    size_t available;
+};
+
+VX_API bool space(const path& p, space_info& info);
+
+///////////////////////////////////////////////////////////////////////////////
 // is_empty
 ///////////////////////////////////////////////////////////////////////////////
 
 inline bool is_empty(const os::path& p)
 {
-    const file_info info = get_file_info(p);
-
-    if (info.is_directory())
-    {
-        return directory_iterator(p) == end(directory_iterator(p));
-    }
-
-    return info.size == 0;
+    const file_info info = get_symlink_info(p);
+    return info.is_directory() ? !directory_iterator(p).is_valid() : (info.size == 0);
 }
 
 } // namespace filesystem

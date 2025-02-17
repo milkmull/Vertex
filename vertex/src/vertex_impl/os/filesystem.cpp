@@ -44,6 +44,11 @@ VX_API size_t hard_link_count(const path& p)
     return hard_link_count_impl(p);
 }
 
+VX_API bool set_modify_time(const path& p, time::time_point t)
+{
+    return set_modify_time_impl(p, t);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////

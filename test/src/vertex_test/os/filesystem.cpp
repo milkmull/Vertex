@@ -467,6 +467,53 @@ VX_TEST_CASE(test_hard_link_count)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_modify_time)
+{
+    temp_directory temp_dir("test_create_hard_link.dir");
+    VX_CHECK(temp_dir.exists());
+
+    VX_SECTION("existing file")
+    {
+        const os::path file = temp_dir.path / "file.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+
+        time::time_point modify_time = os::filesystem::get_modify_time(file);
+        const time::time_point now = os::system_time();
+        VX_CHECK(now - time::minutes(30) <= modify_time && modify_time <= now + time::minutes(30));
+
+        const time::time_point test_time = now;
+        VX_CHECK(os::filesystem::set_modify_time(file, test_time));
+        VX_CHECK(os::filesystem::get_modify_time(file) == test_time);
+    }
+
+    VX_SECTION("existing directory")
+    {
+        const os::path directory = temp_dir.path / "directory.dir";
+        VX_CHECK(os::filesystem::create_directory(directory));
+
+        time::time_point modify_time = os::filesystem::get_modify_time(directory);
+        const time::time_point now = os::system_time();
+        VX_CHECK(now - time::minutes(30) <= modify_time && modify_time <= now + time::minutes(30));
+
+        const time::time_point test_time = now;
+        VX_CHECK(os::filesystem::set_modify_time(directory, test_time));
+        VX_CHECK(os::filesystem::get_modify_time(directory) == test_time);
+    }
+
+    VX_SECTION("nonexistent path")
+    {
+        VX_CHECK_AND_EXPECT_ERROR(os::filesystem::get_modify_time(os::path{}).as_nanoseconds() == 0);
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::set_modify_time(os::path{}, time::time_point{1}));
+
+        for (const auto& p : nonexistent_paths)
+        {
+            VX_CHECK_AND_EXPECT_ERROR(os::filesystem::get_modify_time(p).as_nanoseconds() == 0);
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_absolute)
 {
     VX_CHECK(os::filesystem::absolute({}) == os::path());
@@ -1176,6 +1223,25 @@ VX_TEST_CASE(test_remove)
         }
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+//VX_TEST_CASE(test_copy_file)
+//{
+//    temp_directory temp_dir("test_copy_file.dir");
+//    VX_CHECK(temp_dir.exists());
+//
+//    VX_SECTION("source and destination are not file")
+//    {
+//        const os::path from_dir = temp_dir.path / "from.dir";
+//        const os::path to_dir = temp_dir.path / "to.dir";
+//
+//        VX_CHECK(os::filesystem::create_directory(from_dir));
+//        VX_CHECK(os::filesystem::create_directory(to_dir));
+//
+//        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(from_dir, to_dir));
+//    }
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 

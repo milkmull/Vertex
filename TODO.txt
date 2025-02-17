@@ -144,7 +144,7 @@ cleanup and finalizaton for base library:
         x check which time_point functions using the standard library can be inlined with noexcept
         x look again at noexcept err::unavailable function
         x add iterator file::write overloads
-        - staticly sized stack array
+        x staticly sized stack array
         x test path.pop_back()
     }
 }
@@ -157,6 +157,9 @@ filesystem tests:
 
     x creation and info (file, directory, symlink, directory symlink, hard link)
     x get hard link count
+    
+    - last write time
+    - file size
 
     x absolute
     x relative

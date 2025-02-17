@@ -6,9 +6,8 @@ namespace os {
 
 time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool local)
 {
-    uint32_t low, high;
-    tp.to_windows_file_time(low, high);
-    FILETIME ft{ static_cast<DWORD>(low), static_cast<DWORD>(high) };
+    FILETIME ft{};
+    windows::time_point_to_file_time(tp, ft.dwLowDateTime, ft.dwHighDateTime);
 
     SYSTEMTIME utc_st, local_st;
     SYSTEMTIME* st = NULL;
@@ -36,7 +35,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
             return dt;
         }
 
-        time::time_point local_ticks = time::time_point::from_windows_file_time(local_ft.dwLowDateTime, local_ft.dwHighDateTime);
+        time::time_point local_ticks = windows::time_point_from_file_time(local_ft.dwLowDateTime, local_ft.dwHighDateTime);
         // Convert from nanoseconds to seconds
         dt.utc_offset_seconds = static_cast<int32_t>((local_ticks - tp).as_seconds());
         st = &local_st;
@@ -68,7 +67,7 @@ time::time_point system_time_impl() noexcept
 {
     FILETIME ft{};
     GetSystemTimePreciseAsFileTime(&ft);
-    return time::time_point::from_windows_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
+    return windows::time_point_from_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
 }
 
 int64_t get_performance_counter_impl() noexcept
