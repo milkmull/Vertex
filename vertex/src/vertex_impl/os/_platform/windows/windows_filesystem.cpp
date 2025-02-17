@@ -409,8 +409,6 @@ file_info get_file_info_impl(const path& p)
 
 file_info get_symlink_info_impl(const path& p)
 {
-    file_info info{};
-
     windows::handle h = CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES | FILE_READ_EA,
@@ -424,7 +422,7 @@ file_info get_symlink_info_impl(const path& p)
     if (!h.is_valid())
     {
         //windows::error_message("CreateFileW()");
-        return info;
+        return {};
     }
 
     return file_info_from_handle(h, p);

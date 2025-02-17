@@ -264,7 +264,7 @@ VX_API bool copy_symlink(const path& from, const path& to)
         return false;
     }
 
-    return create_symlink(target, to);
+    return is_directory(from) ? create_directory_symlink(target, to) : create_symlink(target, to);
 }
 
 // https://en.cppreference.com/w/cpp/filesystem/copy

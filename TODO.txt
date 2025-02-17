@@ -159,7 +159,7 @@ filesystem tests:
     x get hard link count
     
     x last write time
-    - file size
+    x file size
 
     x absolute
     x relative
@@ -229,8 +229,6 @@ testing:
     - os/shared_library
     - os/locale
     - os/memory
-
-    - system/error (test thread local errors)
 }
 
 finish base library:

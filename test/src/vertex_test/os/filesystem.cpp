@@ -286,7 +286,8 @@ VX_TEST_CASE(test_create_symlink)
 
         VX_CHECK(os::filesystem::create_file(file));
         VX_CHECK(!os::filesystem::exists(symlink));
-        VX_CHECK(os::filesystem::create_symlink(file, symlink));
+        VX_CHECK(os::filesystem::create_symlink(file.filename(), symlink));
+        VX_CHECK(os::filesystem::equivalent(file, symlink));
 
         os::filesystem::directory_entry symlink_entry{ symlink };
         symlink_entry.refresh();
@@ -302,9 +303,12 @@ VX_TEST_CASE(test_create_symlink)
         VX_CHECK(!symlink_entry.is_directory());
         VX_CHECK(symlink_entry.is_symlink());
         VX_CHECK(!symlink_entry.is_other());
+
+        VX_CHECK(os::filesystem::is_regular_file(symlink));
+        VX_CHECK(os::filesystem::is_symlink(symlink));
         
         // creating a symlink that exists already should throw
-        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(file, symlink));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(file.filename(), symlink));
     }
 
     VX_SECTION("create symlink to nonexistent file")
@@ -314,7 +318,7 @@ VX_TEST_CASE(test_create_symlink)
 
         VX_CHECK(!os::filesystem::exists(file));
         VX_CHECK(!os::filesystem::exists(symlink));
-        VX_CHECK(os::filesystem::create_symlink(file, symlink));
+        VX_CHECK(os::filesystem::create_symlink(file.filename(), symlink));
 
         os::filesystem::directory_entry symlink_entry{ symlink };
         symlink_entry.refresh();
@@ -330,16 +334,6 @@ VX_TEST_CASE(test_create_symlink)
         VX_CHECK(!symlink_entry.is_directory());
         VX_CHECK(symlink_entry.is_symlink());
         VX_CHECK(!symlink_entry.is_other());
-    }
-
-    VX_SECTION("create symlink to malformed source")
-    {
-        const os::path symlink = temp_dir.path / "symlink_to_malformed_source.link";
-
-        for (const auto& p : nonexistent_paths)
-        {
-            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(symlink, p));
-        }
     }
 }
 
@@ -357,7 +351,8 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         VX_CHECK(os::filesystem::create_directory(directory));
         VX_CHECK(!os::filesystem::exists(directory_symlink));
-        VX_CHECK(os::filesystem::create_directory_symlink(directory, directory_symlink));
+        VX_CHECK(os::filesystem::create_directory_symlink(directory.filename(), directory_symlink));
+        VX_CHECK(os::filesystem::equivalent(directory, directory_symlink));
 
         os::filesystem::directory_entry directory_symlink_entry{ directory_symlink };
         directory_symlink_entry.refresh();
@@ -374,8 +369,11 @@ VX_TEST_CASE(test_create_directory_symlink)
         VX_CHECK(directory_symlink_entry.is_symlink());
         VX_CHECK(!directory_symlink_entry.is_other());
 
+        VX_CHECK(os::filesystem::is_directory(directory_symlink));
+        VX_CHECK(os::filesystem::is_symlink(directory_symlink));
+
         // creating a symlink that exists already should throw
-        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(directory, directory_symlink));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(directory.filename(), directory_symlink));
     }
 
     VX_SECTION("create directory symlink to nonexistent directory")
@@ -385,7 +383,7 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         VX_CHECK(!os::filesystem::exists(directory));
         VX_CHECK(!os::filesystem::exists(directory_symlink));
-        VX_CHECK(os::filesystem::create_directory_symlink(directory, directory_symlink));
+        VX_CHECK(os::filesystem::create_directory_symlink(directory.filename(), directory_symlink));
 
         os::filesystem::directory_entry directory_symlink_entry{ directory_symlink };
         directory_symlink_entry.refresh();
@@ -401,16 +399,6 @@ VX_TEST_CASE(test_create_directory_symlink)
         VX_CHECK(!directory_symlink_entry.is_directory());
         VX_CHECK(directory_symlink_entry.is_symlink());
         VX_CHECK(!directory_symlink_entry.is_other());
-    }
-
-    VX_SECTION("create directory symlink to malformed source")
-    {
-        const os::path directory_symlink = temp_dir.path / "directory_symlink_to_malformed_source.dirlink";
-
-        for (const auto& p : nonexistent_paths)
-        {
-            VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_directory_symlink(directory_symlink, p));
-        }
     }
 }
 
@@ -1255,22 +1243,112 @@ VX_TEST_CASE(test_remove)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//VX_TEST_CASE(test_copy_file)
-//{
-//    temp_directory temp_dir("test_copy_file.dir");
-//    VX_CHECK(temp_dir.exists());
-//
-//    VX_SECTION("source and destination are not file")
-//    {
-//        const os::path from_dir = temp_dir.path / "from.dir";
-//        const os::path to_dir = temp_dir.path / "to.dir";
-//
-//        VX_CHECK(os::filesystem::create_directory(from_dir));
-//        VX_CHECK(os::filesystem::create_directory(to_dir));
-//
-//        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(from_dir, to_dir));
-//    }
-//}
+static bool compare_contents(const os::path& p, const std::string& text)
+{
+    std::vector<uint8_t> data;
+    os::file::read_file(p, data);
+    return std::equal(data.begin(), data.end(), text.begin(), text.end());
+}
+
+VX_TEST_CASE(test_copy_file)
+{
+    temp_directory temp_dir("test_copy_file.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path file = temp_dir.path / "file.txt";
+    const std::string text = "hello";
+    VX_CHECK(os::file::write_file(file, reinterpret_cast<const uint8_t*>(text.data()), text.size()));
+
+    VX_SECTION("source and/or destination are not file")
+    {
+        const os::path from_dir = temp_dir.path / "from.dir";
+        const os::path to_dir = temp_dir.path / "to.dir";
+
+        VX_CHECK(os::filesystem::create_directory(from_dir));
+        VX_CHECK(os::filesystem::create_directory(to_dir));
+
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(from_dir, to_dir));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(file, to_dir));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(from_dir, file));
+    }
+
+    VX_SECTION("source and destination are equivalent")
+    {
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy_file(file, file));
+    }
+
+    VX_SECTION("success")
+    {
+        const os::path success = temp_dir.path / "success.txt";
+
+        VX_CHECK(os::filesystem::copy_file(file, success));
+        VX_CHECK(compare_contents(success, text));
+
+        // clear the file to check for overwrite
+        VX_CHECK(os::file::clear_file(success));
+        VX_CHECK(os::filesystem::copy_file(file, success, false));
+        VX_CHECK(compare_contents(success, std::string{}));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_copy_symlink)
+{
+    temp_directory temp_dir("test_copy_symlink.dir");
+    VX_CHECK(temp_dir.exists());
+
+    VX_SECTION("file")
+    {
+        const os::path file = temp_dir.path / "file.txt";
+        const os::path link = temp_dir.path / "file_link.link";
+        const os::path link_copy = temp_dir.path / "file_link_copy.link";
+
+        VX_CHECK(os::filesystem::create_file(file));
+        VX_CHECK(os::filesystem::is_regular_file(file));
+        VX_CHECK(!os::filesystem::is_directory(file));
+
+        VX_CHECK(os::filesystem::create_symlink(file.filename(), link));
+        VX_CHECK(os::filesystem::equivalent(file, link));
+        VX_CHECK(os::filesystem::get_file_info(link).is_regular_file());
+
+        VX_CHECK(os::filesystem::copy_symlink(link, link_copy));
+        VX_CHECK(os::filesystem::equivalent(link, link_copy));
+        VX_CHECK(os::filesystem::get_file_info(link_copy).is_regular_file());
+    }
+
+    VX_SECTION("directory")
+    {
+        const os::path directory = temp_dir.path / "directory.dir";
+        const os::path link = temp_dir.path / "directory_link.dirlink";
+        const os::path link_copy = temp_dir.path / "directory_link_copy.dirlink";
+
+        VX_CHECK(os::filesystem::create_directory(directory));
+        VX_CHECK(os::filesystem::is_directory(directory));
+        VX_CHECK(!os::filesystem::is_regular_file(directory));
+
+        VX_CHECK(os::filesystem::create_directory_symlink(directory.filename(), link));
+        VX_CHECK(os::filesystem::equivalent(directory, link));
+        VX_CHECK(os::filesystem::get_file_info(link).is_directory());
+
+        VX_CHECK(os::filesystem::copy_symlink(link, link_copy));
+        VX_CHECK(os::filesystem::equivalent(link, link_copy));
+        VX_CHECK(os::filesystem::is_directory(link_copy));
+    }
+
+    VX_SECTION("nonexistent target")
+    {
+        const os::path file = temp_dir.path / "nonexistent.txt";
+        const os::path link = temp_dir.path / "nonexistent_link.link";
+        const os::path link_copy = temp_dir.path / "nonexistent_link_copy.link";
+
+        VX_CHECK(os::filesystem::create_symlink(file.filename(), link));
+        VX_CHECK(os::filesystem::copy_symlink(link, link_copy));
+        VX_CHECK_AND_EXPECT_NO_ERROR(
+            os::filesystem::read_symlink(link) == os::filesystem::read_symlink(link_copy)
+        );
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

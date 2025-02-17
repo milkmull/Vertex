@@ -70,6 +70,7 @@ public:
 
     VX_API size_t size() const;
     VX_API bool resize(size_t size);
+    inline bool clear() { return resize(0); }
 
     VX_API bool seek(int off, stream_position from = stream_position::BEGIN);
     VX_API size_t tell() const;
@@ -129,6 +130,12 @@ public:
     {
         file f;
         return f.open(p, mode::WRITE) && f.write_internal(data, size);
+    }
+
+    static inline bool clear_file(const path& p)
+    {
+        file f;
+        return f.open(p, mode::READ_WRITE_EXISTS) && f.clear();
     }
 
 private:

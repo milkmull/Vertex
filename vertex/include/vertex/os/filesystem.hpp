@@ -144,7 +144,7 @@ inline bool is_directory(const path& p)
 
 inline bool is_symlink(const path& p)
 {
-    return get_file_info(p).is_symlink();
+    return get_symlink_info(p).is_symlink();
 }
 
 inline bool is_other(const path& p)
