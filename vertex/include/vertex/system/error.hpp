@@ -175,6 +175,16 @@ inline void set(code err) noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+/// @brief Checks if any error has been set
+/// 
+/// @return True if an error has been set, false otherwise.
+///////////////////////////////////////////////////////////////////////////////
+inline bool is_set() noexcept
+{
+    return get().code != NONE;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 /// @brief Clears all error information for the current thread.
 ///////////////////////////////////////////////////////////////////////////////
 inline void clear() noexcept
@@ -207,6 +217,15 @@ inline void unsupported(const char* operation)
 #define VX_ERR(ec) ::vx::err::__detail::error_stream(ec).stream
 #define VX_ERR_DEFAULT(ec) ::vx::err::__detail::set_error(ec)
 #define VX_UNSUPPORTED(op) ::vx::err::__detail::unsupported(op)
+
+#define VX_RETURN_IF_ERROR(check, ret) \
+    do \
+    { \
+        ::vx::err::clear(); \
+        (check); \
+        if (::vx::err::is_set()) return ret; \
+    } \
+    while (0)
 
 } // namespace err
 } // namespace vx

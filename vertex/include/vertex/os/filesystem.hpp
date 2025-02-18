@@ -208,15 +208,10 @@ struct copy_options
     enum : type
     {
         NONE                    = 0,
-
-        SKIP_EXISTING           = (1 << 0),
         OVERWRITE_EXISTING      = (1 << 1),
-
-        COPY_SYMLINKS           = (1 << 2),
-        SKIP_SYMLINKS           = (1 << 3),
-
-        DIRECTORIES_ONLY        = (1 << 4),
-        RECURSIVE               = (1 << 5)
+        SKIP_SYMLINKS           = (1 << 2),
+        DIRECTORIES_ONLY        = (1 << 3),
+        RECURSIVE               = (1 << 4)
     };
 };
 
@@ -423,7 +418,7 @@ struct space_info
     size_t available;
 };
 
-VX_API bool space(const path& p, space_info& info);
+VX_API space_info space(const path& p);
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_empty
@@ -431,7 +426,14 @@ VX_API bool space(const path& p, space_info& info);
 
 inline bool is_empty(const os::path& p)
 {
-    const file_info info = get_symlink_info(p);
+    const file_info info = get_file_info(p);
+
+    if (!info.exists())
+    {
+        err::set(err::INVALID_ARGUMENT);
+        return false;
+    }
+
     return info.is_directory() ? !directory_iterator(p).is_valid() : (info.size == 0);
 }
 

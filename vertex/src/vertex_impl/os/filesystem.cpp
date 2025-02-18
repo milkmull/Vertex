@@ -272,19 +272,8 @@ VX_API bool copy_symlink(const path& from, const path& to)
 
 static bool copy_internal(const path& from, const path& to, typename copy_options::type options, bool recursing)
 {
-    file_info from_info, to_info;
-
-    if ((options & copy_options::COPY_SYMLINKS) || (options & copy_options::SKIP_SYMLINKS))
-    {
-        from_info = get_symlink_info(from);
-        to_info = get_symlink_info(to);
-    }
-    else
-    {
-        // Default behavior is to resolve symlinks and copy the target
-        from_info = get_file_info(from);
-        to_info = get_file_info(to);
-    }
+    const file_info from_info = get_symlink_info(from);
+    const file_info to_info = get_symlink_info(to);
 
     // If from does not exist, reports an error
     if (!from_info.exists())
@@ -314,7 +303,6 @@ static bool copy_internal(const path& from, const path& to, typename copy_option
             return false;
         }
 
-        VX_ASSERT(options & copy_options::COPY_SYMLINKS);
         return copy_symlink(from, to);
     }
     else if (from_info.is_regular_file())
@@ -445,9 +433,11 @@ VX_API size_t remove_all(const path& p)
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool space(const path& p, space_info& info)
+VX_API space_info space(const path& p)
 {
-    return space_impl(p, info);
+    os::path dir = canonical(p);
+    dir = is_directory(dir) ? dir : dir.parent_path();
+    return space_impl(dir);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

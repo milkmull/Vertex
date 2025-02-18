@@ -146,6 +146,7 @@ cleanup and finalizaton for base library:
         x add iterator file::write overloads
         x staticly sized stack array
         x test path.pop_back()
+        - test file clear
     }
 }
 
@@ -179,10 +180,10 @@ filesystem tests:
     x copy symlink
     x copy
     
-    - rename
+    x rename
 
-    - space
-    - is_empty
+    x space
+    x is_empty
 }
 
 testing:
@@ -217,7 +218,7 @@ testing:
     x util/time/datetime
     - os/time
     
-    x os/file
+    - os/file
     - os/filesystem
     x os/path
     

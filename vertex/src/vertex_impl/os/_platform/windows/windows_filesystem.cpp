@@ -1099,7 +1099,7 @@ __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-bool space_impl(const path& p, space_info& info)
+space_info space_impl(const path& p)
 {
     ULARGE_INTEGER capacity{};
     ULARGE_INTEGER free{};
@@ -1108,14 +1108,14 @@ bool space_impl(const path& p, space_info& info)
     if (!GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
     {
         windows::error_message("GetDiskFreeSpaceExW()");
-        return false;
+        return {};
     }
 
-    info.capacity = capacity.QuadPart;
-    info.free = free.QuadPart;
-    info.available = available.QuadPart;
-
-    return true;
+    return space_info{
+        capacity.QuadPart,
+        free.QuadPart,
+        available.QuadPart
+    };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1219,7 +1219,7 @@ static void open_directory_iterator(const path& p, directory_entry& entry, windo
         return;
     }
 
-    if (h.is_valid() && is_dot_or_dotdot(find_data.cFileName))
+    if (is_dot_or_dotdot(find_data.cFileName))
     {
         advance_directory_iterator(p, entry, h, find_data);
     }

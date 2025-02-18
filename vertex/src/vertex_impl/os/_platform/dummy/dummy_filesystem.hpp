@@ -177,10 +177,10 @@ inline __detail::remove_error remove_impl(const path& p, bool in_recursive_remov
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-bool space_impl(const path& p, space_info& info)
+space_info space_impl(const path& p)
 {
     unsupported("space");
-    return false;
+    return space_info{};
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -1605,6 +1605,97 @@ VX_TEST_CASE(test_rename)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_space)
+{
+    temp_directory temp_dir("test_space.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path directory = temp_dir.path / "dir";
+    const os::path file = temp_dir.path / "file.txt";
+
+    VX_CHECK(os::filesystem::create_directory(directory));
+    VX_CHECK(os::filesystem::create_file(file));
+
+    os::filesystem::space_info info{};
+
+    VX_SECTION("basic tests")
+    {
+        VX_EXPECT_NO_ERROR(info = os::filesystem::space(directory));
+        VX_CHECK(info.available != 0);
+        VX_CHECK(info.free != 0);
+        VX_CHECK(info.capacity != 0);
+
+        VX_EXPECT_NO_ERROR(info = os::filesystem::space(file));
+        VX_CHECK(info.available != 0);
+        VX_CHECK(info.free != 0);
+        VX_CHECK(info.capacity != 0);
+
+        VX_EXPECT_ERROR(info = os::filesystem::space(bad_path));
+        VX_CHECK(info.available == 0);
+        VX_CHECK(info.free == 0);
+        VX_CHECK(info.capacity == 0);
+
+        VX_EXPECT_ERROR(info = os::filesystem::space(os::path{}));
+        VX_CHECK(info.available == 0);
+        VX_CHECK(info.free == 0);
+        VX_CHECK(info.capacity == 0);
+
+        VX_EXPECT_NO_ERROR(info = os::filesystem::space("."));
+        VX_CHECK(info.available != 0);
+        VX_CHECK(info.free != 0);
+        VX_CHECK(info.capacity != 0);
+    }
+
+    const os::path symlink = temp_dir.path / "symlink.link";
+    const os::path broken_symlink = temp_dir.path / "broken_symlink.link";
+
+    const os::path directory_symlink = temp_dir.path / "directory_symlink.link";
+    const os::path broken_directory_symlink = temp_dir.path / "broken_directory_symlink.link";
+
+    VX_CHECK(os::filesystem::create_symlink(file.filename(), symlink));
+    VX_CHECK(os::filesystem::create_symlink("bad_file", broken_symlink));
+    VX_CHECK(os::filesystem::create_directory_symlink(directory.filename(), directory_symlink));
+    VX_CHECK(os::filesystem::create_directory_symlink("bad_directory", broken_directory_symlink));
+
+    VX_SECTION("symlink tests")
+    {
+        VX_EXPECT_NO_ERROR(info = os::filesystem::space(symlink));
+        VX_CHECK(info.available != 0);
+        VX_CHECK(info.free != 0);
+        VX_CHECK(info.capacity != 0);
+
+        VX_EXPECT_NO_ERROR(info = os::filesystem::space(directory_symlink));
+        VX_CHECK(info.available != 0);
+        VX_CHECK(info.free != 0);
+        VX_CHECK(info.capacity != 0);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_is_empty)
+{
+    temp_directory temp_dir("test_is_empty.dir");
+    VX_CHECK(temp_dir.exists());
+
+    const os::path directory = temp_dir.path / "dir";
+    const os::path file = directory / "file.txt";
+
+    VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::is_empty(directory));
+    VX_CHECK(os::filesystem::create_directory(directory));
+    VX_CHECK(os::filesystem::is_empty(directory));
+
+    VX_CHECK(os::filesystem::create_file(file));
+    VX_CHECK(!os::filesystem::is_empty(directory));
+    VX_CHECK(os::filesystem::is_empty(file));
+
+    const uint8_t text[] = "hello";
+    VX_CHECK(os::file::write_file(file, text, sizeof(text)));
+    VX_CHECK(!os::filesystem::is_empty(file));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     //VX_PRINT_ERRORS(true);
