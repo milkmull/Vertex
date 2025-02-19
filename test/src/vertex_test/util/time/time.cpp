@@ -46,19 +46,6 @@ VX_TEST_CASE(time_point)
         VX_CHECK(tp1 == tp3);
         VX_CHECK(!(tp1 != tp3));
     }
-
-    VX_SECTION("windows filetime conversion")
-    {
-        const uint32_t low = 0xD53E8000;
-        const uint32_t high = 0x01D96000;
-        const time::time_point tp = time::time_point::from_windows_file_time(low, high);
-
-        uint32_t new_low, new_high;
-        tp.to_windows_file_time(new_low, new_high);
-
-        VX_CHECK(new_low == low);
-        VX_CHECK(new_high == high);
-    }
 }
 
 VX_TEST_CASE(datetime)

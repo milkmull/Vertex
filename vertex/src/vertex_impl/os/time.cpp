@@ -43,6 +43,7 @@ struct ticks_data
     }
 };
 
+// initialize on program start
 static ticks_data s_ticks_data{};
 
 VX_API time::time_point get_ticks()

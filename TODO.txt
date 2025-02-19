@@ -146,7 +146,6 @@ cleanup and finalizaton for base library:
         x add iterator file::write overloads
         x staticly sized stack array
         x test path.pop_back()
-        - test file clear
     }
 }
 
@@ -216,10 +215,10 @@ testing:
     x util/time/time
     x util/time/timer
     x util/time/datetime
-    - os/time
+    x os/time
     
     - os/file
-    - os/filesystem
+    x os/filesystem
     x os/path
     
     - os/mutex

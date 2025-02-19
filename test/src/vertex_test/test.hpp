@@ -5,7 +5,7 @@
 #include <functional>
 #include <sstream>
 
-#include "vertex/system/platform.hpp"
+#include "vertex/system/platform_defines.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
