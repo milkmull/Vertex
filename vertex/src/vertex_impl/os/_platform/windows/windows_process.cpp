@@ -529,10 +529,10 @@ std::string this_process::get_environment_variable_impl(const std::string& name)
     if (buffer_size == 0)
     {
         windows::error_message("GetEnvironmentVariableW()");
-        return std::string();
+        return std::string{};
     }
 
-    std::wstring wvalue(buffer_size, 0);
+    std::wstring wvalue(buffer_size - 1, 0); // don't have to worry about null terminator
     GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
     return str::string_cast<char>(wvalue);
 }

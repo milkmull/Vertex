@@ -17,8 +17,6 @@ static std::string current_time_file()
 
 VX_TEST_CASE(file)
 {
-    //VX_PRINT_ERRORS(true);
-
     const os::path temp_path = os::filesystem::get_temp_path();
     const os::path filename = temp_path / current_time_file();
 
