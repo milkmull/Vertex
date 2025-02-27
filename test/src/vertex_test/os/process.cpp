@@ -65,6 +65,26 @@ VX_TEST_CASE(test_this_process)
         VX_CHECK_AND_EXPECT_NO_ERROR(os::this_process::clear_environment_variable(var.first));
         VX_CHECK_AND_EXPECT_ERROR(os::this_process::get_environment_variable(var.first).empty());
     }
+
+    VX_SECTION("stdio")
+    {
+        auto stdin = os::this_process::get_stdin();
+        VX_CHECK(stdin.is_open());
+        VX_CHECK(stdin.can_read());
+        VX_CHECK(!stdin.can_write());
+
+        auto stdout = os::this_process::get_stdout();
+        VX_CHECK(stdout.is_open());
+        VX_CHECK(!stdout.can_read());
+        VX_CHECK(stdout.can_write());
+        VX_CHECK(stdout.write_line("  testing stdout"));
+
+        auto stderr = os::this_process::get_stderr();
+        VX_CHECK(stderr.is_open());
+        VX_CHECK(!stderr.can_read());
+        VX_CHECK(stderr.can_write());
+        VX_CHECK(stderr.write_line("  testing stderr"));
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -173,6 +193,143 @@ VX_TEST_CASE(test_arguments)
     VX_CHECK(echo_argument("C:\\Folder\\\"Test\"") == "\"C:\\Folder\\\\\"Test\"\"");
 
 #endif // VX_PLATFORM_WINDOWS
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(text_exit_code)
+{
+    const int exit_codes[] = { 0, 1, 13, 31, 127, 255 };
+
+    for (auto ec : exit_codes)
+    {
+        // Configure the process
+        os::process::config config;
+        config.args = { child_process, "--exit-code", std::to_string(ec) };
+
+        os::process p;
+        VX_CHECK(p.start(config));
+        VX_CHECK(p.join());
+
+        int exit_code;
+        VX_CHECK(p.get_exit_code(&exit_code));
+        VX_CHECK(exit_code == ec);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+// data should be structured line "key=vaue\0key=value\0\0"
+static os::process::environment parse_environment(const char* data, size_t size)
+{
+    os::process::environment env;
+
+    auto it = data;
+    const auto last = data + size;
+
+    while (*it)
+    {
+        const auto sep = std::find(it, last, '=');
+        env[std::string(it, sep)] = std::string(sep + 1);
+        it = std::find(sep + 1, last, '\0') + 1;
+    }
+
+    return env;
+}
+
+VX_TEST_CASE(test_environment)
+{
+    VX_SECTION("inherited")
+    {
+        // Configure the process
+        os::process::config config;
+        config.args = { child_process, "--show-environment" };
+        config.stdout_option = os::process::io_option::CREATE;
+
+        // Start the process
+        os::process p;
+        VX_CHECK(p.start(config));
+
+        // make sure the child process finishes
+        VX_CHECK(p.join());
+        VX_CHECK(p.is_complete());
+
+        int exit_code;
+        VX_CHECK(p.get_exit_code(&exit_code));
+        VX_CHECK(exit_code == 0);
+
+        // read the data from the stdout
+        const size_t size = p.get_stdout().size();
+        std::vector<char> data;
+        data.reserve(size);
+        VX_CHECK(p.get_stdout().read(data.data(), size) == size);
+
+        // build the environment
+        const os::process::environment child_env = parse_environment(data.data(), size);
+
+        // environments should match
+        VX_CHECK(os::this_process::get_environment() == child_env);
+    }
+
+    VX_SECTION("new")
+    {
+        // Configure the process
+        os::process::config config;
+        config.args = { child_process, "--show-environment" };
+        config.stdout_option = os::process::io_option::CREATE;
+        config.environment["test_new_environment"] = "true";
+
+        // Start the process
+        os::process p;
+        VX_CHECK(p.start(config));
+
+        // make sure the child process finishes
+        VX_CHECK(p.join());
+        VX_CHECK(p.is_complete());
+
+        int exit_code;
+        VX_CHECK(p.get_exit_code(&exit_code));
+        VX_CHECK(exit_code == 0);
+
+        // read the data from the stdout
+        const size_t size = p.get_stdout().size();
+        std::vector<char> data;
+        data.reserve(size);
+        VX_CHECK(p.get_stdout().read(data.data(), size) == size);
+
+        // build the environment
+        const os::process::environment child_env = parse_environment(data.data(), size);
+
+        // environments should match
+        VX_CHECK(config.environment == child_env);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_kill)
+{
+    // Configure the process
+    os::process::config config;
+    config.args = { child_process, "--stall" };
+    config.stdout_option = os::process::io_option::CREATE;
+
+    // Start the process
+    os::process p;
+    VX_CHECK(p.start(config));
+
+    // process should be stalling
+    VX_CHECK(!p.is_complete());
+
+    // kill the process
+    VX_CHECK(p.kill());
+    VX_CHECK(p.join());
+    VX_CHECK(p.is_complete());
+
+    // should have exit code of 1
+    int exit_code;
+    VX_CHECK(p.get_exit_code(&exit_code));
+    VX_CHECK(exit_code == 1);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

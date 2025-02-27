@@ -458,7 +458,7 @@ bool process::process_impl::join()
         return false;
     }
 
-    return true;
+    return (result == WAIT_OBJECT_0);
 }
 
 bool process::process_impl::kill(bool force)
@@ -581,11 +581,19 @@ bool this_process::clear_environment_variable_impl(const std::string& name)
 
 static io_stream get_stream_handle(DWORD nStdHandle)
 {
-    const HANDLE h = GetStdHandle(nStdHandle);
-    if (h == INVALID_HANDLE_VALUE)
+    HANDLE h;
+
+    // Duplicate the handle from the parent process
+    if (!DuplicateHandle(
+        GetCurrentProcess(),
+        GetStdHandle(nStdHandle),
+        GetCurrentProcess(),
+        &h,
+        0,
+        TRUE,
+        DUPLICATE_SAME_ACCESS))
     {
-        windows::error_message("GetStdHandle()");
-        return {};
+        windows::error_message("DuplicateHandle()");
     }
 
     return __detail::file_impl::from_handle(h, (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::READ : io_stream::mode::WRITE);
