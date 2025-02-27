@@ -13,6 +13,19 @@ static std::string current_time_file()
     return filename;
 }
 
+static bool read_and_compare_text_file(const os::path& p, const char* expected)
+{
+    const size_t expected_size = std::strlen(expected);
+
+    std::string text;
+    if (!os::file::read_text_file(p, text))
+    {
+        return false;
+    }
+
+    return std::equal(text.begin(), text.end(), expected, expected + expected_size);
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(file)
@@ -51,7 +64,7 @@ VX_TEST_CASE(file)
         VX_CHECK(!f.write(&byte, 1));
         VX_CHECK(!f.flush());
 
-        VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_EXISTS));
+        VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
         VX_CHECK(f.is_open());
 
         // File is already open, should fail
@@ -361,10 +374,73 @@ VX_TEST_CASE(file)
         VX_CHECK(out_data.size() == size);
         VX_CHECK(std::memcmp(text, out_data.data(), size) == 0);
     }
+
+    VX_SECTION("static read and write text file")
+    {
+        const char* text =
+            "Hello, this is a test file for the Vertex c++ library.\n"
+            "At the time I am writing this I am just finishing up testing my file module.\n"
+            "I am pretty proud of it.\n"
+            "Next, I will finish testing the remaining modules in the os section of my library, then I will move on to finishing the math section.\n"
+            "It is February 2, 2025.\n"
+            "I am quite nervous about the future of our country...\n"
+            "Never the less, I continue on my journey.";
+
+        const os::path new_filename = temp_path / current_time_file();
+        VX_CHECK(os::file::write_text_file(new_filename, text));
+
+    const char* expected_text =
+        "Hello, this is a test file for the Vertex c++ library." VX_LINE_END
+        "At the time I am writing this I am just finishing up testing my file module." VX_LINE_END
+        "I am pretty proud of it." VX_LINE_END
+        "Next, I will finish testing the remaining modules in the os section of my library, then I will move on to finishing the math section." VX_LINE_END
+        "It is February 2, 2025." VX_LINE_END
+        "I am quite nervous about the future of our country..." VX_LINE_END
+        "Never the less, I continue on my journey.";
+
+    VX_CHECK(read_and_compare_text_file(new_filename, expected_text));
+    }
+
+    VX_SECTION("read and write line")
+    {
+        os::file f;
+
+        // open the file and truncate
+        VX_CHECK(f.open(filename, os::file::mode::WRITE));
+        VX_CHECK(f.is_open());
+
+        // write our lines
+        VX_CHECK(f.write_line("Hello World"));
+        VX_CHECK(f.write_line("this is the second line"));
+        VX_CHECK(f.write_line(""));
+        VX_CHECK(f.write_line("this is the end"));
+        f.close();
+
+        // check that the written text is correct
+        const char* expected_text =
+            "Hello World"               VX_LINE_END
+            "this is the second line"   VX_LINE_END
+            ""                          VX_LINE_END
+            "this is the end"           VX_LINE_END;
+
+        VX_CHECK(read_and_compare_text_file(filename, expected_text));
+
+        // open file for reading
+        VX_CHECK(f.open(filename, os::file::mode::READ));
+        VX_CHECK(f.is_open());
+
+        std::string line;
+        VX_CHECK(f.read_line(line) && line == "Hello World");
+        VX_CHECK(f.read_line(line) && line == "this is the second line");
+        VX_CHECK(f.read_line(line) && line == "");
+        VX_CHECK(f.read_line(line) && line == "this is the end");
+        VX_CHECK(f.eof());
+    }
 }
 
 int main()
 {
+    VX_PRINT_ERRORS(true);
     VX_RUN_TESTS();
     return 0;
 }

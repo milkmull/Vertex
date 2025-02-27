@@ -28,6 +28,12 @@ public:
         return 0;
     }
 
+    environment get_environment() const
+    {
+        unsupported("get_environment");
+        return {};
+    }
+
     bool is_valid() const
     {
         unsupported("is_valid");
@@ -103,6 +109,24 @@ inline bool clear_environment_variable_impl(const std::string& name)
 {
     unsupported("clear_environment_variable");
     return false;
+}
+
+inline io_stream get_stdin_impl()
+{
+    unsupported("get_stdin");
+    return {};
+}
+
+inline io_stream get_stdout_impl()
+{
+    unsupported("get_stdout");
+    return {};
+}
+
+inline io_stream get_stderr_impl()
+{
+    unsupported("get_stderr");
+    return {};
 }
 
 #undef unsupported

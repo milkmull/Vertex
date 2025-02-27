@@ -178,7 +178,7 @@
 #elif defined(__GNUC__) || defined(__clang__)
 #   define VX_FALLTHROUGH [[clang::fallthrough]]
 #else
-#   define VX_FALLTHROUGH do {} while (0)
+#   define VX_FALLTHROUGH do {} while (0, 0)
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////

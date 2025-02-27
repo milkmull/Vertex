@@ -1,9 +1,4 @@
-#include "vertex/system/platform_config.hpp"
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/os/_platform/windows/windows_file.hpp"
-#else
-#   include "vertex_impl/os/_platform/dummy/dummy_file.hpp"
-#endif
+#include "vertex_impl/os/__platform/file.hpp"
 
 namespace vx {
 namespace os {
@@ -18,10 +13,9 @@ VX_API file::~file()
 
 VX_API file::file(file&& other) noexcept
     : m_mode(other.m_mode)
-    , m_impl(std::move(other.m_impl))
+    , m_impl_data(std::move(other.m_impl_data))
 {
     other.m_mode = mode::NONE;
-    other.m_impl = nullptr;
 }
 
 VX_API file& file::operator=(file&& other) noexcept
@@ -31,10 +25,9 @@ VX_API file& file::operator=(file&& other) noexcept
         close();
 
         m_mode = other.m_mode;
-        m_impl = std::move(other.m_impl);
+        m_impl_data = std::move(other.m_impl_data);
 
         other.m_mode = mode::NONE;
-        other.m_impl = nullptr;
     }
 
     return *this;
@@ -65,15 +58,8 @@ VX_API bool file::open(const path& p, mode mode)
         return false;
     }
 
-    m_impl = std::make_unique<file_impl>();
-    if (!m_impl)
+    if (!file_impl::open(p, mode, m_impl_data))
     {
-        return false;
-    }
-
-    if (!m_impl->open(p, mode))
-    {
-        m_impl = nullptr;
         return false;
     }
 
@@ -83,58 +69,33 @@ VX_API bool file::open(const path& p, mode mode)
 
 VX_API bool file::is_open() const
 {
-    return (m_mode != mode::NONE) && m_impl && m_impl->is_open();
+    return (m_mode != mode::NONE) && file_impl::is_open(m_impl_data);
 }
 
 VX_API void file::close()
 {
-    if (m_impl)
-    {
-        m_impl->close();
-        m_impl = nullptr;
-    }
-
+    file_impl::close(m_impl_data);
     m_mode = mode::NONE;
 }
 
 VX_API size_t file::size() const
 {
-    if (!is_open())
-    {
-        return 0;
-    }
-
-    return m_impl->size();
+    return is_open() ? file_impl::size(m_impl_data) : 0;
 }
 
 VX_API bool file::resize(size_t size)
 {
-    if (!is_open())
-    {
-        return false;
-    }
-
-    return m_impl->resize(size);
+    return is_open() ? file_impl::resize(size, m_impl_data) : false;
 }
 
 VX_API bool file::seek(int off, stream_position from)
 {
-    if (!is_open())
-    {
-        return false;
-    }
-
-    return m_impl->seek(off, from);
+    return is_open() ? file_impl::seek(off, from, m_impl_data) : false;
 }
 
 VX_API size_t file::tell() const
 {
-    if (!is_open())
-    {
-        return INVALID_POSITION;
-    }
-
-    return m_impl->tell();
+    return is_open() ? file_impl::tell(m_impl_data) : INVALID_POSITION;
 }
 
 VX_API bool file::eof() const
@@ -144,17 +105,12 @@ VX_API bool file::eof() const
         return false;
     }
 
-    return tell() >= size();
+    return file_impl::tell(m_impl_data) >= file_impl::size(m_impl_data);
 }
 
 VX_API bool file::flush()
 {
-    if (!is_open())
-    {
-        return false;
-    }
-
-    return m_impl->flush();
+    return is_open() ? file_impl::flush(m_impl_data) : false;
 }
 
 VX_API size_t file::read_internal(uint8_t* data, size_t size)
@@ -170,7 +126,7 @@ VX_API size_t file::read_internal(uint8_t* data, size_t size)
         return 0;
     }
 
-    return m_impl->read(data, size);
+    return file_impl::read(data, size, m_impl_data);
 }
 
 VX_API size_t file::write_internal(const uint8_t* data, size_t size)
@@ -186,7 +142,66 @@ VX_API size_t file::write_internal(const uint8_t* data, size_t size)
         return 0;
     }
 
-    return m_impl->write(data, size);
+    return file_impl::write(data, size, m_impl_data);
+}
+
+VX_API bool file::read_line(std::string& line)
+{
+    line.clear();
+
+    if (!is_open())
+    {
+        return false;
+    }
+
+    if (!can_read())
+    {
+        VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
+        return false;
+    }
+
+    char c = 0;
+    while (file_impl::read(reinterpret_cast<uint8_t*>(&c), 1, m_impl_data) == 1)
+    {
+        if (c == '\n')
+        {
+#if defined(VX_PLATFORM_WINDOWS)
+
+            // remove carriage return on windows
+            if (!line.empty() && line.back() == '\r')
+            {
+                line.pop_back();
+            }
+
+#endif // VX_PLATFORM_WINDOWS
+
+            return true;
+        }
+
+        line.push_back(c);
+    }
+
+    return false;
+}
+
+VX_API bool file::write_line(const char* line)
+{
+    if (!is_open())
+    {
+        return false;
+    }
+
+    if (!can_write())
+    {
+        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
+        return false;
+    }
+
+    const size_t size = std::strlen(line);
+    constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
+
+    return (file_impl::write(reinterpret_cast<const uint8_t*>(line), size, m_impl_data) == size)
+        && (file_impl::write(reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size, m_impl_data) == line_end_size);
 }
 
 } // namespace os

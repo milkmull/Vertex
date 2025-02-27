@@ -18,7 +18,7 @@ struct enable_if {};
 template <class T>
 struct enable_if<true, T> { using type = T; };
 
-#define VX_REQUIRES(condition) typename ::vx::type_traits::enable_if<condition, int>::type = 0
+#define VX_REQUIRES(condition) typename ::vx::type_traits::enable_if<(condition), int>::type = 0
 
 ///////////////////////////////////////////////////////////////////////////////
 // conjunction disjunction

@@ -1,9 +1,4 @@
-#include "vertex/system/platform_config.hpp"
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/os/_platform/windows/windows_locale.hpp"
-#else
-#   include "vertex_impl/os/_platform/dummy/dummy_locale.hpp"
-#endif
+#include "vertex_impl/os/__platform/locale.hpp"
 
 namespace vx {
 namespace os {

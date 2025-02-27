@@ -1,9 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <sstream>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/os/__platform/file_impl_data.hpp"
 #include "vertex/os/path.hpp"
 
 namespace vx {
@@ -13,7 +12,11 @@ namespace os {
 // file
 ///////////////////////////////////////////////////////////////////////////////
 
-class process;
+namespace __detail {
+
+class file_impl;
+
+} // namespace __detail
 
 enum class stream_position
 {
@@ -24,8 +27,6 @@ enum class stream_position
 
 class file
 {
-    friend os::process;
-
 public:
 
     // https://man7.org/linux/man-pages/man3/fopen.3.html
@@ -64,13 +65,13 @@ public:
     VX_API bool is_open() const;
     VX_API void close();
 
-    inline mode get_mode() const noexcept { return m_mode; }
-    inline bool can_read() const noexcept { return (m_mode == mode::READ || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE); }
-    inline bool can_write() const noexcept { return (m_mode == mode::WRITE || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE || m_mode == mode::APPEND); }
+    mode get_mode() const noexcept { return m_mode; }
+    bool can_read() const noexcept { return (m_mode == mode::READ || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE); }
+    bool can_write() const noexcept { return (m_mode == mode::WRITE || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE || m_mode == mode::APPEND); }
 
     VX_API size_t size() const;
     VX_API bool resize(size_t size);
-    inline bool clear() { return resize(0); }
+    bool clear() { return resize(0); }
 
     VX_API bool seek(int off, stream_position from = stream_position::BEGIN);
     VX_API size_t tell() const;
@@ -86,32 +87,35 @@ private:
 public:
 
     template <typename T>
-    inline size_t read(T& data)
+    size_t read(T& data)
     {
         return read_internal(reinterpret_cast<uint8_t*>(&data), sizeof(T));
     }
 
     template <typename T>
-    inline size_t read(T* data, size_t count)
+    size_t read(T* data, size_t count)
     {
         return read_internal(reinterpret_cast<uint8_t*>(data), sizeof(T) * count);
     }
 
     template <typename T>
-    inline size_t write(const T& data)
+    size_t write(const T& data)
     {
         return write_internal(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
     }
 
     template <typename T>
-    inline size_t write(const T* data, size_t count)
+    size_t write(const T* data, size_t count)
     {
         return write_internal(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
+    VX_API bool read_line(std::string& line);
+    VX_API bool write_line(const char* line);
+
 public:
 
-    static inline bool read_file(const path& p, std::vector<uint8_t>& data)
+    static bool read_file(const path& p, std::vector<uint8_t>& data)
     {
         bool success = false;
 
@@ -126,13 +130,65 @@ public:
         return success;
     }
 
-    static inline bool write_file(const path& p, const uint8_t* data, size_t size)
+    static bool write_file(const path& p, const uint8_t* data, size_t size)
     {
         file f;
         return f.open(p, mode::WRITE) && f.write_internal(data, size);
     }
 
-    static inline bool clear_file(const path& p)
+    static bool read_text_file(const path& p, std::string& text)
+    {
+        bool success = false;
+
+        file f;
+        if (f.open(p, mode::READ))
+        {
+            const size_t size = f.size();
+            text.resize(size);
+            success = f.read_internal(reinterpret_cast<uint8_t*>(text.data()), size);
+        }
+
+        return success;
+    }
+
+    static bool write_text_file(const path& p, const char* text)
+    {
+#if defined(VX_PLATFORM_WINDOWS)
+
+        const size_t text_size = std::strlen(text);
+        const size_t size = text_size + std::count(text, text + text_size, '\n');
+
+        std::vector<char> native_text;
+        native_text.reserve(size);
+
+        auto it = text;
+        const auto last = text + text_size;
+
+        while (it != last)
+        {
+            if (*it == '\n')
+            {
+                native_text.push_back('\r');
+            }
+
+            native_text.push_back(*it);
+            ++it;
+        }
+
+        const uint8_t* data = reinterpret_cast<const uint8_t*>(native_text.data());
+
+#else
+
+        const size_t size = text.size();
+        const uint8_t* data = reinterpret_cast<const uint8_t*>(text.data());
+
+#endif // VX_PLATFORM_WINDOWS
+
+        file f;
+        return f.open(p, mode::WRITE) && f.write_internal(data, size);
+    }
+
+    static bool clear_file(const path& p)
     {
         file f;
         return f.open(p, mode::READ_WRITE_EXISTS) && f.clear();
@@ -140,10 +196,13 @@ public:
 
 private:
 
+    using file_impl = __detail::file_impl;
+    friend file_impl;
+
     mode m_mode;
 
-    class file_impl;
-    std::unique_ptr<file_impl> m_impl;
+    using impl_data = __detail::file_impl_data;
+    impl_data m_impl_data;
 };
 
 } // namespace os

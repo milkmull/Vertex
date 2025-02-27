@@ -1,4 +1,4 @@
-#include "vertex_impl/os/_platform/windows/windows_filesystem.hpp"
+#include "vertex_impl/os/__platform/windows/windows_filesystem.hpp"
 
 #include <shlobj_core.h>
 #include <winioctl.h> // FSCTL_GET_REPARSE_POINT
@@ -767,7 +767,7 @@ path get_temp_path_impl()
 
             size = GetTempPath2W(MAX_PATH, buffer, NULL);
 
-        } while (0);
+        } while (VX_NULL_WHILE_LOOP_CONDITION);
 
         if (size == 0)
         {

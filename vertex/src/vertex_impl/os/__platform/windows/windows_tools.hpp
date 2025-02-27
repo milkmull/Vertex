@@ -2,12 +2,66 @@
 
 #include <string>
 
-#include "vertex_impl/os/_platform/windows/windows_header.hpp"
+#include "vertex_impl/os/__platform/windows/windows_header.hpp"
+#include "vertex/os/__platform/windows/windows_types.hpp"
 #include "vertex/util/time/time.hpp"
 
 namespace vx {
 namespace os {
 namespace windows {
+
+static_assert(std::is_same<HANDLE_, HANDLE>::value);
+
+///////////////////////////////////////////////////////////////////////////////
+// HANDLE wrapper
+///////////////////////////////////////////////////////////////////////////////
+
+inline handle::handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
+
+inline handle::~handle() noexcept { close(); }
+
+inline handle::handle(handle&& h) noexcept : m_handle(h.m_handle)
+{
+    h.reset();
+}
+
+inline handle& handle::operator=(handle&& h) noexcept
+{
+    if (this != &h)
+    {
+        m_handle = h.m_handle;
+        h.reset();
+    }
+
+    return *this;
+}
+
+inline handle::handle(const HANDLE_ h) noexcept : m_handle(h) {}
+
+inline handle& handle::operator=(const HANDLE_ h) noexcept
+{
+    close();
+    m_handle = h;
+    return *this;
+}
+
+inline bool handle::is_valid() const noexcept
+{
+    return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
+}
+
+inline HANDLE_ handle::get() const noexcept { return m_handle; }
+
+inline void handle::reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
+
+inline void handle::close() noexcept
+{
+    if (is_valid())
+    {
+        CloseHandle(m_handle);
+        reset();
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Error Handling
@@ -63,66 +117,6 @@ public:
 private:
 
     HRESULT m_hr;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// HANDLE wrapper
-///////////////////////////////////////////////////////////////////////////////
-
-class handle
-{
-public:
-
-    handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
-
-    handle(const HANDLE h) noexcept : m_handle(h) {}
-
-    handle(handle&& h) noexcept : m_handle(INVALID_HANDLE_VALUE)
-    {
-        if (this != &h)
-        {
-            m_handle = h.m_handle;
-            h.reset();
-        }
-    }
-
-    ~handle() noexcept { close(); }
-
-    handle& operator=(const HANDLE h) noexcept
-    {
-        close();
-        m_handle = h;
-        return *this;
-    }
-
-    handle(const handle&) = delete;
-    handle& operator=(const handle&) = delete;
-    handle& operator=(handle&&) noexcept = delete;
-
-public:
-
-    bool is_valid() const noexcept
-    {
-        return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
-    }
-
-    HANDLE get() const noexcept { return m_handle; }
-    void reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
-
-private:
-
-    void close() noexcept
-    {
-        if (is_valid())
-        {
-            CloseHandle(m_handle);
-            reset();
-        }
-    }
-
-private:
-
-    HANDLE m_handle;
 };
 
 } // namespace vx

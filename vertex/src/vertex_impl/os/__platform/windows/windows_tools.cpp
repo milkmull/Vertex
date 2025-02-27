@@ -1,6 +1,6 @@
 #include <combaseapi.h> // CoInitializeEx
 
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+#include "vertex_impl/os/__platform/windows/windows_tools.hpp"
 #include "vertex/util/memory/memory.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/util/string/string.hpp"

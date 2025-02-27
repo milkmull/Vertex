@@ -225,7 +225,7 @@ inline void unsupported(const char* operation)
         (check); \
         if (::vx::err::is_set()) return ret; \
     } \
-    while (0)
+    while (VX_NULL_WHILE_LOOP_CONDITION)
 
 } // namespace err
 } // namespace vx

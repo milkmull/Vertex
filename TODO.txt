@@ -147,6 +147,13 @@ cleanup and finalizaton for base library:
         x staticly sized stack array
         x test path.pop_back()
     }
+    
+    refactoring platform specific code:
+    {
+        - test file read line
+        - light path class
+        - template string functions
+    }
 }
 
 filesystem tests:

@@ -1,8 +1,8 @@
 #define _CRT_RAND_S
 #include <stdlib.h>
 
-#include "vertex_impl/os/_platform/windows/windows_random.hpp"
-#include "vertex_impl/os/_platform/windows/windows_header.hpp"
+#include "vertex_impl/os/__platform/windows/windows_random.hpp"
+#include "vertex_impl/os/__platform/windows/windows_header.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {

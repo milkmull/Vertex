@@ -38,7 +38,7 @@ public:
         std::vector<std::string> args;
         environment environment;
 
-        bool background = true;
+        bool background = false;
 
         io_option stdin_option  = io_option::NONE;
         io_option stdout_option = io_option::NONE;
@@ -109,6 +109,10 @@ VX_API process::environment get_environment();
 VX_API std::string get_environment_variable(const std::string& name);
 VX_API bool set_environment_variable(const std::string& name, const std::string& value);
 VX_API bool clear_environment_variable(const std::string& name);
+
+VX_API io_stream get_stdin();
+VX_API io_stream get_stdout();
+VX_API io_stream get_stderr();
 
 } // namespace this_process
 

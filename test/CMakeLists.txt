@@ -73,4 +73,7 @@ endfunction()
 vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.cpp")
 #vx_add_test(test_filesystem "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/filesystem.cpp")
 #vx_add_test(test_os_time "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/time.cpp")
+
+vx_add_test(child_process "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/child_process.cpp")
 vx_add_test(test_process "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/process.cpp")
+add_dependencies(test_process child_process)

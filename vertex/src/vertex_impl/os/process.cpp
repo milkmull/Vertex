@@ -1,11 +1,4 @@
-#include "vertex/system/error.hpp"
-
-#include "vertex/system/platform_config.hpp"
-#if defined(VX_PLATFORM_WINDOWS)
-#   include "vertex_impl/os/_platform/windows/windows_process.hpp"
-#else
-#   include "vertex_impl/os/_platform/dummy/dummy_process.hpp"
-#endif
+#include "vertex_impl/os/__platform/process.hpp"
 
 namespace vx {
 namespace os {
@@ -155,6 +148,21 @@ VX_API bool set_environment_variable(const std::string& name, const std::string&
 VX_API bool clear_environment_variable(const std::string& name)
 {
     return clear_environment_variable_impl(name);
+}
+
+VX_API io_stream get_stdin()
+{
+    return get_stdin_impl();
+}
+
+VX_API io_stream get_stdout()
+{
+    return get_stdout_impl();
+}
+
+VX_API io_stream get_stderr()
+{
+    return get_stderr_impl();
 }
 
 } // namespace this_process

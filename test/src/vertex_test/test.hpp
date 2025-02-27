@@ -95,7 +95,7 @@ inline void fail_test(const char* condition, const char* func, int line)
         { \
             ::vx::test::fail_test(#condition, VX_FUNCTION, VX_LINE); \
         } \
-    } while (0)
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
 
@@ -105,7 +105,7 @@ inline void fail_test(const char* condition, const char* func, int line)
         ::vx::err::clear(); \
         condition; \
         VX_CHECK(!!::vx::err::get()); \
-    } while (0)
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_EXPECT_NO_ERROR(condition) \
     do \
@@ -113,7 +113,7 @@ inline void fail_test(const char* condition, const char* func, int line)
         ::vx::err::clear(); \
         condition; \
         VX_CHECK(!::vx::err::get()); \
-    } while (0)
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_CHECK_AND_EXPECT_ERROR(condition) VX_EXPECT_ERROR(VX_CHECK(condition))
 #define VX_CHECK_AND_EXPECT_NO_ERROR(condition) VX_EXPECT_NO_ERROR(VX_CHECK(condition))

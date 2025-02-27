@@ -4,10 +4,11 @@
 
 namespace vx {
 namespace os {
+namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::file::" op "()")
 
-class file::file_impl
+class file_impl
 {
 public:
 
@@ -24,7 +25,7 @@ public:
 
 public:
 
-    bool open(const path& p, mode mode)
+    bool open(const path& p, file::mode mode)
     {
         unsupported("open");
         return false;
@@ -86,5 +87,6 @@ public:
 
 #undef unsupported
 
+} // namespace __detail
 } // namespace os
 } // namespace vx

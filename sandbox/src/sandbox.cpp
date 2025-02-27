@@ -1,51 +1,27 @@
 ﻿#include "vertex/system/log.hpp"
-#include "vertex/util/fixed_array.hpp"
-
-#define VX_ENABLE_PROFILING
-#include "vertex/system/profiler.hpp"
-
-#include <vector>
-#include <numeric>
+#include "vertex/os/time.hpp"
+#include "vertex/os/process.hpp"
 
 using namespace vx;
 
-static void vector_iteration_test()
-{
-    constexpr size_t count = 10'000;
-    VX_PROFILE_FUNCTION();
-
-    std::vector<int> data(count);
-    std::iota(data.begin(), data.end(), 0);
-
-    volatile int sum = 0;
-    for (auto v : data)
-        sum += v;
-}
-
-static void fixed_array_iteration_test()
-{
-    constexpr size_t count = 10'000;
-    VX_PROFILE_FUNCTION();
-
-    fixed_array<int> data(count);
-    std::iota(data.begin(), data.end(), 0);
-
-    volatile int sum = 0;
-    for (auto v : data)
-        sum += v;
-}
-
 int main(int argc, char* argv[])
 {
-    VX_PROFILE_START("../../assets/profile_results.txt");
+    VX_PRINT_ERRORS(true);
+    
+    os::process::config cfg;
+    cfg.args = { "ping", "127.0.0.1", "-n", "5" };
+    //cfg.background = true;
+    cfg.stdout_option = os::process::io_option::INHERIT;
 
-    for (int i = 0; i < 10'000; ++i)
+    os::process p;
+    p.start(cfg);
+
+    while (p.is_alive())
     {
-        vector_iteration_test();
-        fixed_array_iteration_test();
+        os::sleep(time::milliseconds(100));
+        p.get_stdout().write("hello");
     }
 
-    VX_PROFILE_STOP();
 
     return 0;
 }

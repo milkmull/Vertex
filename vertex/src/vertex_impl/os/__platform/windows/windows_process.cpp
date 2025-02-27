@@ -1,5 +1,5 @@
-#include "vertex_impl/os/_platform/windows/windows_process.hpp"
-#include "vertex_impl/os/_platform/windows/windows_file.hpp"
+#include "vertex_impl/os/__platform/windows/windows_process.hpp"
+#include "vertex_impl/os/__platform/windows/windows_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/os/time.hpp"
 #include "vertex/system/error.hpp"
@@ -34,17 +34,31 @@ process::process_impl::~process_impl()
 
 // https://github.com/libsdl-org/SDL/blob/f79083d9bb7726b2592e31f68dc25f3a6f337320/src/process/windows/SDL_windowsprocess.c#L93
 
+static bool is_batch_file_path(const std::string& arg)
+{
+    const size_t size = arg.size();
+
+    if (size < 4 || arg[size - 4] != '.')
+    {
+        return false;
+    }
+
+    return (arg.compare(size - 3, 3, "bat") == 0 || arg.compare(size - 3, 3, "BAT") == 0)
+        || (arg.compare(size - 3, 3, "cmd") == 0 || arg.compare(size - 3, 3, "CMD") == 0);
+}
+
 static std::string join_arguments(const std::vector<std::string>& args)
 {
+    VX_ASSERT(!args.empty());
+
     const size_t count = args.size();
-    const bool batch_file = str::ends_with(args[0], ".bat") || str::ends_with(args[0], ".cmd");
+    const bool is_batch_file = is_batch_file_path(args.front());
 
     std::vector<bool> need_quotes(count, false);
-
     for (size_t i = 0; i < count; ++i)
     {
         if ((args[i].find_first_of(" \t\"()=!") != std::string::npos) ||
-            (batch_file && args[i].find_first_of("^&|<>") != std::string::npos))
+            (is_batch_file && args[i].find_first_of("^&|<>%") != std::string::npos))
         {
             need_quotes[i] = true;
         }
@@ -57,23 +71,30 @@ static std::string join_arguments(const std::vector<std::string>& args)
         if (need_quotes[i])
         {
             out.push_back('"');
+        }
 
-            for (const char* it = args[i].data(); *it; ++it)
+        bool last_was_back_slash = false;
+        for (const char c : args[i])
+        {
+            if (last_was_back_slash && c == '"')
             {
                 // Only escape backslashes that precede a double quote
-                if (*it == '"' || (*it == '\\' && (it[1] == '"' || it[1] == '\0')))
-                {
-                    out.push_back('\\');
-                }
+                out.push_back('\\');
+            }
 
-                out.push_back(*it);
+            last_was_back_slash = (c == '\\');
+            out.push_back(c);
+        }
+
+        if (need_quotes[i])
+        {
+            if (last_was_back_slash)
+            {
+                // Only escape backslashes that precede a double quote
+                out.push_back('\\');
             }
 
             out.push_back('"');
-        }
-        else
-        {
-            out.append(args[i]);
         }
 
         if (i < count - 1)
@@ -264,7 +285,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 if (!DuplicateHandle(
                     GetCurrentProcess(),
-                    stream.redirect->m_impl->get_handle(),
+                    __detail::file_impl::get_handle(*stream.redirect),
                     GetCurrentProcess(),
                     &stream.proc_pipe(),
                     0,
@@ -327,14 +348,13 @@ bool process::process_impl::start(process* p, const config& config)
         if (streams[i].option == io_option::CREATE)
         {
             // Create file object from handle for the corresponding stream
-            p->m_streams[i] = file::file_impl::from_handle(
+            p->m_streams[i] = __detail::file_impl::from_handle(
                 streams[i].user_pipe(),
                 streams[i].user_file_mode()
             );
 
             if (!p->m_streams[i].is_open())
             {
-                p->m_streams[i].close();
                 goto cleanup;
             }
         }
@@ -451,10 +471,7 @@ bool process::process_impl::kill(bool force)
         return false;
     }
 
-    m_process_information.hProcess = INVALID_HANDLE_VALUE;
-    m_process_information.hThread = INVALID_HANDLE_VALUE;
-
-    return true;
+    return join();
 }
 
 bool process::process_impl::get_exit_code(int* exit_code) const
@@ -560,6 +577,33 @@ bool this_process::clear_environment_variable_impl(const std::string& name)
         return false;
     }
     return true;
+}
+
+static io_stream get_stream_handle(DWORD nStdHandle)
+{
+    const HANDLE h = GetStdHandle(nStdHandle);
+    if (h == INVALID_HANDLE_VALUE)
+    {
+        windows::error_message("GetStdHandle()");
+        return {};
+    }
+
+    return __detail::file_impl::from_handle(h, (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::READ : io_stream::mode::WRITE);
+}
+
+io_stream this_process::get_stdin_impl()
+{
+    return get_stream_handle(STD_INPUT_HANDLE);
+}
+
+io_stream this_process::get_stdout_impl()
+{
+    return get_stream_handle(STD_OUTPUT_HANDLE);
+}
+
+io_stream this_process::get_stderr_impl()
+{
+    return get_stream_handle(STD_ERROR_HANDLE);
 }
 
 } // namespace os

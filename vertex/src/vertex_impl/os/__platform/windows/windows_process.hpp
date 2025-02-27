@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex/os/process.hpp"
-#include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+#include "vertex_impl/os/__platform/windows/windows_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -45,6 +45,10 @@ process::environment get_environment_impl();
 std::string get_environment_variable_impl(const std::string& name);
 bool set_environment_variable_impl(const std::string& name, const std::string& value);
 bool clear_environment_variable_impl(const std::string& name);
+
+io_stream get_stdin_impl();
+io_stream get_stdout_impl();
+io_stream get_stderr_impl();
 
 } // namespace this_process
 
