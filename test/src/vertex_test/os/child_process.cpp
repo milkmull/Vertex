@@ -6,7 +6,8 @@ enum class command
 {
     NONE,
     HELLO_WORLD,
-    STDIN_TO_STDOUT
+    STDIN_TO_STDOUT,
+    STDIN_TO_STDERR
 };
 
 int main(int argc, char* argv[])
@@ -26,6 +27,11 @@ int main(int argc, char* argv[])
             cmd = command::STDIN_TO_STDOUT;
             break;
         }
+        else if (std::strcmp(argv[i], "--stdin-to-stderr") == 0)
+        {
+            cmd = command::STDIN_TO_STDERR;
+            break;
+        }
     }
 
     ++i;
@@ -34,7 +40,7 @@ int main(int argc, char* argv[])
     {
         case command::HELLO_WORLD:
         {
-            std::cout << "Hello World!\n";
+            os::this_process::get_stdout().write_line("Hello World");
             break;
         }
         case command::STDIN_TO_STDOUT:
@@ -45,11 +51,30 @@ int main(int argc, char* argv[])
             std::string line;
             while (stdin.read_line(line))
             {
-                stdout.write(line);
                 if (line == "EOF")
                 {
                     break;
                 }
+
+                stdout.write_line(line);
+            }
+
+            break;
+        }
+        case command::STDIN_TO_STDERR:
+        {
+            os::io_stream stdin = os::this_process::get_stdin();
+            os::io_stream stderr = os::this_process::get_stderr();
+
+            std::string line;
+            while (stdin.read_line(line))
+            {
+                if (line == "EOF")
+                {
+                    break;
+                }
+
+                stderr.write_line(line);
             }
 
             break;

@@ -110,8 +110,19 @@ public:
         return write_internal(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
+    size_t write(const char* text)
+    {
+        return write_internal(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
+    }
+
+    size_t write(const std::string& text)
+    {
+        return write(text.c_str());
+    }
+
     VX_API bool read_line(std::string& line);
     VX_API bool write_line(const char* line);
+    bool write_line(const std::string& line) { return write_line(line.c_str()); }
 
 public:
 
@@ -186,6 +197,11 @@ public:
 
         file f;
         return f.open(p, mode::WRITE) && f.write_internal(data, size);
+    }
+
+    static bool write_text_file(const path& p, const std::string& text)
+    {
+        return write_text_file(p, text.c_str());
     }
 
     static bool clear_file(const path& p)

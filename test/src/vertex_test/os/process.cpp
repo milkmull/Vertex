@@ -179,21 +179,17 @@ VX_TEST_CASE(test_arguments)
 
 VX_TEST_CASE(test_stdin_to_stdout)
 {
-    // Define the input text
-    const std::string text_in(
-        "Tests whether we can write to stdin and read from stdout\r\n"
-        "{'success': true, 'message': 'Success!'}\r\n"
-        "Yippie ka yee\r\n"
-        "EOF"
-    );
-
-    const size_t data_size = text_in.size();
+    const char* lines[] = {
+        "Tests whether we can write to stdin and read from stdout",
+        "{'success': true, 'message': 'Success!'}",
+        "Yippie ka yee"
+    };
 
     // Configure the process
     os::process::config config;
     config.args = { child_process, "--stdin-to-stdout" };
     config.stdin_option = os::process::io_option::CREATE;
-    config.stdout_option = os::process::io_option::INHERIT;
+    config.stdout_option = os::process::io_option::CREATE;
 
     // Start the process
     os::process p;
@@ -204,26 +200,91 @@ VX_TEST_CASE(test_stdin_to_stdout)
     VX_CHECK(stdin.is_open());
     VX_CHECK(stdin.can_write());
 
-    // Write input to the process
-    VX_CHECK(stdin.write(text_in) == data_size);
+    // write each line
+    for (auto line : lines)
+    {
+        VX_CHECK(stdin.write_line(line));
+    }
+
+    // finish the process
+    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p.join());
+    VX_CHECK(p.is_complete());
 
     // Get stdout pipe
-    //auto& stdout = p.get_stdout();
-    //VX_CHECK(stdout.is_open());
-    //VX_CHECK(stdout.can_read());
-    //
-    //// Write output from the process
-    //std::string text_out(data_size, 0);
-    //VX_CHECK(stdout.read(text_out.data(), data_size) == data_size);
-    //
-    //// Ensure the process exits correctly
-    //VX_CHECK(p.join());
-    //
-    //int exit_code;
-    //VX_CHECK(p.get_exit_code(&exit_code));
-    //VX_CHECK(exit_code == 0);
-    //
-    //VX_CHECK(text_in == text_out);
+    auto& stdout = p.get_stdout();
+    VX_CHECK(stdout.is_open());
+    VX_CHECK(stdout.can_read());
+
+    // read the lines back
+    std::string read_line;
+    for (auto line : lines)
+    {
+        VX_CHECK(stdout.read_line(read_line) && read_line == line);
+    }
+
+    VX_CHECK(stdout.eof());
+
+    // Ensure the process exits correctly
+    int exit_code;
+    VX_CHECK(p.get_exit_code(&exit_code));
+    VX_CHECK(exit_code == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_stdin_to_stderr)
+{
+    const char* lines[] = {
+        "Tests whether we can write to stdin and read from stderr",
+        "{'success': true, 'message': 'Success!'}",
+        "Yippie ka yee"
+    };
+
+    // Configure the process
+    os::process::config config;
+    config.args = { child_process, "--stdin-to-stderr" };
+    config.stdin_option = os::process::io_option::CREATE;
+    config.stderr_option = os::process::io_option::CREATE;
+
+    // Start the process
+    os::process p;
+    VX_CHECK(p.start(config));
+
+    // Get stdin pipe
+    auto& stdin = p.get_stdin();
+    VX_CHECK(stdin.is_open());
+    VX_CHECK(stdin.can_write());
+
+    // write each line
+    for (auto line : lines)
+    {
+        VX_CHECK(stdin.write_line(line));
+    }
+
+    // finish the process
+    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p.join());
+    VX_CHECK(p.is_complete());
+
+    // Get stderr pipe
+    auto& stderr = p.get_stderr();
+    VX_CHECK(stderr.is_open());
+    VX_CHECK(stderr.can_read());
+
+    // read the lines back
+    std::string read_line;
+    for (auto line : lines)
+    {
+        VX_CHECK(stderr.read_line(read_line) && read_line == line);
+    }
+
+    VX_CHECK(stderr.eof());
+
+    // Ensure the process exits correctly
+    int exit_code;
+    VX_CHECK(p.get_exit_code(&exit_code));
+    VX_CHECK(exit_code == 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
