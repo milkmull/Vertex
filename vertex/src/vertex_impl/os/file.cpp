@@ -113,52 +113,46 @@ VX_API bool file::flush()
     return is_open() ? file_impl::flush(m_impl_data) : false;
 }
 
-VX_API size_t file::read_internal(uint8_t* data, size_t size)
+VX_API bool file::read_check() const
 {
-    if (!is_open())
-    {
-        return 0;
-    }
-
     if (!can_read())
     {
         VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
-        return 0;
+        return false;
     }
 
-    return file_impl::read(data, size, m_impl_data);
+    return true;
+}
+
+VX_API bool file::write_check() const
+{
+    if (!can_write())
+    {
+        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
+        return false;
+    }
+
+    return true;
+}
+
+VX_API size_t file::read_internal(uint8_t* data, size_t size)
+{
+    return !read_check() ? 0 : file_impl::read(data, size, m_impl_data);
 }
 
 VX_API size_t file::write_internal(const uint8_t* data, size_t size)
 {
-    if (!is_open())
-    {
-        return 0;
-    }
-
-    if (!can_write())
-    {
-        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
-        return 0;
-    }
-
-    return file_impl::write(data, size, m_impl_data);
+    return !write_check() ? 0 : file_impl::write(data, size, m_impl_data);
 }
 
 VX_API bool file::read_line(std::string& line)
 {
+    if (!read_check())
+    {
+        return false;
+    }
+
     line.clear();
-
-    if (!is_open())
-    {
-        return false;
-    }
-
-    if (!can_read())
-    {
-        VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
-        return false;
-    }
 
     char c = 0;
     while (file_impl::read(reinterpret_cast<uint8_t*>(&c), 1, m_impl_data) == 1)
@@ -184,25 +178,44 @@ VX_API bool file::read_line(std::string& line)
     return false;
 }
 
-VX_API bool file::write_line(const char* line)
+VX_API bool file::write_line_internal(const char* first, size_t size)
 {
-    if (!is_open())
-    {
-        return false;
-    }
-
-    if (!can_write())
-    {
-        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
-        return false;
-    }
-
-    const size_t size = std::strlen(line);
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
-    return (file_impl::write(reinterpret_cast<const uint8_t*>(line), size, m_impl_data) == size)
+    // NOTE: write check should happen before calling this function
+    return (file_impl::write(reinterpret_cast<const uint8_t*>(first), size, m_impl_data) == size)
         && (file_impl::write(reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size, m_impl_data) == line_end_size);
 }
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+VX_API bool file::windows_write_text_file_internal(const char* text, size_t size)
+{
+    const char* s = text;
+    const char* e = text;
+
+    // Iterate over the text and split into lines
+    while (*e != '\0')
+    {
+        if (*e == '\n')
+        {
+            write_line_internal(s, static_cast<size_t>(e - s));
+            s = e + 1;
+        }
+
+        ++e;
+    }
+
+    // Write the last section (no newline)
+    if (s != e)
+    {
+        write_internal(reinterpret_cast<const uint8_t*>(s), static_cast<size_t>(e - s));
+    }
+
+    return true;
+}
+
+#endif // VX_PLATFORM_WINDOWS
 
 } // namespace os
 } // namespace vx

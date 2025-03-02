@@ -235,11 +235,11 @@ bool process::process_impl::start(process* p, const config& config)
                 // Redirect to a null device if the stream is null
                 stream.proc_pipe() = CreateFileW(
                     VX_NULL_DEVICE,
-                    GENERIC_READ | GENERIC_WRITE,
+                    GENERIC_ALL,
                     0,
                     &security_attributes,
                     OPEN_EXISTING,
-                    FILE_ATTRIBUTE_NORMAL,
+                    0,
                     NULL
                 );
 

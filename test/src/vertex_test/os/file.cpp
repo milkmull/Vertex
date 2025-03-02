@@ -18,7 +18,7 @@ static bool read_and_compare_text_file(const os::path& p, const char* expected)
     const size_t expected_size = std::strlen(expected);
 
     std::string text;
-    if (!os::file::read_text_file(p, text))
+    if (!os::file::read_file(p, text))
     {
         return false;
     }
@@ -387,7 +387,7 @@ VX_TEST_CASE(file)
             "Never the less, I continue on my journey.";
 
         const os::path new_filename = temp_path / current_time_file();
-        VX_CHECK(os::file::write_text_file(new_filename, text));
+        VX_CHECK(os::file::write_file(new_filename, text));
 
     const char* expected_text =
         "Hello, this is a test file for the Vertex c++ library." VX_LINE_END

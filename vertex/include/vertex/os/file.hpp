@@ -81,10 +81,24 @@ public:
 
 private:
 
+    VX_API bool read_check() const;
+    VX_API bool write_check() const;
+
     VX_API size_t read_internal(uint8_t* data, size_t size);
     VX_API size_t write_internal(const uint8_t* data, size_t size);
+    VX_API bool write_line_internal(const char* first, size_t size);
+
+#if defined(VX_PLATFORM_WINDOWS)
+
+    VX_API bool windows_write_text_file_internal(const char* text, size_t size);
+
+#endif // VX_PLATFORM_WINDOWS
 
 public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // generic read functions
+    ///////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
     size_t read(T& data)
@@ -98,6 +112,10 @@ public:
         return read_internal(reinterpret_cast<uint8_t*>(data), sizeof(T) * count);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // generic write functions
+    ///////////////////////////////////////////////////////////////////////////////
+
     template <typename T>
     size_t write(const T& data)
     {
@@ -110,6 +128,16 @@ public:
         return write_internal(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // text read functions
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_API bool read_line(std::string& line);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // text write functions
+    ///////////////////////////////////////////////////////////////////////////////
+
     size_t write(const char* text)
     {
         return write_internal(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
@@ -117,29 +145,45 @@ public:
 
     size_t write(const std::string& text)
     {
-        return write(text.c_str());
+        return write_internal(reinterpret_cast<const uint8_t*>(text.data()), text.size());
     }
 
-    VX_API bool read_line(std::string& line);
-    VX_API bool write_line(const char* line);
-    bool write_line(const std::string& line) { return write_line(line.c_str()); }
+    bool write_line(const char* line) { return write_check() && write_line_internal(line, std::strlen(line)); }
+    bool write_line(const std::string& line) { return write_check() && write_line_internal(line.c_str(), line.size()); }
 
 public:
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // file read functions
+    ///////////////////////////////////////////////////////////////////////////////
+
     static bool read_file(const path& p, std::vector<uint8_t>& data)
     {
-        bool success = false;
-
         file f;
-        if (f.open(p, mode::READ))
+        if (!f.open(p, mode::READ))
         {
-            const size_t size = f.size();
-            data.resize(size);
-            success = f.read_internal(data.data(), size);
+            return false;
         }
 
-        return success;
+        data.resize(f.size());
+        return f.read_internal(data.data(), data.size());
     }
+
+    static bool read_file(const path& p, std::string& text)
+    {
+        file f;
+        if (!f.open(p, mode::READ))
+        {
+            return false;
+        }
+
+        text.resize(f.size());
+        return f.read_internal(reinterpret_cast<uint8_t*>(text.data()), text.size());
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // file write functions
+    ///////////////////////////////////////////////////////////////////////////////
 
     static bool write_file(const path& p, const uint8_t* data, size_t size)
     {
@@ -147,61 +191,25 @@ public:
         return f.open(p, mode::WRITE) && f.write_internal(data, size);
     }
 
-    static bool read_text_file(const path& p, std::string& text)
+    static bool write_file(const path& p, const char* text)
     {
-        bool success = false;
-
         file f;
-        if (f.open(p, mode::READ))
-        {
-            const size_t size = f.size();
-            text.resize(size);
-            success = f.read_internal(reinterpret_cast<uint8_t*>(text.data()), size);
-        }
+        return f.open(p, mode::WRITE) &&
 
-        return success;
-    }
-
-    static bool write_text_file(const path& p, const char* text)
-    {
 #if defined(VX_PLATFORM_WINDOWS)
 
-        const size_t text_size = std::strlen(text);
-        const size_t size = text_size + std::count(text, text + text_size, '\n');
-
-        std::vector<char> native_text;
-        native_text.reserve(size);
-
-        auto it = text;
-        const auto last = text + text_size;
-
-        while (it != last)
-        {
-            if (*it == '\n')
-            {
-                native_text.push_back('\r');
-            }
-
-            native_text.push_back(*it);
-            ++it;
-        }
-
-        const uint8_t* data = reinterpret_cast<const uint8_t*>(native_text.data());
+            f.windows_write_text_file_internal(text, std::strlen(text));
 
 #else
 
-        const size_t size = text.size();
-        const uint8_t* data = reinterpret_cast<const uint8_t*>(text.data());
+            f.write_internal(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
 
 #endif // VX_PLATFORM_WINDOWS
-
-        file f;
-        return f.open(p, mode::WRITE) && f.write_internal(data, size);
     }
 
-    static bool write_text_file(const path& p, const std::string& text)
+    static bool write_file(const path& p, const std::string& text)
     {
-        return write_text_file(p, text.c_str());
+        return write_file(p, text.c_str());
     }
 
     static bool clear_file(const path& p)
