@@ -1,9 +1,9 @@
 #pragma once
 
-#include "vertex/system/platform_config.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/util/io/quoted.hpp"
 #include "vertex/util/crypto/FNV1a.hpp"
+#include "vertex/os/native_string.hpp"
 
 #if defined(VX_TESTING_PATH)
 #   if defined(VX_TESTING_WINDOWS_PATH)
@@ -478,6 +478,8 @@ public:
 
     path(string_type&& s) noexcept : m_path(std::move(s)) {}
 
+    path(const native_string& src) : m_path(src.native()) {}
+
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
     path(const Src& src) : m_path(str::string_cast<value_type>(src)) {}
 
@@ -496,6 +498,18 @@ public:
     path& assign(string_type&& s) noexcept
     {
         m_path = std::move(s);
+    }
+
+    path& operator=(const native_string& rhs)
+    {
+        m_path = rhs.native();
+        return *this;
+    }
+
+    path& assign(const native_string& rhs)
+    {
+        m_path = rhs.native();
+        return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>
@@ -750,6 +764,7 @@ public:
     inline const value_type* c_str() const noexcept { return m_path.c_str(); }
     inline const string_type& native() const noexcept { return m_path; }
     inline operator string_type() const { return m_path; }
+    inline operator native_string() const { return native_string{ m_path }; }
 
     template <
         typename char_t = char,

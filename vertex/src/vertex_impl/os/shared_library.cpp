@@ -73,11 +73,6 @@ VX_API void shared_library::free()
     }
 }
 
-VX_API path shared_library::location() const
-{
-    return is_loaded() ? m_impl->location() : path{};
-}
-
 void* shared_library::get_void(const std::string& name) const
 {
     return is_loaded() ? m_impl->get_addr(name) : nullptr;

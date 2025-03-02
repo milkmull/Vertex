@@ -40,17 +40,6 @@ void shared_library::shared_library_impl::free()
     }
 }
 
-path shared_library::shared_library_impl::location() const
-{
-    WCHAR buffer[MAX_PATH];
-    if (GetModuleFileNameW(m_handle, buffer, MAX_PATH) == 0)
-    {
-        windows::error_message("GetModuleFileNameW()");
-    }
-
-    return path{ buffer };
-}
-
 void* shared_library::shared_library_impl::get_addr(const std::string& name) const
 {
     return is_loaded() ? GetProcAddress(m_handle, name.c_str()) : NULL;

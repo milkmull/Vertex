@@ -70,7 +70,7 @@ endfunction()
 #)
 #vx_add_test(test_path "os" "${VX_OS_PATH_SRC_FILES}")
 
-vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.cpp")
+#vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.cpp")
 #vx_add_test(test_filesystem "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/filesystem.cpp")
 #vx_add_test(test_os_time "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/time.cpp")
 

@@ -1,6 +1,7 @@
 ﻿#include "vertex/system/log.hpp"
 #include "vertex/os/time.hpp"
 #include "vertex/os/process.hpp"
+#include "vertex/system/error.hpp"
 
 using namespace vx;
 

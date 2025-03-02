@@ -19,7 +19,6 @@ public:
     bool is_loaded() const;
     void free();
 
-    path location() const;
     void* get_addr(const std::string& name) const;
 
 private:

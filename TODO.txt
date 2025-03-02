@@ -226,6 +226,7 @@ testing:
     x os/file
     x os/filesystem
     x os/path
+    - os/native_string
     
     - os/mutex
     - os/thread

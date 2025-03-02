@@ -7,6 +7,7 @@ file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mutex.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/native_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/path.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/process.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random.hpp"

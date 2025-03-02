@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vertex/os/path.hpp"
+#include <memory>
+
+#include "vertex/system/platform.hpp"
 
 namespace vx {
 namespace os {
@@ -40,8 +42,6 @@ public:
     VX_API bool load(const std::string& lib);
     VX_API bool is_loaded() const;
     VX_API void free();
-
-    VX_API path location() const;
 
 public:
 
