@@ -25,8 +25,6 @@ public:
 
         DWORD access = 0;
         DWORD creation = 0;
-        DWORD share = 0;
-        DWORD flags = FILE_ATTRIBUTE_NORMAL;
 
         switch (mode)
         {
@@ -35,8 +33,6 @@ public:
             {
                 access = GENERIC_READ;
                 creation = OPEN_EXISTING;
-                // Allow read sharing if we are not writing
-                share = FILE_SHARE_READ;
                 break;
             }
             // Always create or truncate the file
@@ -72,10 +68,10 @@ public:
         fd.handle = CreateFileW(
             p.c_str(),
             access,
-            share,
+            FILE_SHARE_READ | FILE_SHARE_WRITE, // allow read and write sharing
             NULL,
             creation,
-            flags,
+            FILE_ATTRIBUTE_NORMAL,
             NULL
         );
 

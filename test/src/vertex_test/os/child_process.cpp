@@ -1,5 +1,6 @@
 #include "vertex/os/process.hpp"
 #include "vertex/os/time.hpp"
+#include "vertex/system/log.hpp"
 
 using namespace vx;
 
@@ -16,7 +17,12 @@ enum class command
 
 int main(int argc, char* argv[])
 {
+    VX_PRINT_ERRORS(true);
+    log::start("child_process_log.txt");
+
     command cmd = command::NONE;
+
+    VX_LOG_INFO << "starting child process";
 
     int i = 0;
     for (; i < argc; ++i)
@@ -59,16 +65,22 @@ int main(int argc, char* argv[])
     {
         case command::HELLO_WORLD:
         {
+            VX_LOG_INFO << "running --hello-world";
+
             os::this_process::get_stdout().write_line("Hello World");
             break;
         }
         case command::EXIT_CODE:
         {
+            VX_LOG_INFO << "running --exit-code" << argv[i];
+
             const int exit_code = str::to_int32(argv[i]);
             return exit_code;
         }
         case command::SHOW_ENVIRONMENT:
         {
+            VX_LOG_INFO << "running --show-environment";
+
             const os::process::environment env = os::this_process::get_environment();
             std::vector<char> data;
 
@@ -86,6 +98,8 @@ int main(int argc, char* argv[])
         }
         case command::STALL:
         {
+            VX_LOG_INFO << "running --stall" << argv[i];
+
             while (true)
             {
                 os::sleep(time::milliseconds(100));
@@ -95,6 +109,8 @@ int main(int argc, char* argv[])
         }
         case command::STDIN_TO_STDOUT:
         {
+            VX_LOG_INFO << "running --stdin-to-stdout";
+
             os::io_stream stdin = os::this_process::get_stdin();
             os::io_stream stdout = os::this_process::get_stdout();
 
@@ -103,16 +119,21 @@ int main(int argc, char* argv[])
             {
                 if (line == "EOF")
                 {
+                    VX_LOG_INFO << "EOF";
                     break;
                 }
 
                 stdout.write_line(line);
+                VX_LOG_INFO << "writing line " << line;
             }
 
+            VX_LOG_INFO << "finished stdout";
             break;
         }
         case command::STDIN_TO_STDERR:
         {
+            VX_LOG_INFO << "running --stdin-to-stderr";
+
             os::io_stream stdin = os::this_process::get_stdin();
             os::io_stream stderr = os::this_process::get_stderr();
 
@@ -125,6 +146,7 @@ int main(int argc, char* argv[])
                 }
 
                 stderr.write_line(line);
+                VX_LOG_INFO << "writing line " << line;
             }
 
             break;
@@ -134,6 +156,8 @@ int main(int argc, char* argv[])
             break;
         }
     }
+
+    VX_LOG_INFO << "child process finished";
 
     return 0;
 }

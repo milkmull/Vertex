@@ -99,7 +99,8 @@ VX_TEST_CASE(test_process_initial_state)
     VX_CHECK(!p.is_complete());
     VX_CHECK(!p.join());
     VX_CHECK(!p.kill());
-    VX_CHECK(!p.get_exit_code(nullptr));
+    int exit_code;
+    VX_CHECK(!p.get_exit_code(&exit_code));
 
     VX_CHECK(!p.get_stdin().is_open());
     VX_CHECK(!p.get_stdout().is_open());
@@ -191,6 +192,16 @@ VX_TEST_CASE(test_arguments)
     VX_CHECK(echo_argument("\"quoted argument\"") == "\"\"quoted argument\"\"");
     VX_CHECK(echo_argument("C:\\Path\\to\\file\\") == "C:\\Path\\to\\file\\");
     VX_CHECK(echo_argument("C:\\Folder\\\"Test\"") == "\"C:\\Folder\\\\\"Test\"\"");
+
+#else
+
+    VX_CHECK(echo_argument(" ") == " ");
+    VX_CHECK(echo_argument("a b c") == "a b c");
+    VX_CHECK(echo_argument("a\tb\tc\t") == "a\tb\tc\t");
+    VX_CHECK(echo_argument("(something)") == "(something)");
+    VX_CHECK(echo_argument("\"quoted argument\"") == "\"quoted argument\"");
+    VX_CHECK(echo_argument("/Path/to/file/") == "/Path/to/file/");
+    VX_CHECK(echo_argument("/Folder/\"Test\"") == "/Folder/\"Test\"");
 
 #endif // VX_PLATFORM_WINDOWS
 }
@@ -442,6 +453,210 @@ VX_TEST_CASE(test_stdin_to_stderr)
     int exit_code;
     VX_CHECK(p.get_exit_code(&exit_code));
     VX_CHECK(exit_code == 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
+{
+    const char* lines[] = {
+        "Tests whether we can write to stdin and read from stdout accross 2 child processes",
+        "{'success': true, 'message': 'Success!'}",
+        "Yippie ka yee"
+    };
+
+    os::process::config config;
+    config.args = { child_process, "--stdin-to-stdout" };
+
+    // Configure and start the first process
+    config.stdin_option = os::process::io_option::CREATE;
+    config.stdout_option = os::process::io_option::CREATE;
+    os::process p1;
+    VX_CHECK(p1.start(config));
+
+    // Configure and start the second process
+    config.stdin_option = os::process::io_option::REDIRECT;
+    config.stdin_redirect = &p1.get_stdout();
+    config.stdout_option = os::process::io_option::CREATE;
+    os::process p2;
+    VX_CHECK(p2.start(config));
+
+    // Get stdin pipe from first process
+    auto& stdin = p1.get_stdin();
+    VX_CHECK(stdin.is_open());
+    VX_CHECK(stdin.can_write());
+
+    // write each line
+    for (auto line : lines)
+    {
+        VX_CHECK(stdin.write_line(line));
+    }
+
+    // finish the first process
+    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p1.join());
+    VX_CHECK(p1.is_complete());
+
+    int exit_code;
+    VX_CHECK(p1.get_exit_code(&exit_code));
+    VX_CHECK(exit_code == 0);
+
+    // Get stdout pipe from second process
+    auto& stdout = p2.get_stdout();
+    VX_CHECK(stdout.is_open());
+    VX_CHECK(stdout.can_read());
+
+    // read the lines back
+    std::string read_line;
+    for (auto line : lines)
+    {
+        VX_CHECK(stdout.read_line(read_line) && read_line == line);
+    }
+
+    VX_CHECK(stdout.eof());
+
+    // finish the second process
+    VX_CHECK(p2.join());
+    VX_CHECK(p2.is_complete());
+
+    VX_CHECK(p2.get_exit_code(&exit_code));
+    VX_CHECK(exit_code == 0);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_write_to_completed_process)
+{
+    os::process p;
+
+    os::process::config cfg;
+    cfg.args = { child_process, "--hello-world" };
+    cfg.stdin_option = os::process::io_option::CREATE;
+    VX_CHECK_AND_EXPECT_NO_ERROR(p.start(cfg));
+
+    VX_CHECK(p.is_valid());
+    VX_CHECK(p.get_pid() != 0);
+    VX_CHECK(p.join());
+    VX_CHECK(!p.is_alive());
+    VX_CHECK(p.is_complete());
+
+    int code;
+    VX_CHECK(p.get_exit_code(&code));
+    VX_CHECK(code == 0);
+
+    // the pipe should be closed, writing should fail
+    VX_CHECK_AND_EXPECT_ERROR(!p.get_stdin().write_line("hello"));
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_nonexisting_executable)
+{
+    os::process::config cfg;
+    cfg.args = { "fake_exe" EXE };
+
+    os::process p;
+    VX_CHECK_AND_EXPECT_ERROR(!p.start(cfg));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_stream_redirection)
+{
+    const os::path stdin_path = "stdin.txt";
+    // create the parent process input side of the pipe
+    os::io_stream stream;
+    VX_CHECK(stream.open(stdin_path, os::file::mode::WRITE));
+
+    // create the child process input side of the pipe
+    os::file stdin;
+    VX_CHECK(stdin.open(stdin_path, os::file::mode::READ));
+
+    const os::path stdout_path = "stdout.txt";
+    os::file stdout;
+    VX_CHECK(stdout.open(stdout_path, os::file::mode::WRITE));
+
+    const os::path stderr_path = "stderr.txt";
+    os::file stderr;
+    VX_CHECK(stderr.open(stderr_path, os::file::mode::WRITE));
+
+    VX_SECTION("stdin to stdout redirection")
+    {
+        const char* stdin_to_stdout_redirect_text = "testing stdin to stdout redirection";
+
+        os::process::config cfg;
+        cfg.args = { child_process, "--stdin-to-stdout" };
+
+        cfg.stdin_option = os::process::io_option::REDIRECT;
+        cfg.stdin_redirect = &stdin;
+
+        cfg.stdout_option = os::process::io_option::REDIRECT;
+        cfg.stdout_redirect = &stdout;
+
+        // Start the process
+        os::process p;
+        VX_CHECK(p.start(cfg));
+
+        // write each line
+        VX_CHECK(stream.write_line(stdin_to_stdout_redirect_text));
+
+        // finish the process
+        VX_CHECK(stream.write_line("EOF"));
+        VX_CHECK(p.join());
+        VX_CHECK(p.is_complete());
+
+        // Ensure the process exits correctly
+        int exit_code;
+        VX_CHECK(p.get_exit_code(&exit_code));
+        VX_CHECK(exit_code == 0);
+
+        os::io_stream stdout_stream;
+        VX_CHECK(stdout_stream.open(stdout_path, os::file::mode::READ));
+
+        // read the lines back
+        std::string read_line;
+        VX_CHECK(stdout_stream.read_line(read_line) && read_line == stdin_to_stdout_redirect_text);
+        VX_CHECK(stdout_stream.eof());
+    }
+
+    VX_SECTION("stdin to stderr redirection")
+    {
+        const char* stdin_to_stderr_redirect_text = "testing stdin to stderr redirection";
+
+        os::process::config cfg;
+        cfg.args = { child_process, "--stdin-to-stderr" };
+
+        cfg.stdin_option = os::process::io_option::REDIRECT;
+        cfg.stdin_redirect = &stdin;
+
+        cfg.stderr_option = os::process::io_option::REDIRECT;
+        cfg.stderr_redirect = &stderr;
+
+        // Start the process
+        os::process p;
+        VX_CHECK(p.start(cfg));
+
+        // write each line
+        VX_CHECK(stream.write_line(stdin_to_stderr_redirect_text));
+
+        // finish the process
+        VX_CHECK(stream.write_line("EOF"));
+        VX_CHECK(p.join());
+        VX_CHECK(p.is_complete());
+
+        // Ensure the process exits correctly
+        int exit_code;
+        VX_CHECK(p.get_exit_code(&exit_code));
+        VX_CHECK(exit_code == 0);
+
+        os::io_stream stderr_stream;
+        VX_CHECK(stderr_stream.open(stderr_path, os::file::mode::READ));
+
+        // read the lines back
+        std::string read_line;
+        VX_CHECK(stderr_stream.read_line(read_line) && read_line == stdin_to_stderr_redirect_text);
+        VX_CHECK(stderr_stream.eof());
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

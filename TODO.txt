@@ -140,7 +140,6 @@ cleanup and finalizaton for base library:
     more bonus:
     {
         x add functions to shared_library
-        - add functions to get native handles for os classes
         x check which time_point functions using the standard library can be inlined with noexcept
         x look again at noexcept err::unavailable function
         x add iterator file::write overloads
@@ -150,9 +149,9 @@ cleanup and finalizaton for base library:
     
     refactoring platform specific code:
     {
-        - test file read line
+        x test file read line
         - light path class
-        - template string functions
+        - refactor io namespce and logging (allow logging to file or stdout)
     }
 }
 
@@ -224,13 +223,13 @@ testing:
     x util/time/datetime
     x os/time
     
-    - os/file
+    x os/file
     x os/filesystem
     x os/path
     
     - os/mutex
     - os/thread
-    - os/process
+    x os/process
     
     - os/system_info
     - os/shared_library

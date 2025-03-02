@@ -283,6 +283,13 @@ bool process::process_impl::start(process* p, const config& config)
                     goto cleanup;
                 }
 
+                if ((stream.proc_file_mode() == file::mode::READ && !stream.redirect->can_read()) ||
+                    (stream.proc_file_mode() == file::mode::WRITE && !stream.redirect->can_write()))
+                {
+                    VX_ERR(err::INVALID_ARGUMENT) << "redirect stream mode is incompatable with expected file mode";
+                    goto cleanup;
+                }
+
                 if (!DuplicateHandle(
                     GetCurrentProcess(),
                     __detail::file_impl::get_handle(*stream.redirect),
@@ -295,6 +302,20 @@ bool process::process_impl::start(process* p, const config& config)
                     stream.proc_pipe() = INVALID_HANDLE_VALUE;
                     windows::error_message("DuplicateHandle()");
                     goto cleanup;
+                }
+
+                if (GetFileType(stream.proc_pipe()) == FILE_TYPE_PIPE)
+                {
+                    // PIPE_WAIT ensures that read and write operations on the named pipe are blocking.
+                    // This means the process will wait (instead of returning immediately) 
+                    // until data is available for reading or until a write operation completes.
+
+                    DWORD wait_mode = PIPE_WAIT;
+                    if (!SetNamedPipeHandleState(stream.proc_pipe(), &wait_mode, NULL, NULL))
+                    {
+                        windows::error_message("SetNamedPipeHandleState()");
+                        goto cleanup;
+                    }
                 }
 
                 break;

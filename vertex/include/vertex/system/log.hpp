@@ -86,12 +86,8 @@ public:
 
     void flush()
     {
-        std::string msg(m_stream.str());
-        if (msg.back() != '\n')
-        {
-            msg.push_back('\n');
-        }
-
+        m_stream << VX_LINE_END;
+        const std::string msg(m_stream.str());
         write(m_level, m_stream.str());
     }
 

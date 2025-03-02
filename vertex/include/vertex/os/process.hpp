@@ -38,7 +38,7 @@ public:
         std::vector<std::string> args;
         environment environment;
 
-        bool background = false;
+        bool background = true;
 
         io_option stdin_option  = io_option::NONE;
         io_option stdout_option = io_option::NONE;
