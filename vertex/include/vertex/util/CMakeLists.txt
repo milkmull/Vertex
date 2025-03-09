@@ -15,6 +15,8 @@ file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/encode/utf.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/utf.hpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/function/invoke.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/io/iostream.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io/quoted.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"

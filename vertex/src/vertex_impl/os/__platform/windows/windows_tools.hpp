@@ -11,10 +11,13 @@ namespace os {
 namespace windows {
 
 static_assert(std::is_same<HANDLE_, HANDLE>::value);
+static_assert(std::is_same<DWORD_, DWORD>::value);
 
 ///////////////////////////////////////////////////////////////////////////////
 // HANDLE wrapper
 ///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_valid_handle(const HANDLE h) { return h != NULL && h != INVALID_HANDLE_VALUE; }
 
 inline handle::handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
 
@@ -47,7 +50,7 @@ inline handle& handle::operator=(const HANDLE_ h) noexcept
 
 inline bool handle::is_valid() const noexcept
 {
-    return m_handle != NULL && m_handle != INVALID_HANDLE_VALUE;
+    return is_valid_handle(m_handle);
 }
 
 inline HANDLE_ handle::get() const noexcept { return m_handle; }

@@ -152,6 +152,7 @@ cleanup and finalizaton for base library:
         x test file read line
         - light path class
         - refactor io namespce and logging (allow logging to file or stdout)
+        - swap methods
     }
 }
 
@@ -226,7 +227,6 @@ testing:
     x os/file
     x os/filesystem
     x os/path
-    - os/native_string
     
     - os/mutex
     - os/thread

@@ -1,93 +1,39 @@
-#include "vertex/os/thread.hpp"
-#include "vertex/system/error.hpp"
+#include "vertex_impl/os/__platform/thread.hpp"
 
 namespace vx {
 namespace os {
 
-VX_API thread::thread() noexcept {}
+// https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/src/c%2B%2B11/thread.cc
 
-VX_API thread::~thread() noexcept
+bool thread::start_impl(void* fn, void* arg)
 {
-    join();
-}
-
-VX_API thread::thread(thread&& other) noexcept
-    : m_thread(std::move(other.m_thread))
-    , m_future(std::move(other.m_future)) {}
-
-VX_API thread& thread::operator=(thread&& other) noexcept
-{
-    if (this != &other)
+    if (thread_impl::is_valid(m_impl_data))
     {
-        join();
-
-        m_thread = std::move(other.m_thread);
-        m_future = std::move(other.m_future);
+        VX_ERR(err::UNSUPPORTED_OPERATION) << "thread already started";
+        return false;
     }
 
-    return *this;
-}
-
-VX_API thread::id thread::get_id() const noexcept
-{
-    return m_thread.get_id();
+    return thread_impl::start(m_impl_data, fn, arg);
 }
 
 VX_API bool thread::is_valid() const noexcept
 {
-    return m_future.valid() && is_joinable();
+    return thread_impl::is_valid(m_impl_data);
 }
 
 VX_API bool thread::is_alive() const noexcept
 {
-    if (!is_valid())
-    {
-        return false;
-    }
-
-    return m_future.wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
-}
-
-VX_API bool thread::is_joinable() const noexcept
-{
-    return m_thread.joinable();
-}
-
-VX_API bool thread::is_complete() const noexcept
-{
-    if (!is_valid())
-    {
-        return false;
-    }
-
-    return m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    return is_valid() && thread_impl::is_alive(m_impl_data);
 }
 
 VX_API bool thread::join() noexcept
 {
-    if (!is_joinable())
-    {
-        return false;
-    }
-
-    m_thread.join();
-    return true;
+    return is_joinable() && thread_impl::join(m_impl_data);
 }
 
-VX_API bool thread::detatch() noexcept
+VX_API bool thread::detach() noexcept
 {
-    if (!is_joinable())
-    {
-        return false;
-    }
-
-    m_thread.detach();
-    return true;
-}
-
-VX_API thread::id this_thread::get_id() noexcept
-{
-    return std::this_thread::get_id();
+    return is_joinable() && thread_impl::detach(m_impl_data);
 }
 
 } // namespace os

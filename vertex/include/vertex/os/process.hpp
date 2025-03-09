@@ -22,7 +22,7 @@ class process
 {
 public:
 
-    using id = int;
+    using id = uint32_t;
     using environment = std::unordered_map<std::string, std::string>;
 
     enum class io_option

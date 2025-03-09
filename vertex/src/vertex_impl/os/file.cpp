@@ -58,7 +58,7 @@ VX_API bool file::open(const path& p, mode mode)
         return false;
     }
 
-    if (!file_impl::open(p, mode, m_impl_data))
+    if (!file_impl::open(m_impl_data, p, mode))
     {
         return false;
     }
@@ -85,12 +85,12 @@ VX_API size_t file::size() const
 
 VX_API bool file::resize(size_t size)
 {
-    return is_open() ? file_impl::resize(size, m_impl_data) : false;
+    return is_open() ? file_impl::resize(m_impl_data, size) : false;
 }
 
 VX_API bool file::seek(int off, stream_position from)
 {
-    return is_open() ? file_impl::seek(off, from, m_impl_data) : false;
+    return is_open() ? file_impl::seek(m_impl_data, off, from) : false;
 }
 
 VX_API size_t file::tell() const
@@ -137,12 +137,12 @@ VX_API bool file::write_check() const
 
 VX_API size_t file::read_internal(uint8_t* data, size_t size)
 {
-    return !read_check() ? 0 : file_impl::read(data, size, m_impl_data);
+    return !read_check() ? 0 : file_impl::read(m_impl_data, data, size);
 }
 
 VX_API size_t file::write_internal(const uint8_t* data, size_t size)
 {
-    return !write_check() ? 0 : file_impl::write(data, size, m_impl_data);
+    return !write_check() ? 0 : file_impl::write(m_impl_data, data, size);
 }
 
 VX_API bool file::read_line(std::string& line)
@@ -155,7 +155,7 @@ VX_API bool file::read_line(std::string& line)
     line.clear();
 
     char c = 0;
-    while (file_impl::read(reinterpret_cast<uint8_t*>(&c), 1, m_impl_data) == 1)
+    while (file_impl::read(m_impl_data, reinterpret_cast<uint8_t*>(&c), 1) == 1)
     {
         if (c == '\n')
         {
@@ -183,8 +183,8 @@ VX_API bool file::write_line_internal(const char* first, size_t size)
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
     // NOTE: write check should happen before calling this function
-    return (file_impl::write(reinterpret_cast<const uint8_t*>(first), size, m_impl_data) == size)
-        && (file_impl::write(reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size, m_impl_data) == line_end_size);
+    return (file_impl::write(m_impl_data, reinterpret_cast<const uint8_t*>(first), size) == size)
+        && (file_impl::write(m_impl_data, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
 }
 
 #if defined(VX_PLATFORM_WINDOWS)

@@ -35,7 +35,6 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_tools.cpp"
         
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_file.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_file.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_filesystem.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_locale.hpp"
@@ -50,6 +49,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_shared_library.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_info.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_info.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_thread.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_time.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_time.cpp"
     )
@@ -68,6 +68,7 @@ else()
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
     )
     

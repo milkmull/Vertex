@@ -1,28 +1,21 @@
-﻿#include "vertex/system/log.hpp"
-#include "vertex/os/time.hpp"
-#include "vertex/os/process.hpp"
-#include "vertex/system/error.hpp"
+﻿#include "vertex/util/io/iostream.hpp"
+#include "vertex/os/thread.hpp"
+
+#include <numeric>
 
 using namespace vx;
 
+static void hello(std::vector<int>) {}
+
 int main(int argc, char* argv[])
 {
-    VX_PRINT_ERRORS(true);
-    
-    os::process::config cfg;
-    cfg.args = { "ping", "127.0.0.1", "-n", "5" };
-    //cfg.background = true;
-    cfg.stdout_option = os::process::io_option::INHERIT;
-
-    os::process p;
-    p.start(cfg);
-
-    while (p.is_alive())
+    for (int i = 0; i < 1000000000000; ++i)
     {
-        os::sleep(time::milliseconds(100));
-        p.get_stdout().write("hello");
+        std::vector<int> data(1000);
+        std::iota(data.begin(), data.end(), 0);
+
+        os::thread t;
+        t.start(hello, data);
+        t.join();
     }
-
-
-    return 0;
 }

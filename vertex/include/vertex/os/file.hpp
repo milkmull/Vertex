@@ -49,9 +49,9 @@ public:
     VX_API ~file();
 
     file(const file&) = delete;
-    VX_API file(file&&) noexcept;
-
     file& operator=(const file&) = delete;
+
+    VX_API file(file&&) noexcept;
     VX_API file& operator=(file&&) noexcept;
 
 public:

@@ -19,7 +19,7 @@ public:
         return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
     }
 
-    static bool open(const path& p, file::mode mode, __detail::file_impl_data& fd)
+    static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
     {
         VX_ASSERT_MESSAGE(!fd.handle.is_valid(), "file already open");
 
@@ -109,11 +109,11 @@ public:
         return static_cast<size_t>(size.QuadPart);
     }
 
-    static bool resize(size_t size, __detail::file_impl_data& fd)
+    static bool resize(__detail::file_impl_data& fd, size_t size)
     {
         assert_is_open(fd.handle);
 
-        if (!seek(static_cast<int>(size), stream_position::BEGIN, fd))
+        if (!seek(fd, static_cast<int>(size), stream_position::BEGIN))
         {
             return false;
         }
@@ -127,7 +127,7 @@ public:
         return true;
     }
 
-    static bool seek(int off, stream_position from, __detail::file_impl_data& fd)
+    static bool seek(__detail::file_impl_data& fd, int off, stream_position from)
     {
         assert_is_open(fd.handle);
 
@@ -193,7 +193,7 @@ public:
         return true;
     }
 
-    static size_t read(uint8_t* data, size_t size, __detail::file_impl_data& fd)
+    static size_t read(__detail::file_impl_data& fd, uint8_t* data, size_t size)
     {
         assert_is_open(fd.handle);
 
@@ -207,7 +207,7 @@ public:
         return static_cast<size_t>(count);
     }
 
-    static size_t write(const uint8_t* data, size_t size, __detail::file_impl_data& fd)
+    static size_t write(__detail::file_impl_data& fd, const uint8_t* data, size_t size)
     {
         assert_is_open(fd.handle);
 

@@ -1207,8 +1207,8 @@ bool video::window::window_impl::set_icon(const pixel::surface& surf)
     }
 
     // MSVC warns about arument 6 being NULL
-    VX_DISABLE_WARNING("", 6387);
-    VX_DISABLE_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING("", 6387);
+    VX_DISABLE_MSVC_WARNING_PUSH();
 
     // Create the icon
     m_icon = CreateIcon(
@@ -1220,7 +1220,7 @@ bool video::window::window_impl::set_icon(const pixel::surface& surf)
         formatted_pixels.data()
     );
 
-    VX_DISABLE_WARNING_POP();
+    VX_DISABLE_MSVC_WARNING_POP();
 
     if (!m_icon)
     {
