@@ -867,8 +867,8 @@ VX_TEST_CASE(test_directory_iterator)
         VX_CHECK(it1 != os::filesystem::directory_iterator{});
         const os::path first_entry = it1->path;
 
-        VX_DISABLE_WARNING("", 26800); // disable use after move warning
-        VX_DISABLE_WARNING_PUSH();
+        VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
+        VX_DISABLE_MSVC_WARNING_PUSH();
 
         os::filesystem::directory_iterator it2(std::move(it1));
         VX_CHECK(it2.is_valid());
@@ -890,7 +890,7 @@ VX_TEST_CASE(test_directory_iterator)
         VX_CHECK(it3.is_valid());
         VX_CHECK(it3 != os::filesystem::directory_iterator{});
 
-        VX_DISABLE_WARNING_POP();
+        VX_DISABLE_MSVC_WARNING_POP();
     }
 
     VX_SECTION("operator++")
@@ -1011,8 +1011,8 @@ VX_TEST_CASE(test_recursive_directory_iterator)
         VX_CHECK(it1 != os::filesystem::recursive_directory_iterator{});
         const os::path first_entry = it1->path;
 
-        VX_DISABLE_WARNING("", 26800); // disable use after move warning
-        VX_DISABLE_WARNING_PUSH();
+        VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
+        VX_DISABLE_MSVC_WARNING_PUSH();
 
         os::filesystem::recursive_directory_iterator it2(std::move(it1));
         VX_CHECK(it2.is_valid());
@@ -1034,7 +1034,7 @@ VX_TEST_CASE(test_recursive_directory_iterator)
         VX_CHECK(it3.is_valid());
         VX_CHECK(it3 != os::filesystem::recursive_directory_iterator{});
 
-        VX_DISABLE_WARNING_POP();
+        VX_DISABLE_MSVC_WARNING_POP();
     }
 
     VX_SECTION("operator++")

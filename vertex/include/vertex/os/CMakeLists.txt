@@ -1,6 +1,7 @@
 # Source files for vertex/include/vertex/os
 file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/file_impl_data.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/mutex_impl_data.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/thread_impl_data.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/atomic.hpp"
@@ -28,6 +29,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_types.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_file_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_mutex_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_thread_impl_data.hpp"
     )
     
@@ -38,6 +40,7 @@ else()
     # Source files for windows
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/dummy_file_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/dummy_mutex_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/dummy_thread_impl_data.hpp"
     )
     

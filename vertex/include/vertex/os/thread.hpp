@@ -183,126 +183,42 @@ private:
     impl_data m_impl_data;
 };
 
-//class thread
-//{
-//public:
-//
-//    using id = std::thread::id;
-//
-//    thread() noexcept = default;
-//    ~thread() noexcept = default;
-//
-//    thread(const thread&) = delete;
-//    thread& operator=(const thread&) = delete;
-//
-//    thread(thread&& other) noexcept
-//        : m_thread(std::move(other.m_thread))
-//        , m_future(std::move(other.m_future)) {}
-//
-//    thread& operator=(thread&& other) noexcept
-//    {
-//        if (this != &other)
-//        {
-//            join();
-//
-//            m_thread = std::move(other.m_thread);
-//            m_future = std::move(other.m_future);
-//        }
-//
-//        return *this;
-//    }
-//
-//public:
-//
-//    template <typename Func, typename... Args>
-//    bool start(Func&& func, Args&&... args)
-//    {
-//        if (is_alive())
-//        {
-//            VX_ERR(err::RUNTIME_ERROR) << "thread already running";
-//            return false;
-//        }
-//
-//        // Create a promise and get the associated future
-//        std::promise<void> promise;
-//        m_future = promise.get_future();
-//
-//        m_thread = std::thread(
-//            [this](std::packaged_task<void()> f, std::promise<void> p) mutable
-//            {
-//                f();
-//                p.set_value(); // Signal that the thread has completed execution
-//            },
-//            std::packaged_task<void()>(std::bind(std::forward<Func>(func), std::forward<Args>(args)...)),
-//            std::move(promise)
-//        );
-//
-//        return true;
-//    }
-//
-//    id get_id() const noexcept
-//    {
-//        return m_thread.get_id();
-//    }
-//
-//    bool is_valid() const noexcept
-//    {
-//        return m_future.valid() && is_joinable();
-//    }
-//
-//    bool is_alive() const noexcept
-//    {
-//        return is_valid()
-//            && m_future.wait_for(std::chrono::seconds(0)) == std::future_status::timeout;
-//    }
-//
-//    bool is_joinable() const noexcept
-//    {
-//        return m_thread.joinable();
-//    }
-//
-//    bool is_complete() const noexcept
-//    {
-//        return !is_joinable() && m_future.valid()
-//            && m_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-//    }
-//
-//    bool join() noexcept
-//    {
-//        if (!is_joinable())
-//        {
-//            return false;
-//        }
-//
-//        m_thread.join();
-//        return true;
-//    }
-//
-//    bool detach() noexcept
-//    {
-//        if (!is_joinable())
-//        {
-//            return false;
-//        }
-//
-//        m_thread.detach();
-//        return true;
-//    }
-//
-//private:
-//
-//    std::thread m_thread;
-//    std::future<void> m_future;
-//};
-//
-//namespace this_thread {
-//
-//inline thread::id get_id() noexcept
-//{
-//    return std::this_thread::get_id();
-//}
-//
-//} // namespace this_thread
+///////////////////////////////////////////////////////////////////////////////
+// thread guard
+///////////////////////////////////////////////////////////////////////////////
+
+class thread_guard
+{
+public:
+
+    explicit thread_guard(thread&& t) noexcept : m_thread(std::move(t)) {}
+    thread_guard(thread_guard&& other) noexcept : m_thread(std::move(other.m_thread)) {}
+
+    thread_guard(const thread_guard&) = delete;
+    thread_guard& operator=(const thread_guard&) = delete;
+
+    ~thread_guard()
+    {
+        if (m_thread.is_joinable())
+        {
+            m_thread.join();
+        }
+    }
+
+    const os::thread& thread() const noexcept
+    {
+        return m_thread;
+    }
+
+    os::thread release() noexcept
+    {
+        return std::move(m_thread);
+    }
+
+private:
+
+    os::thread m_thread;
+};
 
 } // namespace os
 } // namespace vx
