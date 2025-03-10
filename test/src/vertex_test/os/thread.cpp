@@ -59,6 +59,9 @@ VX_TEST_CASE(test_thread_move_operations)
     VX_CHECK(t1.start(simple_task, std::ref(flag)));
     VX_CHECK(t1.is_valid());
 
+    const os::thread::id id = t1.get_id();
+    VX_CHECK(id != 0);
+
     VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
     VX_DISABLE_MSVC_WARNING_PUSH();
 
@@ -67,6 +70,7 @@ VX_TEST_CASE(test_thread_move_operations)
     VX_CHECK(!t1.is_valid()); // Original thread should be invalidated
     VX_CHECK(t2.is_valid());
     VX_CHECK(t2.is_alive());
+    VX_CHECK(t2.get_id() == id);
 
     // Move assignment
     os::thread t3;
@@ -74,6 +78,7 @@ VX_TEST_CASE(test_thread_move_operations)
     VX_CHECK(!t2.is_valid()); // Moved-from thread should be invalidated
     VX_CHECK(t3.is_valid());
     VX_CHECK(t3.is_alive());
+    VX_CHECK(t3.get_id() == id);
 
     VX_DISABLE_MSVC_WARNING_POP();
 
@@ -120,6 +125,13 @@ VX_TEST_CASE(test_error_handling)
 
     // Attempt to join a thread that is already joined
     VX_CHECK(!t.join());
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_this_thread_id)
+{
+    VX_CHECK(os::this_thread::get_id() != 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

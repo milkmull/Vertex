@@ -3,36 +3,6 @@
 namespace vx {
 namespace os {
 
-VX_API file::file()
-    : m_mode(mode::NONE) {}
-
-VX_API file::~file()
-{
-    close();
-}
-
-VX_API file::file(file&& other) noexcept
-    : m_mode(other.m_mode)
-    , m_impl_data(std::move(other.m_impl_data))
-{
-    other.m_mode = mode::NONE;
-}
-
-VX_API file& file::operator=(file&& other) noexcept
-{
-    if (this != &other)
-    {
-        close();
-
-        m_mode = other.m_mode;
-        m_impl_data = std::move(other.m_impl_data);
-
-        other.m_mode = mode::NONE;
-    }
-
-    return *this;
-}
-
 VX_API bool file::exists(const path& p)
 {
     return file_impl::exists(p);
@@ -113,7 +83,7 @@ VX_API bool file::flush()
     return is_open() ? file_impl::flush(m_impl_data) : false;
 }
 
-VX_API bool file::read_check() const
+bool file::read_check() const
 {
     if (!can_read())
     {
@@ -124,7 +94,7 @@ VX_API bool file::read_check() const
     return true;
 }
 
-VX_API bool file::write_check() const
+bool file::write_check() const
 {
     if (!can_write())
     {
@@ -135,12 +105,12 @@ VX_API bool file::write_check() const
     return true;
 }
 
-VX_API size_t file::read_internal(uint8_t* data, size_t size)
+size_t file::read_internal(uint8_t* data, size_t size)
 {
     return !read_check() ? 0 : file_impl::read(m_impl_data, data, size);
 }
 
-VX_API size_t file::write_internal(const uint8_t* data, size_t size)
+size_t file::write_internal(const uint8_t* data, size_t size)
 {
     return !write_check() ? 0 : file_impl::write(m_impl_data, data, size);
 }
@@ -178,7 +148,7 @@ VX_API bool file::read_line(std::string& line)
     return false;
 }
 
-VX_API bool file::write_line_internal(const char* first, size_t size)
+bool file::write_line_internal(const char* first, size_t size)
 {
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
@@ -189,7 +159,7 @@ VX_API bool file::write_line_internal(const char* first, size_t size)
 
 #if defined(VX_PLATFORM_WINDOWS)
 
-VX_API bool file::windows_write_text_file_internal(const char* text, size_t size)
+bool file::windows_write_text_file_internal(const char* text, size_t size)
 {
     const char* s = text;
     const char* e = text;

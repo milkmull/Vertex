@@ -474,6 +474,8 @@ public:
     path& operator=(const path&) = default;
     path& operator=(path&&) noexcept = default;
 
+    void swap(path& other) noexcept { std::swap(m_path, other.m_path); }
+
 public:
 
     path(string_type&& s) noexcept : m_path(std::move(s)) {}

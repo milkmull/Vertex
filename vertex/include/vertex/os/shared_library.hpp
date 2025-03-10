@@ -1,11 +1,19 @@
 #pragma once
 
-#include <memory>
-
-#include "vertex/system/platform.hpp"
+#include "vertex/os/__platform/shared_library_impl_data.hpp"
 
 namespace vx {
 namespace os {
+
+///////////////////////////////////////////////////////////////////////////////
+// shared_library
+///////////////////////////////////////////////////////////////////////////////
+
+namespace __detail {
+
+class shared_library_impl;
+
+} // namespace __detail
 
 class shared_library
 {
@@ -26,44 +34,51 @@ public:
 
 public:
 
-    VX_API shared_library();
-    VX_API ~shared_library();
+    shared_library() = default;
 
-    VX_API shared_library(const shared_library&);
-    VX_API shared_library(shared_library&&) noexcept;
+    shared_library(const char* name) { load(name); }
 
-    VX_API shared_library& operator=(const shared_library&);
-    VX_API shared_library& operator=(shared_library&&) noexcept;
+    ~shared_library() { free(); }
 
-public:
+    shared_library(const shared_library&) = default;
+    shared_library(shared_library&&) noexcept = default;
 
-    VX_API shared_library(const std::string& name);
+    shared_library& operator=(const shared_library&) = default;
+    shared_library& operator=(shared_library&&) noexcept = default;
 
-    VX_API bool load(const std::string& lib);
-    VX_API bool is_loaded() const;
-    VX_API void free();
+    void swap(shared_library& other) noexcept { std::swap(m_impl_data, other.m_impl_data); }
 
 public:
 
-    inline bool has(const std::string& symbol_name) const
+
+    VX_API bool load(const char* lib);
+    VX_API bool is_loaded() const noexcept;
+    VX_API void free() noexcept;
+
+public:
+
+    bool has(const char* symbol_name) const noexcept
     {
-        return get_void(symbol_name);
+        return get_void(symbol_name) != nullptr;
     }
 
     template <typename Func>
-    inline Func get(const std::string& symbol_name) const
+    Func get(const char* symbol_name) const noexcept
     {
         return static_cast<Func>(get_void(symbol_name));
     }
 
 private:
 
-    void* get_void(const std::string& symbol_name) const;
+    void* get_void(const char* symbol_name) const noexcept;
 
 private:
 
-    class shared_library_impl;
-    std::shared_ptr<shared_library_impl> m_impl;
+    using shared_library_impl = __detail::shared_library_impl;
+    friend shared_library_impl;
+
+    using impl_data = __detail::shared_library_impl_data;
+    impl_data m_impl_data;
 };
 
 } // namespace os

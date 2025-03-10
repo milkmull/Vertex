@@ -36,5 +36,10 @@ VX_API bool thread::detach() noexcept
     return is_joinable() && thread_impl::detach(m_impl_data);
 }
 
+VX_API thread::id this_thread::get_id()
+{
+    return __detail::thread_impl::get_this_thread_id();
+}
+
 } // namespace os
 } // namespace vx

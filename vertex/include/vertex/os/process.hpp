@@ -70,6 +70,8 @@ public:
     process& operator=(const process&) = delete;
     VX_API process& operator=(process&&) noexcept;
 
+    void swap(process& other) noexcept { std::swap(m_impl, other.m_impl); }
+
 public:
 
     VX_API bool start(const config& config);

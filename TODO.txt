@@ -150,9 +150,9 @@ cleanup and finalizaton for base library:
     refactoring platform specific code:
     {
         x test file read line
-        - light path class
+        x light path class
         - refactor io namespce and logging (allow logging to file or stdout)
-        - swap methods
+        x swap methods
     }
 }
 
@@ -228,12 +228,13 @@ testing:
     x os/filesystem
     x os/path
     
+    x os/thread
     - os/mutex
-    - os/thread
+    - os/atomic
     x os/process
     
     - os/system_info
-    - os/shared_library
+    x os/shared_library
     - os/locale
     - os/memory
 }

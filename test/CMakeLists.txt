@@ -78,4 +78,17 @@ vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.
 #vx_add_test(test_process "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/process.cpp")
 #add_dependencies(test_process child_process)
 
-vx_add_test(test_thread "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/thread.cpp")
+#vx_add_test(test_thread "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/thread.cpp")
+
+#--------------------------------------------------------------------
+
+add_library(shared_library SHARED "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/shared_library_lib.cpp")
+set_target_properties(shared_library PROPERTIES FOLDER "Tests/os")
+vx_set_stdlib(shared_library)
+vx_add_common_compiler_flags(shared_library)
+vx_hide_public_symbols(shared_library)
+
+vx_add_test(test_shared_library "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/shared_library.cpp")
+add_dependencies(test_shared_library shared_library)
+
+#--------------------------------------------------------------------

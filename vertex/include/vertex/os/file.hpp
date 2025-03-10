@@ -45,14 +45,36 @@ public:
 
 public:
 
-    VX_API file();
-    VX_API ~file();
+    file() noexcept : m_mode(mode::NONE) {}
+    ~file() { close(); }
 
-    file(const file&) = delete;
-    file& operator=(const file&) = delete;
+    file(file&& other) noexcept
+        : m_mode(other.m_mode)
+        , m_impl_data(std::move(other.m_impl_data))
+    {
+        other.m_mode = mode::NONE;
+    }
 
-    VX_API file(file&&) noexcept;
-    VX_API file& operator=(file&&) noexcept;
+    file& operator=(file&& other) noexcept
+    {
+        if (this != &other)
+        {
+            close();
+
+            m_mode = other.m_mode;
+            m_impl_data = std::move(other.m_impl_data);
+
+            other.m_mode = mode::NONE;
+        }
+
+        return *this;
+    }
+
+    void swap(file& other) noexcept
+    {
+        std::swap(m_mode, other.m_mode);
+        std::swap(m_impl_data, other.m_impl_data);
+    }
 
 public:
 
@@ -81,16 +103,16 @@ public:
 
 private:
 
-    VX_API bool read_check() const;
-    VX_API bool write_check() const;
+    bool read_check() const;
+    bool write_check() const;
 
-    VX_API size_t read_internal(uint8_t* data, size_t size);
-    VX_API size_t write_internal(const uint8_t* data, size_t size);
-    VX_API bool write_line_internal(const char* first, size_t size);
+    size_t read_internal(uint8_t* data, size_t size);
+    size_t write_internal(const uint8_t* data, size_t size);
+    bool write_line_internal(const char* first, size_t size);
 
 #if defined(VX_PLATFORM_WINDOWS)
 
-    VX_API bool windows_write_text_file_internal(const char* text, size_t size);
+    bool windows_write_text_file_internal(const char* text, size_t size);
 
 #endif // VX_PLATFORM_WINDOWS
 

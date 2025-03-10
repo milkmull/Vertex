@@ -1,5 +1,7 @@
 #pragma once
 
+#include <process.h>
+
 #include "vertex_impl/os/__platform/windows/windows_tools.hpp"
 #include "vertex/os/thread.hpp"
 #include "vertex/system/assert.hpp"
@@ -16,14 +18,14 @@ class thread_impl
 {
 public:
 
-    static inline bool is_valid(const thread::impl_data& td) noexcept
+    static bool is_valid(const thread::impl_data& td) noexcept
     {
         return td.handle.is_valid();
     }
 
     // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-170
 
-    static inline bool start(thread::impl_data& td, void* fn, void* arg)
+    static bool start(thread::impl_data& td, void* fn, void* arg)
     {
         VX_ASSERT_MESSAGE(!is_valid(td), "thread already started");
 
@@ -40,20 +42,20 @@ public:
         return td.handle.is_valid();
     }
 
-    static inline void close(thread::impl_data& td) noexcept
+    static void close(thread::impl_data& td) noexcept
     {
         td.handle.close();
         td.id = 0;
     }
 
-    static inline void exit(thread::impl_data& td, unsigned int exit_code = 0) noexcept
+    static void exit(thread::impl_data& td, unsigned int exit_code = 0) noexcept
     {
         assert_is_running();
         _endthreadex(exit_code);
         close(td);
     }
 
-    static inline bool is_alive(const thread::impl_data& td) noexcept
+    static bool is_alive(const thread::impl_data& td) noexcept
     {
         assert_is_running();
 
@@ -68,7 +70,7 @@ public:
     }
 
     // returns when thread terminates
-    static inline bool join(thread::impl_data& td) noexcept
+    static bool join(thread::impl_data& td) noexcept
     {
         assert_is_running();
 
@@ -87,7 +89,7 @@ public:
         return true;
     }
 
-    static inline bool detach(thread::impl_data& td) noexcept
+    static bool detach(thread::impl_data& td) noexcept
     {
         assert_is_running();
         // tell OS to release thread's resources when it terminates
@@ -95,7 +97,7 @@ public:
         return true;
     }
 
-    static inline thread::id get_this_thread_id() noexcept
+    static thread::id get_this_thread_id() noexcept
     {
         return static_cast<thread::id>(GetCurrentThreadId());
     }

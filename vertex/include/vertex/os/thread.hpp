@@ -1,8 +1,5 @@
 #pragma once
 
-#include <future>
-#include <thread>
-
 #include "vertex/os/__platform/thread_impl_data.hpp"
 #include "vertex/util/function/invoke.hpp"
 #include "vertex/system/error.hpp"
@@ -182,6 +179,12 @@ private:
     using impl_data = __detail::thread_impl_data;
     impl_data m_impl_data;
 };
+
+namespace this_thread {
+
+VX_API thread::id get_id();
+
+} // namespace this_thread
 
 ///////////////////////////////////////////////////////////////////////////////
 // thread guard
