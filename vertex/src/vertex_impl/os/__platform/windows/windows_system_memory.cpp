@@ -1,8 +1,9 @@
 #include "vertex_impl/os/__platform/windows/windows_tools.hpp"
+
 // Seems like this must be included after windows.h to have access to K32GetPerformanceInfo()
 #include <psapi.h> // Performance Info
 
-#include "vertex_impl/os/__platform/windows/windows_memory.hpp"
+#include "vertex_impl/os/__platform/windows/windows_system_memory.hpp"
 
 namespace vx {
 namespace os {

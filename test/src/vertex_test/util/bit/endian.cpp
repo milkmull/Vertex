@@ -8,12 +8,12 @@ VX_TEST_CASE(endian)
         default:
         case vx::endian::order::LITTLE:
         {
-            std::cout << "Order: LITTLE" << std::endl;
+            VX_MESSAGE("  Order: LITTLE");
             break;
         }
         case vx::endian::order::BIG:
         {
-            std::cout << "Order: BIG" << std::endl;
+            VX_MESSAGE("  Order: BIG");
             break;
         }
     }

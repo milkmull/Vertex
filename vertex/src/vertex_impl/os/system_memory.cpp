@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/memory.hpp"
+#include "vertex_impl/os/__platform/system_memory.hpp"
 
 namespace vx {
 namespace os {

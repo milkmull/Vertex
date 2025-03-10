@@ -7,7 +7,15 @@
 namespace vx {
 namespace os {
 
-VX_API const char* get_name();
+inline const char* get_name()
+{
+#if defined(VX_PLATFORM_WINDOWS)
+    return "Windows";
+#else
+    return "Dummy";
+#endif
+}
+
 VX_API std::string get_model_name();
 VX_API std::string get_system_name();
 

@@ -35,9 +35,7 @@ public:
 public:
 
     shared_library() = default;
-
     shared_library(const char* name) { load(name); }
-
     ~shared_library() { free(); }
 
     shared_library(const shared_library&) = default;
@@ -49,7 +47,6 @@ public:
     void swap(shared_library& other) noexcept { std::swap(m_impl_data, other.m_impl_data); }
 
 public:
-
 
     VX_API bool load(const char* lib);
     VX_API bool is_loaded() const noexcept;

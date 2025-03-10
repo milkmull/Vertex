@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/os/memory.hpp"
+#include "vertex/os/system_memory.hpp"
 
 namespace vx {
 namespace os {

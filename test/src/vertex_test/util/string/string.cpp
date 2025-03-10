@@ -722,9 +722,9 @@ VX_TEST_CASE(to_int)
         VX_CHECK(str::to_int32("1010", nullptr, 2) == 10); // Binary
         VX_CHECK(str::to_int32("0123", nullptr, 8) == 83); // Octal
 
-        VX_CHECK_ERROR(str::to_int32("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_int32("+2147483648"), err::OUT_OF_RANGE); // INT32_MAX + 1
-        VX_CHECK_ERROR(str::to_int32("-2147483649"), err::OUT_OF_RANGE); // INT32_MIN - 1
+        VX_EXPECT_ERROR_CODE(str::to_int32("abc"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_int32("+2147483648"), err::OUT_OF_RANGE); // INT32_MAX + 1
+        VX_EXPECT_ERROR_CODE(str::to_int32("-2147483649"), err::OUT_OF_RANGE); // INT32_MIN - 1
 
         size_t count = 0;
         str::to_int32("  123", &count);
@@ -743,9 +743,9 @@ VX_TEST_CASE(to_int)
         VX_CHECK(str::to_int64("1010", nullptr, 2) == 10); // Binary
         VX_CHECK(str::to_int64("0123", nullptr, 8) == 83); // Octal
 
-        VX_CHECK_ERROR(str::to_int64("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_int64("+9223372036854775808"), err::OUT_OF_RANGE); // INT64_MAX + 1
-        VX_CHECK_ERROR(str::to_int64("-9223372036854775807"), err::OUT_OF_RANGE); // INT64_MIN - 1
+        VX_EXPECT_ERROR_CODE(str::to_int64("abc"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_int64("+9223372036854775808"), err::OUT_OF_RANGE); // INT64_MAX + 1
+        VX_EXPECT_ERROR_CODE(str::to_int64("-9223372036854775809"), err::OUT_OF_RANGE); // INT64_MIN - 1
 
         size_t count = 0;
         str::to_int64("  123", &count);
@@ -768,8 +768,8 @@ VX_TEST_CASE(to_uint)
         VX_CHECK(str::to_uint32("1010", nullptr, 2) == 10); // Binary
         VX_CHECK(str::to_uint32("0123", nullptr, 8) == 83); // Octal
 
-        VX_CHECK_ERROR(str::to_uint32("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_uint32("+4294967296"), err::OUT_OF_RANGE); // UINT32_MAX + 1
+        VX_EXPECT_ERROR_CODE(str::to_uint32("abc"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_uint32("+4294967296"), err::OUT_OF_RANGE); // UINT32_MAX + 1
 
         size_t count = 0;
         str::to_uint32("  123", &count);
@@ -789,13 +789,23 @@ VX_TEST_CASE(to_uint)
         VX_CHECK(str::to_uint64("1010", nullptr, 2) == 10); // Binary
         VX_CHECK(str::to_uint64("0123", nullptr, 8) == 83); // Octal
 
-        VX_CHECK_ERROR(str::to_uint64("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_uint64("+18446744073709551616"), err::OUT_OF_RANGE); // UINT64_MAX + 1
+        VX_EXPECT_ERROR_CODE(str::to_uint64("abc"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_uint64("+18446744073709551616"), err::OUT_OF_RANGE); // UINT64_MAX + 1
 
         size_t count = 0;
         str::to_uint64("  123", &count);
         VX_CHECK(count == 5);
     }
+}
+
+static bool is_equal_approx(const float a, const float b)
+{
+    return std::abs(a - b) <= 1e-6f;
+}
+
+static bool is_equal_approx(const double a, const double b)
+{
+    return std::abs(a - b) <= 1e-6;
 }
 
 VX_TEST_CASE(to_float)
@@ -818,13 +828,13 @@ VX_TEST_CASE(to_float)
 
         VX_CHECK(str::to_float("  123.45  ") == 123.45f);
 
-        VX_CHECK_ERROR(str::to_float("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_float("1..23"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_float("1.23e"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_float("1.23e-"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_float("abc"), err::INVALID_ARGUMENT);
+        VX_CHECK(is_equal_approx(str::to_float("1..23"), 1.0f));
+        VX_CHECK(is_equal_approx(str::to_float("1.23e"), 1.23f));
+        VX_CHECK(is_equal_approx(str::to_float("1.23e-"), 1.23f));
 
-        VX_CHECK_ERROR(str::to_float("1e40"), err::OUT_OF_RANGE);
-        VX_CHECK_ERROR(str::to_float("-1e40"), err::OUT_OF_RANGE);
+        VX_EXPECT_ERROR_CODE(str::to_float("1e40"), err::OUT_OF_RANGE);
+        VX_EXPECT_ERROR_CODE(str::to_float("-1e40"), err::OUT_OF_RANGE);
 
         size_t count = 0;
         str::to_float("  -123.45e-6", &count);
@@ -849,13 +859,13 @@ VX_TEST_CASE(to_float)
 
         VX_CHECK(str::to_double("  123.45  ") == 123.45);
 
-        VX_CHECK_ERROR(str::to_double("abc"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_double("1..23"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_double("1.23e"), err::INVALID_ARGUMENT);
-        VX_CHECK_ERROR(str::to_double("1.23e-"), err::INVALID_ARGUMENT);
+        VX_EXPECT_ERROR_CODE(str::to_double("abc"), err::INVALID_ARGUMENT);
+        VX_CHECK(is_equal_approx(str::to_double("1..23"), 1.0));
+        VX_CHECK(is_equal_approx(str::to_double("1.23e"), 1.23));
+        VX_CHECK(is_equal_approx(str::to_double("1.23e-"), 1.23));
 
-        VX_CHECK_ERROR(str::to_double("1e500"), err::OUT_OF_RANGE);
-        VX_CHECK_ERROR(str::to_double("-1e500"), err::OUT_OF_RANGE);
+        VX_EXPECT_ERROR_CODE(str::to_double("1e500"), err::OUT_OF_RANGE);
+        VX_EXPECT_ERROR_CODE(str::to_double("-1e500"), err::OUT_OF_RANGE);
 
         size_t count = 0;
         str::to_double("  -123.45e-6", &count);

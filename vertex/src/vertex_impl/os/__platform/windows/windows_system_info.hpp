@@ -10,7 +10,6 @@
 namespace vx {
 namespace os {
 
-const char* get_name_impl();
 std::string get_model_name_impl();
 std::string get_system_name_impl();
 std::string get_processor_name_impl();

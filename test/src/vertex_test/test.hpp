@@ -107,6 +107,15 @@ inline void fail_test(const char* condition, const char* func, int line)
         VX_CHECK(!!::vx::err::get()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
+#define VX_EXPECT_ERROR_CODE(condition, CODE) \
+    do \
+    { \
+        ::vx::err::clear(); \
+        condition; \
+        VX_CHECK(!!::vx::err::get()); \
+        VX_CHECK(::vx::err::get().code == CODE); \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
+
 #define VX_EXPECT_NO_ERROR(condition) \
     do \
     { \
@@ -130,7 +139,7 @@ namespace __detail {
 
 } // namespace __detail
 
-#define VX_MESSAGE(...) ::test::__detail::message(__VA_ARGS__)
+#define VX_MESSAGE(...) ::vx::test::__detail::message(__VA_ARGS__)
 
 #define VX_WARNING(...) VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
 

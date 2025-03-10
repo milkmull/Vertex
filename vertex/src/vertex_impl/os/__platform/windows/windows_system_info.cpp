@@ -88,11 +88,6 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     return success;
 }
 
-const char* get_name_impl()
-{
-    return "Windows";
-}
-
 std::string get_model_name_impl()
 {
     static value_cache cache = { false, "Unknown" };

@@ -3,11 +3,6 @@
 namespace vx {
 namespace os {
 
-VX_API const char* get_name()
-{
-    return get_name_impl();
-}
-
 VX_API std::string get_model_name()
 {
     return get_model_name_impl();

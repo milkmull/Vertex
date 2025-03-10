@@ -8,11 +8,6 @@ namespace os {
 
 #define unsupported(op) VX_UNSUPPORTED("os::" op "()")
 
-inline const char* get_name_impl()
-{
-    return "Dummy";
-}
-
 inline std::string get_model_name_impl()
 {
     unsupported("get_model_name");
