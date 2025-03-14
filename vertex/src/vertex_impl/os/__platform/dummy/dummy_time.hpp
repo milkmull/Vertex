@@ -41,7 +41,7 @@ inline int64_t get_performance_counter_impl()
 inline int64_t get_performance_frequency_impl()
 {
     unsupported("get_performance_frequency");
-    return 0;
+    return 1; // return 1 to avoid division by 0
 }
 
 ///////////////////////////////////////////////////////////////////////////////

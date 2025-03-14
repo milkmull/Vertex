@@ -54,6 +54,11 @@ VX_API bool thread::is_alive() const noexcept
     return is_valid() && thread_impl::is_alive(m_impl_data);
 }
 
+VX_API thread::id thread::get_id() const noexcept
+{
+    return is_valid() ? thread_impl::get_id(m_impl_data) : 0;
+}
+
 VX_API bool thread::join() noexcept
 {
     return is_joinable() && thread_impl::join(m_impl_data);

@@ -1,91 +1,64 @@
 #pragma once
 
-#include "vertex/os/file.hpp"
+#include "vertex/os/thread.hpp"
 
 namespace vx {
 namespace os {
 namespace __detail {
 
-#define unsupported(op) VX_UNSUPPORTED("os::file::" op "()")
+#define unsupported(op) VX_UNSUPPORTED("os::thread::" op "()")
 
-class file_impl
+class thread_impl
 {
 public:
 
-    file_impl() = default;
-    ~file_impl() = default;
-
-public:
-
-    static bool exists(const path& p)
+    static bool is_valid(const thread::impl_data& td) noexcept
     {
-        unsupported("exists");
         return false;
     }
 
-public:
+    // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-170
 
-    bool open(const path& p, file::mode mode)
+    static bool start(thread::impl_data& td, void* fn, void* arg)
     {
-        unsupported("open");
+        unsupported("start");
         return false;
     }
 
-    bool is_open() const
-    {
-        unsupported("is_open");
-        return false;
-    }
+    static void close(thread::impl_data& td) noexcept {}
+    static void exit(thread::impl_data& td, unsigned int exit_code = 0) noexcept {}
 
-    void close()
+    static thread::id get_id(const thread::impl_data& td) noexcept
     {
-        unsupported("close");
-    }
-
-    size_t size() const
-    {
-        unsupported("size");
+        unsupported("get_id");
         return 0;
     }
 
-    bool resize(size_t size)
+    static bool is_alive(const thread::impl_data& td) noexcept
     {
-        unsupported("resize");
+        unsupported("is_alive");
         return false;
     }
 
-    bool seek(size_t off, stream_position from)
+    // returns when thread terminates
+    static bool join(thread::impl_data& td) noexcept
     {
-        unsupported("seek");
+        unsupported("join");
         return false;
     }
 
-    size_t tell() const
+    static bool detach(thread::impl_data& td) noexcept
     {
-        unsupported("tell");
-        return 0;
-    }
-
-    bool flush()
-    {
-        unsupported("flush");
+        unsupported("detach");
         return false;
     }
 
-    size_t read(uint8_t* data, size_t size)
+    static thread::id get_this_thread_id() noexcept
     {
-        unsupported("read");
-        return 0;
-    }
-
-    size_t write(const uint8_t* data, size_t size)
-    {
-        unsupported("write");
+        unsupported("this_thread::get_id");
         return 0;
     }
 };
-
-#undef unsupported
 
 } // namespace __detail
 } // namespace os

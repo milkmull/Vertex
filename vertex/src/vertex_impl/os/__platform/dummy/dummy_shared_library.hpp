@@ -5,49 +5,35 @@
 
 namespace vx {
 namespace os {
+namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::shared_library::" op "()")
 
-class shared_library::shared_library_impl
+class shared_library_impl
 {
 public:
 
-    shared_library_impl() = default;
-    ~shared_library_impl() = default;
-
-public:
-
-    bool load(const std::string& lib)
+    static bool load(shared_library_impl_data& sld, const char* lib)
     {
         unsupported("load");
         return false;
     }
 
-    bool is_loaded() const
+    static bool is_loaded(const shared_library_impl_data& sld) noexcept
     {
         unsupported("is_loaded");
         return false;
     }
 
-    void free()
-    {
-        unsupported("free");
-    }
+    static void free(shared_library_impl_data& sld) noexcept {}
 
-    path location() const
-    {
-        unsupported("location");
-        return {};
-    }
-
-    void* get_addr(const std::string& name) const
+    static void* get_addr(const shared_library_impl_data& sld, const char* symbol_name) noexcept
     {
         unsupported("get_addr");
         return nullptr;
     }
 };
 
-#undef unsupported
-
+} // namespace __detail
 } // namespace os
 } // namespace vx

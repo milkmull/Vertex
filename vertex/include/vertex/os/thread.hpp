@@ -149,13 +149,10 @@ public:
         return true;
     }
 
-    id get_id() const noexcept
-    {
-        return is_valid() ? static_cast<id>(m_impl_data.id) : 0;
-    }
-
     VX_API bool is_valid() const noexcept;
     VX_API bool is_alive() const noexcept;
+
+    VX_API id get_id() const noexcept;
 
     bool is_joinable() const noexcept
     {

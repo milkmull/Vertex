@@ -1,16 +1,11 @@
 #pragma once
 
-#include "vertex/os/__platform/windows/windows_header.hpp"
-
 namespace vx {
 namespace os {
-namespace windows {
+namespace dummy {
 
-struct file_data
-{
-    handle handle;
-};
+struct shared_library_impl_data {};
 
-} // namespace windows
+} // namespace dummy
 } // namespace os
 } // namespace vx

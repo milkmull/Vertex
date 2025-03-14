@@ -39,10 +39,16 @@ inline file_info get_symlink_info_impl(const path& p)
     return {};
 }
 
-size_t hard_link_count_impl(const path& p)
+inline size_t hard_link_count_impl(const path& p)
 {
     unsupported("hard_link_count");
     return 0;
+}
+
+inline bool set_modify_time_impl(const path& p, time::time_point t)
+{
+    unsupported("set_modify_time_impl");
+    return false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -135,7 +141,7 @@ inline bool create_directory_symlink_impl(const path& target, const path& link)
     return false;
 }
 
-bool create_hard_link_impl(const path& target, const path& link)
+inline bool create_hard_link_impl(const path& target, const path& link)
 {
     unsupported("create_hard_link");
     return false;
@@ -177,7 +183,7 @@ inline __detail::remove_error remove_impl(const path& p, bool in_recursive_remov
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-space_info space_impl(const path& p)
+inline space_info space_impl(const path& p)
 {
     unsupported("space");
     return space_info{};
