@@ -28,16 +28,16 @@ public:
     static void close(thread::impl_data& td) noexcept {}
     static void exit(thread::impl_data& td, unsigned int exit_code = 0) noexcept {}
 
-    static thread::id get_id(const thread::impl_data& td) noexcept
-    {
-        unsupported("get_id");
-        return 0;
-    }
-
     static bool is_alive(const thread::impl_data& td) noexcept
     {
         unsupported("is_alive");
         return false;
+    }
+
+    static thread::id get_id(const thread::impl_data& td) noexcept
+    {
+        unsupported("get_id");
+        return 0;
     }
 
     // returns when thread terminates

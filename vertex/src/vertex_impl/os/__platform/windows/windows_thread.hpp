@@ -69,6 +69,12 @@ public:
         return (exit_code == STILL_ACTIVE);
     }
 
+    static thread::id get_id(const thread::impl_data& td) noexcept
+    {
+        assert_is_running();
+        return td.id;
+    }
+
     // returns when thread terminates
     static bool join(thread::impl_data& td) noexcept
     {
