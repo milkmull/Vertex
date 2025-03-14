@@ -7,7 +7,7 @@
 namespace vx {
 namespace os {
 
-inline const char* get_name()
+constexpr const char* get_name()
 {
 #if defined(VX_PLATFORM_WINDOWS)
     return "Windows";

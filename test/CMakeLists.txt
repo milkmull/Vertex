@@ -3,7 +3,7 @@
 # Create Tests
 #--------------------------------------------------------------------
 
-function(vx_add_test TARGET PATH SOURCES)
+macro(vx_add_test TARGET PATH SOURCES)
 
     # Group source files for IDEs (e.g., Visual Studio)
     source_group("" FILES ${SOURCES})
@@ -26,18 +26,22 @@ function(vx_add_test TARGET PATH SOURCES)
         "${CMAKE_CURRENT_SOURCE_DIR}/src"
     )
     
-    # Post-build step to copy the DLL to the output directory
     if(VX_BUILD_SHARED_LIBS)
-
-        add_custom_command(TARGET ${TARGET} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy
-            "$<TARGET_FILE:Vertex>"         # This gets the full path to the Vertex DLL
-            "$<TARGET_FILE_DIR:${TARGET}>"  # This gets the output directory of the Test executable
+    
+        # Add a post-build command to copy the Vertex shared library to the test directory
+        add_custom_command(
+            TARGET ${TARGET}
+            POST_BUILD                                      # Execute after the target has been built
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different   # Only copy if the file has changed or doesn't exist
+                "$<TARGET_FILE:Vertex>"                     # Path to the Vertex shared library
+                "$<TARGET_FILE_DIR:${TARGET}>"              # Destination directory (where the test binary is)
+            COMMENT "Ensuring Vertex shared library is up-to-date for ${TARGET}."
+            DEPENDS Vertex                                  # Ensure the Vertex library is built before the copy
         )
         
     endif()
 
-endfunction()
+endmacro()
 
 #--------------------------------------------------------------------
 # Util Tests
@@ -74,9 +78,13 @@ vx_add_test(test_file "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/file.
 vx_add_test(test_filesystem "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/filesystem.cpp")
 vx_add_test(test_os_time "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/time.cpp")
 
+#--------------------------------------------------------------------
+
 vx_add_test(child_process "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/child_process.cpp")
 vx_add_test(test_process "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/process.cpp")
 add_dependencies(test_process child_process)
+
+#--------------------------------------------------------------------
 
 vx_add_test(test_thread "os" "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os/thread.cpp")
 

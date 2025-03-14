@@ -5,7 +5,35 @@ namespace os {
 
 // https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/src/c%2B%2B11/thread.cc
 
-bool thread::start_impl(void* fn, void* arg)
+VX_API thread::thread() noexcept {}
+
+VX_API thread::~thread()
+{
+    if (is_joinable())
+    {
+        std::terminate();
+    }
+}
+
+VX_API thread::thread(thread&& other) noexcept { swap(other); }
+
+VX_API thread& thread::operator=(thread&& other) noexcept
+{
+    if (is_joinable())
+    {
+        std::terminate();
+    }
+
+    swap(other);
+    return *this;
+}
+
+VX_API void thread::swap(thread& other) noexcept
+{
+    std::swap(m_impl_data, other.m_impl_data);
+}
+
+VX_API bool thread::start_impl(void* fn, void* arg)
 {
     if (thread_impl::is_valid(m_impl_data))
     {

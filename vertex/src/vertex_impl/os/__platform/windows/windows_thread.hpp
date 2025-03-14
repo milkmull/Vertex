@@ -74,10 +74,7 @@ public:
     {
         assert_is_running();
 
-        const DWORD result = WaitForSingleObject(
-            td.handle.get(),
-            INFINITE
-        );
+        const DWORD result = WaitForSingleObject(td.handle.get(), INFINITE);
 
         if (result == WAIT_FAILED)
         {

@@ -65,9 +65,7 @@ public:
         return static_cast<Func>(get_void(symbol_name));
     }
 
-private:
-
-    void* get_void(const char* symbol_name) const noexcept;
+    VX_API void* get_void(const char* symbol_name) const noexcept;
 
 private:
 

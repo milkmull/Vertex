@@ -3,6 +3,38 @@
 namespace vx {
 namespace os {
 
+VX_API file::file() noexcept : m_mode(mode::NONE), m_impl_data{} {}
+
+VX_API file::~file() { close(); }
+
+VX_API file::file(file&& other) noexcept
+    : m_mode(other.m_mode)
+    , m_impl_data(std::move(other.m_impl_data))
+{
+    other.m_mode = mode::NONE;
+}
+
+VX_API file& file::operator=(file&& other) noexcept
+{
+    if (this != &other)
+    {
+        close();
+
+        m_mode = other.m_mode;
+        m_impl_data = std::move(other.m_impl_data);
+
+        other.m_mode = mode::NONE;
+    }
+
+    return *this;
+}
+
+VX_API void file::swap(file& other) noexcept
+{
+    std::swap(m_mode, other.m_mode);
+    std::swap(m_impl_data, other.m_impl_data);
+}
+
 VX_API bool file::exists(const path& p)
 {
     return file_impl::exists(p);
@@ -83,41 +115,37 @@ VX_API bool file::flush()
     return is_open() ? file_impl::flush(m_impl_data) : false;
 }
 
-bool file::read_check() const
+static bool read_check(const bool can_read)
 {
-    if (!can_read())
+    if (!can_read)
     {
         VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
-        return false;
     }
-
-    return true;
+    return can_read;
 }
 
-bool file::write_check() const
+static bool write_check(const bool can_write)
 {
-    if (!can_write())
+    if (!can_write)
     {
         VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
-        return false;
     }
-
-    return true;
+    return can_write;
 }
 
-size_t file::read_internal(uint8_t* data, size_t size)
+size_t file::read(uint8_t* data, size_t size)
 {
-    return !read_check() ? 0 : file_impl::read(m_impl_data, data, size);
+    return !read_check(can_read()) ? 0 : file_impl::read(m_impl_data, data, size);
 }
 
-size_t file::write_internal(const uint8_t* data, size_t size)
+size_t file::write(const uint8_t* data, size_t size)
 {
-    return !write_check() ? 0 : file_impl::write(m_impl_data, data, size);
+    return !write_check(can_write()) ? 0 : file_impl::write(m_impl_data, data, size);
 }
 
 VX_API bool file::read_line(std::string& line)
 {
-    if (!read_check())
+    if (!read_check(can_read()))
     {
         return false;
     }
@@ -148,19 +176,30 @@ VX_API bool file::read_line(std::string& line)
     return false;
 }
 
-bool file::write_line_internal(const char* first, size_t size)
+static bool write_line_internal(__detail::file_impl_data& fd, const char* first, size_t size)
 {
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
     // NOTE: write check should happen before calling this function
-    return (file_impl::write(m_impl_data, reinterpret_cast<const uint8_t*>(first), size) == size)
-        && (file_impl::write(m_impl_data, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
+    return (__detail::file_impl::write(fd, reinterpret_cast<const uint8_t*>(first), size) == size)
+        && (__detail::file_impl::write(fd, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
 }
+
+VX_API bool file::write_line(const char* line)
+{
+    return write_check(can_write()) && write_line_internal(m_impl_data, line, std::strlen(line));
+}
+
+VX_API bool file::write_file(const path& p, const char* text)
+{
+    file f;
+    if (!f.open(p, mode::WRITE))
+    {
+        return false;
+    }
 
 #if defined(VX_PLATFORM_WINDOWS)
 
-bool file::windows_write_text_file_internal(const char* text, size_t size)
-{
     const char* s = text;
     const char* e = text;
 
@@ -169,23 +208,33 @@ bool file::windows_write_text_file_internal(const char* text, size_t size)
     {
         if (*e == '\n')
         {
-            write_line_internal(s, static_cast<size_t>(e - s));
+            if (!write_line_internal(f.m_impl_data, s, static_cast<size_t>(e - s)))
+            {
+                return false;
+            }
+
             s = e + 1;
         }
 
         ++e;
-    }
+}
 
     // Write the last section (no newline)
     if (s != e)
     {
-        write_internal(reinterpret_cast<const uint8_t*>(s), static_cast<size_t>(e - s));
+        const size_t last_line_size = static_cast<size_t>(e - s);
+        return (file_impl::write(f.m_impl_data, reinterpret_cast<const uint8_t*>(s), last_line_size) == last_line_size);
     }
 
     return true;
-}
+
+#else
+
+    const size_t file_size = std::strlen(text);
+    return (file_impl::write(f.m_impl_data, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
 
 #endif // VX_PLATFORM_WINDOWS
+}
 
 } // namespace os
 } // namespace vx

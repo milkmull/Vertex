@@ -46,22 +46,16 @@ public:
 
     using id = uint32_t;
 
-    thread() noexcept = default;
-    ~thread() { if (is_joinable()) { std::terminate(); } }
+    VX_API thread() noexcept;
+    VX_API ~thread();
 
     thread(const thread&) = delete;
     thread& operator=(const thread&) = delete;
     
-    thread(thread&& other) noexcept { swap(other); }
+    VX_API thread(thread&& other) noexcept;
+    VX_API thread& operator=(thread&& other) noexcept;
 
-    thread& operator=(thread&& other) noexcept
-    {
-        if (is_joinable()) { std::terminate(); }
-        swap(other);
-        return *this;
-    }
-
-    void swap(thread& other) noexcept { std::swap(m_impl_data, other.m_impl_data); }
+    VX_API void swap(thread& other) noexcept;
 
 private:
 
@@ -126,7 +120,7 @@ private:
     template <typename T>
     using not_same = type_traits::negation<std::is_same<type_traits::remove_cvref<T>, thread>>;
 
-    bool start_impl(void* fn, void* arg);
+    VX_API bool start_impl(void* fn, void* arg);
 
 public:
 

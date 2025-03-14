@@ -45,36 +45,16 @@ public:
 
 public:
 
-    file() noexcept : m_mode(mode::NONE) {}
-    ~file() { close(); }
+    VX_API file() noexcept;
+    VX_API ~file();
 
-    file(file&& other) noexcept
-        : m_mode(other.m_mode)
-        , m_impl_data(std::move(other.m_impl_data))
-    {
-        other.m_mode = mode::NONE;
-    }
+    file(const file&) = delete;
+    file& operator=(const file&) = delete;
 
-    file& operator=(file&& other) noexcept
-    {
-        if (this != &other)
-        {
-            close();
+    VX_API file(file&& other) noexcept;
+    VX_API file& operator=(file&& other) noexcept;
 
-            m_mode = other.m_mode;
-            m_impl_data = std::move(other.m_impl_data);
-
-            other.m_mode = mode::NONE;
-        }
-
-        return *this;
-    }
-
-    void swap(file& other) noexcept
-    {
-        std::swap(m_mode, other.m_mode);
-        std::swap(m_impl_data, other.m_impl_data);
-    }
+    VX_API void swap(file& other) noexcept;
 
 public:
 
@@ -101,60 +81,44 @@ public:
 
     VX_API bool flush();
 
-private:
-
-    bool read_check() const;
-    bool write_check() const;
-
-    size_t read_internal(uint8_t* data, size_t size);
-    size_t write_internal(const uint8_t* data, size_t size);
-    bool write_line_internal(const char* first, size_t size);
-
-#if defined(VX_PLATFORM_WINDOWS)
-
-    bool windows_write_text_file_internal(const char* text, size_t size);
-
-#endif // VX_PLATFORM_WINDOWS
-
 public:
 
     ///////////////////////////////////////////////////////////////////////////////
     // generic read functions
     ///////////////////////////////////////////////////////////////////////////////
 
+    VX_API size_t read(uint8_t* data, size_t size);
+
     template <typename T>
     size_t read(T& data)
     {
-        return read_internal(reinterpret_cast<uint8_t*>(&data), sizeof(T));
+        return read(reinterpret_cast<uint8_t*>(&data), sizeof(T));
     }
 
     template <typename T>
     size_t read(T* data, size_t count)
     {
-        return read_internal(reinterpret_cast<uint8_t*>(data), sizeof(T) * count);
+        return read(reinterpret_cast<uint8_t*>(data), sizeof(T) * count);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
     // generic write functions
     ///////////////////////////////////////////////////////////////////////////////
 
+    VX_API size_t write(const uint8_t* data, size_t size);
+
     template <typename T>
     size_t write(const T& data)
     {
-        return write_internal(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
+        return write(reinterpret_cast<const uint8_t*>(&data), sizeof(T));
     }
 
     template <typename T>
     size_t write(const T* data, size_t count)
     {
-        return write_internal(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
+        return write(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // text read functions
-    ///////////////////////////////////////////////////////////////////////////////
-
-    VX_API bool read_line(std::string& line);
 
     ///////////////////////////////////////////////////////////////////////////////
     // text write functions
@@ -162,16 +126,25 @@ public:
 
     size_t write(const char* text)
     {
-        return write_internal(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
+        return write(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
     }
 
     size_t write(const std::string& text)
     {
-        return write_internal(reinterpret_cast<const uint8_t*>(text.data()), text.size());
+        return write(reinterpret_cast<const uint8_t*>(text.data()), text.size());
     }
 
-    bool write_line(const char* line) { return write_check() && write_line_internal(line, std::strlen(line)); }
-    bool write_line(const std::string& line) { return write_check() && write_line_internal(line.c_str(), line.size()); }
+    ///////////////////////////////////////////////////////////////////////////////
+    // read and write line functions
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_API bool read_line(std::string& line);
+    VX_API bool write_line(const char* line);
+
+    bool write_line(const std::string& line)
+    {
+        return write_line(line.c_str());
+    }
 
 public:
 
@@ -188,7 +161,7 @@ public:
         }
 
         data.resize(f.size());
-        return f.read_internal(data.data(), data.size());
+        return f.read(data.data(), data.size());
     }
 
     static bool read_file(const path& p, std::string& text)
@@ -200,7 +173,7 @@ public:
         }
 
         text.resize(f.size());
-        return f.read_internal(reinterpret_cast<uint8_t*>(text.data()), text.size());
+        return f.read(reinterpret_cast<uint8_t*>(text.data()), text.size());
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -210,24 +183,10 @@ public:
     static bool write_file(const path& p, const uint8_t* data, size_t size)
     {
         file f;
-        return f.open(p, mode::WRITE) && f.write_internal(data, size);
+        return f.open(p, mode::WRITE) && f.write(data, size);
     }
 
-    static bool write_file(const path& p, const char* text)
-    {
-        file f;
-        return f.open(p, mode::WRITE) &&
-
-#if defined(VX_PLATFORM_WINDOWS)
-
-            f.windows_write_text_file_internal(text, std::strlen(text));
-
-#else
-
-            f.write_internal(reinterpret_cast<const uint8_t*>(text), std::strlen(text));
-
-#endif // VX_PLATFORM_WINDOWS
-    }
+    VX_API static bool write_file(const path& p, const char* text);
 
     static bool write_file(const path& p, const std::string& text)
     {

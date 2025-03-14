@@ -3,7 +3,7 @@
 #include <string>
 
 #include "vertex_impl/os/__platform/windows/windows_header.hpp"
-#include "vertex/os/__platform/windows/windows_types.hpp"
+#include "vertex/os/__platform/windows/windows_handle.hpp"
 #include "vertex/util/time/time.hpp"
 
 namespace vx {
@@ -17,7 +17,19 @@ static_assert(std::is_same<DWORD_, DWORD>::value);
 // HANDLE wrapper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_valid_handle(const HANDLE h) { return h != NULL && h != INVALID_HANDLE_VALUE; }
+inline bool is_valid_handle(HANDLE h)
+{
+    return h != NULL && h != INVALID_HANDLE_VALUE;
+}
+
+inline void close_handle(HANDLE& h)
+{
+    if (is_valid_handle(h))
+    {
+        CloseHandle(h);
+        h = INVALID_HANDLE_VALUE;
+    }
+}
 
 inline handle::handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
 
@@ -59,11 +71,7 @@ inline void handle::reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
 
 inline void handle::close() noexcept
 {
-    if (is_valid())
-    {
-        CloseHandle(m_handle);
-        reset();
-    }
+    close_handle(m_handle);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
