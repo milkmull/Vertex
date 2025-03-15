@@ -229,18 +229,18 @@ public:
         begin(const std::basic_string<char_t>&&) const = delete;
 
     template <typename IT>
-    inline regex_iterator<IT> end(regex_iterator<IT> it) const
+    inline regex_iterator<IT> end(regex_iterator<IT>) const
     {
         return regex_iterator<IT>();
     }
 
-    inline regex_iterator<const char_t*> end(const char_t* s) const
+    inline regex_iterator<const char_t*> end(const char_t*) const
     {
         return regex_iterator<const char*>();
     }
 
     inline regex_iterator<typename std::basic_string<char_t>::const_iterator>
-        end(const std::basic_string<char_t>& s) const
+        end(const std::basic_string<char_t>&) const
     {
         return regex_iterator<typename std::basic_string<char_t>::const_iterator>();
     }

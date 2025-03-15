@@ -68,22 +68,22 @@ VX_TEST_CASE(test_this_process)
 
     VX_SECTION("stdio")
     {
-        auto stdin = os::this_process::get_stdin();
-        VX_CHECK(stdin.is_open());
-        VX_CHECK(stdin.can_read());
-        VX_CHECK(!stdin.can_write());
+        auto p_stdin = os::this_process::get_stdin();
+        VX_CHECK(p_stdin.is_open());
+        VX_CHECK(p_stdin.can_read());
+        VX_CHECK(!p_stdin.can_write());
 
-        auto stdout = os::this_process::get_stdout();
-        VX_CHECK(stdout.is_open());
-        VX_CHECK(!stdout.can_read());
-        VX_CHECK(stdout.can_write());
-        VX_CHECK(stdout.write_line("  testing stdout"));
+        auto p_stdout = os::this_process::get_stdout();
+        VX_CHECK(p_stdout.is_open());
+        VX_CHECK(!p_stdout.can_read());
+        VX_CHECK(p_stdout.can_write());
+        VX_CHECK(p_stdout.write_line("  testing stdout"));
 
-        auto stderr = os::this_process::get_stderr();
-        VX_CHECK(stderr.is_open());
-        VX_CHECK(!stderr.can_read());
-        VX_CHECK(stderr.can_write());
-        VX_CHECK(stderr.write_line("  testing stderr"));
+        auto p_stderr = os::this_process::get_stderr();
+        VX_CHECK(p_stderr.is_open());
+        VX_CHECK(!p_stderr.can_read());
+        VX_CHECK(p_stderr.can_write());
+        VX_CHECK(p_stderr.write_line("  testing stderr"));
     }
 }
 
@@ -162,8 +162,8 @@ static std::string echo_argument(const std::string& arg)
     VX_CHECK(code == 0);
 
     // read the value from the stream
-    auto& stdout = p.get_stdout();
-    size_t size = stdout.size();
+    auto& p_stdout = p.get_stdout();
+    size_t size = p_stdout.size();
 
 #if defined(VX_PLATFORM_WINDOWS)
 
@@ -174,7 +174,7 @@ static std::string echo_argument(const std::string& arg)
 #endif // VX_PLATFORM_WINDOWS
 
     std::string echo(size, 0);
-    VX_CHECK(stdout.read(echo.data(), size) == size);
+    VX_CHECK(p_stdout.read(echo.data(), size) == size);
 
     return echo;
 }
@@ -364,34 +364,34 @@ VX_TEST_CASE(test_stdin_to_stdout)
     VX_CHECK(p.start(config));
 
     // Get stdin pipe
-    auto& stdin = p.get_stdin();
-    VX_CHECK(stdin.is_open());
-    VX_CHECK(stdin.can_write());
+    auto& p_stdin = p.get_stdin();
+    VX_CHECK(p_stdin.is_open());
+    VX_CHECK(p_stdin.can_write());
 
     // write each line
     for (auto line : lines)
     {
-        VX_CHECK(stdin.write_line(line));
+        VX_CHECK(p_stdin.write_line(line));
     }
 
     // finish the process
-    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p_stdin.write_line("EOF"));
     VX_CHECK(p.join());
     VX_CHECK(p.is_complete());
 
     // Get stdout pipe
-    auto& stdout = p.get_stdout();
-    VX_CHECK(stdout.is_open());
-    VX_CHECK(stdout.can_read());
+    auto& p_stdout = p.get_stdout();
+    VX_CHECK(p_stdout.is_open());
+    VX_CHECK(p_stdout.can_read());
 
     // read the lines back
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(stdout.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stdout.read_line(read_line) && read_line == line);
     }
 
-    VX_CHECK(stdout.eof());
+    VX_CHECK(p_stdout.eof());
 
     // Ensure the process exits correctly
     int exit_code;
@@ -420,34 +420,34 @@ VX_TEST_CASE(test_stdin_to_stderr)
     VX_CHECK(p.start(config));
 
     // Get stdin pipe
-    auto& stdin = p.get_stdin();
-    VX_CHECK(stdin.is_open());
-    VX_CHECK(stdin.can_write());
+    auto& p_stdin = p.get_stdin();
+    VX_CHECK(p_stdin.is_open());
+    VX_CHECK(p_stdin.can_write());
 
     // write each line
     for (auto line : lines)
     {
-        VX_CHECK(stdin.write_line(line));
+        VX_CHECK(p_stdin.write_line(line));
     }
 
     // finish the process
-    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p_stdin.write_line("EOF"));
     VX_CHECK(p.join());
     VX_CHECK(p.is_complete());
 
     // Get stderr pipe
-    auto& stderr = p.get_stderr();
-    VX_CHECK(stderr.is_open());
-    VX_CHECK(stderr.can_read());
+    auto& p_stderr = p.get_stderr();
+    VX_CHECK(p_stderr.is_open());
+    VX_CHECK(p_stderr.can_read());
 
     // read the lines back
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(stderr.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stderr.read_line(read_line) && read_line == line);
     }
 
-    VX_CHECK(stderr.eof());
+    VX_CHECK(p_stderr.eof());
 
     // Ensure the process exits correctly
     int exit_code;
@@ -482,18 +482,18 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     VX_CHECK(p2.start(config));
 
     // Get stdin pipe from first process
-    auto& stdin = p1.get_stdin();
-    VX_CHECK(stdin.is_open());
-    VX_CHECK(stdin.can_write());
+    auto& p_stdin = p1.get_stdin();
+    VX_CHECK(p_stdin.is_open());
+    VX_CHECK(p_stdin.can_write());
 
     // write each line
     for (auto line : lines)
     {
-        VX_CHECK(stdin.write_line(line));
+        VX_CHECK(p_stdin.write_line(line));
     }
 
     // finish the first process
-    VX_CHECK(stdin.write_line("EOF"));
+    VX_CHECK(p_stdin.write_line("EOF"));
     VX_CHECK(p1.join());
     VX_CHECK(p1.is_complete());
 
@@ -502,18 +502,18 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     VX_CHECK(exit_code == 0);
 
     // Get stdout pipe from second process
-    auto& stdout = p2.get_stdout();
-    VX_CHECK(stdout.is_open());
-    VX_CHECK(stdout.can_read());
+    auto& p_stdout = p2.get_stdout();
+    VX_CHECK(p_stdout.is_open());
+    VX_CHECK(p_stdout.can_read());
 
     // read the lines back
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(stdout.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stdout.read_line(read_line) && read_line == line);
     }
 
-    VX_CHECK(stdout.eof());
+    VX_CHECK(p_stdout.eof());
 
     // finish the second process
     VX_CHECK(p2.join());
@@ -569,16 +569,16 @@ VX_TEST_CASE(test_stream_redirection)
     VX_CHECK(stream.open(stdin_path, os::file::mode::WRITE));
 
     // create the child process input side of the pipe
-    os::file stdin;
-    VX_CHECK(stdin.open(stdin_path, os::file::mode::READ));
+    os::file p_stdin;
+    VX_CHECK(p_stdin.open(stdin_path, os::file::mode::READ));
 
     const os::path stdout_path = "stdout.txt";
-    os::file stdout;
-    VX_CHECK(stdout.open(stdout_path, os::file::mode::WRITE));
+    os::file p_stdout;
+    VX_CHECK(p_stdout.open(stdout_path, os::file::mode::WRITE));
 
     const os::path stderr_path = "stderr.txt";
-    os::file stderr;
-    VX_CHECK(stderr.open(stderr_path, os::file::mode::WRITE));
+    os::file p_stderr;
+    VX_CHECK(p_stderr.open(stderr_path, os::file::mode::WRITE));
 
     VX_SECTION("stdin to stdout redirection")
     {
@@ -588,10 +588,10 @@ VX_TEST_CASE(test_stream_redirection)
         cfg.args = { child_process, "--stdin-to-stdout" };
 
         cfg.stdin_option = os::process::io_option::REDIRECT;
-        cfg.stdin_redirect = &stdin;
+        cfg.stdin_redirect = &p_stdin;
 
         cfg.stdout_option = os::process::io_option::REDIRECT;
-        cfg.stdout_redirect = &stdout;
+        cfg.stdout_redirect = &p_stdout;
 
         // Start the process
         os::process p;
@@ -627,10 +627,10 @@ VX_TEST_CASE(test_stream_redirection)
         cfg.args = { child_process, "--stdin-to-stderr" };
 
         cfg.stdin_option = os::process::io_option::REDIRECT;
-        cfg.stdin_redirect = &stdin;
+        cfg.stdin_redirect = &p_stdin;
 
         cfg.stderr_option = os::process::io_option::REDIRECT;
-        cfg.stderr_redirect = &stderr;
+        cfg.stderr_redirect = &p_stderr;
 
         // Start the process
         os::process p;

@@ -142,7 +142,7 @@ public:
             std::forward<Args>(args)...
         );
 
-        if (!start_impl(wrapper::thread_entry, w.get()))
+        if (!start_impl(reinterpret_cast<void*>(wrapper::thread_entry), w.get()))
         {
             return false;
         }

@@ -95,13 +95,13 @@ VX_TEST_CASE(test_multiple_threads)
     std::vector<os::thread> threads(num_threads);
     std::vector<std::atomic<int>> counters(num_threads);
 
-    for (int i = 0; i < num_threads; ++i)
+    for (size_t i = 0; i < num_threads; ++i)
     {
         counters[i] = 0;
         VX_CHECK(threads[i].start(long_task, std::ref(counters[i])));
     }
 
-    for (int i = 0; i < num_threads; ++i)
+    for (size_t i = 0; i < num_threads; ++i)
     {
         VX_CHECK(threads[i].join());
         VX_CHECK(counters[i] == 10);
