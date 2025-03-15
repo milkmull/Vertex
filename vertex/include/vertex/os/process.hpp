@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 
 #include "vertex/system/compiler.hpp"
@@ -36,7 +37,7 @@ public:
     struct config
     {
         std::vector<std::string> args;
-        environment environment;
+        process::environment environment;
 
         bool background = true;
 

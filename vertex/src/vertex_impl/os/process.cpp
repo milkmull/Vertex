@@ -37,7 +37,7 @@ VX_API process& process::operator=(process&& other) noexcept
     return *this;
 }
 
-VX_API bool process::start(const config& config)
+VX_API bool process::start(const process::config& config)
 {
     if (is_valid())
     {
