@@ -1,9 +1,6 @@
 # Define executable
 add_executable(Sandbox "${CMAKE_CURRENT_SOURCE_DIR}/src/sandbox.cpp")
 
-# Statically link to the c runtime libraries
-vx_set_stdlib(Sandbox)
-
 # Files
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/include/sandbox")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src")
