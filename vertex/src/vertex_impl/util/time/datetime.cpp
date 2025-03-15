@@ -88,7 +88,7 @@ VX_API std::string datetime::to_string() const
         const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % __detail::SEC_PER_HOUR) / __detail::SEC_PER_MIN;
 
         buffer[19] = (utc_offset_seconds < 0) ? '-' : '+';
-        std::sprintf(&buffer[20], "%02d:%02d",
+        std::snprintf(&buffer[20], 6, "%02d:%02d",
             offset_hours,
             offset_minutes
         );

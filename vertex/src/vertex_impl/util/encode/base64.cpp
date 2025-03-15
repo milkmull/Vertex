@@ -71,8 +71,8 @@ VX_API bool encode(const uint8_t* data, size_t size, std::string& encoded)
 
         // Extract the 4 batches of 6 bits
         const uint8_t char1 = byte1 >> 2;
-        const uint8_t char2 = ((byte1 & 0b00000011) << 4) | (byte2 >> 4);
-        const uint8_t char3 = ((byte2 & 0b00001111) << 2) | (byte3 >> 6);
+        const uint8_t char2 = static_cast<uint8_t>(((byte1 & 0b00000011) << 4) | (byte2 >> 4));
+        const uint8_t char3 = static_cast<uint8_t>(((byte2 & 0b00001111) << 2) | (byte3 >> 6));
         const uint8_t char4 = byte3 & 0b00111111;
 
         // Add the encoded data, pad to complete the quartet

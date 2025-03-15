@@ -81,7 +81,7 @@ VX_FORCE_INLINE T rotl(T x, unsigned int shift) noexcept
 {
     constexpr auto mask = (CHAR_BIT * sizeof(T) - 1);
     shift &= mask;
-    return (x << shift) | (x >> ((-shift) & mask));
+    return static_cast<T>((x << shift) | (x >> ((-shift) & mask)));
 }
 
 VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift) noexcept
@@ -153,7 +153,7 @@ VX_FORCE_INLINE T rotr(T x, unsigned int shift) noexcept
 {
     constexpr auto mask = std::numeric_limits<T>::digits - 1;
     shift &= mask;
-    return (x >> shift) | (x << ((-shift) & mask));
+    return static_cast<T>((x >> shift) | (x << ((-shift) & mask)));
 }
 
 VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift) noexcept
