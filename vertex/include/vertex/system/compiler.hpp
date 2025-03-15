@@ -92,6 +92,17 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// Helper Macros
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__GNUC__) || defined(__clang__)
+
+#   define __VX_PRAGMA_(x) _Pragma (#x)
+#   define __VX_PRAGMA(x) DO_PRAGMA_(x)
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // Warning Suppression
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -119,9 +130,9 @@
 
 #elif defined(__clang__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) _Pragma("clang diagnostic ignored \"-W" warning_name "\"")
-#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("clang diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                         _Pragma("clang diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA("clang diagnostic ignored \"-W" warning_name "\"")
+#   define VX_DISABLE_WARNING_PUSH()                        __VX_PRAGMA("clang diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                         __VX_PRAGMA("clang diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()
@@ -141,9 +152,9 @@
 
 #elif defined(__GNUC__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) _Pragma("GCC diagnostic ignored \"-W" warning_name "\"")
-#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("GCC diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                         _Pragma("GCC diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA("GCC diagnostic ignored \"-W" warning_name "\"")
+#   define VX_DISABLE_WARNING_PUSH()                        __VX_PRAGMA("GCC diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                         __VX_PRAGMA("GCC diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()

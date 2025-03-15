@@ -190,6 +190,8 @@ filesystem tests:
 
     x space
     x is_empty
+    
+    - random consistency tests
 }
 
 testing:

@@ -121,7 +121,6 @@ template <typename RNG>
 typename normal_distribution<T>::result_type normal_distribution<T>::operator()(RNG& rng, const param_type& p)
 {
     using rng_type = typename RNG::result_type;
-    using common_type = long double;
 
     static_assert(
         std::is_integral<rng_type>::value && std::is_unsigned<rng_type>::value,

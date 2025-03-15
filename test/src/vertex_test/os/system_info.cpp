@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "vertex_test/test.hpp"
 #include "vertex/os/system_info.hpp"
 #include "vertex/system/assert.hpp"

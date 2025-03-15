@@ -229,7 +229,7 @@ VX_TEST_CASE(bernoulli_distribution)
 
         constexpr size_t samples = 50000;
         size_t results[2]{};
-        for (int i = 0; i < samples; ++i)
+        for (size_t i = 0; i < samples; ++i)
         {
             const bool x = dist(rng);
             ++results[static_cast<size_t>(x)];
@@ -245,7 +245,7 @@ VX_TEST_CASE(bernoulli_distribution)
 
         constexpr size_t samples = 50000;
         size_t results[2]{};
-        for (int i = 0; i < samples; ++i)
+        for (size_t i = 0; i < samples; ++i)
         {
             const bool x = dist(rng);
             ++results[static_cast<size_t>(x)];

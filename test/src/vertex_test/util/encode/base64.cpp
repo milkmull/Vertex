@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "vertex_test/test.hpp"
 #include "vertex/util/encode/base64.hpp"
 

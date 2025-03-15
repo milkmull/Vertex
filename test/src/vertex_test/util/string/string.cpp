@@ -1,5 +1,6 @@
-#include "vertex_test/test.hpp"
+#include <cstring>
 
+#include "vertex_test/test.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/util/string/string_compare.hpp"
 
@@ -17,10 +18,10 @@ VX_TEST_CASE(string_cast)
     const std::u16string utf16_invalid_input = { 'H', 'e', 'l', 'l', 'o', ',', ' ', 0xDFFF, 0xD800, '!' };
     const std::u32string utf32_invalid_input = { 'H', 'e', 'l', 'l', 'o', ',', ' ', 0xDFFF, 0xD800, '!' };
 
-    const std::string utf8_invalid_corrected = "Hello, ??!";
-    const std::wstring wide_invalid_corrected = L"Hello, ??!";
-    const std::u16string utf16_invalid_corrected = u"Hello, ??!";
-    const std::u32string utf32_invalid_corrected = U"Hello, ??!";
+    const std::string utf8_invalid_corrected = "Hello, ?!?";
+    const std::wstring wide_invalid_corrected = L"Hello, ?!?";
+    const std::u16string utf16_invalid_corrected = u"Hello, ?!?";
+    const std::u32string utf32_invalid_corrected = U"Hello, ?!?";
 
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -669,7 +670,8 @@ VX_TEST_CASE(parse_digits)
         const auto it = str::parse_digits(s.begin(), s.end(), value, &count);
         VX_CHECK(value == 123);
         VX_CHECK(count == 3);
-        VX_CHECK(it == s.begin() + count);
+        using diff_type = typename std::string::iterator::difference_type;
+        VX_CHECK(it == s.begin() + static_cast<diff_type>(count));
     }
 
     VX_SECTION("overflow")
@@ -680,7 +682,8 @@ VX_TEST_CASE(parse_digits)
         const auto it = str::parse_digits(s.begin(), s.end(), value, &count);
         VX_CHECK(value == 210);
         VX_CHECK(count == 4);
-        VX_CHECK(it == s.begin() + count);
+        using diff_type = typename std::string::iterator::difference_type;
+        VX_CHECK(it == s.begin() + static_cast<diff_type>(count));
     }
 
     VX_SECTION("empty")
@@ -691,7 +694,8 @@ VX_TEST_CASE(parse_digits)
         const auto it = str::parse_digits(s.begin(), s.end(), value, &count);
         VX_CHECK(value == 0);
         VX_CHECK(count == 0);
-        VX_CHECK(it == s.begin() + count);
+        using diff_type = typename std::string::iterator::difference_type;
+        VX_CHECK(it == s.begin() + static_cast<diff_type>(count));
     }
 }
 
@@ -757,16 +761,16 @@ VX_TEST_CASE(to_uint)
 {
     VX_SECTION("uint32")
     {
-        VX_CHECK(str::to_uint32("123") == 123);
-        VX_CHECK(str::to_uint32("+123") == 123);
-        VX_CHECK(str::to_uint32("-123") == -123); // Should wrap around
-        VX_CHECK(str::to_uint32("  123   ") == 123);
-        VX_CHECK(str::to_uint32("00123") == 123);
+        VX_CHECK(str::to_uint32("123") == static_cast<uint32_t>(123));
+        VX_CHECK(str::to_uint32("+123") == static_cast<uint32_t>(123));
+        VX_CHECK(str::to_uint32("-123") == static_cast<uint32_t>(-123)); // Should wrap around
+        VX_CHECK(str::to_uint32("  123   ") == static_cast<uint32_t>(123));
+        VX_CHECK(str::to_uint32("00123") == static_cast<uint32_t>(123));
 
-        VX_CHECK(str::to_uint32("7B", nullptr, 16) == 123); // Hexadecimal
+        VX_CHECK(str::to_uint32("7B", nullptr, 16) == static_cast<uint32_t>(123)); // Hexadecimal
         VX_CHECK(str::to_uint32("FFFFFFFF", nullptr, 16) == UINT32_MAX);
-        VX_CHECK(str::to_uint32("1010", nullptr, 2) == 10); // Binary
-        VX_CHECK(str::to_uint32("0123", nullptr, 8) == 83); // Octal
+        VX_CHECK(str::to_uint32("1010", nullptr, 2) == static_cast<uint32_t>(10)); // Binary
+        VX_CHECK(str::to_uint32("0123", nullptr, 8) == static_cast<uint32_t>(83)); // Octal
 
         VX_EXPECT_ERROR_CODE(str::to_uint32("abc"), err::INVALID_ARGUMENT);
         VX_EXPECT_ERROR_CODE(str::to_uint32("+4294967296"), err::OUT_OF_RANGE); // UINT32_MAX + 1
@@ -778,16 +782,16 @@ VX_TEST_CASE(to_uint)
 
     VX_SECTION("uint64")
     {
-        VX_CHECK(str::to_uint64("123") == 123);
-        VX_CHECK(str::to_uint64("+123") == 123);
-        VX_CHECK(str::to_uint64("-123") == -123); // Should wrap around
-        VX_CHECK(str::to_uint64("  123   ") == 123);
-        VX_CHECK(str::to_uint64("00123") == 123);
+        VX_CHECK(str::to_uint64("123") == static_cast<uint64_t>(123));
+        VX_CHECK(str::to_uint64("+123") == static_cast<uint64_t>(123));
+        VX_CHECK(str::to_uint64("-123") == static_cast<uint64_t>(-123)); // Should wrap around
+        VX_CHECK(str::to_uint64("  123   ") == static_cast<uint64_t>(123));
+        VX_CHECK(str::to_uint64("00123") == static_cast<uint64_t>(123));
 
-        VX_CHECK(str::to_uint64("7B", nullptr, 16) == 123); // Hexadecimal
+        VX_CHECK(str::to_uint64("7B", nullptr, 16) == static_cast<uint64_t>(123)); // Hexadecimal
         VX_CHECK(str::to_uint64("FFFFFFFFFFFFFFFF", nullptr, 16) == UINT64_MAX);
-        VX_CHECK(str::to_uint64("1010", nullptr, 2) == 10); // Binary
-        VX_CHECK(str::to_uint64("0123", nullptr, 8) == 83); // Octal
+        VX_CHECK(str::to_uint64("1010", nullptr, 2) == static_cast<uint64_t>(10)); // Binary
+        VX_CHECK(str::to_uint64("0123", nullptr, 8) == static_cast<uint64_t>(83)); // Octal
 
         VX_EXPECT_ERROR_CODE(str::to_uint64("abc"), err::INVALID_ARGUMENT);
         VX_EXPECT_ERROR_CODE(str::to_uint64("+18446744073709551616"), err::OUT_OF_RANGE); // UINT64_MAX + 1

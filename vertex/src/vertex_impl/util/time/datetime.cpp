@@ -83,12 +83,19 @@ VX_API std::string datetime::to_string() const
     else
     {
         // Convert offset to hours and minutes
+        // The utc_offset_seconds represents the offset from UTC in seconds.
+        // After taking the absolute value, the offset is divided into hours and minutes.
+        // - offset_hours: We limit the range to 0-14 because the maximum valid UTC offset
+        //   is UTC+14:00, corresponding to 50400 seconds. This ensures we only work within
+        //   the valid time zone range from UTC-12:00 to UTC+14:00 (i.e., total of 27 hours offset).
+        // - offset_minutes: Ranges from 0 to 59 (representing the remaining minutes after extracting hours).
+
         const int32_t abs_offset_seconds = std::abs(utc_offset_seconds);
-        const int32_t offset_hours = abs_offset_seconds / __detail::SEC_PER_HOUR;
+        const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / __detail::SEC_PER_HOUR) % 15; // Limit to range [0, 14]
         const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % __detail::SEC_PER_HOUR) / __detail::SEC_PER_MIN;
 
         buffer[19] = (utc_offset_seconds < 0) ? '-' : '+';
-        std::snprintf(&buffer[20], 6, "%02d:%02d",
+        std::sprintf(&buffer[20], "%02d:%02d",
             offset_hours,
             offset_minutes
         );

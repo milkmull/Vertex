@@ -128,7 +128,7 @@ template <>
 struct upscaler<false> // rng range is greater than or equal to dist max range
 {
     template <typename Dist, typename RNG, typename common_type>
-    static VX_FORCE_INLINE common_type upscale(Dist& dist, RNG& rng, const common_type urange) noexcept
+    static inline common_type upscale(Dist&, RNG&, const common_type) noexcept
     {
         return 0;
     }

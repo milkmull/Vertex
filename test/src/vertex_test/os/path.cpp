@@ -4,6 +4,9 @@
 #   define VX_TESTING_WINDOWS_PATH
 #endif // VX_PLATFORM_WINDOWS
 
+VX_DISABLE_GCC_WARNING("Wtrigraphs")
+VX_DISABLE_GCC_WARNING_PUSH()
+
 using namespace vx;
 
 // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/tests/std/tests/P0218R1_filesystem/test.cpp#L217
@@ -962,3 +965,5 @@ int main()
     VX_RUN_TESTS();
     return 0;
 }
+
+VX_DISABLE_GCC_WARNING_POP()

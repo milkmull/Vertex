@@ -144,8 +144,8 @@ VX_TEST_CASE(test_thread_guard_basic)
 
     {
         os::thread_guard guard(std::move(t));
-        VX_CHECK(guard.thread().is_valid());
-        VX_CHECK(guard.thread().is_alive());
+        VX_CHECK(guard.get_thread().is_valid());
+        VX_CHECK(guard.get_thread().is_alive());
     } // Thread should be joined automatically here
 
     VX_CHECK(flag); // Verify the task completed
@@ -180,17 +180,17 @@ VX_TEST_CASE(test_thread_guard_move_operations)
     VX_CHECK(t.start(simple_task, std::ref(flag)));
 
     os::thread_guard guard1(std::move(t));
-    VX_CHECK(guard1.thread().is_valid());
+    VX_CHECK(guard1.get_thread().is_valid());
 
     // Move construction
     os::thread_guard guard2(std::move(guard1));
-    VX_CHECK(!guard1.thread().is_valid()); // Original guard is now empty
-    VX_CHECK(guard2.thread().is_valid());
+    VX_CHECK(!guard1.get_thread().is_valid()); // Original guard is now empty
+    VX_CHECK(guard2.get_thread().is_valid());
 
     // Move assignment
     os::thread_guard guard3 = std::move(guard2);
-    VX_CHECK(!guard2.thread().is_valid()); // Moved-from guard is now empty
-    VX_CHECK(guard3.thread().is_valid());
+    VX_CHECK(!guard2.get_thread().is_valid()); // Moved-from guard is now empty
+    VX_CHECK(guard3.get_thread().is_valid());
 
     // Ensure thread completion via destructor
 }
@@ -205,8 +205,8 @@ VX_TEST_CASE(test_thread_guard_with_long_task)
 
     {
         os::thread_guard guard(std::move(t));
-        VX_CHECK(guard.thread().is_valid());
-        VX_CHECK(guard.thread().is_alive());
+        VX_CHECK(guard.get_thread().is_valid());
+        VX_CHECK(guard.get_thread().is_alive());
     } // Thread should be joined automatically here
 
     VX_CHECK(counter == 10); // Verify the long task completed correctly

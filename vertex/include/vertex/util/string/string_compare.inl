@@ -41,7 +41,8 @@ inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2
         for (size_t j = 1; j <= size2; ++j)
         {
             // Substitution cost
-            const int32_t cost = (*std::next(first1, i - 1) == *std::next(first2, j - 1)) ? 0 : 1;
+            using diff_type = std::iterator_traits<const char*>::difference_type;
+            const int32_t cost = (*std::next(first1, static_cast<diff_type>(i - 1)) == *std::next(first2, static_cast<diff_type>(j - 1))) ? 0 : 1;
 
             dp[i][j] = std::min({
                 // Deletion
@@ -54,8 +55,8 @@ inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2
 
             if (damerau &&
                 (i > 1 && j > 1 && 
-                (*std::next(first1, i - 1) == *std::next(first2, j - 2)) &&
-                (*std::next(first1, i - 2) == *std::next(first2, j - 1))))
+                (*std::next(first1, static_cast<diff_type>(i - 1)) == *std::next(first2, static_cast<diff_type>(j - 2))) &&
+                (*std::next(first1, static_cast<diff_type>(i - 2)) == *std::next(first2, static_cast<diff_type>(j - 1)))))
             {
                 dp[i][j] = std::min(dp[i][j], dp[i - 2][j - 2] + 1); // Transposition
             }

@@ -128,14 +128,14 @@ inline bool is_alnum(const str_arg_t& s)
 // ascii
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_ascii(const unsigned char c)
+inline bool is_ascii(const char c)
 {
-    return c < 0x80;
+    return c <= 0x00 && c < 0x80;
 }
 
 inline bool is_ascii(const str_arg_t& s)
 {
-    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const unsigned char)>(is_ascii));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_ascii));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -637,7 +637,7 @@ inline IT parse_digits(IT first, IT last, T& value, size_t* count)
 
     while (first != last && is_digit(*first))
     {
-        value = (value * 10) + static_cast<T>(*first - '0');
+        value = static_cast<T>(value * 10) + static_cast<T>(*first - '0');
         ++first;
     }
 

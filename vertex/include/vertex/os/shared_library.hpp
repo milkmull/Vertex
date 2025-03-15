@@ -62,7 +62,7 @@ public:
     template <typename Func>
     Func get(const char* symbol_name) const noexcept
     {
-        return static_cast<Func>(get_void(symbol_name));
+        return reinterpret_cast<Func>(get_void(symbol_name));
     }
 
     VX_API void* get_void(const char* symbol_name) const noexcept;

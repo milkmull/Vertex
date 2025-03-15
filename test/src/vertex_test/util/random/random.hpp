@@ -1,7 +1,8 @@
 #pragma once
 
-#include "vertex/util/memory/memory.hpp"
+#include <cstring>
 
+#include "vertex/util/memory/memory.hpp"
 #include "vertex/util/random/pcg.hpp"
 #include "vertex/util/random/uniform_int_distribution.hpp"
 #include "vertex/util/random/uniform_real_distribution.hpp"
@@ -41,8 +42,8 @@ inline bool test_uniform_int_distribution(RNG& rng, Dist& dist)
     static_assert(std::is_integral<result_type>::value);
     using uresult_type = typename std::make_unsigned<result_type>::type;
 
-    const uresult_type range_min = static_cast<uresult_type>(dist.a()) + std::numeric_limits<result_type>::max() + 1;
-    const uresult_type range_max = static_cast<uresult_type>(dist.b()) + std::numeric_limits<result_type>::max() + 1;
+    const uresult_type range_min = static_cast<uresult_type>(static_cast<uresult_type>(dist.a()) + std::numeric_limits<result_type>::max()) + 1;
+    const uresult_type range_max = static_cast<uresult_type>(static_cast<uresult_type>(dist.b()) + std::numeric_limits<result_type>::max()) + 1;
     const uresult_type range = (range_max - range_min);
 
     const double bin_width = static_cast<double>(range) / BINS;
@@ -57,9 +58,9 @@ inline bool test_uniform_int_distribution(RNG& rng, Dist& dist)
         }
 
         // Map x to unsigned range
-        const uresult_type ux = static_cast<uresult_type>(x) + std::numeric_limits<result_type>::max() + 1;
+        const uresult_type ux = static_cast<uresult_type>(static_cast<uresult_type>(x) + std::numeric_limits<result_type>::max()) + 1;
 
-        size_t bin = static_cast<size_t>((ux - range_min) / bin_width);
+        size_t bin = static_cast<size_t>(static_cast<double>(ux - range_min) / bin_width);
         if (bin >= BINS)
         {
             // Handle edge case for max value
@@ -76,7 +77,7 @@ inline bool test_uniform_int_distribution(RNG& rng, Dist& dist)
     double chi_squared = 0.0;
     for (size_t i = 0; i < BINS; ++i)
     {
-        double diff = freq[i] - expected;
+        const double diff = static_cast<double>(freq[i]) - expected;
         chi_squared += (diff * diff) / expected;
     }
 
@@ -129,7 +130,7 @@ inline bool test_uniform_real_distribution(RNG& rng, Dist& dist)
     double chi_squared = 0.0;
     for (size_t i = 0; i < BINS; ++i)
     {
-        double diff = freq[i] - expected;
+        const double diff = static_cast<double>(freq[i]) - expected;
         chi_squared += (diff * diff) / expected;
     }
 
@@ -160,8 +161,8 @@ inline bool test_bernoulli_distribution(RNG& rng, Dist& dist)
     const double expected_false = SAMPLES * (1.0 - p);
 
     // Calculate chi-squared statistic
-    const double diff0 = freq[0] - expected_false;
-    const double diff1 = freq[1] - expected_true;
+    const double diff0 = static_cast<double>(freq[0]) - expected_false;
+    const double diff1 = static_cast<double>(freq[1]) - expected_true;
     const double chi_squared = ((diff0 * diff0) / expected_false) + ((diff1 * diff1) / expected_true);
 
     return chi_squared <= threshold;
@@ -235,11 +236,11 @@ inline bool test_discrete_distribution(RNG& rng, Dist& dist)
     {
         if (expected[i] == 0.0)
         {
-            if (freq[i] != 0.0) return false;
+            if (freq[i] != 0) return false;
             continue;
         }
 
-        const double diff = freq[i] - expected[i];
+        const double diff = static_cast<double>(freq[i]) - expected[i];
         chi_squared += (diff * diff) / expected[i];
     }
 
@@ -291,7 +292,7 @@ inline bool test_shuffle(RNG& rng, const int* data)
     {
         for (size_t position = 0; position < N; ++position)
         {
-            const double diff = counts[value][position] - expected;
+            const double diff = static_cast<double>(counts[value][position]) - expected;
             chi_squared += (diff * diff) / expected;
         }
     }
@@ -321,7 +322,7 @@ inline bool test_sample(RNG& rng, const int* data)
     double chi_squared = 0.0;
     for (size_t i = 0; i < N; ++i)
     {
-        const double diff = freq[i] - expected;
+        const double diff = static_cast<double>(freq[i]) - expected;
         chi_squared += (diff * diff) / expected;
     }
 
@@ -335,14 +336,13 @@ inline bool test_discrete_sample(RNG& rng, Dist& dist, const int* data)
     static_assert(df <= mem::array_size(chi_squared_critical_values));
     constexpr double threshold = chi_squared_critical_values[df - 1];
 
-    using result_type = typename Dist::result_type;
     const std::vector<double>& probabilities = dist.probabilities();
     VX_ASSERT(probabilities.size() == N);
 
     size_t freq[N]{};
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        int x;
+        int x{};
         random::sample(data, data + N, &x, 1, dist, rng);
         ++freq[x];
     }
@@ -361,11 +361,11 @@ inline bool test_discrete_sample(RNG& rng, Dist& dist, const int* data)
     {
         if (expected[i] == 0.0)
         {
-            if (freq[i] != 0.0) return false;
+            if (freq[i] != 0) return false;
             continue;
         }
 
-        const double diff = freq[i] - expected[i];
+        const double diff = static_cast<double>(freq[i]) - expected[i];
         chi_squared += (diff * diff) / expected[i];
     }
 

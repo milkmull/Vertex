@@ -22,7 +22,7 @@ public:
     struct param_type
     {
         using distribution_type = discrete_distribution<T>;
-        friend class distribution_type;
+        friend class discrete_distribution<T>;
 
         param_type() {}
 
