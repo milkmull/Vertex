@@ -104,7 +104,7 @@ inline void fail_test(const char* condition, const char* func, int line)
     { \
         ::vx::err::clear(); \
         condition; \
-        VX_CHECK(!!::vx::err::get()); \
+        VX_CHECK(::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_EXPECT_ERROR_CODE(condition, CODE) \
@@ -112,8 +112,8 @@ inline void fail_test(const char* condition, const char* func, int line)
     { \
         ::vx::err::clear(); \
         condition; \
-        VX_CHECK(!!::vx::err::get()); \
-        VX_CHECK(::vx::err::get().code == CODE); \
+        VX_CHECK(::vx::err::is_set()); \
+        VX_CHECK(::vx::err::get().err == CODE); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_EXPECT_NO_ERROR(condition) \
@@ -121,7 +121,7 @@ inline void fail_test(const char* condition, const char* func, int line)
     { \
         ::vx::err::clear(); \
         condition; \
-        VX_CHECK(!::vx::err::get()); \
+        VX_CHECK(!::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_CHECK_AND_EXPECT_ERROR(condition) VX_EXPECT_ERROR(VX_CHECK(condition))

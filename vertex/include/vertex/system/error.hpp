@@ -114,10 +114,10 @@ constexpr const char* code_to_string(code err) noexcept
 
 struct info
 {
-    code code = code::NONE;
+    code err = code::NONE;
     const char* message;
 
-    constexpr explicit operator bool() const noexcept { return (code != code::NONE); }
+    constexpr explicit operator bool() const noexcept { return (err != code::NONE); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,7 @@ inline void set(code err) noexcept
 ///////////////////////////////////////////////////////////////////////////////
 inline bool is_set() noexcept
 {
-    return get().code != NONE;
+    return get().err != NONE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -200,10 +200,10 @@ namespace __detail {
 
 struct error_stream
 {
-    error_stream(code err) : err(err) {}
-    ~error_stream() { set(err, stream.str().c_str()); }
+    error_stream(code err) : ec(err) {}
+    ~error_stream() { set(ec, stream.str().c_str()); }
 
-    code err;
+    code ec;
     std::ostringstream stream;
 };
 
