@@ -230,6 +230,44 @@ struct datetime
     }
 };
 
+///////////////////////////////////////////////////////////////////////////////
+// Strng Helpers
+///////////////////////////////////////////////////////////////////////////////
+
+constexpr const char* weekday_to_string(weekday weekday)
+{
+    constexpr const char* conversion_table[] = {
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday"
+    };
+
+    return conversion_table[static_cast<int>(weekday)];
+}
+
+constexpr const char* month_to_string(month month)
+{
+    constexpr const char* conversion_table[] = {
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+    };
+
+    return conversion_table[static_cast<int>(month) - 1];
+}
 
 } // namespace time
 } // namespace vx

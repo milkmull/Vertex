@@ -51,7 +51,7 @@ else()
     )
 endif()
 
-# Statically link to the c runtime libraries
+# Link to the c runtime libraries
 vx_set_stdlib(Vertex)
 
 if(VX_BUILD_SHARED_LIBS)
@@ -61,7 +61,6 @@ if(VX_BUILD_SHARED_LIBS)
 
     set_target_properties(Vertex PROPERTIES
         POSITION_INDEPENDENT_CODE TRUE
-        WINDOWS_EXPORT_ALL_SYMBOLS FALSE
         DEFINE_SYMBOL "VX_DLL_EXPORT"
     )
     
@@ -117,7 +116,7 @@ target_include_directories(Vertex
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
 )
 
-# Header-only interface
+# Header-only interface to be inherited by builds linking against Vertex
 target_include_directories(Vertex_Headers INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"            # When building the project
     "$<INSTALL_INTERFACE:include>"                                      # When using the installed project
@@ -168,7 +167,7 @@ endif()
 install(
     DIRECTORY "include/"
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 # Install and export headers interface
@@ -193,7 +192,7 @@ if(MSVC)
 
     if(VX_BUILD_SHARED_LIBS)
         # For shared libs we can just set it up like this
-        install(FILES "$<TARGET_PDB_FILE:Vertex>" DESTINATION "${CMAKE_INSTALL_BINDIR}" OPTIONAL)
+        install(FILES "$<TARGET_PDB_FILE:Vertex>" DESTINATION "${CMAKE_INSTALL_BINDIR}" CONFIGURATIONS Debug OPTIONAL)
     else()
         # For static libs we need to manually locate the pdb files in the install directory and install them
         install(CODE "
@@ -201,7 +200,7 @@ if(MSVC)
             foreach(PDB \${PDB_FILES})
                 file(INSTALL DESTINATION \"${CMAKE_INSTALL_PREFIX}/lib\" TYPE FILE FILES \${PDB})
             endforeach()
-        ")
+        " CONFIGURATIONS Debug)
     endif()
     
 endif()

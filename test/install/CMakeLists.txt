@@ -1,36 +1,79 @@
 cmake_minimum_required(VERSION 3.10)
-project(VertexInstallTest)
+
+#--------------------------------------------------------------------
+# Test Header Interface
+#--------------------------------------------------------------------
+
+project(header_interface_test)
+
+# Define a test executable
+add_executable(header_interface_test header_main.cpp)
 
 # Find the Vertex package
 find_package(Vertex REQUIRED)
 
-# Add an executable or library
-add_executable(VertexInstallTest main.cpp)
+# Test linking against the headers interface
+if(TARGET Vertex::Headers)
 
-# Define an option to choose between static and shared libraries
-option(USE_STATIC_VERTEX "Link against the static version of Vertex" OFF)
-
-# Check if the headers were found
-if(VERTEX_HEADERS_FOUND)
-    message(STATUS "Vertex headers found at ${VERTEX_INCLUDE_DIR}")
-    target_include_directories(VertexInstallTest PRIVATE "${VERTEX_INCLUDE_DIR}")
+    message(STATUS "Vertex headers interface found.")
+    target_link_libraries(header_interface_test PRIVATE Vertex::Headers)
+    
 else()
-    message(FATAL_ERROR "Vertex headers not found.")
+
+    message(FATAL_ERROR "Vertex headers interface not found.")
+    
 endif()
 
-# Link against Vertex shared or static libraries based on the option
-if(USE_STATIC_VERTEX)
-    if(VERTEX_STATIC_LIBRARIES)
-        message(STATUS "Linking against Vertex static library.")
-        target_link_libraries(VertexInstallTest PRIVATE "${VERTEX_STATIC_LIBRARIES}")
-    else()
-        message(FATAL_ERROR "Static libraries for Vertex are not available.")
+#--------------------------------------------------------------------
+# Test Shared Library
+#--------------------------------------------------------------------
+
+# Test linking against the shared library
+if(TARGET Vertex::Vertex_Shared)
+
+    message(STATUS "Linking against Vertex shared library.")
+    add_executable(shared_library_test shared_main.cpp)
+    target_link_libraries(shared_library_test PRIVATE Vertex::Headers Vertex::Vertex_Shared)
+    
+    # Print shared library location
+    get_target_property(SHARED_LIB_LOCATION Vertex::Vertex_Shared LOCATION)
+    message(STATUS "Found shared library at: ${SHARED_LIB_LOCATION}")
+
+    # Copy DLL to the executable directory (for Windows systems)
+    if(WIN32 AND SHARED_LIB_LOCATION)
+    
+        add_custom_command(TARGET shared_library_test POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "$<TARGET_FILE:Vertex::Vertex_Shared>"
+            "$<TARGET_FILE_DIR:shared_library_test>"
+        )
+        message(STATUS "Configured to copy DLL to executable directory.")
+        
     endif()
+    
 else()
-    if(VERTEX_SHARED_LIBRARIES)
-        message(STATUS "Linking against Vertex shared library.")
-        target_link_libraries(VertexInstallTest PRIVATE "${VERTEX_SHARED_LIBRARIES}")
-    else()
-        message(FATAL_ERROR "Shared libraries for Vertex are not available.")
-    endif()
+
+    message(WARNING "Vertex shared library not found. Skipping shared library test.")
+    
+endif()
+
+#--------------------------------------------------------------------
+# Test Static Library
+#--------------------------------------------------------------------
+
+# Test linking against the static library
+if(TARGET Vertex::Vertex_Static)
+
+    message(STATUS "Linking against Vertex static library.")
+    add_executable(static_library_test static_main.cpp)
+    target_link_libraries(static_library_test PRIVATE Vertex::Headers Vertex::Vertex_Static)
+
+    # Print static library location
+    get_target_property(STATIC_LIB_LOCATION Vertex::Vertex_Static LOCATION)
+    message(STATUS "Found static library at: ${STATIC_LIB_LOCATION}")
+    
+else()
+
+    message(WARNING "Vertex static library not found. Skipping static library test.")
+    
 endif()

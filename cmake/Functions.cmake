@@ -16,15 +16,19 @@ function(vx_parse_version_from_header FILE_PATH MAJOR_VAR MINOR_VAR PATCH_VAR)
     
 endfunction()
 
-# Helper function to tweak visibility of public symbols
-# Ensure public symbols are hidden by default (exported ones are explicitly marked)
+# Helper function to hide public symbols by default in shared libraries.
+# This reduces the size of the exported symbol table, improves load times,
+# and enhances security by hiding internal implementation details.
+# Only explicitly marked symbols (e.g., using __declspec(dllexport) on
+# Windows or __attribute__((visibility("default"))) on Unix) will be visible.
+# This setting only affects shared libraries and has no impact on static libraries.
 function(vx_hide_public_symbols TARGET)
-    
+
     set_target_properties(${TARGET} PROPERTIES
-        CXX_VISIBILITY_PRESET hidden
-        VISIBILITY_INLINES_HIDDEN YES
+        CXX_VISIBILITY_PRESET hidden        # Hide all symbols by default
+        VISIBILITY_INLINES_HIDDEN YES       # Hide inline functions unless explicitly marked
     )
-        
+    
 endfunction()
 
 function(vx_target_compile_option_all_languages TARGET OPTION)
@@ -157,13 +161,18 @@ function(vx_set_stdlib TARGET)
         else()
         
             if(VX_USE_STATIC_STD_LIBS)
-                # For MSVC, set the appropriate runtime library (MultiThreaded or MultiThreadedDebug)
+                # For MSVC, set the appropriate static runtime library (MultiThreaded or MultiThreadedDebug)
                 set_property(TARGET "${TARGET}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
             else()
-                # For MSVC, prefer linking against the shared version of the standard library
-                # to avoid issues like stack corruption that arise when mixing heaps from 
-                # different modules. This ensures consistent memory management across the 
-                # DLL and executable.
+                # Default behavior for MSVC: link dynamically to the shared runtime library (DLL)
+                # This ensures that all parts of the program use the same memory management and heap.
+                # It is generally recommended to use the shared runtime to avoid issues like stack corruption 
+                # when mixing static and dynamic runtimes.
+                #
+                # MSVC's default behavior is to link against the shared runtime library, so we don't need to
+                # specify it explicitly unless we are changing the default behavior.
+                #
+                # When not using static libraries, the program will link against the DLL version of the standard library.
                 #
                 # see: 
                 # https://stackoverflow.com/questions/35310117/debug-assertion-failed-expression-acrt-first-block-header
