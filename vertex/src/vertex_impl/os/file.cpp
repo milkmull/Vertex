@@ -46,7 +46,7 @@ VX_API bool file::create(const path& p)
     return f.open(p, mode::WRITE);
 }
 
-VX_API bool file::open(const path& p, mode mode)
+VX_API bool file::open(const path& p, file::mode mode)
 {
     if (is_open())
     {

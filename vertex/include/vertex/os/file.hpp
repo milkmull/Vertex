@@ -68,7 +68,7 @@ public:
 
 public:
 
-    VX_API bool open(const path& p, mode mode);
+    VX_API bool open(const path& p, file::mode mode);
     VX_API bool is_open() const;
     VX_API void close();
 

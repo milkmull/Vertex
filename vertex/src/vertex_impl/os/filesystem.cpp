@@ -179,7 +179,7 @@ enum class copy_error
     TO_UNSUPPORTED_TYPE
 };
 
-static void throw_copy_error(copy_error e, const path& from, const path& to)
+static void throw_copy_error(copy_error e, const path& from)
 {
     std::ostringstream oss;
     oss << "failed to copy " << from << ": ";
@@ -213,12 +213,12 @@ VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing)
     // If !is_regular_file (either because the source file doesn't exist or because it is not a regular file), report an error
     if (!from_info.exists())
     {
-        throw_copy_error(copy_error::FROM_NOT_FOUND, from, to);
+        throw_copy_error(copy_error::FROM_NOT_FOUND, from);
         return false;
     }
     if (from_info.type != file_type::REGULAR)
     {
-        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from, to);
+        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from);
         return false;
     }
 
@@ -229,14 +229,14 @@ VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing)
         // Report an error if to and from are the same
         if (equivalent(from, to))
         {
-            throw_copy_error(copy_error::EQUIVALENT_PATHS, from, to);
+            throw_copy_error(copy_error::EQUIVALENT_PATHS, from);
             return false;
         }
 
         // Report an error if to is not a regular file
         if (to_info.type != file_type::REGULAR)
         {
-            throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from, to);
+            throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from);
             return false;
         }
 
@@ -272,14 +272,14 @@ static bool copy_internal(const path& from, const path& to, typename copy_option
     // If from does not exist, reports an error
     if (!from_info.exists())
     {
-        throw_copy_error(copy_error::FROM_NOT_FOUND, from, to);
+        throw_copy_error(copy_error::FROM_NOT_FOUND, from);
         return false;
     }
 
     // If from and to are the same, reports an error
     if (equivalent(from, to))
     {
-        throw_copy_error(copy_error::EQUIVALENT_PATHS, from, to);
+        throw_copy_error(copy_error::EQUIVALENT_PATHS, from);
         return false;
     }
 
@@ -293,7 +293,7 @@ static bool copy_internal(const path& from, const path& to, typename copy_option
 
         if (to_info.exists())
         {
-            throw_copy_error(copy_error::TO_PATH_ALREADY_EXISTS, from, to);
+            throw_copy_error(copy_error::TO_PATH_ALREADY_EXISTS, from);
             return false;
         }
 
@@ -316,7 +316,7 @@ static bool copy_internal(const path& from, const path& to, typename copy_option
         // If from is a directory, but to is a regular file, reports an error
         if (to_info.is_regular_file())
         {
-            throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from, to);
+            throw_copy_error(copy_error::TO_UNSUPPORTED_TYPE, from);
             return false;
         }
 
@@ -347,7 +347,7 @@ static bool copy_internal(const path& from, const path& to, typename copy_option
     else // from_info.is_other()
     {
         // If from is not a regular file, a directory, or a symlink, as determined by is_other, reports an error
-        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from, to);
+        throw_copy_error(copy_error::FROM_UNSUPPORTED_TYPE, from);
         return false;
     }
 
