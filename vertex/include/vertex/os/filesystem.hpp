@@ -267,7 +267,7 @@ struct directory_entry
     constexpr bool is_other() const noexcept { return info.is_other(); }
 
     os::path path;
-    file_info info;
+    file_info info{};
 };
 
 ///////////////////////////////////////////////////////////////////////////////
