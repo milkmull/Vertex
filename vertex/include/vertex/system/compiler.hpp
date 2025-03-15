@@ -115,9 +115,9 @@
 
 #if defined(_MSC_VER)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(warning(disable: warning_number))
-#   define VX_DISABLE_WARNING_PUSH()                        __VX_PRAGMA(warning(push, 0))
-#   define VX_DISABLE_WARNING_POP()                         __VX_PRAGMA(warning(pop))
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __pragma(warning(disable: warning_number))
+#   define VX_DISABLE_WARNING_PUSH()                        __pragma(warning(push, 0))
+#   define VX_DISABLE_WARNING_POP()                         __pragma(warning(pop))
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)          VX_DISABLE_WARNING("", warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()                   VX_DISABLE_WARNING_PUSH()
@@ -137,9 +137,9 @@
 
 #elif defined(__clang__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA("clang diagnostic ignored \"-W" warning_name "\"")
-#   define VX_DISABLE_WARNING_PUSH()                        __VX_PRAGMA("clang diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                         __VX_PRAGMA("clang diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(clang diagnostic ignored "-W" warning_name)
+#   define VX_DISABLE_WARNING_PUSH()                            _Pragma("clang diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                             _Pragma("clang diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()
@@ -159,9 +159,9 @@
 
 #elif defined(__GNUC__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA("GCC diagnostic ignored \"-W" warning_name "\"")
-#   define VX_DISABLE_WARNING_PUSH()                        __VX_PRAGMA("GCC diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                         __VX_PRAGMA("GCC diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(GCC diagnostic ignored "-W" warning_name)
+#   define VX_DISABLE_WARNING_PUSH()                            _Pragma("GCC diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                             _Pragma("GCC diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()
@@ -209,13 +209,13 @@
 
 #if defined(_MSC_VER)
 
-#   define VX_PACK_PUSH()   __VX_PRAGMA(pack(push, 1))
-#   define VX_PACK_POP()    __VX_PRAGMA(pack(pop))
+#   define VX_PACK_PUSH()   __pragma(pack(push, 1))
+#   define VX_PACK_POP()    __pragma(pack(pop))
 
 #elif defined(__GNUC__) || defined(__clang__)
 
-#   define VX_PACK_PUSH()   __VX_PRAGMA("pack(push, 1)")
-#   define VX_PACK_POP()    __VX_PRAGMA("pack(pop)")
+#   define VX_PACK_PUSH()   _Pragma("pack(push, 1)")
+#   define VX_PACK_POP()    _Pragma("pack(pop)")
 
 #else
 
