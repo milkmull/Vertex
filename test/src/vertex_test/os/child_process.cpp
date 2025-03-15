@@ -111,11 +111,11 @@ int main(int argc, char* argv[])
         {
             VX_LOG_INFO << "running --stdin-to-stdout";
 
-            os::io_stream stdin = os::this_process::get_stdin();
-            os::io_stream stdout = os::this_process::get_stdout();
+            os::io_stream p_stdin = os::this_process::get_stdin();
+            os::io_stream p_stdout = os::this_process::get_stdout();
 
             std::string line;
-            while (stdin.read_line(line))
+            while (p_stdin.read_line(line))
             {
                 if (line == "EOF")
                 {
@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
                     break;
                 }
 
-                stdout.write_line(line);
+                p_stdout.write_line(line);
                 VX_LOG_INFO << "writing line " << line;
             }
 
@@ -134,18 +134,18 @@ int main(int argc, char* argv[])
         {
             VX_LOG_INFO << "running --stdin-to-stderr";
 
-            os::io_stream stdin = os::this_process::get_stdin();
-            os::io_stream stderr = os::this_process::get_stderr();
+            os::io_stream p_stdin = os::this_process::get_stdin();
+            os::io_stream p_stderr = os::this_process::get_stderr();
 
             std::string line;
-            while (stdin.read_line(line))
+            while (p_stdin.read_line(line))
             {
                 if (line == "EOF")
                 {
                     break;
                 }
 
-                stderr.write_line(line);
+                p_stderr.write_line(line);
                 VX_LOG_INFO << "writing line " << line;
             }
 

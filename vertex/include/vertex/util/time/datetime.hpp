@@ -148,15 +148,15 @@ constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexce
 
 struct datetime
 {
-    int32_t year;                   // year
-    time::month month;              // month [1-12]
-    int32_t day;                    // day [1-31]
-    time::weekday weekday;          // weekday [0-6]
-    int32_t hour;                   // hour [0-23]
-    int32_t minute;                 // minute [0-59]
-    int32_t second;                 // second [0-59] leap seconds not supported
-    int32_t nanosecond;             // nanosecond [0-999999999]
-    int32_t utc_offset_seconds;     // seconds east of utc [-43200-50400]
+    int32_t year = 0;                                       // year
+    time::month month = time::month::JANUARY;               // month [1-12]
+    int32_t day = 0;                                        // day [1-31]
+    time::weekday weekday = time::weekday::SUNDAY;          // weekday [0-6]
+    int32_t hour = 0;                                       // hour [0-23]
+    int32_t minute = 0;                                     // minute [0-59]
+    int32_t second = 0;                                     // second [0-59] leap seconds not supported
+    int32_t nanosecond = 0;                                 // nanosecond [0-999999999]
+    int32_t utc_offset_seconds = 0;                         // seconds east of utc [-43200-50400]
 
     VX_API bool is_valid() const noexcept;
     VX_API std::string to_string() const;
