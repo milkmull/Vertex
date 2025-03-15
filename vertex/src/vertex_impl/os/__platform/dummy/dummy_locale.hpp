@@ -9,13 +9,13 @@ namespace locale {
 
 #define unsupported(op) VX_UNSUPPORTED("os::locale::" op "()")
 
-inline bool get_country_code_impl(std::string& country_code)
+inline bool get_country_code_impl(std::string&)
 {
     unsupported("get_country_code");
     return false;
 }
 
-inline bool get_language_impl(std::string& language)
+inline bool get_language_impl(std::string&)
 {
     unsupported("get_language");
     return false;

@@ -1,5 +1,3 @@
-#pragma once
-
 #include <sstream>
 #include <iomanip>
 #include <memory>
@@ -75,7 +73,6 @@ public:
 
             oss << std::setprecision(3) << std::fixed
                 << r.name << ','
-                << std::this_thread::get_id() << ','
                 << r.start.as_nanoseconds() << ','
                 << r.elapsed_time.as_nanoseconds() << '\n';
 

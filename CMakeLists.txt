@@ -67,6 +67,7 @@ if(VX_SHARED_AVAILABLE)
 endif()
 
 # Module-specific build options
+vx_set_option(VX_BUILD_DUMMY_OS     BOOL FALSE "Build the dummy os implimentation")
 vx_set_option(VX_BUILD_APP_WINDOW   BOOL TRUE  "Enable building the windowing backend (Enabled by default if rendering is enabled).")
 vx_set_option(VX_BUILD_APP_RENDERER BOOL TRUE  "Enable building the rendering backend.")
 vx_set_option(VX_BUILD_APP_AUDIO    BOOL TRUE  "Enable building the audio backend.")

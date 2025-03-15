@@ -29,7 +29,9 @@ constexpr bool contains(const str_arg_t& s, const str_arg_t& val) noexcept
 
 inline size_t count(const str_arg_t& s, const char val)
 {
-    return std::count(s.begin(), s.end(), val);
+    return static_cast<size_t>(
+        std::count(s.begin(), s.end(), val)
+    );
 }
 
 inline size_t count(const str_arg_t& s, const str_arg_t& val)
@@ -126,14 +128,14 @@ inline bool is_alnum(const str_arg_t& s)
 // ascii
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_ascii(const char c)
+inline bool is_ascii(const unsigned char c)
 {
-    return 0x00 <= c && c < 0x80;
+    return c < 0x80;
 }
 
 inline bool is_ascii(const str_arg_t& s)
 {
-    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const char)>(is_ascii));
+    return !s.empty() && std::all_of(s.begin(), s.end(), static_cast<bool(*)(const unsigned char)>(is_ascii));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -680,7 +682,7 @@ inline int32_t to_int32(const std::string& s, size_t* count, int base)
 
     try
     {
-        value = std::stol(s, &i, base);
+        value = static_cast<int32_t>(std::stol(s, &i, base));
     }
     catch (const std::invalid_argument&)
     {
@@ -711,7 +713,7 @@ inline int64_t to_int64(const std::string& s, size_t* count, int base)
 
     try
     {
-        value = std::stoll(s, &i, base);
+        value = static_cast<int64_t>(std::stoll(s, &i, base));
     }
     catch (const std::invalid_argument&)
     {
@@ -742,7 +744,7 @@ inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
 
     try
     {
-        value = std::stoul(s, &i, base);
+        value = static_cast<uint32_t>(std::stoul(s, &i, base));
     }
     catch (const std::invalid_argument&)
     {
@@ -773,7 +775,7 @@ inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
 
     try
     {
-        value = std::stoull(s, &i, base);
+        value = static_cast<uint64_t>(std::stoull(s, &i, base));
     }
     catch (const std::invalid_argument&)
     {

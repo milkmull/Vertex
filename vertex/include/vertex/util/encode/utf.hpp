@@ -1,7 +1,13 @@
 #pragma once
 
+#include <limits>
+
 #include "vertex/system/compiler.hpp"
 #include "vertex/system/validate.hpp"
+
+#if defined(max)
+#   undef max
+#endif
 
 namespace vx {
 namespace utf {
@@ -12,7 +18,7 @@ using code_point = uint32_t;
 
 enum : code_point { INVALID_CODE_POINT = 0xFFFFFFFF };
 
-enum : size_t { INVALID_TRAIL_COUNT = -1 };
+enum : size_t { INVALID_TRAIL_COUNT = std::numeric_limits<size_t>::max() };
 
 constexpr bool is_valid_codepoint(code_point c) noexcept
 {
@@ -138,7 +144,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
 
         // Mask out prefix bits in lead byte and
         // shift to make room for trail bytes
-        c &= ((1 << (6 - trail_bytes)) - 1);
+        c &= static_cast<code_point>((1 << (6 - trail_bytes)) - 1);
 
         switch (trail_bytes)
         {
@@ -386,11 +392,11 @@ struct utf_base_traits<4> // utf32
         return INVALID_TRAIL_COUNT;
     }
 
-    static constexpr bool is_trail(utype c) noexcept { return false; }
-    static constexpr bool is_lead(utype c) noexcept { return true; }
+    static constexpr bool is_trail(utype) noexcept { return false; }
+    static constexpr bool is_lead(utype) noexcept { return true; }
 
     static constexpr size_t max_width() noexcept { return 1; }
-    static constexpr size_t width(code_point c) noexcept { return 1; }
+    static constexpr size_t width(code_point) noexcept { return 1; }
 };
 
 template <typename char_t>

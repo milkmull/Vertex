@@ -7,7 +7,7 @@ namespace os {
 
 #define unsupported(op) VX_UNSUPPORTED("os::" op "()")
 
-inline bool get_entropy_impl(uint8_t* bytes, size_t count)
+inline bool get_entropy_impl(uint8_t*, size_t)
 {
     unsupported("get_entropy");
     return false;

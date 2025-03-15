@@ -107,7 +107,13 @@ inline constexpr int compare(const path_value_type c1, const path_value_type c2)
 // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L371
 
 // Returns the start position of the root directory
-inline size_t find_root_directory_start(const path_value_type* first, size_t size) noexcept
+inline size_t find_root_directory_start(
+#if defined(VX_WINDOWS_PATH)
+    const path_value_type* first, size_t size
+#else
+    const path_value_type*, size_t // unused on non-windows systems
+#endif // VX_WINDOWS_PATH
+) noexcept
 {
     // Only windows has root name
 #if defined(VX_WINDOWS_PATH)
@@ -451,8 +457,8 @@ class path
 {
 public:
 
-    using value_type = typename __detail::path_value_type;
-    using string_type = typename __detail::path_string_type;
+    using value_type = __detail::path_value_type;
+    using string_type = __detail::path_string_type;
 
     static constexpr value_type separator = PATH_SEPARATOR;
     static constexpr value_type preferred_separator = PATH_PREFERRED_SEPARATOR;
@@ -500,6 +506,7 @@ public:
     path& assign(string_type&& s) noexcept
     {
         m_path = std::move(s);
+        return *this;
     }
 
     path& operator=(const native_string& rhs)
@@ -900,7 +907,7 @@ public:
 
     path lexically_normal() const
     {
-        using parse_state = typename __detail::path_parser::state;
+        using parse_state = __detail::path_parser::state;
 
         if (m_path.empty())
         {

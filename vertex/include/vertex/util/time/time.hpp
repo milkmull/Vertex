@@ -31,9 +31,8 @@ public:
 
     template <typename Rep, typename Period>
     constexpr operator std::chrono::duration<Rep, Period>() const noexcept(
-        noexcept(std::chrono::nanoseconds(m_count)) &&
         noexcept(std::chrono::duration_cast<std::chrono::duration<Rep, Period>>)
-        )
+    )
     {
         return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>(
             std::chrono::nanoseconds(m_count)
@@ -53,11 +52,11 @@ public:
     constexpr int64_t as_hours()             const noexcept { return m_count / 3600000000000ll; }
 
     constexpr double as_float_nanoseconds()  const noexcept { return static_cast<double>(m_count); }
-    constexpr double as_float_microseconds() const noexcept { return m_count / 1000.0; }
-    constexpr double as_float_milliseconds() const noexcept { return m_count / 1000000.0; }
-    constexpr double as_float_seconds()      const noexcept { return m_count / 1000000000.0; }
-    constexpr double as_float_minutes()      const noexcept { return m_count / 60000000000.0; }
-    constexpr double as_float_hours()        const noexcept { return m_count / 3600000000000.0; }
+    constexpr double as_float_microseconds() const noexcept { return static_cast<double>(m_count) / 1000.0; }
+    constexpr double as_float_milliseconds() const noexcept { return static_cast<double>(m_count) / 1000000.0; }
+    constexpr double as_float_seconds()      const noexcept { return static_cast<double>(m_count) / 1000000000.0; }
+    constexpr double as_float_minutes()      const noexcept { return static_cast<double>(m_count) / 60000000000.0; }
+    constexpr double as_float_hours()        const noexcept { return static_cast<double>(m_count) / 3600000000000.0; }
 
 public:
 

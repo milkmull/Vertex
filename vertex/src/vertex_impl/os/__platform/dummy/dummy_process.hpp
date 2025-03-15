@@ -16,7 +16,7 @@ public:
 
 public:
 
-    bool start(process* p, const config& config)
+    bool start(process*, const config&)
     {
         unsupported("start");
         return false;
@@ -58,13 +58,13 @@ public:
         return false;
     }
 
-    bool kill(bool force)
+    bool kill(bool)
     {
         unsupported("kill");
         return false;
     }
 
-    bool get_exit_code(int* exit_code) const
+    bool get_exit_code(int*) const
     {
         unsupported("get_exit_code");
         return false;
@@ -93,19 +93,19 @@ inline process::environment get_environment_impl()
     return {};
 }
 
-inline std::string get_environment_variable_impl(const std::string& name)
+inline std::string get_environment_variable_impl(const std::string&)
 {
     unsupported("get_environment_variable");
     return {};
 }
 
-inline bool set_environment_variable_impl(const std::string& name, const std::string& value)
+inline bool set_environment_variable_impl(const std::string&, const std::string&)
 {
     unsupported("set_environment_variable");
     return false;
 }
 
-inline bool clear_environment_variable_impl(const std::string& name)
+inline bool clear_environment_variable_impl(const std::string&)
 {
     unsupported("clear_environment_variable");
     return false;

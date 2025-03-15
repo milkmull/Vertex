@@ -45,10 +45,11 @@ class log_stream
 {
 public:
 
-    log_stream(level level) : m_level(level) { prefix(); }
+    log_stream(level log_level) : m_level(log_level) { prefix(); }
     ~log_stream() { flush(); }
 
-    log_stream(level level, int line, const char* file)
+    log_stream(level log_level, int line, const char* file)
+        : m_level(log_level)
     {
         prefix();
         m_stream << "line " << line << " file " << file << ": ";

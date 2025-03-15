@@ -13,21 +13,21 @@ class shared_library_impl
 {
 public:
 
-    static bool load(shared_library_impl_data& sld, const char* lib)
+    static bool load(shared_library_impl_data&, const char*)
     {
         unsupported("load");
         return false;
     }
 
-    static bool is_loaded(const shared_library_impl_data& sld) noexcept
+    static bool is_loaded(const shared_library_impl_data&) noexcept
     {
         unsupported("is_loaded");
         return false;
     }
 
-    static void free(shared_library_impl_data& sld) noexcept {}
+    static void free(shared_library_impl_data&) noexcept {}
 
-    static void* get_addr(const shared_library_impl_data& sld, const char* symbol_name) noexcept
+    static void* get_addr(const shared_library_impl_data&, const char*) noexcept
     {
         unsupported("get_addr");
         return nullptr;

@@ -26,7 +26,7 @@ file(GLOB VX_OS_SOURCE_FILES
 target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 
 # platform specific os files
-if(VX_CMAKE_PLATFORM_WINDOWS)
+if(VX_CMAKE_PLATFORM_WINDOWS AND NOT VX_BUILD_DUMMY_OS)
 
     # Source files for windows
     file(GLOB VX_OS_PLATFORM_SOURCE_FILES

@@ -65,7 +65,7 @@ VX_API void SHA1::finalize()
     }
 
     // Append the length in bits
-    for (int i = 0; i < sizeof(m_bit_count); ++i)
+    for (size_t i = 0; i < sizeof(m_bit_count); ++i)
     {
         m_buffer[56 + i] = static_cast<uint8_t>(m_bit_count >> (56 - i * 8));
     }
@@ -81,8 +81,10 @@ void SHA1::process_block(const uint8_t* block)
     uint32_t w[80]{};
     for (int i = 0; i < 16; ++i)
     {
-        w[i] = (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
-               (block[i * 4 + 2] <<  8) | (block[i * 4 + 3] <<  0);
+        w[i] = static_cast<uint32_t>(
+            (block[i * 4 + 0] << 24) | (block[i * 4 + 1] << 16) |
+            (block[i * 4 + 2] <<  8) | (block[i * 4 + 3] <<  0)
+        );
     }
     for (int i = 16; i < 80; ++i)
     {

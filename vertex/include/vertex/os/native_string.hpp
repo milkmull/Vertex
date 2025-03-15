@@ -63,6 +63,7 @@ public:
     native_string& assign(string_type&& s) noexcept
     {
         m_string = std::move(s);
+        return *this;
     }
 
     template <typename Src, VX_REQUIRES(type_traits::is_string_like<Src>::value)>

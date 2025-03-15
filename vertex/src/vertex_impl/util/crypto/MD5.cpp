@@ -93,7 +93,7 @@ VX_API void MD5::finalize()
     }
 
     // Append the length in bits
-    for (int i = 0; i < sizeof(m_bit_count); ++i)
+    for (size_t i = 0; i < sizeof(m_bit_count); ++i)
     {
         m_buffer[56 + i] = static_cast<uint8_t>(m_bit_count >> (i * 8));
     }
@@ -111,8 +111,10 @@ void MD5::process_block(const uint8_t* block)
 
     for (int i = 0; i < 16; ++i)
     {
-        x[i] = (block[i * 4 + 0] <<  0) | (block[i * 4 + 1] <<  8) |
-               (block[i * 4 + 2] << 16) | (block[i * 4 + 3] << 24);
+        x[i] = static_cast<uint32_t>(
+            (block[i * 4 + 0] <<  0) | (block[i * 4 + 1] <<  8) |
+            (block[i * 4 + 2] << 16) | (block[i * 4 + 3] << 24)
+        );
     }
 
     /* Round 1 */

@@ -22,7 +22,9 @@ struct civil
 
 constexpr uint32_t day_of_year(int32_t month, int32_t day) noexcept
 {
-    return (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1;       // [0, 365]
+    return static_cast<uint32_t>(
+        (153 * (month > 2 ? month - 3 : month + 9) + 2) / 5 + day - 1 // [0, 365]
+    ); 
 }
 
 // http://howardhinnant.github.io/date_algorithms.html#days_from_civil
@@ -125,7 +127,7 @@ constexpr int32_t get_days_in_month(int32_t year, month month) noexcept
 
 constexpr int32_t get_day_of_year(int32_t year, month month, int32_t day) noexcept
 {
-    const int32_t doy = __detail::day_of_year(static_cast<int32_t>(month), day);
+    const int32_t doy = static_cast<int32_t>(__detail::day_of_year(static_cast<int32_t>(month), day));
     // The algorithm considers March 1 to be the first day of the year, so we offset by Jan + Feb days
     return (doy > 305) ? (doy - 306) : (doy + 59 + static_cast<int32_t>(is_leap_year(year)));
 }
@@ -147,9 +149,9 @@ constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexce
 struct datetime
 {
     int32_t year;                   // year
-    month month;                    // month [1-12]
+    time::month month;              // month [1-12]
     int32_t day;                    // day [1-31]
-    weekday weekday;                // weekday [0-6]
+    time::weekday weekday;          // weekday [0-6]
     int32_t hour;                   // hour [0-23]
     int32_t minute;                 // minute [0-59]
     int32_t second;                 // second [0-59] leap seconds not supported
@@ -173,7 +175,7 @@ struct datetime
 
         // Convert back to UTC date and time
         int32_t new_days = static_cast<int32_t>(total_seconds / __detail::SEC_PER_DAY);
-        int32_t remaining_seconds = total_seconds % __detail::SEC_PER_DAY;
+        int32_t remaining_seconds = static_cast<int32_t>(total_seconds % __detail::SEC_PER_DAY);
         if (remaining_seconds < 0)
         {
             --new_days;
@@ -186,7 +188,7 @@ struct datetime
         const __detail::civil civil = __detail::civil_from_days(new_days);
         utc_dt.year = civil.year;
         utc_dt.month = static_cast<time::month>(civil.month);
-        utc_dt.day = civil.day;
+        utc_dt.day = static_cast<int32_t>(civil.day);
         utc_dt.weekday = get_day_of_week(utc_dt.year, utc_dt.month, utc_dt.day);
 
         utc_dt.hour = remaining_seconds / __detail::SEC_PER_HOUR;

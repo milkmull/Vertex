@@ -10,7 +10,7 @@ namespace os {
 // Time
 ///////////////////////////////////////////////////////////////////////////////
 
-inline time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool local)
+inline time::datetime time_point_to_datetime_impl(const time::time_point&, bool)
 {
     VX_UNSUPPORTED("time_point::to_datetime()");
     return {};
@@ -48,7 +48,7 @@ inline int64_t get_performance_frequency_impl()
 // Sleep
 ///////////////////////////////////////////////////////////////////////////////
 
-inline void sleep_impl(const time::time_point& t)
+inline void sleep_impl(const time::time_point&)
 {
     unsupported("sleep");
 }

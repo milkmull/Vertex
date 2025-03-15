@@ -32,7 +32,7 @@ inline uint32_t get_processor_count_impl()
     return 0;
 }
 
-inline bool get_version_impl(uint32_t* major, uint32_t* minor, uint32_t* patch)
+inline bool get_version_impl(uint32_t*, uint32_t*, uint32_t*)
 {
     unsupported("get_version");
     return false;

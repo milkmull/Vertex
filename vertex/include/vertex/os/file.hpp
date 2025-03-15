@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <vector>
 
 #include "vertex/os/__platform/file_impl_data.hpp"
@@ -41,7 +42,11 @@ public:
         READ_WRITE_CREATE   // Truncate if file exists, or create a new one
     };
 
-    enum : size_t { INVALID_SIZE = -1, INVALID_POSITION = -1 };
+    enum : size_t
+    {
+        INVALID_SIZE        = std::numeric_limits<size_t>::max(),
+        INVALID_POSITION    = std::numeric_limits<size_t>::max()
+    };
 
 public:
 

@@ -1,4 +1,4 @@
-#pragma once
+#include <memory>
 
 #include "vertex/system/log.hpp"
 #include "vertex/util/io/iostream.hpp"
