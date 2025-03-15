@@ -28,7 +28,6 @@ vx_add_test(test_os_thread       "os" "${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp")
 
 add_library(os_shared_library SHARED "${CMAKE_CURRENT_SOURCE_DIR}/shared_library_lib.cpp")
 set_target_properties(os_shared_library PROPERTIES FOLDER "Tests/os")
-vx_set_stdlib(os_shared_library)
 vx_add_common_compiler_flags(os_shared_library)
 vx_hide_public_symbols(os_shared_library)
 vx_configure_test_install(os_shared_library)

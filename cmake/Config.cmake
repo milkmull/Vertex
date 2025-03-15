@@ -2,11 +2,13 @@
 # Detect OS
 #--------------------------------------------------------------------
 
+# Windows
 if(WIN32)
 
     set(VX_CMAKE_PLATFORM_WINDOWS 1)
     message(STATUS "Detected platform: Windows")
     
+# macOS or iOS
 elseif(APPLE)
 
     if(CMAKE_SYSTEM_NAME MATCHES ".*(Darwin|MacOS).*")
@@ -26,11 +28,13 @@ elseif(APPLE)
         
     endif()
     
+# Linux
 elseif(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
 
     set(VX_CMAKE_PLATFORM_LINUX 1)
     message(STATUS "Detected platform: Linux")
     
+# Android
 elseif(CMAKE_SYSTEM_NAME MATCHES "Android.*")
 
     set(VX_CMAKE_PLATFORM_ANDROID 1)
@@ -43,7 +47,8 @@ else()
     
 endif()
 
-
+# Detect Unix-based systems (excluding Android, Apple, and RISC OS)
+# This ensures that Unix-specific options are applied only to general Unix systems.
 if(UNIX AND NOT ANDROID AND NOT APPLE AND NOT RISCOS)
 
     set(VX_CMAKE_UNIX_SYS 1)
@@ -66,12 +71,14 @@ endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM")
 
     if(MSVC)
-    
+        
+        # MSVC with Clang
         set(VX_CMAKE_COMPILER_MSVC_CLANG 1)
         message(STATUS "Detected compiler: MSVC-Clang")
         
     else()
     
+        # General Clang compiler
         set(VX_CMAKE_COMPILER_CLANG 1)
         message(STATUS "Detected compiler: Clang")
         
@@ -79,16 +86,19 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|IntelLLVM")
     
 elseif(MSVC)
 
+    # Microsoft Visual Studio compiler
     set(VX_CMAKE_COMPILER_MSVC 1)
     message(STATUS "Detected compiler: MSVC")
     
-elseif(CMAKE_COMPILER_IS_GNUCC)
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 
+    # GCC (GNU Compiler Collection)
     set(VX_CMAKE_COMPILER_GCC 1)
     message(STATUS "Detected compiler: GCC")
     
 else()
 
+    # Handle unsupported compilers
     message(FATAL_ERROR "Unsupported compiler: ${CMAKE_CXX_COMPILER_ID}")
     return()
     
@@ -113,6 +123,8 @@ else()
     message(FATAL_ERROR "Unsupported architecture: ${CMAKE_SIZEOF_VOID_P}-bit")
     
 endif()
+
+#--------------------------------------------------------------------
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
 

@@ -31,12 +31,6 @@ function(vx_hide_public_symbols TARGET)
     
 endfunction()
 
-function(vx_target_compile_option_all_languages TARGET OPTION)
-
-    target_compile_options(${TARGET} PRIVATE "$<$<COMPILE_LANGUAGE:C,CXX>:${OPTION}>")
-  
-endfunction()
-
 # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 
 function(vx_add_common_compiler_flags TARGET)
@@ -140,46 +134,5 @@ function(vx_create_source_groups TARGET_NAME ROOT_DIR)
         endif()
         
     endforeach()
-    
-endfunction()
-
-# Function to configure the C++ standard library linking for the given target (TARGET)
-function(vx_set_stdlib TARGET)
-
-    if(VX_CMAKE_PLATFORM_WINDOWS)
-    
-        if(MINGW OR CYGWIN)
-        
-            if(VX_USE_STATIC_STD_LIBS)
-                # For MinGW or Cygwin, link the static versions of libgcc and libstdc++
-                target_link_options("${TARGET}" PRIVATE "-static-libgcc" "-static-libstdc++")
-            else()
-                # For MinGW or Cygwin, link the static versions of libgcc and libstdc++
-                target_link_options("${TARGET}" PRIVATE "-shared-libgcc" "-shared-libstdc++")
-            endif()
-            
-        else()
-        
-            if(VX_USE_STATIC_STD_LIBS)
-                # For MSVC, set the appropriate static runtime library (MultiThreaded or MultiThreadedDebug)
-                set_property(TARGET "${TARGET}" PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-            else()
-                # Default behavior for MSVC: link dynamically to the shared runtime library (DLL)
-                # This ensures that all parts of the program use the same memory management and heap.
-                # It is generally recommended to use the shared runtime to avoid issues like stack corruption 
-                # when mixing static and dynamic runtimes.
-                #
-                # MSVC's default behavior is to link against the shared runtime library, so we don't need to
-                # specify it explicitly unless we are changing the default behavior.
-                #
-                # When not using static libraries, the program will link against the DLL version of the standard library.
-                #
-                # see: 
-                # https://stackoverflow.com/questions/35310117/debug-assertion-failed-expression-acrt-first-block-header
-            endif()
-
-        endif()
-        
-    endif()
     
 endfunction()

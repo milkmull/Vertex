@@ -51,9 +51,6 @@ else()
     )
 endif()
 
-# Link to the c runtime libraries
-vx_set_stdlib(Vertex)
-
 if(VX_BUILD_SHARED_LIBS)
 
     # Hide public symbols by default

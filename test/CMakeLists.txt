@@ -40,7 +40,6 @@ function(vx_add_test TARGET PATH SOURCES)
     set_target_properties(${TARGET} PROPERTIES FOLDER "Tests/${PATH}")
 
     # Apply standard library settings and common flags
-    vx_set_stdlib(${TARGET})
     vx_add_common_compiler_flags(${TARGET})
     vx_hide_public_symbols(${TARGET})
 

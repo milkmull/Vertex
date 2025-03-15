@@ -103,7 +103,7 @@ std:
 
     x update logger, profiler
     x assert and debug files
-    - finalize test library
+    x finalize test library
 }
 
 os revisions:
@@ -134,7 +134,7 @@ cleanup and finalizaton for base library:
         x double check pragma once in all headers
         x no VX_API in platform code
         - optional compilation (crypto, some os modules)
-        - macros to check if a particular os mudule is available
+        - macros to check if a particular os module is available
     }
 
     more bonus:
@@ -234,8 +234,8 @@ testing:
     x os/process
     
     x os/system_info
-    - os/locale
-    - os/system_memory
+    x os/locale
+    x os/system_memory
     
     x os/shared_library
 }

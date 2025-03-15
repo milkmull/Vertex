@@ -7,7 +7,9 @@ cmake_minimum_required(VERSION 3.12)
 #--------------------------------------------------------------------
 # CMake Policy Setup
 #--------------------------------------------------------------------
-# Allow setting the MSVC runtime library via MSVC_RUNTIME_LIBRARY target property
+
+# This ensures that the MSVC runtime library can be configured through the MSVC_RUNTIME_LIBRARY target property.
+# This is especially useful for projects where different runtime libraries need to be selected (e.g., static vs. dynamic).
 if(POLICY CMP0091)
     cmake_policy(SET CMP0091 NEW)
 endif()
@@ -15,6 +17,7 @@ endif()
 #--------------------------------------------------------------------
 # Project Configuration
 #--------------------------------------------------------------------
+
 # Load the version information from Version.cmake
 include(cmake/Version.cmake)
 message(STATUS "Vertex Version: ${VX_PROJECT_VERSION}")
@@ -34,6 +37,7 @@ endif()
 #--------------------------------------------------------------------
 # CMake Modules & Utilities
 #--------------------------------------------------------------------
+
 # Include standard CMake modules
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
@@ -47,22 +51,19 @@ include(cmake/Functions.cmake)
 #--------------------------------------------------------------------
 # Shared Library Availability
 #--------------------------------------------------------------------
+
 # Determines whether shared libraries can be built
 set(VX_SHARED_AVAILABLE TRUE)
 
 #--------------------------------------------------------------------
 # Project Options Configuration
 #--------------------------------------------------------------------
+
 message(STATUS "Configuring Vertex build options...")
 
 # Option to build shared libraries if available
 if(VX_SHARED_AVAILABLE)
     vx_set_option(VX_BUILD_SHARED_LIBS BOOL TRUE "Build shared libraries.")
-endif()
-
-# Option to link against static standard libraries on Windows
-if(VX_CMAKE_PLATFORM_WINDOWS)
-    vx_set_option(VX_USE_STATIC_STD_LIBS BOOL FALSE "Statically link to the standard libraries.")
 endif()
 
 # Module-specific build options
@@ -88,12 +89,14 @@ endif()
 #--------------------------------------------------------------------
 # Directory Organization & Subdirectories
 #--------------------------------------------------------------------
+
 # Enable folder grouping for IDEs
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #--------------------------------------------------------------------
 # Adding Subdirectories
 #--------------------------------------------------------------------
+
 message(STATUS "Adding Vertex subdirectories...")
 
 # Add the main Vertex source directory
@@ -118,6 +121,7 @@ endif()
 #--------------------------------------------------------------------
 # Configuration Summary
 #--------------------------------------------------------------------
+
 message(STATUS "Vertex Configuration Summary:")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
 message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
