@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef> // size_t
+
 #include "vertex/system/compiler.hpp"
 
 namespace vx {

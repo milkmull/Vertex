@@ -46,7 +46,7 @@ VX_API bool file::create(const path& p)
     return f.open(p, mode::WRITE);
 }
 
-VX_API bool file::open(const path& p, file::mode mode)
+VX_API bool file::open(const path& p, mode file_mode)
 {
     if (is_open())
     {
@@ -54,18 +54,18 @@ VX_API bool file::open(const path& p, file::mode mode)
         return false;
     }
 
-    if (mode == mode::NONE)
+    if (file_mode == mode::NONE)
     {
         VX_ERR(err::FILE_OPEN_FAILED) << "invalid file mode";
         return false;
     }
 
-    if (!file_impl::open(m_impl_data, p, mode))
+    if (!file_impl::open(m_impl_data, p, file_mode))
     {
         return false;
     }
 
-    m_mode = mode;
+    m_mode = file_mode;
     return true;
 }
 

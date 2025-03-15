@@ -75,7 +75,7 @@ public:
 
 public:
 
-    VX_API bool start(const config& config);
+    VX_API bool start(const config& cfg);
 
     VX_API id get_pid() const;
 

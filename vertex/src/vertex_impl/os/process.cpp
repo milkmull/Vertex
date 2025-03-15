@@ -37,7 +37,7 @@ VX_API process& process::operator=(process&& other) noexcept
     return *this;
 }
 
-VX_API bool process::start(const process::config& config)
+VX_API bool process::start(const config& cfg)
 {
     if (is_valid())
     {
@@ -52,7 +52,7 @@ VX_API bool process::start(const process::config& config)
         return false;
     }
 
-    if (!m_impl->start(this, config))
+    if (!m_impl->start(this, cfg))
     {
         m_impl = nullptr;
         return false;

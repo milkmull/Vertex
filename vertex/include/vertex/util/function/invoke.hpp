@@ -2,7 +2,7 @@
 
 #include "vertex/system/compiler.hpp"
 
-#if defined(__cpp_lib_invoke)
+#if (VX_CPP_STANDARD >= 17)
 #   include <functional>
 #endif // __cpp_lib_invoke
 

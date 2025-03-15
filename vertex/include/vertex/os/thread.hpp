@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "vertex/os/__platform/thread_impl_data.hpp"
 #include "vertex/util/function/invoke.hpp"
 #include "vertex/system/error.hpp"
@@ -199,7 +201,7 @@ public:
         }
     }
 
-    const os::thread& thread() const noexcept
+    const os::thread& get_thread() const noexcept
     {
         return m_thread;
     }
