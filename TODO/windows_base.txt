@@ -13,20 +13,8 @@ cmake test:
     x Link Sandbox to Vertex, test both static and shared
     x Test including Vertex after installation
     x Test library
-}
-
-cmake:
-{
-    x Define Vertex project
-    x Generate windows .rc file
-    x Configure output files for debug and release builds
-    x Optimize in release build?
-    - Installation
-    x Define Sandbox project
-    x Link Sandbox to Vertex, test both static and shared
     - clang tidy, clang format
     - editorconfig
-    x Test library
 }
 
 system:
@@ -74,7 +62,7 @@ filesystem:
     x filesystem space
 }
 
-std:
+os and utils:
 {
     x time (use std::chrono ?)
     
@@ -190,8 +178,6 @@ filesystem tests:
 
     x space
     x is_empty
-    
-    - random consistency tests
 }
 
 testing:
@@ -220,6 +206,7 @@ testing:
     x util/random/rng
     x util/random/uniform_int_distribution
     x util/random/uniform_real_distribution
+    x random consistency tests
     
     x util/time/time
     x util/time/timer
@@ -247,66 +234,5 @@ finish base library:
     x formatting
     - test base library
     - document library
-    - test cmake installation process (windows)
+    x test cmake installation process (windows)
 }
-
-math:
-{
-    - simd instructions
-    - reorganize, impliment simd where appropriate
-    - collision matrix
-}
-
-pixel:
-{
-    - templated image types using pixel format
-    - finish removing dead code from stb image files
-    - clean up image and pixel libraries
-    - move color to pixel library?
-    - better error reporting
-    - logo break :)
-    - documentation break
-    - Bresenham's line algorithm for line drawing
-    - other drawings (circle, rect, etc.)
-}
-
-app:
-{
-    - main function
-    - message box
-    - consider INVALID_HANDLE_VALUE for window and other objects that use handles
-    - finish safety proofing functions and pointers
-    - finish mouse implimentation
-    - add keyboard
-    - add touch support
-    - pen support?
-    - add clipboard support
-    - add drag and drop support for windows
-    - event test break, go over all features and test
-    - add raw input handling
-    - add file dialogue support
-}
-
-renderer:
-{
-    - add support for renderer backend (opengl, opengles, vulkan)
-    
-    - shaders
-    - vertex buffer
-    - index buffer
-    - frame buffer
-    - command queue
-}
-
-bonus:
-{
-    - add support for haptic, sensors
-    - add support for joysticks, gamepad
-    - camera support
-    - networking (SDL_net as reference)
-    - HTTP, url, ftp support
-    - Font loading (freetype)
-    - Audio subsystem
-    - JSON
-}
-
