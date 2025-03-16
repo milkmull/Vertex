@@ -370,8 +370,8 @@ struct is_invocable_impl<Res, Ret, /* std::is_void<Ret> = */ true, type_traits::
 
 // https://github.com/gcc-mirror/gcc/blob/c207dcf393b864adc8eb41bbbcd630a6cfdc145a/libstdc%2B%2B-v3/include/std/type_traits#L3171
 
-VX_DISABLE_GCC_WARNING("-Wctor-dtor-privacy")
 VX_DISABLE_GCC_WARNING_PUSH()
+VX_DISABLE_GCC_WARNING("-Wctor-dtor-privacy")
 
 // Used for INVOKE<R> expressions to check the implicit conversion to R.
 template <typename Res, typename Ret>

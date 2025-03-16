@@ -99,6 +99,7 @@ function(vx_add_common_compiler_flags TARGET)
             -Wmisleading-indentation    # Warn if indentation implies blocks where blocks do not exist
             -Wduplicated-cond           # Warn if if / else chain has duplicated conditions
             -Wlogical-op                # Warn about logical operations being used where bitwise were probably wanted
+            -Wno-trigraphs              # Disable warnings for trigraphs
         )
     endif()
     
