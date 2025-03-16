@@ -130,6 +130,6 @@ private:
     HRESULT m_hr;
 };
 
-} // namespace vx
-} // namespace os
 } // namespace windows
+} // namespace os
+} // namespace vx

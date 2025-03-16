@@ -1,37 +1,34 @@
 #pragma once
 
-#include <string>
+#include <cstring>
 
-#include "vertex_impl/os/__platform/windows/windows_header.hpp"
-#include "vertex/os/__platform/windows/windows_handle.hpp"
-#include "vertex/util/time/time.hpp"
+#include "vertex_impl/os/__platform/posix/posix_header.hpp"
+#include "vertex/os/__platform/posix/posix_handle.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {
-namespace windows {
-
-static_assert(std::is_same<HANDLE_, HANDLE>::value);
-static_assert(std::is_same<DWORD_, DWORD>::value);
+namespace posix {
 
 ///////////////////////////////////////////////////////////////////////////////
-// HANDLE wrapper
+// handle wrapper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_valid_handle(HANDLE h)
+inline bool is_valid_handle(int h)
 {
-    return h != NULL && h != INVALID_HANDLE_VALUE;
+    return h == -1;
 }
 
-inline void close_handle(HANDLE& h)
+inline void close_handle(int& h)
 {
     if (is_valid_handle(h))
     {
-        CloseHandle(h);
-        h = INVALID_HANDLE_VALUE;
+        ::close(h);
+        h = -1;
     }
 }
 
-inline handle::handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
+inline handle::handle() noexcept : m_handle(-1) {}
 
 inline handle::~handle() noexcept { close(); }
 
@@ -51,9 +48,9 @@ inline handle& handle::operator=(handle&& h) noexcept
     return *this;
 }
 
-inline handle::handle(const HANDLE_ h) noexcept : m_handle(h) {}
+inline handle::handle(const int h) noexcept : m_handle(h) {}
 
-inline handle& handle::operator=(const HANDLE_ h) noexcept
+inline handle& handle::operator=(const int h) noexcept
 {
     close();
     m_handle = h;
@@ -65,9 +62,9 @@ inline bool handle::is_valid() const noexcept
     return is_valid_handle(m_handle);
 }
 
-inline HANDLE_ handle::get() const noexcept { return m_handle; }
+inline int handle::get() const noexcept { return m_handle; }
 
-inline void handle::reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
+inline void handle::reset() noexcept { m_handle = -1; }
 
 inline void handle::close() noexcept
 {
@@ -78,58 +75,26 @@ inline void handle::close() noexcept
 // Error Handling
 ///////////////////////////////////////////////////////////////////////////////
 
-void error_message(const char* msg);
-
-///////////////////////////////////////////////////////////////////////////////
-// time
-///////////////////////////////////////////////////////////////////////////////
-
-// Epoch difference between 1601-01-01 and 1970-01-01 in 100 nanosecond units
-#define DELTA_EPOCH_1601_100NS (11644473600ull * 10000000ull)
-
-inline constexpr time::time_point time_point_from_file_time(DWORD low, DWORD high) noexcept
+inline auto get_last_error()
 {
-    // Convert FILETIME (100-nanosecond intervals since 1601-01-01) to a 64-bit integer
-    uint64_t wtime = (static_cast<uint64_t>(high) << 32) | low;
-    // Adjust for Unix epoch and convert to nanoseconds (100-nanosecond intervals to nanoseconds)
-    uint64_t ticks = (wtime - DELTA_EPOCH_1601_100NS) * 100;
-    // Already in nanoseconds
-    return time::time_point{ static_cast<int64_t>(ticks) };
+    return errno;
 }
 
-inline constexpr void time_point_to_file_time(time::time_point t, DWORD& low, DWORD& high) noexcept
+inline void clear_error()
 {
-    // Convert time_point from nanoseconds since Unix epoch to 100-nanosecond intervals since 1601-01-01
-    uint64_t wtime = static_cast<uint64_t>((t.as_nanoseconds() / 100) + DELTA_EPOCH_1601_100NS);
-
-    // Split the 64-bit ticks into two 32-bit parts for FILETIME
-    low = static_cast<DWORD>(wtime);
-    high = static_cast<DWORD>(wtime >> 32);
+    errno = 0;
 }
 
-#   undef DELTA_EPOCH_1601_100NS
-
-///////////////////////////////////////////////////////////////////////////////
-// COM
-///////////////////////////////////////////////////////////////////////////////
-
-class com_scoped_initializer
+inline void error_message(const char* msg)
 {
-public:
+    const size_t msg_size = std::strlen(msg);
 
-    com_scoped_initializer() noexcept;
-    ~com_scoped_initializer() noexcept;
+    VX_ERR(err::PLATFORM_ERROR)
+        << msg
+        << ((msg_size == 0) ? "" : ": ")
+        << std::strerror(errno);
+}
 
-    com_scoped_initializer(const com_scoped_initializer&) = delete;
-    com_scoped_initializer& operator=(const com_scoped_initializer&) = delete;
-
-    bool succeeded() const noexcept;
-
-private:
-
-    HRESULT m_hr;
-};
-
-} // namespace vx
+} // namespace posix
 } // namespace os
-} // namespace windows
+} // namespace vx

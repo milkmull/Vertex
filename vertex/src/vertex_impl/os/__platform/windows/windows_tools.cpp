@@ -82,6 +82,6 @@ bool com_scoped_initializer::succeeded() const noexcept
     return SUCCEEDED(m_hr);
 }
 
-} // namespace vx
-} // namespace os
 } // namespace windows
+} // namespace os
+} // namespace vx

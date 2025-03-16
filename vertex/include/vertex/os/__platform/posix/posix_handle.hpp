@@ -1,10 +1,8 @@
 #pragma once
 
-#include "vertex/os/__platform/windows/windows_types.hpp"
-
 namespace vx {
 namespace os {
-namespace windows {
+namespace posix {
 
 class handle
 {
@@ -19,22 +17,22 @@ public:
     inline handle(handle&& h) noexcept;
     inline handle& operator=(handle&& h) noexcept;
 
-    inline handle(const HANDLE_ h) noexcept;
-    inline handle& operator=(const HANDLE_ h) noexcept;
+    inline handle(const int h) noexcept;
+    inline handle& operator=(const int h) noexcept;
 
 public:
 
     inline bool is_valid() const noexcept;
-    inline HANDLE_ get() const noexcept;
+    inline int get() const noexcept;
     inline void reset() noexcept;
     inline void close() noexcept;
 
 private:
 
-    HANDLE_ m_handle;
+    int m_handle;
 };
 
 
-} // namespace windows
+} // namespace posix
 } // namespace os
 } // namespace vx
