@@ -670,37 +670,6 @@ inline std::string to_hex_string(const void* data, size_t size)
     return res;
 }
 
-inline int32_t to_int32(const std::string& s, size_t* count, int base)
-{
-    int32_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = static_cast<int32_t>(std::stol(s, &i, base));
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
-}
-
 inline int64_t to_int64(const std::string& s, size_t* count, int base)
 {
     int64_t value = 0;
@@ -732,35 +701,9 @@ inline int64_t to_int64(const std::string& s, size_t* count, int base)
     return value;
 }
 
-inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
+inline int32_t to_int32(const std::string& s, size_t* count, int base)
 {
-    uint32_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
-    }
-
-    try
-    {
-        value = static_cast<uint32_t>(std::stoul(s, &i, base));
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
+    return static_cast<int32_t>(to_int64(s, count, base));
 }
 
 inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
@@ -794,30 +737,9 @@ inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
     return value;
 }
 
-inline float to_float(const std::string& s, size_t* count)
+inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
 {
-    float value = 0.0f;
-    size_t i = 0;
-
-    try
-    {
-        value = std::stof(s, &i);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
+    return static_cast<uint32_t>(to_uint64(s, count, base));
 }
 
 inline double to_double(const std::string& s, size_t* count)
@@ -844,6 +766,11 @@ inline double to_double(const std::string& s, size_t* count)
     }
 
     return value;
+}
+
+inline float to_float(const std::string& s, size_t* count)
+{
+    return static_cast<float>(to_double(s, count));
 }
 
 } // namespace str

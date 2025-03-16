@@ -228,14 +228,14 @@ inline IT parse_digits(IT first, IT last, T& value, size_t* count = nullptr);
 
 inline std::string to_hex_string(const void* data, size_t size);
 
-inline int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
 inline int64_t to_int64(const std::string& s, size_t* count = nullptr, int base = 10);
+inline int32_t to_int32(const std::string& s, size_t* count = nullptr, int base = 10);
 
-inline uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
 inline uint64_t to_uint64(const std::string& s, size_t* count = nullptr, int base = 10);
+inline uint32_t to_uint32(const std::string& s, size_t* count = nullptr, int base = 10);
 
-inline float to_float(const std::string& s, size_t* count = nullptr);
 inline double to_double(const std::string& s, size_t* count = nullptr);
+inline float to_float(const std::string& s, size_t* count = nullptr);
 
 } // namespace str
 } // namespace vx
