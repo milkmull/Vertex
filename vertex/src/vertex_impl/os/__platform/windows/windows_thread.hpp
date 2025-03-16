@@ -20,7 +20,7 @@ public:
 
     static bool is_valid(const thread::impl_data& td) noexcept
     {
-        return td.handle.is_valid();
+        return td.h.is_valid();
     }
 
     // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-170
@@ -30,7 +30,7 @@ public:
         VX_ASSERT_MESSAGE(!is_valid(td), "thread already started");
 
         // Windows specific thread start using _beginthreadex
-        td.handle = reinterpret_cast<HANDLE>(_beginthreadex(
+        td.h = reinterpret_cast<HANDLE>(_beginthreadex(
             NULL,                                               // Security attributes (use default)
             0,                                                  // Stack size (use default)
             reinterpret_cast<unsigned(__stdcall*)(void*)>(fn),  // Entry point function
@@ -39,12 +39,12 @@ public:
             reinterpret_cast<unsigned int*>(&td.id)             // Return thread ID (optional)
         ));
 
-        return td.handle.is_valid();
+        return td.h.is_valid();
     }
 
     static void close(thread::impl_data& td) noexcept
     {
-        td.handle.close();
+        td.h.close();
         td.id = 0;
     }
 
@@ -60,7 +60,7 @@ public:
         assert_is_running();
 
         DWORD exit_code = 0;
-        if (!GetExitCodeThread(td.handle.get(), &exit_code))
+        if (!GetExitCodeThread(td.h.get(), &exit_code))
         {
             windows::error_message("GetExitCodeThread()");
             return false;
@@ -80,7 +80,7 @@ public:
     {
         assert_is_running();
 
-        const DWORD result = WaitForSingleObject(td.handle.get(), INFINITE);
+        const DWORD result = WaitForSingleObject(td.h.get(), INFINITE);
 
         if (result == WAIT_FAILED)
         {

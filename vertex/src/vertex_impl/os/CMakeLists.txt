@@ -91,31 +91,31 @@ elseif(VX_CMAKE_PLATFORM_WINDOWS)
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
     
-elseif(VX_CMAKE_PLATFORM_LINUX)
+elseif(VX_CMAKE_UNIX_SYS)
 
     # Source files for linux
     file(GLOB VX_OS_PLATFORM_SOURCE_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_header.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_tools.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_tools.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_header.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_tools.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_tools.cpp"
         
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_file.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_filesystem.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_filesystem.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_locale.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_locale.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_process.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_process.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_random.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_random.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_shared_library.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_info.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_info.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_memory.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_thread.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_time.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_time.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_file.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_filesystem.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_filesystem.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_locale.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_locale.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_process.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_process.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_random.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_random.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_shared_library.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_info.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_info.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_memory.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_memory.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_thread.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_time.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_time.cpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})

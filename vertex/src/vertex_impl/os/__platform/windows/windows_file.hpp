@@ -21,7 +21,7 @@ public:
 
     static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
     {
-        VX_ASSERT_MESSAGE(!fd.handle.is_valid(), "file already open");
+        VX_ASSERT_MESSAGE(!fd.h.is_valid(), "file already open");
 
         DWORD access = 0;
         DWORD creation = 0;
@@ -65,7 +65,7 @@ public:
             }
         }
 
-        fd.handle = CreateFileW(
+        fd.h = CreateFileW(
             p.c_str(),
             access,
             FILE_SHARE_READ | FILE_SHARE_WRITE, // allow read and write sharing
@@ -75,7 +75,7 @@ public:
             NULL
         );
 
-        if (!fd.handle.is_valid())
+        if (!fd.h.is_valid())
         {
             windows::error_message("CreateFileW()");
             return false;
@@ -86,21 +86,21 @@ public:
 
     static bool is_open(const __detail::file_impl_data& fd)
     {
-        return fd.handle.is_valid();
+        return fd.h.is_valid();
     }
 
     static void close(__detail::file_impl_data& fd)
     {
-        fd.handle.close();
+        fd.h.close();
     }
 
     static size_t size(const __detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         LARGE_INTEGER size;
 
-        if (!GetFileSizeEx(fd.handle.get(), &size))
+        if (!GetFileSizeEx(fd.h.get(), &size))
         {
             windows::error_message("GetFileSizeEx()");
             return file::INVALID_SIZE;
@@ -111,14 +111,14 @@ public:
 
     static bool resize(__detail::file_impl_data& fd, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         if (!seek(fd, static_cast<int>(size), stream_position::BEGIN))
         {
             return false;
         }
 
-        if (!SetEndOfFile(fd.handle.get()))
+        if (!SetEndOfFile(fd.h.get()))
         {
             windows::error_message("SetEndOfFile()");
             return false;
@@ -129,7 +129,7 @@ public:
 
     static bool seek(__detail::file_impl_data& fd, int off, stream_position from)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         LARGE_INTEGER distance{ 0 };
         distance.QuadPart = off;
@@ -154,7 +154,7 @@ public:
             }
         }
 
-        if (!SetFilePointerEx(fd.handle.get(), distance, &distance, method))
+        if (!SetFilePointerEx(fd.h.get(), distance, &distance, method))
         {
             windows::error_message("SetFilePointerEx()");
             return false;
@@ -165,13 +165,13 @@ public:
 
     static size_t tell(const __detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         LARGE_INTEGER off{ 0 };
         off.QuadPart = 0;
 
         // Use SetFilePointerEx to query the current position
-        if (!SetFilePointerEx(fd.handle.get(), off, &off, FILE_CURRENT))
+        if (!SetFilePointerEx(fd.h.get(), off, &off, FILE_CURRENT))
         {
             windows::error_message("SetFilePointerEx()");
             return file::INVALID_POSITION;
@@ -182,9 +182,9 @@ public:
 
     static bool flush(__detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        if (!FlushFileBuffers(fd.handle.get()))
+        if (!FlushFileBuffers(fd.h.get()))
         {
             windows::error_message("FlushFileBuffers()");
             return false;
@@ -195,10 +195,10 @@ public:
 
     static size_t read(__detail::file_impl_data& fd, uint8_t* data, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         DWORD count = 0;
-        if (!ReadFile(fd.handle.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!ReadFile(fd.h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("ReadFile()");
             return 0;
@@ -209,10 +209,10 @@ public:
 
     static size_t write(__detail::file_impl_data& fd, const uint8_t* data, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         DWORD count = 0;
-        if (!WriteFile(fd.handle.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!WriteFile(fd.h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("WriteFile()");
             return 0;
@@ -235,7 +235,7 @@ public:
             return f;
         }
 
-        f.m_impl_data.handle = handle;
+        f.m_impl_data.h = handle;
         f.m_mode = mode;
 
         return f;
@@ -243,7 +243,7 @@ public:
 
     static HANDLE get_handle(file& f)
     {
-        return f.m_impl_data.handle.get();
+        return f.m_impl_data.h.get();
     }
 
 };

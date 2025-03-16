@@ -2,13 +2,13 @@
 
 #include <cstring>
 
-#include "vertex_impl/os/__platform/posix/posix_header.hpp"
-#include "vertex/os/__platform/posix/posix_handle.hpp"
+#include "vertex_impl/os/__platform/unix/unix_header.hpp"
+#include "vertex/os/__platform/unix/unix_handle.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {
-namespace posix {
+namespace unix {
 
 ///////////////////////////////////////////////////////////////////////////////
 // handle wrapper
@@ -95,6 +95,6 @@ inline void error_message(const char* msg)
         << std::strerror(errno);
 }
 
-} // namespace posix
+} // namespace unix
 } // namespace os
 } // namespace vx

@@ -1,8 +1,9 @@
 #pragma once
 
 #include <sys/stat.h>
+#include <fcntl.h>
 
-#include "vertex_impl/os/__platform/posix/posix_tools.hpp"
+#include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 #include "vertex/os/file.hpp"
 
 namespace vx {
@@ -23,7 +24,7 @@ public:
 
     static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
     {
-        VX_ASSERT_MESSAGE(!fd.handle.is_valid(), "file already open");
+        VX_ASSERT_MESSAGE(!fd.h.is_valid(), "file already open");
 
         int flags = 0;
         mode_t file_mode = 0;
@@ -65,11 +66,11 @@ public:
             }
         }
 
-        fd.handle = ::open(p.c_str(), flags, file_mode);
+        fd.h = ::open(p.c_str(), flags, file_mode);
 
-        if (!fd.handle.is_valid())
+        if (!fd.h.is_valid())
         {
-            posix::error_message("open()");
+            unix::error_message("open()");
             return false;
         }
 
@@ -78,22 +79,22 @@ public:
 
     static bool is_open(const __detail::file_impl_data& fd)
     {
-        return fd.handle.is_valid();
+        return fd.h.is_valid();
     }
 
     static void close(__detail::file_impl_data& fd)
     {
-        fd.handle.close();
+        fd.h.close();
     }
 
     static size_t size(const __detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         struct stat stat_buf;
-        if (::fstat(fd.handle.get(), &stat_buf) != 0)
+        if (::fstat(fd.h.get(), &stat_buf) != 0)
         {
-            posix::error_message("fstat()");
+            unix::error_message("fstat()");
             return file::INVALID_SIZE;
         }
 
@@ -102,11 +103,11 @@ public:
 
     static bool resize(__detail::file_impl_data& fd, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        if (::ftruncate(fd.handle.get(), size) != 0)
+        if (::ftruncate(fd.h.get(), size) != 0)
         {
-            posix::error_message("ftruncate()");
+            unix::error_message("ftruncate()");
             return false;
         }
 
@@ -115,7 +116,7 @@ public:
 
     static bool seek(__detail::file_impl_data& fd, int off, stream_position from)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
         int whence = 0;
         switch (from)
@@ -137,9 +138,9 @@ public:
             }
         }
 
-        if (::lseek(fd.handle.get(), off, whence) == static_cast<off_t>(-1))
+        if (::lseek(fd.h.get(), off, whence) == static_cast<off_t>(-1))
         {
-            posix::error_message("lseek()");
+            unix::error_message("lseek()");
             return false;
         }
 
@@ -148,12 +149,12 @@ public:
 
     static size_t tell(const __detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        const off_t pos = ::lseek(fd.handle.get(), 0, SEEK_CUR);
+        const off_t pos = ::lseek(fd.h.get(), 0, SEEK_CUR);
         if (pos == static_cast<off_t>(-1))
         {
-            posix::error_message("lseek()");
+            unix::error_message("lseek()");
             return file::INVALID_POSITION;
         }
 
@@ -162,11 +163,11 @@ public:
 
     static bool flush(__detail::file_impl_data& fd)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        if (::fsync(fd.handle.get()) != 0)
+        if (::fsync(fd.h.get()) != 0)
         {
-            posix::error_message("fsync()");
+            unix::error_message("fsync()");
             return false;
         }
 
@@ -175,12 +176,12 @@ public:
 
     static size_t read(__detail::file_impl_data& fd, uint8_t* data, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        const ssize_t count = ::read(fd.handle.get(), data, size);
+        const ssize_t count = ::read(fd.h.get(), data, size);
         if (count < 0)
         {
-            posix::error_message("read()");
+            unix::error_message("read()");
             return 0;
         }
 
@@ -189,12 +190,12 @@ public:
 
     static size_t write(__detail::file_impl_data& fd, const uint8_t* data, size_t size)
     {
-        assert_is_open(fd.handle);
+        assert_is_open(fd.h);
 
-        ssize_t count = ::write(fd.handle.get(), data, size);
+        ssize_t count = ::write(fd.h.get(), data, size);
         if (count < 0)
         {
-            posix::error_message("write()");
+            unix::error_message("write()");
             return 0;
         }
 
@@ -215,7 +216,7 @@ public:
             return f;
         }
 
-        f.m_impl_data.handle = handle;
+        f.m_impl_data.h = handle;
         f.m_mode = mode;
 
         return f;
@@ -223,7 +224,7 @@ public:
 
     static int get_handle(file& f)
     {
-        return f.m_impl_data.handle.get();
+        return f.m_impl_data.h.get();
     }
 
 };

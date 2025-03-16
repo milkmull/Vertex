@@ -2,7 +2,7 @@
 
 namespace vx {
 namespace os {
-namespace posix {
+namespace unix {
 
 class handle
 {
@@ -33,6 +33,6 @@ private:
 };
 
 
-} // namespace posix
+} // namespace unix
 } // namespace os
 } // namespace vx

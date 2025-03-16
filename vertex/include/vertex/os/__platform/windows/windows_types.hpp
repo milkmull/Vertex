@@ -14,8 +14,6 @@ typedef __int64 LONG_PTR_;
 
 typedef unsigned long DWORD_, *PDWORD_, *LPDWORD_;
 
-#define __VX_OS_WINDOWS_INVALID_HANDLE_VALUE ((HANDLE_)(LONG_PTR_)-1)
-
 } // namespace windows
 } // namespace os
 } // namespace vx

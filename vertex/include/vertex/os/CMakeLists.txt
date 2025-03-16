@@ -64,14 +64,14 @@ elseif(VX_CMAKE_PLATFORM_WINDOWS)
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_HEADER_FILES})
     
-elseif(VX_CMAKE_PLATFORM_LINUX)
+elseif(VX_CMAKE_UNIX_SYS)
     
     # Source files for linux
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_handle.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_file_impl_data.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_shared_library_impl_data.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_thread_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_handle.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_file_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_shared_library_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_thread_impl_data.hpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_HEADER_FILES})

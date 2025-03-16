@@ -8,7 +8,7 @@ namespace windows {
 
 struct thread_impl_data
 {
-    handle handle;
+    handle h;
     DWORD_ id = 0;
 };
 
