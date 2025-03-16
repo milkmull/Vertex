@@ -3,14 +3,16 @@
 
 using namespace vx;
 
-VX_TEST_CASE(test_shared_library)
+static const char* shared_library = "os_shared_library";
+
+VX_TEST_CASE(test_load)
 {
     VX_SECTION("shared library")
     {
         os::shared_library lib;
 
         // Load the library
-        VX_CHECK(lib.load("shared_library"));
+        VX_CHECK(lib.load(shared_library));
 
         // Check that the library is loaded
         VX_CHECK(lib.is_loaded());
@@ -20,8 +22,8 @@ VX_TEST_CASE(test_shared_library)
         VX_CHECK(lib.has("add"));
         VX_CHECK(lib.has("print_message"));
 
-        VX_DISABLE_MSVC_WARNING(6011); // dereferencing null ptr
         VX_DISABLE_MSVC_WARNING_PUSH();
+        VX_DISABLE_MSVC_WARNING(6011); // dereferencing null ptr
 
         // Test calling functions
         using get_message_t = const char* (*)();
@@ -49,9 +51,46 @@ VX_TEST_CASE(test_shared_library)
     VX_SECTION("nonexistent shared library")
     {
         os::shared_library lib;
-
         VX_CHECK_AND_EXPECT_ERROR(!lib.load("fake_library"));
     }
+}
+
+VX_TEST_CASE(test_copy_operators)
+{
+    os::shared_library lib1;
+    VX_CHECK(lib1.load(shared_library));
+    VX_CHECK(lib1.is_loaded());
+
+    // Copy constructor
+    os::shared_library lib2(lib1);
+    VX_CHECK(lib2.is_loaded());
+
+    // Coppy assignment
+    os::shared_library lib3(lib2);
+    VX_CHECK(lib3.is_loaded());
+}
+
+VX_TEST_CASE(test_move_operators)
+{
+    os::shared_library lib1;
+    VX_CHECK(lib1.load(shared_library));
+    VX_CHECK(lib1.is_loaded());
+
+    VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
+
+    // Copy constructor
+    os::shared_library lib2(std::move(lib1));
+    VX_CHECK(!lib1.is_loaded());
+    VX_CHECK(lib2.is_loaded());
+
+    // Coppy assignment
+    os::shared_library lib3;
+    lib3 = std::move(lib2);
+    VX_CHECK(!lib2.is_loaded());
+    VX_CHECK(lib3.is_loaded());
+
+    VX_DISABLE_MSVC_WARNING_POP();
 }
 
 int main()

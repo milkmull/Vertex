@@ -63,12 +63,7 @@ VX_API bool process::start(const config& cfg)
 
 VX_API process::id process::get_pid() const
 {
-    if (!is_valid())
-    {
-        return 0;
-    }
-
-    return m_impl->get_pid();
+    return is_valid() ? m_impl->get_pid() : 0;
 }
 
 VX_API bool process::is_valid() const
@@ -88,32 +83,17 @@ VX_API bool process::is_complete() const
 
 VX_API bool process::join()
 {
-    if (!is_valid())
-    {
-        return false;
-    }
-
-    return m_impl->join();
+    return is_valid() ? m_impl->join() : false;
 }
 
 VX_API bool process::kill(bool force)
 {
-    if (!is_valid())
-    {
-        return false;
-    }
-
-    return m_impl->kill(force);
+    return is_valid() ? m_impl->kill(force) : false;
 }
 
 VX_API bool process::get_exit_code(int* exit_code) const
 {
-    if (!is_complete())
-    {
-        return false;
-    }
-
-    return m_impl->get_exit_code(exit_code);
+    return is_complete() ? m_impl->get_exit_code(exit_code) : false;
 }
 
 VX_API io_stream& process::get_stdin()  { return m_streams[STDIN ]; }

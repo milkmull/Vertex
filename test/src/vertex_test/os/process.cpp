@@ -15,7 +15,7 @@ using namespace vx;
 #   define EXE ""
 #endif // VX_PLATFORM_WINDOWS
 
-static const char* child_process = "child_process" EXE;
+static const char* child_process = "os_child_process" EXE;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -129,6 +129,48 @@ VX_TEST_CASE(test_basic_process)
     VX_CHECK(code == 0);
 
     VX_CHECK_AND_EXPECT_ERROR(!p.start(cfg));
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_process_move_operators)
+{
+    os::process::config cfg;
+    cfg.args = { child_process, "--stall" };
+
+    os::process p1;
+    VX_CHECK_AND_EXPECT_NO_ERROR(p1.start(cfg));
+
+    VX_CHECK(p1.is_valid());
+    VX_CHECK(p1.is_alive());
+    const os::process::id pid = p1.get_pid();
+    VX_CHECK(pid != 0);
+
+    VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
+
+    // Move construction
+    os::process p2(std::move(p1));
+
+    VX_CHECK(!p1.is_valid()); // Original process should be closed
+    VX_CHECK(p1.get_pid() == 0);
+
+    VX_CHECK(p2.is_valid());
+    VX_CHECK(p2.is_alive());
+    VX_CHECK(p2.get_pid() == pid);
+
+    // Move assignment
+    os::process p3;
+    p3 = std::move(p2);
+
+    VX_CHECK(!p2.is_valid()); // Original process should be closed
+    VX_CHECK(p2.get_pid() == 0);
+
+    VX_CHECK(p3.is_valid());
+    VX_CHECK(p3.is_alive());
+    VX_CHECK(p3.get_pid() == pid);
+
+    VX_CHECK(p3.kill());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

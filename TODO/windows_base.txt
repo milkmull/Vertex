@@ -232,7 +232,7 @@ testing:
 additional tests:
 {
     - test thread local errors
-    - test copy and move semantics for process, thread, file, shared library
+    x test copy and move semantics for process, thread, file, shared library
 }
 
 finish base library:

@@ -39,10 +39,25 @@ public:
     ~shared_library() { free(); }
 
     shared_library(const shared_library&) = default;
-    shared_library(shared_library&&) noexcept = default;
-
     shared_library& operator=(const shared_library&) = default;
-    shared_library& operator=(shared_library&&) noexcept = default;
+
+    shared_library(shared_library&& other) noexcept
+        : m_impl_data(std::move(other.m_impl_data))
+    {
+        other.free();
+    }
+
+    shared_library& operator=(shared_library&& other) noexcept
+    {
+        if (this != &other)
+        {
+            free();
+            m_impl_data = std::move(other.m_impl_data);
+            other.free();
+        }
+
+        return *this;
+    }
 
     void swap(shared_library& other) noexcept { std::swap(m_impl_data, other.m_impl_data); }
 

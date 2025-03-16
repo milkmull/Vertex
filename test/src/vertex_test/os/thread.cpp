@@ -58,16 +58,20 @@ VX_TEST_CASE(test_thread_move_operations)
 
     VX_CHECK(t1.start(simple_task, std::ref(flag)));
     VX_CHECK(t1.is_valid());
+    VX_CHECK(t1.is_alive());
 
     const os::thread::id id = t1.get_id();
     VX_CHECK(id != 0);
 
-    VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
     VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
 
     // Move construction
     os::thread t2(std::move(t1));
+
     VX_CHECK(!t1.is_valid()); // Original thread should be invalidated
+    VX_CHECK(t1.get_id() == 0);
+
     VX_CHECK(t2.is_valid());
     VX_CHECK(t2.is_alive());
     VX_CHECK(t2.get_id() == id);
@@ -75,7 +79,10 @@ VX_TEST_CASE(test_thread_move_operations)
     // Move assignment
     os::thread t3;
     t3 = std::move(t2);
+
     VX_CHECK(!t2.is_valid()); // Moved-from thread should be invalidated
+    VX_CHECK(t2.get_id() == 0);
+
     VX_CHECK(t3.is_valid());
     VX_CHECK(t3.is_alive());
     VX_CHECK(t3.get_id() == id);
@@ -182,6 +189,9 @@ VX_TEST_CASE(test_thread_guard_move_operations)
     os::thread_guard guard1(std::move(t));
     VX_CHECK(guard1.get_thread().is_valid());
 
+    VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
+
     // Move construction
     os::thread_guard guard2(std::move(guard1));
     VX_CHECK(!guard1.get_thread().is_valid()); // Original guard is now empty
@@ -191,6 +201,8 @@ VX_TEST_CASE(test_thread_guard_move_operations)
     os::thread_guard guard3 = std::move(guard2);
     VX_CHECK(!guard2.get_thread().is_valid()); // Moved-from guard is now empty
     VX_CHECK(guard3.get_thread().is_valid());
+
+    VX_DISABLE_MSVC_WARNING_POP();
 
     // Ensure thread completion via destructor
 }
