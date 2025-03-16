@@ -68,7 +68,6 @@ elseif(VX_CMAKE_PLATFORM_LINUX)
     
     # Source files for linux
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_types.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_handle.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_file_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_shared_library_impl_data.hpp"
