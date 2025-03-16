@@ -130,7 +130,7 @@ inline bool is_alnum(const str_arg_t& s)
 
 inline bool is_ascii(const char c)
 {
-    return c <= 0x00 && c < 0x80;
+    return 0x00 <= c && c < 0x80;
 }
 
 inline bool is_ascii(const str_arg_t& s)
