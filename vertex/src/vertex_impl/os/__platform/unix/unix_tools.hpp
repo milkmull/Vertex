@@ -8,7 +8,7 @@
 
 namespace vx {
 namespace os {
-namespace unix {
+namespace unix_ {
 
 ///////////////////////////////////////////////////////////////////////////////
 // handle wrapper
@@ -95,6 +95,6 @@ inline void error_message(const char* msg)
         << std::strerror(errno);
 }
 
-} // namespace unix
+} // namespace unix_
 } // namespace os
 } // namespace vx

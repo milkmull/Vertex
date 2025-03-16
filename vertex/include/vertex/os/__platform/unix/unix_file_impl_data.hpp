@@ -4,13 +4,13 @@
 
 namespace vx {
 namespace os {
-namespace unix {
+namespace unix_ {
 
 struct file_impl_data
 {
     handle h;
 };
 
-} // namespace unix
+} // namespace unix_
 } // namespace os
 } // namespace vx

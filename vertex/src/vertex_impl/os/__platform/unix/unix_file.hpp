@@ -70,7 +70,7 @@ public:
 
         if (!fd.h.is_valid())
         {
-            unix::error_message("open()");
+            unix_::error_message("open()");
             return false;
         }
 
@@ -94,7 +94,7 @@ public:
         struct stat stat_buf;
         if (::fstat(fd.h.get(), &stat_buf) != 0)
         {
-            unix::error_message("fstat()");
+            unix_::error_message("fstat()");
             return file::INVALID_SIZE;
         }
 
@@ -107,7 +107,7 @@ public:
 
         if (::ftruncate(fd.h.get(), size) != 0)
         {
-            unix::error_message("ftruncate()");
+            unix_::error_message("ftruncate()");
             return false;
         }
 
@@ -140,7 +140,7 @@ public:
 
         if (::lseek(fd.h.get(), off, whence) == static_cast<off_t>(-1))
         {
-            unix::error_message("lseek()");
+            unix_::error_message("lseek()");
             return false;
         }
 
@@ -154,7 +154,7 @@ public:
         const off_t pos = ::lseek(fd.h.get(), 0, SEEK_CUR);
         if (pos == static_cast<off_t>(-1))
         {
-            unix::error_message("lseek()");
+            unix_::error_message("lseek()");
             return file::INVALID_POSITION;
         }
 
@@ -167,7 +167,7 @@ public:
 
         if (::fsync(fd.h.get()) != 0)
         {
-            unix::error_message("fsync()");
+            unix_::error_message("fsync()");
             return false;
         }
 
@@ -181,7 +181,7 @@ public:
         const ssize_t count = ::read(fd.h.get(), data, size);
         if (count < 0)
         {
-            unix::error_message("read()");
+            unix_::error_message("read()");
             return 0;
         }
 
@@ -195,7 +195,7 @@ public:
         ssize_t count = ::write(fd.h.get(), data, size);
         if (count < 0)
         {
-            unix::error_message("write()");
+            unix_::error_message("write()");
             return 0;
         }
 
