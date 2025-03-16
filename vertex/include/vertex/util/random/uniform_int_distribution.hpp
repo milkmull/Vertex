@@ -141,6 +141,7 @@ struct upscaler<true> // rng range is smaller than dist max range
     static inline common_type upscale(Dist& dist, RNG& rng, const common_type urange)
     {
         using param_type = typename Dist::param_type;
+        using result_type = typename Dist::result_type;
 
         constexpr common_type urng_min = static_cast<common_type>((RNG::min)());
         constexpr common_type urng_max = static_cast<common_type>((RNG::max)());
@@ -172,7 +173,7 @@ struct upscaler<true> // rng range is smaller than dist max range
         common_type tmp = 0; // wraparound control
         do
         {
-            tmp = uerng_range * dist(rng, param_type(0, urange / uerng_range));
+            tmp = uerng_range * static_cast<common_type>(dist(rng, param_type(0, static_cast<result_type>(urange / uerng_range))));
             ret = tmp + (static_cast<common_type>(rng()) - urng_min);
     
         } while (ret > urange || ret < tmp);
@@ -266,7 +267,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         ret = __detail::upscaler<possible_upscale>::upscale(*this, rng, urange);
     }
 
-    return static_cast<range_type>(ret + p.a());
+    return static_cast<range_type>(ret + static_cast<common_type>(p.a()));
 }
 
 } // namespace random

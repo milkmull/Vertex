@@ -14,6 +14,38 @@
 namespace vx {
 namespace test {
 
+template <typename RNG, typename Dist, VX_REQUIRES(std::is_integral<typename Dist::result_type>::value)>
+inline void print_dist_values(RNG& rng, Dist& dist, size_t count, const char* sep = ", ")
+{
+    std::ostringstream oss;
+    oss << '\n';
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        const auto x = dist(rng);
+        oss << x << sep;
+    }
+
+    oss << '\n';
+    std::cout << oss.str();
+}
+
+template <typename RNG, typename Dist, VX_REQUIRES(std::is_floating_point<typename Dist::result_type>::value)>
+inline void print_dist_values(RNG& rng, Dist& dist, size_t count, const char* sep = ", ")
+{
+    std::ostringstream oss;
+    oss << '\n';
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        const auto x = dist(rng);
+        oss << std::hexfloat << x << sep;
+    }
+
+    oss << '\n';
+    std::cout << oss.str();
+}
+
 // https://www.scribbr.com/statistics/chi-square-distribution-table/
 
 // Chi-squared critical value for confidence level 0.05 (95% confidence) with

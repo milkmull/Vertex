@@ -24,7 +24,7 @@ inline constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng
     }
 
     const uintmax_t range = (rng_max - rng_min) + 1;
-    const uintmax_t target = ~static_cast<uintmax_t>(0) >> ((max_bits - bits) % max_bits); // mod for the compiler
+    const uintmax_t target = ~static_cast<uintmax_t>(0) >> (max_bits - bits); // mod for the compiler
 
     uintmax_t prod = static_cast<uintmax_t>(1);
     size_t ceil = static_cast<size_t>(0);
