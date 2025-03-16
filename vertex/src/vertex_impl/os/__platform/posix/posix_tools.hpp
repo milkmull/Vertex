@@ -16,7 +16,7 @@ namespace posix {
 
 inline bool is_valid_handle(int h)
 {
-    return h == -1;
+    return h >= 0;
 }
 
 inline void close_handle(int& h)

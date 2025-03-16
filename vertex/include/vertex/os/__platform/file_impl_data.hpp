@@ -4,9 +4,11 @@
 
 #if defined(VX_PLATFORM_WINDOWS)
 #   include "vertex/os/__platform/windows/windows_file_impl_data.hpp"
+#elif defined(VX_PLATFORM_LINUX)
+#   include "vertex/os/__platform/posix/posix_file_impl_data.hpp"
 #else
 #   include "vertex/os/__platform/dummy/dummy_file_impl_data.hpp"
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_PLATFORM_*
 
 namespace vx {
 namespace os {
