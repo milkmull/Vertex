@@ -22,6 +22,8 @@ vx_add_test(test_os_process      "os" "${CMAKE_CURRENT_SOURCE_DIR}/process.cpp")
 add_dependencies(test_os_process os_child_process)
 vx_add_test(test_os_thread       "os" "${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp")
 
+vx_add_test(test_os_random       "os" "${CMAKE_CURRENT_SOURCE_DIR}/random.cpp")
+
 #--------------------------------------------------------------------
 # Shared Library Test
 #--------------------------------------------------------------------

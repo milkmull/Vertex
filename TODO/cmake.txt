@@ -1,0 +1,19 @@
+TODO:
+
+cmake:
+{
+    x Define Vertex project
+    x Generate windows .rc file
+    x Configure output files for debug and release builds
+    x Optimize in release build?
+    x Install pdbs
+    x Install cmake scrip
+    x Installation
+    x Define Sandbox project
+    x Link Sandbox to Vertex, test both static and shared
+    x Test including Vertex after installation
+    x Test library
+    - clang tidy, clang format
+    - editorconfig
+    - update printout of configuration
+}
