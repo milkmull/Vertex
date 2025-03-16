@@ -29,6 +29,7 @@ public:
         switch (mode)
         {
             // File must exist
+            case file::mode::NONE:
             case file::mode::READ:
             {
                 access = GENERIC_READ;

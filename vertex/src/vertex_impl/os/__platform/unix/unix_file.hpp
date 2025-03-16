@@ -32,6 +32,7 @@ public:
         switch (mode)
         {
             // File must exist
+            case file::mode::NONE:
             case file::mode::READ:
             {
                 flags = O_RDONLY;
@@ -105,7 +106,7 @@ public:
     {
         assert_is_open(fd.h);
 
-        if (::ftruncate(fd.h.get(), size) != 0)
+        if (::ftruncate(fd.h.get(), static_cast<off_t>(size)) != 0)
         {
             unix_::error_message("ftruncate()");
             return false;
