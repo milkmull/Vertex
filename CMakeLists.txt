@@ -124,6 +124,7 @@ endif()
 #--------------------------------------------------------------------
 
 message(STATUS "Vertex Configuration Summary:")
+message(STATUS "  Build Dummy OS          : ${VX_BUILD_DUMMY_OS}")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
 message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
 message(STATUS "  Build Window Backend    : ${VX_BUILD_APP_WINDOW}")

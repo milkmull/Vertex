@@ -196,7 +196,7 @@ testing:
     x util/string/string_cast
     x util/string/string_compare
     
-    - os/random
+    x os/random
     x util/random/algorithm
     x util/random/bernoulli_distribution
     x util/random/discrete_distribution
@@ -231,14 +231,14 @@ testing:
 
 additional tests:
 {
-    - test thread local errors
+    x test thread local
     x test copy and move semantics for process, thread, file, shared library
 }
 
 finish base library:
 {
     x formatting
-    - test base library
+    x test base library
     - document library
     x test cmake installation process (windows)
 }

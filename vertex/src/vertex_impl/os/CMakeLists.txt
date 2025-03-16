@@ -1,3 +1,32 @@
+
+#--------------------------------------------------------------------
+# Dummy files
+#--------------------------------------------------------------------
+
+macro(add_dummy_files)
+
+    # Source files for windows
+    file(GLOB VX_OS_PLATFORM_SOURCE_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_filesystem.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_locale.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_process.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_memory.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
+    )
+    
+    target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
+
+endmacro()
+
+#--------------------------------------------------------------------
+# General files
+#--------------------------------------------------------------------
+
 # Source files for vertex/src/vertex_impl/os
 file(GLOB VX_OS_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/file.hpp"
@@ -25,8 +54,15 @@ file(GLOB VX_OS_SOURCE_FILES
 
 target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 
-# platform specific os files
-if(VX_CMAKE_PLATFORM_WINDOWS AND NOT VX_BUILD_DUMMY_OS)
+#--------------------------------------------------------------------
+# Platform specific files
+#--------------------------------------------------------------------
+
+if(VX_BUILD_DUMMY_OS)
+
+    add_dummy_files()
+
+elseif(VX_CMAKE_PLATFORM_WINDOWS)
 
     # Source files for windows
     file(GLOB VX_OS_PLATFORM_SOURCE_FILES
@@ -55,22 +91,37 @@ if(VX_CMAKE_PLATFORM_WINDOWS AND NOT VX_BUILD_DUMMY_OS)
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
     
-else()
+elseif(VX_CMAKE_PLATFORM_LINUX)
 
-    # Source files for windows
+    # Source files for linux
     file(GLOB VX_OS_PLATFORM_SOURCE_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_filesystem.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_locale.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_process.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_header.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_tools.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_tools.cpp"
+        
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_file.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_filesystem.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_filesystem.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_locale.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_locale.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_process.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_process.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_random.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_random.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_shared_library.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_info.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_info.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_memory.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_system_memory.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_thread.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_time.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/posix/posix_time.cpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
+    
+else()
+
+    add_dummy_files()
 
 endif()
