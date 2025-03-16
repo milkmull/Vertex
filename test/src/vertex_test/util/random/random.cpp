@@ -892,19 +892,51 @@ VX_TEST_CASE(discrete_distribution)
 
 VX_TEST_CASE(algorithms)
 {
-    RNG rng;
 
     VX_SECTION("shuffle")
     {
-        int data[6]{};
+        constexpr size_t N = 6;
+        int data[N]{};
         std::iota(std::begin(data), std::end(data), 0);
 
-        constexpr size_t samples = 100000;
-        VX_CHECK((test::test_shuffle<RNG, 2, samples>(rng, data)));
-        VX_CHECK((test::test_shuffle<RNG, 3, samples>(rng, data)));
-        VX_CHECK((test::test_shuffle<RNG, 4, samples>(rng, data)));
-        VX_CHECK((test::test_shuffle<RNG, 5, samples>(rng, data)));
-        VX_CHECK((test::test_shuffle<RNG, 6, samples>(rng, data)));
+        // consistency
+        {
+            RNG rng;
+
+            constexpr size_t count = 10;
+            const int expected[count][N] = {
+                { 4, 1, 2, 3, 5, 0},
+                { 5, 2, 3, 1, 4, 0},
+                { 4, 0, 1, 5, 3, 2},
+                { 0, 1, 4, 2, 3, 5},
+                { 0, 5, 3, 4, 2, 1},
+                { 5, 0, 2, 4, 3, 1},
+                { 5, 3, 2, 0, 1, 4},
+                { 2, 4, 3, 1, 5, 0},
+                { 3, 4, 0, 2, 5, 1},
+                { 4, 1, 5, 0, 3, 2}
+            };
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                int shuffled[N]{};
+                std::memcpy(shuffled, data, N * sizeof(int));
+                random::shuffle(std::begin(shuffled), std::end(shuffled), rng);
+                VX_CHECK(std::equal(std::begin(shuffled), std::end(shuffled), std::begin(expected[i]), std::end(expected[i])));
+            }
+        }
+
+        // quality
+        {
+            RNG rng;
+
+            constexpr size_t samples = 100000;
+            VX_CHECK((test::test_shuffle<RNG, 2, samples>(rng, data)));
+            VX_CHECK((test::test_shuffle<RNG, 3, samples>(rng, data)));
+            VX_CHECK((test::test_shuffle<RNG, 4, samples>(rng, data)));
+            VX_CHECK((test::test_shuffle<RNG, 5, samples>(rng, data)));
+            VX_CHECK((test::test_shuffle<RNG, 6, samples>(rng, data)));
+        }
     }
 
     VX_SECTION("sample")
@@ -912,23 +944,70 @@ VX_TEST_CASE(algorithms)
         int data[20]{};
         std::iota(std::begin(data), std::end(data), 0);
 
-        constexpr size_t samples = 100000;
-        VX_CHECK((test::test_sample<RNG, 5, samples>(rng, data)));
-        VX_CHECK((test::test_sample<RNG, 10, samples>(rng, data)));
-        VX_CHECK((test::test_sample<RNG, 15, samples>(rng, data)));
-        VX_CHECK((test::test_sample<RNG, 20, samples>(rng, data)));
+        // consistency
+        {
+            RNG rng;
+
+            constexpr size_t count = 20;
+            const int expected[count] = {
+                3,  1, 15, 16, 15,  1, 16,  6,  7, 12,
+                6, 15, 14,  9,  8, 16, 14, 12, 13, 17
+            };
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                int x{};
+                random::sample(std::begin(data), std::end(data), &x, 1, rng);
+                VX_CHECK(x == expected[i]);
+            }
+        }
+
+        // quality
+        {
+            RNG rng;
+
+            constexpr size_t samples = 100000;
+            VX_CHECK((test::test_sample<RNG, 5, samples>(rng, data)));
+            VX_CHECK((test::test_sample<RNG, 10, samples>(rng, data)));
+            VX_CHECK((test::test_sample<RNG, 15, samples>(rng, data)));
+            VX_CHECK((test::test_sample<RNG, 20, samples>(rng, data)));
+        }
     }
 
     VX_SECTION("discrete sample")
     {
-        using Dist = random::discrete_distribution<>;
-        Dist dist({ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
-
         int data[10]{};
         std::iota(std::begin(data), std::end(data), 0);
 
-        constexpr size_t samples = 100000;
-        VX_CHECK((test::test_discrete_sample<RNG, Dist, 10, samples>(rng, dist, data)));
+        // consistency
+        {
+            RNG rng;
+            using Dist = random::discrete_distribution<>;
+            Dist dist({ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
+
+            constexpr size_t count = 20;
+            const int expected[count] = {
+                2, 9, 2, 5, 7, 8, 6, 9, 7, 9,
+                6, 8, 4, 9, 2, 4, 9, 3, 6, 4
+            };
+
+            for (size_t i = 0; i < count; ++i)
+            {
+                int x{};
+                random::sample(std::begin(data), std::end(data), &x, 1, dist, rng);
+                VX_CHECK(x == expected[i]);
+            }
+        }
+
+        // quality
+        {
+            RNG rng;
+            using Dist = random::discrete_distribution<>;
+            Dist dist({ 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0 });
+
+            constexpr size_t samples = 100000;
+            VX_CHECK((test::test_discrete_sample<RNG, Dist, 10, samples>(rng, dist, data)));
+        }
     }
 }
 
