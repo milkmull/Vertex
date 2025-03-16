@@ -12,21 +12,21 @@ namespace __detail {
 // For a URBG type 'G' with range == '(G::max() - G::min()) + 1', 
 // returns the number of calls to generate at least '_Bits' bits of entropy.
 // Specifically, this function returns 'max(1, ceil(_Bits / log2(range)))'.
-inline constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng_min, uintmax_t rng_max) noexcept
+inline constexpr size_t generate_canonical_iterations(size_t bits, uint64_t rng_min, uint64_t rng_max) noexcept
 {
     // Make sure bits is in a valid range
-    constexpr uintmax_t max_bits = sizeof(uintmax_t) * 8;
+    constexpr uint64_t max_bits = sizeof(uint64_t) * 8;
     VX_ASSERT(bits <= max_bits);
 
-    if (bits == 0 || (rng_max == std::numeric_limits<uintmax_t>::max() && rng_min == 0))
+    if (bits == 0 || (rng_max == std::numeric_limits<uint64_t>::max() && rng_min == 0))
     {
         return 1;
     }
 
-    const uintmax_t range = (rng_max - rng_min) + 1;
-    const uintmax_t target = ~static_cast<uintmax_t>(0) >> ((max_bits - bits) % max_bits); // mod for the compiler
+    const uint64_t range = (rng_max - rng_min) + 1;
+    const uint64_t target = ~static_cast<uint64_t>(0) >> ((max_bits - bits) % max_bits); // mod for the compiler
 
-    uintmax_t prod = static_cast<uintmax_t>(1);
+    uint64_t prod = static_cast<uint64_t>(1);
     size_t ceil = static_cast<size_t>(0);
 
     while (prod <= target)
@@ -34,7 +34,7 @@ inline constexpr size_t generate_canonical_iterations(size_t bits, uintmax_t rng
         ++ceil;
 
         // check to avoid overflow
-        if (prod > std::numeric_limits<uintmax_t>::max() / range)
+        if (prod > std::numeric_limits<uint64_t>::max() / range)
         {
             break;
         }
@@ -64,7 +64,8 @@ inline constexpr T generate_canonical(RNG& rng) noexcept(noexcept((RNG::min)()) 
     constexpr size_t digits = static_cast<size_t>(std::numeric_limits<result_type>::digits);
     constexpr size_t min_bits = static_cast<size_t>(digits < bits ? digits : bits);
 
-    using common_type = long double;
+    // using double means we have a better chance of consistent cross platform behaviour
+    using common_type = double;
 
     constexpr common_type frng_min = static_cast<common_type>((RNG::min)());
     constexpr common_type frng_max = static_cast<common_type>((RNG::max)());

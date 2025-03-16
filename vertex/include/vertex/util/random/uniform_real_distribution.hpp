@@ -127,7 +127,7 @@ typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>:
     const T x = random::generate_canonical<T, precision_bits, RNG>(rng);
 
     using int_type = typename std::conditional<(precision_bits > 32), uint64_t, uint32_t>::type;
-    constexpr int_type max_value = static_cast<int_type>(1) << precision_bits;
+    constexpr int_type max_value = static_cast<int_type>(1) << (precision_bits % (sizeof(int_type) * 8)); // mod here for compiler
 
     // Convert x to a fixed-point integer
     const int_type fixed_x = static_cast<int_type>(x * max_value);
