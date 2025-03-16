@@ -98,17 +98,17 @@ VX_TEST_CASE(test_thread_move_operations)
 
 VX_TEST_CASE(test_multiple_threads)
 {
-    const int num_threads = 5;
-    std::vector<os::thread> threads(num_threads);
-    std::vector<std::atomic<int>> counters(num_threads);
+    constexpr size_t count = 5;
+    os::thread threads[count]{};
+    std::atomic<int> counters[count]{};
 
-    for (size_t i = 0; i < num_threads; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
         counters[i] = 0;
         VX_CHECK(threads[i].start(long_task, std::ref(counters[i])));
     }
 
-    for (size_t i = 0; i < num_threads; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
         VX_CHECK(threads[i].join());
         VX_CHECK(counters[i] == 10);
@@ -222,6 +222,40 @@ VX_TEST_CASE(test_thread_guard_with_long_task)
     } // Thread should be joined automatically here
 
     VX_CHECK(counter == 10); // Verify the long task completed correctly
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_thread_local_storage)
+{
+    thread_local int thread_local_var = 0;
+
+    constexpr size_t count = 5;
+    os::thread threads[count]{};
+    std::atomic<int> results[count]{};
+
+    auto thread_func = [](std::atomic<int>& result)
+    {
+        // Each thread increments its own thread-local variable
+        for (int i = 0; i < 10; ++i)
+        {
+            ++thread_local_var;
+            os::sleep(time::milliseconds(10));
+        }
+        result = thread_local_var; // Store the final value
+    };
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        results[i] = 0;
+        VX_CHECK(threads[i].start(thread_func, std::ref(results[i])));
+    }
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        VX_CHECK(threads[i].join());
+        VX_CHECK(results[i] == 10); // Each thread should have its own independent thread_local_var
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
