@@ -120,8 +120,24 @@ template <typename T>
 template <typename RNG>
 typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>::operator()(RNG& rng, const param_type& p)
 {
-    const T x = random::generate_canonical<T, std::numeric_limits<T>::digits, RNG>(rng);
-    return x * (p.b() - p.a()) + p.a();
+    // Number of bits used for the fixed-point representation.
+    constexpr int precision_bits = std::numeric_limits<T>::digits; // Max precision of T
+
+    // Generate an integer from the canonical random number
+    const T x = random::generate_canonical<T, precision_bits, RNG>(rng);
+
+    using int_type = typename std::conditional<(precision_bits > 32), uint64_t, uint32_t>::type;
+    constexpr int_type max_value = static_cast<int_type>(1) << precision_bits;
+
+    // Convert x to a fixed-point integer
+    const int_type fixed_x = static_cast<int_type>(x * max_value);
+
+    // Compute the scaled value using fixed-point math
+    const T range = p.b() - p.a();
+    const T scaled_value = (static_cast<T>(fixed_x) / max_value) * range;
+
+    // Return the final result mapped to [a, b)
+    return scaled_value + p.a();
 }
 
 } // namespace random

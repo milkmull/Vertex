@@ -287,10 +287,10 @@ VX_TEST_CASE(uniform_real_distribution)
 
             constexpr size_t count = 20;
             const type expected[count] = {
-                0x1.42aca80000000p-3f, 0x1.90ca340000000p-4f, 0x1.9788600000000p-1f, 0x1.aca1020000000p-1f, 0x1.85500a0000000p-1f,
-                0x1.eab58c0000000p-5f, 0x1.adfe7c0000000p-1f, 0x1.3d19a20000000p-2f, 0x1.9332980000000p-2f, 0x1.40f5400000000p-1f,
-                0x1.5699720000000p-2f, 0x1.95fac60000000p-1f, 0x1.7d14440000000p-1f, 0x1.e5d0620000000p-2f, 0x1.aab7500000000p-2f,
-                0x1.b245640000000p-1f, 0x1.75a40c0000000p-1f, 0x1.47717a0000000p-1f, 0x1.5a9b580000000p-1f, 0x1.bb77040000000p-1f,
+                0x1.42aca80000000p-3f, 0x1.90ca300000000p-4f, 0x1.9788600000000p-1f, 0x1.aca1020000000p-1f, 0x1.85500a0000000p-1f,
+                0x1.eab5800000000p-5f, 0x1.adfe7c0000000p-1f, 0x1.3d19a00000000p-2f, 0x1.9332980000000p-2f, 0x1.40f5400000000p-1f,
+                0x1.5699700000000p-2f, 0x1.95fac60000000p-1f, 0x1.7d14440000000p-1f, 0x1.e5d0600000000p-2f, 0x1.aab7500000000p-2f,
+                0x1.b245640000000p-1f, 0x1.75a40c0000000p-1f, 0x1.47717a0000000p-1f, 0x1.5a9b580000000p-1f, 0x1.bb77040000000p-1f
             };
 
             for (size_t i = 0; i < count; ++i)
@@ -311,9 +311,9 @@ VX_TEST_CASE(uniform_real_distribution)
             constexpr size_t count = 20;
             const type expected[count] = {
                 -0x1.11f48e0000000p+6f, -0x1.41b8820000000p+6f,  0x1.d98a300000000p+5f,  0x1.0dbb940000000p+6f,  0x1.a09a200000000p+5f,
-                -0x1.6014460000000p+6f,  0x1.0fdda00000000p+6f, -0x1.3087f20000000p+5f, -0x1.5401e80000000p+4f,  0x1.95fcd00000000p+4f,
-                -0x1.08b03c0000000p+5f,  0x1.d4afa80000000p+5f,  0x1.86df580000000p+5f, -0x1.4753400000000p+2f, -0x1.0a83280000000p+4f,
-                 0x1.168c6c0000000p+6f,  0x1.6fa0a80000000p+5f,  0x1.be85380000000p+4f,  0x1.1b25700000000p+5f,  0x1.24e9f80000000p+6f,
+                -0x1.6014460000000p+6f,  0x1.0fdda00000000p+6f, -0x1.3087f60000000p+5f, -0x1.5401e80000000p+4f,  0x1.95fcd00000000p+4f,
+                -0x1.08b0400000000p+5f,  0x1.d4afa80000000p+5f,  0x1.86df580000000p+5f, -0x1.4753400000000p+2f, -0x1.0a83280000000p+4f,
+                 0x1.168c6c0000000p+6f,  0x1.6fa0a80000000p+5f,  0x1.be85380000000p+4f,  0x1.1b25700000000p+5f,  0x1.24e9f80000000p+6f
             };
 
             for (size_t i = 0; i < count; ++i)
@@ -333,10 +333,10 @@ VX_TEST_CASE(uniform_real_distribution)
 
             constexpr size_t count = 20;
             const type expected[count] = {
-                0x1.90ca349285595p-4, 0x1.aca102a797886p-1, 0x1.eab58bf85500ap-5, 0x1.3d19a2735bfd0p-2, 0x1.40f540b6c9995p-1,
-                0x1.95fac540ab4ccp-1, 0x1.e5d0615afa289p-2, 0x1.b2456388d55bbp-1, 0x1.4771799375a41p-1, 0x1.bb77032b5a9b5p-1,
-                0x1.a0cf1ea5273c7p-2, 0x1.66e2d811711c6p-1, 0x1.b83d096f9b670p-3, 0x1.d484e8694b0f4p-1, 0x1.12a5374ae1b7ap-4,
-                0x1.1738a51728ddep-2, 0x1.f8a39a6a798b1p-1, 0x1.37c74d13a3e34p-3, 0x1.d52991985bf6bp-2, 0x1.b85aa433b17b9p-3
+                0x1.90ca349285590p-4, 0x1.aca102a797886p-1, 0x1.eab58bf855000p-5, 0x1.3d19a2735bfd0p-2, 0x1.40f540b6c9995p-1,
+                0x1.95fac540ab4ccp-1, 0x1.e5d0615afa288p-2, 0x1.b2456388d55bbp-1, 0x1.4771799375a41p-1, 0x1.bb77032b5a9b5p-1,
+                0x1.a0cf1ea5273c6p-2, 0x1.66e2d811711c6p-1, 0x1.b83d096f9b670p-3, 0x1.d484e8694b0f4p-1, 0x1.12a5374ae1b78p-4,
+                0x1.1738a51728ddep-2, 0x1.f8a39a6a798b1p-1, 0x1.37c74d13a3e34p-3, 0x1.d52991985bf6ap-2, 0x1.b85aa433b17b8p-3
             };
 
             for (size_t i = 0; i < count; ++i)
@@ -356,10 +356,10 @@ VX_TEST_CASE(uniform_real_distribution)
 
             constexpr size_t count = 20;
             const type expected[count] = {
-                -0x1.df66b7fed10dcp+32,  0x1.91eeded8b05a4p+32, -0x1.0651c65a592e3p+33, -0x1.c5c95f469e334p+31,  0x1.2e7bfe1b85accp+31, 
-                 0x1.5d32ca946043ap+32, -0x1.e7c0a5b35fde0p+28,  0x1.9f11d37ba4408p+32,  0x1.4caf01192efecp+31,  0x1.b479c87410a10p+32,
-                -0x1.bb44711170870p+30,  0x1.df19ccd3d90b0p+31, -0x1.53cb40d499805p+32,  0x1.eecf4c117e438p+32, -0x1.020e9b991250ap+33,
-                -0x1.0efd77c444ea1p+32,  0x1.217437fc9d88ep+33, -0x1.9e9145541d7d6p+32, -0x1.8ef4d99c0ab80p+29, -0x1.53ba056877957p+32,
+                -0x1.df66b7fed10ddp+32,  0x1.91eeded8b05a4p+32, -0x1.0651c65a592e4p+33, -0x1.c5c95f469e334p+31,  0x1.2e7bfe1b85accp+31,
+                 0x1.5d32ca946043ap+32, -0x1.e7c0a5b35fe00p+28,  0x1.9f11d37ba4408p+32,  0x1.4caf01192efecp+31,  0x1.b479c87410a10p+32,
+                -0x1.bb44711170874p+30,  0x1.df19ccd3d90b0p+31, -0x1.53cb40d499805p+32,  0x1.eecf4c117e438p+32, -0x1.020e9b991250ap+33,
+                -0x1.0efd77c444ea1p+32,  0x1.217437fc9d88ep+33, -0x1.9e9145541d7d6p+32, -0x1.8ef4d99c0ab90p+29, -0x1.53ba056877957p+32
             };
 
             for (size_t i = 0; i < count; ++i)
