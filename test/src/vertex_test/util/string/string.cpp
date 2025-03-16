@@ -18,10 +18,10 @@ VX_TEST_CASE(string_cast)
     const std::u16string utf16_invalid_input = { 'H', 'e', 'l', 'l', 'o', ',', ' ', 0xDFFF, 0xD800, '!' };
     const std::u32string utf32_invalid_input = { 'H', 'e', 'l', 'l', 'o', ',', ' ', 0xDFFF, 0xD800, '!' };
 
-    const std::string utf8_invalid_corrected = "Hello, ?!?";
-    const std::wstring wide_invalid_corrected = L"Hello, ?!?";
-    const std::u16string utf16_invalid_corrected = u"Hello, ?!?";
-    const std::u32string utf32_invalid_corrected = U"Hello, ?!?";
+    const std::string utf8_invalid_corrected = "Hello, ??!";
+    const std::wstring wide_invalid_corrected = L"Hello, ??!";
+    const std::u16string utf16_invalid_corrected = u"Hello, ??!";
+    const std::u32string utf32_invalid_corrected = U"Hello, ??!";
 
     ///////////////////////////////////////////////////////////////////////////////
 
