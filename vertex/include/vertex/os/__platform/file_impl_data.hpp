@@ -20,7 +20,7 @@ using file_impl_data = ::vx::os::windows::file_impl_data;
 
 #elif defined(VX_PLATFORM_UNIX)
 
-using file_impl_data = ::vx::os::unix::file_impl_data;
+using file_impl_data = ::vx::os::unix_::file_impl_data;
 
 #else
 
