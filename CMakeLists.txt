@@ -42,6 +42,7 @@ endif()
 include(CheckCXXCompilerFlag)
 include(CMakePushCheckState)
 include(GNUInstallDirs)
+include(CheckFunctionExists)
 
 # Include Vertex-specific modules
 include(cmake/Config.cmake)

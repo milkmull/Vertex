@@ -16,33 +16,37 @@ function(vx_parse_version_from_header FILE_PATH MAJOR_VAR MINOR_VAR PATCH_VAR)
     
 endfunction()
 
+#--------------------------------------------------------------------
+
 # Helper function to hide public symbols by default in shared libraries.
 # This reduces the size of the exported symbol table, improves load times,
 # and enhances security by hiding internal implementation details.
 # Only explicitly marked symbols (e.g., using __declspec(dllexport) on
 # Windows or __attribute__((visibility("default"))) on Unix) will be visible.
 # This setting only affects shared libraries and has no impact on static libraries.
-function(vx_hide_public_symbols TARGET)
+function(vx_hide_public_symbols TARGET_NAME)
 
-    set_target_properties(${TARGET} PROPERTIES
+    set_target_properties(${TARGET_NAME} PROPERTIES
         CXX_VISIBILITY_PRESET hidden        # Hide all symbols by default
         VISIBILITY_INLINES_HIDDEN YES       # Hide inline functions unless explicitly marked
     )
     
 endfunction()
 
+#--------------------------------------------------------------------
+
 # https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
 
-function(vx_add_common_compiler_flags TARGET)
+function(vx_add_common_compiler_flags TARGET_NAME)
 
     # Enable C++17 support
-    target_compile_features(${TARGET} PUBLIC cxx_std_17)
+    target_compile_features(${TARGET_NAME} PUBLIC cxx_std_17)
 
     option(VX_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" FALSE)
 
     if(VX_CMAKE_COMPILER_MSVC)
     
-        target_compile_options(${TARGET} PRIVATE
+        target_compile_options(${TARGET_NAME} PRIVATE
             $<$<BOOL:${VX_WARNINGS_AS_ERRORS}>:/WX>
             /W4                         # Enable all Level 4 warnings (high level of warning verbosity)
             /w14242                     # Conversion from 'type1' to 'type2', possible loss of data
@@ -71,7 +75,7 @@ function(vx_add_common_compiler_flags TARGET)
     endif()
 
     if(VX_CMAKE_COMPILER_GCC OR VX_CMAKE_COMPILER_CLANG)
-        target_compile_options(${TARGET} PRIVATE
+        target_compile_options(${TARGET_NAME} PRIVATE
             $<$<BOOL:${VX_WARNINGS_AS_ERRORS}>:-Werror>
             -Wall                       # Enable commonly-used warning flags
             -Wextra                     # Enable additional warning flags not covered by -Wall
@@ -95,7 +99,7 @@ function(vx_add_common_compiler_flags TARGET)
     if(VX_CMAKE_COMPILER_GCC)
         # Don't enable -Wduplicated-branches for GCC < 8.1 since it will lead to false positives
         # https://github.com/gcc-mirror/gcc/commit/6bebae75035889a4844eb4d32a695bebf412bcd7
-        target_compile_options(${TARGET} PRIVATE
+        target_compile_options(${TARGET_NAME} PRIVATE
             -Wmisleading-indentation    # Warn if indentation implies blocks where blocks do not exist
             -Wduplicated-cond           # Warn if if / else chain has duplicated conditions
             -Wlogical-op                # Warn about logical operations being used where bitwise were probably wanted
@@ -105,12 +109,14 @@ function(vx_add_common_compiler_flags TARGET)
     
     # Disable certain deprecation warnings
     if(MSVC)
-        target_compile_definitions(${TARGET} PRIVATE -D_CRT_SECURE_NO_DEPRECATE)
-        target_compile_definitions(${TARGET} PRIVATE -D_CRT_NONSTDC_NO_DEPRECATE)
-        target_compile_definitions(${TARGET} PRIVATE -D_CRT_SECURE_NO_WARNINGS)
+        target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_SECURE_NO_DEPRECATE)
+        target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_NONSTDC_NO_DEPRECATE)
+        target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_SECURE_NO_WARNINGS)
     endif()
   
 endfunction()
+
+#--------------------------------------------------------------------
 
 function(vx_create_source_groups TARGET_NAME ROOT_DIR)
 
@@ -136,4 +142,35 @@ function(vx_create_source_groups TARGET_NAME ROOT_DIR)
         
     endforeach()
     
+endfunction()
+
+#--------------------------------------------------------------------
+
+# Function to check if a function exists on the platform
+# and define a preprocessor directive if it does
+function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
+
+    # Check if the function exists
+    check_function_exists(${FUNCTION_NAME} ${MACRO_NAME})
+
+    # If the function exists, add the definition to the target
+    if (${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+    endif()
+    
+endfunction()
+
+#--------------------------------------------------------------------
+
+function(vx_check_available_functions TARGET_NAME)
+
+    if(VX_PLATFORM_UNIX)
+    
+        vx_check_function_exists(${TARGET_NAME} localtime_r     HAVE_GMTIME_R)
+        vx_check_function_exists(${TARGET_NAME} localtime_r     HAVE_LOCALTIME_R)
+        vx_check_function_exists(${TARGET_NAME} clock_gettime   HAVE_CLOCK_GETTIME)
+        vx_check_function_exists(${TARGET_NAME} nanosleep       HAVE_NANOSLEEP)
+    
+    endif()
+
 endfunction()
