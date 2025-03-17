@@ -14,12 +14,12 @@ namespace unix_ {
 // handle wrapper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_valid_handle(int h)
+inline bool is_valid_handle(int h) noexcept
 {
     return h >= 0;
 }
 
-inline void close_handle(int& h)
+inline void close_handle(int& h) noexcept
 {
     if (is_valid_handle(h))
     {
@@ -75,17 +75,17 @@ inline void handle::close() noexcept
 // Error Handling
 ///////////////////////////////////////////////////////////////////////////////
 
-inline auto get_last_error()
+inline int get_last_error() noexcept
 {
     return errno;
 }
 
-inline void clear_error()
+inline void clear_error() noexcept
 {
     errno = 0;
 }
 
-inline void error_message(const char* msg)
+inline void error_message(const char* msg) noexcept
 {
     const size_t msg_size = std::strlen(msg);
 

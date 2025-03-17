@@ -1,4 +1,5 @@
 #include <unistd.h>
+#include <sys/time.h>
 #include <time.h>
 
 #include "vertex_impl/os/__platform/unix/unix_tools.hpp"
@@ -48,7 +49,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
         dt.hour = tm->tm_hour;
         dt.minute = tm->tm_min;
         dt.second = tm->tm_sec;
-        dt.nanosecond = tp.as_nanoseconds() % 1000000000;
+        dt.nanosecond = tp.as_nanoseconds() % time::nanoseconds_per_second;
         dt.utc_offset_seconds = static_cast<int32_t>(tm->tm_gmtoff);
     }
     else
@@ -72,7 +73,7 @@ time::time_point system_time_impl() noexcept
     if (clock_gettime(CLOCK_REALTIME, &tp) != 0)
     {
         unix_::error_message("clock_gettime()");
-        return 0;
+        return {};
     }
 
     return time::seconds(tp.tv_sec) + time::nanoseconds(tp.tv_nsec);
@@ -84,7 +85,7 @@ time::time_point system_time_impl() noexcept
     if (gettimeofday(&tv, NULL) != 0)
     {
         unix_::error_message("gettimeofday()");
-        return 0;
+        return {};
     }
 
     //tv.tv_sec = std::min(tv.tv_sec, SDL_NS_TO_SECONDS(SDL_MAX_TIME) - 1);
@@ -109,7 +110,7 @@ time::time_point system_time_impl() noexcept
 static bool checked_monotonic_time = false;
 static bool has_monotonic_time = false;
 
-static void check_monostatic_time()
+static void check_monostatic_time() noexcept
 {
     struct timespec value;
     if (clock_gettime(VX_MONOTONIC_CLOCK, &value) == 0)
@@ -124,8 +125,6 @@ static void check_monostatic_time()
 
 int64_t get_performance_counter_impl() noexcept
 {
-    struct timespec now {};
-
 #if defined(HAVE_CLOCK_GETTIME)
 
     if (!checked_monotonic_time)
@@ -135,27 +134,22 @@ int64_t get_performance_counter_impl() noexcept
 
     if (has_monotonic_time)
     {
+        // return value is nanoseconds
+        struct timespec now {};
         clock_gettime(VX_MONOTONIC_CLOCK, &now);
+        return (time::seconds(now.tv_sec) + time::nanoseconds(now.tv_nsec)).as_nanoseconds();
     }
-    else
 
 #endif // HAVE_CLOCK_GETTIME
 
-    {
-        if (gettimeofday(&now, NULL) != 0)
-        {
-            unix_::error_message("gettimeofday()");
-            return 0;
-        }
-    }
-
+    // return value is microseconds
+    struct timeval now {};
+    gettimeofday(&now, NULL);
     return (time::seconds(now.tv_sec) + time::microseconds(now.tv_usec)).as_microseconds();
 }
 
 int64_t get_performance_frequency_impl() noexcept
 {
-    struct timespec now {};
-
 #if defined(HAVE_CLOCK_GETTIME)
 
     if (!checked_monotonic_time)
@@ -165,12 +159,12 @@ int64_t get_performance_frequency_impl() noexcept
 
     if (has_monotonic_time)
     {
-        return 1000000000; // nanoseconds
+        return time::nanoseconds_per_second;
     }
 
 #endif // HAVE_CLOCK_GETTIME
 
-    return 1000000; // microseconds
+    return time::microseconds_per_second;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,9 +173,58 @@ int64_t get_performance_frequency_impl() noexcept
 
 void sleep_impl(const time::time_point& t) noexcept
 {
-    ::usleep(static_cast<useconds_t>(t.as_microseconds()));
+    int was_error = 0;
+
+#if defined(HAVE_NANOSLEEP)
+
+    struct timespec tv, remaining {};
+
+    remaining.tv_sec = static_cast<time_t>(t.as_nanoseconds() / time::nanoseconds_per_second);
+    remaining.tv_nsec = static_cast<long>(t.as_nanoseconds() % time::nanoseconds_per_second);
+
+    do
+    {
+        errno = 0;
+
+        tv.tv_sec = remaining.tv_sec;
+        tv.tv_nsec = remaining.tv_nsec;
+        was_error = nanosleep(&tv, &remaining);
+
+    } while (was_error && (errno == EINTR));
+
+
+#else
+
+    struct timeval tv {};
+    time::time_point then, now, elapsed;
+    time::time_point ns = t;
+
+    then = os::get_ticks();
+
+    do
+    {
+        errno = 0;
+
+        // Calculate the time interval left (in case of interrupt)
+        now = os::get_ticks();
+        elapsed = (now - then);
+        then = now;
+
+        if (elapsed >= ns)
+        {
+            break;
+        }
+
+        ns -= elapsed;
+        tv.tv_sec = (ns.as_nanoseconds() / time::nanoseconds_per_second);
+        tv.tv_usec = time::nanoseconds((ns.as_nanoseconds() % time::nanoseconds_per_second)).as_microseconds();
+
+        was_error = select(0, NULL, NULL, NULL, &tv);
+
+    } while (was_error && (errno == EINTR));
+
+#endif
 }
 
 } // namespace os
-
 } // namespace vx

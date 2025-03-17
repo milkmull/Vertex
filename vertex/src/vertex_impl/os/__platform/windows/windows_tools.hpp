@@ -17,12 +17,12 @@ static_assert(std::is_same<DWORD_, DWORD>::value);
 // HANDLE wrapper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_valid_handle(HANDLE h)
+inline bool is_valid_handle(HANDLE h) noexcept
 {
     return h != NULL && h != INVALID_HANDLE_VALUE;
 }
 
-inline void close_handle(HANDLE& h)
+inline void close_handle(HANDLE& h) noexcept
 {
     if (is_valid_handle(h))
     {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 
@@ -19,7 +20,7 @@ public:
     static bool exists(const path& p)
     {
         struct stat stat_buf;
-        return (::stat(p.c_str(), &stat_buf) == 0 && !S_ISDIR(stat_buf.st_mode));
+        return (stat(p.c_str(), &stat_buf) == 0 && !S_ISDIR(stat_buf.st_mode));
     }
 
     static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
@@ -93,7 +94,7 @@ public:
         assert_is_open(fd.h);
 
         struct stat stat_buf;
-        if (::fstat(fd.h.get(), &stat_buf) != 0)
+        if (fstat(fd.h.get(), &stat_buf) != 0)
         {
             unix_::error_message("fstat()");
             return file::INVALID_SIZE;
@@ -106,7 +107,7 @@ public:
     {
         assert_is_open(fd.h);
 
-        if (::ftruncate(fd.h.get(), static_cast<off_t>(size)) != 0)
+        if (ftruncate(fd.h.get(), static_cast<off_t>(size)) != 0)
         {
             unix_::error_message("ftruncate()");
             return false;
@@ -139,7 +140,7 @@ public:
             }
         }
 
-        if (::lseek(fd.h.get(), off, whence) == static_cast<off_t>(-1))
+        if (lseek(fd.h.get(), off, whence) == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
             return false;
@@ -152,7 +153,7 @@ public:
     {
         assert_is_open(fd.h);
 
-        const off_t pos = ::lseek(fd.h.get(), 0, SEEK_CUR);
+        const off_t pos = lseek(fd.h.get(), 0, SEEK_CUR);
         if (pos == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
@@ -166,7 +167,7 @@ public:
     {
         assert_is_open(fd.h);
 
-        if (::fsync(fd.h.get()) != 0)
+        if (fsync(fd.h.get()) != 0)
         {
             unix_::error_message("fsync()");
             return false;

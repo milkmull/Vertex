@@ -238,12 +238,19 @@ private:
     int64_t m_count; // nanoseconds
 };
 
-VX_FORCE_INLINE constexpr time_point nanoseconds(int64_t ns)    noexcept { return time_point(ns); }
-VX_FORCE_INLINE constexpr time_point microseconds(int64_t us)   noexcept { return time_point(us * 1000ll); }
-VX_FORCE_INLINE constexpr time_point milliseconds(int64_t ms)   noexcept { return time_point(ms * 1000000ll); }
-VX_FORCE_INLINE constexpr time_point seconds(int64_t s)         noexcept { return time_point(s * 1000000000ll); }
-VX_FORCE_INLINE constexpr time_point minutes(int64_t m)         noexcept { return time_point(m * 60000000000ll); }
-VX_FORCE_INLINE constexpr time_point hours(int64_t h)           noexcept { return time_point(h * 3600000000000ll); }
+constexpr time_point nanoseconds(int64_t ns)    noexcept { return time_point(ns); }
+constexpr time_point microseconds(int64_t us)   noexcept { return time_point(us * 1000ll); }
+constexpr time_point milliseconds(int64_t ms)   noexcept { return time_point(ms * 1000000ll); }
+constexpr time_point seconds(int64_t s)         noexcept { return time_point(s * 1000000000ll); }
+constexpr time_point minutes(int64_t m)         noexcept { return time_point(m * 60000000000ll); }
+constexpr time_point hours(int64_t h)           noexcept { return time_point(h * 3600000000000ll); }
+
+enum : int64_t
+{
+    milliseconds_per_second = seconds(1).as_milliseconds(),
+    microseconds_per_second = seconds(1).as_microseconds(),
+    nanoseconds_per_second  = seconds(1).as_nanoseconds()
+};
 
 } // namespace time
 } // namespace vx

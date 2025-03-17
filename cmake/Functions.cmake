@@ -155,7 +155,6 @@ function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
 
     # If the function exists, add the definition to the target
     if (${MACRO_NAME})
-        message(STATUS "found ${FUNCTION_NAME}")
         target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
     

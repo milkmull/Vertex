@@ -54,7 +54,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     dt.minute = static_cast<int32_t>(st->wMinute);
     dt.second = static_cast<int32_t>(st->wSecond);
     // Extract nanoseconds within the second
-    dt.nanosecond = static_cast<int32_t>(tp.as_nanoseconds() % std::nano::den);
+    dt.nanosecond = static_cast<int32_t>(tp.as_nanoseconds() % time::nanoseconds_per_second);
 
     return dt;
 }
