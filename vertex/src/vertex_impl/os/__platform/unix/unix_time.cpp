@@ -1,4 +1,3 @@
-#include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -49,7 +48,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
         dt.hour = tm->tm_hour;
         dt.minute = tm->tm_min;
         dt.second = tm->tm_sec;
-        dt.nanosecond = tp.as_nanoseconds() % time::nanoseconds_per_second;
+        dt.nanosecond = static_cast<int32_t>(tp.as_nanoseconds() % time::nanoseconds_per_second);
         dt.utc_offset_seconds = static_cast<int32_t>(tm->tm_gmtoff);
     }
     else
@@ -137,7 +136,7 @@ int64_t get_performance_counter_impl() noexcept
         // return value is nanoseconds
         struct timespec now {};
         clock_gettime(VX_MONOTONIC_CLOCK, &now);
-        return (time::seconds(now.tv_sec) + time::nanoseconds(now.tv_nsec)).as_nanoseconds();
+        return time::seconds(now.tv_sec).as_nanoseconds() + now.tv_nsec;
     }
 
 #endif // HAVE_CLOCK_GETTIME
@@ -145,7 +144,7 @@ int64_t get_performance_counter_impl() noexcept
     // return value is microseconds
     struct timeval now {};
     gettimeofday(&now, NULL);
-    return (time::seconds(now.tv_sec) + time::microseconds(now.tv_usec)).as_microseconds();
+    return time::seconds(now.tv_sec).as_microseconds() + now.tv_usec;
 }
 
 int64_t get_performance_frequency_impl() noexcept

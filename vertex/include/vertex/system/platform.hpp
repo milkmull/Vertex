@@ -7,6 +7,8 @@
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_os_operating_system_macros.html
 // https://sourceforge.net/p/predef/wiki/OperatingSystems/
 
+#if !defined(VX_BUILD_DUMMY_OS)
+
 #if defined(linux) || defined(__linux) || defined(__linux__)
 
 #   define VX_PLATFORM_LINUX
@@ -66,11 +68,20 @@
 
 #endif // windows
 
+#endif // VX_BUILD_DUMMY_OS
+
 #if defined(VX_PLATFORM_LINUX) || defined(VX_PLATFORM_ANDROID) || defined(VX_PLATFORM_UNIX) || defined(VX_PLATFORM_APPLE)
 
 #   define VX_PLATFORM_POSIX
 
 #endif // posix
+
+#if !defined(VX_PLATFORM_DEFINED) || defined(VX_BUILD_DUMMY_OS)
+    
+#   define VX_PLATFORM_DUMMY
+#   define VX_PLATFORM_DEFINED
+
+#endif // dummy
 
 #if !defined(VX_PLATFORM_DEFINED)
 #   error Unsupported Platform

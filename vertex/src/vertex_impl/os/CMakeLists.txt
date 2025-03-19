@@ -42,6 +42,7 @@ file(GLOB VX_OS_SOURCE_FILES
 
     "${CMAKE_CURRENT_SOURCE_DIR}/file.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/handle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/system_memory.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/process.cpp"

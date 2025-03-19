@@ -3,10 +3,20 @@
 #include "vertex_impl/os/__platform/windows/windows_tools.hpp"
 #include "vertex/util/memory/memory.hpp"
 #include "vertex/system/error.hpp"
-#include "vertex/util/string/string.hpp"
+#include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
 namespace os {
+
+///////////////////////////////////////////////////////////////////////////////
+// Handle
+///////////////////////////////////////////////////////////////////////////////
+
+void handle::close_impl() noexcept
+{
+    CloseHandle(m_handle);
+}
+
 namespace windows {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -23,7 +33,7 @@ void error_message(const char* msg)
     FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
         NULL, code, 0,
-        buffer, static_cast<DWORD>(vx::mem::array_size(buffer)), NULL
+        buffer, static_cast<DWORD>(mem::array_size(buffer)), NULL
     );
 
     // Kill CR/LF that FormatMessage() sticks at the end
@@ -39,7 +49,7 @@ void error_message(const char* msg)
     VX_ERR(vx::err::PLATFORM_ERROR)
         << msg
         << ((msg_size == 0) ? "" : ": ")
-        << vx::str::string_cast<char>(buffer);
+        << str::string_cast<char>(buffer);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

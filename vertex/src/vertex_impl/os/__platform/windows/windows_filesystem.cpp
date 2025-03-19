@@ -60,7 +60,7 @@ static bool update_file_permissions_internal(
     if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) && follow_symlinks)
     {
         // Resolve the symbolic link
-        windows::handle h = CreateFileW(
+        handle h = CreateFileW(
             p.c_str(),
             FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
             NULL,
@@ -172,7 +172,7 @@ union reparse_point_data
 };
 
 static bool get_reparse_point_data_from_handle(
-    const windows::handle& h,
+    const handle& h,
     std::unique_ptr<reparse_point_data>& data
 )
 {
@@ -199,7 +199,7 @@ static bool get_reparse_point_data_from_handle(
 static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_data>& data, bool throw_on_fail)
 {
     // Open the file to check if it's a symbolic link
-    windows::handle h = CreateFileW(
+    handle h = CreateFileW(
         p.c_str(),
         0,
         0,
@@ -348,7 +348,7 @@ static file_info create_file_info(
     };
 }
 
-static file_info file_info_from_handle(const windows::handle& h, const path& p)
+static file_info file_info_from_handle(const handle& h, const path& p)
 {
     file_info info{};
 
@@ -383,7 +383,7 @@ file_info get_file_info_impl(const path& p)
     if (info.type == file_type::SYMLINK)
     {
         // Resolve the symbolic link
-        windows::handle h = CreateFileW(
+        handle h = CreateFileW(
             p.c_str(),
             FILE_READ_ATTRIBUTES | FILE_READ_EA,
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -409,7 +409,7 @@ file_info get_file_info_impl(const path& p)
 
 file_info get_symlink_info_impl(const path& p)
 {
-    windows::handle h = CreateFileW(
+    handle h = CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES | FILE_READ_EA,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -430,7 +430,7 @@ file_info get_symlink_info_impl(const path& p)
 
 size_t hard_link_count_impl(const path& p)
 {
-    windows::handle h = CreateFileW(
+    handle h = CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -458,7 +458,7 @@ size_t hard_link_count_impl(const path& p)
 
 bool set_modify_time_impl(const path& p, time::time_point t)
 {
-    windows::handle h = CreateFileW(
+    handle h = CreateFileW(
         p.c_str(),
         FILE_WRITE_ATTRIBUTES,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -584,7 +584,7 @@ path canonical_impl(const path& p)
 {
     path res;
 
-    windows::handle h = CreateFileW(
+    handle h = CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES | FILE_READ_EA,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -684,7 +684,7 @@ path canonical_impl(const path& p)
 
 bool equivalent_impl(const path& p1, const path& p2)
 {
-    windows::handle h1 = CreateFileW(
+    handle h1 = CreateFileW(
         p1.c_str(),
         FILE_READ_ATTRIBUTES, // Only need attributes
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -700,7 +700,7 @@ bool equivalent_impl(const path& p1, const path& p2)
         return false;
     }
 
-    windows::handle h2 = CreateFileW(
+    handle h2 = CreateFileW(
         p2.c_str(),
         FILE_READ_ATTRIBUTES, // Only need attributes
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -852,7 +852,7 @@ path get_user_folder_impl(user_folder folder)
 
 bool create_file_impl(const path& p)
 {
-    const windows::handle h = CreateFileW(
+    const handle h = CreateFileW(
         p.c_str(),
         GENERIC_WRITE,
         0,
@@ -1143,7 +1143,7 @@ static bool is_dot_or_dotdot(const wchar_t* filename)
     return filename[2] == 0;
 }
 
-static void close_directory_iterator(windows::handle& h)
+static void close_directory_iterator(handle& h)
 {
     if (h.is_valid() && !FindClose(h.get()))
     {
@@ -1166,7 +1166,7 @@ static void update_directory_iterator_entry(const path& p, directory_entry& entr
     );
 }
 
-static bool advance_directory_iterator_once(windows::handle& h, WIN32_FIND_DATAW& find_data)
+static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_data)
 {
     do
     {
@@ -1181,7 +1181,7 @@ static bool advance_directory_iterator_once(windows::handle& h, WIN32_FIND_DATAW
     return h.is_valid();
 }
 
-static void advance_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+static void advance_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
 {
     if (advance_directory_iterator_once(h, find_data))
     {
@@ -1189,7 +1189,7 @@ static void advance_directory_iterator(const path& p, directory_entry& entry, wi
     }
 }
 
-static void open_directory_iterator(const path& p, directory_entry& entry, windows::handle& h, WIN32_FIND_DATAW& find_data)
+static void open_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
 {
     close_directory_iterator(h);
 
@@ -1251,7 +1251,7 @@ void directory_iterator::directory_iterator_impl::advance()
 bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack()
 {
     m_path /= m_entry.path.filename();
-    windows::handle h;
+    handle h;
     open_directory_iterator(m_path, m_entry, h, m_find_data);
 
     if (!h.is_valid())
@@ -1273,7 +1273,7 @@ void recursive_directory_iterator::recursive_directory_iterator_impl::pop_stack(
 
 void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
 {
-    windows::handle* current = &m_stack.back();
+    handle* current = &m_stack.back();
 
     if (m_recursion_pending && push_stack())
     {

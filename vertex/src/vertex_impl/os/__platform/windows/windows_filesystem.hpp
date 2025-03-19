@@ -127,7 +127,7 @@ private:
 
     const path m_path;
     directory_entry m_entry;
-    windows::handle m_handle;
+    handle m_handle;
     WIN32_FIND_DATAW m_find_data{};
 };
 
@@ -180,7 +180,7 @@ private:
 
     path m_path;
     directory_entry m_entry;
-    std::vector<windows::handle> m_stack;
+    std::vector<handle> m_stack;
     WIN32_FIND_DATAW m_find_data{};
     bool m_recursion_pending = false;
 };

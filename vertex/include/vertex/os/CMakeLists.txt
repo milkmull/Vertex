@@ -28,6 +28,7 @@ file(GLOB VX_OS_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/atomic.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/handle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mutex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/native_string.hpp"
@@ -56,7 +57,6 @@ elseif(VX_CMAKE_PLATFORM_WINDOWS)
     # Source files for windows
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_types.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_handle.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_file_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_shared_library_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_thread_impl_data.hpp"
@@ -68,7 +68,6 @@ elseif(VX_CMAKE_UNIX_SYS)
     
     # Source files for linux
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_handle.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_file_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_shared_library_impl_data.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_thread_impl_data.hpp"

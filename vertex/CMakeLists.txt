@@ -72,6 +72,11 @@ endif()
 # Debug macro
 target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_CMAKE_DEBUG>)
 
+# Build dummy library
+if(VX_BUILD_DUMMY_OS)
+    target_compile_definitions(Vertex PRIVATE VX_BUILD_DUMMY_OS)
+endif()
+
 # Propagate the Windows subsystem requirement to executables linking against
 # this library. This allows for WinMain entry point to be used for any
 # executable that link against Vertex.

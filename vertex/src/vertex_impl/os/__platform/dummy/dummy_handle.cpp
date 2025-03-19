@@ -1,12 +1,78 @@
 #pragma once
 
+#include <string>
+
 #include "vertex_impl/os/__platform/windows/windows_header.hpp"
-#include "vertex/os/handle.hpp"
+#include "vertex/os/__platform/windows/windows_handle.hpp"
 #include "vertex/util/time/time.hpp"
 
 namespace vx {
 namespace os {
 namespace windows {
+
+static_assert(std::is_same<HANDLE_, HANDLE>::value);
+static_assert(std::is_same<DWORD_, DWORD>::value);
+
+///////////////////////////////////////////////////////////////////////////////
+// HANDLE wrapper
+///////////////////////////////////////////////////////////////////////////////
+
+inline bool is_valid_handle(HANDLE h) noexcept
+{
+    return h != NULL && h != INVALID_HANDLE_VALUE;
+}
+
+inline void close_handle(HANDLE& h) noexcept
+{
+    if (is_valid_handle(h))
+    {
+        CloseHandle(h);
+        h = INVALID_HANDLE_VALUE;
+    }
+}
+
+inline handle::handle() noexcept : m_handle(INVALID_HANDLE_VALUE) {}
+
+inline handle::~handle() noexcept { close(); }
+
+inline handle::handle(handle&& h) noexcept : m_handle(h.m_handle)
+{
+    h.reset();
+}
+
+inline handle& handle::operator=(handle&& h) noexcept
+{
+    if (this != &h)
+    {
+        m_handle = h.m_handle;
+        h.reset();
+    }
+
+    return *this;
+}
+
+inline handle::handle(const HANDLE_ h) noexcept : m_handle(h) {}
+
+inline handle& handle::operator=(const HANDLE_ h) noexcept
+{
+    close();
+    m_handle = h;
+    return *this;
+}
+
+inline bool handle::is_valid() const noexcept
+{
+    return is_valid_handle(m_handle);
+}
+
+inline HANDLE_ handle::get() const noexcept { return m_handle; }
+
+inline void handle::reset() noexcept { m_handle = INVALID_HANDLE_VALUE; }
+
+inline void handle::close() noexcept
+{
+    close_handle(m_handle);
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Error Handling

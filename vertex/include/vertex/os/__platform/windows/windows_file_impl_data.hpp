@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/os/__platform/windows/windows_handle.hpp"
+#include "vertex/os/handle.hpp"
 
 namespace vx {
 namespace os {
