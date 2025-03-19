@@ -44,7 +44,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_HEADER_FILES})
     
-#elseif(VX_CMAKE_UNIX_SYS)
+elseif(VX_CMAKE_UNIX_SYS)
     
     # Source files for linux
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
