@@ -9,6 +9,7 @@
 #include <time.h>
 
 #include "vertex/os/time.hpp"
+#include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 #include "vertex/system/assert.hpp"
 
 namespace vx {
