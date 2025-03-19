@@ -26,7 +26,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
         tm = localtime_r(&tval, &tm_storage);
 #else
         tm = localtime(&tval);
-#endif
+#endif // HAVE_LOCALTIME_R
     }
     else
     {
@@ -34,7 +34,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
         tm = gmtime_r(&tval, &tm_storage);
 #else
         tm = gmtime(&tval);
-#endif
+#endif // HAVE_GMTIME_R
     }
 
     time::datetime dt{};
@@ -53,7 +53,20 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     }
     else
     {
-        unix_::error_message(local ? "localtime()" : "gmtime()");
+        unix_::error_message(
+            local ?
+#       if defined(HAVE_LOCALTIME_R)
+            "localtime_r()"
+#       else
+            "localtime()"
+#       endif // HAVE_LOCALTIME_R
+            :
+#       if defined(HAVE_GMTIME_R)
+            "gmtime_r()"
+#       else
+            "gmtime()"
+#       endif // HAVE_GMTIME_R
+        );
     }
 
     return dt;
