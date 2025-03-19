@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(VX_OS_FILESYSTEM_IMPL)
+#   error "filesystem implementation has already been included!"
+#endif
+#define VX_OS_FILESYSTEM_IMPL
+
 #include "vertex/os/filesystem.hpp"
 
 namespace vx {
@@ -12,7 +17,7 @@ namespace filesystem {
 // File Permissions
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool update_permissions_impl(
+static bool update_permissions_impl(
     const path&,
     typename file_permissions::type,
     file_permission_operator,
@@ -27,25 +32,25 @@ inline bool update_permissions_impl(
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
-inline file_info get_file_info_impl(const path&)
+static file_info get_file_info_impl(const path&)
 {
     unsupported("get_file_info");
     return {};
 }
 
-inline file_info get_symlink_info_impl(const path&)
+static file_info get_symlink_info_impl(const path&)
 {
     unsupported("get_symlink_info");
     return {};
 }
 
-inline size_t hard_link_count_impl(const path&)
+static size_t hard_link_count_impl(const path&)
 {
     unsupported("hard_link_count");
     return 0;
 }
 
-inline bool set_modify_time_impl(const path&, time::time_point)
+static bool set_modify_time_impl(const path&, time::time_point)
 {
     unsupported("set_modify_time_impl");
     return false;
@@ -57,7 +62,7 @@ inline bool set_modify_time_impl(const path&, time::time_point)
 
 // https://github.com/microsoft/STL/blob/90820002693fe6eaaec2e55884472c654186207e/stl/src/filesystem.cpp#L542
 
-inline path read_symlink_impl(const path&)
+static path read_symlink_impl(const path&)
 {
     unsupported("read_symlink");
     return {};
@@ -67,31 +72,31 @@ inline path read_symlink_impl(const path&)
 // Path Operators
 ///////////////////////////////////////////////////////////////////////////////
 
-inline path get_current_path_impl()
+static path get_current_path_impl()
 {
     unsupported("get_current_path");
     return {};
 }
 
-inline bool set_current_path_impl(const path&)
+static bool set_current_path_impl(const path&)
 {
     unsupported("set_current_path");
     return false;
 }
 
-inline path absolute_impl(const path&)
+static path absolute_impl(const path&)
 {
     unsupported("absolute");
     return {};
 }
 
-inline path canonical_impl(const path&)
+static path canonical_impl(const path&)
 {
     unsupported("canonical");
     return {};
 }
 
-inline bool equivalent_impl(const path&, const path&)
+static bool equivalent_impl(const path&, const path&)
 {
     unsupported("equivalent");
     return {};
@@ -101,13 +106,13 @@ inline bool equivalent_impl(const path&, const path&)
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////
 
-inline path get_temp_path_impl()
+static path get_temp_path_impl()
 {
     unsupported("get_temp_path");
     return {};
 }
 
-inline path get_user_folder_impl(user_folder)
+static path get_user_folder_impl(user_folder)
 {
     unsupported("get_user_folder");
     return {};
@@ -117,31 +122,31 @@ inline path get_user_folder_impl(user_folder)
 // Create
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool create_file_impl(const path&)
+static bool create_file_impl(const path&)
 {
     unsupported("create_file");
     return false;
 }
 
-inline bool create_directory_impl(const path&)
+static bool create_directory_impl(const path&)
 {
     unsupported("create_directory");
     return false;
 }
 
-inline bool create_symlink_impl(const path&, const path&)
+static bool create_symlink_impl(const path&, const path&)
 {
     unsupported("create_symlink");
     return false;
 }
 
-inline bool create_directory_symlink_impl(const path&, const path&)
+static bool create_directory_symlink_impl(const path&, const path&)
 {
     unsupported("create_directory_symlink");
     return false;
 }
 
-inline bool create_hard_link_impl(const path&, const path&)
+static bool create_hard_link_impl(const path&, const path&)
 {
     unsupported("create_hard_link");
     return false;
@@ -153,7 +158,7 @@ inline bool create_hard_link_impl(const path&, const path&)
 
 // https://en.cppreference.com/w/cpp/filesystem/copy_file
 
-inline bool copy_file_impl(const path&, const path&, bool)
+static bool copy_file_impl(const path&, const path&, bool)
 {
     unsupported("copy_file");
     return false;
@@ -163,7 +168,7 @@ inline bool copy_file_impl(const path&, const path&, bool)
 // Rename
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool rename_impl(const path&, const path&)
+static bool rename_impl(const path&, const path&)
 {
     unsupported("rename");
     return false;
@@ -173,7 +178,7 @@ inline bool rename_impl(const path&, const path&)
 // Remove
 ///////////////////////////////////////////////////////////////////////////////
 
-inline __detail::remove_error remove_impl(const path&, bool)
+static __detail::remove_error remove_impl(const path&, bool)
 {
     unsupported("remove");
     return __detail::remove_error::OTHER;
@@ -183,7 +188,7 @@ inline __detail::remove_error remove_impl(const path&, bool)
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-inline space_info space_impl(const path&)
+static space_info space_impl(const path&)
 {
     unsupported("space");
     return space_info{};

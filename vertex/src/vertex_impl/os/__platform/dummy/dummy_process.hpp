@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(VX_OS_PROCESS_IMPL)
+#   error "process implementation has already been included!"
+#endif
+#define VX_OS_PROCESS_IMPL
+
 #include "vertex/os/process.hpp"
 
 namespace vx {
@@ -81,49 +86,49 @@ namespace this_process {
 
 #define unsupported(op) VX_UNSUPPORTED("os::this_process::" op "()")
 
-inline process::id get_pid_impl()
+static process::id get_pid_impl()
 {
     unsupported("get_pid");
     return 0;
 }
 
-inline process::environment get_environment_impl()
+static process::environment get_environment_impl()
 {
     unsupported("get_environment");
     return {};
 }
 
-inline std::string get_environment_variable_impl(const std::string&)
+static std::string get_environment_variable_impl(const std::string&)
 {
     unsupported("get_environment_variable");
     return {};
 }
 
-inline bool set_environment_variable_impl(const std::string&, const std::string&)
+static bool set_environment_variable_impl(const std::string&, const std::string&)
 {
     unsupported("set_environment_variable");
     return false;
 }
 
-inline bool clear_environment_variable_impl(const std::string&)
+static bool clear_environment_variable_impl(const std::string&)
 {
     unsupported("clear_environment_variable");
     return false;
 }
 
-inline io_stream get_stdin_impl()
+static io_stream get_stdin_impl()
 {
     unsupported("get_stdin");
     return {};
 }
 
-inline io_stream get_stdout_impl()
+static io_stream get_stdout_impl()
 {
     unsupported("get_stdout");
     return {};
 }
 
-inline io_stream get_stderr_impl()
+static io_stream get_stderr_impl()
 {
     unsupported("get_stderr");
     return {};

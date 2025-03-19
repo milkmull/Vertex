@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(VX_OS_SYSTEM_MEMORY_IMPL)
+#   error "system memory implementation has already been included!"
+#endif
+#define VX_OS_SYSTEM_MEMORY_IMPL
+
 #include "vertex/os/system_info.hpp"
 #include "vertex/system/error.hpp"
 
@@ -8,31 +13,31 @@ namespace os {
 
 #define unsupported(op) VX_UNSUPPORTED("os::" op "()")
 
-inline std::string get_model_name_impl()
+static std::string get_model_name_impl()
 {
     unsupported("get_model_name");
     return {};
 }
 
-inline std::string get_system_name_impl()
+static std::string get_system_name_impl()
 {
     unsupported("get_system_name");
     return {};
 }
 
-inline std::string get_processor_name_impl()
+static std::string get_processor_name_impl()
 {
     unsupported("get_processor_name");
     return {};
 }
 
-inline uint32_t get_processor_count_impl()
+static uint32_t get_processor_count_impl()
 {
     unsupported("get_processor_count");
     return 0;
 }
 
-inline bool get_version_impl(uint32_t*, uint32_t*, uint32_t*)
+static bool get_version_impl(uint32_t*, uint32_t*, uint32_t*)
 {
     unsupported("get_version");
     return false;

@@ -498,7 +498,7 @@ using make_integer_sequence
 #elif VX_HAS_BUILTIN(__integer_pack)
     = integer_sequence<T, __integer_pack(N)...>;
 #else
-#   error no make integer sequence implimentation
+#   error no make integer sequence implementation
 #endif
 
 template <size_t N>

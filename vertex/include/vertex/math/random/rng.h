@@ -9,7 +9,7 @@
 namespace vx {
 namespace math {
 
-// For now, rng results may varry accross platforms due to implimentation differences
+// For now, rng results may varry accross platforms due to implementation differences
 
 ////////////////////////////////////////////////////////////////////////////////
 /// @brief Random Number Generator (RNG) class for generating pseudo-random

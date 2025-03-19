@@ -1,5 +1,10 @@
 #pragma once
 
+#if defined(VX_OS_TIME_IMPL)
+#   error "time implementation has already been included!"
+#endif
+#define VX_OS_TIME_IMPL
+
 #include "vertex/os/time.hpp"
 #include "vertex/system/error.hpp"
 
@@ -10,7 +15,7 @@ namespace os {
 // Time
 ///////////////////////////////////////////////////////////////////////////////
 
-inline time::datetime time_point_to_datetime_impl(const time::time_point&, bool)
+static time::datetime time_point_to_datetime_impl(const time::time_point&, bool)
 {
     VX_UNSUPPORTED("time_point::to_datetime()");
     return {};
@@ -22,7 +27,7 @@ inline time::datetime time_point_to_datetime_impl(const time::time_point&, bool)
 // Current Time
 ///////////////////////////////////////////////////////////////////////////////
 
-inline time::time_point system_time_impl()
+static time::time_point system_time_impl()
 {
     unsupported("system_time");
     return {};
@@ -32,13 +37,13 @@ inline time::time_point system_time_impl()
 // Ticks
 ///////////////////////////////////////////////////////////////////////////////
 
-inline int64_t get_performance_counter_impl()
+static int64_t get_performance_counter_impl()
 {
     unsupported("get_performance_counter");
     return 0;
 }
 
-inline int64_t get_performance_frequency_impl()
+static int64_t get_performance_frequency_impl()
 {
     unsupported("get_performance_frequency");
     return 1; // return 1 to avoid division by 0
@@ -48,7 +53,7 @@ inline int64_t get_performance_frequency_impl()
 // Sleep
 ///////////////////////////////////////////////////////////////////////////////
 
-inline void sleep_impl(const time::time_point&)
+static void sleep_impl(const time::time_point&)
 {
     unsupported("sleep");
 }

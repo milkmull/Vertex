@@ -1,21 +1,5 @@
 
 #--------------------------------------------------------------------
-# Dummy files
-#--------------------------------------------------------------------
-
-macro(add_dummy_files)
-
-    file(GLOB VX_OS_PLATFORM_HEADER_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file_impl_data.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library_impl_data.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread_impl_data.hpp"
-    )
-    
-    target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_HEADER_FILES})
-
-endmacro()
-
-#--------------------------------------------------------------------
 # General files
 #--------------------------------------------------------------------
 
@@ -48,11 +32,7 @@ target_sources(Vertex PRIVATE ${VX_OS_HEADER_FILES})
 # Platform specific files
 #--------------------------------------------------------------------
 
-if(VX_BUILD_DUMMY_OS)
-
-    add_dummy_files()
-
-elseif(VX_CMAKE_PLATFORM_WINDOWS)
+if(VX_CMAKE_PLATFORM_WINDOWS)
 
     # Source files for windows
     file(GLOB VX_OS_PLATFORM_HEADER_FILES
@@ -77,6 +57,12 @@ elseif(VX_CMAKE_UNIX_SYS)
     
 else()
 
-    add_dummy_files()
+    file(GLOB VX_OS_PLATFORM_HEADER_FILES
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library_impl_data.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread_impl_data.hpp"
+    )
+    
+    target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_HEADER_FILES})
 
 endif()

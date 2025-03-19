@@ -2,62 +2,66 @@
 # Detect OS
 #--------------------------------------------------------------------
 
-# Windows
-if(WIN32)
+if(NOT VX_BUILD_DUMMY_OS)
 
-    set(VX_CMAKE_PLATFORM_WINDOWS 1)
-    message(STATUS "Detected platform: Windows")
-    
-# macOS or iOS
-elseif(APPLE)
+    # Windows
+    if(WIN32)
 
-    if(CMAKE_SYSTEM_NAME MATCHES ".*(Darwin|MacOS).*")
-    
-        set(VX_CMAKE_PLATFORM_MACOS 1)
-        message(STATUS "Detected platform: MacOS")
+        set(VX_CMAKE_PLATFORM_WINDOWS 1)
+        message(STATUS "Detected platform: Windows")
         
-    elseif(CMAKE_SYSTEM_NAME MATCHES ".*iOS.*")
-    
-        set(VX_CMAKE_PLATFORM_IOS 1)
-        message(STATUS "Detected platform: iOS")
+    # macOS or iOS
+    elseif(APPLE)
+
+        if(CMAKE_SYSTEM_NAME MATCHES ".*(Darwin|MacOS).*")
         
+            set(VX_CMAKE_PLATFORM_MACOS 1)
+            message(STATUS "Detected platform: MacOS")
+            
+        elseif(CMAKE_SYSTEM_NAME MATCHES ".*iOS.*")
+        
+            set(VX_CMAKE_PLATFORM_IOS 1)
+            message(STATUS "Detected platform: iOS")
+            
+        else()
+        
+            message(FATAL_ERROR "Unknown Apple platform: \"${CMAKE_SYSTEM_NAME}\"")
+            return()
+            
+        endif()
+        
+    # Linux
+    elseif(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
+
+        set(VX_CMAKE_PLATFORM_LINUX 1)
+        message(STATUS "Detected platform: Linux")
+        
+    # Android
+    elseif(CMAKE_SYSTEM_NAME MATCHES "Android.*")
+
+        set(VX_CMAKE_PLATFORM_ANDROID 1)
+        message(STATUS "Detected platform: Android")
+
     else()
-    
-        message(FATAL_ERROR "Unknown Apple platform: \"${CMAKE_SYSTEM_NAME}\"")
+
+        message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
         return()
         
     endif()
-    
-# Linux
-elseif(CMAKE_SYSTEM_NAME MATCHES ".*Linux")
 
-    set(VX_CMAKE_PLATFORM_LINUX 1)
-    message(STATUS "Detected platform: Linux")
-    
-# Android
-elseif(CMAKE_SYSTEM_NAME MATCHES "Android.*")
+    # Detect Unix-based systems (excluding Android, Apple, and RISC OS)
+    # This ensures that Unix-specific options are applied only to general Unix systems.
+    if(UNIX AND NOT ANDROID AND NOT APPLE AND NOT RISCOS)
 
-    set(VX_CMAKE_PLATFORM_ANDROID 1)
-    message(STATUS "Detected platform: Android")
+        set(VX_CMAKE_UNIX_SYS 1)
+        message(STATUS "Platform is Unix")
+        
+    else()
 
-else()
+        set(VX_CMAKE_UNIX_SYS 0)
+        
+    endif()
 
-    message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
-    return()
-    
-endif()
-
-# Detect Unix-based systems (excluding Android, Apple, and RISC OS)
-# This ensures that Unix-specific options are applied only to general Unix systems.
-if(UNIX AND NOT ANDROID AND NOT APPLE AND NOT RISCOS)
-
-    set(VX_CMAKE_UNIX_SYS 1)
-    message(STATUS "Platform is Unix")
-    
-else()
-
-    set(VX_CMAKE_UNIX_SYS 0)
-    
 endif()
 
 #--------------------------------------------------------------------
