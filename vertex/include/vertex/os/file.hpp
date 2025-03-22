@@ -13,6 +13,14 @@ namespace os {
 // file
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace __detail {
+
+class file_impl;
+
+} // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
+
 enum class stream_position
 {
     BEGIN,
@@ -20,12 +28,8 @@ enum class stream_position
     END
 };
 
-class process;
-
 class file
 {
-    friend process;
-
 public:
 
     // https://man7.org/linux/man-pages/man3/fopen.3.html
@@ -202,12 +206,14 @@ public:
         return f.open(p, mode::READ_WRITE_EXISTS) && f.clear();
     }
 
-public:
+private:
 
     static file from_handle(handle h, mode m);
     handle get_handle() const { return m_handle.get(); }
 
 private:
+
+    friend __detail::file_impl;
 
     mode m_mode = mode::NONE;
     handle m_handle;

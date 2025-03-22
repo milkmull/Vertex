@@ -12,25 +12,25 @@ VX_API bool shared_library::load(const char* lib)
         return false;
     }
 
-    return shared_library_impl::load(m_handle, lib);
+    return __detail::shared_library_impl::load(m_handle, lib);
 }
 
 VX_API bool shared_library::is_loaded() const noexcept
 {
-    return shared_library_impl::is_loaded(m_handle);
+    return __detail::shared_library_impl::is_loaded(m_handle);
 }
 
 VX_API void shared_library::free() noexcept
 {
     if (is_loaded())
     {
-        shared_library_impl::free(m_handle);
+        __detail::shared_library_impl::free(m_handle);
     }
 }
 
 void* shared_library::get_void(const char* symbol_name) const noexcept
 {
-    return is_loaded() ? shared_library_impl::get_addr(m_handle, symbol_name) : nullptr;
+    return is_loaded() ? __detail::shared_library_impl::get_addr(m_handle, symbol_name) : nullptr;
 }
 
 } // namespace os

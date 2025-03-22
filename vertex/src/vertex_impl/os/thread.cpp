@@ -35,23 +35,23 @@ VX_API void thread::swap(thread& other) noexcept
 
 VX_API bool thread::start_impl(void* fn, void* arg)
 {
-    if (thread_impl::is_valid(m_impl_data))
+    if (__detail::thread_impl::is_valid(m_impl_data))
     {
         VX_ERR(err::UNSUPPORTED_OPERATION) << "thread already started";
         return false;
     }
 
-    return thread_impl::start(m_impl_data, fn, arg);
+    return __detail::thread_impl::start(m_impl_data, fn, arg);
 }
 
 VX_API bool thread::is_valid() const noexcept
 {
-    return thread_impl::is_valid(m_impl_data);
+    return __detail::thread_impl::is_valid(m_impl_data);
 }
 
 VX_API bool thread::is_alive() const noexcept
 {
-    return is_valid() && thread_impl::is_alive(m_impl_data);
+    return is_valid() && __detail::thread_impl::is_alive(m_impl_data);
 }
 
 VX_API bool thread::join() noexcept
@@ -67,17 +67,17 @@ VX_API bool thread::join() noexcept
         return false;
     }
 
-    return thread_impl::join(m_impl_data);
+    return __detail::thread_impl::join(m_impl_data);
 }
 
 VX_API bool thread::detach() noexcept
 {
-    return is_joinable() && thread_impl::detach(m_impl_data);
+    return is_joinable() && __detail::thread_impl::detach(m_impl_data);
 }
 
 VX_API thread::id this_thread::get_id()
 {
-    return thread_impl::get_this_thread_id();
+    return __detail::thread_impl::get_this_thread_id();
 }
 
 } // namespace os

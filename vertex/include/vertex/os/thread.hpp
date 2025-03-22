@@ -13,7 +13,13 @@ namespace os {
 // thread
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace __detail {
+
 class thread_impl;
+
+} // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
 
 class thread
 {
@@ -198,7 +204,7 @@ public:
 
 private:
 
-    friend thread_impl;
+    friend __detail::thread_impl;
 
     struct impl_data
     {

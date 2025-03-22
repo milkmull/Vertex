@@ -18,57 +18,57 @@ public:
         return false;
     }
 
-    static bool open(__detail::file_impl_data&, const path&, file::mode)
+    static bool open(handle&, const path&, file::mode)
     {
         unsupported("open");
         return false;
     }
 
-    static bool is_open(const __detail::file_impl_data&)
+    static bool is_open(const handle&)
     {
         unsupported("is_open");
         return false;
     }
 
-    static void close(__detail::file_impl_data&) {}
+    static void close(handle&) {}
 
-    static size_t size(const __detail::file_impl_data&)
+    static size_t size(const handle&)
     {
         unsupported("size");
         return 0;
     }
 
-    static bool resize(__detail::file_impl_data&, size_t)
+    static bool resize(handle&, size_t)
     {
         unsupported("resize");
         return false;
     }
 
-    static bool seek(__detail::file_impl_data&, int, stream_position)
+    static bool seek(handle&, int, stream_position)
     {
         unsupported("seek");
         return false;
     }
 
-    static size_t tell(const __detail::file_impl_data&)
+    static size_t tell(const handle&)
     {
         unsupported("tell");
         return 0;
     }
 
-    static bool flush(__detail::file_impl_data&)
+    static bool flush(handle&)
     {
         unsupported("flush");
         return false;
     }
 
-    static size_t read(__detail::file_impl_data&, uint8_t*, size_t)
+    static size_t read(handle&, uint8_t*, size_t)
     {
         unsupported("read");
         return 0;
     }
 
-    static size_t write(__detail::file_impl_data&, const uint8_t*, size_t)
+    static size_t write(handle&, const uint8_t*, size_t)
     {
         unsupported("write");
         return 0;

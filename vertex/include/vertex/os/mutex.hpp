@@ -7,15 +7,17 @@
 namespace vx {
 namespace os {
 
-namespace __detail {
-
 ///////////////////////////////////////////////////////////////////////////////
 // Predefines
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace __detail {
+
 class mutex_impl;
 
 } // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
 
 class recursive_mutex;
 
@@ -25,9 +27,6 @@ class recursive_mutex;
 
 class mutex
 {
-    friend __detail::mutex_impl;
-    friend recursive_mutex;
-
 public:
 
     VX_API mutex() noexcept;
@@ -73,6 +72,9 @@ private:
     };
 
 private:
+
+    friend recursive_mutex;
+    friend __detail::mutex_impl;
 
     impl_data m_impl_data;
 };

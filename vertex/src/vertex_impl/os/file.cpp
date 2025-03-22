@@ -37,7 +37,7 @@ VX_API void file::swap(file& other) noexcept
 
 VX_API bool file::exists(const path& p)
 {
-    return file_impl::exists(p);
+    return __detail::file_impl::exists(p);
 }
 
 VX_API bool file::create(const path& p)
@@ -60,7 +60,7 @@ VX_API bool file::open(const path& p, mode file_mode)
         return false;
     }
 
-    if (!file_impl::open(m_handle, p, file_mode))
+    if (!__detail::file_impl::open(m_handle, p, file_mode))
     {
         return false;
     }
@@ -82,22 +82,22 @@ VX_API void file::close()
 
 VX_API size_t file::size() const
 {
-    return is_open() ? file_impl::size(m_handle) : 0;
+    return is_open() ? __detail::file_impl::size(m_handle) : 0;
 }
 
 VX_API bool file::resize(size_t size)
 {
-    return is_open() ? file_impl::resize(m_handle, size) : false;
+    return is_open() ? __detail::file_impl::resize(m_handle, size) : false;
 }
 
 VX_API bool file::seek(int off, stream_position from)
 {
-    return is_open() ? file_impl::seek(m_handle, off, from) : false;
+    return is_open() ? __detail::file_impl::seek(m_handle, off, from) : false;
 }
 
 VX_API size_t file::tell() const
 {
-    return is_open() ? file_impl::tell(m_handle) : INVALID_POSITION;
+    return is_open() ? __detail::file_impl::tell(m_handle) : INVALID_POSITION;
 }
 
 VX_API bool file::eof() const
@@ -107,12 +107,12 @@ VX_API bool file::eof() const
         return false;
     }
 
-    return file_impl::tell(m_handle) >= file_impl::size(m_handle);
+    return __detail::file_impl::tell(m_handle) >= __detail::file_impl::size(m_handle);
 }
 
 VX_API bool file::flush()
 {
-    return is_open() ? file_impl::flush(m_handle) : false;
+    return is_open() ? __detail::file_impl::flush(m_handle) : false;
 }
 
 static bool read_check(const bool can_read)
@@ -135,12 +135,12 @@ static bool write_check(const bool can_write)
 
 size_t file::read(uint8_t* data, size_t size)
 {
-    return !read_check(can_read()) ? 0 : file_impl::read(m_handle, data, size);
+    return !read_check(can_read()) ? 0 : __detail::file_impl::read(m_handle, data, size);
 }
 
 size_t file::write(const uint8_t* data, size_t size)
 {
-    return !write_check(can_write()) ? 0 : file_impl::write(m_handle, data, size);
+    return !write_check(can_write()) ? 0 : __detail::file_impl::write(m_handle, data, size);
 }
 
 VX_API bool file::read_line(std::string& line)
@@ -153,7 +153,7 @@ VX_API bool file::read_line(std::string& line)
     line.clear();
 
     char c = 0;
-    while (file_impl::read(m_handle, reinterpret_cast<uint8_t*>(&c), 1) == 1)
+    while (__detail::file_impl::read(m_handle, reinterpret_cast<uint8_t*>(&c), 1) == 1)
     {
         if (c == '\n')
         {
@@ -181,8 +181,8 @@ static bool write_line_internal(handle& h, const char* first, size_t size)
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
     // NOTE: write check should happen before calling this function
-    return (file_impl::write(h, reinterpret_cast<const uint8_t*>(first), size) == size)
-        && (file_impl::write(h, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
+    return (__detail::file_impl::write(h, reinterpret_cast<const uint8_t*>(first), size) == size)
+        && (__detail::file_impl::write(h, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
 }
 
 VX_API bool file::write_line(const char* line)
@@ -223,7 +223,7 @@ VX_API bool file::write_file(const path& p, const char* text)
     if (s != e)
     {
         const size_t last_line_size = static_cast<size_t>(e - s);
-        return (file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(s), last_line_size) == last_line_size);
+        return (__detail::file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(s), last_line_size) == last_line_size);
     }
 
     return true;
@@ -231,7 +231,7 @@ VX_API bool file::write_file(const path& p, const char* text)
 #else
 
     const size_t file_size = std::strlen(text);
-    return (file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
+    return (__detail::file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
 
 #endif // VX_PLATFORM_WINDOWS
 }

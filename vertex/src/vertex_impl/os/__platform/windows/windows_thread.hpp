@@ -8,6 +8,7 @@
 
 namespace vx {
 namespace os {
+namespace __detail {
 
 // https://github.com/microsoft/STL/blob/0d8f517ae3828284fed594741b847db940167a59/stl/src/cthread.cpp
 
@@ -102,5 +103,6 @@ public:
     }
 };
 
+} // namespace __detail
 } // namespace os
 } // namespace vx

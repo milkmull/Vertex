@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace os {
+namespace __detail {
 
 #define assert_is_open(h) VX_ASSERT_MESSAGE(h.is_valid(), "file not open")
 
@@ -211,7 +212,17 @@ public:
         return static_cast<size_t>(count);
     }
 
+    static file from_handle(handle h, file::mode m)
+    {
+        return file::from_handle(h, m);
+    }
+
+    static typename handle get_handle(const file& f)
+    {
+        return f.get_handle();
+    }
 };
 
+} // namespace __detail
 } // namespace os
 } // namespace vx

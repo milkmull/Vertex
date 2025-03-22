@@ -16,10 +16,7 @@ class mutex_impl
 {
 public:
 
-    static PSRWLOCK get_srw_lock(mutex::impl_data& data)
-    {
-        return reinterpret_cast<PSRWLOCK>(&data.critical_section.lock);
-    }
+#   define get_srw_lock(data) reinterpret_cast<PSRWLOCK>(&data.critical_section.lock)
 
     static void create(mutex::impl_data& data) noexcept
     {
@@ -109,6 +106,7 @@ public:
         }
     }
 
+#   undef get_srw_lock
 };
 
 } // namespace __detail

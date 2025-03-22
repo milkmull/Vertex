@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility> // std::move
+
 #include "vertex/os/handle.hpp"
 
 namespace vx {
@@ -7,6 +9,14 @@ namespace os {
 
 ///////////////////////////////////////////////////////////////////////////////
 // shared_library
+///////////////////////////////////////////////////////////////////////////////
+
+namespace __detail {
+
+class shared_library_impl;
+
+} // namespace __detail
+
 ///////////////////////////////////////////////////////////////////////////////
 
 class shared_library
@@ -77,6 +87,8 @@ public:
     VX_API void* get_void(const char* symbol_name) const noexcept;
 
 private:
+
+    friend __detail::shared_library_impl;
 
     handle m_handle;
 };

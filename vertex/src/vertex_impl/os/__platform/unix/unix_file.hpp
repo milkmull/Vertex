@@ -23,9 +23,9 @@ public:
         return (stat(p.c_str(), &stat_buf) == 0 && !S_ISDIR(stat_buf.st_mode));
     }
 
-    static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
+    static bool open(handle& h, const path& p, file::mode mode)
     {
-        VX_ASSERT_MESSAGE(!fd.h.is_valid(), "file already open");
+        VX_ASSERT_MESSAGE(!h.is_valid(), "file already open");
 
         int flags = 0;
         mode_t file_mode = 0;
@@ -68,9 +68,9 @@ public:
             }
         }
 
-        fd.h = ::open(p.c_str(), flags, file_mode);
+        h = ::open(p.c_str(), flags, file_mode);
 
-        if (!fd.h.is_valid())
+        if (!h.is_valid())
         {
             unix_::error_message("open()");
             return false;
@@ -79,22 +79,22 @@ public:
         return true;
     }
 
-    static bool is_open(const __detail::file_impl_data& fd)
+    static bool is_open(const handle& h)
     {
-        return fd.h.is_valid();
+        return h.is_valid();
     }
 
-    static void close(__detail::file_impl_data& fd)
+    static void close(handle& h)
     {
-        fd.h.close();
+        h.close();
     }
 
-    static size_t size(const __detail::file_impl_data& fd)
+    static size_t size(const handle& h)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         struct stat stat_buf;
-        if (fstat(fd.h.get(), &stat_buf) != 0)
+        if (fstat(h.get(), &stat_buf) != 0)
         {
             unix_::error_message("fstat()");
             return file::INVALID_SIZE;
@@ -103,11 +103,11 @@ public:
         return static_cast<size_t>(stat_buf.st_size);
     }
 
-    static bool resize(__detail::file_impl_data& fd, size_t size)
+    static bool resize(handle& h, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        if (ftruncate(fd.h.get(), static_cast<off_t>(size)) != 0)
+        if (ftruncate(h.get(), static_cast<off_t>(size)) != 0)
         {
             unix_::error_message("ftruncate()");
             return false;
@@ -116,9 +116,9 @@ public:
         return true;
     }
 
-    static bool seek(__detail::file_impl_data& fd, int off, stream_position from)
+    static bool seek(handle& h, int off, stream_position from)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         int whence = 0;
         switch (from)
@@ -140,7 +140,7 @@ public:
             }
         }
 
-        if (lseek(fd.h.get(), off, whence) == static_cast<off_t>(-1))
+        if (lseek(h.get(), off, whence) == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
             return false;
@@ -149,11 +149,11 @@ public:
         return true;
     }
 
-    static size_t tell(const __detail::file_impl_data& fd)
+    static size_t tell(const handle& h)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        const off_t pos = lseek(fd.h.get(), 0, SEEK_CUR);
+        const off_t pos = lseek(h.get(), 0, SEEK_CUR);
         if (pos == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
@@ -163,11 +163,11 @@ public:
         return static_cast<size_t>(pos);
     }
 
-    static bool flush(__detail::file_impl_data& fd)
+    static bool flush(handle& h)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        if (fsync(fd.h.get()) != 0)
+        if (fsync(h.get()) != 0)
         {
             unix_::error_message("fsync()");
             return false;
@@ -176,11 +176,11 @@ public:
         return true;
     }
 
-    static size_t read(__detail::file_impl_data& fd, uint8_t* data, size_t size)
+    static size_t read(handle& h, uint8_t* data, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        const ssize_t count = ::read(fd.h.get(), data, size);
+        const ssize_t count = ::read(h.get(), data, size);
         if (count < 0)
         {
             unix_::error_message("read()");
@@ -190,11 +190,11 @@ public:
         return static_cast<size_t>(count);
     }
 
-    static size_t write(__detail::file_impl_data& fd, const uint8_t* data, size_t size)
+    static size_t write(handle& h, const uint8_t* data, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        ssize_t count = ::write(fd.h.get(), data, size);
+        ssize_t count = ::write(h.get(), data, size);
         if (count < 0)
         {
             unix_::error_message("write()");
@@ -204,31 +204,15 @@ public:
         return static_cast<size_t>(count);
     }
 
-    static file from_handle(int handle, file::mode mode)
+    static file from_handle(handle h, file::mode m)
     {
-        file f;
-
-        if (handle < 0)
-        {
-            return f;
-        }
-
-        if (mode == file::mode::NONE)
-        {
-            return f;
-        }
-
-        f.m_impl_data.h = handle;
-        f.m_mode = mode;
-
-        return f;
+        return file::from_handle(h, m);
     }
 
-    static int get_handle(file& f)
+    static typename handle get_handle(const file& f)
     {
-        return f.m_impl_data.h.get();
+        return f.get_handle();
     }
-
 };
 
 } // namespace __detail
