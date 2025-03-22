@@ -16,4 +16,5 @@ cmake:
     - clang tidy, clang format
     - editorconfig
     - update printout of configuration
+    - add defines for each os module being used
 }

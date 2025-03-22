@@ -77,7 +77,9 @@ os and utils:
     x time (get ticks, timer class)
     x locale (language, timezone, country)
     
-    x thread, mutex, atomic wrapers
+    x thread
+    - mutex
+    - atomics
 
     x hash (MD5, SHA-1, SHA-256)
     x random (pcg, Mersenne Twister)
@@ -218,7 +220,7 @@ testing:
     x os/path
     
     x os/thread
-    - os/mutex
+    x os/mutex
     - os/atomic
     x os/process
     

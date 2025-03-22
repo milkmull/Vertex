@@ -35,12 +35,14 @@ filesystem:
 
 os:
 {
-    - time
+    x time
     
     - filesystem
-    - file io
+    x file io
 
-    - thread, mutex, atomic wrapers
+    - thread
+    - mutex
+    - atomics
     - process (argument parsing, environment variables, process dispatch, reading)
 
     - system memory
@@ -119,12 +121,12 @@ testing:
     x util/random/uniform_int_distribution
     x util/random/uniform_real_distribution
     
-    - util/time/time
-    - util/time/timer
-    - util/time/datetime
-    - os/time
+    x util/time/time
+    x util/time/timer
+    x util/time/datetime
+    x os/time
     
-    - os/file
+    x os/file
     - os/filesystem
     x os/path
     
@@ -137,7 +139,7 @@ testing:
     - os/locale
     - os/system_memory
     
-    - os/shared_library
+    x os/shared_library
 }
 
 finish base library:

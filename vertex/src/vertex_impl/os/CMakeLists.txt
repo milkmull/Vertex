@@ -47,6 +47,23 @@ target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 # Platform specific files
 #--------------------------------------------------------------------
 
+# Header files for dummy modules
+file(GLOB VX_OS_DUMMY_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_filesystem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_locale.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_mutex.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_process.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_memory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
+)
+
+target_sources(Vertex PRIVATE ${VX_OS_DUMMY_SOURCE_FILES})
+
 if(VX_CMAKE_PLATFORM_WINDOWS)
 
     # Source files for windows
@@ -107,23 +124,4 @@ elseif(VX_CMAKE_UNIX_SYS)
     
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
     
-else()
-
-    # Source files for windows
-    file(GLOB VX_OS_PLATFORM_SOURCE_FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_filesystem.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_locale.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_mutex.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_process.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
-    )
-    
-    target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
-
 endif()
