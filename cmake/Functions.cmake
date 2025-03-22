@@ -162,15 +162,16 @@ endfunction()
 
 #--------------------------------------------------------------------
 
-function(vx_check_available_functions TARGET_NAME)
+# Function to check if a symbol exists on the platform
+# and define a preprocessor directive if it does
+function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME MACRO_NAME)
 
-    if(VX_CMAKE_UNIX_SYS)
-    
-        vx_check_function_exists(${TARGET_NAME} localtime_r     HAVE_GMTIME_R)
-        vx_check_function_exists(${TARGET_NAME} localtime_r     HAVE_LOCALTIME_R)
-        vx_check_function_exists(${TARGET_NAME} clock_gettime   HAVE_CLOCK_GETTIME)
-        vx_check_function_exists(${TARGET_NAME} nanosleep       HAVE_NANOSLEEP)
-    
+    # Check if the function exists
+    check_symbol_exists(${SYMBOL_NAME} ${MACRO_NAME})
+
+    # If the function exists, add the definition to the target
+    if (${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
-
+    
 endfunction()

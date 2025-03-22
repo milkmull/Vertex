@@ -48,6 +48,7 @@ include(CheckFunctionExists)
 include(cmake/Config.cmake)
 include(cmake/Macros.cmake)
 include(cmake/Functions.cmake)
+include(cmake/Checks.cmake)
 
 #--------------------------------------------------------------------
 # Shared Library Availability
