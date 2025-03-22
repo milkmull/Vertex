@@ -3,13 +3,13 @@
 namespace vx {
 namespace os {
 
-VX_API file::file() noexcept : m_mode(mode::NONE), m_impl_data{} {}
+VX_API file::file() noexcept {}
 
 VX_API file::~file() { close(); }
 
 VX_API file::file(file&& other) noexcept
     : m_mode(other.m_mode)
-    , m_impl_data(std::move(other.m_impl_data))
+    , m_handle(std::move(other.m_handle))
 {
     other.m_mode = mode::NONE;
 }
@@ -21,7 +21,7 @@ VX_API file& file::operator=(file&& other) noexcept
         close();
 
         m_mode = other.m_mode;
-        m_impl_data = std::move(other.m_impl_data);
+        m_handle = std::move(other.m_handle);
 
         other.m_mode = mode::NONE;
     }
@@ -32,7 +32,7 @@ VX_API file& file::operator=(file&& other) noexcept
 VX_API void file::swap(file& other) noexcept
 {
     std::swap(m_mode, other.m_mode);
-    std::swap(m_impl_data, other.m_impl_data);
+    std::swap(m_handle, other.m_handle);
 }
 
 VX_API bool file::exists(const path& p)
@@ -60,7 +60,7 @@ VX_API bool file::open(const path& p, mode file_mode)
         return false;
     }
 
-    if (!file_impl::open(m_impl_data, p, file_mode))
+    if (!file_impl::open(m_handle, p, file_mode))
     {
         return false;
     }
@@ -71,33 +71,33 @@ VX_API bool file::open(const path& p, mode file_mode)
 
 VX_API bool file::is_open() const
 {
-    return (m_mode != mode::NONE) && file_impl::is_open(m_impl_data);
+    return (m_mode != mode::NONE) && m_handle.is_valid();
 }
 
 VX_API void file::close()
 {
-    file_impl::close(m_impl_data);
+    m_handle.close();
     m_mode = mode::NONE;
 }
 
 VX_API size_t file::size() const
 {
-    return is_open() ? file_impl::size(m_impl_data) : 0;
+    return is_open() ? file_impl::size(m_handle) : 0;
 }
 
 VX_API bool file::resize(size_t size)
 {
-    return is_open() ? file_impl::resize(m_impl_data, size) : false;
+    return is_open() ? file_impl::resize(m_handle, size) : false;
 }
 
 VX_API bool file::seek(int off, stream_position from)
 {
-    return is_open() ? file_impl::seek(m_impl_data, off, from) : false;
+    return is_open() ? file_impl::seek(m_handle, off, from) : false;
 }
 
 VX_API size_t file::tell() const
 {
-    return is_open() ? file_impl::tell(m_impl_data) : INVALID_POSITION;
+    return is_open() ? file_impl::tell(m_handle) : INVALID_POSITION;
 }
 
 VX_API bool file::eof() const
@@ -107,12 +107,12 @@ VX_API bool file::eof() const
         return false;
     }
 
-    return file_impl::tell(m_impl_data) >= file_impl::size(m_impl_data);
+    return file_impl::tell(m_handle) >= file_impl::size(m_handle);
 }
 
 VX_API bool file::flush()
 {
-    return is_open() ? file_impl::flush(m_impl_data) : false;
+    return is_open() ? file_impl::flush(m_handle) : false;
 }
 
 static bool read_check(const bool can_read)
@@ -135,12 +135,12 @@ static bool write_check(const bool can_write)
 
 size_t file::read(uint8_t* data, size_t size)
 {
-    return !read_check(can_read()) ? 0 : file_impl::read(m_impl_data, data, size);
+    return !read_check(can_read()) ? 0 : file_impl::read(m_handle, data, size);
 }
 
 size_t file::write(const uint8_t* data, size_t size)
 {
-    return !write_check(can_write()) ? 0 : file_impl::write(m_impl_data, data, size);
+    return !write_check(can_write()) ? 0 : file_impl::write(m_handle, data, size);
 }
 
 VX_API bool file::read_line(std::string& line)
@@ -153,7 +153,7 @@ VX_API bool file::read_line(std::string& line)
     line.clear();
 
     char c = 0;
-    while (file_impl::read(m_impl_data, reinterpret_cast<uint8_t*>(&c), 1) == 1)
+    while (file_impl::read(m_handle, reinterpret_cast<uint8_t*>(&c), 1) == 1)
     {
         if (c == '\n')
         {
@@ -176,18 +176,18 @@ VX_API bool file::read_line(std::string& line)
     return false;
 }
 
-static bool write_line_internal(__detail::file_impl_data& fd, const char* first, size_t size)
+static bool write_line_internal(handle& h, const char* first, size_t size)
 {
     constexpr size_t line_end_size = sizeof(VX_LINE_END) - 1;
 
     // NOTE: write check should happen before calling this function
-    return (__detail::file_impl::write(fd, reinterpret_cast<const uint8_t*>(first), size) == size)
-        && (__detail::file_impl::write(fd, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
+    return (file_impl::write(h, reinterpret_cast<const uint8_t*>(first), size) == size)
+        && (file_impl::write(h, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
 }
 
 VX_API bool file::write_line(const char* line)
 {
-    return write_check(can_write()) && write_line_internal(m_impl_data, line, std::strlen(line));
+    return write_check(can_write()) && write_line_internal(m_handle, line, std::strlen(line));
 }
 
 VX_API bool file::write_file(const path& p, const char* text)
@@ -208,7 +208,7 @@ VX_API bool file::write_file(const path& p, const char* text)
     {
         if (*e == '\n')
         {
-            if (!write_line_internal(f.m_impl_data, s, static_cast<size_t>(e - s)))
+            if (!write_line_internal(f.m_handle, s, static_cast<size_t>(e - s)))
             {
                 return false;
             }
@@ -223,7 +223,7 @@ VX_API bool file::write_file(const path& p, const char* text)
     if (s != e)
     {
         const size_t last_line_size = static_cast<size_t>(e - s);
-        return (file_impl::write(f.m_impl_data, reinterpret_cast<const uint8_t*>(s), last_line_size) == last_line_size);
+        return (file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(s), last_line_size) == last_line_size);
     }
 
     return true;
@@ -231,9 +231,29 @@ VX_API bool file::write_file(const path& p, const char* text)
 #else
 
     const size_t file_size = std::strlen(text);
-    return (file_impl::write(f.m_impl_data, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
+    return (file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
 
 #endif // VX_PLATFORM_WINDOWS
+}
+
+file file::from_handle(handle h, mode m)
+{
+    file f;
+
+    if (!h.is_valid())
+    {
+        return f;
+    }
+
+    if (m == file::mode::NONE)
+    {
+        return f;
+    }
+
+    f.m_handle = std::move(h);
+    f.m_mode = m;
+
+    return f;
 }
 
 } // namespace os

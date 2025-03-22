@@ -6,22 +6,21 @@
 
 namespace vx {
 namespace os {
-namespace __detail {
 
-#define assert_is_loaded(h) VX_ASSERT_MESSAGE(h != NULL, "library not loaded")
+#define assert_is_loaded(h) VX_ASSERT_MESSAGE(h.get() != NULL, "library not loaded")
 
 class shared_library_impl
 {
 public:
 
-    static bool load(shared_library_impl_data& sld, const char* lib)
+    static bool load(handle& h, const char* lib)
     {
-        VX_ASSERT_MESSAGE(sld.handle == NULL, "library already open");
+        VX_ASSERT_MESSAGE(!h.is_valid(), "library already loaded");
 
         const std::wstring wlib(str::string_cast<wchar_t>(lib));
 
-        sld.handle = LoadLibraryW(wlib.c_str());
-        if (sld.handle == NULL)
+        h = LoadLibraryW(wlib.c_str());
+        if (h == NULL)
         {
             windows::error_message(lib);
             return false;
@@ -30,27 +29,23 @@ public:
         return true;
     }
 
-    static bool is_loaded(const shared_library_impl_data& sld) noexcept
+    static bool is_loaded(const handle& h) noexcept
     {
-        return sld.handle != NULL;
+        return h.is_valid();
     }
 
-    static void free(shared_library_impl_data& sld) noexcept
+    static void free(handle& h) noexcept
     {
-        assert_is_loaded(sld.handle);
-
-        FreeLibrary(reinterpret_cast<HMODULE>(sld.handle));
-        sld.handle = NULL;
+        assert_is_loaded(h);
+        FreeLibrary(reinterpret_cast<HMODULE>(h.release()));
     }
 
-    static void* get_addr(const shared_library_impl_data& sld, const char* symbol_name) noexcept
+    static void* get_addr(const handle& h, const char* symbol_name) noexcept
     {
-        assert_is_loaded(sld.handle);
-
-        return GetProcAddress(reinterpret_cast<HMODULE>(sld.handle), symbol_name);
+        assert_is_loaded(h);
+        return GetProcAddress(reinterpret_cast<HMODULE>(h.get()), symbol_name);
     }
 };
 
-} // namespace __detail
 } // namespace os
 } // namespace vx

@@ -63,7 +63,7 @@ enum code : error_t
     FILE_CORRUPT,           // File is corrupted or unreadable
 
     // Platform-specific error
-    PLATFORM_ERROR,         // Error specific to the platform, e.g., system-level failures
+    SYSTEM_ERROR,           // Error specific to the platform, e.g., system-level failures
     UNSUPPORTED             // Operation is unsupported on the current platform
 };
 
@@ -106,7 +106,7 @@ constexpr const char* code_to_string(code err) noexcept
         case code::FILE_IN_USE:                 return "file in use";
         case code::FILE_CORRUPT:                return "file corrupt";
 
-        case code::PLATFORM_ERROR:              return "platform error";
+        case code::SYSTEM_ERROR:                return "system error";
         case code::UNSUPPORTED:                 return "unsupported operation";
         default:                                return "";
     }

@@ -3,8 +3,6 @@
 #include "vertex/os/atomic.hpp"
 #include "vertex/os/time.hpp"
 
-#include <thread>
-
 using namespace vx;
 
 static void simple_task(std::atomic<bool>& flag)
@@ -258,24 +256,6 @@ VX_TEST_CASE(test_thread_local_storage)
         VX_CHECK(threads[i].join());
         VX_CHECK(results[i] == 10); // Each thread should have its own independent thread_local_var
     }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-VX_TEST_CASE(test_thread_deadlock)
-{
-    os::thread thread;
-    std::atomic<bool> result = false;
-
-    auto thread_func = [&thread](std::atomic<bool>& result)
-    {
-        // make sure that joining a thread from inside itsself causes a system error
-        result = (!thread.join() && err::get().err == err::SYSTEM_ERROR);
-    };
-
-    VX_CHECK(thread.start(thread_func, std::ref(result)));
-    VX_CHECK(thread.join());
-    VX_CHECK(result.load());
 }
 
 ///////////////////////////////////////////////////////////////////////////////

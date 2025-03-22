@@ -5,7 +5,6 @@
 
 namespace vx {
 namespace os {
-namespace __detail {
 
 #define assert_is_open(h) VX_ASSERT_MESSAGE(h.is_valid(), "file not open")
 
@@ -19,9 +18,9 @@ public:
         return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
     }
 
-    static bool open(__detail::file_impl_data& fd, const path& p, file::mode mode)
+    static bool open(handle& h, const path& p, file::mode mode)
     {
-        VX_ASSERT_MESSAGE(!fd.h.is_valid(), "file already open");
+        VX_ASSERT_MESSAGE(!h.is_valid(), "file already open");
 
         DWORD access = 0;
         DWORD creation = 0;
@@ -66,7 +65,7 @@ public:
             }
         }
 
-        fd.h = CreateFileW(
+        h = CreateFileW(
             p.c_str(),
             access,
             FILE_SHARE_READ | FILE_SHARE_WRITE, // allow read and write sharing
@@ -76,7 +75,7 @@ public:
             NULL
         );
 
-        if (!fd.h.is_valid())
+        if (!h.is_valid())
         {
             windows::error_message("CreateFileW()");
             return false;
@@ -85,23 +84,13 @@ public:
         return true;
     }
 
-    static bool is_open(const __detail::file_impl_data& fd)
+    static size_t size(const handle& h)
     {
-        return fd.h.is_valid();
-    }
-
-    static void close(__detail::file_impl_data& fd)
-    {
-        fd.h.close();
-    }
-
-    static size_t size(const __detail::file_impl_data& fd)
-    {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         LARGE_INTEGER size;
 
-        if (!GetFileSizeEx(fd.h.get(), &size))
+        if (!GetFileSizeEx(h.get(), &size))
         {
             windows::error_message("GetFileSizeEx()");
             return file::INVALID_SIZE;
@@ -110,27 +99,9 @@ public:
         return static_cast<size_t>(size.QuadPart);
     }
 
-    static bool resize(__detail::file_impl_data& fd, size_t size)
+    static bool seek(handle& h, int off, stream_position from)
     {
-        assert_is_open(fd.h);
-
-        if (!seek(fd, static_cast<int>(size), stream_position::BEGIN))
-        {
-            return false;
-        }
-
-        if (!SetEndOfFile(fd.h.get()))
-        {
-            windows::error_message("SetEndOfFile()");
-            return false;
-        }
-
-        return true;
-    }
-
-    static bool seek(__detail::file_impl_data& fd, int off, stream_position from)
-    {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         LARGE_INTEGER distance{ 0 };
         distance.QuadPart = off;
@@ -155,7 +126,7 @@ public:
             }
         }
 
-        if (!SetFilePointerEx(fd.h.get(), distance, &distance, method))
+        if (!SetFilePointerEx(h.get(), distance, &distance, method))
         {
             windows::error_message("SetFilePointerEx()");
             return false;
@@ -164,15 +135,33 @@ public:
         return true;
     }
 
-    static size_t tell(const __detail::file_impl_data& fd)
+    static bool resize(handle& h, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
+
+        if (!seek(h, static_cast<int>(size), stream_position::BEGIN))
+        {
+            return false;
+        }
+
+        if (!SetEndOfFile(h.get()))
+        {
+            windows::error_message("SetEndOfFile()");
+            return false;
+        }
+
+        return true;
+    }
+
+    static size_t tell(const handle& h)
+    {
+        assert_is_open(h);
 
         LARGE_INTEGER off{ 0 };
         off.QuadPart = 0;
 
         // Use SetFilePointerEx to query the current position
-        if (!SetFilePointerEx(fd.h.get(), off, &off, FILE_CURRENT))
+        if (!SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
         {
             windows::error_message("SetFilePointerEx()");
             return file::INVALID_POSITION;
@@ -181,11 +170,11 @@ public:
         return static_cast<size_t>(off.QuadPart);
     }
 
-    static bool flush(__detail::file_impl_data& fd)
+    static bool flush(handle& h)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
-        if (!FlushFileBuffers(fd.h.get()))
+        if (!FlushFileBuffers(h.get()))
         {
             windows::error_message("FlushFileBuffers()");
             return false;
@@ -194,12 +183,12 @@ public:
         return true;
     }
 
-    static size_t read(__detail::file_impl_data& fd, uint8_t* data, size_t size)
+    static size_t read(handle& h, uint8_t* data, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         DWORD count = 0;
-        if (!ReadFile(fd.h.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!ReadFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("ReadFile()");
             return 0;
@@ -208,12 +197,12 @@ public:
         return static_cast<size_t>(count);
     }
 
-    static size_t write(__detail::file_impl_data& fd, const uint8_t* data, size_t size)
+    static size_t write(handle& h, const uint8_t* data, size_t size)
     {
-        assert_is_open(fd.h);
+        assert_is_open(h);
 
         DWORD count = 0;
-        if (!WriteFile(fd.h.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!WriteFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("WriteFile()");
             return 0;
@@ -222,33 +211,7 @@ public:
         return static_cast<size_t>(count);
     }
 
-    static file from_handle(HANDLE handle, file::mode mode)
-    {
-        file f;
-
-        if (handle == INVALID_HANDLE_VALUE)
-        {
-            return f;
-        }
-
-        if (mode == file::mode::NONE)
-        {
-            return f;
-        }
-
-        f.m_impl_data.h = handle;
-        f.m_mode = mode;
-
-        return f;
-    }
-
-    static HANDLE get_handle(file& f)
-    {
-        return f.m_impl_data.h.get();
-    }
-
 };
 
-} // namespace __detail
 } // namespace os
 } // namespace vx

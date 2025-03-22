@@ -28,8 +28,8 @@ public:
     handle() noexcept : m_handle(VX_INVALID_HANDLE) {}
     ~handle() noexcept { close(); }
 
-    handle(const handle&) = delete;
-    handle& operator=(const handle&) = delete;
+    handle(const handle&) = default;
+    handle& operator=(const handle&) = default;
 
     handle(handle&& h) noexcept : m_handle(h.m_handle)
     {
@@ -82,6 +82,13 @@ public:
             close_impl();
         }
         reset();
+    }
+
+    native_handle release() noexcept
+    {
+        native_handle h = m_handle;
+        reset();
+        return h;
     }
 
 private:

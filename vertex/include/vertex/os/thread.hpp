@@ -2,51 +2,24 @@
 
 #include <memory>
 
-#include "vertex/os/__platform/thread_impl_data.hpp"
+#include "vertex/os/handle.hpp"
 #include "vertex/util/function/invoke.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
 namespace os {
 
-namespace __detail {
-
-// Abstract base class for types that wrap arbitrary functors to be
-// invoked in the new thread of execution.
-struct thread_state
-{
-    virtual ~thread_state() = default;
-    virtual void run() = 0;
-};
-
-template <typename Callable>
-struct thread_state_impl : public thread_state
-{
-    Callable fn;
-
-    template <typename... Args>
-    thread_state_impl(Args&&... args) : fn(std::forward<Args>(args)...) {}
-
-    void run() { fn(); }
-};
-
-} // namespace __detail
-
 ///////////////////////////////////////////////////////////////////////////////
 // thread
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
-
 class thread_impl;
-
-} // namespace __detail
 
 class thread
 {
 public:
 
-    using id = uint32_t;
+    using id = uintptr_t;
 
     VX_API thread() noexcept;
     VX_API ~thread();
@@ -59,7 +32,49 @@ public:
 
     VX_API void swap(thread& other) noexcept;
 
+public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison
+    ///////////////////////////////////////////////////////////////////////////////
+
+#if defined(VX_USE_PTHREADS)
+
+    // use pthread_equal()
+    VX_API bool operator==(const thread& other) const noexcept;
+
+#else
+
+    bool operator==(const thread& other) const noexcept { return m_impl_data.thread_id == other.m_impl_data.thread_id; }
+
+#endif // VX_USE_PTHREADS
+
+    bool operator!=(const thread& other) const noexcept { return !operator==(other); }
+
 private:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // helper types
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // Abstract base class for types that wrap arbitrary
+    // functors to be invoked in the new thread of execution.
+    struct thread_state
+    {
+        virtual ~thread_state() = default;
+        virtual void run() = 0;
+    };
+
+    template <typename Callable>
+    struct thread_state_impl : public thread_state
+    {
+        Callable fn;
+
+        template <typename... Args>
+        thread_state_impl(Args&&... args) : fn(std::forward<Args>(args)...) {}
+
+        void run() { fn(); }
+    };
 
     // https://github.com/microsoft/STL/blob/main/stl/inc/thread#L73
     // https://github.com/gcc-mirror/gcc/blob/3014f8787196d7c0d15d24195c8f07167968ff55/libstdc%2B%2B-v3/include/bits/std_thread.h
@@ -95,16 +110,7 @@ private:
 
     public:
 
-#   if defined(VX_PLATFORM_WINDOWS)
-
-        static unsigned int __stdcall thread_entry(void* arg)
-        {
-            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
-            (*self)(); // Invoke the callable
-            return 0;
-        }
-
-#   else
+#if defined(VX_USE_PTHREADS)
 
         static void* thread_entry(void* arg)
         {
@@ -113,7 +119,24 @@ private:
             return nullptr;
         }
 
-#   endif // VX_PLATFORM_WINDOWS
+#elif defined(VX_PLATFORM_WINDOWS)
+
+        static unsigned int __stdcall thread_entry(void* arg)
+        {
+            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
+            (*self)(); // Invoke the callable
+            return 0;
+        }
+
+#else
+
+        static void thread_entry(void* arg)
+        {
+            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
+            (*self)(); // Invoke the callable
+        }
+
+#endif
     };
 
     template <typename... Args>
@@ -122,6 +145,11 @@ private:
     template <typename T>
     using not_same = type_traits::negation<std::is_same<type_traits::remove_cvref<T>, thread>>;
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // start
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // windows complains if this is not exported even though it is private
     VX_API bool start_impl(void* fn, void* arg);
 
 public:
@@ -151,10 +179,14 @@ public:
         return true;
     }
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // helpers
+    ///////////////////////////////////////////////////////////////////////////////
+
     VX_API bool is_valid() const noexcept;
     VX_API bool is_alive() const noexcept;
 
-    VX_API id get_id() const noexcept;
+    id get_id() const noexcept { return m_impl_data.thread_id; }
 
     bool is_joinable() const noexcept
     {
@@ -166,10 +198,16 @@ public:
 
 private:
 
-    using thread_impl = __detail::thread_impl;
     friend thread_impl;
 
-    using impl_data = __detail::thread_impl_data;
+    struct impl_data
+    {
+        id thread_id = 0;
+#if defined(VX_PLATFORM_WINDOWS)
+        handle h;
+#endif
+    };
+
     impl_data m_impl_data;
 };
 

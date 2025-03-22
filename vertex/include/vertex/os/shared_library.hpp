@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/os/__platform/shared_library_impl_data.hpp"
+#include "vertex/os/handle.hpp"
 
 namespace vx {
 namespace os {
@@ -8,12 +8,6 @@ namespace os {
 ///////////////////////////////////////////////////////////////////////////////
 // shared_library
 ///////////////////////////////////////////////////////////////////////////////
-
-namespace __detail {
-
-class shared_library_impl;
-
-} // namespace __detail
 
 class shared_library
 {
@@ -42,7 +36,7 @@ public:
     shared_library& operator=(const shared_library&) = default;
 
     shared_library(shared_library&& other) noexcept
-        : m_impl_data(std::move(other.m_impl_data))
+        : m_handle(std::move(other.m_handle))
     {
         other.free();
     }
@@ -52,14 +46,14 @@ public:
         if (this != &other)
         {
             free();
-            m_impl_data = std::move(other.m_impl_data);
+            m_handle = std::move(other.m_handle);
             other.free();
         }
 
         return *this;
     }
 
-    void swap(shared_library& other) noexcept { std::swap(m_impl_data, other.m_impl_data); }
+    void swap(shared_library& other) noexcept { std::swap(m_handle, other.m_handle); }
 
 public:
 
@@ -84,11 +78,7 @@ public:
 
 private:
 
-    using shared_library_impl = __detail::shared_library_impl;
-    friend shared_library_impl;
-
-    using impl_data = __detail::shared_library_impl_data;
-    impl_data m_impl_data;
+    handle m_handle;
 };
 
 } // namespace os

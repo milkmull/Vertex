@@ -29,7 +29,7 @@ void windows_error_message(const std::string& msg)
         }
     }
 
-    VX_ERR(vx::err::PLATFORM_ERROR)
+    VX_ERR(vx::err::SYSTEM_ERROR)
         << msg
         << (msg.empty() ? "" : ": ")
         << vx::str::string_cast<char>(buffer);

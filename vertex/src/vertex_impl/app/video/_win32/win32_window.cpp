@@ -1046,7 +1046,7 @@ bool video::window::window_impl::set_fullscreen(fullscreen_op::type fullscreen, 
     MONITORINFO mi{ sizeof(mi) };
     if (!GetMonitorInfo(d->m_impl->get_handle(), &mi))
     {
-        VX_ERROR(error::error_code::PLATFORM_ERROR) << "GetMonitorInfo() failed";
+        VX_ERROR(error::error_code::SYSTEM_ERROR) << "GetMonitorInfo() failed";
         return false;
     }
 

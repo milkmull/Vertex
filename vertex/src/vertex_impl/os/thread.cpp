@@ -54,14 +54,20 @@ VX_API bool thread::is_alive() const noexcept
     return is_valid() && thread_impl::is_alive(m_impl_data);
 }
 
-VX_API thread::id thread::get_id() const noexcept
-{
-    return is_valid() ? thread_impl::get_id(m_impl_data) : 0;
-}
-
 VX_API bool thread::join() noexcept
 {
-    return is_joinable() && thread_impl::join(m_impl_data);
+    if (!is_joinable())
+    {
+        return false;
+    }
+
+    if (m_impl_data.thread_id == this_thread::get_id())
+    {
+        err::set(err::SYSTEM_ERROR, "deadlock would occur");
+        return false;
+    }
+
+    return thread_impl::join(m_impl_data);
 }
 
 VX_API bool thread::detach() noexcept
@@ -71,7 +77,7 @@ VX_API bool thread::detach() noexcept
 
 VX_API thread::id this_thread::get_id()
 {
-    return __detail::thread_impl::get_this_thread_id();
+    return thread_impl::get_this_thread_id();
 }
 
 } // namespace os

@@ -3,7 +3,7 @@
 #include <cstring>
 #include <vector>
 
-#include "vertex/os/__platform/file_impl_data.hpp"
+#include "vertex/os/handle.hpp"
 #include "vertex/os/path.hpp"
 
 namespace vx {
@@ -13,12 +13,6 @@ namespace os {
 // file
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
-
-class file_impl;
-
-} // namespace __detail
-
 enum class stream_position
 {
     BEGIN,
@@ -26,8 +20,12 @@ enum class stream_position
     END
 };
 
+class process;
+
 class file
 {
+    friend process;
+
 public:
 
     // https://man7.org/linux/man-pages/man3/fopen.3.html
@@ -204,15 +202,15 @@ public:
         return f.open(p, mode::READ_WRITE_EXISTS) && f.clear();
     }
 
+public:
+
+    static file from_handle(handle h, mode m);
+    handle get_handle() const { return m_handle.get(); }
+
 private:
 
-    using file_impl = __detail::file_impl;
-    friend file_impl;
-
-    mode m_mode;
-
-    using impl_data = __detail::file_impl_data;
-    impl_data m_impl_data;
+    mode m_mode = mode::NONE;
+    handle m_handle;
 };
 
 } // namespace os

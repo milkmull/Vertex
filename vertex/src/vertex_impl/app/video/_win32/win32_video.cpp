@@ -24,7 +24,7 @@ static bool load_libraries(user32& user32_data, shcore& shcore_data)
         user32_data.dll = LoadLibrary(L"user32.dll");
         if (!user32_data.dll)
         {
-            VX_ERROR(error::error_code::PLATFORM_ERROR) << "Failed to load user32.dll";
+            VX_ERROR(error::error_code::SYSTEM_ERROR) << "Failed to load user32.dll";
             return false;
         }
 
@@ -54,7 +54,7 @@ static bool load_libraries(user32& user32_data, shcore& shcore_data)
         shcore_data.dll = LoadLibrary(L"shcore.dll");
         if (!shcore_data.dll)
         {
-            VX_ERROR(error::error_code::PLATFORM_ERROR) << "Failed to load shcore.dll";
+            VX_ERROR(error::error_code::SYSTEM_ERROR) << "Failed to load shcore.dll";
             return false;
         }
 
@@ -634,7 +634,7 @@ bool video::display::display_impl::set_display_mode(display_mode& mode) const
             }
         }
 
-        VX_ERROR(error::error_code::PLATFORM_ERROR) << "ChangeDisplaySettingsEx() failed: " << reason;
+        VX_ERROR(error::error_code::SYSTEM_ERROR) << "ChangeDisplaySettingsEx() failed: " << reason;
         return false;
     }
 
