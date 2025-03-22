@@ -33,11 +33,6 @@ public:
         return true;
     }
 
-    static bool is_loaded(const void* h) noexcept
-    {
-        return h != NULL;
-    }
-
     static void free(void*& h) noexcept
     {
         assert_is_loaded(h);

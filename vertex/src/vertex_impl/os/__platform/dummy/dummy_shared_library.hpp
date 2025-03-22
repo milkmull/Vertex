@@ -19,12 +19,6 @@ public:
         return false;
     }
 
-    static bool is_loaded(const void*) noexcept
-    {
-        unsupported("is_loaded");
-        return false;
-    }
-
     static void free(void*&) noexcept {}
 
     static void* get_addr(void*, const char*) noexcept

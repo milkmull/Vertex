@@ -66,8 +66,9 @@ public:
 
 public:
 
+    bool is_loaded() const noexcept { return m_handle != NULL; }
+
     VX_API bool load(const char* lib);
-    VX_API bool is_loaded() const noexcept;
     VX_API void free() noexcept;
 
 public:
@@ -89,7 +90,7 @@ private:
 
     friend __detail::shared_library_impl;
 
-    void* m_handle = nullptr;
+    void* m_handle = NULL;
 };
 
 } // namespace os

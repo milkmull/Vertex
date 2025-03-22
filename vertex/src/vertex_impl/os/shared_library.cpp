@@ -15,11 +15,6 @@ VX_API bool shared_library::load(const char* lib)
     return __detail::shared_library_impl::load(m_handle, lib);
 }
 
-VX_API bool shared_library::is_loaded() const noexcept
-{
-    return __detail::shared_library_impl::is_loaded(m_handle);
-}
-
 VX_API void shared_library::free() noexcept
 {
     if (is_loaded())
