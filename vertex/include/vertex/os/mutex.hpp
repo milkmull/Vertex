@@ -2,6 +2,7 @@
 
 #include "vertex/system/compiler.hpp"
 #include "vertex/os/thread.hpp"
+#include "vertex/os/atomic.hpp"
 
 namespace vx {
 namespace os {
