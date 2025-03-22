@@ -23,7 +23,7 @@ public:
         VX_ASSERT_MESSAGE(h == NULL, "library already loaded");
 
         // Use RTLD_NOW to load all symbols immediately, adjust if lazy loading is preferred
-        h = dlopen(lib, RTLD_NOW);
+        h = dlopen(lib, RTLD_LAZY);
         if (h == NULL)
         {
             VX_ERR(err::SYSTEM_ERROR) << "failed to load library: " << lib << ": " << dlerror();

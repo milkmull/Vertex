@@ -3,7 +3,17 @@
 
 using namespace vx;
 
-static const char* shared_library = "os_shared_library";
+static const char* shared_library =
+
+#if defined(VX_PLATFORM_WINDOWS)
+"os_shared_library"
+#elif defined(VX_PLATFORM_UNIX)
+"./libos_shared_library.so"
+#else
+""
+#endif
+
+;
 
 VX_TEST_CASE(test_load)
 {

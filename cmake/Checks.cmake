@@ -3,25 +3,17 @@
 
 function(vx_check_dlopen TARGET_NAME)
 
-    # Check for dlopen in libc first
-    check_symbol_exists(dlopen "dlfcn.h" HAVE_DLOPEN_IN_LIBC)
-
-    # If dlopen is not in libc, check in libdl
-    if(NOT HAVE_DLOPEN_IN_LIBC)
-        check_symbol_exists(dlopen "dlfcn.h" HAVE_DLOPEN_IN_LIBDL)
-    endif()
-
-    # If found in libdl, link the dl library to the target
-    if(HAVE_DLOPEN_IN_LIBC OR HAVE_DLOPEN_IN_LIBDL)
-    
-        target_compile_definitions(${TARGET_NAME} PRIVATE HAVE_DLOPEN)
-        if(HAVE_DLOPEN_IN_LIBDL)
-            target_link_libraries(${TARGET_NAME} PRIVATE dl)
+    # Check if CMAKE_DL_LIBS contains a library for dynamic loading
+    if(CMAKE_DL_LIBS)
+        
+        if(NOT CMAKE_DL_LIBS STREQUAL "c")
+            target_link_libraries(${TARGET_NAME} PRIVATE ${CMAKE_DL_LIBS})
+            target_compile_definitions(${TARGET_NAME} PRIVATE HAVE_DLOPEN)
         endif()
         
     else()
-        # Optional: Handle case when dlopen is not found in either library
-        message(WARNING "dlopen not found in libc or libdl for ${TARGET_NAME}")
+        # Message if dlopen is not found (i.e., no dynamic loading library needed)
+        message(WARNING "dlopen not found in CMAKE_DL_LIBS for target ${TARGET_NAME}. Dynamic loading may not be supported.")
     endif()
 
 endfunction()
