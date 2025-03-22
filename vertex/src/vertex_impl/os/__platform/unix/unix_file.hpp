@@ -209,7 +209,7 @@ public:
         return file::from_handle(h, m);
     }
 
-    static typename handle get_handle(const file& f)
+    static handle get_handle(const file& f)
     {
         return f.get_handle();
     }

@@ -10,13 +10,13 @@ namespace vx {
 namespace os {
 namespace __detail {
 
-#define assert_is_loaded(h) VX_ASSERT_MESSAGE(h.get() != NULL, "library not loaded")
+#define assert_is_loaded(h) VX_ASSERT_MESSAGE(h != NULL, "library not loaded")
 
 class shared_library_impl
 {
 public:
 
-    static bool load(handle& h, const char* lib)
+    static bool load(void*& h, const char* lib)
     {
         VX_ASSERT_MESSAGE(!h.is_valid(), "library already loaded");
 
@@ -31,19 +31,19 @@ public:
         return true;
     }
 
-    static bool is_loaded(const handle& h) noexcept
+    static bool is_loaded(const void* h) noexcept
     {
-        return h.is_valid();
+        return h != NULL;
     }
 
-    static void free(handle& h) noexcept
+    static void free(void*& h) noexcept
     {
         assert_is_loaded(h);
         dlclose(h);
-        h.reset();
+        h = NULL;
     }
 
-    static void* get_addr(const handle& h, const char* symbol_name) noexcept
+    static void* get_addr(void* h, const char* symbol_name) noexcept
     {
         assert_is_loaded(h);
         return dlsym(h, symbol_name);

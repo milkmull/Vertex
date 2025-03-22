@@ -45,8 +45,7 @@ public:
     shared_library(const shared_library&) = default;
     shared_library& operator=(const shared_library&) = default;
 
-    shared_library(shared_library&& other) noexcept
-        : m_handle(std::move(other.m_handle))
+    shared_library(shared_library&& other) noexcept : m_handle(other.m_handle)
     {
         other.free();
     }
@@ -56,7 +55,7 @@ public:
         if (this != &other)
         {
             free();
-            m_handle = std::move(other.m_handle);
+            m_handle = other.m_handle;
             other.free();
         }
 
@@ -90,7 +89,7 @@ private:
 
     friend __detail::shared_library_impl;
 
-    handle m_handle;
+    void* m_handle = nullptr;
 };
 
 } // namespace os

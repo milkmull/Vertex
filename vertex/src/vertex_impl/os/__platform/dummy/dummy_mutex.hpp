@@ -12,22 +12,22 @@ class mutex_impl
 {
 public:
 
-    static void create(mutex::impl_data& data) noexcept {}
-    static void destroy(mutex::impl_data& data) noexcept {}
+    static void create(mutex::impl_data&) noexcept {}
+    static void destroy(mutex::impl_data&) noexcept {}
 
-    static bool lock(mutex::impl_data& data) noexcept
+    static bool lock(mutex::impl_data&) noexcept
     {
         unsupported("lock");
         return false;
     }
 
-    static bool try_lock(mutex::impl_data& data) noexcept
+    static bool try_lock(mutex::impl_data&) noexcept
     {
         unsupported("try_lock");
         return false;
     }
 
-    static void unlock(mutex::impl_data& data) noexcept
+    static void unlock(mutex::impl_data&) noexcept
     {
         unsupported("unlock");
     }

@@ -13,21 +13,21 @@ class shared_library_impl
 {
 public:
 
-    static bool load(handle&, const char*)
+    static bool load(void*&, const char*)
     {
         unsupported("load");
         return false;
     }
 
-    static bool is_loaded(const handle&) noexcept
+    static bool is_loaded(const void*) noexcept
     {
         unsupported("is_loaded");
         return false;
     }
 
-    static void free(handle&) noexcept {}
+    static void free(void*&) noexcept {}
 
-    static void* get_addr(const handle&, const char*) noexcept
+    static void* get_addr(void*, const char*) noexcept
     {
         unsupported("get_addr");
         return nullptr;
