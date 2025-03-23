@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_LOCALE_IMPL)
-#   error "locale implementation has already been included!"
-#endif
-#define VX_OS_LOCALE_IMPL
-
 #include "vertex/os/locale.hpp"
 #include "vertex/system/error.hpp"
 

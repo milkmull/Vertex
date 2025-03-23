@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_TIME_IMPL)
-#   error "time implementation has already been included!"
-#endif
-#define VX_OS_TIME_IMPL
-
 #include "vertex/os/time.hpp"
 #include "vertex/system/error.hpp"
 

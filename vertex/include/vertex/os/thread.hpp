@@ -220,6 +220,7 @@ private:
 namespace this_thread {
 
 VX_API thread::id get_id();
+VX_API void yeild();
 
 } // namespace this_thread
 

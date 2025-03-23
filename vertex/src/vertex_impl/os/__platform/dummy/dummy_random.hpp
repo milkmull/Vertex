@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_RANDOM_IMPL)
-#   error "random implementation has already been included!"
-#endif
-#define VX_OS_RANDOM_IMPL
-
 #include "vertex/system/error.hpp"
 
 namespace vx {

@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_FILESYSTEM_IMPL)
-#   error "filesystem implementation has already been included!"
-#endif
-#define VX_OS_FILESYSTEM_IMPL
-
 #include "vertex/os/filesystem.hpp"
 
 namespace vx {

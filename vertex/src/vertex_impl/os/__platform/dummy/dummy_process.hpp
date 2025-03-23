@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_PROCESS_IMPL)
-#   error "process implementation has already been included!"
-#endif
-#define VX_OS_PROCESS_IMPL
-
 #include "vertex/os/process.hpp"
 
 namespace vx {

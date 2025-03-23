@@ -1,10 +1,5 @@
 #pragma once
 
-#if defined(VX_OS_SYSTEM_MEMORY_IMPL)
-#   error "system memory implementation has already been included!"
-#endif
-#define VX_OS_SYSTEM_MEMORY_IMPL
-
 #include "vertex/os/system_info.hpp"
 #include "vertex/system/error.hpp"
 
