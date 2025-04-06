@@ -261,12 +261,12 @@
 // Likely/Unlikely Branching
 ///////////////////////////////////////////////////////////////////////////////
 
-#if VX_HAS_ATTRIBUTE(likely)
+#if VX_CPP_STANDARD >= 20 // C++20 or later
 
 #   define VX_LIKELY(expr) [[likely]] (expr)
 #   define VX_UNLIKELY(expr) [[unlikely]] (expr)
 
-#elif VX_HAS_BUILTIN(__builtin_expect)
+#elif defined(__GNUC__) || defined(__clang__)
 
 #   define VX_LIKELY(expr) (__builtin_expect(!!(expr), 1))
 #   define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
@@ -294,7 +294,7 @@
 // Fallthrough
 ///////////////////////////////////////////////////////////////////////////////
 
-#if VX_HAS_ATTRIBUTE(fallthrough)
+#if (VX_CPP_STANDARD >= 17)
 #   define VX_FALLTHROUGH [[fallthrough]]
 #elif defined(_MSC_VER)
 #   define VX_FALLTHROUGH __fallthrough

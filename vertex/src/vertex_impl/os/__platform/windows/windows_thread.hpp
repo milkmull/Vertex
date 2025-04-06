@@ -14,10 +14,8 @@ namespace __detail {
 
 #define assert_is_running() VX_ASSERT_MESSAGE(is_valid(td), "thread not running")
 
-class thread_impl
+struct thread_impl
 {
-public:
-
     static bool is_valid(const thread::impl_data& td) noexcept
     {
         return td.h.is_valid();

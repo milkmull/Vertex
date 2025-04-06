@@ -12,10 +12,8 @@ namespace __detail {
 // https://github.com/microsoft/STL/blob/1f6e5b16ec02216665624c1e762f3732605cf2b4/stl/src/mutex.cpp
 // https://github.com/microsoft/STL/blob/1f6e5b16ec02216665624c1e762f3732605cf2b4/stl/inc/__msvc_threads_core.hpp#L35
 
-class mutex_impl
+struct mutex_impl
 {
-public:
-
 #   define get_srw_lock(data) reinterpret_cast<PSRWLOCK>(&data.critical_section.lock)
 
     static void create(mutex::impl_data& data) noexcept

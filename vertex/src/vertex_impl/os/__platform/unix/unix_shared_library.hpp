@@ -14,10 +14,8 @@ namespace __detail {
 
 #define assert_is_loaded(h) VX_ASSERT_MESSAGE(h != NULL, "library not loaded")
 
-class shared_library_impl
+struct shared_library_impl
 {
-public:
-
     static bool load(void*& h, const char* lib)
     {
         VX_ASSERT_MESSAGE(h == NULL, "library already loaded");

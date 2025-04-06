@@ -13,10 +13,8 @@ namespace __detail {
 
 #define assert_is_open(h) VX_ASSERT_MESSAGE(h.is_valid(), "file not open")
 
-class file_impl
+struct file_impl
 {
-public:
-
     static bool exists(const path& p)
     {
         struct stat stat_buf;
