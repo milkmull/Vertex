@@ -4,6 +4,7 @@
 #include "vertex/os/time.hpp"
 
 #include <thread>
+#include <atomic>
 
 using namespace vx;
 
