@@ -3,7 +3,7 @@
 #include <chrono>
 
 #include "vertex/util/type_traits.hpp"
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 namespace vx {
 namespace time {

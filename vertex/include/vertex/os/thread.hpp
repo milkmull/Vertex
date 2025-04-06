@@ -15,7 +15,7 @@ namespace os {
 
 namespace __detail {
 
-class thread_impl;
+struct thread_impl;
 
 } // namespace __detail
 
@@ -125,7 +125,7 @@ private:
             return nullptr;
         }
 
-#elif defined(VX_PLATFORM_WINDOWS)
+#elif defined(VX_OS_WINDOWS)
 
         static unsigned int __stdcall thread_entry(void* arg)
         {
@@ -209,9 +209,9 @@ private:
     struct impl_data
     {
         id thread_id = 0;
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
         handle h;
-#endif
+#endif // VX_OS_WINDOWS
     };
 
     impl_data m_impl_data;

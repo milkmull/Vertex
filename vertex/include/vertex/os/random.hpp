@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 namespace vx {
 namespace os {

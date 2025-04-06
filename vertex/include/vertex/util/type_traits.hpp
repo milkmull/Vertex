@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 #include <type_traits>
 #include <iterator>
@@ -493,7 +493,7 @@ using index_sequence = integer_sequence<size_t, In...>;
 
 template <typename T, T N>
 using make_integer_sequence
-#if defined(VX_COMPILER_MSVC) || VX_HAS_BUILTIN(__make_integer_seq)
+#if defined(_MSC_VER) || VX_HAS_BUILTIN(__make_integer_seq)
     = __make_integer_seq<integer_sequence, T, N>;
 #elif VX_HAS_BUILTIN(__integer_pack)
     = integer_sequence<T, __integer_pack(N)...>;

@@ -2,6 +2,7 @@
 
 #include <utility> // std::move
 
+#include "vertex/config/language_config.hpp"
 #include "vertex/os/handle.hpp"
 
 namespace vx {
@@ -13,7 +14,7 @@ namespace os {
 
 namespace __detail {
 
-class shared_library_impl;
+struct shared_library_impl;
 
 } // namespace __detail
 
@@ -27,9 +28,9 @@ public:
 
     static constexpr const char* suffix() noexcept
     {
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_OS_WINDOWS)
         return ".dll";
-#   elif defined(VX_PLATFORM_APPLE)
+#   elif defined(VX_OS_APPLE)
         return ".dylib";
 #   else
         return ".so";

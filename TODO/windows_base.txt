@@ -244,3 +244,8 @@ finish base library:
     - document library
     x test cmake installation process (windows)
 }
+
+atomic:
+{
+    
+}

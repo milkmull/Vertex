@@ -52,7 +52,6 @@ target_sources(Vertex PRIVATE ${VX_OS_SOURCE_FILES})
 
 # Header files for dummy modules
 file(GLOB VX_OS_DUMMY_SOURCE_FILES
-    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_atomic.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_locale.hpp"
@@ -76,7 +75,6 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_tools.cpp"
         
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_atomic.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_file.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_filesystem.cpp"
@@ -107,7 +105,6 @@ elseif(VX_CMAKE_UNIX_SYS)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_tools.cpp"
         
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_atomic.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_file.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_filesystem.cpp"

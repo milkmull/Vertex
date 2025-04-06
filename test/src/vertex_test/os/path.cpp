@@ -1,8 +1,8 @@
 #include "vertex_test/os/path.hpp"
 
-#if defined(VX_PLATFORM_WINDOWS)
-#   define VX_TESTING_WINDOWS_PATH
-#endif // VX_PLATFORM_WINDOWS
+#if defined(VX_OS_WINDOWS)
+#   define __VX_TESTING_WINDOWS_PATH
+#endif // VX_OS_WINDOWS
 
 using namespace vx;
 
@@ -12,7 +12,7 @@ using namespace vx;
 
 VX_TEST_CASE(native)
 {
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
     static_assert(std::is_same<typename os::path::string_type, std::wstring>::value);
     static_assert(std::is_same<typename os::path::value_type, wchar_t>::value);
     static_assert(os::path::preferred_separator == L'\\');
@@ -20,7 +20,7 @@ VX_TEST_CASE(native)
     static_assert(std::is_same<typename os::path::string_type, std::string>::value);
     static_assert(std::is_same<typename os::path::value_type, char>::value);
     static_assert(os::path::preferred_separator == '/');
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -49,27 +49,27 @@ VX_TEST_CASE(decomposition)
             { "hi", "", "", "hi", "", "hi", false },
 
             // empty drive-relative path
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { "c:", "c:", "", "", "c:", "", false },
             { "C:", "C:", "", "", "C:", "", false },
 #       else
             { "c:", "", "", "c:", "", "c:", false },
             { "C:", "", "", "C:", "", "C:", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // non-empty drive-relative path
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { "c:dog", "c:", "", "dog", "c:", "dog", false },
 #       else
             { "c:dog", "", "", "c:dog", "", "c:dog", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // malformed drive
             { "cc:dog", "", "", "cc:dog", "", "cc:dog", false },
             { "::dog", "", "", "::dog", "", "::dog", false },
             { " :dog", "", "", " :dog", "", " :dog", false },
             { ":dog", "", "", ":dog", "", ":dog", false },
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(\:dog)", "", R"(\)", ":dog", R"(\)", ":dog", false },
             { R"(\:\dog)", "", R"(\)", R"(:\dog)", R"(\:)", "dog", false },
             { R"(1:\dog)", "", "", R"(1:\dog)", R"(1:)", "dog", false },
@@ -77,28 +77,28 @@ VX_TEST_CASE(decomposition)
             { R"(\:dog)", "", "", R"(\:dog)", "", R"(\:dog)", false },
             { R"(\:\dog)", "", "", R"(\:\dog)", "", R"(\:\dog)", false },
             { R"(1:\dog)", "", "", R"(1:\dog)", "", R"(1:\dog)", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // current drive root relative path
             { "Dev/msvc", "", "", "Dev/msvc", "Dev", "msvc", false },
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(\Dev\msvc)", "", R"(\)", R"(Dev\msvc)", R"(\Dev)", "msvc", false },
             { R"(\Dev\msvc\)", "", R"(\)", R"(Dev\msvc\)", R"(\Dev\msvc)", "", false },
 #       else
             { "Dev/msvc/", "", "", "Dev/msvc/", "Dev/msvc", "", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // absolute path
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(c:\)", "c:", R"(\)", "", R"(c:\)", "", true },
             { "c:/", "c:", "/", "", "c:/", "", true },
 #       else
             { "/", "", "/", "", "/", "", true },
             { R"(\)", "", "", R"(\)", "", R"(\)", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // usual path form
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(c:\cat\dog\elk)", "c:", R"(\)", R"(cat\dog\elk)", R"(c:\cat\dog)", "elk", true },
             { R"(c:\cat\dog\elk\)", "c:", R"(\)", R"(cat\dog\elk\)", R"(c:\cat\dog\elk)", "", true },
             { R"(c:/cat\dog\elk)", "c:", R"(/)", R"(cat\dog\elk)", R"(c:/cat\dog)", "elk", true },
@@ -106,17 +106,17 @@ VX_TEST_CASE(decomposition)
 #       else
             { "/cat/dog/elk", "", "/", "cat/dog/elk", "/cat/dog", "elk", true},
             { "/cat/dog/elk/", "", "/", "cat/dog/elk/", "/cat/dog/elk", "", true },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
              // extra long root-directory
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(c:\\\\\cat\dog\elk)", "c:", R"(\\\\\)", R"(cat\dog\elk)", R"(c:\\\\\cat\dog)", "elk", true },
 #       else
             { "//////cat/dog/elk", "", "//////", "cat/dog/elk", "//////cat/dog", "elk", true },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // Special cases
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             // "\\?\"
             { R"(\\?\)", R"(\\?)", R"(\)", "", R"(\\?\)", "", true },
             { R"(\\?\x)", R"(\\?)", R"(\)", "x", R"(\\?\)", "x", true },
@@ -143,10 +143,10 @@ VX_TEST_CASE(decomposition)
             { R"(\\?\)", "", "", R"(\\?\)", "", R"(\\?\)", false },
             { R"(\\.\)", "", "", R"(\\.\)", "", R"(\\.\)", false },
             { R"(\??\)", "", "", R"(\??\)", "", R"(\??\)", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // network path
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(\\server\share)", R"(\\server)", R"(\)", "share", R"(\\server\)", "share", true },
             { R"(/\server\share)", R"(/\server)", R"(\)", "share", R"(/\server\)", "share", true },
             { R"(/\server/share)", R"(/\server)", R"(/)", "share", R"(/\server/)", "share", true },
@@ -159,21 +159,21 @@ VX_TEST_CASE(decomposition)
             { R"(\\\dog)", "", R"(\\\)", "dog", R"(\\\)", "dog", false },
 #       else
             { R"(\\server)", "", "", R"(\\server)", "", R"(\\server)", false },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // document that we don't treat \\?\UNC special even if MSDN does:
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(\\?\UNC\server\share)", R"(\\?)", R"(\)", R"(UNC\server\share)", R"(\\?\UNC\server)", "share", true },
             // other similar cases
             { R"(\\?\UNC)", R"(\\?)", R"(\)", R"(UNC)", R"(\\?\)", "UNC", true },
             { R"(\\?\UNC\server)", R"(\\?)", R"(\)", R"(UNC\server)", R"(\\?\UNC)", "server", true },
             { R"(\\?\UNC\server\)", R"(\\?)", R"(\)", R"(UNC\server\)", R"(\\?\UNC\server)", "", true },
             { R"(\\?\UNC\\)", R"(\\?)", R"(\)", R"(UNC\\)", R"(\\?\UNC)", "", true },
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
             // driver letter after special prefix
             // https://cplusplus.github.io/LWG/issue3699
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
 
             { R"(\\.\C:\attempt_at_relative)", R"(\\.\C:)", R"(\)", R"(attempt_at_relative)", R"(\\.\C:\)", "attempt_at_relative", true },
             { R"(\\.\C:attempt_at_relative)", R"(\\.\C:)", R"()", R"(attempt_at_relative)", R"(\\.\C:)", "attempt_at_relative", true },
@@ -184,10 +184,10 @@ VX_TEST_CASE(decomposition)
             { R"(\??\C:\attempt_at_relative)", R"(\??\C:)", R"(\)", R"(attempt_at_relative)", R"(\??\C:\)", "attempt_at_relative", true },
             { R"(\??\C:attempt_at_relative)", R"(\??\C:)", R"()", R"(attempt_at_relative)", R"(\??\C:)", "attempt_at_relative", true },
 
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
 
         // other interesting user-submitted test cases:
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { R"(\)", "", R"(\)", "", R"(\)", "", false },
             { R"(\\)", "", R"(\\)", "", R"(\\)", "", false },
             { R"(\\\)", "", R"(\\\)", "", R"(\\\)", "", false },
@@ -235,7 +235,7 @@ VX_TEST_CASE(decomposition)
             { "/../..", "", "/", "../..", "/..", "..", true },
             { "/../../", "", "/", "../../", "/../..", "", true },
             { "//../../", "", "//", "../../", "//../..", "", true }
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
         };
 
         for (const auto& t : decomp_test_cases)
@@ -263,7 +263,7 @@ VX_TEST_CASE(decomposition)
             { "cat.", "cat", "." },
 
             // all of the above with alternate data streams
-#       if defined(VX_TESTING_WINDOWS_PATH)
+#       if defined(__VX_TESTING_WINDOWS_PATH)
             { ".:alternate_meow", ".", "" },
             { "..:alternate_dog", "..", "" },
             { ".config:alternate_elk", ".config", "" },
@@ -287,7 +287,7 @@ VX_TEST_CASE(decomposition)
             { "cat.dog:even:if:this:curtain:is:malformed", "cat", ".dog:even:if:this:curtain:is:malformed" },
             { "cat:what?", "cat:what?", "" },
             { "cat.:alternate_fun", "cat", ".:alternate_fun" }
-#       endif // VX_TESTING_WINDOWS_PATH
+#       endif // __VX_TESTING_WINDOWS_PATH
         };
 
         for (const auto& t : stem_test_cases)
@@ -313,7 +313,7 @@ VX_TEST_CASE(compare)
         { "//////", "//", test::compare_result::equal },
         
         // different counts of /s and different kinds compare:
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { "c://a/b", "c:/a//b", test::compare_result::equal },
         { "c://a/b", R"(c:/a/\b)", test::compare_result::equal },
         { "c:/a/b///c", "c:/a///b/c", test::compare_result::equal },
@@ -323,19 +323,19 @@ VX_TEST_CASE(compare)
         { "//a/b", R"(/a/\b)", test::compare_result::greater },
         { "/a/b///c", "/a///b/c", test::compare_result::equal },
         { R"(/a/b\//c)", R"(/a//\b/c)", test::compare_result::greater },
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
         
         // comparing root_name:
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { R"(\\server\share)", "C:/a", test::compare_result::greater },
         { R"(//server\share)", "C:/a", test::compare_result::less },
         { "//server/share", "\\\\server/share", test::compare_result::equal },
         // doesn't actually get to has_root_name test, since root_name comparison differs:
         { R"(c:a)", R"(C:\a)", test::compare_result::greater },
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
 
         // different values of has_root_directory():
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { "c:/", "c:", test::compare_result::greater },
         { "c:", "c:/", test::compare_result::less },
         { "c:////", "c://", test::compare_result::equal },
@@ -346,7 +346,7 @@ VX_TEST_CASE(compare)
         { "", "/", test::compare_result::less },
         { "/a", "a", test::compare_result::greater},
         { "a", "/a", test::compare_result::less},
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
         
         // fewer path elements compare less:
         { "/a", "/a/b", test::compare_result::less },
@@ -365,11 +365,11 @@ VX_TEST_CASE(compare)
 
         // differ only in where the / goes:
         { "/ap/ple", "/app/le", test::compare_result::less },
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { R"(c:/ap\ple)", R"(c:/app\le)", test::compare_result::less },
         { "c:/ap/ple", R"(c:/app\le)", test::compare_result::less },
         { R"(c:/ap\ple)", "c:/app/le", test::compare_result::less }
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
     };
 
     for (const auto& t : compare_test_cases)
@@ -384,7 +384,7 @@ VX_TEST_CASE(slash)
 {
     constexpr test::slash_test_case slash_test_cases[] = {
         { "", "", "" },
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { "relative", "other", R"(relative\other)" },
         { "//server", "share", R"(//server\share)" },
         { "//server", "share", R"(//server\share)" },
@@ -399,10 +399,10 @@ VX_TEST_CASE(slash)
         { "cat", "/dog", "/dog" },
         { "cat", "/", "/" },
         { "cat", "", "cat/"}, // note addition of "magic empty path" in decomposition
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
         { "", "cat", "cat" },
         { "./", "cat", "./cat" },
-#   if defined(VX_TESTING_WINDOWS_PATH)
+#   if defined(__VX_TESTING_WINDOWS_PATH)
         { "c:", "", "c:" },
         { "c:", "dog", "c:dog" },
         { "c:cat", "/dog", "c:/dog" },
@@ -413,7 +413,7 @@ VX_TEST_CASE(slash)
         { "c:abc", "dog/def", R"(c:abc\dog/def)" },
         { "//?/frobinate", R"(\that's strange)", R"(//?\that's strange)" },
         { "//?/", R"(\that's strange)", R"(//?\that's strange)" }
-#   endif // VX_TESTING_WINDOWS_PATH
+#   endif // __VX_TESTING_WINDOWS_PATH
     };
 
     for (const auto& t : slash_test_cases)
@@ -463,7 +463,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK((*it).string() == s);
     }
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_SECTION("root name")
     {
@@ -493,7 +493,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK(it == p.end());
     }
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_SECTION("root directory")
     {
@@ -507,7 +507,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK(it == p.end());
     }
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_SECTION("long root directory")
     {
@@ -537,7 +537,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK(it == p.end());
     }
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_SECTION("relative")
     {
@@ -579,7 +579,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK(it == p.end());
     }
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_SECTION("windows slash root")
     {
@@ -595,7 +595,7 @@ VX_TEST_CASE(iterators)
         VX_CHECK(it == p.end());
     }
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -629,7 +629,7 @@ VX_TEST_CASE(pop_back)
     VX_CHECK(os::path("cat/dog").pop_back() == "cat");
     VX_CHECK(os::path("//").pop_back() == "/");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("c:cat").pop_back() == "c:");
     VX_CHECK(os::path("c:/").pop_back() == "c:/");
@@ -655,14 +655,14 @@ VX_TEST_CASE(pop_back)
     VX_CHECK(os::path("/a").pop_back() == "/");
     VX_CHECK(os::path("/").pop_back() == "/");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(make_preferred)
 {
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     os::path p("//?/a/b/c");
     VX_CHECK(p.make_preferred().string() == R"(\\?\a\b\c)");
@@ -672,7 +672,7 @@ VX_TEST_CASE(make_preferred)
     os::path p(R"(///a/b\c)");
     VX_CHECK(p.make_preferred().string() == R"(///a/b\c)");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -696,7 +696,7 @@ VX_TEST_CASE(filename)
         p = "hello/there.txt";
         VX_CHECK(p.remove_filename().string() == "hello/");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
         p = "hello/there:extension";
         VX_CHECK(p.remove_filename().string() == "hello/");
@@ -710,7 +710,7 @@ VX_TEST_CASE(filename)
         p = "c:/";
         VX_CHECK(p.remove_filename().string() == "c:/");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
     }
 
     VX_SECTION("remove_extension")
@@ -744,7 +744,7 @@ VX_TEST_CASE(filename)
         p = "/hello.txt:bonus";
         VX_CHECK(p.remove_extension() == "/hello");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
         p = "c:.";
         VX_CHECK(p.remove_filename().string() == "c:");
@@ -752,7 +752,7 @@ VX_TEST_CASE(filename)
         p = "c:hello.txt";
         VX_CHECK(p.remove_filename().string() == "c:");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
     }
 
     VX_SECTION("replace_extension")
@@ -791,7 +791,7 @@ VX_TEST_CASE(lexically_normal)
     VX_CHECK(os::path("cat/./dog/..").lexically_normal() == "cat/");
     VX_CHECK(os::path("cat/.///dog/../").lexically_normal() == "cat/");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("C:").lexically_normal() == "C:");
     VX_CHECK(os::path("C:drive_relative").lexically_normal() == "C:drive_relative");
@@ -805,12 +805,12 @@ VX_TEST_CASE(lexically_normal)
     VX_CHECK(os::path("C:/absolute").lexically_normal() == "C:/absolute");
     VX_CHECK(os::path("C://///absolute").lexically_normal() == "C://///absolute");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_CHECK(os::path("/root_relative").lexically_normal() == "/root_relative");
     VX_CHECK(os::path("////root_relative").lexically_normal() == "/root_relative");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("//server/share").lexically_normal() == "//server/share");
     VX_CHECK(os::path("//server///share").lexically_normal() == "//server/share");
@@ -820,16 +820,16 @@ VX_TEST_CASE(lexically_normal)
     VX_CHECK(os::path("//server/share").lexically_normal() == "/server/share");
     VX_CHECK(os::path("//server///share").lexically_normal() == "/server/share");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("//?/device").lexically_normal() == "//?/device");
     VX_CHECK(os::path("/??/device").lexically_normal() == "/??/device");
     VX_CHECK(os::path("//./device").lexically_normal() == "//./device");
     VX_CHECK(os::path("//?/UNC/server/share").lexically_normal() == "//?/UNC/server/share");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_CHECK(os::path("/a/b//c//d//e//f").lexically_normal() == "/a/b/c/d/e/f");
 
@@ -876,7 +876,7 @@ VX_TEST_CASE(lexically_relative)
     VX_CHECK(os::path("a/b/c").lexically_relative("a/b/c") == ".");
     VX_CHECK(os::path("a/b").lexically_relative("c/d") == "../../a/b");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("C:/Temp").lexically_relative("D:/Temp") == "");
     VX_CHECK(os::path("C:/Temp").lexically_relative("Temp") == "");
@@ -889,7 +889,7 @@ VX_TEST_CASE(lexically_relative)
     VX_CHECK(os::path("Temp").lexically_relative("/Temp") == "");
     VX_CHECK(os::path("/Temp1").lexically_relative("/Temp2") == "../Temp1");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_CHECK(os::path("one").lexically_relative("/two") == "");
     
@@ -902,7 +902,7 @@ VX_TEST_CASE(lexically_relative)
     // https://cplusplus.github.io/LWG/issue3070
     VX_CHECK(os::path("/a:/b:").lexically_relative("/a:/c:") == "../b:");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_relative(R"(\\?\a:\meow)") == ".");
     VX_CHECK(os::path(R"(\\?\a:\meow\a\b)").lexically_relative(R"(\\?\a:\meow)") == "a/b");
@@ -912,7 +912,7 @@ VX_TEST_CASE(lexically_relative)
     VX_CHECK(os::path(R"(a:\meow)").lexically_relative(R"(\\?\a:\meow)") == "");
     VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_relative(R"(a:\meow)") == "");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -928,7 +928,7 @@ VX_TEST_CASE(lexically_proximate)
     VX_CHECK(os::path("a/b/c").lexically_proximate("a/b/c") == ".");
     VX_CHECK(os::path("a/b").lexically_proximate("c/d") == "../../a/b");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path("C:/Temp").lexically_proximate("D:/Temp") == "C:/Temp");
     VX_CHECK(os::path("C:/Temp").lexically_proximate("Temp") == "C:/Temp");
@@ -941,7 +941,7 @@ VX_TEST_CASE(lexically_proximate)
     VX_CHECK(os::path("Temp").lexically_proximate("/Temp") == "Temp");
     VX_CHECK(os::path("/Temp1").lexically_proximate("/Temp2") == "../Temp1");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 
     VX_CHECK(os::path("one").lexically_proximate("/two") == "one");
 
@@ -954,7 +954,7 @@ VX_TEST_CASE(lexically_proximate)
     // https://cplusplus.github.io/LWG/issue3070
     VX_CHECK(os::path("/a:/b:").lexically_proximate("/a:/c:") == "../b:");
 
-#if defined(VX_TESTING_WINDOWS_PATH)
+#if defined(__VX_TESTING_WINDOWS_PATH)
 
     VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_proximate(R"(\\?\a:\meow)") == ".");
     VX_CHECK(os::path(R"(\\?\a:\meow\a\b)").lexically_proximate(R"(\\?\a:\meow)") == "a/b");
@@ -963,7 +963,7 @@ VX_TEST_CASE(lexically_proximate)
     VX_CHECK(os::path(R"(a:\meow)").lexically_proximate(R"(\\?\a:\meow)") == R"(a:\meow)");
     VX_CHECK(os::path(R"(\\?\a:\meow)").lexically_proximate(R"(a:\meow)") == R"(\\?\a:\meow)");
 
-#endif // VX_TESTING_WINDOWS_PATH
+#endif // __VX_TESTING_WINDOWS_PATH
 }
 
 int main()

@@ -3,7 +3,7 @@
 #include <climits> // CHAR_BIT
 #include <limits> // numeric_limits
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 #include "vertex/util/type_traits.hpp"
 
 namespace vx {

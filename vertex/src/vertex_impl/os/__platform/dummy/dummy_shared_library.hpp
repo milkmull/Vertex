@@ -9,10 +9,8 @@ namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::shared_library::" op "()")
 
-class shared_library_impl
+struct shared_library_impl
 {
-public:
-
     static bool load(void*&, const char*)
     {
         unsupported("load");

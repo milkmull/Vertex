@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 #if defined(ERROR)
 #   undef ERROR

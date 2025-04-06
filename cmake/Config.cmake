@@ -2,7 +2,7 @@
 # Detect OS
 #--------------------------------------------------------------------
 
-if(NOT VX_BUILD_DUMMY_OS)
+if(NOT VX_DUMMY_PLATFORM)
 
     # Windows
     if(WIN32)
@@ -53,12 +53,12 @@ if(NOT VX_BUILD_DUMMY_OS)
     # This ensures that Unix-specific options are applied only to general Unix systems.
     if(UNIX AND NOT ANDROID AND NOT APPLE AND NOT RISCOS)
 
-        set(VX_CMAKE_UNIX_SYS 1)
+        set(VX_CMAKE_PLATFORM_UNIX 1)
         message(STATUS "Platform is Unix")
         
     else()
 
-        set(VX_CMAKE_UNIX_SYS 0)
+        set(VX_CMAKE_PLATFORM_UNIX 0)
         
     endif()
 

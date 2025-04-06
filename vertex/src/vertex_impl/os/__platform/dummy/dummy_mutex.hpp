@@ -8,10 +8,8 @@ namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::mutex::" op "()")
 
-class mutex_impl
+struct mutex_impl
 {
-public:
-
     static void create(mutex::impl_data&) noexcept {}
     static void destroy(mutex::impl_data&) noexcept {}
 

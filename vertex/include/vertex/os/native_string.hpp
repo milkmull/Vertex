@@ -2,6 +2,7 @@
 
 #include <string>
 
+#include "vertex/config/os.hpp"
 #include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
@@ -11,7 +12,7 @@ class native_string
 {
 public:
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     using value_type = wchar_t;
 
@@ -19,7 +20,7 @@ public:
 
     using value_type = char;
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     using string_type = std::basic_string<value_type>;
 

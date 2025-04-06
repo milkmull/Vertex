@@ -2,7 +2,9 @@
 #include "vertex/os/mutex.hpp"
 #include "vertex_impl/os/__platform/thread.hpp"
 
-#include "vertex/system/platform.hpp"
+#include "vertex/config/language_config.hpp"
+
+/*
 
 ///////////////////////////////////////////////////////////////////////////////
 // Includes
@@ -22,6 +24,9 @@
 
 namespace vx {
 namespace os {
+
+// https://github.com/libsdl-org/SDL/blob/b8381b3a2ea9873c6baedb8586da8bb5a2775d24/CMakeLists.txt#L580
+// https://github.com/microsoft/STL/blob/1f6e5b16ec02216665624c1e762f3732605cf2b4/stl/inc/atomic#L464
 
 ///////////////////////////////////////////////////////////////////////////////
 // spinlock lock/unlock
@@ -163,3 +168,5 @@ VX_API void spinlock::unlock() noexcept
 
 } // namespace os
 } // namespace vx
+
+*/

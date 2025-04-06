@@ -157,7 +157,7 @@ VX_API bool file::read_line(std::string& line)
     {
         if (c == '\n')
         {
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
             // remove carriage return on windows
             if (!line.empty() && line.back() == '\r')
@@ -165,7 +165,7 @@ VX_API bool file::read_line(std::string& line)
                 line.pop_back();
             }
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
             return true;
         }
@@ -198,7 +198,7 @@ VX_API bool file::write_file(const path& p, const char* text)
         return false;
     }
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     const char* s = text;
     const char* e = text;
@@ -233,7 +233,7 @@ VX_API bool file::write_file(const path& p, const char* text)
     const size_t file_size = std::strlen(text);
     return (__detail::file_impl::write(f.m_handle, reinterpret_cast<const uint8_t*>(text), file_size) == file_size);
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 }
 
 file file::from_handle(handle h, mode m)

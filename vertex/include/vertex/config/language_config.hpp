@@ -1,50 +1,9 @@
 #pragma once
 
+#include "vertex/config/language.hpp"
+
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_comp_compiler_macros.html
-
-///////////////////////////////////////////////////////////////////////////////
-// Compiler Identification
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__clang__)
-#   define VX_COMPILER_CLANG
-#elif defined(__GNUC__)
-#   define VX_COMPILER_GNU
-#elif defined(_MSC_VER)
-#   define VX_COMPILER_MSVC
-#else
-#   error Unknown Compiler
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// C++ Standard Detection
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(_MSC_VER) && defined(_MSVC_LANG)
-#   define VX_CPP_STD _MSVC_LANG
-#elif defined(__cplusplus)
-#   define VX_CPP_STD __cplusplus
-#else
-#   define VX_CPP_STD 0L
-#endif
-
-#if VX_CPP_STD >= 202302L
-#   define VX_CPP_STANDARD 23
-#elif VX_CPP_STD >= 202002L
-#   define VX_CPP_STANDARD 20
-#elif VX_CPP_STD >= 201703L
-#   define VX_CPP_STANDARD 17
-#elif VX_CPP_STD >= 201402L
-#   define VX_CPP_STANDARD 14
-#elif VX_CPP_STD >= 201103L
-#   define VX_CPP_STANDARD 11
-#elif VX_CPP_STD >= 199711L
-#   define VX_CPP_STANDARD 98
-#else
-#   define VX_CPP_STANDARD 0
-#endif
-
-#undef VX_CPP_STD
+// https://github.com/boostorg/predef/blob/e1211a4ca467bb6512e99025772ca25afa8d6159/include/boost/predef/compiler.h
 
 ///////////////////////////////////////////////////////////////////////////////
 // Debug/Release
@@ -57,6 +16,107 @@
 #endif
 
 #define VX_RELEASE (!VX_DEBUG)
+
+///////////////////////////////////////////////////////////////////////////////
+// Null Device
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_WIN32)
+#   define VX_NULL_DEVICE L"NUL:"
+#else
+#   define VX_NULL_DEVICE "/dev/null"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Text
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_WIN32)
+#   define __VX_TEXT(x) L##x
+#else
+#   define __VX_TEXT(x) x
+#endif
+
+#define VX_TEXT(x) __VX_TEXT(x)
+
+///////////////////////////////////////////////////////////////////////////////
+// Line End
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_WIN32)
+#   define VX_LINE_END "\r\n"
+#else
+#   define VX_LINE_END "\n"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Null While Loop
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(_MSC_VER)
+#   define VX_NULL_WHILE_LOOP_CONDITION (0,0)
+#else
+#   define VX_NULL_WHILE_LOOP_CONDITION (0)
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// File and Line Information
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_FILE __FILE__
+#define VX_LINE __LINE__
+
+///////////////////////////////////////////////////////////////////////////////
+// Function Info
+///////////////////////////////////////////////////////////////////////////////
+
+#if VX_CPP_STANDARD >= 11 // C++11 and later
+#   define VX_FUNCTION __func__
+#elif ((defined(__GNUC__) && (__GNUC__ >= 2)) || defined(_MSC_VER) || defined (__WATCOMC__))
+#   define VX_FUNCTION __FUNCTION__
+#else
+#   define VX_FUNCTION "???"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// builtin
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__has_builtin)
+#   define VX_HAS_BUILTIN(x) __has_builtin(x)
+#else
+#   define VX_HAS_BUILTIN(x) 0
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// include
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__has_include)
+#   define VX_HAS_INCLUDE(header) __has_include(header)
+#else
+#   define VX_HAS_INCLUDE(header) 0
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// compiler attribute
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__has_attribute)
+#   define VX_HAS_COMPILER_ATTRIBUTE(x) __has_attribute(x)
+#else
+#   define VX_HAS_COMPILER_ATTRIBUTE(x) 0
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// cpp attribute
+///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__has_cpp_attribute)
+#   define VX_HAS_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+#   define VX_HAS_ATTRIBUTE(x) 0
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // DLL Export/Import
@@ -92,21 +152,15 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// Helper Macros
+// Pragma Helper
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
-
 #   define __VX_PRAGMA(x) __pragma(x)
-
 #elif defined(__GNUC__) || defined(__clang__)
-
 #   define __VX_PRAGMA(x) _Pragma(#x)
-
 #else
-
 #   define __VX_PRAGMA(x)
-
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -204,36 +258,15 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// Structure Packing
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(_MSC_VER)
-
-#   define VX_PACK_PUSH()   __pragma(pack(push, 1))
-#   define VX_PACK_POP()    __pragma(pack(pop))
-
-#elif defined(__GNUC__) || defined(__clang__)
-
-#   define VX_PACK_PUSH()   _Pragma("pack(push, 1)")
-#   define VX_PACK_POP()    _Pragma("pack(pop)")
-
-#else
-
-#   define VX_PACK_PUSH()
-#   define VX_PACK_POP()
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 // Likely/Unlikely Branching
 ///////////////////////////////////////////////////////////////////////////////
 
-#if VX_CPP_STANDARD >= 20 // C++20 or later
+#if VX_HAS_ATTRIBUTE(likely)
 
 #   define VX_LIKELY(expr) [[likely]] (expr)
 #   define VX_UNLIKELY(expr) [[unlikely]] (expr)
 
-#elif defined(__GNUC__) || defined(__clang__)
+#elif VX_HAS_BUILTIN(__builtin_expect)
 
 #   define VX_LIKELY(expr) (__builtin_expect(!!(expr), 1))
 #   define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
@@ -251,7 +284,7 @@
 
 #if defined(_MSC_VER)
 #   define VX_FORCE_INLINE __forceinline
-#elif defined(__GNUC__) || defined(__clang__)
+#elif VX_HAS_ATTRIBUTE(always_inline)
 #   define VX_FORCE_INLINE inline __attribute__((always_inline))
 #else
 #   define VX_FORCE_INLINE inline
@@ -261,7 +294,7 @@
 // Fallthrough
 ///////////////////////////////////////////////////////////////////////////////
 
-#if (VX_CPP_STANDARD >= 17)
+#if VX_HAS_ATTRIBUTE(fallthrough)
 #   define VX_FALLTHROUGH [[fallthrough]]
 #elif defined(_MSC_VER)
 #   define VX_FALLTHROUGH __fallthrough
@@ -277,7 +310,7 @@
 
 #if defined(_MSC_VER)
 #   define VX_NOTHROW __declspec(nothrow)
-#elif defined(__GNUC__) || defined(__clang__)
+#elif VX_HAS_ATTRIBUTE(nothrow)
 #   define VX_NOTHROW __attribute__((nothrow))
 #else
 #   define VX_NOTHROW
@@ -289,7 +322,7 @@
 
 #if defined(_MSC_VER)
 #   define VX_DEPRECATED(msg) __declspec(deprecated(msg))
-#elif defined(__GNUC__) || defined(__clang__)
+#elif VX_HAS_ATTRIBUTE(deprecated)
 #   define VX_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #else
 #   define VX_DEPRECATED(msg)
@@ -306,20 +339,10 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
-// builtin
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(__has_builtin)
-#   define VX_HAS_BUILTIN(x) __has_builtin(x)
-#else
-#   define VX_HAS_BUILTIN(x) 0
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 // stdcall
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifdef _WIN32
+#if defined(_WIN32)
 #   define VX_STDCALL __stdcall
 #else
 #   define VX_STDCALL

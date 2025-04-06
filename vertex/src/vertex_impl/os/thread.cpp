@@ -80,10 +80,5 @@ VX_API thread::id this_thread::get_id()
     return __detail::thread_impl::get_this_thread_id();
 }
 
-VX_API void this_thread::yeild()
-{
-    thread_yield();
-}
-
 } // namespace os
 } // namespace vx

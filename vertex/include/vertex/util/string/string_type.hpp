@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 #if (VX_CPP_STANDARD >= 17)
 #   include <string_view>

@@ -2,7 +2,7 @@
 
 #include <sstream>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/compiler.hpp"
 #include "vertex/system/assert.hpp"
 
 #if defined(ERROR)

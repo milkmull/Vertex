@@ -1,17 +1,22 @@
 #pragma once
 
+#include "vertex/config/os.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/util/io/quoted.hpp"
 #include "vertex/util/crypto/FNV1a.hpp"
 #include "vertex/os/native_string.hpp"
 
-#if defined(VX_TESTING_PATH)
-#   if defined(VX_TESTING_WINDOWS_PATH)
-#       define VX_WINDOWS_PATH
+#if defined(__VX_TESTING_PATH)
+
+#   if defined(__VX_TESTING_WINDOWS_PATH)
+#       define __VX_WINDOWS_PATH
 #   endif
-#elif defined(VX_PLATFORM_WINDOWS)
-#   define VX_WINDOWS_PATH
-#endif
+
+#elif defined(VX_OS_WINDOWS)
+
+#   define __VX_WINDOWS_PATH
+
+#endif // __VX_TESTING_PATH
 
 // https://en.cppreference.com/w/cpp/filesystem
 
@@ -26,11 +31,11 @@ class path;
 
 namespace __detail {
 
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
 using path_value_type = wchar_t;
 
-#   define PATH_TEXT(x) L##x
+#   define __PATH_TEXT(x) L##x
 
 #   define PATH_SEPARATOR L'/'
 #   define PATH_PREFERRED_SEPARATOR L'\\'
@@ -40,13 +45,13 @@ using path_value_type = wchar_t;
 
 using path_value_type = char;
 
-#   define PATH_TEXT(x) x
+#   define __PATH_TEXT(x) x
 
 #   define PATH_SEPARATOR '/'
 #   define PATH_PREFERRED_SEPARATOR '/'
 #   define PATH_DOT '.'
 
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 
 using path_string_type = std::basic_string<path_value_type>;
 
@@ -74,16 +79,16 @@ struct substring
 inline constexpr bool is_directory_separator(path_value_type c) noexcept
 {
     return c == PATH_SEPARATOR
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
         || c == PATH_PREFERRED_SEPARATOR
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
         ;
 }
 
 inline constexpr bool is_letter(path_value_type c) noexcept
 {
-    return (c >= PATH_TEXT('A') && c <= PATH_TEXT('Z'))
-        || (c >= PATH_TEXT('a') && c <= PATH_TEXT('z'));
+    return (c >= __PATH_TEXT('A') && c <= __PATH_TEXT('Z'))
+        || (c >= __PATH_TEXT('a') && c <= __PATH_TEXT('z'));
 }
 
 inline size_t find_separator(const path_value_type* p, size_t off, size_t size) noexcept
@@ -108,15 +113,15 @@ inline constexpr int compare(const path_value_type c1, const path_value_type c2)
 
 // Returns the start position of the root directory
 inline size_t find_root_directory_start(
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
     const path_value_type* first, size_t size
 #else
     const path_value_type*, size_t // unused on non-windows systems
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 ) noexcept
 {
     // Only windows has root name
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
     // A valid root name requires at least 2 characters (e.g., "C:")
     if (size < 2)
@@ -169,7 +174,7 @@ inline size_t find_root_directory_start(
         }
     }
 
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 
     return 0;
 }
@@ -256,7 +261,7 @@ inline substring parse_filename(const path_string_type& s) noexcept
 
 inline substring find_extension(const path_string_type& s, size_t filename_start) noexcept
 {
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
     // On Windows, file paths can contain alternate data streams (ADS), 
     // specified using a colon (e.g., "file.txt:stream"). Since the extension 
@@ -269,7 +274,7 @@ inline substring find_extension(const path_string_type& s, size_t filename_start
 
     const size_t size = s.size();
 
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 
     if ((size - filename_start) <= 1)
     {
@@ -562,7 +567,7 @@ public:
 
         const size_t lhs_size = m_path.size();
 
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
         const value_type* lhs_first = m_path.data();
 
@@ -581,20 +586,20 @@ public:
 #else
         // No root names on POSIX
         constexpr size_t rhs_start = 0;
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 
         // if rhs.has_root_directory() removes any root directory and relative path from *this
         if (rhs_start != rhs_size && __detail::path_parser::is_directory_separator(rhs.m_path[rhs_start]))
         {
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
             m_path.erase(lhs_root_name.size);
 #else
             m_path.clear();
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
         }
         else
         {
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
             // Otherwise, if (!has_root_directory() && is_absolute()) || has_filename() appends path::preferred_separator
             if (lhs_root_name.size == lhs_size)
             {
@@ -609,7 +614,7 @@ public:
                 }
             }
             else
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
             {
                 // Here, has_root_directory() || has_filename()
                 // If there is a trailing slash, the trailing slash might be part of root_directory.
@@ -810,7 +815,7 @@ public:
         auto lhs_it = m_path.begin();
         auto rhs_it = rhs.begin();
 
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
         const auto lhs_root_name_end = lhs_it + lhs_root_directory.pos;
         const auto rhs_root_name_end = rhs_it + rhs_root_directory.pos;
@@ -842,7 +847,7 @@ public:
         lhs_it = lhs_root_name_end;
         rhs_it = rhs_root_name_end;
 
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
 
         // Otherwise, if has_root_directory() != p.has_root_directory(),
         // returns a value less than zero if has_root_directory() is false
@@ -923,7 +928,7 @@ public:
 
 #       define last_is_dotdot() ( \
             normalized.size() >= 3 && \
-            normalized.compare(stack.back(), 2, PATH_TEXT("..")) == 0 && \
+            normalized.compare(stack.back(), 2, __PATH_TEXT("..")) == 0 && \
             normalized.back() == preferred_separator \
         )
 
@@ -956,12 +961,12 @@ public:
             }
 
             // 4. Remove each dot and any immediately following directory-separator.
-            else if (p == PATH_TEXT("."))
+            else if (p == __PATH_TEXT("."))
             {
                 continue;
             }
 
-            else if (p == PATH_TEXT(".."))
+            else if (p == __PATH_TEXT(".."))
             {
                 // 5. Remove each non-dot-dot filename immediately followed by a
                 // directory-separator and a dot-dot, along with any immediately
@@ -1054,7 +1059,7 @@ public:
         // If a == end() and b == base.end(), returns path(".").
         if (a_it == this_last && b_it == base_last)
         {
-            ret = PATH_TEXT(".");
+            ret = __PATH_TEXT(".");
             return ret;
         }
 
@@ -1070,11 +1075,11 @@ public:
             {
                 continue;
             }
-            else if (*b_it == PATH_TEXT(".."))
+            else if (*b_it == __PATH_TEXT(".."))
             {
                 --n;
             }
-            else if (*b_it != PATH_TEXT("."))
+            else if (*b_it != __PATH_TEXT("."))
             {
                 ++n;
             }
@@ -1089,7 +1094,7 @@ public:
         // If N = 0 and a == end() || a->empty(), returns path("."),
         if (n == 0 && (a_it == this_last || a_it->empty()))
         {
-            ret = PATH_TEXT(".");
+            ret = __PATH_TEXT(".");
             return ret;
         }
 
@@ -1100,7 +1105,7 @@ public:
 
         while (n--)
         {
-            ret /= PATH_TEXT("..");
+            ret /= __PATH_TEXT("..");
         }
 
         // To fix this isse we use += instead of /= here
@@ -1183,7 +1188,7 @@ public:
     bool empty() const noexcept { return m_path.empty(); }
     size_t size() const noexcept { return m_path.size(); }
 
-    bool is_dot_or_dotdot() const noexcept { return m_path == PATH_TEXT(".") || m_path == PATH_TEXT(".."); }
+    bool is_dot_or_dotdot() const noexcept { return m_path == __PATH_TEXT(".") || m_path == __PATH_TEXT(".."); }
 
     bool has_root_path() const noexcept { return __detail::path_parser::parse_root_path(m_path).size != 0; }
     bool has_root_name() const noexcept { return __detail::path_parser::parse_root_name(m_path).size != 0; }
@@ -1201,7 +1206,7 @@ public:
 
     bool is_absolute() const noexcept
     {
-#if defined(VX_WINDOWS_PATH)
+#if defined(__VX_WINDOWS_PATH)
 
         const size_t size = m_path.size();
         // Has drive letter "X:*"
@@ -1217,7 +1222,7 @@ public:
 
         return !m_path.empty() && __detail::path_parser::is_directory_separator(m_path[0]);
 
-#endif // VX_WINDOWS_PATH
+#endif // __VX_WINDOWS_PATH
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1338,12 +1343,12 @@ struct hash<vx::os::path>
         auto it = text.data();
         const auto last = it + size;
 
-#   if defined (VX_WINDOWS_PATH)
+#   if defined (__VX_WINDOWS_PATH)
 
         const auto root_name_end = vx::os::__detail::path_parser::find_root_directory_start(it, size);
         fnv1a.update(it, it += root_name_end);
 
-#   endif // VX_WINDOWS_PATH
+#   endif // __VX_WINDOWS_PATH
 
         bool last_was_slash = false;
         for (; it != last; ++it)
@@ -1367,7 +1372,7 @@ struct hash<vx::os::path>
     }
 };
 
-#undef PATH_TEXT
-#undef VX_WINDOWS_PATH
+#undef __PATH_TEXT
+#undef __VX_WINDOWS_PATH
 
 } // namespace std

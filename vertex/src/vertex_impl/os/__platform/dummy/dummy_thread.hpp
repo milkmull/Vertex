@@ -8,10 +8,8 @@ namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::thread::" op "()")
 
-class thread_impl
+struct thread_impl
 {
-public:
-
     static bool is_valid(const thread::impl_data&) noexcept
     {
         return false;

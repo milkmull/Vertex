@@ -73,8 +73,8 @@ endif()
 target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_CMAKE_DEBUG>)
 
 # Build dummy library
-if(VX_BUILD_DUMMY_OS)
-    target_compile_definitions(Vertex PRIVATE VX_BUILD_DUMMY_OS)
+if(VX_DUMMY_PLATFORM)
+    target_compile_definitions(Vertex PRIVATE VX_DUMMY_PLATFORM)
 endif()
 
 # Propagate the Windows subsystem requirement to executables linking against

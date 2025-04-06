@@ -1,10 +1,8 @@
 #pragma once
 
-#include <cassert>
 #include <iostream>
 
-#include "vertex/system/compiler.hpp"
-#include "vertex/system/platform_defines.hpp"
+#include "vertex/config/assert.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // Assert Level
@@ -56,7 +54,11 @@
 
 #endif
 
-#define VX_ASSERT_RELEASE(condition) VX_ASSERT_RELEASE_MESSAGE(condition, "assertion failed")
+#if defined(VX_ASSERT)
+#   undef VX_ASSERT
+#endif
+
 #define VX_ASSERT(condition) VX_ASSERT_MESSAGE(condition, "assertion failed")
+#define VX_ASSERT_RELEASE(condition) VX_ASSERT_RELEASE_MESSAGE(condition, "assertion failed")
 #define VX_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 

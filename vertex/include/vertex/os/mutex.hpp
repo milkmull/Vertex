@@ -1,6 +1,7 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/os.hpp"
+#include "vertex/config/language_config.hpp"
 #include "vertex/os/thread.hpp"
 #include "vertex/os/atomic.hpp"
 
@@ -13,7 +14,7 @@ namespace os {
 
 namespace __detail {
 
-class mutex_impl;
+struct mutex_impl;
 
 } // namespace __detail
 
@@ -46,7 +47,7 @@ private:
     // Platform specific Data
     ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     // https://github.com/microsoft/STL/blob/1f6e5b16ec02216665624c1e762f3732605cf2b4/stl/inc/__msvc_threads_core.hpp#L35
     // https://github.com/libsdl-org/SDL/blob/476e7e54cb24774919537d963140eb19cb66ac9d/src/thread/windows/SDL_sysmutex_c.h
@@ -56,7 +57,7 @@ private:
         void* lock = nullptr;
     };
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     struct impl_data
     {
@@ -64,11 +65,11 @@ private:
         size_t count = 0;
         thread::id thread_id = 0;
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
         critical_section_t critical_section;
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
     };
 
 private:

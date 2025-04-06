@@ -1,11 +1,6 @@
-﻿#include "vertex/util/io/iostream.hpp"
-#include "vertex/os/thread.hpp"
+﻿#include "vertex/config/compiler.hpp"
 
-#include <numeric>
-
-using namespace vx;
-
-static void hello(std::vector<int>) {}
+#include <xmmintrin.h>
 
 int main(int argc, char* argv[])
 {

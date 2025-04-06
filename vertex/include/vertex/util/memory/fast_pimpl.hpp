@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 
 /*
  * fast_pimpl - A zero-heap, high-performance alternative to smart pointers for the PImpl idiom.

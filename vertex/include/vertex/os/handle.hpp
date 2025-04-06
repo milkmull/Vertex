@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "vertex/system/platform_config.hpp"
+#include "vertex/config/os.hpp"
 
 namespace vx {
 namespace os {
@@ -11,7 +11,7 @@ class handle
 {
 public:
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     using native_handle = void*;
 #   define VX_INVALID_HANDLE (native_handle)(intptr_t)(-1)
@@ -65,7 +65,7 @@ public:
 
     bool is_valid() const noexcept
     {
-#   if defined(VX_PLATFORM_WINDOWS)
+#   if defined(VX_OS_WINDOWS)
         return m_handle != NULL && m_handle != VX_INVALID_HANDLE;
 #   else
         return m_handle >= 0;
@@ -93,7 +93,7 @@ public:
 
 private:
 
-#if defined(VX_PLATFORM_DUMMY)
+#if defined(VX_OS_DUMMY)
     void close_impl() noexcept {}
 #else
     void close_impl() noexcept;

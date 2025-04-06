@@ -1,3 +1,4 @@
+#include "vertex/config/language_config.hpp"
 #include "vertex_impl/os/__platform/system_info.hpp"
 
 namespace vx {

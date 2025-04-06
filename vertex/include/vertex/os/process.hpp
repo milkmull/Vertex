@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/language_config.hpp"
 #include "vertex/os/file.hpp"
 
 #undef stdin

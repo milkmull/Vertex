@@ -15,7 +15,7 @@ namespace os {
 
 namespace __detail {
 
-class file_impl;
+struct file_impl;
 
 } // namespace __detail
 

@@ -2,14 +2,15 @@
 
 #include <string>
 
-#include "vertex/system/compiler.hpp"
+#include "vertex/config/os.hpp"
+#include "vertex/config/language_config.hpp"
 
 namespace vx {
 namespace os {
 
 constexpr const char* get_name()
 {
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
     return "Windows";
 #else
     return "Dummy";

@@ -2,7 +2,6 @@
 
 #include <limits>
 
-#include "vertex/system/compiler.hpp"
 #include "vertex/system/validate.hpp"
 
 #if defined(max)
@@ -112,7 +111,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
     using utype = utf_base_traits<1>::utype;
 
     template <typename IT>
-    static inline IT decode(IT first, IT last, code_point& c)
+    static IT decode(IT first, IT last, code_point& c)
     {
         VX_ITERATOR_VALID_RANGE(first, last);
         const size_t size = static_cast<size_t>(std::distance(first, last));
@@ -223,7 +222,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
     }
 
     template <typename IT>
-    static inline IT encode(code_point c, IT out, char_type replacement = 0)
+    static IT encode(code_point c, IT out, char_type replacement = 0)
     {
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {
@@ -306,7 +305,7 @@ struct utf_traits<char_t, 2> : utf_base_traits<2>
     using utype = utf_base_traits<2>::utype;
 
     template <typename IT>
-    static inline IT decode(IT first, IT last, code_point& c)
+    static IT decode(IT first, IT last, code_point& c)
     {
         VX_ITERATOR_VALID_RANGE(first, last);
 
@@ -351,7 +350,7 @@ struct utf_traits<char_t, 2> : utf_base_traits<2>
     }
 
     template <typename IT>
-    static inline IT encode(code_point c, IT out, char_type replacement = 0)
+    static IT encode(code_point c, IT out, char_type replacement = 0)
     {
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {
@@ -407,7 +406,7 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
     using utype = utf_base_traits<4>::utype;
 
     template <typename IT>
-    static inline IT decode(IT first, IT last, code_point& c)
+    static IT decode(IT first, IT last, code_point& c)
     {
         VX_ITERATOR_VALID_RANGE(first, last);
 
@@ -429,7 +428,7 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
     }
 
     template <typename IT>
-    static inline IT encode(code_point c, IT out, char_type replacement = 0)
+    static IT encode(code_point c, IT out, char_type replacement = 0)
     {
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {

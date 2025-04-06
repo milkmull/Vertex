@@ -8,10 +8,8 @@ namespace __detail {
 
 #define unsupported(op) VX_UNSUPPORTED("os::file::" op "()")
 
-class file_impl
+struct file_impl
 {
-public:
-
     static bool exists(const path&)
     {
         unsupported("exists");
