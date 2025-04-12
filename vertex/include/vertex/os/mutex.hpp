@@ -3,7 +3,6 @@
 #include "vertex/config/os.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/os/thread.hpp"
-#include "vertex/os/atomic.hpp"
 
 namespace vx {
 namespace os {
