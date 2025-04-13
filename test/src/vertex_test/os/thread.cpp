@@ -1,6 +1,5 @@
 #include "vertex_test/test.hpp"
 #include "vertex/os/thread.hpp"
-#include "vertex/os/atomic.hpp"
 #include "vertex/os/time.hpp"
 
 #include <thread>

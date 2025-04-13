@@ -6,9 +6,6 @@
 # Source files for vertex/src/vertex_impl/os
 file(GLOB VX_OS_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/handle.cpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/atomic.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/atomic.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/file.cpp"
