@@ -242,41 +242,14 @@ struct lock_pool
 #endif // __VX_ATOMIC_BACKEND_GENERIC
 
 ///////////////////////////////////////////////////////////////////////////////
-// fence
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(_MSC_VER)
-
-#   if defined(__INTEL_COMPILER)
-
-#       define fence_before() __memory_barrier()
-
-#   elif defined(__clang__) && VX_HAS_BUILTIN(__atomic_signal_fence)
-
-#       define fence_before() __atomic_signal_fence(__ATOMIC_SEQ_CST)
-
-#   elif defined(__VX_ATOMIC_BACKEND_WINDOWS)
-
-#       define fence_before() _ReadWriteBarrier()
-
-#   endif
-
-#elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
-
-#   define fence_before()
-
-#elif defined(__VX_ATOMIC_BACKEND_GENERIC)
-
-#   define fence_before() lock_guard(lock_pool::get_lock(&storage))
-
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
 // atomic base
 ///////////////////////////////////////////////////////////////////////////////
 
 template <size_t size, bool _signed>
-class atomic_base
+class atomic_base {};
+
+template <bool _signed>
+class atomic_base<4, _signed>
 {
 private:
 
@@ -703,5 +676,460 @@ public:
     }
 };
 
-}
-}
+template <bool _signed>
+class atomic_base<8, _signed>
+{
+private:
+
+    using storage_type = typename storage_traits<size>::type;
+    using signed_storage_type = typename std::make_signed<storage_type>::type;
+
+    static constexpr size_t storage_size = size;
+    static constexpr size_t storage_alignment = storage_traits<size>::alignment;
+    static constexpr size_t is_signed = _signed;
+
+public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // store
+    ///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+    // https://github.com/boostorg/atomic/blob/199906f4e1789d8d182d478842ea4df9543d5fea/include/boost/atomic/detail/core_ops_gcc_sync.hpp#L72
+    using plain_stores_loads_are_atomic = std::integral_constant<bool, storage_size <= sizeof(void*)>::type;
+
+    static VX_FORCE_INLINE void store(volatile storage_type& storage, storage_type v, std::true_type) noexcept
+    {
+        storage = v;
+        __sync_synchronize();
+    }
+
+    static VX_FORCE_INLINE void store(volatile storage_type& storage, storage_type v, std::false_type) noexcept
+    {
+        exchange(storage, v);
+    }
+
+#endif
+
+    static VX_FORCE_INLINE void store(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        exchange(storage, v);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        __atomic_store_n(&storage, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        store(storage, v, plain_stores_loads_are_atomic());
+
+#   else
+
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        const_cast<storage_type&>(storage) = v;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // load
+    ///////////////////////////////////////////////////////////////////////////////
+
+#if defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+    static VX_FORCE_INLINE storage_type load(const volatile storage_type& storage, std::true_type) noexcept
+    {
+        storage_type v = storage;
+        fence_after();
+        return v;
+    }
+
+    static VX_FORCE_INLINE storage_type load(const volatile storage_type& storage, std::false_type) noexcept
+    {
+        // Note: don't use fetch_add or other arithmetics here since storage_type may not be an arithmetic type.
+        storage_type expected = storage_type();
+        storage_type desired = expected;
+        // We don't care if CAS succeeds or not. If it does, it will just write the same value there was before.
+        return __sync_val_compare_and_swap(const_cast<volatile storage_type*>(&storage), expected, desired);
+    }
+
+#endif
+
+    static VX_FORCE_INLINE storage_type load(const volatile storage_type& storage) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        return fetch_add(const_cast<volatile storage_type&>(storage), static_cast<storage_type>(0));
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_load_n(&storage, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return load(storage, v, plain_stores_loads_are_atomic());
+
+#   else
+
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        return const_cast<const storage_type&>(storage);
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fetch add
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type fetch_add(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        __VX_ATOMIC_COMPILER_BARRIER();
+        v = static_cast<storage_type>(_InterlockedExchangeAdd64(
+            static_cast<volatile long long*>(&storage),
+            static_cast<long long>(v))
+        );
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return v;
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_fetch_add(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_fetch_and_add(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s += v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fetch sub
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type fetch_sub(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        return fetch_add(storage, static_cast<storage_type>(-static_cast<signed_storage_type>(v)));
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_fetch_sub(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_fetch_and_sub(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s -= v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // exchange
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type exchange(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        __VX_ATOMIC_COMPILER_BARRIER();
+        v = static_cast<storage_type>(_InterlockedExchange64(
+            static_cast<volatile long long*>(&storage),
+            static_cast<long long>(v))
+        );
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return v;
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_exchange_n(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_lock_test_and_set(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s = v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // compare exchange strong
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type compare_exchange_strong(
+        volatile storage_type& storage,
+        storage_type& expected,
+        storage_type desired
+    ) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        storage_type previous = expected;
+        __VX_ATOMIC_COMPILER_BARRIER();
+        storage_type old = static_cast<storage_type>(_InterlockedCompareExchange64(
+            static_cast<volatile long long*>(&storage),
+            static_cast<long long>(desired),
+            static_cast<long long>(previous))
+        );
+        expected = old;
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return (previous == old);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_compare_exchange_n(&storage, &expected, desired, false __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        storage_type expected2 = expected;
+        storage_type old = __sync_val_compare_and_swap(&storage, expected2, desired);
+
+        if (old == expected2)
+        {
+            return true;
+        }
+
+        expected = old;
+        return false;
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        const bool res = old == expected;
+        if (res)
+        {
+            s = desired;
+        }
+        expected = old;
+        return res;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // compare exchange weak
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type compare_exchange_weak(
+        volatile storage_type& storage,
+        storage_type& expected,
+        storage_type desired
+    ) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        return compare_exchange_strong(storage, expected, desired);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_compare_exchange_n(&storage, &expected, desired, true __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return compare_exchange_strong(storage, expected, desired);
+
+#   else
+
+        return compare_exchange_strong(storage, expected, desired);
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fetch and
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type fetch_and(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        __VX_ATOMIC_COMPILER_BARRIER();
+        v = static_cast<storage_type>(_InterlockedAnd64(
+            static_cast<volatile long long*>(&storage), 
+            static_cast<long long>(v))
+        );
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return v;
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_fetch_and(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_fetch_and_and(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s &= v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fetch or
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type fetch_or(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        __VX_ATOMIC_COMPILER_BARRIER();
+        v = static_cast<storage_type>(_InterlockedOr64(
+            static_cast<volatile long long*>(&storage),
+            static_cast<long long>(v))
+        );
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return v;
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_fetch_or(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_fetch_and_or(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s |= v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // fetch xor
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE storage_type fetch_xor(volatile storage_type& storage, storage_type v) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        __VX_ATOMIC_COMPILER_BARRIER();
+        v = static_cast<storage_type>(_InterlockedXor64(
+            static_cast<volatile long long*>(&storage),
+            static_cast<long long>(v))
+        );
+        __VX_ATOMIC_COMPILER_BARRIER();
+        return v;
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_fetch_xor(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return __sync_fetch_and_xor(&storage, v);
+
+#   else
+
+        storage_type& s = const_cast<storage_type&>(storage);
+        __VX_ATOMIC_LOCK_GUARD(storage);
+        storage_type old = s;
+        s ^= v;
+        return old;
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // test and set
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE bool test_and_set(volatile storage_type& storage) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        return !!compare_exchange_strong(storage, static_cast<storage_type>(1));
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        return __atomic_test_and_set(&storage, v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        return !!__sync_lock_test_and_set(&storage, 1);
+
+#   else
+
+        return !!exchange(storage, static_cast<storage_type>(1));
+
+#   endif
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // clear
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE void clear(volatile storage_type& storage) noexcept
+    {
+#   if defined(__VX_ATOMIC_BACKEND_WINDOWS)
+
+        store(storage, static_cast<storage_type>(0));
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_ATOMIC)
+
+        __atomic_clear(const_cast<storage_type*>(&storage), v, __ATOMIC_SEQ_CST);
+
+#   elif defined(__VX_ATOMIC_BACKEND_GCC_SYNC)
+
+        __sync_lock_release(&storage);
+        __sync_synchronize();
+
+#   else
+
+        store(storage, static_cast<storage_type>(0));
+
+#   endif
+    }
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// atomic
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VX_REQUIRES((sizeof(T) == 4) || (sizeof(T) == 8))>
+class atomic
+{
+
+};
+
+} // namespace os
+} // namespace vx
