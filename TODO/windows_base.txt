@@ -78,7 +78,7 @@ os and utils:
     x locale (language, timezone, country)
     
     x thread
-    - mutex
+    x mutex
     - atomics
 
     x hash (MD5, SHA-1, SHA-256)
@@ -90,6 +90,7 @@ os and utils:
     x power
     x memory
     x os info
+    x shared library
 
     x update logger, profiler
     x assert and debug files

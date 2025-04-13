@@ -42,12 +42,13 @@ os:
 
     - thread
     - mutex
-    - atomics
     - process (argument parsing, environment variables, process dispatch, reading)
 
     - system memory
     - system info
     - locale (language, timezone, country)
+    - random
+    x shared library
 }
 
 cleanup and finalizaton for base library:
@@ -132,7 +133,6 @@ testing:
     
     - os/thread
     - os/mutex
-    - os/atomic
     - os/process
     
     - os/system_info
