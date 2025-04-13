@@ -448,127 +448,12 @@ __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 
 space_info space_impl(const path& p)
 {
-    struct statvfs stat;
-
-    if (statvfs(p.c_str(), &stat) != 0)
-    {
-        unix_::error_message("statvfs()");
-        return {};
-    }
-
-    return space_info{
-        stat.f_frsize * stat.f_blocks,      // total space
-        stat.f_frsize * stat.f_bfree,       // free space
-        stat.f_frsize * stat.f_bavail       // available space
-    };
+    return {};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
-
-static bool is_dot_or_dotdot(const wchar_t* filename)
-{
-    if (filename[0] != L'.')
-    {
-        return false;
-    }
-
-    const wchar_t second_char = filename[1];
-    if (second_char == 0)
-    {
-        return true;
-    }
-
-    if (second_char != L'.')
-    {
-        return false;
-    }
-
-    return filename[2] == 0;
-}
-
-static void close_directory_iterator(handle& h)
-{
-    if (h.is_valid() && !FindClose(h.get()))
-    {
-        std::abort();
-    }
-
-    h.reset();
-}
-
-static void update_directory_iterator_entry(const path& p, directory_entry& entry, const WIN32_FIND_DATAW& find_data)
-{
-    entry.path = p / find_data.cFileName;
-    entry.info = create_file_info(
-        entry.path,
-        find_data.dwFileAttributes,
-        find_data.nFileSizeHigh,
-        find_data.nFileSizeLow,
-        find_data.ftCreationTime,
-        find_data.ftLastAccessTime
-    );
-}
-
-static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_data)
-{
-    do
-    {
-        if (!FindNextFileW(h.get(), &find_data))
-        {
-            close_directory_iterator(h);
-            break;
-        }
-
-    } while (is_dot_or_dotdot(find_data.cFileName));
-
-    return h.is_valid();
-}
-
-static void advance_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
-{
-    if (advance_directory_iterator_once(h, find_data))
-    {
-        update_directory_iterator_entry(p, entry, find_data);
-    }
-}
-
-static void open_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
-{
-    close_directory_iterator(h);
-
-    const size_t null_term_size = std::wcslen(p.c_str());
-    if (null_term_size == 0 || null_term_size != p.size())
-    {
-        SetLastError(ERROR_PATH_NOT_FOUND);
-    }
-    else
-    {
-        // Append wildcard to search for all items
-        const path pattern = p / L"*";
-
-        h = FindFirstFileExW(
-            pattern.c_str(),
-            FindExInfoBasic,
-            &find_data,
-            FindExSearchNameMatch,
-            NULL,
-            0
-        );
-    }
-
-    if (!h.is_valid())
-    {
-        windows::error_message("FindFirstFileExW()");
-        return;
-    }
-
-    if (is_dot_or_dotdot(find_data.cFileName))
-    {
-        advance_directory_iterator(p, entry, h, find_data);
-    }
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator
@@ -576,17 +461,14 @@ static void open_directory_iterator(const path& p, directory_entry& entry, handl
 
 void directory_iterator::directory_iterator_impl::open()
 {
-    open_directory_iterator(m_path, m_entry, m_handle, m_find_data);
 }
 
 void directory_iterator::directory_iterator_impl::close()
 {
-    close_directory_iterator(m_handle);
 }
 
 void directory_iterator::directory_iterator_impl::advance()
 {
-    advance_directory_iterator(m_path, m_entry, m_handle, m_find_data);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -595,53 +477,15 @@ void directory_iterator::directory_iterator_impl::advance()
 
 bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack()
 {
-    m_path /= m_entry.path.filename();
-    handle h;
-    open_directory_iterator(m_path, m_entry, h, m_find_data);
-
-    if (!h.is_valid())
-    {
-        m_path.pop_back();
-        return false;
-    }
-
-    m_stack.push_back(std::move(h));
-    return true;
+    return false;
 }
 
 void recursive_directory_iterator::recursive_directory_iterator_impl::pop_stack()
 {
-    m_path.pop_back();
-    close_directory_iterator(m_stack.back());
-    m_stack.pop_back();
 }
 
 void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
 {
-    handle* current = &m_stack.back();
-
-    if (m_recursion_pending && push_stack())
-    {
-        current = &m_stack.back();
-    }
-    else
-    {
-        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
-    }
-
-    while (!current->is_valid())
-    {
-        pop_stack();
-        if (m_stack.empty())
-        {
-            break;
-        }
-
-        current = &m_stack.back();
-        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
-    }
-
-    m_recursion_pending = m_entry.is_directory();
 }
 
 } // namespace filesystem
