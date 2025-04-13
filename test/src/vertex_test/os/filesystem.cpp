@@ -70,6 +70,7 @@ VX_TEST_CASE(test_current_path_and_temp_path)
         VX_EXPECT_NO_ERROR(current_path = os::filesystem::get_current_path());
         VX_CHECK(os::filesystem::exists(current_path));
         VX_CHECK(os::filesystem::is_directory(current_path));
+        VX_MESSAGE("  Current Path: ", current_path);
     }
 
     VX_SECTION("temp path")
@@ -77,12 +78,13 @@ VX_TEST_CASE(test_current_path_and_temp_path)
         VX_EXPECT_NO_ERROR(temp_path = os::filesystem::get_temp_path());
         VX_CHECK(os::filesystem::exists(temp_path));
         VX_CHECK(os::filesystem::is_directory(temp_path));
+        VX_MESSAGE("  Temp Path: ", temp_path);
     }
 
     VX_SECTION("set current path")
     {
         VX_CHECK(os::filesystem::set_current_path(temp_path));
-        VX_CHECK(os::filesystem::get_current_path() == temp_path.parent_path());
+        VX_CHECK(os::filesystem::get_current_path() == temp_path);
     }
 }
 

@@ -14,22 +14,22 @@ cmake test:
 
 filesystem:
 {
-    - file info
-    - permissions (get or set file permissions)
+    x file info
+    x permissions (get or set file permissions)
     
     - directory iterator
     - recursive directory iterator
     
     - path manipulators (absolute, canonical, relative)
     - equivalent (are 2 paths the same?)
-    - current path (get or set the current path)
+    x current path (get or set the current path)
     - get temp directory path
     - get user directory
 
-    - copy operators
-    - create operators
+    x copy operators
+    x create operators
     - remove operators
-    - rename operators
+    x rename operators
     - filesystem space
 }
 

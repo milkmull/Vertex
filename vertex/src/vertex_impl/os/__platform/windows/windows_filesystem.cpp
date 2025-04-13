@@ -4,6 +4,7 @@
 #include "vertex_impl/os/__platform/windows/windows_filesystem.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/os/shared_library.hpp"
+#include "vertex/util/memory/memory.hpp"
 
 // https://learn.microsoft.com/en-us/windows-hardware/drivers/ddi/ntifs/ns-ntifs-_reparse_data_buffer
 
@@ -739,52 +740,71 @@ bool equivalent_impl(const path& p1, const path& p2)
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////
 
-path get_temp_path_impl()
+static inline std::wstring wgetenv(const wchar_t* name)
 {
-    static path cache;
+    std::wstring env;
+    const DWORD size = GetEnvironmentVariableW(name, NULL, 0);
 
-    if (cache.empty())
+    if (size > 0)
     {
-        WCHAR buffer[MAX_PATH]{};
-        DWORD size = 0;
-
-        // Attermpt to call GetTempPath2W first
-        do
+        std::vector<WCHAR> buffer(size);
+        if (GetEnvironmentVariableW(name, buffer.data(), size) > 0)
         {
-            shared_library kernel32;
-            if (!kernel32.load("kernel32.dll"))
-            {
-                break;
-            }
-
-            using GetTempPath2W_t = DWORD(WINAPI*)(DWORD, LPWSTR, PSID);
-            auto GetTempPath2W = kernel32.get<GetTempPath2W_t>("GetTempPath2W");
-            if (!GetTempPath2W)
-            {
-                break;
-            }
-
-            size = GetTempPath2W(MAX_PATH, buffer, NULL);
-
-        } while (VX_NULL_WHILE_LOOP_CONDITION);
-
-        if (size == 0)
-        {
-            size = GetTempPathW(MAX_PATH, buffer);
-        }
-
-        if (size == 0)
-        {
-            windows::error_message("GetTempPathW()");
-        }
-        else
-        {
-            // Set the cache
-            cache.assign(buffer);
+            env.assign(buffer.data());
         }
     }
 
-    return cache;
+    return env;
+}
+
+// https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L4772
+
+path get_temp_path_impl()
+{
+    const wchar_t* env_list[] = { L"TMP", L"TEMP", L"LOCALAPPDATA", L"USERPROFILE" };
+    const wchar_t* tmp_dir = L"Temp";
+
+    path tmp;
+    for (size_t i = 0; i < mem::array_size(env_list); ++i)
+    {
+        tmp = wgetenv(env_list[i]);
+        if (!tmp.empty())
+        {
+            if (i >= 2)
+            {
+                tmp /= tmp_dir;
+            }
+
+            if (is_directory(tmp))
+            {
+                break;
+            }
+        }
+    }
+
+    if (tmp.empty())
+    {
+        const UINT size = GetWindowsDirectoryW(NULL, 0);
+        if (size == 0)
+        {
+            error:
+            {
+                windows::error_message("GetWindowsDirectoryW()");
+                return {};
+            }
+        }
+
+        std::vector<WCHAR> buffer(size);
+        if (GetWindowsDirectoryW(buffer.data(), size) == 0)
+        {
+            goto error;
+        }
+
+        tmp.assign(buffer.data());
+        tmp /= tmp_dir;
+    }
+
+    return tmp;
 }
 
 path get_user_folder_impl(user_folder folder)
