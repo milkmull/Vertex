@@ -57,6 +57,7 @@ VX_API void set(code err, const char* msg) noexcept
     constexpr size_t max_size = ERROR_MESSAGE_MAX_SIZE;
     const size_t msg_size = std::strlen(msg);
     std::memcpy(s_err.message, msg, std::min(max_size, msg_size));
+    s_err.message[msg_size] = 0;
 }
 
 } // namespace err

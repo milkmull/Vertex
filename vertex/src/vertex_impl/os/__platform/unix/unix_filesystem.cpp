@@ -683,7 +683,7 @@ static void close_directory_iterator(DIR*& dir)
 static void update_directory_iterator_entry(const path& p, directory_entry& entry, struct dirent* ent)
 {
     entry.path = p / ent->d_name;
-    entry.info = get_file_info_impl(entry.path);
+    entry.info = get_symlink_info_impl(entry.path);
 }
 
 static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
