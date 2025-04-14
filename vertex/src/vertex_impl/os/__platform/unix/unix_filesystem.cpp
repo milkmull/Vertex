@@ -23,12 +23,24 @@ bool update_permissions_impl(
 )
 {
     struct stat st {};
-    int res = follow_symlinks ? stat(p.c_str(), &st) : lstat(p.c_str(), &st);
-
+    const int res = follow_symlinks ? stat(p.c_str(), &st) : lstat(p.c_str(), &st);
     if (res != 0)
     {
         unix_::error_message(follow_symlinks ? "stat()" : "lstat()");
         return false;
+    }
+
+    // On unix, symlinks don't have meaningful permissions. Attempting to set permissions
+    // on a symlink usually results in an error (e.g., 'Operation not supported') because
+    // symlinks are simply pointers to other files, and access control is determined by
+    // the target file's permissions, not the symlink itself.
+    //
+    // Therefore, modifying permissions on symlinks is typically unnecessary and unsupported.
+    // This function returns success without making any changes if the file is a symlink
+    // and we're not following it, as setting permissions on symlinks doesn't affect their behavior.
+    if (S_ISLNK(st.st_mode) && !follow_symlinks)
+    {
+        return true;
     }
 
     const mode_t current_mode = st.st_mode;
@@ -39,7 +51,7 @@ bool update_permissions_impl(
     {
         case file_permission_operator::REPLACE:
         {
-            new_mode = (current_mode & ~file_permissions::MASK) | masked;
+            new_mode = (current_mode & ~file_permissions::ALL) | masked;
             break;
         }
         case file_permission_operator::ADD:
@@ -60,10 +72,9 @@ bool update_permissions_impl(
         return true;
     }
 
-    res = follow_symlinks ? chmod(p.c_str(), new_mode) : fchmodat(AT_FDCWD, p.c_str(), new_mode, AT_SYMLINK_NOFOLLOW);
-    if (res != 0)
+    if (chmod(p.c_str(), new_mode) != 0)
     {
-        unix_::error_message(follow_symlinks ? "chmod()" : "fchmodat()");
+        unix_::error_message("chmod()");
         return false;
     }
 
@@ -228,7 +239,22 @@ bool set_current_path_impl(const path& p)
 
 path canonical_impl(const path& p)
 {
-    return {};
+    const path normalized = p.lexically_normal();
+    path res;
+
+    // Use realpath to resolve the canonical absolute path
+    // realpath automatically resolves symbolic links and returns an absolute path
+    char resolved_path[PATH_MAX];
+    if (realpath(normalized.c_str(), resolved_path) == NULL)
+    {
+        unix_::error_message("realpath()");
+    }
+    else
+    {
+        res.assign(resolved_path);
+    }
+
+    return res;
 }
 
 // https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L3671
@@ -236,9 +262,9 @@ path canonical_impl(const path& p)
 bool equivalent_impl(const path& p1, const path& p2)
 {
     struct ::stat s2;
-    const int e2 = ::stat(p2.c_str(), &s2);
+    const int e2 = stat(p2.c_str(), &s2);
     struct ::stat s1;
-    const int e1 = ::stat(p1.c_str(), &s1);
+    const int e1 = stat(p1.c_str(), &s1);
 
     if (VX_UNLIKELY(e1 != 0 || e2 != 0))
     {
@@ -285,9 +311,119 @@ path get_temp_path_impl()
     return is_directory(tmp_path) ? tmp_path : path{};
 }
 
+// https://github.com/libsdl-org/SDL/blob/90fd2a3cbee5b7ead1f0517d7cc0eba1f3059207/src/filesystem/unix/SDL_sysfilesystem.c#L518
+
+static std::string xdg_user_dir_lookup(const char* type)
+{
+    std::string resolved;
+
+    // Get $HOME environment variable
+    const char* home = std::getenv("HOME");
+    if (!home) return resolved;
+
+    // Get $XDG_CONFIG_HOME or fallback to ~/.config
+    const char* config_home = std::getenv("XDG_CONFIG_HOME");
+    const path config_file = config_home
+        ? path(config_home) / "user-dirs.dirs"
+        : path(home) / ".config/user-dirs.dirs";
+
+    file f;
+    if (!f.open(config_file, file::mode::READ))
+    {
+        return resolved;
+    }
+
+    std::string line;
+    const std::string prefix = std::string("XDG_") + type + "_DIR";
+
+    while (f.read_line(line))
+    {
+        auto s = line.find("=\"");
+        if (s == std::string::npos)
+        {
+            continue;
+        }
+
+        s += 2;
+        auto e = line.find('"', s);
+        if (e == std::string::npos)
+        {
+            continue;
+        }
+        
+        const std::string value = line.substr(s, e - s);
+        if (str::starts_with(value, "$HOME"))
+        {
+            // Expand $HOME if path starts with it
+            resolved = std::string(home) + '/' + value.substr(6);
+        }
+        else if (value.front() == '/')
+        {
+            // Otherwise accept absolute paths
+            resolved = value;
+        }
+        else
+        {
+            // Ignore other (invalid/unsupported) formats
+            continue;
+        }
+
+        break;
+    }
+
+    return resolved;
+}
+
 path get_user_folder_impl(user_folder folder)
 {
-    return {};
+    const char* param = nullptr;
+
+    switch (folder)
+    {
+        case user_folder::HOME:
+        {
+            param = std::getenv("HOME");
+
+            if (!param)
+            {
+                err::set(err::SYSTEM_ERROR, "get_user_folder(): home directory not found");
+                return {};
+            }
+        }
+        case user_folder::DESKTOP:
+        {
+            param = "DESKTOP";
+            break;
+        }
+        case user_folder::DOCUMENTS:
+        {
+            param = "DOCUMENTS";
+            break;
+        }
+        case user_folder::DOWNLOADS:
+        {
+            param = "DOWNLOADS";
+            break;
+        }
+        case user_folder::MUSIC:
+        {
+            param = "MUSIC";
+            break;
+        }
+        case user_folder::PICTURES:
+        {
+            param = "PICTURES";
+            break;
+        }
+        case user_folder::VIDEOS:
+        {
+            param = "VIDEOS";
+            break;
+        }
+    }
+
+    VX_ASSERT(param != nullptr);
+    return xdg_user_dir_lookup(param);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

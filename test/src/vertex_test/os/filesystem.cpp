@@ -666,6 +666,7 @@ VX_TEST_CASE(test_canonical)
 
         const os::path canonical_file = os::filesystem::canonical(file);
         VX_CHECK(!canonical_file.empty());
+        VX_CHECK(canonical_file.is_absolute());
 
         const auto& filename = file.native();
         const auto& text = canonical_file.native();
@@ -681,6 +682,28 @@ VX_TEST_CASE(test_canonical)
     }
 
 #else
+
+    VX_SECTION("canonical Unix path")
+    {
+        // test that canonical on a file returns the absolute path
+        const os::path file = temp_dir.path / "test_canonical.txt";
+        VX_CHECK(os::filesystem::create_file(file));
+
+        const os::path canonical_file = os::filesystem::canonical(file);
+        VX_CHECK(!canonical_file.empty());
+        VX_CHECK(canonical_file.is_absolute());
+
+        const auto& filename = file.native();
+        const auto& text = canonical_file.native();
+
+        // make sure the result is an absolute path (starts with /)
+        VX_CHECK(canonical_file.native().front() == '/');
+
+        // make sure the result ends with "/filename"
+        const auto diff = static_cast<ptrdiff_t>(file.size());
+        VX_CHECK(*(text.end() - diff - 1) == '/');
+        VX_CHECK(std::equal(text.end() - diff, text.end(), filename.begin(), filename.end()));
+    }
 
 #endif // VX_OS_WINDOWS
 }

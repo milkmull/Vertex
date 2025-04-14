@@ -71,17 +71,17 @@ filesystem tests:
     x last write time
     x file size
 
-    - absolute
-    - relative
+    x absolute
+    x relative
     x equivalent
-    - canonical
+    x canonical
 
     x read symlink
     x update permissions
 
     x directory iterators
     
-    - remove
+    x remove
     x create directories, remove_all
     x recursive directory iterator
     
