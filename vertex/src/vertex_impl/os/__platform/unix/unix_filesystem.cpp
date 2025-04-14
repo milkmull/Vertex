@@ -334,17 +334,17 @@ static std::string xdg_user_dir_lookup(const char* type)
     }
 
     std::string line;
-    const std::string prefix = std::string("XDG_") + type + "_DIR";
+    const std::string prefix = std::string("XDG_") + type + "_DIR=\"";
 
     while (f.read_line(line))
     {
-        auto s = line.find("=\"");
+        auto s = line.find(prefix);
         if (s == std::string::npos)
         {
             continue;
         }
 
-        s += 2;
+        s += prefix.size();
         auto e = line.find('"', s);
         if (e == std::string::npos)
         {
