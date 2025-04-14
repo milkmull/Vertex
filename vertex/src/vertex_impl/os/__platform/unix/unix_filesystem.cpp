@@ -540,9 +540,9 @@ static void update_directory_iterator_entry(const path& p, directory_entry& entr
     entry.info = get_file_info_impl(entry.path);
 }
 
-static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent, bool advance_first)
+static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
 {
-    while (advance_first || is_dot_or_dotdot(ent->d_name))
+    do
     {
         ent = readdir(dir);
         if (ent == NULL)
@@ -551,17 +551,16 @@ static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent, bool
             break;
         }
 
-        advance_first = false;
-    }
+    } while (is_dot_or_dotdot(ent->d_name));
 
     return dir != NULL;
 }
 
-static void advance_directory_iterator(const path& p, directory_entry& entry, DIR*& dir, bool advance_first)
+static void advance_directory_iterator(const path& p, directory_entry& entry, DIR*& dir)
 {
     struct dirent* ent = NULL;
 
-    if (advance_directory_iterator_once(dir, ent, advance_first))
+    if (advance_directory_iterator_once(dir, ent))
     {
         update_directory_iterator_entry(p, entry, dir, ent);
     }
@@ -579,7 +578,7 @@ static void open_directory_iterator(const path& p, directory_entry& entry, DIR*&
         return;
     }
 
-    advance_directory_iterator(p, entry, dir, false);
+    advance_directory_iterator(p, entry, dir);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -598,7 +597,7 @@ void directory_iterator::directory_iterator_impl::close()
 
 void directory_iterator::directory_iterator_impl::advance()
 {
-    advance_directory_iterator(m_path, m_entry, m_dir, true);
+    advance_directory_iterator(m_path, m_entry, m_dir);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
