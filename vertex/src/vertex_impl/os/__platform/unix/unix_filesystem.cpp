@@ -333,8 +333,8 @@ static std::string xdg_user_dir_lookup(const char* type)
         return resolved;
     }
 
-    std::string line;
     const std::string prefix = std::string("XDG_") + type + "_DIR=\"";
+    std::string line;
 
     while (f.read_line(line))
     {
@@ -376,19 +376,17 @@ static std::string xdg_user_dir_lookup(const char* type)
 
 path get_user_folder_impl(user_folder folder)
 {
-    const char* param = nullptr;
+    const char* home = std::getenv("HOME");
+    const char* param = NULL;
+
+    // According to 'man xdg-user-dir', the possible values are:
+    // { DESKTOP, DOWNLOAD, TEMPLATES, PUBLICSHARE, DOCUMENTS, MUSIC, PICTURES, VIDEOS }
 
     switch (folder)
     {
         case user_folder::HOME:
         {
-            param = std::getenv("HOME");
-
-            if (!param)
-            {
-                err::set(err::SYSTEM_ERROR, "get_user_folder(): home directory not found");
-                return {};
-            }
+            return home;
         }
         case user_folder::DESKTOP:
         {
@@ -402,7 +400,7 @@ path get_user_folder_impl(user_folder folder)
         }
         case user_folder::DOWNLOADS:
         {
-            param = "DOWNLOADS";
+            param = "DOWNLOAD";
             break;
         }
         case user_folder::MUSIC:
@@ -422,7 +420,7 @@ path get_user_folder_impl(user_folder folder)
         }
     }
 
-    VX_ASSERT(param != nullptr);
+    VX_ASSERT(param != NULL);
     return xdg_user_dir_lookup(param);
 }
 
@@ -501,60 +499,45 @@ bool create_hard_link_impl(const path& target, const path& link)
 bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 {
     // Check if the destination file exists
-    if (!overwrite_existing)
+    if (!overwrite_existing && exists(to))
     {
-        struct stat buffer;
-        if (stat(to.c_str(), &buffer) == 0) // File exists
-        {
-            err::set(err::SYSTEM_ERROR, "copy_file(): file already exists");
-            return false; // Do not overwrite
-        }
+        err::set(err::SYSTEM_ERROR, "copy_file(): file already exists");
+        return false; // Do not overwrite
     }
 
-    // Open the source file for reading
-    int src_fd = open(from.c_str(), O_RDONLY);
-    if (src_fd == -1)
+    file from_file;
+    if (!from_file.open(from, file::mode::READ))
     {
-        unix_::error_message("open()");
         return false;
     }
 
-    // Open (or create) the destination file for writing
-    int flags = O_WRONLY | O_CREAT | O_TRUNC;
-    int dest_fd = open(to.c_str(), flags, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-    if (dest_fd == -1)
+    file to_file;
+    if (!to_file.open(to, file::mode::READ_WRITE_CREATE))
     {
-        unix_::error_message("open()");
-        close(src_fd);
         return false;
     }
 
     // Copy the file content in chunks
-    const size_t buffer_size = 4096;
-    char buffer[buffer_size];
-    ssize_t bytes_read, bytes_written;
+    constexpr size_t size = 4096;
+    char data[size];
+    size_t bytes_read, bytes_written;
 
-    while ((bytes_read = read(src_fd, buffer, buffer_size)) > 0)
+    while (true)
     {
-        bytes_written = write(dest_fd, buffer, bytes_read);
+        bytes_read = from_file.read(data, size);
+        if (bytes_read == 0)
+        {
+            break;
+        }
+
+        bytes_written = to_file.write(data, bytes_read);
         if (bytes_written != bytes_read)
         {
-            unix_::error_message("write()");
-            close(src_fd);
-            close(dest_fd);
             return false;
         }
     }
 
-    if (bytes_read == -1)
-    {
-        unix_::error_message("read()");
-    }
-
-    close(src_fd);
-    close(dest_fd);
-
-    return bytes_read != -1; // Return true if no error occurred
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -677,7 +660,7 @@ static void close_directory_iterator(DIR*& dir)
     }
 }
 
-static void update_directory_iterator_entry(const path& p, directory_entry& entry, const DIR* dir, struct dirent* ent)
+static void update_directory_iterator_entry(const path& p, directory_entry& entry, struct dirent* ent)
 {
     entry.path = p / ent->d_name;
     entry.info = get_file_info_impl(entry.path);
@@ -705,7 +688,7 @@ static void advance_directory_iterator(const path& p, directory_entry& entry, DI
 
     if (advance_directory_iterator_once(dir, ent))
     {
-        update_directory_iterator_entry(p, entry, dir, ent);
+        update_directory_iterator_entry(p, entry, ent);
     }
 }
 
