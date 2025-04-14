@@ -1185,9 +1185,9 @@ static void update_directory_iterator_entry(const path& p, directory_entry& entr
     );
 }
 
-static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_data)
+static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_data, bool advance_first)
 {
-    do
+    while (advance_first || is_dot_or_dotdot(find_data.cFileName))
     {
         if (!FindNextFileW(h.get(), &find_data))
         {
@@ -1195,14 +1195,21 @@ static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_da
             break;
         }
 
-    } while (is_dot_or_dotdot(find_data.cFileName));
+        advance_first = false;
+    }
 
     return h.is_valid();
 }
 
-static void advance_directory_iterator(const path& p, directory_entry& entry, handle& h, WIN32_FIND_DATAW& find_data)
+static void advance_directory_iterator(
+    const path& p,
+    directory_entry& entry,
+    handle& h,
+    WIN32_FIND_DATAW& find_data,
+    bool advance_first
+)
 {
-    if (advance_directory_iterator_once(h, find_data))
+    if (advance_directory_iterator_once(h, find_data, advance_first))
     {
         update_directory_iterator_entry(p, entry, find_data);
     }
@@ -1238,10 +1245,7 @@ static void open_directory_iterator(const path& p, directory_entry& entry, handl
         return;
     }
 
-    if (is_dot_or_dotdot(find_data.cFileName))
-    {
-        advance_directory_iterator(p, entry, h, find_data);
-    }
+    advance_directory_iterator(p, entry, h, find_data, false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1260,7 +1264,7 @@ void directory_iterator::directory_iterator_impl::close()
 
 void directory_iterator::directory_iterator_impl::advance()
 {
-    advance_directory_iterator(m_path, m_entry, m_handle, m_find_data);
+    advance_directory_iterator(m_path, m_entry, m_handle, m_find_data, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1300,7 +1304,7 @@ void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
     }
     else
     {
-        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data, true);
     }
 
     while (!current->is_valid())
@@ -1312,7 +1316,7 @@ void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
         }
 
         current = &m_stack.back();
-        advance_directory_iterator(m_path, m_entry, *current, m_find_data);
+        advance_directory_iterator(m_path, m_entry, *current, m_find_data, true);
     }
 
     m_recursion_pending = m_entry.is_directory();

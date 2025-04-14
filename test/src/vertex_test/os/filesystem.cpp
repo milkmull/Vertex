@@ -248,6 +248,7 @@ VX_TEST_CASE(test_create_file)
     temp_directory temp_dir("test_create_file.dir");
     VX_CHECK(temp_dir.exists());
     const os::path file = temp_dir.path / "file.txt";
+    os::filesystem::remove(file);
 
     VX_SECTION("create file")
     {
@@ -293,6 +294,9 @@ VX_TEST_CASE(test_create_symlink)
         const os::path file = temp_dir.path / "symlink.txt";
         const os::path symlink = temp_dir.path / "symlink.link";
 
+        os::filesystem::remove(file);
+        os::filesystem::remove(symlink);
+
         VX_CHECK(os::filesystem::create_file(file));
         VX_CHECK(!os::filesystem::exists(symlink));
         VX_CHECK(os::filesystem::create_symlink(file.filename(), symlink));
@@ -315,7 +319,7 @@ VX_TEST_CASE(test_create_symlink)
 
         VX_CHECK(os::filesystem::is_regular_file(symlink));
         VX_CHECK(os::filesystem::is_symlink(symlink));
-        
+
         // creating a symlink that exists already should throw
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::create_symlink(file.filename(), symlink));
     }
@@ -357,6 +361,9 @@ VX_TEST_CASE(test_create_directory_symlink)
     {
         const os::path directory = temp_dir.path / "directory_target.dir";
         const os::path directory_symlink = temp_dir.path / "directory_symlink.dirlink";
+
+        os::filesystem::remove(directory);
+        os::filesystem::remove(directory_symlink);
 
         VX_CHECK(os::filesystem::create_directory(directory));
         VX_CHECK(!os::filesystem::exists(directory_symlink));
@@ -472,6 +479,7 @@ VX_TEST_CASE(test_modify_time)
     VX_SECTION("existing file")
     {
         const os::path file = temp_dir.path / "file.txt";
+        os::filesystem::remove(file);
         VX_CHECK(os::filesystem::create_file(file));
 
         time::time_point modify_time = os::filesystem::get_modify_time(file);
@@ -500,7 +508,7 @@ VX_TEST_CASE(test_modify_time)
     VX_SECTION("nonexistent path")
     {
         VX_CHECK_AND_EXPECT_ERROR(os::filesystem::get_modify_time(os::path{}).as_nanoseconds() == 0);
-        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::set_modify_time(os::path{}, time::time_point{1}));
+        VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::set_modify_time(os::path{}, time::time_point{ 1 }));
 
         for (const auto& p : nonexistent_paths)
         {
@@ -664,7 +672,7 @@ VX_TEST_CASE(test_canonical)
         // test that canonical on an ordinary file returns that file's DOS path
         const os::path file = temp_dir.path / "test_canonical.txt";
         VX_CHECK(os::filesystem::create_file(file));
-        
+
         const os::path canonical_file = os::filesystem::canonical(file);
         VX_CHECK(!canonical_file.empty());
 
@@ -1700,7 +1708,7 @@ VX_TEST_CASE(test_is_empty)
 
 int main()
 {
-    //VX_PRINT_ERRORS(true);
+    VX_PRINT_ERRORS(true);
     VX_RUN_TESTS();
     return 0;
 }

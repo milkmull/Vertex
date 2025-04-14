@@ -290,8 +290,7 @@ path get_user_folder_impl(user_folder folder)
 
 bool create_file_impl(const path& p)
 {
-    // Open the file for writing, creating it if it doesn't exist
-    int fd = open(p.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    int fd = open(p.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 
     if (fd == -1)
     {
@@ -299,7 +298,6 @@ bool create_file_impl(const path& p)
         return false;
     }
 
-    // Close the file descriptor
     close(fd);
     return true;
 }
@@ -542,9 +540,9 @@ static void update_directory_iterator_entry(const path& p, directory_entry& entr
     entry.info = get_file_info_impl(entry.path);
 }
 
-static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
+static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent, bool advance_first)
 {
-    do
+    while (advance_first || is_dot_or_dotdot(ent->d_name));
     {
         ent = readdir(dir);
         if (ent == NULL)
@@ -553,16 +551,17 @@ static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
             break;
         }
 
-    } while (is_dot_or_dotdot(ent->d_name));
+        advance_first = false;
+    }
 
     return dir != NULL;
 }
 
-static void advance_directory_iterator(const path& p, directory_entry& entry, DIR*& dir)
+static void advance_directory_iterator(const path& p, directory_entry& entry, DIR*& dir, bool advance_first)
 {
     struct dirent* ent = NULL;
 
-    if (advance_directory_iterator_once(dir, ent))
+    if (advance_directory_iterator_once(dir, ent, advance_first))
     {
         update_directory_iterator_entry(p, entry, dir, ent);
     }
@@ -573,20 +572,14 @@ static void open_directory_iterator(const path& p, directory_entry& entry, DIR*&
     close_directory_iterator(dir);
 
     dir = opendir(p.c_str());
-    if (dir != NULL)
-    {
-        struct dirent* ent = readdir(dir);
-        if (ent == NULL)
-        {
-            close_directory_iterator(dir);
-            return;
-        }
 
-        if (is_dot_or_dotdot(ent->d_name))
-        {
-            advance_directory_iterator(p, entry, dir);
-        }
+    if (dir == NULL)
+    {
+        unix_::error_message("opendir()");
+        return;
     }
+
+    advance_directory_iterator(p, entry, dir, false);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -605,7 +598,7 @@ void directory_iterator::directory_iterator_impl::close()
 
 void directory_iterator::directory_iterator_impl::advance()
 {
-    advance_directory_iterator(m_path, m_entry, m_dir);
+    advance_directory_iterator(m_path, m_entry, m_dir, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
