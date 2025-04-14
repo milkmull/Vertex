@@ -63,7 +63,7 @@ filesystem tests:
 {
     x get/set current path
     x temp directory
-    - user folders
+    x user folders
 
     x creation and info (file, directory, symlink, directory symlink, hard link)
     x get hard link count

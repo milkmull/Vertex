@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <limits.h>  // For PATH_MAX
 #include <unistd.h>  // For readlink()
+#include <sys/statvfs.h> // space
 
 #include "vertex_impl/os/__platform/unix/unix_filesystem.hpp"
 #include "vertex/os/file.hpp"
@@ -623,7 +624,26 @@ __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 
 space_info space_impl(const path& p)
 {
-    return {};
+    struct statvfs vfs {};
+    if (statvfs(p.c_str(), &vfs) != 0)
+    {
+        // Handle error: log, throw, or return empty as in Windows version
+        unix_::error_message("statvfs()");
+        return {};
+    }
+
+    // Total capacity in bytes
+    uint64_t capacity = static_cast<uint64_t>(vfs.f_blocks) * vfs.f_frsize;
+    // Free space (including reserved blocks) in bytes
+    uint64_t free = static_cast<uint64_t>(vfs.f_bfree) * vfs.f_frsize;
+    // Available space (excluding reserved blocks) in bytes
+    uint64_t available = static_cast<uint64_t>(vfs.f_bavail) * vfs.f_frsize;
+
+    return space_info{
+        capacity,
+        free,
+        available
+    };
 }
 
 ///////////////////////////////////////////////////////////////////////////////
