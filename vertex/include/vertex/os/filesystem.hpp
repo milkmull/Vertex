@@ -31,7 +31,7 @@ enum class file_type
 
 struct file_permissions
 {
-    using type = int;
+    using type = unsigned int;
 
     enum : type
     {

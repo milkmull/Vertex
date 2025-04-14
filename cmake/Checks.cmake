@@ -35,6 +35,7 @@ function(vx_check_available_functions TARGET_NAME)
         vx_check_function_exists(${TARGET_NAME} localtime_r     HAVE_LOCALTIME_R)
         vx_check_function_exists(${TARGET_NAME} clock_gettime   HAVE_CLOCK_GETTIME)
         vx_check_function_exists(${TARGET_NAME} nanosleep       HAVE_NANOSLEEP)
+        vx_check_function_exists(${TARGET_NAME} statx           HAVE_STATX)
         
         vx_check_dlopen(${TARGET_NAME})
     

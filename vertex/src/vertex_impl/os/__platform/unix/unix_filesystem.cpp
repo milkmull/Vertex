@@ -246,9 +246,30 @@ path canonical_impl(const path& p)
     return {};
 }
 
+// https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L3671
+
 bool equivalent_impl(const path& p1, const path& p2)
 {
-    return false;
+    struct ::stat s2;
+    const int e2 = ::stat(p2.c_str(), &s2);
+    struct ::stat s1;
+    const int e1 = ::stat(p1.c_str(), &s1);
+
+    if (VX_UNLIKELY(e1 != 0 || e2 != 0))
+    {
+        // if one is invalid and the other isn't then they aren't equivalent,
+        // but if both are invalid then it is an error
+        if (e1 != 0 && e2 != 0)
+        {
+            unix_::error_message("stat()");
+        }
+
+        return false;
+    }
+
+    // According to the POSIX stat specs, "The st_ino and st_dev fields
+    // taken together uniquely identify the file within the system."
+    return s1.st_dev == s2.st_dev && s1.st_ino == s2.st_ino;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -606,15 +627,53 @@ void directory_iterator::directory_iterator_impl::advance()
 
 bool recursive_directory_iterator::recursive_directory_iterator_impl::push_stack()
 {
-    return false;
+    m_path /= m_entry.path.filename();
+    DIR* dir = NULL;
+    open_directory_iterator(m_path, m_entry, dir);
+
+    if (dir == NULL)
+    {
+        m_path.pop_back();
+        return false;
+    }
+
+    m_stack.push_back(dir);
+    return true;
 }
 
 void recursive_directory_iterator::recursive_directory_iterator_impl::pop_stack()
 {
+    m_path.pop_back();
+    close_directory_iterator(m_stack.back());
+    m_stack.pop_back();
 }
 
 void recursive_directory_iterator::recursive_directory_iterator_impl::advance()
 {
+    DIR** current = &m_stack.back();
+
+    if (m_recursion_pending && push_stack())
+    {
+        current = &m_stack.back();
+    }
+    else
+    {
+        advance_directory_iterator(m_path, m_entry, *current);
+    }
+
+    while (*current == NULL)
+    {
+        pop_stack();
+        if (m_stack.empty())
+        {
+            break;
+        }
+
+        current = &m_stack.back();
+        advance_directory_iterator(m_path, m_entry, *current);
+    }
+
+    m_recursion_pending = m_entry.is_directory();
 }
 
 } // namespace filesystem

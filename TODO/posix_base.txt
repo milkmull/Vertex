@@ -17,8 +17,8 @@ filesystem:
     x file info
     x permissions (get or set file permissions)
     
-    - directory iterator
-    - recursive directory iterator
+    x directory iterator
+    x recursive directory iterator
     
     - path manipulators (absolute, canonical, relative)
     - equivalent (are 2 paths the same?)
@@ -26,7 +26,7 @@ filesystem:
     - get temp directory path
     - get user directory
 
-    x copy operators
+    - copy operators
     x create operators
     - remove operators
     x rename operators
@@ -61,38 +61,38 @@ cleanup and finalizaton for base library:
 
 filesystem tests:
 {
-    - get/set current path
-    - temp directory
+    x get/set current path
+    x temp directory
     - user folders
 
-    - creation and info (file, directory, symlink, directory symlink, hard link)
-    - get hard link count
+    x creation and info (file, directory, symlink, directory symlink, hard link)
+    x get hard link count
     
-    - last write time
-    - file size
+    x last write time
+    x file size
 
-    - absolute
+    x absolute
     - relative
-    - equivalent
+    x equivalent
     - canonical
 
-    - read symlink
-    - update permissions
+    x read symlink
+    x update permissions
 
-    - directory iterators
+    x directory iterators
     
     - remove
-    - create directories, remove_all
-    - recursive directory iterator
+    x create directories, remove_all
+    x recursive directory iterator
     
-    - copy file
-    - copy symlink
+    x copy file
+    x copy symlink
     - copy
     
     - rename
 
     - space
-    - is_empty
+    x is_empty
 }
 
 testing:
