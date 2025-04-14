@@ -542,7 +542,7 @@ static void update_directory_iterator_entry(const path& p, directory_entry& entr
 
 static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent, bool advance_first)
 {
-    while (advance_first || is_dot_or_dotdot(ent->d_name));
+    while (advance_first || is_dot_or_dotdot(ent->d_name))
     {
         ent = readdir(dir);
         if (ent == NULL)
