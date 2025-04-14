@@ -91,7 +91,7 @@ filesystem tests:
     
     x rename
 
-    - space
+    x space
     x is_empty
 }
 
