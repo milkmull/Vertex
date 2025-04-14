@@ -115,7 +115,7 @@ static file_info file_info_from_stat(const struct stat& st) noexcept
     return file_info{
         to_file_type(st.st_mode),
         to_file_permissions(st.st_mode),
-        static_cast<size_t>(st.st_size),
+        S_ISDIR(st.st_mode) ? 0 : static_cast<size_t>(st.st_size),
         to_time_point(st.st_ctim),
         to_time_point(st.st_mtim)
     };
@@ -437,9 +437,60 @@ bool rename_impl(const path& from, const path& to)
 // Remove
 ///////////////////////////////////////////////////////////////////////////////
 
+static __detail::remove_error remove_directory(const path& p, bool in_recursive_remove) noexcept
+{
+    if (rmdir(p.c_str()) != 0)
+    {
+        if (errno == ENOTEMPTY || errno == EEXIST)
+        {
+            // don't report an error in recursive remove
+            if (!in_recursive_remove)
+            {
+                unix_::error_message("rmdir()");
+            }
+
+            return __detail::remove_error::DIRECTORY_NOT_EMPTY;
+        }
+
+        unix_::error_message("rmdir()");
+        return __detail::remove_error::OTHER;
+    }
+
+    return __detail::remove_error::NONE;
+}
+
+static __detail::remove_error remove_file(const path& p) noexcept
+{
+    if (unlink(p.c_str()) != 0)
+    {
+        unix_::error_message("unlink()");
+        return __detail::remove_error::OTHER;
+    }
+
+    return __detail::remove_error::NONE;
+}
+
 __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 {
-    return __detail::remove_error::NONE;
+    struct stat st;
+    if (lstat(p.c_str(), &st) != 0)
+    {
+        if (errno == ENOENT || errno == ENOTDIR)
+        {
+            // path or file is already gone
+            return __detail::remove_error::PATH_NOT_FOUND;
+        }
+
+        unix_::error_message("lstat()");
+        return __detail::remove_error::OTHER;
+    }
+
+    if (S_ISDIR(st.st_mode))
+    {
+        return remove_directory(p, in_recursive_remove);
+    }
+
+    return remove_file(p);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -455,20 +506,106 @@ space_info space_impl(const path& p)
 // Directory Iterator Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool is_dot_or_dotdot(const char* filename)
+{
+    if (filename[0] != '.')
+    {
+        return false;
+    }
+
+    const char second_char = filename[1];
+    if (second_char == 0)
+    {
+        return true;
+    }
+
+    if (second_char != '.')
+    {
+        return false;
+    }
+
+    return filename[2] == 0;
+}
+
+static void close_directory_iterator(DIR*& dir)
+{
+    if (dir != NULL)
+    {
+        closedir(dir);
+        dir = NULL;
+    }
+}
+
+static void update_directory_iterator_entry(const path& p, directory_entry& entry, const DIR* dir, struct dirent* ent)
+{
+    entry.path = p / ent->d_name;
+    entry.info = get_file_info_impl(entry.path);
+}
+
+static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
+{
+    do
+    {
+        ent = readdir(dir);
+        if (ent == NULL)
+        {
+            close_directory_iterator(dir);
+            break;
+        }
+
+    } while (is_dot_or_dotdot(ent->d_name));
+
+    return dir != NULL;
+}
+
+static void advance_directory_iterator(const path& p, directory_entry& entry, DIR*& dir)
+{
+    struct dirent* ent = NULL;
+
+    if (advance_directory_iterator_once(dir, ent))
+    {
+        update_directory_iterator_entry(p, entry, dir, ent);
+    }
+}
+
+static void open_directory_iterator(const path& p, directory_entry& entry, DIR*& dir)
+{
+    close_directory_iterator(dir);
+
+    dir = opendir(p.c_str());
+    if (dir != NULL)
+    {
+        struct dirent* ent = readdir(dir);
+        if (ent == NULL)
+        {
+            close_directory_iterator(dir);
+            return;
+        }
+
+        if (is_dot_or_dotdot(ent->d_name))
+        {
+            advance_directory_iterator(p, entry, dir);
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Directory Iterator
 ///////////////////////////////////////////////////////////////////////////////
 
 void directory_iterator::directory_iterator_impl::open()
 {
+    open_directory_iterator(m_path, m_entry, m_dir);
 }
 
 void directory_iterator::directory_iterator_impl::close()
 {
+    close_directory_iterator(m_dir);
 }
 
 void directory_iterator::directory_iterator_impl::advance()
 {
+    advance_directory_iterator(m_path, m_entry, m_dir);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -146,7 +146,7 @@ VX_TEST_CASE(test_create_directory)
         directory_entry.refresh();
 
         VX_CHECK(directory_entry.info.type == os::filesystem::file_type::DIRECTORY);
-        VX_CHECK(directory_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(directory_entry.info.size == 0);
         VX_CHECK(directory_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_entry.info.modify_time.as_nanoseconds() != 0);
@@ -211,7 +211,7 @@ VX_TEST_CASE(test_create_directories_and_remove_all)
         VX_CHECK(os::filesystem::exists(temp_dir.path / "c"));
     }
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_SECTION("long path support")
     {
@@ -224,7 +224,7 @@ VX_TEST_CASE(test_create_directories_and_remove_all)
         VX_CHECK(!os::filesystem::exists(long_full));
     }
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     VX_SECTION("create directory over file")
     {
@@ -258,7 +258,7 @@ VX_TEST_CASE(test_create_file)
         file_entry.refresh();
 
         VX_CHECK(file_entry.info.type == os::filesystem::file_type::REGULAR);
-        VX_CHECK(file_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(file_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(file_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(file_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -302,7 +302,7 @@ VX_TEST_CASE(test_create_symlink)
         symlink_entry.refresh();
 
         VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(symlink_entry.info.size == 0);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
@@ -333,7 +333,7 @@ VX_TEST_CASE(test_create_symlink)
         symlink_entry.refresh();
 
         VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(symlink_entry.info.size == 0);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
@@ -367,7 +367,7 @@ VX_TEST_CASE(test_create_directory_symlink)
         directory_symlink_entry.refresh();
 
         VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(directory_symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(directory_symlink_entry.info.size == 0);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
@@ -398,7 +398,7 @@ VX_TEST_CASE(test_create_directory_symlink)
         directory_symlink_entry.refresh();
 
         VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(directory_symlink_entry.info.permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
         VX_CHECK(directory_symlink_entry.info.size == 0);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
@@ -544,7 +544,7 @@ VX_TEST_CASE(test_absolute)
 {
     VX_CHECK(os::filesystem::absolute({}) == os::path());
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_CHECK(os::filesystem::absolute("x:/cat/dog/../elk") == "x:/cat/elk");
 
@@ -572,7 +572,7 @@ VX_TEST_CASE(test_absolute)
 
 #else
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -657,7 +657,7 @@ VX_TEST_CASE(test_canonical)
         VX_CHECK(!os::filesystem::canonical(".").empty());
     }
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_SECTION("canonical DOS path")
     {
@@ -683,7 +683,7 @@ VX_TEST_CASE(test_canonical)
 
 #else
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -723,7 +723,7 @@ VX_TEST_CASE(test_update_permissions)
     temp_directory temp_dir("test_update_permissions.dir");
     VX_CHECK(temp_dir.exists());
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/tests/std/tests/P0218R1_filesystem/test.cpp#L3483
 
@@ -731,7 +731,7 @@ VX_TEST_CASE(test_update_permissions)
     {
         const os::path directory = os::filesystem::get_temp_path();
         VX_CHECK(!directory.empty());
-        VX_CHECK(os::filesystem::get_file_info(directory).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(directory).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
     }
 
     VX_SECTION("file")
@@ -742,34 +742,34 @@ VX_TEST_CASE(test_update_permissions)
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ_WRITE));
 
         // should have all read and write permissions
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
 
         // has no effect because some write bits still set
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
 
         // make file read only
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ, os::filesystem::file_permission_operator::REPLACE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ);
 
         // adding any write bit removes FILE_ATTRIBUTE_READONLY
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::ADD));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
 
         // removing any write bit but not all has no effect
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::REMOVE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
 
         // removing all write bits sets FILE_ATTRIBUTE_READONLY
         VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_WRITE, os::filesystem::file_permission_operator::REMOVE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions == os::filesystem::file_permissions::ALL_READ);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ);
     }
 
 #else
 
 
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -798,7 +798,7 @@ VX_TEST_CASE(test_directory_iterator)
         }
     }
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_SECTION("edge cases")
     {
@@ -808,7 +808,7 @@ VX_TEST_CASE(test_directory_iterator)
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::directory_iterator(std::wstring(L".\0", 2)).is_valid());
     }
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     VX_SECTION("simple test")
     {
@@ -942,7 +942,7 @@ VX_TEST_CASE(test_recursive_directory_iterator)
         }
     }
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_SECTION("edge cases")
     {
@@ -952,7 +952,7 @@ VX_TEST_CASE(test_recursive_directory_iterator)
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::recursive_directory_iterator(std::wstring(L".\0", 2)).is_valid());
     }
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     VX_SECTION("simple test")
     {

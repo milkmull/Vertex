@@ -5,6 +5,7 @@
 #include <functional>
 #include <sstream>
 
+#include "vertex/config/platform.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/system/error.hpp"
 

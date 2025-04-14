@@ -9,11 +9,11 @@
 
 using namespace vx;
 
-#if defined (VX_PLATFORM_WINDOWS)
+#if defined (VX_OS_WINDOWS)
 #   define EXE ".exe"
 #else
 #   define EXE ""
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
 static const char* child_process = "os_child_process" EXE;
 
@@ -182,7 +182,7 @@ static std::string echo_argument(const std::string& arg)
     // create a new stdout stream
     cfg.stdout_option = os::process::io_option::CREATE;
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     cfg.args = { "cmd.exe", "/C", "echo", arg };
 
@@ -190,7 +190,7 @@ static std::string echo_argument(const std::string& arg)
 
     cfg.args = { "/bin/echo", arg };
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     os::process p;
     VX_CHECK_AND_EXPECT_NO_ERROR(p.start(cfg));
@@ -207,13 +207,13 @@ static std::string echo_argument(const std::string& arg)
     auto& p_stdout = p.get_stdout();
     size_t size = p_stdout.size();
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     // on windows we want to strip the /r/n
     VX_ASSERT(size >= 2);
     size -= 2;
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 
     std::string echo(size, 0);
     VX_CHECK(p_stdout.read(echo.data(), size) == size);
@@ -225,7 +225,7 @@ VX_TEST_CASE(test_arguments)
 {
     VX_CHECK(echo_argument("hello") == "hello");
 
-#if defined(VX_PLATFORM_WINDOWS)
+#if defined(VX_OS_WINDOWS)
 
     VX_CHECK(echo_argument(" ") == "\" \"");
     VX_CHECK(echo_argument("a b c") == "\"a b c\"");
@@ -245,7 +245,7 @@ VX_TEST_CASE(test_arguments)
     VX_CHECK(echo_argument("/Path/to/file/") == "/Path/to/file/");
     VX_CHECK(echo_argument("/Folder/\"Test\"") == "/Folder/\"Test\"");
 
-#endif // VX_PLATFORM_WINDOWS
+#endif // VX_OS_WINDOWS
 }
 
 ///////////////////////////////////////////////////////////////////////////////

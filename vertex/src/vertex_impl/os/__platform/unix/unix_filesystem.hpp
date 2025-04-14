@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dirent.h> // DIR
+
 #include "vertex/os/filesystem.hpp"
 #include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 
@@ -121,14 +123,13 @@ private:
 public:
 
     void advance();
-    bool is_valid() const noexcept { return m_handle.is_valid(); }
+    bool is_valid() const noexcept { return m_dir != NULL; }
 
 private:
 
     const path m_path;
     directory_entry m_entry;
-    handle m_handle;
-    WIN32_FIND_DATAW m_find_data{};
+    DIR* m_dir = NULL;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -169,7 +170,7 @@ private:
 public:
 
     void advance();
-    bool is_valid() const noexcept { return !m_stack.empty() && m_stack.back().is_valid(); }
+    bool is_valid() const noexcept { return !m_stack.empty() && m_stack.back() != NULL; }
 
     size_t depth() const noexcept { return m_stack.size() - 1; }
     bool recursion_pending() const noexcept { return m_recursion_pending; }
@@ -180,8 +181,7 @@ private:
 
     path m_path;
     directory_entry m_entry;
-    std::vector<handle> m_stack;
-    WIN32_FIND_DATAW m_find_data{};
+    std::vector<DIR*> m_stack;
     bool m_recursion_pending = false;
 };
 
