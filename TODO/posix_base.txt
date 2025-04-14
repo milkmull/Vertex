@@ -71,7 +71,7 @@ filesystem tests:
     x last write time
     x file size
 
-    x absolute
+    - absolute
     - relative
     x equivalent
     - canonical
@@ -87,9 +87,9 @@ filesystem tests:
     
     x copy file
     x copy symlink
-    - copy
+    x copy
     
-    - rename
+    x rename
 
     - space
     x is_empty

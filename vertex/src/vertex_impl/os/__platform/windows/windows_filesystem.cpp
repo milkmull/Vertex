@@ -562,22 +562,6 @@ bool set_current_path_impl(const path& p)
     return true;
 }
 
-path absolute_impl(const path& p)
-{
-    const DWORD size = GetFullPathNameW(p.c_str(), 0, NULL, NULL);
-    // We use a vector here because we don't know how long the
-    // input path will be (may be longer than MAX_PATH)
-    std::vector<WCHAR> data(size);
-
-    if (!GetFullPathNameW(p.c_str(), size, data.data(), NULL))
-    {
-        windows::error_message("GetFullPathNameW()");
-        return {};
-    }
-
-    return path{ data.data() };
-}
-
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2686
 
 path canonical_impl(const path& p)

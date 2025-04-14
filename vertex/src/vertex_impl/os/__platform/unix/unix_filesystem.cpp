@@ -224,21 +224,6 @@ bool set_current_path_impl(const path& p)
     return true;
 }
 
-path absolute_impl(const path& p)
-{
-    char buffer[PATH_MAX];
-
-    // realpath() returns the absolute pathname or NULL on error
-    char* absolute_path = realpath(p.c_str(), buffer);
-    if (absolute_path == NULL)
-    {
-        unix_::error_message("realpath()");
-        return {};
-    }
-
-    return path{ absolute_path };
-}
-
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2686
 
 path canonical_impl(const path& p)
@@ -385,6 +370,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
         struct stat buffer;
         if (stat(to.c_str(), &buffer) == 0) // File exists
         {
+            err::set(err::SYSTEM_ERROR, "copy_file(): file already exists");
             return false; // Do not overwrite
         }
     }

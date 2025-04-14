@@ -66,9 +66,39 @@ VX_API bool set_current_path(const path& p)
     return set_current_path_impl(p);
 }
 
+// https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L2508
+
 VX_API path absolute(const path& p)
 {
-    return absolute_impl(p);
+    if (p.is_absolute())
+    {
+        return p;
+    }
+
+    const path base = get_current_path();
+    if (!base.is_absolute())
+    {
+        err::set(err::SYSTEM_ERROR, "absolute(): current path is not absolute");
+        return {};
+    }
+
+    if (p.empty())
+    {
+        return base;
+    }
+
+    path abs = p.has_root_name() ? p.root_name() : base.root_name();
+
+    if (p.has_root_directory())
+    {
+        abs /= p.root_directory();
+    }
+    else
+    {
+        abs /= base.root_directory() / base.relative_path();
+    }
+
+    return abs / p.relative_path();
 }
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2570

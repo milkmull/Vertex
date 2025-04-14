@@ -79,12 +79,6 @@ static bool set_current_path_impl(const path&)
     return false;
 }
 
-static path absolute_impl(const path&)
-{
-    unsupported("absolute");
-    return {};
-}
-
 static path canonical_impl(const path&)
 {
     unsupported("canonical");

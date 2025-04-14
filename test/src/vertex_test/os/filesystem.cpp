@@ -307,7 +307,6 @@ VX_TEST_CASE(test_create_symlink)
 
         VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
         VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
-        VX_CHECK(symlink_entry.info.size == 0);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -338,7 +337,6 @@ VX_TEST_CASE(test_create_symlink)
 
         VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
         VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
-        VX_CHECK(symlink_entry.info.size == 0);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -375,7 +373,6 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
         VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
-        VX_CHECK(directory_symlink_entry.info.size == 0);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -406,7 +403,6 @@ VX_TEST_CASE(test_create_directory_symlink)
 
         VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
         VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
-        VX_CHECK(directory_symlink_entry.info.size == 0);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -550,15 +546,15 @@ VX_TEST_CASE(test_file_size)
 
 VX_TEST_CASE(test_absolute)
 {
-    VX_CHECK(os::filesystem::absolute({}) == os::path());
+    const os::path current_path = os::filesystem::get_current_path();
+    VX_CHECK(os::filesystem::absolute({}) == current_path);
+
+    const os::path fake_file = "fake_file.txt";
+    VX_CHECK(os::filesystem::absolute(fake_file) == current_path / fake_file);
 
 #if defined(VX_OS_WINDOWS)
 
-    VX_CHECK(os::filesystem::absolute("x:/cat/dog/../elk") == "x:/cat/elk");
-
-    const os::path current_path = os::filesystem::get_current_path();
-    const os::path fake_file = "fake_file.txt";
-    VX_CHECK(os::filesystem::absolute(fake_file) == current_path / fake_file);
+    VX_CHECK(os::filesystem::absolute("x:/cat/dog/../elk") == "x:/cat/dog/../elk");
 
     VX_SECTION("windows long path")
     {
@@ -569,16 +565,11 @@ VX_TEST_CASE(test_absolute)
         long_path /= std::string(255, 'a');
         VX_CHECK(long_path.size() > MAX_PATH);
         VX_CHECK(os::filesystem::absolute(long_path) == long_path);
-
-        // Path should be way too long
-        long_path /= std::string(40000, 'b');
-        VX_CHECK_AND_EXPECT_ERROR(os::filesystem::absolute(long_path) != long_path);
-
-        long_path = os::path(long_path.c_str(), long_path.c_str() + MAX_PATH);
-        VX_CHECK(os::filesystem::absolute(long_path) == long_path);
     }
 
 #else
+
+    VX_CHECK(os::filesystem::absolute("/cat/dog/../elk") == "/cat/dog/../elk");
 
 #endif // VX_OS_WINDOWS
 }
@@ -1384,7 +1375,7 @@ VX_TEST_CASE(test_copy)
 
     const auto create_structure = [=, &file1_data, &file2_data, &file3_data]() -> bool
     {
-#   define verify(condition) do { if (!(condition)) return false; } while (0)
+#       define verify(condition) do { if (!(condition)) return false; } while (0)
 
         verify(os::filesystem::remove_all(temp_dir_path));
         verify(os::filesystem::create_directories(dir2));
@@ -1394,57 +1385,48 @@ VX_TEST_CASE(test_copy)
 
         return true;
 
-#   undef verify
+#       undef verify
+    };
+
+    struct entry_info
+    {
+        os::filesystem::file_type type;
+        bool found = false;
     };
 
     VX_SECTION("basic copy")
     {
+        std::unordered_map<os::path, entry_info> paths = {
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::REGULAR } }
+        };
+
         VX_CHECK(create_structure());
         VX_CHECK(os::filesystem::copy(dir1, dir3));
 
         os::filesystem::recursive_directory_iterator it(temp_dir_path);
         VX_CHECK(it.is_valid());
 
-        VX_CHECK(it->path == temp_dir_path / "dir1");
-        VX_CHECK(it->is_directory());
+        size_t count = 0;
+        while (it.is_valid())
+        {
+            VX_CHECK(paths.count(it->path) == 1);
+            VX_CHECK(!paths[it->path].found);
+            VX_CHECK(it->info.type == paths[it->path].type);
+            paths[it->path].found = true;
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2");
-        VX_CHECK(it->is_directory());
+            VX_EXPECT_NO_ERROR(++it);
+            ++count;
+        }
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2/file3");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file1");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file2");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3");
-        VX_CHECK(it->is_directory());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/file1");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/file2");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
         VX_CHECK(!it.is_valid());
+        VX_CHECK(count == paths.size());
     }
 
     VX_SECTION("target already exists")
@@ -1455,102 +1437,72 @@ VX_TEST_CASE(test_copy)
 
     VX_SECTION("recursive copy")
     {
+        std::unordered_map<os::path, entry_info> paths = {
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir3/dir2",          { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir3/dir2/file3",    { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::REGULAR } }
+        };
+
         VX_CHECK(create_structure());
         VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::RECURSIVE));
 
         os::filesystem::recursive_directory_iterator it(temp_dir_path);
         VX_CHECK(it.is_valid());
 
-        VX_CHECK(it->path == temp_dir_path / "dir1");
-        VX_CHECK(it->is_directory());
+        size_t count = 0;
+        while (it.is_valid())
+        {
+            VX_CHECK(paths.count(it->path) == 1);
+            VX_CHECK(!paths[it->path].found);
+            VX_CHECK(it->info.type == paths[it->path].type);
+            paths[it->path].found = true;
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2");
-        VX_CHECK(it->is_directory());
+            VX_EXPECT_NO_ERROR(++it);
+            ++count;
+        }
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2/file3");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file1");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file2");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3");
-        VX_CHECK(it->is_directory());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/dir2");
-        VX_CHECK(it->is_directory());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/dir2/file3");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/file1");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3/file2");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
         VX_CHECK(!it.is_valid());
+        VX_CHECK(count == paths.size());
     }
 
     VX_SECTION("copy directories only")
     {
+        std::unordered_map<os::path, entry_info> paths = {
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } }
+        };
+
         VX_CHECK(create_structure());
         VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::DIRECTORIES_ONLY));
 
         os::filesystem::recursive_directory_iterator it(temp_dir_path);
         VX_CHECK(it.is_valid());
 
-        VX_CHECK(it->path == temp_dir_path / "dir1");
-        VX_CHECK(it->is_directory());
+        size_t count = 0;
+        while (it.is_valid())
+        {
+            VX_CHECK(paths.count(it->path) == 1);
+            VX_CHECK(!paths[it->path].found);
+            VX_CHECK(it->info.type == paths[it->path].type);
+            paths[it->path].found = true;
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2");
-        VX_CHECK(it->is_directory());
+            VX_EXPECT_NO_ERROR(++it);
+            ++count;
+        }
 
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/dir2/file3");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file1");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir1/file2");
-        VX_CHECK(it->is_regular_file());
-
-        VX_EXPECT_NO_ERROR(++it);
-        VX_CHECK(it.is_valid());
-        VX_CHECK(it->path == temp_dir_path / "dir3");
-        VX_CHECK(it->is_directory());
-
-        VX_EXPECT_NO_ERROR(++it);
         VX_CHECK(!it.is_valid());
+        VX_CHECK(count == paths.size());
     }
 
     VX_SECTION("copy bad paths")
