@@ -86,10 +86,10 @@ bool update_permissions_impl(
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool is_directory_internal(const path& p) noexcept
+static inline bool is_directory_internal(const path& p) noexcept
 {
     struct stat st {};
-    return (stat(p.c_str(), &st) != 0) && S_ISDIR(st.st_mode);
+    return (stat(p.c_str(), &st) == 0) && S_ISDIR(st.st_mode);
 }
 
 static file_type to_file_type(mode_t mode) noexcept
