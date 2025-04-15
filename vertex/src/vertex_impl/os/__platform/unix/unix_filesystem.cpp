@@ -86,6 +86,12 @@ bool update_permissions_impl(
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
+static bool is_directory_internal(const path& p) noexcept
+{
+    struct stat st {};
+    return (stat(p.c_str(), &st) != 0) && S_ISDIR(st.st_mode);
+}
+
 static file_type to_file_type(mode_t mode) noexcept
 {
     if (S_ISREG(mode))     return file_type::REGULAR;
@@ -195,18 +201,16 @@ bool set_modify_time_impl(const path& p, time::time_point t)
 
 path read_symlink_impl(const path& p)
 {
-    std::vector<char> buffer(PATH_MAX);
-
     // readlink does NOT null-terminate the result
-    const ssize_t len = readlink(p.c_str(), buffer.data(), buffer.size());
-
-    if (len < 0)
+    char buffer[PATH_MAX];
+    const ssize_t size = readlink(p.c_str(), buffer, sizeof(buffer));
+    if (size < 0)
     {
         unix_::error_message("readlink()");
         return {};
     }
 
-    return path(std::string(buffer.data(), static_cast<size_t>(len)));
+    return path(buffer, buffer + size);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -245,14 +249,14 @@ path canonical_impl(const path& p)
 
     // Use realpath to resolve the canonical absolute path
     // realpath automatically resolves symbolic links and returns an absolute path
-    char resolved_path[PATH_MAX];
-    if (realpath(normalized.c_str(), resolved_path) == NULL)
+    char buffer[PATH_MAX];
+    if (realpath(normalized.c_str(), buffer) == NULL)
     {
         unix_::error_message("realpath()");
     }
     else
     {
-        res.assign(resolved_path);
+        res.assign(buffer);
     }
 
     return res;
@@ -262,9 +266,9 @@ path canonical_impl(const path& p)
 
 bool equivalent_impl(const path& p1, const path& p2)
 {
-    struct ::stat s2;
+    struct stat s2 {};
     const int e2 = stat(p2.c_str(), &s2);
-    struct ::stat s1;
+    struct stat s1 {};
     const int e1 = stat(p1.c_str(), &s1);
 
     if (VX_UNLIKELY(e1 != 0 || e2 != 0))
@@ -309,12 +313,12 @@ path get_temp_path_impl()
     }
 
     const path tmp_path{ tmp ? tmp : default_tmp };
-    return is_directory(tmp_path) ? tmp_path : path{};
+    return is_directory_internal(tmp_path) ? tmp_path : path{};
 }
 
 // https://github.com/libsdl-org/SDL/blob/90fd2a3cbee5b7ead1f0517d7cc0eba1f3059207/src/filesystem/unix/SDL_sysfilesystem.c#L518
 
-static std::string xdg_user_dir_lookup(const char* type)
+static std::string xdg_user_dir_lookup(const char* key)
 {
     std::string resolved;
 
@@ -334,7 +338,7 @@ static std::string xdg_user_dir_lookup(const char* type)
         return resolved;
     }
 
-    const std::string prefix = std::string("XDG_") + type + "_DIR=\"";
+    const std::string prefix = std::string(key) + "=\"";
     std::string line;
 
     while (f.read_line(line))
@@ -378,7 +382,7 @@ static std::string xdg_user_dir_lookup(const char* type)
 path get_user_folder_impl(user_folder folder)
 {
     const char* home = std::getenv("HOME");
-    const char* param = NULL;
+    const char* key = nullptr;
 
     // According to 'man xdg-user-dir', the possible values are:
     // { DESKTOP, DOWNLOAD, TEMPLATES, PUBLICSHARE, DOCUMENTS, MUSIC, PICTURES, VIDEOS }
@@ -391,38 +395,38 @@ path get_user_folder_impl(user_folder folder)
         }
         case user_folder::DESKTOP:
         {
-            param = "DESKTOP";
+            key = "XDG_DESKTOP_DIR";
             break;
         }
         case user_folder::DOCUMENTS:
         {
-            param = "DOCUMENTS";
+            key = "XDG_DOCUMENTS_DIR";
             break;
         }
         case user_folder::DOWNLOADS:
         {
-            param = "DOWNLOAD";
+            key = "XDG_DOWNLOAD_DIR";
             break;
         }
         case user_folder::MUSIC:
         {
-            param = "MUSIC";
+            key = "XDG_MUSIC_DIR";
             break;
         }
         case user_folder::PICTURES:
         {
-            param = "PICTURES";
+            key = "XDG_PICTURES_DIR";
             break;
         }
         case user_folder::VIDEOS:
         {
-            param = "VIDEOS";
+            key = "XDG_VIDEOS_DIR";
             break;
         }
     }
 
-    VX_ASSERT(param != NULL);
-    return xdg_user_dir_lookup(param);
+    VX_ASSERT(key != nullptr);
+    return xdg_user_dir_lookup(key);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -448,14 +452,10 @@ bool create_directory_impl(const path& p)
     // Attempt to create the directory
     if (mkdir(p.c_str(), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0)
     {
-        if (errno == EEXIST)
+        // Directory exists, check if it's a directory
+        if (errno == EEXIST && is_directory_internal(p))
         {
-            // Directory exists, check if it's a directory
-            struct stat st;
-            if (stat(p.c_str(), &st) == 0 && S_ISDIR(st.st_mode))
-            {
-                return true;
-            }
+            return true;
         }
 
         unix_::error_message("mkdir()");
@@ -513,7 +513,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
     }
 
     file to_file;
-    if (!to_file.open(to, file::mode::READ_WRITE_CREATE))
+    if (!to_file.open(to, file::mode::WRITE))
     {
         return false;
     }
@@ -566,19 +566,16 @@ static __detail::remove_error remove_directory(const path& p, bool in_recursive_
 {
     if (rmdir(p.c_str()) != 0)
     {
-        if (errno == ENOTEMPTY || errno == EEXIST)
+        const bool not_empty = (errno == ENOTEMPTY || errno == EEXIST);
+        if (!not_empty || (not_empty && !in_recursive_remove))
         {
             // don't report an error in recursive remove
-            if (!in_recursive_remove)
-            {
-                unix_::error_message("rmdir()");
-            }
-
-            return __detail::remove_error::DIRECTORY_NOT_EMPTY;
+            unix_::error_message("rmdir()");
         }
 
-        unix_::error_message("rmdir()");
-        return __detail::remove_error::OTHER;
+        return not_empty
+            ? __detail::remove_error::DIRECTORY_NOT_EMPTY
+            : __detail::remove_error::OTHER;
     }
 
     return __detail::remove_error::NONE;
@@ -597,7 +594,7 @@ static __detail::remove_error remove_file(const path& p) noexcept
 
 __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 {
-    struct stat st;
+    struct stat st {};
     if (lstat(p.c_str(), &st) != 0)
     {
         if (errno == ENOENT || errno == ENOTDIR)
@@ -633,11 +630,11 @@ space_info space_impl(const path& p)
     }
 
     // Total capacity in bytes
-    uint64_t capacity = static_cast<uint64_t>(vfs.f_blocks) * vfs.f_frsize;
+    const size_t capacity = static_cast<size_t>(vfs.f_blocks) * vfs.f_frsize;
     // Free space (including reserved blocks) in bytes
-    uint64_t free = static_cast<uint64_t>(vfs.f_bfree) * vfs.f_frsize;
+    const size_t free = static_cast<size_t>(vfs.f_bfree) * vfs.f_frsize;
     // Available space (excluding reserved blocks) in bytes
-    uint64_t available = static_cast<uint64_t>(vfs.f_bavail) * vfs.f_frsize;
+    const size_t available = static_cast<size_t>(vfs.f_bavail) * vfs.f_frsize;
 
     return space_info{
         capacity,
@@ -717,7 +714,6 @@ static void open_directory_iterator(const path& p, directory_entry& entry, DIR*&
     close_directory_iterator(dir);
 
     dir = opendir(p.c_str());
-
     if (dir == NULL)
     {
         unix_::error_message("opendir()");

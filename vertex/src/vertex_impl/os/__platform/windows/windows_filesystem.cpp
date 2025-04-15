@@ -1022,19 +1022,16 @@ static __detail::remove_error remove_directory(const path& p, bool in_recursive_
     {
         restore_readonly_attributes(p, attrs);
 
-        if (GetLastError() == ERROR_DIR_NOT_EMPTY)
+        const bool not_empty = (GetLastError() == ERROR_DIR_NOT_EMPTY);
+        if (!not_empty || (not_empty && !in_recursive_remove))
         {
             // don't report an error in recursive remove
-            if (!in_recursive_remove)
-            {
-                windows::error_message("RemoveDirectoryW()");
-            }
-
-            return __detail::remove_error::DIRECTORY_NOT_EMPTY;
+            windows::error_message("RemoveDirectoryW()");
         }
 
-        windows::error_message("RemoveDirectoryW()");
-        return __detail::remove_error::OTHER;
+        return not_empty
+            ? __detail::remove_error::DIRECTORY_NOT_EMPTY
+            : __detail::remove_error::OTHER;
     }
 
     return __detail::remove_error::NONE;
