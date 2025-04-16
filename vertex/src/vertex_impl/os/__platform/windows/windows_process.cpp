@@ -565,7 +565,7 @@ std::string this_process::get_environment_variable_impl(const std::string& name)
     DWORD buffer_size = GetEnvironmentVariableW(wname.c_str(), NULL, 0);
     if (buffer_size == 0)
     {
-        windows::error_message("GetEnvironmentVariableW()");
+        //windows::error_message("GetEnvironmentVariableW()");
         return std::string{};
     }
 
@@ -590,12 +590,7 @@ bool this_process::set_environment_variable_impl(const std::string& name, const 
 bool this_process::clear_environment_variable_impl(const std::string& name)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
-
-    if (SetEnvironmentVariableW(wname.c_str(), NULL) == 0)
-    {
-        windows::error_message("SetEnvironmentVariableW()");
-        return false;
-    }
+    SetEnvironmentVariableW(wname.c_str(), NULL);
     return true;
 }
 

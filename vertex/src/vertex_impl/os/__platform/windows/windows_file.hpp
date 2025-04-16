@@ -210,7 +210,7 @@ struct file_impl
         return static_cast<size_t>(count);
     }
 
-    static file from_handle(handle h, file::mode m)
+    static file from_handle(typename handle::native_handle h, file::mode m)
     {
         return file::from_handle(h, m);
     }

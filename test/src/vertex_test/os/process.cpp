@@ -63,7 +63,7 @@ VX_TEST_CASE(test_this_process)
 
         // clear it
         VX_CHECK_AND_EXPECT_NO_ERROR(os::this_process::clear_environment_variable(var.first));
-        VX_CHECK_AND_EXPECT_ERROR(os::this_process::get_environment_variable(var.first).empty());
+        VX_CHECK(os::this_process::get_environment_variable(var.first).empty());
     }
 
     VX_SECTION("stdio")
