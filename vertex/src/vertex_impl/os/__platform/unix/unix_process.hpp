@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/types.h> // pid_t
+
 #include "vertex/os/process.hpp"
 #include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 

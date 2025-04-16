@@ -1,5 +1,6 @@
-#include "vertex_impl/os/__platform/windows/windows_process.hpp"
-#include "vertex_impl/os/__platform/windows/windows_file.hpp"
+#include <sys/wait.h>
+#include <unistd.h>
+
 #include "vertex/util/string/string.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/system/assert.hpp"
