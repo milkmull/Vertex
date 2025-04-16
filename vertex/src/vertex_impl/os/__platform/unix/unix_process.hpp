@@ -21,7 +21,7 @@ public:
 
     id get_pid() const noexcept { return static_cast<id>(m_pid); }
 
-    bool is_valid() const;
+    bool is_valid() const noexcept { return m_pid > 0; }
     bool is_alive() const;
     bool is_complete() const;
 

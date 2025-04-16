@@ -240,7 +240,7 @@ file file::from_native_handle(typename handle::native_handle h, mode m)
 {
     file f;
 
-    if (!h.is_valid())
+    if (!handle::is_valid_handle(h))
     {
         return f;
     }
@@ -250,7 +250,7 @@ file file::from_native_handle(typename handle::native_handle h, mode m)
         return f;
     }
 
-    f.m_handle = std::move(h);
+    f.m_handle = h;
     f.m_mode = m;
 
     return f;

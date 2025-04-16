@@ -23,6 +23,15 @@ public:
 
 #endif
 
+    static bool is_valid_handle(native_handle h) noexcept
+    {
+#   if defined(VX_OS_WINDOWS)
+        return h != NULL && h != VX_INVALID_HANDLE;
+#   else
+        return h >= 0;
+#   endif
+    }
+
 public:
 
     handle() noexcept : m_handle(VX_INVALID_HANDLE) {}
@@ -63,15 +72,7 @@ public:
 
 public:
 
-    bool is_valid() const noexcept
-    {
-#   if defined(VX_OS_WINDOWS)
-        return m_handle != NULL && m_handle != VX_INVALID_HANDLE;
-#   else
-        return m_handle >= 0;
-#   endif
-    }
-
+    bool is_valid() const noexcept { return is_valid_handle(m_handle); }
     native_handle get() const noexcept { return m_handle; }
     void reset() noexcept { m_handle = VX_INVALID_HANDLE; }
 
