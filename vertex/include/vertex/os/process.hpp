@@ -40,6 +40,7 @@ public:
         process::environment environment;
 
         bool background = true;
+        path working_directory;
 
         io_option stdin_option  = io_option::NONE;
         io_option stdout_option = io_option::NONE;

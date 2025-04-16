@@ -236,6 +236,7 @@ additional tests:
 {
     x test thread local
     x test copy and move semantics for process, thread, file, shared library
+    - test process working directory
 }
 
 finish base library:

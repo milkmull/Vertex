@@ -161,6 +161,11 @@ bool process::process_impl::start(process* p, const config& config)
         environment = wenv.data();
     }
 
+    // Working directory
+    LPCWSTR working_directory = !config.working_directory.empty()
+        ? config.working_directory.c_str()
+        : NULL;
+
     enum : int
     {
         READ_PIPE  = 0,
@@ -232,8 +237,8 @@ bool process::process_impl::start(process* p, const config& config)
             case io_option::NONE:
             {
                 // Redirect to a null device if the stream is null
-                stream.proc_pipe() = CreateFileW(
-                    VX_NULL_DEVICE,
+                HANDLE h = CreateFileW(
+                    L"NUL:",
                     GENERIC_ALL,
                     0,
                     &security_attributes,
@@ -242,12 +247,13 @@ bool process::process_impl::start(process* p, const config& config)
                     NULL
                 );
 
-                if (stream.proc_pipe() == INVALID_HANDLE_VALUE)
+                if (h == INVALID_HANDLE_VALUE)
                 {
                     windows::error_message("CreateFileW()");
                     goto cleanup;
                 }
 
+                stream.proc_pipe() = h;
                 break;
             }
             case io_option::CREATE:
@@ -278,14 +284,14 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
-                    VX_ERR(err::INVALID_ARGUMENT) << "redirect stream was null";
+                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream was null");
                     goto cleanup;
                 }
 
                 if ((stream.proc_file_mode() == file::mode::READ && !stream.redirect->can_read()) ||
                     (stream.proc_file_mode() == file::mode::WRITE && !stream.redirect->can_write()))
                 {
-                    VX_ERR(err::INVALID_ARGUMENT) << "redirect stream mode is incompatable with expected file mode";
+                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream mode is incompatable with expected file mode");
                     goto cleanup;
                 }
 
@@ -355,7 +361,7 @@ bool process::process_impl::start(process* p, const config& config)
         TRUE,                       // Inherit handles
         creation_flags,             // Process creation flags
         environment,                // Environment variables (null if inheriting)
-        NULL,                       // Current directory (null if default)
+        working_directory,          // Current directory (null if default)
         &startup_info,              // Startup information (with redirected stdin/stdout/stderr)
         &m_process_information))    // Process information
     {
