@@ -236,7 +236,7 @@ VX_API bool file::write_file(const path& p, const char* text)
 #endif // VX_OS_WINDOWS
 }
 
-file file::from_handle(handle h, mode m)
+file file::from_native_handle(typename handle::native_handle h, mode m)
 {
     file f;
 

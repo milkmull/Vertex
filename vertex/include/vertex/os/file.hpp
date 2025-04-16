@@ -208,8 +208,8 @@ public:
 
 private:
 
-    static file from_handle(handle h, mode m);
-    handle get_handle() const { return m_handle.get(); }
+    static file from_native_handle(typename handle::native_handle h, mode m);
+    typename handle::native_handle get_native_handle() const { return m_handle.get(); }
 
 private:
 

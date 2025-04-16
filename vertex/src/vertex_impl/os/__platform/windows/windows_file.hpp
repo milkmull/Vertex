@@ -210,14 +210,14 @@ struct file_impl
         return static_cast<size_t>(count);
     }
 
-    static file from_handle(typename handle::native_handle h, file::mode m)
+    static file from_native_handle(typename handle::native_handle h, file::mode m)
     {
-        return file::from_handle(h, m);
+        return file::from_native_handle(h, m);
     }
 
-    static handle get_handle(const file& f)
+    static typename handle::native_handle get_native_handle(const file& f)
     {
-        return f.get_handle();
+        return f.get_native_handle();
     }
 };
 

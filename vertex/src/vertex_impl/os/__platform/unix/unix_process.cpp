@@ -177,7 +177,7 @@ static io_stream get_stream_handle(int fd)
         unix_::error_message("dup()");
     }
 
-    return __detail::file_impl::from_handle(
+    return __detail::file_impl::from_native_handle(
         dup_fd,
         (fd == STDIN_FILENO) ? io_stream::mode::READ : io_stream::mode::WRITE
     );

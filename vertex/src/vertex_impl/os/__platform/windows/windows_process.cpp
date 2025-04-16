@@ -291,7 +291,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 if (!DuplicateHandle(
                     GetCurrentProcess(),
-                    __detail::file_impl::get_handle(*stream.redirect).get(),
+                    __detail::file_impl::get_native_handle(*stream.redirect),
                     GetCurrentProcess(),
                     &stream.proc_pipe(),
                     0,
@@ -368,7 +368,7 @@ bool process::process_impl::start(process* p, const config& config)
         if (streams[i].option == io_option::CREATE)
         {
             // Create file object from handle for the corresponding stream
-            p->m_streams[i] = __detail::file_impl::from_handle(
+            p->m_streams[i] = __detail::file_impl::from_native_handle(
                 streams[i].user_pipe(),
                 streams[i].user_file_mode()
             );
@@ -611,7 +611,7 @@ static io_stream get_stream_handle(DWORD nStdHandle)
         windows::error_message("DuplicateHandle()");
     }
 
-    return __detail::file_impl::from_handle(
+    return __detail::file_impl::from_native_handle(
         h,
         (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::READ : io_stream::mode::WRITE
     );
