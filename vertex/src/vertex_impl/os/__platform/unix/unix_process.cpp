@@ -1,6 +1,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "vertex_impl/os/__platform/unix/unix_process.hpp"
+#include "vertex_impl/os/__platform/unix/unix_file.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/system/assert.hpp"
@@ -140,7 +142,22 @@ process::id this_process::get_pid_impl() noexcept
 
 process::environment this_process::get_environment_impl()
 {
-    return {};
+    process::environment environment;
+
+    char** strings = environ;
+    for (char** current = strings; *current; ++current)
+    {
+        std::string entry(*current);
+        size_t pos = entry.find('=');
+        if (pos != std::string::npos)
+        {
+            std::string name = entry.substr(0, pos);
+            std::string value = entry.substr(pos + 1);
+            environment.emplace(std::move(name), std::move(value));
+        }
+    }
+
+    return environment;
 }
 
 std::string this_process::get_environment_variable_impl(const std::string& name)
