@@ -216,21 +216,15 @@ bool process::process_impl::start(process* p, const config& config)
         }
     };
 
-    // If running in the background, redirect all streams to null
-    if (config.background)
-    {
-        for (stream_data& s : streams)
-        {
-            if (s.option == io_option::INHERIT)
-            {
-                s.option = io_option::NONE;
-            }
-        }
-    }
-
     for (int i = 0; i < STREAM_COUNT; ++i)
     {
         stream_data& stream = streams[i];
+
+        if (config.background && stream.option == io_option::INHERIT)
+        {
+            // If running in the background, redirect all streams to null
+            stream.option = io_option::NONE;
+        }
 
         switch (stream.option)
         {
@@ -369,6 +363,7 @@ bool process::process_impl::start(process* p, const config& config)
         goto cleanup;
     }
 
+    // Setup user end of created streams
     for (int i = 0; i < STREAM_COUNT; ++i)
     {
         if (streams[i].option == io_option::CREATE)
@@ -390,32 +385,26 @@ bool process::process_impl::start(process* p, const config& config)
 
     cleanup:
     {
-        // Ensure we properly close handles
-        if (startup_info.hStdInput != INVALID_HANDLE_VALUE &&
-            startup_info.hStdInput != streams[STDIN].proc_pipe())
+        for (stream_data& s : streams)
         {
-            CloseHandle(startup_info.hStdInput);
-        }
-        if (startup_info.hStdOutput != INVALID_HANDLE_VALUE &&
-            startup_info.hStdOutput != streams[STDOUT].proc_pipe())
-        {
-            CloseHandle(startup_info.hStdOutput);
-        }
-        if (startup_info.hStdError != INVALID_HANDLE_VALUE &&
-            startup_info.hStdError != streams[STDERR].proc_pipe())
-        {
-            CloseHandle(startup_info.hStdError);
-        }
+            // Only close proc_pipe() if:
+            // - It was created (CREATE or NONE), not redirected or inherited
+            // - We succeeded and the child has inherited it already
+            // - OR we failed to create the process, in which case everything must be cleaned up
+            const bool created_pipe = (s.option == io_option::CREATE || s.option == io_option::NONE);
 
-        for (int i = 0; i < STREAM_COUNT; ++i)
-        {
-            if (streams[i].proc_pipe() != INVALID_HANDLE_VALUE)
+            if (s.proc_pipe() != INVALID_HANDLE_VALUE)
             {
-                CloseHandle(streams[i].proc_pipe());
+                if (!success || created_pipe)
+                {
+                    CloseHandle(s.proc_pipe());
+                }
             }
-            if (!success && streams[i].user_pipe() != INVALID_HANDLE_VALUE)
+
+            // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
+            if (!success && s.user_pipe() != INVALID_HANDLE_VALUE)
             {
-                CloseHandle(streams[i].user_pipe());
+                CloseHandle(s.user_pipe());
             }
         }
     }
@@ -504,18 +493,19 @@ bool process::process_impl::get_exit_code(int* exit_code) const
 {
     assert_process_configured();
 
-    if (exit_code)
+    if (!exit_code)
     {
-        DWORD rc;
-        if (!GetExitCodeProcess(m_process_information.hProcess, &rc))
-        {
-            windows::error_message("GetExitCodeProcess()");
-            return false;
-        }
-
-        *exit_code = static_cast<int>(rc);
+        return false;
     }
 
+    DWORD rc;
+    if (!GetExitCodeProcess(m_process_information.hProcess, &rc))
+    {
+        windows::error_message("GetExitCodeProcess()");
+        return false;
+    }
+
+    *exit_code = static_cast<int>(rc);
     return true;
 }
 

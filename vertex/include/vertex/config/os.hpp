@@ -26,7 +26,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/linux.h
 
-#if !defined(__VX_OS_DETECTED)  && ( \
+#if !defined(__VX_OS_DETECTED) && ( \
     defined(linux) || defined(__linux) || \
     defined(__linux__) || defined(__gnu_linux__) \
     )
@@ -42,7 +42,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/ios.h
 
-#if !defined(__VX_OS_DETECTED)  && ( \
+#if !defined(__VX_OS_DETECTED) && ( \
     defined(__APPLE__) && defined(__MACH__) && \
     defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) \
     )
@@ -60,7 +60,7 @@
 
 // macos should be detected after ios
 
-#if !defined(__VX_OS_DETECTED)  && ( \
+#if !defined(__VX_OS_DETECTED) && ( \
     defined(macintosh) || defined(Macintosh) || \
     (defined(__APPLE__) && defined(__MACH__)) \
     )

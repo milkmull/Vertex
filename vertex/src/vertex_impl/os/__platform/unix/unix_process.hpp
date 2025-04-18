@@ -33,6 +33,7 @@ public:
 private:
 
     pid_t m_pid = -1; // Process ID returned by fork()
+    bool m_background = false;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

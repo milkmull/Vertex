@@ -11,11 +11,11 @@ using namespace vx;
 
 #if defined (VX_OS_WINDOWS)
 #   define EXE ".exe"
+static const char* child_process = "os_child_process" EXE;
 #else
 #   define EXE ""
+static const char* child_process = "./os_child_process" EXE;
 #endif // VX_OS_WINDOWS
-
-static const char* child_process = "os_child_process" EXE;
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -552,7 +552,9 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(p_stdout.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stdout.read_line(read_line)); // fails here only sometimes
+        std::cout << read_line << std::endl;
+        VX_CHECK(read_line == line);
     }
 
     VX_CHECK(p_stdout.eof());

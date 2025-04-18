@@ -1,9 +1,12 @@
 #include <sys/wait.h>
 #include <unistd.h>
+#include <spawn.h>
+#include <dirent.h> // DIR
 
 #include "vertex_impl/os/__platform/unix/unix_process.hpp"
 #include "vertex_impl/os/__platform/unix/unix_file.hpp"
 #include "vertex/util/string/string.hpp"
+#include "vertex/os/time.hpp"
 #include "vertex/system/error.hpp"
 #include "vertex/system/assert.hpp"
 
@@ -36,20 +39,67 @@ static void ignore_signal(int sig)
     }
 }
 
-static bool create_pipe(int fds[2])
+// https://github.com/libsdl-org/SDL/blob/90fd2a3cbee5b7ead1f0517d7cc0eba1f3059207/src/process/posix/SDL_posixprocess.c#L125
+
+static bool add_file_descriptor_close_actions(posix_spawn_file_actions_t* fa)
 {
-    if (pipe(fds) < 0)
+    DIR* dir = ::opendir("/proc/self/fd");
+    if (dir)
     {
-        unix_::error_message("pipe()");
-        return false;
+        struct dirent* entry;
+        while ((entry = ::readdir(dir)) != nullptr)
+        {
+            // Skip . and ..
+            if (entry->d_name[0] == '.')
+            {
+                continue;
+            }
+
+            // Skip stdin/out/err
+            const int fd = std::atoi(entry->d_name);
+            if (fd <= STDERR_FILENO)
+            {
+                continue;
+            }
+
+            // skip invalid or CLOEXEC
+            const int flags = ::fcntl(fd, F_GETFD);
+            if (flags < 0 || (flags & FD_CLOEXEC))
+            {
+                continue;
+            }
+
+            if (::posix_spawn_file_actions_addclose(fa, fd) != 0)
+            {
+                ::closedir(dir);
+                unix_::error_message("posix_spawn_file_actions_addclose()");
+                return false;
+            }
+        }
+
+        ::closedir(dir);
+    }
+    else
+    {
+        // Fallback if /proc/self/fd is unavailable
+        const long max_fd = ::sysconf(_SC_OPEN_MAX);
+        for (int fd = static_cast<int>(max_fd - 1); fd > STDERR_FILENO; --fd)
+        {
+            // skip invalid or CLOEXEC
+            const int flags = ::fcntl(fd, F_GETFD);
+            if (flags < 0 || (flags & FD_CLOEXEC))
+            {
+                continue;
+            }
+
+            if (::posix_spawn_file_actions_addclose(fa, fd) != 0)
+            {
+                unix_::error_message("posix_spawn_file_actions_addclose()");
+                return false;
+            }
+        }
     }
 
-    // Make sure the pipe isn't accidentally inherited by another thread creating a process
-    fcntl(fds[READ_END], F_SETFD, fcntl(fds[READ_END], F_GETFD) | FD_CLOEXEC);
-    fcntl(fds[WRITE_END], F_SETFD, fcntl(fds[WRITE_END], F_GETFD) | FD_CLOEXEC);
-
-    // Make sure we don't crash if we write when the pipe is closed
-    ignore_signal(SIGPIPE);
     return true;
 }
 
@@ -58,6 +108,41 @@ static bool create_pipe(int fds[2])
 bool process::process_impl::start(process* p, const config& config)
 {
     VX_ASSERT_MESSAGE(!is_valid(), "process already configured");
+
+    bool success = false;
+
+    // Setup args
+    std::vector<char*> args;
+    {
+        // Prepare a null-terminated array of C-strings
+        for (const auto& arg : config.args)
+        {
+            args.push_back(const_cast<char*>(arg.c_str()));
+        }
+
+        // null-terminate!
+        args.push_back(NULL);
+    }
+
+    // Setup environment
+    std::vector<std::string> env_strings;
+    std::vector<char*> env;
+    {
+        // Build a vector of "KEY=VALUE" strings
+        for (const auto& pair : config.environment)
+        {
+            env_strings.push_back(pair.first + '=' + pair.second);
+        }
+
+        // Create a null-terminated array of char*
+        for (const auto& str : env_strings)
+        {
+            env.push_back(const_cast<char*>(str.c_str()));
+        }
+
+        // null-terminate!
+        env.push_back(NULL);
+    }
 
     enum : int
     {
@@ -84,8 +169,8 @@ bool process::process_impl::start(process* p, const config& config)
         file::mode user_file_mode() const { return (type == STDIN_FILENO) ? file::mode::WRITE : file::mode::READ; }
         file::mode proc_file_mode() const { return (type == STDIN_FILENO) ? file::mode::READ : file::mode::WRITE; }
 
-        int proc_posix_file_mode() const { return (type == STDIN_FILENO) ? O_RDONLY : O_WRONLY; }
-        int proc_posix_file_permissions() const { return (type == STDIN_FILENO) ? 0 : 0644; }
+        int proc_posix_file_permissions() const { return (type == STDIN_FILENO) ? O_RDONLY : O_WRONLY; }
+        mode_t proc_posix_file_mode() const { return (type == STDIN_FILENO) ? 0 : 0644; }
     };
 
     stream_data streams[STREAM_COUNT] = {
@@ -119,13 +204,13 @@ bool process::process_impl::start(process* p, const config& config)
     if (posix_spawnattr_init(&attr) != 0)
     {
         unix_::error_message("posix_spawnattr_init()");
-        goto cleanup;
+        goto posix_spawn_fail_none;
     }
 
     if (posix_spawn_file_actions_init(&fa) != 0)
     {
         unix_::error_message("posix_spawn_file_actions_init()");
-        goto cleanup;
+        goto posix_spawn_fail_attr;
     }
 
     if (!config.working_directory.empty())
@@ -135,32 +220,26 @@ bool process::process_impl::start(process* p, const config& config)
         if (posix_spawn_file_actions_addchdir(&fa, working_directory.c_str()) != 0)
         {
             unix_::error_message("posix_spawn_file_actions_addchdir()");
-            goto cleanup;
+            goto posix_spawn_fail_all;
         }
 
 #else
 
         err::set(err::SYSTEM_ERROR, "process::start(): setting the working directory not supported");
-        goto cleanup;
+        goto posix_spawn_fail_all;
 
 #endif
-    }
-
-    // If running in the background, redirect all streams to null
-    if (config.background)
-    {
-        for (stream_data& s : streams)
-        {
-            if (s.option == io_option::INHERIT)
-            {
-                s.option = io_option::NONE;
-            }
-        }
     }
 
     for (int i = 0; i < STREAM_COUNT; ++i)
     {
         stream_data& stream = streams[i];
+
+        if (config.background && stream.option == io_option::INHERIT)
+        {
+            // If running in the background, redirect all streams to null
+            stream.option = io_option::NONE;
+        }
 
         switch (stream.option)
         {
@@ -170,25 +249,35 @@ bool process::process_impl::start(process* p, const config& config)
                     &fa,
                     stream.type,
                     "/dev/null",
-                    stream.proc_posix_file_mode(),
-                    stream.proc_posix_file_permissions()
+                    stream.proc_posix_file_permissions(),
+                    stream.proc_posix_file_mode()
                 ) != 0)
                 {
                     unix_::error_message("posix_spawn_file_actions_addopen()");
-                    goto cleanup;
+                    goto posix_spawn_fail_all;
                 }
+
+                break;
             }
             case io_option::CREATE:
             {
-                if (!create_pipe(stream.pipes))
+                if (pipe(stream.pipes) < 0)
                 {
-                    goto cleanup;
+                    unix_::error_message("pipe()");
+                    goto posix_spawn_fail_all;
                 }
+
+                // Make sure the pipe isn't accidentally inherited by another thread creating a process
+                fcntl(stream.read_pipe(), F_SETFD, fcntl(stream.read_pipe(), F_GETFD) | FD_CLOEXEC);
+                fcntl(stream.write_pipe(), F_SETFD, fcntl(stream.write_pipe(), F_GETFD) | FD_CLOEXEC);
+
+                // Make sure we don't crash if we write when the pipe is closed
+                ignore_signal(SIGPIPE);
 
                 if (posix_spawn_file_actions_adddup2(&fa, stream.proc_pipe(), stream.type) != 0)
                 {
                     unix_::error_message("posix_spawn_file_actions_adddup2()");
-                    goto cleanup;
+                    goto posix_spawn_fail_all;
                 }
 
                 break;
@@ -198,21 +287,21 @@ bool process::process_impl::start(process* p, const config& config)
                 if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
                     err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream was null");
-                    goto cleanup;
+                    goto posix_spawn_fail_all;
                 }
 
                 if ((stream.proc_file_mode() == file::mode::READ && !stream.redirect->can_read()) ||
                     (stream.proc_file_mode() == file::mode::WRITE && !stream.redirect->can_write()))
                 {
                     err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream mode is incompatable with expected file mode");
-                    goto cleanup;
+                    goto posix_spawn_fail_all;
                 }
 
                 const int fd = __detail::file_impl::get_native_handle(*stream.redirect);
                 if (posix_spawn_file_actions_adddup2(&fa, fd, stream.type) != 0)
                 {
                     unix_::error_message("posix_spawn_file_actions_adddup2()");
-                    goto cleanup;
+                    goto posix_spawn_fail_all;
                 }
 
                 break;
@@ -226,17 +315,145 @@ bool process::process_impl::start(process* p, const config& config)
         }
     }
 
-    if (!AddFileDescriptorCloseActions(&fa))
+    if (!add_file_descriptor_close_actions(&fa))
     {
-        unix_::error_message("AddFileDescriptorCloseActions()");
-        goto cleanup;
+        err::set(err::SYSTEM_ERROR, "process::start(): failed to add file descriptor close actions");
+        goto posix_spawn_fail_all;
+    }
+
+    // Spawn the new process
+    if (config.background)
+    {
+        int status = -1;
+
+#if defined(VX_OS_APPLE)
+
+        // Apple has vfork marked as deprecated and (as of macOS 10.12) is almost identical to calling fork() anyhow.
+#       define fork_func_name "fork()"
+        const pid_t pid = fork();
+
+#else
+
+#       define fork_func_name "vfork()"
+        const pid_t pid = vfork();
+
+#endif
+
+        switch (pid)
+        {
+            case -1:
+            {
+                unix_::error_message(fork_func_name);
+                goto posix_spawn_fail_all;
+            }
+            case 0:
+            {
+                // Detach from the terminal and launch the process, then exit
+                setsid();
+                if (posix_spawnp(&m_pid, args[0], &fa, &attr, args.data(), env.data()) != 0)
+                {
+                    _exit(errno);
+                }
+                _exit(0);
+            }
+            default:
+            {
+                if (waitpid(pid, &status, 0) < 0)
+                {
+                    unix_::error_message("waitpid()");
+                    goto posix_spawn_fail_all;
+                }
+                if (status != 0)
+                {
+                    unix_::error_message("posix_spawnp()");
+                    goto posix_spawn_fail_all;
+                }
+                break;
+            }
+        }
+    }
+    else
+    {
+        if (posix_spawnp(&m_pid, args[0], &fa, &attr, args.data(), env.data()) != 0)
+        {
+            unix_::error_message("posix_spawnp()");
+            goto posix_spawn_fail_all;
+        }
+    }
+
+    // Setup user end of created streams
+    for (int i = 0; i < STREAM_COUNT; ++i)
+    {
+        if (streams[i].option == io_option::CREATE)
+        {
+            // Set the file descriptor to non-blocking mode
+            const int fd = streams[i].user_pipe();
+            fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+
+            // Create file object from handle for the corresponding stream
+            p->m_streams[i] = __detail::file_impl::from_native_handle(
+                fd,
+                streams[i].user_file_mode()
+            );
+
+            if (!p->m_streams[i].is_open())
+            {
+                goto posix_spawn_fail_all;
+            }
+        }
     }
 
     success = true;
 
-    cleanup:
-    {
+    ///////////////////////////////////////////////////////////////////////////////
 
+    posix_spawn_fail_all:
+    {
+        posix_spawn_file_actions_destroy(&fa);
+    }
+
+    posix_spawn_fail_attr:
+    {
+        posix_spawnattr_destroy(&attr);
+    }
+
+    posix_spawn_fail_none:
+    {
+        // Close any open pipes
+        for (stream_data& s : streams)
+        {
+            if (s.proc_pipe() >= 0)
+            {
+                close(s.proc_pipe());
+            }
+            if (!success && s.user_pipe() >= 0)
+            {
+                close(s.user_pipe());
+            }
+        }
+
+        for (stream_data& s : streams)
+        {
+            // Only close proc_pipe() if:
+            // - It was created (CREATE or NONE), not redirected or inherited
+            // - We succeeded and the child has inherited it already
+            // - OR we failed to create the process, in which case everything must be cleaned up
+            const bool created_pipe = (s.option == io_option::CREATE || s.option == io_option::NONE);
+
+            if (s.proc_pipe() != -1)
+            {
+                if (!success || created_pipe)
+                {
+                    close(s.proc_pipe());
+                }
+            }
+
+            // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
+            if (!success && s.user_pipe() != -1)
+            {
+                close(s.user_pipe());
+            }
+        }
     }
 
     return success;
@@ -248,23 +465,20 @@ bool process::process_impl::is_alive() const
 {
     assert_process_configured();
 
-    int status;
-    const pid_t result = ::waitpid(m_pid, &status, WNOHANG);
+    // Signal 0 doesn't send a signal but performs error checking
+    if (::kill(m_pid, 0) == 0)
+    {
+        return true; // Process exists and we have permission to signal it
+    }
 
-    if (result == 0)
+    switch (errno)
     {
-        // Still running
-        return true;
-    }
-    else if (result == m_pid)
-    {
-        // Finished
-        return false;
-    }
-    else
-    {
-        unix_::error_message("waitpid(WNOHANG)");
-        return false;
+        // Process exists but we don't have permission
+        case EPERM: return true;
+            // Process does not exist
+        case ESRCH:
+            // Other error (shouldn't happen for kill(pid, 0))
+        default:    return false;
     }
 }
 
@@ -272,32 +486,63 @@ bool process::process_impl::is_complete() const
 {
     assert_process_configured();
 
-    int status;
-    pid_t result = ::waitpid(m_pid, &status, WNOHANG);
-
-    if (result == -1)
+    if (m_background)
     {
-        unix_::error_message("waitpid(WNOHANG)");
+        // We are not the parent — can't use waitpid.
+        // Just check if the process is still alive.
+        return !is_alive();
+    }
+
+    const pid_t res = ::waitpid(m_pid, NULL, WNOHANG);
+
+    if (res == 0)
+    {
+        // Still running
         return false;
     }
 
-    return (result == m_pid);
+    if (res == m_pid)
+    {
+        // Exited
+        return true;
+    }
+
+    if (errno == ECHILD)
+    {
+        // might not be waitable anymore
+        return !is_alive();
+    }
+
+    unix_::error_message("waitpid(WNOHANG)");
+    return false;
 }
 
 bool process::process_impl::join()
 {
     assert_process_configured();
 
-    int status;
-    pid_t result = ::waitpid(m_pid, &status, 0);
-
-    if (result == -1)
+    if (m_background)
     {
-        unix_::error_message("waitpid(0)");
-        return false;
-    }
+        // We can't wait on the status, so we'll poll to see if it's alive
+        while (::kill(m_pid, 0) == 0)
+        {
+            os::sleep(time::milliseconds(10));
+        }
 
-    return true;
+        return true;
+    }
+    else
+    {
+        if (::waitpid(m_pid, NULL, 0) == m_pid)
+        {
+            return true;
+        }
+        else
+        {
+            unix_::error_message("waitpid()");
+            return false;
+        }
+    }
 }
 
 bool process::process_impl::kill(bool force)
@@ -318,30 +563,47 @@ bool process::process_impl::get_exit_code(int* exit_code) const
 {
     assert_process_configured();
 
-    int status;
-    pid_t result = ::waitpid(m_pid, &status, WNOHANG);
-
-    if (result == -1)
+    if (!exit_code)
     {
-        unix_::error_message("waitpid(WNOHANG)");
         return false;
     }
 
-    if (exit_code && result == m_pid)
+    if (m_background)
     {
+        *exit_code = 0;
+    }
+    else
+    {
+        int status = 0;
+        const int ret = waitpid(m_pid, &status, WNOHANG);
+
+        if (ret < 0)
+        {
+            unix_::error_message("waitpid()");
+            return false;
+        }
+
+        if (ret == 0)
+        {
+            // Still running
+            return false;
+        }
+
         if (WIFEXITED(status))
         {
             *exit_code = WEXITSTATUS(status);
-            return true;
         }
         else if (WIFSIGNALED(status))
         {
-            *exit_code = 128 + WTERMSIG(status); // match shell convention
-            return true;
+            *exit_code = -WTERMSIG(status);
+        }
+        else
+        {
+            *exit_code = -255;
         }
     }
 
-    return false;
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

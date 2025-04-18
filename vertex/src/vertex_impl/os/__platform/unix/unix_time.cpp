@@ -23,16 +23,20 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     if (local)
     {
 #if defined(HAVE_LOCALTIME_R)
+#       define localtime_func_name "localtime_r()"
         tm = localtime_r(&tval, &tm_storage);
 #else
+#       define localtime_func_name "localtime()"
         tm = localtime(&tval);
 #endif // HAVE_LOCALTIME_R
     }
     else
     {
 #if defined(HAVE_GMTIME_R)
+#       define gmtime_func_name "gmtime_r()"
         tm = gmtime_r(&tval, &tm_storage);
 #else
+#       define gmtime_func_name "gmtime()"
         tm = gmtime(&tval);
 #endif // HAVE_GMTIME_R
     }
@@ -53,20 +57,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     }
     else
     {
-        unix_::error_message(
-            local ?
-#       if defined(HAVE_LOCALTIME_R)
-            "localtime_r()"
-#       else
-            "localtime()"
-#       endif // HAVE_LOCALTIME_R
-            :
-#       if defined(HAVE_GMTIME_R)
-            "gmtime_r()"
-#       else
-            "gmtime()"
-#       endif // HAVE_GMTIME_R
-        );
+        unix_::error_message(local ? localtime_func_name : gmtime_func_name);
     }
 
     return dt;
