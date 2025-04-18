@@ -1,7 +1,6 @@
 #include "vertex_test/test.hpp"
 #include "vertex/os/process.hpp"
 #include "vertex/os/time.hpp"
-#include "vertex/util/random/rng.hpp"
 
 #if defined(EOF)
 #   undef EOF
