@@ -4,7 +4,7 @@
 function(vx_check_dlopen TARGET_NAME)
 
     # Check if the dlopen symbol exists in libc (usually in dlfcn.h)
-    check_symbol_exists(dlopen "dlfcn.h" HAVE_DLOPEN_IN_LIBC)
+    vx_check_symbol_exists(dlopen "dlfcn.h" HAVE_DLOPEN_IN_LIBC)
     
     if(HAVE_DLOPEN_IN_LIBC)
         
@@ -37,7 +37,9 @@ function(vx_check_available_functions TARGET_NAME)
         vx_check_function_exists(${TARGET_NAME} nanosleep       HAVE_NANOSLEEP)
         vx_check_function_exists(${TARGET_NAME} statx           HAVE_STATX)
         
-        vx_check_dlopen(${TARGET_NAME})
+        # posix_spawn*
+        vx_check_symbol_exists(${TARGET_NAME} "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
+        vx_check_symbol_exists(${TARGET_NAME} "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
     
     endif()
 

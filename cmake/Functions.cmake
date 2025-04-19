@@ -164,14 +164,14 @@ endfunction()
 
 # Function to check if a symbol exists on the platform
 # and define a preprocessor directive if it does
-function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME MACRO_NAME)
+function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
 
-    # Check if the function exists
-    check_symbol_exists(${SYMBOL_NAME} ${MACRO_NAME})
+    # Check if the symbol exists in the given header
+    check_symbol_exists(${SYMBOL_NAME} ${HEADER} ${MACRO_NAME})
 
-    # If the function exists, add the definition to the target
+    # If the symbol exists, add the definition to the target
     if (${MACRO_NAME})
         target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
-    
+
 endfunction()
