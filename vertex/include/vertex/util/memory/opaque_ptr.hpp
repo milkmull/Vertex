@@ -3,7 +3,7 @@
 #include "vertex/config/language_config.hpp"
 
 /*
- * fast_pimpl - A zero-heap, high-performance alternative to smart pointers for the PImpl idiom.
+ * opaque_ptr - A zero-heap, high-performance alternative to smart pointers for the PImpl idiom.
  *
  * Benefits over std::unique_ptr<T> (heap-based PImpl):
  * - **No Heap Allocations**: Stores the object directly inside a fixed-size stack buffer.
@@ -26,11 +26,17 @@ namespace vx {
 namespace mem {
 
 template <typename T, size_t Size = sizeof(T), size_t Align = alignof(T)>
-class fast_pimpl
+class opaque_ptr
 {
+public:
+
+    using element_type = T;
+    static constexpr size_t size = Size;
+    static constexpr size_t alignment = Align;
+
 private:
 
-    alignas(Align) unsigned char m_storage[Size]
+    alignas(Align) unsigned char m_storage[Size];
 
     T* get() noexcept { return reinterpret_cast<T*>(&m_storage); }
     const T* get() const noexcept { return reinterpret_cast<const T*>(&m_storage); }
@@ -38,24 +44,24 @@ private:
 public:
 
     template <typename... Args>
-    fast_pimpl(Args&&... args)
+    opaque_ptr(Args&&... args)
     {
         static_assert(sizeof(T) <= Size, "Buffer size too small!");
         static_assert(alignof(T) <= Align, "Alignment too small!");
         new (get()) T(std::forward<Args>(args)...);
     }
 
-    ~fast_pimpl() { get()->~T(); }
+    ~opaque_ptr() { get()->~T(); }
 
-    fast_pimpl(const fast_pimpl&) = delete;
-    fast_pimpl& operator=(const fast_pimpl&) = delete;
+    opaque_ptr(const opaque_ptr&) = delete;
+    opaque_ptr& operator=(const opaque_ptr&) = delete;
 
-    fast_pimpl(fast_pimpl&& other) noexcept
+    opaque_ptr(opaque_ptr&& other) noexcept
     {
         new (get()) T(std::move(*other.get()));
     }
 
-    fast_pimpl& operator=(fast_pimpl&& other) noexcept
+    opaque_ptr& operator=(opaque_ptr&& other) noexcept
     {
         if (this != &other)
         {

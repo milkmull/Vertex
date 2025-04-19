@@ -5,6 +5,7 @@
 #include "vertex/os/handle.hpp"
 #include "vertex/util/function/invoke.hpp"
 #include "vertex/system/error.hpp"
+#include "vertex/util/memory/opaque_ptr.hpp"
 
 namespace vx {
 namespace os {
@@ -18,6 +19,10 @@ namespace __detail {
 struct thread_impl;
 
 } // namespace __detail
+
+#if defined(HAVE_PTHREADS)
+class pthread_t;
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -44,7 +49,7 @@ public:
     // comparison
     ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(VX_USE_PTHREADS)
+#if defined(HAVE_PTHREADS)
 
     // use pthread_equal()
     VX_API bool operator==(const thread& other) const noexcept;
@@ -53,7 +58,7 @@ public:
 
     bool operator==(const thread& other) const noexcept { return m_impl_data.thread_id == other.m_impl_data.thread_id; }
 
-#endif // VX_USE_PTHREADS
+#endif // HAVE_PTHREADS
 
     bool operator!=(const thread& other) const noexcept { return !operator==(other); }
 
@@ -116,7 +121,7 @@ private:
 
     public:
 
-#if defined(VX_USE_PTHREADS)
+#if defined(HAVE_PTHREADS)
 
         static void* thread_entry(void* arg)
         {
@@ -206,11 +211,19 @@ private:
 
     friend __detail::thread_impl;
 
+#if defined(HAVE_PTHREADS)
+
+    using pthread_handle = mem::opaque_ptr<pthread_t, 64, std::max_align_t>;
+
+#endif
+
     struct impl_data
     {
         id thread_id = 0;
 #if defined(VX_OS_WINDOWS)
         handle h;
+#elif defined(HAVE_PTHREADS)
+        pthread_handle h;
 #endif // VX_OS_WINDOWS
     };
 
@@ -220,7 +233,6 @@ private:
 namespace this_thread {
 
 VX_API thread::id get_id();
-VX_API void yeild();
 
 } // namespace this_thread
 
