@@ -264,24 +264,6 @@ VX_TEST_CASE(text_exit_code)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-// data should be structured line "key=vaue\0key=value\0\0"
-static os::process::environment parse_environment(const char* data, size_t size)
-{
-    os::process::environment env;
-
-    auto it = data;
-    const auto last = data + size;
-
-    while (*it)
-    {
-        const auto sep = std::find(it, last, '=');
-        env[std::string(it, sep)] = std::string(sep + 1);
-        it = std::find(sep + 1, last, '\0') + 1;
-    }
-
-    return env;
-}
-
 VX_TEST_CASE(test_environment)
 {
     VX_SECTION("inherited")
