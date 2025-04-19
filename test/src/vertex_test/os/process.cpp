@@ -498,7 +498,8 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     const char* lines[] = {
         "Tests whether we can write to stdin and read from stdout accross 2 child processes",
         "{'success': true, 'message': 'Success!'}",
-        "Yippie ka yee"
+        "Yippie ka yee",
+        "EOFF"
     };
 
     os::process::config config;
@@ -529,7 +530,6 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     }
 
     // finish the first process
-    VX_CHECK(p_stdin.write_line("EOF"));
     VX_CHECK(p1.join());
     VX_CHECK(p1.is_complete());
 

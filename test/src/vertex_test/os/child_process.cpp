@@ -117,8 +117,21 @@ int main(int argc, char* argv[])
             os::io_stream p_stdout = os::this_process::get_stdout();
 
             std::string line;
-            while (p_stdin.read_line(line))
+            while (true)
             {
+                if (!p_stdin.read_line(line))
+                {
+                    os::sleep(time::milliseconds(10));
+                    continue;
+                }
+
+                if (line == "EOFF")
+                {
+                    // forward it
+                    p_stdout.write_line(line);
+                    break;
+                }
+
                 if (line == "EOF")
                 {
                     log.write_line("EOF");
@@ -141,8 +154,21 @@ int main(int argc, char* argv[])
             os::io_stream p_stderr = os::this_process::get_stderr();
 
             std::string line;
-            while (p_stdin.read_line(line))
+            while (true)
             {
+                if (!p_stdin.read_line(line))
+                {
+                    os::sleep(time::milliseconds(10));
+                    continue;
+                }
+
+                if (line == "EOFF")
+                {
+                    // forward it
+                    p_stderr.write_line(line);
+                    break;
+                }
+
                 if (line == "EOF")
                 {
                     log.write_line("EOF");
