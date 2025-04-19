@@ -652,7 +652,8 @@ VX_TEST_CASE(test_stream_redirection)
 
         // read the lines back
         std::string read_line;
-        VX_CHECK(stdout_stream.read_line(read_line) && read_line == stdin_to_stdout_redirect_text);
+        VX_CHECK(stdout_stream.read_line(read_line));
+        VX_CHECK(read_line == stdin_to_stdout_redirect_text);
         VX_CHECK(stdout_stream.eof());
     }
 
@@ -691,7 +692,8 @@ VX_TEST_CASE(test_stream_redirection)
 
         // read the lines back
         std::string read_line;
-        VX_CHECK(stderr_stream.read_line(read_line) && read_line == stdin_to_stderr_redirect_text);
+        VX_CHECK(stderr_stream.read_line(read_line));
+        VX_CHECK(read_line == stdin_to_stderr_redirect_text);
         VX_CHECK(stderr_stream.eof());
     }
 }
