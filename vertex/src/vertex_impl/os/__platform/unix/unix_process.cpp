@@ -231,7 +231,7 @@ bool process::process_impl::start(process* p, const config& config)
     {
 #if defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
 
-        if (posix_spawn_file_actions_addchdir(&fa, working_directory.c_str()) != 0)
+        if (posix_spawn_file_actions_addchdir(&fa, config.working_directory.c_str()) != 0)
         {
             unix_::error_message("posix_spawn_file_actions_addchdir()");
             goto posix_spawn_fail_all;
