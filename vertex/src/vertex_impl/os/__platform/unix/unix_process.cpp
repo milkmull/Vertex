@@ -115,6 +115,7 @@ bool process::process_impl::start(process* p, const config& config)
     VX_ASSERT(!config.args.empty());
 
     // Setup args
+    char** args = nullptr;
     std::vector<char*> args_data;
     {
         // Prepare a null-terminated array of C-strings
