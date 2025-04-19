@@ -38,8 +38,8 @@ function(vx_check_available_functions TARGET_NAME)
         vx_check_function_exists(${TARGET_NAME} statx           HAVE_STATX)
         
         # posix_spawn*
-        vx_check_symbol_exists(${TARGET_NAME} "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
-        vx_check_symbol_exists(${TARGET_NAME} "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
+        vx_check_symbol_exists(${TARGET_NAME} posix_spawn_file_actions_addchdir     spawn.h HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
+        vx_check_symbol_exists(${TARGET_NAME} posix_spawn_file_actions_addchdir_np  spawn.h HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
     
     endif()
 
