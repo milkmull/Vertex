@@ -100,7 +100,6 @@ int main(int argc, char* argv[])
         case command::STALL:
         {
             log.write("running --stall");
-            log.write_line(argv[i]);
 
             while (true)
             {
