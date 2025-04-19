@@ -1,7 +1,6 @@
 #include "vertex_test/test.hpp"
 #include "vertex/os/process.hpp"
 #include "vertex/os/time.hpp"
-#include "vertex/util/memory/memory.hpp" // mem
 
 #if defined(EOF)
 #   undef EOF
@@ -207,16 +206,7 @@ static std::string echo_argument(const std::string& arg)
     auto& p_stdout = p.get_stdout();
 
     std::string echo;
-    char c;
-    while (p_stdout.read(c) == 1)
-    {
-        echo.push_back(c);
-    }
-
-#if defined(VX_OS_WINDOWS)
-    echo.pop_back(); // remove \r
-#endif // VX_OS_WINDOWS
-    echo.pop_back(); // remove \n
+    VX_CHECK(p_stdout.read_line(echo));
 
     return echo;
 }
@@ -259,6 +249,7 @@ VX_TEST_CASE(text_exit_code)
         // Configure the process
         os::process::config config;
         config.args = { child_process, "--exit-code", std::to_string(ec) };
+        // on unix we need the process to be a child to get the exit code
         config.background = false;
 
         os::process p;
