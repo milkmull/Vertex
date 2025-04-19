@@ -20,29 +20,29 @@ filesystem:
     x directory iterator
     x recursive directory iterator
     
-    - path manipulators (absolute, canonical, relative)
-    - equivalent (are 2 paths the same?)
+    x path manipulators (absolute, canonical, relative)
+    x equivalent (are 2 paths the same?)
     x current path (get or set the current path)
-    - get temp directory path
-    - get user directory
+    x get temp directory path
+    x get user directory
 
-    - copy operators
+    x copy operators
     x create operators
-    - remove operators
+    x remove operators
     x rename operators
-    - filesystem space
+    x filesystem space
 }
 
 os:
 {
     x time
     
-    - filesystem
+    x filesystem
     x file io
 
     - thread
     - mutex
-    - process (argument parsing, environment variables, process dispatch, reading)
+    x process (argument parsing, environment variables, process dispatch, reading)
 
     - system memory
     - system info
@@ -128,12 +128,12 @@ testing:
     x os/time
     
     x os/file
-    - os/filesystem
+    x os/filesystem
     x os/path
     
     - os/thread
     - os/mutex
-    - os/process
+    x os/process
     
     - os/system_info
     - os/locale

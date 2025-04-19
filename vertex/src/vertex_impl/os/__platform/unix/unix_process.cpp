@@ -10,6 +10,12 @@
 #include "vertex/system/error.hpp"
 #include "vertex/system/assert.hpp"
 
+#if defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP) && \
+    !defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
+#   define HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR
+#   define posix_spawn_file_actions_addchdir posix_spawn_file_actions_addchdir_np
+#endif
+
 namespace vx {
 namespace os {
 
