@@ -303,14 +303,19 @@ VX_TEST_CASE(test_environment)
         VX_CHECK(p.get_exit_code(&exit_code));
         VX_CHECK(exit_code == 0);
 
-        // read the data from the stdout
-        const size_t size = p.get_stdout().size();
-        std::vector<char> data;
-        data.reserve(size);
-        VX_CHECK(p.get_stdout().read(data.data(), size) == size);
-
         // build the environment
-        const os::process::environment child_env = parse_environment(data.data(), size);
+        os::process::environment child_env;
+        auto& p_stdout = p.get_stdout();
+
+        std::string line;
+        while (p_stdout.read_line(line))
+        {
+            const auto sep = line.find('=');
+            child_env[line.substr(0, sep)] = line.substr(sep + 1);
+        }
+
+        VX_CHECK(!child_env.empty());
+        VX_CHECK(p_stdout.eof());
 
         // environments should match
         VX_CHECK(os::this_process::get_environment() == child_env);
@@ -336,14 +341,19 @@ VX_TEST_CASE(test_environment)
         VX_CHECK(p.get_exit_code(&exit_code));
         VX_CHECK(exit_code == 0);
 
-        // read the data from the stdout
-        const size_t size = p.get_stdout().size();
-        std::vector<char> data;
-        data.reserve(size);
-        VX_CHECK(p.get_stdout().read(data.data(), size) == size);
-
         // build the environment
-        const os::process::environment child_env = parse_environment(data.data(), size);
+        os::process::environment child_env;
+        auto& p_stdout = p.get_stdout();
+
+        std::string line;
+        while (p_stdout.read_line(line))
+        {
+            const auto sep = line.find('=');
+            child_env[line.substr(0, sep)] = line.substr(sep + 1);
+        }
+
+        VX_CHECK(!child_env.empty());
+        VX_CHECK(p_stdout.eof());
 
         // environments should match
         VX_CHECK(config.environment == child_env);

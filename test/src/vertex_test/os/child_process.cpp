@@ -82,19 +82,16 @@ int main(int argc, char* argv[])
         {
             log.write_line("running --show-environment");
 
-            const os::process::environment env = os::this_process::get_environment();
-            std::vector<char> data;
+            os::io_stream p_stdout = os::this_process::get_stdout();
 
+            const os::process::environment env = os::this_process::get_environment();
             for (const auto& pair : env)
             {
-                data.insert(data.end(), pair.first.begin(), pair.first.end());
-                data.push_back('=');
-                data.insert(data.end(), pair.second.begin(), pair.second.end());
-                data.push_back('\0');
+                p_stdout.write(pair.first);
+                p_stdout.write('=');
+                p_stdout.write_line(pair.second);
             }
-            data.push_back('\0');
 
-            os::this_process::get_stdout().write(data.data(), data.size());
             break;
         }
         case command::STALL:

@@ -126,6 +126,10 @@ public:
         return write(reinterpret_cast<const uint8_t*>(data), sizeof(T) * count);
     }
 
+    bool endl()
+    {
+        return (write(VX_LINE_END) == sizeof(VX_LINE_END));
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // text write functions
