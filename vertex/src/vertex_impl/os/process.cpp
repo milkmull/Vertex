@@ -41,7 +41,13 @@ VX_API bool process::start(const config& cfg)
 {
     if (is_valid())
     {
-        VX_ERR(err::UNSUPPORTED_OPERATION) << "process already started";
+        err::set(err::UNSUPPORTED_OPERATION, "process already started");
+        return false;
+    }
+
+    if (cfg.args.empty())
+    {
+        err::set(err::INVALID_ARGUMENT, "no arguments were specified");
         return false;
     }
 

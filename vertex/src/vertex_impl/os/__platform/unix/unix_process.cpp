@@ -111,10 +111,11 @@ bool process::process_impl::start(process* p, const config& config)
 
     bool success = false;
 
+    // Base class should check that args is not empty
+    VX_ASSERT(!config.args.empty());
+
     // Setup args
     std::vector<char*> args_data;
-    char** args = NULL;
-    if (!config.args.empty())
     {
         // Prepare a null-terminated array of C-strings
         for (const auto& arg : config.args)
@@ -130,7 +131,7 @@ bool process::process_impl::start(process* p, const config& config)
     // Setup environment
     std::vector<std::string> env_strings;
     std::vector<char*> env_data;
-    char** env = NULL;
+    char** env = environ; // Inherit the parent's evirnonment by default
     if (!config.environment.empty())
     {
         // Build a vector of "KEY=VALUE" strings

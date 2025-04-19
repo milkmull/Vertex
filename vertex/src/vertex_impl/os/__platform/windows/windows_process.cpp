@@ -146,7 +146,8 @@ bool process::process_impl::start(process* p, const config& config)
     std::wstring wargs;
     LPWSTR command_line = NULL;
 
-    if (!config.args.empty())
+    // Base class should check that args is not empty
+    VX_ASSERT(!config.args.empty());
     {
         wargs = str::string_cast<wchar_t>(join_arguments(config.args));
         command_line = wargs.data();
