@@ -93,7 +93,7 @@ VX_API bool process::kill(bool force)
 
 VX_API bool process::get_exit_code(int* exit_code) const
 {
-    return is_complete() ? m_impl->get_exit_code(exit_code) : false;
+    return (exit_code && is_complete()) ? m_impl->get_exit_code(exit_code) : false;
 }
 
 VX_API io_stream& process::get_stdin()  { return m_streams[STDIN ]; }

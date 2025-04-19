@@ -1,6 +1,7 @@
 #include "vertex_test/test.hpp"
 #include "vertex/os/process.hpp"
 #include "vertex/os/time.hpp"
+#include "vertex/util/memory/memory.hpp" // mem
 
 #if defined(EOF)
 #   undef EOF
@@ -204,18 +205,18 @@ static std::string echo_argument(const std::string& arg)
 
     // read the value from the stream
     auto& p_stdout = p.get_stdout();
-    size_t size = p_stdout.size();
+
+    std::string echo;
+    char c;
+    while (p_stdout.read(c) == 1)
+    {
+        echo.push_back(c);
+    }
 
 #if defined(VX_OS_WINDOWS)
-
-    // on windows we want to strip the /r/n
-    VX_ASSERT(size >= 2);
-    size -= 2;
-
+    echo.pop_back(); // remove \r
 #endif // VX_OS_WINDOWS
-
-    std::string echo(size, 0);
-    VX_CHECK(p_stdout.read(echo.data(), size) == size);
+    echo.pop_back(); // remove \n
 
     return echo;
 }
@@ -258,6 +259,7 @@ VX_TEST_CASE(text_exit_code)
         // Configure the process
         os::process::config config;
         config.args = { child_process, "--exit-code", std::to_string(ec) };
+        config.background = false;
 
         os::process p;
         VX_CHECK(p.start(config));
@@ -429,7 +431,8 @@ VX_TEST_CASE(test_stdin_to_stdout)
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(p_stdout.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stdout.read_line(read_line));
+        VX_CHECK(read_line == line);
     }
 
     VX_CHECK(p_stdout.eof());
@@ -485,7 +488,8 @@ VX_TEST_CASE(test_stdin_to_stderr)
     std::string read_line;
     for (auto line : lines)
     {
-        VX_CHECK(p_stderr.read_line(read_line) && read_line == line);
+        VX_CHECK(p_stderr.read_line(read_line));
+        VX_CHECK(read_line == line);
     }
 
     VX_CHECK(p_stderr.eof());
@@ -542,28 +546,27 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     VX_CHECK(p1.get_exit_code(&exit_code));
     VX_CHECK(exit_code == 0);
 
-    // Get stdout pipe from second process
-    auto& p_stdout = p2.get_stdout();
-    VX_CHECK(p_stdout.is_open());
-    VX_CHECK(p_stdout.can_read());
-
-    // read the lines back
-    std::string read_line;
-    for (auto line : lines)
-    {
-        VX_CHECK(p_stdout.read_line(read_line)); // fails here only sometimes
-        std::cout << read_line << std::endl;
-        VX_CHECK(read_line == line);
-    }
-
-    VX_CHECK(p_stdout.eof());
-
     // finish the second process
     VX_CHECK(p2.join());
     VX_CHECK(p2.is_complete());
 
     VX_CHECK(p2.get_exit_code(&exit_code));
     VX_CHECK(exit_code == 0);
+
+    // Get stdout pipe from second process
+    auto& p_stdout = p2.get_stdout();
+    VX_CHECK(p_stdout.is_open());
+    VX_CHECK(p_stdout.can_read());
+    
+    // read the lines back
+    std::string read_line;
+    for (auto line : lines)
+    {
+        VX_CHECK(p_stdout.read_line(read_line));
+        VX_CHECK(read_line == line);
+    }
+
+    VX_CHECK(p_stdout.eof());
 }
 
 /////////////////////////////////////////////////////////////////////////////

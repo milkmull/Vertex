@@ -112,21 +112,26 @@ bool process::process_impl::start(process* p, const config& config)
     bool success = false;
 
     // Setup args
-    std::vector<char*> args;
+    std::vector<char*> args_data;
+    char** args = NULL;
+    if (!config.args.empty())
     {
         // Prepare a null-terminated array of C-strings
         for (const auto& arg : config.args)
         {
-            args.push_back(const_cast<char*>(arg.c_str()));
+            args_data.push_back(const_cast<char*>(arg.c_str()));
         }
 
         // null-terminate!
-        args.push_back(NULL);
+        args_data.push_back(NULL);
+        args = args_data.data();
     }
 
     // Setup environment
     std::vector<std::string> env_strings;
-    std::vector<char*> env;
+    std::vector<char*> env_data;
+    char** env = NULL;
+    if (!config.environment.empty())
     {
         // Build a vector of "KEY=VALUE" strings
         for (const auto& pair : config.environment)
@@ -137,11 +142,12 @@ bool process::process_impl::start(process* p, const config& config)
         // Create a null-terminated array of char*
         for (const auto& str : env_strings)
         {
-            env.push_back(const_cast<char*>(str.c_str()));
+            env_data.push_back(const_cast<char*>(str.c_str()));
         }
 
         // null-terminate!
-        env.push_back(NULL);
+        env_data.push_back(NULL);
+        env = env_data.data();
     }
 
     enum : int
@@ -350,7 +356,7 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 // Detach from the terminal and launch the process, then exit
                 setsid();
-                if (posix_spawnp(&m_pid, args[0], &fa, &attr, args.data(), env.data()) != 0)
+                if (posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
                 {
                     _exit(errno);
                 }
@@ -374,7 +380,7 @@ bool process::process_impl::start(process* p, const config& config)
     }
     else
     {
-        if (posix_spawnp(&m_pid, args[0], &fa, &attr, args.data(), env.data()) != 0)
+        if (posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
         {
             unix_::error_message("posix_spawnp()");
             goto posix_spawn_fail_all;
@@ -403,6 +409,7 @@ bool process::process_impl::start(process* p, const config& config)
         }
     }
 
+    m_background = config.background;
     success = true;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -419,19 +426,6 @@ bool process::process_impl::start(process* p, const config& config)
 
     posix_spawn_fail_none:
     {
-        // Close any open pipes
-        for (stream_data& s : streams)
-        {
-            if (s.proc_pipe() >= 0)
-            {
-                close(s.proc_pipe());
-            }
-            if (!success && s.user_pipe() >= 0)
-            {
-                close(s.user_pipe());
-            }
-        }
-
         for (stream_data& s : streams)
         {
             // Only close proc_pipe() if:
@@ -461,99 +455,102 @@ bool process::process_impl::start(process* p, const config& config)
 
 #define assert_process_configured() VX_ASSERT_MESSAGE(is_valid(), "process not configured")
 
-bool process::process_impl::is_alive() const
+process::process_impl::wait_status process::process_impl::wait(
+    bool block, int default_background_exit_code
+) const
 {
-    assert_process_configured();
-
-    // Signal 0 doesn't send a signal but performs error checking
-    if (::kill(m_pid, 0) == 0)
+    if (m_complete)
     {
-        return true; // Process exists and we have permission to signal it
+        return wait_status::COMPLETE;
     }
-
-    switch (errno)
-    {
-        // Process exists but we don't have permission
-        case EPERM: return true;
-            // Process does not exist
-        case ESRCH:
-            // Other error (shouldn't happen for kill(pid, 0))
-        default:    return false;
-    }
-}
-
-bool process::process_impl::is_complete() const
-{
-    assert_process_configured();
-
-    if (m_background)
-    {
-        // We are not the parent — can't use waitpid.
-        // Just check if the process is still alive.
-        return !is_alive();
-    }
-
-    const pid_t res = ::waitpid(m_pid, NULL, WNOHANG);
-
-    if (res == 0)
-    {
-        // Still running
-        return false;
-    }
-
-    if (res == m_pid)
-    {
-        // Exited
-        return true;
-    }
-
-    if (errno == ECHILD)
-    {
-        // might not be waitable anymore
-        return !is_alive();
-    }
-
-    unix_::error_message("waitpid(WNOHANG)");
-    return false;
-}
-
-bool process::process_impl::join()
-{
-    assert_process_configured();
 
     if (m_background)
     {
         // We can't wait on the status, so we'll poll to see if it's alive
         while (::kill(m_pid, 0) == 0)
         {
+            if (!block)
+            {
+                // just check once
+                return wait_status::ALIVE;
+            }
+
             os::sleep(time::milliseconds(10));
         }
 
-        return true;
+        // Process is no longer alive, but we can't retrieve exit status
+        m_complete = true;
+        m_exit_code = default_background_exit_code;
+        return wait_status::COMPLETE;
     }
-    else
+
+    int status = 0;
+    const pid_t res = ::waitpid(m_pid, &status, block ? 0 : WNOHANG);
+
+    if (res < 0)
     {
-        if (::waitpid(m_pid, NULL, 0) == m_pid)
+        unix_::error_message("waitpid()");
+        return wait_status::FAILED;
+    }
+    else if (res == 0)
+    {
+        return wait_status::ALIVE;
+    }
+    else // (res > 0)
+    {
+        m_complete = true;
+
+        if (WIFEXITED(status))
         {
-            return true;
+            m_exit_code = WEXITSTATUS(status);
+        }
+        else if (WIFSIGNALED(status))
+        {
+            m_exit_code = 128 + WTERMSIG(status);
         }
         else
         {
-            unix_::error_message("waitpid()");
-            return false;
+            m_exit_code = 1;
         }
+
+        return wait_status::COMPLETE;
     }
+}
+
+bool process::process_impl::is_alive() const
+{
+    assert_process_configured();
+    return wait(false, 0) == wait_status::ALIVE;
+}
+
+bool process::process_impl::is_complete() const
+{
+    assert_process_configured();
+    return wait(false, 0) == wait_status::COMPLETE;
+}
+
+bool process::process_impl::join()
+{
+    assert_process_configured();
+    return wait(true, 0) == wait_status::COMPLETE;
 }
 
 bool process::process_impl::kill(bool force)
 {
     assert_process_configured();
 
-    const int signal = force ? SIGKILL : SIGTERM;
-    if (::kill(m_pid, signal) != 0)
+    if (::kill(m_pid, force ? SIGKILL : SIGTERM) != 0)
     {
         unix_::error_message("kill()");
         return false;
+    }
+
+    if (m_background)
+    {
+        // If we are running in the background, just check if the
+        // process is still alive. If it is, the signal failed. If
+        // it is not, consider it an exit failure (code 1).
+        return (wait(true, 1) == wait_status::COMPLETE);
     }
 
     return join();
@@ -562,47 +559,14 @@ bool process::process_impl::kill(bool force)
 bool process::process_impl::get_exit_code(int* exit_code) const
 {
     assert_process_configured();
+    VX_ASSERT(exit_code != nullptr); // checked in parent
 
-    if (!exit_code)
-    {
-        return false;
-    }
+    // The owner class calls is_complete() before this,
+    // so if we get here, m_complete must be true. We 
+    // can just set the exit code.
+    VX_ASSERT(m_complete);
 
-    if (m_background)
-    {
-        *exit_code = 0;
-    }
-    else
-    {
-        int status = 0;
-        const int ret = waitpid(m_pid, &status, WNOHANG);
-
-        if (ret < 0)
-        {
-            unix_::error_message("waitpid()");
-            return false;
-        }
-
-        if (ret == 0)
-        {
-            // Still running
-            return false;
-        }
-
-        if (WIFEXITED(status))
-        {
-            *exit_code = WEXITSTATUS(status);
-        }
-        else if (WIFSIGNALED(status))
-        {
-            *exit_code = -WTERMSIG(status);
-        }
-        else
-        {
-            *exit_code = -255;
-        }
-    }
-
+    *exit_code = m_exit_code;
     return true;
 }
 

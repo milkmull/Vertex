@@ -163,9 +163,6 @@ int main(int argc, char* argv[])
         }
     }
 
-    // Give the parent process time to finish reading
-    os::sleep(time::milliseconds(10));
-
     log.write_line("child process finished");
     return 0;
 }

@@ -492,11 +492,7 @@ bool process::process_impl::kill(bool force)
 bool process::process_impl::get_exit_code(int* exit_code) const
 {
     assert_process_configured();
-
-    if (!exit_code)
-    {
-        return false;
-    }
+    VX_ASSERT(exit_code != nullptr); // checked in parent
 
     DWORD rc;
     if (!GetExitCodeProcess(m_process_information.hProcess, &rc))

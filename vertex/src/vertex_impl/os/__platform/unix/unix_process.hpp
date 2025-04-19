@@ -21,6 +21,19 @@ public:
 
     id get_pid() const noexcept { return static_cast<id>(m_pid); }
 
+private:
+
+    enum class wait_status
+    {
+        ALIVE,
+        COMPLETE,
+        FAILED
+    };
+
+    wait_status wait(bool block, int default_background_exit_code) const;
+
+public:
+
     bool is_valid() const noexcept { return m_pid > 0; }
     bool is_alive() const;
     bool is_complete() const;
@@ -34,6 +47,8 @@ private:
 
     pid_t m_pid = -1; // Process ID returned by fork()
     bool m_background = false;
+    mutable bool m_complete = false;
+    mutable int m_exit_code = 1;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
