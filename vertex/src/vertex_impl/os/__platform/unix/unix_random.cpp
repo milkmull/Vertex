@@ -1,10 +1,11 @@
-
 #if defined(HAVE_GETRANDOM)
 #   include <sys/random.h>
 #else
 #   include <fcntl.h>
 #   include <unistd.h>
 #endif
+
+#include <cstddef>
 
 #include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 

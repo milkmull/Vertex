@@ -51,14 +51,16 @@ function(vx_check_available_features TARGET_NAME)
         vx_check_function_exists(${TARGET_NAME} "clock_gettime"   HAVE_CLOCK_GETTIME)
         vx_check_function_exists(${TARGET_NAME} "nanosleep"       HAVE_NANOSLEEP)
         vx_check_function_exists(${TARGET_NAME} "statx"           HAVE_STATX)
-        vx_check_function_exists(${TARGET_NAME} "getrandom"       HAVE_GETRANDOM)
         
         vx_check_dlopen(${TARGET_NAME})
         vx_check_pthreads(${TARGET_NAME})
         
         # posix_spawn*
-        vx_check_symbol_exists(${TARGET_NAME} "posix_spawn_file_actions_addchdir"     "spawn.h" HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
-        vx_check_symbol_exists(${TARGET_NAME} "posix_spawn_file_actions_addchdir_np"  "spawn.h" HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
+        vx_check_symbol_exists(${TARGET_NAME} "posix_spawn_file_actions_addchdir"     "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
+        vx_check_symbol_exists(${TARGET_NAME} "posix_spawn_file_actions_addchdir_np"  "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR_NP)
+        
+        # random
+        vx_check_symbol_exists(${TARGET_NAME} "getrandom"                             "sys/random.h"    HAVE_GETRANDOM)
     
     endif()
 
