@@ -40,8 +40,8 @@ os:
     x filesystem
     x file io
 
-    - thread
-    - mutex
+    x thread
+    x mutex
     x process (argument parsing, environment variables, process dispatch, reading)
 
     - system memory
@@ -131,8 +131,8 @@ testing:
     x os/filesystem
     x os/path
     
-    - os/thread
-    - os/mutex
+    x os/thread
+    x os/mutex
     x os/process
     
     - os/system_info
