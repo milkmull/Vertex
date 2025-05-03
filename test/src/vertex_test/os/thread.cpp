@@ -33,13 +33,13 @@ VX_TEST_CASE(test_basic_thread)
     VX_CHECK(!t.is_valid());
     VX_CHECK(!t.is_joinable());
     VX_CHECK(!t.join());
-    VX_CHECK(t.get_id() == os::thread::INVALID_ID);
+    VX_CHECK(t.get_id() == os::thread::id{});
 
     // Start a simple task
     VX_CHECK(t.start(simple_task, std::ref(flag)));
     VX_CHECK(t.is_valid());
     VX_CHECK(t.is_joinable());
-    VX_CHECK(t.get_id() != os::thread::INVALID_ID);
+    VX_CHECK(t.get_id() != os::thread::id{});
 
     // Wait for the thread to complete
     VX_CHECK(t.join());
@@ -59,7 +59,7 @@ VX_TEST_CASE(test_thread_move_operations)
     VX_CHECK(t1.is_valid());
 
     const os::thread::id id = t1.get_id();
-    VX_CHECK(id != os::thread::INVALID_ID);
+    VX_CHECK(id != os::thread::id{});
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(26800); // disable use after move warning
@@ -68,7 +68,7 @@ VX_TEST_CASE(test_thread_move_operations)
     os::thread t2(std::move(t1));
 
     VX_CHECK(!t1.is_valid()); // Original thread should be invalidated
-    VX_CHECK(t1.get_id() == os::thread::INVALID_ID);
+    VX_CHECK(t1.get_id() == os::thread::id{});
 
     VX_CHECK(t2.is_valid());
     VX_CHECK(t2.get_id() == id);
@@ -78,7 +78,7 @@ VX_TEST_CASE(test_thread_move_operations)
     t3 = std::move(t2);
 
     VX_CHECK(!t2.is_valid()); // Moved-from thread should be invalidated
-    VX_CHECK(t2.get_id() == os::thread::INVALID_ID);
+    VX_CHECK(t2.get_id() == os::thread::id{});
 
     VX_CHECK(t3.is_valid());
     VX_CHECK(t3.get_id() == id);
@@ -134,7 +134,7 @@ VX_TEST_CASE(test_error_handling)
 
 VX_TEST_CASE(test_this_thread_id)
 {
-    VX_CHECK(os::this_thread::get_id() != os::thread::INVALID_ID);
+    VX_CHECK(os::this_thread::get_id() != os::thread::id{});
 }
 
 ///////////////////////////////////////////////////////////////////////////////

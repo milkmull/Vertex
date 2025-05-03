@@ -17,7 +17,6 @@ class thread
 public:
 
     using id = typename std::thread::id;
-    static constexpr id INVALID_ID = id{};
 
     thread() = default;
     ~thread() = default;
@@ -66,7 +65,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     bool is_valid() const noexcept { return m_thread.joinable(); }
-    id get_id() const noexcept { return is_valid() ? m_thread.get_id() : INVALID_ID; }
+    id get_id() const noexcept { return is_valid() ? m_thread.get_id() : id{}; }
     bool is_joinable() const noexcept { return m_thread.joinable(); }
 
     bool join() noexcept
