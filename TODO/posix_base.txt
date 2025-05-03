@@ -47,7 +47,7 @@ os:
     - system memory
     - system info
     - locale (language, timezone, country)
-    - random
+    x random
     x shared library
 }
 
@@ -111,7 +111,7 @@ testing:
     x util/string/string_cast
     x util/string/string_compare
     
-    - os/random
+    x os/random
     x util/random/algorithm
     x util/random/bernoulli_distribution
     x util/random/discrete_distribution

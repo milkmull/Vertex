@@ -10,7 +10,15 @@ namespace os {
 
 constexpr const char* get_name()
 {
-#if defined(VX_OS_WINDOWS)
+#if defined(VX_OS_CYGWIN)
+    return "Cygwin";
+#elif defined(VX_OS_LINUX)
+    return "Linux";
+#elif defined(VX_OS_IOS)
+    return "iOS";
+#elif defined(VX_OS_MACOS)
+    return "Mac OS";
+#elif defined(VX_OS_WINDOWS)
     return "Windows";
 #else
     return "Dummy";
