@@ -1,25 +1,13 @@
 #pragma once
 
+#include <mutex>
+
 #include "vertex/config/os.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/os/thread.hpp"
 
 namespace vx {
 namespace os {
-
-///////////////////////////////////////////////////////////////////////////////
-// Predefines
-///////////////////////////////////////////////////////////////////////////////
-
-namespace __detail {
-
-struct mutex_impl;
-
-} // namespace __detail
-
-///////////////////////////////////////////////////////////////////////////////
-
-class recursive_mutex;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Mutex
@@ -29,54 +17,28 @@ class mutex
 {
 public:
 
-    VX_API mutex() noexcept;
+    mutex() = default;
 
     mutex(const mutex&) = delete;
     mutex& operator=(const mutex&) = delete;
 
 public:
 
-    VX_API bool lock() noexcept;
-    VX_API bool try_lock() noexcept;
-    VX_API void unlock() noexcept;
+    bool lock() noexcept { m_mutex.lock(); return true; }
+    bool try_lock() noexcept { return m_mutex.try_lock(); }
+
+    void unlock() noexcept
+    {
+        // avoid windows complaining about unlock without lock
+        VX_DISABLE_MSVC_WARNING_PUSH();
+        VX_DISABLE_MSVC_WARNING(26110);
+        m_mutex.unlock();
+        VX_DISABLE_CLANG_WARNING_POP();
+    }
 
 private:
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // Platform specific Data
-    ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(VX_OS_WINDOWS)
-
-    // https://github.com/microsoft/STL/blob/1f6e5b16ec02216665624c1e762f3732605cf2b4/stl/inc/__msvc_threads_core.hpp#L35
-    // https://github.com/libsdl-org/SDL/blob/476e7e54cb24774919537d963140eb19cb66ac9d/src/thread/windows/SDL_sysmutex_c.h
-
-    struct critical_section_t
-    {
-        void* lock = nullptr;
-    };
-
-#endif // VX_OS_WINDOWS
-
-    struct impl_data
-    {
-        bool recursive = false;
-        size_t count = 0;
-        thread::id thread_id = 0;
-
-#if defined(VX_OS_WINDOWS)
-
-        critical_section_t critical_section;
-
-#endif // VX_OS_WINDOWS
-    };
-
-private:
-
-    friend recursive_mutex;
-    friend __detail::mutex_impl;
-
-    impl_data m_impl_data;
+    std::mutex m_mutex;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -85,24 +47,30 @@ private:
 
 class recursive_mutex
 {
-    friend __detail::mutex_impl;
-
 public:
 
-    VX_API recursive_mutex() noexcept;
+    recursive_mutex() noexcept = default;
 
     recursive_mutex(const recursive_mutex&) = delete;
     recursive_mutex& operator=(const recursive_mutex&) = delete;
 
 public:
 
-    VX_API bool lock() noexcept;
-    VX_API bool try_lock() noexcept;
-    VX_API void unlock() noexcept;
+    bool lock() noexcept { m_mutex.lock(); return true; }
+    bool try_lock() noexcept { return m_mutex.try_lock(); }
+
+    void unlock() noexcept
+    {
+        // avoid windows complaining about unlock without lock
+        VX_DISABLE_MSVC_WARNING_PUSH();
+        VX_DISABLE_MSVC_WARNING(26110);
+        m_mutex.unlock();
+        VX_DISABLE_CLANG_WARNING_POP();
+    }
 
 private:
 
-    mutex::impl_data m_impl_data;
+    std::recursive_mutex m_mutex;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
