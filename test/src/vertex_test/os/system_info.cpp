@@ -31,6 +31,16 @@ VX_TEST_CASE(test_get_model_name)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_get_distribution_name)
+{
+    const std::string distribution_name = os::get_distribution_name();
+    VX_CHECK(!distribution_name.empty());
+
+    VX_MESSAGE("  distribution name: ", distribution_name);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_get_system_name)
 {
     const std::string system_name = os::get_system_name();

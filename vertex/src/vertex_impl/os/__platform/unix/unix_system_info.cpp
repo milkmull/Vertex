@@ -210,7 +210,7 @@ std::string get_processor_name_impl()
                     if (off != std::string::npos)
                     {
                         // Skip any whitespace
-                        cache = str::strip(line, " \t", off);
+                        cache = str::strip(line, " \t", off + 1);
                         break;
                     }
                 }
