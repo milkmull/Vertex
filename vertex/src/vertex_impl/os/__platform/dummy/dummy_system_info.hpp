@@ -20,6 +20,11 @@ static std::string get_system_name_impl()
     return {};
 }
 
+std::string get_distribution_name_impl()
+{
+    return "Dummy";
+}
+
 static std::string get_processor_name_impl()
 {
     unsupported("get_processor_name");

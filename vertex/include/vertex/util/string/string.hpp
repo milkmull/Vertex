@@ -124,19 +124,19 @@ inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2);
 // strip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string strip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::string strip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"), size_t off = 0);
 
 ///////////////////////////////////////////////////////////////////////////////
 // lstrip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"), size_t off = 0);
 
 ///////////////////////////////////////////////////////////////////////////////
 // rstrip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"));
+inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters = str_arg_t(" \t\n\v\f\r"), size_t off = str_arg_t::npos);
 
 ///////////////////////////////////////////////////////////////////////////////
 // trim_prefix

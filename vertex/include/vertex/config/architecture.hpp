@@ -106,7 +106,7 @@
 
 #   elif defined(_M_IX86)
 
-#       define VX_ARCH_X86_32 __VX_VERSION_NUMBER_10_VV00(_M_IX86)
+#       define VX_ARCH_X86_32 __VX_MAKE_VERSION_NUMBER_10_VV00(_M_IX86)
 
 #   elif defined(__i686__)
 

@@ -175,3 +175,19 @@ function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
     endif()
 
 endfunction()
+
+#--------------------------------------------------------------------
+
+# Function to check if an include file exists on the platform
+# and define a preprocessor directive if it does
+function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
+
+    # Check if the header exists
+    check_include_file(${INCLUDE_NAME} ${MACRO_NAME})
+
+    # If the header exists, add the definition to the target
+    if (${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+    endif()
+
+endfunction()

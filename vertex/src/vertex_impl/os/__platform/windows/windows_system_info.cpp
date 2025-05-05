@@ -129,6 +129,11 @@ std::string get_system_name_impl()
     return cache.value;
 }
 
+std::string get_distribution_name_impl()
+{
+    return "Windows";
+}
+
 std::string get_processor_name_impl()
 {
     static value_cache cache = { false, "Unknown" };

@@ -14,6 +14,11 @@ VX_API std::string get_system_name()
     return get_system_name_impl();
 }
 
+VX_API std::string get_distribution_name()
+{
+    return get_distribution_name_impl();
+}
+
 VX_API std::string get_processor_name()
 {
     return get_processor_name_impl();

@@ -306,11 +306,11 @@ inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2)
 // strip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string strip(const str_arg_t& s, const str_arg_t& characters)
+inline std::string strip(const str_arg_t& s, const str_arg_t& characters, size_t off)
 {
     std::string res;
 
-    const size_t start = s.find_first_not_of(characters);
+    const size_t start = s.find_first_not_of(characters, off);
     if (start != str_arg_t::npos)
     {
         const size_t end = s.find_last_not_of(characters);
@@ -324,11 +324,11 @@ inline std::string strip(const str_arg_t& s, const str_arg_t& characters)
 // lstrip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters)
+inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters, size_t off)
 {
     std::string res;
 
-    const size_t start = s.find_first_not_of(characters);
+    const size_t start = s.find_first_not_of(characters, off);
     if (start != str_arg_t::npos)
     {
         res = s.substr(start);
@@ -341,11 +341,11 @@ inline std::string lstrip(const str_arg_t& s, const str_arg_t& characters)
 // rstrip
 ///////////////////////////////////////////////////////////////////////////////
 
-inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters)
+inline std::string rstrip(const str_arg_t& s, const str_arg_t& characters, size_t off)
 {
     std::string res;
 
-    const size_t end = s.find_last_not_of(characters);
+    const size_t end = s.find_last_not_of(characters, off);
     if (end != str_arg_t::npos)
     {
         res = s.substr(0, end + 1);
