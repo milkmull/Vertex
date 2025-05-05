@@ -50,7 +50,7 @@ static std::string get_os_release_info_value(const char* key)
         return {};
     }
 
-    const std::string key_equals = key + '=';
+    const std::string key_equals = std::string(key) + '=';
 
     std::string line;
     while (f.read_line(line))
