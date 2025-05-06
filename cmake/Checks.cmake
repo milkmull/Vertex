@@ -57,6 +57,10 @@ endfunction()
 
 function(vx_check_available_features TARGET_NAME)
 
+    if(NOT WIN32)
+        vx_check_pthreads(${TARGET_NAME})
+    endif()
+
     if(VX_CMAKE_PLATFORM_UNIX)
     
         vx_check_function_exists(${TARGET_NAME} "localtime_r"     HAVE_GMTIME_R)
@@ -66,7 +70,6 @@ function(vx_check_available_features TARGET_NAME)
         vx_check_function_exists(${TARGET_NAME} "statx"           HAVE_STATX)
         
         vx_check_dlopen(${TARGET_NAME})
-        vx_check_pthreads(${TARGET_NAME})
         
         # posix_spawn*
         vx_check_symbol_exists(${TARGET_NAME} "posix_spawn_file_actions_addchdir"     "spawn.h"         HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
