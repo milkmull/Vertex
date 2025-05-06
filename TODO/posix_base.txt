@@ -45,7 +45,6 @@ os:
     x process (argument parsing, environment variables, process dispatch, reading)
 
     - system memory
-    - system info
     - locale (language, timezone, country)
     x random
     x shared library
@@ -135,9 +134,8 @@ testing:
     x os/mutex
     x os/process
     
-    - os/system_info
+    x os/system_info
     - os/locale
-    - os/system_memory
     
     x os/shared_library
 }

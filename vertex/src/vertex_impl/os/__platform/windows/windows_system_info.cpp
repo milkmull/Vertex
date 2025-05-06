@@ -8,12 +8,6 @@
 namespace vx {
 namespace os {
 
-struct value_cache
-{
-    bool set;
-    std::string value;
-};
-
 static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::string& value)
 {
     bool success = false;
@@ -142,7 +136,7 @@ std::string get_distribution_name_impl()
             cache
         ))
         {
-            cache = "Unknown";
+            cache = "Windows";
         }
     }
 

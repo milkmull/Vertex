@@ -5,7 +5,6 @@
 
 vx_add_test(test_os_system_info   "os" "${CMAKE_CURRENT_SOURCE_DIR}/system_info.cpp")
 vx_add_test(test_os_locale        "os" "${CMAKE_CURRENT_SOURCE_DIR}/locale.cpp")
-vx_add_test(test_os_system_memory "os" "${CMAKE_CURRENT_SOURCE_DIR}/system_memory.cpp")
 
 file(GLOB VX_OS_PATH_SRC_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/path.hpp"

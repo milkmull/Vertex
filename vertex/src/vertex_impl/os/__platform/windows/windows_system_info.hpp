@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "vertex/os/system_info.hpp"
 
 namespace vx {
 namespace os {

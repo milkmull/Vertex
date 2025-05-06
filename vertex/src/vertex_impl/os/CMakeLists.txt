@@ -31,9 +31,6 @@ file(GLOB VX_OS_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/system_info.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/system_info.cpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/system_memory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/system_memory.cpp"
-    
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/thread.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp"
     
@@ -57,7 +54,6 @@ file(GLOB VX_OS_DUMMY_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_random.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_shared_library.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_info.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_system_memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_thread.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/__platform/dummy/dummy_time.hpp"
 )
@@ -86,7 +82,6 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_info.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_info.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_system_memory.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_thread.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_time.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/windows/windows_time.cpp"
@@ -116,7 +111,6 @@ elseif(VX_CMAKE_PLATFORM_UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_info.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_info.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_memory.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_system_memory.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_thread.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_time.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/__platform/unix/unix_time.cpp"

@@ -7,6 +7,7 @@
 #endif
 
 #include "vertex_impl/os/__platform/unix/unix_tools.hpp"
+#include "vertex_impl/os/__platform/unix/unix_system_info.hpp"
 #include "vertex/os/file.hpp"
 #include "vertex/util/string/string.hpp"
 
