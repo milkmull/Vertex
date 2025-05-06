@@ -34,8 +34,21 @@ function(vx_check_pthreads TARGET_NAME)
 
     # Link the target against pthreads if available
     if(CMAKE_USE_PTHREADS_INIT)
-        target_link_libraries(${TARGET_NAME} PRIVATE Threads::Threads)
+    
+        if(VX_BUILD_SHARED_LIBS)
+        
+            # When building shared libraries, the pthread dependency must be PUBLIC
+            # so that any target linking against this shared library also links pthreads.
+            target_link_libraries(${TARGET_NAME} PUBLIC Threads::Threads)
+            
+        else()
+        
+            target_link_libraries(${TARGET_NAME} PRIVATE Threads::Threads)
+            
+        endif()
+        
         target_compile_definitions(${TARGET_NAME} PRIVATE HAVE_PTHREADS)
+        
     endif()
 
 endfunction()
