@@ -1,9 +1,7 @@
 #include <locale.h>
 #include <langinfo.h>
 
-#include "vertex_impl/os/__platform/windows/windows_locale.hpp"
-#include "vertex_impl/os/__platform/windows/windows_tools.hpp"
-#include "vertex/util/string/string.hpp"
+#include "vertex_impl/os/__platform/unix/unix_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -28,11 +26,12 @@ bool get_country_code_impl(std::string& country_code)
 
     const std::string lang_str(lang_env);
 
-    const size_t underscore = lang_str.find('_');
+    size_t underscore = lang_str.find('_');
     if (underscore == std::string::npos)
     {
         return false;
     }
+    ++underscore;
 
     size_t dot = lang_str.find('.', underscore);
     if (dot == std::string::npos)
