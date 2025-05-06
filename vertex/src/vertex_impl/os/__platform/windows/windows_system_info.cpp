@@ -90,26 +90,28 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
 std::string get_model_name_impl()
 {
-    static value_cache cache = { false, "Unknown" };
+    static std::string cache;
 
-    if (!cache.set)
+    if (cache.empty())
     {
-        get_registry_value(
+        if (!get_registry_value(
             L"HARDWARE\\DESCRIPTION\\System\\BIOS",
             L"SystemProductName",
-            cache.value
-        );
-        cache.set = true;
+            cache
+        ))
+        {
+            cache = "Unknown";
+        }
     }
 
-    return cache.value;
+    return cache;
 }
 
 std::string get_system_name_impl()
 {
-    static value_cache cache = { false, "Unknown" };
+    static std::string cache;
 
-    if (!cache.set)
+    if (cache.empty())
     {
         WCHAR data[MAX_COMPUTERNAME_LENGTH + 1];
         DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
@@ -117,38 +119,53 @@ std::string get_system_name_impl()
         if (!GetComputerNameW(data, &size))
         {
             windows::error_message("GetComputerNameW()");
+            cache = "Unknown";
         }
         else
         {
-            cache.value = str::string_cast<char>(data);
+            cache = str::string_cast<char>(data);
         }
-
-        cache.set = true;
     }
 
-    return cache.value;
+    return cache;
 }
 
 std::string get_distribution_name_impl()
 {
-    return "Windows";
+    static std::string cache;
+
+    if (cache.empty())
+    {
+        if (!get_registry_value(
+            L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+            L"ProductName",
+            cache
+        ))
+        {
+            cache = "Unknown";
+        }
+    }
+
+    return cache;
 }
 
 std::string get_processor_name_impl()
 {
-    static value_cache cache = { false, "Unknown" };
+    static std::string cache;
 
-    if (!cache.set)
+    if (cache.empty())
     {
-        get_registry_value(
+        if (!get_registry_value(
             L"HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0",
             L"ProcessorNameString",
-            cache.value
-        );
-        cache.set = true;
+            cache
+        ))
+        {
+            cache = "Unknown";
+        }
     }
 
-    return cache.value;
+    return cache;
 }
 
 uint32_t get_processor_count_impl()
