@@ -7,3 +7,11 @@ cleanup:
     - consider reworking filesystem and process to not use smart pointers
     - change unix_ namespace to posix
 }
+
+finish base library:
+{
+    x formatting
+    - test base library
+    - document library
+    - test cmake installation process (windows)
+}

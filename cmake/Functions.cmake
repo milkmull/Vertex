@@ -146,6 +146,25 @@ endfunction()
 
 #--------------------------------------------------------------------
 
+# Enable AddressSanitizer if enabled
+function(vx_enable_asan TARGET_NAME)
+
+    message(STATUS "AddressSanitizer enabled for target: ${TARGET_NAME}")
+    
+    if(MSVC)
+        #target_compile_options(${TARGET_NAME} PUBLIC "/fsanitize=address")
+        #target_link_options(${TARGET_NAME} PUBLIC "/INCREMENTAL:NO")
+    elseif(VX_CMAKE_COMPILER_GCC OR VX_CMAKE_COMPILER_CLANG)
+        target_compile_options(${TARGET_NAME} PRIVATE "-fsanitize=address" "-fno-omit-frame-pointer")
+        target_link_libraries(${TARGET_NAME} PRIVATE "-fsanitize=address")
+    else()
+        message(WARNING "AddressSanitizer is not supported for this compiler.")
+    endif()
+    
+endfunction()
+
+#--------------------------------------------------------------------
+
 # Function to check if a function exists on the platform
 # and define a preprocessor directive if it does
 function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)

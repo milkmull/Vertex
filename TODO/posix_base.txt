@@ -44,18 +44,9 @@ os:
     x mutex
     x process (argument parsing, environment variables, process dispatch, reading)
 
-    - system memory
-    - locale (language, timezone, country)
+    x locale (language, timezone, country)
     x random
     x shared library
-}
-
-cleanup and finalizaton for base library:
-{
-    formatting:
-    {
-        - macros to check if a particular os module is available
-    }
 }
 
 filesystem tests:
@@ -135,15 +126,7 @@ testing:
     x os/process
     
     x os/system_info
-    - os/locale
+    x os/locale
     
     x os/shared_library
-}
-
-finish base library:
-{
-    x formatting
-    - test base library
-    - document library
-    - test cmake installation process (windows)
 }

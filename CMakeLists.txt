@@ -69,19 +69,20 @@ if(VX_SHARED_AVAILABLE)
     vx_set_option(VX_BUILD_SHARED_LIBS BOOL TRUE "Build shared libraries.")
 endif()
 
+# Enable AddressSanitizer (ASan)
+vx_set_option(VX_ENABLE_ASAN        BOOL FALSE "Enable AddressSanitizer for Debug builds")
+
 # Module-specific build options
 vx_set_option(VX_DUMMY_PLATFORM     BOOL FALSE "Build the dummy os implimentation")
-vx_set_option(VX_BUILD_APP_WINDOW   BOOL TRUE  "Enable building the windowing backend (Enabled by default if rendering is enabled).")
-vx_set_option(VX_BUILD_APP_RENDERER BOOL TRUE  "Enable building the rendering backend.")
-vx_set_option(VX_BUILD_APP_AUDIO    BOOL TRUE  "Enable building the audio backend.")
-vx_set_option(VX_BUILD_IMAGE        BOOL TRUE  "Enable image loading and saving capabilities.")
-vx_set_option(VX_BUILD_NETWORK      BOOL TRUE  "Enable networking capabilities.")
+#vx_set_option(VX_BUILD_APP_WINDOW   BOOL TRUE  "Enable building the windowing backend (Enabled by default if rendering is enabled).")
+#vx_set_option(VX_BUILD_APP_RENDERER BOOL TRUE  "Enable building the rendering backend.")
+#vx_set_option(VX_BUILD_APP_AUDIO    BOOL TRUE  "Enable building the audio backend.")
+#vx_set_option(VX_BUILD_IMAGE        BOOL TRUE  "Enable image loading and saving capabilities.")
+#vx_set_option(VX_BUILD_NETWORK      BOOL TRUE  "Enable networking capabilities.")
 
 # Test and Sandbox options
 vx_set_option(VX_BUILD_TESTS        BOOL FALSE "Enable building of test executables.")
 vx_set_option(VX_BUILD_SANDBOX      BOOL TRUE  "Enable building of the sandbox application.")
-
-# New option for installing tests
 vx_set_option(VX_INSTALL_TESTS      BOOL FALSE "Enable installation of test executables.")
 
 # Automatically enable tests if installation of tests is requested
@@ -129,12 +130,13 @@ endif()
 message(STATUS "Vertex Configuration Summary:")
 message(STATUS "  Build Dummy Platform    : ${VX_DUMMY_PLATFORM}")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
-message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
-message(STATUS "  Build Window Backend    : ${VX_BUILD_APP_WINDOW}")
-message(STATUS "  Build Renderer Backend  : ${VX_BUILD_APP_RENDERER}")
-message(STATUS "  Build Audio Backend     : ${VX_BUILD_APP_AUDIO}")
-message(STATUS "  Build Image Module      : ${VX_BUILD_IMAGE}")
-message(STATUS "  Build Network Module    : ${VX_BUILD_NETWORK}")
+message(STATUS "  AddressSanitizer        : ${VX_ENABLE_ASAN}")
+#message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
+#message(STATUS "  Build Window Backend    : ${VX_BUILD_APP_WINDOW}")
+#message(STATUS "  Build Renderer Backend  : ${VX_BUILD_APP_RENDERER}")
+#message(STATUS "  Build Audio Backend     : ${VX_BUILD_APP_AUDIO}")
+#message(STATUS "  Build Image Module      : ${VX_BUILD_IMAGE}")
+#message(STATUS "  Build Network Module    : ${VX_BUILD_NETWORK}")
 message(STATUS "  Build Tests             : ${VX_BUILD_TESTS}")
 message(STATUS "  Install Tests           : ${VX_INSTALL_TESTS}")
 message(STATUS "  Build Sandbox           : ${VX_BUILD_SANDBOX}")

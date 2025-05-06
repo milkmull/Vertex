@@ -115,47 +115,57 @@ bool process::process_impl::start(process* p, const config& config)
 {
     VX_ASSERT_MESSAGE(!is_valid(), "process already configured");
 
-    bool success = false;
+    // Marked volatile to prevent clobbering during vfork; the child shares the parent's memory,
+    // so compilers may optimize out or reorder accesses unsafely if not volatile.
+    volatile bool success = false;
 
     // Base class should check that args is not empty
     VX_ASSERT(!config.args.empty());
 
     // Setup args
-    char** args = nullptr;
-    std::vector<char*> args_data;
+    // We must allocate this on the heap because it will be used in the child process
+    const size_t arg_count = config.args.size();
+    std::string* arg_strings = new std::string[arg_count + 1];
+    char** args = new char* [arg_count + 1];
+
     {
         // Prepare a null-terminated array of C-strings
-        for (const auto& arg : config.args)
+        for (size_t i = 0; i < arg_count; ++i)
         {
-            args_data.push_back(const_cast<char*>(arg.c_str()));
+            arg_strings[i] = config.args[i];
+            args[i] = const_cast<char*>(arg_strings[i].c_str());
         }
 
         // null-terminate!
-        args_data.push_back(NULL);
-        args = args_data.data();
+        args[arg_count] = NULL;
     }
 
     // Setup environment
-    std::vector<std::string> env_strings;
-    std::vector<char*> env_data;
-    char** env = environ; // Inherit the parent's evirnonment by default
-    if (!config.environment.empty())
+    char** env = nullptr;
+    std::string* env_strings = nullptr;
+
+    if (config.environment.empty())
     {
+        // Inherit the parent's evirnonment by default
+        env = environ;
+    }
+    else
+    {
+        // We must allocate this on the heap because it will be used in the child process
+        const size_t env_count = config.environment.size();
+        env_strings = new std::string[env_count + 1];
+        env = new char* [env_count + 1];
+
         // Build a vector of "KEY=VALUE" strings
+        size_t i = 0;
         for (const auto& pair : config.environment)
         {
-            env_strings.push_back(pair.first + '=' + pair.second);
-        }
-
-        // Create a null-terminated array of char*
-        for (const auto& str : env_strings)
-        {
-            env_data.push_back(const_cast<char*>(str.c_str()));
+            env_strings[i] = pair.first + '=' + pair.second;
+            env[i] = const_cast<char*>(env_strings[i].c_str());
         }
 
         // null-terminate!
-        env_data.push_back(NULL);
-        env = env_data.data();
+        env[env_count] = NULL;
     }
 
     enum : int
@@ -455,6 +465,18 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 close(s.user_pipe());
             }
+        }
+    }
+
+    // Cleanup allocated memory
+    {
+        delete[] args;
+        delete[] arg_strings;
+
+        if (env_strings)
+        {
+            delete[] env;
+            delete[] env_strings;
         }
     }
 
