@@ -70,7 +70,7 @@ if(VX_SHARED_AVAILABLE)
 endif()
 
 # Enable AddressSanitizer (ASan)
-vx_set_option(VX_ENABLE_ASAN        BOOL FALSE "Enable AddressSanitizer for Debug builds")
+#vx_set_option(VX_ENABLE_ASAN        BOOL FALSE "Enable AddressSanitizer for Debug builds")
 
 # Module-specific build options
 vx_set_option(VX_DUMMY_PLATFORM     BOOL FALSE "Build the dummy os implimentation")
@@ -130,7 +130,7 @@ endif()
 message(STATUS "Vertex Configuration Summary:")
 message(STATUS "  Build Dummy Platform    : ${VX_DUMMY_PLATFORM}")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
-message(STATUS "  AddressSanitizer        : ${VX_ENABLE_ASAN}")
+#message(STATUS "  AddressSanitizer        : ${VX_ENABLE_ASAN}")
 #message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
 #message(STATUS "  Build Window Backend    : ${VX_BUILD_APP_WINDOW}")
 #message(STATUS "  Build Renderer Backend  : ${VX_BUILD_APP_RENDERER}")
