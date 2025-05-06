@@ -25,13 +25,14 @@ endif()
 #--------------------------------------------------------------------
 
 set_target_properties(Vertex PROPERTIES LINKER_LANGUAGE CXX)
-vx_add_common_compiler_flags(Vertex)
-vx_check_available_features(Vertex)
 
-# Enable AddressSanitizer
+# Enable AddressSanitizer (this needs to be linked first)
 if(VX_ENABLE_ASAN)
     vx_enable_asan(Vertex)
 endif()
+
+vx_add_common_compiler_flags(Vertex)
+vx_check_available_features(Vertex)
 
 # Output directories for binary, library, and PDB files
 set_target_properties(Vertex PROPERTIES
