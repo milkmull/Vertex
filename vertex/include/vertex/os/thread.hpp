@@ -1,9 +1,11 @@
 #pragma once
 
-#include <thread>
+#include <memory>
 
+#include "vertex/os/handle.hpp"
+#include "vertex/util/function/invoke.hpp"
 #include "vertex/system/error.hpp"
-#include "vertex/util/type_traits.hpp"
+#include "vertex/util/memory/opaque_ptr.hpp"
 
 namespace vx {
 namespace os {
@@ -12,51 +14,165 @@ namespace os {
 // thread
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace __detail {
+
+struct thread_impl;
+
+} // namespace __detail
+
+///////////////////////////////////////////////////////////////////////////////
+
 class thread
 {
 public:
 
-    using id = typename std::thread::id;
+    class id;
 
-    thread() = default;
-    ~thread() = default;
+    VX_API thread() noexcept;
+    VX_API ~thread();
 
     thread(const thread&) = delete;
     thread& operator=(const thread&) = delete;
-    
-    thread(thread&& other) noexcept = default;
-    thread& operator=(thread&& other) noexcept = default;
 
-    void swap(thread& other) noexcept { m_thread.swap(other.m_thread); }
+    VX_API thread(thread&& other) noexcept;
+    VX_API thread& operator=(thread&& other) noexcept;
+
+    VX_API void swap(thread& other) noexcept;
+
+public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_API bool operator==(const thread& other) const noexcept;
+    bool operator!=(const thread& other) const noexcept { return !operator==(other); }
 
 private:
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // helper types
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // Abstract base class for types that wrap arbitrary
+    // functors to be invoked in the new thread of execution.
+    struct thread_state
+    {
+        virtual ~thread_state() = default;
+        virtual void run() = 0;
+    };
+
+    template <typename Callable>
+    struct thread_state_impl : public thread_state
+    {
+        Callable fn;
+
+        template <typename... Args>
+        thread_state_impl(Args&&... args) : fn(std::forward<Args>(args)...) {}
+
+        void run() { fn(); }
+    };
+
+    // https://github.com/microsoft/STL/blob/main/stl/inc/thread#L73
+    // https://github.com/gcc-mirror/gcc/blob/3014f8787196d7c0d15d24195c8f07167968ff55/libstdc%2B%2B-v3/include/bits/std_thread.h
+
+    template <typename Tuple>
+    struct invoker
+    {
+    public:
+
+        template <typename... Args>
+        explicit invoker(Args&&... args) : invoke_data(std::forward<Args>(args)...) {}
+
+    private:
+
+        Tuple invoke_data;
+
+        template <typename> struct result;
+
+        template <typename Fn, typename... Args>
+        struct result<std::tuple<Fn, Args...>> : type_traits::invoke_result<Fn, Args...> {};
+
+        template <size_t... In>
+        typename result<Tuple>::type invoke(type_traits::index_sequence<In...>)
+        {
+            return fn::invoke(std::get<In>(std::move(invoke_data))...);
+        }
+
+        auto operator()()
+        {
+            using In = type_traits::make_index_sequence<std::tuple_size<Tuple>::value>;
+            return invoke(In{});
+        }
+
+    public:
+
+#if defined(HAVE_PTHREADS)
+
+        static void* thread_entry(void* arg)
+        {
+            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
+            (*self)(); // Invoke the callable
+            return nullptr;
+        }
+
+#elif defined(VX_OS_WINDOWS)
+
+        static unsigned int __stdcall thread_entry(void* arg)
+        {
+            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
+            (*self)(); // Invoke the callable
+            return 0;
+        }
+
+#else
+
+        static void thread_entry(void* arg)
+        {
+            std::unique_ptr<invoker> self{ static_cast<invoker*>(arg) };
+            (*self)(); // Invoke the callable
+        }
+
+#endif
+    };
+
+    template <typename... Args>
+    using call_wrapper = invoker<std::tuple<typename std::decay<Args>::type...>>;
+
     template <typename T>
     using not_same = type_traits::negation<std::is_same<type_traits::remove_cvref<T>, thread>>;
-
-public:
 
     ///////////////////////////////////////////////////////////////////////////////
     // start
     ///////////////////////////////////////////////////////////////////////////////
 
+    // windows complains if this is not exported even though it is private
+    VX_API bool start_impl(void* fn, void* arg);
+
+public:
+
     template <typename Callable, typename... Args, VX_REQUIRES(not_same<Callable>::value)>
     bool start(Callable&& fn, Args&&... args)
     {
         static_assert(type_traits::is_invocable<
-                typename std::decay<Callable>::type,
-                typename std::decay<Args>::type...
-            >::value,
+            typename std::decay<Callable>::type,
+            typename std::decay<Args>::type...
+        >::value,
             "thread arguments must be invocable after conversion to rvalues"
+            );
+
+        using wrapper = call_wrapper<Callable, Args...>;
+        std::unique_ptr<wrapper> w = std::make_unique<wrapper>(
+            std::forward<Callable>(fn),
+            std::forward<Args>(args)...
         );
 
-        if (m_thread.joinable())
+        if (!start_impl(reinterpret_cast<void*>(wrapper::thread_entry), w.get()))
         {
-            err::set(err::UNSUPPORTED_OPERATION, "thread already started");
             return false;
         }
 
-        m_thread = std::thread(std::forward<Callable>(fn), std::forward<Args>(args)...);
+        w.release(); // ownership was passed to thread
         return true;
     }
 
@@ -64,40 +180,30 @@ public:
     // helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool is_valid() const noexcept { return m_thread.joinable(); }
-    id get_id() const noexcept { return is_valid() ? m_thread.get_id() : id{}; }
-    bool is_joinable() const noexcept { return m_thread.joinable(); }
+    VX_API bool is_valid() const noexcept;
+    VX_API id get_id() const noexcept;
 
-    bool join() noexcept
+    bool is_joinable() const noexcept
     {
-        if (!m_thread.joinable())
-        {
-            return false;
-        }
-
-        m_thread.join();
-        return true;
+        return is_valid();
     }
 
-    bool detach() noexcept
-    {
-        if (!m_thread.joinable())
-        {
-            return false;
-        }
-
-        m_thread.detach();
-        return true;
-    }
+    VX_API bool join() noexcept;
+    VX_API bool detach() noexcept;
 
 private:
 
-    std::thread m_thread;
+    friend __detail::thread_impl;
+
+    struct impl_data;
+    using impl_data_ptr = mem::opaque_ptr<impl_data, 64, std::max_align_t>;
+
+    impl_data_ptr m_impl_data_ptr;
 };
 
 namespace this_thread {
 
-inline thread::id get_id() { return std::this_thread::get_id(); }
+VX_API thread::id get_id();
 
 } // namespace this_thread
 
