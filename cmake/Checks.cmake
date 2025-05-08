@@ -31,7 +31,7 @@ function(vx_link_threads TARGET_NAME)
 
     # Find pthreads (sets CMAKE_THREAD_LIBS_INIT and CMAKE_USE_PTHREADS_INIT)
     find_package(Threads REQUIRED)
-    target_link_libraries(${TARGET_NAME} PRIVATE Threads::Threads)
+    target_link_libraries(${TARGET_NAME} PUBLIC Threads::Threads)
     
     if(CMAKE_USE_PTHREADS_INIT)
         target_compile_definitions(${TARGET_NAME} PRIVATE HAVE_PTHREADS)
