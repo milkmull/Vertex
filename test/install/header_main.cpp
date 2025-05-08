@@ -1,4 +1,4 @@
-#include <vertex/system/version.hpp>
+#include <vertex/config/version.hpp>
 #include <vertex/util/io/iostream.hpp>
 
 int main()

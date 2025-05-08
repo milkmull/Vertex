@@ -53,3 +53,6 @@ if(VERTEX_FOUND)
 else()
     set(VERTEX_INCLUDE_DIR)
 endif()
+
+# Add dependencies
+find_package(Threads REQUIRED)
