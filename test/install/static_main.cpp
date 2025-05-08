@@ -10,5 +10,5 @@ int main()
     std::cout
         << "today is "
         << vx::time::weekday_to_string(dt.weekday) << ", "
-        << vx::time::month_to_string(dt.month) << ' ' << dt.day << ", " << dt.year;
+        << vx::time::month_to_string(dt.month) << ' ' << dt.day << ", " << dt.year << '\n';
 }
