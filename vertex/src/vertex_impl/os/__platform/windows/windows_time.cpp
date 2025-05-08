@@ -14,7 +14,7 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
 
     time::datetime dt{};
 
-    if (!FileTimeToSystemTime(&ft, &utc_st))
+    if (!::FileTimeToSystemTime(&ft, &utc_st))
     {
         windows::error_message("FileTimeToSystemTime()");
         return dt;
@@ -22,14 +22,14 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
 
     if (local)
     {
-        if (!SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
+        if (!::SystemTimeToTzSpecificLocalTime(NULL, &utc_st, &local_st))
         {
             windows::error_message("SystemTimeToTzSpecificLocalTime()");
             return dt;
         }
 
         FILETIME local_ft{};
-        if (!SystemTimeToFileTime(&local_st, &local_ft))
+        if (!::SystemTimeToFileTime(&local_st, &local_ft))
         {
             windows::error_message("SystemTimeToFileTime()");
             return dt;
@@ -66,21 +66,21 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
 time::time_point system_time_impl() noexcept
 {
     FILETIME ft{};
-    GetSystemTimePreciseAsFileTime(&ft);
+    ::GetSystemTimePreciseAsFileTime(&ft);
     return windows::time_point_from_file_time(ft.dwLowDateTime, ft.dwHighDateTime);
 }
 
 int64_t get_performance_counter_impl() noexcept
 {
     LARGE_INTEGER counter{};
-    QueryPerformanceCounter(&counter);
+    ::QueryPerformanceCounter(&counter);
     return static_cast<int64_t>(counter.QuadPart);
 }
 
 int64_t get_performance_frequency_impl() noexcept
 {
     LARGE_INTEGER frequency{};
-    QueryPerformanceFrequency(&frequency);
+    ::QueryPerformanceFrequency(&frequency);
     return static_cast<int64_t>(frequency.QuadPart);
 }
 
@@ -90,7 +90,7 @@ int64_t get_performance_frequency_impl() noexcept
 
 void sleep_impl(const time::time_point& t) noexcept
 {
-    Sleep(static_cast<DWORD>(t.as_milliseconds()));
+    ::Sleep(static_cast<DWORD>(t.as_milliseconds()));
 }
 
 } // namespace os

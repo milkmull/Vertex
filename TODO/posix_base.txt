@@ -4,7 +4,7 @@ cmake test:
 {
     x Define Vertex project
     x Configure output files for debug and release builds
-    - Installation
+    x Installation
     x Define Sandbox project
     x Link Sandbox to Vertex, test both static and shared
     - Test including Vertex after installation

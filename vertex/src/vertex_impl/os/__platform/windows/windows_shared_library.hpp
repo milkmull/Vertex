@@ -18,7 +18,7 @@ struct shared_library_impl
 
         const std::wstring wlib(str::string_cast<wchar_t>(lib));
 
-        h = LoadLibraryW(wlib.c_str());
+        h = ::LoadLibraryW(wlib.c_str());
         if (h == NULL)
         {
             windows::error_message(lib);
@@ -31,14 +31,14 @@ struct shared_library_impl
     static void free(void*& h) noexcept
     {
         assert_is_loaded(h);
-        FreeLibrary(reinterpret_cast<HMODULE>(h));
+        ::FreeLibrary(reinterpret_cast<HMODULE>(h));
         h = NULL;
     }
 
     static void* get_addr(void* h, const char* symbol_name) noexcept
     {
         assert_is_loaded(h);
-        return GetProcAddress(reinterpret_cast<HMODULE>(h), symbol_name);
+        return ::GetProcAddress(reinterpret_cast<HMODULE>(h), symbol_name);
     }
 };
 

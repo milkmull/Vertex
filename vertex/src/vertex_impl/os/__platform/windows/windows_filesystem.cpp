@@ -48,7 +48,7 @@ static bool update_file_permissions_internal(
     bool follow_symlinks
 )
 {
-    const DWORD attrs = GetFileAttributesW(p.c_str());
+    const DWORD attrs = ::GetFileAttributesW(p.c_str());
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
         windows::error_message("GetFileAttributesW()");
@@ -60,7 +60,7 @@ static bool update_file_permissions_internal(
     if ((attrs & FILE_ATTRIBUTE_REPARSE_POINT) && follow_symlinks)
     {
         // Resolve the symbolic link
-        handle h = CreateFileW(
+        handle h = ::CreateFileW(
             p.c_str(),
             FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
             NULL,
@@ -77,7 +77,7 @@ static bool update_file_permissions_internal(
         }
         
         FILE_BASIC_INFO basic_info{};
-        if (!GetFileInformationByHandleEx(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        if (!::GetFileInformationByHandleEx(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
         {
             windows::error_message("GetFileInformationByHandleEx()");
             return false;
@@ -90,7 +90,7 @@ static bool update_file_permissions_internal(
         }
 
         basic_info.FileAttributes ^= FILE_ATTRIBUTE_READONLY;
-        if (!SetFileInformationByHandle(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
+        if (!::SetFileInformationByHandle(h.get(), FileBasicInfo, &basic_info, sizeof(basic_info)))
         {
             windows::error_message("SetFileInformationByHandle()");
             return false;
@@ -104,7 +104,7 @@ static bool update_file_permissions_internal(
             return true;
         }
 
-        if (!SetFileAttributesW(p.c_str(), attrs ^ FILE_ATTRIBUTE_READONLY))
+        if (!::SetFileAttributesW(p.c_str(), attrs ^ FILE_ATTRIBUTE_READONLY))
         {
             windows::error_message("SetFileAttributesW()");
             return false;
@@ -179,7 +179,7 @@ static bool get_reparse_point_data_from_handle(
     data = std::make_unique<reparse_point_data>();
     DWORD count = 0;
 
-    if (!DeviceIoControl(
+    if (!::DeviceIoControl(
         h.get(),
         FSCTL_GET_REPARSE_POINT,
         NULL,
@@ -199,7 +199,7 @@ static bool get_reparse_point_data_from_handle(
 static bool get_reparse_point_data(const path& p, std::unique_ptr<reparse_point_data>& data, bool throw_on_fail)
 {
     // Open the file to check if it's a symbolic link
-    handle h = CreateFileW(
+    handle h = ::CreateFileW(
         p.c_str(),
         0,
         0,
@@ -265,7 +265,7 @@ static file_type get_file_type(const path& p, const DWORD attrs)
 {
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
-        const DWORD error = GetLastError();
+        const DWORD error = ::GetLastError();
         return (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) ? file_type::NOT_FOUND : file_type::UNKNOWN;
     }
 
@@ -358,7 +358,7 @@ static file_info file_info_from_handle(const handle& h, const path& p)
     }
 
     BY_HANDLE_FILE_INFORMATION fi;
-    if (!GetFileInformationByHandle(h.get(), &fi))
+    if (!::GetFileInformationByHandle(h.get(), &fi))
     {
         windows::error_message("GetFileInformationByHandle()");
         return info;
@@ -409,7 +409,7 @@ file_info get_file_info_impl(const path& p)
 
 file_info get_symlink_info_impl(const path& p)
 {
-    handle h = CreateFileW(
+    handle h = ::CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES | FILE_READ_EA,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -430,7 +430,7 @@ file_info get_symlink_info_impl(const path& p)
 
 size_t hard_link_count_impl(const path& p)
 {
-    handle h = CreateFileW(
+    handle h = ::CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -447,7 +447,7 @@ size_t hard_link_count_impl(const path& p)
     }
 
     BY_HANDLE_FILE_INFORMATION fi;
-    if (!GetFileInformationByHandle(h.get(), &fi))
+    if (!::GetFileInformationByHandle(h.get(), &fi))
     {
         windows::error_message("GetFileInformationByHandle()");
         return 0;
@@ -458,7 +458,7 @@ size_t hard_link_count_impl(const path& p)
 
 bool set_modify_time_impl(const path& p, time::time_point t)
 {
-    handle h = CreateFileW(
+    handle h = ::CreateFileW(
         p.c_str(),
         FILE_WRITE_ATTRIBUTES,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -477,7 +477,7 @@ bool set_modify_time_impl(const path& p, time::time_point t)
     FILETIME ft{};
     windows::time_point_to_file_time(t, ft.dwLowDateTime, ft.dwHighDateTime);
 
-    if (!SetFileTime(h.get(), NULL, NULL, &ft))
+    if (!::SetFileTime(h.get(), NULL, NULL, &ft))
     {
         windows::error_message("SetFileTime()");
         return false;
@@ -542,7 +542,7 @@ path read_symlink_impl(const path& p)
 path get_current_path_impl()
 {
     WCHAR buffer[MAX_PATH]{};
-    if (!GetCurrentDirectoryW(MAX_PATH, buffer))
+    if (!::GetCurrentDirectoryW(MAX_PATH, buffer))
     {
         windows::error_message("GetCurrentDirectoryW()");
         return {};
@@ -553,7 +553,7 @@ path get_current_path_impl()
 
 bool set_current_path_impl(const path& p)
 {
-    if (!SetCurrentDirectoryW(p.c_str()))
+    if (!::SetCurrentDirectoryW(p.c_str()))
     {
         windows::error_message("SetCurrentDirectoryW()");
         return false;
@@ -568,7 +568,7 @@ path canonical_impl(const path& p)
 {
     path res;
 
-    handle h = CreateFileW(
+    handle h = ::CreateFileW(
         p.c_str(),
         FILE_READ_ATTRIBUTES | FILE_READ_EA,
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -585,15 +585,15 @@ path canonical_impl(const path& p)
     }
 
     DWORD flags = FILE_NAME_NORMALIZED;
-    DWORD size = GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+    DWORD size = ::GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
 
     if (size == 0)
     {
-        if (!(flags & VOLUME_NAME_NT) && GetLastError() == ERROR_PATH_NOT_FOUND)
+        if (!(flags & VOLUME_NAME_NT) && ::GetLastError() == ERROR_PATH_NOT_FOUND)
         {
             // Drive letter does not exist, obtain an NT path
             flags |= VOLUME_NAME_NT;
-            size = GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
+            size = ::GetFinalPathNameByHandleW(h.get(), NULL, 0, flags);
         }
 
         if (size == 0)
@@ -604,7 +604,7 @@ path canonical_impl(const path& p)
     }
 
     std::vector<WCHAR> buffer(size);
-    if (GetFinalPathNameByHandleW(h.get(), buffer.data(), size, flags) == 0)
+    if (::GetFinalPathNameByHandleW(h.get(), buffer.data(), size, flags) == 0)
     {
         windows::error_message("GetFinalPathNameByHandleW()");
         return res;
@@ -668,7 +668,7 @@ path canonical_impl(const path& p)
 
 bool equivalent_impl(const path& p1, const path& p2)
 {
-    handle h1 = CreateFileW(
+    handle h1 = ::CreateFileW(
         p1.c_str(),
         FILE_READ_ATTRIBUTES, // Only need attributes
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -684,7 +684,7 @@ bool equivalent_impl(const path& p1, const path& p2)
         return false;
     }
 
-    handle h2 = CreateFileW(
+    handle h2 = ::CreateFileW(
         p2.c_str(),
         FILE_READ_ATTRIBUTES, // Only need attributes
         FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
@@ -701,14 +701,14 @@ bool equivalent_impl(const path& p1, const path& p2)
     }
 
     BY_HANDLE_FILE_INFORMATION info1{};
-    if (!GetFileInformationByHandle(h1.get(), &info1))
+    if (!::GetFileInformationByHandle(h1.get(), &info1))
     {
         windows::error_message("GetFileInformationByHandle()");
         return false;
     }
 
     BY_HANDLE_FILE_INFORMATION info2{};
-    if (!GetFileInformationByHandle(h2.get(), &info2))
+    if (!::GetFileInformationByHandle(h2.get(), &info2))
     {
         windows::error_message("GetFileInformationByHandle()");
         return false;
@@ -727,12 +727,12 @@ bool equivalent_impl(const path& p1, const path& p2)
 static inline std::wstring wgetenv(const wchar_t* name)
 {
     std::wstring env;
-    const DWORD size = GetEnvironmentVariableW(name, NULL, 0);
+    const DWORD size = ::GetEnvironmentVariableW(name, NULL, 0);
 
     if (size > 0)
     {
         std::vector<WCHAR> buffer(size);
-        if (GetEnvironmentVariableW(name, buffer.data(), size) > 0)
+        if (::GetEnvironmentVariableW(name, buffer.data(), size) > 0)
         {
             env.assign(buffer.data());
         }
@@ -768,7 +768,7 @@ path get_temp_path_impl()
 
     if (tmp.empty())
     {
-        const UINT size = GetWindowsDirectoryW(NULL, 0);
+        const UINT size = ::GetWindowsDirectoryW(NULL, 0);
         if (size == 0)
         {
             error:
@@ -779,7 +779,7 @@ path get_temp_path_impl()
         }
 
         std::vector<WCHAR> buffer(size);
-        if (GetWindowsDirectoryW(buffer.data(), size) == 0)
+        if (::GetWindowsDirectoryW(buffer.data(), size) == 0)
         {
             goto error;
         }
@@ -836,7 +836,7 @@ path get_user_folder_impl(user_folder folder)
     }
 
     PWSTR szPath;
-    if (SUCCEEDED(SHGetKnownFolderPath(id, 0, NULL, &szPath)))
+    if (SUCCEEDED(::SHGetKnownFolderPath(id, 0, NULL, &szPath)))
     {
         p.assign(szPath);
     }
@@ -844,7 +844,7 @@ path get_user_folder_impl(user_folder folder)
     {
         windows::error_message("SHGetKnownFolderPath()");
     }
-    CoTaskMemFree(szPath);
+    ::CoTaskMemFree(szPath);
 
     return p;
 }
@@ -855,7 +855,7 @@ path get_user_folder_impl(user_folder folder)
 
 bool create_file_impl(const path& p)
 {
-    const handle h = CreateFileW(
+    const handle h = ::CreateFileW(
         p.c_str(),
         GENERIC_WRITE,
         0,
@@ -882,12 +882,12 @@ bool create_directory_impl(const path& p)
     // path length to exceed 260 characters, but each individual directory in the  
     // path must still be 255 characters or fewer.
 
-    if (!CreateDirectoryW(p.c_str(), NULL))
+    if (!::CreateDirectoryW(p.c_str(), NULL))
     {
-        if (GetLastError() == ERROR_ALREADY_EXISTS)
+        if (::GetLastError() == ERROR_ALREADY_EXISTS)
         {
             // Check if the existing path is a directory
-            const DWORD attrs = GetFileAttributesW(p.c_str());
+            const DWORD attrs = ::GetFileAttributesW(p.c_str());
             if (attrs != INVALID_FILE_ATTRIBUTES && (attrs & FILE_ATTRIBUTE_DIRECTORY))
             {
                 return true;
@@ -910,7 +910,7 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
 {
 #if defined(_CRT_APP)
 
-    SetLastError(ERROR_NOT_SUPPORTED);
+    ::SetLastError(ERROR_NOT_SUPPORTED);
     windows::error_message("CreateSymbolicLinkW()");
     return false;
 
@@ -918,9 +918,9 @@ static bool create_symlink_impl(const path& target, const path& link, DWORD flag
 
     const os::path normalized_target = normalize_symlink_target(target);
 
-    if (!CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
+    if (!::CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags | SYMBOLIC_LINK_FLAG_ALLOW_UNPRIVILEGED_CREATE))
     {
-        if (GetLastError() != ERROR_INVALID_PARAMETER || !CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags))
+        if (::GetLastError() != ERROR_INVALID_PARAMETER || !::CreateSymbolicLinkW(link.c_str(), normalized_target.c_str(), flags))
         {
             windows::error_message("CreateSymbolicLinkW()");
             return false;
@@ -946,13 +946,13 @@ bool create_hard_link_impl(const path& target, const path& link)
 {
 #if defined(_CRT_APP)
 
-    SetLastError(ERROR_NOT_SUPPORTED);
+    ::SetLastError(ERROR_NOT_SUPPORTED);
     windows::error_message("CreateHardLinkW()");
     return false;
 
 #else
 
-    if (!CreateHardLinkW(link.c_str(), target.c_str(), NULL))
+    if (!::CreateHardLinkW(link.c_str(), target.c_str(), NULL))
     {
         windows::error_message("CreateHardLinkW()");
         return false;
@@ -971,7 +971,7 @@ bool create_hard_link_impl(const path& target, const path& link)
 
 bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 {
-    if (!CopyFileW(from.c_str(), to.c_str(), !overwrite_existing))
+    if (!::CopyFileW(from.c_str(), to.c_str(), !overwrite_existing))
     {
         windows::error_message("CopyFileW()");
         return false;
@@ -988,7 +988,7 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
 
 bool rename_impl(const path& from, const path& to)
 {
-    if (!MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
+    if (!::MoveFileExW(from.c_str(), to.c_str(), MOVEFILE_COPY_ALLOWED | MOVEFILE_REPLACE_EXISTING))
     {
         windows::error_message("MoveFileExW()");
         return false;
@@ -1003,7 +1003,7 @@ bool rename_impl(const path& from, const path& to)
 
 static bool clear_readonly_attribute(const path& p, DWORD attrs)
 {
-    if (!SetFileAttributesW(p.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY))
+    if (!::SetFileAttributesW(p.c_str(), attrs & ~FILE_ATTRIBUTE_READONLY))
     {
         windows::error_message("SetFileAttributesW()");
         return false;
@@ -1013,16 +1013,16 @@ static bool clear_readonly_attribute(const path& p, DWORD attrs)
 
 static void restore_readonly_attributes(const path& p, DWORD attrs)
 {
-    SetFileAttributesW(p.c_str(), attrs);
+    ::SetFileAttributesW(p.c_str(), attrs);
 }
 
 static __detail::remove_error remove_directory(const path& p, bool in_recursive_remove, DWORD attrs)
 {
-    if (!RemoveDirectoryW(p.c_str()))
+    if (!::RemoveDirectoryW(p.c_str()))
     {
         restore_readonly_attributes(p, attrs);
 
-        const bool not_empty = (GetLastError() == ERROR_DIR_NOT_EMPTY);
+        const bool not_empty = (::GetLastError() == ERROR_DIR_NOT_EMPTY);
         if (!not_empty || (not_empty && !in_recursive_remove))
         {
             // don't report an error in recursive remove
@@ -1039,7 +1039,7 @@ static __detail::remove_error remove_directory(const path& p, bool in_recursive_
 
 static __detail::remove_error remove_file(const path& p, DWORD attrs)
 {
-    if (!DeleteFileW(p.c_str()))
+    if (!::DeleteFileW(p.c_str()))
     {
         restore_readonly_attributes(p, attrs);
 
@@ -1067,9 +1067,9 @@ static __detail::remove_error remove_file(const path& p, DWORD attrs)
 __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 {
     WIN32_FILE_ATTRIBUTE_DATA data{};
-    if (!GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &data))
+    if (!::GetFileAttributesExW(p.c_str(), GetFileExInfoStandard, &data))
     {
-        const DWORD e = GetLastError();
+        const DWORD e = ::GetLastError();
         if (not_found_error(e))
         {
             // path or file is already gone
@@ -1105,7 +1105,7 @@ space_info space_impl(const path& p)
     ULARGE_INTEGER free{};
     ULARGE_INTEGER available{};
 
-    if (!GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
+    if (!::GetDiskFreeSpaceExW(p.c_str(), &available, &capacity, &free))
     {
         windows::error_message("GetDiskFreeSpaceExW()");
         return {};
@@ -1145,7 +1145,7 @@ static bool is_dot_or_dotdot(const wchar_t* filename)
 
 static void close_directory_iterator(handle& h)
 {
-    if (h.is_valid() && !FindClose(h.get()))
+    if (h.is_valid() && !::FindClose(h.get()))
     {
         std::abort();
     }
@@ -1170,7 +1170,7 @@ static bool advance_directory_iterator_once(handle& h, WIN32_FIND_DATAW& find_da
 {
     while (advance_first || is_dot_or_dotdot(find_data.cFileName))
     {
-        if (!FindNextFileW(h.get(), &find_data))
+        if (!::FindNextFileW(h.get(), &find_data))
         {
             close_directory_iterator(h);
             break;
@@ -1203,14 +1203,14 @@ static void open_directory_iterator(const path& p, directory_entry& entry, handl
     const size_t null_term_size = std::wcslen(p.c_str());
     if (null_term_size == 0 || null_term_size != p.size())
     {
-        SetLastError(ERROR_PATH_NOT_FOUND);
+        ::SetLastError(ERROR_PATH_NOT_FOUND);
     }
     else
     {
         // Append wildcard to search for all items
         const path pattern = p / L"*";
 
-        h = FindFirstFileExW(
+        h = ::FindFirstFileExW(
             pattern.c_str(),
             FindExInfoBasic,
             &find_data,

@@ -26,7 +26,7 @@ bool get_entropy_impl(uint8_t* bytes, size_t count)
     while (off != count)
     {
         unsigned int r;
-        const errno_t err = rand_s(&r);
+        const errno_t err = ::rand_s(&r);
 
         if (err != 0)
         {

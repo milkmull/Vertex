@@ -50,13 +50,13 @@ VX_API bool file::open(const path& p, mode file_mode)
 {
     if (is_open())
     {
-        VX_ERR(err::FILE_OPEN_FAILED) << "file already open";
+        err::set(err::FILE_OPEN_FAILED, "file already open");
         return false;
     }
 
     if (file_mode == mode::NONE)
     {
-        VX_ERR(err::FILE_OPEN_FAILED) << "invalid file mode";
+        err::set(err::FILE_OPEN_FAILED, "invalid file mode");
         return false;
     }
 
@@ -119,7 +119,7 @@ static bool read_check(const bool can_read)
 {
     if (!can_read)
     {
-        VX_ERR(err::FILE_READ_FAILED) << "file not open in read mode";
+        err::set(err::FILE_READ_FAILED, "file not open in read mode");
     }
     return can_read;
 }
@@ -128,7 +128,7 @@ static bool write_check(const bool can_write)
 {
     if (!can_write)
     {
-        VX_ERR(err::FILE_WRITE_FAILED) << "file not open in write mode";
+        err::set(err::FILE_WRITE_FAILED, "file not open in write mode");
     }
     return can_write;
 }

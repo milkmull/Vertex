@@ -8,7 +8,7 @@ VX_API bool shared_library::load(const char* lib)
 {
     if (is_loaded())
     {
-        VX_ERR(err::UNSUPPORTED_OPERATION) << "shared library already loaded";
+        err::set(err::UNSUPPORTED_OPERATION, "shared library already loaded");
         return false;
     }
 

@@ -677,7 +677,8 @@ inline int64_t to_int64(const std::string& s, size_t* count, int base)
 
     if (base < 2 || base > 36)
     {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
+        err::set(err::INVALID_ARGUMENT, "base should be between 2 and 36");
+        return value;
     }
 
     try
@@ -713,7 +714,8 @@ inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
 
     if (base < 2 || base > 36)
     {
-        VX_ERR(err::INVALID_ARGUMENT) << "base should be between 2 and 36";
+        err::set(err::INVALID_ARGUMENT, "base should be between 2 and 36");
+        return value;
     }
 
     try

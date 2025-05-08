@@ -21,10 +21,10 @@ struct shared_library_impl
         VX_ASSERT_MESSAGE(h == NULL, "library already loaded");
 
         // Use RTLD_NOW to load all symbols immediately, adjust if lazy loading is preferred
-        h = dlopen(lib, RTLD_LAZY);
+        h = ::dlopen(lib, RTLD_LAZY);
         if (h == NULL)
         {
-            VX_ERR(err::SYSTEM_ERROR) << "failed to load library: " << lib << ": " << dlerror();
+            VX_ERR(err::SYSTEM_ERROR) << "failed to load library: " << lib << ": " << ::dlerror();
             return false;
         }
 
@@ -34,14 +34,14 @@ struct shared_library_impl
     static void free(void*& h) noexcept
     {
         assert_is_loaded(h);
-        dlclose(h);
+        ::dlclose(h);
         h = NULL;
     }
 
     static void* get_addr(void* h, const char* symbol_name) noexcept
     {
         assert_is_loaded(h);
-        return dlsym(h, symbol_name);
+        return ::dlsym(h, symbol_name);
     }
 };
 

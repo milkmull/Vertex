@@ -20,7 +20,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     DWORD size = 0;
 
     // Open the registry key for BIOS information
-    status = RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey, 0, KEY_READ, &key);
+    status = ::RegOpenKeyExW(HKEY_LOCAL_MACHINE, subkey, 0, KEY_READ, &key);
     if (status != ERROR_SUCCESS)
     {
         windows::error_message("RegOpenKeyExW()");
@@ -28,7 +28,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     }
 
     // Query for the required size of the data
-    status = RegQueryValueExW(
+    status = ::RegQueryValueExW(
         key,
         name,
         NULL,
@@ -76,7 +76,7 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
 
     cleanup:
     {
-        RegCloseKey(key);
+        ::RegCloseKey(key);
     }
 
     return success;
@@ -110,7 +110,7 @@ std::string get_system_name_impl()
         WCHAR data[MAX_COMPUTERNAME_LENGTH + 1];
         DWORD size = MAX_COMPUTERNAME_LENGTH + 1;
 
-        if (!GetComputerNameW(data, &size))
+        if (!::GetComputerNameW(data, &size))
         {
             windows::error_message("GetComputerNameW()");
             cache = "Unknown";
@@ -165,7 +165,7 @@ std::string get_processor_name_impl()
 uint32_t get_processor_count_impl()
 {
     SYSTEM_INFO sysInfo;
-    GetSystemInfo(&sysInfo);
+    ::GetSystemInfo(&sysInfo);
     return static_cast<uint32_t>(sysInfo.dwNumberOfProcessors);
 }
 

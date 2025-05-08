@@ -14,7 +14,7 @@ namespace os {
 
 void handle::close_impl() noexcept
 {
-    CloseHandle(m_handle);
+    ::CloseHandle(m_handle);
 }
 
 namespace windows {
@@ -27,10 +27,10 @@ void error_message(const char* msg)
 {
     const size_t msg_size = std::strlen(msg);
 
-    DWORD code = GetLastError();
+    DWORD code = ::GetLastError();
     WCHAR buffer[1024]{};
 
-    FormatMessageW(
+    ::FormatMessageW(
         FORMAT_MESSAGE_FROM_SYSTEM,
         NULL, code, 0,
         buffer, static_cast<DWORD>(mem::array_size(buffer)), NULL
@@ -58,12 +58,12 @@ void error_message(const char* msg)
 
 com_scoped_initializer::com_scoped_initializer() noexcept
 {
-    m_hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
+    m_hr = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
     if (m_hr == RPC_E_CHANGED_MODE)
     {
         // Retry with multithreaded apartment model
-        m_hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+        m_hr = ::CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
     }
 
     // S_FALSE means success but COM was already initialized on the thread
@@ -83,7 +83,7 @@ com_scoped_initializer::~com_scoped_initializer() noexcept
 {
     if (succeeded())
     {
-        CoUninitialize();
+        ::CoUninitialize();
     }
 }
 

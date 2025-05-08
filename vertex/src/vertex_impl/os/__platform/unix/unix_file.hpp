@@ -18,7 +18,7 @@ struct file_impl
     static bool exists(const path& p)
     {
         struct stat stat_buf;
-        return (stat(p.c_str(), &stat_buf) == 0 && !S_ISDIR(stat_buf.st_mode));
+        return (::stat(p.c_str(), &stat_buf) == 0 && !S_ISDIR(stat_buf.st_mode));
     }
 
     static bool open(handle& h, const path& p, file::mode mode)
@@ -92,7 +92,7 @@ struct file_impl
         assert_is_open(h);
 
         struct stat stat_buf;
-        if (fstat(h.get(), &stat_buf) != 0)
+        if (::fstat(h.get(), &stat_buf) != 0)
         {
             unix_::error_message("fstat()");
             return file::INVALID_SIZE;
@@ -105,7 +105,7 @@ struct file_impl
     {
         assert_is_open(h);
 
-        if (ftruncate(h.get(), static_cast<off_t>(size)) != 0)
+        if (::ftruncate(h.get(), static_cast<off_t>(size)) != 0)
         {
             unix_::error_message("ftruncate()");
             return false;
@@ -138,7 +138,7 @@ struct file_impl
             }
         }
 
-        if (lseek(h.get(), off, whence) == static_cast<off_t>(-1))
+        if (::lseek(h.get(), off, whence) == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
             return false;
@@ -151,7 +151,7 @@ struct file_impl
     {
         assert_is_open(h);
 
-        const off_t pos = lseek(h.get(), 0, SEEK_CUR);
+        const off_t pos = ::lseek(h.get(), 0, SEEK_CUR);
         if (pos == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
@@ -165,7 +165,7 @@ struct file_impl
     {
         assert_is_open(h);
 
-        if (fsync(h.get()) != 0)
+        if (::fsync(h.get()) != 0)
         {
             unix_::error_message("fsync()");
             return false;

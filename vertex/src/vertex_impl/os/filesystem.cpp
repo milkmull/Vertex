@@ -231,7 +231,7 @@ static void throw_copy_error(copy_error e, const path& from)
         oss << ((e == copy_error::FROM_UNSUPPORTED_TYPE) ? "from" : "to") << " file is unsupported type";
     }
 
-    VX_ERR(err::FILE_OPERATION_FAILED) << oss.str();
+    err::set(err::FILE_OPERATION_FAILED, oss.str().c_str());
 }
 
 // https://en.cppreference.com/w/cpp/filesystem/copy_file

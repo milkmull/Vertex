@@ -1,8 +1,8 @@
 
 cleanup:
 {
-    - replace any VX_ERR calls that can be a err::set call
-    - prefix all system calls with ::
+    x replace any VX_ERR calls that can be a err::set call
+    x prefix all system calls with ::
     - noexcept where appropriate
     - consider reworking filesystem and process to not use smart pointers
     - change unix_ namespace to posix
@@ -11,7 +11,7 @@ cleanup:
 finish base library:
 {
     x formatting
-    - test base library
+    x test base library
     - document library
-    - test cmake installation process (windows)
+    x test cmake installation process
 }

@@ -24,20 +24,20 @@ time::datetime time_point_to_datetime_impl(const time::time_point& tp, bool loca
     {
 #if defined(HAVE_LOCALTIME_R)
 #       define localtime_func_name "localtime_r()"
-        tm = localtime_r(&tval, &tm_storage);
+        tm = ::localtime_r(&tval, &tm_storage);
 #else
 #       define localtime_func_name "localtime()"
-        tm = localtime(&tval);
+        tm = ::localtime(&tval);
 #endif // HAVE_LOCALTIME_R
     }
     else
     {
 #if defined(HAVE_GMTIME_R)
 #       define gmtime_func_name "gmtime_r()"
-        tm = gmtime_r(&tval, &tm_storage);
+        tm = ::gmtime_r(&tval, &tm_storage);
 #else
 #       define gmtime_func_name "gmtime()"
-        tm = gmtime(&tval);
+        tm = ::gmtime(&tval);
 #endif // HAVE_GMTIME_R
     }
 
@@ -73,7 +73,7 @@ time::time_point system_time_impl() noexcept
 
     struct timespec tp {};
 
-    if (clock_gettime(CLOCK_REALTIME, &tp) != 0)
+    if (::clock_gettime(CLOCK_REALTIME, &tp) != 0)
     {
         unix_::error_message("clock_gettime()");
         return {};
@@ -85,7 +85,7 @@ time::time_point system_time_impl() noexcept
 
     struct timeval tv {};
 
-    if (gettimeofday(&tv, NULL) != 0)
+    if (::gettimeofday(&tv, NULL) != 0)
     {
         unix_::error_message("gettimeofday()");
         return {};
@@ -116,7 +116,7 @@ static bool has_monotonic_time = false;
 static void check_monostatic_time() noexcept
 {
     struct timespec value;
-    if (clock_gettime(VX_MONOTONIC_CLOCK, &value) == 0)
+    if (::clock_gettime(VX_MONOTONIC_CLOCK, &value) == 0)
     {
         has_monotonic_time = true;
     }
@@ -139,7 +139,7 @@ int64_t get_performance_counter_impl() noexcept
     {
         // return value is nanoseconds
         struct timespec now {};
-        clock_gettime(VX_MONOTONIC_CLOCK, &now);
+        ::clock_gettime(VX_MONOTONIC_CLOCK, &now);
         return time::seconds(now.tv_sec).as_nanoseconds() + now.tv_nsec;
     }
 
@@ -147,7 +147,7 @@ int64_t get_performance_counter_impl() noexcept
 
     // return value is microseconds
     struct timeval now {};
-    gettimeofday(&now, NULL);
+    ::gettimeofday(&now, NULL);
     return time::seconds(now.tv_sec).as_microseconds() + now.tv_usec;
 }
 
@@ -191,7 +191,7 @@ void sleep_impl(const time::time_point& t) noexcept
 
         tv.tv_sec = remaining.tv_sec;
         tv.tv_nsec = remaining.tv_nsec;
-        was_error = nanosleep(&tv, &remaining);
+        was_error = ::nanosleep(&tv, &remaining);
 
     } while (was_error && (errno == EINTR));
 
@@ -222,7 +222,7 @@ void sleep_impl(const time::time_point& t) noexcept
         tv.tv_sec = (ns.as_nanoseconds() / time::nanoseconds_per_second);
         tv.tv_usec = time::nanoseconds((ns.as_nanoseconds() % time::nanoseconds_per_second)).as_microseconds();
 
-        was_error = select(0, NULL, NULL, NULL, &tv);
+        was_error = ::select(0, NULL, NULL, NULL, &tv);
 
     } while (was_error && (errno == EINTR));
 

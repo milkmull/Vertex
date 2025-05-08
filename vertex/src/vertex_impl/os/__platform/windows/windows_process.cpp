@@ -21,12 +21,12 @@ process::process_impl::~process_impl()
 {
     if (m_process_information.hProcess != INVALID_HANDLE_VALUE)
     {
-        CloseHandle(m_process_information.hProcess);
+        ::CloseHandle(m_process_information.hProcess);
         m_process_information.hProcess = INVALID_HANDLE_VALUE;
     }
     if (m_process_information.hThread != INVALID_HANDLE_VALUE)
     {
-        CloseHandle(m_process_information.hThread);
+        ::CloseHandle(m_process_information.hThread);
         m_process_information.hThread = INVALID_HANDLE_VALUE;
     }
 }
@@ -254,20 +254,20 @@ bool process::process_impl::start(process* p, const config& config)
             case io_option::CREATE:
             {
                 // Create a pipe for communication between parent and child process
-                if (!CreatePipe(&stream.read_pipe(), &stream.write_pipe(), &security_attributes, 0))
+                if (!::CreatePipe(&stream.read_pipe(), &stream.write_pipe(), &security_attributes, 0))
                 {
                     windows::error_message("CreatePipe()");
                     goto cleanup;
                 }
                 // Set the pipe to non-blocking mode
                 DWORD pipe_mode = PIPE_NOWAIT;
-                if (!SetNamedPipeHandleState(stream.user_pipe(), &pipe_mode, NULL, NULL))
+                if (!::SetNamedPipeHandleState(stream.user_pipe(), &pipe_mode, NULL, NULL))
                 {
                     windows::error_message("SetNamedPipeHandleState()");
                     goto cleanup;
                 }
                 // Ensure the user pipe handle is not inherited by the child process
-                if (!SetHandleInformation(stream.user_pipe(), HANDLE_FLAG_INHERIT, 0))
+                if (!::SetHandleInformation(stream.user_pipe(), HANDLE_FLAG_INHERIT, 0))
                 {
                     windows::error_message("SetHandleInformation()");
                     goto cleanup;
@@ -290,10 +290,10 @@ bool process::process_impl::start(process* p, const config& config)
                     goto cleanup;
                 }
 
-                if (!DuplicateHandle(
-                    GetCurrentProcess(),
+                if (!::DuplicateHandle(
+                    ::GetCurrentProcess(),
                     __detail::file_impl::get_native_handle(*stream.redirect),
-                    GetCurrentProcess(),
+                    ::GetCurrentProcess(),
                     &stream.proc_pipe(),
                     0,
                     TRUE,
@@ -304,14 +304,14 @@ bool process::process_impl::start(process* p, const config& config)
                     goto cleanup;
                 }
 
-                if (GetFileType(stream.proc_pipe()) == FILE_TYPE_PIPE)
+                if (::GetFileType(stream.proc_pipe()) == FILE_TYPE_PIPE)
                 {
                     // PIPE_WAIT ensures that read and write operations on the named pipe are blocking.
                     // This means the process will wait (instead of returning immediately) 
                     // until data is available for reading or until a write operation completes.
 
                     DWORD wait_mode = PIPE_WAIT;
-                    if (!SetNamedPipeHandleState(stream.proc_pipe(), &wait_mode, NULL, NULL))
+                    if (!::SetNamedPipeHandleState(stream.proc_pipe(), &wait_mode, NULL, NULL))
                     {
                         windows::error_message("SetNamedPipeHandleState()");
                         goto cleanup;
@@ -324,10 +324,10 @@ bool process::process_impl::start(process* p, const config& config)
             default:
             {
                 // Duplicate the handle from the parent process
-                if (!DuplicateHandle(
-                    GetCurrentProcess(),
-                    GetStdHandle(stream.type),
-                    GetCurrentProcess(),
+                if (!::DuplicateHandle(
+                    ::GetCurrentProcess(),
+                    ::GetStdHandle(stream.type),
+                    ::GetCurrentProcess(),
                     &stream.proc_pipe(),
                     0,
                     TRUE,
@@ -348,7 +348,7 @@ bool process::process_impl::start(process* p, const config& config)
     startup_info.hStdOutput = streams[STDOUT].proc_pipe();
     startup_info.hStdError  = streams[STDERR].proc_pipe();
 
-    if (!CreateProcessW(
+    if (!::CreateProcessW(
         NULL,                       // Executable path (null if using command line args)
         command_line,               // Command line arguments
         NULL,                       // Process attributes
@@ -398,14 +398,14 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 if (!success || created_pipe)
                 {
-                    CloseHandle(s.proc_pipe());
+                    ::CloseHandle(s.proc_pipe());
                 }
             }
 
             // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
             if (!success && s.user_pipe() != INVALID_HANDLE_VALUE)
             {
-                CloseHandle(s.user_pipe());
+                ::CloseHandle(s.user_pipe());
             }
         }
     }
@@ -432,7 +432,7 @@ bool process::process_impl::is_alive() const
     assert_process_configured();
 
     DWORD exit_code;
-    if (!GetExitCodeProcess(m_process_information.hProcess, &exit_code))
+    if (!::GetExitCodeProcess(m_process_information.hProcess, &exit_code))
     {
         windows::error_message("GetExitCodeProcess()");
         return false;
@@ -445,7 +445,7 @@ bool process::process_impl::is_complete() const
 {
     assert_process_configured();
 
-    const DWORD result = WaitForSingleObject(
+    const DWORD result = ::WaitForSingleObject(
         m_process_information.hProcess,
         0
     );
@@ -463,7 +463,7 @@ bool process::process_impl::join()
 {
     assert_process_configured();
 
-    const DWORD result = WaitForSingleObject(
+    const DWORD result = ::WaitForSingleObject(
         m_process_information.hProcess,
         INFINITE
     );
@@ -481,7 +481,7 @@ bool process::process_impl::kill(bool force)
 {
     assert_process_configured();
 
-    if (!TerminateProcess(m_process_information.hProcess, 1))
+    if (!::TerminateProcess(m_process_information.hProcess, 1))
     {
         windows::error_message("TerminateProcess()");
         return false;
@@ -496,7 +496,7 @@ bool process::process_impl::get_exit_code(int* exit_code) const
     VX_ASSERT(exit_code != nullptr); // checked in parent
 
     DWORD rc;
-    if (!GetExitCodeProcess(m_process_information.hProcess, &rc))
+    if (!::GetExitCodeProcess(m_process_information.hProcess, &rc))
     {
         windows::error_message("GetExitCodeProcess()");
         return false;
@@ -512,7 +512,7 @@ bool process::process_impl::get_exit_code(int* exit_code) const
 
 process::id this_process::get_pid_impl() noexcept
 {
-    const DWORD pid = GetCurrentProcessId();
+    const DWORD pid = ::GetCurrentProcessId();
     return static_cast<process::id>(pid);
 }
 
@@ -520,7 +520,7 @@ process::environment this_process::get_environment_impl()
 {
     process::environment environment;
 
-    LPWCH environment_strings = GetEnvironmentStringsW();
+    LPWCH environment_strings = ::GetEnvironmentStringsW();
     if (!environment_strings)
     {
         windows::error_message("GetEnvironmentStringsW()");
@@ -547,7 +547,7 @@ process::environment this_process::get_environment_impl()
         current += entry.size() + 1;
     }
 
-    FreeEnvironmentStringsW(environment_strings);
+    ::FreeEnvironmentStringsW(environment_strings);
     return environment;
 }
 
@@ -555,7 +555,7 @@ std::string this_process::get_environment_variable_impl(const std::string& name)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
 
-    DWORD buffer_size = GetEnvironmentVariableW(wname.c_str(), NULL, 0);
+    DWORD buffer_size = ::GetEnvironmentVariableW(wname.c_str(), NULL, 0);
     if (buffer_size == 0)
     {
         //windows::error_message("GetEnvironmentVariableW()");
@@ -563,7 +563,7 @@ std::string this_process::get_environment_variable_impl(const std::string& name)
     }
 
     std::wstring wvalue(buffer_size - 1, 0); // don't have to worry about null terminator
-    GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
+    ::GetEnvironmentVariableW(wname.c_str(), &wvalue[0], buffer_size);
     return str::string_cast<char>(wvalue);
 }
 
@@ -572,7 +572,7 @@ bool this_process::set_environment_variable_impl(const std::string& name, const 
     const std::wstring wname(str::string_cast<wchar_t>(name));
     const std::wstring wvalue(str::string_cast<wchar_t>(value));
 
-    if (SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
+    if (::SetEnvironmentVariableW(wname.c_str(), wvalue.c_str()) == 0)
     {
         windows::error_message("SetEnvironmentVariableW()");
         return false;
@@ -583,7 +583,7 @@ bool this_process::set_environment_variable_impl(const std::string& name, const 
 bool this_process::clear_environment_variable_impl(const std::string& name)
 {
     const std::wstring wname(str::string_cast<wchar_t>(name));
-    SetEnvironmentVariableW(wname.c_str(), NULL);
+    ::SetEnvironmentVariableW(wname.c_str(), NULL);
     return true;
 }
 
@@ -592,10 +592,10 @@ static io_stream get_stream_handle(DWORD nStdHandle)
     HANDLE h;
 
     // Duplicate the handle from the parent process
-    if (!DuplicateHandle(
-        GetCurrentProcess(),
-        GetStdHandle(nStdHandle),
-        GetCurrentProcess(),
+    if (!::DuplicateHandle(
+        ::GetCurrentProcess(),
+        ::GetStdHandle(nStdHandle),
+        ::GetCurrentProcess(),
         &h,
         0,
         TRUE,

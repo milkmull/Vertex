@@ -31,8 +31,7 @@ process::process_impl::~process_impl()
 static void ignore_signal(int sig)
 {
     struct sigaction action {};
-
-    sigaction(SIGPIPE, NULL, &action);
+    ::sigaction(SIGPIPE, NULL, &action);
 
     if (action.sa_handler == SIG_DFL
 #if defined(HAVE_SA_SIGACTION)
@@ -225,13 +224,13 @@ bool process::process_impl::start(process* p, const config& config)
     posix_spawnattr_t attr;
     posix_spawn_file_actions_t fa;
 
-    if (posix_spawnattr_init(&attr) != 0)
+    if (::posix_spawnattr_init(&attr) != 0)
     {
         unix_::error_message("posix_spawnattr_init()");
         goto posix_spawn_fail_none;
     }
 
-    if (posix_spawn_file_actions_init(&fa) != 0)
+    if (::posix_spawn_file_actions_init(&fa) != 0)
     {
         unix_::error_message("posix_spawn_file_actions_init()");
         goto posix_spawn_fail_attr;
@@ -241,7 +240,7 @@ bool process::process_impl::start(process* p, const config& config)
     {
 #if defined(HAVE_POSIX_SPAWN_FILE_ACTIONS_ADDCHDIR)
 
-        if (posix_spawn_file_actions_addchdir(&fa, config.working_directory.c_str()) != 0)
+        if (::posix_spawn_file_actions_addchdir(&fa, config.working_directory.c_str()) != 0)
         {
             unix_::error_message("posix_spawn_file_actions_addchdir()");
             goto posix_spawn_fail_all;
@@ -269,7 +268,7 @@ bool process::process_impl::start(process* p, const config& config)
         {
             case io_option::NONE:
             {
-                if (posix_spawn_file_actions_addopen(
+                if (::posix_spawn_file_actions_addopen(
                     &fa,
                     stream.type,
                     "/dev/null",
@@ -285,20 +284,20 @@ bool process::process_impl::start(process* p, const config& config)
             }
             case io_option::CREATE:
             {
-                if (pipe(stream.pipes) < 0)
+                if (::pipe(stream.pipes) < 0)
                 {
                     unix_::error_message("pipe()");
                     goto posix_spawn_fail_all;
                 }
 
                 // Make sure the pipe isn't accidentally inherited by another thread creating a process
-                fcntl(stream.read_pipe(), F_SETFD, fcntl(stream.read_pipe(), F_GETFD) | FD_CLOEXEC);
-                fcntl(stream.write_pipe(), F_SETFD, fcntl(stream.write_pipe(), F_GETFD) | FD_CLOEXEC);
+                ::fcntl(stream.read_pipe(), F_SETFD, ::fcntl(stream.read_pipe(), F_GETFD) | FD_CLOEXEC);
+                ::fcntl(stream.write_pipe(), F_SETFD, ::fcntl(stream.write_pipe(), F_GETFD) | FD_CLOEXEC);
 
                 // Make sure we don't crash if we write when the pipe is closed
                 ignore_signal(SIGPIPE);
 
-                if (posix_spawn_file_actions_adddup2(&fa, stream.proc_pipe(), stream.type) != 0)
+                if (::posix_spawn_file_actions_adddup2(&fa, stream.proc_pipe(), stream.type) != 0)
                 {
                     unix_::error_message("posix_spawn_file_actions_adddup2()");
                     goto posix_spawn_fail_all;
@@ -322,7 +321,7 @@ bool process::process_impl::start(process* p, const config& config)
                 }
 
                 const int fd = __detail::file_impl::get_native_handle(*stream.redirect);
-                if (posix_spawn_file_actions_adddup2(&fa, fd, stream.type) != 0)
+                if (::posix_spawn_file_actions_adddup2(&fa, fd, stream.type) != 0)
                 {
                     unix_::error_message("posix_spawn_file_actions_adddup2()");
                     goto posix_spawn_fail_all;
@@ -339,7 +338,7 @@ bool process::process_impl::start(process* p, const config& config)
         }
     }
 
-    if (!add_file_descriptor_close_actions(&fa))
+    if (!::add_file_descriptor_close_actions(&fa))
     {
         err::set(err::SYSTEM_ERROR, "process::start(): failed to add file descriptor close actions");
         goto posix_spawn_fail_all;
@@ -354,12 +353,12 @@ bool process::process_impl::start(process* p, const config& config)
 
         // Apple has vfork marked as deprecated and (as of macOS 10.12) is almost identical to calling fork() anyhow.
 #       define fork_func_name "fork()"
-        const pid_t pid = fork();
+        const pid_t pid = ::fork();
 
 #else
 
 #       define fork_func_name "vfork()"
-        const pid_t pid = vfork();
+        const pid_t pid = ::vfork();
 
 #endif
 
@@ -373,16 +372,16 @@ bool process::process_impl::start(process* p, const config& config)
             case 0:
             {
                 // Detach from the terminal and launch the process, then exit
-                setsid();
-                if (posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
+                ::setsid();
+                if (::posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
                 {
-                    _exit(errno);
+                    ::_exit(errno);
                 }
-                _exit(0);
+                ::_exit(0);
             }
             default:
             {
-                if (waitpid(pid, &status, 0) < 0)
+                if (::waitpid(pid, &status, 0) < 0)
                 {
                     unix_::error_message("waitpid()");
                     goto posix_spawn_fail_all;
@@ -398,7 +397,7 @@ bool process::process_impl::start(process* p, const config& config)
     }
     else
     {
-        if (posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
+        if (::posix_spawnp(&m_pid, args[0], &fa, &attr, args, env) != 0)
         {
             unix_::error_message("posix_spawnp()");
             goto posix_spawn_fail_all;
@@ -412,7 +411,7 @@ bool process::process_impl::start(process* p, const config& config)
         {
             // Set the file descriptor to non-blocking mode
             const int fd = streams[i].user_pipe();
-            fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+            ::fcntl(fd, F_SETFL, ::fcntl(fd, F_GETFL) | O_NONBLOCK);
 
             // Create file object from handle for the corresponding stream
             p->m_streams[i] = __detail::file_impl::from_native_handle(
@@ -434,12 +433,12 @@ bool process::process_impl::start(process* p, const config& config)
 
     posix_spawn_fail_all:
     {
-        posix_spawn_file_actions_destroy(&fa);
+        ::posix_spawn_file_actions_destroy(&fa);
     }
 
     posix_spawn_fail_attr:
     {
-        posix_spawnattr_destroy(&attr);
+        ::posix_spawnattr_destroy(&attr);
     }
 
     posix_spawn_fail_none:
@@ -456,14 +455,14 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 if (!success || created_pipe)
                 {
-                    close(s.proc_pipe());
+                    ::close(s.proc_pipe());
                 }
             }
 
             // If we failed, we also need to close user_pipe (the parent-facing end of the pipe)
             if (!success && s.user_pipe() != -1)
             {
-                close(s.user_pipe());
+                ::close(s.user_pipe());
             }
         }
     }

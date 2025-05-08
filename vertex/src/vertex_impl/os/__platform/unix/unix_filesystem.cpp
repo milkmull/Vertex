@@ -24,7 +24,7 @@ bool update_permissions_impl(
 )
 {
     struct stat st {};
-    const int res = follow_symlinks ? stat(p.c_str(), &st) : lstat(p.c_str(), &st);
+    const int res = follow_symlinks ? ::stat(p.c_str(), &st) : ::lstat(p.c_str(), &st);
     if (res != 0)
     {
         unix_::error_message(follow_symlinks ? "stat()" : "lstat()");
@@ -73,7 +73,7 @@ bool update_permissions_impl(
         return true;
     }
 
-    if (chmod(p.c_str(), new_mode) != 0)
+    if (::chmod(p.c_str(), new_mode) != 0)
     {
         unix_::error_message("chmod()");
         return false;
@@ -89,7 +89,7 @@ bool update_permissions_impl(
 static inline bool is_directory_internal(const path& p) noexcept
 {
     struct stat st {};
-    return (stat(p.c_str(), &st) == 0) && S_ISDIR(st.st_mode);
+    return (::stat(p.c_str(), &st) == 0) && S_ISDIR(st.st_mode);
 }
 
 static file_type to_file_type(mode_t mode) noexcept
@@ -142,7 +142,7 @@ static file_info file_info_from_stat(const struct stat& st) noexcept
 file_info get_file_info_impl(const path& p)
 {
     struct stat st {};
-    if (stat(p.c_str(), &st) != 0)
+    if (::stat(p.c_str(), &st) != 0)
     {
         unix_::error_message("stat()");
         return {};
@@ -154,7 +154,7 @@ file_info get_file_info_impl(const path& p)
 file_info get_symlink_info_impl(const path& p)
 {
     struct stat st {};
-    if (lstat(p.c_str(), &st) != 0)
+    if (::lstat(p.c_str(), &st) != 0)
     {
         unix_::error_message("lstat()");
         return {};
@@ -166,7 +166,7 @@ file_info get_symlink_info_impl(const path& p)
 size_t hard_link_count_impl(const path& p)
 {
     struct stat st {};
-    if (stat(p.c_str(), &st) != 0)
+    if (::stat(p.c_str(), &st) != 0)
     {
         unix_::error_message("stat()");
         return 0;
@@ -186,7 +186,7 @@ bool set_modify_time_impl(const path& p, time::time_point t)
     times[1].tv_nsec = static_cast<long>(t.as_nanoseconds() % time::nanoseconds_per_second);
 
     // Use AT_FDCWD to refer to the path directly
-    if (utimensat(AT_FDCWD, p.c_str(), times, 0) != 0)
+    if (::utimensat(AT_FDCWD, p.c_str(), times, 0) != 0)
     {
         unix_::error_message("utimensat()");
         return false;
@@ -203,7 +203,7 @@ path read_symlink_impl(const path& p)
 {
     // readlink does NOT null-terminate the result
     char buffer[PATH_MAX];
-    const ssize_t size = readlink(p.c_str(), buffer, sizeof(buffer));
+    const ssize_t size = ::readlink(p.c_str(), buffer, sizeof(buffer));
     if (size < 0)
     {
         unix_::error_message("readlink()");
@@ -220,7 +220,7 @@ path read_symlink_impl(const path& p)
 path get_current_path_impl()
 {
     char buffer[PATH_MAX];
-    if (getcwd(buffer, sizeof(buffer)) == NULL)
+    if (::getcwd(buffer, sizeof(buffer)) == NULL)
     {
         unix_::error_message("getcwd()");
         return {};
@@ -231,7 +231,7 @@ path get_current_path_impl()
 
 bool set_current_path_impl(const path& p)
 {
-    if (chdir(p.c_str()) != 0)
+    if (::chdir(p.c_str()) != 0)
     {
         unix_::error_message("chdir()");
         return false;
@@ -250,7 +250,7 @@ path canonical_impl(const path& p)
     // Use realpath to resolve the canonical absolute path
     // realpath automatically resolves symbolic links and returns an absolute path
     char buffer[PATH_MAX];
-    if (realpath(normalized.c_str(), buffer) == NULL)
+    if (::realpath(normalized.c_str(), buffer) == NULL)
     {
         unix_::error_message("realpath()");
     }
@@ -267,9 +267,9 @@ path canonical_impl(const path& p)
 bool equivalent_impl(const path& p1, const path& p2)
 {
     struct stat s2 {};
-    const int e2 = stat(p2.c_str(), &s2);
+    const int e2 = ::stat(p2.c_str(), &s2);
     struct stat s1 {};
-    const int e1 = stat(p1.c_str(), &s1);
+    const int e1 = ::stat(p1.c_str(), &s1);
 
     if (VX_UNLIKELY(e1 != 0 || e2 != 0))
     {
@@ -435,7 +435,7 @@ path get_user_folder_impl(user_folder folder)
 
 bool create_file_impl(const path& p)
 {
-    int fd = open(p.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    int fd = ::open(p.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
 
     if (fd == -1)
     {
@@ -443,14 +443,14 @@ bool create_file_impl(const path& p)
         return false;
     }
 
-    close(fd);
+    ::close(fd);
     return true;
 }
 
 bool create_directory_impl(const path& p)
 {
     // Attempt to create the directory
-    if (mkdir(p.c_str(), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0)
+    if (::mkdir(p.c_str(), S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH) != 0)
     {
         // Directory exists, check if it's a directory
         if (errno == EEXIST && is_directory_internal(p))
@@ -467,7 +467,7 @@ bool create_directory_impl(const path& p)
 
 bool create_symlink_impl(const path& target, const path& link)
 {
-    if (symlink(target.c_str(), link.c_str()) != 0)
+    if (::symlink(target.c_str(), link.c_str()) != 0)
     {
         unix_::error_message("symlink()");
         return false;
@@ -564,7 +564,7 @@ bool rename_impl(const path& from, const path& to)
 
 static __detail::remove_error remove_directory(const path& p, bool in_recursive_remove) noexcept
 {
-    if (rmdir(p.c_str()) != 0)
+    if (::rmdir(p.c_str()) != 0)
     {
         const bool not_empty = (errno == ENOTEMPTY || errno == EEXIST);
         if (!not_empty || (not_empty && !in_recursive_remove))
@@ -583,7 +583,7 @@ static __detail::remove_error remove_directory(const path& p, bool in_recursive_
 
 static __detail::remove_error remove_file(const path& p) noexcept
 {
-    if (unlink(p.c_str()) != 0)
+    if (::unlink(p.c_str()) != 0)
     {
         unix_::error_message("unlink()");
         return __detail::remove_error::OTHER;
@@ -595,7 +595,7 @@ static __detail::remove_error remove_file(const path& p) noexcept
 __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 {
     struct stat st {};
-    if (lstat(p.c_str(), &st) != 0)
+    if (::lstat(p.c_str(), &st) != 0)
     {
         if (errno == ENOENT || errno == ENOTDIR)
         {
@@ -622,7 +622,7 @@ __detail::remove_error remove_impl(const path& p, bool in_recursive_remove)
 space_info space_impl(const path& p)
 {
     struct statvfs vfs {};
-    if (statvfs(p.c_str(), &vfs) != 0)
+    if (::statvfs(p.c_str(), &vfs) != 0)
     {
         // Handle error: log, throw, or return empty as in Windows version
         unix_::error_message("statvfs()");
@@ -672,7 +672,7 @@ static void close_directory_iterator(DIR*& dir)
 {
     if (dir != NULL)
     {
-        closedir(dir);
+        ::closedir(dir);
         dir = NULL;
     }
 }
@@ -687,7 +687,7 @@ static bool advance_directory_iterator_once(DIR*& dir, struct dirent*& ent)
 {
     do
     {
-        ent = readdir(dir);
+        ent = ::readdir(dir);
         if (ent == NULL)
         {
             close_directory_iterator(dir);
@@ -713,7 +713,7 @@ static void open_directory_iterator(const path& p, directory_entry& entry, DIR*&
 {
     close_directory_iterator(dir);
 
-    dir = opendir(p.c_str());
+    dir = ::opendir(p.c_str());
     if (dir == NULL)
     {
         unix_::error_message("opendir()");

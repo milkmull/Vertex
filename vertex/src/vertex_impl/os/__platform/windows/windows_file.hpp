@@ -13,7 +13,7 @@ struct file_impl
 {
     static bool exists(const path& p)
     {
-        const DWORD attrs = GetFileAttributesW(p.c_str());
+        const DWORD attrs = ::GetFileAttributesW(p.c_str());
         return (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY));
     }
 
@@ -64,7 +64,7 @@ struct file_impl
             }
         }
 
-        h = CreateFileW(
+        h = ::CreateFileW(
             p.c_str(),
             access,
             FILE_SHARE_READ | FILE_SHARE_WRITE, // allow read and write sharing
@@ -89,7 +89,7 @@ struct file_impl
 
         LARGE_INTEGER size;
 
-        if (!GetFileSizeEx(h.get(), &size))
+        if (!::GetFileSizeEx(h.get(), &size))
         {
             windows::error_message("GetFileSizeEx()");
             return file::INVALID_SIZE;
@@ -125,7 +125,7 @@ struct file_impl
             }
         }
 
-        if (!SetFilePointerEx(h.get(), distance, &distance, method))
+        if (!::SetFilePointerEx(h.get(), distance, &distance, method))
         {
             windows::error_message("SetFilePointerEx()");
             return false;
@@ -143,7 +143,7 @@ struct file_impl
             return false;
         }
 
-        if (!SetEndOfFile(h.get()))
+        if (!::SetEndOfFile(h.get()))
         {
             windows::error_message("SetEndOfFile()");
             return false;
@@ -160,7 +160,7 @@ struct file_impl
         off.QuadPart = 0;
 
         // Use SetFilePointerEx to query the current position
-        if (!SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
+        if (!::SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
         {
             windows::error_message("SetFilePointerEx()");
             return file::INVALID_POSITION;
@@ -173,7 +173,7 @@ struct file_impl
     {
         assert_is_open(h);
 
-        if (!FlushFileBuffers(h.get()))
+        if (!::FlushFileBuffers(h.get()))
         {
             windows::error_message("FlushFileBuffers()");
             return false;
@@ -187,7 +187,7 @@ struct file_impl
         assert_is_open(h);
 
         DWORD count = 0;
-        if (!ReadFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!::ReadFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("ReadFile()");
             return 0;
@@ -201,7 +201,7 @@ struct file_impl
         assert_is_open(h);
 
         DWORD count = 0;
-        if (!WriteFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
+        if (!::WriteFile(h.get(), data, static_cast<DWORD>(size), &count, NULL))
         {
             windows::error_message("WriteFile()");
             return 0;

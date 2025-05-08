@@ -39,7 +39,7 @@ public:
         catch (const std::regex_error& e)
         {
             m_valid = false;
-            VX_ERR(err::code::INVALID_ARGUMENT) << e.what();
+            err::set(err::code::INVALID_ARGUMENT, e.what());
         }
     }
 
@@ -53,7 +53,7 @@ public:
         catch (const std::regex_error& e)
         {
             m_valid = false;
-            VX_ERR(err::code::INVALID_ARGUMENT) << e.what();
+            err::set(err::code::INVALID_ARGUMENT, e.what());
         }
     }
 
