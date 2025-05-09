@@ -13,6 +13,13 @@ public:
 
     VX_API SHA1();
 
+    /**
+     * @brief Computes the SHA-1 hash of a data buffer in one call.
+     *
+     * @param data Pointer to the input data buffer.
+     * @param size Size of the buffer in bytes.
+     * @return A 40-character hexadecimal string representing the SHA-1 hash.
+     */
     static inline std::string hash(const uint8_t* data, size_t size)
     {
         SHA1 sha1;
@@ -21,9 +28,33 @@ public:
         return sha1.to_string();
     }
 
+    /**
+     * @brief Adds data to the SHA-1 hash computation.
+     *
+     * Can be called multiple times before `finalize()` to hash data incrementally.
+     *
+     * @param data Pointer to the input data.
+     * @param size Size of the data in bytes.
+     */
     VX_API void update(const uint8_t* data, size_t size);
+
+    /**
+     * @brief Finalizes the hash computation.
+     *
+     * After calling this, no further updates are allowed unless `reset()` is called.
+     */
     VX_API void finalize();
+
+    /**
+     * @brief Returns the final SHA-1 hash as a 40-character hexadecimal string.
+     *
+     * @return The SHA-1 digest as a `std::string`. Undefined if `finalize()` has not been called.
+     */
     VX_API std::string to_string() const;
+
+    /**
+     * @brief Resets the internal state to begin a new hash computation.
+     */
     VX_API void reset();
 
 private:

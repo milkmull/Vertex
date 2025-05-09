@@ -67,13 +67,15 @@ enum code : error_t
     UNSUPPORTED             // Operation is unsupported on the current platform
 };
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Obtain a string representing an error code.
-/// 
-/// @param err The error code.
-/// 
-/// @return A string representaion of the error code.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Converts an error code to its human-readable string representation.
+ *
+ * Provides a static string description of the error code. Intended for debugging,
+ * logging, or displaying user-friendly error messages.
+ *
+ * @param err The error code to describe.
+ * @return A constant C-string describing the error.
+ */
 constexpr const char* code_to_string(code err) noexcept
 {
     switch (err)
@@ -112,6 +114,14 @@ constexpr const char* code_to_string(code err) noexcept
     }
 }
 
+/**
+ * @struct info
+ * @brief Holds the current error state and message for the current thread.
+ *
+ * Represents the result of an operation, including an error code and an optional
+ * descriptive message. The error state is thread-local, ensuring independent error
+ * tracking across threads. Can be evaluated in boolean context to check if an error is set.
+ */
 struct info
 {
     code err = code::NONE;
@@ -143,50 +153,47 @@ namespace __detail {
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Gets the last error that occurred in the current thread.
-/// 
-/// The returned structure overloads the boolean operator to allow for use in
-/// if statements. Call -if (vx::error::get_error())- if you only need to check
-/// wheather an error has occurred.
-///
-/// @return Error info structure containing the error code and message. An
-/// error code of code::NONE indicates no error.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Retrieves the current thread's error state.
+ *
+ * @return The current thread-local error info, including the code and message.
+ */
 VX_API info get() noexcept;
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Sets the error for the current thread.
-///
-/// @param err The error code.
-/// @param msg The error message.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Sets the current thread's error state.
+ *
+ * @param err The error code.
+ * @param msg A descriptive message for the error.
+ */
 VX_API void set(code err, const char* msg) noexcept;
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Sets the error for the current thread using the default error
-/// message for the error code.
-/// 
-/// @param err The error code.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Sets the current thread's error state using only an error code.
+ *
+ * Uses the default string description for the given code.
+ * @param err The error code.
+ */
 inline void set(code err) noexcept
 {
     set(err, code_to_string(err));
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Checks if any error has been set
-/// 
-/// @return True if an error has been set, false otherwise.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Checks if an error is currently set in the current thread.
+ *
+ * @return true if an error is present; false otherwise.
+ */
 inline bool is_set() noexcept
 {
     return get().err != NONE;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Clears all error information for the current thread.
-///////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Clears the current thread's error state.
+ *
+ * Resets the error code to NONE and clears the message for the calling thread.
+ */
 inline void clear() noexcept
 {
     set(code::NONE, "");

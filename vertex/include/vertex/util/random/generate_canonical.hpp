@@ -49,6 +49,22 @@ inline constexpr size_t generate_canonical_iterations(size_t bits, uint64_t rng_
 
 // https://github.com/microsoft/STL/blob/25dc2b72b6f594326253cf3a05543f7a5750f802/stl/inc/random#L297
 
+/**
+ * @brief Produces a floating-point value uniformly distributed in the range [0, 1).
+ *
+ * This function extracts at least `bits` bits of entropy from the RNG to generate a floating-point
+ * value in the half-open interval [0, 1), as required by distributions like `uniform_real_distribution`.
+ *
+ * @tparam T The floating-point result type (e.g. float, double).
+ * @tparam bits The minimum number of bits of entropy to accumulate (typically `std::numeric_limits<T>::digits`).
+ * @tparam RNG A uniform random bit generator with unsigned integral `result_type`.
+ *
+ * @param rng A uniform random number generator.
+ * @return A floating-point value in [0, 1) with at least `bits` bits of entropy.
+ *
+ * @note Uses multiple RNG calls (with rejection-free accumulation) to preserve uniformity.
+ * @note Uses double internally for better cross-platform precision consistency.
+ */
 template <typename T, size_t bits, typename RNG>
 inline constexpr T generate_canonical(RNG& rng) noexcept(noexcept((RNG::min)()) && noexcept((RNG::max)()))
 {

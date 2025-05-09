@@ -5,10 +5,32 @@
 namespace vx {
 namespace profile {
 
+/**
+ * @brief Starts the profiling system and opens the output file for results.
+ *
+ * @param output_file The path to the file where profiling data will be written.
+ * @return true if the profiler started successfully; false otherwise.
+ */
 VX_API bool start(const char* output_file);
+
+/**
+ * @brief Stops the profiling system and flushes any pending results to file.
+ */
 VX_API void stop();
+
+/**
+ * @brief Returns whether the profiling system is currently enabled.
+ *
+ * @return true if profiling is enabled; false otherwise.
+ */
 VX_API bool is_enabled();
 
+/**
+ * @struct result
+ * @brief Represents a single profiling result.
+ *
+ * Stores the name of the profiled region, the start time, and the elapsed time.
+ */
 struct result
 {
     std::string name;
@@ -16,6 +38,13 @@ struct result
     time::time_point elapsed_time;
 };
 
+/**
+ * @brief Records a profiling result.
+ *
+ * Typically called internally by RAII timers like `profile_timer`.
+ *
+ * @param r The profiling result to be recorded.
+ */
 VX_API void record(const result& r);
 
 namespace __detail {

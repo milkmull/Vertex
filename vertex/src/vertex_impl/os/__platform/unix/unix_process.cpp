@@ -338,7 +338,7 @@ bool process::process_impl::start(process* p, const config& config)
         }
     }
 
-    if (!::add_file_descriptor_close_actions(&fa))
+    if (!add_file_descriptor_close_actions(&fa))
     {
         err::set(err::SYSTEM_ERROR, "process::start(): failed to add file descriptor close actions");
         goto posix_spawn_fail_all;

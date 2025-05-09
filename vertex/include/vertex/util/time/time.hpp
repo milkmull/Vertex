@@ -1,7 +1,5 @@
 #pragma once
 
-#include <chrono>
-
 #include "vertex/util/type_traits.hpp"
 #include "vertex/config/language_config.hpp"
 
@@ -14,52 +12,140 @@ struct datetime;
 // Time
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Represents a time point (in nanoseconds).
+ *
+ * The time_point class stores a time value in nanoseconds and provides various
+ * methods to convert between different time units, such as microseconds,
+ * milliseconds, seconds, minutes, and hours.
+ */
 class time_point
 {
 public:
 
-    constexpr time_point() noexcept : m_count(0) {}
+    /**
+     * @brief Default constructor, initializes time_point to zero.
+     *
+     * This constructor creates a time_point representing zero time.
+     */
+    constexpr time_point() noexcept = default;
+
+    /**
+     * @brief Constructs a time_point from nanoseconds.
+     *
+     * @param ns The number of nanoseconds to initialize the time_point.
+     */
     constexpr explicit time_point(int64_t ns) noexcept : m_count(ns) {}
 
 public:
 
-    template <typename Rep, typename Period>
-    constexpr time_point(const std::chrono::duration<Rep, Period>& d) noexcept(
-        noexcept(std::chrono::duration_cast<std::chrono::nanoseconds>)
-        )
-        : m_count(std::chrono::duration_cast<std::chrono::nanoseconds>(d).count()) {}
-
-    template <typename Rep, typename Period>
-    constexpr operator std::chrono::duration<Rep, Period>() const noexcept(
-        noexcept(std::chrono::duration_cast<std::chrono::duration<Rep, Period>>)
-    )
-    {
-        return std::chrono::duration_cast<std::chrono::duration<Rep, Period>>(
-            std::chrono::nanoseconds(m_count)
-        );
-    }
-
-public:
-
+    /**
+     * @brief Resets the time_point to zero.
+     *
+     * This function sets the time_point to represent zero time.
+     */
     constexpr void zero() noexcept { m_count = 0; }
+
+    /**
+     * @brief Checks if the time_point is zero.
+     *
+     * @return True if the time_point is zero, false otherwise.
+     */
     constexpr bool is_zero() const noexcept { return m_count == 0; }
 
-    constexpr int64_t as_nanoseconds()       const noexcept { return m_count; }
-    constexpr int64_t as_microseconds()      const noexcept { return m_count / 1000ll; }
-    constexpr int64_t as_milliseconds()      const noexcept { return m_count / 1000000ll; }
-    constexpr int64_t as_seconds()           const noexcept { return m_count / 1000000000ll; }
-    constexpr int64_t as_minutes()           const noexcept { return m_count / 60000000000ll; }
-    constexpr int64_t as_hours()             const noexcept { return m_count / 3600000000000ll; }
+    /**
+     * @brief Retrieves the time in nanoseconds.
+     *
+     * @return The time in nanoseconds.
+     */
+    constexpr int64_t as_nanoseconds() const noexcept { return m_count; }
 
-    constexpr double as_float_nanoseconds()  const noexcept { return static_cast<double>(m_count); }
+    /**
+     * @brief Retrieves the time in microseconds.
+     *
+     * @return The time in microseconds.
+     */
+    constexpr int64_t as_microseconds() const noexcept { return m_count / 1000ll; }
+
+    /**
+     * @brief Retrieves the time in milliseconds.
+     *
+     * @return The time in milliseconds.
+     */
+    constexpr int64_t as_milliseconds() const noexcept { return m_count / 1000000ll; }
+
+    /**
+     * @brief Retrieves the time in seconds.
+     *
+     * @return The time in seconds.
+     */
+    constexpr int64_t as_seconds() const noexcept { return m_count / 1000000000ll; }
+
+    /**
+     * @brief Retrieves the time in minutes.
+     *
+     * @return The time in minutes.
+     */
+    constexpr int64_t as_minutes() const noexcept { return m_count / 60000000000ll; }
+
+    /**
+     * @brief Retrieves the time in hours.
+     *
+     * @return The time in hours.
+     */
+    constexpr int64_t as_hours() const noexcept { return m_count / 3600000000000ll; }
+
+    /**
+     * @brief Retrieves the time as a floating point value in nanoseconds.
+     *
+     * @return The time in nanoseconds as a double.
+     */
+    constexpr double as_float_nanoseconds() const noexcept { return static_cast<double>(m_count); }
+
+    /**
+     * @brief Retrieves the time as a floating point value in microseconds.
+     *
+     * @return The time in microseconds as a double.
+     */
     constexpr double as_float_microseconds() const noexcept { return static_cast<double>(m_count) / 1000.0; }
+
+    /**
+     * @brief Retrieves the time as a floating point value in milliseconds.
+     *
+     * @return The time in milliseconds as a double.
+     */
     constexpr double as_float_milliseconds() const noexcept { return static_cast<double>(m_count) / 1000000.0; }
-    constexpr double as_float_seconds()      const noexcept { return static_cast<double>(m_count) / 1000000000.0; }
-    constexpr double as_float_minutes()      const noexcept { return static_cast<double>(m_count) / 60000000000.0; }
-    constexpr double as_float_hours()        const noexcept { return static_cast<double>(m_count) / 3600000000000.0; }
+
+    /**
+     * @brief Retrieves the time as a floating point value in seconds.
+     *
+     * @return The time in seconds as a double.
+     */
+    constexpr double as_float_seconds() const noexcept { return static_cast<double>(m_count) / 1000000000.0; }
+
+    /**
+     * @brief Retrieves the time as a floating point value in minutes.
+     *
+     * @return The time in minutes as a double.
+     */
+    constexpr double as_float_minutes() const noexcept { return static_cast<double>(m_count) / 60000000000.0; }
+
+    /**
+     * @brief Retrieves the time as a floating point value in hours.
+     *
+     * @return The time in hours as a double.
+     */
+    constexpr double as_float_hours() const noexcept { return static_cast<double>(m_count) / 3600000000000.0; }
+
 
 public:
 
+    /**
+     * @brief Converts the time_point to a datetime object.
+     *
+     * @param local If true, converts to local time; otherwise, converts to UTC.
+     * @return A datetime object representing the time_point.
+     */
     VX_API datetime to_datetime(bool local = true) const;
 
 public:
@@ -235,15 +321,58 @@ public:
 
 private:
 
-    int64_t m_count; // nanoseconds
+    int64_t m_count = 0; // nanoseconds
 };
 
-constexpr time_point nanoseconds(int64_t ns)    noexcept { return time_point(ns); }
-constexpr time_point microseconds(int64_t us)   noexcept { return time_point(us * 1000ll); }
-constexpr time_point milliseconds(int64_t ms)   noexcept { return time_point(ms * 1000000ll); }
-constexpr time_point seconds(int64_t s)         noexcept { return time_point(s * 1000000000ll); }
-constexpr time_point minutes(int64_t m)         noexcept { return time_point(m * 60000000000ll); }
-constexpr time_point hours(int64_t h)           noexcept { return time_point(h * 3600000000000ll); }
+// Factory functions for creating time_point from specific time units
+
+/**
+ * @brief Creates a time_point from nanoseconds.
+ *
+ * @param ns The number of nanoseconds.
+ * @return A time_point representing the given nanoseconds.
+ */
+constexpr time_point nanoseconds(int64_t ns) noexcept { return time_point(ns); }
+
+/**
+ * @brief Creates a time_point from microseconds.
+ *
+ * @param us The number of microseconds.
+ * @return A time_point representing the given microseconds.
+ */
+constexpr time_point microseconds(int64_t us) noexcept { return time_point(us * 1000ll); }
+
+/**
+ * @brief Creates a time_point from milliseconds.
+ *
+ * @param ms The number of milliseconds.
+ * @return A time_point representing the given milliseconds.
+ */
+constexpr time_point milliseconds(int64_t ms) noexcept { return time_point(ms * 1000000ll); }
+
+/**
+ * @brief Creates a time_point from seconds.
+ *
+ * @param s The number of seconds.
+ * @return A time_point representing the given seconds.
+ */
+constexpr time_point seconds(int64_t s) noexcept { return time_point(s * 1000000000ll); }
+
+/**
+ * @brief Creates a time_point from minutes.
+ *
+ * @param m The number of minutes.
+ * @return A time_point representing the given minutes.
+ */
+constexpr time_point minutes(int64_t m) noexcept { return time_point(m * 60000000000ll); }
+
+/**
+ * @brief Creates a time_point from hours.
+ *
+ * @param h The number of hours.
+ * @return A time_point representing the given hours.
+ */
+constexpr time_point hours(int64_t h) noexcept { return time_point(h * 3600000000000ll); }
 
 enum : int64_t
 {

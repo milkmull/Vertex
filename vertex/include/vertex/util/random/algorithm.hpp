@@ -12,6 +12,18 @@ namespace random {
 
 // https://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
 
+/**
+ * @brief Randomly shuffles the elements in the range [first, last) using the provided RNG.
+ *
+ * Implements the Fisher–Yates shuffle algorithm. Ensures unbiased shuffling using
+ * a uniform distribution in the range [0, i] for each i in reverse order.
+ *
+ * @tparam Iterator A random-access iterator type.
+ * @tparam RNG A random number generator type with unsigned integral result_type.
+ * @param first Iterator to the beginning of the range.
+ * @param last Iterator to the end of the range.
+ * @param rng A random number generator instance.
+ */
 template <typename Iterator, typename RNG>
 inline void shuffle(Iterator first, Iterator last, RNG& rng)
 {
@@ -39,6 +51,22 @@ inline void shuffle(Iterator first, Iterator last, RNG& rng)
     }
 }
 
+/**
+ * @brief Randomly selects `n` elements from the input range [first, last) with uniform probability.
+ *
+ * Selected elements are written to the output iterator. Elements may be duplicated
+ * if `n` is greater than the population size.
+ *
+ * @tparam PopulationIterator Input iterator type for the population range.
+ * @tparam SampleIterator Output iterator type.
+ * @tparam RNG Random number generator type with unsigned integral result_type.
+ * @param first Iterator to the beginning of the population.
+ * @param last Iterator to the end of the population.
+ * @param out Output iterator to store the sampled elements.
+ * @param n Number of elements to sample.
+ * @param rng A random number generator instance.
+ * @return An iterator to the element past the last written output.
+ */
 template <typename PopulationIterator, typename SampleIterator, typename RNG>
 inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,
@@ -77,6 +105,24 @@ inline SampleIterator sample(
     return out;
 }
 
+/**
+ * @brief Randomly selects `n` elements from the input range [first, last) according to the provided discrete distribution.
+ *
+ * The `weights` distribution determines the likelihood of each element being selected.
+ * Output may contain repeated elements. The size of `weights` must match the population size.
+ *
+ * @tparam Index Index type used in the discrete distribution.
+ * @tparam PopulationIterator Input iterator type for the population.
+ * @tparam SampleIterator Output iterator type.
+ * @tparam RNG Random number generator type with unsigned integral result_type.
+ * @param first Iterator to the beginning of the population.
+ * @param last Iterator to the end of the population.
+ * @param out Output iterator to store the sampled elements.
+ * @param n Number of elements to sample.
+ * @param weights A discrete distribution defining the sampling weights.
+ * @param rng A random number generator instance.
+ * @return An iterator to the element past the last written output.
+ */
 template <typename Index, typename PopulationIterator, typename SampleIterator, typename RNG>
 inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,

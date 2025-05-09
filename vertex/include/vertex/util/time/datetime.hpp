@@ -104,20 +104,39 @@ enum class month : int32_t
 // Date Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-// A year is a leap year if it is...
-// divisible by 4...
-// but not divisible by 100...
-// unless it is also divisible by 400
+/**
+ * @brief Checks if a given year is a leap year.
+ *
+ * @param year The year to check.
+ * @return True if the year is a leap year, otherwise false.
+ */
 constexpr bool is_leap_year(int32_t year) noexcept
 {
+    // A year is a leap year if it is...
+    // divisible by 4...
+    // but not divisible by 100...
+    // unless it is also divisible by 400
     return !(year % 4) && ((year % 100) || !(year % 400));
 }
 
+/**
+ * @brief Gets the number of days in a given year.
+ *
+ * @param year The year to check.
+ * @return 366 if the year is a leap year, otherwise 365.
+ */
 constexpr int32_t get_days_in_year(int32_t year) noexcept
 {
     return is_leap_year(year) ? 366 : 365;
 }
 
+/**
+ * @brief Gets the number of days in a given month of a given year.
+ *
+ * @param year The year.
+ * @param month The month.
+ * @return The number of days in the month.
+ */
 constexpr int32_t get_days_in_month(int32_t year, month month) noexcept
 {
     constexpr uint8_t dim[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
@@ -125,6 +144,14 @@ constexpr int32_t get_days_in_month(int32_t year, month month) noexcept
     return (month == month::FEBRUARY) ? (days + is_leap_year(year)) : days;
 }
 
+/**
+ * @brief Gets the day of the year (1-365 or 1-366 depending on leap year) for a given month and day.
+ *
+ * @param year The year.
+ * @param month The month.
+ * @param day The day.
+ * @return The day of the year [1-366].
+ */
 constexpr int32_t get_day_of_year(int32_t year, month month, int32_t day) noexcept
 {
     const int32_t doy = static_cast<int32_t>(__detail::day_of_year(static_cast<int32_t>(month), day));
@@ -134,6 +161,14 @@ constexpr int32_t get_day_of_year(int32_t year, month month, int32_t day) noexce
 
 // https://howardhinnant.github.io/date_algorithms.html#weekday_from_days
 
+/**
+ * @brief Gets the day of the week for a given date.
+ *
+ * @param year The year.
+ * @param month The month.
+ * @param day The day.
+ * @return The weekday enum corresponding to the given date.
+ */
 constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexcept
 {
     const int32_t days = __detail::civil_to_days(year, static_cast<int32_t>(month), day);
@@ -146,6 +181,10 @@ constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexce
 
 // https://en.cppreference.com/w/cpp/chrono/c/tm
 
+/**
+ * @struct datetime
+ * @brief A structure representing a full date-time, including year, month, day, hour, minute, second, nanoseconds, and UTC offset.
+ */
 struct datetime
 {
     int32_t year = 0;                                       // year
@@ -158,9 +197,31 @@ struct datetime
     int32_t nanosecond = 0;                                 // nanosecond [0-999999999]
     int32_t utc_offset_seconds = 0;                         // seconds east of utc [-43200-50400]
 
+    /**
+     * @brief Checks if the datetime object is valid.
+     *
+     * This function validates the hour, minute, second, and nanosecond components of the
+     * datetime object to ensure they are within valid ranges.
+     *
+     * @return True if the datetime is valid, otherwise false.
+     */
     VX_API bool is_valid() const noexcept;
+
+    /**
+     * @brief Converts the datetime object to a string in ISO 8601 format.
+     *
+     * This function formats the datetime as a string in the following format:
+     * "YYYY-MM-DDTHH:MM:SS±HH:MM" or "YYYY-MM-DDTHH:MM:SSZ" (for UTC).
+     *
+     * @return A string representing the datetime in ISO 8601 format.
+     */
     VX_API std::string to_string() const;
 
+    /**
+     * @brief Converts the datetime to UTC by adjusting the UTC offset.
+     *
+     * @return A new datetime object in UTC.
+     */
     constexpr datetime to_utc() const noexcept
     {
         const int32_t total_days = __detail::civil_to_days(year, static_cast<int32_t>(month), day);
@@ -200,6 +261,11 @@ struct datetime
         return utc_dt;
     }
 
+    /**
+     * @brief Converts the datetime to a time_point.
+     *
+     * @return The corresponding time_point representation of the datetime.
+     */
     constexpr time_point to_time_point() const noexcept
     {
         time_point t;
@@ -236,6 +302,15 @@ struct datetime
 // Strng Helpers
 ///////////////////////////////////////////////////////////////////////////////
 
+/**
+ * @brief Converts a weekday enum to its corresponding string representation.
+ *
+ * This function takes a `weekday` enum value and returns the corresponding
+ * string representing the name of the weekday (e.g., "Sunday", "Monday", etc.).
+ *
+ * @param weekday The weekday enum value to convert.
+ * @return A string representing the name of the weekday.
+ */
 constexpr const char* weekday_to_string(weekday weekday)
 {
     constexpr const char* conversion_table[] = {
@@ -251,6 +326,16 @@ constexpr const char* weekday_to_string(weekday weekday)
     return conversion_table[static_cast<int>(weekday)];
 }
 
+
+/**
+ * @brief Converts a month enum to its corresponding string representation.
+ *
+ * This function takes a `month` enum value and returns the corresponding
+ * string representing the name of the month (e.g., "January", "February", etc.).
+ *
+ * @param month The month enum value to convert.
+ * @return A string representing the name of the month.
+ */
 constexpr const char* month_to_string(month month)
 {
     constexpr const char* conversion_table[] = {
