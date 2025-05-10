@@ -52,10 +52,14 @@ Vertex uses **CMake** for configuration. You can build it from the command line 
 # Create and enter a build directory
 mkdir build && cd build
 
-# Configure with default settings (Debug build with Sandbox enabled)
+# Configure for Debug build
 cmake .. -DCMAKE_BUILD_TYPE=Debug
 
 # Build the project
+cmake --build .
+
+# Alternatively, for Release build
+cmake .. -DCMAKE_BUILD_TYPE=Release
 cmake --build .
 ```
 
@@ -65,11 +69,15 @@ cmake --build .
 # Create and enter a build directory
 mkdir build; cd build
 
-# Configure for Visual Studio 2022
+# Configure for Debug build
 cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug
 
 # Build using MSBuild
 cmake --build . --config Debug
+
+# Alternatively, for Release build
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+cmake --build . --config Release
 ```
 
 ---
