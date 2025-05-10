@@ -8,34 +8,3 @@ foreach(file ${files})
     message(STATUS "Removing ${file}")
     file(REMOVE "${file}")
 endforeach()
-
-# Function to recursively remove empty directories
-function(remove_empty_dirs dir)
-    # Get all subdirectories in the current directory
-    file(GLOB_RECURSE subdirs LIST_DIRECTORIES TRUE ${dir}/*)
-
-    # Loop through each subdirectory found
-    foreach(subdir IN LISTS subdirs)
-        if(IS_DIRECTORY "${subdir}")
-            # Recursively check for empty directories
-            remove_empty_dirs("${subdir}")  # Recursive call
-
-            # Check if the directory is empty now after processing subdirectories
-            file(GLOB dir_contents "${subdir}/*")
-            if(NOT dir_contents)
-                message(STATUS "Removing empty directory: ${subdir}")
-                file(REMOVE_RECURSE "${subdir}")
-            endif()
-        endif()
-    endforeach()
-
-    # Final check to see if the original directory is empty after removing subdirectories
-    file(GLOB dir_contents "${dir}/*")
-    if(NOT dir_contents)
-        message(STATUS "Removing empty directory: ${dir}")
-        file(REMOVE_RECURSE "${dir}")
-    endif()
-endfunction()
-
-# Finally, remove the root install directory if it's now empty
-remove_empty_dirs("@CMAKE_INSTALL_PREFIX@")
