@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 #include "vertex/config/language_config.hpp"
 #include "vertex/math/type_traits.hpp"
 
@@ -154,6 +156,16 @@ template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr auto modf(T x, T& intpart)
 {
     return std::modf(x, &intpart);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// fma
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr auto fma(T x, T y, T z)
+{
+    return std::fma(x, y, z);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
