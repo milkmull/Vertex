@@ -1,116 +1,134 @@
 # Vertex Framework
 
-Vertex is a C++ game development framework that provides essential building blocks for developing games.
-Vertex comes with many helpful tools:
-* Math library including essential functions and structures for 2D and 3D development such as vectors, quaternions, and matrices.
-* (coming soon) Image library for image io and manipulation operations.
-* (coming soon) Logging and profiling tools to help streamline the development process.
-* (coming soon) Windowing tools for cross platform window generation and input handling with GLSL backend.
-* (coming soon) Cross platform graphics api with support for both Vulkan and OpenGL backend.
+**Vertex** is a modern C++ systems framework designed for high-performance application and game development. It provides clean, portable abstractions for working with the operating system, utilities, and foundational components.
 
-## Getting Started
+## Key Features
 
-### Prerequisites
+- **Cross-platform file I/O** and filesystem utilities.
+- **Process module** for running and monitoring child processes.
+- **Random number generation** with a robust RNG module.
+- **Basic string manipulation utilities.**
+- *(Upcoming)* Abstractions for windowing, input, and audio.
 
-Before you start, make sure you have CMake installed on your system. You can download it from [CMake's official website](https://cmake.org/download/).
+---
 
-### Clone the Repository
+## Prerequisites
 
-Clone the Vertex repository to your local machine:
+Before building Vertex, make sure you have:
+
+- **CMake** (3.15 or newer)  
+  [https://cmake.org/download/](https://cmake.org/download/)
+
+- **A C++17-capable compiler**  
+  Examples:
+  - GCC 9+ — [https://gcc.gnu.org](https://gcc.gnu.org)
+  - Clang 10+ — [https://clang.llvm.org](https://clang.llvm.org)
+  - MSVC (Visual Studio 2019 or newer) — [https://visualstudio.microsoft.com](https://visualstudio.microsoft.com)
+
+- *(Optional)* **CMake GUI** – available on Windows, macOS, and Linux.
+
+---
+
+## Building the Library
+
+Vertex uses **CMake** for configuration. You can build it from the command line or with CMake GUI.
+
+### Command Line (Cross-Platform)
+
+#### Linux / macOS
 
 ```bash
-git clone https://github.com/milkmull/Vertex.git
-cd Vertex
+# Create and enter a build directory
+mkdir build && cd build
+
+# Configure with default settings (Debug build with Sandbox enabled)
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+
+# Build the project
+cmake --build .
 ```
 
-### Configure and Generate the Project Files
+#### Windows (Command Prompt or PowerShell)
 
-Run CMake to configure and build the project:
+```powershell
+# Create and enter a build directory
+mkdir build; cd build
+
+# Configure for Visual Studio 2022
+cmake .. -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Debug
+
+# Build using MSBuild
+cmake --build . --config Debug
+```
+
+---
+
+### CMake GUI (All Platforms)
+
+1. Open CMake GUI.
+2. Set **source folder** to the root of the Vertex repo.
+3. Set **build folder** (e.g. `Vertex/build`).
+4. Click **Configure** and select your compiler/toolchain.
+5. Adjust build options as needed (see below).
+6. Click **Generate**, then open/build the project.
+
+---
+
+## CMake Configuration Options
+
+These options can be set via `-D<option>=<value>` on the command line, or toggled in CMake GUI.
+
+| Option                 | Default | Description                                             |
+|------------------------|---------|---------------------------------------------------------|
+| `CMAKE_BUILD_TYPE`     | Debug   | Set to `Release`, `RelWithDebInfo`, etc.                |
+| `VX_BUILD_SANDBOX`     | ON      | Build the sandbox test application.                     |
+| `VX_BUILD_TESTS`       | OFF     | Build unit tests.                                       |
+| `VX_INSTALL_TESTS`     | OFF     | Install test executables during `cmake --install`.      |
+| `VX_DUMMY_PLATFORM`    | OFF     | Use the dummy OS backend (for low-level testing only).  |
+
+Example build with release mode and tests:
 
 ```bash
-cmake -B ./build ./
-cmake --build ./build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DVX_BUILD_TESTS=ON
+cmake --build .
 ```
 
-The build will produce a static library in the lib folder.
+---
 
-#### CMake Parameters
+## Sandbox Application
 
-You can customize the build process using the following CMake parameters:
+When `VX_BUILD_SANDBOX=ON` (default), the build includes the **sandbox** app:
 
-- **CMAKE_BUILD_TYPE** (Default: Debug)
-  - Set to Release to build release library.
+- Located in [`sandbox/`](https://github.com/milkmull/Vertex/tree/main/sandbox)
+- Automatically links to the Vertex library
+- Compiles into `bin/` on build
+- A fast way to explore and test features interactively
 
-- **VX_BUILD_EXAMPLES** (Default: OFF)
-  - Set to ON to include building examples.
-
-- **VX_BUILD_TESTS** (Default: OFF)
-  - Set to ON to include building tests.
-
-- **VX_BUILD_SANDBOX** (Default: ON)
-  - Set to OFF to exclude building Sandbox.
-
-### Sandbox
-
-Vertex comes with the option to build an internal project called sandbox:
-
-https://github.com/milkmull/Vertex/tree/main/sandbox
-
-Sandbox is an easy way to get started playing around with features without having to build your own project. Sandbox will be compiled along with Vertex and is configured to include and link against Vertex automatically. An executable will be generated for sandbox in the **bin** directory.
+---
 
 ## Installation
 
-coming soon
+Install the built library and headers using:
 
-# Vertex Math
-
-The math library in Vertex provides a set of functions and structures for handling mathematical operations in game development. It includes features such as vector operations, matrix transformations, and more.
-
-### Usage
-
-Here are some basic examples demonstrating the usage of the Vertex math library:
-
-```cpp
-#include <vertex/math/math.h>
-#include <iostream>
-
-int main()
-{
-    // Create vectors
-    vx::vec2 v2(1.0f, 2.0f);
-    vx::vec3 v3(1.0f, 2.0f, 3.0f);
-    vx::vec4 v4(1.0f, 2.0f, 3.0f, 4.0f);
-
-    // Print vector
-    std::cout << v2.to_string() << std::endl;
-
-    // Normalize vector
-    v2 = vx::math::normalize(v2);
-
-    // See if the magnitude is 1
-    if (vx::math::is_equal_approx(v2.magnitude(), 1.0f))
-    {
-        std::cout << "vector " << v2.to_string() << " is normalized." << std::endl;
-    }
-
-    // Check for approximate equality
-    vx::vec3 v32 = v3 + 0.000001f;
-    if (vx::math::is_equal_approx(v3, v32))
-    {
-        std::cout << v3.to_string() << " and " << v32.to_string() << " are approximately equal." << std::endl;
-    }
-
-    // Math operations
-    v4 += 5.0f;
-    v4 -= 20.0f;
-    v4 *= 0.5f;
-    v4 /= 1.2f;
-
-    vx::vec4 v42(v2, v2);
-
-    v4 += v42;
-    v4 -= v42;
-    v4 *= v42;
-    v4 /= v42;
-}
+```bash
+cmake --install . --prefix <install_path>
 ```
+
+### Example:
+
+```bash
+cmake --install . --prefix /usr/local       # Linux/macOS
+cmake --install . --prefix C:\Vertex        # Windows
+```
+
+This installs:
+
+- `lib/` — static/shared library
+- `include/` — public headers
+- `cmake/` — package config for `find_package(Vertex REQUIRED)`
+
+---
+
+## License
+
+[MIT](./LICENSE)
