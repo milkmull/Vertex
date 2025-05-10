@@ -168,7 +168,7 @@ struct vec<2, u>
     {
         type result(*this);
         ++(*this);
-        return *this;
+        return result;
     }
 
     // decrement (--)
