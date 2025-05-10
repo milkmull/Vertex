@@ -573,10 +573,7 @@ struct vec<2, u>
     static VX_FORCE_INLINE constexpr type ONE() noexcept { return type(static_cast<scalar_type>(1)); }
 
     static VX_FORCE_INLINE constexpr type RIGHT() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type LEFT() noexcept { return type(static_cast<scalar_type>(-1), static_cast<scalar_type>(0)); }
-
     static VX_FORCE_INLINE constexpr type UP() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
-    static VX_FORCE_INLINE constexpr type DOWN() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
 };
 
 } // namespace math
