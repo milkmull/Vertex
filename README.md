@@ -29,6 +29,17 @@ Before building Vertex, make sure you have:
 
 ---
 
+## Cloning the Repository
+
+To get started, clone the Vertex repository to your local machine:
+
+```bash
+git clone https://github.com/milkmull/Vertex.git
+cd Vertex
+```
+
+---
+
 ## Building the Library
 
 Vertex uses **CMake** for configuration. You can build it from the command line or with CMake GUI.
