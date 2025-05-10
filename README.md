@@ -122,14 +122,18 @@ When `VX_BUILD_SANDBOX=ON` (default), the build includes the **sandbox** app:
 Install the built library and headers using:
 
 ```bash
-cmake --install . --prefix <install_path>
+cmake --install . --prefix <install_path> --config <Debug\Release>
 ```
 
 ### Example:
 
 ```bash
-cmake --install . --prefix /usr/local       # Linux/macOS
-cmake --install . --prefix C:\Vertex        # Windows
+# Linux/macOS
+cmake --install . --prefix /usr/local --config Debug
+cmake --install . --prefix /usr/local --config Release
+# Windows
+cmake --install . --prefix "C:\Program Files\Vertex" --config Debug
+cmake --install . --prefix "C:\Program Files\Vertex" --config Release
 ```
 
 This installs:
