@@ -267,6 +267,8 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_INT(type) VXM_REQ(is_int<type>::value)
 #define VXM_REQ_NUM(type) VXM_REQ(is_numeric<type>::value)
 #define VXM_REQ_NUM2(type1, type2) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value)
+#define VXM_REQ_NUM3(type1, type2, type3) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value && is_numeric<type3>::value)
+#define VXM_REQ_NUM4(type1, type2, type3, type4) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value && is_numeric<type3>::value && is_numeric<type4>::value)
 
 } // namespace vx
 } // namespace math
