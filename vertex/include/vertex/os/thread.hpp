@@ -128,7 +128,7 @@ public:
         return m_thread;
     }
 
-    os::thread release() noexcept
+    os::thread&& release() noexcept
     {
         return std::move(m_thread);
     }
