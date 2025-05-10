@@ -458,6 +458,14 @@ private:
 
 } // namespace __detail
 
+/**
+ * @class path
+ * @brief A class representing a file system path with cross-platform support.
+ *
+ * This class provides an abstraction for file system paths, offering methods for
+ * constructing paths, traversing components, and performing common file system operations.
+ * It supports iterating through path elements, handling path separators, and other utilities.
+ */
 class path
 {
 public:
@@ -554,6 +562,23 @@ public:
     // https://en.cppreference.com/w/cpp/filesystem/path/append
     // https://github.com/microsoft/STL/blob/fec1c8b6a13e5411edebbddc3ad98258f5e282d2/stl/inc/filesystem#L712
 
+    /**
+     * @brief Appends a path to the current path, modifying the current path.
+     *
+     * This operator overload implements the path concatenation (using the `/` operator)
+     * to append the given `rhs` path to the current `path` object. It handles various
+     * conditions related to absolute and relative paths, ensuring the correct behavior
+     * based on the type and structure of `rhs`.
+     *
+     * - If `rhs` is an absolute path, the current path is replaced by `rhs`.
+     * - If `rhs` has a root directory, the current path may be cleared to form a new absolute path.
+     * - If `rhs` does not contain a root directory, it is appended relative to the current path.
+     * - It also ensures that directory separators are handled correctly, especially on Windows.
+     *
+     * @param rhs The path to append to the current path. This path is typically relative to the current path,
+     * but it may also be absolute, in which case it may replace the current path.
+     * @return A reference to the modified `path` object.
+     */
     path& operator/=(const path& rhs)
     {
         // if rhs.is_absolute(), then op=(rhs)
@@ -659,6 +684,15 @@ public:
         return operator/=(path{ first, last });
     }
 
+    /**
+     * @brief Appends another path to the current path.
+     *
+     * This operator overload appends the `m_path` of another `path` object (`rhs`) to the current `path` object.
+     * It internally calls the string-based `operator+=` to perform the actual concatenation.
+     *
+     * @param rhs The path object whose path (`m_path`) is appended to the current path.
+     * @return A reference to the modified `path` object.
+     */
     path& operator+=(const path& rhs)
     {
         return operator+=(rhs.m_path);
@@ -720,14 +754,38 @@ public:
     // modifiers
     ///////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @brief Clears the current path.
+     *
+     * This function clears the internal `m_path` string, effectively making the path empty.
+     * It is a noexcept operation, meaning it guarantees not to throw exceptions.
+     */
     inline void clear() noexcept { m_path.clear(); }
 
+    /**
+     * @brief Converts the path to use the preferred separator.
+     *
+     * This function replaces all occurrences of the `separator` in the current path with the
+     * `preferred_separator`. The `preferred_separator` is typically the separator that is
+     * recommended or native for the platform (e.g., `/` on UNIX-like systems, `\` on Windows).
+     *
+     * @return A reference to the modified `path` object.
+     */
     inline path& make_preferred()
     {
         std::replace(m_path.begin(), m_path.end(), separator, preferred_separator);
         return *this;
     }
 
+    /**
+     * @brief Removes the filename from the path.
+     *
+     * This function removes the filename (if any) from the current path, leaving only the
+     * directory part. It uses the `path_parser` to determine the position of the filename
+     * and then erases it from the internal `m_path`.
+     *
+     * @return A reference to the modified `path` object.
+     */
     inline path& remove_filename()
     {
         const auto filename = __detail::path_parser::parse_filename(m_path);
@@ -735,6 +793,14 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Removes the extension from the path.
+     *
+     * This function removes the extension (if any) from the filename in the path. It uses
+     * the `path_parser` to find the extension and erase it from the internal `m_path`.
+     *
+     * @return A reference to the modified `path` object.
+     */
     inline path& remove_extension()
     {
         const auto extension = __detail::path_parser::parse_extension(m_path);
@@ -742,6 +808,16 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Removes the last component of the path.
+     *
+     * This function removes the last component (e.g., filename or directory) of the path. It
+     * handles both root paths and directory separators appropriately. If the path is rooted,
+     * it ensures that the root directory is preserved. It effectively truncates the path, removing
+     * the last segment or the trailing directory separators.
+     *
+     * @return A reference to the modified `path` object.
+     */
     inline path& pop_back()
     {
         const auto root_directory = __detail::path_parser::parse_root_directory(m_path.c_str());
@@ -761,6 +837,15 @@ public:
         return *this;
     }
 
+    /**
+     * @brief Replaces the extension of the path with a new extension.
+     *
+     * This function removes the current file extension (if any) and appends the new extension provided
+     * in `new_extension`. The extension is prepended with a dot (`.`) unless it already starts with one.
+     *
+     * @param new_extension The new extension to replace the current one. If empty, the extension is removed.
+     * @return A reference to the modified `path` object.
+     */
     inline path& replace_extension(const path& new_extension)
     {
         *this = remove_extension();
@@ -780,6 +865,18 @@ public:
     inline operator string_type() const { return m_path; }
     inline operator native_string() const { return native_string{ m_path }; }
 
+    /**
+     * @brief Converts the path to a string representation.
+     *
+     * This template function converts the internal path (`m_path`) to a `std::basic_string` of the specified
+     * character type (`char_t`). It uses `str::string_cast` to perform the conversion.
+     *
+     * @tparam char_t The character type to use for the string representation. Defaults to `char`.
+     * @tparam Traits The character traits type to use. Defaults to `std::char_traits<char_t>`.
+     * @tparam Alloc The allocator type to use. Defaults to `std::allocator<char_t>`.
+     *
+     * @return A `std::basic_string<char_t, Traits, Alloc>` representing the current path.
+     */
     template <
         typename char_t = char,
         typename Traits = std::char_traits<char_t>,
@@ -807,6 +904,24 @@ public:
 
     // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1017
 
+    /**
+     * @brief Compares the current path with another path.
+     *
+     * This function compares the current path (`*this`) with another path (`rhs`). The comparison is done
+     * lexicographically, taking into account various factors such as the root directory, root name, and relative
+     * path elements. It returns a negative, zero, or positive value based on the result of the comparison.
+     *
+     * The comparison follows these steps:
+     * - It first compares the root directories of both paths.
+     * - If the root directories are the same, it compares the paths element by element, considering directory
+     *   separators and relative path components.
+     * - It handles the case where the paths differ in terms of having a root directory or not, and ensures
+     *   directory separators are treated correctly.
+     *
+     * @param rhs The path to compare with the current path.
+     * @return A negative value if the current path is lexicographically less than `rhs`,
+     * zero if both paths are equal, or a positive value if the current path is greater than `rhs`.
+     */
     int compare(const string_type& rhs) const
     {
         const auto lhs_root_directory = __detail::path_parser::parse_root_directory(m_path);
@@ -910,6 +1025,25 @@ public:
 
     // https://en.cppreference.com/w/cpp/filesystem/path
 
+    /**
+     * @brief Returns a lexicographically normalized version of the path.
+     *
+     * This function returns a new `path` object that is lexicographically normalized. It removes redundant
+     * components such as `.` (current directory) and `..` (parent directory), and ensures that the path is
+     * in a consistent format. It also consolidates multiple consecutive directory separators into a single
+     * separator and replaces root directory separators with the preferred separator.
+     *
+     * The normalization process involves the following steps:
+     * 1. Replace each slash character in the root-name with `path::preferred_separator`.
+     * 2. Replace consecutive directory separators with a single `preferred_separator`.
+     * 3. Remove any instances of `.` (current directory) and any immediately following directory separators.
+     * 4. Remove any instances of `..` (parent directory) and the corresponding previous directory components
+     *    unless there is a root directory.
+     * 5. If the path is empty, it adds a `.` (representing the current directory).
+     * 6. If the last component is `..`, it removes any trailing directory separator.
+     *
+     * @return A new `path` object that represents the lexically normalized version of the current path.
+     */
     path lexically_normal() const
     {
         using parse_state = __detail::path_parser::state;
@@ -1017,6 +1151,30 @@ public:
      // https://en.cppreference.com/w/cpp/filesystem/path/lexically_normal
     // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1684
 
+    /**
+     * @brief Computes the lexicographical relative path from the given base path.
+     *
+     * This function computes the relative path from the current path to the specified `base` path.
+     * The function follows the algorithm to determine the first mismatched element between the two paths.
+     * Based on this mismatch, it calculates the necessary relative path in terms of `..` (parent directory)
+     * and other elements. If the paths cannot be normalized into a relative path, it returns a default-constructed path.
+     *
+     * The function first checks various conditions that could prevent computing the relative path:
+     * - The root names are different between the current path and the base path.
+     * - The paths are not both absolute or both relative.
+     * - The current path has no root directory while the base path has one.
+     * - Any filename in the relative portion of the paths could be interpreted as a root-name.
+     *
+     * If any of these conditions are true, a default-constructed path is returned.
+     * Otherwise, the relative path is calculated as follows:
+     * 1. Find the first mismatched element between the current path and the base path.
+     * 2. Calculate the number of parent directory (`..`) steps required to go from the base path
+     *    to the first mismatch.
+     * 3. Append the remaining elements from the current path after the mismatch to form the relative path.
+     *
+     * @param base The base path to compute the relative path from.
+     * @return A new `path` object representing the relative path from the base path.
+     */
     path lexically_relative(const path& base) const
     {
         path ret;
@@ -1123,6 +1281,17 @@ public:
         return ret;
     }
 
+    /**
+     * @brief Computes the lexicographical proximate path from the given base path.
+     *
+     * This function computes the proximate path to the current path with respect to a specified `base` path.
+     * It first attempts to calculate the relative path using the `lexically_relative()` function. If the relative
+     * path is empty (indicating that the paths are the same or close enough), it simply returns the current path.
+     * Otherwise, it returns the relative path, making it easier to represent the proximity of the two paths.
+     *
+     * @param base The base path to compute the proximate path from.
+     * @return A new `path` object representing the proximate path from the base path, or the current path if no relative path exists.
+     */
     path lexically_proximate(const path& base) const
     {
         const path& p = lexically_relative(base);
@@ -1133,48 +1302,113 @@ public:
     // decomposition
     ///////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @brief Returns the root name of the path.
+     *
+     * The root name typically represents the drive or partition part of a path (e.g., "C:" on Windows or "/" on Unix-like systems).
+     * It extracts the root name of the path using the internal path parser and returns it as a `path` object.
+     *
+     * @return A `path` object representing the root name of the path.
+     */
     path root_name() const
     {
         const auto p = __detail::path_parser::parse_root_name(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the root directory of the path.
+     *
+     * The root directory represents the directory immediately under the root of the filesystem (e.g., "/" or "C:\" on Windows).
+     * This function parses and returns the root directory of the path as a `path` object.
+     *
+     * @return A `path` object representing the root directory of the path.
+     */
     path root_directory() const
     {
         const auto p = __detail::path_parser::parse_root_directory(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the root path of the path.
+     *
+     * The root path includes both the root name (e.g., "C:") and the root directory (e.g., "\").
+     * This function returns the combined root part of the path as a `path` object.
+     *
+     * @return A `path` object representing the root path.
+     */
     path root_path() const
     {
         const auto p = __detail::path_parser::parse_root_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the relative path of the current path.
+     *
+     * The relative path is the portion of the path that does not include the root part (i.e., the path excluding the root name, root directory, and the root path).
+     * This function extracts and returns the relative portion of the path as a `path` object.
+     *
+     * @return A `path` object representing the relative path.
+     */
     path relative_path() const
     {
         const auto p = __detail::path_parser::parse_relative_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the parent path of the current path.
+     *
+     * The parent path is the portion of the path that points to the parent directory of the current directory.
+     * This function extracts and returns the parent path as a `path` object.
+     *
+     * @return A `path` object representing the parent path.
+     */
     path parent_path() const
     {
         const auto p = __detail::path_parser::parse_parent_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the filename component of the path.
+     *
+     * The filename represents the final element in the path, typically a file or directory name.
+     * This function extracts and returns the filename portion of the path as a `path` object.
+     *
+     * @return A `path` object representing the filename of the path.
+     */
     path filename() const
     {
         const auto p = __detail::path_parser::parse_filename(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the stem of the filename (i.e., the filename without its extension).
+     *
+     * The stem is the part of the filename excluding its extension. For example, for a path like "file.txt",
+     * the stem would be "file".
+     * This function extracts and returns the stem as a `path` object.
+     *
+     * @return A `path` object representing the stem of the filename.
+     */
     path stem() const
     {
         const auto p = __detail::path_parser::parse_stem(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
+    /**
+     * @brief Returns the extension of the filename in the path.
+     *
+     * The extension is the part of the filename that follows the last period (e.g., ".txt" in "file.txt").
+     * This function extracts and returns the extension of the filename as a `path` object.
+     *
+     * @return A `path` object representing the extension of the filename.
+     */
     path extension() const
     {
         const auto p = __detail::path_parser::parse_extension(m_path);
@@ -1188,22 +1422,112 @@ public:
     bool empty() const noexcept { return m_path.empty(); }
     size_t size() const noexcept { return m_path.size(); }
 
+    /**
+     * @brief Checks if the path is either a dot (`"."`) or dot-dot (`".."`).
+     *
+     * This function checks if the current path represents the current directory (`"."`) or the parent directory (`".."`).
+     * These are special paths used for navigating the filesystem.
+     *
+     * @return `true` if the path is `.` or `..`, `false` otherwise.
+     */
     bool is_dot_or_dotdot() const noexcept { return m_path == __PATH_TEXT(".") || m_path == __PATH_TEXT(".."); }
 
+    /**
+     * @brief Checks if the path has a root path.
+     *
+     * This function checks if the path includes a root path, which represents the absolute beginning of a filesystem path.
+     *
+     * @return `true` if the path has a root path, `false` otherwise.
+     */
     bool has_root_path() const noexcept { return __detail::path_parser::parse_root_path(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a root name.
+     *
+     * This function checks if the path includes a root name, such as a drive letter or a root directory on Unix-like systems.
+     *
+     * @return `true` if the path has a root name, `false` otherwise.
+     */
     bool has_root_name() const noexcept { return __detail::path_parser::parse_root_name(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a root directory.
+     *
+     * This function checks if the path includes a root directory, like `/` on Unix-like systems or `C:\` on Windows.
+     *
+     * @return `true` if the path has a root directory, `false` otherwise.
+     */
     bool has_root_directory() const noexcept { return __detail::path_parser::parse_root_directory(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a relative path.
+     *
+     * This function checks if the path includes a relative path, meaning it does not start with a root directory.
+     *
+     * @return `true` if the path has a relative path, `false` otherwise.
+     */
     bool has_relative_path() const noexcept { return __detail::path_parser::parse_relative_path(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a parent path.
+     *
+     * This function checks if the path includes a parent path, which typically points to the parent directory.
+     *
+     * @return `true` if the path has a parent path, `false` otherwise.
+     */
     bool has_parent_path() const noexcept { return __detail::path_parser::parse_parent_path(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a filename.
+     *
+     * This function checks if the path includes a filename, meaning it ends with a file or directory name.
+     *
+     * @return `true` if the path has a filename, `false` otherwise.
+     */
     bool has_filename() const noexcept { return __detail::path_parser::parse_filename(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has a stem.
+     *
+     * This function checks if the path includes a stem, which is the filename without the extension.
+     *
+     * @return `true` if the path has a stem, `false` otherwise.
+     */
     bool has_stem() const noexcept { return __detail::path_parser::parse_stem(m_path).size != 0; }
+
+    /**
+     * @brief Checks if the path has an extension.
+     *
+     * This function checks if the path includes a file extension (e.g., `.txt`).
+     *
+     * @return `true` if the path has an extension, `false` otherwise.
+     */
     bool has_extension() const noexcept { return __detail::path_parser::parse_extension(m_path).size != 0; }
 
+    /**
+     * @brief Checks if the path is relative.
+     *
+     * A relative path is one that does not begin with a root directory or drive letter.
+     * This function checks if the path does not have an absolute form.
+     *
+     * @return `true` if the path is relative, `false` if it is absolute.
+     */
     bool is_relative() const noexcept { return !is_absolute(); }
      
     // https://github.com/microsoft/STL/blob/fc15609a0f2ae2a134c34e7c9a13977994f37367/stl/inc/filesystem#L1165
     // https://github.com/gcc-mirror/gcc/blob/e8262c9041feddd7446840a9532cf458452f3587/libstdc%2B%2B-v3/include/bits/fs_path.h#L1333
 
+    /**
+     * @brief Checks if the path is absolute.
+     *
+     * An absolute path is one that starts with a root directory or drive letter (e.g., `C:/` on Windows or `/` on Unix-like systems).
+     * This function checks if the path follows that structure, indicating it's an absolute path.
+     *
+     * On Windows, the function checks if the path has a drive letter followed by a colon and a directory separator.
+     * On Unix-like systems, it checks if the path starts with a directory separator.
+     *
+     * @return `true` if the path is absolute, `false` if it is relative.
+     */
     bool is_absolute() const noexcept
     {
 #if defined(__VX_WINDOWS_PATH)
