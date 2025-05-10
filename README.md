@@ -142,6 +142,14 @@ This installs:
 - `include/` — public headers
 - `cmake/` — package config for `find_package(Vertex REQUIRED)`
 
+### Uninstalling
+
+Remove all installed files from your system:
+
+```bash
+cmake --build . --target uninstall
+```
+
 ---
 
 ## License
