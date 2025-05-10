@@ -9,16 +9,16 @@ namespace math {
 namespace type_traits {
 
 ///////////////////////////////////////////////////////////////////////////////
-// scaler
+// scalar
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct is_scaler : std::false_type {};
+template <typename T> struct is_scalar : std::false_type {};
 
-template <> struct is_scaler<bool> : std::true_type {};
-template <> struct is_scaler<double> : std::true_type {};
-template <> struct is_scaler<float> : std::true_type {};
-template <> struct is_scaler<int32_t> : std::true_type {};
-template <> struct is_scaler<uint32_t> : std::true_type {};
+template <> struct is_scalar<bool> : std::true_type {};
+template <> struct is_scalar<double> : std::true_type {};
+template <> struct is_scalar<float> : std::true_type {};
+template <> struct is_scalar<int32_t> : std::true_type {};
+template <> struct is_scalar<uint32_t> : std::true_type {};
 
 template <typename T> struct is_numeric : std::false_type {};
 

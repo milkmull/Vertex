@@ -9,7 +9,7 @@ namespace math {
 // min
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler binary
+// scalar binary
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> min(
@@ -129,7 +129,7 @@ VX_FORCE_INLINE constexpr T cmin(
 // max
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler binary
+// scalar binary
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> max(
@@ -525,7 +525,7 @@ VX_FORCE_INLINE constexpr vec<4, T> sign(
 // fmod
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler binary
+// scalar binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> fmod(
@@ -611,7 +611,7 @@ VX_FORCE_INLINE constexpr vec<4, T> fmod(
 // mod
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler binary
+// scalar binary
 
 template <typename T>
 VX_FORCE_INLINE constexpr auto mod(
@@ -872,7 +872,7 @@ VX_FORCE_INLINE constexpr vec<4, T> ldexp(
 // clamp
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler
+// scalar
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> clamp(

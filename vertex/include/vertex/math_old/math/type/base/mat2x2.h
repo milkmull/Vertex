@@ -14,7 +14,7 @@ struct mat<2, 2, T>
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scaler_type = T;
+    using scalar_type = T;
     using type = mat<2, 2, T>;
 
     using row_type = vec<2, T>;
@@ -48,9 +48,9 @@ struct mat<2, 2, T>
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr explicit mat(T scaler) noexcept
-        : columns{ col_type(scaler, static_cast<T>(0)),
-                   col_type(static_cast<T>(0), scaler) } {}
+    VX_FORCE_INLINE constexpr explicit mat(T scalar) noexcept
+        : columns{ col_type(scalar, static_cast<T>(0)),
+                   col_type(static_cast<T>(0), scalar) } {}
 
     VX_FORCE_INLINE constexpr mat(
         T x1, T y1,
@@ -66,9 +66,9 @@ struct mat<2, 2, T>
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr explicit mat(U scaler)
-        : columns{ col_type(static_cast<T>(scaler), static_cast<T>(0)),
-                   col_type(static_cast<T>(0), static_cast<T>(scaler)) } {}
+    VX_FORCE_INLINE constexpr explicit mat(U scalar)
+        : columns{ col_type(static_cast<T>(scalar), static_cast<T>(0)),
+                   col_type(static_cast<T>(0), static_cast<T>(scalar)) } {}
 
     template <
         typename X1, typename Y1,
@@ -216,15 +216,15 @@ struct mat<2, 2, T>
     // addition (+)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator+(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator+(const type& m, T scalar)
     {
-        return type(m.columns[0] + scaler, m.columns[1] + scaler);
+        return type(m.columns[0] + scalar, m.columns[1] + scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator+(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator+(T scalar, const type& m)
     {
-        return type(scaler + m.columns[0], scaler + m.columns[1]);
+        return type(scalar + m.columns[0], scalar + m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
@@ -236,15 +236,15 @@ struct mat<2, 2, T>
     // subtraction (-)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator-(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator-(const type& m, T scalar)
     {
-        return type(m.columns[0] - scaler, m.columns[1] - scaler);
+        return type(m.columns[0] - scalar, m.columns[1] - scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator-(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator-(T scalar, const type& m)
     {
-        return type(scaler - m.columns[0], scaler - m.columns[1]);
+        return type(scalar - m.columns[0], scalar - m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
@@ -256,15 +256,15 @@ struct mat<2, 2, T>
     // multiplication (*)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator*(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator*(const type& m, T scalar)
     {
-        return type(m.columns[0] * scaler, m.columns[1] * scaler);
+        return type(m.columns[0] * scalar, m.columns[1] * scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator*(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator*(T scalar, const type& m)
     {
-        return type(scaler * m.columns[0], scaler * m.columns[1]);
+        return type(scalar * m.columns[0], scalar * m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
@@ -333,15 +333,15 @@ struct mat<2, 2, T>
     // division (/)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator/(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator/(const type& m, T scalar)
     {
-        return type(m.columns[0] / scaler, m.columns[1] / scaler);
+        return type(m.columns[0] / scalar, m.columns[1] / scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator/(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator/(T scalar, const type& m)
     {
-        return type(scaler / m.columns[0], scaler / m.columns[1]);
+        return type(scalar / m.columns[0], scalar / m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_floating_point<U>::value, bool>::type = true>
@@ -365,15 +365,15 @@ struct mat<2, 2, T>
     // modulo (%)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator%(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator%(const type& m, T scalar)
     {
-        return type(m.columns[0] % scaler, m.columns[1] % scaler);
+        return type(m.columns[0] % scalar, m.columns[1] % scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator%(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator%(T scalar, const type& m)
     {
-        return type(scaler % m.columns[0], scaler % m.columns[1]);
+        return type(scalar % m.columns[0], scalar % m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -389,15 +389,15 @@ struct mat<2, 2, T>
     // and (&)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator&(const type& m, T scalar)
     {
-        return type(m.columns[0] & scaler, m.columns[1] & scaler);
+        return type(m.columns[0] & scalar, m.columns[1] & scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator&(T scalar, const type& m)
     {
-        return type(scaler & m.columns[0], scaler & m.columns[1]);
+        return type(scalar & m.columns[0], scalar & m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -409,15 +409,15 @@ struct mat<2, 2, T>
     // or (|)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator|(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator|(const type& m, T scalar)
     {
-        return type(m.columns[0] | scaler, m.columns[1] | scaler);
+        return type(m.columns[0] | scalar, m.columns[1] | scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator|(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator|(T scalar, const type& m)
     {
-        return type(scaler | m.columns[0], scaler | m.columns[1]);
+        return type(scalar | m.columns[0], scalar | m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -429,15 +429,15 @@ struct mat<2, 2, T>
     // xor (^)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator^(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator^(const type& m, T scalar)
     {
-        return type(m.columns[0] ^ scaler, m.columns[1] ^ scaler);
+        return type(m.columns[0] ^ scalar, m.columns[1] ^ scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator^(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator^(T scalar, const type& m)
     {
-        return type(scaler ^ m.columns[0], scaler ^ m.columns[1]);
+        return type(scalar ^ m.columns[0], scalar ^ m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -449,15 +449,15 @@ struct mat<2, 2, T>
     // left shift (<<)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator<<(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator<<(const type& m, T scalar)
     {
-        return type(m.columns[0] << scaler, m.columns[1] << scaler);
+        return type(m.columns[0] << scalar, m.columns[1] << scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator<<(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator<<(T scalar, const type& m)
     {
-        return type(scaler << m.columns[0], scaler << m.columns[1]);
+        return type(scalar << m.columns[0], scalar << m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -469,15 +469,15 @@ struct mat<2, 2, T>
     // right shift (>>)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator>>(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator>>(const type& m, T scalar)
     {
-        return type(m.columns[0] >> scaler, m.columns[1] >> scaler);
+        return type(m.columns[0] >> scalar, m.columns[1] >> scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator>>(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator>>(T scalar, const type& m)
     {
-        return type(scaler >> m.columns[0], scaler >> m.columns[1]);
+        return type(scalar >> m.columns[0], scalar >> m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
@@ -501,10 +501,10 @@ struct mat<2, 2, T>
     // addition (+=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator+=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator+=(T scalar)
     {
-        columns[0] += scaler;
-        columns[1] += scaler;
+        columns[0] += scalar;
+        columns[1] += scalar;
         return *this;
     }
 
@@ -519,10 +519,10 @@ struct mat<2, 2, T>
     // subtraction (-=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator-=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator-=(T scalar)
     {
-        columns[0] -= scaler;
-        columns[1] -= scaler;
+        columns[0] -= scalar;
+        columns[1] -= scalar;
         return *this;
     }
 
@@ -537,10 +537,10 @@ struct mat<2, 2, T>
     // multiplication (*=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator*=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator*=(T scalar)
     {
-        columns[0] *= scaler;
-        columns[1] *= scaler;
+        columns[0] *= scalar;
+        columns[1] *= scalar;
         return *this;
     }
 
@@ -554,10 +554,10 @@ struct mat<2, 2, T>
     // division (/=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_numeric<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator/=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator/=(T scalar)
     {
-        columns[0] /= scaler;
-        columns[1] /= scaler;
+        columns[0] /= scalar;
+        columns[1] /= scalar;
         return *this;
     }
 
@@ -571,10 +571,10 @@ struct mat<2, 2, T>
     // modulo (%=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator%=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator%=(T scalar)
     {
-        columns[0] %= scaler;
-        columns[1] %= scaler;
+        columns[0] %= scalar;
+        columns[1] %= scalar;
         return *this;
     }
 
@@ -593,10 +593,10 @@ struct mat<2, 2, T>
     // and (&=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator&=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator&=(T scalar)
     {
-        columns[0] &= scaler;
-        columns[1] &= scaler;
+        columns[0] &= scalar;
+        columns[1] &= scalar;
         return *this;
     }
 
@@ -611,10 +611,10 @@ struct mat<2, 2, T>
     // or (|=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator|=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator|=(T scalar)
     {
-        columns[0] |= scaler;
-        columns[1] |= scaler;
+        columns[0] |= scalar;
+        columns[1] |= scalar;
         return *this;
     }
 
@@ -629,10 +629,10 @@ struct mat<2, 2, T>
     // xor (^=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator^=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator^=(T scalar)
     {
-        columns[0] ^= scaler;
-        columns[1] ^= scaler;
+        columns[0] ^= scalar;
+        columns[1] ^= scalar;
         return *this;
     }
 
@@ -647,10 +647,10 @@ struct mat<2, 2, T>
     // left shift (<<=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator<<=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator<<=(T scalar)
     {
-        columns[0] <<= scaler;
-        columns[1] <<= scaler;
+        columns[0] <<= scalar;
+        columns[1] <<= scalar;
         return *this;
     }
 
@@ -665,10 +665,10 @@ struct mat<2, 2, T>
     // right shift (>>=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && type_traits::is_integral<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator>>=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator>>=(T scalar)
     {
-        columns[0] >>= scaler;
-        columns[1] >>= scaler;
+        columns[0] >>= scalar;
+        columns[1] >>= scalar;
         return *this;
     }
 
@@ -687,15 +687,15 @@ struct mat<2, 2, T>
     // and (&&)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&&(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator&&(const type& m, T scalar)
     {
-        return type(m.columns[0] && scaler, m.columns[1] && scaler);
+        return type(m.columns[0] && scalar, m.columns[1] && scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&&(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator&&(T scalar, const type& m)
     {
-        return type(scaler && m.columns[0], scaler && m.columns[1]);
+        return type(scalar && m.columns[0], scalar && m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>
@@ -707,15 +707,15 @@ struct mat<2, 2, T>
     // or (||)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator||(const type& m, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator||(const type& m, T scalar)
     {
-        return type(m.columns[0] || scaler, m.columns[1] || scaler);
+        return type(m.columns[0] || scalar, m.columns[1] || scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator||(T scaler, const type& m)
+    friend VX_FORCE_INLINE constexpr type operator||(T scalar, const type& m)
     {
-        return type(scaler || m.columns[0], scaler || m.columns[1]);
+        return type(scalar || m.columns[0], scalar || m.columns[1]);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_same<U, bool>::value, bool>::type = true>

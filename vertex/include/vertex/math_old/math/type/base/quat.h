@@ -22,7 +22,7 @@ struct quat_t
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scaler_type = T;
+    using scalar_type = T;
     using type = quat_t<T>;
 
     static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(4); }
@@ -220,14 +220,14 @@ struct quat_t
 
     // multiplication (*)
 
-    friend VX_FORCE_INLINE constexpr type operator*(const type& q, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator*(const type& q, T scalar)
     {
-        return type(q.w * scaler, q.x * scaler, q.y * scaler, q.z * scaler);
+        return type(q.w * scalar, q.x * scalar, q.y * scalar, q.z * scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator*(T scaler, const type& q)
+    friend VX_FORCE_INLINE constexpr type operator*(T scalar, const type& q)
     {
-        return type(scaler * q.w, scaler * q.x, scaler * q.y, scaler * q.z);
+        return type(scalar * q.w, scalar * q.x, scalar * q.y, scalar * q.z);
     }
 
     // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/arithmetic/index.htm
@@ -284,14 +284,14 @@ struct quat_t
 
     // division (/)
 
-    friend VX_FORCE_INLINE constexpr type operator/(const type& q, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator/(const type& q, T scalar)
     {
-        return type(q.w / scaler, q.x / scaler, q.y / scaler, q.z / scaler);
+        return type(q.w / scalar, q.x / scalar, q.y / scalar, q.z / scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator/(T scaler, const type& q)
+    friend VX_FORCE_INLINE constexpr type operator/(T scalar, const type& q)
     {
-        return scaler * inverse(q);
+        return scalar * inverse(q);
     }
 
     friend VX_FORCE_INLINE constexpr type operator/(const type& q1, const type& q2)
@@ -327,12 +327,12 @@ struct quat_t
 
     // multiplication (*=)
 
-    VX_FORCE_INLINE constexpr type& operator*=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator*=(T scalar)
     {
-        w *= scaler;
-        x *= scaler;
-        y *= scaler;
-        z *= scaler;
+        w *= scalar;
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
         return *this;
     }
 
@@ -344,12 +344,12 @@ struct quat_t
 
     // division (/=)
 
-    VX_FORCE_INLINE constexpr type& operator/=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator/=(T scalar)
     {
-        w /= scaler;
-        x /= scaler;
-        y /= scaler;
-        z /= scaler;
+        w /= scalar;
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
         return *this;
     }
 

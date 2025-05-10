@@ -9,7 +9,7 @@ namespace math {
 // pow
 ///////////////////////////////////////////////////////////////////////////////
 
-// scaler binary
+// scalar binary
 
 template <typename T, typename std::enable_if<std::is_floating_point<T>::value, bool>::type = true>
 VX_FORCE_INLINE constexpr vec<2, T> pow(

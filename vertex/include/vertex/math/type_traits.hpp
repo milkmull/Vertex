@@ -23,6 +23,13 @@ using true_t = bool_constant<true>;
 using false_t = bool_constant<false>;
 
 ///////////////////////////////////////////////////////////////////////////////
+// same
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename U>  struct is_same : false_t {};
+template <typename T> struct is_same<T, T> : true_t {};
+
+///////////////////////////////////////////////////////////////////////////////
 // is_float
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -60,8 +67,8 @@ template <> struct is_signed<i16> : true_t {};
 template <> struct is_signed<i32> : true_t {};
 template <> struct is_signed<i64> : true_t {};
 
-template <> struct is_float<f32> : true_t {};
-template <> struct is_float<d> : true_t {};
+template <> struct is_signed<f32> : true_t {};
+template <> struct is_signed<d> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_signed_int
@@ -93,6 +100,8 @@ template <> struct is_unsigned<u64> : true_t {};
 
 template <typename T> struct is_numeric : false_t {};
 
+template <> struct is_numeric<b> : true_t {};
+
 template <> struct is_numeric<i8> : true_t {};
 template <> struct is_numeric<i16> : true_t {};
 template <> struct is_numeric<i32> : true_t {};
@@ -107,16 +116,16 @@ template <> struct is_numeric<f32> : true_t {};
 template <> struct is_numeric<d> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
-// is_scaler
+// is_scalar
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct is_scaler : false_t {};
+template <typename T> struct is_scalar : false_t {};
 
-template <> struct is_scaler<b> : true_t {};
-template <> struct is_numeric<i32> : true_t {};
-template <> struct is_numeric<u32> : true_t {};
-template <> struct is_numeric<f32> : true_t {};
-template <> struct is_numeric<d> : true_t {};
+template <> struct is_scalar<b> : true_t {};
+template <> struct is_scalar<i32> : true_t {};
+template <> struct is_scalar<u32> : true_t {};
+template <> struct is_scalar<f32> : true_t {};
+template <> struct is_scalar<d> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // vector helpers
@@ -178,6 +187,10 @@ template <size_t M, size_t N, typename T> struct mat_height<mat<M, N, T>> : inte
 template <typename T> struct mat_type { using type = void; };
 template <size_t M, size_t N, typename T> struct mat_type<mat<M, N, T>> { using type = T; };
 
+// is_sqare_mat
+template <typename T> struct is_sqare_mat : false_t {};
+template <size_t M, size_t N, typename T> struct is_sqare_mat<mat<M, N, T>> : bool_constant<M == N> {};
+
 // is_float_mat
 template <typename T> struct is_float_mat : false_t {};
 template <size_t M, size_t N, typename T> struct is_float_mat<mat<M, N, T>> : is_float<T> {};
@@ -211,6 +224,31 @@ template <typename T> struct is_quat : false_t {};
 template <typename T> struct is_quat<quat_t<T>> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
+// scalar_type
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T> struct scalar_type { using type = void; };
+
+template <> struct scalar_type<b> { using type = b; };
+
+template <> struct scalar_type<i8> { using type = i8; };
+template <> struct scalar_type<i16> { using type = i16; };
+template <> struct scalar_type<i32> { using type = i32; };
+template <> struct scalar_type<i64> { using type = i64; };
+
+template <> struct scalar_type<u8> { using type = u8; };
+template <> struct scalar_type<u16> { using type = u16; };
+template <> struct scalar_type<u32> { using type = u32; };
+template <> struct scalar_type<u64> { using type = u64; };
+
+template <> struct scalar_type<f32> { using type = f32; };
+template <> struct scalar_type<d> { using type = d; };
+
+template <size_t L, typename T> struct scalar_type<vec<L, T>> { using type = T; };
+template <size_t M, size_t N, typename T> struct scalar_type<mat<M, N, T>> { using type = T; };
+template <typename T> struct scalar_type<quat_t<T>> { using type = T; };
+
+///////////////////////////////////////////////////////////////////////////////
 // requires
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -228,6 +266,7 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_FLOAT(type) VXM_REQ(is_float<type>::value)
 #define VXM_REQ_INT(type) VXM_REQ(is_int<type>::value)
 #define VXM_REQ_NUM(type) VXM_REQ(is_numeric<type>::value)
+#define VXM_REQ_NUM2(type1, type2) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value)
 
 } // namespace vx
 } // namespace math

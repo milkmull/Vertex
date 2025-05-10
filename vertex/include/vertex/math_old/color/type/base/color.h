@@ -17,7 +17,7 @@ struct color_t
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scaler_type = T;
+    using scalar_type = T;
     using type = color_t<T>;
 
     static VX_FORCE_INLINE constexpr size_t size() noexcept { return static_cast<size_t>(4); }
@@ -54,8 +54,8 @@ struct color_t
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr explicit color_t(T scaler)
-        : r(scaler), g(scaler), b(scaler), a(MAX_CHANNEL_VALUE) {}
+    VX_FORCE_INLINE constexpr explicit color_t(T scalar)
+        : r(scalar), g(scalar), b(scalar), a(MAX_CHANNEL_VALUE) {}
 
     VX_FORCE_INLINE constexpr color_t(T r, T g, T b, T a = MAX_CHANNEL_VALUE)
         : r(r), g(g), b(b), a(a) {}
@@ -68,10 +68,10 @@ struct color_t
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, typename std::enable_if<std::is_arithmetic<U>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr explicit color_t(U scaler)
-        : r(static_cast<T>(scaler))
-        , g(static_cast<T>(scaler))
-        , b(static_cast<T>(scaler))
+    VX_FORCE_INLINE constexpr explicit color_t(U scalar)
+        : r(static_cast<T>(scalar))
+        , g(static_cast<T>(scalar))
+        , b(static_cast<T>(scalar))
         , a(MAX_CHANNEL_VALUE) {}
 
     template <typename R, typename G, typename B, typename A, typename std::enable_if<
@@ -285,14 +285,14 @@ struct color_t
 
     // addition (+)
 
-    friend VX_FORCE_INLINE constexpr type operator+(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator+(const type& c, T scalar)
     {
-        return type(c.r + scaler, c.g + scaler, c.b + scaler, c.a + scaler);
+        return type(c.r + scalar, c.g + scalar, c.b + scalar, c.a + scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator+(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator+(T scalar, const type& c)
     {
-        return type(scaler + c.r, scaler + c.g, scaler + c.b, scaler + c.a);
+        return type(scalar + c.r, scalar + c.g, scalar + c.b, scalar + c.a);
     }
 
     friend VX_FORCE_INLINE constexpr type operator+(const type& c1, const type& c2)
@@ -302,14 +302,14 @@ struct color_t
 
     // subtraction (-)
 
-    friend VX_FORCE_INLINE constexpr type operator-(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator-(const type& c, T scalar)
     {
-        return type(c.r - scaler, c.g - scaler, c.b - scaler, c.a - scaler);
+        return type(c.r - scalar, c.g - scalar, c.b - scalar, c.a - scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator-(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator-(T scalar, const type& c)
     {
-        return type(scaler - c.r, scaler - c.g, scaler - c.b, scaler - c.a);
+        return type(scalar - c.r, scalar - c.g, scalar - c.b, scalar - c.a);
     }
 
     friend VX_FORCE_INLINE constexpr type operator-(const type& c1, const type& c2)
@@ -319,14 +319,14 @@ struct color_t
 
     // multiplication (*)
 
-    friend VX_FORCE_INLINE constexpr type operator*(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator*(const type& c, T scalar)
     {
-        return type(c.r * scaler, c.g * scaler, c.b * scaler, c.a * scaler);
+        return type(c.r * scalar, c.g * scalar, c.b * scalar, c.a * scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator*(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator*(T scalar, const type& c)
     {
-        return type(scaler * c.r, scaler * c.g, scaler * c.b, scaler * c.a);
+        return type(scalar * c.r, scalar * c.g, scalar * c.b, scalar * c.a);
     }
 
     friend VX_FORCE_INLINE constexpr type operator*(const type& c1, const type& c2)
@@ -336,14 +336,14 @@ struct color_t
 
     // division (/)
 
-    friend VX_FORCE_INLINE constexpr type operator/(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator/(const type& c, T scalar)
     {
-        return type(c.r / scaler, c.g / scaler, c.b / scaler, c.a / scaler);
+        return type(c.r / scalar, c.g / scalar, c.b / scalar, c.a / scalar);
     }
 
-    friend VX_FORCE_INLINE constexpr type operator/(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator/(T scalar, const type& c)
     {
-        return type(scaler / c.r, scaler / c.g, scaler / c.b, scaler / c.a);
+        return type(scalar / c.r, scalar / c.g, scalar / c.b, scalar / c.a);
     }
 
     friend VX_FORCE_INLINE constexpr type operator/(const type& c1, const type& c2)
@@ -354,15 +354,15 @@ struct color_t
     // modulo (%)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator%(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator%(const type& c, T scalar)
     {
-        return type(c.r % scaler, c.g % scaler, c.b % scaler, c.a % scaler);
+        return type(c.r % scalar, c.g % scalar, c.b % scalar, c.a % scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator%(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator%(T scalar, const type& c)
     {
-        return type(scaler % c.r, scaler % c.g, scaler % c.b, scaler % c.a);
+        return type(scalar % c.r, scalar % c.g, scalar % c.b, scalar % c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -378,15 +378,15 @@ struct color_t
     // and (&)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator&(const type& c, T scalar)
     {
-        return type(c.r & scaler, c.g & scaler, c.b & scaler, c.a & scaler);
+        return type(c.r & scalar, c.g & scalar, c.b & scalar, c.a & scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator&(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator&(T scalar, const type& c)
     {
-        return type(scaler & c.r, scaler & c.g, scaler & c.b, scaler & c.a);
+        return type(scalar & c.r, scalar & c.g, scalar & c.b, scalar & c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -398,15 +398,15 @@ struct color_t
     // or (|)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator|(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator|(const type& c, T scalar)
     {
-        return type(c.r | scaler, c.g | scaler, c.b | scaler, c.a | scaler);
+        return type(c.r | scalar, c.g | scalar, c.b | scalar, c.a | scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator|(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator|(T scalar, const type& c)
     {
-        return type(scaler | c.r, scaler | c.g, scaler | c.b, scaler | c.a);
+        return type(scalar | c.r, scalar | c.g, scalar | c.b, scalar | c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -418,15 +418,15 @@ struct color_t
     // ror (^)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator^(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator^(const type& c, T scalar)
     {
-        return type(c.r ^ scaler, c.g ^ scaler, c.b ^ scaler, c.a ^ scaler);
+        return type(c.r ^ scalar, c.g ^ scalar, c.b ^ scalar, c.a ^ scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator^(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator^(T scalar, const type& c)
     {
-        return type(scaler ^ c.r, scaler ^ c.g, scaler ^ c.b, scaler ^ c.a);
+        return type(scalar ^ c.r, scalar ^ c.g, scalar ^ c.b, scalar ^ c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -438,15 +438,15 @@ struct color_t
     // left shift (<<)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator<<(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator<<(const type& c, T scalar)
     {
-        return type(c.r << scaler, c.g << scaler, c.b << scaler, c.a << scaler);
+        return type(c.r << scalar, c.g << scalar, c.b << scalar, c.a << scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator<<(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator<<(T scalar, const type& c)
     {
-        return type(scaler << c.r, scaler << c.g, scaler << c.b, scaler << c.a);
+        return type(scalar << c.r, scalar << c.g, scalar << c.b, scalar << c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -458,15 +458,15 @@ struct color_t
     // right shift (>>)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator>>(const type& c, T scaler)
+    friend VX_FORCE_INLINE constexpr type operator>>(const type& c, T scalar)
     {
-        return type(c.r >> scaler, c.g >> scaler, c.b >> scaler, c.a >> scaler);
+        return type(c.r >> scalar, c.g >> scalar, c.b >> scalar, c.a >> scalar);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    friend VX_FORCE_INLINE constexpr type operator>>(T scaler, const type& c)
+    friend VX_FORCE_INLINE constexpr type operator>>(T scalar, const type& c)
     {
-        return type(scaler >> c.r, scaler >> c.g, scaler >> c.b, scaler >> c.a);
+        return type(scalar >> c.r, scalar >> c.g, scalar >> c.b, scalar >> c.a);
     }
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
@@ -489,12 +489,12 @@ struct color_t
 
     // addition (+=)
 
-    VX_FORCE_INLINE constexpr type& operator+=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator+=(T scalar)
     {
-        r += scaler;
-        g += scaler;
-        b += scaler;
-        a += scaler;
+        r += scalar;
+        g += scalar;
+        b += scalar;
+        a += scalar;
         return *this;
     }
 
@@ -509,12 +509,12 @@ struct color_t
 
     // subtraction (-=)
 
-    VX_FORCE_INLINE constexpr type& operator-=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator-=(T scalar)
     {
-        r -= scaler;
-        g -= scaler;
-        b -= scaler;
-        a -= scaler;
+        r -= scalar;
+        g -= scalar;
+        b -= scalar;
+        a -= scalar;
         return *this;
     }
 
@@ -529,12 +529,12 @@ struct color_t
 
     // multiplication (*=)
 
-    VX_FORCE_INLINE constexpr type& operator*=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator*=(T scalar)
     {
-        r *= scaler;
-        g *= scaler;
-        b *= scaler;
-        a *= scaler;
+        r *= scalar;
+        g *= scalar;
+        b *= scalar;
+        a *= scalar;
         return *this;
     }
 
@@ -549,12 +549,12 @@ struct color_t
 
     // division (/=)
 
-    VX_FORCE_INLINE constexpr type& operator/=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator/=(T scalar)
     {
-        r /= scaler;
-        g /= scaler;
-        b /= scaler;
-        a /= scaler;
+        r /= scalar;
+        g /= scalar;
+        b /= scalar;
+        a /= scalar;
         return *this;
     }
 
@@ -570,12 +570,12 @@ struct color_t
     // modulo (%=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator%=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator%=(T scalar)
     {
-        r %= scaler;
-        g %= scaler;
-        b %= scaler;
-        a %= scaler;
+        r %= scalar;
+        g %= scalar;
+        b %= scalar;
+        a %= scalar;
         return *this;
     }
 
@@ -596,12 +596,12 @@ struct color_t
     // and (&=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator&=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator&=(T scalar)
     {
-        r &= scaler;
-        g &= scaler;
-        b &= scaler;
-        a &= scaler;
+        r &= scalar;
+        g &= scalar;
+        b &= scalar;
+        a &= scalar;
         return *this;
     }
 
@@ -618,12 +618,12 @@ struct color_t
     // or (|=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator|=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator|=(T scalar)
     {
-        r |= scaler;
-        g |= scaler;
-        b |= scaler;
-        a |= scaler;
+        r |= scalar;
+        g |= scalar;
+        b |= scalar;
+        a |= scalar;
         return *this;
     }
 
@@ -640,12 +640,12 @@ struct color_t
     // xor (^=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator^=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator^=(T scalar)
     {
-        r ^= scaler;
-        g ^= scaler;
-        b ^= scaler;
-        a ^= scaler;
+        r ^= scalar;
+        g ^= scalar;
+        b ^= scalar;
+        a ^= scalar;
         return *this;
     }
 
@@ -662,12 +662,12 @@ struct color_t
     // left shift (<<=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator<<=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator<<=(T scalar)
     {
-        r <<= scaler;
-        g <<= scaler;
-        b <<= scaler;
-        a <<= scaler;
+        r <<= scalar;
+        g <<= scalar;
+        b <<= scalar;
+        a <<= scalar;
         return *this;
     }
 
@@ -684,12 +684,12 @@ struct color_t
     // right shift (>>=)
 
     template <typename U = T, typename std::enable_if<std::is_same<T, U>::value && std::is_integral<T>::value, bool>::type = true>
-    VX_FORCE_INLINE constexpr type& operator>>=(T scaler)
+    VX_FORCE_INLINE constexpr type& operator>>=(T scalar)
     {
-        r >>= scaler;
-        g >>= scaler;
-        b >>= scaler;
-        a >>= scaler;
+        r >>= scalar;
+        g >>= scalar;
+        b >>= scalar;
+        a >>= scalar;
         return *this;
     }
 

@@ -1,0 +1,7 @@
+
+#--------------------------------------------------------------------
+# Math Tests
+#--------------------------------------------------------------------
+
+vx_add_test(test_math_scalar    "math" "${CMAKE_CURRENT_SOURCE_DIR}/types/scalar.cpp")
+vx_add_test(test_math_vec2      "math" "${CMAKE_CURRENT_SOURCE_DIR}/types/vec2.cpp")

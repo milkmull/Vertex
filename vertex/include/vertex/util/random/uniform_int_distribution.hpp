@@ -219,10 +219,10 @@ private:
 namespace __detail {
 
 template <bool upscale>
-struct upscaler;
+struct upscalar;
 
 template <>
-struct upscaler<false> // rng range is greater than or equal to dist max range
+struct upscalar<false> // rng range is greater than or equal to dist max range
 {
     template <typename Dist, typename RNG, typename common_type>
     static inline common_type upscale(Dist&, RNG&, const common_type) noexcept
@@ -232,7 +232,7 @@ struct upscaler<false> // rng range is greater than or equal to dist max range
 };
 
 template <>
-struct upscaler<true> // rng range is smaller than dist max range
+struct upscalar<true> // rng range is smaller than dist max range
 {
     template <typename Dist, typename RNG, typename common_type>
     static inline common_type upscale(Dist& dist, RNG& rng, const common_type urange)
@@ -361,7 +361,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         // the distribution, this branch is effectively a no-op and never executed.
 
         VX_ASSERT(possible_upscale);
-        ret = __detail::upscaler<possible_upscale>::upscale(*this, rng, urange);
+        ret = __detail::upscalar<possible_upscale>::upscale(*this, rng, urange);
     }
 
     return static_cast<range_type>(ret + static_cast<common_type>(p.a()));

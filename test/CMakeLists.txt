@@ -92,6 +92,12 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os")
 
 #--------------------------------------------------------------------
+# Math Tests
+#--------------------------------------------------------------------
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/math")
+
+#--------------------------------------------------------------------
 # Summary Message
 #--------------------------------------------------------------------
 
