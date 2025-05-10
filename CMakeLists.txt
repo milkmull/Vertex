@@ -66,7 +66,7 @@ message(STATUS "Configuring Vertex build options...")
 
 # Option to build shared libraries if available
 if(VX_SHARED_AVAILABLE)
-    vx_set_option(VX_BUILD_SHARED_LIBS BOOL TRUE "Build shared libraries.")
+    vx_set_option(VX_BUILD_SHARED_LIBS BOOL FALSE "Build shared libraries.")
 endif()
 
 # Enable AddressSanitizer (ASan)
