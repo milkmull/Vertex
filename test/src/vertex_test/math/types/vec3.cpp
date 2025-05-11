@@ -12,6 +12,12 @@
 #include "vertex/math/types/vec/vec3f.hpp"
 #include "vertex/math/types/vec/vec3d.hpp"
 
+#include "vertex/math/types/vec/vec4b.hpp"
+#include "vertex/math/types/vec/vec4i.hpp"
+#include "vertex/math/types/vec/vec4u.hpp"
+#include "vertex/math/types/vec/vec4f.hpp"
+#include "vertex/math/types/vec/vec4d.hpp"
+
 using namespace vx::math;
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,11 +60,18 @@ VX_TEST_CASE(test_vec3b)
         check_each(vec3b(vec2i(0, 1), 0u), false, true, false);
         check_each(vec3b(1.0, vec2f(1, 0)), true, true, false);
 
-        // cast
+        // vec3
         check_each(static_cast<vec3b>(vec3i(0, 1, 0)), false, true, false);
         check_each(static_cast<vec3b>(vec3u(0u, 1u, 0u)), false, true, false);
         check_each(static_cast<vec3b>(vec3f(0.0f, 1.0f, 0.0f)), false, true, false);
         check_each(static_cast<vec3b>(vec3d(0.0, 1.0, 0.0)), false, true, false);
+
+        // vec4
+        check_each(static_cast<vec3b>(vec4b(true, false, true, false)), true, false, true);
+        check_each(static_cast<vec3b>(vec4i(0, 1, 0, 1)), false, true, false);
+        check_each(static_cast<vec3b>(vec4u(0u, 1u, 0u, 1u)), false, true, false);
+        check_each(static_cast<vec3b>(vec4f(0.0f, 1.0f, 0.0f, 1.0f)), false, true, false);
+        check_each(static_cast<vec3b>(vec4d(0.0, 1.0, 0.0, 1.0)), false, true, false);
     }
 
     VX_SECTION("assignment")
@@ -217,11 +230,18 @@ VX_TEST_CASE(test_vec3i)
         check_each(vec3i(vec2b(false, true), 24u), 0, 1, 24);
         check_each(vec3i(1.0f, vec2d(-37.5, 1.23)), 1, -37, 1);
 
-        // cast
+        // vec3
         check_each(static_cast<vec3i>(vec3b(false, true, false)), 0, 1, 0);
         check_each(static_cast<vec3i>(vec3u(1u, 2u, 3u)), 1, 2, 3);
         check_each(static_cast<vec3i>(vec3f(1.5f, 2.5f, 3.5f)), 1, 2, 3);
         check_each(static_cast<vec3i>(vec3d(0.5, 1.5, 2.5)), 0, 1, 2);
+
+        // vec4
+        check_each(static_cast<vec3i>(vec4b(true, false, true, false)), 1, 0, 1);
+        check_each(static_cast<vec3i>(vec4i(0, 1, 2, 3)), 0, 1, 2);
+        check_each(static_cast<vec3i>(vec4u(0u, 1u, 2u, 3u)), 0, 1, 2);
+        check_each(static_cast<vec3i>(vec4f(0.0f, 1.0f, 2.0f, 3.0f)), 0, 1, 2);
+        check_each(static_cast<vec3i>(vec4d(0.0, 1.0, 2.0, 3.0)), 0, 1, 2);
     }
 
     VX_SECTION("assignment")
@@ -553,11 +573,18 @@ VX_TEST_CASE(test_vec3u)
         check_each(vec3u(vec2b(false, true), 24), 0u, 1u, 24u);
         check_each(vec3u(1.0f, vec2(37.5, 1.23)), 1u, 37u, 1u);
 
-        // cast
+        // vec3
         check_each(static_cast<vec3u>(vec3b(false, true, false)), 0u, 1u, 0u);
         check_each(static_cast<vec3u>(vec3i(1, 2, 3)), 1u, 2u, 3u);
         check_each(static_cast<vec3u>(vec3f(1.5f, 2.5f, 3.5f)), 1u, 2u, 3u);
         check_each(static_cast<vec3u>(vec3d(0.5, 1.5, 2.5)), 0u, 1u, 2u);
+
+        // vec4
+        check_each(static_cast<vec3u>(vec4b(true, false, true, false)), 1u, 0u, 1u);
+        check_each(static_cast<vec3u>(vec4i(0, 1, 2, 3)), 0u, 1u, 2u);
+        check_each(static_cast<vec3u>(vec4u(0u, 1u, 2u, 3u)), 0u, 1u, 2u);
+        check_each(static_cast<vec3u>(vec4f(0.0f, 1.0f, 2.0f, 3.0f)), 0u, 1u, 2u);
+        check_each(static_cast<vec3u>(vec4d(0.0, 1.0, 2.0, 3.0)), 0u, 1u, 2u);
     }
 
     VX_SECTION("assignment")
@@ -876,11 +903,18 @@ VX_TEST_CASE(test_vec3f)
         check_each(vec3f(vec2b(false, true), 24u), 0.0f, 1.0f, 24.0f);
         check_each(vec3f(1.0f, vec2d(-37.5, 1.23)), 1.0f, -37.5f, 1.23f);
 
-        // cast
+        // vec3
         check_each(static_cast<vec3f>(vec3b(false, true, false)), 0.0f, 1.0f, 0.0f);
         check_each(static_cast<vec3f>(vec3i(1, -2, 3)), 1.0f, -2.0f, 3.0f);
         check_each(static_cast<vec3f>(vec3u(1u, 2u, 3u)), 1.0f, 2.0f, 3.0f);
         check_each(static_cast<vec3f>(vec3d(0.5, 1.5, 2.5)), 0.5f, 1.5f, 2.5f);
+
+        // vec4
+        check_each(static_cast<vec3f>(vec4b(true, false, true, false)), 1.0f, 0.0f, 1.0f);
+        check_each(static_cast<vec3f>(vec4i(0, 1, 2, 3)), 0.0f, 1.0f, 2.0f);
+        check_each(static_cast<vec3f>(vec4u(0u, 1u, 2u, 3u)), 0.0f, 1.0f, 2.0f);
+        check_each(static_cast<vec3f>(vec4f(0.0f, 1.0f, 2.0f, 3.0f)), 0.0f, 1.0f, 2.0f);
+        check_each(static_cast<vec3f>(vec4d(0.0, 1.0, 2.0, 3.0)), 0.0f, 1.0f, 2.0f);
     }
 
     VX_SECTION("assignment")
@@ -1119,11 +1153,18 @@ VX_TEST_CASE(test_vec3d)
         check_each(vec3d(vec2b(false, true), 24u), 0.0, 1.0, 24.0);
         check_each(vec3d(1.0f, vec2d(-37.5, 1.23)), 1.0, -37.5, 1.23);
 
-        // cast
+        // vec3
         check_each(static_cast<vec3d>(vec3b(false, true, false)), 0.0, 1.0, 0.0);
         check_each(static_cast<vec3d>(vec3i(1, -2, 3)), 1.0, -2.0, 3.0);
         check_each(static_cast<vec3d>(vec3u(1u, 2u, 3u)), 1.0, 2.0, 3.0);
         check_each(static_cast<vec3d>(vec3f(1.5f, 2.5f, 3.5f)), 1.5, 2.5, 3.5);
+
+        // vec4
+        check_each(static_cast<vec3d>(vec4b(true, false, true, false)), 1.0, 0.0, 1.0);
+        check_each(static_cast<vec3d>(vec4i(0, 1, 2, 3)), 0.0, 1.0, 2.0);
+        check_each(static_cast<vec3d>(vec4u(0u, 1u, 2u, 3u)), 0.0, 1.0, 2.0);
+        check_each(static_cast<vec3d>(vec4f(0.0f, 1.0f, 2.0f, 3.0f)), 0.0, 1.0, 2.0);
+        check_each(static_cast<vec3d>(vec4d(0.0, 1.0, 2.0, 3.0)), 0.0, 1.0, 2.0);
     }
 
     VX_SECTION("assignment")

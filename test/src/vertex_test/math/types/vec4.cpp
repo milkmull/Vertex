@@ -66,7 +66,7 @@ VX_TEST_CASE(test_vec4b)
         check_each(vec4b(5u, vec3d(1e5, 0.0, -5e-10)), true, true, false, true);
         check_each(vec4b(vec2b(true, true), vec2b(false, true)), true, true, false, true);
 
-        // cast
+        // vec4
         check_each(static_cast<vec4b>(vec4i(0, 1, 0, 2)), false, true, false, true);
         check_each(static_cast<vec4b>(vec4u(0u, 1u, 0u, 2u)), false, true, false, true);
         check_each(static_cast<vec4b>(vec4f(0.0f, 1.0f, 0.0f, 0.5f)), false, true, false, true);
@@ -244,7 +244,7 @@ VX_TEST_CASE(test_vec4i)
         check_each(vec4i(5u, vec3d(1e5, 0.0, -5e-10)), 5, 100000, 0, 0);
         check_each(vec4i(vec2b(true, true), vec2b(false, true)), 1, 1, 0, 1);
 
-        // cast
+        // vec4
         check_each(static_cast<vec4i>(vec4b(true, false, true, true)), 1, 0, 1, 1);
         check_each(static_cast<vec4i>(vec4u(0u, 1u, 2u, 3u)), 0, 1, 2, 3);
         check_each(static_cast<vec4i>(vec4f(0.0f, 1.0f, 2.0f, 3.5f)), 0, 1, 2, 3);
@@ -581,7 +581,7 @@ VX_TEST_CASE(test_vec4u)
         check_each(vec4u(5, vec3d(1e5, 0.0, 3.9)), 5u, 100000u, 0u, 3u);
         check_each(vec4u(vec2b(true, true), vec2b(false, true)), 1u, 1u, 0u, 1u);
 
-        // cast
+        // vec4
         check_each(static_cast<vec4u>(vec4b(true, false, true, false)), 1u, 0u, 1u, 0u);
         check_each(static_cast<vec4u>(vec4i(0, 1, 2, 3)), 0u, 1u, 2u, 3u);
         check_each(static_cast<vec4u>(vec4f(0.0f, 1.0f, 2.0f, 3.5f)), 0u, 1u, 2u, 3u);
@@ -915,7 +915,7 @@ VX_TEST_CASE(test_vec4f)
         check_each(vec4f(5u, vec3d(1e5, 0.0, -5e-10)), 5.0f, 100000.0f, 0.0f, -5e-10f);
         check_each(vec4f(vec2b(true, true), vec2b(false, true)), 1.0f, 1.0f, 0.0f, 1.0f);
 
-        // cast
+        // vec4
         check_each(static_cast<vec4f>(vec4b(true, false, true, false)), 1.0f, 0.0f, 1.0f, 0.0f);
         check_each(static_cast<vec4f>(vec4i(0, 1, 2, 3)), 0.0f, 1.0f, 2.0f, 3.0f);
         check_each(static_cast<vec4f>(vec4u(0u, 1u, 2u, 3u)), 0.0f, 1.0f, 2.0f, 3.0f);
@@ -1161,7 +1161,7 @@ VX_TEST_CASE(test_vec4d)
         check_each(vec4d(5, vec3f(1e5f, 0.0f, -1.5)), 5.0, 100000.0, 0.0, -1.5);
         check_each(vec4d(vec2b(true, true), vec2b(false, true)), 1.0, 1.0, 0.0, 1.0);
 
-        // cast
+        // vec4
         check_each(static_cast<vec4d>(vec4b(true, false, true, false)), 1.0, 0.0, 1.0, 0.0);
         check_each(static_cast<vec4d>(vec4i(0, 1, 2, 3)), 0.0, 1.0, 2.0, 3.0);
         check_each(static_cast<vec4d>(vec4u(0u, 1u, 2u, 3u)), 0.0, 1.0, 2.0, 3.0);
