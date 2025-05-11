@@ -29,7 +29,12 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec4f.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec4d.hpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/fn/scalar.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/comparison.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/exponential.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/interpolation.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/trigonometric.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/vec.hpp"
 )
 
