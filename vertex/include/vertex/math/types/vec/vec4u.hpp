@@ -44,8 +44,8 @@ struct vec<4, u>
     VX_FORCE_INLINE constexpr explicit vec(scalar_type scalar) noexcept
         : x(scalar), y(scalar), z(scalar), w(scalar) {}
 
-    VX_FORCE_INLINE constexpr vec(scalar_type x, scalar_type y, scalar_type z, scalar_type w) noexcept
-        : x(x), y(y), z(z), w(w) {}
+    VX_FORCE_INLINE constexpr vec(scalar_type vx, scalar_type vy, scalar_type vz, scalar_type vw) noexcept
+        : x(vx), y(vy), z(vz), w(vw) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // conversion constructors
@@ -59,43 +59,43 @@ struct vec<4, u>
         , w(static_cast<scalar_type>(scalar)) {}
 
     template <typename X, typename Y, typename Z, typename W, VXM_REQ_NUM4(X, Y, Z, W)>
-    VX_FORCE_INLINE constexpr vec(X x, Y y, Z z, W w) noexcept
-        : x(static_cast<scalar_type>(x))
-        , y(static_cast<scalar_type>(y))
-        , z(static_cast<scalar_type>(z))
-        , w(static_cast<scalar_type>(w)) {}
+    VX_FORCE_INLINE constexpr vec(X vx, Y vy, Z vz, W vw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vy))
+        , z(static_cast<scalar_type>(vz))
+        , w(static_cast<scalar_type>(vw)) {}
 
     template <typename XY, typename Z, typename W, VXM_REQ_NUM3(XY, Z, W)>
-    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, Z z, W w) noexcept
+    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, Z vz, W vw) noexcept
         : x(static_cast<scalar_type>(vxy.x))
         , y(static_cast<scalar_type>(vxy.y))
-        , z(static_cast<scalar_type>(z))
-        , w(static_cast<scalar_type>(w)) {}
+        , z(static_cast<scalar_type>(vz))
+        , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename YZ, typename W, VXM_REQ_NUM3(X, YZ, W)>
-    VX_FORCE_INLINE constexpr vec(X x, const vec<2, YZ>& vyz, W w) noexcept
-        : x(static_cast<scalar_type>(x))
+    VX_FORCE_INLINE constexpr vec(X vx, const vec<2, YZ>& vyz, W vw) noexcept
+        : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vyz.x))
         , z(static_cast<scalar_type>(vyz.y))
-        , w(static_cast<scalar_type>(w)) {}
+        , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename Y, typename ZW, VXM_REQ_NUM3(X, Y, ZW)>
-    VX_FORCE_INLINE constexpr vec(X x, Y y, const vec<2, ZW>& vzw) noexcept
-        : x(static_cast<scalar_type>(x))
-        , y(static_cast<scalar_type>(y))
+    VX_FORCE_INLINE constexpr vec(X vx, Y vy, const vec<2, ZW>& vzw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vy))
         , z(static_cast<scalar_type>(vzw.x))
         , w(static_cast<scalar_type>(vzw.y)) {}
 
     template <typename XYZ, typename W, VXM_REQ_NUM2(XYZ, W)>
-    VX_FORCE_INLINE constexpr vec(const vec<3, XYZ>& vxyz, W w) noexcept
+    VX_FORCE_INLINE constexpr vec(const vec<3, XYZ>& vxyz, W vw) noexcept
         : x(static_cast<scalar_type>(vxyz.x))
         , y(static_cast<scalar_type>(vxyz.y))
         , z(static_cast<scalar_type>(vxyz.z))
-        , w(static_cast<scalar_type>(w)) {}
+        , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename YZW, VXM_REQ_NUM2(X, YZW)>
-    VX_FORCE_INLINE constexpr vec(X x, const vec<3, YZW>& vyzw) noexcept
-        : x(static_cast<scalar_type>(x))
+    VX_FORCE_INLINE constexpr vec(X vx, const vec<3, YZW>& vyzw) noexcept
+        : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vyzw.x))
         , z(static_cast<scalar_type>(vyzw.y))
         , w(static_cast<scalar_type>(vyzw.z)) {}

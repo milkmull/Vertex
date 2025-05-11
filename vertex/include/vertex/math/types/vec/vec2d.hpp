@@ -42,8 +42,8 @@ struct vec<2, d>
     VX_FORCE_INLINE constexpr explicit vec(scalar_type scalar) noexcept
         : x(scalar), y(scalar) {}
 
-    VX_FORCE_INLINE constexpr vec(scalar_type x, scalar_type y) noexcept
-        : x(x), y(y) {}
+    VX_FORCE_INLINE constexpr vec(scalar_type vx, scalar_type vy) noexcept
+        : x(vx), y(vy) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // conversion constructors
@@ -55,9 +55,9 @@ struct vec<2, d>
         , y(static_cast<scalar_type>(scalar)) {}
 
     template <typename X, typename Y, VXM_REQ_NUM2(X, Y)>
-    VX_FORCE_INLINE constexpr vec(X x, Y y) noexcept
-        : x(static_cast<scalar_type>(x))
-        , y(static_cast<scalar_type>(y)) {}
+    VX_FORCE_INLINE constexpr vec(X vx, Y vy) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vy)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec(const vec<2, U>& v) noexcept
