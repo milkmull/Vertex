@@ -17,22 +17,16 @@ using i8 = int8_t;
 using i16 = int16_t;
 using i32 = int32_t;
 using i64 = int64_t;
-using i = i32;
 
 // uint
 using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
 using u64 = uint64_t;
-using u = u32;
 
 // float
 using f32 = float;
-using f = f32;
-
-// double
 using f64 = double;
-using d = f64;
 
 ///////////////////////////////////////////////////////////////////////////////
 // vector types
@@ -46,24 +40,24 @@ using vec3b = vec<3, b>;
 using vec4b = vec<4, b>;
 
 // int
-using vec2i = vec<2, i>;
-using vec3i = vec<3, i>;
-using vec4i = vec<4, i>;
+using vec2i = vec<2, i32>;
+using vec3i = vec<3, i32>;
+using vec4i = vec<4, i32>;
 
 // uint
-using vec2u = vec<2, u>;
-using vec3u = vec<3, u>;
-using vec4u = vec<4, u>;
+using vec2u = vec<2, u32>;
+using vec3u = vec<3, u32>;
+using vec4u = vec<4, u32>;
 
 // float
-using vec2f = vec<2, f>;
-using vec3f = vec<3, f>;
-using vec4f = vec<4, f>;
+using vec2f = vec<2, f32>;
+using vec3f = vec<3, f32>;
+using vec4f = vec<4, f32>;
 
 // double
-using vec2d = vec<2, d>;
-using vec3d = vec<3, d>;
-using vec4d = vec<4, d>;
+using vec2d = vec<2, f64>;
+using vec3d = vec<3, f64>;
+using vec4d = vec<4, f64>;
 
 // generic
 using vec2 = vec2f;
@@ -137,15 +131,15 @@ using mat3f = mat3x3f;
 using mat4f = mat4x4f;
 
 // double
-using mat2x2d = mat<2, 2, d>;
-using mat2x3d = mat<2, 3, d>;
-using mat2x4d = mat<2, 4, d>;
-using mat3x2d = mat<3, 2, d>;
-using mat3x3d = mat<3, 3, d>;
-using mat3x4d = mat<3, 4, d>;
-using mat4x2d = mat<4, 2, d>;
-using mat4x3d = mat<4, 3, d>;
-using mat4x4d = mat<4, 4, d>;
+using mat2x2d = mat<2, 2, f64>;
+using mat2x3d = mat<2, 3, f64>;
+using mat2x4d = mat<2, 4, f64>;
+using mat3x2d = mat<3, 2, f64>;
+using mat3x3d = mat<3, 3, f64>;
+using mat3x4d = mat<3, 4, f64>;
+using mat4x2d = mat<4, 2, f64>;
+using mat4x3d = mat<4, 3, f64>;
+using mat4x4d = mat<4, 4, f64>;
 
 using mat2d = mat2x2d;
 using mat3d = mat3x3d;
@@ -166,7 +160,7 @@ template <typename T> struct quat_t;
 using quatf = quat_t<f32>;
 
 // double
-using quatd = quat_t<d>;
+using quatd = quat_t<f64>;
 
 // generic
 using quat = quatf;

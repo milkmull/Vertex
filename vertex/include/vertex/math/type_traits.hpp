@@ -36,7 +36,7 @@ template <typename T> struct is_same<T, T> : true_t {};
 template <typename T> struct is_float : false_t {};
 
 template <> struct is_float<f32> : true_t {};
-template <> struct is_float<d> : true_t {};
+template <> struct is_float<f64> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_int
@@ -68,7 +68,7 @@ template <> struct is_signed<i32> : true_t {};
 template <> struct is_signed<i64> : true_t {};
 
 template <> struct is_signed<f32> : true_t {};
-template <> struct is_signed<d> : true_t {};
+template <> struct is_signed<f64> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_signed_int
@@ -113,7 +113,7 @@ template <> struct is_numeric<u32> : true_t {};
 template <> struct is_numeric<u64> : true_t {};
 
 template <> struct is_numeric<f32> : true_t {};
-template <> struct is_numeric<d> : true_t {};
+template <> struct is_numeric<f64> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_scalar
@@ -125,7 +125,7 @@ template <> struct is_scalar<b> : true_t {};
 template <> struct is_scalar<i32> : true_t {};
 template <> struct is_scalar<u32> : true_t {};
 template <> struct is_scalar<f32> : true_t {};
-template <> struct is_scalar<d> : true_t {};
+template <> struct is_scalar<f64> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // vector helpers
@@ -242,7 +242,7 @@ template <> struct scalar_type<u32> { using type = u32; };
 template <> struct scalar_type<u64> { using type = u64; };
 
 template <> struct scalar_type<f32> { using type = f32; };
-template <> struct scalar_type<d> { using type = d; };
+template <> struct scalar_type<f64> { using type = f64; };
 
 template <size_t L, typename T> struct scalar_type<vec<L, T>> { using type = T; };
 template <size_t M, size_t N, typename T> struct scalar_type<mat<M, N, T>> { using type = T; };

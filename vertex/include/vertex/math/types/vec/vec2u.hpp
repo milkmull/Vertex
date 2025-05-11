@@ -6,13 +6,13 @@ namespace vx {
 namespace math {
 
 template <>
-struct vec<2, u>
+struct vec<2, u32>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = u;
+    using scalar_type = u32;
     using type = vec<2, scalar_type>;
     static constexpr size_t size = 2;
 

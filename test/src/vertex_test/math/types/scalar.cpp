@@ -23,7 +23,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(sizeof(u64) == 8);
 
         VX_STATIC_CHECK(sizeof(f32) == 4);
-        VX_STATIC_CHECK(sizeof(d) == 8);
+        VX_STATIC_CHECK(sizeof(f64) == 8);
     }
 
     VX_SECTION("is_float")
@@ -41,7 +41,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(!is_float<u64>::value);
 
         VX_STATIC_CHECK(is_float<f32>::value);
-        VX_STATIC_CHECK(is_float<d>::value);
+        VX_STATIC_CHECK(is_float<f64>::value);
     }
 
     VX_SECTION("is_int")
@@ -59,7 +59,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(is_int<u64>::value);
 
         VX_STATIC_CHECK(!is_int<f32>::value);
-        VX_STATIC_CHECK(!is_int<d>::value);
+        VX_STATIC_CHECK(!is_int<f64>::value);
     }
 
     VX_SECTION("is_signed")
@@ -77,7 +77,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(!is_signed<u64>::value);
 
         VX_STATIC_CHECK(is_signed<f32>::value);
-        VX_STATIC_CHECK(is_signed<d>::value);
+        VX_STATIC_CHECK(is_signed<f64>::value);
     }
 
     VX_SECTION("is_signed_int")
@@ -95,7 +95,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(!is_signed_int<u64>::value);
 
         VX_STATIC_CHECK(!is_signed_int<f32>::value);
-        VX_STATIC_CHECK(!is_signed_int<d>::value);
+        VX_STATIC_CHECK(!is_signed_int<f64>::value);
     }
 
     VX_SECTION("is_unsigned")
@@ -113,7 +113,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(is_unsigned<u64>::value);
 
         VX_STATIC_CHECK(!is_unsigned<f32>::value);
-        VX_STATIC_CHECK(!is_unsigned<d>::value);
+        VX_STATIC_CHECK(!is_unsigned<f64>::value);
     }
 
     VX_SECTION("is_numeric")
@@ -131,7 +131,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(is_numeric<u64>::value);
 
         VX_STATIC_CHECK(is_numeric<f32>::value);
-        VX_STATIC_CHECK(is_numeric<d>::value);
+        VX_STATIC_CHECK(is_numeric<f64>::value);
     }
 
     VX_SECTION("is_scalar")
@@ -149,7 +149,7 @@ VX_TEST_CASE(test_traits)
         VX_STATIC_CHECK(!is_scalar<u64>::value);
 
         VX_STATIC_CHECK(is_scalar<f32>::value);
-        VX_STATIC_CHECK(is_scalar<d>::value);
+        VX_STATIC_CHECK(is_scalar<f64>::value);
     }
 }
 

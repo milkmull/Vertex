@@ -207,7 +207,7 @@ VX_TEST_CASE(test_vec4i)
 {
     VX_SECTION("scalar type")
     {
-        VX_STATIC_CHECK((is_same<typename vec4i::scalar_type, i>::value));
+        VX_STATIC_CHECK((is_same<typename vec4i::scalar_type, i32>::value));
     }
 
     VX_SECTION("size")
@@ -544,7 +544,7 @@ VX_TEST_CASE(test_vec4u)
 {
     VX_SECTION("scalar type")
     {
-        VX_STATIC_CHECK((is_same<typename vec4u::scalar_type, u>::value));
+        VX_STATIC_CHECK((is_same<typename vec4u::scalar_type, u32>::value));
     }
 
     VX_SECTION("size")
@@ -878,7 +878,7 @@ VX_TEST_CASE(test_vec4f)
 {
     VX_SECTION("scalar type")
     {
-        VX_STATIC_CHECK((is_same<typename vec4f::scalar_type, f>::value));
+        VX_STATIC_CHECK((is_same<typename vec4f::scalar_type, f32>::value));
     }
 
     VX_SECTION("size")
@@ -1122,7 +1122,7 @@ VX_TEST_CASE(test_vec4d)
 {
     VX_SECTION("scalar type")
     {
-        VX_STATIC_CHECK((is_same<typename vec4d::scalar_type, d>::value));
+        VX_STATIC_CHECK((is_same<typename vec4d::scalar_type, f64>::value));
     }
 
     VX_SECTION("size")
