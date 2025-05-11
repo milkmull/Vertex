@@ -68,7 +68,7 @@ struct vec<3, u>
         , y(static_cast<scalar_type>(vxy.y))
         , z(static_cast<scalar_type>(z)) {}
 
-    template <typename X, typename YZ, VXM_REQ_NUM2(X, YZ)>
+    template <typename X, typename YZ, typename __detail::enable_if<(is_numeric<X>::value&& is_numeric<YZ>::value), int>::type = 0>
     VX_FORCE_INLINE constexpr vec(X x, const vec<2, YZ>& vyz) noexcept
         : x(static_cast<scalar_type>(x))
         , y(static_cast<scalar_type>(vyz.x))
@@ -109,9 +109,9 @@ struct vec<3, u>
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr type& operator=(const vec<3, U>& v) noexcept
     {
-        x = v.x;
-        y = v.y;
-        z = v.z;
+        x = static_cast<scalar_type>(v.x);
+        y = static_cast<scalar_type>(v.y);
+        z = static_cast<scalar_type>(v.z);
         return *this;
     }
 

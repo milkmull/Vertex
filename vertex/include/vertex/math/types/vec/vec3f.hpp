@@ -110,9 +110,9 @@ struct vec<3, f>
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr type& operator=(const vec<3, U>& v) noexcept
     {
-        x = v.x;
-        y = v.y;
-        z = v.z;
+        x = static_cast<scalar_type>(v.x);
+        y = static_cast<scalar_type>(v.y);
+        z = static_cast<scalar_type>(v.z);
         return *this;
     }
 

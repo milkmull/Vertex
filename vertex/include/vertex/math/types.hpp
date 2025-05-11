@@ -46,19 +46,19 @@ using vec3b = vec<3, b>;
 using vec4b = vec<4, b>;
 
 // int
-using vec2i = vec<2, i32>;
-using vec3i = vec<3, i32>;
-using vec4i = vec<4, i32>;
+using vec2i = vec<2, i>;
+using vec3i = vec<3, i>;
+using vec4i = vec<4, i>;
 
 // uint
-using vec2u = vec<2, u32>;
-using vec3u = vec<3, u32>;
-using vec4u = vec<4, u32>;
+using vec2u = vec<2, u>;
+using vec3u = vec<3, u>;
+using vec4u = vec<4, u>;
 
 // float
-using vec2f = vec<2, f32>;
-using vec3f = vec<3, f32>;
-using vec4f = vec<4, f32>;
+using vec2f = vec<2, f>;
+using vec3f = vec<3, f>;
+using vec4f = vec<4, f>;
 
 // double
 using vec2d = vec<2, d>;
