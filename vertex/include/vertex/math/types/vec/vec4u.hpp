@@ -72,6 +72,13 @@ struct vec<4, u>
         , z(static_cast<scalar_type>(z))
         , w(static_cast<scalar_type>(w)) {}
 
+    template <typename X, typename YZ, typename W, VXM_REQ_NUM3(X, YZ, W)>
+    VX_FORCE_INLINE constexpr vec(X x, const vec<2, YZ>& vyz, W w) noexcept
+        : x(static_cast<scalar_type>(x))
+        , y(static_cast<scalar_type>(vyz.x))
+        , z(static_cast<scalar_type>(vyz.y))
+        , w(static_cast<scalar_type>(w)) {}
+
     template <typename X, typename Y, typename ZW, VXM_REQ_NUM3(X, Y, ZW)>
     VX_FORCE_INLINE constexpr vec(X x, Y y, const vec<2, ZW>& vzw) noexcept
         : x(static_cast<scalar_type>(x))
