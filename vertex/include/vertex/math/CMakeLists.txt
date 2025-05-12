@@ -32,6 +32,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/comparison.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/exponential.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/fn/geometric.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/interpolation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/trigonometric.hpp"
     

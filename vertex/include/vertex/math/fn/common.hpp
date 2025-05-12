@@ -683,7 +683,7 @@ VX_FORCE_INLINE constexpr vec<4, T> fma(
 // scalar
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T frexp(T x, i& exp) noexcept
+VX_FORCE_INLINE constexpr T frexp(T x, i32& exp) noexcept
 {
     return std::frexp(x, &exp);
 }
@@ -693,7 +693,7 @@ VX_FORCE_INLINE constexpr T frexp(T x, i& exp) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> frexp(
     const vec<2, T>& x,
-    vec<2, i>& exp
+    vec<2, i32>& exp
 ) noexcept
 {
     return vec<2, T>(frexp(x.x, exp.x), frexp(x.y, exp.y));
@@ -702,7 +702,7 @@ VX_FORCE_INLINE constexpr vec<2, T> frexp(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> frexp(
     const vec<3, T>& x,
-    vec<3, i>& exp
+    vec<3, i32>& exp
 ) noexcept
 {
     return vec<3, T>(frexp(x.x, exp.x), frexp(x.y, exp.y), frexp(x.z, exp.z));
@@ -711,7 +711,7 @@ VX_FORCE_INLINE constexpr vec<3, T> frexp(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> frexp(
     const vec<4, T>& x,
-    vec<4, i>& exp
+    vec<4, i32>& exp
 ) noexcept
 {
     return vec<4, T>(frexp(x.x, exp.x), frexp(x.y, exp.y), frexp(x.z, exp.z), frexp(x.w, exp.w));
@@ -724,7 +724,7 @@ VX_FORCE_INLINE constexpr vec<4, T> frexp(
 // scalar
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T ldexp(T x, i exp) noexcept
+VX_FORCE_INLINE constexpr T ldexp(T x, i32 exp) noexcept
 {
     return std::ldexp(x, exp);
 }
@@ -734,7 +734,7 @@ VX_FORCE_INLINE constexpr T ldexp(T x, i exp) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> ldexp(
     const vec<2, T>& x,
-    const vec<2, i>& exp
+    const vec<2, i32>& exp
 ) noexcept
 {
     return vec<2, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y));
@@ -743,7 +743,7 @@ VX_FORCE_INLINE constexpr vec<2, T> ldexp(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> ldexp(
     const vec<3, T>& x,
-    const vec<3, i>& exp
+    const vec<3, i32>& exp
 ) noexcept
 {
     return vec<3, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y), ldexp(x.z, exp.z));
@@ -752,7 +752,7 @@ VX_FORCE_INLINE constexpr vec<3, T> ldexp(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> ldexp(
     const vec<4, T>& x,
-    const vec<4, i>& exp
+    const vec<4, i32>& exp
 ) noexcept
 {
     return vec<4, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y), ldexp(x.z, exp.z), ldexp(x.w, exp.w));
