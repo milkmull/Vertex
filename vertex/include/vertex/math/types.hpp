@@ -62,8 +62,11 @@ template <> struct get_component_type<f64> { static constexpr auto value = compo
 // vector types
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, __detail::component_type> struct vec_t;
-template <size_t L, typename T> using vec = vec_t<L, T, __detail::get_component_type<T>::value>;
+template <size_t L, typename T, __detail::component_type>
+struct vec_t;
+
+template <size_t L, typename T>
+using vec = vec_t<L, T, __detail::get_component_type<T>::value>;
 
 // bool
 using vec2b = vec<2, b>;
@@ -99,7 +102,11 @@ using vec4 = vec4f;
 // matrix types
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t M, size_t N, typename T> struct mat;
+template <size_t M, size_t N, typename T, __detail::component_type>
+struct mat_t;
+
+template <size_t M, size_t N, typename T>
+using mat = mat_t<M, N, T, __detail::get_component_type<T>::value>;
 
 // bool
 using mat2x2b = mat<2, 2, b>;
@@ -185,7 +192,8 @@ using mat4 = mat4f;
 // quaternion types
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T> struct quat_t;
+template <typename T>
+struct quat_t;
 
 // float
 using quatf = quat_t<f32>;
