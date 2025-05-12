@@ -5,15 +5,15 @@
 namespace vx {
 namespace math {
 
-template <>
-struct vec<2, f32>
+template <typename T>
+struct vec_t<2, T, __detail::component_type::_f>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = f32;
-    using type = vec<2, scalar_type>;
+    using scalar_type = T;
+    using type = vec_t<2, scalar_type, __detail::component_type::_f>;
     static constexpr size_t size = 2;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -26,23 +26,23 @@ struct vec<2, f32>
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr vec() noexcept
+    VX_FORCE_INLINE constexpr vec_t() noexcept
         : x(static_cast<scalar_type>(0))
         , y(static_cast<scalar_type>(0)) {}
 
-    VX_FORCE_INLINE constexpr vec(const type& v) noexcept
+    VX_FORCE_INLINE constexpr vec_t(const type& v) noexcept
         : x(v.x), y(v.y) {}
 
-    VX_FORCE_INLINE constexpr vec(type&&) noexcept = default;
+    VX_FORCE_INLINE constexpr vec_t(type&&) noexcept = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr explicit vec(scalar_type scalar) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(scalar_type scalar) noexcept
         : x(scalar), y(scalar) {}
 
-    VX_FORCE_INLINE constexpr vec(scalar_type vx, scalar_type vy) noexcept
+    VX_FORCE_INLINE constexpr vec_t(scalar_type vx, scalar_type vy) noexcept
         : x(vx), y(vy) {}
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -50,27 +50,27 @@ struct vec<2, f32>
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(U scalar) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(U scalar) noexcept
         : x(static_cast<scalar_type>(scalar))
         , y(static_cast<scalar_type>(scalar)) {}
 
     template <typename X, typename Y, VXM_REQ_NUM2(X, Y)>
-    VX_FORCE_INLINE constexpr vec(X vx, Y vy) noexcept
+    VX_FORCE_INLINE constexpr vec_t(X vx, Y vy) noexcept
         : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vy)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<2, U>& v) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(const vec<2, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
         , y(static_cast<scalar_type>(v.y)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<3, U>& v) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(const vec<3, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
         , y(static_cast<scalar_type>(v.y)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<4, U>& v) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(const vec<4, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
         , y(static_cast<scalar_type>(v.y)) {}
 
@@ -78,7 +78,7 @@ struct vec<2, f32>
     // destructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    ~vec() noexcept = default;
+    ~vec_t() noexcept = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators

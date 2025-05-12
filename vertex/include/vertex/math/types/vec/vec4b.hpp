@@ -7,15 +7,15 @@
 namespace vx {
 namespace math {
 
-template <>
-struct vec<4, b>
+template <typename T>
+struct vec_t<4, T, __detail::component_type::_b>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = b;
-    using type = vec<4, scalar_type>;
+    using scalar_type = T;
+    using type = vec_t<4, scalar_type, __detail::component_type::_b>;
     static constexpr size_t size = 4;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -28,25 +28,25 @@ struct vec<4, b>
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr vec() noexcept
+    VX_FORCE_INLINE constexpr vec_t() noexcept
         : x(static_cast<scalar_type>(0))
         , y(static_cast<scalar_type>(0))
         , z(static_cast<scalar_type>(0))
         , w(static_cast<scalar_type>(0)) {}
 
-    VX_FORCE_INLINE constexpr vec(const type& v) noexcept
+    VX_FORCE_INLINE constexpr vec_t(const type& v) noexcept
         : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
-    VX_FORCE_INLINE constexpr vec(type&&) noexcept = default;
+    VX_FORCE_INLINE constexpr vec_t(type&&) noexcept = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr explicit vec(scalar_type scalar) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(scalar_type scalar) noexcept
         : x(scalar), y(scalar), z(scalar), w(scalar) {}
 
-    VX_FORCE_INLINE constexpr vec(scalar_type vx, scalar_type vy, scalar_type vz, scalar_type vw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(scalar_type vx, scalar_type vy, scalar_type vz, scalar_type vw) noexcept
         : x(vx), y(vy), z(vz), w(vw) {}
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -54,63 +54,63 @@ struct vec<4, b>
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(U scalar) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(U scalar) noexcept
         : x(static_cast<scalar_type>(scalar))
         , y(static_cast<scalar_type>(scalar))
         , z(static_cast<scalar_type>(scalar))
         , w(static_cast<scalar_type>(scalar)) {}
 
     template <typename X, typename Y, typename Z, typename W, VXM_REQ_NUM4(X, Y, Z, W)>
-    VX_FORCE_INLINE constexpr vec(X vx, Y vy, Z vz, W vw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(X vx, Y vy, Z vz, W vw) noexcept
         : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vy))
         , z(static_cast<scalar_type>(vz))
         , w(static_cast<scalar_type>(vw)) {}
 
     template <typename XY, typename Z, typename W, VXM_REQ_NUM3(XY, Z, W)>
-    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, Z vz, W vw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(const vec<2, XY>& vxy, Z vz, W vw) noexcept
         : x(static_cast<scalar_type>(vxy.x))
         , y(static_cast<scalar_type>(vxy.y))
         , z(static_cast<scalar_type>(vz))
         , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename YZ, typename W, VXM_REQ_NUM3(X, YZ, W)>
-    VX_FORCE_INLINE constexpr vec(X vx, const vec<2, YZ>& vyz, W vw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(X vx, const vec<2, YZ>& vyz, W vw) noexcept
         : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vyz.x))
         , z(static_cast<scalar_type>(vyz.y))
         , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename Y, typename ZW, VXM_REQ_NUM3(X, Y, ZW)>
-    VX_FORCE_INLINE constexpr vec(X vx, Y vy, const vec<2, ZW>& vzw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(X vx, Y vy, const vec<2, ZW>& vzw) noexcept
         : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vy))
         , z(static_cast<scalar_type>(vzw.x))
         , w(static_cast<scalar_type>(vzw.y)) {}
 
     template <typename XYZ, typename W, VXM_REQ_NUM2(XYZ, W)>
-    VX_FORCE_INLINE constexpr vec(const vec<3, XYZ>& vxyz, W vw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(const vec<3, XYZ>& vxyz, W vw) noexcept
         : x(static_cast<scalar_type>(vxyz.x))
         , y(static_cast<scalar_type>(vxyz.y))
         , z(static_cast<scalar_type>(vxyz.z))
         , w(static_cast<scalar_type>(vw)) {}
 
     template <typename X, typename YZW, VXM_REQ_NUM2(X, YZW)>
-    VX_FORCE_INLINE constexpr vec(X vx, const vec<3, YZW>& vyzw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(X vx, const vec<3, YZW>& vyzw) noexcept
         : x(static_cast<scalar_type>(vx))
         , y(static_cast<scalar_type>(vyzw.x))
         , z(static_cast<scalar_type>(vyzw.y))
         , w(static_cast<scalar_type>(vyzw.z)) {}
 
     template <typename XY, typename ZW, VXM_REQ_NUM2(XY, ZW)>
-    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, const vec<2, ZW>& vzw) noexcept
+    VX_FORCE_INLINE constexpr vec_t(const vec<2, XY>& vxy, const vec<2, ZW>& vzw) noexcept
         : x(static_cast<scalar_type>(vxy.x))
         , y(static_cast<scalar_type>(vxy.y))
         , z(static_cast<scalar_type>(vzw.x))
         , w(static_cast<scalar_type>(vzw.y)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec(const vec<4, U>& v) noexcept
+    VX_FORCE_INLINE constexpr explicit vec_t(const vec<4, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
         , y(static_cast<scalar_type>(v.y))
         , z(static_cast<scalar_type>(v.z))
@@ -120,7 +120,7 @@ struct vec<4, b>
     // destructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    ~vec() noexcept = default;
+    ~vec_t() noexcept = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
