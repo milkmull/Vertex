@@ -292,7 +292,7 @@ VX_FORCE_INLINE constexpr bool is_inf(T x) noexcept
 }
 
 template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr bool is_inf(T x) noexcept
+VX_FORCE_INLINE constexpr bool is_inf(T) noexcept
 {
     return false;
 }
@@ -356,7 +356,7 @@ VX_FORCE_INLINE constexpr bool is_nan(T x) noexcept
 }
 
 template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr bool is_nan(T x) noexcept
+VX_FORCE_INLINE constexpr bool is_nan(T) noexcept
 {
     return false;
 }
@@ -418,6 +418,7 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return x == static_cast<T>(0);
 }
 
@@ -514,6 +515,7 @@ VX_FORCE_INLINE constexpr bool equal_approx(T a, T b, const T epsilon = constant
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a == b;
 }
 
@@ -576,6 +578,7 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(T a, T b, const T epsilon = cons
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool not_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a != b;
 }
 
@@ -638,6 +641,7 @@ VX_FORCE_INLINE constexpr bool greater_approx(T a, T b, const T epsilon = consta
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool greater_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a > b;
 }
 
@@ -700,6 +704,7 @@ VX_FORCE_INLINE constexpr bool less_approx(T a, T b, const T epsilon = constants
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool less_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a < b;
 }
 
@@ -762,6 +767,7 @@ VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a >= b;
 }
 
@@ -824,6 +830,7 @@ VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = 
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
+    (void)epsilon; // suppress unused parameter warning
     return a <= b;
 }
 
