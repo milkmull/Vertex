@@ -21,10 +21,10 @@ struct constants
 };
 
 using const_b = constants<b>;
-using const_i = constants<i>;
-using const_u = constants<u>;
-using const_f = constants<f>;
-using const_d = constants<d>;
+using const_i = constants<i32>;
+using const_u = constants<u32>;
+using const_f = constants<f32>;
+using const_d = constants<f64>;
 
 } // namespace math
 } // namespace vx
