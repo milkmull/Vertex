@@ -10,7 +10,7 @@ VX_TEST_CASE(test_traits)
 {
     VX_SECTION("sizes")
     {
-        VX_STATIC_CHECK(sizeof(b) == 1);
+        VX_STATIC_CHECK(sizeof(bool) == 1);
 
         VX_STATIC_CHECK(sizeof(i8) == 1);
         VX_STATIC_CHECK(sizeof(i16) == 2);
@@ -28,7 +28,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_float")
     {
-        VX_STATIC_CHECK(!is_float<b>::value);
+        VX_STATIC_CHECK(!is_float<bool>::value);
 
         VX_STATIC_CHECK(!is_float<i8>::value);
         VX_STATIC_CHECK(!is_float<i16>::value);
@@ -46,7 +46,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_int")
     {
-        VX_STATIC_CHECK(is_int<b>::value);
+        VX_STATIC_CHECK(is_int<bool>::value);
 
         VX_STATIC_CHECK(is_int<i8>::value);
         VX_STATIC_CHECK(is_int<i16>::value);
@@ -64,7 +64,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_signed")
     {
-        VX_STATIC_CHECK(!is_signed<b>::value);
+        VX_STATIC_CHECK(!is_signed<bool>::value);
 
         VX_STATIC_CHECK(is_signed<i8>::value);
         VX_STATIC_CHECK(is_signed<i16>::value);
@@ -82,7 +82,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_signed_int")
     {
-        VX_STATIC_CHECK(!is_signed_int<b>::value);
+        VX_STATIC_CHECK(!is_signed_int<bool>::value);
 
         VX_STATIC_CHECK(is_signed_int<i8>::value);
         VX_STATIC_CHECK(is_signed_int<i16>::value);
@@ -100,7 +100,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_unsigned")
     {
-        VX_STATIC_CHECK(is_unsigned<b>::value);
+        VX_STATIC_CHECK(is_unsigned<bool>::value);
 
         VX_STATIC_CHECK(!is_unsigned<i8>::value);
         VX_STATIC_CHECK(!is_unsigned<i16>::value);
@@ -118,7 +118,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_numeric")
     {
-        VX_STATIC_CHECK(is_numeric<b>::value);
+        VX_STATIC_CHECK(is_numeric<bool>::value);
 
         VX_STATIC_CHECK(is_numeric<i8>::value);
         VX_STATIC_CHECK(is_numeric<i16>::value);
@@ -136,7 +136,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_scalar")
     {
-        VX_STATIC_CHECK(is_scalar<b>::value);
+        VX_STATIC_CHECK(is_scalar<bool>::value);
 
         VX_STATIC_CHECK(!is_scalar<i8>::value);
         VX_STATIC_CHECK(!is_scalar<i16>::value);

@@ -20,7 +20,7 @@ struct constants
     static constexpr T golden_ratio = static_cast<T>(1.61803398874989484820);
 };
 
-using const_b = constants<b>;
+using const_b = constants<bool>;
 using const_i = constants<i32>;
 using const_u = constants<u32>;
 using const_f = constants<f32>;

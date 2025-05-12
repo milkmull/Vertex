@@ -8,13 +8,13 @@ namespace vx {
 namespace math {
 
 template <>
-struct vec_t<2, b, __detail::component_type::_b>
+struct vec_t<2, bool, __detail::component_type::_b>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = b;
+    using scalar_type = bool;
     using type = vec_t<2, scalar_type, __detail::component_type::_b>;
     static constexpr size_t size = 2;
 

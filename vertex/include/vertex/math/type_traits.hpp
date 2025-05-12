@@ -44,7 +44,7 @@ template <> struct is_float<f64> : true_t {};
 
 template <typename T> struct is_int : false_t {};
 
-template <> struct is_int<b> : true_t {};
+template <> struct is_int<bool> : true_t {};
 
 template <> struct is_int<i8> : true_t {};
 template <> struct is_int<i16> : true_t {};
@@ -87,7 +87,7 @@ template <> struct is_signed_int<i64> : true_t {};
 
 template <typename T> struct is_unsigned : false_t {};
 
-template <> struct is_unsigned<b> : true_t {};
+template <> struct is_unsigned<bool> : true_t {};
 
 template <> struct is_unsigned<u8> : true_t {};
 template <> struct is_unsigned<u16> : true_t {};
@@ -100,7 +100,7 @@ template <> struct is_unsigned<u64> : true_t {};
 
 template <typename T> struct is_numeric : false_t {};
 
-template <> struct is_numeric<b> : true_t {};
+template <> struct is_numeric<bool> : true_t {};
 
 template <> struct is_numeric<i8> : true_t {};
 template <> struct is_numeric<i16> : true_t {};
@@ -121,7 +121,7 @@ template <> struct is_numeric<f64> : true_t {};
 
 template <typename T> struct is_scalar : false_t {};
 
-template <> struct is_scalar<b> : true_t {};
+template <> struct is_scalar<bool> : true_t {};
 template <> struct is_scalar<i32> : true_t {};
 template <> struct is_scalar<u32> : true_t {};
 template <> struct is_scalar<f32> : true_t {};
@@ -149,7 +149,7 @@ template <size_t L, typename T> struct is_float_vec<vec<L, T>> : is_float<T> {};
 
 // is_bool_vec
 template <typename T> struct is_bool_vec : false_t {};
-template <size_t L> struct is_bool_vec<vec<L, b>> : true_t {};
+template <size_t L> struct is_bool_vec<vec<L, bool>> : true_t {};
 
 // is_int_vec
 template <typename T> struct is_int_vec : false_t {};
@@ -197,7 +197,7 @@ template <size_t M, size_t N, typename T> struct is_float_mat<mat<M, N, T>> : is
 
 // is_bool_mat
 template <typename T> struct is_bool_mat : false_t {};
-template <size_t M, size_t N> struct is_bool_mat<mat<M, N, b>> : true_t {};
+template <size_t M, size_t N> struct is_bool_mat<mat<M, N, bool>> : true_t {};
 
 // is_int_mat
 template <typename T> struct is_int_mat : false_t {};
@@ -229,7 +229,7 @@ template <typename T> struct is_quat<quat_t<T>> : true_t {};
 
 template <typename T> struct scalar_type { using type = void; };
 
-template <> struct scalar_type<b> { using type = b; };
+template <> struct scalar_type<bool> { using type = bool; };
 
 template <> struct scalar_type<i8> { using type = i8; };
 template <> struct scalar_type<i16> { using type = i16; };

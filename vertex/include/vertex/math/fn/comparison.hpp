@@ -4,6 +4,10 @@
 #include "vertex/math/type_traits.hpp"
 #include "vertex/math/constants.hpp"
 
+#include "vertex/math/types/vec/vec2b.hpp"
+#include "vertex/math/types/vec/vec3b.hpp"
+#include "vertex/math/types/vec/vec4b.hpp"
+
 namespace vx {
 namespace math {
 
@@ -22,18 +26,18 @@ VX_FORCE_INLINE constexpr bool equal(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         equal(x.x, y.x),
         equal(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         equal(x.x, y.x),
         equal(x.y, y.y),
         equal(x.z, y.z)
@@ -41,9 +45,9 @@ VX_FORCE_INLINE constexpr vec<3, b> equal(const vec<3, T>& x, const vec<3, T>& y
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         equal(x.x, y.x),
         equal(x.y, y.y),
         equal(x.z, y.z),
@@ -66,18 +70,18 @@ VX_FORCE_INLINE constexpr bool not_equal(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> not_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b not_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         not_equal(x.x, y.x),
         not_equal(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> not_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b not_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         not_equal(x.x, y.x),
         not_equal(x.y, y.y),
         not_equal(x.z, y.z)
@@ -85,9 +89,9 @@ VX_FORCE_INLINE constexpr vec<3, b> not_equal(const vec<3, T>& x, const vec<3, T
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> not_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b not_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         not_equal(x.x, y.x),
         not_equal(x.y, y.y),
         not_equal(x.z, y.z),
@@ -110,18 +114,18 @@ VX_FORCE_INLINE constexpr bool greater(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> greater(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b greater(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         greater(x.x, y.x),
         greater(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> greater(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b greater(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         greater(x.x, y.x),
         greater(x.y, y.y),
         greater(x.z, y.z)
@@ -129,9 +133,9 @@ VX_FORCE_INLINE constexpr vec<3, b> greater(const vec<3, T>& x, const vec<3, T>&
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> greater(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b greater(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         greater(x.x, y.x),
         greater(x.y, y.y),
         greater(x.z, y.z),
@@ -154,18 +158,18 @@ VX_FORCE_INLINE constexpr bool less(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> less(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b less(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         less(x.x, y.x),
         less(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> less(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b less(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         less(x.x, y.x),
         less(x.y, y.y),
         less(x.z, y.z)
@@ -173,9 +177,9 @@ VX_FORCE_INLINE constexpr vec<3, b> less(const vec<3, T>& x, const vec<3, T>& y)
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> less(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b less(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         less(x.x, y.x),
         less(x.y, y.y),
         less(x.z, y.z),
@@ -198,18 +202,18 @@ VX_FORCE_INLINE constexpr bool greater_or_equal(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> greater_or_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b greater_or_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         greater_or_equal(x.x, y.x),
         greater_or_equal(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> greater_or_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b greater_or_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         greater_or_equal(x.x, y.x),
         greater_or_equal(x.y, y.y),
         greater_or_equal(x.z, y.z)
@@ -217,9 +221,9 @@ VX_FORCE_INLINE constexpr vec<3, b> greater_or_equal(const vec<3, T>& x, const v
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> greater_or_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b greater_or_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         greater_or_equal(x.x, y.x),
         greater_or_equal(x.y, y.y),
         greater_or_equal(x.z, y.z),
@@ -242,18 +246,18 @@ VX_FORCE_INLINE constexpr bool less_or_equal(T x, T y) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> less_or_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec2b less_or_equal(const vec<2, T>& x, const vec<2, T>& y) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         less_or_equal(x.x, y.x),
         less_or_equal(x.y, y.y)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> less_or_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec3b less_or_equal(const vec<3, T>& x, const vec<3, T>& y) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         less_or_equal(x.x, y.x),
         less_or_equal(x.y, y.y),
         less_or_equal(x.z, y.z)
@@ -261,9 +265,9 @@ VX_FORCE_INLINE constexpr vec<3, b> less_or_equal(const vec<3, T>& x, const vec<
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> less_or_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
+VX_FORCE_INLINE constexpr vec4b less_or_equal(const vec<4, T>& x, const vec<4, T>& y) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         less_or_equal(x.x, y.x),
         less_or_equal(x.y, y.y),
         less_or_equal(x.z, y.z),
@@ -296,21 +300,21 @@ VX_FORCE_INLINE constexpr bool is_inf(T x) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> is_inf(const vec<2, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec2b is_inf(const vec<2, T>& x) noexcept
 {
-    return vec<2, bool>(is_inf(x.x), is_inf(x.y));
+    return vec2b(is_inf(x.x), is_inf(x.y));
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> is_inf(const vec<3, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec3b is_inf(const vec<3, T>& x) noexcept
 {
-    return vec<3, bool>(is_inf(x.x), is_inf(x.y), is_inf(x.z));
+    return vec3b(is_inf(x.x), is_inf(x.y), is_inf(x.z));
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> is_inf(const vec<4, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec4b is_inf(const vec<4, T>& x) noexcept
 {
-    return vec<4, bool>(is_inf(x.x), is_inf(x.y), is_inf(x.z), is_inf(x.w));
+    return vec4b(is_inf(x.x), is_inf(x.y), is_inf(x.z), is_inf(x.w));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -360,21 +364,21 @@ VX_FORCE_INLINE constexpr bool is_nan(T x) noexcept
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> is_nan(const vec<2, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec2b is_nan(const vec<2, T>& x) noexcept
 {
-    return vec<2, bool>(is_nan(x.x), is_nan(x.y));
+    return vec2b(is_nan(x.x), is_nan(x.y));
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> is_nan(const vec<3, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec3b is_nan(const vec<3, T>& x) noexcept
 {
-    return vec<3, bool>(is_nan(x.x), is_nan(x.y), is_nan(x.z));
+    return vec3b(is_nan(x.x), is_nan(x.y), is_nan(x.z));
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> is_nan(const vec<4, T>& x) noexcept
+VX_FORCE_INLINE constexpr vec4b is_nan(const vec<4, T>& x) noexcept
 {
-    return vec<4, bool>(is_nan(x.x), is_nan(x.y), is_nan(x.z), is_nan(x.w));
+    return vec4b(is_nan(x.x), is_nan(x.y), is_nan(x.z), is_nan(x.w));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -420,24 +424,24 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T
 // vec each
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> is_zero_approx(
+VX_FORCE_INLINE constexpr vec2b is_zero_approx(
     const vec<2, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         is_zero_approx(x.x, epsilon),
         is_zero_approx(x.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> is_zero_approx(
+VX_FORCE_INLINE constexpr vec3b is_zero_approx(
     const vec<3, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         is_zero_approx(x.x, epsilon),
         is_zero_approx(x.y, epsilon),
         is_zero_approx(x.z, epsilon)
@@ -445,12 +449,12 @@ VX_FORCE_INLINE constexpr vec<3, b> is_zero_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> is_zero_approx(
+VX_FORCE_INLINE constexpr vec4b is_zero_approx(
     const vec<4, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         is_zero_approx(x.x, epsilon),
         is_zero_approx(x.y, epsilon),
         is_zero_approx(x.z, epsilon),
@@ -463,7 +467,7 @@ VX_FORCE_INLINE constexpr vec<4, b> is_zero_approx(
 //////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE constexpr b all_zero_approx(
+VX_FORCE_INLINE constexpr bool all_zero_approx(
     const vec<2, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
@@ -473,7 +477,7 @@ VX_FORCE_INLINE constexpr b all_zero_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr b all_zero_approx(
+VX_FORCE_INLINE constexpr bool all_zero_approx(
     const vec<3, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
@@ -484,7 +488,7 @@ VX_FORCE_INLINE constexpr b all_zero_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr b all_zero_approx(
+VX_FORCE_INLINE constexpr bool all_zero_approx(
     const vec<4, T>& x,
     const T epsilon = constants<T>::epsilon
 ) noexcept
@@ -516,26 +520,26 @@ VX_FORCE_INLINE constexpr bool equal_approx(T a, T b, const T epsilon = constant
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> equal_approx(
+VX_FORCE_INLINE constexpr vec2b equal_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         equal_approx(x.x, y.x, epsilon),
         equal_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> equal_approx(
+VX_FORCE_INLINE constexpr vec3b equal_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         equal_approx(x.x, y.x, epsilon),
         equal_approx(x.y, y.y, epsilon),
         equal_approx(x.z, y.z, epsilon)
@@ -543,13 +547,13 @@ VX_FORCE_INLINE constexpr vec<3, b> equal_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> equal_approx(
+VX_FORCE_INLINE constexpr vec4b equal_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         equal_approx(x.x, y.x, epsilon),
         equal_approx(x.y, y.y, epsilon),
         equal_approx(x.z, y.z, epsilon),
@@ -578,26 +582,26 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(T a, T b, const T epsilon = cons
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> not_equal_approx(
+VX_FORCE_INLINE constexpr vec2b not_equal_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         not_equal_approx(x.x, y.x, epsilon),
         not_equal_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> not_equal_approx(
+VX_FORCE_INLINE constexpr vec3b not_equal_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         not_equal_approx(x.x, y.x, epsilon),
         not_equal_approx(x.y, y.y, epsilon),
         not_equal_approx(x.z, y.z, epsilon)
@@ -605,13 +609,13 @@ VX_FORCE_INLINE constexpr vec<3, b> not_equal_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> not_equal_approx(
+VX_FORCE_INLINE constexpr vec4b not_equal_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         not_equal_approx(x.x, y.x, epsilon),
         not_equal_approx(x.y, y.y, epsilon),
         not_equal_approx(x.z, y.z, epsilon),
@@ -640,26 +644,26 @@ VX_FORCE_INLINE constexpr bool greater_approx(T a, T b, const T epsilon = consta
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> greater_approx(
+VX_FORCE_INLINE constexpr vec2b greater_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         greater_approx(x.x, y.x, epsilon),
         greater_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> greater_approx(
+VX_FORCE_INLINE constexpr vec3b greater_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         greater_approx(x.x, y.x, epsilon),
         greater_approx(x.y, y.y, epsilon),
         greater_approx(x.z, y.z, epsilon)
@@ -667,13 +671,13 @@ VX_FORCE_INLINE constexpr vec<3, b> greater_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> greater_approx(
+VX_FORCE_INLINE constexpr vec4b greater_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         greater_approx(x.x, y.x, epsilon),
         greater_approx(x.y, y.y, epsilon),
         greater_approx(x.z, y.z, epsilon),
@@ -702,26 +706,26 @@ VX_FORCE_INLINE constexpr bool less_approx(T a, T b, const T epsilon = constants
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> less_approx(
+VX_FORCE_INLINE constexpr vec2b less_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         less_approx(x.x, y.x, epsilon),
         less_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> less_approx(
+VX_FORCE_INLINE constexpr vec3b less_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         less_approx(x.x, y.x, epsilon),
         less_approx(x.y, y.y, epsilon),
         less_approx(x.z, y.z, epsilon)
@@ -729,13 +733,13 @@ VX_FORCE_INLINE constexpr vec<3, b> less_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> less_approx(
+VX_FORCE_INLINE constexpr vec4b less_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         less_approx(x.x, y.x, epsilon),
         less_approx(x.y, y.y, epsilon),
         less_approx(x.z, y.z, epsilon),
@@ -764,26 +768,26 @@ VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> greater_or_equal_approx(
+VX_FORCE_INLINE constexpr vec2b greater_or_equal_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         greater_or_equal_approx(x.x, y.x, epsilon),
         greater_or_equal_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> greater_or_equal_approx(
+VX_FORCE_INLINE constexpr vec3b greater_or_equal_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         greater_or_equal_approx(x.x, y.x, epsilon),
         greater_or_equal_approx(x.y, y.y, epsilon),
         greater_or_equal_approx(x.z, y.z, epsilon)
@@ -791,13 +795,13 @@ VX_FORCE_INLINE constexpr vec<3, b> greater_or_equal_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> greater_or_equal_approx(
+VX_FORCE_INLINE constexpr vec4b greater_or_equal_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         greater_or_equal_approx(x.x, y.x, epsilon),
         greater_or_equal_approx(x.y, y.y, epsilon),
         greater_or_equal_approx(x.z, y.z, epsilon),
@@ -826,26 +830,26 @@ VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = 
 // vec
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<2, b> less_or_equal_approx(
+VX_FORCE_INLINE constexpr vec2b less_or_equal_approx(
     const vec<2, T>& x,
     const vec<2, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<2, bool>(
+    return vec2b(
         less_or_equal_approx(x.x, y.x, epsilon),
         less_or_equal_approx(x.y, y.y, epsilon)
     );
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<3, b> less_or_equal_approx(
+VX_FORCE_INLINE constexpr vec3b less_or_equal_approx(
     const vec<3, T>& x,
     const vec<3, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<3, bool>(
+    return vec3b(
         less_or_equal_approx(x.x, y.x, epsilon),
         less_or_equal_approx(x.y, y.y, epsilon),
         less_or_equal_approx(x.z, y.z, epsilon)
@@ -853,13 +857,13 @@ VX_FORCE_INLINE constexpr vec<3, b> less_or_equal_approx(
 }
 
 template <typename T>
-VX_FORCE_INLINE constexpr vec<4, b> less_or_equal_approx(
+VX_FORCE_INLINE constexpr vec4b less_or_equal_approx(
     const vec<4, T>& x,
     const vec<4, T>& y,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return vec<4, bool>(
+    return vec4b(
         less_or_equal_approx(x.x, y.x, epsilon),
         less_or_equal_approx(x.y, y.y, epsilon),
         less_or_equal_approx(x.z, y.z, epsilon),

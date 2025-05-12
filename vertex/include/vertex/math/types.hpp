@@ -9,9 +9,6 @@ namespace math {
 // basic types
 ///////////////////////////////////////////////////////////////////////////////
 
-// bool
-using b = bool;
-
 // int
 using i8 = int8_t;
 using i16 = int16_t;
@@ -38,7 +35,7 @@ enum class component_type { _b, _i, _u, _f };
 template <typename T> struct get_component_type { static_assert(sizeof(T) == 0, "Unsupported component type"); };
 
 // bool
-template <> struct get_component_type<b> { static constexpr auto value = component_type::_b; };
+template <> struct get_component_type<bool> { static constexpr auto value = component_type::_b; };
 
 // int
 template <> struct get_component_type<i8> { static constexpr auto value = component_type::_i; };
@@ -69,9 +66,9 @@ template <size_t L, typename T>
 using vec = vec_t<L, T, __detail::get_component_type<T>::value>;
 
 // bool
-using vec2b = vec<2, b>;
-using vec3b = vec<3, b>;
-using vec4b = vec<4, b>;
+using vec2b = vec<2, bool>;
+using vec3b = vec<3, bool>;
+using vec4b = vec<4, bool>;
 
 // int
 using vec2i = vec<2, i32>;
@@ -109,15 +106,15 @@ template <size_t M, size_t N, typename T>
 using mat = mat_t<M, N, T, __detail::get_component_type<T>::value>;
 
 // bool
-using mat2x2b = mat<2, 2, b>;
-using mat2x3b = mat<2, 3, b>;
-using mat2x4b = mat<2, 4, b>;
-using mat3x2b = mat<3, 2, b>;
-using mat3x3b = mat<3, 3, b>;
-using mat3x4b = mat<3, 4, b>;
-using mat4x2b = mat<4, 2, b>;
-using mat4x3b = mat<4, 3, b>;
-using mat4x4b = mat<4, 4, b>;
+using mat2x2b = mat<2, 2, bool>;
+using mat2x3b = mat<2, 3, bool>;
+using mat2x4b = mat<2, 4, bool>;
+using mat3x2b = mat<3, 2, bool>;
+using mat3x3b = mat<3, 3, bool>;
+using mat3x4b = mat<3, 4, bool>;
+using mat4x2b = mat<4, 2, bool>;
+using mat4x3b = mat<4, 3, bool>;
+using mat4x4b = mat<4, 4, bool>;
 
 using mat2b = mat2x2b;
 using mat3b = mat3x3b;

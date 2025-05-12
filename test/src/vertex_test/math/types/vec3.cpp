@@ -27,7 +27,7 @@ VX_TEST_CASE(test_vec3b)
 {
     VX_SECTION("scalar type")
     {
-        VX_STATIC_CHECK((is_same<typename vec3b::scalar_type, b>::value));
+        VX_STATIC_CHECK((is_same<typename vec3b::scalar_type, bool>::value));
     }
 
     VX_SECTION("size")
