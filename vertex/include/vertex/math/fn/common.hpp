@@ -522,7 +522,7 @@ VX_FORCE_INLINE constexpr auto mod(
 ) noexcept
 {
     using R = decltype(mod(std::declval<T>(), std::declval<T>()));
-    return vec<2, T>(mod(x.x, y.x), mod(x.y, y.y));
+    return vec<2, R>(mod(x.x, y.x), mod(x.y, y.y));
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
@@ -532,7 +532,7 @@ VX_FORCE_INLINE constexpr auto mod(
 ) noexcept
 {
     using R = decltype(mod(std::declval<T>(), std::declval<T>()));
-    return vec<3, T>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z));
+    return vec<3, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z));
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
@@ -542,7 +542,7 @@ VX_FORCE_INLINE constexpr auto mod(
 ) noexcept
 {
     using R = decltype(mod(std::declval<T>(), std::declval<T>()));
-    return vec<4, T>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z), mod(x.w, y.w));
+    return vec<4, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z), mod(x.w, y.w));
 }
 
 //////////////////////////////////////////////////////////////////////////////
