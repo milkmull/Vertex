@@ -1,7 +1,8 @@
-﻿#include "vertex/config/compiler.hpp"
-#include "vertex/util/io.hpp"
+﻿#include "vertex/math/vec.hpp"
+
+using namespace vx::math;
 
 int main(int argc, char* argv[])
 {
-    vx::io::println("Hello, World!");
+    vec2 v1;
 }

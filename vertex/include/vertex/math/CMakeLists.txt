@@ -7,9 +7,11 @@
 file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/simd.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/constants.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/types.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_traits.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/constants.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/vec.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec2b.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec2i.hpp"
@@ -25,6 +27,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec4i.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec4u.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/types/vec/vec4f.hpp"
+
 
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/fn/comparison.hpp"
