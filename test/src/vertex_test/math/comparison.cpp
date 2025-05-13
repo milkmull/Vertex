@@ -305,7 +305,7 @@ VX_TEST_CASE(test_is_inf)
         VX_STATIC_CHECK(is_inf(b) == vec4b(false, false, false, false));
     }
 
-    VX_SECTION("vec int types")
+    VX_SECTION("int vec")
     {
         constexpr vec2i vi{ 1, 2 };
         constexpr vec3i vi3{ 0, -1, 123 };
@@ -354,7 +354,7 @@ VX_TEST_CASE(test_any_inf)
         VX_STATIC_CHECK(any_inf(c) == false);
     }
 
-    VX_SECTION("vec int types")
+    VX_SECTION("int vec")
     {
         constexpr vec2i vi{ 1, 2 };
         constexpr vec3i vi3{ 0, -1, 123 };
@@ -414,7 +414,7 @@ VX_TEST_CASE(test_is_nan)
         VX_STATIC_CHECK(is_nan(b) == vec4b(false, false, false, false));
     }
 
-    VX_SECTION("vec int types")
+    VX_SECTION("int vec")
     {
         constexpr vec2i vi{ 1, 2 };
         constexpr vec3i vi3{ 0, -1, 123 };
@@ -463,7 +463,7 @@ VX_TEST_CASE(test_any_nan)
         VX_STATIC_CHECK(any_nan(c) == false);
     }
 
-    VX_SECTION("vec int types")
+    VX_SECTION("int vec")
     {
         constexpr vec2i vi{ 1, 2 };
         constexpr vec3i vi3{ 0, -1, 123 };
@@ -483,9 +483,9 @@ VX_TEST_CASE(test_is_zero_approx)
     {
         // float
         VX_STATIC_CHECK(is_zero_approx(0.0f));
-        VX_STATIC_CHECK(is_zero_approx(0.0000009f));    // Approx zero within epsilon
-        VX_STATIC_CHECK(!is_zero_approx(1.0f));         // Not zero
-        VX_STATIC_CHECK(!is_zero_approx(-0.000001f));   // Not zero within epsilon
+        VX_STATIC_CHECK(is_zero_approx(0.0000009f));
+        VX_STATIC_CHECK(!is_zero_approx(1.0f));
+        VX_STATIC_CHECK(is_zero_approx(constants<f32>::epsilon));
 
         // int
         VX_STATIC_CHECK(is_zero_approx(0));
@@ -496,7 +496,7 @@ VX_TEST_CASE(test_is_zero_approx)
     VX_SECTION("vec2")
     {
         constexpr vec2f a{ 0.0f, 1.0f };
-        constexpr vec2f b{ 0.0000001f, 0.0f };  // Within epsilon
+        constexpr vec2f b{ 0.0000001f, 0.0f };
         constexpr vec2f c{ 1.0f, -1.0f };
 
         VX_STATIC_CHECK(is_zero_approx(a) == vec2b(true, false));
@@ -526,7 +526,7 @@ VX_TEST_CASE(test_is_zero_approx)
         VX_STATIC_CHECK(is_zero_approx(c) == vec4b(false, false, false, false));
     }
 
-    VX_SECTION("vec int types")
+    VX_SECTION("int vec")
     {
         constexpr vec2i vi{ 0, 0 };
         constexpr vec3i vi3{ 0, 123, -1 };
@@ -535,6 +535,22 @@ VX_TEST_CASE(test_is_zero_approx)
         VX_STATIC_CHECK(is_zero_approx(vi) == vec2b(true, true));
         VX_STATIC_CHECK(is_zero_approx(vi3) == vec3b(true, false, false));
         VX_STATIC_CHECK(is_zero_approx(vu4) == vec4b(true, true, true, true));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-3f;
+
+        // scalar
+        VX_STATIC_CHECK(!is_zero_approx(1e-6f, tight));
+        VX_STATIC_CHECK(is_zero_approx(1e-6f, loose));
+
+        // vec2
+        constexpr vec2f v{ 1e-6f, 0.0f };
+
+        VX_STATIC_CHECK(is_zero_approx(v, tight) == vec2b(false, true));
+        VX_STATIC_CHECK(is_zero_approx(v, loose) == vec2b(true, true));
     }
 }
 
@@ -578,8 +594,469 @@ VX_TEST_CASE(test_all_zero_approx)
         VX_STATIC_CHECK(!all_zero_approx(c));
         VX_STATIC_CHECK(all_zero_approx(d));
     }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-3f;
+
+        constexpr vec3f a{ 1e-6f, 0.0f, 0.0f };
+
+        VX_STATIC_CHECK(!all_zero_approx(a, tight));
+        VX_STATIC_CHECK(all_zero_approx(a, loose));
+    }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_equal_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(equal_approx(1.0f, 1.0f));                         // Exactly equal
+        VX_STATIC_CHECK(equal_approx(1.0f, 1.0000009f));                   // Approx equal within epsilon
+        VX_STATIC_CHECK(!equal_approx(1.0f, 1.00001f));                    // Outside epsilon
+        VX_STATIC_CHECK(equal_approx(0.0f, constants<f32>::epsilon));      // On epsilon
+
+        // int
+        VX_STATIC_CHECK(equal_approx(3, 3));
+        VX_STATIC_CHECK(!equal_approx(3, 4));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.0f, 2.0f };
+        constexpr vec2f b{ 1.0000009f, 2.0f };
+        constexpr vec2f c{ 1.00001f, 2.00001f };
+
+        VX_STATIC_CHECK(equal_approx(a, b) == vec2b(true, true));   // Approx equal
+        VX_STATIC_CHECK(equal_approx(a, c) == vec2b(false, false)); // Outside epsilon
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 0.0f, 1.0f, 2.0f };
+        constexpr vec3f b{ 0.0f, 1.0000009f, 2.0f };
+        constexpr vec3f c{ 0.0f, 1.00001f, 2.0f };
+
+        VX_STATIC_CHECK(equal_approx(a, b) == vec3b(true, true, true));   // Approx equal
+        VX_STATIC_CHECK(equal_approx(a, c) == vec3b(true, false, true));  // One value out of epsilon
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4d a{ 0.0, 1.0, 2.0, 3.0 };
+        constexpr vec4d b{ 0.0, 1.0000009, 2.0, 3.0000009 };
+        constexpr vec4d c{ 0.0, 1.00001, 2.0, 3.0 };
+
+        VX_STATIC_CHECK(equal_approx(a, b) == vec4b(true, true, true, true));  // Approx equal
+        VX_STATIC_CHECK(equal_approx(a, c) == vec4b(true, false, true, true)); // One mismatch
+    }
+
+    VX_SECTION("int vec")
+    {
+        constexpr vec2i vi1{ 1, 2 };
+        constexpr vec2i vi2{ 1, 2 };
+        constexpr vec2i vi3{ 1, 3 };
+
+        VX_STATIC_CHECK(equal_approx(vi1, vi2) == vec2b(true, true));
+        VX_STATIC_CHECK(equal_approx(vi1, vi3) == vec2b(true, false));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float eps_strict = 1e-8f;
+        constexpr float eps_loose = 1e-3f;
+
+        // vec2 with small difference
+        constexpr vec2f a{ 1.0f, 2.0f };
+        constexpr vec2f b{ 1.0000005f, 2.0000005f };
+
+        VX_STATIC_CHECK(equal_approx(a, b, eps_strict) == vec2b(false, false));
+        VX_STATIC_CHECK(equal_approx(a, b) == vec2b(true, true));
+        VX_STATIC_CHECK(equal_approx(a, b, eps_loose) == vec2b(true, true));
+
+        // Scalar double with tight epsilon
+        constexpr double x = 5.0;
+        constexpr double y = 5.0000000001;
+
+        VX_STATIC_CHECK(!equal_approx(x, y, 1e-12)); // outside tight epsilon
+        VX_STATIC_CHECK(equal_approx(x, y, 1e-9));   // inside looser epsilon
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_greater_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(greater_approx(1.00001f, 1.0f));
+        VX_STATIC_CHECK(!greater_approx(1.0000001f, 1.0f)); // within default epsilon
+        VX_STATIC_CHECK(!greater_approx(1.0f, 1.0f));
+        VX_STATIC_CHECK(!greater_approx(0.99999f, 1.0f));
+        VX_STATIC_CHECK(!greater_approx(0.0f, constants<f32>::epsilon));      // On epsilon
+
+        // int
+        VX_STATIC_CHECK(greater_approx(2, 1));
+        VX_STATIC_CHECK(!greater_approx(1, 1));
+        VX_STATIC_CHECK(!greater_approx(0, 1));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.00001f, 0.5f };
+        constexpr vec2f b{ 1.0f, 0.5f };
+        VX_STATIC_CHECK(greater_approx(a, b) == vec2b(true, false));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 1.00001f, 2.0f, 2.999f };
+        constexpr vec3f b{ 1.0f, 2.0f, 3.0f };
+        VX_STATIC_CHECK(greater_approx(a, b) == vec3b(true, false, false));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 1.0f, 2.00001f, 2.0f, 3.0001f };
+        constexpr vec4f b{ 1.0f, 2.0f, 2.0f, 3.0f };
+        VX_STATIC_CHECK(greater_approx(a, b) == vec4b(false, true, false, true));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-2f;
+
+        // scalar
+        VX_STATIC_CHECK(greater_approx(1.001f, 1.0f, tight));
+        VX_STATIC_CHECK(!greater_approx(1.001f, 1.0f, loose));
+
+        // vec
+        constexpr vec2f a{ 1.001f, 1.0f };
+        constexpr vec2f b{ 1.0f, 1.0f };
+
+        VX_STATIC_CHECK(greater_approx(a, b, tight) == vec2b(true, false));
+        VX_STATIC_CHECK(greater_approx(a, b, loose) == vec2b(false, false));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_less_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(less_approx(0.99999f, 1.0f));
+        VX_STATIC_CHECK(!less_approx(0.9999999f, 1.0f)); // within default epsilon
+        VX_STATIC_CHECK(!less_approx(1.0f, 1.0f));
+        VX_STATIC_CHECK(!less_approx(1.00001f, 1.0f));
+        VX_STATIC_CHECK(!less_approx(0.0f, constants<f32>::epsilon));      // On epsilon
+
+        // int
+        VX_STATIC_CHECK(less_approx(0, 1));
+        VX_STATIC_CHECK(!less_approx(1, 1));
+        VX_STATIC_CHECK(!less_approx(2, 1));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 0.99999f, 0.5f };
+        constexpr vec2f b{ 1.0f, 0.5f };
+        VX_STATIC_CHECK(less_approx(a, b) == vec2b(true, false));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 0.99999f, 2.0f, 2.999f };
+        constexpr vec3f b{ 1.0f, 2.0f, 3.0f };
+        VX_STATIC_CHECK(less_approx(a, b) == vec3b(true, false, true));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 1.0f, 1.99999f, 2.0f, 2.999f };
+        constexpr vec4f b{ 1.0f, 2.0f, 2.0f, 3.0f };
+        VX_STATIC_CHECK(less_approx(a, b) == vec4b(false, true, false, true));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-2f;
+
+        // scalar
+        VX_STATIC_CHECK(less_approx(0.999f, 1.0f, tight));
+        VX_STATIC_CHECK(!less_approx(0.999f, 1.0f, loose));
+
+        // vec
+        constexpr vec2f a{ 0.999f, 1.0f };
+        constexpr vec2f b{ 1.0f, 1.0f };
+
+        VX_STATIC_CHECK(less_approx(a, b, tight) == vec2b(true, false));
+        VX_STATIC_CHECK(less_approx(a, b, loose) == vec2b(false, false));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_greater_or_equal_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(greater_or_equal_approx(1.000001f, 1.0f));
+        VX_STATIC_CHECK(greater_or_equal_approx(1.0f, 1.0f));
+        VX_STATIC_CHECK(!greater_or_equal_approx(-0.9999991f, 1.0f));    // outside epsilon
+        VX_STATIC_CHECK(greater_or_equal_approx(1.0000001f, 1.0f));     // inside epsilon
+        VX_STATIC_CHECK(greater_or_equal_approx(0.0f, constants<f32>::epsilon));      // On epsilon
+
+
+        // int
+        VX_STATIC_CHECK(greater_or_equal_approx(2, 1));
+        VX_STATIC_CHECK(greater_or_equal_approx(1, 1));
+        VX_STATIC_CHECK(!greater_or_equal_approx(0, 1));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.00001f, 0.999998f };
+        constexpr vec2f b{ 1.0f, 1.0f };
+        VX_STATIC_CHECK(greater_or_equal_approx(a, b) == vec2b(true, false));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 1.0f, 1.0f, 1.0000001f };
+        constexpr vec3f b{ 1.0f, 1.1f, 1.0f };
+        VX_STATIC_CHECK(greater_or_equal_approx(a, b) == vec3b(true, false, true));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 1.0f, 2.0f, 2.0f, 3.0f };
+        constexpr vec4f b{ 0.9999f, 2.0f, 2.1f, 3.000002f };
+        VX_STATIC_CHECK(greater_or_equal_approx(a, b) == vec4b(true, true, false, false));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float loose = 1e-2f;
+        constexpr float tight = 1e-8f;
+
+        VX_STATIC_CHECK(greater_or_equal_approx(0.99f, 1.0f, loose));
+        VX_STATIC_CHECK(!greater_or_equal_approx(0.99f, 1.0f, tight));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_less_or_equal_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(less_or_equal_approx(1.0f, 1.0f));
+        VX_STATIC_CHECK(less_or_equal_approx(0.9999991f, 1.0f)); // inside epsilon
+        VX_STATIC_CHECK(!less_or_equal_approx(1.00001f, 1.0f));  // outside epsilon
+        VX_STATIC_CHECK(less_or_equal_approx(0.999f, 1.0f));
+        VX_STATIC_CHECK(less_or_equal_approx(0.0f, constants<f32>::epsilon));      // On epsilon
+
+        // int
+        VX_STATIC_CHECK(less_or_equal_approx(0, 1));
+        VX_STATIC_CHECK(less_or_equal_approx(1, 1));
+        VX_STATIC_CHECK(!less_or_equal_approx(2, 1));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 0.9999991f, 1.0f };
+        constexpr vec2f b{ 1.0f, 0.999f };
+        VX_STATIC_CHECK(less_or_equal_approx(a, b) == vec2b(true, false));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 0.9f, 1.0f, 1.0000001f };
+        constexpr vec3f b{ 1.0f, 1.0f, 1.0f };
+        VX_STATIC_CHECK(less_or_equal_approx(a, b) == vec3b(true, true, true));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 1.0f, 2.0f, 2.0f, 3.0f };
+        constexpr vec4f b{ 1.00001f, 2.0f, 1.9f, 3.0f };
+        VX_STATIC_CHECK(less_or_equal_approx(a, b) == vec4b(true, true, false, true));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float loose = 1e-2f;
+        constexpr float tight = 1e-8f;
+
+        VX_STATIC_CHECK(less_or_equal_approx(1.01f, 1.0f, loose));
+        VX_STATIC_CHECK(!less_or_equal_approx(1.01f, 1.0f, tight));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_any)
+{
+    VX_SECTION("vec2")
+    {
+        // Both components are zero
+        constexpr vec2f a{ 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(a) == false);
+
+        // One component is non-zero
+        constexpr vec2f b{ 1.0f, 0.0f };
+        VX_STATIC_CHECK(any(b) == true);
+
+        constexpr vec2f c{ 0.0f, 1.0f };
+        VX_STATIC_CHECK(any(c) == true);
+    }
+
+    VX_SECTION("vec3")
+    {
+        // All components are zero
+        constexpr vec3f a{ 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(a) == false);
+
+        // One component is non-zero
+        constexpr vec3f b{ 1.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(b) == true);
+
+        constexpr vec3f c{ 0.0f, 1.0f, 0.0f };
+        VX_STATIC_CHECK(any(c) == true);
+
+        constexpr vec3f d{ 0.0f, 0.0f, 1.0f };
+        VX_STATIC_CHECK(any(d) == true);
+    }
+
+    VX_SECTION("vec4")
+    {
+        // All components are zero
+        constexpr vec4f a{ 0.0f, 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(a) == false);
+
+        // One component is non-zero
+        constexpr vec4f b{ 1.0f, 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(b) == true);
+
+        // Multiple components are non-zero
+        constexpr vec4f c{ 1.0f, 1.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(any(c) == true);
+
+        constexpr vec4f d{ 0.0f, 0.0f, 1.0f, 1.0f };
+        VX_STATIC_CHECK(any(d) == true);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_all)
+{
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.0f, 1.0f };
+        VX_STATIC_CHECK(all(a) == true);
+
+        constexpr vec2f b{ 0.0f, 1.0f };
+        VX_STATIC_CHECK(all(b) == false);
+
+        constexpr vec2f c{ 1.0f, 0.0f };
+        VX_STATIC_CHECK(all(c) == false);
+
+        constexpr vec2f d{ 0.0f, 0.0f };
+        VX_STATIC_CHECK(all(d) == false);
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 1.0f, 2.0f, 3.0f };
+        VX_STATIC_CHECK(all(a) == true);
+
+        constexpr vec3f b{ 0.0f, 1.0f, 2.0f };
+        VX_STATIC_CHECK(all(b) == false);
+
+        constexpr vec3f c{ 1.0f, 0.0f, 2.0f };
+        VX_STATIC_CHECK(all(c) == false);
+
+        constexpr vec3f d{ 1.0f, 2.0f, 0.0f };
+        VX_STATIC_CHECK(all(d) == false);
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 1.0f, 2.0f, 3.0f, 4.0f };
+        VX_STATIC_CHECK(all(a) == true);
+
+        constexpr vec4f b{ 0.0f, 2.0f, 3.0f, 4.0f };
+        VX_STATIC_CHECK(all(b) == false);
+
+        constexpr vec4f c{ 1.0f, 0.0f, 3.0f, 4.0f };
+        VX_STATIC_CHECK(all(c) == false);
+
+        constexpr vec4f d{ 1.0f, 2.0f, 3.0f, 0.0f };
+        VX_STATIC_CHECK(all(d) == false);
+    }
+
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_none)
+{
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(a) == true);
+
+        constexpr vec2f b{ 1.0f, 0.0f };
+        VX_STATIC_CHECK(none(b) == false);
+
+        constexpr vec2f c{ 0.0f, 1.0f };
+        VX_STATIC_CHECK(none(c) == false);
+
+        constexpr vec2f d{ 1.0f, 1.0f };
+        VX_STATIC_CHECK(none(d) == false);
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(a) == true);
+
+        constexpr vec3f b{ 1.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(b) == false);
+
+        constexpr vec3f c{ 0.0f, 1.0f, 0.0f };
+        VX_STATIC_CHECK(none(c) == false);
+
+        constexpr vec3f d{ 0.0f, 0.0f, 1.0f };
+        VX_STATIC_CHECK(none(d) == false);
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 0.0f, 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(a) == true);
+
+        constexpr vec4f b{ 1.0f, 0.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(b) == false);
+
+        constexpr vec4f c{ 0.0f, 1.0f, 0.0f, 0.0f };
+        VX_STATIC_CHECK(none(c) == false);
+
+        constexpr vec4f d{ 0.0f, 0.0f, 0.0f, 1.0f };
+        VX_STATIC_CHECK(none(d) == false);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

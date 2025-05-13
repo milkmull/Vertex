@@ -412,7 +412,7 @@ VX_FORCE_INLINE constexpr bool any_nan(const vec<4, T>& x) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T>::epsilon) noexcept
 {
-    return ((x < static_cast<T>(0)) ? -x : x) < epsilon;
+    return ((x < static_cast<T>(0)) ? -x : x) <= epsilon;
 }
 
 template <typename T, VXM_REQ_INT(T)>
@@ -761,7 +761,7 @@ VX_FORCE_INLINE constexpr vec4b less_approx(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
-    return a > (b - epsilon);
+    return a >= (b - epsilon);
 }
 
 template <typename T, VXM_REQ_INT(T)>
@@ -824,7 +824,7 @@ VX_FORCE_INLINE constexpr vec4b greater_or_equal_approx(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
-    return a < (b + epsilon);
+    return a <= (b + epsilon);
 }
 
 template <typename T, VXM_REQ_INT(T)>
