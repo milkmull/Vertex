@@ -2,8 +2,6 @@
 
 #include <limits>
 
-#include "vertex/math/types.hpp"
-
 namespace vx {
 namespace math {
 
@@ -19,12 +17,6 @@ struct constants
     static constexpr T e = static_cast<T>(2.71828182845904523536);
     static constexpr T golden_ratio = static_cast<T>(1.61803398874989484820);
 };
-
-using const_b = constants<bool>;
-using const_i = constants<i32>;
-using const_u = constants<u32>;
-using const_f = constants<f32>;
-using const_d = constants<f64>;
 
 } // namespace math
 } // namespace vx

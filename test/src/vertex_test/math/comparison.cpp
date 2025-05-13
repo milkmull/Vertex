@@ -1,7 +1,6 @@
 #include "vertex_test/test.hpp"
 
 #include "vertex/math/fn/comparison.hpp"
-#include "vertex/math/vec.hpp"
 
 using namespace vx::math;
 
@@ -264,11 +263,11 @@ VX_TEST_CASE(test_is_inf)
     VX_SECTION("scalar")
     {
         // float
-        VX_STATIC_CHECK(is_inf(const_f::infinity));
-        VX_STATIC_CHECK(is_inf(-const_f::infinity));
+        VX_STATIC_CHECK(is_inf(constants<f32>::infinity));
+        VX_STATIC_CHECK(is_inf(-constants<f32>::infinity));
         VX_STATIC_CHECK(!is_inf(0.0f));
         VX_STATIC_CHECK(!is_inf(1.0));
-        VX_STATIC_CHECK(!is_inf(const_f::nan)); // NaN is not infinite
+        VX_STATIC_CHECK(!is_inf(constants<f32>::nan)); // NaN is not infinite
 
         // int
         VX_STATIC_CHECK(!is_inf(0));
@@ -278,8 +277,8 @@ VX_TEST_CASE(test_is_inf)
 
     VX_SECTION("vec2")
     {
-        constexpr vec2f a{ const_f::infinity, 1.0f };
-        constexpr vec2f b{ -const_f::infinity, const_f::infinity };
+        constexpr vec2f a{ constants<f32>::infinity, 1.0f };
+        constexpr vec2f b{ -constants<f32>::infinity, constants<f32>::infinity };
         constexpr vec2f c{ 0.0f, 42.0f };
 
         VX_STATIC_CHECK(is_inf(a) == vec2b(true, false));
@@ -289,7 +288,7 @@ VX_TEST_CASE(test_is_inf)
 
     VX_SECTION("vec3")
     {
-        constexpr vec3d a{ 0.0, const_d::infinity, -const_d::infinity };
+        constexpr vec3d a{ 0.0, constants<f64>::infinity, -constants<f64>::infinity };
         constexpr vec3d b{ 1.0, 2.0, 3.0 };
 
         VX_STATIC_CHECK(is_inf(a) == vec3b(false, true, true));
@@ -298,7 +297,7 @@ VX_TEST_CASE(test_is_inf)
 
     VX_SECTION("vec4")
     {
-        constexpr vec4f a{ 0.0f, const_f::infinity, 1.0f, -const_f::infinity };
+        constexpr vec4f a{ 0.0f, constants<f32>::infinity, 1.0f, -constants<f32>::infinity };
         constexpr vec4f b{ 1.0f, 2.0f, 3.0f, 4.0f };
 
         VX_STATIC_CHECK(is_inf(a) == vec4b(false, true, false, true));
@@ -323,8 +322,8 @@ VX_TEST_CASE(test_any_inf)
 {
     VX_SECTION("vec2")
     {
-        constexpr vec2f a{ const_f::infinity, 1.0f };
-        constexpr vec2f b{ -const_f::infinity, const_f::nan };
+        constexpr vec2f a{ constants<f32>::infinity, 1.0f };
+        constexpr vec2f b{ -constants<f32>::infinity, constants<f32>::nan };
         constexpr vec2f c{ 0.0f, 42.0f };
 
         VX_STATIC_CHECK(any_inf(a) == true);
@@ -334,8 +333,8 @@ VX_TEST_CASE(test_any_inf)
 
     VX_SECTION("vec3")
     {
-        constexpr vec3d a{ const_d::infinity, 2.0, 3.0 };
-        constexpr vec3d b{ 1.0, 2.0, const_d::nan };
+        constexpr vec3d a{ constants<f64>::infinity, 2.0, 3.0 };
+        constexpr vec3d b{ 1.0, 2.0, constants<f64>::nan };
         constexpr vec3d c{ 0.0, 42.0, -100.0 };
 
         VX_STATIC_CHECK(any_inf(a) == true);
@@ -345,8 +344,8 @@ VX_TEST_CASE(test_any_inf)
 
     VX_SECTION("vec4")
     {
-        constexpr vec4f a{ 1.0f, const_f::infinity, 0.0f, 4.0f };
-        constexpr vec4f b{ -const_f::infinity, 2.0f, const_f::nan, 3.0f };
+        constexpr vec4f a{ 1.0f, constants<f32>::infinity, 0.0f, 4.0f };
+        constexpr vec4f b{ -constants<f32>::infinity, 2.0f, constants<f32>::nan, 3.0f };
         constexpr vec4f c{ 1.0f, 2.0f, 3.0f, 4.0f };
 
         VX_STATIC_CHECK(any_inf(a) == true);
@@ -373,9 +372,9 @@ VX_TEST_CASE(test_is_nan)
     VX_SECTION("scalar")
     {
         // float
-        VX_STATIC_CHECK(is_nan(const_f::nan));
-        VX_STATIC_CHECK(!is_nan(const_f::infinity));
-        VX_STATIC_CHECK(!is_nan(-const_f::infinity));
+        VX_STATIC_CHECK(is_nan(constants<f32>::nan));
+        VX_STATIC_CHECK(!is_nan(constants<f32>::infinity));
+        VX_STATIC_CHECK(!is_nan(-constants<f32>::infinity));
         VX_STATIC_CHECK(!is_nan(0.0f));
         VX_STATIC_CHECK(!is_nan(1.0f));
 
@@ -387,8 +386,8 @@ VX_TEST_CASE(test_is_nan)
 
     VX_SECTION("vec2")
     {
-        constexpr vec2f a{ const_f::nan, 1.0f };
-        constexpr vec2f b{ -const_f::infinity, const_f::nan };
+        constexpr vec2f a{ constants<f32>::nan, 1.0f };
+        constexpr vec2f b{ -constants<f32>::infinity, constants<f32>::nan };
         constexpr vec2f c{ 0.0f, 42.0f };
 
         VX_STATIC_CHECK(is_nan(a) == vec2b(true, false));
@@ -398,7 +397,7 @@ VX_TEST_CASE(test_is_nan)
 
     VX_SECTION("vec3")
     {
-        constexpr vec3d a{ 0.0, const_d::nan, -const_d::infinity };
+        constexpr vec3d a{ 0.0, constants<f64>::nan, -constants<f64>::infinity };
         constexpr vec3d b{ 1.0, 2.0, 3.0 };
 
         VX_STATIC_CHECK(is_nan(a) == vec3b(false, true, false));
@@ -407,7 +406,7 @@ VX_TEST_CASE(test_is_nan)
 
     VX_SECTION("vec4")
     {
-        constexpr vec4f a{ 0.0f, const_f::nan, 1.0f, -const_f::infinity };
+        constexpr vec4f a{ 0.0f, constants<f32>::nan, 1.0f, -constants<f32>::infinity };
         constexpr vec4f b{ 1.0f, 2.0f, 3.0f, 4.0f };
 
         VX_STATIC_CHECK(is_nan(a) == vec4b(false, true, false, false));
@@ -432,8 +431,8 @@ VX_TEST_CASE(test_any_nan)
 {
     VX_SECTION("vec2")
     {
-        constexpr vec2f a{ const_f::nan, 1.0f };
-        constexpr vec2f b{ -const_f::infinity, const_f::nan };
+        constexpr vec2f a{ constants<f32>::nan, 1.0f };
+        constexpr vec2f b{ -constants<f32>::infinity, constants<f32>::nan };
         constexpr vec2f c{ 0.0f, 42.0f };
 
         VX_STATIC_CHECK(any_nan(a) == true);
@@ -443,8 +442,8 @@ VX_TEST_CASE(test_any_nan)
 
     VX_SECTION("vec3")
     {
-        constexpr vec3d a{ const_d::nan, 2.0, 3.0 };
-        constexpr vec3d b{ 1.0, 2.0, const_d::infinity };
+        constexpr vec3d a{ constants<f64>::nan, 2.0, 3.0 };
+        constexpr vec3d b{ 1.0, 2.0, constants<f64>::infinity };
         constexpr vec3d c{ 0.0, 42.0, -100.0 };
 
         VX_STATIC_CHECK(any_nan(a) == true);
@@ -454,8 +453,8 @@ VX_TEST_CASE(test_any_nan)
 
     VX_SECTION("vec4")
     {
-        constexpr vec4f a{ 1.0f, const_f::nan, 0.0f, 4.0f };
-        constexpr vec4f b{ -const_f::infinity, 2.0f, const_f::nan, 3.0f };
+        constexpr vec4f a{ 1.0f, constants<f32>::nan, 0.0f, 4.0f };
+        constexpr vec4f b{ -constants<f32>::infinity, 2.0f, constants<f32>::nan, 3.0f };
         constexpr vec4f c{ 1.0f, 2.0f, 3.0f, 4.0f };
 
         VX_STATIC_CHECK(any_nan(a) == true);

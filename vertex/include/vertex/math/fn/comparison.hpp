@@ -1,12 +1,8 @@
 #pragma once
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/math/type_traits.hpp"
 #include "vertex/math/constants.hpp"
-
-#include "vertex/math/types/vec/vec2b.hpp"
-#include "vertex/math/types/vec/vec3b.hpp"
-#include "vertex/math/types/vec/vec4b.hpp"
+#include "vertex/math/types.hpp"
 
 namespace vx {
 namespace math {

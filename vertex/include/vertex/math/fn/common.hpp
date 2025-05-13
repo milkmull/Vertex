@@ -3,8 +3,8 @@
 #include <cmath>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/math/type_traits.hpp"
 #include "vertex/math/constants.hpp"
+#include "vertex/math/types.hpp"
 
 namespace vx {
 namespace math {
@@ -99,7 +99,7 @@ VX_FORCE_INLINE constexpr T max(T x, T y) noexcept
 template <typename T, typename... Ts>
 VX_FORCE_INLINE constexpr T max(T x, T y, Ts... rest) noexcept
 {
-    return max((y < x) ? y : x, rest...);
+    return max((x < y) ? y : x, rest...);
 }
 
 // vec scalar
@@ -880,19 +880,19 @@ VX_FORCE_INLINE constexpr T gcd(T a, T b) noexcept
 
 // vec scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> gcd(const vec<2, T>& a, T b) noexcept
 {
     return vec<2, T>(gcd(a.x, b), gcd(a.y, b));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> gcd(const vec<3, T>& a, T b) noexcept
 {
     return vec<3, T>(gcd(a.x, b), gcd(a.y, b), gcd(a.z, b));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> gcd(const vec<4, T>& a, T b) noexcept
 {
     return vec<4, T>(gcd(a.x, b), gcd(a.y, b), gcd(a.z, b), gcd(a.w, b));
@@ -900,7 +900,7 @@ VX_FORCE_INLINE constexpr vec<4, T> gcd(const vec<4, T>& a, T b) noexcept
 
 // vec binary
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> gcd(
     const vec<2, T>& a,
     const vec<2, T>& b
@@ -909,7 +909,7 @@ VX_FORCE_INLINE constexpr vec<2, T> gcd(
     return vec<2, T>(gcd(a.x, b.x), gcd(a.y, b.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> gcd(
     const vec<3, T>& a,
     const vec<3, T>& b
@@ -918,7 +918,7 @@ VX_FORCE_INLINE constexpr vec<3, T> gcd(
     return vec<3, T>(gcd(a.x, b.x), gcd(a.y, b.y), gcd(a.z, b.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> gcd(
     const vec<4, T>& a,
     const vec<4, T>& b

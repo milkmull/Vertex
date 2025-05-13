@@ -1,20 +1,19 @@
 #pragma once
 
-#include "vertex/math/config.hpp"
-#include "vertex/math/types/vec/vec3b.hpp"
+#include "vertex/math/types/vec3b.hpp"
 
 namespace vx {
 namespace math {
 
 template <typename T>
-struct vec_t<3, T, __detail::component_type::_i>
+struct vec_t<3, T, __detail::component_type::_u>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
     using scalar_type = T;
-    using type = vec_t<3, scalar_type, __detail::component_type::_i>;
+    using type = vec_t<3, scalar_type, __detail::component_type::_u>;
     static constexpr size_t size = 3;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -167,11 +166,6 @@ struct vec_t<3, T, __detail::component_type::_i>
     VX_FORCE_INLINE constexpr type operator+() const noexcept
     {
         return type(+x, +y, +z);
-    }
-
-    VX_FORCE_INLINE constexpr type operator-() const noexcept
-    {
-        return type(-x, -y, -z);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -618,23 +612,8 @@ struct vec_t<3, T, __detail::component_type::_i>
     static VX_FORCE_INLINE constexpr type ONE() noexcept { return type(static_cast<scalar_type>(1)); }
 
     static VX_FORCE_INLINE constexpr type RIGHT() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type LEFT() noexcept { return type(static_cast<scalar_type>(-1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
-
     static VX_FORCE_INLINE constexpr type UP() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(1), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type DOWN() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(-1), static_cast<scalar_type>(0)); }
-
-#if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
-
-    static VX_FORCE_INLINE constexpr type FORWARD() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
-    static VX_FORCE_INLINE constexpr type BACK() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
-
-#else
-
     static VX_FORCE_INLINE constexpr type FORWARD() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
-    static VX_FORCE_INLINE constexpr type BACK() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
-
-#endif
-
 };
 
 } // namespace math

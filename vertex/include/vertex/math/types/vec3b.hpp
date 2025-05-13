@@ -2,37 +2,39 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/assert.hpp"
-#include "vertex/math/type_traits.hpp"
+#include "vertex/math/types/traits.hpp"
 
 namespace vx {
 namespace math {
 
-template <>
-struct vec_t<2, bool, __detail::component_type::_b>
+template <typename T>
+struct vec_t<3, T, __detail::component_type::_b>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = bool;
-    using type = vec_t<2, scalar_type, __detail::component_type::_b>;
-    static constexpr size_t size = 2;
+    using scalar_type = T;
+    using type = vec_t<3, scalar_type, __detail::component_type::_b>;
+    static constexpr size_t size = 3;
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
     ///////////////////////////////////////////////////////////////////////////////
 
-    scalar_type x, y;
+    scalar_type x, y, z;
 
     ///////////////////////////////////////////////////////////////////////////////
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr vec_t() noexcept
-        : x(false), y(false) {}
+        : x(static_cast<scalar_type>(0))
+        , y(static_cast<scalar_type>(0))
+        , z(static_cast<scalar_type>(0)) {}
 
     VX_FORCE_INLINE constexpr vec_t(const type& v) noexcept
-        : x(v.x), y(v.y) {}
+        : x(v.x), y(v.y), z(v.z) {}
 
     VX_FORCE_INLINE constexpr vec_t(type&&) noexcept = default;
 
@@ -41,10 +43,10 @@ struct vec_t<2, bool, __detail::component_type::_b>
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit vec_t(scalar_type scalar) noexcept
-        : x(scalar), y(scalar) {}
+        : x(scalar), y(scalar), z(scalar) {}
 
-    VX_FORCE_INLINE constexpr vec_t(scalar_type vx, scalar_type vy) noexcept
-        : x(vx), y(vy) {}
+    VX_FORCE_INLINE constexpr vec_t(scalar_type vx, scalar_type vy, scalar_type vz) noexcept
+        : x(vx), y(vy), z(vz) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // conversion constructors
@@ -53,27 +55,38 @@ struct vec_t<2, bool, __detail::component_type::_b>
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec_t(U scalar) noexcept
         : x(static_cast<scalar_type>(scalar))
-        , y(static_cast<scalar_type>(scalar)) {}
+        , y(static_cast<scalar_type>(scalar))
+        , z(static_cast<scalar_type>(scalar)) {}
 
-    template <typename X, typename Y, VXM_REQ_NUM2(X, Y)>
-    VX_FORCE_INLINE constexpr vec_t(X vx, Y vy) noexcept
+    template <typename X, typename Y, typename Z, VXM_REQ_NUM3(X, Y, Z)>
+    VX_FORCE_INLINE constexpr vec_t(X vx, Y vy, Z vz) noexcept
         : x(static_cast<scalar_type>(vx))
-        , y(static_cast<scalar_type>(vy)) {}
+        , y(static_cast<scalar_type>(vy))
+        , z(static_cast<scalar_type>(vz)) {}
 
-    template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr explicit vec_t(const vec<2, U>& v) noexcept
-        : x(static_cast<scalar_type>(v.x))
-        , y(static_cast<scalar_type>(v.y)) {}
+    template <typename XY, typename Z, VXM_REQ_NUM2(XY, Z)>
+    VX_FORCE_INLINE constexpr vec_t(const vec<2, XY>& vxy, Z vz) noexcept
+        : x(static_cast<scalar_type>(vxy.x))
+        , y(static_cast<scalar_type>(vxy.y))
+        , z(static_cast<scalar_type>(vz)) {}
+
+    template <typename X, typename YZ, VXM_REQ_NUM2(X, YZ)>
+    VX_FORCE_INLINE constexpr vec_t(X vx, const vec<2, YZ>& vyz) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vyz.x))
+        , z(static_cast<scalar_type>(vyz.y)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec_t(const vec<3, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
-        , y(static_cast<scalar_type>(v.y)) {}
+        , y(static_cast<scalar_type>(v.y))
+        , z(static_cast<scalar_type>(v.z)) {}
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec_t(const vec<4, U>& v) noexcept
         : x(static_cast<scalar_type>(v.x))
-        , y(static_cast<scalar_type>(v.y)) {}
+        , y(static_cast<scalar_type>(v.y))
+        , z(static_cast<scalar_type>(v.z)) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // destructor
@@ -89,16 +102,18 @@ struct vec_t<2, bool, __detail::component_type::_b>
     {
         x = v.x;
         y = v.y;
+        z = v.z;
         return *this;
     }
 
     VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U, VXM_REQ_NUM(U)>
-    VX_FORCE_INLINE constexpr type& operator=(const vec<2, U>& v) noexcept
+    VX_FORCE_INLINE constexpr type& operator=(const vec<3, U>& v)
     {
-        x = static_cast<scalar_type>(v.x);
-        y = static_cast<scalar_type>(v.y);
+        x = v.x;
+        y = v.y;
+        z = v.z;
         return *this;
     }
 
@@ -109,12 +124,13 @@ struct vec_t<2, bool, __detail::component_type::_b>
     VX_FORCE_INLINE constexpr scalar_type& operator[](size_t i) noexcept
     {
         VX_ASSERT(i < size);
-        
+
         switch (i)
         {
             default:
-            case 0:     return x;
-            case 1:     return y;
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
         }
     }
 
@@ -125,8 +141,9 @@ struct vec_t<2, bool, __detail::component_type::_b>
         switch (i)
         {
             default:
-            case 0:     return x;
-            case 1:     return y;
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
         }
     }
 
@@ -136,12 +153,12 @@ struct vec_t<2, bool, __detail::component_type::_b>
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2) noexcept
     {
-        return v1.x == v2.x && v1.y == v2.y;
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
     }
 
     friend VX_FORCE_INLINE constexpr bool operator!=(const type& v1, const type& v2) noexcept
     {
-        return v1.x != v2.x || v1.y != v2.y;
+        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z;
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -152,41 +169,41 @@ struct vec_t<2, bool, __detail::component_type::_b>
 
     friend VX_FORCE_INLINE constexpr type operator&&(const type& v, scalar_type scalar) noexcept
     {
-        return type(v.x && scalar, v.y && scalar);
+        return type(v.x && scalar, v.y && scalar, v.z && scalar);
     }
 
     friend VX_FORCE_INLINE constexpr type operator&&(scalar_type scalar, const type& v) noexcept
     {
-        return type(scalar && v.x, scalar && v.y);
+        return type(scalar && v.x, scalar && v.y, scalar && v.z);
     }
 
     friend VX_FORCE_INLINE constexpr type operator&&(const type& v1, const type& v2) noexcept
     {
-        return type(v1.x && v2.x, v1.y && v2.y);
+        return type(v1.x && v2.x, v1.y && v2.y, v1.z && v2.z);
     }
 
     // or (||)
 
     friend VX_FORCE_INLINE constexpr type operator||(const type& v, scalar_type scalar) noexcept
     {
-        return type(v.x || scalar, v.y || scalar);
+        return type(v.x || scalar, v.y || scalar, v.z || scalar);
     }
 
     friend VX_FORCE_INLINE constexpr type operator||(scalar_type scalar, const type& v) noexcept
     {
-        return type(scalar || v.x, scalar || v.y);
+        return type(scalar || v.x, scalar || v.y, scalar || v.z);
     }
 
     friend VX_FORCE_INLINE constexpr type operator||(const type& v1, const type& v2) noexcept
     {
-        return type(v1.x || v2.x, v1.y || v2.y);
+        return type(v1.x || v2.x, v1.y || v2.y, v1.z || v2.z);
     }
 
     // not (!)
 
     VX_FORCE_INLINE constexpr type operator!() const noexcept
     {
-        return type(!x, !y);
+        return type(!x, !y, !z);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

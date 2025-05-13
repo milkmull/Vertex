@@ -1,5 +1,6 @@
 #include "vertex_test/test.hpp"
-#include "vertex/math/vec.hpp"
+
+#include "vertex/math/types.hpp"
 
 using namespace vx::math;
 

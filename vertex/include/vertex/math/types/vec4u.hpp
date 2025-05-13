@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/math/types/vec/vec4b.hpp"
+#include "vertex/math/types/vec4b.hpp"
 
 namespace vx {
 namespace math {
