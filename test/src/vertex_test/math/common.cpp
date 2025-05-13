@@ -1,6 +1,7 @@
 #include "vertex_test/test.hpp"
 
 #include "vertex/math/fn/common.hpp"
+#include "vertex/math/fn/comparison.hpp"
 
 using namespace vx::math;
 
@@ -278,48 +279,48 @@ VX_TEST_CASE(test_abs)
 {
     VX_SECTION("scalar")
     {
-        constexpr i32 a = -5;
+        i32 a = -5;
         i32 b = vx::math::abs(a);
         VX_CHECK(b == 5);
 
-        constexpr f32 x = -3.14f;
+        f32 x = -3.14f;
         f32 y = vx::math::abs(x);
         VX_CHECK(y == 3.14f);
 
-        constexpr f64 z = -2.718;
+        f64 z = -2.718;
         f64 result = vx::math::abs(z);
         VX_CHECK(result == 2.718);
     }
 
     VX_SECTION("vec2")
     {
-        constexpr vec2i a(-1, 2);
+        vec2i a(-1, 2);
         vec2i b = abs(a);
         VX_CHECK(b == vec2i(1, 2));
 
-        constexpr vec2f c(-3.0f, -4.5f);
+        vec2f c(-3.0f, -4.5f);
         vec2f d = abs(c);
         VX_CHECK(d == vec2f(3.0f, 4.5f));
     }
 
     VX_SECTION("vec3")
     {
-        constexpr vec3i a(-1, 0, 3);
+        vec3i a(-1, 0, 3);
         vec3i b = abs(a);
         VX_CHECK(b == vec3i(1, 0, 3));
 
-        constexpr vec3f c(-1.5f, 2.0f, -3.5f);
+        vec3f c(-1.5f, 2.0f, -3.5f);
         vec3f d = abs(c);
         VX_CHECK(d == vec3f(1.5f, 2.0f, 3.5f));
     }
 
     VX_SECTION("vec4")
     {
-        constexpr vec4i a(-1, -2, -3, -4);
+        vec4i a(-1, -2, -3, -4);
         vec4i b = abs(a);
         VX_CHECK(b == vec4i(1, 2, 3, 4));
 
-        constexpr vec4d c(-1.0, 2.0, -3.0, 4.0);
+        vec4d c(-1.0, 2.0, -3.0, 4.0);
         vec4d d = abs(c);
         VX_CHECK(d == vec4d(1.0, 2.0, 3.0, 4.0));
     }
@@ -593,13 +594,13 @@ VX_TEST_CASE(test_fmod)
 {
     VX_SECTION("scalar")
     {
-        VX_CHECK(vx::math::fmod(5.3f, 2.0f) == 1.3f);
-        VX_CHECK(vx::math::fmod(-5.3f, 2.0f) == -1.3f);
-        VX_CHECK(vx::math::fmod(5.3f, -2.0f) == 1.3f);
-        VX_CHECK(vx::math::fmod(-5.3f, -2.0f) == -1.3f);
+        VX_CHECK(vx::math::fmod(5.5f, 2.0f) == 1.5f);
+        VX_CHECK(vx::math::fmod(-5.5f, 2.0f) == -1.5f);
+        VX_CHECK(vx::math::fmod(5.25f, -2.0f) == 1.25f);
+        VX_CHECK(vx::math::fmod(-5.25f, -2.0f) == -1.25f);
 
-        VX_CHECK(vx::math::fmod(7.0, 3.0) == 1.0);
-        VX_CHECK(vx::math::fmod(-7.0, 3.0) == -1.0);
+        VX_CHECK(vx::math::fmod(7.75, 3.0) == 1.75);
+        VX_CHECK(vx::math::fmod(-7.75, 3.0) == -1.75);
     }
 
     VX_SECTION("vec2 scalar")
@@ -611,16 +612,16 @@ VX_TEST_CASE(test_fmod)
 
     VX_SECTION("vec3 scalar")
     {
-        const vec3f x(9.0f, -7.5f, 3.3f);
-        const vec3f y = fmod(x, 3.0f);
-        VX_CHECK(y == vec3f(0.0f, -1.5f, 0.3f));
+        const vec3f x(9.25f, -7.5f, 3.75f);
+        const vec3f y = fmod(x, 2.5f);
+        VX_CHECK(y == vec3f(1.75f, 0.0f, 1.25f));
     }
 
     VX_SECTION("vec4 scalar")
     {
         const vec4f x(6.2f, -6.2f, 10.0f, -10.0f);
         const vec4f y = fmod(x, 4.0f);
-        VX_CHECK(y == vec4f(2.2f, -2.2f, 2.0f, -2.0f));
+        VX_CHECK(all_equal_approx(y, vec4f(2.2f, -2.2f, 2.0f, -2.0f)));
     }
 
     VX_SECTION("vec2 binary")
@@ -654,10 +655,10 @@ VX_TEST_CASE(test_mod)
 {
     VX_SECTION("scalar float")
     {
-        VX_CHECK(vx::math::mod(5.3f, 2.0f) == 1.3f);
-        VX_CHECK(vx::math::mod(-5.3f, 2.0f) == 0.7f);
-        VX_CHECK(vx::math::mod(5.3f, -2.0f) == -1.3f);
-        VX_CHECK(vx::math::mod(-5.3f, -2.0f) == -0.7f);
+        VX_CHECK(equal_approx(vx::math::mod(5.3f, 2.0f), 1.3f));
+        VX_CHECK(equal_approx(vx::math::mod(-5.3f, 2.0f), 0.7f));
+        VX_CHECK(equal_approx(vx::math::mod(5.3f, -2.0f), -0.7f));
+        VX_CHECK(equal_approx(vx::math::mod(-5.3f, -2.0f), -1.3f));
 
         VX_CHECK(vx::math::mod(7.0, 3.0) == 1.0);
         VX_CHECK(vx::math::mod(-7.0, 3.0) == 2.0);
@@ -682,14 +683,14 @@ VX_TEST_CASE(test_mod)
     {
         const vec3f x(9.0f, -7.5f, 3.3f);
         const vec3f y = mod(x, 3.0f);
-        VX_CHECK(y == vec3f(0.0f, 1.5f, 0.3f));
+        VX_CHECK(all_equal_approx(y, vec3f(0.0f, 1.5f, 0.3f)));
     }
 
     VX_SECTION("vec4 float scalar")
     {
         const vec4f x(6.2f, -6.2f, 10.0f, -10.0f);
         const vec4f y = mod(x, 4.0f);
-        VX_CHECK(y == vec4f(2.2f, 1.8f, 2.0f, 2.0f));
+        VX_CHECK(all_equal_approx(y, vec4f(2.2f, 1.8f, 2.0f, 2.0f)));
     }
 
     VX_SECTION("vec2 float binary")
@@ -713,7 +714,7 @@ VX_TEST_CASE(test_mod)
         const vec4f x(10.5f, -10.5f, 7.0f, -7.0f);
         const vec4f y(3.0f, 3.0f, 4.0f, 4.0f);
         const vec4f result = mod(x, y);
-        VX_CHECK(result == vec4f(1.5f, 2.5f, 3.0f, 1.0f));
+        VX_CHECK(result == vec4f(1.5f, 1.5f, 3.0f, 1.0f));
     }
 }
 
@@ -727,7 +728,7 @@ VX_TEST_CASE(test_fract)
         VX_CHECK(vx::math::fract(0.5f) == 0.5f);
         VX_CHECK(vx::math::fract(1.0f) == 0.0f);
         VX_CHECK(vx::math::fract(-0.5f) == 0.5f);
-        VX_CHECK(vx::math::fract(-1.2f) == 0.8f);
+        VX_CHECK(equal_approx(vx::math::fract(-1.2f), 0.8f));
 
         VX_CHECK(vx::math::fract(2.75) == 0.75);
         VX_CHECK(vx::math::fract(-3.25) == 0.75);
@@ -737,14 +738,14 @@ VX_TEST_CASE(test_fract)
     {
         const vec2f x(1.5f, -2.3f);
         const vec2f y = fract(x);
-        VX_CHECK(y == vec2f(0.5f, 0.7f));
+        VX_CHECK(all_equal_approx(y, vec2f(0.5f, 0.7f)));
     }
 
     VX_SECTION("vec3")
     {
         const vec3f x(0.0f, 2.9f, -1.1f);
         const vec3f y = fract(x);
-        VX_CHECK(y == vec3f(0.0f, 0.9f, 0.9f));
+        VX_CHECK(all_equal_approx(y, vec3f(0.0f, 0.9f, 0.9f)));
     }
 
     VX_SECTION("vec4")
@@ -772,7 +773,7 @@ VX_TEST_CASE(test_modf)
 
         f64 intpart_d = 0.0;
         f64 frac_d = vx::math::modf(5.9, intpart_d);
-        VX_CHECK(frac_d == 0.9);
+        VX_CHECK(equal_approx(frac_d, 0.9));
         VX_CHECK(intpart_d == 5.0);
     }
 
@@ -788,7 +789,7 @@ VX_TEST_CASE(test_modf)
     {
         vec3f intpart;
         vec3f result = modf(vec3f(0.0f, 3.7f, -4.8f), intpart);
-        VX_CHECK(result == vec3f(0.0f, 0.7f, -0.8f));
+        VX_CHECK(all_equal_approx(result, vec3f(0.0f, 0.7f, -0.8f)));
         VX_CHECK(intpart == vec3f(0.0f, 3.0f, -4.0f));
     }
 

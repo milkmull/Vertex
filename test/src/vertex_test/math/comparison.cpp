@@ -687,6 +687,61 @@ VX_TEST_CASE(test_equal_approx)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_all_equal_approx)
+{
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.0f, 2.0f };
+        constexpr vec2f b{ 1.0f, 2.0f };             // Exactly equal
+        constexpr vec2f c{ 1.0f, 2.0000001f };       // Within epsilon
+        constexpr vec2f d{ 1.0f, 3.0f };             // Not equal
+        constexpr vec2f e{ 1.0000001f, 2.0000001f }; // Approx equal to a
+
+        VX_STATIC_CHECK(all_equal_approx(a, b));
+        VX_STATIC_CHECK(all_equal_approx(a, c));
+        VX_STATIC_CHECK(!all_equal_approx(a, d));
+        VX_STATIC_CHECK(all_equal_approx(a, e));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ -1.0f, 0.0f, 1.0f };
+        constexpr vec3f b{ -1.0f, 0.0f, 1.0f };                   // Exactly equal
+        constexpr vec3f c{ -1.0000001f, 0.0f, 1.0000001f };       // Approx equal
+        constexpr vec3f d{ -1.0f, 0.0f, 2.0f };                   // Not equal
+
+        VX_STATIC_CHECK(all_equal_approx(a, b));
+        VX_STATIC_CHECK(all_equal_approx(a, c));
+        VX_STATIC_CHECK(!all_equal_approx(a, d));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 5.0f, 6.0f, 7.0f, 8.0f };
+        constexpr vec4f b{ 5.0f, 6.0f, 7.0f, 8.0f };                  // Exactly equal
+        constexpr vec4f c{ 5.0000001f, 6.0f, 7.0000001f, 8.0f };      // Approx equal
+        constexpr vec4f d{ 5.0f, 6.0f, 7.0f, 9.0f };                  // Not equal
+
+        VX_STATIC_CHECK(all_equal_approx(a, b));
+        VX_STATIC_CHECK(all_equal_approx(a, c));
+        VX_STATIC_CHECK(!all_equal_approx(a, d));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-2f;
+
+        constexpr vec3f a{ 1.0f, 2.0f, 3.0f };
+        constexpr vec3f b{ 1.00001f, 2.00001f, 3.00001f };
+
+        VX_STATIC_CHECK(!all_equal_approx(a, b, tight));
+        VX_STATIC_CHECK(all_equal_approx(a, b, loose));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_greater_approx)
 {
     VX_SECTION("scalar")

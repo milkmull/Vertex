@@ -311,7 +311,7 @@ VX_FORCE_INLINE constexpr T next_pow2(T x) noexcept
     x |= x >> 8;
     x |= x >> 16;
 
-    if (sizeof(T) == 8)
+    VX_IF_CONSTEXPR(sizeof(T) == 8)
     {
         x |= x >> 32;
     }

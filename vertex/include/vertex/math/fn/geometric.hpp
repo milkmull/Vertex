@@ -150,7 +150,7 @@ template <size_t L, typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> normalize(const vec<L, T>& v) noexcept
 {
     const T magsq = length_squared(v);
-    return (magsq < constants<T>::epsilon) ? vec<L, T>(0) : (v * inverse_sqrt(magsq));
+    return (magsq <= constants<T>::epsilon) ? vec<L, T>(0) : (v * inverse_sqrt(magsq));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,7 +163,7 @@ VX_FORCE_INLINE constexpr bool is_normalized(
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return (length_squared(v) - static_cast<T>(1)) < epsilon;
+    return (length_squared(v) - static_cast<T>(1)) <= epsilon;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,7 +179,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
 {
     const T mag = length(v);
 
-    if (mag < constants<T>::epsilon)
+    if (mag <= constants<T>::epsilon)
     {
         return vec<L, T>(0);
     }
@@ -195,7 +195,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T aspect(const vec<2, T>& v) noexcept
 {
-    return static_cast<T>(abs(v.y) > constants<T>::epsilon) * (v.x / v.y);
+    return static_cast<T>(abs(v.y) >= constants<T>::epsilon) * (v.x / v.y);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -345,7 +345,7 @@ VX_FORCE_INLINE constexpr vec<L, T> refract(
 {
     const T d = normalized_dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
-    return (k < constants<T>::epsilon)
+    return (k <= constants<T>::epsilon)
         ? vec<L, T>(0)
         : (eta * i - (eta * d + sqrt(k)) * n);
 }

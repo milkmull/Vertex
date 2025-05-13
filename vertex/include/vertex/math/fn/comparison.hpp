@@ -560,6 +560,46 @@ VX_FORCE_INLINE constexpr vec4b equal_approx(
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// all_equal_approx
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_equal_approx(
+    const vec<2, T>& x,
+    const vec<2, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x.x, y.x, epsilon)
+        && equal_approx(x.y, y.y, epsilon);
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_equal_approx(
+    const vec<3, T>& x,
+    const vec<3, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x.x, y.x, epsilon)
+        && equal_approx(x.y, y.y, epsilon)
+        && equal_approx(x.z, y.z, epsilon);
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_equal_approx(
+    const vec<4, T>& x,
+    const vec<4, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x.x, y.x, epsilon)
+        && equal_approx(x.y, y.y, epsilon)
+        && equal_approx(x.z, y.z, epsilon)
+        && equal_approx(x.w, y.w, epsilon);
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // not_equal_approx
 //////////////////////////////////////////////////////////////////////////////
 
@@ -809,6 +849,46 @@ VX_FORCE_INLINE constexpr vec4b greater_or_equal_approx(
         greater_or_equal_approx(x.z, y.z, epsilon),
         greater_or_equal_approx(x.w, y.w, epsilon)
     );
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// all_greater_or_equal_approx
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_greater_or_equal_approx(
+    const vec<2, T>& x,
+    const vec<2, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return is_greater_or_equal_approx(x.x, y.x, epsilon)
+        && is_greater_or_equal_approx(x.y, y.y, epsilon);
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_greater_or_equal_approx(
+    const vec<3, T>& x,
+    const vec<3, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return is_greater_or_equal_approx(x.x, y.x, epsilon)
+        && is_greater_or_equal_approx(x.y, y.y, epsilon)
+        && is_greater_or_equal_approx(x.z, y.z, epsilon);
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool all_greater_or_equal_approx(
+    const vec<4, T>& x,
+    const vec<4, T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return is_greater_or_equal_approx(x.x, y.x, epsilon)
+        && is_greater_or_equal_approx(x.y, y.y, epsilon)
+        && is_greater_or_equal_approx(x.z, y.z, epsilon)
+        && is_greater_or_equal_approx(x.w, y.w, epsilon);
 }
 
 //////////////////////////////////////////////////////////////////////////////

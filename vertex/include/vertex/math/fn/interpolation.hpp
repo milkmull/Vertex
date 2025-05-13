@@ -231,7 +231,7 @@ VX_FORCE_INLINE constexpr vec<L, T> slerp(
 {
     const T cos_alpha = normalized_dot(x, y);
 
-    if (cos_alpha > static_cast<T>(1) - constants<T>::epsilon)
+    if (cos_alpha >= static_cast<T>(1) - constants<T>::epsilon)
     {
         // If the angle between the vectors is super small, we
         // can estimate with linear interpolation. This also helps
