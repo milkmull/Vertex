@@ -10,3 +10,4 @@ vx_add_test(test_math_vec4          "math" "${CMAKE_CURRENT_SOURCE_DIR}/types/ve
 
 vx_add_test(test_math_comparison    "math" "${CMAKE_CURRENT_SOURCE_DIR}/comparison.cpp")
 vx_add_test(test_math_common        "math" "${CMAKE_CURRENT_SOURCE_DIR}/common.cpp")
+vx_add_test(test_math_exponential   "math" "${CMAKE_CURRENT_SOURCE_DIR}/exponential.cpp")

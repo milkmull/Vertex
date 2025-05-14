@@ -271,7 +271,7 @@ VX_FORCE_INLINE constexpr vec<4, T> inverse(const vec<4, T>& x) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T inverse_sqrt(T x) noexcept
 {
-    return static_cast<T>(1) / std::sqrt(x);
+    return static_cast<T>(1) / sqrt(x);
 }
 
 // vec
@@ -303,6 +303,8 @@ VX_FORCE_INLINE constexpr vec<4, T> inverse_sqrt(const vec<4, T>& x) noexcept
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr T next_pow2(T x) noexcept
 {
+    if (x <= 0) return 1;
+
     --x;
 
     x |= x >> 1;
