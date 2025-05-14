@@ -263,8 +263,13 @@ struct enable_if<true, T> { using type = T; };
 ///////////////////////////////////////////////////////////////////////////////
 
 #define VXM_REQ(condition) typename enable_if<(condition), int>::type = 0
+
+#define VXM_REQ_SIGNED(type) VXM_REQ(is_signed<type>::value)
 #define VXM_REQ_FLOAT(type) VXM_REQ(is_float<type>::value)
 #define VXM_REQ_INT(type) VXM_REQ(is_int<type>::value)
+#define VXM_REQ_SINT(type) VXM_REQ(is_signed_int<type>::value)
+#define VXM_REQ_UINT(type) VXM_REQ(is_unsigned<type>::value)
+
 #define VXM_REQ_NUM(type) VXM_REQ(is_numeric<type>::value)
 #define VXM_REQ_NUM2(type1, type2) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value)
 #define VXM_REQ_NUM3(type1, type2, type3) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value && is_numeric<type3>::value)

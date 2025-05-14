@@ -563,6 +563,16 @@ VX_FORCE_INLINE constexpr vec4b equal_approx(
 // all_equal_approx
 //////////////////////////////////////////////////////////////////////////////
 
+// scalar
+
+template <typename T, VXM_REQ_NUM(T)>
+VX_FORCE_INLINE constexpr bool all_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
+{
+    return equal_approx(a, b, epsilon);
+}
+
+// vec
+
 template <typename T>
 VX_FORCE_INLINE constexpr bool all_equal_approx(
     const vec<2, T>& x,

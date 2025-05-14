@@ -223,10 +223,16 @@ VX_FORCE_INLINE constexpr T csum(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T, VXM_REQ_SIGNED(T)>
 VX_FORCE_INLINE constexpr T abs(T x) noexcept
 {
     return std::abs(x);
+}
+
+template <typename T, VXM_REQ_UINT(T)>
+VX_FORCE_INLINE constexpr T abs(T x) noexcept
+{
+    return x;
 }
 
 // vec
@@ -311,6 +317,40 @@ template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> trunc(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(trunc(x.x), trunc(x.y), trunc(x.z), trunc(x.w));
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// fract
+//////////////////////////////////////////////////////////////////////////////
+
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
+
+// scalar
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr T fract(T x) noexcept
+{
+    return x - std::floor(x);
+}
+
+// vec
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<2, T> fract(const vec<2, T>& x) noexcept
+{
+    return vec<2, T>(fract(x.x), fract(x.y));
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<3, T> fract(const vec<3, T>& x) noexcept
+{
+    return vec<3, T>(fract(x.x), fract(x.y), fract(x.z));
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
+{
+    return vec<4, T>(fract(x.x), fract(x.y), fract(x.z), fract(x.w));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -546,40 +586,6 @@ VX_FORCE_INLINE constexpr auto mod(
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// fract
-//////////////////////////////////////////////////////////////////////////////
-
-// https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
-
-// scalar
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T fract(T x) noexcept
-{
-    return x - std::floor(x);
-}
-
-// vec
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> fract(const vec<2, T>& x) noexcept
-{
-    return vec<2, T>(fract(x.x), fract(x.y));
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> fract(const vec<3, T>& x) noexcept
-{
-    return vec<3, T>(fract(x.x), fract(x.y), fract(x.z));
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
-{
-    return vec<4, T>(fract(x.x), fract(x.y), fract(x.z), fract(x.w));
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // modf
 //////////////////////////////////////////////////////////////////////////////
 
@@ -618,62 +624,6 @@ VX_FORCE_INLINE constexpr vec<4, T> modf(
 ) noexcept
 {
     return vec<4, T>(modf(x.x, intpart.x), modf(x.y, intpart.y), modf(x.z, intpart.z), modf(x.w, intpart.w));
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// fma
-//////////////////////////////////////////////////////////////////////////////
-
-// scalar
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T fma(T x, T y, T z) noexcept
-{
-    return std::fma(x, y, z);
-}
-
-// vec
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> fma(
-    const vec<2, T>& x,
-    const vec<2, T>& y,
-    const vec<2, T>& z
-) noexcept
-{
-    return vec<2, T>(
-        fma(x.x, y.x, z.x),
-        fma(x.y, y.y, z.y)
-    );
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> fma(
-    const vec<3, T>& x,
-    const vec<3, T>& y,
-    const vec<3, T>& z
-) noexcept
-{
-    return vec<3, T>(
-        fma(x.x, y.x, z.x),
-        fma(x.y, y.y, z.y),
-        fma(x.z, y.z, z.z)
-    );
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> fma(
-    const vec<4, T>& x,
-    const vec<4, T>& y,
-    const vec<4, T>& z
-) noexcept
-{
-    return vec<4, T>(
-        fma(x.x, y.x, z.x),
-        fma(x.y, y.y, z.y),
-        fma(x.z, y.z, z.z),
-        fma(x.w, y.w, z.w)
-    );
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -756,6 +706,62 @@ VX_FORCE_INLINE constexpr vec<4, T> ldexp(
 ) noexcept
 {
     return vec<4, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y), ldexp(x.z, exp.z), ldexp(x.w, exp.w));
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// fma
+//////////////////////////////////////////////////////////////////////////////
+
+// scalar
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr T fma(T x, T y, T z) noexcept
+{
+    return std::fma(x, y, z);
+}
+
+// vec
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<2, T> fma(
+    const vec<2, T>& x,
+    const vec<2, T>& y,
+    const vec<2, T>& z
+) noexcept
+{
+    return vec<2, T>(
+        fma(x.x, y.x, z.x),
+        fma(x.y, y.y, z.y)
+    );
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<3, T> fma(
+    const vec<3, T>& x,
+    const vec<3, T>& y,
+    const vec<3, T>& z
+) noexcept
+{
+    return vec<3, T>(
+        fma(x.x, y.x, z.x),
+        fma(x.y, y.y, z.y),
+        fma(x.z, y.z, z.z)
+    );
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> fma(
+    const vec<4, T>& x,
+    const vec<4, T>& y,
+    const vec<4, T>& z
+) noexcept
+{
+    return vec<4, T>(
+        fma(x.x, y.x, z.x),
+        fma(x.y, y.y, z.y),
+        fma(x.z, y.z, z.z),
+        fma(x.w, y.w, z.w)
+    );
 }
 
 //////////////////////////////////////////////////////////////////////////////
