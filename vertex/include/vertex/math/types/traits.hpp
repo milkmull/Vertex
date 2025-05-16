@@ -270,10 +270,20 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_SINT(type) VXM_REQ(is_signed_int<type>::value)
 #define VXM_REQ_UINT(type) VXM_REQ(is_unsigned<type>::value)
 
-#define VXM_REQ_NUM(type) VXM_REQ(is_numeric<type>::value)
-#define VXM_REQ_NUM2(type1, type2) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value)
-#define VXM_REQ_NUM3(type1, type2, type3) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value && is_numeric<type3>::value)
-#define VXM_REQ_NUM4(type1, type2, type3, type4) VXM_REQ(is_numeric<type1>::value && is_numeric<type2>::value && is_numeric<type3>::value && is_numeric<type4>::value)
+#define __IS_NUMERIC_1(t1) is_numeric<t1>::value
+#define __IS_NUMERIC_2(t1, t2) __IS_NUMERIC_1(t1) && __IS_NUMERIC_1(t2)
+#define __IS_NUMERIC_3(t1, t2, t3) __IS_NUMERIC_2(t1, t2) && __IS_NUMERIC_1(t3)
+#define __IS_NUMERIC_4(t1, t2, t3, t4) __IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_1(t4)
+
+#define VXM_REQ_NUM(t1) VXM_REQ(__IS_NUMERIC_1(t1))
+#define VXM_REQ_NUM2(t1, t2) VXM_REQ(__IS_NUMERIC_2(t1, t2))
+#define VXM_REQ_NUM3(t1, t2, t3) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3))
+#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3, t4))
+#define VXM_REQ_NUM6(t1, t2, t3, t4, t5, t6) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6))
+#define VXM_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8))
+#define VXM_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6) && __IS_NUMERIC_3(t7, t8, t9))
+#define VXM_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12))
+#define VXM_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12) && __IS_NUMERIC_4(t13, t14, t15, t16))
 
 } // namespace vx
 } // namespace math

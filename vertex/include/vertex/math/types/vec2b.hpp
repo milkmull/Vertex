@@ -7,16 +7,18 @@
 namespace vx {
 namespace math {
 
-template <>
-struct vec_t<2, bool, __detail::component_type::_b>
+template <typename T>
+struct vec_t<2, T, __detail::component_type::_b>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
-    using scalar_type = bool;
-    using type = vec_t<2, scalar_type, __detail::component_type::_b>;
+    using scalar_type = T;
     static constexpr size_t size = 2;
+    static constexpr auto __component_type = __detail::component_type::_b;
+
+    using type = vec_t<size, scalar_type, __component_type>;
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
@@ -134,14 +136,50 @@ struct vec_t<2, bool, __detail::component_type::_b>
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 
+    // equal (==)
+
     friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2) noexcept
     {
         return v1.x == v2.x && v1.y == v2.y;
     }
 
+    // not equal (!=)
+
     friend VX_FORCE_INLINE constexpr bool operator!=(const type& v1, const type& v2) noexcept
     {
         return v1.x != v2.x || v1.y != v2.y;
+    }
+
+    // greater than (>)
+
+    friend VX_FORCE_INLINE constexpr bool operator>(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        return v1.y > v2.y;
+    }
+
+    // less than (<)
+
+    friend VX_FORCE_INLINE constexpr bool operator<(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        return v1.y < v2.y;
+    }
+
+    // greater than or equal to (>=)
+
+    friend VX_FORCE_INLINE constexpr bool operator>=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        return v1.y >= v2.y;
+    }
+
+    // less than or equal to (<=)
+
+    friend VX_FORCE_INLINE constexpr bool operator<=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        return v1.y <= v2.y;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,129 @@
+vec:
+{
+    x vec2
+    x vec3
+    x vec4
+    
+    - to_string
+    - hash
+    - begin, end
+}
+
+mat:
+{
+    - mat2x2
+    - mat2x3
+    - mat2x4
+    
+    - mat3x2
+    - mat3x3
+    - mat3x4
+    
+    - mat4x2
+    - mat4x3
+    - mat4x4
+    
+    - matrix operations
+    - comparison
+    
+    - to_string
+    - hash
+    - begin, end
+}
+
+quat:
+{
+    - quat
+    - quaternion operations
+    - comparison
+    
+    - to_string
+    - hash
+    - begin, end
+}
+
+transform:
+{
+    - transform 2d
+    - transform 3d
+    - easing
+    - projection
+}
+
+simd:
+{
+    - vec4
+    - rework some operations
+}
+
+geometry:
+{
+    - point
+    - line
+    - rect
+    - circle
+    - triangle
+    - polygon
+    - ray
+    
+    - functions
+    - spline
+}
+
+functions:
+{
+    vec and scalar:
+    {
+        - common
+        - comparison
+        - exponential
+        - trigonometric
+        - geometric
+        - interpolation
+    }
+    
+    mat:
+    {
+        - comparison
+        - operations
+    }
+
+    quat:
+    {
+        - common
+        - comparison
+        - exponential
+        - geometric
+        - interpolation
+    }
+}
+
+testing:
+{
+    x scalar
+
+    - vec2
+    - vec3
+    - vec4
+    
+    - mat2x2
+    - mat2x3
+    - mat2x4
+    
+    - mat3x2
+    - mat3x3
+    - mat3x4
+    
+    - mat4x2
+    - mat4x3
+    - mat4x4
+    
+    - quat
+    
+    x common (scalar, vec)
+    x comparison (scalar, vec)
+    x exponential (scalar, vec)
+    - trigonometric (scalar, vec)
+    - geometric (scalar, vec)
+    - interpolation (scalar, vec)
+}

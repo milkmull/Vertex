@@ -15,8 +15,10 @@ struct vec_t<3, T, __detail::component_type::_b>
     ///////////////////////////////////////////////////////////////////////////////
 
     using scalar_type = T;
-    using type = vec_t<3, scalar_type, __detail::component_type::_b>;
     static constexpr size_t size = 3;
+    static constexpr auto __component_type = __detail::component_type::_b;
+
+    using type = vec_t<size, scalar_type, __component_type>;
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
@@ -151,14 +153,58 @@ struct vec_t<3, T, __detail::component_type::_b>
     // comparison operators
     ///////////////////////////////////////////////////////////////////////////////
 
+    // equal (==)
+
     friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2) noexcept
     {
-        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
     }
+
+    // not equal (!=)
 
     friend VX_FORCE_INLINE constexpr bool operator!=(const type& v1, const type& v2) noexcept
     {
-        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z;
+        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z || v1.w != v2.w;
+    }
+
+    // greater than (>)
+
+    friend VX_FORCE_INLINE constexpr bool operator>(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        if (v1.y != v2.y) return v1.y > v2.y;
+        if (v1.z != v2.z) return v1.z > v2.z;
+        return v1.w > v2.w;
+    }
+
+    // less than (<)
+
+    friend VX_FORCE_INLINE constexpr bool operator<(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        if (v1.y != v2.y) return v1.y < v2.y;
+        if (v1.z != v2.z) return v1.z < v2.z;
+        return v1.w < v2.w;
+    }
+
+    // greater than or equal to (>=)
+
+    friend VX_FORCE_INLINE constexpr bool operator>=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        if (v1.y != v2.y) return v1.y > v2.y;
+        if (v1.z != v2.z) return v1.z > v2.z;
+        return v1.w >= v2.w;
+    }
+
+    // less than or equal to (<=)
+
+    friend VX_FORCE_INLINE constexpr bool operator<=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        if (v1.y != v2.y) return v1.y < v2.y;
+        if (v1.z != v2.z) return v1.z < v2.z;
+        return v1.w <= v2.w;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

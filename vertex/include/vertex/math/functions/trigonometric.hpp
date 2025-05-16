@@ -9,6 +9,8 @@ namespace math {
 // radians
 //////////////////////////////////////////////////////////////////////////////
 
+// scalar
+
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T radians(T deg) noexcept
 {
@@ -19,7 +21,7 @@ VX_FORCE_INLINE constexpr T radians(T deg) noexcept
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr auto radians(T deg) noexcept
 {
-    return radians(static_cast<d>(deg));
+    return radians(static_cast<double>(deg));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -36,7 +38,7 @@ VX_FORCE_INLINE constexpr T degrees(T rad) noexcept
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr auto degrees(T rad) noexcept
 {
-    return degrees(static_cast<d>(rad));
+    return degrees(static_cast<double>(rad));
 }
 
 //////////////////////////////////////////////////////////////////////////////
