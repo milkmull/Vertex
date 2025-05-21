@@ -73,6 +73,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/geometric.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/interpolation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/trigonometric.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/functions/matrix.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex/math/fn/common.hpp"
-#include "vertex/math/fn/exponential.hpp"
+#include "vertex/math/functions/common.hpp"
+#include "vertex/math/functions/exponential.hpp"
 
 namespace vx {
 namespace math {

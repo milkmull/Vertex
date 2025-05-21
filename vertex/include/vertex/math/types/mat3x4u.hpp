@@ -44,8 +44,6 @@ struct mat_t<3, 4, T, __detail::component_type::_u>
     VX_FORCE_INLINE constexpr mat_t(const type& m) noexcept
         : columns{ m.columns[0], m.columns[1], m.columns[2] } {}
 
-    VX_FORCE_INLINE constexpr mat_t(type&&) noexcept = default;
-
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
@@ -108,12 +106,6 @@ struct mat_t<3, 4, T, __detail::component_type::_u>
                    static_cast<col_type>(m.columns[2]) } {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // destructor
-    ///////////////////////////////////////////////////////////////////////////////
-
-    ~mat_t() noexcept = default;
-
-    ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -124,8 +116,6 @@ struct mat_t<3, 4, T, __detail::component_type::_u>
         columns[2] = m.columns[2];
         return *this;
     }
-
-    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr type& operator=(const mat<width, height, U>& m) noexcept

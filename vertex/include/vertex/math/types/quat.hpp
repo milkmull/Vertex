@@ -46,8 +46,6 @@ struct quat_t
     VX_FORCE_INLINE constexpr quat_t(const type& q) noexcept
         : w(q.w), x(q.x), y(q.y), z(q.z) {}
 
-    VX_FORCE_INLINE constexpr quat_t(type&&) noexcept = default;
-
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
@@ -55,7 +53,12 @@ struct quat_t
     VX_FORCE_INLINE constexpr quat_t(scalar_type w, const vec<3, scalar_type>& v) noexcept
         : w(w), x(v.x), y(v.y), z(v.z) {}
 
-    VX_FORCE_INLINE constexpr quat_t(scalar_type w, scalar_type x, scalar_type y, scalar_type z) noexcept
+    VX_FORCE_INLINE constexpr quat_t(
+        scalar_type w,
+        scalar_type x,
+        scalar_type y,
+        scalar_type z
+    ) noexcept
         : w(w), x(x), y(y), z(z) {}
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -91,12 +94,6 @@ struct quat_t
         , z(static_cast<scalar_type>(v.z)) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // destructor
-    ///////////////////////////////////////////////////////////////////////////////
-
-    ~quat_t() noexcept = default;
-
-    ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -108,8 +105,6 @@ struct quat_t
         z = q.z;
         return *this;
     }
-
-    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const quat_t<U>& q) noexcept
@@ -249,29 +244,6 @@ struct quat_t
         return v + ((uv * q.w) + uuv) * static_cast<scalar_type>(2);
     }
 
-
-    friend VX_FORCE_INLINE constexpr vec<3, scalar_type> operator*(const vec<3, scalar_type>& v, const type& q) noexcept
-    {
-        return inverse(q) * v;
-    }
-
-    // division (/)
-
-    friend VX_FORCE_INLINE constexpr type operator/(const type& q, scalar_type scalar) noexcept
-    {
-        return type(q.w / scalar, q.x / scalar, q.y / scalar, q.z / scalar);
-    }
-
-    friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& q) noexcept
-    {
-        return scalar * inverse(q);
-    }
-
-    friend VX_FORCE_INLINE constexpr type operator/(const type& q1, const type& q2) noexcept
-    {
-        return q1 * inverse(q2);
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // unary arithmetic operators
     ///////////////////////////////////////////////////////////////////////////////
@@ -315,23 +287,6 @@ struct quat_t
         return *this;
     }
 
-    // division (/=)
-
-    VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
-    {
-        w /= scalar;
-        x /= scalar;
-        y /= scalar;
-        z /= scalar;
-        return *this;
-    }
-
-    VX_FORCE_INLINE constexpr type& operator/=(const type& q) noexcept
-    {
-        (*this) = (*this) / q;
-        return *this;
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // operations
     ///////////////////////////////////////////////////////////////////////////////
@@ -342,8 +297,8 @@ struct quat_t
     // constants
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type IDENTITY() { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type ZERO() { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type IDENTITY() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
 
 };
 

@@ -1,12 +1,12 @@
 #include "vertex_test/test.hpp"
 
-#include "vertex/math/fn/common.hpp"
-#include "vertex/math/fn/comparison.hpp"
+#include "vertex/math/functions/common.hpp"
+#include "vertex/math/functions/comparison.hpp"
 
 using namespace vx::math;
 
-#define VX_CHECK_EQ(a, b) VX_CHECK(all_equal_approx(a, b))
-#define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(all_equal_approx(a, b))
+#define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b))
+#define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(equal_approx(a, b))
 
 ///////////////////////////////////////////////////////////////////////////////
 

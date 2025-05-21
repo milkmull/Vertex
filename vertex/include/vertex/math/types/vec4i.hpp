@@ -37,8 +37,6 @@ struct vec_t<4, T, __detail::component_type::_i>
     VX_FORCE_INLINE constexpr vec_t(const type& v) noexcept
         : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
-    VX_FORCE_INLINE constexpr vec_t(type&&) noexcept = default;
-
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
@@ -117,12 +115,6 @@ struct vec_t<4, T, __detail::component_type::_i>
         , w(static_cast<scalar_type>(v.w)) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // destructor
-    ///////////////////////////////////////////////////////////////////////////////
-
-    ~vec_t() noexcept = default;
-
-    ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -134,8 +126,6 @@ struct vec_t<4, T, __detail::component_type::_i>
         w = v.w;
         return *this;
     }
-
-    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr type& operator=(const vec<4, U>& v) noexcept

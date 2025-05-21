@@ -278,7 +278,7 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_NUM(t1) VXM_REQ(__IS_NUMERIC_1(t1))
 #define VXM_REQ_NUM2(t1, t2) VXM_REQ(__IS_NUMERIC_2(t1, t2))
 #define VXM_REQ_NUM3(t1, t2, t3) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3))
-#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3, t4))
+#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4))
 #define VXM_REQ_NUM6(t1, t2, t3, t4, t5, t6) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6))
 #define VXM_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8))
 #define VXM_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6) && __IS_NUMERIC_3(t7, t8, t9))

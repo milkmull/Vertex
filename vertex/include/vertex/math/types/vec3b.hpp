@@ -38,8 +38,6 @@ struct vec_t<3, T, __detail::component_type::_b>
     VX_FORCE_INLINE constexpr vec_t(const type& v) noexcept
         : x(v.x), y(v.y), z(v.z) {}
 
-    VX_FORCE_INLINE constexpr vec_t(type&&) noexcept = default;
-
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
@@ -91,12 +89,6 @@ struct vec_t<3, T, __detail::component_type::_b>
         , z(static_cast<scalar_type>(v.z)) {}
 
     ///////////////////////////////////////////////////////////////////////////////
-    // destructor
-    ///////////////////////////////////////////////////////////////////////////////
-
-    ~vec_t() noexcept = default;
-
-    ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -107,8 +99,6 @@ struct vec_t<3, T, __detail::component_type::_b>
         z = v.z;
         return *this;
     }
-
-    VX_FORCE_INLINE constexpr type& operator=(type&&) noexcept = default;
 
     template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr type& operator=(const vec<3, U>& v)
@@ -157,14 +147,14 @@ struct vec_t<3, T, __detail::component_type::_b>
 
     friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2) noexcept
     {
-        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
     }
 
     // not equal (!=)
 
     friend VX_FORCE_INLINE constexpr bool operator!=(const type& v1, const type& v2) noexcept
     {
-        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z || v1.w != v2.w;
+        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z;
     }
 
     // greater than (>)
@@ -173,8 +163,7 @@ struct vec_t<3, T, __detail::component_type::_b>
     {
         if (v1.x != v2.x) return v1.x > v2.x;
         if (v1.y != v2.y) return v1.y > v2.y;
-        if (v1.z != v2.z) return v1.z > v2.z;
-        return v1.w > v2.w;
+        return v1.z > v2.z;
     }
 
     // less than (<)
@@ -183,8 +172,7 @@ struct vec_t<3, T, __detail::component_type::_b>
     {
         if (v1.x != v2.x) return v1.x < v2.x;
         if (v1.y != v2.y) return v1.y < v2.y;
-        if (v1.z != v2.z) return v1.z < v2.z;
-        return v1.w < v2.w;
+        return v1.z < v2.z;
     }
 
     // greater than or equal to (>=)
@@ -193,8 +181,7 @@ struct vec_t<3, T, __detail::component_type::_b>
     {
         if (v1.x != v2.x) return v1.x > v2.x;
         if (v1.y != v2.y) return v1.y > v2.y;
-        if (v1.z != v2.z) return v1.z > v2.z;
-        return v1.w >= v2.w;
+        return v1.z >= v2.z;
     }
 
     // less than or equal to (<=)
@@ -203,8 +190,7 @@ struct vec_t<3, T, __detail::component_type::_b>
     {
         if (v1.x != v2.x) return v1.x < v2.x;
         if (v1.y != v2.y) return v1.y < v2.y;
-        if (v1.z != v2.z) return v1.z < v2.z;
-        return v1.w <= v2.w;
+        return v1.z <= v2.z;
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -1,13 +1,13 @@
 #include "vertex_test/test.hpp"
 
-#include "vertex/math/fn/exponential.hpp"
-#include "vertex/math/fn/comparison.hpp"
+#include "vertex/math/functions/exponential.hpp"
+#include "vertex/math/functions/comparison.hpp"
 
 using namespace vx::math;
 
-#define VX_CHECK_EQ(a, b) VX_CHECK(all_equal_approx(a, b))
-#define VX_CHECK_CLOSE(a, b, epsilon) VX_CHECK(all_equal_approx(a, b, epsilon))
-#define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(all_equal_approx(a, b))
+#define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b))
+#define VX_CHECK_CLOSE(a, b, epsilon) VX_CHECK(equal_approx(a, b, epsilon))
+#define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(equal_approx(a, b))
 
 ///////////////////////////////////////////////////////////////////////////////
 
