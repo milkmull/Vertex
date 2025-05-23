@@ -8,6 +8,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/simd.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/constants.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/math.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/types.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/type_traits.hpp"
@@ -74,6 +75,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/interpolation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/trigonometric.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/matrix.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/functions/quaternion_exponential.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})

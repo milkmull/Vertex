@@ -18,6 +18,7 @@ struct constants
     static constexpr T pi = static_cast<T>(3.141592653589793);
     static constexpr T quarter_pi = static_cast<T>(0.785398163397448);
     static constexpr T half_pi = static_cast<T>(1.570796326794896);
+    static constexpr T three_pi_over_four = static_cast<T>(2.356194490192345);
     static constexpr T three_pi_over_two = static_cast<T>(4.712388980384690);
     static constexpr T two_pi = static_cast<T>(6.283185307179586);
 

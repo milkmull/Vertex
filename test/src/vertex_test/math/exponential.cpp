@@ -160,9 +160,9 @@ VX_TEST_CASE(test_log)
 {
     VX_SECTION("scalar")
     {
-        VX_CHECK_CLOSE(vx::math::log(1.0f), 0.0f, 1e-6f);             // ln(1) = 0
-        VX_CHECK_CLOSE(vx::math::log(constants<f32>::e), 1.0f, 1e-6f); // ln(e) = 1
-        VX_CHECK_CLOSE(vx::math::log(10.0f), 2.30258509299f, 1e-6f); // ln(10)
+        VX_CHECK_CLOSE(vx::math::log(1.0f), 0.0f, 1e-6f);               // ln(1) = 0
+        VX_CHECK_CLOSE(vx::math::log(constants<f32>::e), 1.0f, 1e-6f);  // ln(e) = 1
+        VX_CHECK_CLOSE(vx::math::log(10.0f), 2.30258509299f, 1e-6f);    // ln(10)
     }
 
     VX_SECTION("vec2")

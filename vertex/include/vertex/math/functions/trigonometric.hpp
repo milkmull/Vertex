@@ -21,7 +21,8 @@ VX_FORCE_INLINE constexpr T radians(T deg) noexcept
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr auto radians(T deg) noexcept
 {
-    return radians(static_cast<double>(deg));
+    using F = VXM_FLOAT_TYPE(T);
+    return radians(static_cast<F>(deg));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -38,7 +39,8 @@ VX_FORCE_INLINE constexpr T degrees(T rad) noexcept
 template <typename T, VXM_REQ_INT(T)>
 VX_FORCE_INLINE constexpr auto degrees(T rad) noexcept
 {
-    return degrees(static_cast<double>(rad));
+    using F = VXM_FLOAT_TYPE(T);
+    return degrees(static_cast<F>(rad));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -150,7 +152,7 @@ VX_FORCE_INLINE constexpr T asin(T x) noexcept
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T asin_safe(T x) noexcept
+VX_FORCE_INLINE constexpr T asin_clamped(T x) noexcept
 {
     return std::asin(clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }
@@ -188,7 +190,7 @@ VX_FORCE_INLINE constexpr T acos(T x) noexcept
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T acos_safe(T x) noexcept
+VX_FORCE_INLINE constexpr T acos_clamped(T x) noexcept
 {
     return std::acos(clamp(x, static_cast<T>(-1), static_cast<T>(1)));
 }

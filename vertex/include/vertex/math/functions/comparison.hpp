@@ -313,6 +313,32 @@ VX_FORCE_INLINE constexpr bool is_inf(const vec<4, T>& x) noexcept
     return is_inf(x.x) || is_inf(x.y) || is_inf(x.z) || is_inf(x.w);
 }
 
+// mat
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_inf(const mat<2, N, T>& x) noexcept
+{
+    return is_inf(x.columns[0])
+        || is_inf(x.columns[1]);
+}
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_inf(const mat<3, N, T>& x) noexcept
+{
+    return is_inf(x.columns[0])
+        || is_inf(x.columns[1])
+        || is_inf(x.columns[2]);
+}
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_inf(const mat<4, N, T>& x) noexcept
+{
+    return is_inf(x.columns[0])
+        || is_inf(x.columns[1])
+        || is_inf(x.columns[2])
+        || is_inf(x.columns[3]);
+}
+
 // quaternion
 
 template <typename T>
@@ -383,6 +409,32 @@ template <typename T>
 VX_FORCE_INLINE constexpr bool is_nan(const vec<4, T>& x) noexcept
 {
     return is_nan(x.x) || is_nan(x.y) || is_nan(x.z) || is_nan(x.w);
+}
+
+// mat
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_nan(const mat<2, N, T>& x) noexcept
+{
+    return is_nan(x.columns[0])
+        || is_nan(x.columns[1]);
+}
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_nan(const mat<3, N, T>& x) noexcept
+{
+    return is_nan(x.columns[0])
+        || is_nan(x.columns[1])
+        || is_nan(x.columns[2]);
+}
+
+template <size_t N, typename T>
+VX_FORCE_INLINE constexpr bool is_nan(const mat<4, N, T>& x) noexcept
+{
+    return is_nan(x.columns[0])
+        || is_nan(x.columns[1])
+        || is_nan(x.columns[2])
+        || is_nan(x.columns[3]);
 }
 
 // quaternion

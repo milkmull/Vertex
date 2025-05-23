@@ -1,10 +1,10 @@
-﻿#include "vertex/math/types.hpp"
+﻿#include "vertex/math/math.hpp"
 
-#include <type_traits>
+#include <iostream>
 
-using namespace vx::math;
+using namespace vx;
 
 int main(int argc, char* argv[])
 {
-    constexpr bool x = std::is_same<vec2b, vec2b::type>::value;
+
 }

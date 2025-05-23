@@ -249,6 +249,27 @@ template <size_t M, size_t N, typename T> struct scalar_type<mat<M, N, T>> { usi
 template <typename T> struct scalar_type<quat_t<T>> { using type = T; };
 
 ///////////////////////////////////////////////////////////////////////////////
+// to_float_type
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T> struct to_float_type { using type = void; };
+
+template <> struct to_float_type<bool> { using type = f64; };
+
+template <> struct to_float_type<i8> { using type = f64; };
+template <> struct to_float_type<i16> { using type = f64; };
+template <> struct to_float_type<i32> { using type = f64; };
+template <> struct to_float_type<i64> { using type = f64; };
+
+template <> struct to_float_type<u8> { using type = f64; };
+template <> struct to_float_type<u16> { using type = f64; };
+template <> struct to_float_type<u32> { using type = f64; };
+template <> struct to_float_type<u64> { using type = f64; };
+
+template <> struct to_float_type<f32> { using type = f32; };
+template <> struct to_float_type<f64> { using type = f64; };
+
+///////////////////////////////////////////////////////////////////////////////
 // enable_if
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -269,6 +290,12 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_INT(type) VXM_REQ(is_int<type>::value)
 #define VXM_REQ_SINT(type) VXM_REQ(is_signed_int<type>::value)
 #define VXM_REQ_UINT(type) VXM_REQ(is_unsigned<type>::value)
+
+#define VXM_FLOAT_TYPE(t) typename to_float_type<t>::type;
+
+#define VXM_RET_TYPE(t, fn)  decltype(fn(std::declval<T>()))
+#define VXM_RET_TYPE2(t, fn) decltype(fn(std::declval<T>(), std::declval<T>()))
+#define VXM_RET_TYPE3(t, fn) decltype(fn(std::declval<T>(), std::declval<T>(), std::declval<T>()))
 
 #define __IS_NUMERIC_1(t1) is_numeric<t1>::value
 #define __IS_NUMERIC_2(t1, t2) __IS_NUMERIC_1(t1) && __IS_NUMERIC_1(t2)

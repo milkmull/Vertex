@@ -223,10 +223,16 @@ VX_FORCE_INLINE constexpr T csum(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_SIGNED(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T abs(T x) noexcept
 {
     return std::abs(x);
+}
+
+template <typename T, VXM_REQ_SINT(T)>
+VX_FORCE_INLINE constexpr T abs(T x) noexcept
+{
+    return (x < 0) ? -x : x;
 }
 
 template <typename T, VXM_REQ_UINT(T)>
@@ -237,22 +243,30 @@ VX_FORCE_INLINE constexpr T abs(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> abs(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(abs(x.x), abs(x.y));
 }
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> abs(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(abs(x.x), abs(x.y), abs(x.z));
 }
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<4, T> abs(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(abs(x.x), abs(x.y), abs(x.z), abs(x.w));
+}
+
+// quaternion
+
+template <typename T>
+VX_FORCE_INLINE constexpr auto abs(const quat_t<T>& x) noexcept
+{
+    return quat_t<T>(abs(x.w), abs(x.x), abs(x.y), abs(x.z));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -431,22 +445,30 @@ VX_FORCE_INLINE constexpr T sign(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<2, T> sign(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(sign(x.x), sign(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> sign(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(sign(x.x), sign(x.y), sign(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr vec<4, T> sign(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(sign(x.x), sign(x.y), sign(x.z), sign(x.w));
+}
+
+// quaternion
+
+template <typename T>
+VX_FORCE_INLINE constexpr auto sign(const quat_t<T>& x) noexcept
+{
+    return quat_t<T>(sign(x.w), sign(x.x), sign(x.y), sign(x.z));
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -532,56 +554,56 @@ VX_FORCE_INLINE constexpr T mod(T x, T y) noexcept
 
 // vec scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<2, T>& x, T y) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<2, R>(mod(x.x, y), mod(x.y, y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<3, T>& x, T y) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<3, R>(mod(x.x, y), mod(x.y, y), mod(x.z, y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<4, T>& x, T y) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<4, R>(mod(x.x, y), mod(x.y, y), mod(x.z, y), mod(x.w, y));
 }
 
 // vec binary
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(
     const vec<2, T>& x,
     const vec<2, T>& y
 ) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<2, R>(mod(x.x, y.x), mod(x.y, y.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(
     const vec<3, T>& x,
     const vec<3, T>& y
 ) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<3, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T>
 VX_FORCE_INLINE constexpr auto mod(
     const vec<4, T>& x,
     const vec<4, T>& y
 ) noexcept
 {
-    using R = decltype(mod(std::declval<T>(), std::declval<T>()));
+    using R = VXM_RET_TYPE2(T, mod);
     return vec<4, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z), mod(x.w, y.w));
 }
 
@@ -876,7 +898,7 @@ VX_FORCE_INLINE constexpr T gcd(T a, T b) noexcept
 {
     while (b != static_cast<T>(0))
     {
-        T temp = b;
+        const T temp = b;
         b = a % b;
         a = temp;
     }
