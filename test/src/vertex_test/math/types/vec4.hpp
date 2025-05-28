@@ -177,6 +177,12 @@ VX_TEST_CASE(test_vec4b)
         VX_STATIC_CHECK((!v_false) == vec4b(true, true, true, true));
         VX_STATIC_CHECK((!v_mixed) == vec4b(false, true, false, true));
     }
+
+    VX_SECTION("static constructors")
+    {
+        VX_STATIC_CHECK(vec4b::TRUE() == vec4b(true, true, true, true));
+        VX_STATIC_CHECK(vec4b::FALSE() == vec4b(false, false, false, false));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1342,9 +1348,3 @@ VX_TEST_CASE(test_vec4d)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-int main()
-{
-    VX_RUN_TESTS();
-    return 0;
-}

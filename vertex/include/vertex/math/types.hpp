@@ -1,16 +1,20 @@
 #pragma once
 
-#include "vertex/math/types/vec2b.hpp"
-#include "vertex/math/types/vec2i.hpp"
-#include "vertex/math/types/vec2u.hpp"
-#include "vertex/math/types/vec2f.hpp"
+#include "vertex/math/types/base.hpp"
+#include "vertex/math/types/traits.hpp"
 
-#include "vertex/math/types/vec3b.hpp"
-#include "vertex/math/types/vec3i.hpp"
-#include "vertex/math/types/vec3u.hpp"
-#include "vertex/math/types/vec3f.hpp"
+#include "vertex/math/types/vec2.hpp"
+#include "vertex/math/types/vec3.hpp"
+#include "vertex/math/types/vec4.hpp"
 
-#include "vertex/math/types/vec4b.hpp"
-#include "vertex/math/types/vec4i.hpp"
-#include "vertex/math/types/vec4u.hpp"
-#include "vertex/math/types/vec4f.hpp"
+#include "vertex/math/types/mat2x2.hpp"
+#include "vertex/math/types/mat2x3.hpp"
+#include "vertex/math/types/mat2x4.hpp"
+#include "vertex/math/types/mat3x2.hpp"
+#include "vertex/math/types/mat3x3.hpp"
+#include "vertex/math/types/mat3x4.hpp"
+#include "vertex/math/types/mat4x2.hpp"
+#include "vertex/math/types/mat4x3.hpp"
+#include "vertex/math/types/mat4x4.hpp"
+
+#include "vertex/math/types/quat.hpp"

@@ -564,10 +564,10 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return is_equal_approx(x.w, epsilon)
-        && is_equal_approx(x.x, epsilon)
-        && is_equal_approx(x.y, epsilon)
-        && is_equal_approx(x.z, epsilon);
+    return equal_approx(x.w, epsilon)
+        && equal_approx(x.x, epsilon)
+        && equal_approx(x.y, epsilon)
+        && equal_approx(x.z, epsilon);
 }
 
 //////////////////////////////////////////////////////////////////////////////

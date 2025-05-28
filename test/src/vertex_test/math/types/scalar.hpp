@@ -118,7 +118,7 @@ VX_TEST_CASE(test_traits)
 
     VX_SECTION("is_numeric")
     {
-        VX_STATIC_CHECK(!is_numeric<bool>::value);
+        VX_STATIC_CHECK(is_numeric<bool>::value);
 
         VX_STATIC_CHECK(is_numeric<i8>::value);
         VX_STATIC_CHECK(is_numeric<i16>::value);

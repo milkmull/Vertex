@@ -1,0 +1,736 @@
+#pragma once
+
+#include "vertex/config/assert.hpp"
+#include "vertex/math/types/base.hpp"
+
+namespace vx {
+namespace math {
+
+template <typename T>
+struct vec<4, T>
+{
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
+
+    using scalar_type = T;
+    static constexpr size_t size = 4;
+
+    using type = vec<size, scalar_type>;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
+
+    scalar_type x, y, z, w;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // implicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr vec() noexcept
+        : x(static_cast<scalar_type>(0))
+        , y(static_cast<scalar_type>(0))
+        , z(static_cast<scalar_type>(0))
+        , w(static_cast<scalar_type>(0)) {}
+
+    VX_FORCE_INLINE constexpr vec(const type& v) noexcept
+        : x(v.x), y(v.y), z(v.z), w(v.w) {}
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // explicit constructors
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr explicit vec(scalar_type scalar) noexcept
+        : x(scalar), y(scalar), z(scalar), w(scalar) {}
+
+    VX_FORCE_INLINE constexpr vec(
+        scalar_type vx,
+        scalar_type vy,
+        scalar_type vz,
+        scalar_type vw
+    ) noexcept
+        : x(vx), y(vy), z(vz), w(vw) {}
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // conversion constructors
+    ///////////////////////////////////////////////////////////////////////////////
+
+    template <typename U>
+    VX_FORCE_INLINE constexpr explicit vec(U scalar) noexcept
+        : x(static_cast<scalar_type>(scalar))
+        , y(static_cast<scalar_type>(scalar))
+        , z(static_cast<scalar_type>(scalar))
+        , w(static_cast<scalar_type>(scalar)) {}
+
+    template <typename X, typename Y, typename Z, typename W>
+    VX_FORCE_INLINE constexpr vec(X vx, Y vy, Z vz, W vw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vy))
+        , z(static_cast<scalar_type>(vz))
+        , w(static_cast<scalar_type>(vw)) {}
+
+    template <typename XY, typename Z, typename W>
+    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, Z vz, W vw) noexcept
+        : x(static_cast<scalar_type>(vxy.x))
+        , y(static_cast<scalar_type>(vxy.y))
+        , z(static_cast<scalar_type>(vz))
+        , w(static_cast<scalar_type>(vw)) {}
+
+    template <typename X, typename YZ, typename W>
+    VX_FORCE_INLINE constexpr vec(X vx, const vec<2, YZ>& vyz, W vw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vyz.x))
+        , z(static_cast<scalar_type>(vyz.y))
+        , w(static_cast<scalar_type>(vw)) {}
+
+    template <typename X, typename Y, typename ZW>
+    VX_FORCE_INLINE constexpr vec(X vx, Y vy, const vec<2, ZW>& vzw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vy))
+        , z(static_cast<scalar_type>(vzw.x))
+        , w(static_cast<scalar_type>(vzw.y)) {}
+
+    template <typename XYZ, typename W>
+    VX_FORCE_INLINE constexpr vec(const vec<3, XYZ>& vxyz, W vw) noexcept
+        : x(static_cast<scalar_type>(vxyz.x))
+        , y(static_cast<scalar_type>(vxyz.y))
+        , z(static_cast<scalar_type>(vxyz.z))
+        , w(static_cast<scalar_type>(vw)) {}
+
+    template <typename X, typename YZW>
+    VX_FORCE_INLINE constexpr vec(X vx, const vec<3, YZW>& vyzw) noexcept
+        : x(static_cast<scalar_type>(vx))
+        , y(static_cast<scalar_type>(vyzw.x))
+        , z(static_cast<scalar_type>(vyzw.y))
+        , w(static_cast<scalar_type>(vyzw.z)) {}
+
+    template <typename XY, typename ZW>
+    VX_FORCE_INLINE constexpr vec(const vec<2, XY>& vxy, const vec<2, ZW>& vzw) noexcept
+        : x(static_cast<scalar_type>(vxy.x))
+        , y(static_cast<scalar_type>(vxy.y))
+        , z(static_cast<scalar_type>(vzw.x))
+        , w(static_cast<scalar_type>(vzw.y)) {}
+
+    template <typename U>
+    VX_FORCE_INLINE constexpr explicit vec(const vec<4, U>& v) noexcept
+        : x(static_cast<scalar_type>(v.x))
+        , y(static_cast<scalar_type>(v.y))
+        , z(static_cast<scalar_type>(v.z))
+        , w(static_cast<scalar_type>(v.w)) {}
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // assignment operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr type& operator=(const type& v) noexcept
+    {
+        x = v.x;
+        y = v.y;
+        z = v.z;
+        w = v.w;
+        return *this;
+    }
+
+    template <typename U>
+    VX_FORCE_INLINE constexpr type& operator=(const vec<4, U>& v) noexcept
+    {
+        x = static_cast<scalar_type>(v.x);
+        y = static_cast<scalar_type>(v.y);
+        z = static_cast<scalar_type>(v.z);
+        w = static_cast<scalar_type>(v.w);
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // index operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr scalar_type& operator[](size_t i) noexcept
+    {
+        VX_ASSERT(i < size);
+
+        switch (i)
+        {
+            default:
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+        }
+    }
+
+    VX_FORCE_INLINE constexpr const scalar_type& operator[](size_t i) const noexcept
+    {
+        VX_ASSERT(i < size);
+
+        switch (i)
+        {
+            default:
+            case 0: return x;
+            case 1: return y;
+            case 2: return z;
+            case 3: return w;
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // comparison operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // equal (==)
+
+    friend VX_FORCE_INLINE constexpr bool operator==(const type& v1, const type& v2) noexcept
+    {
+        return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z && v1.w == v2.w;
+    }
+
+    // not equal (!=)
+
+    friend VX_FORCE_INLINE constexpr bool operator!=(const type& v1, const type& v2) noexcept
+    {
+        return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z || v1.w != v2.w;
+    }
+
+    // greater than (>)
+
+    friend VX_FORCE_INLINE constexpr bool operator>(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        if (v1.y != v2.y) return v1.y > v2.y;
+        if (v1.z != v2.z) return v1.z > v2.z;
+        return v1.w > v2.w;
+    }
+
+    // less than (<)
+
+    friend VX_FORCE_INLINE constexpr bool operator<(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        if (v1.y != v2.y) return v1.y < v2.y;
+        if (v1.z != v2.z) return v1.z < v2.z;
+        return v1.w < v2.w;
+    }
+
+    // greater than or equal to (>=)
+
+    friend VX_FORCE_INLINE constexpr bool operator>=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x > v2.x;
+        if (v1.y != v2.y) return v1.y > v2.y;
+        if (v1.z != v2.z) return v1.z > v2.z;
+        return v1.w >= v2.w;
+    }
+
+    // less than or equal to (<=)
+
+    friend VX_FORCE_INLINE constexpr bool operator<=(const type& v1, const type& v2) noexcept
+    {
+        if (v1.x != v2.x) return v1.x < v2.x;
+        if (v1.y != v2.y) return v1.y < v2.y;
+        if (v1.z != v2.z) return v1.z < v2.z;
+        return v1.w <= v2.w;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary const operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr type operator+() const noexcept
+    {
+        return type(+x, +y, +z, +w);
+    }
+
+    VX_FORCE_INLINE constexpr type operator-() const noexcept
+    {
+        return type(-x, -y, -z, -w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // increment and decrement operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // incrememnt (++)
+
+    VX_FORCE_INLINE constexpr type& operator++() noexcept
+    {
+        x++;
+        y++;
+        z++;
+        w++;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type operator++(int) noexcept
+    {
+        type result(*this);
+        ++(*this);
+        return result;
+    }
+
+    // decrement (--)
+
+    VX_FORCE_INLINE constexpr type& operator--() noexcept
+    {
+        x--;
+        y--;
+        z--;
+        w--;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type operator--(int) noexcept
+    {
+        type result(*this);
+        --(*this);
+        return result;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+)
+
+    friend VX_FORCE_INLINE constexpr type operator+(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x + scalar, v.y + scalar, v.z + scalar, v.w + scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator+(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar + v.x, scalar + v.y, scalar + v.z, scalar + v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator+(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
+    }
+
+    // subtraction (-)
+
+    friend VX_FORCE_INLINE constexpr type operator-(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x - scalar, v.y - scalar, v.z - scalar, v.w - scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator-(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar - v.x, scalar - v.y, scalar - v.z, scalar - v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator-(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
+    }
+
+    // multiplication (*)
+
+    friend VX_FORCE_INLINE constexpr type operator*(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar * v.x, scalar * v.y, scalar * v.z, scalar * v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator*(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
+    }
+
+    // division (/)
+
+    friend VX_FORCE_INLINE constexpr type operator/(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar / v.x, scalar / v.y, scalar / v.z, scalar / v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator/(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
+    }
+
+    // modulo (%)
+
+    friend VX_FORCE_INLINE constexpr type operator%(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x % scalar, v.y % scalar, v.z % scalar, v.w % scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator%(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar % v.x, scalar % v.y, scalar % v.z, scalar % v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator%(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x % v2.x, v1.y % v2.y, v1.z % v2.z, v1.w % v2.w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // binary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // and (&)
+
+    friend VX_FORCE_INLINE constexpr type operator&(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x & scalar, v.y & scalar, v.z & scalar, v.w & scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator&(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar & v.x, scalar & v.y, scalar & v.z, scalar & v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator&(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x & v2.x, v1.y & v2.y, v1.z & v2.z, v1.w & v2.w);
+    }
+
+    // or (|)
+
+    friend VX_FORCE_INLINE constexpr type operator|(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x | scalar, v.y | scalar, v.z | scalar, v.w | scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator|(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar | v.x, scalar | v.y, scalar | v.z, scalar | v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator|(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x | v2.x, v1.y | v2.y, v1.z | v2.z, v1.w | v2.w);
+    }
+
+    // xor (^)
+
+    friend VX_FORCE_INLINE constexpr type operator^(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x ^ scalar, v.y ^ scalar, v.z ^ scalar, v.w ^ scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator^(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar ^ v.x, scalar ^ v.y, scalar ^ v.z, scalar ^ v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator^(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x ^ v2.x, v1.y ^ v2.y, v1.z ^ v2.z, v1.w ^ v2.w);
+    }
+
+    // left shift (<<)
+
+    friend VX_FORCE_INLINE constexpr type operator<<(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x << scalar, v.y << scalar, v.z << scalar, v.w << scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator<<(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar << v.x, scalar << v.y, scalar << v.z, scalar << v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator<<(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x << v2.x, v1.y << v2.y, v1.z << v2.z, v1.w << v2.w);
+    }
+
+    // right shift (>>)
+
+    friend VX_FORCE_INLINE constexpr type operator>>(const type& v, scalar_type scalar) noexcept
+    {
+        return type(v.x >> scalar, v.y >> scalar, v.z >> scalar, v.w >> scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator>>(scalar_type scalar, const type& v) noexcept
+    {
+        return type(scalar >> v.x, scalar >> v.y, scalar >> v.z, scalar >> v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator>>(const type& v1, const type& v2) noexcept
+    {
+        return type(v1.x >> v2.x, v1.y >> v2.y, v1.z >> v2.z, v1.w >> v2.w);
+    }
+
+    // not (~)
+
+    VX_FORCE_INLINE constexpr type operator~() const noexcept
+    {
+        return type(~x, ~y, ~z, ~w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+=)
+
+    VX_FORCE_INLINE constexpr type& operator+=(scalar_type scalar) noexcept
+    {
+        x += scalar;
+        y += scalar;
+        z += scalar;
+        w += scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator+=(const type& v) noexcept
+    {
+        x += v.x;
+        y += v.y;
+        z += v.z;
+        w += v.w;
+        return *this;
+    }
+
+    // subtraction (-=)
+
+    VX_FORCE_INLINE constexpr type& operator-=(scalar_type scalar) noexcept
+    {
+        x -= scalar;
+        y -= scalar;
+        z -= scalar;
+        w -= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator-=(const type& v) noexcept
+    {
+        x -= v.x;
+        y -= v.y;
+        z -= v.z;
+        w -= v.w;
+        return *this;
+    }
+
+    // multiplication (*=)
+
+    VX_FORCE_INLINE constexpr type& operator*=(scalar_type scalar) noexcept
+    {
+        x *= scalar;
+        y *= scalar;
+        z *= scalar;
+        w *= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator*=(const type& v) noexcept
+    {
+        x *= v.x;
+        y *= v.y;
+        z *= v.z;
+        w *= v.w;
+        return *this;
+    }
+
+    // division (/=)
+
+    VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
+    {
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
+        w /= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator/=(const type& v) noexcept
+    {
+        x /= v.x;
+        y /= v.y;
+        z /= v.z;
+        w /= v.w;
+        return *this;
+    }
+
+    // modulo (%=)
+
+    VX_FORCE_INLINE constexpr type& operator%=(scalar_type scalar) noexcept
+    {
+        x %= scalar;
+        y %= scalar;
+        z %= scalar;
+        w %= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator%=(const type& v) noexcept
+    {
+        x %= v.x;
+        y %= v.y;
+        z %= v.z;
+        w %= v.w;
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // unary bit operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // and (&=)
+
+    VX_FORCE_INLINE constexpr type& operator&=(scalar_type scalar) noexcept
+    {
+        x &= scalar;
+        y &= scalar;
+        z &= scalar;
+        w &= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator&=(const type& v) noexcept
+    {
+        x &= v.x;
+        y &= v.y;
+        z &= v.z;
+        w &= v.w;
+        return *this;
+    }
+
+    // or (|=)
+
+    VX_FORCE_INLINE constexpr type& operator|=(scalar_type scalar) noexcept
+    {
+        x |= scalar;
+        y |= scalar;
+        z |= scalar;
+        w |= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator|=(const type& v) noexcept
+    {
+        x |= v.x;
+        y |= v.y;
+        z |= v.z;
+        w |= v.w;
+        return *this;
+    }
+
+    // xor (^=)
+
+    VX_FORCE_INLINE constexpr type& operator^=(scalar_type scalar) noexcept
+    {
+        x ^= scalar;
+        y ^= scalar;
+        z ^= scalar;
+        w ^= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator^=(const type& v) noexcept
+    {
+        x ^= v.x;
+        y ^= v.y;
+        z ^= v.z;
+        w ^= v.w;
+        return *this;
+    }
+
+    // left shift (<<=)
+
+    VX_FORCE_INLINE constexpr type& operator<<=(scalar_type scalar) noexcept
+    {
+        x <<= scalar;
+        y <<= scalar;
+        z <<= scalar;
+        w <<= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator<<=(const type& v) noexcept
+    {
+        x <<= v.x;
+        y <<= v.y;
+        z <<= v.z;
+        w <<= v.w;
+        return *this;
+    }
+
+    // right shift (>>=)
+
+    VX_FORCE_INLINE constexpr type& operator>>=(scalar_type scalar) noexcept
+    {
+        x >>= scalar;
+        y >>= scalar;
+        z >>= scalar;
+        w >>= scalar;
+        return *this;
+    }
+
+    VX_FORCE_INLINE constexpr type& operator>>=(const type& v) noexcept
+    {
+        x >>= v.x;
+        y >>= v.y;
+        z >>= v.z;
+        w >>= v.w;
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // boolean operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // and (&&)
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator&&(const type& v, scalar_type scalar) noexcept
+    {
+        return vec<size, bool>(v.x && scalar, v.y && scalar, v.z && scalar, v.w && scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator&&(scalar_type scalar, const type& v) noexcept
+    {
+        return vec<size, bool>(scalar && v.x, scalar && v.y, scalar && v.z, scalar && v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator&&(const type& v1, const type& v2) noexcept
+    {
+        return vec<size, bool>(v1.x && v2.x, v1.y && v2.y, v1.z && v2.z, v1.w && v2.w);
+    }
+
+    // or (||)
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator||(const type& v, scalar_type scalar) noexcept
+    {
+        return vec<size, bool>(v.x || scalar, v.y || scalar, v.z || scalar, v.w || scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator||(scalar_type scalar, const type& v) noexcept
+    {
+        return vec<size, bool>(scalar || v.x, scalar || v.y, scalar || v.z, scalar || v.w);
+    }
+
+    friend VX_FORCE_INLINE constexpr vec<size, bool> operator||(const type& v1, const type& v2) noexcept
+    {
+        return vec<size, bool>(v1.x || v2.x, v1.y || v2.y, v1.z || v2.z, v1.w || v2.w);
+    }
+
+    // not (!)
+
+    VX_FORCE_INLINE constexpr vec<size, bool> operator!() const noexcept
+    {
+        return vec<size, bool>(!x, !y, !z, !w);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type ONE() noexcept { return type(static_cast<scalar_type>(1)); }
+};
+
+} // namespace math
+} // namespace vx

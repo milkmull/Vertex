@@ -170,6 +170,12 @@ VX_TEST_CASE(test_vec2b)
         VX_STATIC_CHECK((!v_false) == vec2b(true, true));
         VX_STATIC_CHECK((!v_mixed) == vec2b(false, true));
     }
+
+    VX_SECTION("static constructors")
+    {
+        VX_STATIC_CHECK(vec2b::TRUE() == vec2b(true, true));
+        VX_STATIC_CHECK(vec2b::FALSE() == vec2b(false, false));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1319,9 +1325,3 @@ VX_TEST_CASE(test_vec2d)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-int main()
-{
-    VX_RUN_TESTS();
-    return 0;
-}

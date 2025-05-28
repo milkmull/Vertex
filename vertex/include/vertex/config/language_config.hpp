@@ -347,3 +347,15 @@
 #else
 #   define VX_STDCALL
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Static Assert
+///////////////////////////////////////////////////////////////////////////////
+
+#if (VX_CPP_STANDARD >= 11)
+#   define VX_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+#else
+    // Fallback for pre-C++11: generates a compile-time error using typedef
+    // Note: This will not show the message but will still fail the build
+#   define VX_STATIC_ASSERT(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
+#endif

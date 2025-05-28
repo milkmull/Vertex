@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex/config/language_config.hpp"
 #include "vertex/math/types/base.hpp"
 
 namespace vx {
@@ -28,6 +29,14 @@ using false_t = bool_constant<false>;
 
 template <typename T, typename U>  struct is_same : false_t {};
 template <typename T> struct is_same<T, T> : true_t {};
+
+///////////////////////////////////////////////////////////////////////////////
+// is_bool
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T> struct is_bool : false_t {};
+
+template <> struct is_bool<bool> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_float
@@ -99,8 +108,6 @@ template <> struct is_unsigned<u64> : true_t {};
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct is_numeric : false_t {};
-
-template <> struct is_numeric<bool> : true_t {};
 
 template <> struct is_numeric<i8> : true_t {};
 template <> struct is_numeric<i16> : true_t {};
@@ -278,6 +285,14 @@ struct enable_if {};
 
 template <class T>
 struct enable_if<true, T> { using type = T; };
+
+///////////////////////////////////////////////////////////////////////////////
+// static checks
+///////////////////////////////////////////////////////////////////////////////
+
+#define VXM_STATIC_ASSERT_SIGNED(type) VX_STATIC_ASSERT(is_signed<type>::value, "Operation not supported for unsigned types.")
+#define VXM_STATIC_ASSERT_NUMERIC(type) VX_STATIC_ASSERT(!is_bool<type>::value, "Operation not supported for bool types.")
+#define VXM_STATIC_ASSERT_INT(type) VX_STATIC_ASSERT(is_int<type>::value, "Operation not supported for non-integral types.")
 
 ///////////////////////////////////////////////////////////////////////////////
 // requires

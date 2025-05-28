@@ -906,54 +906,5 @@ VX_FORCE_INLINE constexpr T gcd(T a, T b) noexcept
     return a;
 }
 
-// vec scalar
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> gcd(const vec<2, T>& a, T b) noexcept
-{
-    return vec<2, T>(gcd(a.x, b), gcd(a.y, b));
-}
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> gcd(const vec<3, T>& a, T b) noexcept
-{
-    return vec<3, T>(gcd(a.x, b), gcd(a.y, b), gcd(a.z, b));
-}
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> gcd(const vec<4, T>& a, T b) noexcept
-{
-    return vec<4, T>(gcd(a.x, b), gcd(a.y, b), gcd(a.z, b), gcd(a.w, b));
-}
-
-// vec binary
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> gcd(
-    const vec<2, T>& a,
-    const vec<2, T>& b
-) noexcept
-{
-    return vec<2, T>(gcd(a.x, b.x), gcd(a.y, b.y));
-}
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> gcd(
-    const vec<3, T>& a,
-    const vec<3, T>& b
-) noexcept
-{
-    return vec<3, T>(gcd(a.x, b.x), gcd(a.y, b.y), gcd(a.z, b.z));
-}
-
-template <typename T, VXM_REQ_INT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> gcd(
-    const vec<4, T>& a,
-    const vec<4, T>& b
-) noexcept
-{
-    return vec<4, T>(gcd(a.x, b.x), gcd(a.y, b.y), gcd(a.z, b.z), gcd(a.w, b.w));
-}
-
 } // namespace math
 } // namespace vx

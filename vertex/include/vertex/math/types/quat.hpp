@@ -3,7 +3,6 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/assert.hpp"
 #include "vertex/math/types.hpp"
-#include "vertex/math/functions/geometric.hpp"
 
 namespace vx {
 namespace math {

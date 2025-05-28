@@ -1,7 +1,9 @@
 #pragma once
 
 #include "vertex/math/functions/common.hpp"
+#include "vertex/math/functions/comparison.hpp"
 #include "vertex/math/functions/exponential.hpp"
+#include "vertex/math/functions/trigonometric.hpp"
 
 namespace vx {
 namespace math {
@@ -51,36 +53,10 @@ VX_FORCE_INLINE constexpr T dot(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// normalized_dot
-///////////////////////////////////////////////////////////////////////////////
-
-// vec
-
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr auto normalized_dot(
-    const vec<L, T>& v,
-    const vec<L, T>& u
-) noexcept
-{
-    return dot(normalize(v), normalize(u));
-}
-
-// quaternion
-
-template <typename T>
-VX_FORCE_INLINE constexpr T normalized_dot(
-    const quat_t<T>& q1,
-    const quat_t<T>& q2
-) noexcept
-{
-    return dot(normalize(q1), normalize(q2));
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // orthogonal
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template <typename T, VXM_REQ(is_signed<T>::value)>
 VX_FORCE_INLINE constexpr vec<2, T> orthogonal(const vec<2, T>& v) noexcept
 {
     return vec<2, T>(-v.y, v.x);
@@ -153,7 +129,7 @@ VX_FORCE_INLINE constexpr T magnitude_squared(const quat_t<T>& q) noexcept
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T length(const vec<L, T>& v) noexcept
 {
-    return sqrt(length_squared(v));
+    return vx::math::sqrt(length_squared(v));
 }
 
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
@@ -167,7 +143,7 @@ VX_FORCE_INLINE constexpr T magnitude(const vec<L, T>& v) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr T length(const quat_t<T>& q) noexcept
 {
-    return math::sqrt(length_squared(q));
+    return sqrt(length_squared(q));
 }
 
 template <typename T>
@@ -221,7 +197,7 @@ template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> normalize(const quat_t<T>& q) noexcept
 {
     const T magsq = length_squared(q);
-    return (magsq <= constants<T>::epsilon) ? quat_t<T>(0) : (q * inverse_sqrt(magsq));
+    return (magsq <= constants<T>::epsilon) ? quat_t<T>(0, 0, 0, 0) : (q * inverse_sqrt(magsq));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -256,7 +232,7 @@ VX_FORCE_INLINE constexpr bool is_normalized(
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return (length_squared(v) - static_cast<T>(1)) <= epsilon;
+    return equal_approx(length_squared(v), static_cast<T>(1), epsilon);
 }
 
 // quaternion
@@ -267,7 +243,33 @@ VX_FORCE_INLINE constexpr bool is_normalized(
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return (length_squared(q) - static_cast<T>(1)) <= epsilon;
+    return equal_approx(length_squared(q), static_cast<T>(1), epsilon);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// normalized_dot
+///////////////////////////////////////////////////////////////////////////////
+
+// vec
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr auto normalized_dot(
+    const vec<L, T>& v,
+    const vec<L, T>& u
+) noexcept
+{
+    return dot(normalize(v), normalize(u));
+}
+
+// quaternion
+
+template <typename T>
+VX_FORCE_INLINE constexpr T normalized_dot(
+    const quat_t<T>& q1,
+    const quat_t<T>& q2
+) noexcept
+{
+    return dot(normalize(q1), normalize(q2));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -288,7 +290,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
         return vec<L, T>(0);
     }
 
-    const T scale = math::clamp(min, max, mag) / mag;
+    const T scale = clamp(min, max, mag) / mag;
     return v * scale;
 }
 
@@ -299,7 +301,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T aspect(T x, T y) noexcept
 {
-    return static_cast<T>(math::abs(y) >= constants<T>::epsilon) * (x / y);
+    return static_cast<T>(!is_zero_approx(y)) * (x / y);
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
@@ -324,7 +326,7 @@ VX_FORCE_INLINE constexpr auto aspect(const vec<2, T>& v) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr auto angle(const vec<2, T>& v) noexcept
 {
-    return math::atan2(v.y, v.x);
+    return atan2(v.y, v.x);
 }
 
 // vec3
@@ -335,7 +337,7 @@ VX_FORCE_INLINE constexpr T angle(
     const vec<L, T>& to
 ) noexcept
 {
-    return math::acos(normalized_dot(from, to));
+    return acos(normalized_dot(from, to));
 }
 
 // quaternion
@@ -350,7 +352,7 @@ VX_FORCE_INLINE constexpr T angle(
     // cos(t / 2) = sqrt[(1 + cos(t)) / 2]
     // cos(t) = cos2(t / 2) * 2 - 1
     const T d = normalized_dot(from, to);
-    return math::acos_safe(d * d * static_cast<T>(2) - static_cast<T>(1));
+    return acos_clamped(d * d * static_cast<T>(2) - static_cast<T>(1));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -389,7 +391,10 @@ VX_FORCE_INLINE constexpr T signed_angle(
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> direction(T angle) noexcept
 {
-    return vec<2, T>(math::cos(angle), math::sin(angle));
+    return vec<2, T>(
+        cos(angle),
+        sin(angle)
+    );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -421,8 +426,8 @@ VX_FORCE_INLINE constexpr quat_t<T> inverse(const quat_t<T>& q) noexcept
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle) noexcept
 {
-    const T cosa = math::cos(angle);
-    const T sina = math::sin(angle);
+    const T cosa = cos(angle);
+    const T sina = sin(angle);
 
     return vec<2, T>(
         (v.x * cosa) - (v.y * sina),
@@ -443,8 +448,8 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
 {
     const vec<3, T> naxis = normalize(axis);
 
-    const T cosa = math::cos(angle);
-    const T sina = math::sin(angle);
+    const T cosa = cos(angle);
+    const T sina = sin(angle);
 
     return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
 }
@@ -518,7 +523,7 @@ VX_FORCE_INLINE constexpr vec<L, T> refract(
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
     return (k <= constants<T>::epsilon)
         ? vec<L, T>(0)
-        : (eta * i - (eta * d + math::sqrt(k)) * n);
+        : (eta * i - (eta * d + sqrt(k)) * n);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -26,44 +26,11 @@ using f32 = float;
 using f64 = double;
 
 ///////////////////////////////////////////////////////////////////////////////
-// component types
-///////////////////////////////////////////////////////////////////////////////
-
-namespace __detail {
-
-enum class component_type { _b, _i, _u, _f };
-template <typename T> struct get_component_type { static_assert(sizeof(T) == 0, "Unsupported component type"); };
-
-// bool
-template <> struct get_component_type<bool> { static constexpr auto value = component_type::_b; };
-
-// int
-template <> struct get_component_type<i8> { static constexpr auto value = component_type::_i; };
-template <> struct get_component_type<i16> { static constexpr auto value = component_type::_i; };
-template <> struct get_component_type<i32> { static constexpr auto value = component_type::_i; };
-template <> struct get_component_type<i64> { static constexpr auto value = component_type::_i; };
-
-// uint
-template <> struct get_component_type<u8> { static constexpr auto value = component_type::_u; };
-template <> struct get_component_type<u16> { static constexpr auto value = component_type::_u; };
-template <> struct get_component_type<u32> { static constexpr auto value = component_type::_u; };
-template <> struct get_component_type<u64> { static constexpr auto value = component_type::_u; };
-
-// float
-template <> struct get_component_type<f32> { static constexpr auto value = component_type::_f; };
-template <> struct get_component_type<f64> { static constexpr auto value = component_type::_f; };
-
-} // namespace __detail
-
-///////////////////////////////////////////////////////////////////////////////
 // vector types
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, __detail::component_type>
-struct vec_t;
-
 template <size_t L, typename T>
-using vec = vec_t<L, T, __detail::get_component_type<T>::value>;
+struct vec;
 
 // bool
 using vec2b = vec<2, bool>;
@@ -99,11 +66,8 @@ using vec4 = vec4f;
 // matrix types
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t M, size_t N, typename T, __detail::component_type>
-struct mat_t;
-
 template <size_t M, size_t N, typename T>
-using mat = mat_t<M, N, T, __detail::get_component_type<T>::value>;
+struct mat;
 
 // bool
 using mat2x2b = mat<2, 2, bool>;
