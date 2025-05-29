@@ -39,6 +39,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/interpolation.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/trigonometric.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/matrix.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/functions/quaternion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/functions/quaternion_exponential.hpp"
 )
 

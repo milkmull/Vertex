@@ -16,7 +16,7 @@ namespace math {
 template <typename T>
 struct quat_t
 {
-    static_assert(is_float<T>::value, "type T must be floating point type");
+    VX_STATIC_ASSERT(is_float<T>::value, "type T must be floating point type");
 
     ///////////////////////////////////////////////////////////////////////////////
     // meta
@@ -64,14 +64,14 @@ struct quat_t
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename W, typename XYZ, VXM_REQ_NUM2(W, XYZ)>
+    template <typename W, typename XYZ>
     VX_FORCE_INLINE constexpr quat_t(W w, const vec<3, XYZ>& v) noexcept
         : w(static_cast<scalar_type>(w))
         , x(static_cast<scalar_type>(v.x))
         , y(static_cast<scalar_type>(v.y))
         , z(static_cast<scalar_type>(v.z)) {}
 
-    template <typename W, typename X, typename Y, typename Z, VXM_REQ_NUM4(W, X, Y, Z)>
+    template <typename W, typename X, typename Y, typename Z>
     VX_FORCE_INLINE constexpr quat_t(W w, X x, Y y, Z z) noexcept
         : w(static_cast<scalar_type>(w))
         , x(static_cast<scalar_type>(x))
@@ -85,7 +85,7 @@ struct quat_t
         , y(static_cast<scalar_type>(q.y))
         , z(static_cast<scalar_type>(q.z)) {}
 
-    template <typename U, VXM_REQ_FLOAT(U)>
+    template <typename U>
     VX_FORCE_INLINE constexpr explicit quat_t(const vec<4, U>& v) noexcept
         : w(static_cast<scalar_type>(v.w))
         , x(static_cast<scalar_type>(v.x))
@@ -151,7 +151,7 @@ struct quat_t
     // conversion operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_FLOAT(U)>
+    template <typename U>
     VX_FORCE_INLINE constexpr explicit operator vec<4, U>() const noexcept
     {
         return vec<4, U>(
@@ -230,17 +230,6 @@ struct quat_t
             (q1.w * q2.y) + (q1.y * q2.w) + (q1.z * q2.x) - (q1.x * q2.z),
             (q1.w * q2.z) + (q1.z * q2.w) + (q1.x * q2.y) - (q1.y * q2.x)
         );
-    }
-
-    // https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
-
-    friend VX_FORCE_INLINE constexpr vec<3, scalar_type> operator*(const type& q, const vec<3, scalar_type>& v) noexcept
-    {
-        const vec<3, scalar_type> qv = q.vector();
-        const vec<3, scalar_type> uv = cross(qv, v);
-        const vec<3, scalar_type> uuv = cross(qv, uv);
-
-        return v + ((uv * q.w) + uuv) * static_cast<scalar_type>(2);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

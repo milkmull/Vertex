@@ -9,4 +9,5 @@
 #include "vertex/math/functions/interpolation.hpp"
 #include "vertex/math/functions/matrix.hpp"
 #include "vertex/math/functions/trigonometric.hpp"
+#include "vertex/math/functions/quaternion.hpp"
 #include "vertex/math/functions/quaternion_exponential.hpp"

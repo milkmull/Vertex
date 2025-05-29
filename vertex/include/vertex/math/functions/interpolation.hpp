@@ -264,12 +264,12 @@ VX_FORCE_INLINE constexpr vec<L, T> slerp(
         return lerp(x, y, t);
     }
 
-    const T alpha = math::acos(cos_alpha);
-    const T sin_alpha = math::sin(alpha);
+    const T alpha = acos(cos_alpha);
+    const T sin_alpha = sin(alpha);
     const T inv_sin_alpha = static_cast<T>(1) / sin_alpha;
 
-    const T t1 = math::sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
-    const T t2 = math::sin(t * alpha) * inv_sin_alpha;
+    const T t1 = sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
+    const T t2 = sin(t * alpha) * inv_sin_alpha;
 
     return (x * t1) + (y * t2);
 }
@@ -322,14 +322,85 @@ inline constexpr quat_t<T> slerp(
         return lerp(xsign * x, y, t);
     }
 
-    const T alpha = math::acos(cos_alpha);
-    const T sin_alpha = math::sin(alpha);
+    const T alpha = acos(cos_alpha);
+    const T sin_alpha = sin(alpha);
     const T inv_sin_alpha = static_cast<T>(1) / sin_alpha;
 
-    const T t1 = math::sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
-    const T t2 = math::sin(t * alpha) * inv_sin_alpha;
+    const T t1 = sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
+    const T t2 = sin(t * alpha) * inv_sin_alpha;
 
     return (xsign * x * t1) + (y * t2);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// move_toward
+///////////////////////////////////////////////////////////////////////////////
+
+// scalar
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> move_toward(T from, T to, T delta) noexcept
+{
+    const T d = to - from;
+    return (d <= delta) ? to : (from + delta);
+}
+
+// vec scalar
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> move_toward(
+    const vec<L, T>& from,
+    const vec<L, T>& to,
+    T delta
+) noexcept
+{
+    const vec<L, T> vd = to - from;
+    const T d = length(vd);
+    return (d <= delta) ? to : (from + (vd / d * delta));
+}
+
+// vec trinary
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<2, T> move_toward(
+    const vec<2, T>& from,
+    const vec<2, T>& to,
+    const vec<2, T>& delta
+) noexcept
+{
+    return vec<2, T>(
+        move_toward(from.x, to.x, delta.x),
+        move_toward(from.y, to.y, delta.y)
+    );
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<3, T> move_toward(
+    const vec<3, T>& from,
+    const vec<3, T>& to,
+    const vec<3, T>& delta
+) noexcept
+{
+    return vec<3, T>(
+        move_toward(from.x, to.x, delta.x),
+        move_toward(from.y, to.y, delta.y),
+        move_toward(from.z, to.z, delta.z)
+    );
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> move_toward(
+    const vec<4, T>& from,
+    const vec<4, T>& to,
+    const vec<4, T>& delta
+) noexcept
+{
+    return vec<4, T>(
+        move_toward(from.x, to.x, delta.x),
+        move_toward(from.y, to.y, delta.y),
+        move_toward(from.z, to.z, delta.z),
+        move_toward(from.w, to.w, delta.w)
+    );
 }
 
 } // namespace math

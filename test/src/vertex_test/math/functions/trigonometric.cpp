@@ -6,7 +6,6 @@
 using namespace vx::math;
 
 #define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b, 1e-4f))
-#define VX_CHECK_CLOSE(a, b, epsilon) VX_CHECK(equal_approx(a, epsilon))
 #define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(equal_approx(a, b, 1e-4f))
 
 ///////////////////////////////////////////////////////////////////////////////
