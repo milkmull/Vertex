@@ -317,6 +317,329 @@ VX_TEST_CASE(test_normalized_dot)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_set_length)
+{
+    VX_SECTION("vec2")
+    {
+        const vec2 v(3.0f, 4.0f);
+        constexpr float len = 5.0f;
+
+        // grow
+        vec2 a = set_length(v, len * 2);
+        VX_CHECK_EQ(length(a), len * 2);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // same
+        vec2 b = set_length(v, len);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // shrink
+        vec2 c = set_length(v, 1.0f);
+        VX_CHECK_EQ(length(c), 1.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // negate
+        vec2 d = set_length(v, -len);
+        VX_CHECK_EQ(length(d), len);
+        VX_CHECK_EQ(normalized_dot(v, d), -1.0f);
+
+        // zero
+        vec2 zero(0.0f, 0.0f);
+        vec2 e = set_length(zero, len);
+        VX_CHECK(is_zero_approx(e));
+    }
+
+    VX_SECTION("vec3")
+    {
+        const vec3 v(2.0f, 3.0f, 6.0f);
+        constexpr float len = 7.0f;
+
+        // grow
+        vec3 a = set_length(v, len * 2);
+        VX_CHECK_EQ(length(a), len * 2);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // same
+        vec3 b = set_length(v, len);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // shrink
+        vec3 c = set_length(v, 1.0f);
+        VX_CHECK_EQ(length(c), 1.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // negate
+        vec3 d = set_length(v, -len);
+        VX_CHECK_EQ(length(d), len);
+        VX_CHECK_EQ(normalized_dot(v, d), -1.0f);
+
+        // zero
+        vec3 zero(0.0f, 0.0f, 0.0f);
+        vec3 e = set_length(zero, len);
+        VX_CHECK(is_zero_approx(e));
+    }
+
+    VX_SECTION("vec4")
+    {
+        const vec4 v(1.0f, 2.0f, 2.0f, 4.0f);
+        constexpr float len = 5.0f;
+
+        // grow
+        vec4 a = set_length(v, len * 2);
+        VX_CHECK_EQ(length(a), len * 2);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // same
+        vec4 b = set_length(v, len);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // shrink
+        vec4 c = set_length(v, 1.0f);
+        VX_CHECK_EQ(length(c), 1.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // negate
+        vec4 d = set_length(v, -len);
+        VX_CHECK_EQ(length(d), len);
+        VX_CHECK_EQ(normalized_dot(v, d), -1.0f);
+
+        // zero
+        vec4 zero(0.0f, 0.0f, 0.0f, 0.0f);
+        vec4 e = set_length(zero, len);
+        VX_CHECK(is_zero_approx(e));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_clamp_lenth)
+{
+    VX_SECTION("vec2")
+    {
+        const vec2 v(3.0f, 4.0f);
+        constexpr float len = 5.0f;
+
+        // below
+        vec2 a = clamp_length(v, 7.0f, 10.0f);
+        VX_CHECK_EQ(length(a), 7.0f);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // in
+        vec2 b = clamp_length(v, 1.0f, 7.0f);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // above
+        vec2 c = clamp_length(v, 1.0f, 4.0f);
+        VX_CHECK_EQ(length(c), 4.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // zero
+        vec2 zero(0.0f, 0.0f);
+        vec2 d = clamp_length(zero, 1.0f, 2.0f);
+        VX_CHECK(is_zero_approx(d));
+    }
+
+    VX_SECTION("vec3")
+    {
+        const vec3 v(2.0f, 3.0f, 6.0f);
+        constexpr float len = 7.0f;
+
+        // below
+        vec3 a = clamp_length(v, 10.0f, 15.0f);
+        VX_CHECK_EQ(length(a), 10.0f);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // in
+        vec3 b = clamp_length(v, 1.0f, 10.0f);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // above
+        vec3 c = clamp_length(v, 1.0f, 4.0f);
+        VX_CHECK_EQ(length(c), 4.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // zero
+        vec3 zero(0.0f, 0.0f, 0.0f);
+        vec3 d = clamp_length(zero, 1.0f, 2.0f);
+        VX_CHECK(is_zero_approx(d));
+    }
+
+    VX_SECTION("vec4")
+    {
+        const vec4 v(1.0f, 2.0f, 2.0f, 4.0f);
+        constexpr float len = 5.0f;
+
+        // below
+        vec4 a = clamp_length(v, 10.0f, 15.0f);
+        VX_CHECK_EQ(length(a), 10.0f);
+        VX_CHECK_EQ(normalized_dot(v, a), 1.0f);
+
+        // in
+        vec4 b = clamp_length(v, 1.0f, 10.0f);
+        VX_CHECK_EQ(length(b), len);
+        VX_CHECK_EQ(normalized_dot(v, b), 1.0f);
+
+        // above
+        vec4 c = clamp_length(v, 1.0f, 4.0f);
+        VX_CHECK_EQ(length(c), 4.0f);
+        VX_CHECK_EQ(normalized_dot(v, c), 1.0f);
+
+        // zero
+        vec4 zero(0.0f, 0.0f, 0.0f, 0.0f);
+        vec4 d = clamp_length(zero, 1.0f, 2.0f);
+        VX_CHECK(is_zero_approx(d));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_aspect)
+{
+    VX_SECTION("scalar")
+    {
+        VX_STATIC_CHECK_EQ(aspect(4.0f, 2.0f), 2.0f);
+        VX_STATIC_CHECK_EQ(aspect(10.0f, 5.0f), 2.0f);
+        VX_STATIC_CHECK_EQ(aspect(5.0f, 10.0f), 0.5f);
+
+        // division by 0
+        VX_STATIC_CHECK_EQ(aspect(1.0f, 0.0f), 0.0f);
+        VX_STATIC_CHECK(is_zero_approx(aspect(1.0f, 1e-9f)));
+    }
+
+    VX_SECTION("vec2")
+    {
+        VX_STATIC_CHECK_EQ(aspect(vec2(4.0f, 2.0f)), 2.0f);
+        VX_STATIC_CHECK_EQ(aspect(vec2(10.0f, 5.0f)), 2.0f);
+        VX_STATIC_CHECK_EQ(aspect(vec2(5.0f, 10.0f)), 0.5f);
+
+        // division by 0
+        VX_STATIC_CHECK_EQ(aspect(vec2(1.0f, 0.0f)), 0.0f);
+        VX_STATIC_CHECK(is_zero_approx(aspect(vec2(1.0f, 1e-9f))));
+    }
+
+    VX_SECTION("vec2i")
+    {
+        VX_STATIC_CHECK_EQ(aspect(vec2i(4, 2)), 2.0);
+        VX_STATIC_CHECK_EQ(aspect(vec2i(10, 5)), 2.0);
+        VX_STATIC_CHECK_EQ(aspect(vec2i(5, 10)), 0.5);
+
+        // division by 0
+        VX_STATIC_CHECK_EQ(aspect(vec2i(1, 0)), 0.0);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_area)
+{
+    constexpr vec2 a{ 4.0f, 5.0f };
+    VX_STATIC_CHECK_EQ(area(a), 20.0f);
+
+    constexpr vec2 b{ -3.0f, 7.0f };
+    VX_STATIC_CHECK_EQ(area(b), -21.0f);
+
+    constexpr vec2 c{ 0.0f, 5.0f };
+    VX_STATIC_CHECK_EQ(area(c), 0.0f);
+
+    constexpr vec2 d{ 0.0f, 0.0f };
+    VX_STATIC_CHECK_EQ(area(d), 0.0f);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_volume)
+{
+    constexpr vec3 a{ 2.0f, 3.0f, 4.0f };
+    VX_STATIC_CHECK_EQ(volume(a), 24.0f);
+
+    constexpr vec3 b{ 0.0f, 5.0f, 9.0f };
+    VX_STATIC_CHECK_EQ(volume(b), 0.0f);
+
+    constexpr vec3 c{ -1.0f, 2.0f, -3.0f };
+    VX_STATIC_CHECK_EQ(volume(c), 6.0f);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_angle)
+{
+    VX_SECTION("vec2")
+    {
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 0.0f }), 0.0f);                // 0
+        VX_CHECK_EQ(angle(vec2{ 0.0f, 1.0f }), half_pi);             // 90
+        VX_CHECK_EQ(angle(vec2{ -1.0f, 0.0f }), pi);                 // 180
+        VX_CHECK_EQ(angle(vec2{ 0.0f, -1.0f }), -half_pi);           // -90
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 1.0f }), quarter_pi);          // 45
+    }
+
+    VX_SECTION("vec2 angle between")
+    {
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 0.0f }, vec2{ 1.0f, 0.0f }), 0.0f);
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 0.0f }, vec2{ 0.0f, 1.0f }), half_pi);
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 0.0f }, vec2{ -1.0f, 0.0f }), pi);
+        VX_CHECK_EQ(angle(vec2{ 1.0f, 0.0f }, vec2{ 1.0f, 1.0f }), quarter_pi);
+    }
+
+    VX_SECTION("vec3 angle between")
+    {
+        VX_CHECK_EQ(angle(vec3{ 1.0f, 0.0f, 0.0f }, vec3{ 1.0f, 0.0f, 0.0f }), 0.0f);
+        VX_CHECK_EQ(angle(vec3{ 1.0f, 0.0f, 0.0f }, vec3{ 0.0f, 1.0f, 0.0f }), half_pi);
+        VX_CHECK_EQ(angle(vec3{ 1.0f, 0.0f, 0.0f }, vec3{ -1.0f, 0.0f, 0.0f }), pi);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_signed_angle)
+{
+    VX_SECTION("vec2")
+    {
+        VX_CHECK_EQ(signed_angle(vec2{ 1.0f, 0.0f }, vec2{ 0.0f, 1.0f }), half_pi);     // CCW
+        VX_CHECK_EQ(signed_angle(vec2{ 0.0f, 1.0f }, vec2{ 1.0f, 0.0f }), -half_pi);    // CW
+        VX_CHECK_EQ(signed_angle(vec2{ 1.0f, 0.0f }, vec2{ -1.0f, 0.0f }), pi);         // 180
+        VX_CHECK_EQ(signed_angle(vec2{ 1.0f, 0.0f }, vec2{ 1.0f, 1.0f }), quarter_pi);  // 45
+    }
+
+    VX_SECTION("vec3")
+    {
+        const vec3 x_axis{ 1, 0, 0 };
+        const vec3 y_axis{ 0, 1, 0 };
+        const vec3 z_axis{ 0, 0, 1 };
+        const vec3 neg_z_axis{ 0, 0, -1 };
+
+        VX_CHECK(equal_approx(signed_angle(x_axis, y_axis, z_axis), half_pi));          // 90-degree CCW around Z
+        VX_CHECK(equal_approx(signed_angle(x_axis, y_axis, neg_z_axis), -half_pi));     // 90-degree CW around Z
+        VX_CHECK(equal_approx(signed_angle(x_axis, x_axis, z_axis), 0.0f));             // 0-degree
+        VX_CHECK(equal_approx(signed_angle(x_axis, -x_axis, z_axis), pi));              // 180-degree rotation
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_direction)
+{
+    VX_SECTION("direction from angle (radians to unit vector)")
+    {
+        VX_CHECK_EQ(direction(0.0f), vec2(1.0f, 0.0f));
+        VX_CHECK_EQ(direction(half_pi), vec2(0.0f, 1.0f));
+        VX_CHECK_EQ(direction(pi), vec2(-1.0f, 0.0f));
+        VX_CHECK_EQ(direction(three_pi_over_two), vec2(0.0f, -1.0f));
+        VX_CHECK_EQ(direction(two_pi), vec2(1.0f, 0.0f));
+
+        // diagonals
+        VX_CHECK_EQ(direction(quarter_pi), normalize(vec2(1.0f, 1.0f)));
+        VX_CHECK_EQ(direction(three_quarters_pi), normalize(vec2(-1.0f, 1.0f)));
+        VX_CHECK_EQ(direction(-quarter_pi), normalize(vec2(1.0f, -1.0f)));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     VX_RUN_TESTS();

@@ -181,8 +181,48 @@ VX_FORCE_INLINE constexpr auto normalized_dot(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// clamp_magnitude
+// set_length
 ///////////////////////////////////////////////////////////////////////////////
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> set_length(const vec<L, T>& v, T len) noexcept
+{
+    const T mag = length(v);
+    if (mag <= constants<T>::epsilon)
+    {
+        return vec<L, T>(0);
+    }
+
+    const T scale = len / mag;
+    return v * scale;
+}
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> set_magnitude(const vec<L, T>& v, T len) noexcept
+{
+    return set_length(v, len);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// clamp_length
+///////////////////////////////////////////////////////////////////////////////
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> clamp_length(
+    const vec<L, T>& v,
+    T min,
+    T max
+) noexcept
+{
+    const T mag = length(v);
+    if (mag <= constants<T>::epsilon)
+    {
+        return vec<L, T>(0);
+    }
+
+    const T scale = clamp(mag, min, max) / mag;
+    return v * scale;
+}
 
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
@@ -191,15 +231,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
     T max
 ) noexcept
 {
-    const T mag = length(v);
-
-    if (mag <= constants<T>::epsilon)
-    {
-        return vec<L, T>(0);
-    }
-
-    const T scale = clamp(min, max, mag) / mag;
-    return v * scale;
+    return clamp_length(v, min, max);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -209,7 +241,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T aspect(T x, T y) noexcept
 {
-    return static_cast<T>(!is_zero_approx(y)) * (x / y);
+    return static_cast<T>(is_zero_approx(y)) ? static_cast<T>(0) : (x / y);
 }
 
 template <typename T, VXM_REQ_FLOAT(T)>
@@ -272,21 +304,33 @@ VX_FORCE_INLINE constexpr T angle(
 // signed_angle
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T signed_angle(
-    const vec<L, T>& from,
-    const vec<L, T>& to
+    const vec<2, T>& from,
+    const vec<2, T>& to
 ) noexcept
 {
     const T a = angle(from, to);
     return (cross(from, to) < static_cast<T>(0)) ? -a : a;
 }
 
+template <typename T>
+VX_FORCE_INLINE constexpr T signed_angle(
+    const vec<3, T>& from,
+    const vec<3, T>& to,
+    const vec<3, T>& nref = vec<3, T>::up()
+) noexcept {
+    const T a = angle(from, to);
+    const vec<3, T> c = cross(from, to);
+    const T sign = normalized_dot(c, nref);
+    return (sign < static_cast<T>(0)) ? -a : a;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // direction
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> direction(T angle) noexcept
 {
     return vec<2, T>(
