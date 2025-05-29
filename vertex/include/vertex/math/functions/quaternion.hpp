@@ -134,7 +134,7 @@ VX_FORCE_INLINE constexpr vec<3, T> axis(const quat_t<T>& q) noexcept
     {
         // This indicates that the angle is 0 degrees and thus,
         // the axis does not matter. We choose the +y axis.
-        return vec<3, T>::UP();
+        return vec<3, T>::up();
     }
 
     const T invs = inverse_sqrt(s2);

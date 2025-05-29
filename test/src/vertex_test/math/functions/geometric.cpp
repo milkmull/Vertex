@@ -103,71 +103,45 @@ VX_TEST_CASE(test_cross)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_TEST_CASE(test_length_squared)
+VX_TEST_CASE(test_length)
 {
     VX_SECTION("vec2")
     {
         vec2 a{ 3.0f, -4.0f };
         VX_CHECK_EQ(length_squared(a), 25.0f);
+        VX_CHECK_EQ(length(a), 5.0f);
 
         vec2 zero{ 0.0f, 0.0f };
         VX_CHECK_EQ(length_squared(zero), 0.0f);
+        VX_CHECK_EQ(length(zero), 0.0f);
     }
 
     VX_SECTION("vec3")
     {
         vec3 a{ 1.0f, -2.0f, 3.0f };
         VX_CHECK_EQ(length_squared(a), 14.0f);
+        VX_CHECK_EQ(length(a), 3.74165738677f);
 
         vec3 zero{ 0.0f, 0.0f, 0.0f };
         VX_CHECK_EQ(length_squared(zero), 0.0f);
+        VX_CHECK_EQ(length(zero), 0.0f);
     }
 
     VX_SECTION("vec4")
     {
         vec4 a{ 1.0f, -2.0f, 3.0f, -4.0f };
         VX_CHECK_EQ(length_squared(a), 30.0f);
-
-        vec4 zero{ 0.0f, 0.0f, 0.0f, 0.0f };
-        VX_CHECK_EQ(length_squared(zero), 0.0f);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-VX_TEST_CASE(test_length)
-{
-    VX_SECTION("vec2")
-    {
-        vec2 a{ 3.0f, -4.0f };
-        VX_CHECK_EQ(length(a), 5.0f);
-
-        vec2 zero{ 0.0f, 0.0f };
-        VX_CHECK_EQ(length(zero), 0.0f);
-    }
-
-    VX_SECTION("vec3")
-    {
-        vec3 a{ 1.0f, -2.0f, 3.0f };
-        VX_CHECK_EQ(length(a), 3.74165738677f);
-
-        vec3 zero{ 0.0f, 0.0f, 0.0f };
-        VX_CHECK_EQ(length(zero), 0.0f);
-    }
-
-    VX_SECTION("vec4")
-    {
-        vec4 a{ 1.0f, -2.0f, 3.0f, -4.0f };
         VX_CHECK_EQ(length(a), 5.47722557505f);
 
         vec4 zero{ 0.0f, 0.0f, 0.0f, 0.0f };
+        VX_CHECK_EQ(length_squared(zero), 0.0f);
         VX_CHECK_EQ(length(zero), 0.0f);
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_TEST_CASE(test_distance_squared)
+VX_TEST_CASE(test_distanced)
 {
     VX_SECTION("vec2")
     {
@@ -218,6 +192,126 @@ VX_TEST_CASE(test_distance_squared)
         vec4 p4{ 1.0f, 1.0f, 1.0f, 1.0f };
         VX_CHECK_EQ(distance_squared(p3, p4), 16.0f);
         VX_CHECK_EQ(distance(p3, p4), 4.0f);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_normalize)
+{
+    VX_SECTION("vec2")
+    {
+        vec2 v{ 3.0f, 4.0f };
+        vec2 n = normalize(v);
+        VX_CHECK_EQ(length(n), 1.0f);
+        VX_CHECK(is_normalized(n));
+
+        vec2 nf = normalize_fast(v);
+        VX_CHECK_EQ(length(nf), 1.0f);
+        VX_CHECK(is_normalized(nf));
+
+        vec2 zero{ 0.0f, 0.0f };
+        vec2 n_zero = normalize(zero);
+        VX_CHECK(is_zero_approx(zero));
+        VX_CHECK(!is_normalized(zero));
+    }
+
+    VX_SECTION("vec3")
+    {
+        vec3 v{ 1.0f, 2.0f, 2.0f };
+        vec3 n = normalize(v);
+        VX_CHECK_EQ(length(n), 1.0f);
+        VX_CHECK(is_normalized(n));
+
+        vec3 nf = normalize_fast(v);
+        VX_CHECK_EQ(length(nf), 1.0f);
+        VX_CHECK(is_normalized(nf));
+
+        vec3 zero{ 0.0f, 0.0f, 0.0f };
+        vec3 n_zero = normalize(zero);
+        VX_CHECK(is_zero_approx(zero));
+        VX_CHECK(!is_normalized(n_zero));
+    }
+
+    VX_SECTION("vec4")
+    {
+        vec4 v{ 1.0f, 2.0f, 2.0f, 3.0f };
+        vec4 n = normalize(v);
+        VX_CHECK_EQ(length(n), 1.0f);
+        VX_CHECK(is_normalized(n));
+
+        vec4 nf = normalize_fast(v);
+        VX_CHECK_EQ(length(nf), 1.0f);
+        VX_CHECK(is_normalized(nf));
+
+        vec4 zero{ 0.0f, 0.0f, 0.0f, 0.0f };
+        vec4 n_zero = normalize(zero);
+        VX_CHECK(is_zero_approx(zero));
+        VX_CHECK(!is_normalized(n_zero));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_normalized_dot)
+{
+    VX_SECTION("vec2")
+    {
+        // Same direction: dot = 1
+        vec2 a{ 1.0f, 0.0f };
+        vec2 b{ 2.0f, 0.0f };
+        VX_CHECK_EQ(normalized_dot(a, b), 1.0f);
+
+        // Opposite direction: dot = -1
+        vec2 c{ 1.0f, 0.0f };
+        vec2 d{ -1.0f, 0.0f };
+        VX_CHECK_EQ(normalized_dot(c, d), -1.0f);
+
+        // Orthogonal: dot = 0
+        vec2 e{ 0.0f, 1.0f };
+        VX_CHECK_EQ(normalized_dot(a, e), 0.0f);
+
+        // Diagonal 45: dot = cos(45) = sqrt(2) / 2
+        vec2 diag{ 1.0f, 1.0f };
+        VX_CHECK_EQ(normalized_dot(a, diag), 0.70710678118f);
+    }
+
+    VX_SECTION("vec3")
+    {
+        vec3 x{ 1.0f, 0.0f, 0.0f };
+        vec3 y{ 0.0f, 1.0f, 0.0f };
+        vec3 z{ -1.0f, 0.0f, 0.0f };
+
+        VX_CHECK_EQ(normalized_dot(x, x), 1.0f);
+        VX_CHECK_EQ(normalized_dot(x, z), -1.0f);
+        VX_CHECK_EQ(normalized_dot(x, y), 0.0f);
+    }
+
+    VX_SECTION("vec4")
+    {
+        vec4 a{ 1.0f, 1.0f, 1.0f, 1.0f };
+        vec4 b{ -1.0f, -1.0f, -1.0f, -1.0f };
+        vec4 c{ 1.0f, -1.0f, 1.0f, -1.0f };
+
+        VX_CHECK_EQ(normalized_dot(a, b), -1.0f);
+        VX_CHECK_EQ(normalized_dot(a, a), 1.0f);
+        VX_CHECK_EQ(normalized_dot(a, c), 0.0f);
+    }
+
+    VX_SECTION("zero vectors")
+    {
+        vec3 zero{ 0.0f, 0.0f, 0.0f };
+        vec3 v{ 1.0f, 2.0f, 3.0f };
+
+        auto r1 = normalized_dot(zero, v);
+        auto r2 = normalized_dot(v, zero);
+        auto r3 = normalized_dot(zero, zero);
+
+        VX_CHECK_EQ(r1, 0.0f);
+        VX_CHECK_EQ(r2, 0.0f);
+        VX_CHECK_EQ(r3, 0.0f);
     }
 }
 

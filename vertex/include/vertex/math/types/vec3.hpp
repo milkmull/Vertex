@@ -662,24 +662,24 @@ struct vec<3, T>
     // constants
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type ONE() noexcept { return type(static_cast<scalar_type>(1)); }
+    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type one() noexcept { return type(static_cast<scalar_type>(1)); }
 
-    static VX_FORCE_INLINE constexpr type RIGHT() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type LEFT() noexcept { return type(static_cast<scalar_type>(-1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type right() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type left() noexcept { return type(static_cast<scalar_type>(-1), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
 
-    static VX_FORCE_INLINE constexpr type UP() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(1), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type DOWN() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(-1), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type up() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(1), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type down() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(-1), static_cast<scalar_type>(0)); }
 
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
 
-    static VX_FORCE_INLINE constexpr type FORWARD() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
-    static VX_FORCE_INLINE constexpr type BACK() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
+    static VX_FORCE_INLINE constexpr type forward() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
+    static VX_FORCE_INLINE constexpr type back() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
 
 #else
 
-    static VX_FORCE_INLINE constexpr type FORWARD() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
-    static VX_FORCE_INLINE constexpr type BACK() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
+    static VX_FORCE_INLINE constexpr type forward() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(1)); }
+    static VX_FORCE_INLINE constexpr type back() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(-1)); }
 
 #endif
 

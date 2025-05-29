@@ -728,8 +728,8 @@ struct vec<4, T>
     // constants
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type ONE() noexcept { return type(static_cast<scalar_type>(1)); }
+    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type one() noexcept { return type(static_cast<scalar_type>(1)); }
 };
 
 } // namespace math

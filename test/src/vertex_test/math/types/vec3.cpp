@@ -496,21 +496,21 @@ VX_TEST_CASE(test_vec3i)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec3i::ZERO() == vec3i(0, 0, 0));
-        VX_STATIC_CHECK(vec3i::ONE() == vec3i(1, 1, 1));
+        VX_STATIC_CHECK(vec3i::zero() == vec3i(0, 0, 0));
+        VX_STATIC_CHECK(vec3i::one() == vec3i(1, 1, 1));
 
-        VX_STATIC_CHECK(vec3i::RIGHT() == vec3i(1, 0, 0));
-        VX_STATIC_CHECK(vec3i::LEFT() == vec3i(-1, 0, 0));
+        VX_STATIC_CHECK(vec3i::right() == vec3i(1, 0, 0));
+        VX_STATIC_CHECK(vec3i::left() == vec3i(-1, 0, 0));
 
-        VX_STATIC_CHECK(vec3i::UP() == vec3i(0, 1, 0));
-        VX_STATIC_CHECK(vec3i::DOWN() == vec3i(0, -1, 0));
+        VX_STATIC_CHECK(vec3i::up() == vec3i(0, 1, 0));
+        VX_STATIC_CHECK(vec3i::down() == vec3i(0, -1, 0));
 
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
-        VX_STATIC_CHECK(vec3i::FORWARD() == vec3i(0, 0, -1));
-        VX_STATIC_CHECK(vec3i::BACK() == vec3i(0, 0, 1));
+        VX_STATIC_CHECK(vec3i::forward() == vec3i(0, 0, -1));
+        VX_STATIC_CHECK(vec3i::back() == vec3i(0, 0, 1));
 #else
-        VX_STATIC_CHECK(vec3i::FORWARD() == vec3i(0, 0, 1));
-        VX_STATIC_CHECK(vec3i::BACK() == vec3i(0, 0, -1));
+        VX_STATIC_CHECK(vec3i::forward() == vec3i(0, 0, 1));
+        VX_STATIC_CHECK(vec3i::back() == vec3i(0, 0, -1));
 #endif
     }
 }
@@ -836,11 +836,11 @@ VX_TEST_CASE(test_vec3u)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec3u::ZERO() == vec3u(0u, 0u, 0u));
-        VX_STATIC_CHECK(vec3u::ONE() == vec3u(1u, 1u, 1u));
+        VX_STATIC_CHECK(vec3u::zero() == vec3u(0u, 0u, 0u));
+        VX_STATIC_CHECK(vec3u::one() == vec3u(1u, 1u, 1u));
 
-        VX_STATIC_CHECK(vec3u::RIGHT() == vec3u(1u, 0u, 0u));
-        VX_STATIC_CHECK(vec3u::UP() == vec3u(0u, 1u, 0u));
+        VX_STATIC_CHECK(vec3u::right() == vec3u(1u, 0u, 0u));
+        VX_STATIC_CHECK(vec3u::up() == vec3u(0u, 1u, 0u));
     }
 }
 
@@ -1075,21 +1075,21 @@ VX_TEST_CASE(test_vec3f)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec3f::ZERO() == vec3f(0.0f, 0.0f, 0.0f));
-        VX_STATIC_CHECK(vec3f::ONE() == vec3f(1.0f, 1.0f, 1.0f));
+        VX_STATIC_CHECK(vec3f::zero() == vec3f(0.0f, 0.0f, 0.0f));
+        VX_STATIC_CHECK(vec3f::one() == vec3f(1.0f, 1.0f, 1.0f));
 
-        VX_STATIC_CHECK(vec3f::RIGHT() == vec3f(1.0f, 0.0f, 0.0f));
-        VX_STATIC_CHECK(vec3f::LEFT() == vec3f(-1.0f, 0.0f, 0.0f));
+        VX_STATIC_CHECK(vec3f::right() == vec3f(1.0f, 0.0f, 0.0f));
+        VX_STATIC_CHECK(vec3f::left() == vec3f(-1.0f, 0.0f, 0.0f));
 
-        VX_STATIC_CHECK(vec3f::UP() == vec3f(0.0f, 1.0f, 0.0f));
-        VX_STATIC_CHECK(vec3f::DOWN() == vec3f(0.0f, -1.0f, 0.0f));
+        VX_STATIC_CHECK(vec3f::up() == vec3f(0.0f, 1.0f, 0.0f));
+        VX_STATIC_CHECK(vec3f::down() == vec3f(0.0f, -1.0f, 0.0f));
 
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
-        VX_STATIC_CHECK(vec3f::FORWARD() == vec3f(0.0f, 0.0f, -1.0f));
-        VX_STATIC_CHECK(vec3f::BACK() == vec3f(0.0f, 0.0f, 1.0f));
+        VX_STATIC_CHECK(vec3f::forward() == vec3f(0.0f, 0.0f, -1.0f));
+        VX_STATIC_CHECK(vec3f::back() == vec3f(0.0f, 0.0f, 1.0f));
 #else
-        VX_STATIC_CHECK(vec3f::FORWARD() == vec3f(0.0f, 0.0f, 1.0f));
-        VX_STATIC_CHECK(vec3f::BACK() == vec3f(0.0f, 0.0f, -1.0f));
+        VX_STATIC_CHECK(vec3f::forward() == vec3f(0.0f, 0.0f, 1.0f));
+        VX_STATIC_CHECK(vec3f::back() == vec3f(0.0f, 0.0f, -1.0f));
 #endif
     }
 }
@@ -1324,21 +1324,21 @@ VX_TEST_CASE(test_vec3d)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec3d::ZERO() == vec3d(0.0, 0.0, 0.0));
-        VX_STATIC_CHECK(vec3d::ONE() == vec3d(1.0, 1.0, 1.0));
+        VX_STATIC_CHECK(vec3d::zero() == vec3d(0.0, 0.0, 0.0));
+        VX_STATIC_CHECK(vec3d::one() == vec3d(1.0, 1.0, 1.0));
 
-        VX_STATIC_CHECK(vec3d::RIGHT() == vec3d(1.0, 0.0, 0.0));
-        VX_STATIC_CHECK(vec3d::LEFT() == vec3d(-1.0, 0.0, 0.0));
+        VX_STATIC_CHECK(vec3d::right() == vec3d(1.0, 0.0, 0.0));
+        VX_STATIC_CHECK(vec3d::left() == vec3d(-1.0, 0.0, 0.0));
 
-        VX_STATIC_CHECK(vec3d::UP() == vec3d(0.0, 1.0, 0.0));
-        VX_STATIC_CHECK(vec3d::DOWN() == vec3d(0.0, -1.0, 0.0));
+        VX_STATIC_CHECK(vec3d::up() == vec3d(0.0, 1.0, 0.0));
+        VX_STATIC_CHECK(vec3d::down() == vec3d(0.0, -1.0, 0.0));
 
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_RH_BIT)
-        VX_STATIC_CHECK(vec3d::FORWARD() == vec3d(0.0, 0.0, -1.0));
-        VX_STATIC_CHECK(vec3d::BACK() == vec3d(0.0, 0.0, 1.0));
+        VX_STATIC_CHECK(vec3d::forward() == vec3d(0.0, 0.0, -1.0));
+        VX_STATIC_CHECK(vec3d::back() == vec3d(0.0, 0.0, 1.0));
 #else
-        VX_STATIC_CHECK(vec3d::FORWARD() == vec3d(0.0, 0.0, 1.0));
-        VX_STATIC_CHECK(vec3d::BACK() == vec3d(0.0, 0.0, -1.0));
+        VX_STATIC_CHECK(vec3d::forward() == vec3d(0.0, 0.0, 1.0));
+        VX_STATIC_CHECK(vec3d::back() == vec3d(0.0, 0.0, -1.0));
 #endif
     }
 }

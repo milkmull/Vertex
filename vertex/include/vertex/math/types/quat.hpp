@@ -285,8 +285,8 @@ struct quat_t
     // constants
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type IDENTITY() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
-    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type identity() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
+    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
 
 };
 

@@ -471,8 +471,8 @@ struct mat<4, 4, T>
     // constants
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type IDENTITY() noexcept { return type(static_cast<T>(1)); }
-    static VX_FORCE_INLINE constexpr type ZERO() noexcept { return type(static_cast<T>(0)); }
+    static VX_FORCE_INLINE constexpr type identity() noexcept { return type(static_cast<T>(1)); }
+    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<T>(0)); }
 };
 
 } // namespace math

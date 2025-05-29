@@ -511,8 +511,8 @@ VX_TEST_CASE(test_vec4i)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec4i::ZERO() == vec4i(0, 0, 0, 0));
-        VX_STATIC_CHECK(vec4i::ONE() == vec4i(1, 1, 1, 1));
+        VX_STATIC_CHECK(vec4i::zero() == vec4i(0, 0, 0, 0));
+        VX_STATIC_CHECK(vec4i::one() == vec4i(1, 1, 1, 1));
     }
 }
 
@@ -845,8 +845,8 @@ VX_TEST_CASE(test_vec4u)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec4u::ZERO() == vec4u(0u, 0u, 0u, 0u));
-        VX_STATIC_CHECK(vec4u::ONE() == vec4u(1u, 1u, 1u, 1u));
+        VX_STATIC_CHECK(vec4u::zero() == vec4u(0u, 0u, 0u, 0u));
+        VX_STATIC_CHECK(vec4u::one() == vec4u(1u, 1u, 1u, 1u));
     }
 }
 
@@ -1089,8 +1089,8 @@ VX_TEST_CASE(test_vec4f)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec4f::ZERO() == vec4f(0.0f, 0.0f, 0.0f, 0.0f));
-        VX_STATIC_CHECK(vec4f::ONE() == vec4f(1.0f, 1.0f, 1.0f, 1.0f));
+        VX_STATIC_CHECK(vec4f::zero() == vec4f(0.0f, 0.0f, 0.0f, 0.0f));
+        VX_STATIC_CHECK(vec4f::one() == vec4f(1.0f, 1.0f, 1.0f, 1.0f));
     }
 }
 
@@ -1336,8 +1336,8 @@ VX_TEST_CASE(test_vec4d)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec4d::ZERO() == vec4d(0.0, 0.0, 0.0, 0.0));
-        VX_STATIC_CHECK(vec4d::ONE() == vec4d(1.0, 1.0, 1.0, 1.0));
+        VX_STATIC_CHECK(vec4d::zero() == vec4d(0.0, 0.0, 0.0, 0.0));
+        VX_STATIC_CHECK(vec4d::one() == vec4d(1.0, 1.0, 1.0, 1.0));
     }
 }
 

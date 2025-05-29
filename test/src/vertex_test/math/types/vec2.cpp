@@ -496,14 +496,14 @@ VX_TEST_CASE(test_vec2i)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec2i::ZERO() == vec2i(0, 0));
-        VX_STATIC_CHECK(vec2i::ONE() == vec2i(1, 1));
+        VX_STATIC_CHECK(vec2i::zero() == vec2i(0, 0));
+        VX_STATIC_CHECK(vec2i::one() == vec2i(1, 1));
 
-        VX_STATIC_CHECK(vec2i::RIGHT() == vec2i(1, 0));
-        VX_STATIC_CHECK(vec2i::LEFT() == vec2i(-1, 0));
+        VX_STATIC_CHECK(vec2i::right() == vec2i(1, 0));
+        VX_STATIC_CHECK(vec2i::left() == vec2i(-1, 0));
 
-        VX_STATIC_CHECK(vec2i::UP() == vec2i(0, 1));
-        VX_STATIC_CHECK(vec2i::DOWN() == vec2i(0, -1));
+        VX_STATIC_CHECK(vec2i::up() == vec2i(0, 1));
+        VX_STATIC_CHECK(vec2i::down() == vec2i(0, -1));
     }
 }
 
@@ -828,11 +828,11 @@ VX_TEST_CASE(test_vec2u)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec2u::ZERO() == vec2u(0u, 0u));
-        VX_STATIC_CHECK(vec2u::ONE() == vec2u(1u, 1u));
+        VX_STATIC_CHECK(vec2u::zero() == vec2u(0u, 0u));
+        VX_STATIC_CHECK(vec2u::one() == vec2u(1u, 1u));
 
-        VX_STATIC_CHECK(vec2u::RIGHT() == vec2u(1u, 0u));
-        VX_STATIC_CHECK(vec2u::UP() == vec2u(0u, 1u));
+        VX_STATIC_CHECK(vec2u::right() == vec2u(1u, 0u));
+        VX_STATIC_CHECK(vec2u::up() == vec2u(0u, 1u));
     }
 }
 
@@ -1066,14 +1066,14 @@ VX_TEST_CASE(test_vec2f)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec2f::ZERO() == vec2f(0.0f, 0.0f));
-        VX_STATIC_CHECK(vec2f::ONE() == vec2f(1.0f, 1.0f));
+        VX_STATIC_CHECK(vec2f::zero() == vec2f(0.0f, 0.0f));
+        VX_STATIC_CHECK(vec2f::one() == vec2f(1.0f, 1.0f));
 
-        VX_STATIC_CHECK(vec2f::RIGHT() == vec2f(1.0f, 0.0f));
-        VX_STATIC_CHECK(vec2f::LEFT() == vec2f(-1.0f, 0.0f));
+        VX_STATIC_CHECK(vec2f::right() == vec2f(1.0f, 0.0f));
+        VX_STATIC_CHECK(vec2f::left() == vec2f(-1.0f, 0.0f));
 
-        VX_STATIC_CHECK(vec2f::UP() == vec2f(0.0f, 1.0f));
-        VX_STATIC_CHECK(vec2f::DOWN() == vec2f(0.0f, -1.0f));
+        VX_STATIC_CHECK(vec2f::up() == vec2f(0.0f, 1.0f));
+        VX_STATIC_CHECK(vec2f::down() == vec2f(0.0f, -1.0f));
     }
 }
 
@@ -1307,14 +1307,14 @@ VX_TEST_CASE(test_vec2d)
 
     VX_SECTION("static constructors")
     {
-        VX_STATIC_CHECK(vec2d::ZERO() == vec2d(0.0, 0.0));
-        VX_STATIC_CHECK(vec2d::ONE() == vec2d(1.0, 1.0));
+        VX_STATIC_CHECK(vec2d::zero() == vec2d(0.0, 0.0));
+        VX_STATIC_CHECK(vec2d::one() == vec2d(1.0, 1.0));
 
-        VX_STATIC_CHECK(vec2d::RIGHT() == vec2d(1.0, 0.0));
-        VX_STATIC_CHECK(vec2d::LEFT() == vec2d(-1.0, 0.0));
+        VX_STATIC_CHECK(vec2d::right() == vec2d(1.0, 0.0));
+        VX_STATIC_CHECK(vec2d::left() == vec2d(-1.0, 0.0));
 
-        VX_STATIC_CHECK(vec2d::UP() == vec2d(0.0, 1.0));
-        VX_STATIC_CHECK(vec2d::DOWN() == vec2d(0.0, -1.0));
+        VX_STATIC_CHECK(vec2d::up() == vec2d(0.0, 1.0));
+        VX_STATIC_CHECK(vec2d::down() == vec2d(0.0, -1.0));
     }
 }
 
