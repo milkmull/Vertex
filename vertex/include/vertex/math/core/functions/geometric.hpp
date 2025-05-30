@@ -1,9 +1,9 @@
 #pragma once
 
-#include "vertex/math/functions/common.hpp"
-#include "vertex/math/functions/comparison.hpp"
-#include "vertex/math/functions/exponential.hpp"
-#include "vertex/math/functions/trigonometric.hpp"
+#include "./common.hpp"
+#include "./comparison.hpp"
+#include "./exponential.hpp"
+#include "./trigonometric.hpp"
 
 namespace vx {
 namespace math {
@@ -185,22 +185,16 @@ VX_FORCE_INLINE constexpr auto normalized_dot(
 ///////////////////////////////////////////////////////////////////////////////
 
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<L, T> set_length(const vec<L, T>& v, T len) noexcept
+VX_FORCE_INLINE constexpr vec<L, T> set_length(const vec<L, T>& v, T mag) noexcept
 {
-    const T mag = length(v);
-    if (mag <= constants<T>::epsilon)
-    {
-        return vec<L, T>(0);
-    }
-
-    const T scale = len / mag;
-    return v * scale;
+    VX_ASSERT(!is_zero_approx(length(v)));
+    return v * (mag / length(v));
 }
 
 template <size_t L, typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<L, T> set_magnitude(const vec<L, T>& v, T len) noexcept
+VX_FORCE_INLINE constexpr vec<L, T> set_magnitude(const vec<L, T>& v, T mag) noexcept
 {
-    return set_length(v, len);
+    return set_length(v, mag);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -215,11 +209,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_length(
 ) noexcept
 {
     const T mag = length(v);
-    if (mag <= constants<T>::epsilon)
-    {
-        return vec<L, T>(0);
-    }
-
+    VX_ASSERT(!is_zero_approx(mag));
     const T scale = clamp(mag, min, max) / mag;
     return v * scale;
 }
@@ -319,10 +309,13 @@ VX_FORCE_INLINE constexpr T signed_angle(
     const vec<3, T>& from,
     const vec<3, T>& to,
     const vec<3, T>& nref = vec<3, T>::up()
-) noexcept {
+) noexcept
+{
+    VX_ASSERT(is_normalized(nref));
+
     const T a = angle(from, to);
-    const vec<3, T> c = cross(from, to);
-    const T sign = normalized_dot(c, nref);
+    const vec<3, T> c = normalize(cross(from, to));
+    const T sign = dot(c, nref);
     return (sign < static_cast<T>(0)) ? -a : a;
 }
 
@@ -345,7 +338,7 @@ VX_FORCE_INLINE constexpr vec<2, T> direction(T angle) noexcept
 
 // axis (2d)
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle) noexcept
 {
     const T cosa = cos(angle);
@@ -361,19 +354,19 @@ VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle) noexcept
 
 // https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const vec<3, T>& axis,
     T angle
 ) noexcept
 {
-    const vec<3, T> naxis = normalize(axis);
+    VX_ASSERT(is_normalized(axis));
 
     const T cosa = cos(angle);
     const T sina = sin(angle);
 
-    return v * cosa + cross(naxis, v) * sina + naxis * dot(naxis, v) * (static_cast<T>(1) - cosa);
+    return v * cosa + cross(axis, v) * sina + axis * dot(axis, v) * (static_cast<T>(1) - cosa);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -386,6 +379,7 @@ VX_FORCE_INLINE constexpr vec<L, T> project(
     const vec<L, T>& n
 ) noexcept
 {
+    VX_ASSERT(!is_zero_approx(n));
     return n * (dot(i, n) / length_squared(n));
 }
 
@@ -401,7 +395,8 @@ VX_FORCE_INLINE constexpr vec<L, T> reflect(
     const vec<L, T>& n
 ) noexcept
 {
-    return i - static_cast<T>(2) * normalized_dot(n, i) * n;
+    VX_ASSERT(is_normalized(n));
+    return i - static_cast<T>(2) * dot(n, i) * n;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -414,6 +409,7 @@ VX_FORCE_INLINE constexpr vec<L, T> bounce(
     const vec<L, T>& n
 ) noexcept
 {
+    VX_ASSERT(is_normalized(n));
     return -reflect(i, n);
 }
 
@@ -430,10 +426,13 @@ VX_FORCE_INLINE constexpr vec<L, T> refract(
     T eta
 ) noexcept
 {
-    const T d = normalized_dot(n, i);
+    VX_ASSERT(is_normalized(i));
+    VX_ASSERT(is_normalized(n));
+
+    const T d = dot(n, i);
     const T k = static_cast<T>(1) - eta * eta * (static_cast<T>(1) - d * d);
-    return (k <= constants<T>::epsilon)
-        ? vec<L, T>(0)
+    return (k < static_cast<T>(0))
+        ? vec<L, T>(static_cast<T>(0))
         : (eta * i - (eta * d + sqrt(k)) * n);
 }
 
@@ -450,7 +449,10 @@ VX_FORCE_INLINE constexpr vec<L, T> face_forward(
     const vec<L, T>& nref
 ) noexcept
 {
-    return (normalized_dot(nref, i) < static_cast<T>(0)) ? n : -n;
+    VX_ASSERT(is_normalized(i));
+    VX_ASSERT(is_normalized(nref));
+
+    return (dot(nref, i) < static_cast<T>(0)) ? n : -n;
 }
 
 } // namespace math

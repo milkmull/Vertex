@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/math/functions/geometric.hpp"
+#include "./geometric.hpp"
 
 namespace vx {
 namespace math {

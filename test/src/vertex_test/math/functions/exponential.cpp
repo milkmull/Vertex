@@ -1,7 +1,7 @@
 #include "vertex_test/test.hpp"
 
-#include "vertex/math/functions/exponential.hpp"
-#include "vertex/math/functions/comparison.hpp"
+#include "vertex/math/core/functions/exponential.hpp"
+#include "vertex/math/core/functions/comparison.hpp"
 
 using namespace vx::math;
 

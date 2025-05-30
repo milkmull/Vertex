@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/math/functions/geometric.hpp"
+#include "./geometric.hpp"
 
 namespace vx {
 namespace math {
@@ -28,7 +28,7 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
         if (q.w > static_cast<T>(0))
         {
             return quat_t<T>(
-                math::pow(q.w, x),
+                pow(q.w, x),
                 static_cast<T>(0),
                 static_cast<T>(0),
                 static_cast<T>(0)
@@ -37,7 +37,7 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
         if (q.w < static_cast<T>(0))
         {
             return quat_t<T>(
-                math::pow(-q.w, x) * math::cos(x * constants<T>::pi),
+                pow(-q.w, x) * cos(x * constants<T>::pi),
                 static_cast<T>(0),
                 static_cast<T>(0),
                 static_cast<T>(0)
@@ -70,10 +70,10 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
 
     const T angle = acos_safe(q.w * invqmag);
     const T xangle = x * angle;
-    const T qmagx = math::pow(qmag, x);
+    const T qmagx = pow(qmag, x);
 
-    const T r = qmagx * math::cos(xangle);
-    const vec<3, T> i = qmagx * (v * invvmag) * math::sin(xangle);
+    const T r = qmagx * cos(xangle);
+    const vec<3, T> i = qmagx * (v * invvmag) * sin(xangle);
 
     return quat_t<T>(r, i);
 }
@@ -95,16 +95,16 @@ VX_FORCE_INLINE constexpr quat_t<T> exp(const quat_t<T>& q) noexcept
     {
         // if q only has a positive real part, take the exp like a real number
         return quat_t<T>(
-            math::exp(q.w),
+            exp(q.w),
             static_cast<T>(0),
             static_cast<T>(0),
             static_cast<T>(0)
         );
     }
 
-    const T ea = math::exp(q.w);
-    const T r = ea * math::cos(vmag);
-    const vec<3, T> i = ea * v * (static_cast<T>(1) / vmag) * math::sin(vmag);
+    const T ea = exp(q.w);
+    const T r = ea * cos(vmag);
+    const vec<3, T> i = ea * v * (static_cast<T>(1) / vmag) * sin(vmag);
 
     return quat_t<T>(r, i);
 }
@@ -128,7 +128,7 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
         {
             // if q only has a positive real part, take the log like a real number
             return quat_t<T>(
-                math::log(q.w),
+                log(q.w),
                 static_cast<T>(0),
                 static_cast<T>(0),
                 static_cast<T>(0)
@@ -140,7 +140,7 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
             // ln(-a) = ln|a| + pi
             // where ln|a| is the real part and pi is the imaginary part
             return quat_t<T>(
-                math::log(-q.w),
+                log(-q.w),
                 constants<T>::pi,
                 static_cast<T>(0),
                 static_cast<T>(0)
@@ -160,7 +160,7 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
     const T invvmag = static_cast<T>(1) / vmag;
     const T invqmag = static_cast<T>(1) / qmag;
 
-    const T r = math::log(qmag);
+    const T r = log(qmag);
     const vec<3, T> i = v * invvmag * acos_safe(q.w * invqmag);
 
     return quat_t<T>(r, i);
@@ -173,7 +173,7 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> sqrt(const quat_t<T>& q) noexcept
 {
-    return math::pow(q, static_cast<T>(0.5));
+    return pow(q, static_cast<T>(0.5));
 }
 
 } // namespace math

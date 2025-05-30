@@ -1,21 +1,21 @@
 #pragma once
 
 #include "vertex/config/assert.hpp"
-#include "vertex/math/types/base.hpp"
+#include "./base.hpp"
 
 namespace vx {
 namespace math {
 
 template <typename T>
-struct mat<4, 3, T>
+struct mat<3, 4, T>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
 
     using scalar_type = T;
-    static constexpr size_t width = 4;
-    static constexpr size_t height = 3;
+    static constexpr size_t width = 3;
+    static constexpr size_t height = 4;
 
     using type = mat<width, height, scalar_type>;
     using row_type = vec<width, scalar_type>;
@@ -37,11 +37,10 @@ struct mat<4, 3, T>
     VX_FORCE_INLINE constexpr mat() noexcept
         : columns{ col_type(static_cast<scalar_type>(0)),
                    col_type(static_cast<scalar_type>(0)),
-                   col_type(static_cast<scalar_type>(0)),
                    col_type(static_cast<scalar_type>(0)) } {}
 
     VX_FORCE_INLINE constexpr mat(const type& m) noexcept
-        : columns{ m.columns[0], m.columns[1], m.columns[2], m.columns[3] } {}
+        : columns{ m.columns[0], m.columns[1], m.columns[2] } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -50,27 +49,19 @@ struct mat<4, 3, T>
     VX_FORCE_INLINE constexpr explicit mat(scalar_type scalar) noexcept
         : columns{ col_type(scalar),
                    col_type(scalar),
-                   col_type(scalar),
                    col_type(scalar) } {}
 
     VX_FORCE_INLINE constexpr mat(
-        scalar_type x1, scalar_type y1, scalar_type z1,
-        scalar_type x2, scalar_type y2, scalar_type z2,
-        scalar_type x3, scalar_type y3, scalar_type z3,
-        scalar_type x4, scalar_type y4, scalar_type z4
+        scalar_type x1, scalar_type y1, scalar_type z1, scalar_type w1,
+        scalar_type x2, scalar_type y2, scalar_type z2, scalar_type w2,
+        scalar_type x3, scalar_type y3, scalar_type z3, scalar_type w3
     ) noexcept
-        : columns{ col_type(x1, y1, z1),
-                   col_type(x2, y2, z2),
-                   col_type(x3, y3, z3),
-                   col_type(x4, y4, z4) } {}
+        : columns{ col_type(x1, y1, z1, w1),
+                   col_type(x2, y2, z2, w2),
+                   col_type(x3, y3, z3, w3) } {}
 
-    VX_FORCE_INLINE constexpr mat(
-        const col_type& c1,
-        const col_type& c2,
-        const col_type& c3,
-        const col_type& c4
-    ) noexcept
-        : columns{ c1, c2, c3, c4 } {}
+    VX_FORCE_INLINE constexpr mat(const col_type& c1, const col_type& c2, const col_type& c3) noexcept
+        : columns{ c1, c2, c3 } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // conversion matrix constructors
@@ -80,44 +71,37 @@ struct mat<4, 3, T>
     VX_FORCE_INLINE constexpr explicit mat(U scalar) noexcept
         : columns{ col_type(static_cast<scalar_type>(scalar)),
                    col_type(static_cast<scalar_type>(scalar)),
-                   col_type(static_cast<scalar_type>(scalar)),
                    col_type(static_cast<scalar_type>(scalar)) } {}
 
     template <
-        typename X1, typename Y1, typename Z1,
-        typename X2, typename Y2, typename Z2,
-        typename X3, typename Y3, typename Z3,
-        typename X4, typename Y4, typename Z4
+        typename X1, typename Y1, typename Z1, typename W1,
+        typename X2, typename Y2, typename Z2, typename W2,
+        typename X3, typename Y3, typename Z3, typename W3
     >
     VX_FORCE_INLINE constexpr mat(
-        X1 x1, Y1 y1, Z1 z1,
-        X2 x2, Y2 y2, Z2 z2,
-        X3 x3, Y3 y3, Z3 z3,
-        X4 x4, Y4 y4, Z4 z4
+        X1 x1, Y1 y1, Z1 z1, W1 w1,
+        X2 x2, Y2 y2, Z2 z2, W2 w2,
+        X3 x3, Y3 y3, Z3 z3, W3 w3
     ) noexcept
-        : columns{ col_type(static_cast<scalar_type>(x1), static_cast<scalar_type>(y1), static_cast<scalar_type>(z1)),
-                   col_type(static_cast<scalar_type>(x2), static_cast<scalar_type>(y2), static_cast<scalar_type>(z2)),
-                   col_type(static_cast<scalar_type>(x3), static_cast<scalar_type>(y3), static_cast<scalar_type>(z3)),
-                   col_type(static_cast<scalar_type>(x4), static_cast<scalar_type>(y4), static_cast<scalar_type>(z4)) } {}
+        : columns{ col_type(static_cast<scalar_type>(x1), static_cast<scalar_type>(y1), static_cast<scalar_type>(z1), static_cast<scalar_type>(w1)),
+                   col_type(static_cast<scalar_type>(x2), static_cast<scalar_type>(y2), static_cast<scalar_type>(z2), static_cast<scalar_type>(w2)),
+                   col_type(static_cast<scalar_type>(x3), static_cast<scalar_type>(y3), static_cast<scalar_type>(z3), static_cast<scalar_type>(w3)) } {}
 
-    template <typename C1, typename C2, typename C3, typename C4>
+    template <typename C1, typename C2, typename C3>
     VX_FORCE_INLINE constexpr mat(
         const vec<2, C1>& c1,
         const vec<2, C2>& c2,
-        const vec<2, C3>& c3,
-        const vec<2, C4>& c4
+        const vec<2, C3>& c3
     ) noexcept
         : columns{ static_cast<col_type>(c1),
                    static_cast<col_type>(c2),
-                   static_cast<col_type>(c3),
-                   static_cast<col_type>(c4) } {}
+                   static_cast<col_type>(c3) } {}
 
     template <size_t M, size_t N, typename U, VXM_REQ(M >= width && N >= height)>
     VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m) noexcept
         : columns{ static_cast<col_type>(m.columns[0]),
                    static_cast<col_type>(m.columns[1]),
-                   static_cast<col_type>(m.columns[2]),
-                   static_cast<col_type>(m.columns[3]) } {}
+                   static_cast<col_type>(m.columns[2]) } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
@@ -128,7 +112,6 @@ struct mat<4, 3, T>
         columns[0] = m.columns[0];
         columns[1] = m.columns[1];
         columns[2] = m.columns[2];
-        columns[3] = m.columns[3];
         return *this;
     }
 
@@ -138,7 +121,6 @@ struct mat<4, 3, T>
         columns[0] = static_cast<col_type>(m.columns[0]);
         columns[1] = static_cast<col_type>(m.columns[1]);
         columns[2] = static_cast<col_type>(m.columns[2]);
-        columns[3] = static_cast<col_type>(m.columns[3]);
         return *this;
     }
 
@@ -168,8 +150,7 @@ struct mat<4, 3, T>
     {
         return (m1.columns[0] == m2.columns[0])
             && (m1.columns[1] == m2.columns[1])
-            && (m1.columns[2] == m2.columns[2])
-            && (m1.columns[3] == m2.columns[3]);
+            && (m1.columns[2] == m2.columns[2]);
     }
 
     // not equal (!=)
@@ -178,8 +159,7 @@ struct mat<4, 3, T>
     {
         return (m1.columns[0] != m2.columns[0])
             || (m1.columns[1] != m2.columns[1])
-            || (m1.columns[2] != m2.columns[2])
-            || (m1.columns[3] != m2.columns[3]);
+            || (m1.columns[2] != m2.columns[2]);
     }
 
     // greater than (>)
@@ -188,8 +168,7 @@ struct mat<4, 3, T>
     {
         if (m1.columns[0] != m2.columns[0]) return m1.columns[0] > m2.columns[0];
         if (m1.columns[1] != m2.columns[1]) return m1.columns[1] > m2.columns[1];
-        if (m1.columns[2] != m2.columns[2]) return m1.columns[2] > m2.columns[2];
-        return m1.columns[3] > m2.columns[3];
+        return m1.columns[2] > m2.columns[2];
     }
 
     // less than (<)
@@ -198,8 +177,7 @@ struct mat<4, 3, T>
     {
         if (m1.columns[0] != m2.columns[0]) return m1.columns[0] < m2.columns[0];
         if (m1.columns[1] != m2.columns[1]) return m1.columns[1] < m2.columns[1];
-        if (m1.columns[2] != m2.columns[2]) return m1.columns[2] < m2.columns[2];
-        return m1.columns[3] < m2.columns[3];
+        return m1.columns[2] < m2.columns[2];
     }
 
     // greater than or equal to (>=)
@@ -208,8 +186,7 @@ struct mat<4, 3, T>
     {
         if (m1.columns[0] != m2.columns[0]) return m1.columns[0] > m2.columns[0];
         if (m1.columns[1] != m2.columns[1]) return m1.columns[1] > m2.columns[1];
-        if (m1.columns[2] != m2.columns[2]) return m1.columns[2] > m2.columns[2];
-        return m1.columns[3] >= m2.columns[3];
+        return m1.columns[2] >= m2.columns[2];
     }
 
     // less than or equal to (<=)
@@ -218,8 +195,7 @@ struct mat<4, 3, T>
     {
         if (m1.columns[0] != m2.columns[0]) return m1.columns[0] < m2.columns[0];
         if (m1.columns[1] != m2.columns[1]) return m1.columns[1] < m2.columns[1];
-        if (m1.columns[2] != m2.columns[2]) return m1.columns[2] < m2.columns[2];
-        return m1.columns[3] <= m2.columns[3];
+        return m1.columns[2] <= m2.columns[2];
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -228,12 +204,12 @@ struct mat<4, 3, T>
 
     VX_FORCE_INLINE constexpr type operator+() const noexcept
     {
-        return type(+columns[0], +columns[1], +columns[2], +columns[3]);
+        return type(+columns[0], +columns[1], +columns[2]);
     }
 
     VX_FORCE_INLINE constexpr type operator-() const noexcept
     {
-        return type(-columns[0], -columns[1], -columns[2], -columns[3]);
+        return type(-columns[0], -columns[1], -columns[2]);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -247,7 +223,6 @@ struct mat<4, 3, T>
         columns[0]++;
         columns[1]++;
         columns[2]++;
-        columns[3]++;
         return *this;
     }
 
@@ -265,7 +240,6 @@ struct mat<4, 3, T>
         columns[0]--;
         columns[1]--;
         columns[2]--;
-        columns[3]--;
         return *this;
     }
 
@@ -284,115 +258,105 @@ struct mat<4, 3, T>
 
     friend VX_FORCE_INLINE constexpr type operator+(const type& m, scalar_type scalar) noexcept
     {
-        return type(m.columns[0] + scalar, m.columns[1] + scalar, m.columns[2] + scalar, m.columns[3] + scalar);
+        return type(m.columns[0] + scalar, m.columns[1] + scalar, m.columns[2] + scalar);
     }
 
     friend VX_FORCE_INLINE constexpr type operator+(scalar_type scalar, const type& m) noexcept
     {
-        return type(scalar + m.columns[0], scalar + m.columns[1], scalar + m.columns[2], scalar + m.columns[3]);
+        return type(scalar + m.columns[0], scalar + m.columns[1], scalar + m.columns[2]);
     }
 
     friend VX_FORCE_INLINE constexpr type operator+(const type& m1, const type& m2) noexcept
     {
-        return type(m1.columns[0] + m2.columns[0], m1.columns[1] + m2.columns[1], m1.columns[2] + m2.columns[2], m1.columns[3] + m2.columns[3]);
+        return type(m1.columns[0] + m2.columns[0], m1.columns[1] + m2.columns[1], m1.columns[2] + m2.columns[2]);
     }
 
     // subtraction (-)
 
     friend VX_FORCE_INLINE constexpr type operator-(const type& m, scalar_type scalar) noexcept
     {
-        return type(m.columns[0] - scalar, m.columns[1] - scalar, m.columns[2] - scalar, m.columns[3] - scalar);
+        return type(m.columns[0] - scalar, m.columns[1] - scalar, m.columns[2] - scalar);
     }
 
     friend VX_FORCE_INLINE constexpr type operator-(scalar_type scalar, const type& m) noexcept
     {
-        return type(scalar - m.columns[0], scalar - m.columns[1], scalar - m.columns[2], scalar - m.columns[3]);
+        return type(scalar - m.columns[0], scalar - m.columns[1], scalar - m.columns[2]);
     }
 
     friend VX_FORCE_INLINE constexpr type operator-(const type& m1, const type& m2) noexcept
     {
-        return type(m1.columns[0] - m2.columns[0], m1.columns[1] - m2.columns[1], m1.columns[2] - m2.columns[2], m1.columns[3] - m2.columns[3]);
+        return type(m1.columns[0] - m2.columns[0], m1.columns[1] - m2.columns[1], m1.columns[2] - m1.columns[2]);
     }
 
     // multiplication (*)
 
     friend VX_FORCE_INLINE constexpr type operator*(const type& m, scalar_type scalar) noexcept
     {
-        return type(m.columns[0] * scalar, m.columns[1] * scalar, m.columns[2] * scalar, m.columns[3] * scalar);
+        return type(m.columns[0] * scalar, m.columns[1] * scalar, m.columns[2] * scalar);
     }
 
     friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& m) noexcept
     {
-        return type(scalar * m.columns[0], scalar * m.columns[1], scalar * m.columns[2], scalar * m.columns[3]);
+        return type(scalar * m.columns[0], scalar * m.columns[1], scalar * m.columns[2]);
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const mat<4, 3, T>& m, const vec<4, T>& v) noexcept
+    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const mat<3, 4, T>& m, const vec<3, T>& v) noexcept
     {
-        return vec<3, T>(
-            (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z) + (m.columns[3].x * v.w),
-            (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + (m.columns[2].y * v.z) + (m.columns[3].y * v.w),
-            (m.columns[0].z * v.x) + (m.columns[1].z * v.y) + (m.columns[2].z * v.z) + (m.columns[3].z * v.w)
+        return vec<4, T>(
+            (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z),
+            (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + (m.columns[2].y * v.z)
         );
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<3, T> operator*(const vec<4, T>& v, const mat<4, 3, T>& m) noexcept
+    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const vec<3, T>& v, const mat<3, 4, T>& m) noexcept
     {
         return multiply(m, v);
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<2, 3, T> operator*(const mat<4, 3, T>& m1, const mat<2, 4, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<2, 4, T> operator*(const mat<3, 4, T>& m1, const mat<2, 3, T>& m2) noexcept
     {
-        return mat<2, 3, T>(
-            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z) + (m1.columns[3].x * m2.columns[0].w),
-            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z) + (m1.columns[3].y * m2.columns[0].w),
-            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y) + (m1.columns[2].z * m2.columns[0].z) + (m1.columns[3].z * m2.columns[0].w),
+        return mat<2, 4, T>(
+            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z),
+            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z),
 
-            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z) + (m1.columns[3].x * m2.columns[1].w),
-            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z) + (m1.columns[3].y * m2.columns[1].w),
-            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y) + (m1.columns[2].z * m2.columns[1].z) + (m1.columns[3].z * m2.columns[1].w)
+            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z),
+            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z)
         );
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<3, 3, T> operator*(const mat<4, 3, T>& m1, const mat<3, 4, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<3, 4, T> operator*(const mat<3, 4, T>& m1, const mat<3, 3, T>& m2) noexcept
     {
-        return mat<3, 3, T>(
-            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z) + (m1.columns[3].x * m2.columns[0].w),
-            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z) + (m1.columns[3].y * m2.columns[0].w),
-            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y) + (m1.columns[2].z * m2.columns[0].z) + (m1.columns[3].z * m2.columns[0].w),
+        return mat<3, 4, T>(
+            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z),
+            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z),
 
-            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z) + (m1.columns[3].x * m2.columns[1].w),
-            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z) + (m1.columns[3].y * m2.columns[1].w),
-            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y) + (m1.columns[2].z * m2.columns[1].z) + (m1.columns[3].z * m2.columns[1].w),
+            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z),
+            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z),
 
-            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y) + (m1.columns[2].x * m2.columns[2].z) + (m1.columns[3].x * m2.columns[2].w),
-            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y) + (m1.columns[2].y * m2.columns[2].z) + (m1.columns[3].y * m2.columns[2].w),
-            (m1.columns[0].z * m2.columns[2].x) + (m1.columns[1].z * m2.columns[2].y) + (m1.columns[2].z * m2.columns[2].z) + (m1.columns[3].z * m2.columns[2].w)
+            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y) + (m1.columns[2].x * m2.columns[2].z),
+            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y) + (m1.columns[2].y * m2.columns[2].z)
         );
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<4, 3, T> operator*(const mat<4, 3, T>& m1, const mat<4, 4, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<4, 4, T> operator*(const mat<3, 4, T>& m1, const mat<4, 3, T>& m2) noexcept
     {
-        return mat<4, 3, T>(
-            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z) + (m1.columns[3].x * m2.columns[0].w),
-            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z) + (m1.columns[3].y * m2.columns[0].w),
-            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y) + (m1.columns[2].z * m2.columns[0].z) + (m1.columns[3].z * m2.columns[0].w),
+        return mat<4, 4, T>(
+            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y) + (m1.columns[2].x * m2.columns[0].z),
+            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y) + (m1.columns[2].y * m2.columns[0].z),
 
-            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z) + (m1.columns[3].x * m2.columns[1].w),
-            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z) + (m1.columns[3].y * m2.columns[1].w),
-            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y) + (m1.columns[2].z * m2.columns[1].z) + (m1.columns[3].z * m2.columns[1].w),
+            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y) + (m1.columns[2].x * m2.columns[1].z),
+            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y) + (m1.columns[2].y * m2.columns[1].z),
 
-            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y) + (m1.columns[2].x * m2.columns[2].z) + (m1.columns[3].x * m2.columns[2].w),
-            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y) + (m1.columns[2].y * m2.columns[2].z) + (m1.columns[3].y * m2.columns[2].w),
-            (m1.columns[0].z * m2.columns[2].x) + (m1.columns[1].z * m2.columns[2].y) + (m1.columns[2].z * m2.columns[2].z) + (m1.columns[3].z * m2.columns[2].w),
+            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y) + (m1.columns[2].x * m2.columns[2].z),
+            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y) + (m1.columns[2].y * m2.columns[2].z),
 
-            (m1.columns[0].x * m2.columns[3].x) + (m1.columns[1].x * m2.columns[3].y) + (m1.columns[2].x * m2.columns[3].z) + (m1.columns[3].x * m2.columns[3].w),
-            (m1.columns[0].y * m2.columns[3].x) + (m1.columns[1].y * m2.columns[3].y) + (m1.columns[2].y * m2.columns[3].z) + (m1.columns[3].y * m2.columns[3].w),
-            (m1.columns[0].z * m2.columns[3].x) + (m1.columns[1].z * m2.columns[3].y) + (m1.columns[2].z * m2.columns[3].z) + (m1.columns[3].z * m2.columns[3].w)
+            (m1.columns[0].x * m2.columns[3].x) + (m1.columns[1].x * m2.columns[3].y) + (m1.columns[2].x * m2.columns[3].z),
+            (m1.columns[0].y * m2.columns[3].x) + (m1.columns[1].y * m2.columns[3].y) + (m1.columns[2].y * m2.columns[3].z)
         );
     }
 
@@ -407,7 +371,6 @@ struct mat<4, 3, T>
         columns[0] += scalar;
         columns[1] += scalar;
         columns[2] += scalar;
-        columns[3] += scalar;
         return *this;
     }
 
@@ -416,7 +379,6 @@ struct mat<4, 3, T>
         columns[0] += m.columns[0];
         columns[1] += m.columns[1];
         columns[2] += m.columns[2];
-        columns[3] += m.columns[3];
         return *this;
     }
 
@@ -427,7 +389,6 @@ struct mat<4, 3, T>
         columns[0] -= scalar;
         columns[1] -= scalar;
         columns[2] -= scalar;
-        columns[3] -= scalar;
         return *this;
     }
 
@@ -436,7 +397,6 @@ struct mat<4, 3, T>
         columns[0] -= m.columns[0];
         columns[1] -= m.columns[1];
         columns[2] -= m.columns[2];
-        columns[3] -= m.columns[3];
         return *this;
     }
 
@@ -447,7 +407,6 @@ struct mat<4, 3, T>
         columns[0] *= scalar;
         columns[1] *= scalar;
         columns[2] *= scalar;
-        columns[3] *= scalar;
         return *this;
     }
 

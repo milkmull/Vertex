@@ -1,8 +1,7 @@
 #pragma once
 
-#include "vertex/config/language_config.hpp"
 #include "vertex/config/assert.hpp"
-#include "vertex/math/types.hpp"
+#include "./base.hpp"
 
 namespace vx {
 namespace math {

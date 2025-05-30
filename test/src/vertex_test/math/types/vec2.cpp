@@ -1,6 +1,6 @@
 #include "vertex_test/test.hpp"
 
-#include "vertex/math/types.hpp"
+#include "vertex/math/core/types.hpp"
 
 using namespace vx::math;
 

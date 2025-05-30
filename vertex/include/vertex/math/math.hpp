@@ -1,13 +1,13 @@
 #pragma once
 
-#include "vertex/math/types.hpp"
+#include "vertex/math/core/types.hpp"
 
-#include "vertex/math/functions/common.hpp"
-#include "vertex/math/functions/comparison.hpp"
-#include "vertex/math/functions/exponential.hpp"
-#include "vertex/math/functions/geometric.hpp"
-#include "vertex/math/functions/interpolation.hpp"
-#include "vertex/math/functions/matrix.hpp"
-#include "vertex/math/functions/trigonometric.hpp"
-#include "vertex/math/functions/quaternion.hpp"
-#include "vertex/math/functions/quaternion_exponential.hpp"
+#include "vertex/math/core/functions/common.hpp"
+#include "vertex/math/core/functions/comparison.hpp"
+#include "vertex/math/core/functions/exponential.hpp"
+#include "vertex/math/core/functions/geometric.hpp"
+#include "vertex/math/core/functions/interpolation.hpp"
+#include "vertex/math/core/functions/matrix.hpp"
+#include "vertex/math/core/functions/trigonometric.hpp"
+#include "vertex/math/core/functions/quaternion.hpp"
+#include "vertex/math/core/functions/quaternion_exponential.hpp"

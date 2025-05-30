@@ -1,13 +1,13 @@
 #pragma once
 
 #include "vertex/config/assert.hpp"
-#include "vertex/math/types/base.hpp"
+#include "./base.hpp"
 
 namespace vx {
 namespace math {
 
 template <typename T>
-struct mat<2, 2, T>
+struct mat<2, 4, T>
 {
     ///////////////////////////////////////////////////////////////////////////////
     // meta
@@ -15,7 +15,7 @@ struct mat<2, 2, T>
 
     using scalar_type = T;
     static constexpr size_t width = 2;
-    static constexpr size_t height = 2;
+    static constexpr size_t height = 4;
 
     using type = mat<width, height, scalar_type>;
     using row_type = vec<width, scalar_type>;
@@ -35,8 +35,8 @@ struct mat<2, 2, T>
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr mat() noexcept
-        : columns{ col_type(static_cast<scalar_type>(1), static_cast<scalar_type>(0)),
-                   col_type(static_cast<scalar_type>(0), static_cast<scalar_type>(1)) } {}
+        : columns{ col_type(static_cast<scalar_type>(0)),
+                   col_type(static_cast<scalar_type>(0)) } {}
 
     VX_FORCE_INLINE constexpr mat(const type& m) noexcept
         : columns{ m.columns[0], m.columns[1] } {}
@@ -46,14 +46,14 @@ struct mat<2, 2, T>
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr explicit mat(scalar_type scalar) noexcept
-        : columns{ col_type(scalar, static_cast<scalar_type>(0)),
-                   col_type(static_cast<scalar_type>(0), scalar) } {}
+        : columns{ col_type(scalar),
+                   col_type(scalar) } {}
 
     VX_FORCE_INLINE constexpr mat(
-        scalar_type x1, scalar_type y1,
-        scalar_type x2, scalar_type y2
+        scalar_type x1, scalar_type y1, scalar_type z1, scalar_type w1,
+        scalar_type x2, scalar_type y2, scalar_type z2, scalar_type w2
     ) noexcept
-        : columns{ col_type(x1, y1), col_type(x2, y2) } {}
+        : columns{ col_type(x1, y1, z1, w1), col_type(x2, y2, z2, w2) } {}
 
     VX_FORCE_INLINE constexpr mat(const col_type& c1, const col_type& c2) noexcept
         : columns{ c1, c2 } {}
@@ -63,30 +63,25 @@ struct mat<2, 2, T>
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename U>
-    VX_FORCE_INLINE constexpr explicit mat(U scalar) noexcept
-        : columns{ col_type(static_cast<scalar_type>(scalar), static_cast<scalar_type>(0)),
-                   col_type(static_cast<scalar_type>(0), static_cast<scalar_type>(scalar)) } {}
+    VX_FORCE_INLINE constexpr explicit mat(U scalar)
+        : columns{ col_type(static_cast<scalar_type>(scalar)),
+                   col_type(static_cast<scalar_type>(scalar)) } {}
 
     template <
-        typename X1, typename Y1,
-        typename X2, typename Y2
+        typename X1, typename Y1, typename Z1, typename W1,
+        typename X2, typename Y2, typename Z2, typename W2
     >
     VX_FORCE_INLINE constexpr mat(
-        X1 x1, Y1 y1,
-        X2 x2, Y2 y2
+        X1 x1, Y1 y1, Z1 z1, W1 w1,
+        X2 x2, Y2 y2, Z2 z2, W2 w2
     ) noexcept
-        : columns{ col_type(static_cast<scalar_type>(x1), static_cast<scalar_type>(y1)),
-                   col_type(static_cast<scalar_type>(x2), static_cast<scalar_type>(y2)) } {}
+        : columns{ col_type(static_cast<scalar_type>(x1), static_cast<scalar_type>(y1), static_cast<scalar_type>(z1), static_cast<scalar_type>(w1)),
+                   col_type(static_cast<scalar_type>(x2), static_cast<scalar_type>(y2), static_cast<scalar_type>(z2), static_cast<scalar_type>(w2)) } {}
 
     template <typename C1, typename C2>
     VX_FORCE_INLINE constexpr mat(const vec<height, C1>& c1, const vec<height, C2>& c2) noexcept
         : columns{ static_cast<col_type>(c1),
                    static_cast<col_type>(c2) } {}
-
-    template <size_t M, size_t N, typename U, VXM_REQ(M >= width && N >= height)>
-    VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m) noexcept
-        : columns{ static_cast<col_type>(m.columns[0]),
-                   static_cast<col_type>(m.columns[1]) } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
@@ -276,62 +271,82 @@ struct mat<2, 2, T>
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<2, T> operator*(const mat<2, 2, T>& m, const vec<2, T>& v) noexcept
+    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const mat<2, 4, T>& m, const vec<2, T>& v) noexcept
     {
-        return vec<2, T>(
+        return vec<4, T>(
             (m.columns[0].x * v.x) + (m.columns[1].x * v.y),
-            (m.columns[0].y * v.x) + (m.columns[1].y * v.y)
+            (m.columns[0].y * v.x) + (m.columns[1].y * v.y),
+            (m.columns[0].z * v.x) + (m.columns[1].z * v.y),
+            (m.columns[0].w * v.x) + (m.columns[1].w * v.y)
         );
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<2, T> operator*(const vec<2, T>& v, const mat<2, 2, T>& m) noexcept
+    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const vec<2, T>& v, const mat<2, 4, T>& m) noexcept
     {
         return multiply(m, v);
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<2, 2, T> operator*(const mat<2, 2, T>& m1, const mat<2, 2, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<2, 4, T> operator*(const mat<2, 4, T>& m1, const mat<2, 2, T>& m2) noexcept
     {
-        return mat<2, 2, T>(
+        return mat<2, 4, T>(
             (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
             (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
+            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
+            (m1.columns[0].w * m2.columns[0].x) + (m1.columns[1].w * m2.columns[0].y),
 
             (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y),
-            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y)
+            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y),
+            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y),
+            (m1.columns[0].w * m2.columns[1].x) + (m1.columns[1].w * m2.columns[1].y)
         );
     }
 
     template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<3, 2, T> operator*(const mat<2, 2, T>& m1, const mat<3, 2, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<3, 4, T> operator*(const mat<2, 4, T>& m1, const mat<3, 2, T>& m2) noexcept
     {
-        return mat<3, 2, T>(
+        return mat<3, 4, T>(
             (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
             (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
+            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
+            (m1.columns[0].w * m2.columns[0].x) + (m1.columns[1].w * m2.columns[0].y),
 
             (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y),
             (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y),
-
-            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y),
-            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y)
-        );
-    }
-
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<4, 2, T> operator*(const mat<2, 2, T>& m1, const mat<4, 2, T>& m2) noexcept
-    {
-        return mat<4, 2, T>(
-            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
-            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
-
-            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y),
-            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y),
+            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y),
+            (m1.columns[0].w * m2.columns[1].x) + (m1.columns[1].w * m2.columns[1].y),
 
             (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y),
             (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y),
+            (m1.columns[0].z * m2.columns[2].x) + (m1.columns[1].z * m2.columns[2].y),
+            (m1.columns[0].w * m2.columns[2].x) + (m1.columns[1].w * m2.columns[2].y)
+        );
+    }
+
+    template <typename T>
+    friend VX_FORCE_INLINE constexpr mat<4, 4, T> operator*(const mat<2, 4, T>& m1, const mat<4, 2, T>& m2) noexcept
+    {
+        return mat<4, 4, T>(
+            (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
+            (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
+            (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
+            (m1.columns[0].w * m2.columns[0].x) + (m1.columns[1].w * m2.columns[0].y),
+
+            (m1.columns[0].x * m2.columns[1].x) + (m1.columns[1].x * m2.columns[1].y),
+            (m1.columns[0].y * m2.columns[1].x) + (m1.columns[1].y * m2.columns[1].y),
+            (m1.columns[0].z * m2.columns[1].x) + (m1.columns[1].z * m2.columns[1].y),
+            (m1.columns[0].w * m2.columns[1].x) + (m1.columns[1].w * m2.columns[1].y),
+
+            (m1.columns[0].x * m2.columns[2].x) + (m1.columns[1].x * m2.columns[2].y),
+            (m1.columns[0].y * m2.columns[2].x) + (m1.columns[1].y * m2.columns[2].y),
+            (m1.columns[0].z * m2.columns[2].x) + (m1.columns[1].z * m2.columns[2].y),
+            (m1.columns[0].w * m2.columns[2].x) + (m1.columns[1].w * m2.columns[2].y),
 
             (m1.columns[0].x * m2.columns[3].x) + (m1.columns[1].x * m2.columns[3].y),
-            (m1.columns[0].y * m2.columns[3].x) + (m1.columns[1].y * m2.columns[3].y)
+            (m1.columns[0].y * m2.columns[3].x) + (m1.columns[1].y * m2.columns[3].y),
+            (m1.columns[0].z * m2.columns[3].x) + (m1.columns[1].z * m2.columns[3].y),
+            (m1.columns[0].w * m2.columns[3].x) + (m1.columns[1].w * m2.columns[3].y)
         );
     }
 
@@ -385,13 +400,6 @@ struct mat<2, 2, T>
         (*this) = (*this) * m;
         return *this;
     }
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // constants
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static VX_FORCE_INLINE constexpr type identity() noexcept { return type(static_cast<scalar_type>(1)); }
-    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0)); }
 };
 
 } // namespace math
