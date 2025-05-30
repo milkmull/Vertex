@@ -263,5 +263,94 @@ VX_FORCE_INLINE constexpr quat_t<T> rotate_between(const vec<3, T>& from, const 
     );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// lerp
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VX_FORCE_INLINE constexpr quat_t<T> lerp(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
+    T t
+) noexcept
+{
+    return x * (static_cast<T>(1) - t) + y * t;
+}
+
+template <typename T>
+VX_FORCE_INLINE constexpr quat_t<T> mix(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
+    T t
+) noexcept
+{
+    return lerp(x, y, t);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// slerp
+///////////////////////////////////////////////////////////////////////////////
+
+// https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
+// https://en.wikipedia.org/wiki/Slerp
+
+// assuming qx and qy are normalized
+// theta = arccos(dot(qx, qy))
+// qm = { qx * sin((1 - t) * theta) + qy * sin(t * theta) } / sin(theta)
+
+template <typename T>
+inline constexpr quat_t<T> slerp(
+    const quat_t<T>& x,
+    const quat_t<T>& y,
+    T t
+)
+{
+    T cos_alpha = normalized_dot(x, y);
+    T xsign = static_cast<T>(1);
+
+    if (cos_alpha < static_cast<T>(0))
+    {
+        // Since q(w,x,y,z) and q(-w,-x,-y,-z) represent the same
+        // rotation we should make sure the result is not sensitive 
+        // to whether the positive or inverted form of the
+        // quaternion is used.
+        // 
+        // acos will return an angle between:
+        // 
+        // 0-90 degrees for positive inputs
+        // 90-180 degrees for negative inputs
+        // 
+        // To ensure acos returns the smallest angle (or shortest
+        // path around the hypersphere), if cos_alpha is negative,
+        // we make it positive. To account for this, we also have
+        // to negate one of the input quaternions to make the new
+        // angle accurate.
+        // 
+        // It doesn't matter which quaternion we invert as the
+        // result will still be the same.
+
+        xsign = static_cast<T>(-1);
+        cos_alpha = -cos_alpha;
+    }
+
+    if (cos_alpha >= static_cast<T>(1) - constants<T>::epsilon)
+    {
+        // If the angle between the quaternions is super small, we
+        // can estimate with linear interpolation. This also helps
+        // to avoid dividing by 0 later since acos(1) == sin(0) == 0.
+
+        return lerp(xsign * x, y, t);
+    }
+
+    const T alpha = acos(cos_alpha);
+    const T sin_alpha = sin(alpha);
+    const T inv_sin_alpha = static_cast<T>(1) / sin_alpha;
+
+    const T t1 = sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
+    const T t2 = sin(t * alpha) * inv_sin_alpha;
+
+    return (xsign * x * t1) + (y * t2);
+}
+
 } // namespace math
 } // namespace vx
