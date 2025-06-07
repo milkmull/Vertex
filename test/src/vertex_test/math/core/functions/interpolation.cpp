@@ -163,8 +163,6 @@ VX_TEST_CASE(test_lerp)
         constexpr vec4 max(10.0f, -2.0f, 9.0f, 5.0f);
         constexpr vec4 range = max - min;
 
-        constexpr auto z = min + (range * vec4(0.25f, 0.75f, 0.1f, 0.9f));
-
         VX_STATIC_CHECK_EQ(lerp(min, max, vec4(0.0f)), min);
         VX_STATIC_CHECK_EQ(lerp(min, max, vec4(1.0f)), max);
         VX_STATIC_CHECK_EQ(lerp(min, max, vec4(0.5f)), vec4(6.0f, -6.0f, 5.0f, 1.0f));
