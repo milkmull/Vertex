@@ -162,7 +162,6 @@ VX_TEST_CASE(test_mat3x3)
         VX_CHECK_EQ(m[2], vec3(7.0f, 8.0f, 9.0f));
     }
 
-
     VX_SECTION("comparison")
     {
         VX_STATIC_CHECK(m33 == m33);
@@ -190,8 +189,6 @@ VX_TEST_CASE(test_mat3x3)
         VX_CHECK(m-- == mat3x3(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f));
         VX_CHECK(m == mat3x3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f));
     }
-
-    constexpr auto z = m33 + mat3x3(5.0f);
 
     VX_SECTION("binary arithmetic operators")
     {
@@ -221,7 +218,6 @@ VX_TEST_CASE(test_mat3x3)
             VX_STATIC_CHECK((m33 * m23) == mat2x3(30.0f, 36.0f, 42.0f, 66.0f, 81.0f, 96.0f));
 
             // 3x3 * 3x3
-            constexpr mat3x3 m33(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
             VX_STATIC_CHECK((m33 * m33) == mat3x3(30.0f, 36.0f, 42.0f, 66.0f, 81.0f, 96.0f, 102.0f, 126.0f, 150.0f));
 
             // 3x3 * 4x3

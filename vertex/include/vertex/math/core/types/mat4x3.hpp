@@ -102,10 +102,10 @@ struct mat<4, 3, T>
 
     template <typename C1, typename C2, typename C3, typename C4>
     VX_FORCE_INLINE constexpr mat(
-        const vec<2, C1>& c1,
-        const vec<2, C2>& c2,
-        const vec<2, C3>& c3,
-        const vec<2, C4>& c4
+        const vec<3, C1>& c1,
+        const vec<3, C2>& c2,
+        const vec<3, C3>& c3,
+        const vec<3, C4>& c4
     ) noexcept
         : columns{ static_cast<col_type>(c1),
                    static_cast<col_type>(c2),

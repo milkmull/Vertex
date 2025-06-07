@@ -14,6 +14,10 @@ vx_add_test(test_math_mat2x3        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/typ
 vx_add_test(test_math_mat2x4        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat2x4.cpp")
 vx_add_test(test_math_mat3x2        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat3x2.cpp")
 vx_add_test(test_math_mat3x3        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat3x3.cpp")
+vx_add_test(test_math_mat3x4        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat3x4.cpp")
+vx_add_test(test_math_mat4x2        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat4x2.cpp")
+vx_add_test(test_math_mat4x3        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat4x3.cpp")
+vx_add_test(test_math_mat4x4        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/mat4x4.cpp")
 
 vx_add_test(test_math_comparison    "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/comparison.cpp")
 vx_add_test(test_math_common        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/common.cpp")
