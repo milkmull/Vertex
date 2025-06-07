@@ -60,5 +60,4 @@
 
 #define VX_ASSERT(condition) VX_ASSERT_MESSAGE(condition, "assertion failed")
 #define VX_ASSERT_RELEASE(condition) VX_ASSERT_RELEASE_MESSAGE(condition, "assertion failed")
-#define VX_STATIC_ASSERT(condition, msg) static_assert(condition, msg)
 
