@@ -260,7 +260,6 @@ VX_TEST_CASE(test_mat3x3)
             m *= 5.0f;
             VX_CHECK(m == mat3x3(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f, 45.0f));
 
-            constexpr mat3x3 m33(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f);
             m *= m33;
             VX_CHECK(m == mat3x3(150.0f, 180.0f, 210.0f, 330.0f, 405.0f, 480.0f, 510.0f, 630.0f, 750.0f));
         }
