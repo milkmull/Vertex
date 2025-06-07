@@ -192,10 +192,10 @@ VX_TEST_CASE(test_mat3x2)
 
         mat3x2 m = m32;
 
-        VX_CHECK(m++ == mat3x2(1.0f, 2.0f, 3.0f, 4.0f, 0.0f, 0.0f));
-        VX_CHECK(m == mat3x2(2.0f, 3.0f, 4.0f, 5.0f, 1.0f, 1.0f));
-        VX_CHECK(m-- == mat3x2(2.0f, 3.0f, 4.0f, 5.0f, 1.0f, 1.0f));
-        VX_CHECK(m == mat3x2(1.0f, 2.0f, 3.0f, 4.0f, 0.0f, 0.0f));
+        VX_CHECK(m++ == mat3x2(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f));
+        VX_CHECK(m == mat3x2(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f));
+        VX_CHECK(m-- == mat3x2(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f));
+        VX_CHECK(m == mat3x2(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f));
     }
 
     VX_SECTION("binary arithmetic operators")
@@ -250,12 +250,12 @@ VX_TEST_CASE(test_mat3x2)
             VX_CHECK(m == mat3x2(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f));
 
             m += m32;
-            VX_CHECK(m == mat3x2(7.0f, 9.0f, 10.0f, 12.0f, 13.0f, 15.0f));
+            VX_CHECK(m == mat3x2(7.0f, 9.0f, 11.0f, 13.0f, 15.0f, 17.0f));
         }
 
         // subtraction
         {
-            mat3x2 m(7.0f, 9.0f, 10.0f, 12.0f, 13.0f, 15.0f);
+            mat3x2 m(7.0f, 9.0f, 11.0f, 13.0f, 15.0f, 17.0f);
             m -= m32;
             VX_CHECK(m == mat3x2(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f));
 
