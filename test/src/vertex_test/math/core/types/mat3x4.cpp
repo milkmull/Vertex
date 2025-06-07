@@ -220,8 +220,6 @@ VX_TEST_CASE(test_mat3x4)
 
             // 3x4 * 2x3
             constexpr mat2x3 m23(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f);
-            constexpr auto z = operator*(m34, mat2x3(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f));
-
             VX_STATIC_CHECK((m34 * m23) == mat2x4(38.0f, 44.0f, 50.0f, 56.0f, 83.0f, 98.0f, 113.0f, 128.0f));
 
             // 3x4 * 3x3
