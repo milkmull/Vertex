@@ -1126,8 +1126,6 @@ VX_TEST_CASE(test_vec4d)
         check_each(vec4d(1u), 1.0, 1.0, 1.0, 1.0);
         check_each(vec4d(1.0f), 1.0, 1.0, 1.0, 1.0);
 
-        constexpr auto x = vec4d(5, vec3f(1e5f, 0.0f, -1.5));
-
         // mixed
         check_each(vec4d(true, 5, 1.5f, -3.75), 1.0, 5.0, 1.5, -3.75);
         check_each(vec4d(vec2f(1.5f, 2.5f), 3u, -4), 1.5, 2.5, 3.0, -4.0);
