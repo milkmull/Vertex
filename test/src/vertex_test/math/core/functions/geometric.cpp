@@ -212,8 +212,8 @@ VX_TEST_CASE(test_normalize)
 
         const vec2 zero{ 0.0f, 0.0f };
         const vec2 n_zero = normalize(zero);
-        VX_CHECK(is_zero_approx(zero));
-        VX_CHECK(!is_normalized(zero));
+        VX_CHECK(is_zero_approx(n_zero));
+        VX_CHECK(!is_normalized(n_zero));
     }
 
     VX_SECTION("vec3")
@@ -229,7 +229,7 @@ VX_TEST_CASE(test_normalize)
 
         const vec3 zero{ 0.0f, 0.0f, 0.0f };
         const vec3 n_zero = normalize(zero);
-        VX_CHECK(is_zero_approx(zero));
+        VX_CHECK(is_zero_approx(n_zero));
         VX_CHECK(!is_normalized(n_zero));
     }
 
@@ -246,7 +246,7 @@ VX_TEST_CASE(test_normalize)
 
         const vec4 zero{ 0.0f, 0.0f, 0.0f, 0.0f };
         const vec4 n_zero = normalize(zero);
-        VX_CHECK(is_zero_approx(zero));
+        VX_CHECK(is_zero_approx(n_zero));
         VX_CHECK(!is_normalized(n_zero));
     }
 }
