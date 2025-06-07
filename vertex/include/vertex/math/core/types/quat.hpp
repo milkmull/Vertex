@@ -48,16 +48,16 @@ struct quat_t
     // explicit constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr quat_t(scalar_type w, const vec<3, scalar_type>& v) noexcept
-        : w(w), x(v.x), y(v.y), z(v.z) {}
+    VX_FORCE_INLINE constexpr quat_t(scalar_type qw, const vec<3, scalar_type>& v) noexcept
+        : w(qw), x(v.x), y(v.y), z(v.z) {}
 
     VX_FORCE_INLINE constexpr quat_t(
-        scalar_type w,
-        scalar_type x,
-        scalar_type y,
-        scalar_type z
+        scalar_type qw,
+        scalar_type qx,
+        scalar_type qy,
+        scalar_type qz
     ) noexcept
-        : w(w), x(x), y(y), z(z) {}
+        : w(qw), x(qx), y(qy), z(qz) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // conversion constructors
