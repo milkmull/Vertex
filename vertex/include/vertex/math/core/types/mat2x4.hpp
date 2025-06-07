@@ -20,7 +20,7 @@ struct mat<2, 4, T>
     using type = mat<width, height, scalar_type>;
     using row_type = vec<width, scalar_type>;
     using col_type = vec<height, scalar_type>;
-    using transpose_type = mat<width, height, scalar_type>;
+    using transpose_type = mat<height, width, scalar_type>;
 
     static constexpr size_t size = width * height;
 
@@ -82,6 +82,11 @@ struct mat<2, 4, T>
     VX_FORCE_INLINE constexpr mat(const vec<height, C1>& c1, const vec<height, C2>& c2) noexcept
         : columns{ static_cast<col_type>(c1),
                    static_cast<col_type>(c2) } {}
+
+    template <size_t M, size_t N, typename U, VXM_REQ(M >= width && N >= height)>
+    VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m) noexcept
+        : columns{ static_cast<col_type>(m.columns[0]),
+                   static_cast<col_type>(m.columns[1]) } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
@@ -270,10 +275,9 @@ struct mat<2, 4, T>
         return type(scalar * m.columns[0], scalar * m.columns[1]);
     }
 
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const mat<2, 4, T>& m, const vec<2, T>& v) noexcept
+    friend VX_FORCE_INLINE constexpr vec<height, scalar_type> operator*(const type& m, const vec<width, scalar_type>& v) noexcept
     {
-        return vec<4, T>(
+        return vec<height, scalar_type>(
             (m.columns[0].x * v.x) + (m.columns[1].x * v.y),
             (m.columns[0].y * v.x) + (m.columns[1].y * v.y),
             (m.columns[0].z * v.x) + (m.columns[1].z * v.y),
@@ -281,16 +285,19 @@ struct mat<2, 4, T>
         );
     }
 
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr vec<4, T> operator*(const vec<2, T>& v, const mat<2, 4, T>& m) noexcept
+    friend VX_FORCE_INLINE constexpr vec<height, scalar_type> operator*(const vec<width, scalar_type>& v, const type& m) noexcept
     {
-        return multiply(m, v);
+        return vec<height, scalar_type>(
+            (v.x * m.columns[0].x) + (v.y * m.columns[1].x),
+            (v.x * m.columns[0].y) + (v.y * m.columns[1].y),
+            (v.x * m.columns[0].z) + (v.y * m.columns[1].z),
+            (v.x * m.columns[0].w) + (v.y * m.columns[1].w)
+        );
     }
 
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<2, 4, T> operator*(const mat<2, 4, T>& m1, const mat<2, 2, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr type operator*(const type& m1, const mat<2, width, scalar_type>& m2) noexcept
     {
-        return mat<2, 4, T>(
+        return type(
             (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
             (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
             (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
@@ -303,10 +310,9 @@ struct mat<2, 4, T>
         );
     }
 
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<3, 4, T> operator*(const mat<2, 4, T>& m1, const mat<3, 2, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<3, height, scalar_type> operator*(const type& m1, const mat<3, width, scalar_type>& m2) noexcept
     {
-        return mat<3, 4, T>(
+        return mat<3, height, scalar_type>(
             (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
             (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
             (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
@@ -324,10 +330,9 @@ struct mat<2, 4, T>
         );
     }
 
-    template <typename T>
-    friend VX_FORCE_INLINE constexpr mat<4, 4, T> operator*(const mat<2, 4, T>& m1, const mat<4, 2, T>& m2) noexcept
+    friend VX_FORCE_INLINE constexpr mat<4, height, scalar_type> operator*(const type& m1, const mat<4, width, scalar_type>& m2) noexcept
     {
-        return mat<4, 4, T>(
+        return mat<4, height, scalar_type>(
             (m1.columns[0].x * m2.columns[0].x) + (m1.columns[1].x * m2.columns[0].y),
             (m1.columns[0].y * m2.columns[0].x) + (m1.columns[1].y * m2.columns[0].y),
             (m1.columns[0].z * m2.columns[0].x) + (m1.columns[1].z * m2.columns[0].y),
@@ -348,6 +353,18 @@ struct mat<2, 4, T>
             (m1.columns[0].z * m2.columns[3].x) + (m1.columns[1].z * m2.columns[3].y),
             (m1.columns[0].w * m2.columns[3].x) + (m1.columns[1].w * m2.columns[3].y)
         );
+    }
+
+    // division (/)
+
+    friend VX_FORCE_INLINE constexpr type operator/(const type& m, scalar_type scalar) noexcept
+    {
+        return type(m.columns[0] / scalar, m.columns[1] / scalar);
+    }
+
+    friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& m) noexcept
+    {
+        return type(scalar / m.columns[0], scalar / m.columns[1]);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -400,6 +417,21 @@ struct mat<2, 4, T>
         (*this) = (*this) * m;
         return *this;
     }
+
+    // division (/=)
+
+    VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
+    {
+        columns[0] /= scalar;
+        columns[1] /= scalar;
+        return *this;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // constants
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<T>(0)); }
 };
 
 } // namespace math

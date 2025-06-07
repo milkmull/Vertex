@@ -125,6 +125,16 @@ using mat4x2f = mat<4, 2, f32>;
 using mat4x3f = mat<4, 3, f32>;
 using mat4x4f = mat<4, 4, f32>;
 
+using mat2x2 = mat2x2f;
+using mat2x3 = mat2x3f;
+using mat2x4 = mat2x4f;
+using mat3x2 = mat3x2f;
+using mat3x3 = mat3x3f;
+using mat3x4 = mat3x4f;
+using mat4x2 = mat4x2f;
+using mat4x3 = mat4x3f;
+using mat4x4 = mat4x4f;
+
 using mat2f = mat2x2f;
 using mat3f = mat3x3f;
 using mat4f = mat4x4f;

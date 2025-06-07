@@ -78,6 +78,42 @@ VX_FORCE_INLINE constexpr vec<L, T> mix(
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// lerp_clamped
+//////////////////////////////////////////////////////////////////////////////
+
+// scalar
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr T lerp_clamped(T x, T y, T t) noexcept
+{
+    return clamp(lerp(x, y, t), static_cast<T>(x), static_cast<T>(y));
+}
+
+// vec scalar
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> lerp_clamped(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
+    T t
+) noexcept
+{
+    return clamp(lerp(x, y, t), x, y);
+}
+
+// vec trinary
+
+template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<L, T> lerp_clamped(
+    const vec<L, T>& x,
+    const vec<L, T>& y,
+    const vec<L, T>& t
+) noexcept
+{
+    return clamp(lerp(x, y, t), x, y);
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // step
 //////////////////////////////////////////////////////////////////////////////
 
@@ -183,8 +219,7 @@ template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T smoothstep(T edge0, T edge1, T x) noexcept
 {
     const T v = (x - edge0) / (edge1 - edge0);
-    T t = v < static_cast<T>(0) ? static_cast<T>(0) : v;
-    t = v > static_cast<T>(1) ? static_cast<T>(1) : v;
+    const T t = clamp(v, static_cast<T>(0), static_cast<T>(1));
     return t * t * (static_cast<T>(3) - static_cast<T>(2) * t);
 }
 
@@ -231,7 +266,7 @@ VX_FORCE_INLINE constexpr vec<L, T> slerp(
 {
     const T cos_alpha = normalized_dot(x, y);
 
-    if (cos_alpha >= static_cast<T>(1) - constants<T>::epsilon)
+    if (cos_alpha > static_cast<T>(1) - constants<T>::epsilon)
     {
         // If the angle between the vectors is super small, we
         // can estimate with linear interpolation. This also helps
@@ -248,77 +283,6 @@ VX_FORCE_INLINE constexpr vec<L, T> slerp(
     const T t2 = sin(t * alpha) * inv_sin_alpha;
 
     return (x * t1) + (y * t2);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// move_toward
-///////////////////////////////////////////////////////////////////////////////
-
-// scalar
-
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<L, T> move_toward(T from, T to, T delta) noexcept
-{
-    const T d = to - from;
-    return (d <= delta) ? to : (from + delta);
-}
-
-// vec scalar
-
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<L, T> move_toward(
-    const vec<L, T>& from,
-    const vec<L, T>& to,
-    T delta
-) noexcept
-{
-    const vec<L, T> vd = to - from;
-    const T d = length(vd);
-    return (d <= delta) ? to : (from + (vd / d * delta));
-}
-
-// vec trinary
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> move_toward(
-    const vec<2, T>& from,
-    const vec<2, T>& to,
-    const vec<2, T>& delta
-) noexcept
-{
-    return vec<2, T>(
-        move_toward(from.x, to.x, delta.x),
-        move_toward(from.y, to.y, delta.y)
-    );
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> move_toward(
-    const vec<3, T>& from,
-    const vec<3, T>& to,
-    const vec<3, T>& delta
-) noexcept
-{
-    return vec<3, T>(
-        move_toward(from.x, to.x, delta.x),
-        move_toward(from.y, to.y, delta.y),
-        move_toward(from.z, to.z, delta.z)
-    );
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> move_toward(
-    const vec<4, T>& from,
-    const vec<4, T>& to,
-    const vec<4, T>& delta
-) noexcept
-{
-    return vec<4, T>(
-        move_toward(from.x, to.x, delta.x),
-        move_toward(from.y, to.y, delta.y),
-        move_toward(from.z, to.z, delta.z),
-        move_toward(from.w, to.w, delta.w)
-    );
 }
 
 } // namespace math
