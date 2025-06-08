@@ -64,11 +64,11 @@ struct quat_t
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename W, typename XYZ>
-    VX_FORCE_INLINE constexpr quat_t(W qw, const vec<3, XYZ>& v) noexcept
+    VX_FORCE_INLINE constexpr quat_t(W qw, const vec<3, XYZ>& qxyz) noexcept
         : w(static_cast<scalar_type>(qw))
-        , x(static_cast<scalar_type>(v.x))
-        , y(static_cast<scalar_type>(v.y))
-        , z(static_cast<scalar_type>(v.z)) {}
+        , x(static_cast<scalar_type>(qxyz.x))
+        , y(static_cast<scalar_type>(qxyz.y))
+        , z(static_cast<scalar_type>(qxyz.z)) {}
 
     template <typename W, typename X, typename Y, typename Z>
     VX_FORCE_INLINE constexpr quat_t(W qw, X qx, Y qy, Z qz) noexcept
