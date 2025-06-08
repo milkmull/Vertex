@@ -54,6 +54,11 @@ VX_TEST_CASE(test_quat)
                 constexpr quat q(1.0f, 2.0f, 3.0f, 4.0f);
                 VX_STATIC_CHECK_EQ(q, quat(1.0f, 2.0f, 3.0f, 4.0f));
             }
+
+            {
+                constexpr quat q(vec4(2.0f, 3.0f, 4.0f, 1.0f));
+                VX_STATIC_CHECK_EQ(q, quat(1.0f, 2.0f, 3.0f, 4.0f));
+            }
         }
 
         // conversion constructors

@@ -59,6 +59,9 @@ struct quat_t
     ) noexcept
         : w(qw), x(qx), y(qy), z(qz) {}
 
+    VX_FORCE_INLINE constexpr quat_t(const vec<4, scalar_type>& v) noexcept
+        : w(v.w), x(v.x), y(v.y), z(v.z) {}
+
     ///////////////////////////////////////////////////////////////////////////////
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
