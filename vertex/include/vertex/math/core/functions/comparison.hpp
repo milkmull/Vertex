@@ -564,10 +564,10 @@ VX_FORCE_INLINE constexpr bool is_zero_approx(
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return equal_approx(x.w, epsilon)
-        && equal_approx(x.x, epsilon)
-        && equal_approx(x.y, epsilon)
-        && equal_approx(x.z, epsilon);
+    return is_zero_approx(x.w, epsilon)
+        && is_zero_approx(x.x, epsilon)
+        && is_zero_approx(x.y, epsilon)
+        && is_zero_approx(x.z, epsilon);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -867,16 +867,16 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 // quaternion
 
 template <typename T>
-VX_FORCE_INLINE constexpr bool is_not_equal_approx(
+VX_FORCE_INLINE constexpr bool not_equal_approx(
     const quat_t<T>& a,
     const quat_t<T>& b,
     const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return is_not_equal_approx(a.w, b.w, epsilon)
-        || is_not_equal_approx(a.x, b.x, epsilon)
-        || is_not_equal_approx(a.y, b.y, epsilon)
-        || is_not_equal_approx(a.z, b.z, epsilon);
+    return not_equal_approx(a.w, b.w, epsilon)
+        || not_equal_approx(a.x, b.x, epsilon)
+        || not_equal_approx(a.y, b.y, epsilon)
+        || not_equal_approx(a.z, b.z, epsilon);
 }
 
 //////////////////////////////////////////////////////////////////////////////
