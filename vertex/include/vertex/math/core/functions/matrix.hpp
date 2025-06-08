@@ -103,6 +103,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 // determinant
 ///////////////////////////////////////////////////////////////////////////////
 
+// http://www.euclideanspace.com/maths/algebra/matrix/functions/determinant/twoD/index.htm
+
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T determinant(const mat<2, 2, T>& m) noexcept
 {
@@ -267,8 +269,8 @@ VX_FORCE_INLINE constexpr mat<2, N, T> matrix_comp_mult(
 ) noexcept
 {
     return mat<2, N, T>(
-        x.colums[0] * y.columns[0],
-        x.colums[1] * y.columns[1]
+        x.columns[0] * y.columns[0],
+        x.columns[1] * y.columns[1]
     );
 }
 
@@ -279,9 +281,9 @@ VX_FORCE_INLINE constexpr mat<3, N, T> matrix_comp_mult(
 ) noexcept
 {
     return mat<3, N, T>(
-        x.colums[0] * y.columns[0],
-        x.colums[1] * y.columns[1],
-        x.colums[2] * y.columns[2]
+        x.columns[0] * y.columns[0],
+        x.columns[1] * y.columns[1],
+        x.columns[2] * y.columns[2]
     );
 }
 
@@ -292,10 +294,10 @@ VX_FORCE_INLINE constexpr mat<4, N, T> matrix_comp_mult(
 ) noexcept
 {
     return mat<4, N, T>(
-        x.colums[0] * y.columns[0],
-        x.colums[1] * y.columns[1],
-        x.colums[2] * y.columns[2],
-        x.colums[3] * y.columns[3]
+        x.columns[0] * y.columns[0],
+        x.columns[1] * y.columns[1],
+        x.columns[2] * y.columns[2],
+        x.columns[3] * y.columns[3]
     );
 }
 

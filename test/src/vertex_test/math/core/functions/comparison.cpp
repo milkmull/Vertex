@@ -348,6 +348,78 @@ VX_TEST_CASE(test_is_inf)
         VX_STATIC_CHECK(!is_inf(vi3));
         VX_STATIC_CHECK(!is_inf(vu4));
     }
+
+    VX_SECTION("mat2x2")
+    {
+        VX_STATIC_CHECK(!is_inf(mat2x2()));
+        VX_STATIC_CHECK(is_inf(mat2x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat2x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat2x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat2x3")
+    {
+        VX_STATIC_CHECK(!is_inf(mat2x3()));
+        VX_STATIC_CHECK(is_inf(mat2x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat2x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat2x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat2x4")
+    {
+        VX_STATIC_CHECK(!is_inf(mat2x4()));
+        VX_STATIC_CHECK(is_inf(mat2x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat2x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat2x4(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x2")
+    {
+        VX_STATIC_CHECK(!is_inf(mat3x2()));
+        VX_STATIC_CHECK(is_inf(mat3x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat3x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat3x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x3")
+    {
+        VX_STATIC_CHECK(!is_inf(mat3x3()));
+        VX_STATIC_CHECK(is_inf(mat3x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat3x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat3x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x4")
+    {
+        VX_STATIC_CHECK(!is_inf(mat3x4()));
+        VX_STATIC_CHECK(is_inf(mat3x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat3x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat3x4(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x2")
+    {
+        VX_STATIC_CHECK(!is_inf(mat4x2()));
+        VX_STATIC_CHECK(is_inf(mat4x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat4x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat4x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x3")
+    {
+        VX_STATIC_CHECK(!is_inf(mat4x3()));
+        VX_STATIC_CHECK(is_inf(mat4x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat4x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat4x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x4")
+    {
+        VX_STATIC_CHECK(!is_inf(mat4x4()));
+        VX_STATIC_CHECK(is_inf(mat4x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_inf(mat4x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_inf(mat4x4(-constants<f32>::nan)));
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -456,6 +528,78 @@ VX_TEST_CASE(test_is_nan)
         VX_STATIC_CHECK(!is_nan(vi));
         VX_STATIC_CHECK(!is_nan(vi3));
         VX_STATIC_CHECK(!is_nan(vu4));
+    }
+
+    VX_SECTION("mat2x2")
+    {
+        VX_STATIC_CHECK(!is_nan(mat2x2()));
+        VX_STATIC_CHECK(!is_nan(mat2x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat2x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat2x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat2x3")
+    {
+        VX_STATIC_CHECK(!is_nan(mat2x3()));
+        VX_STATIC_CHECK(!is_nan(mat2x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat2x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat2x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat2x4")
+    {
+        VX_STATIC_CHECK(!is_nan(mat2x4()));
+        VX_STATIC_CHECK(!is_nan(mat2x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat2x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat2x4(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x2")
+    {
+        VX_STATIC_CHECK(!is_nan(mat3x2()));
+        VX_STATIC_CHECK(!is_nan(mat3x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat3x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat3x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x3")
+    {
+        VX_STATIC_CHECK(!is_nan(mat3x3()));
+        VX_STATIC_CHECK(!is_nan(mat3x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat3x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat3x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat3x4")
+    {
+        VX_STATIC_CHECK(!is_nan(mat3x4()));
+        VX_STATIC_CHECK(!is_nan(mat3x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat3x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat3x4(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x2")
+    {
+        VX_STATIC_CHECK(!is_nan(mat4x2()));
+        VX_STATIC_CHECK(!is_nan(mat4x2(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat4x2(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat4x2(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x3")
+    {
+        VX_STATIC_CHECK(!is_nan(mat4x3()));
+        VX_STATIC_CHECK(!is_nan(mat4x3(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat4x3(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat4x3(-constants<f32>::nan)));
+    }
+
+    VX_SECTION("mat4x4")
+    {
+        VX_STATIC_CHECK(!is_nan(mat4x4()));
+        VX_STATIC_CHECK(!is_nan(mat4x4(constants<f32>::infinity)));
+        VX_STATIC_CHECK(!is_nan(mat4x4(-constants<f32>::infinity)));
+        VX_STATIC_CHECK(is_nan(mat4x4(-constants<f32>::nan)));
     }
 }
 
@@ -569,6 +713,69 @@ VX_TEST_CASE(test_is_zero_approx)
         constexpr vec3f a{ 1e-6f, 0.0f, 0.0f };
         VX_STATIC_CHECK(!is_zero_approx(a, tight));
         VX_STATIC_CHECK(is_zero_approx(a, loose));
+    }
+
+    VX_SECTION("mat2x2")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat2x2::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat2x2(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat2x2(0.0000009f)));
+    }
+
+    VX_SECTION("mat2x3")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat2x3::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat2x3(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat2x3(0.0000009f)));
+    }
+
+    VX_SECTION("mat2x4")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat2x4::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat2x4(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat2x4(0.0000009f)));
+    }
+
+    VX_SECTION("mat3x2")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat3x2::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat3x2(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat3x2(0.0000009f)));
+    }
+
+    VX_SECTION("mat3x3")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat3x3::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat3x3(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat3x3(0.0000009f)));
+    }
+
+    VX_SECTION("mat3x4")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat3x4::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat3x4(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat3x4(0.0000009f)));
+    }
+
+    VX_SECTION("mat4x2")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat4x2::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat4x2(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat4x2(0.0000009f)));
+    }
+
+    VX_SECTION("mat4x3")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat4x3::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat4x3(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat4x3(0.0000009f)));
+    }
+
+    VX_SECTION("mat4x4")
+    {
+        VX_STATIC_CHECK(is_zero_approx(mat4x4::zero()));
+        VX_STATIC_CHECK(!is_zero_approx(mat4x4(1.0f)));
+        VX_STATIC_CHECK(is_zero_approx(mat4x4(0.0000009f)));
     }
 }
 
@@ -763,6 +970,82 @@ VX_TEST_CASE(test_each_equal_approx)
         VX_STATIC_CHECK(each_equal_approx(a, b, eps_strict) == vec2b(false, false));
         VX_STATIC_CHECK(each_equal_approx(a, b) == vec2b(true, true));
         VX_STATIC_CHECK(each_equal_approx(a, b, eps_loose) == vec2b(true, true));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_not_equal_approx)
+{
+    VX_SECTION("scalar")
+    {
+        // float
+        VX_STATIC_CHECK(!not_equal_approx(1.0f, 1.0f));
+        VX_STATIC_CHECK(!not_equal_approx(1.0f, 1.0000009f));
+        VX_STATIC_CHECK(not_equal_approx(1.0f, 1.00001f));
+        VX_STATIC_CHECK(!not_equal_approx(0.0f, constants<f32>::epsilon));
+
+        // int
+        VX_STATIC_CHECK(!not_equal_approx(3, 3));
+        VX_STATIC_CHECK(not_equal_approx(3, 4));
+    }
+
+    VX_SECTION("vec2")
+    {
+        constexpr vec2f a{ 1.0f, 2.0f };
+        constexpr vec2f b{ 1.0f, 2.0f };
+        constexpr vec2f c{ 1.0f, 2.0000001f };
+        constexpr vec2f d{ 1.0f, 3.0f };
+        constexpr vec2f e{ 1.0000001f, 2.0000001f };
+
+        VX_STATIC_CHECK(!not_equal_approx(a, b));
+        VX_STATIC_CHECK(!not_equal_approx(a, c));
+        VX_STATIC_CHECK(not_equal_approx(a, d));
+        VX_STATIC_CHECK(!not_equal_approx(a, e));
+    }
+
+    VX_SECTION("vec3")
+    {
+        constexpr vec3f a{ -1.0f, 0.0f, 1.0f };
+        constexpr vec3f b{ -1.0f, 0.0f, 1.0f };
+        constexpr vec3f c{ -1.0000001f, 0.0f, 1.0000001f };
+        constexpr vec3f d{ -1.0f, 0.0f, 2.0f };
+
+        VX_STATIC_CHECK(!not_equal_approx(a, b));
+        VX_STATIC_CHECK(!not_equal_approx(a, c));
+        VX_STATIC_CHECK(not_equal_approx(a, d));
+    }
+
+    VX_SECTION("vec4")
+    {
+        constexpr vec4f a{ 5.0f, 6.0f, 7.0f, 8.0f };
+        constexpr vec4f b{ 5.0f, 6.0f, 7.0f, 8.0f };
+        constexpr vec4f c{ 5.0000001f, 6.0f, 7.0000001f, 8.0f };
+        constexpr vec4f d{ 5.0f, 6.0f, 7.0f, 9.0f };
+
+        VX_STATIC_CHECK(!not_equal_approx(a, b));
+        VX_STATIC_CHECK(!not_equal_approx(a, c));
+        VX_STATIC_CHECK(not_equal_approx(a, d));
+    }
+
+    VX_SECTION("custom epsilon")
+    {
+        constexpr float tight = 1e-8f;
+        constexpr float loose = 1e-3f;
+
+        // vec3 with small difference
+        constexpr vec3f a{ 1.0f, 2.0f, 3.0f };
+        constexpr vec3f b{ 1.00001f, 2.00001f, 3.00001f };
+
+        VX_STATIC_CHECK(not_equal_approx(a, b, tight));
+        VX_STATIC_CHECK(!not_equal_approx(a, b, loose));
+
+        // Scalar double with tight epsilon
+        constexpr double x = 5.0;
+        constexpr double y = 5.0000000001;
+
+        VX_STATIC_CHECK(not_equal_approx(x, y, 1e-12));
+        VX_STATIC_CHECK(!not_equal_approx(x, y, 1e-9));
     }
 }
 

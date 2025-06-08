@@ -25,3 +25,4 @@ vx_add_test(test_math_exponential   "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/fun
 vx_add_test(test_math_trigonometric "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/trigonometric.cpp")
 vx_add_test(test_math_geometric     "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/geometric.cpp")
 vx_add_test(test_math_interpolation "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/interpolation.cpp")
+vx_add_test(test_math_matrix        "math" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/matrix.cpp")

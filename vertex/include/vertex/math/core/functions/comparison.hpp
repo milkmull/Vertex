@@ -798,7 +798,7 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(x.x, y.x, epsilon)
-        && not_equal_approx(x.y, y.y, epsilon);
+        || not_equal_approx(x.y, y.y, epsilon);
 }
 
 template <typename T>
@@ -809,8 +809,8 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(x.x, y.x, epsilon)
-        && not_equal_approx(x.y, y.y, epsilon)
-        && not_equal_approx(x.z, y.z, epsilon);
+        || not_equal_approx(x.y, y.y, epsilon)
+        || not_equal_approx(x.z, y.z, epsilon);
 }
 
 template <typename T>
@@ -821,9 +821,9 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(x.x, y.x, epsilon)
-        && not_equal_approx(x.y, y.y, epsilon)
-        && not_equal_approx(x.z, y.z, epsilon)
-        && not_equal_approx(x.w, y.w, epsilon);
+        || not_equal_approx(x.y, y.y, epsilon)
+        || not_equal_approx(x.z, y.z, epsilon)
+        || not_equal_approx(x.w, y.w, epsilon);
 }
 
 // mat
@@ -836,7 +836,7 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(a.columns[0], b.columns[0], epsilon)
-        && not_equal_approx(a.columns[1], b.columns[1], epsilon);
+        || not_equal_approx(a.columns[1], b.columns[1], epsilon);
 }
 
 template <size_t N, typename T>
@@ -847,8 +847,8 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(a.columns[0], b.columns[0], epsilon)
-        && not_equal_approx(a.columns[1], b.columns[1], epsilon)
-        && not_equal_approx(a.columns[2], b.columns[2], epsilon);
+        || not_equal_approx(a.columns[1], b.columns[1], epsilon)
+        || not_equal_approx(a.columns[2], b.columns[2], epsilon);
 }
 
 template <size_t N, typename T>
@@ -859,9 +859,9 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 ) noexcept
 {
     return not_equal_approx(a.columns[0], b.columns[0], epsilon)
-        && not_equal_approx(a.columns[1], b.columns[1], epsilon)
-        && not_equal_approx(a.columns[2], b.columns[2], epsilon)
-        && not_equal_approx(a.columns[3], b.columns[3], epsilon);
+        || not_equal_approx(a.columns[1], b.columns[1], epsilon)
+        || not_equal_approx(a.columns[2], b.columns[2], epsilon)
+        || not_equal_approx(a.columns[3], b.columns[3], epsilon);
 }
 
 // quaternion
@@ -874,9 +874,9 @@ VX_FORCE_INLINE constexpr bool is_not_equal_approx(
 ) noexcept
 {
     return is_not_equal_approx(a.w, b.w, epsilon)
-        && is_not_equal_approx(a.x, b.x, epsilon)
-        && is_not_equal_approx(a.y, b.y, epsilon)
-        && is_not_equal_approx(a.z, b.z, epsilon);
+        || is_not_equal_approx(a.x, b.x, epsilon)
+        || is_not_equal_approx(a.y, b.y, epsilon)
+        || is_not_equal_approx(a.z, b.z, epsilon);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1175,6 +1175,30 @@ VX_FORCE_INLINE constexpr vec4b each_less_or_equal_approx(
         less_or_equal_approx(x.z, y.z, epsilon),
         less_or_equal_approx(x.w, y.w, epsilon)
     );
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// is_identity_approx
+//////////////////////////////////////////////////////////////////////////////
+
+template <size_t M, size_t N, typename T, VXM_REQ(M == N)>
+VX_FORCE_INLINE constexpr bool is_identity_approx(
+    const mat<M, N, T>& x,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x, mat<M, N, T>::identity(), epsilon);
+}
+
+// quaternion
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool is_identity_approx(
+    const quat_t<T>& x,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x, quat_t<T>::identity(), epsilon);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
