@@ -124,7 +124,7 @@ VX_TEST_CASE(test_quat)
     VX_SECTION("conversion")
     {
         constexpr quat q(1.0f, 2.0f, 3.0f, 4.0f);
-        constexpr vec4i v = q.operator vx::math::vec<4Ui64, i32>();
+        constexpr vec4i v = q.operator vx::math::vec4i();
         VX_STATIC_CHECK_EQ(v, vec4i(2, 3, 4, 1));
     }
 
