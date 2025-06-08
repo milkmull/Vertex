@@ -114,7 +114,7 @@ VX_FORCE_INLINE constexpr quat_t<T> conjugate(const quat_t<T>& q) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> inverse(const quat_t<T>& q) noexcept
 {
-    return conjugate(q) / magnitude_squared(q);
+    return conjugate(q) / length_squared(q);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -127,9 +127,9 @@ VX_FORCE_INLINE constexpr quat_t<T> inverse(const quat_t<T>& q) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> axis(const quat_t<T>& q) noexcept
 {
-    const T nw = normalize(q).w;
-    const T s2 = static_cast<T>(1) - (nw * nw);
+    // (assume q is normalized)
 
+    const T s2 = static_cast<T>(1) - (q.w * q.w);
     if (s2 <= constants<T>::epsilon)
     {
         // This indicates that the angle is 0 degrees and thus,
@@ -152,7 +152,8 @@ VX_FORCE_INLINE constexpr vec<3, T> axis(const quat_t<T>& q) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr T angle(const quat_t<T>& q) noexcept
 {
-    return static_cast<T>(2) * acos_clamped(normalize(q).w);
+    // (assume q is normalized)
+    return static_cast<T>(2) * acos_clamped(q.w);
 }
 
 template <typename T>
@@ -161,10 +162,11 @@ VX_FORCE_INLINE constexpr T angle(
     const quat_t<T>& to
 ) noexcept
 {
+    // (assume from and to are normalized)
     // We use the half angle identity:
     // cos(t / 2) = sqrt[(1 + cos(t)) / 2]
     // cos(t) = cos2(t / 2) * 2 - 1
-    const T d = normalized_dot(from, to);
+    const T d = dot(from, to);
     return acos_clamped(d * d * static_cast<T>(2) - static_cast<T>(1));
 }
 
@@ -178,6 +180,7 @@ VX_FORCE_INLINE constexpr T signed_angle(
     const quat_t<T>& to
 ) noexcept
 {
+    // (assume from and to are normalized)
     const T a = angle(from, to);
     const T c = (from.w * to.w) - (from.x * to.x) - (from.y * to.y) - (from.z * to.z);
     return (c < static_cast<T>(0)) ? -a : a;
@@ -190,12 +193,12 @@ VX_FORCE_INLINE constexpr T signed_angle(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> axis_angle(const vec<3, T>& axis, T angle) noexcept
 {
-    const vec<3, T> naxis = normalize(axis);
+    // (assume axis is normalized)
 
     const T sina2 = sin(angle * static_cast<T>(0.5));
     const T cosa2 = cos(angle * static_cast<T>(0.5));
 
-    return quat_t<T>(cosa2, naxis * sina2);
+    return quat_t<T>(cosa2, axis * sina2);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -210,6 +213,8 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const quat_t<T>& rotation
 ) noexcept
 {
+    // (assume rotation is normalized)
+
     const vec<3, T> qv = rotation.vector();
     const vec<3, T> uv = cross(qv, v);
     const vec<3, T> uuv = cross(qv, uv);
@@ -305,7 +310,7 @@ inline constexpr quat_t<T> slerp(
     T t
 )
 {
-    T cos_alpha = normalized_dot(x, y);
+    T cos_alpha = dot(x, y);
     T xsign = static_cast<T>(1);
 
     if (cos_alpha < static_cast<T>(0))

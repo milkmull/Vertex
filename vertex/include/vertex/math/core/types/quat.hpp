@@ -231,6 +231,13 @@ struct quat_t
         );
     }
 
+    // division (/)
+
+    friend VX_FORCE_INLINE constexpr type operator/(const type& q, scalar_type scalar) noexcept
+    {
+        return type(q.w / scalar, q.x / scalar, q.y / scalar, q.z / scalar);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // unary arithmetic operators
     ///////////////////////////////////////////////////////////////////////////////
@@ -271,6 +278,17 @@ struct quat_t
     VX_FORCE_INLINE constexpr type& operator*=(const type& q) noexcept
     {
         (*this) = (*this) * q;
+        return *this;
+    }
+
+    // division (/=)
+
+    VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
+    {
+        w /= scalar;
+        x /= scalar;
+        y /= scalar;
+        z /= scalar;
         return *this;
     }
 

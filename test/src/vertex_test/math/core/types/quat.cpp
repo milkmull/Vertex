@@ -170,6 +170,11 @@ VX_TEST_CASE(test_quat)
 
             VX_STATIC_CHECK_EQ(a * b, expected);
         }
+
+        // division
+        {
+            VX_STATIC_CHECK_EQ(quat(5.0f, 10.0f, 15.0f, 20.0f) / 5.0f, q);
+        }
     }
 
     VX_SECTION("unary arithmetic operators")
@@ -204,6 +209,13 @@ VX_TEST_CASE(test_quat)
             VX_CHECK(equal_approx(q1, a));
             q1 *= b;
             VX_CHECK_EQ(q1, expected);
+        }
+
+        // division
+        {
+            quat q1(5.0f, 10.0f, 15.0f, 20.0f);
+            q1 /= 5.0f;
+            VX_CHECK_EQ(q1, q);
         }
     }
 
