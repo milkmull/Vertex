@@ -233,6 +233,7 @@ VX_TEST_CASE(test_inverse)
         );
 
         VX_STATIC_CHECK_EQ(inverse(m), mi);
+        VX_STATIC_CHECK(is_identity_approx(inverse(m) * m));
     }
 
     VX_SECTION("mat3x3")
@@ -252,6 +253,7 @@ VX_TEST_CASE(test_inverse)
         );
 
         VX_STATIC_CHECK_EQ(inverse(m), mi);
+        VX_STATIC_CHECK(is_identity_approx(inverse(m) * m));
     }
 
     VX_SECTION("mat4x4")
@@ -272,7 +274,10 @@ VX_TEST_CASE(test_inverse)
             -1.0000000f,  0.0000000f,  3.0000000f,  2.0000000f
         );
 
+        constexpr auto z = inverse(m) * m;
+
         VX_STATIC_CHECK_EQ(inverse(m), mi);
+        VX_STATIC_CHECK(is_identity_approx(inverse(m) * m, 1e-5f));
     }
 }
 

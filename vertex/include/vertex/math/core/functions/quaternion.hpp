@@ -58,7 +58,7 @@ template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> normalize(const quat_t<T>& q) noexcept
 {
     const T magsq = length_squared(q);
-    return (magsq <= constants<T>::epsilon) ? quat_t<T>(0, 0, 0, 0) : (q * inverse_sqrt(magsq));
+    return (magsq <= constants<T>::epsilon) ? quat_t<T>::identity() : (q * inverse_sqrt(magsq));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -171,22 +171,6 @@ VX_FORCE_INLINE constexpr T angle(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// signed_angle
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-VX_FORCE_INLINE constexpr T signed_angle(
-    const quat_t<T>& from,
-    const quat_t<T>& to
-) noexcept
-{
-    // (assume from and to are normalized)
-    const T a = angle(from, to);
-    const T c = (from.w * to.w) - (from.x * to.x) - (from.y * to.y) - (from.z * to.z);
-    return (c < static_cast<T>(0)) ? -a : a;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // axis_angle
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -207,7 +191,7 @@ VX_FORCE_INLINE constexpr quat_t<T> axis_angle(const vec<3, T>& axis, T angle) n
 
 // https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const quat_t<T>& rotation
@@ -230,32 +214,45 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
 // https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr quat_t<T> rotate_between(const vec<3, T>& from, const vec<3, T>& to) noexcept
+VX_FORCE_INLINE constexpr quat_t<T> rotate_between(
+    const vec<3, T>& from,
+    const vec<3, T>& to
+) noexcept
 {
-    const vec<3, T> fn = normalize(from);
-    const vec<3, T> tn = normalize(to);
+    // (assume from and to are normalized)
 
-    const T cosa = dot(fn, tn);
+    const T cosa = dot(from, to);
 
     if (cosa > static_cast<T>(1) - constants<T>::epsilon)
     {
         // In this case, both vectors are pointing in the
         // same direction. We can return the identity
         // quaternion (no rotation).
-        return quat_t<T>(1, 0, 0, 0);
+        return quat_t<T>::identity();
     }
-
-    const vec<3, T> axis = normalize(cross(fn, tn));
 
     if (cosa < static_cast<T>(-1) + constants<T>::epsilon)
     {
-        // In this case, the vectors are pointing in opposite
-        // directions. There is no ideal axis to rotate around,
-        // so we choose one. In this case we just use the cross
-        // product of the 2 input vectors and a rotation angle
-        // of pi.
-        return axis_angle(axis, constants<T>::pi);
+        // The vectors are pointing in exactly opposite directions.
+        // In this case, there are infinitely many valid rotation axes — any axis orthogonal to the vector is valid.
+        // To choose a stable one, we attempt to generate an orthogonal axis by crossing with a reference vector.
+        // We try the Z axis first; if it's parallel to 'from', we fall back to the X axis.
+        // The resulting axis is guaranteed to be orthogonal and used to construct a 180-degree rotation.
+
+        constexpr vec<3, T> z(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1));
+        constexpr vec<3, T> x(static_cast<T>(1), static_cast<T>(0), static_cast<T>(0));
+
+        vec<3, T> axis = cross(z, from);
+        if (length_squared(axis) < constants<T>::epsilon)
+        {
+            // bad luck, they were parallel, try again!
+            axis = cross(x, from);
+        }
+
+        return axis_angle(normalize(axis), constants<T>::pi);
     }
+
+    const vec<3, T> axis = cross(from, to);
 
     const T s = sqrt((static_cast<T>(1) + cosa) * static_cast<T>(2));
     const T invs = static_cast<T>(1) / s;
@@ -269,27 +266,17 @@ VX_FORCE_INLINE constexpr quat_t<T> rotate_between(const vec<3, T>& from, const 
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// lerp
+// equivalent_rotation
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-VX_FORCE_INLINE constexpr quat_t<T> lerp(
-    const quat_t<T>& x,
-    const quat_t<T>& y,
-    T t
+VX_FORCE_INLINE constexpr bool equivalent_rotation(
+    const quat_t<T>& a,
+    const quat_t<T>& b,
+    const T epsilon = constants<T>::epsilon
 ) noexcept
 {
-    return x * (static_cast<T>(1) - t) + y * t;
-}
-
-template <typename T>
-VX_FORCE_INLINE constexpr quat_t<T> mix(
-    const quat_t<T>& x,
-    const quat_t<T>& y,
-    T t
-) noexcept
-{
-    return lerp(x, y, t);
+    return abs(dot(a, b)) > static_cast<T>(1) - epsilon;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -304,16 +291,16 @@ VX_FORCE_INLINE constexpr quat_t<T> mix(
 // qm = { qx * sin((1 - t) * theta) + qy * sin(t * theta) } / sin(theta)
 
 template <typename T>
-inline constexpr quat_t<T> slerp(
+VX_FORCE_INLINE constexpr quat_t<T> slerp(
     const quat_t<T>& x,
     const quat_t<T>& y,
     T t
 )
 {
-    T cos_alpha = dot(x, y);
+    T cos_half_theta = dot(x, y);
     T xsign = static_cast<T>(1);
 
-    if (cos_alpha < static_cast<T>(0))
+    if (cos_half_theta < static_cast<T>(0))
     {
         // Since q(w,x,y,z) and q(-w,-x,-y,-z) represent the same
         // rotation we should make sure the result is not sensitive 
@@ -326,7 +313,7 @@ inline constexpr quat_t<T> slerp(
         // 90-180 degrees for negative inputs
         // 
         // To ensure acos returns the smallest angle (or shortest
-        // path around the hypersphere), if cos_alpha is negative,
+        // path around the hypersphere), if cos_half_theta is negative,
         // we make it positive. To account for this, we also have
         // to negate one of the input quaternions to make the new
         // angle accurate.
@@ -335,26 +322,49 @@ inline constexpr quat_t<T> slerp(
         // result will still be the same.
 
         xsign = static_cast<T>(-1);
-        cos_alpha = -cos_alpha;
+        cos_half_theta = -cos_half_theta;
     }
 
-    if (cos_alpha >= static_cast<T>(1) - constants<T>::epsilon)
+    // cos_half_theta is guaranteed to be positive here
+
+    if (cos_half_theta >= static_cast<T>(1) - constants<T>::epsilon)
     {
         // If the angle between the quaternions is super small, we
         // can estimate with linear interpolation. This also helps
         // to avoid dividing by 0 later since acos(1) == sin(0) == 0.
 
-        return lerp(xsign * x, y, t);
+        const quat_t<T> qt = (xsign * x) * (static_cast<T>(1) - t) + y * t;
+        return normalize(qt);
     }
 
-    const T alpha = acos(cos_alpha);
-    const T sin_alpha = sin(alpha);
-    const T inv_sin_alpha = static_cast<T>(1) / sin_alpha;
+    if (cos_half_theta <= constants<T>::epsilon)
+    {
+        // If theta is 180 degrees (cos_half_theta is about 0) we can
+        // rotate about any axis normal to either quaternion.
+        // In this edge case, slerp becomes numerically unstable due to
+        // division by sin(theta), where theta ~= pi and sin(pi) ~= 0.
+        // Although a true spherical interpolation is ambiguous
+        // (infinitely many shortest arcs), linear interpolation
+        // followed by normalization provides a valid and practical
+        // midpoint rotation.
 
-    const T t1 = sin((static_cast<T>(1) - t) * alpha) * inv_sin_alpha;
-    const T t2 = sin(t * alpha) * inv_sin_alpha;
+        // In both cases—when the quaternions are nearly identical or
+        // exactly opposite—lerp followed by normalize offers a stable,
+        // simple, and sufficiently accurate approximation of slerp.
 
-    return (xsign * x * t1) + (y * t2);
+        const quat_t<T> qt = (x + y) * 0.5f;
+        return normalize(qt);
+    }
+
+    const T half_theta = acos(cos_half_theta);
+    const T sin_half_theta = sqrt(static_cast<T>(1) - cos_half_theta * cos_half_theta);
+    const T inv_sin_half_theta = static_cast<T>(1) / sin_half_theta;
+
+    const T t1 = sin((static_cast<T>(1) - t) * half_theta);
+    const T t2 = sin(t * half_theta);
+
+    const quat_t<T> qt = ((xsign * x * t1) + (y * t2)) * inv_sin_half_theta;
+    return normalize(qt);
 }
 
 } // namespace math
