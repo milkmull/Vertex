@@ -36,9 +36,18 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
         }
         if (q.w < static_cast<T>(0))
         {
+            // result could be imaginary if raised to non integer power
+
+            const T qmag = pow(-q.w, x);
+            const T angle = constants<T>::pi;
+            const T xangle = x * angle;
+
+            const T r = qmag * cos(xangle);
+            const T i = qmag * sin(xangle);
+
             return quat_t<T>(
-                pow(-q.w, x) * cos(x * constants<T>::pi),
-                static_cast<T>(0),
+                r,
+                i,
                 static_cast<T>(0),
                 static_cast<T>(0)
             );
@@ -68,7 +77,7 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
     const T invvmag = static_cast<T>(1) / vmag;
     const T invqmag = static_cast<T>(1) / qmag;
 
-    const T angle = acos_safe(q.w * invqmag);
+    const T angle = acos_clamped(q.w * invqmag);
     const T xangle = x * angle;
     const T qmagx = pow(qmag, x);
 
@@ -119,35 +128,11 @@ VX_FORCE_INLINE constexpr quat_t<T> exp(const quat_t<T>& q) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
 {
-    const vec<3, T> v = q.vector();
-    const T vmag = length(v);
+    const T qmag = length(q);
 
-    if (vmag <= constants<T>::epsilon)
+    if (qmag <= constants<T>::epsilon)
     {
-        if (q.w > static_cast<T>(0))
-        {
-            // if q only has a positive real part, take the log like a real number
-            return quat_t<T>(
-                log(q.w),
-                static_cast<T>(0),
-                static_cast<T>(0),
-                static_cast<T>(0)
-            );
-        }
-        if (q.w < static_cast<T>(0))
-        {
-            // taking the log of a negative number is defined as:
-            // ln(-a) = ln|a| + pi
-            // where ln|a| is the real part and pi is the imaginary part
-            return quat_t<T>(
-                log(-q.w),
-                constants<T>::pi,
-                static_cast<T>(0),
-                static_cast<T>(0)
-            );
-        }
-
-        // log(0) is undefined
+        // log(0) is undefined, follow standard
         return quat_t<T>(
             -constants<T>::infinity,
             -constants<T>::infinity,
@@ -156,12 +141,36 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
         );
     }
 
-    const T qmag = length(q);
+    const vec<3, T> v = q.vector();
+    const T vmag = length(v);
+
+    if (vmag <= constants<T>::epsilon)
+    {
+        if (q.w > 0)
+        {
+            return quat_t<T>(
+                log(q.w),
+                static_cast<T>(0),
+                static_cast<T>(0),
+                static_cast<T>(0)
+            );
+        }
+        else
+        {
+            return quat_t<T>(
+                log(-q.w),
+                constants<T>::pi,
+                static_cast<T>(0),
+                static_cast<T>(0)
+            );
+        }
+    }
+
     const T invvmag = static_cast<T>(1) / vmag;
     const T invqmag = static_cast<T>(1) / qmag;
 
     const T r = log(qmag);
-    const vec<3, T> i = v * invvmag * acos_safe(q.w * invqmag);
+    const vec<3, T> i = v * invvmag * acos_clamped(q.w * invqmag);
 
     return quat_t<T>(r, i);
 }

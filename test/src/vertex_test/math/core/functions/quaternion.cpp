@@ -1,6 +1,8 @@
 #include "vertex_test/test.hpp"
 
 #include "vertex/math/core/functions/quaternion.hpp"
+#include "vertex/math/core/functions/quaternion_exponential.hpp"
+#include "vertex/math/core/functions/quaternion_convert.hpp"
 #include "vertex/math/core/functions/comparison.hpp"
 
 using namespace vx::math;
@@ -392,6 +394,207 @@ VX_TEST_CASE(test_slerp)
         // Should still be near 0.5 * 1e-6 radians around Y
         const quat expected = axis_angle(axis, radians(5e-7f));
         VX_CHECK_EQ(result, expected);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_pow_sqrt)
+{
+    // Identity ^ x = identity
+    {
+        const quat q = quat::identity();
+        for (const f32 x : { 0.0f, 0.5f, 1.0f, 2.0f })
+        {
+            const quat result = pow(q, x);
+            VX_CHECK(is_identity_approx(result));
+        }
+    }
+
+    // q ^ 1 = q
+    {
+        const quat q = normalize(quat(1.0f, 2.0f, 3.0f, 4.0f));
+        const quat result = pow(q, 1.0f);
+        VX_CHECK_EQ(result, q);
+    }
+
+    // q ^ 0 = identity
+    {
+        const quat q = normalize(quat(1.0f, 2.0f, 3.0f, 4.0f));
+        const quat result = pow(q, 0.0f);
+        VX_CHECK(is_identity_approx(result));
+    }
+
+    // q = (0, 0, 0, 0) special cases
+    {
+        const quat q(0.0f, 0.0f, 0.0f, 0.0f);
+
+        const quat result1 = pow(q, 2.0f);
+        VX_CHECK_EQ(result1, quat(0.0f, 0.0f, 0.0f, 0.0f));
+
+        const quat result2 = pow(q, 0.0f);
+        VX_CHECK(is_nan(result2.w));
+        VX_CHECK(is_nan(result2.x));
+        VX_CHECK(is_nan(result2.y));
+        VX_CHECK(is_nan(result2.z));
+    }
+
+    // Pure real quaternion (positive)
+    {
+        const quat q(2.0f, 0.0f, 0.0f, 0.0f);
+        const quat result = pow(q, 2.0f);
+        VX_CHECK_EQ(result, quat(4.0f, 0.0f, 0.0f, 0.0f));
+    }
+
+    // Pure real quaternion (negative)
+    {
+        const quat q(-2.0f, 0.0f, 0.0f, 0.0f);
+        const quat result = pow(q, 2.0f);
+        const f32 expected = pow(2.0f, 2.0f) * cos(constants<f32>::two_pi); // Should be close to 4.0
+        VX_CHECK_EQ(result.w, expected);
+        VX_CHECK_EQ(result.x, 0.0f);
+        VX_CHECK_EQ(result.y, 0.0f);
+        VX_CHECK_EQ(result.z, 0.0f);
+    }
+
+    // Known rotation: 90 deg around Z, raised to 0.5 should be 45 deg
+    {
+        const vec3 axis(0.0f, 0.0f, 1.0f);
+        const quat q = axis_angle(axis, radians(90.0f));
+        const quat result = pow(q, 0.5f);
+        const quat expected = axis_angle(axis, radians(45.0f));
+        VX_CHECK_EQ(result, expected);
+    }
+
+    // Inverse check: (q^x)^(1/x) == q
+    {
+        const quat q = normalize(quat(1.0f, 2.0f, 3.0f, 4.0f));
+        const f32 x = 0.75f;
+        const quat result = pow(pow(q, x), 1 / x);
+        VX_CHECK_EQ(result, q);
+    }
+
+    // Inverse check: (q^x)^(1/x) == q for negative fractional power
+    {
+        const quat q(-2.0f, 0.0f, 0.0f, 0.0f);
+        const f32 x = -0.25;
+        const quat result = pow(pow(q, x), 1 / x);
+        VX_CHECK_EQ(result, q);
+    }
+
+    // Negative Real Quaternion Raised to Non-Integer Power
+    {
+        const quat q(-2.0f, 0.0f, 0.0f, 0.0f);
+        const f32 x = 0.5f;
+        const quat result = pow(pow(q, x), 1 / x);
+        VX_CHECK_EQ(result, q);
+    }
+
+    //Integer Power of Negative Real Quaternion
+    {
+        const quat q(-2.0f, 0.0f, 0.0f, 0.0f);
+        VX_CHECK_EQ(pow(q, 3.0f), quat(-8.0f, 0.0f, 0.0f, 0.0f));
+        VX_CHECK_EQ(pow(q, -1.0f), quat(-0.5f, 0.0f, 0.0f, 0.0f));
+    }
+
+    // sqrt
+    {
+        const quat q = normalize(quat(1.0f, 2.0f, 3.0f, 4.0f));
+        const quat result = sqrt(pow(q, 2.0f));
+        VX_CHECK_EQ(result, q);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_exp_log)
+{
+    // exp(0) = identity
+    {
+        const quat q(0.0f, 0.0f, 0.0f, 0.0f);
+        const quat result = exp(q);
+        VX_CHECK(is_identity_approx(result));
+    }
+
+    // log(identity) = 0
+    {
+        const quat q = quat::identity();
+        const quat result = log(q);
+        VX_CHECK_EQ(result, quat(0.0f, 0.0f, 0.0f, 0.0f));
+    }
+
+    // exp(log(q)) = q (for unit quaternion)
+    {
+        const quat q = normalize(quat(1.0f, 2.0f, 3.0f, 4.0f));
+        const quat result = exp(log(q));
+        VX_CHECK_EQ(result, q);
+    }
+
+    // log(exp(q)) = q (for imaginary quaternion)
+    {
+        const quat q = normalize(quat(0.0f, 1.0f, 2.0f, 3.0f)); // real part = 0
+        const quat result = log(exp(q));
+        VX_CHECK_EQ(result, q);
+    }
+
+    // exp of real-only quaternion
+    {
+        const quat q(2.0f, 0.0f, 0.0f, 0.0f);
+        const quat result = exp(q);
+        VX_CHECK_EQ(result, quat(exp(2.0f), 0.0f, 0.0f, 0.0f));
+    }
+
+    // log(0)
+    {
+        const quat q(0.0f, 0.0f, 0.0f, 0.0f);
+        const quat result = log(q);
+        VX_CHECK(result.w == -constants<f32>::infinity);
+        VX_CHECK(result.x == -constants<f32>::infinity);
+        VX_CHECK(result.y == -constants<f32>::infinity);
+        VX_CHECK(result.z == -constants<f32>::infinity);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(test_quat_from_euler_xyz)
+{
+    // regular case
+    {
+        const vec3 xyz(0.0f, 0.0f, 0.0f);
+        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
+        const vec3 angles = quat_to_euler_xyz(q);
+        VX_CHECK_EQ(angles, xyz);
+    }
+
+    {
+        const vec3 xyz(0.5f, 0.5f, 0.5f);
+        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
+        const vec3 angles = quat_to_euler_xyz(q);
+        VX_CHECK_EQ(angles, xyz);
+    }
+
+    {
+        const vec3 xyz(-0.5f, -0.5f, -0.5f);
+        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
+        const vec3 angles = quat_to_euler_xyz(q);
+        VX_CHECK_EQ(angles, xyz);
+    }
+
+    // roll 90 deg
+    {
+        const vec3 xyz(constants<f32>::half_pi, 0.0f, 0.0f);
+        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
+        const vec3 angles = quat_to_euler_xyz(q);
+        VX_CHECK_EQ(angles, xyz);
+    }
+
+    // pitch 90 deg (near gimbal lock)
+    {
+        const vec3 xyz(constants<f32>::quarter_pi, constants<f32>::half_pi, 0.0f);
+        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
+        const vec3 angles = quat_to_euler_xyz(q);
+        VX_CHECK_EQ(angles, xyz);
     }
 }
 

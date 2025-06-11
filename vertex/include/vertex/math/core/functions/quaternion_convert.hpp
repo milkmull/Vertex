@@ -33,50 +33,48 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_xyz(T x, T y, T z) noexcept
 }
 
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
+// https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> quat_to_euler_xyz(const quat_t<T>& q) noexcept
 {
-    const quat_t<T> qn = normalize(q);
-
-    const T qxy = qn.x * qn.y;
-    const T qwz = qn.w * qn.z;
-
+    const T qxy = q.x * q.y;
+    const T qwz = q.w * q.z;
     const T test = qxy + qwz;
 
-    if (test > static_cast<T>(0.5) - constants<T>::epsilon)
+    if (test >= static_cast<T>(0.5) - constants<T>::epsilon)
     {
         // singularity at north pole
         return vec<3, T>(
-            static_cast<T>(2) * atan2(qn.x, qn.w),
-            constants<T>::pi,
+            static_cast<T>(2) * atan2(q.x, q.w),
+            constants<T>::half_pi,
             static_cast<T>(0)
         );
     }
-    if (test < static_cast<T>(-0.5) + constants<T>::epsilon)
+    if (test <= static_cast<T>(-0.5) + constants<T>::epsilon)
     {
         // singularity at south pole
         return vec<3, T>(
-            static_cast<T>(-2) * atan2(qn.x, qn.w),
-            -constants<T>::pi,
+            static_cast<T>(-2) * atan2(q.x, q.w),
+            -constants<T>::half_pi,
             static_cast<T>(0)
         );
     }
 
-    const T qxx = qn.x * qn.x;
-    const T qyy = qn.y * qn.y;
-    const T qzz = qn.z * qn.z;
-    const T qww = qn.w * qn.w;
-    const T qxz = qn.x * qn.z;
-    const T qyz = qn.y * qn.z;
-    const T qwx = qn.w * qn.x;
-    const T qwy = qn.w * qn.y;
+    // XYZ Tait–Bryan angle decomposition
 
-    return vec<3, T>(
-        atan2(static_cast<T>(2) * (qwy - qxz), qxx - qyy - qzz + qww),
-        asin(static_cast<T>(2) * test),
-        atan2(static_cast<T>(2) * (qwx - qyz), qyy - qxx - qzz + qww)
-    );
+    const T t0 = static_cast<T>(2) * (q.w * q.x - q.y * q.z);
+    const T t1 = static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.y * q.y);
+    const T x = atan2(t0, t1);
+
+    const T t2 = static_cast<T>(2) * (q.w * q.y + q.z * q.x);
+    const T y = asin_clamped(t2);
+
+    const T t3 = static_cast<T>(2) * (q.w * q.z - q.x * q.y);
+    const T t4 = static_cast<T>(1) - static_cast<T>(2) * (q.y * q.y + q.z * q.z);
+    const T z = atan2(t3, t4);
+
+    return vec<3, T>(x, y, z);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,17 +84,15 @@ VX_FORCE_INLINE constexpr vec<3, T> quat_to_euler_xyz(const quat_t<T>& q) noexce
 template <typename T>
 VX_FORCE_INLINE constexpr mat<3, 3, T> quat_to_mat3(const quat_t<T>& q) noexcept
 {
-    const quat_t<T> qn = normalize(q);
-
-    const T qxx = qn.x * qn.x;
-    const T qyy = qn.y * qn.y;
-    const T qzz = qn.z * qn.z;
-    const T qxz = qn.x * qn.z;
-    const T qxy = qn.x * qn.y;
-    const T qyz = qn.y * qn.z;
-    const T qwx = qn.w * qn.x;
-    const T qwy = qn.w * qn.y;
-    const T qwz = qn.w * qn.z;
+    const T qxx = q.x * q.x;
+    const T qyy = q.y * q.y;
+    const T qzz = q.z * q.z;
+    const T qxz = q.x * q.z;
+    const T qxy = q.x * q.y;
+    const T qyz = q.y * q.z;
+    const T qwx = q.w * q.x;
+    const T qwy = q.w * q.y;
+    const T qwz = q.w * q.z;
 
     return mat<3, 3, T>(
         static_cast<T>(1) - static_cast<T>(2) * (qyy + qzz),
