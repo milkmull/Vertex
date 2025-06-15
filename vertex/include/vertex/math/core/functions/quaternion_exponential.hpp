@@ -19,7 +19,7 @@ namespace math {
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
 {
-    const vec<3, T> v = q.vector();
+    const vec<3, T> v = q.xyz();
     const T vmag = length(v);
 
     if (vmag <= constants<T>::epsilon)
@@ -97,7 +97,7 @@ VX_FORCE_INLINE constexpr quat_t<T> pow(const quat_t<T>& q, T x) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr quat_t<T> exp(const quat_t<T>& q) noexcept
 {
-    const vec<3, T> v = q.vector();
+    const vec<3, T> v = q.xyz();
     const T vmag = length(v);
 
     if (vmag <= constants<T>::epsilon)
@@ -141,7 +141,7 @@ VX_FORCE_INLINE constexpr quat_t<T> log(const quat_t<T>& q) noexcept
         );
     }
 
-    const vec<3, T> v = q.vector();
+    const vec<3, T> v = q.xyz();
     const T vmag = length(v);
 
     if (vmag <= constants<T>::epsilon)

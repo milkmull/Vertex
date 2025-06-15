@@ -299,7 +299,7 @@ struct quat_t
     // operations
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr vec<3, scalar_type> vector() const noexcept{ return vec<3, scalar_type>(x, y, z); }
+    VX_FORCE_INLINE constexpr vec<3, scalar_type> xyz() const noexcept{ return vec<3, scalar_type>(x, y, z); }
 
     ///////////////////////////////////////////////////////////////////////////////
     // constants

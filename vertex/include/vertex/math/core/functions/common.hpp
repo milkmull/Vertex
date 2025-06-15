@@ -334,40 +334,6 @@ VX_FORCE_INLINE constexpr vec<4, T> trunc(const vec<4, T>& x) noexcept
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// fract
-//////////////////////////////////////////////////////////////////////////////
-
-// https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
-
-// scalar
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T fract(T x) noexcept
-{
-    return x - std::floor(x);
-}
-
-// vec
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> fract(const vec<2, T>& x) noexcept
-{
-    return vec<2, T>(fract(x.x), fract(x.y));
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> fract(const vec<3, T>& x) noexcept
-{
-    return vec<3, T>(fract(x.x), fract(x.y), fract(x.z));
-}
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
-{
-    return vec<4, T>(fract(x.x), fract(x.y), fract(x.z), fract(x.w));
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // floor
 //////////////////////////////////////////////////////////////////////////////
 
@@ -472,6 +438,40 @@ VX_FORCE_INLINE constexpr auto sign(const quat_t<T>& x) noexcept
 }
 
 //////////////////////////////////////////////////////////////////////////////
+// fract
+//////////////////////////////////////////////////////////////////////////////
+
+// https://registry.khronos.org/OpenGL-Refpages/gl4/html/fract.xhtml
+
+// scalar
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr T fract(T x) noexcept
+{
+    return x - floor(x);
+}
+
+// vec
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<2, T> fract(const vec<2, T>& x) noexcept
+{
+    return vec<2, T>(fract(x.x), fract(x.y));
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<3, T> fract(const vec<3, T>& x) noexcept
+{
+    return vec<3, T>(fract(x.x), fract(x.y), fract(x.z));
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
+{
+    return vec<4, T>(fract(x.x), fract(x.y), fract(x.z), fract(x.w));
+}
+
+//////////////////////////////////////////////////////////////////////////////
 // fmod
 //////////////////////////////////////////////////////////////////////////////
 
@@ -480,7 +480,7 @@ VX_FORCE_INLINE constexpr auto sign(const quat_t<T>& x) noexcept
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T fmod(T x, T y) noexcept
 {
-    return x - y * std::trunc(x / y);
+    return x - y * trunc(x / y);
 }
 
 // vec scalar
@@ -543,7 +543,7 @@ VX_FORCE_INLINE constexpr vec<4, T> fmod(
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T mod(T x, T y) noexcept
 {
-    return x - y * std::floor(x / y);
+    return x - y * floor(x / y);
 }
 
 template <typename T, VXM_REQ_INT(T)>

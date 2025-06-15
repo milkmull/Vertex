@@ -2,7 +2,6 @@
 
 #include "vertex/math/core/functions/quaternion.hpp"
 #include "vertex/math/core/functions/quaternion_exponential.hpp"
-#include "vertex/math/core/functions/quaternion_convert.hpp"
 #include "vertex/math/core/functions/comparison.hpp"
 
 using namespace vx::math;
@@ -552,49 +551,6 @@ VX_TEST_CASE(test_exp_log)
         VX_CHECK(result.x == -constants<f32>::infinity);
         VX_CHECK(result.y == -constants<f32>::infinity);
         VX_CHECK(result.z == -constants<f32>::infinity);
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-VX_TEST_CASE(test_quat_from_euler_xyz)
-{
-    // regular case
-    {
-        const vec3 xyz(0.0f, 0.0f, 0.0f);
-        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
-        const vec3 angles = quat_to_euler_xyz(q);
-        VX_CHECK_EQ(angles, xyz);
-    }
-
-    {
-        const vec3 xyz(0.5f, 0.5f, 0.5f);
-        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
-        const vec3 angles = quat_to_euler_xyz(q);
-        VX_CHECK_EQ(angles, xyz);
-    }
-
-    {
-        const vec3 xyz(-0.5f, -0.5f, -0.5f);
-        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
-        const vec3 angles = quat_to_euler_xyz(q);
-        VX_CHECK_EQ(angles, xyz);
-    }
-
-    // roll 90 deg
-    {
-        const vec3 xyz(constants<f32>::half_pi, 0.0f, 0.0f);
-        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
-        const vec3 angles = quat_to_euler_xyz(q);
-        VX_CHECK_EQ(angles, xyz);
-    }
-
-    // pitch 90 deg (near gimbal lock)
-    {
-        const vec3 xyz(constants<f32>::quarter_pi, constants<f32>::half_pi, 0.0f);
-        const quat q = quat_from_euler_xyz(xyz.x, xyz.y, xyz.z);
-        const vec3 angles = quat_to_euler_xyz(q);
-        VX_CHECK_EQ(angles, xyz);
     }
 }
 

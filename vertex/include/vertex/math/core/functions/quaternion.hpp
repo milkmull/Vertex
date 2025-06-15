@@ -199,7 +199,7 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
 {
     // (assume rotation is normalized)
 
-    const vec<3, T> qv = rotation.vector();
+    const vec<3, T> qv = rotation.xyz();
     const vec<3, T> uv = cross(qv, v);
     const vec<3, T> uuv = cross(qv, uv);
 

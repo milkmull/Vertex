@@ -224,10 +224,10 @@ VX_TEST_CASE(test_quat)
         }
     }
 
-    VX_SECTION("vector")
+    VX_SECTION("xyz")
     {
         constexpr quat q(1.0f, 2.0f, 3.0f, 4.0f);
-        constexpr vec3 v = q.vector();
+        constexpr vec3 v = q.xyz();
 
         VX_STATIC_CHECK_EQ(v.x, q.x);
         VX_STATIC_CHECK_EQ(v.y, q.y);

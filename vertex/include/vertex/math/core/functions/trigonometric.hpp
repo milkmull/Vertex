@@ -1,6 +1,7 @@
 #pragma once
 
 #include "./common.hpp"
+#include "./comparison.hpp"
 
 namespace vx {
 namespace math {
@@ -41,6 +42,24 @@ VX_FORCE_INLINE constexpr auto degrees(T rad) noexcept
 {
     using F = VXM_FLOAT_TYPE(T);
     return degrees(static_cast<F>(rad));
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// equivalent_angle
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr T equivalent_angle(
+    T a,
+    T b,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(
+        abs(mod(a, constants<T>::two_pi)),
+        abs(mod(b, constants<T>::two_pi)),
+        epsilon
+    );
 }
 
 //////////////////////////////////////////////////////////////////////////////

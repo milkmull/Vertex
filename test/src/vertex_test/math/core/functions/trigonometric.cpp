@@ -57,6 +57,34 @@ VX_TEST_CASE(test_degrees)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_equivalent_angle)
+{
+    // Basic rotational equivalence
+    VX_CHECK(equivalent_angle(radians(0), radians(0)));
+    VX_CHECK(equivalent_angle(radians(0), radians(360)));
+    VX_CHECK(equivalent_angle(radians(360), radians(-360)));
+    VX_CHECK(equivalent_angle(radians(180), radians(-180)));
+    VX_CHECK(equivalent_angle(radians(90), radians(-270)));
+    VX_CHECK(equivalent_angle(radians(270), radians(-90)));
+
+    // Symmetry: equivalent_angle(a, b) == equivalent_angle(b, a)
+    VX_CHECK(equivalent_angle(radians(-270), radians(90)));
+    VX_CHECK(equivalent_angle(radians(90), radians(-270)));
+
+    // Large rotations: multiple full turns
+    VX_CHECK(equivalent_angle(radians(1080), radians(0)));       // 3 full turns
+    VX_CHECK(equivalent_angle(radians(-1080), radians(0)));
+    VX_CHECK(equivalent_angle(radians(1440), radians(360)));     // 4 turns
+
+    // Should not be equivalent (true mismatches)
+    VX_CHECK(!equivalent_angle(radians(0), radians(180)));
+    VX_CHECK(!equivalent_angle(radians(90), radians(-90)));
+    VX_CHECK(!equivalent_angle(radians(180), radians(360)));
+    VX_CHECK(!equivalent_angle(radians(180.1f), radians(-180.0f)));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 VX_TEST_CASE(test_atan2)
 {
     VX_SECTION("scalar")
