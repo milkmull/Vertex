@@ -38,40 +38,6 @@ VX_FORCE_INLINE constexpr quat_t<T> euler_xyz_to_quat(T x, T y, T z) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> quat_to_euler_xyz(const quat_t<T>& q) noexcept
 {
-    const T test = q.x * q.y + q.w * q.z;
-    const T test_sign = sign(test);
-
-    if (test * test_sign >= static_cast<T>(0.5) - constants<T>::epsilon)
-    {
-        // sign is positive: singularity at north pole
-        // sign is negative: singularity at south pole
-
-        return vec<3, T>(
-            static_cast<T>(2) * atan2(q.x, q.w),
-            test_sign * constants<T>::half_pi,
-            static_cast<T>(0)
-        );
-    }
-
-    // XYZ Tait–Bryan angle decomposition
-
-    const T t0 = static_cast<T>(2) * (q.w * q.x - q.y * q.z);
-    const T t1 = static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.y * q.y);
-    const T x = atan2(t0, t1);
-
-    const T t2 = static_cast<T>(2) * (q.w * q.y + q.z * q.x);
-    const T y = asin_clamped(t2);
-
-    const T t3 = static_cast<T>(2) * (q.w * q.z - q.x * q.y);
-    const T t4 = static_cast<T>(1) - static_cast<T>(2) * (q.y * q.y + q.z * q.z);
-    const T z = atan2(t3, t4);
-
-    return vec<3, T>(x, y, z);
-}
-
-template <typename T>
-VX_FORCE_INLINE constexpr vec<3, T> quat_to_euler_xyz_2(const quat_t<T>& q) noexcept
-{
     const T m13 = static_cast<T>(2) * (q.x * q.z + q.w * q.y);
     const T y = asin_clamped(m13);
 
