@@ -168,6 +168,95 @@ VX_TEST_CASE(test_quat_euler_xyz_conversion)
 
 ///////////////////////////////////////////////////////////////////////////////
 
+VX_TEST_CASE(test_quat_mat3_conversion)
+{
+    // identity rotation
+    {
+        const quat q = quat::identity();
+        const mat3 m = quat_to_mat3(q);
+        VX_CHECK(is_identity_approx(m));
+
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+
+    // 90 deg rotation about X
+    {
+        const quat q = axis_angle(vec3(1, 0, 0), constants<f32>::half_pi);
+        const mat3 m = quat_to_mat3(q);
+    
+        const mat3 expected = mat3(
+            1, 0, 0,
+            0, 0, 1,
+            0, -1, 0
+        );
+        VX_CHECK_EQ(m, expected);
+    
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+
+    // 90 deg rotation about Y
+    {
+        const quat q = axis_angle(vec3(0, 1, 0), constants<f32>::half_pi);
+        const mat3 m = quat_to_mat3(q);
+
+        const mat3 expected = mat3(
+            0, 0, -1,
+            0, 1, 0,
+            1, 0, 0
+        );
+        VX_CHECK_EQ(m, expected);
+
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+
+    // 90 deg rotation about Z
+    {
+        const quat q = axis_angle(vec3(0, 0, 1), constants<f32>::half_pi);
+        const mat3 m = quat_to_mat3(q);
+
+        const mat3 expected = mat3(
+            0, 1, 0,
+            -1, 0, 0,
+            0, 0, 1
+        );
+        VX_CHECK_EQ(m, expected);
+
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+
+    // 180 deg rotation about arbitrary axis (e.g. Y)
+    {
+        const quat q = axis_angle(vec3(0, 1, 0), constants<f32>::pi);
+        const mat3 m = quat_to_mat3(q);
+
+        const mat3 expected = mat3(
+            -1, 0, 0,
+            0, 1, 0,
+            0, 0, -1
+        );
+        VX_CHECK_EQ(m, expected);
+
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+
+    // random-ish composite rotation (0.5, 0.5, 0.5) Euler XYZ
+    {
+        const vec3 angles(0.5f, 0.5f, 0.5f);
+        const quat q = euler_xyz_to_quat(angles.x, angles.y, angles.z);
+        const mat3 m = quat_to_mat3(q);
+
+        const quat q2 = mat3_to_quat(m);
+        VX_CHECK(equivalent_rotation(q, q2));
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 int main()
 {
     VX_RUN_TESTS();

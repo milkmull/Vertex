@@ -110,9 +110,9 @@ VX_FORCE_INLINE constexpr quat_t<T> mat3_to_quat(const mat<3, 3, T>& m) noexcept
 
         return quat_t<T>(
             s * static_cast<T>(0.25),
-            (m.columns[2].y - m.columns[1].z) * invs,
-            (m.columns[0].z - m.columns[2].x) * invs,
-            (m.columns[1].x - m.columns[0].y) * invs
+            (m.columns[1].z - m.columns[2].y) * invs,
+            (m.columns[2].x - m.columns[0].z) * invs,
+            (m.columns[0].y - m.columns[1].x) * invs
         );
     }
     else if (m.columns[0].x > m.columns[1].y && m.columns[0].x > m.columns[2].z)
@@ -121,10 +121,10 @@ VX_FORCE_INLINE constexpr quat_t<T> mat3_to_quat(const mat<3, 3, T>& m) noexcept
         const T invs = static_cast<T>(1) / s;
 
         return quat_t<T>(
-            (m.columns[2].y - m.columns[1].z) * invs,
+            (m.columns[1].z - m.columns[2].y) * invs,
             s * static_cast<T>(0.25),
-            (m.columns[0].y + m.columns[1].x) * invs,
-            (m.columns[0].z + m.columns[2].x) * invs
+            (m.columns[1].x + m.columns[0].y) * invs,
+            (m.columns[2].x + m.columns[0].z) * invs
         );
     }
     else if (m.columns[1].y > m.columns[2].z)
@@ -133,10 +133,10 @@ VX_FORCE_INLINE constexpr quat_t<T> mat3_to_quat(const mat<3, 3, T>& m) noexcept
         const T invs = static_cast<T>(1) / s;
 
         return quat_t<T>(
-            (m.columns[2].x - m.columns[0].z) * invs,
-            (m.columns[0].y + m.columns[1].x) * invs,
+            (m.columns[0].z - m.columns[2].x) * invs,
+            (m.columns[1].x + m.columns[0].y) * invs,
             s * static_cast<T>(0.25),
-            (m.columns[1].z + m.columns[2].y) * invs
+            (m.columns[2].y + m.columns[1].z) * invs
         );
     }
     else
@@ -145,9 +145,9 @@ VX_FORCE_INLINE constexpr quat_t<T> mat3_to_quat(const mat<3, 3, T>& m) noexcept
         const T invs = static_cast<T>(1) / s;
 
         return quat_t<T>(
-            (m.columns[1].x - m.columns[0].y) * invs,
-            (m.columns[0].z + m.columns[2].x) * invs,
-            (m.columns[1].z + m.columns[2].y) * invs,
+            (m.columns[0].y - m.columns[1].x) * invs,
+            (m.columns[2].x + m.columns[0].z) * invs,
+            (m.columns[2].y + m.columns[1].z) * invs,
             s * static_cast<T>(0.25)
         );
     }
