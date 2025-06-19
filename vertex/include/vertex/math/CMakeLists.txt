@@ -41,7 +41,8 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/matrix.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/quaternion.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/quaternion_exponential.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/rotation_convert.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/rotation_cast.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/euler_angles.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})

@@ -174,6 +174,20 @@ template <size_t L, typename T> struct is_signed_int_vec<vec<L, T>> : is_signed_
 template <typename T> struct is_unsigned_vec : false_t {};
 template <size_t L, typename T> struct is_unsigned_vec<vec<L, T>> : is_unsigned<T> {};
 
+// is_vec_size
+template <typename T, size_t L> struct is_vec_size : false_t {};
+template <size_t L_, typename T_, size_t L>
+struct is_vec_size<vec<L_, T_>, L> : bool_constant<L_ == L> {};
+
+// is_vec2
+template <typename T> struct is_vec2 : is_vec_size<T, 2> {};
+
+// is_vec3
+template <typename T> struct is_vec3 : is_vec_size<T, 3> {};
+
+// is_vec4
+template <typename T> struct is_vec4 : is_vec_size<T, 4> {};
+
 ///////////////////////////////////////////////////////////////////////////////
 // matrix helpers
 ///////////////////////////////////////////////////////////////////////////////
@@ -221,6 +235,33 @@ template <size_t M, size_t N, typename T> struct is_signed_int_mat<mat<M, N, T>>
 // is_unsigned_mat
 template <typename T> struct is_unsigned_mat : false_t {};
 template <size_t M, size_t N, typename T> struct is_unsigned_mat<mat<M, N, T>> : is_unsigned<T> {};
+
+// is_mat_size
+template <typename T, size_t M, size_t N> struct is_mat_size : false_t {};
+template <size_t M_, size_t N_, typename T_, size_t M, size_t N>
+struct is_mat_size<mat<M_, N_, T_>, M, N> : bool_constant<M_ == M && N_ == N> {};
+
+// is_mat2
+template <typename T> struct is_mat2 : is_mat_size<T, 2, 2> {};
+
+// is_mat3
+template <typename T> struct is_mat3 : is_mat_size<T, 3, 3> {};
+
+// is_mat4
+template <typename T> struct is_mat4 : is_mat_size<T, 4, 4> {};
+
+// is_float_mat2
+template <typename T> struct is_float_mat2 : bool_constant<is_mat2<T>::value && is_float_mat<T>::value> {};
+
+// is_float_mat3
+template <typename T> struct is_float_mat3 : bool_constant<is_mat3<T>::value && is_float_mat<T>::value> {};
+
+// is_float_mat4
+template <typename T> struct is_float_mat4 : bool_constant<is_mat4<T>::value && is_float_mat<T>::value> {};
+
+// is_rotation_matrix_compatible
+template <typename T> struct is_rotation_matrix_compatible : false_t {};
+template <size_t M, size_t N, typename T> struct is_rotation_matrix_compatible<mat<M, N, T>> : bool_constant<M == N> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // quaternion helpers
