@@ -5,16 +5,6 @@
 namespace vx {
 namespace math {
 
-#define m11_ static_cast<T>(1) - static_cast<T>(2) * (q.y * q.y + q.z * q.z)
-#define m12_ static_cast<T>(2) * (q.x * q.y + q.w * q.z)
-#define m13_ static_cast<T>(2) * (q.x * q.z - q.w * q.y)
-#define m21_ static_cast<T>(2) * (q.x * q.y - q.w * q.z)
-#define m22_ static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.z * q.z)
-#define m23_ static_cast<T>(2) * (q.y * q.z + q.w * q.x)
-#define m31_ static_cast<T>(2) * (q.x * q.z + q.w * q.y)
-#define m32_ static_cast<T>(2) * (q.y * q.z - q.w * q.x)
-#define m33_ static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.y * q.y)
-
 ///////////////////////////////////////////////////////////////////////////////
 // euler_order
 ///////////////////////////////////////////////////////////////////////////////
@@ -33,16 +23,27 @@ enum class euler_order
 // extract_euler_angles (quaternion)
 ///////////////////////////////////////////////////////////////////////////////
 
+
 // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles#Quaternion_to_Euler_angles_(in_3-2-1_sequence)_conversion
 // https://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToEuler/index.htm
 // https://github.com/mrdoob/three.js/blob/dev/src/math/Euler.js#L188
+
+#define __m11 static_cast<T>(1) - static_cast<T>(2) * (q.y * q.y + q.z * q.z)
+#define __m12 static_cast<T>(2) * (q.x * q.y + q.w * q.z)
+#define __m13 static_cast<T>(2) * (q.x * q.z - q.w * q.y)
+#define __m21 static_cast<T>(2) * (q.x * q.y - q.w * q.z)
+#define __m22 static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.z * q.z)
+#define __m23 static_cast<T>(2) * (q.y * q.z + q.w * q.x)
+#define __m31 static_cast<T>(2) * (q.x * q.z + q.w * q.y)
+#define __m32 static_cast<T>(2) * (q.y * q.z - q.w * q.x)
+#define __m33 static_cast<T>(1) - static_cast<T>(2) * (q.x * q.x + q.y * q.y)
 
 // xyz
 
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xyz(const quat_t<T>& q) noexcept
 {
-    const T m31 = m31_;
+    const T m31 = __m31;
     const T y = asin_clamped(m31);
 
     if (greater_or_equal_approx(abs(m31), static_cast<T>(1)))
@@ -58,10 +59,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xyz(const quat_t<T>& q)
     {
         // XYZ Tait–Bryan angle decomposition
 
-        const T m32 = m32_;
-        const T m33 = m33_;
-        const T m21 = m21_;
-        const T m11 = m11_;
+        const T m32 = __m32;
+        const T m33 = __m33;
+        const T m21 = __m21;
+        const T m11 = __m11;
 
         const T x = atan2(-m32, m33);
         const T z = atan2(-m21, m11);
@@ -75,7 +76,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xyz(const quat_t<T>& q)
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xzy(const quat_t<T>& q) noexcept
 {
-    const T m21 = m21_;
+    const T m21 = __m21;
     const T z = asin_clamped(-m21);
 
     if (greater_or_equal_approx(abs(m21), static_cast<T>(1)))
@@ -91,10 +92,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xzy(const quat_t<T>& q)
     {
         // XZY Tait–Bryan angle decomposition
 
-        const T m23 = m23_;
-        const T m22 = m22_;
-        const T m31 = m31_;
-        const T m11 = m11_;
+        const T m23 = __m23;
+        const T m22 = __m22;
+        const T m31 = __m31;
+        const T m11 = __m11;
 
         const T x = atan2(m23, m22);
         const T y = atan2(m31, m11);
@@ -124,10 +125,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yxz(const quat_t<T>& q)
     {
         // YXZ Tait–Bryan angle decomposition
 
-        const T m31 = m31_;
-        const T m33 = m33_;
-        const T m12 = m12_;
-        const T m22 = m22_;
+        const T m31 = __m31;
+        const T m33 = __m33;
+        const T m12 = __m12;
+        const T m22 = __m22;
 
         const T y = atan2(m31, m33);
         const T z = atan2(m12, m22);
@@ -141,7 +142,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yxz(const quat_t<T>& q)
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yzx(const quat_t<T>& q) noexcept
 {
-    const T m12 = m12_;
+    const T m12 = __m12;
     const T z = asin_clamped(m12);
 
     if (greater_or_equal_approx(abs(m12), static_cast<T>(1)))
@@ -157,10 +158,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yzx(const quat_t<T>& q)
     {
         // YZX Tait–Bryan angle decomposition
 
-        const T m32 = m32_;
-        const T m22 = m22_;
-        const T m13 = m13_;
-        const T m11 = m11_;
+        const T m32 = __m32;
+        const T m22 = __m22;
+        const T m13 = __m13;
+        const T m11 = __m11;
 
         const T x = atan2(-m32, m22);
         const T y = atan2(-m13, m11);
@@ -174,7 +175,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yzx(const quat_t<T>& q)
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zxy(const quat_t<T>& q) noexcept
 {
-    const T m23 = m23_;
+    const T m23 = __m23;
     const T x = asin_clamped(m23);
 
     if (greater_or_equal_approx(abs(m23), static_cast<T>(1)))
@@ -190,10 +191,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zxy(const quat_t<T>& q)
     {
         // ZXY Tait–Bryan angle decomposition
 
-        const T m13 = m13_;
-        const T m33 = m33_;
-        const T m21 = m21_;
-        const T m22 = m22_;
+        const T m13 = __m13;
+        const T m33 = __m33;
+        const T m21 = __m21;
+        const T m22 = __m22;
 
         const T y = atan2(-m13, m33);
         const T z = atan2(-m21, m22);
@@ -207,7 +208,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zxy(const quat_t<T>& q)
 template <typename T>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const quat_t<T>& q) noexcept
 {
-    const T m13 = m13_;
+    const T m13 = __m13;
     const T y = asin_clamped(-m13);
 
     if (greater_or_equal_approx(abs(m13), static_cast<T>(1)))
@@ -223,10 +224,10 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const quat_t<T>& q)
     {
         // ZYX Tait–Bryan angle decomposition
 
-        const T m23 = m23_;
-        const T m33 = m33_;
-        const T m12 = m12_;
-        const T m11 = m11_;
+        const T m23 = __m23;
+        const T m33 = __m33;
+        const T m12 = __m12;
+        const T m11 = __m11;
 
         const T x = atan2(m23, m33);
         const T z = atan2(m12, m11);
@@ -234,6 +235,18 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const quat_t<T>& q)
         return vec<3, T>(x, y, z);
     }
 }
+
+///////////////////////////////////////////////////////////////////////////////
+
+#undef __m11
+#undef __m12
+#undef __m13
+#undef __m21
+#undef __m22
+#undef __m23
+#undef __m31
+#undef __m32
+#undef __m33
 
 ///////////////////////////////////////////////////////////////////////////////
 // extract_euler_angles (matrix)
