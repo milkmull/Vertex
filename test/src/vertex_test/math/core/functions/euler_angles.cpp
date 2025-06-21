@@ -365,6 +365,11 @@ static bool mat_euler_test(
                 return false;
             }
 
+            if (!equal_approx(m42, m43))
+            {
+                return false;
+            }
+
             break;
         }
         case euler_order::XZY:
@@ -399,6 +404,11 @@ static bool mat_euler_test(
             const mat4 m43 = mat4_from_euler_angles_xzy(angles42.x, angles42.y, angles42.z);
 
             if (!equal_approx(m32, m33))
+            {
+                return false;
+            }
+
+            if (!equal_approx(m42, m43))
             {
                 return false;
             }
@@ -441,6 +451,11 @@ static bool mat_euler_test(
                 return false;
             }
 
+            if (!equal_approx(m42, m43))
+            {
+                return false;
+            }
+
             break;
         }
         case euler_order::YZX:
@@ -475,6 +490,11 @@ static bool mat_euler_test(
             const mat4 m43 = mat4_from_euler_angles_yzx(angles42.x, angles42.y, angles42.z);
 
             if (!equal_approx(m32, m33))
+            {
+                return false;
+            }
+
+            if (!equal_approx(m42, m43))
             {
                 return false;
             }
@@ -517,6 +537,11 @@ static bool mat_euler_test(
                 return false;
             }
 
+            if (!equal_approx(m42, m43))
+            {
+                return false;
+            }
+
             break;
         }
         case euler_order::ZYX:
@@ -551,6 +576,11 @@ static bool mat_euler_test(
             const mat4 m43 = mat4_from_euler_angles_zyx(angles42.x, angles42.y, angles42.z);
 
             if (!equal_approx(m32, m33))
+            {
+                return false;
+            }
+
+            if (!equal_approx(m42, m43))
             {
                 return false;
             }
