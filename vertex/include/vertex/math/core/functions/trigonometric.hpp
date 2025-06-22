@@ -45,28 +45,6 @@ VX_FORCE_INLINE constexpr auto degrees(T rad) noexcept
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// equivalent_angle
-//////////////////////////////////////////////////////////////////////////////
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr T equivalent_angle(
-    T a,
-    T b,
-    const T epsilon = constants<T>::epsilon
-) noexcept
-{
-    // avoid case where a or b are super close to zero but negative, resulting in floor returning -1 instead of 0
-    const T az = is_zero_approx(a, epsilon) ? static_cast<T>(0) : a;
-    const T bz = is_zero_approx(b, epsilon) ? static_cast<T>(0) : b;
-
-    return equal_approx(
-        abs(mod(az, constants<T>::two_pi)),
-        abs(mod(bz, constants<T>::two_pi)),
-        epsilon
-    );
-}
-
-//////////////////////////////////////////////////////////////////////////////
 // sin
 //////////////////////////////////////////////////////////////////////////////
 

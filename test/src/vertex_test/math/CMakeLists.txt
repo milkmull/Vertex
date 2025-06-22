@@ -31,3 +31,5 @@ vx_add_test(test_math_matrix                "math/core" "${CMAKE_CURRENT_SOURCE_
 vx_add_test(test_math_quaternion            "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/quaternion.cpp")
 vx_add_test(test_math_rotation_cast         "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/rotation_cast.cpp")
 vx_add_test(test_math_euler_angles          "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/euler_angles.cpp")
+
+vx_add_test(test_math_transform2d           "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform2d.cpp")

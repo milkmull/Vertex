@@ -84,7 +84,7 @@ VX_FORCE_INLINE constexpr vec<2, T> extract_scale(const mat<3, 3, T>& m) noexcep
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<3, 3, T> trs(const vec<2, T>& translation, T angle, vec<2, T>& scale) noexcept
+VX_FORCE_INLINE constexpr mat<3, 3, T> trs(const vec<2, T>& translation, T angle, const vec<2, T>& scale) noexcept
 {
     const T cosa = cos(angle);
     const T sina = sin(angle);
@@ -93,6 +93,19 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> trs(const vec<2, T>& translation, T angle
          cosa * scale.x, sina * scale.x, static_cast<T>(0),
         -sina * scale.y, cosa * scale.y, static_cast<T>(0),
          translation.x,  translation.y,  static_cast<T>(1)
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// transform
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v) noexcept
+{
+    return vec<2, T>(
+        (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + m.columns[2].x,
+        (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + m.columns[2].y
     );
 }
 
@@ -109,19 +122,6 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m) noexcept
         vec<3, T>(ibasis.columns[0], static_cast<T>(0)),
         vec<3, T>(ibasis.columns[1], static_cast<T>(0)),
         vec<3, T>(ibasis * vec<2, T>(-m.columns[2]), static_cast<T>(1))
-    );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// transform
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v) noexcept
-{
-    return vec<2, T>(
-        (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + m.columns[2].x,
-        (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + m.columns[2].y
     );
 }
 
