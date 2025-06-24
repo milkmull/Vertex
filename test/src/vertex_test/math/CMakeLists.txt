@@ -34,3 +34,4 @@ vx_add_test(test_math_euler_angles          "math/core" "${CMAKE_CURRENT_SOURCE_
 
 vx_add_test(test_math_transform2d           "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform2d.cpp")
 vx_add_test(test_math_transform3d           "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform3d.cpp")
+vx_add_test(test_math_projection            "math/core" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/projection.cpp")

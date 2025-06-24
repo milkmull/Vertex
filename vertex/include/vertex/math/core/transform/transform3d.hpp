@@ -251,6 +251,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
 // look_at (matrix)
 ///////////////////////////////////////////////////////////////////////////////
 
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixlookatlh
+
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_lh(
     const vec<3, T>& eye,
@@ -260,7 +262,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_lh(
 {
     const vec<3, T> z = normalize(target - eye);
     const vec<3, T> x = normalize(cross(up, z));
-    const vec<3, T> y = normalize(cross(z, x));
+    const vec<3, T> y = cross(z, x);
 
     return mat<4, 4, T>(
         x.x,
@@ -287,6 +289,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_lh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixlookatrh
+
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_rh(
     const vec<3, T>& eye,
@@ -299,7 +303,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_rh(
     // target, we reverse the subtraction.
     const vec<3, T> z = normalize(eye - target);
     const vec<3, T> x = normalize(cross(up, z));
-    const vec<3, T> y = normalize(cross(z, x));
+    const vec<3, T> y = cross(z, x);
 
     return mat<4, 4, T>(
         x.x,
@@ -319,7 +323,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_rh(
 
         -dot(x, eye),
         -dot(y, eye),
-        +dot(z, eye),
+        -dot(z, eye),
         static_cast<T>(1)
     );
 }

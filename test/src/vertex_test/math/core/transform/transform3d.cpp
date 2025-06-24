@@ -362,9 +362,16 @@ VX_TEST_CASE(test_look_at)
 
         const vec3 p1 = eye;
         const vec3 p2 = transform3d::transform(view, p1);
-        const vec3 p3(0.0f, 0.0f, 0.0f);
+        VX_CHECK(is_zero_approx(p2));
 
-        VX_CHECK_EQ(p2, p3);
+        {
+            const vec3 forward_lh = target;
+            const vec3 forward_lh_transformed = transform3d::transform(view, forward_lh);
+            const f32 dist = length(eye - target);
+
+            // Should land in front of the camera along +Z
+            VX_CHECK_EQ(forward_lh_transformed.z, dist);
+        }
     }
 
     VX_SECTION("rh")
@@ -378,19 +385,23 @@ VX_TEST_CASE(test_look_at)
             -0.554700196f, -0.618031442f, -0.557085991f, 0.0f,
              0.0f,          0.669534028f, -0.742781341f, 0.0f,
              0.832050204f, -0.412021011f, -0.371390671f, 0.0f,
-            -1.94145036f,   0.515026391f, -3.15682077f,  1.0f
+            -1.94145036f,   0.515026391f,  3.15682077f,  1.0f
         );
 
         VX_CHECK_EQ(view, expected);
 
         const vec3 p1 = eye;
         const vec3 p2 = transform3d::transform(view, p1);
+        VX_CHECK(is_zero_approx(p2));
 
-        // Target should appear along negative Z axis from eye's POV
-        const f32 dist = length(target - eye);
-        const vec3 p3(0.0f, 0.0f, -dist);
+        {
+            const vec3 forward_rh = target;
+            const vec3 forward_rh_transformed = transform3d::transform(view, forward_rh);
+            const f32 dist = length(eye - target);
 
-        VX_CHECK_EQ(p2, p3);
+            // Should land in front of the camera along -Z
+            VX_CHECK_EQ(forward_rh_transformed.z, -dist);
+        }
     }
 }
 
