@@ -254,6 +254,13 @@ VX_TEST_CASE(test_quat)
             VX_STATIC_CHECK_EQ(i[3], 0.0f);
         }
     }
+
+    VX_SECTION("xyz")
+    {
+        constexpr quat q(1.0f, 2.0f, 3.0f, 4.0f);
+        constexpr vec3 xyz(2.0f, 3.0f, 4.0f);
+        VX_STATIC_CHECK_EQ(q.xyz(), xyz);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

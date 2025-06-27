@@ -43,10 +43,20 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/quaternion_exponential.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/rotation_cast.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/euler_angles.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/functions/swizzle.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform2d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform3d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/projection.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/easing.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color8.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/wrap.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/sdf2d.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})

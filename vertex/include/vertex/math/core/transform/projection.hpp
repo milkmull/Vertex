@@ -221,11 +221,11 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// frustrum
+// frustum
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -257,7 +257,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_zo(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -289,7 +289,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh_no(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -321,7 +321,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_zo(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
@@ -353,84 +353,84 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh_no(
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_zo(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_zo(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
 ) noexcept
 {
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT)
-    return frustrum_lh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_lh_zo(left, right, bottom, top, znear, zfar);
 #else
-    return frustrum_rh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_rh_zo(left, right, bottom, top, znear, zfar);
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_no(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_no(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
 ) noexcept
 {
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_LH_BIT)
-    return frustrum_lh_no(left, right, bottom, top, znear, zfar);
+    return frustum_lh_no(left, right, bottom, top, znear, zfar);
 #else
-    return frustrum_rh_no(left, right, bottom, top, znear, zfar);
+    return frustum_rh_no(left, right, bottom, top, znear, zfar);
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_lh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
 ) noexcept
 {
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_ZO_BIT)
-    return frustrum_lh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_lh_zo(left, right, bottom, top, znear, zfar);
 #else
-    return frustrum_lh_no(left, right, bottom, top, znear, zfar);
+    return frustum_lh_no(left, right, bottom, top, znear, zfar);
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum_rh(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
 ) noexcept
 {
 #if (VX_CONFIG_CLIP_CONTROL & VX_CLIP_CONTROL_ZO_BIT)
-    return frustrum_rh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_rh_zo(left, right, bottom, top, znear, zfar);
 #else
-    return frustrum_rh_no(left, right, bottom, top, znear, zfar);
+    return frustum_rh_no(left, right, bottom, top, znear, zfar);
 #endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> frustrum(
+VX_FORCE_INLINE constexpr mat<4, 4, T> frustum(
     T left, T right,
     T top, T bottom,
     T znear, T zfar
 ) noexcept
 {
 #if (VX_CONFIG_CLIP_CONTROL == VX_CLIP_CONTROL_LH_ZO)
-    return frustrum_lh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_lh_zo(left, right, bottom, top, znear, zfar);
 #elif (VX_CONFIG_CLIP_CONTROL == VX_CLIP_CONTROL_LH_NO)
-    return frustrum_lh_no(left, right, bottom, top, znear, zfar);
+    return frustum_lh_no(left, right, bottom, top, znear, zfar);
 #elif (VX_CONFIG_CLIP_CONTROL == VX_CLIP_CONTROL_RH_ZO)
-    return frustrum_rh_zo(left, right, bottom, top, znear, zfar);
+    return frustum_rh_zo(left, right, bottom, top, znear, zfar);
 #elif (VX_CONFIG_CLIP_CONTROL == VX_CLIP_CONTROL_RH_NO)
-    return frustrum_rh_no(left, right, bottom, top, znear, zfar);
+    return frustum_rh_no(left, right, bottom, top, znear, zfar);
 #endif
 }
 
@@ -651,8 +651,6 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
 // project
 ///////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////////////////////////////////////////////////////
-
 template <typename T, typename U, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> project_zo(
     const vec<3, T>& object,
@@ -731,11 +729,11 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
     const vec<4, U>& viewport
 ) noexcept
 {
-    const mat<4, 4, T> inv(projection * model);
+    const mat<4, 4, T> inv = inverse(projection * model);
     vec<4, T> v4(object, static_cast<T>(1));
 
-    v4.x = (v4.x - static_cast<T>(viewport.x)) / static_cast<T>(viewport.y);
-    v4.y = (v4.y - static_cast<T>(viewport.z)) / static_cast<T>(viewport.w);
+    v4.x = (v4.x - static_cast<T>(viewport.x)) / static_cast<T>(viewport.z);
+    v4.y = (v4.y - static_cast<T>(viewport.y)) / static_cast<T>(viewport.w);
 
     v4.x = v4.x * static_cast<T>(2) - static_cast<T>(1);
     v4.y = v4.y * static_cast<T>(2) - static_cast<T>(1);
@@ -755,11 +753,11 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
     const vec<4, U>& viewport
 ) noexcept
 {
-    const mat<4, 4, T> inv(projection * model);
+    const mat<4, 4, T> inv = inverse(projection * model);
     vec<4, T> v4(object, static_cast<T>(1));
 
-    v4.x = (v4.x - static_cast<T>(viewport.x)) / static_cast<T>(viewport.y);
-    v4.y = (v4.y - static_cast<T>(viewport.z)) / static_cast<T>(viewport.w);
+    v4.x = (v4.x - static_cast<T>(viewport.x)) / static_cast<T>(viewport.z);
+    v4.y = (v4.y - static_cast<T>(viewport.y)) / static_cast<T>(viewport.w);
 
     v4.x = v4.x * static_cast<T>(2) - static_cast<T>(1);
     v4.y = v4.y * static_cast<T>(2) - static_cast<T>(1);
@@ -800,6 +798,14 @@ VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, 
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> project(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
+{
+    const vec<4, T> v4 = m * v;
+    const T invw = static_cast<T>(1) / v4.w;
+    return v4 * invw;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, VXM_REQ_FLOAT(T)>
@@ -809,6 +815,14 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3
     v4 = inverse(m) * v4;
     const T invw = static_cast<T>(1) / v4.w;
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> unproject(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
+{
+    const vec<4, T> v4 = inverse(m) * v;
+    const T invw = static_cast<T>(1) / v4.w;
+    return v4 * invw;
 }
 
 } // namespace projection

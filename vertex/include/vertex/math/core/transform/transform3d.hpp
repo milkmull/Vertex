@@ -217,37 +217,6 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> trs(
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// transform
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v) noexcept
-{
-    return vec<3, T>(
-        (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z) + m.columns[3].x,
-        (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + (m.columns[2].y * v.z) + m.columns[3].y,
-        (m.columns[0].z * v.x) + (m.columns[1].z * v.y) + (m.columns[2].z * v.z) + m.columns[3].z
-    );
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// inverse
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
-{
-    const mat<3, 3, T> ibasis = inverse(mat<3, 3, T>(m));
-
-    return mat<4, 4, T>(
-        vec<4, T>(ibasis.columns[0], static_cast<T>(0)),
-        vec<4, T>(ibasis.columns[1], static_cast<T>(0)),
-        vec<4, T>(ibasis.columns[2], static_cast<T>(0)),
-        vec<4, T>(ibasis * vec<3, T>(-m.columns[3]), static_cast<T>(1))
-    );
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // look_at (matrix)
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -342,6 +311,48 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> look_at(
 #else
     return look_at_rh(eye, target, up);
 #endif
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// transform
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v) noexcept
+{
+    return vec<3, T>(
+        (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z) + m.columns[3].x,
+        (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + (m.columns[2].y * v.z) + m.columns[3].y,
+        (m.columns[0].z * v.x) + (m.columns[1].z * v.y) + (m.columns[2].z * v.z) + m.columns[3].z
+    );
+}
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr vec<4, T> transform(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
+{
+    return vec<4, T>(
+        (m.columns[0].x * v.x) + (m.columns[1].x * v.y) + (m.columns[2].x * v.z) + m.columns[3].x,
+        (m.columns[0].y * v.x) + (m.columns[1].y * v.y) + (m.columns[2].y * v.z) + m.columns[3].y,
+        (m.columns[0].z * v.x) + (m.columns[1].z * v.y) + (m.columns[2].z * v.z) + m.columns[3].z,
+        v.w
+    );
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// inverse
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, VXM_REQ_FLOAT(T)>
+VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
+{
+    const mat<3, 3, T> ibasis = inverse(mat<3, 3, T>(m));
+
+    return mat<4, 4, T>(
+        vec<4, T>(ibasis.columns[0], static_cast<T>(0)),
+        vec<4, T>(ibasis.columns[1], static_cast<T>(0)),
+        vec<4, T>(ibasis.columns[2], static_cast<T>(0)),
+        vec<4, T>(ibasis * vec<3, T>(-m.columns[3]), static_cast<T>(1))
+    );
 }
 
 } // namespace vx
