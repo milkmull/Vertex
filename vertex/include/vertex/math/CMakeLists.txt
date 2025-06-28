@@ -55,9 +55,30 @@ file(GLOB VX_MATH_HEADER_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/easing.hpp"
     
+    #--------------------------------------
+    # Simd files
+    #--------------------------------------
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/config.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/types.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/operators.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/exponential.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/geometric.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/interpolation.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd/matrix.hpp"
+    
+    #--------------------------------------
+    # Color files
+    #--------------------------------------
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color8.hpp"
+    
+    #--------------------------------------
+    # Procedural files
+    #--------------------------------------
     
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/wrap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/sdf2d.hpp"
