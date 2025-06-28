@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../functions/matrix.hpp"
+#include "../functions/trigonometric.hpp"
 
 namespace vx {
 namespace math {
@@ -9,6 +10,8 @@ namespace projection {
 ///////////////////////////////////////////////////////////////////////////////
 // ortho
 ///////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterlh
 
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
@@ -73,6 +76,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterrh
 
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
@@ -224,6 +229,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
 // frustum
 ///////////////////////////////////////////////////////////////////////////////
 
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectiveoffcenterlh
+
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_zo(
     T left, T right,
@@ -287,6 +294,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_no(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectiveoffcenterrh
 
 template <typename T, VXM_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_zo(
@@ -438,6 +447,8 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum(
 // perspective
 ///////////////////////////////////////////////////////////////////////////////
 
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
+
 template <typename T, VXM_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
     T fovy, T aspect,
@@ -503,6 +514,9 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovrh
+
 
 template <typename T, VXM_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
