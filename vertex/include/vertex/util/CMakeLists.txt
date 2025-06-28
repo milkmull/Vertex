@@ -5,7 +5,6 @@ file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/bit/enum_bitwise_operators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/bit.hpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/crypto/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/FNV1a.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/MD5.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/SHA1.hpp"

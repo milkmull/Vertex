@@ -38,11 +38,11 @@ struct ticks_data
     }
 };
 
-// initialize on program start
-static ticks_data s_ticks_data{};
-
 VX_API time::time_point get_ticks()
 {
+    // initialize on first call
+    static const ticks_data s_ticks_data{};
+
     const int64_t elapsed_ticks = get_performance_counter_impl() - s_ticks_data.start_ticks;
     const int64_t ns = (elapsed_ticks * 1000000000ll) / s_ticks_data.ticks_per_second;
     return time::nanoseconds(ns);

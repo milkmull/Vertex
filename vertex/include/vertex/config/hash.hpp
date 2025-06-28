@@ -1,9 +1,8 @@
 #pragma once
 
-#include <stddef.h>
+#include <functional>
 
 namespace vx {
-namespace crypto {
 
 template <typename T>
 inline void hash_combine(size_t& seed, const T& value)
@@ -13,4 +12,3 @@ inline void hash_combine(size_t& seed, const T& value)
 }
 
 } // namespace vx
-} // namespace crypto

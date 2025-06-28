@@ -2,6 +2,7 @@
 
 #include "vertex/util/type_traits.hpp"
 #include "vertex/config/language_config.hpp"
+#include "vertex/config/hash.hpp"
 
 namespace vx {
 namespace time {
@@ -383,3 +384,21 @@ enum : int64_t
 
 } // namespace time
 } // namespace vx
+
+///////////////////////////////////////////////////////////////////////////////
+// hash
+///////////////////////////////////////////////////////////////////////////////
+
+namespace std {
+
+template <>
+struct hash<vx::time::time_point>
+{
+    size_t operator()(const vx::time::time_point& t) const noexcept
+    {
+        using ns_type = decltype(t.as_nanoseconds());
+        return std::hash<ns_type>{}(t.as_nanoseconds());
+    }
+};
+
+} // namespace std

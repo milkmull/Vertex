@@ -15,6 +15,7 @@ file(GLOB VX_MATH_HEADER_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/constants.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/types.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/util.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/types/base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/types/traits.hpp"
@@ -48,6 +49,9 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform2d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform3d.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/projection.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/util/hash.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/util/to_string.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/easing.hpp"
     
