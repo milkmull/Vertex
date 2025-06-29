@@ -8,7 +8,7 @@ namespace vx {
 namespace math {
 namespace simd {
 
-#if (VX_SIMD_X86 >= VXM_SIMD_SSE2)
+#if (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
 
 ///////////////////////////////////////////////////////////////////////////////
 // set
@@ -194,7 +194,7 @@ VX_FORCE_INLINE f32x4 shuffle(f32x4 a, int x, int y, int z, int w) noexcept
 VX_FORCE_INLINE f32x4 movehl(f32x4 a, f32x4 b) { return _mm_movehl_ps(a, b); }
 VX_FORCE_INLINE f32x4 movelh(f32x4 a, f32x4 b) { return _mm_movelh_ps(a, b); }
 
-#endif
+#endif // VX_SIMD_X86_SSE2_VERSION
 
 } // namespace simd
 } // namespace math

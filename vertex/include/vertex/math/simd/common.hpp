@@ -8,7 +8,7 @@ namespace vx {
 namespace math {
 namespace simd {
 
-#if (VX_SIMD_X86 >= VXM_SIMD_SSE2)
+#if (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
 
 ///////////////////////////////////////////////////////////////////////////////
 // min/max
@@ -140,7 +140,7 @@ VX_FORCE_INLINE f32x4 sign(f32x4 x) noexcept
 // fract
 //////////////////////////////////////////////////////////////////////////////
 
-VX_FORCE_INLINE f32x4 f32x4_fract(f32x4 x) noexcept
+VX_FORCE_INLINE f32x4 fract(f32x4 x) noexcept
 {
     const f32x4 flr0 = floor(x);
     const f32x4 sub0 = _mm_sub_ps(x, flr0);
@@ -151,7 +151,7 @@ VX_FORCE_INLINE f32x4 f32x4_fract(f32x4 x) noexcept
 // mod
 //////////////////////////////////////////////////////////////////////////////
 
-VX_FORCE_INLINE f32x4 f32x4_mod(f32x4 x, f32x4 y) noexcept
+VX_FORCE_INLINE f32x4 mod(f32x4 x, f32x4 y) noexcept
 {
     const f32x4 div0 = _mm_div_ps(x, y);
     const f32x4 flr0 = floor(div0);
@@ -177,7 +177,7 @@ VX_FORCE_INLINE f32x4 fma(f32x4 a, f32x4 b, f32x4 c) noexcept
 // clamp
 //////////////////////////////////////////////////////////////////////////////
 
-VX_FORCE_INLINE f32x4 f32x4_clamp(f32x4 v, f32x4 minVal, f32x4 maxVal) noexcept
+VX_FORCE_INLINE f32x4 clamp(f32x4 v, f32x4 minVal, f32x4 maxVal) noexcept
 {
     const f32x4 min0 = _mm_min_ps(v, maxVal);
     const f32x4 max0 = _mm_max_ps(min0, minVal);
@@ -193,7 +193,7 @@ VX_FORCE_INLINE f32x4 select(f32x4 mask, f32x4 a, f32x4 b) noexcept
     return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
 }
 
-#endif // VXM_SIMD_SSE2
+#endif // VX_SIMD_X86_SSE2_VERSION
 
 } // namespace simd
 } // namespace math
