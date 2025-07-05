@@ -171,24 +171,32 @@ VX_TEST_CASE(test_mat2x4)
     {
         // addition
         {
-            VX_STATIC_CHECK(m24 + 5.0f == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
-            VX_STATIC_CHECK(5.0f + m24 == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
-            VX_STATIC_CHECK(m24 + mat2x4(5.0f) == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
-            VX_STATIC_CHECK(mat2x4(5.0f) + m24 == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
+            VX_CHECK(m24 + 5.0f == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
+            VX_CHECK(5.0f + m24 == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
+            VX_CHECK(m24 + mat2x4(5.0f) == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
+            VX_CHECK(mat2x4(5.0f) + m24 == mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f));
         }
 
         // subtraction
         {
-            VX_STATIC_CHECK(mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) - 5.0f == m24);
-            VX_STATIC_CHECK(5.0f - mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) == -m24);
-            VX_STATIC_CHECK(mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) - mat2x4(5.0f) == m24);
-            VX_STATIC_CHECK(mat2x4(5.0f) - mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) == -m24);
+            VX_CHECK(mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) - 5.0f == m24);
+            VX_CHECK(5.0f - mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) == -m24);
+            VX_CHECK(mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) - mat2x4(5.0f) == m24);
+            VX_CHECK(mat2x4(5.0f) - mat2x4(6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f) == -m24);
         }
 
         // multiplication
         {
-            VX_STATIC_CHECK(m24 * 5.0f == mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f));
-            VX_STATIC_CHECK(5.0f * m24 == mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f));
+            VX_CHECK(m24 * 5.0f == mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f));
+            VX_CHECK(5.0f * m24 == mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f));
+
+            // 4x1 * 2x4
+            constexpr vec4 m41(1.0f, 2.0f, 3.0f, 4.0f);
+            VX_STATIC_CHECK((m41 * m24) == vec2(30.0f, 70.0f));
+
+            // 2x4 * 1x2
+            constexpr vec2 m12(1.0f, 2.0f);
+            VX_STATIC_CHECK((m24 * m12) == vec4(11.0f, 14.0f, 17.0f, 20.0f));
 
             // 2x4 * 2x2
             constexpr mat2x2 m22(1.0f, 2.0f, 3.0f, 4.0f);
@@ -205,8 +213,8 @@ VX_TEST_CASE(test_mat2x4)
 
         // division
         {
-            VX_STATIC_CHECK(mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f) / 5.0f == m24);
-            VX_STATIC_CHECK(840.0f / mat2x4(840.0f, 420.0f, 280.0f, 210.0f, 168.0f, 140.0f, 120.0f, 105.0f) == m24);
+            VX_CHECK(mat2x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f) / 5.0f == m24);
+            VX_CHECK(840.0f / mat2x4(840.0f, 420.0f, 280.0f, 210.0f, 168.0f, 140.0f, 120.0f, 105.0f) == m24);
         }
     }
 

@@ -232,6 +232,14 @@ VX_TEST_CASE(test_mat2x2)
             VX_STATIC_CHECK(m22 * 5.0f == mat2x2(5.0f, 10.0f, 15.0f, 20.0f));
             VX_STATIC_CHECK(5.0f * m22 == mat2x2(5.0f, 10.0f, 15.0f, 20.0f));
 
+            // 2x1 * 2x2
+            constexpr vec2 m21(1.0f, 2.0f);
+            VX_STATIC_CHECK((m21 * m22) == vec2(5.0f, 11.0f));
+
+            // 2x2 * 1x2
+            constexpr vec2 m12(1.0f, 2.0f);
+            VX_STATIC_CHECK((m22 * m12) == vec2(7.0f, 10.0f));
+
             // 2x2 * 2x2
             VX_STATIC_CHECK((m22 * m22) == mat2x2(7.0f, 10.0f, 15.0f, 22.0f));
 

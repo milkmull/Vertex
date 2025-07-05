@@ -285,12 +285,11 @@ struct mat<2, 3, T>
         );
     }
 
-    friend VX_FORCE_INLINE constexpr vec<height, scalar_type> operator*(const vec<width, scalar_type>& v, const type& m) noexcept
+    friend VX_FORCE_INLINE constexpr vec<width, scalar_type> operator*(const vec<height, scalar_type>& v, const type& m) noexcept
     {
-        return vec<height, scalar_type>(
-            (v.x * m.columns[0].x) + (v.y * m.columns[1].x),
-            (v.x * m.columns[0].y) + (v.y * m.columns[1].y),
-            (v.x * m.columns[0].z) + (v.y * m.columns[1].z)
+        return vec<width, scalar_type>(
+            (v.x * m.columns[0].x) + (v.y * m.columns[0].y) + (v.z * m.columns[0].z),
+            (v.x * m.columns[1].x) + (v.y * m.columns[1].y) + (v.z * m.columns[1].z)
         );
     }
 

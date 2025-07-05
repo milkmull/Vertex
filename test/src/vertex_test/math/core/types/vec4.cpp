@@ -1008,28 +1008,28 @@ VX_TEST_CASE(test_vec4f)
     VX_SECTION("binary arithmetic operators")
     {
         // addition
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) + 5.0f == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
-        VX_STATIC_CHECK(5.0f + vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
-        VX_STATIC_CHECK(vec4f(5.5f) + vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(7.0f, 2.75f, 8.5f, 9.5f));
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) + vec4f(5.0f) == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) + 5.0f == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
+        VX_CHECK(5.0f + vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
+        VX_CHECK(vec4f(5.5f) + vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(7.0f, 2.75f, 8.5f, 9.5f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) + vec4f(5.0f) == vec4f(6.5f, 2.25f, 8.0f, 9.0f));
 
         // subtraction
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) - 5.0f == vec4f(-3.5f, -7.75f, -2.0f, -1.0f));
-        VX_STATIC_CHECK(5.0f - vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(3.5f, 7.75f, 2.0f, 1.0f));
-        VX_STATIC_CHECK(vec4f(5.5f) - vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(4.0f, 8.25f, 2.5f, 1.5f));
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) - vec4f(5.0f) == vec4f(-3.5f, -7.75f, -2.0f, -1.0f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) - 5.0f == vec4f(-3.5f, -7.75f, -2.0f, -1.0f));
+        VX_CHECK(5.0f - vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(3.5f, 7.75f, 2.0f, 1.0f));
+        VX_CHECK(vec4f(5.5f) - vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(4.0f, 8.25f, 2.5f, 1.5f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) - vec4f(5.0f) == vec4f(-3.5f, -7.75f, -2.0f, -1.0f));
 
         // multiplication
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) * 5.0f == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
-        VX_STATIC_CHECK(5.0f * vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
-        VX_STATIC_CHECK(vec4f(5.5f) * vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(8.25f, -15.125f, 16.5f, 22.0f));
-        VX_STATIC_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) * vec4f(5.0f) == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) * 5.0f == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
+        VX_CHECK(5.0f * vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
+        VX_CHECK(vec4f(5.5f) * vec4f(1.5f, -2.75f, 3.0f, 4.0f) == vec4f(8.25f, -15.125f, 16.5f, 22.0f));
+        VX_CHECK(vec4f(1.5f, -2.75f, 3.0f, 4.0f) * vec4f(5.0f) == vec4f(7.5f, -13.75f, 15.0f, 20.0f));
 
         // division
-        VX_STATIC_CHECK(vec4f(5.5f, -13.75f, 15.0f, 20.0f) / 5.0f == vec4f(1.1f, -2.75f, 3.0f, 4.0f));
-        VX_STATIC_CHECK(10.0f / vec4f(10.0f, 5.0f, 2.0f, 1.0f) == vec4f(1.0f, 2.0f, 5.0f, 10.0f));
-        VX_STATIC_CHECK(vec4f(10.5f) / vec4f(10.0f, 5.0f, 2.0f, 1.0f) == vec4f(1.05f, 2.1f, 5.25f, 10.5f));
-        VX_STATIC_CHECK(vec4f(10.0f, 5.0f, 2.0f, 1.0f) / vec4f(5.0f, 10.0f, 2.0f, 1.0f) == vec4f(2.0f, 0.5f, 1.0f, 1.0f));
+        VX_CHECK(vec4f(5.5f, -13.75f, 15.0f, 20.0f) / 5.0f == vec4f(1.1f, -2.75f, 3.0f, 4.0f));
+        VX_CHECK(10.0f / vec4f(10.0f, 5.0f, 2.0f, 1.0f) == vec4f(1.0f, 2.0f, 5.0f, 10.0f));
+        VX_CHECK(vec4f(10.5f) / vec4f(10.0f, 5.0f, 2.0f, 1.0f) == vec4f(1.05f, 2.1f, 5.25f, 10.5f));
+        VX_CHECK(vec4f(10.0f, 5.0f, 2.0f, 1.0f) / vec4f(5.0f, 10.0f, 2.0f, 1.0f) == vec4f(2.0f, 0.5f, 1.0f, 1.0f));
 
     }
 

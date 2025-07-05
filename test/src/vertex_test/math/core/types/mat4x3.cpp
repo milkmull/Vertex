@@ -234,6 +234,14 @@ VX_TEST_CASE(test_mat4x3)
             VX_STATIC_CHECK(m43 * 5.0f == mat4x3(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f));
             VX_STATIC_CHECK(5.0f * m43 == mat4x3(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f));
 
+            // 3x1 * 4x3
+            constexpr vec3 m31(1.0f, 2.0f, 3.0f);
+            VX_STATIC_CHECK((m31 * m43) == vec4(14.0f, 32.0f, 50.0f, 68.0f));
+
+            // 4x3 * 1x4
+            constexpr vec4 m14(1.0f, 2.0f, 3.0f, 4.0f);
+            VX_STATIC_CHECK((m43 * m14) == vec3(70.0f, 80.0f, 90.0f));
+
             // 4x3 * 2x4
             constexpr mat2x4 m24(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
             VX_STATIC_CHECK((m43 * m24) == mat2x3(70.0f, 80.0f, 90.0f, 158.0f, 184.0f, 210.0f));

@@ -301,7 +301,7 @@ VX_TEST_CASE(test_matrix_comp_mult)
     {
         constexpr mat2x4 m(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f);
         constexpr mat2x4 r(0.0f, 1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 36.0f, 49.0f);
-        VX_STATIC_CHECK_EQ(matrix_comp_mult(m, m), r);
+        VX_CHECK_EQ(matrix_comp_mult(m, m), r);
     }
 
     VX_SECTION("mat3x2")
@@ -322,7 +322,7 @@ VX_TEST_CASE(test_matrix_comp_mult)
     {
         constexpr mat3x4 m(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f);
         constexpr mat3x4 r(0.0f, 1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 36.0f, 49.0f, 64.0f, 81.0f, 100.0f, 121.0f);
-        VX_STATIC_CHECK_EQ(matrix_comp_mult(m, m), r);
+        VX_CHECK_EQ(matrix_comp_mult(m, m), r);
     }
 
     VX_SECTION("mat4x2")
@@ -343,7 +343,7 @@ VX_TEST_CASE(test_matrix_comp_mult)
     {
         constexpr mat4x4 m(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f);
         constexpr mat4x4 r(0.0f, 1.0f, 4.0f, 9.0f, 16.0f, 25.0f, 36.0f, 49.0f, 64.0f, 81.0f, 100.0f, 121.0f, 144.0f, 169.0f, 196.0f, 225.0f);
-        VX_STATIC_CHECK_EQ(matrix_comp_mult(m, m), r);
+        VX_CHECK_EQ(matrix_comp_mult(m, m), r);
     }
 }
 

@@ -3,12 +3,17 @@
 #include "vertex/config/assert.hpp"
 #include "./base.hpp"
 
+#include "../../simd/vec4f.hpp"
+
 namespace vx {
 namespace math {
 
 template <typename T>
 struct vec<4, T>
 {
+#   define __SIMD_OVERLOAD(cond) template <typename __T = T, VXM_REQ( (simd::vec<4, __T>::cond))>
+#   define __SIMD_FALLBACK(cond) template <typename __T = T, VXM_REQ(!(simd::vec<4, __T>::cond))>
+
     ///////////////////////////////////////////////////////////////////////////////
     // meta
     ///////////////////////////////////////////////////////////////////////////////
@@ -292,16 +297,19 @@ struct vec<4, T>
 
     // addition (+)
 
+    __SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& v, scalar_type scalar) noexcept
     {
         return type(v.x + scalar, v.y + scalar, v.z + scalar, v.w + scalar);
     }
 
+    __SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(scalar_type scalar, const type& v) noexcept
     {
         return type(scalar + v.x, scalar + v.y, scalar + v.z, scalar + v.w);
     }
 
+    __SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& v1, const type& v2) noexcept
     {
         return type(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
@@ -309,16 +317,19 @@ struct vec<4, T>
 
     // subtraction (-)
 
+    __SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& v, scalar_type scalar) noexcept
     {
         return type(v.x - scalar, v.y - scalar, v.z - scalar, v.w - scalar);
     }
 
+    __SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(scalar_type scalar, const type& v) noexcept
     {
         return type(scalar - v.x, scalar - v.y, scalar - v.z, scalar - v.w);
     }
 
+    __SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& v1, const type& v2) noexcept
     {
         return type(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
@@ -326,16 +337,19 @@ struct vec<4, T>
 
     // multiplication (*)
 
+    __SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& v, scalar_type scalar) noexcept
     {
         return type(v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar);
     }
 
+    __SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& v) noexcept
     {
         return type(scalar * v.x, scalar * v.y, scalar * v.z, scalar * v.w);
     }
 
+    __SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& v1, const type& v2) noexcept
     {
         return type(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
@@ -343,16 +357,19 @@ struct vec<4, T>
 
     // division (/)
 
+    __SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& v, scalar_type scalar) noexcept
     {
         return type(v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar);
     }
 
+    __SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& v) noexcept
     {
         return type(scalar / v.x, scalar / v.y, scalar / v.z, scalar / v.w);
     }
 
+    __SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& v1, const type& v2) noexcept
     {
         return type(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
@@ -477,6 +494,7 @@ struct vec<4, T>
 
     // addition (+=)
 
+    __SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(scalar_type scalar) noexcept
     {
         x += scalar;
@@ -486,6 +504,7 @@ struct vec<4, T>
         return *this;
     }
 
+    __SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(const type& v) noexcept
     {
         x += v.x;
@@ -497,6 +516,7 @@ struct vec<4, T>
 
     // subtraction (-=)
 
+    __SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(scalar_type scalar) noexcept
     {
         x -= scalar;
@@ -506,6 +526,7 @@ struct vec<4, T>
         return *this;
     }
 
+    __SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(const type& v) noexcept
     {
         x -= v.x;
@@ -517,6 +538,7 @@ struct vec<4, T>
 
     // multiplication (*=)
 
+    __SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(scalar_type scalar) noexcept
     {
         x *= scalar;
@@ -526,6 +548,7 @@ struct vec<4, T>
         return *this;
     }
 
+    __SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(const type& v) noexcept
     {
         x *= v.x;
@@ -537,6 +560,7 @@ struct vec<4, T>
 
     // division (/=)
 
+    __SIMD_FALLBACK(HAVE_DIV)
     VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
     {
         x /= scalar;
@@ -546,6 +570,7 @@ struct vec<4, T>
         return *this;
     }
 
+    __SIMD_FALLBACK(HAVE_DIV)
     VX_FORCE_INLINE constexpr type& operator/=(const type& v) noexcept
     {
         x /= v.x;
@@ -730,6 +755,177 @@ struct vec<4, T>
 
     static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0)); }
     static VX_FORCE_INLINE constexpr type one() noexcept { return type(static_cast<scalar_type>(1)); }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // simd conversion operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    __SIMD_OVERLOAD(HAVE_LOAD)
+    VX_FORCE_INLINE operator typename simd::vec4f::data_type() const noexcept
+    {
+        return simd::vec4f::load(&x);
+    }
+
+    __SIMD_OVERLOAD(HAVE_STORE)
+    VX_FORCE_INLINE vec(typename simd::vec4f::data_type v) noexcept
+    {
+        simd::vec4f::store(&x, v);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // simd binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+)
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    friend VX_FORCE_INLINE type operator+(const type& v, scalar_type scalar) noexcept
+    {
+        return simd::vec4f::add(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    friend VX_FORCE_INLINE type operator+(scalar_type scalar, const type& v) noexcept
+    {
+        return simd::vec4f::add(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    friend VX_FORCE_INLINE type operator+(const type& v1, const type& v2) noexcept
+    {
+        return simd::vec4f::add(v1, v2);
+    }
+
+    // subtraction (-)
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    friend VX_FORCE_INLINE type operator-(const type& v, scalar_type scalar) noexcept
+    {
+        return simd::vec4f::sub(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    friend VX_FORCE_INLINE type operator-(scalar_type scalar, const type& v) noexcept
+    {
+        return simd::vec4f::sub(scalar, v);
+    }
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    friend VX_FORCE_INLINE type operator-(const type& v1, const type& v2) noexcept
+    {
+        return simd::vec4f::sub(v1, v2);
+    }
+
+    // multiplication (*)
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    friend VX_FORCE_INLINE type operator*(const type& v, scalar_type scalar) noexcept
+    {
+        return simd::vec4f::mul(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    friend VX_FORCE_INLINE type operator*(scalar_type scalar, const type& v) noexcept
+    {
+        return simd::vec4f::mul(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    friend VX_FORCE_INLINE type operator*(const type& v1, const type& v2) noexcept
+    {
+        return simd::vec4f::mul(v1, v2);
+    }
+
+    // division (/)
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    friend VX_FORCE_INLINE type operator/(const type& v, scalar_type scalar) noexcept
+    {
+        return simd::vec4f::div(v, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    friend VX_FORCE_INLINE type operator/(scalar_type scalar, const type& v) noexcept
+    {
+        return simd::vec4f::div(scalar, v);
+    }
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    friend VX_FORCE_INLINE type operator/(const type& v1, const type& v2) noexcept
+    {
+        return simd::vec4f::div(v1, v2);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // simd unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+=)
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    VX_FORCE_INLINE type& operator+=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) + scalar;
+        return *this;
+    }
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    VX_FORCE_INLINE type& operator+=(const type& v) noexcept
+    {
+        (*this) = (*this) + v;
+        return *this;
+    }
+
+    // subtraction (-=)
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    VX_FORCE_INLINE type& operator-=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) - scalar;
+        return *this;
+    }
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    VX_FORCE_INLINE type& operator-=(const type& v) noexcept
+    {
+        (*this) = (*this) - v;
+        return *this;
+    }
+
+    // multiplication (*=)
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    VX_FORCE_INLINE type& operator*=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) * scalar;
+        return *this;
+    }
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    VX_FORCE_INLINE type& operator*=(const type& v) noexcept
+    {
+        (*this) = (*this) * v;
+        return *this;
+    }
+
+    // division (/=)
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    VX_FORCE_INLINE type& operator/=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) / scalar;
+        return *this;
+    }
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    VX_FORCE_INLINE type& operator/=(const type& v) noexcept
+    {
+        (*this) = (*this) / v;
+        return *this;
+    }
+
+#   undef __SIMD_OVERLOAD
+#   undef __SIMD_FALLBACK
 };
 
 } // namespace math

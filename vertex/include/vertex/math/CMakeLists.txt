@@ -1,5 +1,15 @@
 
 #--------------------------------------------------------------------
+# Project Options Configuration
+#--------------------------------------------------------------------
+
+vx_set_option(VX_MATH_ENABLE_SIMD BOOL FALSE "Enable simd optimization for math library if available")
+
+if(VX_MATH_ENABLE_SIMD)
+    target_compile_definitions(Vertex PUBLIC "VXM_ENABLE_SIMD")
+endif()
+
+#--------------------------------------------------------------------
 # General files
 #--------------------------------------------------------------------
 
@@ -56,19 +66,6 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/core/easing.hpp"
     
     #--------------------------------------
-    # Simd files
-    #--------------------------------------
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/config.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/types.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/operators.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/common.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/exponential.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/geometric.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/interpolation.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/simd/matrix.hpp"
-    
-    #--------------------------------------
     # Color files
     #--------------------------------------
     
@@ -85,3 +82,9 @@ file(GLOB VX_MATH_HEADER_FILES
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})
+
+#--------------------------------------------------------------------
+# simd
+#--------------------------------------------------------------------
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/simd")

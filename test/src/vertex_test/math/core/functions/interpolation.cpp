@@ -90,25 +90,25 @@ VX_TEST_CASE(test_lerp)
     {
         constexpr vec4 min(2.0f, -10.0f, 5.0f, 0.5f);
         constexpr vec4 max(10.0f, -2.0f, 13.0f, 8.5f);
-        constexpr vec4 range = max - min;
+        const vec4 range = max - min;
 
-        VX_STATIC_CHECK_EQ(lerp(min, max, 0.0f), min);
-        VX_STATIC_CHECK_EQ(lerp(min, max, 1.0f), max);
-        VX_STATIC_CHECK_EQ(lerp(min, max, 0.5f), min + (range * 0.5f));
-        VX_STATIC_CHECK_EQ(lerp(min, max, 0.25f), min + (range * 0.25f));
-        VX_STATIC_CHECK_EQ(lerp(min, max, 0.75f), min + (range * 0.75f));
+        VX_CHECK_EQ(lerp(min, max, 0.0f), min);
+        VX_CHECK_EQ(lerp(min, max, 1.0f), max);
+        VX_CHECK_EQ(lerp(min, max, 0.5f), min + (range * 0.5f));
+        VX_CHECK_EQ(lerp(min, max, 0.25f), min + (range * 0.25f));
+        VX_CHECK_EQ(lerp(min, max, 0.75f), min + (range * 0.75f));
 
         // same x and y -> result should be constant
-        VX_STATIC_CHECK_EQ(lerp(vec4(5.0f), vec4(5.0f), 0.3f), vec4(5.0f));
+        VX_CHECK_EQ(lerp(vec4(5.0f), vec4(5.0f), 0.3f), vec4(5.0f));
 
         // t < 0 and t > 1 -> extrapolation
-        VX_STATIC_CHECK_EQ(lerp(min, max, -1.0f), vec4(-6.0f, -18.0f, -3.0f, -7.5f));
-        VX_STATIC_CHECK_EQ(lerp(min, max, 2.0f), vec4(18.0f, 6.0f, 21.0f, 16.5f));
+        VX_CHECK_EQ(lerp(min, max, -1.0f), vec4(-6.0f, -18.0f, -3.0f, -7.5f));
+        VX_CHECK_EQ(lerp(min, max, 2.0f), vec4(18.0f, 6.0f, 21.0f, 16.5f));
 
         // clamped
-        VX_STATIC_CHECK(lerp_clamped(min, max, -1.0f) == min);
-        VX_STATIC_CHECK(lerp_clamped(min, max, 0.5f) == min + (range * 0.5f));
-        VX_STATIC_CHECK(lerp_clamped(min, max, 2.0f) == max);
+        VX_CHECK(lerp_clamped(min, max, -1.0f) == min);
+        VX_CHECK(lerp_clamped(min, max, 0.5f) == min + (range * 0.5f));
+        VX_CHECK(lerp_clamped(min, max, 2.0f) == max);
     }
 
     VX_SECTION("vec2 vector t")
@@ -161,23 +161,23 @@ VX_TEST_CASE(test_lerp)
     {
         constexpr vec4 min(2.0f, -10.0f, 1.0f, -3.0f);
         constexpr vec4 max(10.0f, -2.0f, 9.0f, 5.0f);
-        constexpr vec4 range = max - min;
+        const vec4 range = max - min;
 
-        VX_STATIC_CHECK_EQ(lerp(min, max, vec4(0.0f)), min);
-        VX_STATIC_CHECK_EQ(lerp(min, max, vec4(1.0f)), max);
-        VX_STATIC_CHECK_EQ(lerp(min, max, vec4(0.5f)), vec4(6.0f, -6.0f, 5.0f, 1.0f));
-        VX_STATIC_CHECK_EQ(lerp(min, max, vec4(0.25f, 0.75f, 0.1f, 0.9f)), vec4(4.0f, -4.0f, 1.8f, 4.2f));
+        VX_CHECK_EQ(lerp(min, max, vec4(0.0f)), min);
+        VX_CHECK_EQ(lerp(min, max, vec4(1.0f)), max);
+        VX_CHECK_EQ(lerp(min, max, vec4(0.5f)), vec4(6.0f, -6.0f, 5.0f, 1.0f));
+        VX_CHECK_EQ(lerp(min, max, vec4(0.25f, 0.75f, 0.1f, 0.9f)), vec4(4.0f, -4.0f, 1.8f, 4.2f));
 
         // same x and y -> result should be constant
-        VX_STATIC_CHECK_EQ(lerp(vec4(5.0f), vec4(5.0f), vec4(0.3f, 0.7f, 0.1f, 0.5f)), vec4(5.0f));
+        VX_CHECK_EQ(lerp(vec4(5.0f), vec4(5.0f), vec4(0.3f, 0.7f, 0.1f, 0.5f)), vec4(5.0f));
 
         // t < 0 and t > 1 -> extrapolation
-        VX_STATIC_CHECK_EQ(lerp(min, max, vec4(-1.0f, 2.0f, 1.5f, -0.5f)), vec4(-6.0f, 6.0f, 13.0f, -7.0f));
+        VX_CHECK_EQ(lerp(min, max, vec4(-1.0f, 2.0f, 1.5f, -0.5f)), vec4(-6.0f, 6.0f, 13.0f, -7.0f));
 
         // clamped
-        VX_STATIC_CHECK(lerp_clamped(min, max, -1.0f) == min);
-        VX_STATIC_CHECK(lerp_clamped(min, max, 0.5f) == min + (range * 0.5f));
-        VX_STATIC_CHECK(lerp_clamped(min, max, 2.0f) == max);
+        VX_CHECK(lerp_clamped(min, max, -1.0f) == min);
+        VX_CHECK(lerp_clamped(min, max, 0.5f) == min + (range * 0.5f));
+        VX_CHECK(lerp_clamped(min, max, 2.0f) == max);
     }
 }
 
@@ -337,11 +337,11 @@ VX_TEST_CASE(test_smoothstep)
         constexpr f32 edge1 = 2.0f;
 
         // In-bounds values
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.0f, 0.5f, 1.0f, 1.5f)), vec4(0.0f, 0.15625f, 0.5f, 0.84375f));
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.5f, 1.0f, 1.5f, 2.0f)), vec4(0.15625f, 0.5f, 0.84375f, 1.0f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.0f, 0.5f, 1.0f, 1.5f)), vec4(0.0f, 0.15625f, 0.5f, 0.84375f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.5f, 1.0f, 1.5f, 2.0f)), vec4(0.15625f, 0.5f, 0.84375f, 1.0f));
 
         // Out-of-bounds clamping
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(-3.0f, -1.0f, 3.0f, 5.0f)), vec4(0.0f, 0.0f, 1.0f, 1.0f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(-3.0f, -1.0f, 3.0f, 5.0f)), vec4(0.0f, 0.0f, 1.0f, 1.0f));
     }
 
     VX_SECTION("vec2 vector edge")
@@ -384,16 +384,16 @@ VX_TEST_CASE(test_smoothstep)
         constexpr vec4 edge1 = vec4(2.0f, 3.0f, 4.0f, 5.0f);
 
         // In-bounds values
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.0f, 1.0f, 2.0f, 3.0f)), vec4(0.0f));
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(1.0f, 2.0f, 3.0f, 4.0f)), vec4(0.5f));
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(2.0f, 3.0f, 4.0f, 5.0f)), vec4(1.0f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.0f, 1.0f, 2.0f, 3.0f)), vec4(0.0f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(1.0f, 2.0f, 3.0f, 4.0f)), vec4(0.5f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(2.0f, 3.0f, 4.0f, 5.0f)), vec4(1.0f));
 
         // Intermediate values
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.5f, 1.5f, 2.5f, 3.5f)), vec4(0.15625f));
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(1.5f, 2.5f, 3.5f, 4.5f)), vec4(0.84375f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(0.5f, 1.5f, 2.5f, 3.5f)), vec4(0.15625f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(1.5f, 2.5f, 3.5f, 4.5f)), vec4(0.84375f));
 
         // Out-of-bounds clamping
-        VX_STATIC_CHECK_EQ(smoothstep(edge0, edge1, vec4(-1.0f, 5.0f, 1.0f, 10.0f)), vec4(0.0f, 1.0f, 0.0f, 1.0f));
+        VX_CHECK_EQ(smoothstep(edge0, edge1, vec4(-1.0f, 5.0f, 1.0f, 10.0f)), vec4(0.0f, 1.0f, 0.0f, 1.0f));
     }
 }
 
