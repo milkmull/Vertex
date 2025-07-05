@@ -766,11 +766,16 @@ struct vec<4, T>
         return simd::vec4f::load(&x);
     }
 
+    VX_DISABLE_MSVC_WARNING_PUSH()
+    VX_DISABLE_MSVC_WARNING(26495) // disable uninitialized variable warning
+
     __SIMD_OVERLOAD(HAVE_STORE)
     VX_FORCE_INLINE vec(typename simd::vec4f::data_type v) noexcept
     {
         simd::vec4f::store(&x, v);
     }
+
+    VX_DISABLE_MSVC_WARNING_POP()
 
     ///////////////////////////////////////////////////////////////////////////////
     // simd binary arithmetic operators

@@ -1413,7 +1413,7 @@ VX_TEST_CASE(test_copy)
 
     struct entry_info
     {
-        os::filesystem::file_type type;
+        os::filesystem::file_type type = os::filesystem::file_type::NONE;
         bool found = false;
     };
 
