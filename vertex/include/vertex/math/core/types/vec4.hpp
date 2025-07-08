@@ -29,7 +29,6 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
 
     using scalar_type = T;
     static constexpr size_t size = 4;
-
     using type = vec<size, scalar_type>;
 
     ///////////////////////////////////////////////////////////////////////////////

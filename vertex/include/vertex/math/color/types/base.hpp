@@ -9,24 +9,34 @@ namespace math {
 // color types
 ///////////////////////////////////////////////////////////////////////////////
 
-struct color;
-struct color8;
+template <typename T>
+struct color_t;
+
+using color = color_t<f32>;
+using color8 = color_t<i8>;
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_color
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T> struct is_color : false_t {};
-
-template <> struct is_color<color> : true_t {};
-template <> struct is_color<color8> : true_t {};
+template <typename T> struct is_color<color_t<T>> : true_t {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // scalar_type
 ///////////////////////////////////////////////////////////////////////////////
 
-template <> struct scalar_type<color> { using type = f32; };
-template <> struct scalar_type<color8> { using type = u8; };
+template <typename T> struct scalar_type<color_t<T>> { using type = T; };
+
+///////////////////////////////////////////////////////////////////////////////
+// max/min_channel_value
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T> struct get_max_channel_value {};
+template <typename T> struct get_max_channel_value<color_t<T>> : integral_constant<size_t, is_float<T>::value ? 1 : std::numeric_limits<T>::max> {};
+
+template <typename T> struct get_min_channel_value {};
+template <typename T> struct get_min_channel_value<color_t<T>> : integral_constant<size_t, 0> {};
 
 } // namespace vx
 } // namespace math

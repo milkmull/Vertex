@@ -176,5 +176,5 @@ using quatd = quat_t<f64>;
 // generic
 using quat = quatf;
 
-} // namespace vx
 } // namespace math
+} // namespace vx

@@ -16,7 +16,6 @@ struct vec<3, T>
 
     using scalar_type = T;
     static constexpr size_t size = 3;
-
     using type = vec<size, scalar_type>;
 
     ///////////////////////////////////////////////////////////////////////////////

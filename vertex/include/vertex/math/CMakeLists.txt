@@ -62,6 +62,7 @@ file(GLOB VX_MATH_HEADER_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/util/hash.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/util/to_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/util/iter.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/core/easing.hpp"
     
@@ -69,9 +70,24 @@ file(GLOB VX_MATH_HEADER_FILES
     # Color files
     #--------------------------------------
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/util.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color8.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/common.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/comparison.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/space/srgb.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/space/hsl.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/space/hsv.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/util/hash.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/util/to_string.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/util/iter.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/blend.hpp"
     
     #--------------------------------------
     # Procedural files

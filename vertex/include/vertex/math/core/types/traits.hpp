@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "vertex/config/language_config.hpp"
 #include "./base.hpp"
 
