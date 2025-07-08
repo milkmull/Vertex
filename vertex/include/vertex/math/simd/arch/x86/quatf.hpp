@@ -7,6 +7,8 @@ namespace vx {
 namespace math {
 namespace simd {
 
+#if defined(VX_SIMD_X86) && (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
+
 template <>
 struct quat_t<f32>
 {
@@ -108,6 +110,8 @@ struct quat_t<f32>
     static constexpr int HAVE_LENGTH = 1;
 
 };
+
+#endif // VX_SIMD_X86_SSE2_VERSION
 
 } // namespace simd
 } // namespace math

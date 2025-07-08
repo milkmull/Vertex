@@ -116,18 +116,13 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/hardware/simd.h
 
-#define __VX_SIMD_DEFINED_COUNT (\
-    defined(VX_SIMD_ARM_VERSION) +   \
+#if defined(VX_SIMD_ARM_VERSION) +   \
     defined(VX_SIMD_PPC_VERSION) +   \
     defined(VX_SIMD_X86_VERSION) +   \
     defined(VX_SIMD_X86_AMD_VERSION) \
-)
-
-#if (__VX_SIMD_DEFINED_COUNT > 1)
+    > 1
 #   error "Multiple SIMD architectures detected!"
 #endif
-
-#undef __VX_SIMD_DEFINED_COUNT
 
 #if defined(VX_SIMD_X86_AMD)
 #   define VX_SIMD VX_SIMD_X86_AMD

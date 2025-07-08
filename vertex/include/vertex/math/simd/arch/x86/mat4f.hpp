@@ -7,6 +7,8 @@ namespace vx {
 namespace math {
 namespace simd {
 
+#if defined(VX_SIMD_X86) && (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
+
 template <>
 struct mat<4, 4, f32>
 {
@@ -695,6 +697,8 @@ struct mat<4, 4, f32>
     static constexpr int HAVE_OUTER_PRODUCT = 1;
 
 }; // mat4f_op
+
+#endif // VX_SIMD_X86_SSE2_VERSION
 
 } // namespace simd
 } // namespace math

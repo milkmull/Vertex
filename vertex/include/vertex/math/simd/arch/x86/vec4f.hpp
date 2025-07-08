@@ -7,6 +7,8 @@ namespace vx {
 namespace math {
 namespace simd {
 
+#if defined(VX_SIMD_X86) && (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
+
 template <>
 struct vec<4, f32>
 {
@@ -591,6 +593,8 @@ struct vec<4, f32>
     static constexpr int HAVE_SMOOTHSTEP = 1;
 
 }; // vec4f
+
+#endif // VX_SIMD_X86_SSE2_VERSION
 
 } // namespace simd
 } // namespace math

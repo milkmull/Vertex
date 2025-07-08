@@ -22,6 +22,14 @@ file(GLOB VX_MATH_SIMD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/vec4f.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/mat4f.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/arch/x86/quatf.hpp"
+    
+    #--------------------------------------
+    # neon
+    #--------------------------------------
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/arch/neon/vec4f.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/arch/neon/mat4f.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/arch/neon/quatf.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_SIMD_HEADER_FILES})

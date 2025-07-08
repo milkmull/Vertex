@@ -91,7 +91,7 @@ function(vx_add_common_compiler_flags TARGET_NAME)
             -Wimplicit-fallthrough      # Warn on missing break statements in switch cases
             -Wsuggest-override          # Suggest adding 'override' specifier to overridden virtual functions
             -Wnull-dereference          # Warn when a null pointer dereference is detected
-            -Wold-style-cast            # Warn when using C-style casts instead of C++ casts
+            #-Wold-style-cast            # Warn when using C-style casts instead of C++ casts
             -Wpedantic                  # Enforce strict compliance with the language standard, emitting all the warnings demanded by the standard
         )
     endif()
