@@ -117,6 +117,9 @@ struct vec<4, f32>
     static VX_FORCE_INLINE data_type min(data_type a, data_type b) { return _mm_min_ps(a, b); }
     static VX_FORCE_INLINE data_type max(data_type a, data_type b) { return _mm_max_ps(a, b); }
 
+    static VX_FORCE_INLINE data_type min(data_type a, scalar_type b) { return _mm_min_ps(a, _mm_set1_ps(b)); }
+    static VX_FORCE_INLINE data_type max(data_type a, scalar_type b) { return _mm_max_ps(a, _mm_set1_ps(b)); }
+
     static constexpr int HAVE_MIN = 1;
     static constexpr int HAVE_MAX = 1;
 
@@ -288,11 +291,16 @@ struct vec<4, f32>
     // clamp
     //////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE data_type clamp(data_type v, data_type minVal, data_type maxVal) noexcept
+    static VX_FORCE_INLINE data_type clamp(data_type v, data_type min, data_type max) noexcept
     {
-        const data_type min0 = _mm_min_ps(v, maxVal);
-        const data_type max0 = _mm_max_ps(min0, minVal);
+        const data_type min0 = _mm_min_ps(v, max);
+        const data_type max0 = _mm_max_ps(min0, min);
         return max0;
+    }
+
+    static VX_FORCE_INLINE data_type clamp(data_type v, scalar_type min, scalar_type max) noexcept
+    {
+        return clamp(v, _mm_set1_ps(min), _mm_set1_ps(max));
     }
 
     static constexpr int HAVE_CLAMP = 1;
@@ -548,6 +556,11 @@ struct vec<4, f32>
         return mad0;
     }
 
+    static VX_FORCE_INLINE data_type lerp(data_type v1, data_type v2, scalar_type a) noexcept
+    {
+        return lerp(v1, v2, _mm_set1_ps(a));
+    }
+
     static constexpr int HAVE_LERP = 1;
 
     //////////////////////////////////////////////////////////////////////////////
@@ -555,6 +568,11 @@ struct vec<4, f32>
     //////////////////////////////////////////////////////////////////////////////
 
     static VX_FORCE_INLINE data_type mix(data_type v1, data_type v2, data_type a) noexcept
+    {
+        return lerp(v1, v2, a);
+    }
+
+    static VX_FORCE_INLINE data_type mix(data_type v1, data_type v2, scalar_type a) noexcept
     {
         return lerp(v1, v2, a);
     }
@@ -569,6 +587,11 @@ struct vec<4, f32>
     {
         const data_type mask = _mm_cmpge_ps(x, edge);
         return _mm_and_ps(mask, _mm_set1_ps(1.0f));
+    }
+
+    static VX_FORCE_INLINE data_type step(scalar_type edge, data_type x) noexcept
+    {
+        return step(_mm_set1_ps(edge), x);
     }
 
     static constexpr int HAVE_STEP = 1;
@@ -588,6 +611,11 @@ struct vec<4, f32>
         const data_type mul1 = _mm_mul_ps(clp0, clp0);
         const data_type mul2 = _mm_mul_ps(mul1, sub2);
         return mul2;
+    }
+
+    static VX_FORCE_INLINE data_type smoothstep(scalar_type edge0, scalar_type edge1, data_type x) noexcept
+    {
+        return smoothstep(_mm_set1_ps(edge0), _mm_set1_ps(edge1), x);
     }
 
     static constexpr int HAVE_SMOOTHSTEP = 1;

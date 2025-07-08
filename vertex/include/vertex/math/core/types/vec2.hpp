@@ -47,7 +47,7 @@ struct vec<2, T>
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U>
+    template <typename U, VXM_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec(U scalar) noexcept
         : x(static_cast<scalar_type>(scalar))
         , y(static_cast<scalar_type>(scalar)) {}

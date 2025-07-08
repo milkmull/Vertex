@@ -45,10 +45,16 @@ VX_FORCE_INLINE constexpr vec<3, T> min(const vec<3, T>& x, T y) noexcept
     return vec<3, T>(min(x.x, y), min(x.y, y), min(x.z, y));
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> min(const vec<4, T>& x, T y) noexcept
 {
     return vec<4, T>(min(x.x, y), min(x.y, y), min(x.z, y), min(x.w, y));
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+VX_FORCE_INLINE vec<4, T> min(const vec<4, T>& x, T y) noexcept
+{
+    return simd::vec<4, T>::min(x, y);
 }
 
 // vec binary
@@ -71,13 +77,22 @@ VX_FORCE_INLINE constexpr vec<3, T> min(
     return vec<3, T>(min(x.x, y.x), min(x.y, y.y), min(x.z, y.z));
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> min(
     const vec<4, T>& x,
     const vec<4, T>& y
 ) noexcept
 {
     return vec<4, T>(min(x.x, y.x), min(x.y, y.y), min(x.z, y.z), min(x.w, y.w));
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+VX_FORCE_INLINE vec<4, T> min(
+    const vec<4, T>& x,
+    const vec<4, T>& y
+) noexcept
+{
+    return simd::vec<4, T>::min(x, y);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -116,10 +131,16 @@ VX_FORCE_INLINE constexpr vec<3, T> max(const vec<3, T>& x, T y) noexcept
     return vec<3, T>(max(x.x, y), max(x.y, y), max(x.z, y));
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> max(const vec<4, T>& x, T y) noexcept
 {
     return vec<4, T>(max(x.x, y), max(x.y, y), max(x.z, y), max(x.w, y));
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+VX_FORCE_INLINE vec<4, T> max(const vec<4, T>& x, T y) noexcept
+{
+    return simd::vec<4, T>::max(x, y);
 }
 
 // vec binary
@@ -142,13 +163,22 @@ VX_FORCE_INLINE constexpr vec<3, T> max(
     return vec<3, T>(max(x.x, y.x), max(x.y, y.y), max(x.z, y.z));
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> max(
     const vec<4, T>& x,
     const vec<4, T>& y
 ) noexcept
 {
     return vec<4, T>(max(x.x, y.x), max(x.y, y.y), max(x.z, y.z), max(x.w, y.w));
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+VX_FORCE_INLINE vec<4, T> max(
+    const vec<4, T>& x,
+    const vec<4, T>& y
+) noexcept
+{
+    return simd::vec<4, T>::max(x, y);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -828,7 +858,7 @@ VX_FORCE_INLINE constexpr vec<3, T> clamp(
     );
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     T min,
@@ -841,6 +871,16 @@ VX_FORCE_INLINE constexpr vec<4, T> clamp(
         clamp(x.z, min, max),
         clamp(x.w, min, max)
     );
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_CLAMP))>
+VX_FORCE_INLINE vec<4, T> clamp(
+    const vec<4, T>& x,
+    T min,
+    T max
+) noexcept
+{
+    return simd::vec<4, T>::clamp(x, min, max);
 }
 
 // vec trinary
@@ -872,7 +912,7 @@ VX_FORCE_INLINE constexpr vec<3, T> clamp(
     );
 }
 
-template <typename T>
+template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     const vec<4, T>& min,
@@ -885,6 +925,16 @@ VX_FORCE_INLINE constexpr vec<4, T> clamp(
         clamp(x.z, min.z, max.z),
         clamp(x.w, min.w, max.w)
     );
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_CLAMP))>
+VX_FORCE_INLINE vec<4, T> clamp(
+    const vec<4, T>& x,
+    const vec<4, T>& min,
+    const vec<4, T>& max
+) noexcept
+{
+    return simd::vec<4, T>::clamp(x, min, max);
 }
 
 //////////////////////////////////////////////////////////////////////////////

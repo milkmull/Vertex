@@ -75,9 +75,12 @@ file(GLOB VX_MATH_HEADER_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color8.hpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/common.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/comparison.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/interpolation.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/color/space/srgb.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/space/hsl.hpp"

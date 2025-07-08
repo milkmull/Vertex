@@ -70,7 +70,7 @@ inline constexpr vec<3, T> rgb_to_hsl(T r, T g, T b) noexcept
 
     T h, s;
 
-    s = (l > static_cast<T>(0.5)) ? dc * (static_cast<T>(0.5) - cmax - cmin) : dc / (cmax + cmin);
+    s = dc / (static_cast<T>(1) - abs(static_cast<T>(2) * l - static_cast<T>(1)));
 
     if (cmax == r)
     {

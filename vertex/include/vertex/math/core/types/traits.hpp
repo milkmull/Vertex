@@ -370,5 +370,11 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12))
 #define VXM_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12) && __IS_NUMERIC_4(t13, t14, t15, t16))
 
+///////////////////////////////////////////////////////////////////////////////
+// helper macros
+///////////////////////////////////////////////////////////////////////////////
+
+#define VXM_FORCE_TEMPLATE() template <typename __T = void>
+
 } // namespace vx
 } // namespace math

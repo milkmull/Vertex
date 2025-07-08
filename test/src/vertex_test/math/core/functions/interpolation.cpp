@@ -211,17 +211,17 @@ VX_TEST_CASE(test_step)
 
     VX_SECTION("vec4 scalar edge")
     {
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(0.0f, vec4(-1.0f, 0.0f, 1.0f, 2.0f)),
             vec4(0.0f, 1.0f, 1.0f, 1.0f)
         );
 
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(2.0f, vec4(1.0f, 2.0f, 3.0f, 4.0f)),
             vec4(0.0f, 1.0f, 1.0f, 1.0f)
         );
 
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(1.0f, vec4(0.0f, 1.0f, 2.0f, 0.5f)),
             vec4(0.0f, 1.0f, 1.0f, 0.0f)
         );
@@ -266,17 +266,17 @@ VX_TEST_CASE(test_step)
 
     VX_SECTION("vec4 vector edge")
     {
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(vec4(0.0f, 0.0f, 0.0f, 0.0f), vec4(-1.0f, 0.0f, 1.0f, 2.0f)),
             vec4(0.0f, 1.0f, 1.0f, 1.0f)
         );
 
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(vec4(2.0f), vec4(1.0f, 2.0f, 3.0f, 4.0f)),
             vec4(0.0f, 1.0f, 1.0f, 1.0f)
         );
 
-        VX_STATIC_CHECK_EQ(
+        VX_CHECK_EQ(
             step(vec4(1.0f, 1.0f, 1.0f, 1.0f), vec4(0.0f, 1.0f, 2.0f, 0.5f)),
             vec4(0.0f, 1.0f, 1.0f, 0.0f)
         );

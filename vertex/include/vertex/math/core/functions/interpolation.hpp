@@ -152,7 +152,7 @@ VX_FORCE_INLINE constexpr vec<3, T> step(
     );
 }
 
-template <typename T>
+template <typename T, VXM_REQ((!simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE constexpr vec<4, T> step(
     T edge,
     const vec<4, T>& x
@@ -164,6 +164,15 @@ VX_FORCE_INLINE constexpr vec<4, T> step(
         step(edge, x.z),
         step(edge, x.w)
     );
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_STEP))>
+VX_FORCE_INLINE vec<4, T> step(
+    T edge,
+    const vec<4, T>& x
+) noexcept
+{
+    return simd::vec<4, T>::step(edge, x);
 }
 
 // vec binary
@@ -193,7 +202,7 @@ VX_FORCE_INLINE constexpr vec<3, T> step(
     );
 }
 
-template <typename T>
+template <typename T, VXM_REQ((!simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE constexpr vec<4, T> step(
     const vec<4, T>& edge,
     const vec<4, T>& x
@@ -205,6 +214,15 @@ VX_FORCE_INLINE constexpr vec<4, T> step(
         step(edge.z, x.z),
         step(edge.w, x.w)
     );
+}
+
+template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_STEP))>
+VX_FORCE_INLINE vec<4, T> step(
+    const vec<4, T>& edge,
+    const vec<4, T>& x
+) noexcept
+{
+    return simd::vec<4, T>::step(edge, x);
 }
 
 //////////////////////////////////////////////////////////////////////////////

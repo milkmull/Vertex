@@ -224,10 +224,16 @@ VX_FORCE_INLINE constexpr vec<3, T> sqrt(const vec<3, T>& x) noexcept
     return vec<3, T>(sqrt(x.x), sqrt(x.y), sqrt(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ((is_float<T>::value && !simd::vec<4, T>::HAVE_SQRT))>
 VX_FORCE_INLINE constexpr vec<4, T> sqrt(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(sqrt(x.x), sqrt(x.y), sqrt(x.z), sqrt(x.w));
+}
+
+template <typename T, VXM_REQ((is_float<T>::value && simd::vec<4, T>::HAVE_SQRT))>
+VX_FORCE_INLINE vec<4, T> sqrt(const vec<4, T>& x) noexcept
+{
+    return simd::vec<4, T>::sqrt(x);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -256,10 +262,16 @@ VX_FORCE_INLINE constexpr vec<3, T> inverse(const vec<3, T>& x) noexcept
     return vec<3, T>(inverse(x.x), inverse(x.y), inverse(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ((is_float<T>::value && !simd::vec<4, T>::HAVE_INVERSE))>
 VX_FORCE_INLINE constexpr vec<4, T> inverse(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(inverse(x.x), inverse(x.y), inverse(x.z), inverse(x.w));
+}
+
+template <typename T, VXM_REQ((is_float<T>::value && simd::vec<4, T>::HAVE_INVERSE))>
+VX_FORCE_INLINE vec<4, T> inverse(const vec<4, T>& x) noexcept
+{
+    return simd::vec<4, T>::inverse(x);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -288,10 +300,16 @@ VX_FORCE_INLINE constexpr vec<3, T> inverse_sqrt(const vec<3, T>& x) noexcept
     return vec<3, T>(inverse_sqrt(x.x), inverse_sqrt(x.y), inverse_sqrt(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VXM_REQ((is_float<T>::value && !simd::vec<4, T>::HAVE_INVERSE_SQRT))>
 VX_FORCE_INLINE constexpr vec<4, T> inverse_sqrt(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(inverse_sqrt(x.x), inverse_sqrt(x.y), inverse_sqrt(x.z), inverse_sqrt(x.w));
+}
+
+template <typename T, VXM_REQ((is_float<T>::value && simd::vec<4, T>::HAVE_INVERSE_SQRT))>
+VX_FORCE_INLINE vec<4, T> inverse_sqrt(const vec<4, T>& x) noexcept
+{
+    return simd::vec<4, T>::inverse_sqrt(x);
 }
 
 //////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 
 #--------------------------------------------------------------------
-# Math Tests
+# Core Tests
 #--------------------------------------------------------------------
 
 vx_add_test(test_math_scalar                "math/core/types" "${CMAKE_CURRENT_SOURCE_DIR}/core/types/scalar.cpp")
@@ -36,3 +36,17 @@ vx_add_test(test_math_swizzle               "math/core/functions" "${CMAKE_CURRE
 vx_add_test(test_math_transform2d           "math/core/transform" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform2d.cpp")
 vx_add_test(test_math_transform3d           "math/core/transform" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/transform3d.cpp")
 vx_add_test(test_math_projection            "math/core/transform" "${CMAKE_CURRENT_SOURCE_DIR}/core/transform/projection.cpp")
+
+#--------------------------------------------------------------------
+# Color Tests
+#--------------------------------------------------------------------
+
+vx_add_test(test_math_color                 "math/color/types" "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.cpp")
+
+vx_add_test(test_math_color_color           "math/color/functions" "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/color.cpp")
+vx_add_test(test_math_color_common          "math/color/functions" "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/common.cpp")
+vx_add_test(test_math_color_comparison      "math/color/functions" "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/comparison.cpp")
+vx_add_test(test_math_color_interpolation   "math/color/functions" "${CMAKE_CURRENT_SOURCE_DIR}/color/functions/interpolation.cpp")
+
+vx_add_test(test_math_color_space           "math/color" "${CMAKE_CURRENT_SOURCE_DIR}/color/space.cpp")
+#vx_add_test(test_math_color_blend           "math/color" "${CMAKE_CURRENT_SOURCE_DIR}/color/blend.cpp")
