@@ -111,20 +111,20 @@ VX_TEST_CASE(test_inverse)
 {
     {
         constexpr quat q{ 1.0f, 2.0f, 3.0f, 4.0f };
-        VX_STATIC_CHECK_EQ(inverse(q), quat(0.033333f, -0.066667f, -0.10000f, -0.133333f));
-        VX_STATIC_CHECK(is_identity_approx(inverse(q) * q));
+        VX_CHECK_EQ(inverse(q), quat(0.033333f, -0.066667f, -0.10000f, -0.133333f));
+        VX_CHECK(is_identity_approx(inverse(q) * q));
     }
 
     {
         constexpr quat q{ -1.0f, -2.0f, -3.0f, -4.0f };
-        VX_STATIC_CHECK_EQ(inverse(q), quat(-0.033333f, 0.066667f, 0.10000f, 0.133333f));
-        VX_STATIC_CHECK(is_identity_approx(inverse(q) * q));
+        VX_CHECK_EQ(inverse(q), quat(-0.033333f, 0.066667f, 0.10000f, 0.133333f));
+        VX_CHECK(is_identity_approx(inverse(q) * q));
     }
 
     {
         constexpr quat q = quat::identity();
-        VX_STATIC_CHECK_EQ(inverse(q), quat::identity());
-        VX_STATIC_CHECK(is_identity_approx(inverse(q) * q));
+        VX_CHECK_EQ(inverse(q), quat::identity());
+        VX_CHECK(is_identity_approx(inverse(q) * q));
     }
 }
 

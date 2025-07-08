@@ -349,10 +349,10 @@ VX_TEST_CASE(test_vec4i)
         VX_STATIC_CHECK(vec4i(1, 2, 3, 4) - vec4i(5) == vec4i(-4, -3, -2, -1));
 
         // multiplication
-        VX_STATIC_CHECK(vec4i(1, 2, 3, 4) * 5 == vec4i(5, 10, 15, 20));
-        VX_STATIC_CHECK(5 * vec4i(1, 2, 3, 4) == vec4i(5, 10, 15, 20));
-        VX_STATIC_CHECK(vec4i(5) * vec4i(1, 2, 3, 4) == vec4i(5, 10, 15, 20));
-        VX_STATIC_CHECK(vec4i(1, 2, 3, 4) * vec4i(5) == vec4i(5, 10, 15, 20));
+        VX_CHECK(vec4i(1, 2, 3, 4) * 5 == vec4i(5, 10, 15, 20));
+        VX_CHECK(5 * vec4i(1, 2, 3, 4) == vec4i(5, 10, 15, 20));
+        VX_CHECK(vec4i(5) * vec4i(1, 2, 3, 4) == vec4i(5, 10, 15, 20));
+        VX_CHECK(vec4i(1, 2, 3, 4) * vec4i(5) == vec4i(5, 10, 15, 20));
 
         // division
         VX_STATIC_CHECK(vec4i(5, 10, 15, 20) / 5 == vec4i(1, 2, 3, 4));
@@ -682,10 +682,10 @@ VX_TEST_CASE(test_vec4u)
         VX_STATIC_CHECK(vec4u(6u, 7u, 8u, 9u) - vec4u(5u) == vec4u(1u, 2u, 3u, 4u));
 
         // multiplication
-        VX_STATIC_CHECK(vec4u(1u, 2u, 3u, 4u) * 5u == vec4u(5u, 10u, 15u, 20u));
-        VX_STATIC_CHECK(5u * vec4u(1u, 2u, 3u, 4u) == vec4u(5u, 10u, 15u, 20u));
-        VX_STATIC_CHECK(vec4u(5u) * vec4u(1u, 2u, 3u, 4u) == vec4u(5u, 10u, 15u, 20u));
-        VX_STATIC_CHECK(vec4u(1u, 2u, 3u, 4u) * vec4u(5u) == vec4u(5u, 10u, 15u, 20u));
+        VX_CHECK(vec4u(1u, 2u, 3u, 4u) * 5u == vec4u(5u, 10u, 15u, 20u));
+        VX_CHECK(5u * vec4u(1u, 2u, 3u, 4u) == vec4u(5u, 10u, 15u, 20u));
+        VX_CHECK(vec4u(5u) * vec4u(1u, 2u, 3u, 4u) == vec4u(5u, 10u, 15u, 20u));
+        VX_CHECK(vec4u(1u, 2u, 3u, 4u) * vec4u(5u) == vec4u(5u, 10u, 15u, 20u));
 
         // division
         VX_STATIC_CHECK(vec4u(5u, 10u, 15u, 20u) / 5u == vec4u(1u, 2u, 3u, 4u));
@@ -1266,10 +1266,10 @@ VX_TEST_CASE(test_vec4d)
         VX_STATIC_CHECK(vec4d(1.5, -2.75, 3.0, 4.0) - vec4d(5.0) == vec4d(-3.5, -7.75, -2.0, -1.0));
 
         // multiplication
-        VX_STATIC_CHECK(vec4d(1.5, -2.75, 3.0, 4.0) * 5.0 == vec4d(7.5, -13.75, 15.0, 20.0));
-        VX_STATIC_CHECK(5.0 * vec4d(1.5, -2.75, 3.0, 4.0) == vec4d(7.5, -13.75, 15.0, 20.0));
-        VX_STATIC_CHECK(vec4d(5.5) * vec4d(1.5, -2.75, 3.0, 4.0) == vec4d(8.25, -15.125, 16.5, 22.0));
-        VX_STATIC_CHECK(vec4d(1.5, -2.75, 3.0, 4.0) * vec4d(5.0) == vec4d(7.5, -13.75, 15.0, 20.0));
+        VX_CHECK(vec4d(1.5, -2.75, 3.0, 4.0) * 5.0 == vec4d(7.5, -13.75, 15.0, 20.0));
+        VX_CHECK(5.0 * vec4d(1.5, -2.75, 3.0, 4.0) == vec4d(7.5, -13.75, 15.0, 20.0));
+        VX_CHECK(vec4d(5.5) * vec4d(1.5, -2.75, 3.0, 4.0) == vec4d(8.25, -15.125, 16.5, 22.0));
+        VX_CHECK(vec4d(1.5, -2.75, 3.0, 4.0) * vec4d(5.0) == vec4d(7.5, -13.75, 15.0, 20.0));
 
         // division
         VX_STATIC_CHECK(vec4d(5.5, -13.75, 15.0, 20.0) / 5.0 == vec4d(1.1, -2.75, 3.0, 4.0));

@@ -6,7 +6,7 @@
 using namespace vx::math;
 
 #define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b))
-#define VX_STATIC_CHECK_EQ(a, b) VX_STATIC_CHECK(equal_approx(a, b))
+#define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b))
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,75 +34,75 @@ VX_TEST_CASE(test_mat4x4)
         // implicit constructors
         {
             {
-                constexpr mat4x4 m;
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(1.0f, 0.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(0.0f, 1.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 1.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                const mat4x4 m;
+                VX_CHECK_EQ(m.columns[0], vec4(1.0f, 0.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(0.0f, 1.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 1.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 1.0f));
             }
 
             {
-                constexpr mat4x4 m(mat4x4(2.0f));
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(2.0f, 0.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(0.0f, 2.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 2.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 2.0f));
+                const mat4x4 m(mat4x4(2.0f));
+                VX_CHECK_EQ(m.columns[0], vec4(2.0f, 0.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(0.0f, 2.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 2.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 2.0f));
             }
         }
 
         // explicit constructors
         {
-            constexpr vec4 c1(1.0f, 2.0f, 3.0f, 4.0f);
-            constexpr vec4 c2(5.0f, 6.0f, 7.0f, 8.0f);
-            constexpr vec4 c3(9.0f, 10.0f, 11.0f, 12.0f);
-            constexpr vec4 c4(13.0f, 14.0f, 15.0f, 16.0f);
+            const vec4 c1(1.0f, 2.0f, 3.0f, 4.0f);
+            const vec4 c2(5.0f, 6.0f, 7.0f, 8.0f);
+            const vec4 c3(9.0f, 10.0f, 11.0f, 12.0f);
+            const vec4 c4(13.0f, 14.0f, 15.0f, 16.0f);
 
             {
-                constexpr mat4x4 m(
+                const mat4x4 m(
                     c1[0], c1[1], c1[2], c1[3],
                     c2[0], c2[1], c2[2], c2[3],
                     c3[0], c3[1], c3[2], c3[3],
                     c4[0], c4[1], c4[2], c4[3]
                 );
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
+                VX_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
             }
 
             {
-                constexpr mat4x4 m(c1, c2, c3, c4);
-                VX_STATIC_CHECK_EQ(m.columns[0], c1);
-                VX_STATIC_CHECK_EQ(m.columns[1], c2);
-                VX_STATIC_CHECK_EQ(m.columns[2], c3);
-                VX_STATIC_CHECK_EQ(m.columns[3], c4);
+                const mat4x4 m(c1, c2, c3, c4);
+                VX_CHECK_EQ(m.columns[0], c1);
+                VX_CHECK_EQ(m.columns[1], c2);
+                VX_CHECK_EQ(m.columns[2], c3);
+                VX_CHECK_EQ(m.columns[3], c4);
             }
         }
 
         // conversion constructors
         {
             {
-                constexpr mat4x4 m(mat4x4(2u));
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(2.0f, 0.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(0.0f, 2.0f, 0.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 2.0f, 0.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 2.0f));
+                const mat4x4 m(mat4x4(2u));
+                VX_CHECK_EQ(m.columns[0], vec4(2.0f, 0.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(0.0f, 2.0f, 0.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(0.0f, 0.0f, 2.0f, 0.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(0.0f, 0.0f, 0.0f, 2.0f));
             }
 
             {
-                constexpr mat4x4 m(true, 2u, 3.0, 4, 5.0f, 6u, 7, 8.0f, 9u, 10, 11.0f, 12u, 13.0, 14, 15.0f, 16u);
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
+                const mat4x4 m(true, 2u, 3.0, 4, 5.0f, 6u, 7, 8.0f, 9u, 10, 11.0f, 12u, 13.0, 14, 15.0f, 16u);
+                VX_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
             }
 
             {
-                constexpr mat4x4 m(vec4i(1, 2, 3, 4), vec4u(5u, 6u, 7u, 8u), vec4(9.0f, 10.0f, 11.0f, 12.0f), vec4d(13.0, 14.0, 15.0, 16.0));
-                VX_STATIC_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
-                VX_STATIC_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
-                VX_STATIC_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
-                VX_STATIC_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
+                const mat4x4 m(vec4i(1, 2, 3, 4), vec4u(5u, 6u, 7u, 8u), vec4(9.0f, 10.0f, 11.0f, 12.0f), vec4d(13.0, 14.0, 15.0, 16.0));
+                VX_CHECK_EQ(m.columns[0], vec4(1.0f, 2.0f, 3.0f, 4.0f));
+                VX_CHECK_EQ(m.columns[1], vec4(5.0f, 6.0f, 7.0f, 8.0f));
+                VX_CHECK_EQ(m.columns[2], vec4(9.0f, 10.0f, 11.0f, 12.0f));
+                VX_CHECK_EQ(m.columns[3], vec4(13.0f, 14.0f, 15.0f, 16.0f));
             }
         }
     }
@@ -132,7 +132,7 @@ VX_TEST_CASE(test_mat4x4)
         }
     }
 
-    constexpr mat4x4 m44(
+    const mat4x4 m44(
         1.0f, 2.0f, 3.0f, 4.0f,
         5.0f, 6.0f, 7.0f, 8.0f,
         9.0f, 10.0f, 11.0f, 12.0f,
@@ -141,10 +141,10 @@ VX_TEST_CASE(test_mat4x4)
 
     VX_SECTION("index")
     {
-        VX_STATIC_CHECK(m44[0] == vec4(1.0f, 2.0f, 3.0f, 4.0f));
-        VX_STATIC_CHECK(m44[1] == vec4(5.0f, 6.0f, 7.0f, 8.0f));
-        VX_STATIC_CHECK(m44[2] == vec4(9.0f, 10.0f, 11.0f, 12.0f));
-        VX_STATIC_CHECK(m44[3] == vec4(13.0f, 14.0f, 15.0f, 16.0f));
+        VX_CHECK(m44[0] == vec4(1.0f, 2.0f, 3.0f, 4.0f));
+        VX_CHECK(m44[1] == vec4(5.0f, 6.0f, 7.0f, 8.0f));
+        VX_CHECK(m44[2] == vec4(9.0f, 10.0f, 11.0f, 12.0f));
+        VX_CHECK(m44[3] == vec4(13.0f, 14.0f, 15.0f, 16.0f));
 
         mat4x4 m;
 
@@ -160,31 +160,31 @@ VX_TEST_CASE(test_mat4x4)
 
     VX_SECTION("comparison")
     {
-        VX_STATIC_CHECK(m44 == m44);
-        VX_STATIC_CHECK(m44 != mat4x4(1.0f, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, -8.0f, 9.0f, -10.0f, 11.0f, -12.0f, 13.0f, -14.0f, 15.0f, -16.0f));
+        VX_CHECK(m44 == m44);
+        VX_CHECK(m44 != mat4x4(1.0f, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, -8.0f, 9.0f, -10.0f, 11.0f, -12.0f, 13.0f, -14.0f, 15.0f, -16.0f));
     }
 
     VX_SECTION("unary const operators")
     {
-        VX_STATIC_CHECK(+mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
+        VX_CHECK(+mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
             mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f));
 
-        VX_STATIC_CHECK(+mat4x4(1.0f, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, -8.0f, 9.0f, -10.0f, 11.0f, -12.0f, 13.0f, -14.0f, 15.0f, -16.0f) ==
+        VX_CHECK(+mat4x4(1.0f, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, -8.0f, 9.0f, -10.0f, 11.0f, -12.0f, 13.0f, -14.0f, 15.0f, -16.0f) ==
             mat4x4(1.0f, -2.0f, 3.0f, -4.0f, 5.0f, -6.0f, 7.0f, -8.0f, 9.0f, -10.0f, 11.0f, -12.0f, 13.0f, -14.0f, 15.0f, -16.0f));
 
-        VX_STATIC_CHECK(-mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
+        VX_CHECK(-mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
             mat4x4(-1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f, -10.0f, -11.0f, -12.0f, -13.0f, -14.0f, -15.0f, -16.0f));
 
-        VX_STATIC_CHECK(-mat4x4(-1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f, -10.0f, -11.0f, -12.0f, -13.0f, -14.0f, -15.0f, -16.0f) ==
+        VX_CHECK(-mat4x4(-1.0f, -2.0f, -3.0f, -4.0f, -5.0f, -6.0f, -7.0f, -8.0f, -9.0f, -10.0f, -11.0f, -12.0f, -13.0f, -14.0f, -15.0f, -16.0f) ==
             mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f));
     }
 
     VX_SECTION("increment and decrement operators")
     {
-        VX_STATIC_CHECK(++mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
+        VX_CHECK(++mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
             mat4x4(2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f, 17.0f));
 
-        VX_STATIC_CHECK(--mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
+        VX_CHECK(--mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f) ==
             mat4x4(0.0f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f));
 
         mat4x4 m = mat4x4(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f, 13.0f, 14.0f, 15.0f, 16.0f);
@@ -219,23 +219,23 @@ VX_TEST_CASE(test_mat4x4)
             VX_CHECK(5.0f * m44 == mat4x4(5.0f, 10.0f, 15.0f, 20.0f, 25.0f, 30.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f, 65.0f, 70.0f, 75.0f, 80.0f));
 
             // 4x1 * 4x4
-            constexpr vec4 m41(1.0f, 2.0f, 3.0f, 4.0f);
-            VX_STATIC_CHECK((m41 * m44) == vec4(30.0f, 70.0f, 110.0f, 150.0f));
+            const vec4 m41(1.0f, 2.0f, 3.0f, 4.0f);
+            VX_CHECK((m41 * m44) == vec4(30.0f, 70.0f, 110.0f, 150.0f));
 
             // 4x4 * 1x4
-            constexpr vec4 m14(1.0f, 2.0f, 3.0f, 4.0f);
-            VX_STATIC_CHECK((m44 * m14) == vec4(90.0f, 100.0f, 110.0f, 120.0f));
+            const vec4 m14(1.0f, 2.0f, 3.0f, 4.0f);
+            VX_CHECK((m44 * m14) == vec4(90.0f, 100.0f, 110.0f, 120.0f));
 
             // 4x4 * 2x4
-            constexpr mat2x4 m24(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
-            VX_STATIC_CHECK((m44 * m24) == mat2x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f));
+            const mat2x4 m24(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f);
+            VX_CHECK((m44 * m24) == mat2x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f));
 
             // 4x4 * 3x4
-            constexpr mat3x4 m34(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f);
-            VX_STATIC_CHECK((m44 * m34) == mat3x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f, 314.0f, 356.0f, 398.0f, 440.0f));
+            const mat3x4 m34(1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 9.0f, 10.0f, 11.0f, 12.0f);
+            VX_CHECK((m44 * m34) == mat3x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f, 314.0f, 356.0f, 398.0f, 440.0f));
 
             // 4x4 * 4x4
-            VX_STATIC_CHECK((m44 * m44) == mat4x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f, 314.0f, 356.0f, 398.0f, 440.0f, 426.0f, 484.0f, 542.0f, 600.0f));
+            VX_CHECK((m44 * m44) == mat4x4(90.0f, 100.0f, 110.0f, 120.0f, 202.0f, 228.0f, 254.0f, 280.0f, 314.0f, 356.0f, 398.0f, 440.0f, 426.0f, 484.0f, 542.0f, 600.0f));
         }
 
         // division
@@ -289,20 +289,20 @@ VX_TEST_CASE(test_mat4x4)
     {
         // identity
         {
-            constexpr mat4x4 i = mat4x4::identity();
-            VX_STATIC_CHECK(i.columns[0] == vec4(1.0f, 0.0f, 0.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[1] == vec4(0.0f, 1.0f, 0.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[2] == vec4(0.0f, 0.0f, 1.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[3] == vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            const mat4x4 i = mat4x4::identity();
+            VX_CHECK(i.columns[0] == vec4(1.0f, 0.0f, 0.0f, 0.0f));
+            VX_CHECK(i.columns[1] == vec4(0.0f, 1.0f, 0.0f, 0.0f));
+            VX_CHECK(i.columns[2] == vec4(0.0f, 0.0f, 1.0f, 0.0f));
+            VX_CHECK(i.columns[3] == vec4(0.0f, 0.0f, 0.0f, 1.0f));
         }
 
         // zero
         {
-            constexpr mat4x4 i = mat4x4::zero();
-            VX_STATIC_CHECK(i.columns[0] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[1] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[2] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
-            VX_STATIC_CHECK(i.columns[3] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            const mat4x4 i = mat4x4::zero();
+            VX_CHECK(i.columns[0] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            VX_CHECK(i.columns[1] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            VX_CHECK(i.columns[2] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
+            VX_CHECK(i.columns[3] == vec4(0.0f, 0.0f, 0.0f, 0.0f));
         }
     }
 }

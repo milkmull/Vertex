@@ -10,7 +10,15 @@ template <size_t M, size_t N, typename T>
 struct mat
 {
     using scalar_type = T;
-    using type = vec<N, T>[M];
+    using data_type = scalar_type[M][M];
+
+    constexpr size_t calulate_alignment() noexcept
+    {
+        return alignof(scalar_type[M][N]);
+    }
+
+    static constexpr int HAVE_LOAD = 0;
+    static constexpr int HAVE_STORE = 0;
 
     static constexpr int HAVE_ADD = 0;
     static constexpr int HAVE_SUB = 0;

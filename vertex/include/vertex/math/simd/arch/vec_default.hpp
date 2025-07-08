@@ -10,7 +10,12 @@ template <size_t L, typename T>
 struct vec
 {
     using scalar_type = T;
-    using type = scalar_type[L];
+    using data_type = scalar_type[L];
+
+    static constexpr size_t calulate_alignment() noexcept
+    {
+        return alignof(data_type);
+    }
 
     static constexpr int HAVE_LOAD = 0;
     static constexpr int HAVE_STORE = 0;

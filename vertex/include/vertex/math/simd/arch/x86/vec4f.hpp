@@ -1,8 +1,7 @@
 #pragma once
 
-#include "./base_types.hpp"
-
-#if defined(VXM_ENABLE_SIMD)
+#include "../config.hpp"
+#include "../vec_default.hpp"
 
 namespace vx {
 namespace math {
@@ -11,28 +10,21 @@ namespace simd {
 template <>
 struct vec<4, f32>
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
+
     using scalar_type = f32;
     static constexpr size_t size = 4;
-    using data_type = vec4f_t;
 
-#if (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
+    using data_type = __m128;
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // load/store
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static VX_FORCE_INLINE data_type load(const scalar_type* ptr) noexcept
+    static constexpr size_t calulate_alignment() noexcept
     {
-        return _mm_loadu_ps(ptr);
+        constexpr size_t a1 = alignof(scalar_type[size]);
+        constexpr size_t a2 = alignof(data_type);
+        return (a1 > a2) ? a1 : a2;
     }
-
-    static VX_FORCE_INLINE void store(scalar_type* ptr, data_type v) noexcept
-    {
-        _mm_storeu_ps(ptr, v);
-    }
-
-    static constexpr int HAVE_LOAD = 1;
-    static constexpr int HAVE_STORE = 1;
 
     ///////////////////////////////////////////////////////////////////////////////
     // comparison
@@ -598,14 +590,8 @@ struct vec<4, f32>
 
     static constexpr int HAVE_SMOOTHSTEP = 1;
 
-///////////////////////////////////////////////////////////////////////////////
-
-#endif // VX_SIMD_X86_SSE2_VERSION
-
 }; // vec4f
 
 } // namespace simd
 } // namespace math
 } // namespace vx
-
-#endif // VXM_ENABLE_SIMD

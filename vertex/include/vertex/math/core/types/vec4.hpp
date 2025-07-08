@@ -9,10 +9,19 @@ namespace vx {
 namespace math {
 
 template <typename T>
-struct vec<4, T>
+struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
 {
+#if defined(VXM_ENABLE_SIMD)
+
 #   define __SIMD_OVERLOAD(cond) template <typename __T = T, VXM_REQ( (simd::vec<4, __T>::cond))>
 #   define __SIMD_FALLBACK(cond) template <typename __T = T, VXM_REQ(!(simd::vec<4, __T>::cond))>
+
+#else
+
+#   define __SIMD_OVERLOAD(cond) template <typename __T = T, VXM_REQ(!(is_same<__T, __T>::value))>
+#   define __SIMD_FALLBACK(cond)
+
+#endif
 
     ///////////////////////////////////////////////////////////////////////////////
     // meta
@@ -350,7 +359,7 @@ struct vec<4, T>
     }
 
     __SIMD_FALLBACK(HAVE_MUL)
-    friend VX_FORCE_INLINE constexpr type operator*(const type& v1, const type& v2) noexcept
+    friend VX_FORCE_INLINE type operator*(const type& v1, const type& v2) noexcept
     {
         return type(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
     }
@@ -757,25 +766,28 @@ struct vec<4, T>
     static VX_FORCE_INLINE constexpr type one() noexcept { return type(static_cast<scalar_type>(1)); }
 
     ///////////////////////////////////////////////////////////////////////////////
-    // simd conversion operators
+    // simd conversion
     ///////////////////////////////////////////////////////////////////////////////
 
-    __SIMD_OVERLOAD(HAVE_LOAD)
-    VX_FORCE_INLINE operator typename simd::vec4f::data_type() const noexcept
+    using simd_type = typename simd::vec<4, T>;
+    using simd_data_type = typename simd_type::data_type;
+
+    VX_FORCE_INLINE vec(const simd_data_type& d) noexcept
+        : vec(*(const vec*)(&d)) {}
+
+    VX_FORCE_INLINE operator simd_data_type& () noexcept
     {
-        return simd::vec4f::load(&x);
+        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        return *(simd_data_type*)(this);
     }
 
-    VX_DISABLE_MSVC_WARNING_PUSH()
-    VX_DISABLE_MSVC_WARNING(26495) // disable uninitialized variable warning
-
-    __SIMD_OVERLOAD(HAVE_STORE)
-    VX_FORCE_INLINE vec(typename simd::vec4f::data_type v) noexcept
+    VX_FORCE_INLINE operator const simd_data_type& () const noexcept
     {
-        simd::vec4f::store(&x, v);
+        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        return *(const simd_data_type*)(this);
     }
-
-    VX_DISABLE_MSVC_WARNING_POP()
 
     ///////////////////////////////////////////////////////////////////////////////
     // simd binary arithmetic operators
@@ -786,19 +798,19 @@ struct vec<4, T>
     __SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec4f::add(v, scalar);
+        return simd_type::add(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec4f::add(v, scalar);
+        return simd_type::add(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(const type& v1, const type& v2) noexcept
     {
-        return simd::vec4f::add(v1, v2);
+        return simd_type::add(v1, v2);
     }
 
     // subtraction (-)
@@ -806,19 +818,19 @@ struct vec<4, T>
     __SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec4f::sub(v, scalar);
+        return simd_type::sub(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec4f::sub(scalar, v);
+        return simd_type::sub(scalar, v);
     }
 
     __SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(const type& v1, const type& v2) noexcept
     {
-        return simd::vec4f::sub(v1, v2);
+        return simd_type::sub(v1, v2);
     }
 
     // multiplication (*)
@@ -826,19 +838,19 @@ struct vec<4, T>
     __SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec4f::mul(v, scalar);
+        return simd_type::mul(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec4f::mul(v, scalar);
+        return simd_type::mul(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(const type& v1, const type& v2) noexcept
     {
-        return simd::vec4f::mul(v1, v2);
+        return simd_type::mul(v1, v2);
     }
 
     // division (/)
@@ -846,19 +858,19 @@ struct vec<4, T>
     __SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec4f::div(v, scalar);
+        return simd_type::div(v, scalar);
     }
 
     __SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec4f::div(scalar, v);
+        return simd_type::div(scalar, v);
     }
 
     __SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v1, const type& v2) noexcept
     {
-        return simd::vec4f::div(v1, v2);
+        return simd_type::div(v1, v2);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

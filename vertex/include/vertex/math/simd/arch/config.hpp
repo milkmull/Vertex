@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#if defined(VXM_ENABLE_SIMD)
-
 #include "vertex/config/simd.hpp"
 #include "vertex/config/language_config.hpp"
 
@@ -41,8 +39,6 @@
 #   undef vector
 
 #endif
-
-#endif // VXM_ENABLE_SIMD
 
 ///////////////////////////////////////////////////////////////////////////////
 

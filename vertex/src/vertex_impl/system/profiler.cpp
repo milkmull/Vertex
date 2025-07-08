@@ -53,7 +53,6 @@ private:
             std::ostringstream oss;
 
             oss << "name" << ','
-                << "thread_id" << ','
                 << "start_time" << ','
                 << "elapsed_time" << '\n';
 

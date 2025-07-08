@@ -156,18 +156,18 @@ VX_TEST_CASE(test_quat)
 
         // addition
         {
-            VX_STATIC_CHECK_EQ(q + quat(5.0f, 6.0f, 7.0f, 8.0f), quat(6.0f, 8.0f, 10.0f, 12.0f));
+            VX_CHECK_EQ(q + quat(5.0f, 6.0f, 7.0f, 8.0f), quat(6.0f, 8.0f, 10.0f, 12.0f));
         }
 
         // subtraction
         {
-            VX_STATIC_CHECK_EQ(quat(6.0f, 8.0f, 10.0f, 12.0f) - quat(5.0f, 6.0f, 7.0f, 8.0f), q);
+            VX_CHECK_EQ(quat(6.0f, 8.0f, 10.0f, 12.0f) - quat(5.0f, 6.0f, 7.0f, 8.0f), q);
         }
 
         // multiplication
         {
-            VX_STATIC_CHECK_EQ(q * 5.0f, quat(5.0f, 10.0f, 15.0f, 20.0f));
-            VX_STATIC_CHECK_EQ(5.0f * q, quat(5.0f, 10.0f, 15.0f, 20.0f));
+            VX_CHECK_EQ(q * 5.0f, quat(5.0f, 10.0f, 15.0f, 20.0f));
+            VX_CHECK_EQ(5.0f * q, quat(5.0f, 10.0f, 15.0f, 20.0f));
 
             constexpr quat a(1.0f, 2.0f, 3.0f, 4.0f);
             constexpr quat b(5.0f, 6.0f, 7.0f, 8.0f);
@@ -178,7 +178,7 @@ VX_TEST_CASE(test_quat)
 
         // division
         {
-            VX_STATIC_CHECK_EQ(quat(5.0f, 10.0f, 15.0f, 20.0f) / 5.0f, q);
+            VX_CHECK_EQ(quat(5.0f, 10.0f, 15.0f, 20.0f) / 5.0f, q);
         }
     }
 

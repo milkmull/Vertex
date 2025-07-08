@@ -200,7 +200,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m) noexcept
 // https://github.com/glslify/glsl-inverse/blob/master/index.glsl
 
 template <typename T, VXM_REQ_FLOAT(T)>
-VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
+VX_FORCE_INLINE mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
 {
     const T a00 = m.columns[0].x;
     const T a01 = m.columns[0].y;

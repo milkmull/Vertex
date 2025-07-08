@@ -1,8 +1,7 @@
 #pragma once
 
 #include "./vec4f.hpp"
-
-#if defined(VXM_ENABLE_SIMD)
+#include "../mat_default.hpp"
 
 namespace vx {
 namespace math {
@@ -11,18 +10,24 @@ namespace simd {
 template <>
 struct mat<4, 4, f32>
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // meta
+    ///////////////////////////////////////////////////////////////////////////////
+
     using scalar_type = f32;
     static constexpr size_t width = 4;
     static constexpr size_t height = 4;
-
-    using data_type = mat4f_t;
-    using vec_type = vec4f_t;
-    using row_type = vec4f_t;
-    using col_type = vec4f_t;
-
     static constexpr size_t size = width * height;
 
-#if (VX_SIMD_X86 >= VX_SIMD_X86_SSE2_VERSION)
+    using vec_type = __m128;
+    using data_type = __m128[4];
+
+    static constexpr size_t calulate_alignment() noexcept
+    {
+        constexpr size_t a1 = alignof(scalar_type[width][height]);
+        constexpr size_t a2 = alignof(data_type);
+        return (a1 > a2) ? a1 : a2;
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // add
@@ -44,14 +49,6 @@ struct mat<4, 4, f32>
         out[1] = _mm_add_ps(in1[1], scalar);
         out[2] = _mm_add_ps(in1[2], scalar);
         out[3] = _mm_add_ps(in1[3], scalar);
-    }
-
-    static VX_FORCE_INLINE void add(const data_type in1, const data_type in2, data_type out) noexcept
-    {
-        out[0] = _mm_add_ps(in1[0], in2[0]);
-        out[1] = _mm_add_ps(in1[1], in2[1]);
-        out[2] = _mm_add_ps(in1[2], in2[2]);
-        out[3] = _mm_add_ps(in1[3], in2[3]);
     }
 
     static constexpr int HAVE_ADD = 1;
@@ -94,7 +91,7 @@ struct mat<4, 4, f32>
     // mul
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE void mul(const data_type in1, scalar_type in2, data_type out) noexcept
+    static VX_FORCE_INLINE void mul(const vec_type* in1, scalar_type in2, vec_type* out) noexcept
     {
         const vec_type scalar = _mm_set1_ps(in2);
 
@@ -145,103 +142,103 @@ struct mat<4, 4, f32>
         return f2;
     }
 
-    static VX_FORCE_INLINE void mul(const data_type in1, const mat2x4f_t in2, mat2x4f_t out) noexcept
-    {
-        {
-            const vec_type e0 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(0, 0, 0, 0));
-            const vec_type e1 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(1, 1, 1, 1));
-            const vec_type e2 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(2, 2, 2, 2));
-            const vec_type e3 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(3, 3, 3, 3));
+    //static VX_FORCE_INLINE void mul(const data_type in1, const mat2x4f_t in2, mat2x4f_t out) noexcept
+    //{
+    //    {
+    //        const vec_type e0 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(0, 0, 0, 0));
+    //        const vec_type e1 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(1, 1, 1, 1));
+    //        const vec_type e2 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(2, 2, 2, 2));
+    //        const vec_type e3 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(3, 3, 3, 3));
+    //
+    //        const vec_type m0 = _mm_mul_ps(in1[0], e0);
+    //        const vec_type m1 = _mm_mul_ps(in1[1], e1);
+    //        const vec_type m2 = _mm_mul_ps(in1[2], e2);
+    //        const vec_type m3 = _mm_mul_ps(in1[3], e3);
+    //
+    //        const vec_type a0 = _mm_add_ps(m0, m1);
+    //        const vec_type a1 = _mm_add_ps(m2, m3);
+    //        const vec_type a2 = _mm_add_ps(a0, a1);
+    //
+    //        out[0] = a2;
+    //    }
+    //
+    //    {
+    //        const vec_type e0 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(0, 0, 0, 0));
+    //        const vec_type e1 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(1, 1, 1, 1));
+    //        const vec_type e2 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(2, 2, 2, 2));
+    //        const vec_type e3 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(3, 3, 3, 3));
+    //
+    //        const vec_type m0 = _mm_mul_ps(in1[0], e0);
+    //        const vec_type m1 = _mm_mul_ps(in1[1], e1);
+    //        const vec_type m2 = _mm_mul_ps(in1[2], e2);
+    //        const vec_type m3 = _mm_mul_ps(in1[3], e3);
+    //
+    //        const vec_type a0 = _mm_add_ps(m0, m1);
+    //        const vec_type a1 = _mm_add_ps(m2, m3);
+    //        const vec_type a2 = _mm_add_ps(a0, a1);
+    //
+    //        out[1] = a2;
+    //    }
+    //}
+    //
+    //static VX_FORCE_INLINE void mul(const data_type in1, const mat3x4f_t in2, mat3x4f_t out) noexcept
+    //{
+    //    {
+    //        const vec_type e0 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(0, 0, 0, 0));
+    //        const vec_type e1 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(1, 1, 1, 1));
+    //        const vec_type e2 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(2, 2, 2, 2));
+    //        const vec_type e3 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(3, 3, 3, 3));
+    //
+    //        const vec_type m0 = _mm_mul_ps(in1[0], e0);
+    //        const vec_type m1 = _mm_mul_ps(in1[1], e1);
+    //        const vec_type m2 = _mm_mul_ps(in1[2], e2);
+    //        const vec_type m3 = _mm_mul_ps(in1[3], e3);
+    //
+    //        const vec_type a0 = _mm_add_ps(m0, m1);
+    //        const vec_type a1 = _mm_add_ps(m2, m3);
+    //        const vec_type a2 = _mm_add_ps(a0, a1);
+    //
+    //        out[0] = a2;
+    //    }
+    //
+    //    {
+    //        const vec_type e0 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(0, 0, 0, 0));
+    //        const vec_type e1 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(1, 1, 1, 1));
+    //        const vec_type e2 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(2, 2, 2, 2));
+    //        const vec_type e3 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(3, 3, 3, 3));
+    //
+    //        const vec_type m0 = _mm_mul_ps(in1[0], e0);
+    //        const vec_type m1 = _mm_mul_ps(in1[1], e1);
+    //        const vec_type m2 = _mm_mul_ps(in1[2], e2);
+    //        const vec_type m3 = _mm_mul_ps(in1[3], e3);
+    //
+    //        const vec_type a0 = _mm_add_ps(m0, m1);
+    //        const vec_type a1 = _mm_add_ps(m2, m3);
+    //        const vec_type a2 = _mm_add_ps(a0, a1);
+    //
+    //        out[1] = a2;
+    //    }
+    //
+    //    {
+    //        const vec_type e0 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(0, 0, 0, 0));
+    //        const vec_type e1 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(1, 1, 1, 1));
+    //        const vec_type e2 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(2, 2, 2, 2));
+    //        const vec_type e3 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(3, 3, 3, 3));
+    //
+    //        const vec_type m0 = _mm_mul_ps(in1[0], e0);
+    //        const vec_type m1 = _mm_mul_ps(in1[1], e1);
+    //        const vec_type m2 = _mm_mul_ps(in1[2], e2);
+    //        const vec_type m3 = _mm_mul_ps(in1[3], e3);
+    //
+    //        const vec_type a0 = _mm_add_ps(m0, m1);
+    //        const vec_type a1 = _mm_add_ps(m2, m3);
+    //        const vec_type a2 = _mm_add_ps(a0, a1);
+    //
+    //        out[2] = a2;
+    //    }
+    //}
 
-            const vec_type m0 = _mm_mul_ps(in1[0], e0);
-            const vec_type m1 = _mm_mul_ps(in1[1], e1);
-            const vec_type m2 = _mm_mul_ps(in1[2], e2);
-            const vec_type m3 = _mm_mul_ps(in1[3], e3);
-
-            const vec_type a0 = _mm_add_ps(m0, m1);
-            const vec_type a1 = _mm_add_ps(m2, m3);
-            const vec_type a2 = _mm_add_ps(a0, a1);
-
-            out[0] = a2;
-        }
-
-        {
-            const vec_type e0 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(0, 0, 0, 0));
-            const vec_type e1 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(1, 1, 1, 1));
-            const vec_type e2 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(2, 2, 2, 2));
-            const vec_type e3 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(3, 3, 3, 3));
-
-            const vec_type m0 = _mm_mul_ps(in1[0], e0);
-            const vec_type m1 = _mm_mul_ps(in1[1], e1);
-            const vec_type m2 = _mm_mul_ps(in1[2], e2);
-            const vec_type m3 = _mm_mul_ps(in1[3], e3);
-
-            const vec_type a0 = _mm_add_ps(m0, m1);
-            const vec_type a1 = _mm_add_ps(m2, m3);
-            const vec_type a2 = _mm_add_ps(a0, a1);
-
-            out[1] = a2;
-        }
-    }
-
-    static VX_FORCE_INLINE void mul(const data_type in1, const mat3x4f_t in2, mat3x4f_t out) noexcept
-    {
-        {
-            const vec_type e0 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(0, 0, 0, 0));
-            const vec_type e1 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(1, 1, 1, 1));
-            const vec_type e2 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(2, 2, 2, 2));
-            const vec_type e3 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(3, 3, 3, 3));
-
-            const vec_type m0 = _mm_mul_ps(in1[0], e0);
-            const vec_type m1 = _mm_mul_ps(in1[1], e1);
-            const vec_type m2 = _mm_mul_ps(in1[2], e2);
-            const vec_type m3 = _mm_mul_ps(in1[3], e3);
-
-            const vec_type a0 = _mm_add_ps(m0, m1);
-            const vec_type a1 = _mm_add_ps(m2, m3);
-            const vec_type a2 = _mm_add_ps(a0, a1);
-
-            out[0] = a2;
-        }
-
-        {
-            const vec_type e0 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(0, 0, 0, 0));
-            const vec_type e1 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(1, 1, 1, 1));
-            const vec_type e2 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(2, 2, 2, 2));
-            const vec_type e3 = _mm_shuffle_ps(in2[1], in2[1], _MM_SHUFFLE(3, 3, 3, 3));
-
-            const vec_type m0 = _mm_mul_ps(in1[0], e0);
-            const vec_type m1 = _mm_mul_ps(in1[1], e1);
-            const vec_type m2 = _mm_mul_ps(in1[2], e2);
-            const vec_type m3 = _mm_mul_ps(in1[3], e3);
-
-            const vec_type a0 = _mm_add_ps(m0, m1);
-            const vec_type a1 = _mm_add_ps(m2, m3);
-            const vec_type a2 = _mm_add_ps(a0, a1);
-
-            out[1] = a2;
-        }
-
-        {
-            const vec_type e0 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(0, 0, 0, 0));
-            const vec_type e1 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(1, 1, 1, 1));
-            const vec_type e2 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(2, 2, 2, 2));
-            const vec_type e3 = _mm_shuffle_ps(in2[2], in2[2], _MM_SHUFFLE(3, 3, 3, 3));
-
-            const vec_type m0 = _mm_mul_ps(in1[0], e0);
-            const vec_type m1 = _mm_mul_ps(in1[1], e1);
-            const vec_type m2 = _mm_mul_ps(in1[2], e2);
-            const vec_type m3 = _mm_mul_ps(in1[3], e3);
-
-            const vec_type a0 = _mm_add_ps(m0, m1);
-            const vec_type a1 = _mm_add_ps(m2, m3);
-            const vec_type a2 = _mm_add_ps(a0, a1);
-
-            out[2] = a2;
-        }
-    }
-
-    static VX_FORCE_INLINE void mul(const data_type in1, const data_type in2, data_type out) noexcept
+    static VX_FORCE_INLINE void mul(const vec_type* in1, const vec_type* in2, vec_type* out) noexcept
     {
         {
             const vec_type e0 = _mm_shuffle_ps(in2[0], in2[0], _MM_SHUFFLE(0, 0, 0, 0));
@@ -369,7 +366,7 @@ struct mat<4, 4, f32>
 
     // https://github.com/g-truc/glm/blob/master/glm/simd/matrix.h#L458
 
-    static VX_FORCE_INLINE vec_type determinant(const data_type m) noexcept
+    static VX_FORCE_INLINE scalar_type determinant(const vec_type* m) noexcept
     {
         //  const T subfac00 = m[2][2] * m[3][3] - m[3][2] * m[2][3];
         //  const T subfac01 = m[2][1] * m[3][3] - m[3][1] * m[2][3];
@@ -430,10 +427,11 @@ struct mat<4, 4, f32>
         //  + m[0][3] * detcof[3]
         // );
 
-        return vec4f::dot(m[0], detcof);
+        const vec_type dot = vec4f::dot(m[0], detcof);
+        return _mm_cvtss_f32(dot);
     }
 
-    static constexpr int HAVE_DETERMINANT = 1;
+    //static constexpr int HAVE_DETERMINANT = 1;
 
     ///////////////////////////////////////////////////////////////////////////////
     // inverse
@@ -441,7 +439,7 @@ struct mat<4, 4, f32>
 
     // https://github.com/g-truc/glm/blob/master/glm/simd/matrix.h#L521
 
-    static VX_FORCE_INLINE vec_type inverse(const data_type in, data_type out) noexcept
+    static VX_FORCE_INLINE void inverse(const vec_type* in, vec_type* out) noexcept
     {
         vec_type fac0;
         {
@@ -664,7 +662,7 @@ struct mat<4, 4, f32>
         out[3] = _mm_mul_ps(inv3, rcp0);
     }
 
-    static constexpr int HAVE_INVERSE = 1;
+    //static constexpr int HAVE_INVERSE = 1;
 
     ///////////////////////////////////////////////////////////////////////////////
     // componant multiplication
@@ -696,14 +694,8 @@ struct mat<4, 4, f32>
 
     static constexpr int HAVE_OUTER_PRODUCT = 1;
 
-    ///////////////////////////////////////////////////////////////////////////////
-
-#endif // VX_SIMD_X86_SSE2_VERSION
-
 }; // mat4f_op
 
 } // namespace simd
 } // namespace math
 } // namespace vx
-
-#endif // VXM_ENABLE_SIMD

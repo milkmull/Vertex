@@ -3,6 +3,8 @@
 #include "vertex/config/assert.hpp"
 #include "./base.hpp"
 
+#include "../../simd/quatf.hpp"
+
 namespace vx {
 namespace math {
 
@@ -13,9 +15,21 @@ namespace math {
 // |cross(u, v)| = |u||v|sin(t)
 
 template <typename T>
-struct quat_t
+struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 {
     VX_STATIC_ASSERT(is_float<T>::value, "type T must be floating point type");
+
+#if defined(VXM_ENABLE_SIMD)
+
+#   define __SIMD_OVERLOAD(cond) template <typename __T = T, VXM_REQ( (simd::quat_t<__T>::cond))>
+#   define __SIMD_FALLBACK(cond) template <typename __T = T, VXM_REQ(!(simd::quat_t<__T>::cond))>
+
+#else
+
+#   define __SIMD_OVERLOAD(cond) template <typename __T = T, VXM_REQ(!(is_same<__T, __T>::value))>
+#   define __SIMD_FALLBACK(cond)
+
+#endif
 
     ///////////////////////////////////////////////////////////////////////////////
     // meta
@@ -198,6 +212,7 @@ struct quat_t
 
     // addition (+)
 
+    __SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& q1, const type& q2) noexcept
     {
         return type(q1.w + q2.w, q1.x + q2.x, q1.y + q2.y, q1.z + q2.z);
@@ -205,6 +220,7 @@ struct quat_t
 
     // subtraction (-)
 
+    __SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& q1, const type& q2) noexcept
     {
         return type(q1.w - q2.w, q1.x - q2.x, q1.y - q2.y, q1.z - q2.z);
@@ -212,11 +228,13 @@ struct quat_t
 
     // multiplication (*)
 
+    __SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& q, scalar_type scalar) noexcept
     {
         return type(q.w * scalar, q.x * scalar, q.y * scalar, q.z * scalar);
     }
 
+    __SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& q) noexcept
     {
         return type(scalar * q.w, scalar * q.x, scalar * q.y, scalar * q.z);
@@ -236,6 +254,7 @@ struct quat_t
 
     // division (/)
 
+    __SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& q, scalar_type scalar) noexcept
     {
         return type(q.w / scalar, q.x / scalar, q.y / scalar, q.z / scalar);
@@ -247,6 +266,7 @@ struct quat_t
 
     // addition (+=)
 
+    __SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(const type& q) noexcept
     {
         w += q.w;
@@ -258,6 +278,7 @@ struct quat_t
 
     // subtraction (-=)
 
+    __SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(const type& q) noexcept
     {
         w -= q.w;
@@ -269,6 +290,7 @@ struct quat_t
 
     // multiplication (*=)
 
+    __SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(scalar_type scalar) noexcept
     {
         w *= scalar;
@@ -308,6 +330,114 @@ struct quat_t
     static VX_FORCE_INLINE constexpr type identity() noexcept { return type(static_cast<scalar_type>(1), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
     static VX_FORCE_INLINE constexpr type zero() noexcept { return type(static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)); }
 
+        ///////////////////////////////////////////////////////////////////////////////
+    // simd conversion
+    ///////////////////////////////////////////////////////////////////////////////
+
+    using simd_type = typename simd::quat_t<T>;
+    using simd_data_type = typename simd_type::data_type;
+
+    VX_FORCE_INLINE quat_t(const simd_data_type& d) noexcept
+        : quat_t(*(const quat_t*)(&d)) {}
+
+    VX_FORCE_INLINE operator simd_data_type& () noexcept
+    {
+        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        return *(simd_data_type*)(this);
+    }
+
+    VX_FORCE_INLINE operator const simd_data_type& () const noexcept
+    {
+        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        return *(const simd_data_type*)(this);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // simd binary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+)
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    friend VX_FORCE_INLINE type operator+(const type& q1, const type& q2) noexcept
+    {
+        return simd_type::add(q1, q2);
+    }
+
+    // subtraction (-)
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    friend VX_FORCE_INLINE type operator-(const type& q1, const type& q2) noexcept
+    {
+        return simd_type::sub(q1, q2);
+    }
+
+    // multiplication (*)
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    friend VX_FORCE_INLINE type operator*(const type& q, scalar_type scalar) noexcept
+    {
+        return simd_type::mul(q, scalar);
+    }
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    friend VX_FORCE_INLINE type operator*(scalar_type scalar, const type& q) noexcept
+    {
+        return simd_type::mul(q, scalar);
+    }
+
+    // diqision (/)
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    friend VX_FORCE_INLINE type operator/(const type& q, scalar_type scalar) noexcept
+    {
+        return simd_type::div(q, scalar);
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // simd unary arithmetic operators
+    ///////////////////////////////////////////////////////////////////////////////
+
+    // addition (+=)
+
+    __SIMD_OVERLOAD(HAVE_ADD)
+    VX_FORCE_INLINE type& operator+=(const type& q) noexcept
+    {
+        (*this) = (*this) + q;
+        return *this;
+    }
+
+    // subtraction (-=)
+
+    __SIMD_OVERLOAD(HAVE_SUB)
+    VX_FORCE_INLINE type& operator-=(const type& q) noexcept
+    {
+        (*this) = (*this) - q;
+        return *this;
+    }
+
+    // multiplication (*=)
+
+    __SIMD_OVERLOAD(HAVE_MUL)
+    VX_FORCE_INLINE type& operator*=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) * scalar;
+        return *this;
+    }
+
+    // division (/=)
+
+    __SIMD_OVERLOAD(HAVE_DIV)
+    VX_FORCE_INLINE type& operator/=(scalar_type scalar) noexcept
+    {
+        (*this) = (*this) / scalar;
+        return *this;
+    }
+
+#   undef __SIMD_OVERLOAD
+#   undef __SIMD_FALLBACK
 };
 
 } // namespace math
