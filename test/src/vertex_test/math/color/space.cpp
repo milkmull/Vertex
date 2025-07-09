@@ -167,7 +167,6 @@ VX_TEST_CASE(test_hsl_rgb_conversion)
     {
         const vec3 hsl_in(300.0f, 0.5f, 0.6f);
         const vec3 rgb = hsl_to_rgb(hsl_in.x, hsl_in.y, hsl_in.z);
-        const color8 c8 = color(rgb);
         const vec3 hsl_out = rgb_to_hsl(rgb.x, rgb.y, rgb.z);
         VX_CHECK(equal_approx(hsl_in, hsl_out, 1e-4f));
     }
