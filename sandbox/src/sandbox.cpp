@@ -4,19 +4,33 @@
 #include "vertex/system/profiler.hpp"
 
 #include "vertex/math/math.hpp"
-#include "vertex/math/core/util.hpp"
+#include "vertex/math/procedural/noise/perlin_noise.hpp"
+#include "vertex/util/time/timer.hpp"
 
 using namespace vx;
 
+static time::time_point test()
+{
+    time::timer t;
+    
+    {
+        t.start();
+        const auto x = math::perlin_noise(math::vec4{ 1, 2, 3, 4 });
+        t.stop();
+    }
+
+    return t.elapsed_time();
+}
+
 int main(int argc, char* argv[])
 {
-    math::mat4 m(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16);
+    double elapsed = 0.0;
 
-    for (auto& x : m)
+    for (double i = 0; i < 1000000000; ++i)
     {
-        for (auto& y : x)
-        {
-            std::cout << y << std::endl;
-        }
+        const auto tp = test();
+        elapsed = ((i * elapsed) + tp.as_float_nanoseconds()) / (i + 1);
     }
+
+    std::cout << elapsed;
 }

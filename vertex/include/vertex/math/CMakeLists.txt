@@ -98,6 +98,12 @@ file(GLOB VX_MATH_HEADER_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/wrap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/sdf2d.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/noise_helpers.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/cellular_noise.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/perlin_noise.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/simplex_noise.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/noise_sampler.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})
