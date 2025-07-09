@@ -539,7 +539,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
     using simd_data_type = typename simd_type::data_type;
 
     VX_FORCE_INLINE color_t(const simd_data_type& d) noexcept
-        : color_t(*(const color_t*)(&d)) {}
+        : color_t(*(const type*)(&d)) {}
 
     VX_FORCE_INLINE operator simd_data_type& () noexcept
     {

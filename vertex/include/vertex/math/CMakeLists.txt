@@ -15,9 +15,12 @@ endif()
 
 # Source files for vertex/include/vertex/math
 file(GLOB VX_MATH_HEADER_FILES
+
     "${CMAKE_CURRENT_SOURCE_DIR}/config.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/simd.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/rect.hpp"
     
     #--------------------------------------
     # Core files
@@ -74,6 +77,7 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/color/util.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/color/types/traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/color/types/color8.hpp"
     
@@ -104,6 +108,25 @@ file(GLOB VX_MATH_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/perlin_noise.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/simplex_noise.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/procedural/noise/noise_sampler.hpp"
+    
+    #--------------------------------------
+    # 2D Geometry files
+    #--------------------------------------
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/base.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/traits.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/point.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/line.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/rect.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/circle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/triangle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/types/ray.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/functions/collision.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/geometry/2d/functions/comparison.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_MATH_HEADER_FILES})

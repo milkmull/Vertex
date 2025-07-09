@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "vertex/config/language_config.hpp"
+
 namespace vx {
 namespace math {
 

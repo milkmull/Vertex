@@ -144,6 +144,7 @@ add_custom_target(uninstall
 message(STATUS "Vertex Configuration Summary:")
 message(STATUS "  Build Dummy Platform    : ${VX_DUMMY_PLATFORM}")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
+message(STATUS "  SIMD Enabled            : ${VX_MATH_ENABLE_SIMD}")
 #message(STATUS "  AddressSanitizer        : ${VX_ENABLE_ASAN}")
 #message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
 #message(STATUS "  Build Window Backend    : ${VX_BUILD_APP_WINDOW}")
