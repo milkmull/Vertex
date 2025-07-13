@@ -553,122 +553,122 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
         // For array pixel types, the shift represents the array index of the channel
         case pixel_format::R_8:
         {
-            info.r = { 0, 8 };
-            info.g = { 1, 0 };
-            info.b = { 2, 0 };
-            info.a = { 3, 0 };
+            info.r = { 0, 8, 0, 0 };
+            info.g = { 1, 0, 0, 0 };
+            info.b = { 2, 0, 0, 0 };
+            info.a = { 3, 0, 0, 0 };
             break;
         }
         case pixel_format::RG_8:
         {
-            info.r = { 0, 8 };
-            info.g = { 1, 8 };
-            info.b = { 2, 0 };
-            info.a = { 3, 0 };
+            info.r = { 0, 8, 0, 0 };
+            info.g = { 1, 8, 0, 0 };
+            info.b = { 2, 0, 0, 0 };
+            info.a = { 3, 0, 0, 0 };
             break;
         }
         case pixel_format::RGB_8:
         {
-            info.r = { 0, 8 };
-            info.g = { 1, 8 };
-            info.b = { 2, 8 };
-            info.a = { 3, 0 };
+            info.r = { 0, 8, 0, 0 };
+            info.g = { 1, 8, 0, 0 };
+            info.b = { 2, 8, 0, 0 };
+            info.a = { 3, 0, 0, 0 };
             break;
         }
         case pixel_format::BGR_8:
         {
-            info.r = { 2, 8 };
-            info.g = { 0, 8 };
-            info.b = { 0, 8 };
-            info.a = { 3, 8 };
+            info.r = { 2, 8, 0, 0 };
+            info.g = { 0, 8, 0, 0 };
+            info.b = { 0, 8, 0, 0 };
+            info.a = { 3, 8, 0, 0 };
             break;
         }
         case pixel_format::RGBA_8:
         {
-            info.r = { 0, 8 };
-            info.g = { 1, 8 };
-            info.b = { 2, 8 };
-            info.a = { 3, 8 };
+            info.r = { 0, 8, 0, 0 };
+            info.g = { 1, 8, 0, 0 };
+            info.b = { 2, 8, 0, 0 };
+            info.a = { 3, 8, 0, 0 };
             break;
         }
         case pixel_format::BGRA_8:
         {
-            info.r = { 2, 8 };
-            info.g = { 1, 8 };
-            info.b = { 0, 8 };
-            info.a = { 3, 8 };
+            info.r = { 2, 8, 0, 0 };
+            info.g = { 1, 8, 0, 0 };
+            info.b = { 0, 8, 0, 0 };
+            info.a = { 3, 8, 0, 0 };
             break;
         }
         case pixel_format::ABGR_8:
         {
-            info.r = { 3, 8 };
-            info.g = { 2, 8 };
-            info.b = { 1, 8 };
-            info.a = { 0, 8 };
+            info.r = { 3, 8, 0, 0 };
+            info.g = { 2, 8, 0, 0 };
+            info.b = { 1, 8, 0, 0 };
+            info.a = { 0, 8, 0, 0 };
             break;
         }
         case pixel_format::R_16:
         {
-            info.r = { 0, 16 };
-            info.g = { 1,  0 };
-            info.b = { 2,  0 };
-            info.a = { 3,  0 };
+            info.r = { 0, 16, 0, 0 };
+            info.g = { 1,  0, 0, 0 };
+            info.b = { 2,  0, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RG_16:
         {
-            info.r = { 0, 16 };
-            info.g = { 1, 16 };
-            info.b = { 2,  0 };
-            info.a = { 3,  0 };
+            info.r = { 0, 16, 0, 0 };
+            info.g = { 1, 16, 0, 0 };
+            info.b = { 2,  0, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RGB_16:
         {
-            info.r = { 0, 16 };
-            info.g = { 1, 16 };
-            info.b = { 2, 16 };
-            info.a = { 3,  0 };
+            info.r = { 0, 16, 0, 0 };
+            info.g = { 1, 16, 0, 0 };
+            info.b = { 2, 16, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RGBA_16:
         {
-            info.r = { 0, 16 };
-            info.g = { 1, 16 };
-            info.b = { 2, 16 };
-            info.a = { 3, 16 };
+            info.r = { 0, 16, 0, 0 };
+            info.g = { 1, 16, 0, 0 };
+            info.b = { 2, 16, 0, 0 };
+            info.a = { 3, 16, 0, 0 };
             break;
         }
         case pixel_format::R_32F:
         {
-            info.r = { 0, 32 };
-            info.g = { 1,  0 };
-            info.b = { 2,  0 };
-            info.a = { 3,  0 };
+            info.r = { 0, 32, 0, 0 };
+            info.g = { 1,  0, 0, 0 };
+            info.b = { 2,  0, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RG_32F:
         {
-            info.r = { 0, 32 };
-            info.g = { 1, 32 };
-            info.b = { 2,  0 };
-            info.a = { 3,  0 };
+            info.r = { 0, 32, 0, 0 };
+            info.g = { 1, 32, 0, 0 };
+            info.b = { 2,  0, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RGB_32F:
         {
-            info.r = { 0, 32 };
-            info.g = { 1, 32 };
-            info.b = { 2, 32 };
-            info.a = { 3,  0 };
+            info.r = { 0, 32, 0, 0 };
+            info.g = { 1, 32, 0, 0 };
+            info.b = { 2, 32, 0, 0 };
+            info.a = { 3,  0, 0, 0 };
             break;
         }
         case pixel_format::RGBA_32F:
         {
-            info.r = { 0, 32 };
-            info.g = { 1, 32 };
-            info.b = { 2, 32 };
-            info.a = { 3, 32 };
+            info.r = { 0, 32, 0, 0 };
+            info.g = { 1, 32, 0, 0 };
+            info.b = { 2, 32, 0, 0 };
+            info.a = { 3, 32, 0, 0 };
             break;
         }
     }
