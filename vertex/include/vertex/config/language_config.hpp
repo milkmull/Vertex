@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex/config/util.hpp"
 #include "vertex/config/language.hpp"
 
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_comp_compiler_macros.html
@@ -158,7 +159,7 @@
 #if defined(_MSC_VER)
 #   define __VX_PRAGMA(x) __pragma(x)
 #elif defined(__GNUC__) || defined(__clang__)
-#   define __VX_PRAGMA(x) _Pragma(#x)
+#   define __VX_PRAGMA(x) _Pragma(VX_STRINGIFY(x))
 #else
 #   define __VX_PRAGMA(x)
 #endif
@@ -191,9 +192,9 @@
 
 #elif defined(__clang__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(clang diagnostic ignored "-W" warning_name)
-#   define VX_DISABLE_WARNING_PUSH()                            _Pragma("clang diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                             _Pragma("clang diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(clang diagnostic ignored warning_name)
+#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("clang diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                         _Pragma("clang diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()
@@ -213,9 +214,9 @@
 
 #elif defined(__GNUC__)
 
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(GCC diagnostic ignored "-W" warning_name)
-#   define VX_DISABLE_WARNING_PUSH()                            _Pragma("GCC diagnostic push")
-#   define VX_DISABLE_WARNING_POP()                             _Pragma("GCC diagnostic pop")
+#   define VX_DISABLE_WARNING(warning_name, warning_number) __VX_PRAGMA(GCC diagnostic ignored warning_name)
+#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("GCC diagnostic push")
+#   define VX_DISABLE_WARNING_POP()                         _Pragma("GCC diagnostic pop")
 
 #   define VX_DISABLE_MSVC_WARNING(warning_number)
 #   define VX_DISABLE_MSVC_WARNING_PUSH()

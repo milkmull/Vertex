@@ -53,8 +53,10 @@
 #   define STBI_ASSERT assert
 
 VX_DISABLE_WARNING_PUSH()
-VX_DISABLE_WARNING("-Wimplicit-fallthrough", 26819)
 VX_DISABLE_WARNING("-Wconversion", 4244)
+VX_DISABLE_WARNING("-Wsign-conversion", 0)
+VX_DISABLE_WARNING("-Wdouble-promotion", 0)
+VX_DISABLE_WARNING("-Wunused-function", 0)
 #   include "stb_image/stb_image.h"
 VX_DISABLE_WARNING_POP()
 

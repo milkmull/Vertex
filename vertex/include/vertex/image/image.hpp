@@ -14,7 +14,10 @@ public:
     // Constructors
     ///////////////////////////////////////////////////////////////////////////////
 
+    VX_DISABLE_MSVC_WARNING_PUSH()
+    VX_DISABLE_MSVC_WARNING(26495) // variable uninitialized warning (for the union)
     image() {}
+    VX_DISABLE_MSVC_WARNING_POP()
 
     image(size_t width, size_t height, pixel_format fmt = pixel_format::RGBA_8)
         : m_format(fmt)
@@ -268,7 +271,11 @@ public:
 
     math::color get_pixel(const math::vec2i& p, const math::color& default_color = math::color()) const
     {
-        return get_pixel(p.x, p.y, default_color);
+        return get_pixel(
+            static_cast<size_t>(p.x),
+            static_cast<size_t>(p.y),
+            default_color
+        );
     }
 
     void set_pixel(size_t x, size_t y, const math::color& color)
@@ -284,7 +291,11 @@ public:
 
     void set_pixel(const math::vec2i& p, const math::color& color) noexcept
     {
-        set_pixel(p.x, p.y, color);
+        set_pixel(
+            static_cast<size_t>(p.x),
+            static_cast<size_t>(p.y),
+            color
+        );
     }
 
     void fill(const math::color& color)
@@ -338,7 +349,7 @@ public:
     {
         switch (m_format)
         {
-            case pixel_format::R_8:     return m_r.convert<F>(); 
+            case pixel_format::R_8:     return m_r.convert<F>();
             case pixel_format::RGB_8:   return m_rgb.convert<F>();
             case pixel_format::RGBA_8:  return m_rgba.convert<F>();
             default:                    return {};

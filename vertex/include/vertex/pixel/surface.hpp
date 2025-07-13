@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <memory>
 
 #include "vertex/pixel/iterator.hpp"
@@ -23,7 +24,7 @@ public:
     static VX_FORCE_INLINE constexpr bool has_alpha() noexcept { return pixel_has_alpha(format); }
     static VX_FORCE_INLINE constexpr size_t pixel_size() noexcept { return get_pixel_size(format); }
 
-    using raw_pixel_type = typename raw_pixel<format>;
+    using raw_pixel_type = raw_pixel<format>;
     using pixel_type = typename raw_pixel_type::pixel_type;
     using channel_type = typename raw_pixel_type::channel_type;
 
@@ -134,7 +135,11 @@ public:
 
     math::color get_pixel(const math::vec2i& p, const math::color& default_color = math::color()) const noexcept
     {
-        return get_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y), default_color);
+        return get_pixel(
+            static_cast<size_t>(p.x),
+            static_cast<size_t>(p.y),
+            default_color
+        );
     }
 
     void set_pixel(size_t x, size_t y, const math::color& color) noexcept
