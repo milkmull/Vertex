@@ -1,5 +1,5 @@
 #pragma once
 
-#include "./types/base.hpp"
-#include "./types/color.hpp"
-#include "./types/color8.hpp"
+#include "vertex/math/color/types/base.hpp"
+#include "vertex/math/color/types/color.hpp"
+#include "vertex/math/color/types/color8.hpp"

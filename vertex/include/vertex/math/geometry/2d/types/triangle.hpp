@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./point.hpp"
+#include "vertex/math/geometry/2d/types/point.hpp"
 
 namespace vx {
 namespace math {
@@ -29,6 +29,8 @@ struct triangle_t
     ///////////////////////////////////////////////////////////////////////////////
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr triangle_t() noexcept = default;
 
     VX_FORCE_INLINE constexpr triangle_t(const type& t) noexcept
         : a(t.a), b(t.b), c(t.c) {}

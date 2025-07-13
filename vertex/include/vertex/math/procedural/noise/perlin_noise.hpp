@@ -9,7 +9,7 @@
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise3D.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/classicnoise4D.glsl
 
-#include "./noise_helpers.hpp"
+#include "vertex/math/procedural/noise/noise_helpers.hpp"
 
 namespace vx {
 namespace math {

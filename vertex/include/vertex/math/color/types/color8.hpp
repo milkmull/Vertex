@@ -1,8 +1,8 @@
 #pragma once
 
 #include "vertex/config/assert.hpp"
-#include "./base.hpp"
-#include "../../core/functions/common.hpp" // for clamp
+#include "vertex/math/color/types/base.hpp"
+#include "vertex/math/core/functions/common.hpp" // for clamp
 
 namespace vx {
 namespace math {

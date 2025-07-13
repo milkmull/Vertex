@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../config.hpp"
-#include "../vec_default.hpp"
+#include "vertex/math/simd/arch/config.hpp"
+#include "vertex/math/simd/arch/vec_default.hpp"
 
 namespace vx {
 namespace math {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./trigonometric.hpp"
+#include "vertex/math/core/functions/trigonometric.hpp"
 
 namespace vx {
 namespace math {

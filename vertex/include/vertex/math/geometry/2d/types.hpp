@@ -1,10 +1,10 @@
 #pragma once
 
-#include "./types/point.hpp"
-#include "./types/line.hpp"
-#include "./types/rect.hpp"
-#include "./types/circle.hpp"
-#include "./types/triangle.hpp"
-#include "./types/ray.hpp"
+#include "vertex/math/geometry/2d/types/point.hpp"
+#include "vertex/math/geometry/2d/types/line.hpp"
+#include "vertex/math/geometry/2d/types/rect.hpp"
+#include "vertex/math/geometry/2d/types/circle.hpp"
+#include "vertex/math/geometry/2d/types/triangle.hpp"
+#include "vertex/math/geometry/2d/types/ray.hpp"
 
-#include "./types/traits.hpp"
+#include "vertex/math/geometry/2d/types/traits.hpp"

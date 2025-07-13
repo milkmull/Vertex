@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex/config/hash.hpp"
-#include "../types.hpp"
+#include "vertex/math/core/types/base.hpp"
 
 namespace std {
 

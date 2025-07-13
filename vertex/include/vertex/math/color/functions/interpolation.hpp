@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./common.hpp"
-#include "../../core/functions/interpolation.hpp"
+#include "vertex/math/color/functions/common.hpp"
+#include "vertex/math/core/functions/interpolation.hpp"
 
 namespace vx {
 namespace math {

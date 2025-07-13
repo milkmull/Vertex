@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../functions/matrix.hpp"
-#include "../functions/trigonometric.hpp"
+#include "vertex/math/core/functions/matrix.hpp"
+#include "vertex/math/core/functions/trigonometric.hpp"
 
 namespace vx {
 namespace math {

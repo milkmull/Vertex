@@ -1,8 +1,8 @@
 #pragma once
 
-#include "./perlin_noise.hpp"
-#include "./simplex_noise.hpp"
-#include "./cellular_noise.hpp"
+#include "vertex/math/procedural/noise/perlin_noise.hpp"
+#include "vertex/math/procedural/noise/simplex_noise.hpp"
+#include "vertex/math/procedural/noise/cellular_noise.hpp"
 
 namespace vx {
 namespace math {
@@ -27,40 +27,39 @@ struct noise_sampler
     ///////////////////////////////////////////////////////////////////////////////
 
     template <size_t L>
-    VX_FORCE_INLINE f32 perlin_noise(const vec<L, f32>& uv) const noexcept
+    f32 perlin_noise(const vec<L, f32>& uv) const
     {
-        return sample_internal(uv, perlin_noise<L, f32>);
-    }
+        using T = decltype(uv);
+        using R = f32;
 
-    VX_FORCE_INLINE f32 perlin_noise(const vec2& uv) const noexcept { return perlin_noise<2>(uv); }
-    VX_FORCE_INLINE f32 perlin_noise(const vec3& uv) const noexcept { return perlin_noise<3>(uv); }
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&::vx::math::perlin_noise));
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // simplex
     ///////////////////////////////////////////////////////////////////////////////
 
     template <size_t L>
-    VX_FORCE_INLINE f32 simplex_noise(const vec<L, f32>& uv) const noexcept
+    f32 simplex_noise(const vec<L, f32>& uv) const
     {
-        return sample_internal(uv, simplex_noise<L, f32>);
-    }
+        using T = decltype(uv);
+        using R = f32;
 
-    VX_FORCE_INLINE f32 simplex_noise(const vec2& uv) const noexcept { return simplex_noise<2>(uv); }
-    VX_FORCE_INLINE f32 simplex_noise(const vec3& uv) const noexcept { return simplex_noise<3>(uv); }
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&::vx::math::simplex_noise));
+    }
 
     ///////////////////////////////////////////////////////////////////////////////
     // cellular
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <size_t L>
-    VX_FORCE_INLINE vec2 cellular_noise(const vec<L, f32>& uv) const noexcept
+    template <size_t L, VXM_REQ(L == 2 || L == 3)>
+    vec2 cellular_noise(const vec<L, f32>& uv) const
     {
-        VX_STATIC_ASSERT(L == 2 || L == 3, "cellular_noise only supports 2D or 3D vectors");
-        return sample_internal(uv, cellular_noise<L, f32>);
-    }
+        using T = decltype(uv);
+        using R = vec2;
 
-    VX_FORCE_INLINE vec2 cellular_noise(const vec2& uv) const noexcept { return cellular_noise<2>(uv); }
-    VX_FORCE_INLINE vec2 cellular_noise(const vec3& uv) const noexcept { return cellular_noise<3>(uv); }
+        return sample_internal<T, R>(uv, static_cast<R(*)(T)>(&::vx::math::cellular_noise));
+    }
 
 private:
 

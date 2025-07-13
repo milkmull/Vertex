@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./quaternion.hpp"
+#include "vertex/math/core/functions/quaternion.hpp"
 
 namespace vx {
 namespace math {

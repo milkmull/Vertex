@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../../core/functions/geometric.hpp"
+#include "vertex/math/core/functions/geometric.hpp"
 
 namespace vx {
 namespace math {
@@ -11,7 +11,7 @@ namespace geometry2d {
 ///////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
-struct point_t;
+using point_t = vec<2, T>;
 
 template <typename T>
 struct line_t;

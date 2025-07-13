@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./point.hpp"
+#include "vertex/math/geometry/2d/types/point.hpp"
 
 namespace vx {
 namespace math {
@@ -28,6 +28,8 @@ struct rect_t
     ///////////////////////////////////////////////////////////////////////////////
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr rect_t() noexcept = default;
 
     VX_FORCE_INLINE constexpr rect_t(const type& r) noexcept
         : position(r.position), size(r.size) {}
@@ -186,7 +188,7 @@ struct rect_t
     VX_FORCE_INLINE constexpr void set_top(scalar_type top)                             noexcept { position.y = top; }
     VX_FORCE_INLINE constexpr void set_bottom(scalar_type bottom)                       noexcept { position.y = bottom - size.y; }
     VX_FORCE_INLINE constexpr void set_centerx(scalar_type centerx)                     noexcept { position.x = centerx - size.x / static_cast<scalar_type>(2); }
-    VX_FORCE_INLINE constexpr void set_centery(scalar_type centery)                     noexcept { position.y = cenrtery - size.y / static_cast<scalar_type>(2); }
+    VX_FORCE_INLINE constexpr void set_centery(scalar_type centery)                     noexcept { position.y = centery - size.y / static_cast<scalar_type>(2); }
 
     VX_FORCE_INLINE constexpr void set_x(scalar_type x)                                 noexcept { position.x = x; }
     VX_FORCE_INLINE constexpr void set_y(scalar_type y)                                 noexcept { position.y = y; }

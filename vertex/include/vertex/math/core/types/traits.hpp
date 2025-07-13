@@ -3,7 +3,7 @@
 #include <limits>
 
 #include "vertex/config/language_config.hpp"
-#include "./base.hpp"
+#include "vertex/math/core/types/base.hpp"
 
 namespace vx {
 namespace math {

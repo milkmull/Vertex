@@ -12,7 +12,7 @@
 
 // https://cgvr.cs.uni-bremen.de/teaching/cg_literatur/simplexnoise.pdf
 
-#include "./noise_helpers.hpp"
+#include "vertex/math/procedural/noise/noise_helpers.hpp"
 
 namespace vx {
 namespace math {

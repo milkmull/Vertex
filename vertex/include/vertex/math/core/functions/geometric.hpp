@@ -1,9 +1,9 @@
 #pragma once
 
-#include "./common.hpp"
-#include "./comparison.hpp"
-#include "./exponential.hpp"
-#include "./trigonometric.hpp"
+#include "vertex/math/core/functions/common.hpp"
+#include "vertex/math/core/functions/comparison.hpp"
+#include "vertex/math/core/functions/exponential.hpp"
+#include "vertex/math/core/functions/trigonometric.hpp"
 
 namespace vx {
 namespace math {

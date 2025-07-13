@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./types/color.hpp"
+#include "vertex/math/color/types/color.hpp"
 
 namespace vx {
 namespace math {

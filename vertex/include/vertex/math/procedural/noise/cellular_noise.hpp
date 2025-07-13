@@ -12,7 +12,7 @@
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2.glsl
 // https://github.com/ashima/webgl-noise/blob/master/src/cellular2x2x2.glsl
 
-#include "./noise_helpers.hpp"
+#include "vertex/math/procedural/noise/noise_helpers.hpp"
 
 namespace vx {
 namespace math {

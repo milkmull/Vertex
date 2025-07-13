@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./point.hpp"
+#include "vertex/math/geometry/2d/types/point.hpp"
 
 namespace vx {
 namespace math {
@@ -27,6 +27,8 @@ struct ray_t
     ///////////////////////////////////////////////////////////////////////////////
     // implicit constructors
     ///////////////////////////////////////////////////////////////////////////////
+
+    VX_FORCE_INLINE constexpr ray_t() noexcept = default;
 
     VX_FORCE_INLINE constexpr ray_t(const type& r) noexcept
         : origin(r.origin), direction(r.direction) {}

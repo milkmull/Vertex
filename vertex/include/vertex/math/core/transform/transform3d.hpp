@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../functions/rotation_cast.hpp"
-#include "../functions/matrix.hpp"
+#include "vertex/math/core/functions/rotation_cast.hpp"
+#include "vertex/math/core/functions/matrix.hpp"
 
 namespace vx {
 namespace math {

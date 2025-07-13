@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../types.hpp"
-#include "../functions/common.hpp"
-#include "../../core/functions/exponential.hpp"
+#include "vertex/math/color/types/color.hpp"
+#include "vertex/math/color/functions/common.hpp"
+#include "vertex/math/core/functions/exponential.hpp"
 
 namespace vx {
 namespace math {

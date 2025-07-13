@@ -1,9 +1,9 @@
 #pragma once
 
 #include "vertex/config/assert.hpp"
-#include "./base.hpp"
+#include "vertex/math/core/types/base.hpp"
 
-#include "../../simd/quatf.hpp"
+#include "vertex/math/simd/quatf.hpp"
 
 namespace vx {
 namespace math {

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../types/color.hpp"
-#include "../functions/common.hpp"
+#include "vertex/math/color/types/color.hpp"
+#include "vertex/math/color/functions/common.hpp"
 
 namespace vx {
 namespace math {

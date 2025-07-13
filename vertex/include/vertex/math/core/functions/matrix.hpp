@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./common.hpp"
+#include "vertex/math/core/functions/common.hpp"
 
 namespace vx {
 namespace math {

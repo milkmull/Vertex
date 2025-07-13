@@ -1,36 +1,45 @@
 ﻿#include <iostream>
 
-#define VX_ENABLE_PROFILING 1
-#include "vertex/system/profiler.hpp"
+#include "vertex/os/random.hpp"
 
-#include "vertex/math/math.hpp"
-#include "vertex/math/procedural/noise/perlin_noise.hpp"
-#include "vertex/util/time/timer.hpp"
+#include "vertex/system/error.hpp"
+#include "vertex/image/load.hpp"
+#include "vertex/image/write.hpp"
+
+#include "vertex/math/color/functions/color.hpp"
+#include "vertex/math/procedural/sdf2d.hpp"
+#include "vertex/math/procedural/noise/noise_sampler.hpp"
 
 using namespace vx;
 
-static time::time_point test()
-{
-    time::timer t;
-    
-    {
-        t.start();
-        const auto x = math::perlin_noise(math::vec4{ 1, 2, 3, 4 });
-        t.stop();
-    }
-
-    return t.elapsed_time();
-}
-
 int main(int argc, char* argv[])
 {
-    double elapsed = 0.0;
+    bool ok;
 
-    for (double i = 0; i < 1000000000; ++i)
+    pixel::surface<pixel::pixel_format::R_8> surf(500, 500);
+
     {
-        const auto tp = test();
-        elapsed = ((i * elapsed) + tp.as_float_nanoseconds()) / (i + 1);
+        math::noise_sampler s;
+        s.frequency = 0.01f;
+
+        os::get_entropy(reinterpret_cast<uint8_t*>(&s.seed.x), sizeof(float));
+        os::get_entropy(reinterpret_cast<uint8_t*>(&s.seed.y), sizeof(float));
+
+        for (auto it = begin(surf); it != end(surf); ++it)
+        {
+            const auto n = s.simplex_noise(it.local());
+            it.set_pixel(math::color(n));
+        }
     }
 
-    std::cout << elapsed;
+    img::image img(surf.data(), 500, 500, img::pixel_format::R_8);
+
+    {
+        ok = img::write_png("../../assets/sdf_test.png", img);
+        if (!ok)
+        {
+            std::cout << err::get().message << std::endl;
+        }
+    }
+
 }

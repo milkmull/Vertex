@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../core/functions/common.hpp"
-#include "../../core/functions/interpolation.hpp"
-#include "../../core/functions/geometric.hpp"
+#include "vertex/math/core/functions/common.hpp"
+#include "vertex/math/core/functions/interpolation.hpp"
+#include "vertex/math/core/functions/geometric.hpp"
 
 // Based on the work of Stefan Gustavson and Ashima Arts:
 // https://github.com/ashima/webgl-noise

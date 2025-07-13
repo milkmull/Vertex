@@ -3,7 +3,7 @@
 #include <string>
 #include <cstring>
 
-#include "../types.hpp"
+#include "vertex/math/core/types/base.hpp"
 
 namespace vx {
 namespace math {

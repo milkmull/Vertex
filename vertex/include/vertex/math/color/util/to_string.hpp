@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../types.hpp"
-#include "../../core/util/to_string.hpp"
+#include "vertex/math/color/types.hpp"
+#include "vertex/math/core/util/to_string.hpp"
 
 namespace vx {
 namespace math {

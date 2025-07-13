@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./config.hpp"
+#include "vertex/math/simd/arch/config.hpp"
 
 namespace vx {
 namespace math {

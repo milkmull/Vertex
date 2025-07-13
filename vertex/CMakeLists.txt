@@ -131,28 +131,12 @@ target_include_directories(Vertex_Headers INTERFACE
     "$<INSTALL_INTERFACE:include>"                                      # When using the installed project
 )
 
+set(VX_THIRD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party")
+
 # Source files for the library
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/include/vertex")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl")
 vx_create_source_groups(Vertex "${CMAKE_CURRENT_SOURCE_DIR}")
-
-# Third party header files for the library
-#target_include_directories(Vertex
-#    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/third_party>" # When building the project
-#    PUBLIC "$<INSTALL_INTERFACE:include>"                               # When using the installed project
-#    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/src"
-#)
-
-# stb_image
-#target_include_directories(Vertex PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/include")
-#
-#file(GLOB_RECURSE STB_IMAGE_FILES
-#    "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb_image/*.h"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/src/stb_image_impl/*.cpp"
-#)
-#vx_create_source_group(STB_IMAGE_FILES "${CMAKE_CURRENT_SOURCE_DIR}")
-#
-#target_sources(Vertex PRIVATE ${STB_IMAGE_FILES})
 
 # Handle Windows resource file for shared library builds
 if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)

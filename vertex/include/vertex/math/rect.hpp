@@ -1,6 +1,6 @@
 #pragma once
 
-#include "./geometry/2d/types/rect.hpp"
+#include "vertex/math/geometry/2d/types/rect.hpp"
 
 namespace vx {
 namespace math {
