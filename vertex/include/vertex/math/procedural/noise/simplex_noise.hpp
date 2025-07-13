@@ -113,14 +113,6 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<3, T>& v) noexcept
     const vec<3, T> x2 = x0 - i2 + C.y;
     const vec<3, T> x3 = x0 - D.y;
 
-    // x0 = x0 - 0.0 + 0.0 * C.xxx;
-    // x1 = x0 - i1  + 1.0 * C.xxx;
-    // x2 = x0 - i2  + 2.0 * C.xxx;
-    // x3 = x0 - 1.0 + 3.0 * C.xxx;
-    vec<3, T> x1(x0 - i1 + C.x);
-    vec<3, T> x2(x0 - i2 + C.y); //  2.0 * C.x = 1 / 3 = C.y
-    vec<3, T> x3(x0 - D.y); // -1.0 + 3.0 * C.x = -0.5 = -D.y
-
     // Permutations
     i = __detail::mod289(i);
     const vec<4, T> p = __detail::permute(__detail::permute(__detail::permute(
