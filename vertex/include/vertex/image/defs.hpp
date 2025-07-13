@@ -16,11 +16,11 @@ enum class file_format
 
 enum class pixel_format
 {
-    UNKNOWN         = pixel::pixel_format::UNKNOWN,
+    UNKNOWN         = static_cast<int>(pixel::pixel_format::UNKNOWN),
 
-    R_8             = pixel::pixel_format::R_8,
-    RGB_8           = pixel::pixel_format::RGB_8,
-    RGBA_8          = pixel::pixel_format::RGBA_8
+    R_8             = static_cast<int>(pixel::pixel_format::R_8),
+    RGB_8           = static_cast<int>(pixel::pixel_format::RGB_8),
+    RGBA_8          = static_cast<int>(pixel::pixel_format::RGBA_8)
 };
 
 enum : size_t
