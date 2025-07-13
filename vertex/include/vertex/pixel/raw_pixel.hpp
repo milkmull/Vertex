@@ -15,7 +15,7 @@ template <pixel_format f> struct raw_pixel;
 
 #define __STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT(sizeof(raw_pixel<F>) == sizeof(typename raw_pixel<F>::pixel_type), "invalid pixel size for format " FS)
 #define __STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_pixel<F>) == alignof(typename raw_pixel<F>::pixel_type), "invalid pixel alignment for format " FS)
-#define __STATIC_FORMAT_CHECK(F)           __STATIC_CHECK_SIZE(pixel_format::F, #F); __STATIC_CHECK_ALIGNMENT(pixel_format::F, #F);
+#define __STATIC_FORMAT_CHECK(F)           __STATIC_CHECK_SIZE(pixel_format::F, #F); __STATIC_CHECK_ALIGNMENT(pixel_format::F, #F)
 
 #define __PACKED_ENCODE_CHANNEL(x) (static_cast<pixel_type>(math::clamp(static_cast<float_type>(c.x * (info.x.mask >> info.x.shift)), static_cast<float_type>(0), static_cast<float_type>(info.x.mask >> info.x.shift))) << info.x.shift)
 #define __PACKED_DECODE_CHANNEL(x) (static_cast<float>((data & info.x.mask) >> info.x.shift) / (info.x.mask >> info.x.shift))
