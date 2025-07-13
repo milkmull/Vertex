@@ -896,141 +896,141 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 // 32 bit
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
-struct alignas(alignof(uint32_t[1])) raw_pixel<pixel_format::R_32>
-{
-    using channel_type = uint32_t;
-    using pixel_type = channel_type[1];
-    using float_type = double;
-
-    static constexpr pixel_format format = pixel_format::R_32;
-    static constexpr channel_info info = get_channel_info(format);
-    pixel_type data;
-
-    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
-    {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-    }
-
-    VX_FORCE_INLINE constexpr operator math::color() const noexcept
-    {
-        return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            0.0f,
-            0.0f,
-            1.0f
-        );
-    }
-};
-
-__STATIC_FORMAT_CHECK(R_32);
-
-///////////////////////////////////////////////////////////////////////////////
-
-template <>
-struct alignas(alignof(uint32_t[2])) raw_pixel<pixel_format::RG_32>
-{
-    using channel_type = uint32_t;
-    using pixel_type = channel_type[2];
-    using float_type = double;
-
-    static constexpr pixel_format format = pixel_format::RG_32;
-    static constexpr channel_info info = get_channel_info(format);
-    pixel_type data;
-
-    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
-    {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-    }
-
-    VX_FORCE_INLINE constexpr operator math::color() const noexcept
-    {
-        return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            0.0f,
-            1.0f
-        );
-    }
-};
-
-__STATIC_FORMAT_CHECK(RG_32);
+//template <>
+//struct alignas(alignof(uint32_t[1])) raw_pixel<pixel_format::R_32>
+//{
+//    using channel_type = uint32_t;
+//    using pixel_type = channel_type[1];
+//    using float_type = double;
+//
+//    static constexpr pixel_format format = pixel_format::R_32;
+//    static constexpr channel_info info = get_channel_info(format);
+//    pixel_type data;
+//
+//    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
+//
+//    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
+//    {
+//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+//    }
+//
+//    VX_FORCE_INLINE constexpr operator math::color() const noexcept
+//    {
+//        return math::color(
+//            __ARRAY_DECODE_CHANNEL(r),
+//            0.0f,
+//            0.0f,
+//            1.0f
+//        );
+//    }
+//};
+//
+//__STATIC_FORMAT_CHECK(R_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
-struct alignas(alignof(uint32_t[3])) raw_pixel<pixel_format::RGB_32>
-{
-    using channel_type = uint32_t;
-    using pixel_type = channel_type[3];
-    using float_type = double;
-
-    static constexpr pixel_format format = pixel_format::RGB_32;
-    static constexpr channel_info info = get_channel_info(format);
-    pixel_type data;
-
-    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
-    {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-    }
-
-    VX_FORCE_INLINE constexpr operator math::color() const noexcept
-    {
-        return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            1.0f
-        );
-    }
-};
-
-__STATIC_FORMAT_CHECK(RGB_32);
+//template <>
+//struct alignas(alignof(uint32_t[2])) raw_pixel<pixel_format::RG_32>
+//{
+//    using channel_type = uint32_t;
+//    using pixel_type = channel_type[2];
+//    using float_type = double;
+//
+//    static constexpr pixel_format format = pixel_format::RG_32;
+//    static constexpr channel_info info = get_channel_info(format);
+//    pixel_type data;
+//
+//    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
+//
+//    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
+//    {
+//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+//    }
+//
+//    VX_FORCE_INLINE constexpr operator math::color() const noexcept
+//    {
+//        return math::color(
+//            __ARRAY_DECODE_CHANNEL(r),
+//            __ARRAY_DECODE_CHANNEL(g),
+//            0.0f,
+//            1.0f
+//        );
+//    }
+//};
+//
+//__STATIC_FORMAT_CHECK(RG_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <>
-struct alignas(alignof(uint32_t[4])) raw_pixel<pixel_format::RGBA_32>
-{
-    using channel_type = uint32_t;
-    using pixel_type = channel_type[4];
-    using float_type = double;
+//template <>
+//struct alignas(alignof(uint32_t[3])) raw_pixel<pixel_format::RGB_32>
+//{
+//    using channel_type = uint32_t;
+//    using pixel_type = channel_type[3];
+//    using float_type = double;
+//
+//    static constexpr pixel_format format = pixel_format::RGB_32;
+//    static constexpr channel_info info = get_channel_info(format);
+//    pixel_type data;
+//
+//    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
+//
+//    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
+//    {
+//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+//        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+//    }
+//
+//    VX_FORCE_INLINE constexpr operator math::color() const noexcept
+//    {
+//        return math::color(
+//            __ARRAY_DECODE_CHANNEL(r),
+//            __ARRAY_DECODE_CHANNEL(g),
+//            __ARRAY_DECODE_CHANNEL(b),
+//            1.0f
+//        );
+//    }
+//};
+//
+//__STATIC_FORMAT_CHECK(RGB_32);
 
-    static constexpr pixel_format format = pixel_format::RGBA_32;
-    static constexpr channel_info info = get_channel_info(format);
-    pixel_type data;
+///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
-
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
-    {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
-    }
-
-    VX_FORCE_INLINE constexpr operator math::color() const noexcept
-    {
-        return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            __ARRAY_DECODE_CHANNEL(a)
-        );
-    }
-};
-
-__STATIC_FORMAT_CHECK(RGBA_32);
+//template <>
+//struct alignas(alignof(uint32_t[4])) raw_pixel<pixel_format::RGBA_32>
+//{
+//    using channel_type = uint32_t;
+//    using pixel_type = channel_type[4];
+//    using float_type = double;
+//
+//    static constexpr pixel_format format = pixel_format::RGBA_32;
+//    static constexpr channel_info info = get_channel_info(format);
+//    pixel_type data;
+//
+//    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
+//
+//    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
+//    {
+//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+//        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+//        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+//    }
+//
+//    VX_FORCE_INLINE constexpr operator math::color() const noexcept
+//    {
+//        return math::color(
+//            __ARRAY_DECODE_CHANNEL(r),
+//            __ARRAY_DECODE_CHANNEL(g),
+//            __ARRAY_DECODE_CHANNEL(b),
+//            __ARRAY_DECODE_CHANNEL(a)
+//        );
+//    }
+//};
+//
+//__STATIC_FORMAT_CHECK(RGBA_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 32 bit float

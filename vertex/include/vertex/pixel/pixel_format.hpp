@@ -307,7 +307,7 @@ enum class pixel_format : uint32_t
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_32 = 0x41010004,
+    //R_32 = 0x41010004,
     // create_pixel_format(
     //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
     //     pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
@@ -315,7 +315,7 @@ enum class pixel_format : uint32_t
     //     1, 4, false
     // )
 
-    RG_32 = 0x42020008,
+    //RG_32 = 0x42020008,
     // create_pixel_format(
     //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
     //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
@@ -323,7 +323,7 @@ enum class pixel_format : uint32_t
     //     2, 8, false
     // )
 
-    RGB_32 = 0x4303000C,
+    //RGB_32 = 0x4303000C,
     // create_pixel_format(
     //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
     //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
@@ -331,7 +331,7 @@ enum class pixel_format : uint32_t
     //     3, 12, false
     // )
 
-    RGBA_32 = 0x45040810,
+    //RGBA_32 = 0x45040810,
     // create_pixel_format(
     //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
     //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
