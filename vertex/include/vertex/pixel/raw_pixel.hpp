@@ -58,11 +58,11 @@ struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::RGB_332>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -94,12 +94,12 @@ struct alignas(uint16_t) raw_pixel<pixel_format::RGBA_4444>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -129,12 +129,12 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_4444>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -166,11 +166,11 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGB_565>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -200,11 +200,11 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGR_565>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -236,12 +236,12 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGBA_5551>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -271,12 +271,12 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_5551>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -306,12 +306,12 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::ARGB_1555>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -343,12 +343,12 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBA_8888>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -378,12 +378,12 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRA_8888>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -413,12 +413,12 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_8888>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -450,12 +450,12 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_2101010>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
@@ -485,12 +485,12 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_2101010>
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
-    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         __PACKED_ENCODE_CHANNEL(r) |
         __PACKED_ENCODE_CHANNEL(g) |
         __PACKED_ENCODE_CHANNEL(b) |
         __PACKED_ENCODE_CHANNEL(a)
-    ) {}
+    )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
