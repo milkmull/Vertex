@@ -135,9 +135,9 @@ public:
      *
      * @return A random floating-point number between 0.0 and 1.0.
      */
-    double randf()
+    float randf()
     {
-        return random::uniform_real_distribution<double>()(m_rng);
+        return random::uniform_real_distribution<float>()(m_rng);
     }
 
     /**
@@ -158,7 +158,7 @@ public:
      * @param max The maximum value of the range.
      * @return A random integer within the range [min, max].
      */
-    template <typename T>
+    template <typename T = uint32_t>
     T randi_range(T min, T max)
     {
         return random::uniform_int_distribution<T>(min, max)(m_rng);
@@ -172,7 +172,7 @@ public:
      * @param max The maximum value of the range.
      * @return A random floating-point number within the range [min, max].
      */
-    template <typename T>
+    template <typename T = float>
     T randf_range(T min, T max)
     {
         return random::uniform_real_distribution<T>(min, max)(m_rng);
