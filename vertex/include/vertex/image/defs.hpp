@@ -14,13 +14,13 @@ enum class file_format
     PNG
 };
 
-enum class pixel_format
+enum class pixel_format : uint32_t
 {
-    UNKNOWN         = static_cast<int>(pixel::pixel_format::UNKNOWN),
+    UNKNOWN         = static_cast<uint32_t>(pixel::pixel_format::UNKNOWN),
 
-    R_8             = static_cast<int>(pixel::pixel_format::R_8),
-    RGB_8           = static_cast<int>(pixel::pixel_format::RGB_8),
-    RGBA_8          = static_cast<int>(pixel::pixel_format::RGBA_8)
+    R_8             = static_cast<uint32_t>(pixel::pixel_format::R_8),
+    RGB_8           = static_cast<uint32_t>(pixel::pixel_format::RGB_8),
+    RGBA_8          = static_cast<uint32_t>(pixel::pixel_format::RGBA_8)
 };
 
 enum : size_t

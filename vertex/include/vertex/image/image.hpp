@@ -19,13 +19,13 @@ public:
     image() {}
     VX_DISABLE_MSVC_WARNING_POP()
 
-    image(size_t width, size_t height, pixel_format fmt = pixel_format::RGBA_8)
+    image(size_t width, size_t height, pixel_format fmt)
         : m_format(fmt)
     {
         construct(width, height, fmt);
     }
 
-    image(const byte_type* data, size_t width, size_t height, pixel_format fmt)
+    image(const uint8_t* data, size_t width, size_t height, pixel_format fmt)
         : m_format(fmt)
     {
         construct(data, width, height, fmt);
@@ -161,6 +161,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     pixel_format format() const { return m_format; }
+    bool unknown_format() const { return m_format == pixel_format::UNKNOWN; }
 
     size_t channels() const
     {
@@ -341,7 +342,7 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    // as surface
+    // to_surface
     ///////////////////////////////////////////////////////////////////////////////
 
     template <pixel::pixel_format F>

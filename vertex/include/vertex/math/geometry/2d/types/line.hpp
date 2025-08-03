@@ -59,8 +59,8 @@ struct line_t
 
     template <typename A, typename B>
     VX_FORCE_INLINE constexpr line_t(
-        const point<A>& la,
-        const point<B>& lb
+        const point_t<A>& la,
+        const point_t<B>& lb
     ) noexcept
         : a(la), b(lb) {}
 

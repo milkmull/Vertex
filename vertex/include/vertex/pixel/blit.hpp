@@ -1,26 +1,15 @@
 #pragma once
 
-#include "surface.h"
+#include "vertex/pixel/surface.hpp"
+#include "vertex/math/geometry/2d/functions/collision.hpp"
 
 namespace vx {
 namespace pixel {
 
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Copies a specified rectangular area from the source surface to the
-/// destination surface at a given position.
-///
-/// @param src The source surface to copy pixels from.
-/// @param src_area The rectangular area within the source surface to copy.
-/// @param dst The destination surface to copy pixels to.
-/// @param dst_position The position on the destination surface where the
-/// top-left corner of the src_area should be copied.
-/// 
-/// @return true if the operation succeeds, false if either surface has 
-/// an unknown format.
-///////////////////////////////////////////////////////////////////////////////
+template <pixel_format SRC_FMT, pixel_format DST_FMT>
 inline bool blit(
-    const surface& src, const math::recti& src_area,
-    surface& dst, const math::vec2i& dst_position
+    const surface<SRC_FMT>& src, const math::recti& src_area,
+    surface<DST_FMT>& dst, const math::vec2i& dst_position
 )
 {
     if (src.unknown_format() || dst.unknown_format())
@@ -29,7 +18,7 @@ inline bool blit(
     }
 
     // Crop the area within the bounds of the src surface.
-    math::recti area = src.get_rect().crop(src_area);
+    math::recti area = math::geometry2d::crop(src.get_rect(), src_area);
     if (area.empty())
     {
         return true;
@@ -43,7 +32,7 @@ inline bool blit(
     // shifting the src area to allign with the dst position. The dst area is
     // then cropped within the dst rect. This gives us the minimum area that
     // we have to copy from src to dst.
-    area = dst.get_rect().crop(area.move(shift.x, shift.y));
+    area = math::geometry2d::crop(dst.get_rect(), math::geometry2d::move(area, shift.x, shift.y));
     if (area.empty())
     {
         return true;
@@ -60,33 +49,16 @@ inline bool blit(
     return true;
 }
 
-inline bool blit(const surface& src, surface& dst, const math::vec2i& dst_position)
+template <pixel_format SRC_FMT, pixel_format DST_FMT>
+inline bool blit(const surface<SRC_FMT>& src, surface<DST_FMT>& dst, const math::vec2i& dst_position)
 {
     return blit(src, src.get_rect(), dst, dst_position);
 }
 
-
-///////////////////////////////////////////////////////////////////////////////
-/// @brief Copies a specified rectangular area from the source surface to the 
-/// destination surface using a custom blending function.
-///
-/// @tparam blend_func A functor or lambda that takes two colors (source and 
-/// destination) and returns a blended color.
-/// @param src The source surface to copy pixels from.
-/// @param src_area The rectangular area within the source surface to copy.
-/// @param dst The destination surface to copy pixels to.
-/// @param dst_position The position on the destination surface where the top-left 
-/// corner of the src_area should be copied.
-/// @param blend A blending function or functor that defines how to combine 
-/// source and destination pixels.
-/// 
-/// @return true if the operation succeeds, false if either surface has 
-/// an unknown format.
-///////////////////////////////////////////////////////////////////////////////
-template <typename blend_func>
+template <pixel_format SRC_FMT, pixel_format DST_FMT, typename blend_func>
 inline bool blit(
-    const surface& src, const math::recti& src_area,
-    surface& dst, const math::vec2i& dst_position,
+    const surface<SRC_FMT>& src, const math::recti& src_area,
+    surface<DST_FMT>& dst, const math::vec2i& dst_position,
     const blend_func& blend
 )
 {
@@ -96,7 +68,7 @@ inline bool blit(
     }
 
     // Crop the area within the bounds of the src surface.
-    math::recti area = src.get_rect().crop(src_area);
+    math::recti area = math::geometry2d::crop(src.get_rect(), src_area);
     if (area.empty())
     {
         return true;
@@ -110,7 +82,7 @@ inline bool blit(
     // shifting the src area to allign with the dst position. The dst area is
     // then cropped within the dst rect. This gives us the minimum area that
     // we have to copy from src to dst.
-    area = dst.get_rect().crop(area.move(shift.x, shift.y));
+    area = math::geometry2d::crop(dst.get_rect(), math::geometry2d::move(area, shift.x, shift.y));
     if (area.empty())
     {
         return true;
@@ -130,5 +102,5 @@ inline bool blit(
     return true;
 }
 
-}
-}
+} // namespace pixel
+} // namespace vx

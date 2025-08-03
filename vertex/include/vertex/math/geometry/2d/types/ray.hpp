@@ -59,7 +59,7 @@ struct ray_t
 
     template <typename O, typename D>
     VX_FORCE_INLINE constexpr ray_t(
-        const point<O>& rorigin,
+        const point_t<O>& rorigin,
         const vec<2, D>& rdirection
     ) noexcept
         : origin(rorigin), direction(rdirection) {}

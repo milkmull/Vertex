@@ -59,7 +59,7 @@ struct circle_t
 
     template <typename C, typename R>
     VX_FORCE_INLINE constexpr circle_t(
-        const point<C>& ccenter,
+        const point_t<C>& ccenter,
         R cradius
     ) noexcept
         : center(ccenter), radius(cradius) {}

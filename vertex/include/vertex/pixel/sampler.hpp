@@ -1,7 +1,7 @@
 #pragma once
 
-#include "surface.h"
-#include "vertex/math/sample/wrap.h"
+#include "vertex/pixel/surface.hpp"
+#include "vertex/math/procedural/wrap.hpp"
 
 namespace vx {
 namespace pixel {
@@ -30,7 +30,8 @@ public:
     // sampling
     ///////////////////////////////////////////////////////////////////////////////
 
-    math::color sample_pixel(const surface& surf, int32_t x, int32_t y) const
+    template <pixel_format F>
+    math::color sample_pixel(const surface<F>& surf, int32_t x, int32_t y) const
     {
         return sample(
             surf,
@@ -39,7 +40,8 @@ public:
         );
     }
 
-    math::color sample(const surface& surf, float u, float v) const
+    template <pixel_format F>
+    math::color sample(const surface<F>& surf, float u, float v) const
     {
         if (surf.empty() || surf.unknown_format())
         {
@@ -64,7 +66,8 @@ public:
 
 private:
 
-    math::color get_pixel(const surface& surf, const math::vec2i& size, int32_t x, int32_t y) const
+    template <pixel_format F>
+    math::color get_pixel(const surface<F>& surf, const math::vec2i& size, int32_t x, int32_t y) const
     {
         x = wrap_pixel(x, static_cast<int32_t>(size.x), xwrap);
         y = wrap_pixel(y, static_cast<int32_t>(size.y), ywrap);
@@ -94,12 +97,14 @@ private:
     // sample methods
     ///////////////////////////////////////////////////////////////////////////////
 
-    math::color sample_nearest(const surface& surf, const math::vec2i& size, float u, float v) const
+    template <pixel_format F>
+    auto sample_nearest(const surface<F>& surf, const math::vec2i& size, float u, float v) const
     {
         return get_pixel(surf, size, static_cast<int32_t>(u), static_cast<int32_t>(v));
     }
 
-    math::color sample_bilinear(const surface& surf, const math::vec2i& size, float u, float v) const
+    template <pixel_format F>
+    math::color sample_bilinear(const surface<F>& surf, const math::vec2i& size, float u, float v) const
     {
         // x
         const float srcxfrac = u - 0.5f;
@@ -134,7 +139,7 @@ private:
 
         math::color samp;
 
-        for (size_t c = 0; c < samp.size(); ++c)
+        for (size_t c = 0; c < samp.size; ++c)
         {
             samp[c] = (
                 pixels[0][c] * weights[0] +
@@ -146,8 +151,7 @@ private:
 
         return samp;
     }
-
 };
 
-}
-}
+} // namespace pixel
+} // namespace vx

@@ -24,5 +24,15 @@ VX_FORCE_INLINE std::string to_string(const color_t<T>& c)
     return buffer_2;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// ostream operators
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename Elem, typename Traits, typename T>
+inline std::basic_ostream<Elem, Traits>& operator<<(std::basic_ostream<Elem, Traits>& os, const color_t<T>& c)
+{
+    return (os << to_string(c));
+}
+
 } // namespace math
 } // namespace vx

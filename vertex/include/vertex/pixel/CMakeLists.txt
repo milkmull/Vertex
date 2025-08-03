@@ -11,6 +11,8 @@ file(GLOB VX_PIXEL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/raw_transform.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/surface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/sampler.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/blit.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_PIXEL_HEADER_FILES})

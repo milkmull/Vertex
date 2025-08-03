@@ -71,9 +71,9 @@ struct triangle_t
 
     template <typename A, typename B, typename C>
     VX_FORCE_INLINE constexpr triangle_t(
-        const point<A>& ta,
-        const point<B>& tb,
-        const point<C>& tc
+        const point_t<A>& ta,
+        const point_t<B>& tb,
+        const point_t<C>& tc
     ) noexcept
         : a(ta), b(tb), c(tc) {}
 

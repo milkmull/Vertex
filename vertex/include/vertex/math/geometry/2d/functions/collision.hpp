@@ -25,7 +25,7 @@ VX_FORCE_INLINE constexpr line_t<T> move(const line_t<T>& l, T dx, T dy) noexcep
 template <typename T>
 VX_FORCE_INLINE constexpr rect_t<T> move(const rect_t<T>& r, T dx, T dy) noexcept
 {
-    return rect_t<T>(r.position.x + dx, r.position.y + dy, p.size.x, r.size.y);
+    return rect_t<T>(r.position.x + dx, r.position.y + dy, r.size.x, r.size.y);
 }
 
 template <typename T>

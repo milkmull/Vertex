@@ -23,6 +23,7 @@ public:
     static VX_FORCE_INLINE constexpr size_t channels() noexcept { return get_pixel_channel_count(format); }
     static VX_FORCE_INLINE constexpr bool has_alpha() noexcept { return pixel_has_alpha(format); }
     static VX_FORCE_INLINE constexpr size_t pixel_size() noexcept { return get_pixel_size(format); }
+    static VX_FORCE_INLINE constexpr bool unknown_format() noexcept { return format == pixel_format::UNKNOWN; }
 
     using raw_pixel_type = raw_pixel<format>;
     using pixel_type = typename raw_pixel_type::pixel_type;
@@ -174,7 +175,7 @@ public:
 
         VX_IF_CONSTEXPR(F == F2)
         {
-            converted.m_data = m_data;
+            std::memcpy(converted.m_data.get(), m_data.get(), data_size());
         }
         else
         {
