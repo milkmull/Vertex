@@ -1,25 +1,10 @@
 #pragma once
 
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 #include "vertex/util/string/string_type.hpp"
 
 namespace vx {
 namespace type_traits {
-
-///////////////////////////////////////////////////////////////////////////////
-// char types
-///////////////////////////////////////////////////////////////////////////////
-
-template <typename T>
-struct is_char : is_any_of<typename std::remove_cv<T>::type,
-    char,
-    wchar_t,
-#if defined(__cpp_char8_t)
-    char8_t
-#endif // __cpp_char8_t
-    char16_t,
-    char32_t
-> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // is char iterator

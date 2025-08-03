@@ -4,7 +4,7 @@
 #include <limits> // numeric_limits
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace bit {

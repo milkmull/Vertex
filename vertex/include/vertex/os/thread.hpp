@@ -3,7 +3,7 @@
 #include <thread>
 
 #include "vertex/system/error.hpp"
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace os {

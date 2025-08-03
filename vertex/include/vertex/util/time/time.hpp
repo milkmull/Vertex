@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/hash.hpp"
 

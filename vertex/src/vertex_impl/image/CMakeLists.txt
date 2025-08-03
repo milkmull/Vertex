@@ -23,16 +23,6 @@ file(GLOB VX_IMAGE_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/util.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/load.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/write.cpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/load_context.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/write_context.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/pixel_writer.hpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/bmp/bmp_load.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bmp/bmp_write.hpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/jpg/jpg_load.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/jpg/jpg_write.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_IMAGE_SOURCE_FILES})

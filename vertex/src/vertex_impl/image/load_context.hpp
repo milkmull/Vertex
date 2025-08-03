@@ -7,6 +7,7 @@
 #include "vertex/config/assert.hpp"
 #include "vertex/image/defs.hpp"
 #include "vertex/os/file.hpp"
+#include "vertex_impl/image/util.hpp"
 
 namespace vx {
 namespace img {
@@ -20,31 +21,15 @@ enum class load_error
     NONE = 0,
 
     BAD_FILE,
-    BAD_BMP,
-    MAX_SIZE
+    MAX_SIZE,
+    OUT_OF_MEMORY,
+
+    CORRUPT_BMP,
+    CORRUPT_JPEG,
+    CORRUPT_PNG,
+
+    UNSUPPORTED_PIXEL_FORMAT
 };
-
-///////////////////////////////////////////////////////////////////////////////
-// overflow helpers
-///////////////////////////////////////////////////////////////////////////////
-
-VX_FORCE_INLINE bool will_multiply_overflow(size_t a, size_t b) noexcept
-{
-    if (a == 0 || b == 0) return false;
-    return a > std::numeric_limits<size_t>::max() / b;
-}
-
-VX_FORCE_INLINE bool will_multiply_overflow(size_t a, size_t b, size_t c) noexcept
-{
-    // Check a * b first
-    if (will_multiply_overflow(a, b)) return true;
-
-    // If a * b is safe, calculate it
-    const size_t ab = a * b;
-
-    // Now check (a * b) * c
-    return will_multiply_overflow(ab, c);
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 // load context
@@ -82,6 +67,12 @@ struct load_context
     uint8_t buffer[128];
     uint8_t* ptr = nullptr;
     uint8_t* buffer_end = nullptr;
+    size_t bytes_read;
+
+    size_t total_bytes_read() const
+    {
+        return bytes_read + (ptr - buffer);
+    }
 
     bool open_file(const char* filename)
     {
@@ -94,6 +85,7 @@ struct load_context
         buffer_end = buffer + sizeof(buffer);
         ptr = buffer_end;
         eof = false;
+        bytes_read = 0;
 
         return true;
     }
@@ -106,6 +98,7 @@ struct load_context
         {
             ptr = buffer;
             buffer_end = ptr + n;
+            bytes_read += (ptr - buffer);
         }
         else
         {
@@ -155,6 +148,33 @@ struct load_context
     void rewind_buffer()
     {
         ptr = buffer;
+    }
+
+    bool read_n(uint8_t* dst, size_t n)
+    {
+        size_t remaining = n;
+
+        while (remaining > 0)
+        {
+            if (ptr == buffer_end)
+            {
+                refill_buffer();
+                if (eof && (buffer_end - ptr) < remaining)
+                {
+                    return false; // not enough data to fulfill the request
+                }
+            }
+
+            const size_t available = static_cast<size_t>(buffer_end - ptr);
+            const size_t to_copy = (available < remaining) ? available : remaining;
+
+            std::memcpy(dst, ptr, to_copy);
+            dst += to_copy;
+            ptr += to_copy;
+            remaining -= to_copy;
+        }
+
+        return true;
     }
 
     VX_FORCE_INLINE uint8_t read_8() noexcept

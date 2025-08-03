@@ -4,6 +4,7 @@
 
 #include <type_traits>
 #include <iterator>
+#include <limits>
 
 namespace vx {
 namespace type_traits {
@@ -503,6 +504,21 @@ using make_integer_sequence
 
 template <size_t N>
 using make_index_sequence = make_integer_sequence<size_t, N>;
+
+///////////////////////////////////////////////////////////////////////////////
+// char types
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+struct is_char : is_any_of<typename std::remove_cv<T>::type,
+    char,
+    wchar_t,
+#if defined(__cpp_char8_t)
+    char8_t
+#endif // __cpp_char8_t
+    char16_t,
+    char32_t
+> {};
 
 } // namespace type_traits
 } // namespace vx

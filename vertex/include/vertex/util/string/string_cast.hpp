@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex/util/encode/utf.hpp"
 #include "vertex/util/string/type_traits.hpp"
+#include "vertex/util/encode/utf.hpp"
 
 namespace vx {
 namespace str {

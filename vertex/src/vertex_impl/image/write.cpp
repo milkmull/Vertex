@@ -4,8 +4,6 @@
 #include "vertex/image/write.hpp"
 #include "vertex_impl/image/util.hpp"
 
-#include "vertex_impl/image/bmp/bmp_write.hpp"
-
 #define VX_IMG_WRITE_IMPLEMENTATION
 
 #if defined(VX_IMG_ONLY_BMP) || defined(VX_IMG_ONLY_JPG) || defined(VX_IMG_ONLY_PNG)
@@ -100,19 +98,11 @@ bool write_bmp(const std::string& filename, const image& img)
     }
 
     stbi_flip_vertically_on_write(false);
-    //const bool success = stbi_write_bmp(
-    //    filename.c_str(),
-    //    static_cast<int>(data.info.width),
-    //    static_cast<int>(data.info.height),
-    //    static_cast<int>(pixel::get_pixel_channel_count(data.info.format)),
-    //    data.data
-    //);
-
-    const bool success = bmp::write_bmp(
+    const bool success = stbi_write_bmp(
         filename.c_str(),
-        data.info.width,
-        data.info.height,
-        pixel::get_pixel_channel_count(data.info.format),
+        static_cast<int>(data.info.width),
+        static_cast<int>(data.info.height),
+        static_cast<int>(pixel::get_pixel_channel_count(data.info.format)),
         data.data
     );
 

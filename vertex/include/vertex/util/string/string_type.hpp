@@ -2,10 +2,9 @@
 
 #include "vertex/config/language_config.hpp"
 
+#include <string>
 #if (VX_CPP_STANDARD >= 17)
 #   include <string_view>
-#else
-#   include <string>
 #endif // (VX_CPP_STANDARD >= 17)
 
 namespace vx {

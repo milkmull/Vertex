@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace crypto {

@@ -6,6 +6,7 @@
 # Source files for vertex/include/vertex/image
 file(GLOB VX_IMAGE_HEADER_FILES
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/simd.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/defs.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/image.hpp"
     

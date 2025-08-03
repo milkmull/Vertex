@@ -1,0 +1,38 @@
+image:
+{
+    - write bmp
+    - write jpg
+    - write png
+    
+    - load bmp
+    - load jpg
+    - load png
+    
+    - tests
+}
+
+pixel:
+{
+    - resize point
+    - resize linear
+    - resize box
+    - resize cubic
+    
+    - sampler
+    
+    - color functions
+    - transform functions
+    - draw functions
+    
+    - test
+}
+
+math:
+{
+    - geometry 2d matrix
+    - geometry 2d tests
+    
+    - sse2 finish testing
+    - neon simd
+    - simd tests
+}
