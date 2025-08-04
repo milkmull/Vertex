@@ -5,12 +5,7 @@
 #include "vertex/system/error.hpp"
 #include "vertex/image/load.hpp"
 #include "vertex/image/write.hpp"
-#include "vertex/pixel/sampler.hpp"
-#include "vertex/pixel/blit.hpp"
-
-#include "vertex/math/color/functions/color.hpp"
-#include "vertex/math/color/blend.hpp"
-#include "vertex/math/color/util.hpp"
+#include "vertex/pixel/mipmaps.hpp"
 
 using namespace vx;
 
@@ -26,27 +21,20 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    img::image img2;
-    ok = img::load("../../assets/sunflower.png", img2);
-    if (!ok)
-    {
-        std::cout << err::get().message << std::endl;
-        return 1;
-    }
-
     auto surf1 = img1.to_surface<pixel::pixel_format::RGBA_8>();
-    auto surf2 = img2.to_surface<pixel::pixel_format::RGBA_8>();
+    auto mipmaps = pixel::generate_mipmaps(surf1);
 
-    math::blend_func_separate blender;
-    blender.src_alpha_blend = math::blend_mode::DST_ALPHA;
-    pixel::blit(surf1, surf1.get_rect(), surf2, (img2.size() - img1.size()) / 2, blender);
-
-    img::image img3(surf2.data(), surf2.width(), surf2.height(), img::pixel_format::RGBA_8);
-
-    ok = img::write_png("../../assets/blit_test_2025.png", img3);
-    if (!ok)
+    for (size_t i = 0; i < mipmaps.size(); ++i)
     {
-        std::cout << err::get().message << std::endl;
-        return 1;
+        const auto& m = mipmaps[i];
+        img::image img(m.data(), m.width(), m.height(), img::pixel_format::RGBA_8);
+
+        const std::string filename = "../../assets/mipmap_" + std::to_string(i) + ".png";
+        ok = img::write_png(filename, img);
+        if (!ok)
+        {
+            std::cout << err::get().message << std::endl;
+            return 1;
+        }
     }
 }
