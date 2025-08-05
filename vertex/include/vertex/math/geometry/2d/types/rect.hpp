@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 template <typename T>
 struct rect_t
@@ -238,6 +238,6 @@ struct rect_t
     VX_FORCE_INLINE constexpr scalar_type perimeter() const noexcept { return static_cast<scalar_type>(2) * (size.x + size.y); }
 };
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

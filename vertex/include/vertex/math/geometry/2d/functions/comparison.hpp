@@ -5,7 +5,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 //////////////////////////////////////////////////////////////////////////////
 // is_inf
@@ -251,6 +251,6 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
 }
 
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

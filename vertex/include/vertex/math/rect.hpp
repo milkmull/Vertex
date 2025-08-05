@@ -5,8 +5,8 @@
 namespace vx {
 namespace math {
 
-using rect = geometry2d::rect;
-using recti = geometry2d::rect_i;
+using rect = g2::rect;
+using recti = g2::rect_i;
 
 } // namespace math
 } // namespace vx

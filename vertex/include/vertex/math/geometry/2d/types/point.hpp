@@ -4,10 +4,10 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

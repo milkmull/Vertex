@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 template <typename T>
 struct line_t
@@ -119,6 +119,6 @@ struct line_t
     VX_FORCE_INLINE constexpr vec<2, T> vector() const noexcept { return vec<2, T>(b - a); }
 };
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

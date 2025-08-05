@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 template <typename T>
 struct triangle_t
@@ -149,6 +149,6 @@ struct triangle_t
     }
 };
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

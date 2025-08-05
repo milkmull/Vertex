@@ -76,5 +76,21 @@ VX_FORCE_INLINE constexpr bool not_equal_approx(
         || not_equal_approx(x.a, y.a, epsilon);
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// rgb_equal_approx
+//////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VX_FORCE_INLINE constexpr bool rgb_equal_approx(
+    const color_t<T>& x,
+    const color_t<T>& y,
+    const T epsilon = constants<T>::epsilon
+) noexcept
+{
+    return equal_approx(x.r, y.r, epsilon)
+        && equal_approx(x.g, y.g, epsilon)
+        && equal_approx(x.b, y.b, epsilon);
+}
+
 } // namespace math
 } // namespace vx

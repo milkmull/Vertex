@@ -70,7 +70,7 @@ static bool get_write_data(const char* filename, const image& img, image_write_d
 {
     data.info.width = img.width();
     data.info.height = img.height();
-    data.info.format = pixel::format_from_channels(img.channels());
+    data.info.format = pixel::channel_count_to_8_bit_format(img.channels());
 
     data.error = get_image_info_error(data.info);
     if (data.error != error_code::NONE)

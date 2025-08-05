@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 template <typename T>
 struct circle_t
@@ -114,6 +114,6 @@ struct circle_t
 
 };
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

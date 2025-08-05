@@ -22,6 +22,9 @@ file(GLOB VX_PIXEL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/blit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mipmaps.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mask.hpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/surface_transform.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/surface_manip.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_PIXEL_HEADER_FILES})

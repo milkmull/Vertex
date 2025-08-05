@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 ///////////////////////////////////////////////////////////////////////////////
 // shape types
@@ -56,6 +56,6 @@ using rect_u = rect_t<u32>;
 using rect_f = rect_t<f32>;
 using rect = rect_f;
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

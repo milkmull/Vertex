@@ -5,7 +5,8 @@
 #include "vertex/system/error.hpp"
 #include "vertex/image/load.hpp"
 #include "vertex/image/write.hpp"
-#include "vertex/pixel/mipmaps.hpp"
+#include "vertex/pixel/surface_transform.hpp"
+#include "vertex/pixel/surface_manip.hpp"
 
 using namespace vx;
 
@@ -22,19 +23,13 @@ int main(int argc, char* argv[])
     }
 
     auto surf1 = img1.to_surface<pixel::pixel_format::RGBA_8>();
-    auto mipmaps = pixel::generate_mipmaps(surf1);
+    pixel::manip::grayscale(surf1);
 
-    for (size_t i = 0; i < mipmaps.size(); ++i)
+    img::image img2 = img::image::from_surface(surf1);
+    ok = img::write_png("../../assets/tester_out.png", img2);
+    if (!ok)
     {
-        const auto& m = mipmaps[i];
-        img::image img(m.data(), m.width(), m.height(), img::pixel_format::RGBA_8);
-
-        const std::string filename = "../../assets/mipmap_" + std::to_string(i) + ".png";
-        ok = img::write_png(filename, img);
-        if (!ok)
-        {
-            std::cout << err::get().message << std::endl;
-            return 1;
-        }
+        std::cout << err::get().message << std::endl;
+        return 1;
     }
 }

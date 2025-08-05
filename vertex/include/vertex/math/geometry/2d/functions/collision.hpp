@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 ///////////////////////////////////////////////////////////////////////////////
 // move
@@ -249,6 +249,6 @@ VX_FORCE_INLINE constexpr point_t<T> closest(const rect_t<T>& r, const point_t<T
 // reflect
 ///////////////////////////////////////////////////////////////////////////////
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

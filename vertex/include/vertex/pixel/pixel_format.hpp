@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 
 #include "vertex/config/language_config.hpp"
 
@@ -411,12 +412,12 @@ VX_FORCE_INLINE constexpr bool pixel_has_alpha(pixel_format format) noexcept
     return (static_cast<uint32_t>(format) & 0x00000800);
 }
 
-inline constexpr pixel_format format_from_channels(size_t channels) noexcept
+inline constexpr pixel_format channel_count_to_8_bit_format(size_t channels) noexcept
 {
     switch (channels)
     {
         case 1:     return pixel_format::R_8;
-        case 2:     return pixel_format::RG_8;
+        case 2:     //return pixel_format::RG_8;
         case 3:     return pixel_format::RGB_8;
         case 4:     return pixel_format::RGBA_8;
         default:    return pixel_format::UNKNOWN;
@@ -674,6 +675,32 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
     }
 
     return info;
+}
+
+inline constexpr std::array<uint32_t, 4> build_mask_array(pixel_format format) noexcept
+{
+    const channel_info info = get_channel_info(format);
+
+    std::array<uint32_t, 4> masks{};
+    masks[info.r.index] = info.r.mask;
+    masks[info.g.index] = info.g.mask;
+    masks[info.b.index] = info.b.mask;
+    masks[info.a.index] = info.a.mask;
+
+    return masks;
+}
+
+inline constexpr std::array<uint32_t, 4> build_shift_array(pixel_format format) noexcept
+{
+    const channel_info info = get_channel_info(format);
+
+    std::array<uint32_t, 4> shifts{};
+    shifts[info.r.index] = info.r.shift;
+    shifts[info.g.index] = info.g.shift;
+    shifts[info.b.index] = info.b.shift;
+    shifts[info.a.index] = info.a.shift;
+
+    return shifts;
 }
 
 enum class filter_mode

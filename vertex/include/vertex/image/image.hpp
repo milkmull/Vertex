@@ -79,6 +79,7 @@ private:
         switch (m_format)
         {
             case pixel_format::R_8:     m_r.~surface(); break;
+            case pixel_format::RG_8:    m_rg.~surface(); break;
             case pixel_format::RGB_8:   m_rgb.~surface(); break;
             case pixel_format::RGBA_8:  m_rgba.~surface(); break;
             default: break;
@@ -89,9 +90,10 @@ private:
     {
         switch (fmt)
         {
-            case pixel_format::R_8:     new (&m_r) pixel::surface<pixel::pixel_format::R_8>(width, height); break;
-            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface<pixel::pixel_format::RGB_8>(width, height); break;
-            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface<pixel::pixel_format::RGBA_8>(width, height); break;
+            case pixel_format::R_8:     new (&m_r) pixel::surface_r8(width, height); break;
+            case pixel_format::RG_8:    new (&m_rg) pixel::surface_rg8(width, height); break;
+            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface_rgb8(width, height); break;
+            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface_rgba8(width, height); break;
             default: break;
         }
     }
@@ -100,9 +102,10 @@ private:
     {
         switch (fmt)
         {
-            case pixel_format::R_8:     new (&m_r) pixel::surface<pixel::pixel_format::R_8>(data, width, height); break;
-            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface<pixel::pixel_format::RGB_8>(data, width, height); break;
-            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface<pixel::pixel_format::RGBA_8>(data, width, height); break;
+            case pixel_format::R_8:     new (&m_r) pixel::surface_r8(data, width, height); break;
+            case pixel_format::RG_8:    new (&m_rg) pixel::surface_rg8(data, width, height); break;
+            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface_rgb8(data, width, height); break;
+            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface_rgba8(data, width, height); break;
             default: break;
         }
     }
@@ -111,9 +114,10 @@ private:
     {
         switch (other.m_format)
         {
-            case pixel_format::R_8:     new (&m_r) pixel::surface<pixel::pixel_format::R_8>(other.m_r); break;
-            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface<pixel::pixel_format::RGB_8>(other.m_rgb); break;
-            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface<pixel::pixel_format::RGBA_8>(other.m_rgba); break;
+            case pixel_format::R_8:     new (&m_r) pixel::surface_r8(other.m_r); break;
+            case pixel_format::RG_8:    new (&m_rg) pixel::surface_rg8(other.m_rg); break;
+            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface_rgb8(other.m_rgb); break;
+            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface_rgba8(other.m_rgba); break;
             default: break;
         }
     }
@@ -122,9 +126,10 @@ private:
     {
         switch (other.m_format)
         {
-            case pixel_format::R_8:     new (&m_r) pixel::surface<pixel::pixel_format::R_8>(std::move(other.m_r)); break;
-            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface<pixel::pixel_format::RGB_8>(std::move(other.m_rgb)); break;
-            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface<pixel::pixel_format::RGBA_8>(std::move(other.m_rgba)); break;
+            case pixel_format::R_8:     new (&m_r) pixel::surface_r8(std::move(other.m_r)); break;
+            case pixel_format::RG_8:    new (&m_rg) pixel::surface_rg8(std::move(other.m_rg)); break;
+            case pixel_format::RGB_8:   new (&m_rgb) pixel::surface_rgb8(std::move(other.m_rgb)); break;
+            case pixel_format::RGBA_8:  new (&m_rgba) pixel::surface_rgba8(std::move(other.m_rgba)); break;
             default: break;
         }
     }
@@ -145,6 +150,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return (m_r == other.m_r);
+            case pixel_format::RG_8:    return (m_rg == other.m_rg);
             case pixel_format::RGB_8:   return (m_rgb == other.m_rgb);
             case pixel_format::RGBA_8:  return (m_rgba == other.m_rgba);
             default:                    return false;
@@ -168,6 +174,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.channels();
+            case pixel_format::RG_8:    return m_rg.channels();
             case pixel_format::RGB_8:   return m_rgb.channels();
             case pixel_format::RGBA_8:  return m_rgba.channels();
             default:                    return 0;
@@ -179,6 +186,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.width();
+            case pixel_format::RG_8:    return m_rg.width();
             case pixel_format::RGB_8:   return m_rgb.width();
             case pixel_format::RGBA_8:  return m_rgba.width();
             default:                    return 0;
@@ -190,6 +198,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.height();
+            case pixel_format::RG_8:    return m_rg.height();
             case pixel_format::RGB_8:   return m_rgb.height();
             case pixel_format::RGBA_8:  return m_rgba.height();
             default:                    return 0;
@@ -201,6 +210,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.size();
+            case pixel_format::RG_8:    return m_rg.size();
             case pixel_format::RGB_8:   return m_rgb.size();
             case pixel_format::RGBA_8:  return m_rgba.size();
             default:                    return math::vec2i();
@@ -212,6 +222,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.get_rect();
+            case pixel_format::RG_8:    return m_rg.get_rect();
             case pixel_format::RGB_8:   return m_rgb.get_rect();
             case pixel_format::RGBA_8:  return m_rgba.get_rect();
             default:                    return math::recti();
@@ -227,6 +238,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.data();
+            case pixel_format::RG_8:    return m_rg.data();
             case pixel_format::RGB_8:   return m_rgb.data();
             case pixel_format::RGBA_8:  return m_rgba.data();
             default:                    return nullptr;
@@ -238,6 +250,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.data_size();
+            case pixel_format::RG_8:    return m_rg.data_size();
             case pixel_format::RGB_8:   return m_rgb.data_size();
             case pixel_format::RGBA_8:  return m_rgba.data_size();
             default:                    return 0;
@@ -249,6 +262,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.empty();
+            case pixel_format::RG_8:    return m_rg.empty();
             case pixel_format::RGB_8:   return m_rgb.empty();
             case pixel_format::RGBA_8:  return m_rgba.empty();
             default:                    return true;
@@ -264,6 +278,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     return m_r.get_pixel(x, y, default_color);
+            case pixel_format::RG_8:    return m_rg.get_pixel(x, y, default_color);
             case pixel_format::RGB_8:   return m_rgb.get_pixel(x, y, default_color);
             case pixel_format::RGBA_8:  return m_rgba.get_pixel(x, y, default_color);
             default:                    return default_color;
@@ -284,6 +299,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     m_r.set_pixel(x, y, color); return;
+            case pixel_format::RG_8:    m_rg.set_pixel(x, y, color); return;
             case pixel_format::RGB_8:   m_rgb.set_pixel(x, y, color); return;
             case pixel_format::RGBA_8:  m_rgba.set_pixel(x, y, color); return;
             default:                    return;
@@ -304,6 +320,7 @@ public:
         switch (m_format)
         {
             case pixel_format::R_8:     m_r.fill(color); return;
+            case pixel_format::RG_8:    m_rg.fill(color); return;
             case pixel_format::RGB_8:   m_rgb.fill(color); return;
             case pixel_format::RGBA_8:  m_rgba.fill(color); return;
             default:                    return;
@@ -342,18 +359,73 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////
-    // to_surface
+    // surface conversions
     ///////////////////////////////////////////////////////////////////////////////
+
+    template <pixel::pixel_format F>
+    static image from_surface(const pixel::surface<F>& surf)
+    {
+        image i;
+
+        switch (F)
+        {
+            case pixel::pixel_format::UNKNOWN:
+            {
+                break;
+            }
+            case pixel::pixel_format::R_8:
+            case pixel::pixel_format::RG_8:
+            case pixel::pixel_format::RGB_8:
+            case pixel::pixel_format::RGBA_8:
+            {
+                i.m_format = static_cast<pixel_format>(surf.format);
+                i.construct(surf.data(), surf.width(), surf.height(), static_cast<pixel_format>(surf.format));
+                break;
+            }
+            default:
+            {
+                constexpr pixel::pixel_format F2 = pixel::channel_count_to_8_bit_format(surf.channels());
+                const pixel::surface<F2> surf2 = surf.convert<F2>();
+                i.m_format = static_cast<pixel_format>(surf2.format);
+                i.construct(surf2.data(), surf2.width(), surf2.height(), static_cast<pixel_format>(surf2.format));
+                break;
+            }
+        }
+
+        return i;
+    }
 
     template <pixel::pixel_format F>
     pixel::surface<F> to_surface() const
     {
+        using namespace pixel;
+
         switch (m_format)
         {
-            case pixel_format::R_8:     return m_r.convert<F>();
-            case pixel_format::RGB_8:   return m_rgb.convert<F>();
-            case pixel_format::RGBA_8:  return m_rgba.convert<F>();
-            default:                    return {};
+            case pixel_format::R_8:
+            {
+                const surface_r8 s(m_r.data(), m_r.width(), m_r.height());
+                return s.convert<F>();
+            }
+            case pixel_format::RG_8:
+            {
+                const pixel::surface_rg8 s(m_rg.data(), m_rg.width(), m_rg.height());
+                return s.convert<F>();
+            }
+            case pixel_format::RGB_8:
+            {
+                const surface_rgb8 s(m_rgb.data(), m_rgb.width(), m_rgb.height());
+                return s.convert<F>();
+            }
+            case pixel_format::RGBA_8:
+            {
+                const surface_rgba8 s(m_rgba.data(), m_rgba.width(), m_rgba.height());
+                return s.convert<F>();
+            }
+            default:
+            {
+                return {}; // Unknown or unsupported format
+            }
         }
     }
 
@@ -363,9 +435,10 @@ private:
 
     union
     {
-        pixel::surface<pixel::pixel_format::R_8> m_r;
-        pixel::surface<pixel::pixel_format::RGB_8> m_rgb;
-        pixel::surface<pixel::pixel_format::RGBA_8> m_rgba;
+        pixel::surface_r8 m_r;
+        pixel::surface_rg8 m_rg;
+        pixel::surface_rgb8 m_rgb;
+        pixel::surface_rgba8 m_rgba;
     };
 };
 

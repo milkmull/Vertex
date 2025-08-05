@@ -4,7 +4,7 @@
 
 namespace vx {
 namespace math {
-namespace geometry2d {
+namespace g2 {
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_shape
@@ -20,6 +20,6 @@ template <typename T> struct is_shape<triangle_t<T>> : true_t {};
 
 #define VXM_REQ_SHAPE(T) VXM_REQ((is_shape<T>::value))
 
-} // namespace geometry2d
+} // namespace g2
 } // namespace math
 } // namespace vx

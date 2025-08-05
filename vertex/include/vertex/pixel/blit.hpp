@@ -18,7 +18,7 @@ inline bool blit(
     }
 
     // Crop the area within the bounds of the src surface.
-    math::recti area = math::geometry2d::crop(src.get_rect(), src_area);
+    math::recti area = math::g2::crop(src.get_rect(), src_area);
     if (area.empty())
     {
         return true;
@@ -32,7 +32,7 @@ inline bool blit(
     // shifting the src area to allign with the dst position. The dst area is
     // then cropped within the dst rect. This gives us the minimum area that
     // we have to copy from src to dst.
-    area = math::geometry2d::crop(dst.get_rect(), math::geometry2d::move(area, shift.x, shift.y));
+    area = math::g2::crop(dst.get_rect(), math::g2::move(area, shift.x, shift.y));
     if (area.empty())
     {
         return true;
@@ -68,7 +68,7 @@ inline bool blit(
     }
 
     // Crop the area within the bounds of the src surface.
-    math::recti area = math::geometry2d::crop(src.get_rect(), src_area);
+    math::recti area = math::g2::crop(src.get_rect(), src_area);
     if (area.empty())
     {
         return true;
@@ -82,7 +82,7 @@ inline bool blit(
     // shifting the src area to allign with the dst position. The dst area is
     // then cropped within the dst rect. This gives us the minimum area that
     // we have to copy from src to dst.
-    area = math::geometry2d::crop(dst.get_rect(), math::geometry2d::move(area, shift.x, shift.y));
+    area = math::g2::crop(dst.get_rect(), math::g2::move(area, shift.x, shift.y));
     if (area.empty())
     {
         return true;

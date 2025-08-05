@@ -113,7 +113,7 @@ static bool get_file_info(const char* filename, image_info& info)
     {
         static_cast<size_t>(width),
         static_cast<size_t>(height),
-        pixel::format_from_channels(static_cast<size_t>(channels))
+        pixel::channel_count_to_8_bit_format(static_cast<size_t>(channels))
     };
 
     return true;

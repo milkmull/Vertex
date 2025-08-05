@@ -191,30 +191,6 @@ public:
         return converted;
     }
 
-    template <pixel_format F2>
-    static surface<F2> reinterpret(surface<F>&& src, size_t new_width, size_t new_height)
-    {
-        static_assert(F2 != pixel_format::UNKNOWN, "Cannot reinterpret to UNKNOWN format");
-
-        const size_t expected_bytes = new_width * new_height * surface<F2>::pixel_size();
-        const size_t actual_bytes = src.data_size();
-
-        if (expected_bytes != actual_bytes)
-        {
-            throw std::runtime_error("Size mismatch in reinterpretation");
-        }
-
-        surface<F2> dst;
-        dst.m_width = new_width;
-        dst.m_height = new_height;
-
-        dst.m_data.reset(
-            reinterpret_cast<raw_pixel_type*>(src.m_data.release())
-        );
-
-        return dst;
-    }
-
     ///////////////////////////////////////////////////////////////////////////////
     // iteration
     ///////////////////////////////////////////////////////////////////////////////
@@ -258,6 +234,11 @@ private:
     size_t m_height = 0;
     std::unique_ptr<raw_pixel_type[]> m_data;
 };
+
+using surface_r8 = surface<pixel_format::R_8>;
+using surface_rg8 = surface<pixel_format::RG_8>;
+using surface_rgb8 = surface<pixel_format::RGB_8>;
+using surface_rgba8 = surface<pixel_format::RGBA_8>;
 
 } // namespace pixel
 } // namespace vx

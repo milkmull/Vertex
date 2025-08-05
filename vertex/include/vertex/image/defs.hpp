@@ -19,6 +19,7 @@ enum class pixel_format : uint32_t
     UNKNOWN         = static_cast<uint32_t>(pixel::pixel_format::UNKNOWN),
 
     R_8             = static_cast<uint32_t>(pixel::pixel_format::R_8),
+    RG_8            = static_cast<uint32_t>(pixel::pixel_format::RG_8),
     RGB_8           = static_cast<uint32_t>(pixel::pixel_format::RGB_8),
     RGBA_8          = static_cast<uint32_t>(pixel::pixel_format::RGBA_8)
 };
