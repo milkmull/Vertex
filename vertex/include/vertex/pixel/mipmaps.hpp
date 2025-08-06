@@ -42,7 +42,7 @@ inline std::vector<surface<F>> generate_mipmaps(const surface<F>& surf, size_t d
             surf_type map(w, h);
 
             using pixel_type = typename surf_type::pixel_type;
-            filter_box<pixel_type>(
+            filter::filter_box<pixel_type>(
                 surf.data(), surf.width(), surf.height(),
                 map.data(), map.width(), map.height(),
                 surf.channels(), masks, shifts
@@ -61,7 +61,7 @@ inline std::vector<surface<F>> generate_mipmaps(const surface<F>& surf, size_t d
             surf_type map(w, h);
 
             using channel_type = typename surf_type::channel_type;
-            filter_box<channel_type>(
+            filter::filter_box<channel_type>(
                 surf.data(), surf.width(), surf.height(),
                 map.data(), map.width(), map.height(),
                 surf.channels()

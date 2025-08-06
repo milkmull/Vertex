@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace pixel {
+namespace filter {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 // https://www.youtube.com/watch?v=_htjjOdXbmA
@@ -222,5 +223,6 @@ inline void filter_box(
     }
 }
 
+} // namespace filter
 } // namespace pixel
 } // namespace vx

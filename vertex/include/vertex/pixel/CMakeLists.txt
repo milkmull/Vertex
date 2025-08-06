@@ -20,6 +20,8 @@ file(GLOB VX_PIXEL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/filter/filter_bicubic.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/blit.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/draw.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/mipmaps.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mask.hpp"
     

@@ -59,12 +59,12 @@ VX_FORCE_INLINE constexpr rect_t<T> normalize(const rect_t<T>& r) noexcept
 {
     rect_t<T> nr = r;
 
-    if (r.size.x < static_cast_t<T>(0))
+    if (r.size.x < static_cast<T>(0))
     {
         nr.position.x += r.size.x;
         nr.size.x = -r.size.x;
     }
-    if (r.size.y < static_cast_t<T>(0))
+    if (r.size.y < static_cast<T>(0))
     {
         nr.position.y += r.size.y;
         nr.size.y = -r.size.y;
@@ -104,8 +104,8 @@ VX_FORCE_INLINE constexpr rect_t<T> inflate(const rect_t<T>& r, T ix, T iy) noex
     return rect_t<T>(
         r.position.x - ix,
         r.position.y - iy,
-        r.size.x + static_cast_t<T>(2) * ix,
-        r.size.y + static_cast_t<T>(2) * iy
+        r.size.x + static_cast<T>(2) * ix,
+        r.size.y + static_cast<T>(2) * iy
     );
 }
 

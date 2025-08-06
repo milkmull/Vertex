@@ -5,6 +5,7 @@
 #include "vertex/math/color/functions/color.hpp"
 #include "vertex/math/color/functions/common.hpp"
 #include "vertex/math/color/functions/comparison.hpp"
+#include "vertex/math/color/space/srgb.hpp"
 
 namespace vx {
 namespace pixel {
@@ -128,6 +129,24 @@ inline void premultiply_alpha(surface<F>& surf)
         c.b *= c.a;
 
         px = c;
+    }
+}
+
+template <pixel_format F>
+inline void to_srgb(surface<F>& surf)
+{
+    for (auto& px : surf)
+    {
+        px = math::linear_to_srgb(px.color());
+    }
+}
+
+template <pixel_format F>
+inline void to_linear(surface<F>& surf)
+{
+    for (auto& px : surf)
+    {
+        px = math::srgb_to_linear(px.color());
     }
 }
 

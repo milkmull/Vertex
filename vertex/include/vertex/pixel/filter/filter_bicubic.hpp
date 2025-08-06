@@ -4,6 +4,7 @@
 
 namespace vx {
 namespace pixel {
+namespace filter {
 
 // https://www.youtube.com/watch?v=_htjjOdXbmA
 
@@ -324,5 +325,6 @@ inline void filter_bicubic(
     }
 }
 
+} // namespace filter
 } // namespace pixel
 } // namespace vx

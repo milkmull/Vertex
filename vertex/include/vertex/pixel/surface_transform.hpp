@@ -104,7 +104,7 @@ inline surface<F> resize(const surface<F>& surf, const math::vec2i& size, filter
     {
         case filter_mode::NEAREST:
         {
-            filter_nearest(
+            filter::filter_nearest(
                 surf.data(), surf.width(), surf.height(),
                 out.data(), out.width(), out.height(),
                 surf.pixel_size()
@@ -119,7 +119,7 @@ inline surface<F> resize(const surface<F>& surf, const math::vec2i& size, filter
                 constexpr const auto shifts = build_shift_array(F);
 
                 using pixel_type = typename surface<F>::pixel_type;
-                filter_bilinear<pixel_type>(
+                filter::filter_bilinear<pixel_type>(
                     surf.data(), surf.width(), surf.height(),
                     out.data(), out.width(), out.height(),
                     surf.channels(), masks, shifts
@@ -128,7 +128,7 @@ inline surface<F> resize(const surface<F>& surf, const math::vec2i& size, filter
             else
             {
                 using channel_type = typename surface<F>::channel_type;
-                filter_bilinear<channel_type>(
+                filter::filter_bilinear<channel_type>(
                     surf.data(), surf.width(), surf.height(),
                     out.data(), out.width(), out.height(),
                     surf.channels()

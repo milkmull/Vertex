@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "vertex/config/simd.hpp"
+#include "vertex/config/architecture.hpp"
 #include "vertex/config/language_config.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace pixel {
+namespace filter {
 
 // https://www.youtube.com/watch?v=4s30cnqxJ-0
 
@@ -63,5 +64,6 @@ inline void filter_nearest(
     }
 }
 
+} // namespace filter
 } // namespace pixel
 } // namespace vx

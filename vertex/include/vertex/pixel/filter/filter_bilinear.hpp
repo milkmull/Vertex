@@ -5,6 +5,7 @@
 
 namespace vx {
 namespace pixel {
+namespace filter {
 
 // https://stackoverflow.com/questions/13888210/extremely-slow-bilinear-interpolation-compared-to-opencv
 // https://www.youtube.com/watch?v=_htjjOdXbmA
@@ -281,5 +282,6 @@ inline void filter_bilinear(
     }
 }
 
+} // namespace filter
 } // namespace pixel
 } // namespace vx

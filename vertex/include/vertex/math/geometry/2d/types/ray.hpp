@@ -41,7 +41,7 @@ struct ray_t
         scalar_type ox, scalar_type oy,
         scalar_type dx, scalar_type dy
     ) noexcept
-        : origin(ox, oy), directon(dx, dy) {}
+        : origin(ox, oy), direction(dx, dy) {}
 
     VX_FORCE_INLINE constexpr ray_t(
         const point_type& rorigin,

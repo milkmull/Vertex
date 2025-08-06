@@ -385,7 +385,7 @@ public:
             default:
             {
                 constexpr pixel::pixel_format F2 = pixel::channel_count_to_8_bit_format(surf.channels());
-                const pixel::surface<F2> surf2 = surf.convert<F2>();
+                const pixel::surface<F2> surf2 = surf.template convert<F2>();
                 i.m_format = static_cast<pixel_format>(surf2.format);
                 i.construct(surf2.data(), surf2.width(), surf2.height(), static_cast<pixel_format>(surf2.format));
                 break;
