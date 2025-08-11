@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/process.hpp"
+#include "vertex_impl/os/_platform/process.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {

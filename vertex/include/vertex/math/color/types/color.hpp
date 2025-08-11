@@ -13,13 +13,13 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 {
 #if defined(VXM_ENABLE_SIMD)
 
-#   define __SIMD_OVERLOAD(cond) template <typename __T = scalar_type, VXM_REQ( (simd::vec<4, __T>::cond))>
-#   define __SIMD_FALLBACK(cond) template <typename __T = scalar_type, VXM_REQ(!(simd::vec<4, __T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::vec<4, _T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::vec<4, _T>::cond))>
 
 #else
 
-#   define __SIMD_OVERLOAD(cond) template <typename __T = scalar_type, VXM_REQ(!(is_same<__T, __T>::value))>
-#   define __SIMD_FALLBACK(cond)
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_FALLBACK(cond)
 
 #endif
 
@@ -324,19 +324,19 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // addition (+)
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& c, scalar_type scalar) noexcept
     {
         return type(c.r + scalar, c.g + scalar, c.b + scalar, c.a + scalar);
     }
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(scalar_type scalar, const type& c) noexcept
     {
         return type(scalar + c.r, scalar + c.g, scalar + c.b, scalar + c.a);
     }
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& c1, const type& c2) noexcept
     {
         return type(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a);
@@ -344,19 +344,19 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // subtraction (-)
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& c, scalar_type scalar) noexcept
     {
         return type(c.r - scalar, c.g - scalar, c.b - scalar, c.a - scalar);
     }
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(scalar_type scalar, const type& c) noexcept
     {
         return type(scalar - c.r, scalar - c.g, scalar - c.b, scalar - c.a);
     }
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& c1, const type& c2) noexcept
     {
         return type(c1.r - c2.r, c1.g - c2.g, c1.b - c2.b, c1.a - c2.a);
@@ -364,19 +364,19 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // multiplication (*)
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& c, scalar_type scalar) noexcept
     {
         return type(c.r * scalar, c.g * scalar, c.b * scalar, c.a * scalar);
     }
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& c) noexcept
     {
         return type(scalar * c.r, scalar * c.g, scalar * c.b, scalar * c.a);
     }
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& c1, const type& c2) noexcept
     {
         return type(c1.r * c2.r, c1.g * c2.g, c1.b * c2.b, c1.a * c2.a);
@@ -384,19 +384,19 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // division (/)
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& c, scalar_type scalar) noexcept
     {
         return type(c.r / scalar, c.g / scalar, c.b / scalar, c.a / scalar);
     }
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& c) noexcept
     {
         return type(scalar / c.r, scalar / c.g, scalar / c.b, scalar / c.a);
     }
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& c1, const type& c2) noexcept
     {
         return type(c1.r / c2.r, c1.g / c2.g, c1.b / c2.b, c1.a / c2.a);
@@ -408,7 +408,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // addition (+=)
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(scalar_type scalar) noexcept
     {
         r += scalar;
@@ -418,7 +418,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
         return *this;
     }
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(const type& c) noexcept
     {
         r += c.r;
@@ -430,7 +430,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // subtraction (-=)
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(scalar_type scalar) noexcept
     {
         r -= scalar;
@@ -440,7 +440,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
         return *this;
     }
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(const type& c) noexcept
     {
         r -= c.r;
@@ -452,7 +452,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // multiplication (*=)
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(scalar_type scalar) noexcept
     {
         r *= scalar;
@@ -462,7 +462,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
         return *this;
     }
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(const type& c) noexcept
     {
         r *= c.r;
@@ -474,7 +474,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // division (/=)
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     VX_FORCE_INLINE constexpr type& operator/=(scalar_type scalar) noexcept
     {
         r /= scalar;
@@ -484,7 +484,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
         return *this;
     }
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     VX_FORCE_INLINE constexpr type& operator/=(const type& c) noexcept
     {
         r /= c.r;
@@ -560,82 +560,82 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // addition (+)
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec<4, __T>::add(v, scalar);
+        return simd::vec<4, _T>::add(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec<4, __T>::add(v, scalar);
+        return simd::vec<4, _T>::add(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(const type& v1, const type& v2) noexcept
     {
-        return simd::vec<4, __T>::add(v1, v2);
+        return simd::vec<4, _T>::add(v1, v2);
     }
 
     // subtraction (-)
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec<4, __T>::sub(v, scalar);
+        return simd::vec<4, _T>::sub(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec<4, __T>::sub(scalar, v);
+        return simd::vec<4, _T>::sub(scalar, v);
     }
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(const type& v1, const type& v2) noexcept
     {
-        return simd::vec<4, __T>::sub(v1, v2);
+        return simd::vec<4, _T>::sub(v1, v2);
     }
 
     // multiplication (*)
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec<4, __T>::mul(v, scalar);
+        return simd::vec<4, _T>::mul(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec<4, __T>::mul(v, scalar);
+        return simd::vec<4, _T>::mul(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(const type& v1, const type& v2) noexcept
     {
-        return simd::vec<4, __T>::mul(v1, v2);
+        return simd::vec<4, _T>::mul(v1, v2);
     }
 
     // division (/)
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec<4, __T>::div(v, scalar);
+        return simd::vec<4, _T>::div(v, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec<4, __T>::div(scalar, v);
+        return simd::vec<4, _T>::div(scalar, v);
     }
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v1, const type& v2) noexcept
     {
-        return simd::vec<4, __T>::div(v1, v2);
+        return simd::vec<4, _T>::div(v1, v2);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -644,14 +644,14 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // addition (+=)
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     VX_FORCE_INLINE type& operator+=(scalar_type scalar) noexcept
     {
         (*this) = (*this) + scalar;
         return *this;
     }
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     VX_FORCE_INLINE type& operator+=(const type& v) noexcept
     {
         (*this) = (*this) + v;
@@ -660,14 +660,14 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // subtraction (-=)
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     VX_FORCE_INLINE type& operator-=(scalar_type scalar) noexcept
     {
         (*this) = (*this) - scalar;
         return *this;
     }
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     VX_FORCE_INLINE type& operator-=(const type& v) noexcept
     {
         (*this) = (*this) - v;
@@ -676,14 +676,14 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // multiplication (*=)
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     VX_FORCE_INLINE type& operator*=(scalar_type scalar) noexcept
     {
         (*this) = (*this) * scalar;
         return *this;
     }
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     VX_FORCE_INLINE type& operator*=(const type& v) noexcept
     {
         (*this) = (*this) * v;
@@ -692,22 +692,22 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // division (/=)
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     VX_FORCE_INLINE type& operator/=(scalar_type scalar) noexcept
     {
         (*this) = (*this) / scalar;
         return *this;
     }
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     VX_FORCE_INLINE type& operator/=(const type& v) noexcept
     {
         (*this) = (*this) / v;
         return *this;
     }
 
-#   undef __SIMD_OVERLOAD
-#   undef __SIMD_FALLBACK
+#   undef _SIMD_OVERLOAD
+#   undef _SIMD_FALLBACK
 };
 
 } // namespace math

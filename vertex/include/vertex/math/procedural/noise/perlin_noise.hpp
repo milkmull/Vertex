@@ -29,7 +29,7 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<2, T>& p) noexcept
     const vec<4, T> fx(pf.x, pf.z, pf.x, pf.z);
     const vec<4, T> fy(pf.y, pf.y, pf.w, pf.w);
 
-    const vec<4, T> i = __detail::permute(__detail::permute(ix) + iy);
+    const vec<4, T> i = _priv::permute(_priv::permute(ix) + iy);
 
     vec<4, T> gx = static_cast<T>(2) * fract(i * (static_cast<T>(1) / static_cast<T>(41))) - static_cast<T>(1);
     vec<4, T> gy = abs(gx) - static_cast<T>(0.5);
@@ -41,7 +41,7 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<2, T>& p) noexcept
     vec<2, T> g01(gx.z, gy.z);
     vec<2, T> g11(gx.w, gy.w);
 
-    const vec<4, T> norm = __detail::taylor_inv_sqrt(vec<4, T>(
+    const vec<4, T> norm = _priv::taylor_inv_sqrt(vec<4, T>(
         dot(g00, g00),
         dot(g01, g01),
         dot(g10, g10),
@@ -58,7 +58,7 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<2, T>& p) noexcept
     const T n01 = dot(g01, vec<2, T>(fx.z, fy.z));
     const T n11 = dot(g11, vec<2, T>(fx.w, fy.w));
 
-    const vec<2, T> fade_xy = __detail::fade(vec<2, T>(pf.x, pf.y));
+    const vec<2, T> fade_xy = _priv::fade(vec<2, T>(pf.x, pf.y));
     const vec<2, T> n_x = mix(vec<2, T>(n00, n01), vec<2, T>(n10, n11), fade_xy.x);
     const T n_xy = mix(n_x.x, n_x.y, fade_xy.y);
     return static_cast<T>(2.3) * n_xy;
@@ -73,8 +73,8 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<3, T>& p)
 {
     vec<3, T> pi0 = floor(p); // Integer part for indexing
     vec<3, T> pi1 = pi0 + static_cast<T>(1); // Integer part + 1
-    pi0 = __detail::mod289(pi0);
-    pi1 = __detail::mod289(pi1);
+    pi0 = _priv::mod289(pi0);
+    pi1 = _priv::mod289(pi1);
 
     const vec<3, T> pf0 = fract(p); // Fractional part for interpolation
     const vec<3, T> pf1 = pf0 - static_cast<T>(1); // Fractional part - 1
@@ -84,9 +84,9 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<3, T>& p)
     const vec<4, T> iz0(pi0.z);
     const vec<4, T> iz1(pi1.z);
 
-    const vec<4, T> ixy = __detail::permute(__detail::permute(ix) + iy);
-    const vec<4, T> ixy0 = __detail::permute(ixy + iz0);
-    const vec<4, T> ixy1 = __detail::permute(ixy + iz1);
+    const vec<4, T> ixy = _priv::permute(_priv::permute(ix) + iy);
+    const vec<4, T> ixy0 = _priv::permute(ixy + iz0);
+    const vec<4, T> ixy1 = _priv::permute(ixy + iz1);
 
     vec<4, T> gx0 = ixy0 * (static_cast<T>(1) / static_cast<T>(7));
     vec<4, T> gy0 = fract(floor(gx0) * (static_cast<T>(1) / static_cast<T>(7))) - static_cast<T>(0.5);
@@ -113,12 +113,12 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<3, T>& p)
     vec<3, T> g011(gx1.z, gy1.z, gz1.z);
     vec<3, T> g111(gx1.w, gy1.w, gz1.w);
 
-    const vec<4, T> norm0 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
+    const vec<4, T> norm0 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g000, g000), dot(g010, g010), dot(g100, g100), dot(g110, g110)));
     g000 *= norm0.x;
     g010 *= norm0.y;
     g100 *= norm0.z;
     g110 *= norm0.w;
-    const vec<4, T> norm1 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
+    const vec<4, T> norm1 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g001, g001), dot(g011, g011), dot(g101, g101), dot(g111, g111)));
     g001 *= norm1.x;
     g011 *= norm1.y;
     g101 *= norm1.z;
@@ -133,7 +133,7 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<3, T>& p)
     const T n011 = dot(g011, vec<3, T>(pf0.x, pf1.y, pf1.z));
     const T n111 = dot(g111, pf1);
 
-    const vec<3, T> fade_xyz = __detail::fade(pf0);
+    const vec<3, T> fade_xyz = _priv::fade(pf0);
     const vec<4, T> n_z = mix(vec<4, T>(n000, n100, n010, n110), vec<4, T>(n001, n101, n011, n111), fade_xyz.z);
     const vec<2, T> n_yz = mix(vec<2, T>(n_z.x, n_z.y), vec<2, T>(n_z.z, n_z.w), fade_xyz.y);
     const T n_xyz = mix(n_yz.x, n_yz.y, fade_xyz.x);
@@ -149,8 +149,8 @@ template <typename T>
 VX_FORCE_INLINE T perlin_noise(const vec<4, T>& p) noexcept
 {
     const vec<4, T> pi0 = floor(p); // Integer part for indexing
-    const vec<4, T> pi1 = __detail::mod289(pi0 + static_cast<T>(1));
-    const vec<4, T> pi0_mod = __detail::mod289(pi0);
+    const vec<4, T> pi1 = _priv::mod289(pi0 + static_cast<T>(1));
+    const vec<4, T> pi0_mod = _priv::mod289(pi0);
     const vec<4, T> pf0 = fract(p); // Fractional part for interpolation
     const vec<4, T> pf1 = pf0 - static_cast<T>(1); // Fractional part - 1
 
@@ -161,13 +161,13 @@ VX_FORCE_INLINE T perlin_noise(const vec<4, T>& p) noexcept
     const vec<4, T> iw0(pi0_mod.w);
     const vec<4, T> iw1(pi1.w);
 
-    const vec<4, T> ixy = __detail::permute(__detail::permute(ix) + iy);
-    const vec<4, T> ixy0 = __detail::permute(ixy + iz0);
-    const vec<4, T> ixy1 = __detail::permute(ixy + iz1);
-    const vec<4, T> ixy00 = __detail::permute(ixy0 + iw0);
-    const vec<4, T> ixy01 = __detail::permute(ixy0 + iw1);
-    const vec<4, T> ixy10 = __detail::permute(ixy1 + iw0);
-    const vec<4, T> ixy11 = __detail::permute(ixy1 + iw1);
+    const vec<4, T> ixy = _priv::permute(_priv::permute(ix) + iy);
+    const vec<4, T> ixy0 = _priv::permute(ixy + iz0);
+    const vec<4, T> ixy1 = _priv::permute(ixy + iz1);
+    const vec<4, T> ixy00 = _priv::permute(ixy0 + iw0);
+    const vec<4, T> ixy01 = _priv::permute(ixy0 + iw1);
+    const vec<4, T> ixy10 = _priv::permute(ixy1 + iw0);
+    const vec<4, T> ixy11 = _priv::permute(ixy1 + iw1);
 
     // --- Gradient generation block (gx*, gy*, etc.) is mutated, so not const ---
     vec<4, T> gx00 = ixy00 * (static_cast<T>(1) / static_cast<T>(7));
@@ -231,25 +231,25 @@ VX_FORCE_INLINE T perlin_noise(const vec<4, T>& p) noexcept
     vec<4, T> g0111(gx11.z, gy11.z, gz11.z, gw11.z);
     vec<4, T> g1111(gx11.w, gy11.w, gz11.w, gw11.w);
 
-    const vec<4, T> norm00 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g0000, g0000), dot(g0100, g0100), dot(g1000, g1000), dot(g1100, g1100)));
+    const vec<4, T> norm00 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g0000, g0000), dot(g0100, g0100), dot(g1000, g1000), dot(g1100, g1100)));
     g0000 *= norm00.x;
     g0100 *= norm00.y;
     g1000 *= norm00.z;
     g1100 *= norm00.w;
 
-    const vec<4, T> norm01 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g0001, g0001), dot(g0101, g0101), dot(g1001, g1001), dot(g1101, g1101)));
+    const vec<4, T> norm01 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g0001, g0001), dot(g0101, g0101), dot(g1001, g1001), dot(g1101, g1101)));
     g0001 *= norm01.x;
     g0101 *= norm01.y;
     g1001 *= norm01.z;
     g1101 *= norm01.w;
 
-    const vec<4, T> norm10 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g0010, g0010), dot(g0110, g0110), dot(g1010, g1010), dot(g1110, g1110)));
+    const vec<4, T> norm10 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g0010, g0010), dot(g0110, g0110), dot(g1010, g1010), dot(g1110, g1110)));
     g0010 *= norm10.x;
     g0110 *= norm10.y;
     g1010 *= norm10.z;
     g1110 *= norm10.w;
 
-    const vec<4, T> norm11 = __detail::taylor_inv_sqrt(vec<4, T>(dot(g0011, g0011), dot(g0111, g0111), dot(g1011, g1011), dot(g1111, g1111)));
+    const vec<4, T> norm11 = _priv::taylor_inv_sqrt(vec<4, T>(dot(g0011, g0011), dot(g0111, g0111), dot(g1011, g1011), dot(g1111, g1111)));
     g0011 *= norm11.x;
     g0111 *= norm11.y;
     g1011 *= norm11.z;
@@ -274,7 +274,7 @@ VX_FORCE_INLINE T perlin_noise(const vec<4, T>& p) noexcept
     const T n1111 = dot(g1111, pf1);
 
     // Fade and interpolation
-    const vec<4, T> fade_xyzw = __detail::fade(pf0);
+    const vec<4, T> fade_xyzw = _priv::fade(pf0);
     const vec<4, T> n_0w = mix(vec<4, T>(n0000, n1000, n0100, n1100), vec<4, T>(n0001, n1001, n0101, n1101), fade_xyzw.w);
     const vec<4, T> n_1w = mix(vec<4, T>(n0010, n1010, n0110, n1110), vec<4, T>(n0011, n1011, n0111, n1111), fade_xyzw.w);
     const vec<4, T> n_zw = mix(n_0w, n_1w, fade_xyzw.z);

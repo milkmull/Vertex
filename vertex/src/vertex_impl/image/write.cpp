@@ -89,7 +89,7 @@ static bool get_write_data(const char* filename, const image& img, image_write_d
 
 #if !defined(VX_IMG_NO_BMP)
 
-bool write_bmp(const std::string& filename, const image& img)
+VX_API bool write_bmp(const std::string& filename, const image& img)
 {
     image_write_data data;
     if (!get_write_data(filename.c_str(), img, data))
@@ -111,7 +111,7 @@ bool write_bmp(const std::string& filename, const image& img)
 
 #else // VX_IMG_NO_BMP
 
-bool write_bmp(const std::string&, const image&)
+VX_API bool write_bmp(const std::string&, const image&)
 {
     VX_UNSUPPORTED("img::write_bmp()");
     return false;
@@ -125,7 +125,7 @@ bool write_bmp(const std::string&, const image&)
 
 #if !defined(VX_IMG_NO_JPG)
 
-bool write_jpg(const std::string& filename, const image& img, int quality)
+VX_API bool write_jpg(const std::string& filename, const image& img, int quality)
 {
     image_write_data data;
     if (!get_write_data(filename.c_str(), img, data))
@@ -148,7 +148,7 @@ bool write_jpg(const std::string& filename, const image& img, int quality)
 
 #else // VX_IMG_NO_JPG
 
-bool write_jpg(const std::string&, const image&, int)
+VX_API bool write_jpg(const std::string&, const image&, int)
 {
     VX_UNSUPPORTED("img::write_jpg()");
     return false;
@@ -162,7 +162,7 @@ bool write_jpg(const std::string&, const image&, int)
 
 #if !defined(VX_IMG_NO_PNG)
 
-bool write_png(const std::string& filename, const image& img)
+VX_API bool write_png(const std::string& filename, const image& img)
 {
     image_write_data data;
     if (!get_write_data(filename.c_str(), img, data))
@@ -185,7 +185,7 @@ bool write_png(const std::string& filename, const image& img)
 
 #else // VX_IMG_NO_PNG
 
-bool write_png(const std::string&, const image&)
+VX_API bool write_png(const std::string&, const image&)
 {
     VX_UNSUPPORTED("img::write_png()");
     return false;
@@ -195,19 +195,19 @@ bool write_png(const std::string&, const image&)
 
 #else
 
-bool write_bmp(const std::string&, const image&)
+VX_API bool write_bmp(const std::string&, const image&)
 {
     VX_UNSUPPORTED("img::write_bmp()");
     return false;
 }
 
-bool write_jpg(const std::string&, const image&, int)
+VX_API bool write_jpg(const std::string&, const image&, int)
 {
     VX_UNSUPPORTED("img::write_jpg()");
     return false;
 }
 
-bool write_png(const std::string&, const image&)
+VX_API bool write_png(const std::string&, const image&)
 {
     VX_UNSUPPORTED("img::write_png()");
     return false;

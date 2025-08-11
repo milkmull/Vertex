@@ -15,7 +15,7 @@ extern "C" int main(int argc, char* argv[]);
 #   define WINAPI __stdcall
 #endif
 
-typedef struct HINSTANCE__* HINSTANCE;
+typedef struct HINSTANCE_* HINSTANCE;
 typedef char* LPSTR;
 typedef wchar_t* PWSTR;
 

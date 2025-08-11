@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/shared_library.hpp"
+#include "vertex_impl/os/_platform/shared_library.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -12,20 +12,20 @@ VX_API bool shared_library::load(const char* lib)
         return false;
     }
 
-    return __detail::shared_library_impl::load(m_handle, lib);
+    return _priv::shared_library_impl::load(m_handle, lib);
 }
 
 VX_API void shared_library::free() noexcept
 {
     if (is_loaded())
     {
-        __detail::shared_library_impl::free(m_handle);
+        _priv::shared_library_impl::free(m_handle);
     }
 }
 
 void* shared_library::get_void(const char* symbol_name) const noexcept
 {
-    return is_loaded() ? __detail::shared_library_impl::get_addr(m_handle, symbol_name) : nullptr;
+    return is_loaded() ? _priv::shared_library_impl::get_addr(m_handle, symbol_name) : nullptr;
 }
 
 } // namespace os

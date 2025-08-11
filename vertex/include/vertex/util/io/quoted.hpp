@@ -5,7 +5,7 @@
 namespace vx {
 namespace io {
 
-namespace __detail {
+namespace _priv {
 
 // https://github.com/gcc-mirror/gcc/blob/75405ead52a987adb70576b66a4220ec490c523d/libstdc%2B%2B-v3/include/bits/quoted_string.h
 
@@ -122,7 +122,7 @@ inline std::basic_istream<char_t, Traits>& operator>>(std::basic_istream<char_t,
     return is;
 }
 
-} // namespace __detail
+} // namespace _priv
 
 template <typename char_t>
 inline auto quoted(
@@ -131,7 +131,7 @@ inline auto quoted(
     char_t escape = char_t('\\')
 )
 {
-    return __detail::quoted_string<const char_t*, char_t>(s, delimeter, escape);
+    return _priv::quoted_string<const char_t*, char_t>(s, delimeter, escape);
 }
 
 template <typename char_t, typename Traits, typename Alloc>
@@ -141,7 +141,7 @@ inline auto quoted(
     char_t escape = char_t('\\')
 )
 {
-    return __detail::quoted_string<const std::basic_string<char_t, Traits, Alloc>&, char_t>(s, delimeter, escape);
+    return _priv::quoted_string<const std::basic_string<char_t, Traits, Alloc>&, char_t>(s, delimeter, escape);
 }
 
 template <typename char_t, typename Traits, typename Alloc>
@@ -151,7 +151,7 @@ inline auto quoted(
     char_t escape = char_t('\\')
 )
 {
-    return __detail::quoted_string<const std::basic_string<char_t, Traits, Alloc>&, char_t>(s, delimeter, escape);
+    return _priv::quoted_string<const std::basic_string<char_t, Traits, Alloc>&, char_t>(s, delimeter, escape);
 }
 
 #if defined(__cpp_lib_string_view)
@@ -163,7 +163,7 @@ inline auto quoted(
     char_t escape = char_t('\\')
 )
 {
-    return __detail::quoted_string<std::basic_string_view<char_t, Traits>&, char_t>(s, delimeter, escape);
+    return _priv::quoted_string<std::basic_string_view<char_t, Traits>&, char_t>(s, delimeter, escape);
 }
 
 #endif // __cpp_lib_string_view

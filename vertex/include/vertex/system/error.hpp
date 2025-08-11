@@ -134,12 +134,12 @@ struct info
 // error printing
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 #if VX_ERROR_PRINTING_AVAILABLE
 
     VX_API void set_error_printing_enabled(bool enabled) noexcept;
-#   define VX_PRINT_ERRORS(enabled) ::vx::err::__detail::set_error_printing_enabled(enabled)
+#   define VX_PRINT_ERRORS(enabled) ::vx::err::_priv::set_error_printing_enabled(enabled)
 
 #else
 
@@ -147,7 +147,7 @@ namespace __detail {
 
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 // error accessors and manipulators
@@ -203,7 +203,7 @@ inline void clear() noexcept
 // error stream
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 struct error_stream
 {
@@ -219,11 +219,11 @@ inline void unsupported(const char* operation)
     error_stream(UNSUPPORTED).stream << operation << " is not a supported operation on this platform";
 }
 
-} // namespace __detail
+} // namespace _priv
 
-#define VX_ERR(ec) ::vx::err::__detail::error_stream(ec).stream
-#define VX_ERR_DEFAULT(ec) ::vx::err::__detail::set_error(ec)
-#define VX_UNSUPPORTED(op) ::vx::err::__detail::unsupported(op)
+#define VX_ERR(ec) ::vx::err::_priv::error_stream(ec).stream
+#define VX_ERR_DEFAULT(ec) ::vx::err::_priv::set_error(ec)
+#define VX_UNSUPPORTED(op) ::vx::err::_priv::unsupported(op)
 
 #define VX_RETURN_IF_ERROR(check, ret) \
     do \

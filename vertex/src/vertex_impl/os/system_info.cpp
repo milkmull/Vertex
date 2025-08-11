@@ -1,5 +1,5 @@
 #include "vertex/config/language_config.hpp"
-#include "vertex_impl/os/__platform/system_info.hpp"
+#include "vertex_impl/os/_platform/system_info.hpp"
 
 namespace vx {
 namespace os {

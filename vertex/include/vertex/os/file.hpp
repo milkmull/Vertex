@@ -13,11 +13,11 @@ namespace os {
 // file
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 struct file_impl;
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -510,7 +510,7 @@ private:
 
 private:
 
-    friend __detail::file_impl;
+    friend _priv::file_impl;
 
     mode m_mode = mode::NONE;
     handle m_handle;

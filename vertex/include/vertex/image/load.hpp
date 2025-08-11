@@ -7,7 +7,7 @@
 namespace vx {
 namespace img {
 
-bool load(const std::string& filename, image& img);
+VX_API bool load(const std::string& filename, image& img);
 
 } // namespace img
 } // namespace vx

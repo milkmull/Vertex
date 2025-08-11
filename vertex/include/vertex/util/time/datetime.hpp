@@ -11,7 +11,7 @@ namespace time {
 // helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 struct civil
 {
@@ -65,7 +65,7 @@ enum : int64_t
     SEC_PER_DAY = (SEC_PER_HOUR * 24),
 };
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 // datetime enums
@@ -154,7 +154,7 @@ constexpr int32_t get_days_in_month(int32_t year, month month) noexcept
  */
 constexpr int32_t get_day_of_year(int32_t year, month month, int32_t day) noexcept
 {
-    const int32_t doy = static_cast<int32_t>(__detail::day_of_year(static_cast<int32_t>(month), day));
+    const int32_t doy = static_cast<int32_t>(_priv::day_of_year(static_cast<int32_t>(month), day));
     // The algorithm considers March 1 to be the first day of the year, so we offset by Jan + Feb days
     return (doy > 305) ? (doy - 306) : (doy + 59 + static_cast<int32_t>(is_leap_year(year)));
 }
@@ -171,7 +171,7 @@ constexpr int32_t get_day_of_year(int32_t year, month month, int32_t day) noexce
  */
 constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexcept
 {
-    const int32_t days = __detail::civil_to_days(year, static_cast<int32_t>(month), day);
+    const int32_t days = _priv::civil_to_days(year, static_cast<int32_t>(month), day);
     return static_cast<weekday>(days >= -4 ? (days + 4) % 7 : (days + 5) % 7 + 6);
 }
 
@@ -224,38 +224,38 @@ struct datetime
      */
     constexpr datetime to_utc() const noexcept
     {
-        const int32_t total_days = __detail::civil_to_days(year, static_cast<int32_t>(month), day);
+        const int32_t total_days = _priv::civil_to_days(year, static_cast<int32_t>(month), day);
 
         // Convert local time to seconds, adjust by utc offset
         const int64_t total_seconds = (
-            total_days * __detail::SEC_PER_DAY +
-            hour       * __detail::SEC_PER_HOUR +
-            minute     * __detail::SEC_PER_MIN +
+            total_days * _priv::SEC_PER_DAY +
+            hour       * _priv::SEC_PER_HOUR +
+            minute     * _priv::SEC_PER_MIN +
             second
         ) - utc_offset_seconds;
 
         // Convert back to UTC date and time
-        int32_t new_days = static_cast<int32_t>(total_seconds / __detail::SEC_PER_DAY);
-        int32_t remaining_seconds = static_cast<int32_t>(total_seconds % __detail::SEC_PER_DAY);
+        int32_t new_days = static_cast<int32_t>(total_seconds / _priv::SEC_PER_DAY);
+        int32_t remaining_seconds = static_cast<int32_t>(total_seconds % _priv::SEC_PER_DAY);
         if (remaining_seconds < 0)
         {
             --new_days;
-            remaining_seconds += __detail::SEC_PER_DAY;
+            remaining_seconds += _priv::SEC_PER_DAY;
         }
 
         datetime utc_dt{};
 
         // Convert days since epoch back to year, month, and day
-        const __detail::civil civil = __detail::civil_from_days(new_days);
+        const _priv::civil civil = _priv::civil_from_days(new_days);
         utc_dt.year = civil.year;
         utc_dt.month = static_cast<time::month>(civil.month);
         utc_dt.day = static_cast<int32_t>(civil.day);
         utc_dt.weekday = get_day_of_week(utc_dt.year, utc_dt.month, utc_dt.day);
 
-        utc_dt.hour = remaining_seconds / __detail::SEC_PER_HOUR;
-        remaining_seconds %= __detail::SEC_PER_HOUR;
-        utc_dt.minute = remaining_seconds / __detail::SEC_PER_MIN;
-        utc_dt.second = remaining_seconds % __detail::SEC_PER_MIN;
+        utc_dt.hour = remaining_seconds / _priv::SEC_PER_HOUR;
+        remaining_seconds %= _priv::SEC_PER_HOUR;
+        utc_dt.minute = remaining_seconds / _priv::SEC_PER_MIN;
+        utc_dt.second = remaining_seconds % _priv::SEC_PER_MIN;
         utc_dt.nanosecond = nanosecond; // nanoseconds remain unchanged
 
         return utc_dt;
@@ -271,12 +271,12 @@ struct datetime
         time_point t;
 
         // Calculate days since the Unix epoch (1970-01-01)
-        const int32_t days_since_epoch = __detail::civil_to_days(year, static_cast<int32_t>(month), day);
+        const int32_t days_since_epoch = _priv::civil_to_days(year, static_cast<int32_t>(month), day);
         // Calculate the total seconds since the Unix epoch (1970-01-01)
         const int64_t seconds_since_epoch = (
-            days_since_epoch * __detail::SEC_PER_DAY +
-            hour             * __detail::SEC_PER_HOUR +
-            minute           * __detail::SEC_PER_MIN +
+            days_since_epoch * _priv::SEC_PER_DAY +
+            hour             * _priv::SEC_PER_HOUR +
+            minute           * _priv::SEC_PER_MIN +
             second
         );
         // Convert to nanoseconds and add the nanosecond component

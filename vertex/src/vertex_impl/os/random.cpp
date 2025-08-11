@@ -1,5 +1,5 @@
 #include "vertex/config/language_config.hpp"
-#include "vertex_impl/os/__platform/random.hpp"
+#include "vertex_impl/os/_platform/random.hpp"
 
 namespace vx {
 namespace os {

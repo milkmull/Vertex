@@ -47,7 +47,7 @@ struct result
  */
 VX_API void record(const result& r);
 
-namespace __detail {
+namespace _priv {
 
 class profile_timer
 {
@@ -79,15 +79,15 @@ private:
     time::timer m_timer;
 };
 
-} // namespace __detail
+} // namespace _priv
 
 #if defined(VX_ENABLE_PROFILING)
 
 #   define VX_PROFILE_START(file) ::vx::profile::start(file)
 #   define VX_PROFILE_STOP()      ::vx::profile::stop()
 
-#   define VX_PROFILE_SCOPE(name) ::vx::profile::__detail::profile_timer timer##VX_LINE(name)
-#   define VX_PROFILE_FUNCTION()  ::vx::profile::__detail::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
+#   define VX_PROFILE_SCOPE(name) ::vx::profile::_priv::profile_timer timer##VX_LINE(name)
+#   define VX_PROFILE_FUNCTION()  ::vx::profile::_priv::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
 
 #else
 

@@ -517,7 +517,7 @@ VX_API bool rename(const path& from, const path& to);
 // Remove
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 enum class remove_error
 {
@@ -527,7 +527,7 @@ enum class remove_error
     OTHER
 };
 
-} // namespace __detail
+} // namespace _priv
 
 /**
  * @brief Removes a file or an empty directory.

@@ -16,7 +16,7 @@
 #if defined(__ANDROID__)
 
 #   define VX_PLATFORM_ANDROID VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_PLATFORM_DETECTED
+#   define _VX_PLATFORM_DETECTED
 
 #endif // android
 
@@ -45,7 +45,7 @@
 
 // Cleanup
 
-#   define __VX_PLATFORM_DETECTED
+#   define _VX_PLATFORM_DETECTED
 
 #endif // ios
 
@@ -71,11 +71,11 @@
 #           define VX_PLATFORM_MINGW32_VERSION VX_VERSION_NUMBER_AVAILABLE
 #       endif
 
-#       if defined(__VX_PLATFORM_DETECTED)
+#       if defined(_VX_PLATFORM_DETECTED)
 #           define VX_PLATFORM_MINGW32_EMULATED VX_PLATFORM_MINGW32_VERSION
 #       else
 #           define VX_PLATFORM_MINGW32 VX_PLATFORM_MINGW32_VERSION
-#           define __VX_PLATFORM_DETECTED
+#           define _VX_PLATFORM_DETECTED
 #       endif
 
 #       undef VX_PLATFORM_MINGW32_VERSION
@@ -92,11 +92,11 @@
 #           define VX_PLATFORM_MINGW64_VERSION VX_VERSION_NUMBER_AVAILABLE
 #       endif
 
-#       if defined(__VX_PLATFORM_DETECTED)
+#       if defined(_VX_PLATFORM_DETECTED)
 #           define VX_PLATFORM_MINGW64_EMULATED VX_PLATFORM_MINGW64_VERSION
 #       else
 #           define VX_PLATFORM_MINGW64 VX_PLATFORM_MINGW64_VERSION
-#           define __VX_PLATFORM_DETECTED
+#           define _VX_PLATFORM_DETECTED
 #       endif
 
 #       undef VX_PLATFORM_MINGW64_VERSION
@@ -105,11 +105,11 @@
 
 // General MinGW tag (used for grouping both variants)
 
-#   if defined(__VX_PLATFORM_DETECTED)
-#       define VX_PLATFORM_MINGW_EMULATED __VX_COMPILER_MSVC_DETECTION
+#   if defined(_VX_PLATFORM_DETECTED)
+#       define VX_PLATFORM_MINGW_EMULATED _VX_COMPILER_MSVC_DETECTION
 #   else
-#       define VX_PLATFORM_MINGW __VX_COMPILER_MSVC_DETECTION
-#       define __VX_PLATFORM_DETECTED
+#       define VX_PLATFORM_MINGW _VX_COMPILER_MSVC_DETECTION
+#       define _VX_PLATFORM_DETECTED
 #   endif
 
 #endif // mingw
@@ -137,7 +137,7 @@
 
 #       define VX_PLATFORM_WINDOWS_UWP VX_VERSION_NUMBER_AVAILABLE
 #       include <winapifamily.h> // Windows SDK
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif
 
@@ -147,7 +147,7 @@
 #   if ((defined(WINAPI_FAMILY_DESKTOP_APP) && WINAPI_FAMILY == WINAPI_FAMILY_DESKTOP_APP) || !VX_PLATFORM_WINDOWS_UWP)
 
 #       define VX_PLATFORM_WINDOWS_DESKTOP
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // desktop
 
@@ -157,7 +157,7 @@
 #   if ((defined(WINAPI_FAMILY_PHONE_APP) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP))
 
 #       define VX_PLATFORM_WINDOWS_PHONE
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // phone
 
@@ -167,7 +167,7 @@
 #   if ((defined(WINAPI_FAMILY_SYSTEM) && WINAPI_FAMILY == WINAPI_FAMILY_SYSTEM))
 
 #       define VX_PLATFORM_WINDOWS_SYSTEM
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // system
 
@@ -177,7 +177,7 @@
 #   if ((defined(WINAPI_FAMILY_SERVER) && WINAPI_FAMILY == WINAPI_FAMILY_SERVER))
 
 #       define VX_PLATFORM_WINDOWS_SERVER
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // server
 
@@ -188,7 +188,7 @@
         (defined(WINAPI_FAMILY_APP)    && WINAPI_FAMILY == WINAPI_FAMILY_APP))
 
 #       define VX_PLATFORM_WINDOWS_STORE
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // store
 
@@ -198,7 +198,7 @@
 #if (VX_PLATFORM_WINDOWS_PHONE || VX_PLATFORM_WINDOWS_STORE)
 
 #       define VX_PLATFORM_WINDOWS_RUNTIME
-#       define __VX_PLATFORM_DETECTED
+#       define _VX_PLATFORM_DETECTED
 
 #   endif // runtime 
 
@@ -212,15 +212,15 @@
 // dummy
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(__VX_OS_DETECTED)
+#if !defined(_VX_OS_DETECTED)
 #   define VX_PLATFORM_DUMMY VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_PLATFORM_DETECTED
+#   define _VX_PLATFORM_DETECTED
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // cleanup
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__VX_PLATFORM_DETECTED)
-#   undef __VX_PLATFORM_DETECTED
+#if defined(_VX_PLATFORM_DETECTED)
+#   undef _VX_PLATFORM_DETECTED
 #endif

@@ -10,7 +10,7 @@ namespace type_traits {
 // is char iterator
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 template <typename T, typename = void>
 struct is_char_iterator_impl : std::false_type {};
@@ -22,10 +22,10 @@ struct is_char_iterator_impl<T, void_t<typename std::iterator_traits<T>::value_t
 template <typename T, size_t N>
 struct is_char_iterator_impl<T[N]> : is_char<T> {};
  
-} // namespace __detail
+} // namespace _priv
 
 template <typename T>
-struct is_char_iterator : __detail::is_char_iterator_impl<typename std::remove_cv<T>::type> {};
+struct is_char_iterator : _priv::is_char_iterator_impl<typename std::remove_cv<T>::type> {};
 
 ///////////////////////////////////////////////////////////////////////////////
 // string type
@@ -48,7 +48,7 @@ struct is_string<std::basic_string_view<Elem, Traits>> : std::true_type {};
 // string-like
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 template <typename T>
 struct is_string_like_impl : is_char_iterator<typename std::decay<T>::type> {};
@@ -63,10 +63,10 @@ struct is_string_like_impl<std::basic_string_view<Elem, Traits>> : std::true_typ
 
 #endif // __cpp_lib_string_view
 
-} // namespace __detail
+} // namespace _priv
 
 template <typename T>
-struct is_string_like : __detail::is_string_like_impl<typename std::remove_cv<T>::type> {};
+struct is_string_like : _priv::is_string_like_impl<typename std::remove_cv<T>::type> {};
 
 } // namespace type_traits
 } // namespace vx

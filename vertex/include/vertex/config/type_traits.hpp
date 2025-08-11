@@ -39,7 +39,7 @@ struct enable_if<true, T> { using type = T; };
 
 // https://github.com/gcc-mirror/gcc/blob/da8aaa7784810e23123639c06c22eb6d37ec945c/libstdc%2B%2B-v3/include/std/type_traits#L172
 
-namespace __detail {
+namespace _priv {
 
 // A variadic alias template that resolves to its first argument.
 template<typename T, typename...>
@@ -61,10 +61,10 @@ std::false_type and_fn(...);
 } // namespace detail
 
 template <typename... Bn>
-struct conjunction : decltype(__detail::and_fn<Bn...>(0)) {};
+struct conjunction : decltype(_priv::and_fn<Bn...>(0)) {};
 
 template <typename... Bn>
-struct disjunction : decltype(__detail::or_fn<Bn...>(0)) {};
+struct disjunction : decltype(_priv::or_fn<Bn...>(0)) {};
 
 template<typename Bn>
 struct negation : bool_constant<!bool(Bn::value)> {};
@@ -90,7 +90,7 @@ struct is_iterator<T, void_t<typename std::iterator_traits<T>::iterator_category
 // element type
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 template <typename T, typename = void>
 struct value_type_impl { using type = void; };
@@ -107,12 +107,12 @@ struct value_type_impl<T*> { using type = T; };
 template <typename T, size_t N>
 struct value_type_impl<T[N]> { using type = T; };
 
-} // namespace __detail
+} // namespace _priv
 
 template <typename T>
 struct value_type
 {
-    using type = typename __detail::value_type_impl<typename std::remove_cv<T>::type>::type;
+    using type = typename _priv::value_type_impl<typename std::remove_cv<T>::type>::type;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -142,7 +142,7 @@ using is_nothrow_invocable = std::is_nothrow_invocable<Fn, Args...>;
 
 #else
 
-namespace __detail {
+namespace _priv {
 
 // https://github.com/gcc-mirror/gcc/blob/da8aaa7784810e23123639c06c22eb6d37ec945c/libstdc%2B%2B-v3/include/bits/invoke.h#L55
 
@@ -334,7 +334,7 @@ struct result_of_impl<false, false, Fn, Args...> : private result_of_other_impl
     using type = decltype(test<Fn, Args...>(0));
 };
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 // invoke_result
@@ -344,13 +344,13 @@ struct result_of_impl<false, false, Fn, Args...> : private result_of_other_impl
 
 // invoke_result (std::invoke_res for C++11)
 template <typename Fn, typename... Args>
-struct invoke_result : public __detail::result_of_impl<
+struct invoke_result : public _priv::result_of_impl<
     std::is_member_object_pointer<typename std::remove_reference<Fn>::type>::value,
     std::is_member_function_pointer<typename std::remove_reference<Fn>::type>::value,
     Fn, Args...
 >::type {};
 
-namespace __detail {
+namespace _priv {
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_invocable
@@ -414,12 +414,12 @@ public:
 
 VX_DISABLE_GCC_WARNING_POP()
 
-} // namespace __detail
+} // namespace _priv
 
 template <typename Fn, typename... Args>
-struct is_invocable : __detail::is_invocable_impl<invoke_result<Fn, Args...>, void>::type {};
+struct is_invocable : _priv::is_invocable_impl<invoke_result<Fn, Args...>, void>::type {};
 
-namespace __detail {
+namespace _priv {
 
 ///////////////////////////////////////////////////////////////////////////////
 // call_is_nothrow
@@ -461,9 +461,9 @@ template <typename Res, typename Fn, typename... Args>
 struct call_is_nothrow_impl : type_traits::bool_constant<call_is_nt<Fn, Args...>(typename Res::invoke_type{})> {};
 
 template<typename Fn, typename... Args>
-using call_is_nothrow = __detail::call_is_nothrow_impl<invoke_result<Fn, Args...>, Fn, Args...>;
+using call_is_nothrow = _priv::call_is_nothrow_impl<invoke_result<Fn, Args...>, Fn, Args...>;
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 // is_nothrow_invocable
@@ -472,7 +472,7 @@ using call_is_nothrow = __detail::call_is_nothrow_impl<invoke_result<Fn, Args...
 // https://github.com/gcc-mirror/gcc/blob/c207dcf393b864adc8eb41bbbcd630a6cfdc145a/libstdc%2B%2B-v3/include/std/type_traits#L3265
 
 template <typename Fn, typename... Args>
-struct is_nothrow_invocable : type_traits::conjunction<is_invocable<Fn, Args...>, __detail::call_is_nothrow<Fn, Args...>>::type {};
+struct is_nothrow_invocable : type_traits::conjunction<is_invocable<Fn, Args...>, _priv::call_is_nothrow<Fn, Args...>>::type {};
 
 #endif // __cpp_lib_is_invocable
 

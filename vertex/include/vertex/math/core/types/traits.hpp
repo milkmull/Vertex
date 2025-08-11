@@ -355,26 +355,26 @@ struct enable_if<true, T> { using type = T; };
 #define VXM_RET_TYPE2(t, fn) decltype(fn(std::declval<T>(), std::declval<T>()))
 #define VXM_RET_TYPE3(t, fn) decltype(fn(std::declval<T>(), std::declval<T>(), std::declval<T>()))
 
-#define __IS_NUMERIC_1(t1) is_numeric<t1>::value
-#define __IS_NUMERIC_2(t1, t2) __IS_NUMERIC_1(t1) && __IS_NUMERIC_1(t2)
-#define __IS_NUMERIC_3(t1, t2, t3) __IS_NUMERIC_2(t1, t2) && __IS_NUMERIC_1(t3)
-#define __IS_NUMERIC_4(t1, t2, t3, t4) __IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_1(t4)
+#define _IS_NUMERIC_1(t1) is_numeric<t1>::value
+#define _IS_NUMERIC_2(t1, t2) _IS_NUMERIC_1(t1) && _IS_NUMERIC_1(t2)
+#define _IS_NUMERIC_3(t1, t2, t3) _IS_NUMERIC_2(t1, t2) && _IS_NUMERIC_1(t3)
+#define _IS_NUMERIC_4(t1, t2, t3, t4) _IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_1(t4)
 
-#define VXM_REQ_NUM(t1) VXM_REQ(__IS_NUMERIC_1(t1))
-#define VXM_REQ_NUM2(t1, t2) VXM_REQ(__IS_NUMERIC_2(t1, t2))
-#define VXM_REQ_NUM3(t1, t2, t3) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3))
-#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4))
-#define VXM_REQ_NUM6(t1, t2, t3, t4, t5, t6) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6))
-#define VXM_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8))
-#define VXM_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VXM_REQ(__IS_NUMERIC_3(t1, t2, t3) && __IS_NUMERIC_3(t4, t5, t6) && __IS_NUMERIC_3(t7, t8, t9))
-#define VXM_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12))
-#define VXM_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VXM_REQ(__IS_NUMERIC_4(t1, t2, t3, t4) && __IS_NUMERIC_4(t5, t6, t7, t8) && __IS_NUMERIC_4(t9, t10, t11, t12) && __IS_NUMERIC_4(t13, t14, t15, t16))
+#define VXM_REQ_NUM(t1) VXM_REQ(_IS_NUMERIC_1(t1))
+#define VXM_REQ_NUM2(t1, t2) VXM_REQ(_IS_NUMERIC_2(t1, t2))
+#define VXM_REQ_NUM3(t1, t2, t3) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3))
+#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4))
+#define VXM_REQ_NUM6(t1, t2, t3, t4, t5, t6) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6))
+#define VXM_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8))
+#define VXM_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6) && _IS_NUMERIC_3(t7, t8, t9))
+#define VXM_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12))
+#define VXM_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12) && _IS_NUMERIC_4(t13, t14, t15, t16))
 
 ///////////////////////////////////////////////////////////////////////////////
 // helper macros
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VXM_FORCE_TEMPLATE() template <typename __T = void>
+#define VXM_FORCE_TEMPLATE() template <typename _T = void>
 
 } // namespace vx
 } // namespace math

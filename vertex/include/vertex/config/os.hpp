@@ -12,11 +12,11 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/cygwin.h
 
-#if !defined(__VX_OS_DETECTED) && defined(__CYGWIN__)
+#if !defined(_VX_OS_DETECTED) && defined(__CYGWIN__)
 
 #   include <cygwin/version.h>
 #   define VX_OS_CYGWIN VX_VERSION_NUMBER(CYGWIN_VERSION_API_MAJOR, CYGWIN_VERSION_API_MINOR, 0)
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // cygwin
 
@@ -26,13 +26,13 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/linux.h
 
-#if !defined(__VX_OS_DETECTED) && ( \
+#if !defined(_VX_OS_DETECTED) && ( \
     defined(linux) || defined(__linux) || \
     defined(__linux__) || defined(__gnu_linux__) \
     )
 
 #   define VX_OS_LINUX VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // linux
 
@@ -42,13 +42,13 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/ios.h
 
-#if !defined(__VX_OS_DETECTED) && ( \
+#if !defined(_VX_OS_DETECTED) && ( \
     defined(__APPLE__) && defined(__MACH__) && \
     defined(__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__) \
     )
 
 #   define VX_OS_IOS (__ENVIRONMENT_IPHONE_OS_VERSION_MIN_REQUIRED__ * 1000) // E.g. 13.4 -> 13400
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // ios
 
@@ -60,7 +60,7 @@
 
 // macos should be detected after ios
 
-#if !defined(__VX_OS_DETECTED) && ( \
+#if !defined(_VX_OS_DETECTED) && ( \
     defined(macintosh) || defined(Macintosh) || \
     (defined(__APPLE__) && defined(__MACH__)) \
     )
@@ -71,7 +71,7 @@
 #       define VX_OS_MACOS VX_VERSION_NUMBER(9, 0, 0)
 #   endif
 
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // macos
 
@@ -101,11 +101,11 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd/bsdi.h
 
-#if !defined(__VX_OS_DETECTED) && defined(__bsdi__)
+#if !defined(_VX_OS_DETECTED) && defined(__bsdi__)
 
 #   define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 #   define VX_OS_BSD_BSDI VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // bsdi
 
@@ -115,11 +115,11 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd/dragonfly.h
 
-#if !defined(__VX_OS_DETECTED) && defined(__DragonFly__)
+#if !defined(_VX_OS_DETECTED) && defined(__DragonFly__)
 
 #   define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 #   define VX_OS_DRAGONFLY_BSD VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // dragonfly
 
@@ -129,7 +129,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd/free.h
 
-#if !defined(__VX_OS_DETECTED) && defined(__FreeBSD__)
+#if !defined(_VX_OS_DETECTED) && defined(__FreeBSD__)
 
 #   define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 #   include <sys/param.h>
@@ -141,9 +141,9 @@
 #       elif (__FreeBSD_version == 492000)
 #           define VX_OS_BSD_FREE VX_VERSION_NUMBER(4, 11, 0)
 #       elif (__FreeBSD_version < 500000)
-#           define VX_OS_BSD_FREE __VX_MAKE_VERSION_NUMBER_10_VRPPPP(__FreeBSD_version)
+#           define VX_OS_BSD_FREE _VX_MAKE_VERSION_NUMBER_10_VRPPPP(__FreeBSD_version)
 #       else
-#           define VX_OS_BSD_FREE __VX_MAKE_VERSION_NUMBER_10_VVRRPPP(__FreeBSD_version)
+#           define VX_OS_BSD_FREE _VX_MAKE_VERSION_NUMBER_10_VVRRPPP(__FreeBSD_version)
 #       endif
 
 #   else
@@ -152,7 +152,7 @@
 
 #   endif
 
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // free
 
@@ -162,7 +162,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd/net.h
 
-#if !defined(__VX_OS_DETECTED) && (defined(__NETBSD__) || defined(__NetBSD__))
+#if !defined(_VX_OS_DETECTED) && (defined(__NETBSD__) || defined(__NetBSD__))
 
 #   define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 
@@ -170,9 +170,9 @@
 
 #       if defined(__NETBSD_version)
 #           if (__NETBSD_version < 500000)
-#               define VX_OS_BSD_NET __VX_MAKE_VERSION_NUMBER_10_VRP000(__NETBSD_version)
+#               define VX_OS_BSD_NET _VX_MAKE_VERSION_NUMBER_10_VRP000(__NETBSD_version)
 #           else
-#               define VX_OS_BSD_NET __VX_MAKE_VERSION_NUMBER_10_VRR000(__NETBSD_version)
+#               define VX_OS_BSD_NET _VX_MAKE_VERSION_NUMBER_10_VRR000(__NETBSD_version)
 #           endif
 #       else
 #           define VX_OS_BSD_NET VX_VERSION_NUMBER_AVAILABLE
@@ -187,14 +187,14 @@
 #       elif defined(NetBSD1_0)
 #           define VX_OS_BSD_NET VX_VERSION_NUMBER(1, 0, 0)
 #       elif defined(__NetBSD_Version)
-#           define VX_OS_BSD_NET __VX_MAKE_VERSION_NUMBER_10_VVRR00PP00(__NetBSD_Version)
+#           define VX_OS_BSD_NET _VX_MAKE_VERSION_NUMBER_10_VVRR00PP00(__NetBSD_Version)
 #       else
 #           define VX_OS_BSD_NET VX_VERSION_NUMBER_AVAILABLE
 #       endif
 
 #   endif
 
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // net
 
@@ -204,7 +204,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd/open.h
 
-#if !defined(__VX_OS_DETECTED) && defined(__OpenBSD__)
+#if !defined(_VX_OS_DETECTED) && defined(__OpenBSD__)
 
 #   define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 
@@ -312,7 +312,7 @@
 #       define VX_OS_BSD_OPEN VX_VERSION_NUMBER_AVAILABLE
 #   endif
 
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // open
 
@@ -322,7 +322,7 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/bsd.h
 
-#if !defined(__VX_OS_DETECTED) && (defined(BSD) || defined(_SYSTYPE_BSD))
+#if !defined(_VX_OS_DETECTED) && (defined(BSD) || defined(_SYSTYPE_BSD))
 
 #   include <sys/param.h>
 
@@ -333,12 +333,12 @@
 #   elif defined(BSD4_2)
 #       define VX_OS_BSD BOOST_VERSION_NUMBER(4, 2, 0)
 #   elif defined(BSD)
-#       define VX_OS_BSD __VX_MAKE_VERSION_NUMBER_10_VVRR(BSD)
+#       define VX_OS_BSD _VX_MAKE_VERSION_NUMBER_10_VVRR(BSD)
 #   else
 #       define VX_OS_BSD VX_VERSION_NUMBER_AVAILABLE
 #   endif
 
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // bsd
 
@@ -348,14 +348,14 @@
 
 // https://github.com/boostorg/predef/blob/a2a5010e2824b7740890a3bf463b8c4b8927aaa7/include/boost/predef/os/windows.h
 
-#if !defined(__VX_OS_DETECTED) && ( \
+#if !defined(_VX_OS_DETECTED) && ( \
     defined(_WIN32) || defined(_WIN64) || \
     defined(__WIN32__) || defined(__TOS_WIN__) || \
     defined(__WINDOWS__) \
     )
 
 #   define VX_OS_WINDOWS VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 
 #endif // windows
 
@@ -378,15 +378,15 @@
 // dummy
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef __VX_OS_DETECTED
+#ifndef _VX_OS_DETECTED
 #   define VX_OS_DUMMY VX_VERSION_NUMBER_AVAILABLE
-#   define __VX_OS_DETECTED
+#   define _VX_OS_DETECTED
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // cleanup
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(__VX_OS_DETECTED)
-#   undef __VX_OS_DETECTED
+#if defined(_VX_OS_DETECTED)
+#   undef _VX_OS_DETECTED
 #endif

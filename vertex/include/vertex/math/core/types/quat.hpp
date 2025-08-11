@@ -21,13 +21,13 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
 #if defined(VXM_ENABLE_SIMD)
 
-#   define __SIMD_OVERLOAD(cond) template <typename __T = scalar_type, VXM_REQ( (simd::quat_t<__T>::cond))>
-#   define __SIMD_FALLBACK(cond) template <typename __T = scalar_type, VXM_REQ(!(simd::quat_t<__T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::quat_t<_T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::quat_t<_T>::cond))>
 
 #else
 
-#   define __SIMD_OVERLOAD(cond) template <typename __T = scalar_type, VXM_REQ(!(is_same<__T, __T>::value))>
-#   define __SIMD_FALLBACK(cond)
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_FALLBACK(cond)
 
 #endif
 
@@ -212,7 +212,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // addition (+)
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     friend VX_FORCE_INLINE constexpr type operator+(const type& q1, const type& q2) noexcept
     {
         return type(q1.w + q2.w, q1.x + q2.x, q1.y + q2.y, q1.z + q2.z);
@@ -220,7 +220,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // subtraction (-)
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     friend VX_FORCE_INLINE constexpr type operator-(const type& q1, const type& q2) noexcept
     {
         return type(q1.w - q2.w, q1.x - q2.x, q1.y - q2.y, q1.z - q2.z);
@@ -228,13 +228,13 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // multiplication (*)
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(const type& q, scalar_type scalar) noexcept
     {
         return type(q.w * scalar, q.x * scalar, q.y * scalar, q.z * scalar);
     }
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     friend VX_FORCE_INLINE constexpr type operator*(scalar_type scalar, const type& q) noexcept
     {
         return type(scalar * q.w, scalar * q.x, scalar * q.y, scalar * q.z);
@@ -254,7 +254,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // division (/)
 
-    __SIMD_FALLBACK(HAVE_DIV)
+    _SIMD_FALLBACK(HAVE_DIV)
     friend VX_FORCE_INLINE constexpr type operator/(const type& q, scalar_type scalar) noexcept
     {
         return type(q.w / scalar, q.x / scalar, q.y / scalar, q.z / scalar);
@@ -266,7 +266,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // addition (+=)
 
-    __SIMD_FALLBACK(HAVE_ADD)
+    _SIMD_FALLBACK(HAVE_ADD)
     VX_FORCE_INLINE constexpr type& operator+=(const type& q) noexcept
     {
         w += q.w;
@@ -278,7 +278,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // subtraction (-=)
 
-    __SIMD_FALLBACK(HAVE_SUB)
+    _SIMD_FALLBACK(HAVE_SUB)
     VX_FORCE_INLINE constexpr type& operator-=(const type& q) noexcept
     {
         w -= q.w;
@@ -290,7 +290,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // multiplication (*=)
 
-    __SIMD_FALLBACK(HAVE_MUL)
+    _SIMD_FALLBACK(HAVE_MUL)
     VX_FORCE_INLINE constexpr type& operator*=(scalar_type scalar) noexcept
     {
         w *= scalar;
@@ -360,7 +360,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // addition (+)
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     friend VX_FORCE_INLINE type operator+(const type& q1, const type& q2) noexcept
     {
         return simd_type::add(q1, q2);
@@ -368,7 +368,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // subtraction (-)
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     friend VX_FORCE_INLINE type operator-(const type& q1, const type& q2) noexcept
     {
         return simd_type::sub(q1, q2);
@@ -376,13 +376,13 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // multiplication (*)
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(const type& q, scalar_type scalar) noexcept
     {
         return simd_type::mul(q, scalar);
     }
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     friend VX_FORCE_INLINE type operator*(scalar_type scalar, const type& q) noexcept
     {
         return simd_type::mul(q, scalar);
@@ -390,7 +390,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // diqision (/)
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& q, scalar_type scalar) noexcept
     {
         return simd_type::div(q, scalar);
@@ -402,7 +402,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // addition (+=)
 
-    __SIMD_OVERLOAD(HAVE_ADD)
+    _SIMD_OVERLOAD(HAVE_ADD)
     VX_FORCE_INLINE type& operator+=(const type& q) noexcept
     {
         (*this) = (*this) + q;
@@ -411,7 +411,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // subtraction (-=)
 
-    __SIMD_OVERLOAD(HAVE_SUB)
+    _SIMD_OVERLOAD(HAVE_SUB)
     VX_FORCE_INLINE type& operator-=(const type& q) noexcept
     {
         (*this) = (*this) - q;
@@ -420,7 +420,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // multiplication (*=)
 
-    __SIMD_OVERLOAD(HAVE_MUL)
+    _SIMD_OVERLOAD(HAVE_MUL)
     VX_FORCE_INLINE type& operator*=(scalar_type scalar) noexcept
     {
         (*this) = (*this) * scalar;
@@ -429,15 +429,15 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     // division (/=)
 
-    __SIMD_OVERLOAD(HAVE_DIV)
+    _SIMD_OVERLOAD(HAVE_DIV)
     VX_FORCE_INLINE type& operator/=(scalar_type scalar) noexcept
     {
         (*this) = (*this) / scalar;
         return *this;
     }
 
-#   undef __SIMD_OVERLOAD
-#   undef __SIMD_FALLBACK
+#   undef _SIMD_OVERLOAD
+#   undef _SIMD_FALLBACK
 };
 
 } // namespace math

@@ -12,11 +12,11 @@ namespace os {
 // shared_library
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace __detail {
+namespace _priv {
 
 struct shared_library_impl;
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -153,7 +153,7 @@ public:
 
 private:
 
-    friend __detail::shared_library_impl;
+    friend _priv::shared_library_impl;
 
     void* m_handle = nullptr;
 };

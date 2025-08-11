@@ -14,7 +14,7 @@
 #if defined(__clang__)
 
 #   define VX_COMPILER_CLANG VX_VERSION_NUMBER(__clang_major__, __clang_minor__, __clang_patchlevel__)
-#   define __VX_COMPILER_DETECTED
+#   define _VX_COMPILER_DETECTED
 
 #endif // clang
 
@@ -32,23 +32,23 @@
 // Detect version
 
 #   if defined(__GNUC_PATCHLEVEL__)
-#       define __VX_COMPILER_GNUC_DETECTION VX_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
+#       define _VX_COMPILER_GNUC_DETECTION VX_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__)
 #   else
-#       define __VX_COMPILER_GNUC_DETECTION VX_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, 0)
+#       define _VX_COMPILER_GNUC_DETECTION VX_VERSION_NUMBER(__GNUC__, __GNUC_MINOR__, 0)
 #   endif
 
 // Emulated?
 
-#   if defined(__VX_COMPILER_DETECTED)
-#       define VX_COMPILER_GNUC_EMULATED __VX_COMPILER_GNUC_DETECTION
+#   if defined(_VX_COMPILER_DETECTED)
+#       define VX_COMPILER_GNUC_EMULATED _VX_COMPILER_GNUC_DETECTION
 #   else
-#       define VX_COMPILER_GNUC __VX_COMPILER_GNUC_DETECTION
-#       define __VX_COMPILER_DETECTED
+#       define VX_COMPILER_GNUC _VX_COMPILER_GNUC_DETECTION
+#       define _VX_COMPILER_DETECTED
 #   endif
 
 // Cleanup
 
-#   undef __VX_COMPILER_GNUC_DETECTION
+#   undef _VX_COMPILER_GNUC_DETECTION
 
 #endif // gcc
 
@@ -66,34 +66,34 @@
 
 #   if !defined(_MSC_FULL_VER)
 
-#       define __VX_COMPILER_MSVC_BUILD 0
+#       define _VX_COMPILER_MSVC_BUILD 0
 
 #   else
 
 #       if _MSC_FULL_VER / 10000 == _MSC_VER
-#           define __VX_COMPILER_MSVC_BUILD (_MSC_FULL_VER % 10000)
+#           define _VX_COMPILER_MSVC_BUILD (_MSC_FULL_VER % 10000)
 #       elif _MSC_FULL_VER / 100000 == _MSC_VER
-#           define __VX_COMPILER_MSVC_BUILD (_MSC_FULL_VER % 100000)
+#           define _VX_COMPILER_MSVC_BUILD (_MSC_FULL_VER % 100000)
 #       else
 #           error "Cannot determine build number from _MSC_FULL_VER"
 #       endif
 
 #   endif
 
-#   define __VX_COMPILER_MSVC_DETECTION VX_VERSION_NUMBER(_MSC_VER / 100 - 6, _MSC_VER % 100, __VX_COMPILER_MSVC_BUILD)
+#   define _VX_COMPILER_MSVC_DETECTION VX_VERSION_NUMBER(_MSC_VER / 100 - 6, _MSC_VER % 100, _VX_COMPILER_MSVC_BUILD)
 
 // Emulated?
 
-#   if defined(__VX_COMPILER_DETECTED)
-#       define VX_COMPILER_MSVC_EMULATED __VX_COMPILER_MSVC_DETECTION
+#   if defined(_VX_COMPILER_DETECTED)
+#       define VX_COMPILER_MSVC_EMULATED _VX_COMPILER_MSVC_DETECTION
 #   else
-#       define VX_COMPILER_MSVC_DETECTION __VX_COMPILER_MSVC_DETECTION
-#       define __VX_COMPILER_DETECTED
+#       define VX_COMPILER_MSVC_DETECTION _VX_COMPILER_MSVC_DETECTION
+#       define _VX_COMPILER_DETECTED
 #   endif
 
 // Cleanup
 
-#   undef __VX_COMPILER_MSVC_BUILD
+#   undef _VX_COMPILER_MSVC_BUILD
 
 #endif // msvc
 
@@ -101,10 +101,10 @@
 // cleanup
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef __VX_COMPILER_DETECTED
+#ifndef _VX_COMPILER_DETECTED
 #   define VX_COMPILER_UNKNOWN VX_VERSION_NUMBER_ZERO
 #endif
 
-#if defined(__VX_COMPILER_DETECTED)
-#   undef __VX_COMPILER_DETECTED
+#if defined(_VX_COMPILER_DETECTED)
+#   undef _VX_COMPILER_DETECTED
 #endif

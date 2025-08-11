@@ -25,7 +25,7 @@ static thread_local info_impl s_err;
 
 static bool s_print_errors = false;
 
-VX_API void __detail::set_error_printing_enabled(bool enabled) noexcept
+VX_API void _priv::set_error_printing_enabled(bool enabled) noexcept
 {
     s_print_errors = enabled;
 }

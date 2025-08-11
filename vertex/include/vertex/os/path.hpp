@@ -6,17 +6,17 @@
 #include "vertex/util/crypto/FNV1a.hpp"
 #include "vertex/os/native_string.hpp"
 
-#if defined(__VX_TESTING_PATH)
+#if defined(_VX_TESTING_PATH)
 
-#   if defined(__VX_TESTING_WINDOWS_PATH)
-#       define __VX_WINDOWS_PATH
+#   if defined(_VX_TESTING_WINDOWS_PATH)
+#       define _VX_WINDOWS_PATH
 #   endif
 
 #elif defined(VX_OS_WINDOWS)
 
-#   define __VX_WINDOWS_PATH
+#   define _VX_WINDOWS_PATH
 
-#endif // __VX_TESTING_PATH
+#endif // _VX_TESTING_PATH
 
 // https://en.cppreference.com/w/cpp/filesystem
 
@@ -29,13 +29,13 @@ namespace os {
 
 class path;
 
-namespace __detail {
+namespace _priv {
 
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
 using path_value_type = wchar_t;
 
-#   define __PATH_TEXT(x) L##x
+#   define _PATH_TEXT(x) L##x
 
 #   define PATH_SEPARATOR L'/'
 #   define PATH_PREFERRED_SEPARATOR L'\\'
@@ -45,13 +45,13 @@ using path_value_type = wchar_t;
 
 using path_value_type = char;
 
-#   define __PATH_TEXT(x) x
+#   define _PATH_TEXT(x) x
 
 #   define PATH_SEPARATOR '/'
 #   define PATH_PREFERRED_SEPARATOR '/'
 #   define PATH_DOT '.'
 
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 
 using path_string_type = std::basic_string<path_value_type>;
 
@@ -79,16 +79,16 @@ struct substring
 inline constexpr bool is_directory_separator(path_value_type c) noexcept
 {
     return c == PATH_SEPARATOR
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
         || c == PATH_PREFERRED_SEPARATOR
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
         ;
 }
 
 inline constexpr bool is_letter(path_value_type c) noexcept
 {
-    return (c >= __PATH_TEXT('A') && c <= __PATH_TEXT('Z'))
-        || (c >= __PATH_TEXT('a') && c <= __PATH_TEXT('z'));
+    return (c >= _PATH_TEXT('A') && c <= _PATH_TEXT('Z'))
+        || (c >= _PATH_TEXT('a') && c <= _PATH_TEXT('z'));
 }
 
 inline size_t find_separator(const path_value_type* p, size_t off, size_t size) noexcept
@@ -113,15 +113,15 @@ inline constexpr int compare(const path_value_type c1, const path_value_type c2)
 
 // Returns the start position of the root directory
 inline size_t find_root_directory_start(
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
     const path_value_type* first, size_t size
 #else
     const path_value_type*, size_t // unused on non-windows systems
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 ) noexcept
 {
     // Only windows has root name
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
     // A valid root name requires at least 2 characters (e.g., "C:")
     if (size < 2)
@@ -174,7 +174,7 @@ inline size_t find_root_directory_start(
         }
     }
 
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 
     return 0;
 }
@@ -261,7 +261,7 @@ inline substring parse_filename(const path_string_type& s) noexcept
 
 inline substring find_extension(const path_string_type& s, size_t filename_start) noexcept
 {
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
     // On Windows, file paths can contain alternate data streams (ADS), 
     // specified using a colon (e.g., "file.txt:stream"). Since the extension 
@@ -274,7 +274,7 @@ inline substring find_extension(const path_string_type& s, size_t filename_start
 
     const size_t size = s.size();
 
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 
     if ((size - filename_start) <= 1)
     {
@@ -456,7 +456,7 @@ private:
     typename path_parser::state m_state = path_parser::state::BEGIN;
 };
 
-} // namespace __detail
+} // namespace _priv
 
 /**
  * @class path
@@ -470,14 +470,14 @@ class path
 {
 public:
 
-    using value_type = __detail::path_value_type;
-    using string_type = __detail::path_string_type;
+    using value_type = _priv::path_value_type;
+    using string_type = _priv::path_string_type;
 
     static constexpr value_type separator = PATH_SEPARATOR;
     static constexpr value_type preferred_separator = PATH_PREFERRED_SEPARATOR;
     static constexpr value_type dot = PATH_DOT;
 
-    using iterator = __detail::path_iterator<path>;
+    using iterator = _priv::path_iterator<path>;
     using const_iterator = iterator;
 
     friend iterator;
@@ -592,12 +592,12 @@ public:
 
         const size_t lhs_size = m_path.size();
 
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
         const value_type* lhs_first = m_path.data();
 
-        const auto lhs_root_name = __detail::path_parser::parse_root_name(m_path);
-        const auto rhs_root_name = __detail::path_parser::parse_root_name(rhs.m_path);
+        const auto lhs_root_name = _priv::path_parser::parse_root_name(m_path);
+        const auto rhs_root_name = _priv::path_parser::parse_root_name(rhs.m_path);
 
         // if rhs.has_root_name() && rhs.root_name() != root_name(), then op=(rhs)
         if (rhs_root_name.size != 0 && !std::equal(
@@ -611,20 +611,20 @@ public:
 #else
         // No root names on POSIX
         constexpr size_t rhs_start = 0;
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 
         // if rhs.has_root_directory() removes any root directory and relative path from *this
-        if (rhs_start != rhs_size && __detail::path_parser::is_directory_separator(rhs.m_path[rhs_start]))
+        if (rhs_start != rhs_size && _priv::path_parser::is_directory_separator(rhs.m_path[rhs_start]))
         {
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
             m_path.erase(lhs_root_name.size);
 #else
             m_path.clear();
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
         }
         else
         {
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
             // Otherwise, if (!has_root_directory() && is_absolute()) || has_filename() appends path::preferred_separator
             if (lhs_root_name.size == lhs_size)
             {
@@ -639,7 +639,7 @@ public:
                 }
             }
             else
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
             {
                 // Here, has_root_directory() || has_filename()
                 // If there is a trailing slash, the trailing slash might be part of root_directory.
@@ -653,7 +653,7 @@ public:
                 // As a result, the test fails if there is a trailing slash.
                 // If there is no trailing slash, then has_filename, so the test passes.
                 // Therefore, the test passes if and only if there is no trailing slash.
-                if (lhs_size != 0 && !__detail::path_parser::is_directory_separator(m_path.back()))
+                if (lhs_size != 0 && !_priv::path_parser::is_directory_separator(m_path.back()))
                 {
                     m_path.push_back(preferred_separator);
                 }
@@ -788,7 +788,7 @@ public:
      */
     inline path& remove_filename()
     {
-        const auto filename = __detail::path_parser::parse_filename(m_path);
+        const auto filename = _priv::path_parser::parse_filename(m_path);
         m_path.erase(filename.pos);
         return *this;
     }
@@ -803,7 +803,7 @@ public:
      */
     inline path& remove_extension()
     {
-        const auto extension = __detail::path_parser::parse_extension(m_path);
+        const auto extension = _priv::path_parser::parse_extension(m_path);
         m_path.erase(extension.pos);
         return *this;
     }
@@ -820,15 +820,15 @@ public:
      */
     inline path& pop_back()
     {
-        const auto root_directory = __detail::path_parser::parse_root_directory(m_path.c_str());
+        const auto root_directory = _priv::path_parser::parse_root_directory(m_path.c_str());
         const size_t root_path_end = (root_directory.size > 0) ? root_directory.pos + 1 : root_directory.pos;
 
         size_t new_end = m_path.size();
-        while (new_end != root_path_end && !__detail::path_parser::is_directory_separator(m_path[new_end - 1]))
+        while (new_end != root_path_end && !_priv::path_parser::is_directory_separator(m_path[new_end - 1]))
         {
             --new_end;
         }
-        while (new_end != root_path_end && __detail::path_parser::is_directory_separator(m_path[new_end - 1]))
+        while (new_end != root_path_end && _priv::path_parser::is_directory_separator(m_path[new_end - 1]))
         {
             --new_end;
         }
@@ -924,13 +924,13 @@ public:
      */
     int compare(const string_type& rhs) const
     {
-        const auto lhs_root_directory = __detail::path_parser::parse_root_directory(m_path);
-        const auto rhs_root_directory = __detail::path_parser::parse_root_directory(rhs);
+        const auto lhs_root_directory = _priv::path_parser::parse_root_directory(m_path);
+        const auto rhs_root_directory = _priv::path_parser::parse_root_directory(rhs);
 
         auto lhs_it = m_path.begin();
         auto rhs_it = rhs.begin();
 
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
         const auto lhs_root_name_end = lhs_it + lhs_root_directory.pos;
         const auto rhs_root_name_end = rhs_it + rhs_root_directory.pos;
@@ -938,7 +938,7 @@ public:
         // If root_name().native().compare(p.root_name().native()) is nonzero, returns that value.
         while (lhs_it != lhs_root_name_end && rhs_it != rhs_root_name_end)
         {
-            const int root_name_cmp = __detail::path_parser::compare(*lhs_it, *rhs_it);
+            const int root_name_cmp = _priv::path_parser::compare(*lhs_it, *rhs_it);
             if (root_name_cmp != 0)
             {
                 return root_name_cmp;
@@ -962,7 +962,7 @@ public:
         lhs_it = lhs_root_name_end;
         rhs_it = rhs_root_name_end;
 
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
 
         // Otherwise, if has_root_directory() != p.has_root_directory(),
         // returns a value less than zero if has_root_directory() is false
@@ -993,8 +993,8 @@ public:
                 return empty_cmp;
             }
 
-            const bool lhs_is_sep = __detail::path_parser::is_directory_separator(*lhs_it);
-            const bool rhs_is_sep = __detail::path_parser::is_directory_separator(*rhs_it);
+            const bool lhs_is_sep = _priv::path_parser::is_directory_separator(*lhs_it);
+            const bool rhs_is_sep = _priv::path_parser::is_directory_separator(*rhs_it);
             const int sep_cmp = static_cast<int>(rhs_is_sep) - static_cast<int>(lhs_is_sep);
             if (sep_cmp != 0)
             {
@@ -1003,8 +1003,8 @@ public:
 
             if (lhs_is_sep)
             {
-                lhs_it = std::find_if_not(lhs_it + 1, lhs_last, __detail::path_parser::is_directory_separator);
-                rhs_it = std::find_if_not(rhs_it + 1, rhs_last, __detail::path_parser::is_directory_separator);
+                lhs_it = std::find_if_not(lhs_it + 1, lhs_last, _priv::path_parser::is_directory_separator);
+                rhs_it = std::find_if_not(rhs_it + 1, rhs_last, _priv::path_parser::is_directory_separator);
                 continue;
             }
 
@@ -1046,7 +1046,7 @@ public:
      */
     path lexically_normal() const
     {
-        using parse_state = __detail::path_parser::state;
+        using parse_state = _priv::path_parser::state;
 
         if (m_path.empty())
         {
@@ -1062,7 +1062,7 @@ public:
 
 #       define last_is_dotdot() ( \
             normalized.size() >= 3 && \
-            normalized.compare(stack.back(), 2, __PATH_TEXT("..")) == 0 && \
+            normalized.compare(stack.back(), 2, _PATH_TEXT("..")) == 0 && \
             normalized.back() == preferred_separator \
         )
 
@@ -1095,12 +1095,12 @@ public:
             }
 
             // 4. Remove each dot and any immediately following directory-separator.
-            else if (p == __PATH_TEXT("."))
+            else if (p == _PATH_TEXT("."))
             {
                 continue;
             }
 
-            else if (p == __PATH_TEXT(".."))
+            else if (p == _PATH_TEXT(".."))
             {
                 // 5. Remove each non-dot-dot filename immediately followed by a
                 // directory-separator and a dot-dot, along with any immediately
@@ -1125,7 +1125,7 @@ public:
 
             // 2. Replace each directory-separator (which may consist of
             // multiple slashes) with a single path::preferred_separator.
-            if (__detail::path_parser::is_directory_separator(m_path[it.m_position]))
+            if (_priv::path_parser::is_directory_separator(m_path[it.m_position]))
             {
                 normalized.push_back(preferred_separator);
             }
@@ -1217,7 +1217,7 @@ public:
         // If a == end() and b == base.end(), returns path(".").
         if (a_it == this_last && b_it == base_last)
         {
-            ret = __PATH_TEXT(".");
+            ret = _PATH_TEXT(".");
             return ret;
         }
 
@@ -1233,11 +1233,11 @@ public:
             {
                 continue;
             }
-            else if (*b_it == __PATH_TEXT(".."))
+            else if (*b_it == _PATH_TEXT(".."))
             {
                 --n;
             }
-            else if (*b_it != __PATH_TEXT("."))
+            else if (*b_it != _PATH_TEXT("."))
             {
                 ++n;
             }
@@ -1252,7 +1252,7 @@ public:
         // If N = 0 and a == end() || a->empty(), returns path("."),
         if (n == 0 && (a_it == this_last || a_it->empty()))
         {
-            ret = __PATH_TEXT(".");
+            ret = _PATH_TEXT(".");
             return ret;
         }
 
@@ -1263,7 +1263,7 @@ public:
 
         while (n--)
         {
-            ret /= __PATH_TEXT("..");
+            ret /= _PATH_TEXT("..");
         }
 
         // To fix this isse we use += instead of /= here
@@ -1312,7 +1312,7 @@ public:
      */
     path root_name() const
     {
-        const auto p = __detail::path_parser::parse_root_name(m_path);
+        const auto p = _priv::path_parser::parse_root_name(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1326,7 +1326,7 @@ public:
      */
     path root_directory() const
     {
-        const auto p = __detail::path_parser::parse_root_directory(m_path);
+        const auto p = _priv::path_parser::parse_root_directory(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1340,7 +1340,7 @@ public:
      */
     path root_path() const
     {
-        const auto p = __detail::path_parser::parse_root_path(m_path);
+        const auto p = _priv::path_parser::parse_root_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1354,7 +1354,7 @@ public:
      */
     path relative_path() const
     {
-        const auto p = __detail::path_parser::parse_relative_path(m_path);
+        const auto p = _priv::path_parser::parse_relative_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1368,7 +1368,7 @@ public:
      */
     path parent_path() const
     {
-        const auto p = __detail::path_parser::parse_parent_path(m_path);
+        const auto p = _priv::path_parser::parse_parent_path(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1382,7 +1382,7 @@ public:
      */
     path filename() const
     {
-        const auto p = __detail::path_parser::parse_filename(m_path);
+        const auto p = _priv::path_parser::parse_filename(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1397,7 +1397,7 @@ public:
      */
     path stem() const
     {
-        const auto p = __detail::path_parser::parse_stem(m_path);
+        const auto p = _priv::path_parser::parse_stem(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1411,7 +1411,7 @@ public:
      */
     path extension() const
     {
-        const auto p = __detail::path_parser::parse_extension(m_path);
+        const auto p = _priv::path_parser::parse_extension(m_path);
         return m_path.substr(p.pos, p.size);
     }
 
@@ -1430,7 +1430,7 @@ public:
      *
      * @return `true` if the path is `.` or `..`, `false` otherwise.
      */
-    bool is_dot_or_dotdot() const noexcept { return m_path == __PATH_TEXT(".") || m_path == __PATH_TEXT(".."); }
+    bool is_dot_or_dotdot() const noexcept { return m_path == _PATH_TEXT(".") || m_path == _PATH_TEXT(".."); }
 
     /**
      * @brief Checks if the path has a root path.
@@ -1439,7 +1439,7 @@ public:
      *
      * @return `true` if the path has a root path, `false` otherwise.
      */
-    bool has_root_path() const noexcept { return __detail::path_parser::parse_root_path(m_path).size != 0; }
+    bool has_root_path() const noexcept { return _priv::path_parser::parse_root_path(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a root name.
@@ -1448,7 +1448,7 @@ public:
      *
      * @return `true` if the path has a root name, `false` otherwise.
      */
-    bool has_root_name() const noexcept { return __detail::path_parser::parse_root_name(m_path).size != 0; }
+    bool has_root_name() const noexcept { return _priv::path_parser::parse_root_name(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a root directory.
@@ -1457,7 +1457,7 @@ public:
      *
      * @return `true` if the path has a root directory, `false` otherwise.
      */
-    bool has_root_directory() const noexcept { return __detail::path_parser::parse_root_directory(m_path).size != 0; }
+    bool has_root_directory() const noexcept { return _priv::path_parser::parse_root_directory(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a relative path.
@@ -1466,7 +1466,7 @@ public:
      *
      * @return `true` if the path has a relative path, `false` otherwise.
      */
-    bool has_relative_path() const noexcept { return __detail::path_parser::parse_relative_path(m_path).size != 0; }
+    bool has_relative_path() const noexcept { return _priv::path_parser::parse_relative_path(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a parent path.
@@ -1475,7 +1475,7 @@ public:
      *
      * @return `true` if the path has a parent path, `false` otherwise.
      */
-    bool has_parent_path() const noexcept { return __detail::path_parser::parse_parent_path(m_path).size != 0; }
+    bool has_parent_path() const noexcept { return _priv::path_parser::parse_parent_path(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a filename.
@@ -1484,7 +1484,7 @@ public:
      *
      * @return `true` if the path has a filename, `false` otherwise.
      */
-    bool has_filename() const noexcept { return __detail::path_parser::parse_filename(m_path).size != 0; }
+    bool has_filename() const noexcept { return _priv::path_parser::parse_filename(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has a stem.
@@ -1493,7 +1493,7 @@ public:
      *
      * @return `true` if the path has a stem, `false` otherwise.
      */
-    bool has_stem() const noexcept { return __detail::path_parser::parse_stem(m_path).size != 0; }
+    bool has_stem() const noexcept { return _priv::path_parser::parse_stem(m_path).size != 0; }
 
     /**
      * @brief Checks if the path has an extension.
@@ -1502,7 +1502,7 @@ public:
      *
      * @return `true` if the path has an extension, `false` otherwise.
      */
-    bool has_extension() const noexcept { return __detail::path_parser::parse_extension(m_path).size != 0; }
+    bool has_extension() const noexcept { return _priv::path_parser::parse_extension(m_path).size != 0; }
 
     /**
      * @brief Checks if the path is relative.
@@ -1530,23 +1530,23 @@ public:
      */
     bool is_absolute() const noexcept
     {
-#if defined(__VX_WINDOWS_PATH)
+#if defined(_VX_WINDOWS_PATH)
 
         const size_t size = m_path.size();
         // Has drive letter "X:*"
-        if (size >= 2 && __detail::path_parser::is_letter(m_path[0]))
+        if (size >= 2 && _priv::path_parser::is_letter(m_path[0]))
         {
             // Check for "X:/cat" but not "X:cat"
-            return size >= 3 && __detail::path_parser::is_directory_separator(m_path[2]);
+            return size >= 3 && _priv::path_parser::is_directory_separator(m_path[2]);
         }
 
-        return __detail::path_parser::find_root_directory_start(m_path.data(), size) != 0;
+        return _priv::path_parser::find_root_directory_start(m_path.data(), size) != 0;
 
 #else
 
-        return !m_path.empty() && __detail::path_parser::is_directory_separator(m_path[0]);
+        return !m_path.empty() && _priv::path_parser::is_directory_separator(m_path[0]);
 
-#endif // __VX_WINDOWS_PATH
+#endif // _VX_WINDOWS_PATH
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1560,7 +1560,7 @@ public:
 
     inline iterator end() const
     {
-        return iterator(this, __detail::path_parser::state::END);
+        return iterator(this, _priv::path_parser::state::END);
     }
 
     inline iterator cbegin() const
@@ -1667,17 +1667,17 @@ struct hash<vx::os::path>
         auto it = text.data();
         const auto last = it + size;
 
-#   if defined (__VX_WINDOWS_PATH)
+#   if defined (_VX_WINDOWS_PATH)
 
-        const auto root_name_end = vx::os::__detail::path_parser::find_root_directory_start(it, size);
+        const auto root_name_end = vx::os::_priv::path_parser::find_root_directory_start(it, size);
         fnv1a.update(it, it += root_name_end);
 
-#   endif // __VX_WINDOWS_PATH
+#   endif // _VX_WINDOWS_PATH
 
         bool last_was_slash = false;
         for (; it != last; ++it)
         {
-            if (vx::os::__detail::path_parser::is_directory_separator(*it))
+            if (vx::os::_priv::path_parser::is_directory_separator(*it))
             {
                 if (!last_was_slash)
                 {
@@ -1696,7 +1696,7 @@ struct hash<vx::os::path>
     }
 };
 
-#undef __PATH_TEXT
-#undef __VX_WINDOWS_PATH
+#undef _PATH_TEXT
+#undef _VX_WINDOWS_PATH
 
 } // namespace std

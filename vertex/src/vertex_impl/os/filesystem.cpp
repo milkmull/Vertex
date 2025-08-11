@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/filesystem.hpp"
+#include "vertex_impl/os/_platform/filesystem.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -405,7 +405,7 @@ VX_API bool rename(const path& from, const path& to)
 VX_API bool remove(const path& p)
 {
     const auto res = remove_impl(p, false);
-    return (res == __detail::remove_error::NONE);
+    return (res == _priv::remove_error::NONE);
 }
 
 static size_t recursive_remove(const path& p)
@@ -419,13 +419,13 @@ static size_t recursive_remove(const path& p)
             count += remove_all(dir.path);
         }
 
-        if (remove_impl(dir.path, true) == __detail::remove_error::NONE)
+        if (remove_impl(dir.path, true) == _priv::remove_error::NONE)
         {
             ++count;
         }
     }
 
-    if (remove_impl(p, true) == __detail::remove_error::NONE)
+    if (remove_impl(p, true) == _priv::remove_error::NONE)
     {
         ++count;
     }
@@ -437,11 +437,11 @@ VX_API size_t remove_all(const path& p)
 {
     switch (remove_impl(p, true))
     {
-        case __detail::remove_error::NONE:
+        case _priv::remove_error::NONE:
         {
             return 1;
         }
-        case __detail::remove_error::DIRECTORY_NOT_EMPTY:
+        case _priv::remove_error::DIRECTORY_NOT_EMPTY:
         {
             return recursive_remove(p);
         }

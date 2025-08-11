@@ -8,7 +8,7 @@
 namespace vx {
 namespace math {
 
-namespace __detail {
+namespace _priv {
 
 ///////////////////////////////////////////////////////////////////////////////
 // formatter
@@ -151,7 +151,7 @@ VX_FORCE_INLINE constexpr size_t quat_calculate_buffer_size_2() noexcept
     return 4 + 2 + 2 + 7 + 3 + (4 * max_print_width<T>::value) + 1;
 }
 
-} // namespace __detail
+} // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
 // vec
@@ -160,17 +160,17 @@ VX_FORCE_INLINE constexpr size_t quat_calculate_buffer_size_2() noexcept
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const vec<2, T>& v)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::vec_calculate_buffer_size_1<2, T>();
-    constexpr size_t buffer_size_2 = __detail::vec_calculate_buffer_size_2<2, T>();
+    constexpr size_t buffer_size_1 = _priv::vec_calculate_buffer_size_1<2, T>();
+    constexpr size_t buffer_size_2 = _priv::vec_calculate_buffer_size_2<2, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "vec2{ %s, %s }";
-    __detail::format<buffer_size_1>(buffer_1, f, fmt, fmt);
-    __detail::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y);
+    _priv::format<buffer_size_1>(buffer_1, f, fmt, fmt);
+    _priv::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y);
 
     return buffer_2;
 }
@@ -178,17 +178,17 @@ VX_FORCE_INLINE std::string to_string(const vec<2, T>& v)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const vec<3, T>& v)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::vec_calculate_buffer_size_1<3, T>();
-    constexpr size_t buffer_size_2 = __detail::vec_calculate_buffer_size_2<3, T>();
+    constexpr size_t buffer_size_1 = _priv::vec_calculate_buffer_size_1<3, T>();
+    constexpr size_t buffer_size_2 = _priv::vec_calculate_buffer_size_2<3, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "vec3{ %s, %s, %s }";
-    __detail::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt);
-    __detail::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y, v.z);
+    _priv::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt);
+    _priv::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y, v.z);
 
     return buffer_2;
 }
@@ -196,17 +196,17 @@ VX_FORCE_INLINE std::string to_string(const vec<3, T>& v)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const vec<4, T>& v)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::vec_calculate_buffer_size_1<4, T>();
-    constexpr size_t buffer_size_2 = __detail::vec_calculate_buffer_size_2<4, T>();
+    constexpr size_t buffer_size_1 = _priv::vec_calculate_buffer_size_1<4, T>();
+    constexpr size_t buffer_size_2 = _priv::vec_calculate_buffer_size_2<4, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "vec4{ %s, %s, %s, %s }";
-    __detail::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt, fmt);
-    __detail::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y, v.z, v.w);
+    _priv::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt, fmt);
+    _priv::format<buffer_size_2>(buffer_2, buffer_1, v.x, v.y, v.z, v.w);
 
     return buffer_2;
 }
@@ -218,23 +218,23 @@ VX_FORCE_INLINE std::string to_string(const vec<4, T>& v)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<2, 2, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<2, 2, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<2, 2, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<2, 2, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<2, 2, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat2{ { %s, %s }, { %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt,
         fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y,
         m.columns[1].x, m.columns[1].y
@@ -246,24 +246,24 @@ VX_FORCE_INLINE std::string to_string(const mat<2, 2, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<3, 2, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<3, 2, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<3, 2, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<3, 2, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<3, 2, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat3x2{ { %s, %s }, { %s, %s }, { %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt,
         fmt, fmt,
         fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y,
         m.columns[1].x, m.columns[1].y,
@@ -276,17 +276,17 @@ VX_FORCE_INLINE std::string to_string(const mat<3, 2, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<4, 2, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<4, 2, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<4, 2, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<4, 2, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<4, 2, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat4x2{ { %s, %s }, { %s, %s }, { %s, %s }, { %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt,
         fmt, fmt,
@@ -294,7 +294,7 @@ VX_FORCE_INLINE std::string to_string(const mat<4, 2, T>& m)
         fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y,
         m.columns[1].x, m.columns[1].y,
@@ -308,23 +308,23 @@ VX_FORCE_INLINE std::string to_string(const mat<4, 2, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<2, 3, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<2, 3, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<2, 3, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<2, 3, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<2, 3, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat2x3{ { %s, %s, %s }, { %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt,
         fmt, fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z,
         m.columns[1].x, m.columns[1].y, m.columns[1].z
@@ -336,24 +336,24 @@ VX_FORCE_INLINE std::string to_string(const mat<2, 3, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<3, 3, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<3, 3, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<3, 3, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<3, 3, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<3, 3, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat3{ { %s, %s, %s }, { %s, %s, %s }, { %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt,
         fmt, fmt, fmt,
         fmt, fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z,
         m.columns[1].x, m.columns[1].y, m.columns[1].z,
@@ -366,17 +366,17 @@ VX_FORCE_INLINE std::string to_string(const mat<3, 3, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<4, 3, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<4, 3, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<4, 3, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<4, 3, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<4, 3, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat4x3{ { %s, %s, %s }, { %s, %s, %s }, { %s, %s, %s }, { %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt,
         fmt, fmt, fmt,
@@ -384,7 +384,7 @@ VX_FORCE_INLINE std::string to_string(const mat<4, 3, T>& m)
         fmt, fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z,
         m.columns[1].x, m.columns[1].y, m.columns[1].z,
@@ -398,23 +398,23 @@ VX_FORCE_INLINE std::string to_string(const mat<4, 3, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<2, 4, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<2, 4, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<2, 4, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<2, 4, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<2, 4, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat2x4{ { %s, %s, %s, %s }, { %s, %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z, m.columns[0].w,
         m.columns[1].x, m.columns[1].y, m.columns[1].z, m.columns[1].w
@@ -426,24 +426,24 @@ VX_FORCE_INLINE std::string to_string(const mat<2, 4, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<3, 4, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<3, 4, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<3, 4, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<3, 4, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<3, 4, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat3x4{ { %s, %s, %s, %s }, { %s, %s, %s, %s }, { %s, %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt
     );
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z, m.columns[0].w,
         m.columns[1].x, m.columns[1].y, m.columns[1].z, m.columns[1].w,
@@ -456,24 +456,24 @@ VX_FORCE_INLINE std::string to_string(const mat<3, 4, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const mat<4, 4, T>& m)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::mat_calculate_buffer_size_1<4, 4, T>();
-    constexpr size_t buffer_size_2 = __detail::mat_calculate_buffer_size_2<4, 4, T>();
+    constexpr size_t buffer_size_1 = _priv::mat_calculate_buffer_size_1<4, 4, T>();
+    constexpr size_t buffer_size_2 = _priv::mat_calculate_buffer_size_2<4, 4, T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "mat4{ { %s, %s, %s, %s }, { %s, %s, %s, %s }, { %s, %s, %s, %s }, { %s, %s, %s, %s } }";
 
-    __detail::format<buffer_size_1>(
+    _priv::format<buffer_size_1>(
         buffer_1, f,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt,
         fmt, fmt, fmt, fmt);
 
-    __detail::format<buffer_size_2>(
+    _priv::format<buffer_size_2>(
         buffer_2, buffer_1,
         m.columns[0].x, m.columns[0].y, m.columns[0].z, m.columns[0].w,
         m.columns[1].x, m.columns[1].y, m.columns[1].z, m.columns[1].w,
@@ -491,18 +491,18 @@ VX_FORCE_INLINE std::string to_string(const mat<4, 4, T>& m)
 template <typename T>
 VX_FORCE_INLINE std::string to_string(const quat_t<T>& q)
 {
-    char const* fmt = __detail::literal_format<T>();
+    char const* fmt = _priv::literal_format<T>();
 
-    constexpr size_t buffer_size_1 = __detail::quat_calculate_buffer_size_1<T>();
-    constexpr size_t buffer_size_2 = __detail::quat_calculate_buffer_size_2<T>();
+    constexpr size_t buffer_size_1 = _priv::quat_calculate_buffer_size_1<T>();
+    constexpr size_t buffer_size_2 = _priv::quat_calculate_buffer_size_2<T>();
 
     char buffer_1[buffer_size_1]{};
     char buffer_2[buffer_size_2]{};
 
     const char* f = "quat{ %s, { %s, %s, %s } }";
     const size_t x = std::strlen(f);
-    __detail::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt, fmt);
-    __detail::format<buffer_size_2>(buffer_2, buffer_1, q.w, q.x, q.y, q.z);
+    _priv::format<buffer_size_1>(buffer_1, f, fmt, fmt, fmt, fmt);
+    _priv::format<buffer_size_2>(buffer_2, buffer_1, q.w, q.x, q.y, q.z);
 
     return buffer_2;
 }

@@ -91,8 +91,8 @@ VX_API std::string datetime::to_string() const
         // - offset_minutes: Ranges from 0 to 59 (representing the remaining minutes after extracting hours).
 
         const int32_t abs_offset_seconds = std::abs(utc_offset_seconds);
-        const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / __detail::SEC_PER_HOUR) % 15; // Limit to range [0, 14]
-        const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % __detail::SEC_PER_HOUR) / __detail::SEC_PER_MIN;
+        const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / _priv::SEC_PER_HOUR) % 15; // Limit to range [0, 14]
+        const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % _priv::SEC_PER_HOUR) / _priv::SEC_PER_MIN;
 
         buffer[19] = (utc_offset_seconds < 0) ? '-' : '+';
         std::sprintf(&buffer[20], "%02d:%02d",

@@ -5,7 +5,7 @@
 namespace vx {
 namespace random {
 
-namespace __detail {
+namespace _priv {
 
 // https://github.com/microsoft/STL/blob/25dc2b72b6f594326253cf3a05543f7a5750f802/stl/inc/random#L297
 
@@ -45,7 +45,7 @@ inline constexpr size_t generate_canonical_iterations(size_t bits, uint64_t rng_
     return ceil;
 }
 
-} // namespace __detail
+} // namespace _priv
 
 // https://github.com/microsoft/STL/blob/25dc2b72b6f594326253cf3a05543f7a5750f802/stl/inc/random#L297
 
@@ -86,7 +86,7 @@ inline constexpr T generate_canonical(RNG& rng) noexcept(noexcept((RNG::min)()) 
     constexpr common_type frng_min = static_cast<common_type>((RNG::min)());
     constexpr common_type frng_max = static_cast<common_type>((RNG::max)());
     constexpr common_type r = (frng_max - frng_min) + static_cast<common_type>(1);
-    constexpr size_t k = __detail::generate_canonical_iterations(min_bits, (RNG::min)(), (RNG::max)());
+    constexpr size_t k = _priv::generate_canonical_iterations(min_bits, (RNG::min)(), (RNG::max)());
 
     common_type ret = static_cast<common_type>(0);
     common_type factor = static_cast<common_type>(1);

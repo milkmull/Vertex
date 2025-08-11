@@ -52,8 +52,8 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<2, T>& v) noexcept
     x12.y -= i1.y;
 
     // Permutations
-    i = __detail::mod289(i); // Avoid truncation effects in permutation
-    const vec<3, T> p = __detail::permute(__detail::permute(
+    i = _priv::mod289(i); // Avoid truncation effects in permutation
+    const vec<3, T> p = _priv::permute(_priv::permute(
         i.y + vec<3, T>(static_cast<T>(0), i1.y, static_cast<T>(1))) +
         i.x + vec<3, T>(static_cast<T>(0), i1.x, static_cast<T>(1))
     );
@@ -114,8 +114,8 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<3, T>& v) noexcept
     const vec<3, T> x3 = x0 - D.y;
 
     // Permutations
-    i = __detail::mod289(i);
-    const vec<4, T> p = __detail::permute(__detail::permute(__detail::permute(
+    i = _priv::mod289(i);
+    const vec<4, T> p = _priv::permute(_priv::permute(_priv::permute(
         i.z + vec<4, T>(static_cast<T>(0), i1.z, i2.z, static_cast<T>(1))) +
         i.y + vec<4, T>(static_cast<T>(0), i1.y, i2.y, static_cast<T>(1))) +
         i.x + vec<4, T>(static_cast<T>(0), i1.x, i2.x, static_cast<T>(1))
@@ -150,7 +150,7 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<3, T>& v) noexcept
     vec<3, T> p3(a1.z, a1.w, h.w);
 
     // Normalize gradients
-    const vec<4, T> norm = __detail::taylor_inv_sqrt(vec<4, T>(
+    const vec<4, T> norm = _priv::taylor_inv_sqrt(vec<4, T>(
         dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)
     ));
     p0 *= norm.x;
@@ -210,9 +210,9 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<4, T>& v) noexcept
     const vec<4, T> x4 = x0 + C.w;
 
     // Permutations
-    i = __detail::mod289(i);
-    const T j0 = __detail::permute(__detail::permute(__detail::permute(__detail::permute(i.w) + i.z) + i.y) + i.x);
-    const vec<4, T> j1 = __detail::permute(__detail::permute(__detail::permute(__detail::permute(
+    i = _priv::mod289(i);
+    const T j0 = _priv::permute(_priv::permute(_priv::permute(_priv::permute(i.w) + i.z) + i.y) + i.x);
+    const vec<4, T> j1 = _priv::permute(_priv::permute(_priv::permute(_priv::permute(
         i.w + vec<4, T>(i1.w, i2.w, i3.w, static_cast<T>(1))) +
         i.z + vec<4, T>(i1.z, i2.z, i3.z, static_cast<T>(1))) +
         i.y + vec<4, T>(i1.y, i2.y, i3.y, static_cast<T>(1))) +
@@ -226,21 +226,21 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<4, T>& v) noexcept
         static_cast<T>(0)
     );
 
-    vec<4, T> p0 = __detail::grad4(j0, ip);
-    vec<4, T> p1 = __detail::grad4(j1.x, ip);
-    vec<4, T> p2 = __detail::grad4(j1.y, ip);
-    vec<4, T> p3 = __detail::grad4(j1.z, ip);
-    vec<4, T> p4 = __detail::grad4(j1.w, ip);
+    vec<4, T> p0 = _priv::grad4(j0, ip);
+    vec<4, T> p1 = _priv::grad4(j1.x, ip);
+    vec<4, T> p2 = _priv::grad4(j1.y, ip);
+    vec<4, T> p3 = _priv::grad4(j1.z, ip);
+    vec<4, T> p4 = _priv::grad4(j1.w, ip);
 
     // Normalize gradients
-    const vec<4, T> norm = __detail::taylor_inv_sqrt(vec<4, T>(
+    const vec<4, T> norm = _priv::taylor_inv_sqrt(vec<4, T>(
         dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)
     ));
     p0 *= norm.x;
     p1 *= norm.y;
     p2 *= norm.z;
     p3 *= norm.w;
-    p4 *= __detail::taylor_inv_sqrt(dot(p4, p4));
+    p4 *= _priv::taylor_inv_sqrt(dot(p4, p4));
 
     // Final mixing
     vec<3, T> m0 = max(static_cast<T>(0.6) - vec<3, T>(

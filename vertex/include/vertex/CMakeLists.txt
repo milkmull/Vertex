@@ -5,4 +5,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/os")
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/math")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/pixel")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/image")
+
+if(VX_BUILD_IMAGE)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/image")
+endif()
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/app")

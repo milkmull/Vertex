@@ -13,15 +13,15 @@ namespace pixel {
 
 template <pixel_format f> struct raw_pixel;
 
-#define __STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT(sizeof(raw_pixel<F>) == sizeof(typename raw_pixel<F>::pixel_type), "invalid pixel size for format " FS)
-#define __STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_pixel<F>) == alignof(typename raw_pixel<F>::pixel_type), "invalid pixel alignment for format " FS)
-#define __STATIC_FORMAT_CHECK(F)           __STATIC_CHECK_SIZE(pixel_format::F, #F); __STATIC_CHECK_ALIGNMENT(pixel_format::F, #F)
+#define _STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT(sizeof(raw_pixel<F>) == sizeof(typename raw_pixel<F>::pixel_type), "invalid pixel size for format " FS)
+#define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_pixel<F>) == alignof(typename raw_pixel<F>::pixel_type), "invalid pixel alignment for format " FS)
+#define _STATIC_FORMAT_CHECK(F)           _STATIC_CHECK_SIZE(pixel_format::F, #F); _STATIC_CHECK_ALIGNMENT(pixel_format::F, #F)
 
-#define __PACKED_ENCODE_CHANNEL(x) (static_cast<pixel_type>(math::clamp(static_cast<float_type>(c.x * (info.x.mask >> info.x.shift)), static_cast<float_type>(0), static_cast<float_type>(info.x.mask >> info.x.shift))) << info.x.shift)
-#define __PACKED_DECODE_CHANNEL(x) (static_cast<float>((data & info.x.mask) >> info.x.shift) / (info.x.mask >> info.x.shift))
+#define _PACKED_ENCODE_CHANNEL(x) (static_cast<pixel_type>(math::clamp(static_cast<float_type>(c.x * (info.x.mask >> info.x.shift)), static_cast<float_type>(0), static_cast<float_type>(info.x.mask >> info.x.shift))) << info.x.shift)
+#define _PACKED_DECODE_CHANNEL(x) (static_cast<float>((data & info.x.mask) >> info.x.shift) / (info.x.mask >> info.x.shift))
 
-#define __ARRAY_ENCODE_CHANNEL(x) (static_cast<channel_type>(math::clamp(static_cast<float_type>(c.x * static_cast<channel_type>(~0)), static_cast<float_type>(0.0f), static_cast<float_type>(static_cast<channel_type>(~0)))))
-#define __ARRAY_DECODE_CHANNEL(x) (static_cast<float>(data[info.x.index]) / static_cast<channel_type>(~0))
+#define _ARRAY_ENCODE_CHANNEL(x) (static_cast<channel_type>(math::clamp(static_cast<float_type>(c.x * static_cast<channel_type>(~0)), static_cast<float_type>(0.0f), static_cast<float_type>(static_cast<channel_type>(~0)))))
+#define _ARRAY_DECODE_CHANNEL(x) (static_cast<float>(data[info.x.index]) / static_cast<channel_type>(~0))
 
 ///////////////////////////////////////////////////////////////////////////////
 // unknown
@@ -59,17 +59,17 @@ struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::RGB_332>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -77,7 +77,7 @@ struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::RGB_332>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGB_332);
+_STATIC_FORMAT_CHECK(RGB_332);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 4444
@@ -97,26 +97,26 @@ struct alignas(uint16_t) raw_pixel<pixel_format::RGBA_4444>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_4444);
+_STATIC_FORMAT_CHECK(RGBA_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -134,26 +134,26 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_4444>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGRA_4444);
+_STATIC_FORMAT_CHECK(BGRA_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 565
@@ -173,17 +173,17 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGB_565>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -191,7 +191,7 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGB_565>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGB_565);
+_STATIC_FORMAT_CHECK(RGB_565);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -209,17 +209,17 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGR_565>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -227,7 +227,7 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGR_565>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGR_565);
+_STATIC_FORMAT_CHECK(BGR_565);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 5551 & 1555
@@ -247,26 +247,26 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGBA_5551>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_5551);
+_STATIC_FORMAT_CHECK(RGBA_5551);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -284,26 +284,26 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_5551>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGRA_5551);
+_STATIC_FORMAT_CHECK(BGRA_5551);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -321,26 +321,26 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::ARGB_1555>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(ARGB_1555);
+_STATIC_FORMAT_CHECK(ARGB_1555);
 
 ///////////////////////////////////////////////////////////////////////////////
 // packed 8 bit
@@ -360,26 +360,26 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBA_8888>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_8888);
+_STATIC_FORMAT_CHECK(RGBA_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -397,26 +397,26 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRA_8888>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGRA_8888);
+_STATIC_FORMAT_CHECK(BGRA_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -434,26 +434,26 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_8888>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(ABGR_8888);
+_STATIC_FORMAT_CHECK(ABGR_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 2101010
@@ -473,26 +473,26 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_2101010>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(ARGB_2101010);
+_STATIC_FORMAT_CHECK(ARGB_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -510,26 +510,26 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_2101010>
     VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
-        __PACKED_ENCODE_CHANNEL(r) |
-        __PACKED_ENCODE_CHANNEL(g) |
-        __PACKED_ENCODE_CHANNEL(b) |
-        __PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
     )) {}
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __PACKED_DECODE_CHANNEL(r),
-            __PACKED_DECODE_CHANNEL(g),
-            __PACKED_DECODE_CHANNEL(b),
-            __PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(ABGR_2101010);
+_STATIC_FORMAT_CHECK(ABGR_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 8 bit
@@ -550,13 +550,13 @@ struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::R_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(r),
             0.0f,
             0.0f,
             1.0f
@@ -566,7 +566,7 @@ struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::R_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(R_8);
+_STATIC_FORMAT_CHECK(R_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -585,15 +585,15 @@ struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::RG_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
             0.0f,
             1.0f
         );
@@ -602,7 +602,7 @@ struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::RG_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RG_8);
+_STATIC_FORMAT_CHECK(RG_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -621,17 +621,17 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::RGB_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -639,7 +639,7 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::RGB_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGB_8);
+_STATIC_FORMAT_CHECK(RGB_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -658,17 +658,17 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::BGR_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -676,7 +676,7 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::BGR_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGR_8);
+_STATIC_FORMAT_CHECK(BGR_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -695,26 +695,26 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::RGBA_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
+        data[info.a.index] = _ARRAY_ENCODE_CHANNEL(a);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            __ARRAY_DECODE_CHANNEL(a)
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_8);
+_STATIC_FORMAT_CHECK(RGBA_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -733,26 +733,26 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::BGRA_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
+        data[info.a.index] = _ARRAY_ENCODE_CHANNEL(a);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            __ARRAY_DECODE_CHANNEL(a)
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(BGRA_8);
+_STATIC_FORMAT_CHECK(BGRA_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -771,26 +771,26 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::ABGR_8>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
+        data[info.a.index] = _ARRAY_ENCODE_CHANNEL(a);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            __ARRAY_DECODE_CHANNEL(a)
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(ABGR_8);
+_STATIC_FORMAT_CHECK(ABGR_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 16 bit
@@ -811,13 +811,13 @@ struct alignas(alignof(uint16_t[1])) raw_pixel<pixel_format::R_16>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(r),
             0.0f,
             0.0f,
             1.0f
@@ -827,7 +827,7 @@ struct alignas(alignof(uint16_t[1])) raw_pixel<pixel_format::R_16>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(R_16);
+_STATIC_FORMAT_CHECK(R_16);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -846,15 +846,15 @@ struct alignas(alignof(uint16_t[2])) raw_pixel<pixel_format::RG_16>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
             0.0f,
             1.0f
         );
@@ -863,7 +863,7 @@ struct alignas(alignof(uint16_t[2])) raw_pixel<pixel_format::RG_16>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RG_16);
+_STATIC_FORMAT_CHECK(RG_16);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -882,17 +882,17 @@ struct alignas(alignof(uint16_t[3])) raw_pixel<pixel_format::RGB_16>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
             1.0f
         );
     }
@@ -900,7 +900,7 @@ struct alignas(alignof(uint16_t[3])) raw_pixel<pixel_format::RGB_16>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGB_16);
+_STATIC_FORMAT_CHECK(RGB_16);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -919,26 +919,26 @@ struct alignas(alignof(uint16_t[4])) raw_pixel<pixel_format::RGBA_16>
 
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
     {
-        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
+        data[info.a.index] = _ARRAY_ENCODE_CHANNEL(a);
     }
 
     VX_FORCE_INLINE constexpr operator math::color() const noexcept
     {
         return math::color(
-            __ARRAY_DECODE_CHANNEL(r),
-            __ARRAY_DECODE_CHANNEL(g),
-            __ARRAY_DECODE_CHANNEL(b),
-            __ARRAY_DECODE_CHANNEL(a)
+            _ARRAY_DECODE_CHANNEL(r),
+            _ARRAY_DECODE_CHANNEL(g),
+            _ARRAY_DECODE_CHANNEL(b),
+            _ARRAY_DECODE_CHANNEL(a)
         );
     }
 
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_16);
+_STATIC_FORMAT_CHECK(RGBA_16);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 32 bit
@@ -959,13 +959,13 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //
 //    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
 //    {
-//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
+//        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
 //    }
 //
 //    VX_FORCE_INLINE constexpr operator math::color() const noexcept
 //    {
 //        return math::color(
-//            __ARRAY_DECODE_CHANNEL(r),
+//            _ARRAY_DECODE_CHANNEL(r),
 //            0.0f,
 //            0.0f,
 //            1.0f
@@ -975,7 +975,7 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //    VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 //};
 //
-//__STATIC_FORMAT_CHECK(R_32);
+//_STATIC_FORMAT_CHECK(R_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -994,15 +994,15 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //
 //    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
 //    {
-//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
+//        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
 //    }
 //
 //    VX_FORCE_INLINE constexpr operator math::color() const noexcept
 //    {
 //        return math::color(
-//            __ARRAY_DECODE_CHANNEL(r),
-//            __ARRAY_DECODE_CHANNEL(g),
+//            _ARRAY_DECODE_CHANNEL(r),
+//            _ARRAY_DECODE_CHANNEL(g),
 //            0.0f,
 //            1.0f
 //        );
@@ -1011,7 +1011,7 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //    VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 //};
 //
-//__STATIC_FORMAT_CHECK(RG_32);
+//_STATIC_FORMAT_CHECK(RG_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1030,17 +1030,17 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //
 //    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
 //    {
-//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-//        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
+//        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+//        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
 //    }
 //
 //    VX_FORCE_INLINE constexpr operator math::color() const noexcept
 //    {
 //        return math::color(
-//            __ARRAY_DECODE_CHANNEL(r),
-//            __ARRAY_DECODE_CHANNEL(g),
-//            __ARRAY_DECODE_CHANNEL(b),
+//            _ARRAY_DECODE_CHANNEL(r),
+//            _ARRAY_DECODE_CHANNEL(g),
+//            _ARRAY_DECODE_CHANNEL(b),
 //            1.0f
 //        );
 //    }
@@ -1048,7 +1048,7 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //    VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 //};
 //
-//__STATIC_FORMAT_CHECK(RGB_32);
+//_STATIC_FORMAT_CHECK(RGB_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1067,26 +1067,26 @@ __STATIC_FORMAT_CHECK(RGBA_16);
 //
 //    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data{ 0 }
 //    {
-//        data[info.r.index] = __ARRAY_ENCODE_CHANNEL(r);
-//        data[info.g.index] = __ARRAY_ENCODE_CHANNEL(g);
-//        data[info.b.index] = __ARRAY_ENCODE_CHANNEL(b);
-//        data[info.a.index] = __ARRAY_ENCODE_CHANNEL(a);
+//        data[info.r.index] = _ARRAY_ENCODE_CHANNEL(r);
+//        data[info.g.index] = _ARRAY_ENCODE_CHANNEL(g);
+//        data[info.b.index] = _ARRAY_ENCODE_CHANNEL(b);
+//        data[info.a.index] = _ARRAY_ENCODE_CHANNEL(a);
 //    }
 //
 //    VX_FORCE_INLINE constexpr operator math::color() const noexcept
 //    {
 //        return math::color(
-//            __ARRAY_DECODE_CHANNEL(r),
-//            __ARRAY_DECODE_CHANNEL(g),
-//            __ARRAY_DECODE_CHANNEL(b),
-//            __ARRAY_DECODE_CHANNEL(a)
+//            _ARRAY_DECODE_CHANNEL(r),
+//            _ARRAY_DECODE_CHANNEL(g),
+//            _ARRAY_DECODE_CHANNEL(b),
+//            _ARRAY_DECODE_CHANNEL(a)
 //        );
 //    }
 // 
 //    VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 //};
 //
-//__STATIC_FORMAT_CHECK(RGBA_32);
+//_STATIC_FORMAT_CHECK(RGBA_32);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 32 bit float
@@ -1125,7 +1125,7 @@ struct alignas(alignof(float[1])) raw_pixel<pixel_format::R_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(R_32F);
+_STATIC_FORMAT_CHECK(R_32F);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1161,7 +1161,7 @@ struct alignas(alignof(float[2])) raw_pixel<pixel_format::RG_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RG_32F);
+_STATIC_FORMAT_CHECK(RG_32F);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1198,7 +1198,7 @@ struct alignas(alignof(float[3])) raw_pixel<pixel_format::RGB_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGB_32F);
+_STATIC_FORMAT_CHECK(RGB_32F);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1236,19 +1236,19 @@ struct alignas(alignof(float[4])) raw_pixel<pixel_format::RGBA_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-__STATIC_FORMAT_CHECK(RGBA_32F);
+_STATIC_FORMAT_CHECK(RGBA_32F);
 
 ///////////////////////////////////////////////////////////////////////////////
 
-#undef __STATIC_CHECK_SIZE
-#undef __STATIC_CHECK_ALIGNMENT
-#undef __STATIC_FORMAT_CHECK
+#undef _STATIC_CHECK_SIZE
+#undef _STATIC_CHECK_ALIGNMENT
+#undef _STATIC_FORMAT_CHECK
 
-#undef __PACKED_ENCODE_CHANNEL
-#undef __PACKED_DECODE_CHANNEL
+#undef _PACKED_ENCODE_CHANNEL
+#undef _PACKED_DECODE_CHANNEL
 
-#undef __ARRAY_ENCODE_CHANNEL
-#undef __ARRAY_DECODE_CHANNEL
+#undef _ARRAY_ENCODE_CHANNEL
+#undef _ARRAY_DECODE_CHANNEL
 
 } // namespace pixel
 } // namespace vx

@@ -28,29 +28,29 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<2, T>& P) noexcept
     constexpr T Ko = static_cast<T>(0.428571428571); // 3/7
     constexpr T jitter = static_cast<T>(1); // Less gives more regular pattern
 
-    const vec<2, T> Pi = __detail::mod289(floor(P));
+    const vec<2, T> Pi = _priv::mod289(floor(P));
     const vec<2, T> Pf = fract(P);
     const vec<3, T> oi(static_cast<T>(-1.0), static_cast<T>(0.0), static_cast<T>(1.0));
     const vec<3, T> of(static_cast<T>(-0.5), static_cast<T>(0.5), static_cast<T>(1.5));
-    const vec<3, T> px = __detail::permute(Pi.x + oi);
+    const vec<3, T> px = _priv::permute(Pi.x + oi);
 
-    vec<3, T> p = __detail::permute(px.x + Pi.y + oi);
+    vec<3, T> p = _priv::permute(px.x + Pi.y + oi);
     vec<3, T> ox = fract(p * K) - Ko;
-    vec<3, T> oy = __detail::mod7(floor(p * K)) * K - Ko;
+    vec<3, T> oy = _priv::mod7(floor(p * K)) * K - Ko;
     vec<3, T> dx = Pf.x + static_cast<T>(0.5) + jitter * ox;
     vec<3, T> dy = Pf.y - of + jitter * oy;
     const vec<3, T> d1 = dx * dx + dy * dy;
 
-    p = __detail::permute(px.y + Pi.y + oi);
+    p = _priv::permute(px.y + Pi.y + oi);
     ox = fract(p * K) - Ko;
-    oy = __detail::mod7(floor(p * K)) * K - Ko;
+    oy = _priv::mod7(floor(p * K)) * K - Ko;
     dx = Pf.x - static_cast<T>(0.5) + jitter * ox;
     dy = Pf.y - of + jitter * oy;
     const vec<3, T> d2 = dx * dx + dy * dy;
 
-    p = __detail::permute(px.z + Pi.y + oi);
+    p = _priv::permute(px.z + Pi.y + oi);
     ox = fract(p * K) - Ko;
-    oy = __detail::mod7(floor(p * K)) * K - Ko;
+    oy = _priv::mod7(floor(p * K)) * K - Ko;
     dx = Pf.x - static_cast<T>(1.5) + jitter * ox;
     dy = Pf.y - of + jitter * oy;
     const vec<3, T> d3 = dx * dx + dy * dy;
@@ -85,33 +85,33 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     constexpr T Kzo = static_cast<T>(0.416666666667); // 1/2-1/6*2
     constexpr T jitter = static_cast<T>(1); // smaller jitter gives more regular pattern
 
-    const vec<3, T> Pi = __detail::mod289(floor(P));
+    const vec<3, T> Pi = _priv::mod289(floor(P));
     const vec<3, T> Pf = fract(P) - static_cast<T>(0.5);
 
     const vec<3, T> Pfx = Pf.x + vec<3, T>(static_cast<T>(1), static_cast<T>(0), static_cast<T>(-1));
     const vec<3, T> Pfy = Pf.y + vec<3, T>(static_cast<T>(1), static_cast<T>(0), static_cast<T>(-1));
     const vec<3, T> Pfz = Pf.z + vec<3, T>(static_cast<T>(1), static_cast<T>(0), static_cast<T>(-1));
 
-    const vec<3, T> p = __detail::permute(Pi.x + vec<3, T>(static_cast<T>(-1), static_cast<T>(0), static_cast<T>(1)));
-    const vec<3, T> p1 = __detail::permute(p + Pi.y - static_cast<T>(1));
-    const vec<3, T> p2 = __detail::permute(p + Pi.y);
-    const vec<3, T> p3 = __detail::permute(p + Pi.y + static_cast<T>(1));
+    const vec<3, T> p = _priv::permute(Pi.x + vec<3, T>(static_cast<T>(-1), static_cast<T>(0), static_cast<T>(1)));
+    const vec<3, T> p1 = _priv::permute(p + Pi.y - static_cast<T>(1));
+    const vec<3, T> p2 = _priv::permute(p + Pi.y);
+    const vec<3, T> p3 = _priv::permute(p + Pi.y + static_cast<T>(1));
 
-    const vec<3, T> p11 = __detail::permute(p1 + Pi.z - static_cast<T>(1));
-    const vec<3, T> p12 = __detail::permute(p1 + Pi.z);
-    const vec<3, T> p13 = __detail::permute(p1 + Pi.z + static_cast<T>(1));
+    const vec<3, T> p11 = _priv::permute(p1 + Pi.z - static_cast<T>(1));
+    const vec<3, T> p12 = _priv::permute(p1 + Pi.z);
+    const vec<3, T> p13 = _priv::permute(p1 + Pi.z + static_cast<T>(1));
 
-    const vec<3, T> p21 = __detail::permute(p2 + Pi.z - static_cast<T>(1));
-    const vec<3, T> p22 = __detail::permute(p2 + Pi.z);
-    const vec<3, T> p23 = __detail::permute(p2 + Pi.z + static_cast<T>(1));
+    const vec<3, T> p21 = _priv::permute(p2 + Pi.z - static_cast<T>(1));
+    const vec<3, T> p22 = _priv::permute(p2 + Pi.z);
+    const vec<3, T> p23 = _priv::permute(p2 + Pi.z + static_cast<T>(1));
 
-    const vec<3, T> p31 = __detail::permute(p3 + Pi.z - static_cast<T>(1));
-    const vec<3, T> p32 = __detail::permute(p3 + Pi.z);
-    const vec<3, T> p33 = __detail::permute(p3 + Pi.z + static_cast<T>(1));
+    const vec<3, T> p31 = _priv::permute(p3 + Pi.z - static_cast<T>(1));
+    const vec<3, T> p32 = _priv::permute(p3 + Pi.z);
+    const vec<3, T> p33 = _priv::permute(p3 + Pi.z + static_cast<T>(1));
 
     // Calculate all distance vectors (manual unroll instead of macro)
     const vec<3, T> ox11 = fract(p11 * K) - Ko;
-    const vec<3, T> oy11 = __detail::mod7(floor(p11 * K)) * K - Ko;
+    const vec<3, T> oy11 = _priv::mod7(floor(p11 * K)) * K - Ko;
     const vec<3, T> oz11 = floor(p11 * K2) * Kz - Kzo;
     const vec<3, T> dx11 = Pfx + jitter * ox11;
     const vec<3, T> dy11 = Pfy.x + jitter * oy11;
@@ -119,7 +119,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d11 = dx11 * dx11 + dy11 * dy11 + dz11 * dz11;
 
     const vec<3, T> ox12 = fract(p12 * K) - Ko;
-    const vec<3, T> oy12 = __detail::mod7(floor(p12 * K)) * K - Ko;
+    const vec<3, T> oy12 = _priv::mod7(floor(p12 * K)) * K - Ko;
     const vec<3, T> oz12 = floor(p12 * K2) * Kz - Kzo;
     const vec<3, T> dx12 = Pfx + jitter * ox12;
     const vec<3, T> dy12 = Pfy.x + jitter * oy12;
@@ -127,7 +127,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d12 = dx12 * dx12 + dy12 * dy12 + dz12 * dz12;
 
     const vec<3, T> ox13 = fract(p13 * K) - Ko;
-    const vec<3, T> oy13 = __detail::mod7(floor(p13 * K)) * K - Ko;
+    const vec<3, T> oy13 = _priv::mod7(floor(p13 * K)) * K - Ko;
     const vec<3, T> oz13 = floor(p13 * K2) * Kz - Kzo;
     const vec<3, T> dx13 = Pfx + jitter * ox13;
     const vec<3, T> dy13 = Pfy.x + jitter * oy13;
@@ -135,7 +135,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d13 = dx13 * dx13 + dy13 * dy13 + dz13 * dz13;
 
     const vec<3, T> ox21 = fract(p21 * K) - Ko;
-    const vec<3, T> oy21 = __detail::mod7(floor(p21 * K)) * K - Ko;
+    const vec<3, T> oy21 = _priv::mod7(floor(p21 * K)) * K - Ko;
     const vec<3, T> oz21 = floor(p21 * K2) * Kz - Kzo;
     const vec<3, T> dx21 = Pfx + jitter * ox21;
     const vec<3, T> dy21 = Pfy.y + jitter * oy21;
@@ -143,7 +143,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d21 = dx21 * dx21 + dy21 * dy21 + dz21 * dz21;
 
     const vec<3, T> ox22 = fract(p22 * K) - Ko;
-    const vec<3, T> oy22 = __detail::mod7(floor(p22 * K)) * K - Ko;
+    const vec<3, T> oy22 = _priv::mod7(floor(p22 * K)) * K - Ko;
     const vec<3, T> oz22 = floor(p22 * K2) * Kz - Kzo;
     const vec<3, T> dx22 = Pfx + jitter * ox22;
     const vec<3, T> dy22 = Pfy.y + jitter * oy22;
@@ -151,7 +151,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d22 = dx22 * dx22 + dy22 * dy22 + dz22 * dz22;
 
     const vec<3, T> ox23 = fract(p23 * K) - Ko;
-    const vec<3, T> oy23 = __detail::mod7(floor(p23 * K)) * K - Ko;
+    const vec<3, T> oy23 = _priv::mod7(floor(p23 * K)) * K - Ko;
     const vec<3, T> oz23 = floor(p23 * K2) * Kz - Kzo;
     const vec<3, T> dx23 = Pfx + jitter * ox23;
     const vec<3, T> dy23 = Pfy.y + jitter * oy23;
@@ -159,7 +159,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d23 = dx23 * dx23 + dy23 * dy23 + dz23 * dz23;
 
     const vec<3, T> ox31 = fract(p31 * K) - Ko;
-    const vec<3, T> oy31 = __detail::mod7(floor(p31 * K)) * K - Ko;
+    const vec<3, T> oy31 = _priv::mod7(floor(p31 * K)) * K - Ko;
     const vec<3, T> oz31 = floor(p31 * K2) * Kz - Kzo;
     const vec<3, T> dx31 = Pfx + jitter * ox31;
     const vec<3, T> dy31 = Pfy.z + jitter * oy31;
@@ -167,7 +167,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d31 = dx31 * dx31 + dy31 * dy31 + dz31 * dz31;
 
     const vec<3, T> ox32 = fract(p32 * K) - Ko;
-    const vec<3, T> oy32 = __detail::mod7(floor(p32 * K)) * K - Ko;
+    const vec<3, T> oy32 = _priv::mod7(floor(p32 * K)) * K - Ko;
     const vec<3, T> oz32 = floor(p32 * K2) * Kz - Kzo;
     const vec<3, T> dx32 = Pfx + jitter * ox32;
     const vec<3, T> dy32 = Pfy.z + jitter * oy32;
@@ -175,7 +175,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
     const vec<3, T> d32 = dx32 * dx32 + dy32 * dy32 + dz32 * dz32;
 
     const vec<3, T> ox33 = fract(p33 * K) - Ko;
-    const vec<3, T> oy33 = __detail::mod7(floor(p33 * K)) * K - Ko;
+    const vec<3, T> oy33 = _priv::mod7(floor(p33 * K)) * K - Ko;
     const vec<3, T> oz33 = floor(p33 * K2) * Kz - Kzo;
     const vec<3, T> dx33 = Pfx + jitter * ox33;
     const vec<3, T> dy33 = Pfy.z + jitter * oy33;
@@ -231,7 +231,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2(const vec<2, T>& P) noexc
     constexpr T K2 = static_cast<T>(0.0714285714285);  // K/2
     constexpr T jitter = static_cast<T>(0.8);              // jitter < 1.0 improves accuracy
 
-    const vec<2, T> Pi = __detail::mod289(floor(P));
+    const vec<2, T> Pi = _priv::mod289(floor(P));
     const vec<2, T> Pf = fract(P);
 
     const vec<4, T> Pfx = Pf.x + vec<4, T>(
@@ -247,10 +247,10 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2(const vec<2, T>& P) noexc
     const vec<4, T> px = Pi.x + vec<4, T>(0, 1, 0, 1);
     const vec<4, T> py = Pi.y + vec<4, T>(0, 0, 1, 1);
 
-    const vec<4, T> p = __detail::permute(__detail::permute(px) + py);
+    const vec<4, T> p = _priv::permute(_priv::permute(px) + py);
 
-    const vec<4, T> ox = __detail::mod7(p) * K + K2;
-    const vec<4, T> oy = __detail::mod7(floor(p * K)) * K + K2;
+    const vec<4, T> ox = _priv::mod7(p) * K + K2;
+    const vec<4, T> oy = _priv::mod7(floor(p * K)) * K + K2;
 
     const vec<4, T> dx = Pfx + jitter * ox;
     const vec<4, T> dy = Pfy + jitter * oy;
@@ -289,7 +289,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2x2(const vec<3, T>& P) noe
     constexpr T Kzo = static_cast<T>(0.416666666667); // 1/2-1/6*2
     constexpr T jitter = static_cast<T>(0.8); // smaller jitter gives less errors in F2
 
-    const vec<3, T> Pi = __detail::mod289(floor(P));
+    const vec<3, T> Pi = _priv::mod289(floor(P));
     const vec<3, T> Pf = fract(P);
 
     const vec<4, T> Pfx = Pf.x + vec<4, T>(T(0), T(-1), T(0), T(-1));
@@ -297,17 +297,17 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2x2(const vec<3, T>& P) noe
 
     const vec<4, T> px = Pi.x + vec<4, T>(T(0), T(1), T(0), T(1));
     const vec<4, T> py = Pi.y + vec<4, T>(T(0), T(0), T(1), T(1));
-    const vec<4, T> p = __detail::permute(__detail::permute(px) + py);
+    const vec<4, T> p = _priv::permute(_priv::permute(px) + py);
 
-    const vec<4, T> p1 = __detail::permute(p + Pi.z);          // z + 0
-    const vec<4, T> p2 = __detail::permute(p + Pi.z + T(1));   // z + 1
+    const vec<4, T> p1 = _priv::permute(p + Pi.z);          // z + 0
+    const vec<4, T> p2 = _priv::permute(p + Pi.z + T(1));   // z + 1
 
     const vec<4, T> ox1 = fract(p1 * K) - Ko;
-    const vec<4, T> oy1 = __detail::mod7(floor(p1 * K)) * K - Ko;
+    const vec<4, T> oy1 = _priv::mod7(floor(p1 * K)) * K - Ko;
     const vec<4, T> oz1 = floor(p1 * K2) * Kz - Kzo;
 
     const vec<4, T> ox2 = fract(p2 * K) - Ko;
-    const vec<4, T> oy2 = __detail::mod7(floor(p2 * K)) * K - Ko;
+    const vec<4, T> oy2 = _priv::mod7(floor(p2 * K)) * K - Ko;
     const vec<4, T> oz2 = floor(p2 * K2) * Kz - Kzo;
 
     const vec<4, T> dx1 = Pfx + jitter * ox1;

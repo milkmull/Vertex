@@ -4,8 +4,8 @@
 // String Manipulation Macros
 ///////////////////////////////////////////////////////////////////////////////
 
-#define __VX_STRINGIFY(x) #x
-#define VX_STRINGIFY(x) __VX_STRINGIFY(x)
+#define _VX_STRINGIFY(x) #x
+#define VX_STRINGIFY(x) _VX_STRINGIFY(x)
 
-#define __VX_CONCAT(a, b) a##b
-#define VX_CONCAT(a, b) __VX_CONCAT(a, b)
+#define _VX_CONCAT(a, b) a##b
+#define VX_CONCAT(a, b) _VX_CONCAT(a, b)

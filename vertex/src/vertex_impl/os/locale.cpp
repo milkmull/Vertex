@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/locale.hpp"
+#include "vertex_impl/os/_platform/locale.hpp"
 
 namespace vx {
 namespace os {

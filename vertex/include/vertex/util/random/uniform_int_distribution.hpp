@@ -216,7 +216,7 @@ private:
     param_type m_param;
 };
 
-namespace __detail {
+namespace _priv {
 
 template <bool upscale>
 struct upscalar;
@@ -279,7 +279,7 @@ struct upscalar<true> // rng range is smaller than dist max range
     }
 };
 
-} // namespace __detail
+} // namespace _priv
 
 template <typename T>
 template <typename RNG>
@@ -361,7 +361,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         // the distribution, this branch is effectively a no-op and never executed.
 
         VX_ASSERT(possible_upscale);
-        ret = __detail::upscalar<possible_upscale>::upscale(*this, rng, urange);
+        ret = _priv::upscalar<possible_upscale>::upscale(*this, rng, urange);
     }
 
     return static_cast<range_type>(ret + static_cast<common_type>(p.a()));

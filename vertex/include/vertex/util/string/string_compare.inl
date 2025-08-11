@@ -8,7 +8,7 @@
 namespace vx {
 namespace str {
 
-namespace __detail {
+namespace _priv {
 
 template <typename IT1, typename IT2>
 inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2, const bool damerau)
@@ -67,14 +67,14 @@ inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2
     return dp[size1][size2];
 }
 
-} // namespace __detail
+} // namespace _priv
 
 // https://en.wikipedia.org/wiki/Levenshtein_distance
 
 template <typename IT1, typename IT2>
 inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 {
-    return __detail::levenshtein_distance(first1, last1, first2, last2, false);
+    return _priv::levenshtein_distance(first1, last1, first2, last2, false);
 }
 
 // https://en.wikipedia.org/wiki/Damerau%E2%80%93Levenshtein_distance
@@ -82,7 +82,7 @@ inline int32_t levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2
 template <typename IT1, typename IT2>
 inline int32_t damerau_levenshtein_distance(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 {
-    return __detail::levenshtein_distance(first1, last1, first2, last2, true);
+    return _priv::levenshtein_distance(first1, last1, first2, last2, true);
 }
 
 } // namespace str

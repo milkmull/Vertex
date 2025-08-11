@@ -9,7 +9,7 @@
 
 namespace vx {
 namespace math {
-namespace __detail {
+namespace _priv {
 
 ////////////////////////////////////////////////////////////////////////////////
 // mod289
@@ -93,6 +93,6 @@ VX_FORCE_INLINE constexpr vec<4, T> grad4(T j, const vec<4, T>& ip) noexcept
     return vec<4, T>(pxyz, pw);
 }
 
-} // namespace __detail
+} // namespace _priv
 } // namespace math
 } // namespace vx

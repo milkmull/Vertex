@@ -74,7 +74,7 @@ VX_API bool is_enabled();
  */
 VX_API void write(level l, const std::string& msg);
 
-namespace __detail {
+namespace _priv {
 
 class log_stream
 {
@@ -128,7 +128,7 @@ private:
     std::ostringstream m_stream;
 };
 
-} // namespace __detail
+} // namespace _priv
 } // namespace log
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -150,19 +150,19 @@ private:
 
 #if VX_ENABLE_LOGGING
 
-#   define VX_LOG_TRACE(...)                ::vx::log::__detail::log_stream(::vx::log::level::TRACE                     ).stream(__VA_ARGS__)
-#   define VX_LOG_DEBUG(...)                ::vx::log::__detail::log_stream(::vx::log::level::DEBUG                     ).stream(__VA_ARGS__)
-#   define VX_LOG_INFO(...)                 ::vx::log::__detail::log_stream(::vx::log::level::INFO                      ).stream(__VA_ARGS__)
-#   define VX_LOG_WARNING(...)              ::vx::log::__detail::log_stream(::vx::log::level::WARNING                   ).stream(__VA_ARGS__)
-#   define VX_LOG_ERROR(...)                ::vx::log::__detail::log_stream(::vx::log::level::ERROR                     ).stream(__VA_ARGS__)
-#   define VX_LOG_CRITICAL(...)             ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL                  ).stream(__VA_ARGS__)
+#   define VX_LOG_TRACE(...)                ::vx::log::_priv::log_stream(::vx::log::level::TRACE                     ).stream(__VA_ARGS__)
+#   define VX_LOG_DEBUG(...)                ::vx::log::_priv::log_stream(::vx::log::level::DEBUG                     ).stream(__VA_ARGS__)
+#   define VX_LOG_INFO(...)                 ::vx::log::_priv::log_stream(::vx::log::level::INFO                      ).stream(__VA_ARGS__)
+#   define VX_LOG_WARNING(...)              ::vx::log::_priv::log_stream(::vx::log::level::WARNING                   ).stream(__VA_ARGS__)
+#   define VX_LOG_ERROR(...)                ::vx::log::_priv::log_stream(::vx::log::level::ERROR                     ).stream(__VA_ARGS__)
+#   define VX_LOG_CRITICAL(...)             ::vx::log::_priv::log_stream(::vx::log::level::CRITICAL                  ).stream(__VA_ARGS__)
 
-#   define VX_LOG_TRACE_FULL(...)           ::vx::log::__detail::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_DEBUG_FULL(...)           ::vx::log::__detail::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_INFO_FULL(...)            ::vx::log::__detail::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_WARNING_FULL(...)         ::vx::log::__detail::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_ERROR_FULL(...)           ::vx::log::__detail::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_CRITICAL_FULL(...)        ::vx::log::__detail::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_TRACE_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_DEBUG_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_INFO_FULL(...)            ::vx::log::_priv::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_WARNING_FULL(...)         ::vx::log::_priv::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_ERROR_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_CRITICAL_FULL(...)        ::vx::log::_priv::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE).stream(__VA_ARGS__)
 
 #else
 

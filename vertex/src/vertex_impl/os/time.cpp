@@ -1,4 +1,4 @@
-#include "vertex_impl/os/__platform/time.hpp"
+#include "vertex_impl/os/_platform/time.hpp"
 
 namespace vx {
 
