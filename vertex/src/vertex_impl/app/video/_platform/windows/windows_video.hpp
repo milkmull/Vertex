@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex_impl/app/_platform/windows/windows_header.hpp"
-#include "vertex_impl/app/video/video.hpp"
+#include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex/os/shared_library.hpp"
 
 namespace vx {
@@ -54,6 +54,9 @@ struct driver_data
 
 extern driver_data s_driver_data;
 
+process_dpi_awareness get_dpi_awareness_impl();
+system_theme get_system_theme_impl();
+
 ///////////////////////////////////////////////////////////////////////////////
 // display_mode_impl
 ///////////////////////////////////////////////////////////////////////////////
@@ -104,7 +107,7 @@ public:
     );
 
     void list_display_modes(std::vector<display_mode>& modes) const;
-    bool set_display_mode(display_mode& mode) const;
+    bool set_display_mode(display_mode& mode, bool is_desktop_mode) const;
 
     bool get_bounds(math::recti& bounds) const;
     bool get_work_area(math::recti& work_area) const;

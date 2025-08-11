@@ -28,6 +28,23 @@ namespace _priv { class video_internal; }
 namespace _priv { class display_mode_impl; }
 namespace _priv { class display_impl; }
 
+enum class process_dpi_awareness
+{
+    UNAWARE,
+    SYSTEM,
+    PER_MONITOR
+};
+
+VX_API process_dpi_awareness get_dpi_awareness();
+
+enum class system_theme
+{
+    UNKNOWN = 0,
+    LIGHT,
+    DARK
+};
+
+VX_API system_theme get_system_theme();
 
 ///////////////////////////////////////////////////////////////////////////////
 // display mode
@@ -49,11 +66,11 @@ public:
 
 public:
 
-    math::vec2i resolution;
-    int bpp;
-    pixel::pixel_format pixel_format;
-    float pixel_density;
-    float refresh_rate;
+    math::vec2i resolution;             // resolution
+    int bpp;                            // bits per pixel
+    pixel::pixel_format pixel_format;   // pixel format
+    float pixel_density;                // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
+    float refresh_rate;                 // refresh rate
 
 private:
 
@@ -61,7 +78,7 @@ private:
 
     friend display;
     friend _priv::display_impl;
-    device_id m_display_id;
+    mutable device_id m_display_id;     // the display that this mode is associated with
 
     friend _priv::display_mode_impl;
     std::shared_ptr<_priv::display_mode_impl> m_impl;
@@ -81,9 +98,11 @@ VX_API display* enum_displays(size_t i);
 
 enum class display_orientation
 {
-    UNKNOWN,
+    UNKNOWN = 0,
+
     PORTRAIT,
     PORTRAIT_FLIPPED,
+
     LANDSCAPE,
     LANDSCAPE_FLIPPED
 };
@@ -121,13 +140,10 @@ public:
     VX_API const display_mode& get_desktop_mode() const;
     VX_API const display_mode& get_current_mode() const;
 
-    VX_API bool set_current_mode(display_mode& mode);
+    VX_API bool set_current_mode(const display_mode& mode);
     VX_API void clear_mode();
 
-    VX_API size_t mode_count() const;
-    VX_API const display_mode* enum_modes(size_t i) const;
     VX_API const std::vector<display_mode>& list_modes() const;
-
     VX_API const display_mode* find_mode(const display_mode& mode) const;
     VX_API const display_mode* find_closest_mode(int width, int height, float refresh_rate) const;
 

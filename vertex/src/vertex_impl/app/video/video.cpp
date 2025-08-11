@@ -11,14 +11,7 @@ namespace video {
 // video
 ///////////////////////////////////////////////////////////////////////////////
 
-struct video_data
-{
-    bool is_init = false;
-
-    std::vector<std::unique_ptr<display>> displays;
-};
-
-static video_data s_video_data;
+video_data s_video_data;
 
 VX_API bool init()
 {
@@ -48,6 +41,20 @@ VX_API void quit()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// dpi
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API process_dpi_awareness get_dpi_awareness()
+{
+    return get_dpi_awareness_impl();
+}
+
+VX_API system_theme get_system_theme()
+{
+    return get_system_theme_impl();
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -56,7 +63,7 @@ VX_API display_mode::display_mode()
     , pixel_format(pixel::pixel_format::UNKNOWN)
     , pixel_density(0.0f)
     , refresh_rate(0.0f)
-    , m_display_id(0)
+    , m_display_id(INVALID_DEVICE_ID)
     , m_impl(new _priv::display_mode_impl) {}
 
 VX_API display_mode::display_mode(const display_mode& other)
@@ -219,24 +226,18 @@ VX_API const math::vec2& display::get_content_scale() const
 VX_API math::recti display::get_bounds() const
 {
     math::recti bounds;
-
-    if (is_init())
-    {
-        m_impl->get_bounds(bounds);
-    }
-
+    VX_CHECK_VIDEO_INIT(bounds);
+    // query the current bounds
+    m_impl->get_bounds(bounds);
     return bounds;
 }
 
 VX_API math::recti display::get_work_area() const
 {
     math::recti work_area;
-
-    if (is_init())
-    {
-        m_impl->get_work_area(work_area);
-    }
-
+    VX_CHECK_VIDEO_INIT(work_area);
+    // query the current work area
+    m_impl->get_work_area(work_area);
     return work_area;
 }
 
@@ -244,7 +245,11 @@ void display::update_modes() const
 {
     VX_CHECK_VIDEO_INIT_VOID();
 
-    m_modes.clear();
+    if (!m_modes.empty())
+    {
+        return;
+    }
+
     m_impl->list_display_modes(m_modes);
 
     for (display_mode& m : m_modes)
@@ -255,50 +260,63 @@ void display::update_modes() const
 
 VX_API const display_mode& display::get_desktop_mode() const
 {
-    if (is_init() && m_modes.empty())
-    {
-        m_impl->list_display_modes(m_modes);
-    }
-
+    VX_CHECK_VIDEO_INIT(m_desktop_mode);
     return m_desktop_mode;
 }
 
 VX_API const display_mode& display::get_current_mode() const
 {
-    if (is_init() && m_modes.empty())
-    {
-        update_modes();
-    }
-
+    VX_CHECK_VIDEO_INIT(m_current_mode);
     return m_current_mode;
 }
 
-VX_API bool display::set_current_mode(display_mode& mode)
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1509
+
+VX_API bool display::set_current_mode(const display_mode& mode)
 {
     VX_CHECK_VIDEO_INIT(false);
 
-    const display_mode& current_mode = get_current_mode();
-    if (display_mode::compare(current_mode, mode))
+    // check if the mode is already set
+    if (display_mode::compare(m_current_mode, mode))
     {
-        // already set
-        mode = current_mode;
         return true;
     }
 
-    if (!find_mode(mode))
+    const bool is_desktop_mode = display_mode::compare(m_desktop_mode, mode);
+    display_mode* native_mode = nullptr;
+
+    if (is_desktop_mode)
     {
-        // mode is not applicable to this display
-        return false;
+        native_mode = &m_desktop_mode;
+    }
+    else
+    {
+        // if we haven't listed the modes yet, list them now
+        update_modes();
+
+        // make sure the display supports the mode
+        for (display_mode& m : m_modes)
+        {
+            if (display_mode::compare(m, mode))
+            {
+                native_mode = &m;
+                break;
+            }
+        }
+
+        if (!native_mode)
+        {
+            return false;
+        }
     }
 
-    //s_video_data.setting_display_mode = true;
-    const bool set = m_impl->set_display_mode(mode);
-    //s_video_data.setting_display_mode = false;
+    // set the mode
+    const bool set = m_impl->set_display_mode(*native_mode, is_desktop_mode);
+    s_video_data.setting_display_mode = false;
 
     if (set)
     {
-        mode.m_display_id = m_id;
-        //post_display_current_mode_changed(this, mode);
+        _priv::video_internal::post_display_current_mode_changed(this, mode);
     }
 
     return set;
@@ -306,39 +324,21 @@ VX_API bool display::set_current_mode(display_mode& mode)
 
 VX_API void display::clear_mode()
 {
-    display_mode mode = get_desktop_mode();
-    set_current_mode(mode);
-}
-
-VX_API size_t display::mode_count() const
-{
-    return m_modes.size();
-}
-
-VX_API const display_mode* display::enum_modes(size_t i) const
-{
-    // if we haven't listed the modes yet, list them now
-    if (m_modes.empty())
-    {
-        update_modes();
-    }
-
-    return (i < m_modes.size()) ? &m_modes[i] : nullptr;
+    set_current_mode(m_desktop_mode);
 }
 
 VX_API const std::vector<display_mode>& display::list_modes() const
 {
     // if we haven't listed the modes yet, list them now
-    if (m_modes.empty())
-    {
-        update_modes();
-    }
-
+    update_modes();
     return m_modes;
 }
 
 VX_API const display_mode* display::find_mode(const display_mode& mode) const
 {
+    // if we haven't listed the modes yet, list them now
+    update_modes();
+
     for (const display_mode& m : m_modes)
     {
         if (display_mode::compare(m, mode))
@@ -352,36 +352,51 @@ VX_API const display_mode* display::find_mode(const display_mode& mode) const
 
 VX_API const display_mode* display::find_closest_mode(int width, int height, float refresh_rate) const
 {
-    float aspect_ratio = (height > 0) ? (static_cast<float>(width) / height) : 1.0f;
+    // compute target aspect ratio from width/height (fallback to 1.0f if height is 0 to avoid division by zero)
+    const float aspect_ratio = (height > 0) ? (static_cast<float>(width) / height) : 1.0f;
+
+    // if no refresh rate was specified, use the desktop's current refresh rate
     if (refresh_rate <= 0.0f)
     {
-        refresh_rate = get_desktop_mode().refresh_rate;
+        refresh_rate = m_desktop_mode.refresh_rate;
     }
+
+    // if we haven't listed the modes yet, list them now
+    update_modes();
 
     const display_mode* closest_mode = nullptr;
 
-    for (const display_mode& mode : list_modes())
+    for (const display_mode& mode : m_modes)
     {
+        // Skip modes with a smaller width than requested
         if (width > mode.resolution.x)
         {
             break;
         }
+        // Skip modes with smaller height than requested
         if (height > mode.resolution.y)
         {
             continue;
         }
+        // Skip modes with non-default pixel density (e.g., HiDPI scaling)
         if (mode.pixel_density != 1.0f)
         {
             continue;
         }
+
+        // If we already have a candidate mode, check if this one is a worse match
         if (closest_mode)
         {
-            float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / mode.resolution.y;
-            float closest_mode_aspect_ratio = static_cast<float>(closest_mode->resolution.x) / closest_mode->resolution.y;
+            const float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / mode.resolution.y;
+            const float closest_mode_aspect_ratio = static_cast<float>(closest_mode->resolution.x) / closest_mode->resolution.y;
+
+            // Prefer mode with aspect ratio closer to target
             if (math::abs(aspect_ratio - closest_mode_aspect_ratio) < math::abs(aspect_ratio - current_mode_aspect_ratio))
             {
                 continue;
             }
+
+            // If resolutions are the same, prefer refresh rate closer to target
             if ((mode.resolution == closest_mode->resolution) &&
                 (math::abs(refresh_rate - closest_mode->refresh_rate) < math::abs(refresh_rate - mode.refresh_rate)))
             {

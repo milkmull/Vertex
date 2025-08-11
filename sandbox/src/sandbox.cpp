@@ -11,7 +11,8 @@ int main(int argc, char* argv[])
 {
     if (app::video::init())
     {
-        app::video::update_displays();
+        std::cout << (int)app::video::get_dpi_awareness() << std::endl;
+        std::cout << (int)app::video::get_system_theme() << std::endl;
     }
 
     app::video::quit();

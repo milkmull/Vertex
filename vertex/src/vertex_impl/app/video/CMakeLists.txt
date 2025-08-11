@@ -6,7 +6,7 @@
 file(GLOB VX_APP_VIDEO_SOURCE_FILES
 
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/video.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/video.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/video_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/video.cpp"
 )
 

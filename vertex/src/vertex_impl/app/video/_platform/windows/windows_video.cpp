@@ -57,6 +57,96 @@ static void free_libraries()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// dpi
+///////////////////////////////////////////////////////////////////////////////
+
+process_dpi_awareness get_dpi_awareness_impl()
+{
+    if (s_driver_data.user32.GetAwarenessFromDpiAwarenessContext && s_driver_data.user32.AreDpiAwarenessContextsEqual)
+    {
+        DPI_AWARENESS_CONTEXT context = s_driver_data.user32.GetThreadDpiAwarenessContext();
+
+        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_UNAWARE))
+        {
+            return process_dpi_awareness::UNAWARE;
+        }
+        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE))
+        {
+            return process_dpi_awareness::SYSTEM;
+        }
+        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
+        {
+            return process_dpi_awareness::PER_MONITOR;
+        }
+    }
+
+    return process_dpi_awareness::UNAWARE;
+}
+
+static bool set_dpi_awareness(process_dpi_awareness awareness)
+{
+    // https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process
+
+    switch (awareness)
+    {
+        case process_dpi_awareness::UNAWARE:
+        {
+            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            {
+                // Windows 10, version 1607
+                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+            }
+            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            {
+                // Windows 8.1
+                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_DPI_UNAWARE));
+            }
+            break;
+        }
+        case process_dpi_awareness::SYSTEM:
+        {
+            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            {
+                // Windows 10, version 1607
+                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+            }
+            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            {
+                // Windows 8.1
+                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE));
+            }
+            if (s_driver_data.user32.SetProcessDPIAware)
+            {
+                // Windows Vista
+                return s_driver_data.user32.SetProcessDPIAware();
+            }
+            break;
+        }
+        case process_dpi_awareness::PER_MONITOR:
+        {
+            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            {
+                // Windows 10, version 1607
+                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+            }
+            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            {
+                // Windows 8.1
+                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE));
+            }
+            else
+            {
+                // Older OS: fall back to system DPI aware
+                return set_dpi_awareness(process_dpi_awareness::SYSTEM);
+            }
+            break;
+        }
+    }
+
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -69,12 +159,44 @@ bool init_impl()
         return false;
     }
 
+    if (!set_dpi_awareness(process_dpi_awareness::UNAWARE))
+    {
+        return false;
+    }
+
     return true;
 }
 
 void quit_impl()
 {
     free_libraries();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// system theme
+///////////////////////////////////////////////////////////////////////////////
+
+system_theme get_system_theme_impl()
+{
+    const WCHAR* subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    const WCHAR* value = L"AppsUseLightTheme";
+
+    DWORD data = 0;
+    DWORD size = sizeof(data);
+    DWORD type = 0;
+
+    if (RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
+    {
+        // Dark mode if 0, light mode if 1
+        switch (data)
+        {
+            case 0:  return system_theme::DARK;
+            case 1:  return system_theme::LIGHT;
+            default: break;
+        }
+    }
+
+    return system_theme::UNKNOWN;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -360,10 +482,9 @@ bool _priv::display_impl::create_display(
             d_impl->handle = hMonitor;
             d_impl->state = display_state::NONE;
 
-            //if (!s_video_data.setting_display_mode)
+            if (!s_video_data.setting_display_mode)
             {
                 const math::recti current_bounds = d->get_bounds();
-
                 if (moved || d->get_bounds() != d_impl->last_bounds)
                 {
                     // moved
@@ -536,9 +657,23 @@ void _priv::display_impl::list_display_modes(std::vector<display_mode>& modes) c
     }
 }
 
-bool _priv::display_impl::set_display_mode(display_mode& mode) const
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsmodes.c#L826
+
+bool _priv::display_impl::set_display_mode(display_mode& mode, bool is_desktop_mode) const
 {
-    const LONG status = ChangeDisplaySettingsEx(device_name.c_str(), &mode.m_impl->devmode, NULL, CDS_FULLSCREEN, NULL);
+    LONG status;
+
+    if (is_desktop_mode)
+    {
+        // NOTE: Passing NULL for DEVMODE* here tells Windows to restore the OS’s saved
+        // desktop mode (resolution + DPI scaling). This avoids unintended DPI changes
+        // that can occur if you pass a copied DEVMODE, even if the pixel dimensions match.
+        status = ::ChangeDisplaySettingsExW(device_name.c_str(), NULL, NULL, CDS_FULLSCREEN, NULL);
+    }
+    else
+    {
+        status = ::ChangeDisplaySettingsExW(device_name.c_str(), &mode.m_impl->devmode, NULL, CDS_FULLSCREEN, NULL);
+    }
 
     if (status != DISP_CHANGE_SUCCESSFUL)
     {
@@ -572,7 +707,12 @@ bool _priv::display_impl::set_display_mode(display_mode& mode) const
         return false;
     }
 
-    get_display_mode(device_name.c_str(), mode, ENUM_CURRENT_SETTINGS, nullptr);
+    if (is_desktop_mode)
+    {
+        // Refresh stored DEVMODE with the actual settings now active
+        ::EnumDisplaySettingsW(device_name.c_str(), ENUM_CURRENT_SETTINGS, &mode.m_impl->devmode);
+    }
+
     return true;
 }
 
