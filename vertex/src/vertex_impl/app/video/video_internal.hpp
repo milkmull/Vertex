@@ -1,7 +1,8 @@
 #pragma once
 
-#include "vertex/system/error.hpp"
 #include "vertex/app/video/video.hpp"
+#include "vertex_impl/app/video/_platform/video.hpp"
+#include "vertex/system/error.hpp"
 
 namespace vx {
 namespace app {

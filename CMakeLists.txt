@@ -72,6 +72,9 @@ endif()
 # Enable AddressSanitizer (ASan)
 #vx_set_option(VX_ENABLE_ASAN        BOOL FALSE "Enable AddressSanitizer for Debug builds")
 
+# Application type option
+vx_set_option(VX_GUI_APP            BOOL FALSE "Build as a GUI application (no console window on supported platforms).")
+
 # Module-specific build options
 vx_set_option(VX_DUMMY_PLATFORM     BOOL FALSE "Build the dummy os implimentation")
 vx_set_option(VX_BUILD_APP_VIDEO    BOOL TRUE  "Enable building the video backend.")
@@ -142,6 +145,7 @@ add_custom_target(uninstall
 #--------------------------------------------------------------------
 
 message(STATUS "Vertex Configuration Summary:")
+message(STATUS "  GUI Application         : ${VX_GUI_APP}")
 message(STATUS "  Build Dummy Platform    : ${VX_DUMMY_PLATFORM}")
 message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
 message(STATUS "  SIMD Enabled            : ${VX_MATH_ENABLE_SIMD}")

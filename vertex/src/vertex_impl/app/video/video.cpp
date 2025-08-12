@@ -1,7 +1,8 @@
 #include <vector>
 
-#include "vertex_impl/app/video/_platform/video.hpp"
+#include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex/app/event/event.hpp"
+#include "vertex/math/geometry/2d/functions/collision.hpp"
 
 namespace vx {
 namespace app {
@@ -13,6 +14,12 @@ namespace video {
 
 video_data s_video_data;
 
+static void update_displays_internal()
+{
+    VX_CHECK_VIDEO_INIT_VOID();
+    update_displays_impl(s_video_data.displays);
+}
+
 VX_API bool init()
 {
     if (s_video_data.is_init)
@@ -21,6 +28,12 @@ VX_API bool init()
     }
 
     if (!init_impl())
+    {
+        return false;
+    }
+
+    update_displays_internal();
+    if (s_video_data.displays.empty())
     {
         return false;
     }
@@ -130,8 +143,7 @@ VX_API bool display_mode::compare(const display_mode& mode1, const display_mode&
 
 VX_API void update_displays()
 {
-    VX_CHECK_VIDEO_INIT_VOID();
-    update_displays_impl(s_video_data.displays);
+    update_displays_internal();
 }
 
 VX_API display* get_display(device_id id)
@@ -163,6 +175,110 @@ VX_API size_t display_count()
 VX_API display* enum_displays(size_t i)
 {
     return (i < display_count()) ? s_video_data.displays[i].get() : nullptr;
+}
+
+VX_API display* get_display_for_point(const math::vec2i& p)
+{
+    VX_CHECK_VIDEO_INIT(nullptr);
+
+    display* closest = nullptr;
+    int32_t closest_dist = std::numeric_limits<int32_t>::max();
+
+    for (const auto& d : s_video_data.displays)
+    {
+        const math::recti bounds = d->get_bounds();
+        if (bounds.empty())
+        {
+            continue;
+        }
+
+        if (math::g2::contains(bounds, p))
+        {
+            return d.get();
+        }
+
+        const math::vec2i c = math::g2::closest(bounds, p);
+        const int32_t dist = math::distance_squared(c, p);
+        if (dist < closest_dist)
+        {
+            closest = d.get();
+            closest_dist = dist;
+        }
+    }
+
+    return closest;
+}
+
+VX_API display* get_display_for_rect(const math::recti& rect)
+{
+    VX_CHECK_VIDEO_INIT(nullptr);
+    return get_display_for_point(rect.center());
+}
+
+VX_API display* get_display_for_window(const window* w)
+{
+    VX_CHECK_VIDEO_INIT(nullptr);
+
+    if (!w)
+    {
+        return nullptr;
+    }
+
+    display* d = nullptr;
+
+    //if (w->m_current_fullscreen_mode.m_display_id)
+    //{
+    //    d = get_display(w->m_current_fullscreen_mode.m_display_id);
+    //}
+
+    //if (!d)
+    //{
+    //    if (w->is_fullscreen())
+    //    {
+    //        if (!w->m_repositioning)
+    //        {
+    //            // When fullscreen windows are moved between displays of different sizes,
+    //            // the window size and position updates may arrive out of order. This can
+    //            // temporarily make the window larger than the display. In such cases,
+    //            // using the center of the window rectangle might incorrectly identify the
+    //            // display, so we use the origin instead.
+    //            d = get_display_for_point(w->m_position);
+    //        }
+    //        else
+    //        {
+    //            // In some backends, the actual window position may not be updated at the
+    //            // time of this call. If the window is being repositioned via a call to
+    //            // set_position, the floating rect will have the most up-to-date area for
+    //            // the window. 
+    //            d = get_display_for_rect(w->m_floating_rect);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        d = get_display_for_rect(w->get_rect());
+    //    }
+    //}
+
+    // The primary display is a good default
+    if (!d)
+    {
+        d = get_primary_display();
+    }
+
+    return d;
+}
+
+VX_API math::recti get_desktop_area()
+{
+    math::recti area;
+    VX_CHECK_VIDEO_INIT(area);
+
+    for (const auto& d : s_video_data.displays)
+    {
+        area = math::g2::bounding_box(area, d->get_bounds());
+    }
+
+    return area;
 }
 
 ///////////////////////////////////////

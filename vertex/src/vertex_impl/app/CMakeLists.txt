@@ -5,7 +5,7 @@
 
 # Source files for vertex/vertex_impl/app
 file(GLOB VX_APP_SOURCE_FILES
-
+    
 )
 
 target_sources(Vertex PRIVATE ${VX_APP_SOURCE_FILES})

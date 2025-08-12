@@ -50,6 +50,9 @@ struct driver_data
 {
     user32 user32;
     shcore shcore;
+
+    LPCWSTR window_class_name = L"Vertex_Window";
+    ATOM window_class;
 };
 
 extern driver_data s_driver_data;

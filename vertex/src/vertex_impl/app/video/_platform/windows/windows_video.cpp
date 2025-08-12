@@ -147,6 +147,31 @@ static bool set_dpi_awareness(process_dpi_awareness awareness)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// window class
+///////////////////////////////////////////////////////////////////////////////
+
+static ATOM register_window_class(WNDPROC proc, LPCWSTR class_name)
+{
+    const HINSTANCE instance = GetModuleHandle(NULL);
+
+    WNDCLASSW wc{};
+    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+    wc.lpfnWndProc = proc;
+    wc.hInstance = instance; // needed for dll
+    wc.hIcon = NULL;
+    wc.hCursor = NULL;
+    wc.lpszClassName = class_name;
+
+    return RegisterClass(&wc);
+}
+
+static void unregister_window_class(LPCWSTR class_name)
+{
+    const HINSTANCE instance = GetModuleHandle(NULL);
+    UnregisterClass(class_name, instance);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -164,6 +189,19 @@ bool init_impl()
         return false;
     }
 
+    if (!s_driver_data.window_class)
+    {
+        //s_driver_data.window_class = register_window_class(
+        //    window::window_impl::window_proc,
+        //    s_driver_data.window_class_name
+        //);
+        //
+        //if (!s_driver_data.window_class)
+        //{
+        //    return false;
+        //}
+    }
+
     return true;
 }
 
@@ -178,8 +216,8 @@ void quit_impl()
 
 system_theme get_system_theme_impl()
 {
-    const WCHAR* subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
-    const WCHAR* value = L"AppsUseLightTheme";
+    LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    LPCWSTR value = L"AppsUseLightTheme";
 
     DWORD data = 0;
     DWORD size = sizeof(data);

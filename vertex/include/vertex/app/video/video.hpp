@@ -23,10 +23,12 @@ VX_API void quit();
 
 class display_mode;
 class display;
+class window;
 
 namespace _priv { class video_internal; }
 namespace _priv { class display_mode_impl; }
 namespace _priv { class display_impl; }
+namespace _priv { class window_impl; }
 
 enum class process_dpi_awareness
 {
@@ -95,6 +97,12 @@ VX_API display* get_primary_display();
 
 VX_API size_t display_count();
 VX_API display* enum_displays(size_t i);
+
+VX_API display* get_display_for_point(const math::vec2i& p);
+VX_API display* get_display_for_rect(const math::recti& rect);
+VX_API display* get_display_for_window(const window* w);
+
+VX_API math::recti get_desktop_area();
 
 enum class display_orientation
 {
@@ -166,6 +174,42 @@ private:
     friend _priv::display_impl;
     std::unique_ptr<_priv::display_impl> m_impl;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// windows
+///////////////////////////////////////////////////////////////////////////////
+
+struct window_config
+{
+    std::string title;
+    math::vec2i size;
+    math::vec2i position;
+
+    float opacity = 1.0f;
+
+    bool center_on_display = false;
+
+    bool minimized = false;
+    bool maximized = false;
+    bool fullscreen = false;
+
+    bool borderless = false;
+    bool resizable = false;
+    bool topmost = false;
+
+    bool hidden = false;
+    bool focussed = true;
+
+    bool mouse_grabbed = false;
+    bool mouse_capture = false;
+};
+
+VX_API window* create_window(const window_config& config);
+VX_API void destroy_window(window* w);
+VX_API window* get_window(device_id id);
+
+VX_API size_t window_count();
+VX_API window* enum_windows(size_t i);
 
 } // namespace video
 } // namespace app

@@ -79,13 +79,13 @@ VX_FORCE_INLINE constexpr vec<3, T> cross(
 // length_squared
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VXM_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T length_squared(const vec<L, T>& v) noexcept
 {
     return dot(v, v);
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VXM_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T magnitude_squared(const vec<L, T>& v) noexcept
 {
     return length_squared(v);
@@ -111,7 +111,7 @@ VX_FORCE_INLINE constexpr T magnitude(const vec<L, T>& v) noexcept
 // distance_squared
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VXM_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T distance_squared(
     const vec<L, T>& p0,
     const vec<L, T>& p1
