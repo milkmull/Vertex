@@ -1,4 +1,5 @@
 #include "vertex_impl/app/video/_platform/windows/windows_video.hpp"
+#include "vertex_impl/app/event/_platform/windows/windows_event.hpp"
 #include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
@@ -147,28 +148,52 @@ static bool set_dpi_awareness(process_dpi_awareness awareness)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// window class
+// app registration
 ///////////////////////////////////////////////////////////////////////////////
 
-static ATOM register_window_class(WNDPROC proc, LPCWSTR class_name)
+LPCWSTR driver_data::app_name = L"Vertex_App";
+
+static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 {
-    const HINSTANCE instance = GetModuleHandle(NULL);
+    if (!name)
+    {
+        name = driver_data::app_name;
+    }
+
+    if (!hInstance)
+    {
+        hInstance = GetModuleHandle(NULL);
+    }
+
+    UINT style = 0;
+#if defined(CS_BYTEALIGNCLIENT) || defined(CS_OWNDC)
+    style = (CS_BYTEALIGNCLIENT | CS_OWNDC);
+#endif
 
     WNDCLASSW wc{};
-    wc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-    wc.lpfnWndProc = proc;
-    wc.hInstance = instance; // needed for dll
+    wc.style = style;
+    wc.lpfnWndProc = event::window_proc;
+    wc.hInstance = hInstance; // needed for dll
     wc.hIcon = NULL;
     wc.hCursor = NULL;
-    wc.lpszClassName = class_name;
+    wc.lpszClassName = name;
 
-    return RegisterClass(&wc);
+    return (RegisterClass(&wc) != NULL);
 }
 
-static void unregister_window_class(LPCWSTR class_name)
+static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 {
-    const HINSTANCE instance = GetModuleHandle(NULL);
-    UnregisterClass(class_name, instance);
+    if (!name)
+    {
+        name = driver_data::app_name;
+    }
+
+    if (!hInstance)
+    {
+        hInstance = GetModuleHandle(NULL);
+    }
+
+    UnregisterClass(name, hInstance);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,17 +214,14 @@ bool init_impl()
         return false;
     }
 
-    if (!s_driver_data.window_class)
+    if (!s_driver_data.registered_app)
     {
-        //s_driver_data.window_class = register_window_class(
-        //    window::window_impl::window_proc,
-        //    s_driver_data.window_class_name
-        //);
-        //
-        //if (!s_driver_data.window_class)
-        //{
-        //    return false;
-        //}
+        s_driver_data.registered_app = register_app(NULL, NULL);
+        
+        if (!s_driver_data.registered_app)
+        {
+            return false;
+        }
     }
 
     return true;
@@ -208,6 +230,11 @@ bool init_impl()
 void quit_impl()
 {
     free_libraries();
+
+    if (!s_driver_data.registered_app)
+    {
+        unregister_app(NULL, NULL);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////

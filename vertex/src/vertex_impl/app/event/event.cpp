@@ -267,7 +267,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_MOVED {",
                 "display_id: ", e.display_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -277,7 +277,7 @@ static void log_event(const event& e)
                 "DISPLAY_ORIENTATION_CHANGED {",
                 "display_id: ", e.display_id,
                 "orientation: ", static_cast<int>(e.display_orientation_changed.orientation),
-                "}"
+                " }"
             );
             break;
         }
@@ -286,7 +286,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_DESKTOP_MODE_CHANGED {",
                 "display_id: ", e.display_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -295,7 +295,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_CURRENT_MODE_CHANGED {",
                 "display_id: ", e.display_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -304,8 +304,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_CONTENT_SCALE_CHANGED {",
                 "display_id: ", e.display_id,
-                "scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, "}",
-                "}"
+                "scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, " }",
+                " }"
             );
             break;
         }
@@ -316,7 +316,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_SHOWN {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -325,7 +325,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_HIDDEN {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -334,8 +334,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MOVED {",
                 "window_id: ", e.window_id,
-                "position: {", e.window_moved.x, ", ", e.window_moved.y, "}",
-                "}"
+                "position: {", e.window_moved.x, ", ", e.window_moved.y, " }",
+                " }"
             );
             break;
         }
@@ -344,8 +344,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_RESIZED {",
                 "window_id: ", e.window_id,
-                "size: {", e.window_resized.w, ", ", e.window_resized.h, "}",
-                "}"
+                "size: {", e.window_resized.w, ", ", e.window_resized.h, " }",
+                " }"
             );
             break;
         }
@@ -354,7 +354,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MINIMIZED {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -363,7 +363,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MAXIMIZED {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -372,7 +372,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_RESTORED {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -381,7 +381,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_ENTER_FULLSCREEN {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -390,7 +390,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_LEAVE_FULLSCREEN {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -399,7 +399,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_GAINED_FOCUS {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -408,7 +408,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_LOST_FOCUS {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -423,7 +423,7 @@ static void log_event(const event& e)
                 "WINDOW_DISPLAY_CHANGED {",
                 "window_id: ", e.window_id,
                 "display_id: ", e.display_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -436,7 +436,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_CLOSE_REQUESTED {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
@@ -445,7 +445,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_DESTROYED {",
                 "window_id: ", e.window_id,
-                "}"
+                " }"
             );
             break;
         }
