@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/app/owner_ptr.hpp"
 #include "vertex/app/device_id.hpp"
 #include "vertex/math/rect.hpp"
 #include "vertex/pixel/pixel_format.hpp"
@@ -83,7 +84,7 @@ private:
     mutable device_id m_display_id;     // the display that this mode is associated with
 
     friend _priv::display_mode_impl;
-    std::shared_ptr<_priv::display_mode_impl> m_impl;
+    std::shared_ptr<_priv::display_mode_impl> m_impl; // is shared ptr the right move here?
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -117,7 +118,7 @@ enum class display_orientation
 
 class display
 {
-public:
+private:
 
     VX_API display();
     VX_API ~display();
@@ -167,9 +168,12 @@ private:
     display_orientation m_orientation;
     math::vec2 m_content_scale;
 
+    device_id m_fullscreen_window_id;
+
 private:
 
     friend _priv::video_internal;
+    friend owner_ptr<display>;
 
     friend _priv::display_impl;
     std::unique_ptr<_priv::display_impl> m_impl;
@@ -205,7 +209,7 @@ struct window_config
 };
 
 VX_API window* create_window(const window_config& config);
-VX_API void destroy_window(window* w);
+VX_API void destroy_window(window& w);
 VX_API window* get_window(device_id id);
 
 VX_API size_t window_count();

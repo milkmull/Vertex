@@ -1,5 +1,4 @@
-#include "vertex_impl/app/video/_platform/windows/windows_video.hpp"
-#include "vertex_impl/app/event/_platform/windows/windows_event.hpp"
+#include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
 #include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
@@ -172,7 +171,7 @@ static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 
     WNDCLASSW wc{};
     wc.style = style;
-    wc.lpfnWndProc = event::window_proc;
+    wc.lpfnWndProc = _priv::window_impl::window_proc;
     wc.hInstance = hInstance; // needed for dll
     wc.hIcon = NULL;
     wc.hCursor = NULL;
@@ -490,12 +489,12 @@ struct poll_display_data
 {
     size_t index; // track the index of the displays we add to our list
     bool find_primary;
-    std::vector<std::unique_ptr<video::display>>* displays;
+    std::vector<owner_ptr<video::display>>* displays;
 };
 
 bool _priv::display_impl::create_display(
     size_t index,
-    std::vector<std::unique_ptr<display>>& displays,
+    std::vector<owner_ptr<display>>& displays,
     HMONITOR hMonitor,
     const MONITORINFOEX* info
 )
@@ -518,7 +517,7 @@ bool _priv::display_impl::create_display(
     for (size_t i = 0; i < displays.size(); ++i)
     {
         display* d = displays[i].get();
-        _priv::display_impl* d_impl = manager::get_impl(*d);
+        _priv::display_impl* d_impl = video_internal::get_impl(*d);
 
         if (d_impl->device_name == info->szDevice)
         {
@@ -554,11 +553,11 @@ bool _priv::display_impl::create_display(
                 {
                     // moved
                     d_impl->last_bounds = current_bounds;
-                    _priv::video_internal::post_display_moved(d);
+                    video_internal::post_display_moved(*d);
                 }
 
-                _priv::video_internal::post_display_orientation_changed(d, current_orientation);
-                _priv::video_internal::post_display_content_scale_changed(d, current_content_scale);
+                video_internal::post_display_orientation_changed(*d, current_orientation);
+                video_internal::post_display_content_scale_changed(*d, current_content_scale);
             }
 
             found = true;
@@ -568,9 +567,9 @@ bool _priv::display_impl::create_display(
 
     if (!found)
     {
-        displays.emplace_back(std::make_unique<display>());
+        displays.emplace_back(new display);
         display* d = displays.back().get();
-        _priv::display_impl* d_impl = manager::get_impl(*d);
+        _priv::display_impl* d_impl = video_internal::get_impl(*d);
 
         d_impl->handle = hMonitor;
         d_impl->device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
@@ -641,7 +640,7 @@ static void poll_displays_internal(poll_display_data& data, MONITORENUMPROC call
 
 // https://github.com/libsdl-org/SDL/blob/561c99ee1171f680088ff98c773de2efe94b0f5e/src/video/windows/SDL_windowsmodes.c#L887
 
-void update_displays_impl(std::vector<std::unique_ptr<display>>& displays)
+void update_displays_impl(std::vector<owner_ptr<display>>& displays)
 {
     poll_display_data data{};
     data.displays = &displays;
@@ -650,7 +649,7 @@ void update_displays_impl(std::vector<std::unique_ptr<display>>& displays)
     // entries that have actually been removed
     for (const auto& d : displays)
     {
-        manager::get_impl(*d)->state = display_state::REMOVED;
+        _priv::video_internal::get_impl(*d)->state = display_state::REMOVED;
     }
 
     // first locate the primary display
@@ -667,9 +666,9 @@ void update_displays_impl(std::vector<std::unique_ptr<display>>& displays)
     {
         const display& d = *(it->get());
 
-        if (manager::get_impl(d)->state == display_state::REMOVED)
+        if (_priv::video_internal::get_impl(d)->state == display_state::REMOVED)
         {
-            _priv::video_internal::post_display_removed(&d);
+            video_internal::post_display_removed(d);
             it = displays.erase(it);
         }
         else
@@ -681,9 +680,9 @@ void update_displays_impl(std::vector<std::unique_ptr<display>>& displays)
     // add new displays
     for (const auto& d : displays)
     {
-        if (manager::get_impl(*d.get())->state == display_state::ADDED)
+        if (_priv::video_internal::get_impl(*d.get())->state == display_state::ADDED)
         {
-            _priv::video_internal::post_display_added(d.get());
+            video_internal::post_display_added(*d);
         }
     }
 }

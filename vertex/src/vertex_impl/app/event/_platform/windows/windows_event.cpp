@@ -23,17 +23,6 @@ void wait_events_timeout_impl(unsigned int timeout_ms)
     pump_events_impl(false);
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// event process
-///////////////////////////////////////////////////////////////////////////////
-
-// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsevents.c#L1150C1-L1150C83
-
-LRESULT CALLBACK window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-{
-    return CallWindowProc(DefWindowProc, hWnd, Msg, wParam, lParam);
-}
-
 } // namespace event
 } // namespace app
 } // namespace vx

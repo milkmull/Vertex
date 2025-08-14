@@ -54,3 +54,43 @@ enum MONITOR_DPI_TYPE
     MDT_RAW_DPI = 2,
     MDT_DEFAULT
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// DWM support
+///////////////////////////////////////////////////////////////////////////////
+
+// https://learn.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+
+// Dark mode
+#if !defined(DWMWA_USE_IMMERSIVE_DARK_MODE)
+#   define DWMWA_USE_IMMERSIVE_DARK_MODE 20
+#endif
+
+// Corner rounding (Win 11+)
+#if !defined(DWMWA_WINDOW_CORNER_PREFERENCE) 
+#   define DWMWA_WINDOW_CORNER_PREFERENCE 33
+#endif
+
+enum DWM_WINDOW_CORNER_PREFERENCE
+{
+    DWMWCP_DEFAULT = 0,
+    DWMWCP_DONOTROUND = 1,
+    DWMWCP_ROUND = 2,
+    DWMWCP_ROUNDSMALL = 3
+};
+
+// Border Color support (Win 11+)
+#if !defined(DWMWA_BORDER_COLOR)
+#   define DWMWA_BORDER_COLOR 34
+#endif
+
+#if !defined(DWMWA_COLOR_DEFAULT)
+#   define DWMWA_COLOR_DEFAULT 0xFFFFFFFF
+#endif
+
+#if !defined(DWMWA_COLOR_NONE)
+#   define DWMWA_COLOR_NONE 0xFFFFFFFE
+#endif
+
+using DwmSetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+using DwmGetWindowAttribute_t = HRESULT(WINAPI*)(HWND hwnd, DWORD dwAttribute, PVOID pvAttribute, DWORD cbAttribute);

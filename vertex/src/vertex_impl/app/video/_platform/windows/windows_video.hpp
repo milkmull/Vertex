@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex_impl/app/_platform/windows/windows_header.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
+#include "vertex_impl/app/_platform/windows/windows_header.hpp"
 #include "vertex/os/shared_library.hpp"
 
 namespace vx {
@@ -61,6 +61,20 @@ process_dpi_awareness get_dpi_awareness_impl();
 system_theme get_system_theme_impl();
 
 ///////////////////////////////////////////////////////////////////////////////
+// capabilities
+///////////////////////////////////////////////////////////////////////////////
+
+inline constexpr capabilities get_capabilities() noexcept
+{
+    return capabilities::SENDS_DISPLAY_CHANGES;
+}
+
+inline constexpr bool has_capabilities(capabilities caps) noexcept
+{
+    return get_capabilities() & caps;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // display_mode_impl
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -75,19 +89,14 @@ public:
 // display polling
 ///////////////////////////////////////////////////////////////////////////////
 
-struct display_state
+enum class display_state
 {
-    using type = uint8_t;
-
-    enum : type
-    {
-        NONE    = 0,
-        ADDED   = (1 << 0),
-        REMOVED = (1 << 1)
-    };
+    NONE    = 0,
+    ADDED   = (1 << 0),
+    REMOVED = (1 << 1)
 };
 
-void update_displays_impl(std::vector<std::unique_ptr<display>>& displays);
+void update_displays_impl(std::vector<owner_ptr<display>>& displays);
 
 ///////////////////////////////////////////////////////////////////////////////
 // display_impl
@@ -99,7 +108,7 @@ public:
 
     static bool create_display(
         size_t index,
-        std::vector<std::unique_ptr<display>>& displays,
+        std::vector<owner_ptr<display>>& displays,
         HMONITOR hMonitor,
         const MONITORINFOEX* info
     );
@@ -117,7 +126,7 @@ public:
 
     HMONITOR handle = NULL;
     std::wstring device_name;
-    display_state::type state = display_state::NONE;
+    display_state state = display_state::NONE;
     math::recti last_bounds;
 };
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex/app/video/video.hpp"
-#include "vertex_impl/app/video/_platform/video.hpp"
+#include "vertex/app/video/window.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -12,7 +12,7 @@ namespace video {
 // helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VX_SET_VIDEO_NOT_INIT_ERROR() err::set(err::UNSUPPORTED_OPERATION, "Video subsystem has not been initialized")
+#define VX_SET_VIDEO_NOT_INIT_ERROR() err::set(err::UNSUPPORTED_OPERATION, "Video subsystem not initialized")
 
 ///////////////////////////////////////
 
@@ -35,6 +35,21 @@ do \
 #define VX_CHECK_IMPL() VX_ASSERT(m_impl)
 
 ///////////////////////////////////////////////////////////////////////////////
+// video capabilities
+///////////////////////////////////////////////////////////////////////////////
+
+enum capabilities
+{
+    NONE                            = 0,
+    MODE_SWITCHING_EMULATED         = (1 << 0),
+    SENDS_FULLSCREEN_DIMENSIONS     = (1 << 1),
+    IS_FULLSCREEN_ONLY              = (1 << 2),
+    SENDS_DISPLAY_CHANGES           = (1 << 3),
+    DISABLE_FULLSCREEN_MOUSE_WARP   = (1 << 4),
+    SENDS_HDR_CHANGES               = (1 << 5)
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // video data
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -42,8 +57,10 @@ struct video_data
 {
     bool is_init = false;
 
-    std::vector<std::unique_ptr<display>> displays;
+    std::vector<owner_ptr<display>> displays;
     bool setting_display_mode = false;
+
+    std::vector<owner_ptr<window>> windows;
 };
 
 extern video_data s_video_data;
@@ -64,6 +81,9 @@ public:
     // impl helpers
     ///////////////////////////////////////////////////////////////////////////////
 
+    template <typename T>
+    static T* create() { return new T; }
+
     // Call the private constructor of a video type
     template <typename T>
     static T construct() { return T{}; }
@@ -80,22 +100,48 @@ public:
     static const auto* get_impl(const T& x) { return x.m_impl.get(); }
 
     ///////////////////////////////////////////////////////////////////////////////
-    // display events
+    // window helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    static bool post_display_added(const display* d);
+    static window* create_window(const window_config& config);
+    static void destroy_window(window& w);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // event_handler
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static bool post_display_added(const display& d);
     static void on_display_added();
 
-    static bool post_display_removed(const display* d);
-    static bool post_display_moved(const display* d);
-    static bool post_display_orientation_changed(display* d, display_orientation orientation);
-    static bool post_display_desktop_mode_changed(display* d, const display_mode& mode);
-    static bool post_display_current_mode_changed(display* d, const display_mode& mode);
-    static bool post_display_content_scale_changed(display* d, const math::vec2& content_scale);
+    static bool post_display_removed(const display& d);
+    static bool post_display_moved(const display& d);
+    static bool post_display_orientation_changed(display& d, display_orientation orientation);
+    static bool post_display_desktop_mode_changed(display& d, const display_mode& mode);
+    static bool post_display_current_mode_changed(display& d, const display_mode& mode);
+    static bool post_display_content_scale_changed(display& d, const math::vec2& content_scale);
 
+    ///////////////////////////////////////////////////////////////////////////////
+    // id getters
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static device_id get_display_id(const display& d);
+    static device_id get_window_id(const window& w);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // window display helpers
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static void check_window_display_changed(window& w);
+    static display* find_display_with_fullscreen_window(const window& w);
+    
+    static device_id get_display_fullscreen_window_id(const display& d);
+    static void set_display_fullscreen_window_id(display& d, device_id id);
+    static void clear_display_fullscreen_window_id(display& d);
+
+    static void clear_display_mode_display_id(display_mode& dm);
 };
 
-using manager = _priv::video_internal;
+using video_internal = _priv::video_internal;
 
 } // namespace video
 } // namespace app

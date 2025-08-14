@@ -1,25 +1,19 @@
 #pragma once
 
-#include "video.h"
-#include "vertex/image/image.h"
+#include "vertex/app/video/video.hpp"
+#include "vertex/pixel/surface.hpp"
 
 namespace vx {
 namespace app {
+namespace video {
 
-class video::window
+class window
 {
 private:
 
-    class window_impl;
-
-private:
-
-    friend video;
-    friend window_impl;
-
-private:
-
-private:
+    ///////////////////////////////////////////////////////////////////////////////
+    // helper defs
+    ///////////////////////////////////////////////////////////////////////////////
 
     struct flags
     {
@@ -27,44 +21,41 @@ private:
 
         enum : type
         {
-            NONE = 0,
+            NONE            = 0,
 
-            FULLSCREEN = (1 << 0),
-            MINIMIZED = (1 << 1),
-            MAXIMIZED = (1 << 2),
+            FULLSCREEN      = (1 << 0),
+            MINIMIZED       = (1 << 1),
+            MAXIMIZED       = (1 << 2),
 
-            BORDERLESS = (1 << 3),
-            RESIZABLE = (1 << 4),
-            TOPMOST = (1 << 5),
+            BORDERLESS      = (1 << 3),
+            RESIZABLE       = (1 << 4),
+            TOPMOST         = (1 << 5),
 
-            HIDDEN = (1 << 6),
-            FOCUSSED = (1 << 7),
+            HIDDEN          = (1 << 6),
+            FOCUSSED        = (1 << 7),
 
-            MOUSE_GRABBED = (1 << 8),
-            MOUSE_CAPTURE = (1 << 9)
+            MOUSE_GRABBED   = (1 << 8),
+            MOUSE_CAPTURE   = (1 << 9)
         };
     };
 
-    struct window_rect_type
+    enum rect_type
     {
-        using type = uint32_t;
-
-        enum : type
-        {
-            INPUT = 0,
-            CURRENT,
-            WINDOWED,
-            FLOATING
-        };
+        INPUT = 0,
+        CURRENT,
+        WINDOWED,
+        FLOATING
     };
 
-public:
+private:
 
-    // these should be made private
+    ///////////////////////////////////////////////////////////////////////////////
+    // creation
+    ///////////////////////////////////////////////////////////////////////////////
 
     window();
     ~window();
-    
+
     window(const window&) = delete;
     window(window&&) noexcept;
 
@@ -123,17 +114,17 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
     // bordered
     ///////////////////////////////////////////////////////////////////////////////
-    
+
     void set_bordered(bool bordered);
     bool is_bordered() const;
-    
+
     ///////////////////////////////////////////////////////////////////////////////
     // always on top
     ///////////////////////////////////////////////////////////////////////////////
-    
+
     void set_always_on_top(bool always_on_top);
     bool is_always_on_top() const;
-    
+
     ///////////////////////////////////////////////////////////////////////////////
     // window operators
     ///////////////////////////////////////////////////////////////////////////////
@@ -163,44 +154,41 @@ public:
 
     void flash(flash_op operation);
 
-public:
-
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen
     ///////////////////////////////////////////////////////////////////////////////
+
+    bool is_fullscreen() const;
+    bool set_fullscreen(bool fullscreen);
 
     const display_mode* get_fullscreen_mode() const;
     bool set_fullscreen_mode(const display_mode& mode);
 
 private:
 
-    struct fullscreen_op
+    enum fullscreen_op
     {
-        using type = uint32_t;
-
-        enum : type
-        {
-            LEAVE = 0,
-            ENTER = 1,
-            UPDATE
-        };
+        LEAVE = 0,
+        ENTER = 1,
+        UPDATE
     };
 
-    bool update_fullscreen_mode(fullscreen_op::type fullscreen, bool commit);
+    bool update_fullscreen_mode(fullscreen_op fullscreen, bool commit);
 
 public:
-
-    bool is_fullscreen() const;
-    bool set_fullscreen(bool fullscreen);
 
     ///////////////////////////////////////////////////////////////////////////////
     // icon
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_icon(const pixel::surface& surf);
+    bool set_icon(const pixel::surface_rgba8& surf);
     void clear_icon();
 
 private:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // member data
+    ///////////////////////////////////////////////////////////////////////////////
 
     device_id m_id;
 
@@ -245,7 +233,11 @@ private:
 
 private:
 
-    std::unique_ptr<window_impl> m_impl;
+    friend _priv::video_internal;
+    friend owner_ptr<window>;
+
+    friend _priv::window_impl;
+    std::shared_ptr<_priv::window_impl> m_impl;
 
 private:
 
@@ -281,14 +273,16 @@ private:
     //bool post_window_lost_focus();
     //bool post_window_mouse_enter();
     //bool post_window_mouse_leave();
+
     bool post_window_display_changed(const display& d);
     void on_window_display_changed(const display& d);
 
     //bool post_window_display_scale_changed();
+
     bool post_window_close_requested();
     bool post_window_destroyed();
-
 };
 
-}
-}
+} // namespace video
+} // namespace app
+} // namespace vx
