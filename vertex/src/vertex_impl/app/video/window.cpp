@@ -1,4 +1,4 @@
-#include "vertex_impl/app/video/_platform/window.hpp"
+#include "vertex_impl/app/video/_platform/platform_window.hpp"
 #include "vertex/app/event/event.hpp"
 
 namespace vx {

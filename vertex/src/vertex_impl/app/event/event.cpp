@@ -1,4 +1,4 @@
-#include "vertex_impl/app/event/_platform/event.hpp"
+#include "vertex_impl/app/event/_platform/platform_event.hpp"
 #include "vertex/os/mutex.hpp"
 
 #define VX_APP_LOG_EVENTS 1

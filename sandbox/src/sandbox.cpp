@@ -18,6 +18,7 @@ int main(int argc, char* argv[])
         wcfg.resizable = true;
 
         auto* window = app::video::create_window(wcfg);
+
         if (window)
         {
             bool running = true;

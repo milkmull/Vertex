@@ -5,7 +5,7 @@
 
 file(GLOB VX_APP_EVENT_SOURCE_FILES
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/event.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_event.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/event.cpp"
 )
 

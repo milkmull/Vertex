@@ -5,11 +5,11 @@
 # Source files for vertex/vertex_impl/app/video
 file(GLOB VX_APP_VIDEO_SOURCE_FILES
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/video.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_video.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/video_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/video.cpp"
     
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_window.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/window.cpp"
 )
 

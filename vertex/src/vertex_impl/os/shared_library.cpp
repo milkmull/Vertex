@@ -1,4 +1,4 @@
-#include "vertex_impl/os/_platform/shared_library.hpp"
+#include "vertex_impl/os/_platform/platform_shared_library.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {

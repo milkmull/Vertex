@@ -140,8 +140,6 @@ public:
     VX_API math::recti get_bounds() const;
     VX_API math::recti get_work_area() const;
 
-public:
-
     VX_API const display_mode& get_desktop_mode() const;
     VX_API const display_mode& get_current_mode() const;
 
