@@ -84,7 +84,7 @@ private:
     mutable device_id m_display_id;     // the display that this mode is associated with
 
     friend _priv::display_mode_impl;
-    std::shared_ptr<_priv::display_mode_impl> m_impl; // is shared ptr the right move here?
+    std::shared_ptr<_priv::display_mode_impl> m_impl;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,15 +93,15 @@ private:
 
 VX_API void update_displays();
 
-VX_API display* get_display(device_id id);
-VX_API display* get_primary_display();
+VX_API display* const get_display(device_id id);
+VX_API display* const get_primary_display();
 
 VX_API size_t display_count();
-VX_API display* enum_displays(size_t i);
+VX_API display* const enum_displays(size_t i);
 
-VX_API display* get_display_for_point(const math::vec2i& p);
-VX_API display* get_display_for_rect(const math::recti& rect);
-VX_API display* get_display_for_window(const window* w);
+VX_API display* const get_display_for_point(const math::vec2i& p);
+VX_API display* const get_display_for_rect(const math::recti& rect);
+VX_API display* const get_display_for_window(const window& w);
 
 VX_API math::recti get_desktop_area();
 
@@ -139,10 +139,6 @@ public:
 
     VX_API math::recti get_bounds() const;
     VX_API math::recti get_work_area() const;
-
-private:
-
-    void update_modes() const;
 
 public:
 
@@ -208,12 +204,12 @@ struct window_config
     bool mouse_capture = false;
 };
 
-VX_API window* create_window(const window_config& config);
+VX_API window* const create_window(const window_config& config);
 VX_API void destroy_window(window& w);
-VX_API window* get_window(device_id id);
+VX_API window* const get_window(device_id id);
 
 VX_API size_t window_count();
-VX_API window* enum_windows(size_t i);
+VX_API window* const enum_windows(size_t i);
 
 } // namespace video
 } // namespace app

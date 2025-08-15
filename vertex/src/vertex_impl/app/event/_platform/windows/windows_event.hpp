@@ -5,6 +5,10 @@
 #include "vertex/app/event/event.hpp"
 #include "vertex_impl/app/_platform/windows/windows_header.hpp"
 
+#if defined(MOUSE_MOVED)
+#   undef MOUSE_MOVED
+#endif
+
 namespace vx {
 namespace app {
 namespace event {

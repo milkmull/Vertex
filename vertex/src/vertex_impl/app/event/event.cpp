@@ -1,4 +1,4 @@
-#include "vertex/app/event/event.hpp"
+#include "vertex_impl/app/event/_platform/event.hpp"
 #include "vertex/os/mutex.hpp"
 
 #define VX_APP_LOG_EVENTS 1
@@ -55,7 +55,7 @@ static void ensure_capacity(size_t new_capacity)
 
 VX_API void pump_events(bool process_all)
 {
-    //event_impl::pump_events(process_all);
+    pump_events_impl(process_all);
 }
 
 enum
@@ -248,7 +248,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_ADDED {",
-                "display_id: ", e.display_id,
+                " display_id: ", e.display_id,
                 " }"
             );
             break;
@@ -266,7 +266,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_MOVED {",
-                "display_id: ", e.display_id,
+                " display_id: ", e.display_id,
                 " }"
             );
             break;
@@ -275,8 +275,8 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_ORIENTATION_CHANGED {",
-                "display_id: ", e.display_id,
-                "orientation: ", static_cast<int>(e.display_orientation_changed.orientation),
+                " display_id: ", e.display_id, ',',
+                " orientation: ", static_cast<int>(e.display_orientation_changed.orientation),
                 " }"
             );
             break;
@@ -285,7 +285,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_DESKTOP_MODE_CHANGED {",
-                "display_id: ", e.display_id,
+                " display_id: ", e.display_id,
                 " }"
             );
             break;
@@ -294,7 +294,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_CURRENT_MODE_CHANGED {",
-                "display_id: ", e.display_id,
+                " display_id: ", e.display_id,
                 " }"
             );
             break;
@@ -303,8 +303,8 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_CONTENT_SCALE_CHANGED {",
-                "display_id: ", e.display_id,
-                "scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, " }",
+                " display_id: ", e.display_id, ',',
+                " scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, " }",
                 " }"
             );
             break;
@@ -315,7 +315,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_SHOWN {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -324,7 +324,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_HIDDEN {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -333,8 +333,8 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MOVED {",
-                "window_id: ", e.window_id,
-                "position: {", e.window_moved.x, ", ", e.window_moved.y, " }",
+                " window_id: ", e.window_id,
+                " position: {", e.window_moved.x, ", ", e.window_moved.y, " }",
                 " }"
             );
             break;
@@ -343,8 +343,8 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_RESIZED {",
-                "window_id: ", e.window_id,
-                "size: {", e.window_resized.w, ", ", e.window_resized.h, " }",
+                " window_id: ", e.window_id, ',',
+                " size: {", e.window_resized.w, ", ", e.window_resized.h, " }",
                 " }"
             );
             break;
@@ -353,7 +353,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MINIMIZED {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -362,7 +362,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MAXIMIZED {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -371,7 +371,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_RESTORED {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -380,7 +380,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_ENTER_FULLSCREEN {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -389,7 +389,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_LEAVE_FULLSCREEN {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -398,7 +398,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_GAINED_FOCUS {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -407,7 +407,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_LOST_FOCUS {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -421,8 +421,8 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_DISPLAY_CHANGED {",
-                "window_id: ", e.window_id,
-                "display_id: ", e.display_id,
+                " window_id: ", e.window_id, ',',
+                " display_id: ", e.window_display_changed.display_id,
                 " }"
             );
             break;
@@ -435,7 +435,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_CLOSE_REQUESTED {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;
@@ -444,7 +444,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_DESTROYED {",
-                "window_id: ", e.window_id,
+                " window_id: ", e.window_id,
                 " }"
             );
             break;

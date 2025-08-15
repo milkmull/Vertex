@@ -78,36 +78,79 @@ class _priv::video_internal
 public:
 
     ///////////////////////////////////////////////////////////////////////////////
-    // impl helpers
+    // video
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename T>
-    static T* create() { return new T; }
-
-    // Call the private constructor of a video type
-    template <typename T>
-    static T construct() { return T{}; }
-
-    template <typename T>
-    static auto create_impl() { return std::make_unique<T>(); }
-
-    // Access private implementation details of a video type
-    template <typename T>
-    static auto* get_impl(T& x) { return x.m_impl.get(); }
-
-    // Access private implementation details of a video type
-    template <typename T>
-    static const auto* get_impl(const T& x) { return x.m_impl.get(); }
+    static bool init();
+    static bool is_init();
+    static void quit();
 
     ///////////////////////////////////////////////////////////////////////////////
-    // window helpers
+    // dpi
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static process_dpi_awareness get_dpi_awareness();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // system theme
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static system_theme get_system_theme();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // display mode
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static void clear_display_mode_display_id(display_mode& dm);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // displays
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static void update_displays();
+
+    static display* get_display(device_id id);
+    static display* get_primary_display();
+
+    static size_t display_count();
+    static display* enum_displays(size_t i);
+
+    static display* get_display_for_point(const math::vec2i& p);
+    static display* get_display_for_rect(const math::recti& rect);
+    static display* get_display_for_window(const window& w);
+
+    static math::recti get_desktop_area();
+    static device_id get_display_id(const display& d);
+
+    static void init_display_modes(const display& d);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // windows
     ///////////////////////////////////////////////////////////////////////////////
 
     static window* create_window(const window_config& config);
     static void destroy_window(window& w);
+    static void destroy_windows();
+
+    static window* get_window(device_id id);
+    static device_id get_window_id(const window& w);
+
+    static size_t window_count();
+    static window* enum_windows(size_t i);
+
+    static void check_window_display_changed(window& w);
 
     ///////////////////////////////////////////////////////////////////////////////
-    // event_handler
+    // fullscreen helpers
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static device_id get_display_fullscreen_window_id(const display& d);
+    static void set_display_fullscreen_window_id(display& d, device_id id);
+    static void clear_display_fullscreen_window_id(display& d);
+    static display* find_display_with_fullscreen_window(const window& w);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // event handlers
     ///////////////////////////////////////////////////////////////////////////////
 
     static bool post_display_added(const display& d);
@@ -121,24 +164,23 @@ public:
     static bool post_display_content_scale_changed(display& d, const math::vec2& content_scale);
 
     ///////////////////////////////////////////////////////////////////////////////
-    // id getters
+    // impl helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    static device_id get_display_id(const display& d);
-    static device_id get_window_id(const window& w);
+    template <typename T>
+    static T* create() { return new T; }
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // window display helpers
-    ///////////////////////////////////////////////////////////////////////////////
+    template <typename T>
+    static T construct() { return T{}; }
 
-    static void check_window_display_changed(window& w);
-    static display* find_display_with_fullscreen_window(const window& w);
-    
-    static device_id get_display_fullscreen_window_id(const display& d);
-    static void set_display_fullscreen_window_id(display& d, device_id id);
-    static void clear_display_fullscreen_window_id(display& d);
+    template <typename T>
+    static auto create_impl() { return std::make_unique<T>(); }
 
-    static void clear_display_mode_display_id(display_mode& dm);
+    template <typename T>
+    static auto* get_impl(T& x) { return x.m_impl.get(); }
+
+    template <typename T>
+    static const auto* get_impl(const T& x) { return x.m_impl.get(); }
 };
 
 using video_internal = _priv::video_internal;

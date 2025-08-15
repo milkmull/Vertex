@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/app/video/window.hpp"
+#include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex_impl/app/video/_platform/windows/windows_video.hpp"
 
 namespace vx {

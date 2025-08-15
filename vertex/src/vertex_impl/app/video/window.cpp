@@ -179,7 +179,7 @@ bool window::create(const window_config& config)
         window_flags |= flags::FULLSCREEN;
     }
 
-    display = get_display_for_window(this);
+    display = get_display_for_window(*this);
     if (display)
     {
         m_last_display_id = display->id();
@@ -235,15 +235,6 @@ void window::destroy()
         hide();
     }
 
-    // Make sure no displays reference the window
-    //for (size_t i = 0; display* d = enum_displays(i); ++i)
-    //{
-    //    if (d->m_fullscreen_window_id == m_id)
-    //    {
-    //        d->m_fullscreen_window_id = 0;
-    //    }
-    //}
-
     // Kill focus
 
     if (m_impl)
@@ -255,7 +246,7 @@ void window::destroy()
 
 bool window::validate() const
 {
-    return m_id && m_impl && m_impl->validate();
+    return (m_id != INVALID_DEVICE_ID) && m_impl && m_impl->validate();
 }
 
 void window::apply_flags(flags::type new_flags)
@@ -346,7 +337,7 @@ math::vec2i window::get_position() const
     {
         // Fullscreen windows should always be at the origin
         // of their displays event when minimized or hidden.
-        const display* d = get_display_for_window(this);
+        const display* d = get_display_for_window(*this);
         if (d)
         {
             return d->get_bounds().position;
@@ -672,7 +663,7 @@ void window::flash(flash_op operation)
 
 const display_mode* window::get_fullscreen_mode() const
 {
-    const display* d = get_display_for_window(this);
+    const display* d = get_display_for_window(*this);
     const display_mode* mode = nullptr;
 
     if (d)
@@ -726,7 +717,7 @@ bool window::update_fullscreen_mode(fullscreen_op fullscreen, bool commit)
 
     if (fullscreen)
     {
-        d = get_display_for_window(this);
+        d = get_display_for_window(*this);
         if (!d)
         {
             // Should never happen
@@ -836,7 +827,7 @@ bool window::update_fullscreen_mode(fullscreen_op fullscreen, bool commit)
 
         if (commit)
         {
-            if (!m_impl->set_fullscreen(fullscreen_op::LEAVE, (d ? d : get_display_for_window(this))))
+            if (!m_impl->set_fullscreen(fullscreen_op::LEAVE, (d ? d : get_display_for_window(*this))))
             {
                 goto error;
             }
