@@ -16,6 +16,8 @@ endif()
 # Header files for vertex/vertex/app
 file(GLOB VX_APP_HEADER_FILES
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/app.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/device_id.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/owner_ptr.hpp"
     
@@ -29,6 +31,7 @@ target_sources(Vertex PRIVATE ${VX_APP_HEADER_FILES})
 # Modules
 #--------------------------------------------------------------------
 
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hints")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/event")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/input")
 

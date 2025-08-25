@@ -74,9 +74,13 @@ private:
 public:
 
     device_id id() const;
-    void sync();
 
-public:
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // sync
+    ///////////////////////////////////////////////////////////////////////////////
+
+    void sync();
 
     ///////////////////////////////////////////////////////////////////////////////
     // title
@@ -105,8 +109,8 @@ public:
     const math::vec2i& get_min_size() const;
     const math::vec2i& get_max_size() const;
 
-    void set_min_size(const math::vec2i& size);
-    void set_max_size(const math::vec2i& size);
+    bool set_min_size(const math::vec2i& size);
+    bool set_max_size(const math::vec2i& size);
 
     float get_aspect_ratio() const;
     void lock_aspect_ratio(float aspect_ratio);
@@ -161,7 +165,7 @@ public:
     bool is_fullscreen() const;
     bool set_fullscreen(bool fullscreen);
 
-    const display_mode* get_fullscreen_mode() const;
+    const display_mode& get_fullscreen_mode() const;
     bool set_fullscreen_mode(const display_mode& mode);
 
 private:
@@ -199,37 +203,70 @@ private:
     math::vec2i m_min_size, m_max_size;
     float m_locked_aspect;
 
-    // Position and size for a non-fullscreen window, including when
-    // maximized or tiled. Window should return to this size and position
-    // when leaving fullscreen.
+    // Position and size of the window in any windowed state.
+    // This includes maximized or tiled states, but excludes fullscreen.
+    // This is the position and size that the window should return to
+    // when leaving fullscreen state.
     math::recti m_windowed_rect;
 
-    // Position and size for a base window in 'floating' state. Floating
-    // state excludes maximized and fullscreen windows. Window should
-    // return to this size and position when being restored from a
-    // maximized state.
+    // Position and size of the window in a normal "floating" state
+    // (not maximized, fullscreen, or tiled). This is the position and
+    // size that the window should return to when restored.
     math::recti m_floating_rect;
+
+    // The most recently requested position and size of the window.
+    // This is a temporary holding value used after the front end requests
+    // a move or resize, but before the backend has applied the change.
+    // Once the backend confirms the new position and size, this rect is
+    // replaced by the actual window geometry.
+    math::recti m_pending_rect;
+
+    //  True if the frontend requested a move that has not yet been confirmed.
+    //  When true, GetPosition() should return m_pending_rect.x/y, because
+    //  the system may never explicitly confirm the new position.
+    //  (Some window managers do not reliably send move notifications.)
+    //
+    //  Why only for position:
+    //  - Position requests are best effort. Some systems ignore or adjust
+    //    them silently. Without exposing the pending value, the app would
+    //    have no way to know what it asked for.
+    bool m_last_position_pending;
+
+    //  True if the frontend requested a resize that has not yet been confirmed.
+    //  Unlike position, GetSize() should not return the pending size. It should
+    //  continue to return the true, confirmed size from the system.
+    //
+    //  Why the difference from position:
+    //  - Rendering backends (GL, Vulkan, D3D) require the true size of the
+    //    drawable surface. Returning a pending size here would desync the
+    //    rendering pipeline and cause invalid buffers or crashes.
+    //  - All major systems (Win32, X11, Wayland, Cocoa) send explicit resize
+    //    notifications, so we can trust the authoritative size will arrive.
+    //
+    //  Summary:
+    //  - Pending position may be returned, since confirmation is unreliable.
+    //  - Pending size is never returned, since confirmation is guaranteed
+    //    and rendering correctness depends on the real value.
+    bool m_last_size_pending;
 
     flags::type m_flags, m_pending_flags;
 
+    device_id m_pending_display_id;
     device_id m_last_display_id;
-    display_mode m_requested_fullscreen_mode, m_current_fullscreen_mode;
-    bool m_requested_fullscreen_mode_set;
-
-    bool m_fullscreen_exclusive;
     device_id m_last_fullscreen_exclusive_display_id;
 
-    //math::vec2 m_display_scale;
+    display_mode m_requested_fullscreen_mode;
+    display_mode m_current_fullscreen_mode;
+    bool m_fullscreen_exclusive;
+
+    float m_display_scale;
     float m_opacity;
 
     bool m_initializing;
     bool m_destroying;
-    bool m_repositioning;
     bool m_hiding;
 
     bool m_tiled;
-
-    bool m_sync_requested;
 
 private:
 

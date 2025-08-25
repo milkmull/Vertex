@@ -1,4 +1,5 @@
 #include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
+#include "vertex_impl/app/app_internal.hpp"
 
 namespace vx {
 namespace app {
@@ -32,7 +33,7 @@ LRESULT CALLBACK _priv::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wPa
         if (!win)
         {
             // If we have not yet gotten the WM_CREATE event, search for a match
-            for (auto& w : s_video_data.windows)
+            for (auto& w : s_video_data->windows)
             {
                 if (w && w->m_impl && w->m_impl->m_handle == hWnd)
                 {

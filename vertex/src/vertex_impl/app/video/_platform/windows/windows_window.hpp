@@ -70,7 +70,7 @@ public:
     void set_position_internal(UINT flags, window::rect_type rect_type);
 
     void set_position();
-    void set_size();
+    bool set_size();
 
     void get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const;
 

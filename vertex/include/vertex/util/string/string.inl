@@ -286,20 +286,43 @@ inline std::string title(const str_arg_t& s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// case_insensitive_compare
+// casecmp
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool case_insensitive_compare(const char c1, const char c2)
+inline bool casecmp(const char c1, const char c2)
 {
     return to_lower(c1) == to_lower(c2);
 }
 
-inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2)
+inline bool casecmp(const str_arg_t& s1, const str_arg_t& s2)
 {
     return (s1.size() == s2.size()) && std::equal(
         s1.begin(), s1.end(), s2.begin(),
-        static_cast<bool(*)(const char, const char)>(case_insensitive_compare)
+        static_cast<bool(*)(const char, const char)>(casecmp)
     );
+}
+
+inline bool casecmp(const char* s1, const char* s2)
+{
+    if (!s1 || !s2)
+    {
+        // both null -> equal, one null -> not equal
+        return s1 == s2;
+    }
+
+    while (*s1 && *s2)
+    {
+        if (to_lower(*s1) != to_lower(*s2))
+        {
+            return false;
+        }
+
+        ++s1;
+        ++s2;
+    }
+
+    // both must end at same time
+    return *s1 == *s2;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -672,107 +695,80 @@ inline std::string to_hex_string(const void* data, size_t size)
 
 inline int64_t to_int64(const std::string& s, size_t* count, int base)
 {
-    int64_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        err::set(err::INVALID_ARGUMENT, "base should be between 2 and 36");
-        return value;
-    }
-
-    try
-    {
-        value = static_cast<int64_t>(std::stoll(s, &i, base));
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
+    return to_int64(s.c_str(), count, base);
 }
 
 inline int32_t to_int32(const std::string& s, size_t* count, int base)
 {
-    return static_cast<int32_t>(to_int64(s, count, base));
+    return to_int32(s.c_str(), count, base);
 }
 
 inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
 {
-    uint64_t value = 0;
-    size_t i = 0;
-
-    if (base < 2 || base > 36)
-    {
-        err::set(err::INVALID_ARGUMENT, "base should be between 2 and 36");
-        return value;
-    }
-
-    try
-    {
-        value = static_cast<uint64_t>(std::stoull(s, &i, base));
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
+    return to_uint64(s.c_str(), count, base);
 }
 
 inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
 {
-    return static_cast<uint32_t>(to_uint64(s, count, base));
+    return to_uint32(s.c_str(), count, base);
 }
 
 inline double to_double(const std::string& s, size_t* count)
 {
-    double value = 0.0;
-    size_t i = 0;
-
-    try
-    {
-        value = std::stod(s, &i);
-    }
-    catch (const std::invalid_argument&)
-    {
-        VX_ERR(err::INVALID_ARGUMENT) << "invalid character: " << s[i];
-    }
-    catch (const std::out_of_range&)
-    {
-        err::set(err::OUT_OF_RANGE);
-    }
-
-    if (count)
-    {
-        *count = i;
-    }
-
-    return value;
+    return to_double(s.c_str(), count);
 }
 
 inline float to_float(const std::string& s, size_t* count)
 {
-    return static_cast<float>(to_double(s, count));
+    return to_float(s.c_str(), count);
+}
+
+inline int64_t to_int64(const char* s, size_t* count, int base)
+{
+    char* end = nullptr;
+    const auto value = std::strtoll(s, &end, base);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<int64_t>(value);
+}
+
+inline int32_t to_int32(const char* s, size_t* count, int base)
+{
+    char* end = nullptr;
+    const auto value = std::strtol(s, &end, base);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<int32_t>(value);
+}
+
+inline uint64_t to_uint64(const char* s, size_t* count, int base)
+{
+    char* end = nullptr;
+    const auto value = std::strtoull(s, &end, base);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<uint64_t>(value);
+}
+
+inline uint32_t to_uint32(const char* s, size_t* count, int base)
+{
+    char* end = nullptr;
+    const auto value = std::strtoul(s, &end, base);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<uint32_t>(value);
+}
+
+inline double to_double(const char* s, size_t* count)
+{
+    char* end = nullptr;
+    const auto value = std::strtod(s, &end);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<double>(value);
+}
+
+inline float to_float(const char* s, size_t* count)
+{
+    char* end = nullptr;
+    const auto value = std::strtof(s, &end);
+    if (count) *count = static_cast<size_t>(end - s);
+    return static_cast<float>(value);
 }
 
 } // namespace str

@@ -1,5 +1,6 @@
+#include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/event/_platform/platform_event.hpp"
-#include "vertex/os/mutex.hpp"
+#include "vertex_impl/app/app_internal.hpp"
 
 #define VX_APP_LOG_EVENTS 1
 
@@ -15,25 +16,27 @@ namespace event {
 static void log_event(const event&);
 #endif // VX_APP_LOG_EVENTS
 
-struct event_data
-{
-    os::mutex mutex;
-    std::vector<event> events;
-    size_t head = 0;           // read index
-    size_t tail = 0;           // write index
-    size_t count = 0;          // number of events in queue
-    event_process_callback process_callback = nullptr;
-};
+///////////////////////////////////////////////////////////////////////////////
+// initialization
+///////////////////////////////////////////////////////////////////////////////
 
-static event_data s_event_data;
+bool events_instance::init()
+{
+    return true;
+}
+
+void events_instance::quit()
+{
+
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // processing
 ///////////////////////////////////////////////////////////////////////////////
 
-static void ensure_capacity(size_t new_capacity)
+void events_instance::ring_buffer::ensure_capacity(size_t new_capacity)
 {
-    if (new_capacity <= s_event_data.events.size())
+    if (new_capacity <= events.size())
     {
         return;
     }
@@ -42,141 +45,171 @@ static void ensure_capacity(size_t new_capacity)
     std::vector<event> new_events(new_capacity);
 
     // copy old data in order
-    for (size_t i = 0; i < s_event_data.count; ++i)
+    for (size_t i = 0; i < count; ++i)
     {
-        const size_t j = (s_event_data.head + i) % s_event_data.events.size();
-        new_events[i] = s_event_data.events[j];
+        const size_t j = (head + i) % events.size();
+        new_events[i] = events[j];
     }
 
-    s_event_data.events.swap(new_events);
-    s_event_data.head = 0;
-    s_event_data.tail = s_event_data.count;
+    events.swap(new_events);
+    head = 0;
+    tail = count;
 }
+
+////////////////////////////////////////
 
 VX_API void pump_events(bool process_all)
 {
-    pump_events_impl(process_all);
+    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
+    s_events->pump_events(process_all);
 }
 
-enum
+void events_instance::pump_events(bool process_all)
 {
-    DEFAULT_EVENT_BUFFER_SIZE = 64,
-    DEFAULT_EVENT_BUFFER_GROW_FACTOR = 2
-};
+    events_instance_impl::pump_events(process_all);
+}
+
+////////////////////////////////////////
 
 VX_API bool post_event(const event& e)
 {
-#   if defined(VX_APP_LOG_EVENTS)
-        log_event(e);
-#   endif
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
+    return s_events->post_event(e);
+}
 
-    os::lock_guard<os::mutex> lock(s_event_data.mutex);
+bool events_instance::post_event(const event& e)
+{
+#if defined(VX_APP_LOG_EVENTS)
+    log_event(e);
+#endif
+
+    ring_buffer& buf = s_event_data->ring_buffer;
+    os::lock_guard<os::mutex> lock(buf.mutex);
 
     // grow if full
-    if (s_event_data.count == s_event_data.events.size())
+    if (buf.count == buf.events.size())
     {
-        const size_t new_capacity = s_event_data.events.empty() ? DEFAULT_EVENT_BUFFER_SIZE : s_event_data.events.size() * DEFAULT_EVENT_BUFFER_GROW_FACTOR;
-        ensure_capacity(new_capacity);
+        const size_t new_capacity = buf.events.empty() ? DEFAULT_EVENT_BUFFER_SIZE : buf.events.size() * DEFAULT_EVENT_BUFFER_GROW_FACTOR;
+        ensure_capacity(buf, new_capacity);
     }
 
-    s_event_data.events[s_event_data.tail] = e;
-    s_event_data.tail = (s_event_data.tail + 1) % s_event_data.events.size();
-    ++s_event_data.count;
+    buf.events[buf.tail] = e;
+    buf.tail = (buf.tail + 1) % buf.events.size();
+    ++buf.count;
 
     return true;
 }
 
+////////////////////////////////////////
+
 VX_API bool poll_event(event& e)
 {
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
     pump_events(false);
 
-    std::lock_guard<os::mutex> lock(s_event_data.mutex);
+    event_ring_buffer& buf = s_event_data->ring_buffer;
+    std::lock_guard<os::mutex> lock(buf.mutex);
 
-    if (s_event_data.count == 0)
+    if (buf.count == 0)
     {
         return false;
     }
 
     // If there are any events in the queue return the next one
-    e = s_event_data.events[s_event_data.head];
-    s_event_data.head = (s_event_data.head + 1) % s_event_data.events.size();
-    --s_event_data.count;
+    e = buf.events[buf.head];
+    buf.head = (buf.head + 1) % buf.events.size();
+    --buf.count;
 
     return true;
 }
 
+////////////////////////////////////////
+
 VX_API void wait_events()
 {
+    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
     //event_impl::wait_events();
 }
 
+////////////////////////////////////////
+
 VX_API void wait_events_timeout(unsigned int timeout_ms)
 {
+    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
     //event_impl::wait_events_timeout(timeout_ms);
 }
+
+////////////////////////////////////////
 
 static bool event_type_eq(const event& e, void* user_data)
 {
     return e.type == *static_cast<event_type*>(user_data);
 }
 
+////////////////////////////////////////
+
 VX_API size_t flush_events(event_type type)
 {
     return filter_events(event_type_eq, &type);
 }
 
+////////////////////////////////////////
+
 VX_API size_t filter_events(event_filter filter, void* user_data)
 {
-    os::lock_guard lock(s_event_data.mutex);
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(0);
+
+    event_ring_buffer& buf = s_event_data->ring_buffer;
+    os::lock_guard lock(buf.mutex);
 
     size_t removed = 0;
 
-    if (s_event_data.count == 0)
+    if (buf.count == 0)
     {
         return removed;
     }
 
     // Step 1: Skip initial block of filtered events
-    while (s_event_data.count > 0 && filter(s_event_data.events[s_event_data.head], user_data))
+    while (buf.count > 0 && filter(buf.events[buf.head], user_data))
     {
-        s_event_data.head = (s_event_data.head + 1) % s_event_data.events.size();
-        --s_event_data.count;
+        buf.head = (buf.head + 1) % buf.events.size();
+        --buf.count;
         ++removed;
     }
 
     // If everything was removed, we’re done
-    if (s_event_data.count == 0)
+    if (buf.count == 0)
     {
-        s_event_data.tail = s_event_data.head;
+        buf.tail = buf.head;
         return removed;
     }
 
     // Step 2: Compact remaining matching events in place
-    size_t copy_tail = s_event_data.head;
-    const size_t original_count = s_event_data.count; // after initial skip
+    size_t copy_tail = buf.head;
+    const size_t original_count = buf.count; // after initial skip
 
     for (size_t i = 0; i < original_count; ++i)
     {
-        const size_t j = (s_event_data.head + i) % s_event_data.events.size();
+        const size_t j = (buf.head + i) % buf.events.size();
 
-        if (filter(s_event_data.events[j], user_data))
+        if (filter(buf.events[j], user_data))
         {
             ++removed;
-            --s_event_data.count; // adjust count as we remove
+            --buf.count; // adjust count as we remove
         }
         else
         {
             if (copy_tail != j)
             {
-                s_event_data.events[copy_tail] = std::move(s_event_data.events[j]);
+                buf.events[copy_tail] = std::move(buf.events[j]);
             }
 
-            copy_tail = (copy_tail + 1) % s_event_data.events.size();
+            copy_tail = (copy_tail + 1) % buf.events.size();
         }
     }
 
     // set the tail to the new tail
-    s_event_data.tail = copy_tail;
+    buf.tail = copy_tail;
 
     return removed;
 }
@@ -187,7 +220,8 @@ VX_API size_t filter_events(event_filter filter, void* user_data)
 
 VX_API void set_event_process_callback(event_process_callback callback)
 {
-    s_event_data.process_callback = callback;
+    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
+    s_event_data->process_callback = callback;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -196,12 +230,15 @@ VX_API void set_event_process_callback(event_process_callback callback)
 
 VX_API bool has_event(event_type type)
 {
-    os::lock_guard lock(s_event_data.mutex);
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
 
-    for (size_t i = 0; i < s_event_data.count; ++i)
+    event_ring_buffer& buf = s_event_data->ring_buffer;
+    os::lock_guard lock(buf.mutex);
+
+    for (size_t i = 0; i < buf.count; ++i)
     {
-        const size_t j = (s_event_data.head + 1) % s_event_data.events.size();
-        if (s_event_data.events[j].type == type)
+        const size_t j = (buf.head + 1) % buf.events.size();
+        if (buf.events[j].type == type)
         {
             return true;
         }
@@ -210,20 +247,34 @@ VX_API bool has_event(event_type type)
     return false;
 }
 
+////////////////////////////////////////
+
 VX_API size_t event_count()
 {
-    return s_event_data.count;
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(0);
+    event_ring_buffer& buf = s_event_data->ring_buffer;
+    os::lock_guard lock(buf.mutex);
+    return buf.count;
 }
 
-VX_API const event* enum_events(size_t i)
+////////////////////////////////////////
+
+VX_API std::vector<event> get_events()
 {
-    if (i >= s_event_data.count)
+    std::vector<event> events;
+    VX_CHECK_EVENT_SUBSYSTEM_INIT(events);
+
+    event_ring_buffer& buf = s_event_data->ring_buffer;
+    os::lock_guard lock(buf.mutex);
+    events.resize(buf.count);
+
+    for (size_t i = 0; i < buf.count; ++i)
     {
-        return nullptr;
+        const size_t j = (buf.head + i) % buf.events.size();
+        events[i] = buf.events[j];
     }
 
-    const size_t j = (s_event_data.head + i) % s_event_data.events.size();
-    return &s_event_data.events[j];
+    return events;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

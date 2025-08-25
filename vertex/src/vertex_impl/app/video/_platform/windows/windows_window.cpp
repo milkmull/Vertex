@@ -362,7 +362,7 @@ void _priv::window_impl::set_position_internal(UINT flags, window::rect_type rec
     HWND top = (m_owner->m_flags & window::flags::TOPMOST) ? HWND_TOPMOST : HWND_NOTOPMOST;
 
     m_expected_resize = true;
-    const bool result = SetWindowPos(
+    const bool result = ::SetWindowPos(
         m_handle,
         top,
         rect.left, rect.top,
@@ -395,15 +395,17 @@ void _priv::window_impl::set_position()
     }
 }
 
-void _priv::window_impl::set_size()
+bool _priv::window_impl::set_size()
 {
     if (!(m_owner->m_flags & (window::flags::FULLSCREEN | window::flags::MAXIMIZED)))
     {
         set_position_internal(SWP_NOMOVE | SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOACTIVATE, window::rect_type::FLOATING);
+        return true;
     }
     else
     {
         m_floating_rect_pending = true;
+        return false;
     }
 }
 

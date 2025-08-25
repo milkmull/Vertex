@@ -1,5 +1,8 @@
 #pragma once
 
+#include <cstddef>
+#include <utility>
+
 namespace vx {
 namespace mem {
 
@@ -52,6 +55,22 @@ public:
             m_ptr = ptr;
         }
     }
+
+public:
+
+    friend bool operator==(const friend_unique_ptr& p, std::nullptr_t) noexcept { return p.get() == nullptr; }
+    friend bool operator!=(const friend_unique_ptr& p, std::nullptr_t) noexcept { return p.get() != nullptr; }
+
+    friend bool operator==(std::nullptr_t, const friend_unique_ptr& p) noexcept { return p.get() == nullptr; }
+    friend bool operator!=(std::nullptr_t, const friend_unique_ptr& p) noexcept { return p.get() != nullptr; }
+
+public:
+
+    friend bool operator==(const friend_unique_ptr& p, T* ptr) noexcept { return p.get() == ptr; }
+    friend bool operator!=(const friend_unique_ptr& p, T* ptr) noexcept { return p.get() != ptr; }
+
+    friend bool operator==(T* ptr, const friend_unique_ptr& p) noexcept { return p.get() == ptr; }
+    friend bool operator!=(T* ptr, const friend_unique_ptr& p) noexcept { return p.get() != ptr; }
 
 private:
 

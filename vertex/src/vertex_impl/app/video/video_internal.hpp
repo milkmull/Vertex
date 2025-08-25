@@ -53,17 +53,17 @@ enum capabilities
 // video data
 ///////////////////////////////////////////////////////////////////////////////
 
+struct video_impl_data;
+
 struct video_data
 {
-    bool is_init = false;
+    owner_ptr<video_impl_data> impl_data;
 
     std::vector<owner_ptr<display>> displays;
     bool setting_display_mode = false;
 
     std::vector<owner_ptr<window>> windows;
 };
-
-extern video_data s_video_data;
 
 ///////////////////////////////////////////////////////////////////////////////
 // video_internal
@@ -109,6 +109,7 @@ public:
 
     static void update_displays();
 
+    static std::vector<device_id> get_display_ids();
     static display* get_display(device_id id);
     static display* get_primary_display();
 
@@ -117,6 +118,7 @@ public:
 
     static display* get_display_for_point(const math::vec2i& p);
     static display* get_display_for_rect(const math::recti& rect);
+    static display* get_display_at_origin(const math::vec2i& o);
     static display* get_display_for_window(const window& w);
 
     static math::recti get_desktop_area();
@@ -132,6 +134,7 @@ public:
     static void destroy_window(window& w);
     static void destroy_windows();
 
+    static std::vector<device_id> get_window_ids();
     static window* get_window(device_id id);
     static device_id get_window_id(const window& w);
 

@@ -1,4 +1,5 @@
 #include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
+#include "vertex_impl/app/app_internal.hpp"
 #include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
@@ -546,7 +547,7 @@ bool _priv::display_impl::create_display(
             d_impl->handle = hMonitor;
             d_impl->state = display_state::NONE;
 
-            if (!s_video_data.setting_display_mode)
+            if (!s_video_data->setting_display_mode)
             {
                 const math::recti current_bounds = d->get_bounds();
                 if (moved || d->get_bounds() != d_impl->last_bounds)

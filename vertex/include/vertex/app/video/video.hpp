@@ -120,11 +120,11 @@ class display
 {
 private:
 
-    VX_API display();
-    VX_API ~display();
+    display();
+    ~display();
 
-    VX_API display(display&&) noexcept;
-    VX_API display& operator=(display&&) noexcept;
+    display(display&&) noexcept;
+    display& operator=(display&&) noexcept;
 
     display(const display&) = delete;
     display& operator=(const display&) = delete;
@@ -185,6 +185,7 @@ struct window_config
 
     float opacity = 1.0f;
 
+    device_id display_id = INVALID_DEVICE_ID;
     bool center_on_display = false;
 
     bool minimized = false;

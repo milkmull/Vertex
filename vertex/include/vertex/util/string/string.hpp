@@ -376,7 +376,7 @@ inline std::string to_upper(const str_arg_t& s);
 inline std::string title(const str_arg_t& s);
 
 ///////////////////////////////////////////////////////////////////////////////
-// case_insensitive_compare
+// casecmp
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -388,7 +388,7 @@ inline std::string title(const str_arg_t& s);
  * @param c2 The second character to compare.
  * @return True if `c1` and `c2` are equal ignoring case, false otherwise.
  */
-inline bool case_insensitive_compare(const char c1, const char c2);
+inline bool casecmp(const char c1, const char c2);
 
 /**
  * @brief Compares two strings for equality in a case-insensitive manner.
@@ -399,7 +399,18 @@ inline bool case_insensitive_compare(const char c1, const char c2);
  * @param s2 The second string to compare.
  * @return True if `s1` and `s2` are equal ignoring case, false otherwise.
  */
-inline bool case_insensitive_compare(const str_arg_t& s1, const str_arg_t& s2);
+inline bool casecmp(const str_arg_t& s1, const str_arg_t& s2);
+
+/**
+ * @brief Compares two strings for equality in a case-insensitive manner.
+ *
+ * This function compares two strings `s1` and `s2` for equality, ignoring case differences.
+ *
+ * @param s1 The first string to compare.
+ * @param s2 The second string to compare.
+ * @return True if `s1` and `s2` are equal ignoring case, false otherwise.
+ */
+inline bool casecmp(const char* s1, const char* s2);
 
 ///////////////////////////////////////////////////////////////////////////////
 // strip
@@ -755,6 +766,13 @@ inline double to_double(const std::string& s, size_t* count = nullptr);
  * @return The converted float value. Returns 0.0f and sets an error on failure.
  */
 inline float to_float(const std::string& s, size_t* count = nullptr);
+
+inline int64_t to_int64(const char* s, size_t* count = nullptr, int base = 10);
+inline int32_t to_int32(const char* s, size_t* count = nullptr, int base = 10);
+inline uint64_t to_uint64(const char* s, size_t* count = nullptr, int base = 10);
+inline uint32_t to_uint32(const char* s, size_t* count = nullptr, int base = 10);
+inline double to_double(const char* s, size_t* count = nullptr);
+inline float to_float(const char* s, size_t* count = nullptr);
 
 } // namespace str
 } // namespace vx

@@ -115,6 +115,9 @@ public:
         return static_cast<math::color>(operator*());
     }
 
+    size_t x() const noexcept { return m_x; }
+    size_t y() const noexcept { return m_y; }
+
     math::vec2i position() const noexcept
     {
         return math::vec2i(m_x, m_y);
@@ -257,6 +260,9 @@ public:
     {
         return static_cast<math::color>(operator*());
     }
+
+    size_t x() const noexcept { return m_x; }
+    size_t y() const noexcept { return m_y; }
 
     math::vec2i position() const noexcept
     {
