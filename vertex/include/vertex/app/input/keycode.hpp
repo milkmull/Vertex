@@ -2,6 +2,7 @@
 
 #include <cstdint>
 
+#include "vertex/config/util.hpp"
 #include "vertex/app/input/scancode.hpp"
 
 namespace vx {
@@ -240,7 +241,7 @@ enum keycode : uint32_t
     KEY_RSHIFT                  = MAKE_KEYCODE(SCANCODE_RSHIFT),
     KEY_RALT                    = MAKE_KEYCODE(SCANCODE_RALT),
     KEY_RGUI                    = MAKE_KEYCODE(SCANCODE_RGUI),
-    MODE                    = MAKE_KEYCODE(SCANCODE_MODE),
+    KEY_MODE                    = MAKE_KEYCODE(SCANCODE_MODE),
     KEY_SLEEP                   = MAKE_KEYCODE(SCANCODE_SLEEP),
     KEY_WAKE                    = MAKE_KEYCODE(SCANCODE_WAKE),
     KEY_CHANNEL_INCREMENT       = MAKE_KEYCODE(SCANCODE_CHANNEL_INCREMENT),
@@ -287,32 +288,38 @@ enum keycode : uint32_t
 #undef MAKE_EXTENDED_KEYCODE
 #undef MAKE_KEYCODE
 
+#if defined(MOD_SHIFT)
+#   undef MOD_SHIFT
+#endif
+
+#if defined(MOD_ALT)
+#   undef MOD_ALT
+#endif
+
 enum key_mod : uint16_t
 {
-    MOD_NONE = 0,
+    MOD_NONE   = 0x0000,
 
-    MOD_LSHIFT = (1 << 1),
-    MOD_RSHIFT = (1 << 2),
-    MOD_LEVEL5 = (1 << 3),
-    MOD_SHIFT = (MOD_LSHIFT | MOD_RSHIFT),
+    MOD_LSHIFT = 0x0001,
+    MOD_RSHIFT = 0x0002,
+    MOD_SHIFT  = (MOD_LSHIFT | MOD_RSHIFT),
 
-    MOD_LCTRL = (1 << 4),
-    MOD_RCTRL = (1 << 5),
-    MOD_CTRL = (MOD_LCTRL | MOD_RCTRL),
+    MOD_LCTRL  = 0x0040,
+    MOD_RCTRL  = 0x0080,
+    MOD_CTRL   = (MOD_LCTRL | MOD_RCTRL),
 
-    MOD_LALT = (1 << 6),
-    MOD_RALT = (1 << 7),
-    MOD_ALT = (MOD_LALT | MOD_RALT),
+    MOD_LALT   = 0x0100,
+    MOD_RALT   = 0x0200,
+    MOD_ALT    = (MOD_LALT | MOD_RALT),
 
-    MOD_LGUI = (1 << 8),
-    MOD_RGUI = (1 << 9),
-    MOD_GUI = (MOD_LGUI | MOD_RGUI),
+    MOD_LGUI   = 0x0400,
+    MOD_RGUI   = 0x0800,
+    MOD_GUI    = (MOD_LGUI | MOD_RGUI),
 
-    MOD_NUM = (1 << 10),
-    MOD_CAPS = (1 << 11),
-
-    MOD_MODE = (1 << 12),
-    MOD_SCROLL = (1 << 13)
+    MOD_NUM    = 0x1000,
+    MOD_CAPS   = 0x2000,
+    MOD_MODE   = 0x4000,
+    MOD_SCROLL = 0x8000
 };
 
 } // namespace keyboard

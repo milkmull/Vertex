@@ -1,5 +1,6 @@
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
 #include "vertex/os/time.hpp"
+#include "vertex/os/shared_library.hpp"
 
 namespace vx {
 namespace os {
@@ -85,12 +86,118 @@ int64_t get_performance_frequency_impl() noexcept
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Delay
+// Sleep
 ///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/timer/windows/SDL_systimer.c
+
+// CREATE_WAITABLE_TIMER_HIGH_RESOLUTION flag was added in Windows 10 version 1803.
+#if !defined(CREATE_WAITABLE_TIMER_HIGH_RESOLUTION)
+#   define CREATE_WAITABLE_TIMER_HIGH_RESOLUTION 0x00000002
+#endif
+
+using CreateWaitableTimerExW_t = HANDLE(WINAPI*)(LPSECURITY_ATTRIBUTES lpTimerAttributes, LPCWSTR lpTimerName, DWORD dwFlags, DWORD dwDesiredAccess);
+using SetWaitableTimerEx_t = BOOL(WINAPI*)(HANDLE hTimer, const LARGE_INTEGER* lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, PREASON_CONTEXT WakeContext, ULONG TolerableDelay);
+
+struct waitable_timer_tools
+{
+    os::shared_library kernel32;
+    bool initialized = false;
+
+    CreateWaitableTimerExW_t CreateWaitableTimerExW = nullptr;
+    SetWaitableTimerEx_t SetWaitableTimerEx = nullptr;
+
+    bool available() const noexcept { return CreateWaitableTimerExW && SetWaitableTimerEx; }
+};
+
+static waitable_timer_tools s_wtt;
+
+static HANDLE get_waitable_timer()
+{
+    static thread_local os::handle stl_handle = NULL;
+
+    if (!s_wtt.initialized)
+    {
+        if (s_wtt.kernel32.load("kernel32.dll"))
+        {
+            s_wtt.CreateWaitableTimerExW = s_wtt.kernel32.get<CreateWaitableTimerExW_t>("CreateWaitableTimerExW_t");
+            s_wtt.SetWaitableTimerEx = s_wtt.kernel32.get<SetWaitableTimerEx_t>("SetWaitableTimerEx");
+
+            if (!s_wtt.available())
+            {
+                s_wtt.kernel32.free();
+            }
+        }
+
+        s_wtt.initialized = true;
+    }
+
+    if (s_wtt.available() && !stl_handle.is_valid())
+    {
+        stl_handle = s_wtt.CreateWaitableTimerExW(NULL, NULL, CREATE_WAITABLE_TIMER_HIGH_RESOLUTION, TIMER_ALL_ACCESS);
+    }
+
+    return stl_handle.get();
+}
+
+static HANDLE get_waitable_event()
+{
+    static thread_local os::handle stl_handle = NULL;
+
+    if (!stl_handle.is_valid())
+    {
+        stl_handle = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+    }
+
+    return stl_handle.get();
+}
+
+// Sleep implementation that chooses the most precise available method:
+//
+// 1. Prefer waitable timers (high precision on Win10+).
+// 2. If unavailable, fall back to WaitForSingleObjectEx on an event.
+// 3. Last resort, use ::Sleep (least precise, but always available).
 
 void sleep_impl(const time::time_point& t) noexcept
 {
-    ::Sleep(static_cast<DWORD>(t.as_milliseconds()));
+    const HANDLE timer = get_waitable_timer();
+    if (timer)
+    {
+        LARGE_INTEGER due_time{};
+
+        // Convert to negative 100-ns intervals (relative time).
+        // Clamp to avoid overflow if input duration is very large.
+        int64_t ns = t.as_nanoseconds();
+        if (ns / 100 > std::numeric_limits<LONGLONG>::max())
+        {
+            ns = std::numeric_limits<LONGLONG>::max() * 100;
+        }
+        due_time.QuadPart = -(static_cast<LONGLONG>(ns / 100));
+
+        if (s_wtt.SetWaitableTimerEx(timer, &due_time, 0, NULL, NULL, NULL, 0))
+        {
+            ::WaitForSingleObject(timer, INFINITE);
+        }
+
+        return;
+    }
+
+    int64_t ms = t.as_milliseconds();
+    if (ms > std::numeric_limits<DWORD>::max())
+    {
+        ms = std::numeric_limits<DWORD>::max();
+    }
+
+    const DWORD delay = static_cast<DWORD>(ms);
+
+    const HANDLE event = get_waitable_event();
+    if (event)
+    {
+        ::WaitForSingleObjectEx(event, delay, FALSE);
+        return;
+    }
+
+    ::Sleep(delay);
 }
 
 } // namespace os

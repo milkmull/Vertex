@@ -54,6 +54,10 @@ public:
      */
     constexpr bool is_zero() const noexcept { return m_count == 0; }
 
+    constexpr bool is_positive() const noexcept { return m_count > 0; }
+    constexpr bool is_negative() const noexcept { return m_count < 0; }
+
+
     /**
      * @brief Retrieves the time in nanoseconds.
      *
@@ -326,6 +330,11 @@ private:
 };
 
 // Factory functions for creating time_point from specific time units
+
+constexpr time_point zero() noexcept { return time_point(0); }
+
+constexpr time_point max() noexcept { return time_point(INT64_MAX); }
+constexpr time_point min() noexcept { return time_point(INT64_MIN); }
 
 /**
  * @brief Creates a time_point from nanoseconds.

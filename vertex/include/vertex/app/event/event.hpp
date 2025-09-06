@@ -1,9 +1,10 @@
 #pragma once
 
-#include "vertex/app/device_id.hpp"
+#include "vertex/app/id.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/input/mouse.hpp"
 #include "vertex/app/input/keyboard.hpp"
+#include "vertex/util/time.hpp"
 
 // https://www.glfw.org/docs/3.3/input_guide.html
 
@@ -31,7 +32,8 @@ enum event_category : uint32_t
     CATEGORY_FINGER,
     CATEGORY_PEN,
     CATEGORY_CLIPBOARD,
-    CATEGORY_DROP
+    CATEGORY_DROP,
+    CATEGORY_INTERNAL
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -93,6 +95,7 @@ inline constexpr uint32_t get_number(event_type_t type) noexcept
 // https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_events.h#L84
 
 #define EVENT_TYPE(name, cat, i) name = make_event(cat, i)
+#define EVENT_TYPE_USER(name, cat, i) name = make_event(cat, i, true)
 
 enum event_type : event_type_t
 {
@@ -100,13 +103,14 @@ enum event_type : event_type_t
     EVENT_TYPE(APP_EVENT_FIRST,                 CATEGORY_APP,       0),
     EVENT_TYPE(APP_QUIT,                        CATEGORY_APP,       1),
     EVENT_TYPE(APP_TERMINATING,                 CATEGORY_APP,       2),
-    EVENT_TYPE(APP_WILL_ENTER_BACKGROUND,       CATEGORY_APP,       3),
-    EVENT_TYPE(APP_DID_ENTER_BACKGROUND,        CATEGORY_APP,       4),
-    EVENT_TYPE(APP_WILL_ENTER_FOREGROUND,       CATEGORY_APP,       5),
-    EVENT_TYPE(APP_DID_ENTER_FOREGROUND,        CATEGORY_APP,       6),
-    EVENT_TYPE(APP_LOCALE_CHANGED,              CATEGORY_APP,       7),
-    EVENT_TYPE(APP_SYSTEM_THEME_CHANGED,        CATEGORY_APP,       8),
-    EVENT_TYPE(APP_EVENT_LAST,                  CATEGORY_APP,       9),
+    EVENT_TYPE(APP_LOW_MEMORY,                  CATEGORY_APP,       3),
+    EVENT_TYPE(APP_WILL_ENTER_BACKGROUND,       CATEGORY_APP,       4),
+    EVENT_TYPE(APP_DID_ENTER_BACKGROUND,        CATEGORY_APP,       5),
+    EVENT_TYPE(APP_WILL_ENTER_FOREGROUND,       CATEGORY_APP,       6),
+    EVENT_TYPE(APP_DID_ENTER_FOREGROUND,        CATEGORY_APP,       7),
+    EVENT_TYPE(APP_LOCALE_CHANGED,              CATEGORY_APP,       8),
+    EVENT_TYPE(APP_SYSTEM_THEME_CHANGED,        CATEGORY_APP,       9),
+    EVENT_TYPE(APP_EVENT_LAST,                  CATEGORY_APP,      10),
 
     // display events
     EVENT_TYPE(DISPLAY_EVENT_FIRST,             CATEGORY_DISPLAY,   0),
@@ -200,10 +204,15 @@ enum event_type : event_type_t
     EVENT_TYPE(DROP_BEGIN,                      CATEGORY_DROP,      3),
     EVENT_TYPE(DROP_END,                        CATEGORY_DROP,      4),
     EVENT_TYPE(DROP_POSITION,                   CATEGORY_DROP,      5),
-    EVENT_TYPE(DROP_EVENT_LAST,                 CATEGORY_DROP,      6)
+    EVENT_TYPE(DROP_EVENT_LAST,                 CATEGORY_DROP,      6),
+
+    // internal events
+    EVENT_TYPE(INTERNAL_EVENT_POLL_SENTINEL,    CATEGORY_APP,       0),
+    EVENT_TYPE(INTERNAL_EVENT_TOMBSTONE,        CATEGORY_APP,       1)
 };
 
 #undef EVENT_TYPE
+#undef EVENT_TYPE_USER
 
 ///////////////////////////////////////////////////////////////////////////////
 // event
@@ -225,42 +234,44 @@ public:
 
         struct
         {
-            device_id display_id;
+            video::display_id display_id;
         }
         display_added;
 
         struct
         {
-            device_id display_id;
+            video::display_id display_id;
         }
         display_removed;
 
         struct
         {
-            device_id display_id;
+            video::display_id display_id;
         }
         display_moved;
 
         struct
         {
+            video::display_id display_id;
             video::display_orientation orientation;
         }
         display_orientation_changed;
 
         struct
         {
-            device_id display_id;
+            video::display_id display_id;
         }
         display_desktop_mode_changed;
 
         struct
         {
-            device_id display_id;
+            video::display_id display_id;
         }
-        current_mode_changed;
+        display_current_mode_changed;
 
         struct
         {
+            video::display_id display_id;
             float x, y;
         }
         display_content_scale_changed;
@@ -269,120 +280,182 @@ public:
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
+        }
+        window_created;
+
+        struct
+        {
+            video::window_id window_id;
+        }
+        window_destroyed;
+
+        struct
+        {
+            video::window_id window_id;
         }
         window_shown;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_hidden;
 
         struct
         {
+            video::window_id window_id;
+        }
+        window_exposed;
+
+        struct
+        {
+            video::window_id window_id;
+        }
+        window_occluded;
+
+        struct
+        {
+            video::window_id window_id;
             int32_t x, y;
         }
         window_moved;
 
         struct
         {
+            video::window_id window_id;
             int32_t w, h;
         }
         window_resized;
 
         struct
         {
-            device_id window_id;
+            video::display_id display_id;
+            float x, y;
+        }
+        window_pixel_size_changed;
+
+        struct
+        {
+            video::window_id window_id;
         }
         window_minimized;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_maximized;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_restored;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_enter_fullscreen;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_leave_fullscreen;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_gained_focus;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_lost_focus;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_mouse_enter;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_mouse_leave;
 
         struct
         {
-            device_id display_id;
+            video::window_id window_id;
+        }
+        window_hit_test;
+
+        struct
+        {
+            video::window_id window_id;
+            video::display_id display_id;
         }
         window_display_changed;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
         window_display_scale_changed;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
+            int32_t x, y, w, h;
         }
-        window_close_requested;
+        window_safe_area_changed;
 
         struct
         {
-            device_id window_id;
+            video::window_id window_id;
         }
-        window_destroyed;
+        window_close_requested;
 
         // key events
 
         struct
         {
-            int32_t scancode;
-            keyboard::key key;
-            uint8_t repeate;
+            keyboard::keyboard_id keyboard_id;
+        }
+        keyboard_added;
+
+        struct
+        {
+            keyboard::keyboard_id keyboard_id;
+        }
+        keyboard_removed;
+
+        struct
+        {
+            keyboard::keyboard_id keyboard_id;
+            video::window_id window_id;
+            keyboard::scancode scancode;
+            keyboard::keycode key;
+            keyboard::key_mod mods;
+            uint16_t raw;
+            bool repeate;
         }
         key_down;
 
         struct
         {
-            int32_t scancode;
-            keyboard::key key;
+            keyboard::keyboard_id keyboard_id;
+            video::window_id window_id;
+            keyboard::scancode scancode;
+            keyboard::keycode key;
+            keyboard::key_mod mods;
+            uint16_t raw;
+            bool repeate;
         }
         key_up;
 
@@ -418,11 +491,19 @@ public:
 
         struct
         {
-            mouse::wheel wheel;
+            mouse::wheel_direction wheel;
             float delta;
             int32_t x, y;
         }
         mouse_wheel;
+
+        // user event
+
+        struct
+        {
+            void* user_data;
+
+        } user_event;
     };
 };
 
@@ -432,31 +513,97 @@ public:
 
 VX_API void pump_events(bool process_all);
 
-VX_API bool post_event(const event& e);
+////////////////////////////////////////
+
+VX_API size_t add_events(const event* e, size_t count);
+
+inline bool add_event(const event& e) { return add_events(&e, 1) == 1; }
+
+////////////////////////////////////////
+
+VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
+
+inline bool type_matcher(const event& e, void* user_data) noexcept
+{
+    const event_type type = *reinterpret_cast<event_type*>(user_data);
+    return e.type == type;
+}
+
+inline bool category_matcher(const event& e, void* user_data) noexcept
+{
+    const event_category category = *reinterpret_cast<event_category*>(user_data);
+    return get_category(e.type) == category;
+}
+
+////////////////////////////////////////
+
+inline bool has_events(event_filter matcher, void* user_data = nullptr)
+{
+    return match_events(matcher, user_data, nullptr, 0, false) > 0;
+}
+
+inline bool has_event(event_type type)
+{
+    return has_events(type_matcher, &type);
+}
+
+////////////////////////////////////////
+
+inline size_t peek_events(event_filter matcher, void* user_data, event* out, size_t count)
+{
+    return match_events(matcher, user_data, out, count, false);
+}
+
+////////////////////////////////////////
+
+inline size_t get_events(event_filter matcher, void* user_data, event* out, size_t count)
+{
+    return match_events(matcher, user_data, out, count, true);
+}
+
+inline bool get_event(event& e, event_type type)
+{
+    return get_events(type_matcher, &type, &e, 1) == 1;
+}
+
+////////////////////////////////////////
+
+inline size_t flush_events(event_filter matcher, void* user_data)
+{
+    return match_events(matcher, user_data, nullptr, 0, true);
+}
+
+inline void flush_events(event_type type)
+{
+    flush_events(type_matcher, &type);
+}
+
+////////////////////////////////////////
+
+VX_API bool wait_event_timeout(event& e, time::time_point t);
+
+inline bool wait_event(event& e)
+{
+    return wait_event_timeout(e, time::max());
+}
+
+////////////////////////////////////////
+
+VX_API bool push_event(const event& e);
 VX_API bool poll_event(event& e);
 
-VX_API void wait_events();
-VX_API void wait_events_timeout(unsigned int timeout_ms);
-
-VX_API size_t flush_events(event_type type);
+////////////////////////////////////////
 
 using event_filter = bool(*)(const event&, void*);
-VX_API size_t filter_events(event_filter filter, void* user_data);
 
-///////////////////////////////////////////////////////////////////////////////
-// callback
-///////////////////////////////////////////////////////////////////////////////
+VX_API void set_event_filter(event_filter filter, void* user_data);
+VX_API void get_event_filter(event_filter& filter, void*& user_data);
+inline void clear_event_filter() { set_event_filter(nullptr, nullptr); }
 
-using event_process_callback = void(*)();
-VX_API void set_event_process_callback(event_process_callback callback);
+////////////////////////////////////////
 
-///////////////////////////////////////////////////////////////////////////////
-// checking
-///////////////////////////////////////////////////////////////////////////////
-
-VX_API bool has_event(event_type type);
-VX_API size_t event_count();
-VX_API std::vector<event> get_events();
+VX_API void add_event_watch(event_filter callback, void* user_data);
+VX_API void remove_event_watch(event_filter callback, void* user_data);
 
 } // namespace event
 } // namespace app

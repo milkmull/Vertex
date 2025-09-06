@@ -1,30 +1,37 @@
 #pragma once
 
+#include "vertex/config/language_config.hpp"
+#include "vertex/app/id.hpp"
 #include "vertex/app/input/scancode.hpp"
 #include "vertex/app/input/keycode.hpp"
 
 namespace vx {
 namespace app {
+
+namespace video { class window; }
+
 namespace keyboard {
 
 ///////////////////////////////////////////////////////////////////////////////
 // keyboard
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace _priv { class keyboard_internal; }
-using keyboard_id = size_t;
+using keyboard_id = id_type;
+enum : keyboard_id { DEFAULT_KEYBOARD_ID = DEFAULT_ID };
 
 ///////////////////////////////////////////////////////////////////////////////
 // keyboard
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool has_keyboard();
-VX_API std::vector<keyboard_id> list_keyboard_ids();
-VX_API const char* get_keyboard_name(keyboard_id id);
-VX_API video::window* get_keyboard_focus();
+// TODO: key down, key up checkers (and setters?)
 
-VX_API std::vector<bool> get_keyboard_state();
-VX_API void reset_keyboard();
+VX_API bool any_connected();
+VX_API std::vector<keyboard_id> list_ids();
+VX_API const char* get_name(keyboard_id id);
+VX_API video::window* get_focus();
+
+VX_API std::vector<bool> get_state();
+VX_API void reset();
 
 VX_API key_mod get_mod_state();
 VX_API void set_mod_state(key_mod mod_state);

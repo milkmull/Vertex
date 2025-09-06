@@ -6,7 +6,7 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/app/owner_ptr.hpp"
-#include "vertex/app/device_id.hpp"
+#include "vertex/app/id.hpp"
 #include "vertex/math/rect.hpp"
 #include "vertex/pixel/pixel_format.hpp"
 
@@ -30,6 +30,9 @@ namespace _priv { class video_internal; }
 namespace _priv { class display_mode_impl; }
 namespace _priv { class display_impl; }
 namespace _priv { class window_impl; }
+
+using display_id = id_type;
+using window_id = id_type;
 
 enum class process_dpi_awareness
 {
@@ -81,7 +84,7 @@ private:
 
     friend display;
     friend _priv::display_impl;
-    mutable device_id m_display_id;     // the display that this mode is associated with
+    mutable display_id m_display_id;     // the display that this mode is associated with
 
     friend _priv::display_mode_impl;
     std::shared_ptr<_priv::display_mode_impl> m_impl;
@@ -93,7 +96,7 @@ private:
 
 VX_API void update_displays();
 
-VX_API display* const get_display(device_id id);
+VX_API display* const get_display(display_id id);
 VX_API display* const get_primary_display();
 
 VX_API size_t display_count();
@@ -131,7 +134,7 @@ private:
 
 public:
 
-    VX_API device_id id() const;
+    VX_API display_id id() const;
     VX_API const std::string& name() const;
 
     VX_API display_orientation get_orientation() const;
@@ -152,7 +155,7 @@ public:
 
 private:
 
-    device_id m_id;
+    display_id m_id;
     std::string m_name;
 
     display_mode m_desktop_mode;
@@ -162,7 +165,7 @@ private:
     display_orientation m_orientation;
     math::vec2 m_content_scale;
 
-    device_id m_fullscreen_window_id;
+    window_id m_fullscreen_window_id;
 
 private:
 
@@ -185,7 +188,7 @@ struct window_config
 
     float opacity = 1.0f;
 
-    device_id display_id = INVALID_DEVICE_ID;
+    window_id display_id = INVALID_ID;
     bool center_on_display = false;
 
     bool minimized = false;
@@ -205,7 +208,7 @@ struct window_config
 
 VX_API window* const create_window(const window_config& config);
 VX_API void destroy_window(window& w);
-VX_API window* const get_window(device_id id);
+VX_API window* const get_window(window_id id);
 
 VX_API size_t window_count();
 VX_API window* const enum_windows(size_t i);

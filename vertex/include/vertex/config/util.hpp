@@ -9,3 +9,5 @@
 
 #define _VX_CONCAT(a, b) a##b
 #define VX_CONCAT(a, b) _VX_CONCAT(a, b)
+
+#define VX_BIT(i) (1u << (i))

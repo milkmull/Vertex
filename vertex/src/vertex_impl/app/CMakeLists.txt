@@ -39,4 +39,5 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/event")
 
 if(VX_BUILD_APP_VIDEO)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/video")
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/input")
 endif()

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/app/id.hpp"
 
 namespace vx {
 namespace app {
@@ -12,9 +13,10 @@ namespace pen {
 // pen
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace _priv { class pen_internal; }
+namespace _priv { class pen_instance; }
 
-using pen_id = size_t;
+using pen_id = id_type;
+enum : pen_id { DEFAULT_PEN_ID = DEFAULT_ID };
 
 enum pen_input_flags
 {

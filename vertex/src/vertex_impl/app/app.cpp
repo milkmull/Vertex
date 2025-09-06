@@ -1,6 +1,5 @@
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
-#include "vertex_impl/app/hints/events_internal.hpp"
 
 namespace vx {
 namespace app {
@@ -9,30 +8,32 @@ namespace app {
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
-static owner_ptr<app_instance> s_app;
+static owner_ptr<app_data> s_app_data_ptr;
+
+#define data (*s_app_data_ptr)
 
 ////////////////////////////////////////
 
 VX_API bool init(init_flag flags)
 {
-    if (!s_app)
+    if (!s_app_data_ptr)
     {
-        s_app.reset(new app_instance);
+        s_app_data_ptr.reset(new app_data);
 
-        if (!s_app)
+        if (!s_app_data_ptr)
         {
             return false;
         }
     }
 
-    return s_app->init(flags);
+    return app_internal::init(flags);
 }
 
-bool app_instance::init(init_flag flags)
+bool app_internal::init(init_flag flags)
 {
     if (!is_init_hints() && !init_hints())
     {
-        data.hints.reset();
+        s_hint_data_ptr.reset();
         return false;
     }
 
@@ -43,11 +44,15 @@ bool app_instance::init(init_flag flags)
 
 VX_API bool is_init(init_flag flags)
 {
-    VX_CHECK_APP_INIT(false);
-    return s_app->is_init(flags);
+    if (!s_app_data_ptr)
+    {
+        return false;
+    }
+
+    return app_internal::is_init(flags);
 }
 
-bool app_instance::is_init(init_flag flags) const
+bool app_internal::is_init(init_flag flags)
 {
     return false;
 }
@@ -56,34 +61,34 @@ bool app_instance::is_init(init_flag flags) const
 
 VX_API void quit(init_flag flags)
 {
-    if (!s_app)
+    if (!s_app_data_ptr)
     {
         return;
     }
 
-    s_app->quit(flags);
+    app_internal::quit(flags);
 
-    if (s_app->can_shutdown())
+    if (app_internal::can_shutdown())
     {
-        s_app->shutdown();
-        s_app.reset();
+        app_internal::shutdown();
+        s_app_data_ptr.reset();
     }
 }
 
-void app_instance::quit(init_flag flags)
+void app_internal::quit(init_flag flags)
 {
 }
 
 ////////////////////////////////////////
 
-bool app_instance::can_shutdown() const
+bool app_internal::can_shutdown()
 {
     return !data.events;
 }
 
 ////////////////////////////////////////
 
-void app_instance::shutdown()
+void app_internal::shutdown()
 {
     data.hints->quit();
 }

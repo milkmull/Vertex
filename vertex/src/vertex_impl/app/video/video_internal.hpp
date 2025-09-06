@@ -2,37 +2,14 @@
 
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
+#include "vertex_impl/app/input/mouse_internal.hpp"
+#include "vertex_impl/app/input/keyboard_internal.hpp"
+#include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
 namespace app {
 namespace video {
-
-///////////////////////////////////////////////////////////////////////////////
-// helpers
-///////////////////////////////////////////////////////////////////////////////
-
-#define VX_SET_VIDEO_NOT_INIT_ERROR() err::set(err::UNSUPPORTED_OPERATION, "Video subsystem not initialized")
-
-///////////////////////////////////////
-
-#define VX_CHECK_VIDEO_INIT(x) \
-do \
-{ \
-    if (!is_init()) \
-    { \
-        VX_SET_VIDEO_NOT_INIT_ERROR(); \
-        return (x); \
-    } \
-} while (0)
-
-///////////////////////////////////////
-
-#define VX_CHECK_VIDEO_INIT_VOID() VX_CHECK_VIDEO_INIT(void())
-
-///////////////////////////////////////
-
-#define VX_CHECK_IMPL() VX_ASSERT(m_impl)
 
 ///////////////////////////////////////////////////////////////////////////////
 // video capabilities
@@ -57,13 +34,20 @@ struct video_impl_data;
 
 struct video_data
 {
-    owner_ptr<video_impl_data> impl_data;
+    owner_ptr<mouse::mouse_data> mouse_data_ptr;
+    owner_ptr<keyboard::keyboard_data> keyboard_data_ptr;
 
     std::vector<owner_ptr<display>> displays;
     bool setting_display_mode = false;
 
     std::vector<owner_ptr<window>> windows;
+    os::atomic<const window*> wakeup_window = nullptr;
+
+    owner_ptr<video_impl_data> impl_data;
 };
+
+#define s_mouse_data_ptr        (s_video_data_ptr->mouse_data_ptr)
+#define s_keyboard_data_ptr     (s_video_data_ptr->keyboard_data_ptr)
 
 ///////////////////////////////////////////////////////////////////////////////
 // video_internal
@@ -109,8 +93,8 @@ public:
 
     static void update_displays();
 
-    static std::vector<device_id> get_display_ids();
-    static display* get_display(device_id id);
+    static std::vector<display_id> get_display_ids();
+    static display* get_display(display_id id);
     static display* get_primary_display();
 
     static size_t display_count();
@@ -122,7 +106,7 @@ public:
     static display* get_display_for_window(const window& w);
 
     static math::recti get_desktop_area();
-    static device_id get_display_id(const display& d);
+    static display_id get_display_id(const display& d);
 
     static void init_display_modes(const display& d);
 
@@ -134,27 +118,36 @@ public:
     static void destroy_window(window& w);
     static void destroy_windows();
 
-    static std::vector<device_id> get_window_ids();
-    static window* get_window(device_id id);
-    static device_id get_window_id(const window& w);
+    static std::vector<window_id> get_window_ids();
+    static window* get_window(window_id id);
+    static window_id get_window_id(const window& w);
 
     static size_t window_count();
     static window* enum_windows(size_t i);
 
     static void check_window_display_changed(window& w);
 
+    static window* get_active_window();
+    static void set_wakeup_window(window* w);
+
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    static device_id get_display_fullscreen_window_id(const display& d);
-    static void set_display_fullscreen_window_id(display& d, device_id id);
+    static window_id get_display_fullscreen_window_id(const display& d);
+    static void set_display_fullscreen_window_id(display& d, window_id id);
     static void clear_display_fullscreen_window_id(display& d);
     static display* find_display_with_fullscreen_window(const window& w);
 
     ///////////////////////////////////////////////////////////////////////////////
-    // event handlers
+    // events
     ///////////////////////////////////////////////////////////////////////////////
+
+    // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsevents.c#L2432
+
+    static void pump_events();
+    static bool wait_event_timeout(const window* w, time::time_point t);
+    static void send_wakeup_event();
 
     static bool post_display_added(const display& d);
     static void on_display_added();

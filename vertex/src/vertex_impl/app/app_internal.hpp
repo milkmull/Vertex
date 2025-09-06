@@ -11,72 +11,66 @@ namespace app {
 // subsystem instances
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace hint { struct hints_instance; }
-namespace event { struct events_instance; }
+namespace hint { struct hint_data; }
+namespace event { struct event_data; }
 namespace video { struct video_data; }
 namespace audio { struct audio_data; }
 namespace camera { struct camera_data; }
 
 ///////////////////////////////////////////////////////////////////////////////
+// data
+///////////////////////////////////////////////////////////////////////////////
+
+struct app_data
+{
+    owner_ptr<hint::hint_data> hint_data_ptr;
+    owner_ptr<event::event_data> event_data_ptr;
+    owner_ptr<video::video_data> video_data_ptr;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // instance
 ///////////////////////////////////////////////////////////////////////////////
 
-class app_instance
+class app_internal
 {
-private:
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // app data
-    ///////////////////////////////////////////////////////////////////////////////
-
-    struct app_data
-    {
-        owner_ptr<hint::hints_instance> hints;
-        owner_ptr<event::events_instance> events;
-        //owner_ptr<video::video_data> video_data;
-    };
-
-    app_data data;
-
 public:
 
     ///////////////////////////////////////////////////////////////////////////////
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool init(init_flag flags);
-    bool is_init(init_flag flags) const;
-    void quit(init_flag flags);
+    static bool init(init_flag flags);
+    static bool is_init(init_flag flags);
+    static void quit(init_flag flags);
 
-    bool can_shutdown() const;
-    void shutdown();
+    static bool can_shutdown();
+    static void shutdown();
 
     ///////////////////////////////////////////////////////////////////////////////
     // hints
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool init_hints();
-    bool is_init_hints() const;
-    void quit_hints();
-
-    hint::hints_instance* get_hints_instance() { return data.hints.get(); }
+    static bool init_hints();
+    static bool is_init_hints();
+    static void quit_hints();
 
     ///////////////////////////////////////////////////////////////////////////////
     // events
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool init_events();
-    bool is_init_events() const;
-    void quit_events();
+    static bool init_events();
+    static bool is_init_events();
+    static void quit_events();
 
-    event::events_instance* get_events_instance() { return data.events.get(); }
+    ///////////////////////////////////////////////////////////////////////////////
+    // video
+    ///////////////////////////////////////////////////////////////////////////////
+
+    static bool init_video();
+    static bool is_video_init();
+    static void quit_video();
 };
-
-extern owner_ptr<app_instance> s_app;
-
-#define s_hints (s_app->get_hints_instance())
-#define s_events (s_app->get_events_instance())
-#define s_video_data (s_app->get_video())
 
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
@@ -98,17 +92,73 @@ do \
 
 ///////////////////////////////////////
 
-#define VX_CHECK_APP_INIT(r) VX_CHECK_SUBSYSTEM_INIT(App, s_app, r)
+#define VX_CHECK_SUBSYSTEM_INIT_BACKEND(ptr, r) \
+do \
+{ \
+    if (!(ptr)) \
+    { \
+        return (r); \
+    } \
+} while (0)
+
+///////////////////////////////////////
+
+#define VX_SAFE_CALL(ptr, expr) \
+do \
+{ \
+    if ((ptr)) \
+    { \
+        expr; \
+    } \
+} while (0)
+
+///////////////////////////////////////
+
+extern owner_ptr<app_data> s_app_data_ptr;
+
+#define VX_CHECK_APP_INIT(r) VX_CHECK_SUBSYSTEM_INIT(App, s_app_data_ptr, r)
 #define VX_CHECK_APP_INIT_VOID() VX_CHECK_APP_INIT(void())
 
-#define VX_CHECK_HINTS_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Hints subsystem, s_hints, r)
+#define VX_CHECK_APP_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_app_data_ptr, r)
+#define VX_CHECK_APP_INIT_BACKEND_VOID() VX_CHECK_APP_INIT_BACKEND(void())
+
+#define VX_SAFE_APP_CALL(expr) VX_SAFE_CALL(s_app_data_ptr, expr)
+
+///////////////////////////////////////
+
+#define s_hint_data_ptr (s_app_data_ptr->hint_data_ptr)
+
+#define VX_CHECK_HINTS_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Hints subsystem, s_hint_data_ptr, r)
 #define VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID() VX_CHECK_HINTS_SUBSYSTEM_INIT(void())
 
-#define VX_CHECK_EVENT_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Event subsystem, s_events, r)
+#define VX_CHECK_HINTS_SUBSYSTEM_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_hint_data_ptr, r)
+#define VX_CHECK_HINTS_SUBSYSTEM_INIT_BACKEND_VOID() VX_CHECK_HINTS_SUBSYSTEM_INIT_BACKEND(void())
+
+#define VX_SAFE_HINTS_CALL(expr) VX_SAFE_CALL(s_hint_data_ptr, expr)
+
+///////////////////////////////////////
+
+#define s_event_data_ptr (s_app_data_ptr->event_data_ptr)
+
+#define VX_CHECK_EVENT_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Event subsystem, s_event_data_ptr, r)
 #define VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID() VX_CHECK_EVENT_SUBSYSTEM_INIT(void())
 
-#define VX_CHECK_VIDEO_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Video subsystem, s_video_data, r)
+#define VX_CHECK_EVENT_SUBSYSTEM_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_event_data_ptr, r)
+#define VX_CHECK_EVENT_SUBSYSTEM_INIT_BACKEND_VOID() VX_CHECK_EVENT_SUBSYSTEM_INIT_BACKEND(void())
+
+#define VX_SAFE_EVENT_CALL(expr) VX_SAFE_CALL(s_event_data_ptr, expr)
+
+///////////////////////////////////////
+
+#define s_video_data_ptr (s_app_data_ptr->video_data_ptr)
+
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Video subsystem, s_video_data_ptr, r)
 #define VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT(void())
+
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_video_data_ptr, r)
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(void())
+
+#define VX_SAFE_VIDEO_CALL(expr) VX_SAFE_CALL(s_video_data_ptr, expr)
 
 } // namespace app
 } // namespace vx
