@@ -14,12 +14,24 @@ namespace hint {
 
 bool hint_internal::init()
 {
+    s_app_data_ptr.reset(new app_data);
+
+    if (!s_app_data_ptr)
+    {
+        return false;
+    }
+
     return true;
+}
+
+bool hint_internal::is_init()
+{
+    return s_hint_data_ptr != nullptr;
 }
 
 void hint_internal::quit()
 {
-
+    s_hint_data_ptr.reset();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

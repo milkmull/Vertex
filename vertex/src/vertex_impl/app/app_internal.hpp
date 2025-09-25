@@ -23,6 +23,8 @@ namespace camera { struct camera_data; }
 
 struct app_data
 {
+    init_flag flags = init_flag::NONE;
+
     owner_ptr<hint::hint_data> hint_data_ptr;
     owner_ptr<event::event_data> event_data_ptr;
     owner_ptr<video::video_data> video_data_ptr;
@@ -40,36 +42,23 @@ public:
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
 
-    static bool init(init_flag flags);
+    static bool init_app();
+    static void quit_app();
+
+    static bool init_hints();
+    static void quit_hints();
+
+    static bool init_events();
+    static void quit_events();
+
+    static bool init_video();
+    static void quit_video();
+
+    static init_flag init(init_flag flags);
     static bool is_init(init_flag flags);
     static void quit(init_flag flags);
 
-    static bool can_shutdown();
     static void shutdown();
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // hints
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static bool init_hints();
-    static bool is_init_hints();
-    static void quit_hints();
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // events
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static bool init_events();
-    static bool is_init_events();
-    static void quit_events();
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // video
-    ///////////////////////////////////////////////////////////////////////////////
-
-    static bool init_video();
-    static bool is_video_init();
-    static void quit_video();
 };
 
 ///////////////////////////////////////////////////////////////////////////////

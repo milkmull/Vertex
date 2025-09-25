@@ -27,6 +27,72 @@ enum capabilities
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// display mode internal
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_mode_impl_data;
+
+class display_mode_instance
+{
+public:
+
+    display_mode_data data;
+    owner_ptr<display_mode_impl_data> impl_data;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display internal
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_data
+{
+    display_id id;
+    std::string name;
+
+    display_mode_instance desktop_mode;
+    display_mode_instance current_mode;
+    std::vector<display_mode_instance> modes;
+
+    display_orientation orientation;
+    math::vec2 content_scale;
+
+    window_id fullscreen_window_id;
+};
+
+struct display_impl_data;
+
+class display_instance
+{
+public:
+
+    const char* get_name() const;
+    display_orientation get_orientation() const;
+    math::vec2 get_content_scale() const;
+
+    math::recti get_bounds() const;
+    math::recti get_work_area() const;
+
+    bool get_desktop_mode(display_mode_data& mode) const;
+    bool get_current_mode(display_mode_data& mode) const;
+
+    bool set_current_mode(const display_mode_data& mode);
+    void reset_mode();
+
+    std::vector<display_mode_data> list_modes() const;
+    bool has_mode(const display_mode_data& mode) const;
+    bool find_closest_mode(const display_mode_data& mode, display_mode_data& closest) const;
+
+public:
+
+    void init_modes();
+
+public:
+
+    display_data data;
+    owner_ptr<display_impl_data> impl_data;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // video data
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -34,10 +100,10 @@ struct video_impl_data;
 
 struct video_data
 {
-    owner_ptr<mouse::mouse_data> mouse_data_ptr;
-    owner_ptr<keyboard::keyboard_data> keyboard_data_ptr;
+    //owner_ptr<mouse::mouse_data> mouse_data_ptr;
+    //owner_ptr<keyboard::keyboard_data> keyboard_data_ptr;
 
-    std::vector<owner_ptr<display>> displays;
+    std::vector<display_instance> displays;
     bool setting_display_mode = false;
 
     std::vector<owner_ptr<window>> windows;
@@ -53,11 +119,7 @@ struct video_data
 // video_internal
 ///////////////////////////////////////////////////////////////////////////////
 
-// Internal access helper for the `video` module.
-// This class provides trusted internal access to private members and types,
-// without exposing implementation details to users of the public API.
-
-class _priv::video_internal
+class video_internal
 {
 public:
 
@@ -85,6 +147,7 @@ public:
     // display mode
     ///////////////////////////////////////////////////////////////////////////////
 
+    static bool compare_display_modes(const display_mode_data& mode1, const display_mode_data& mode2);
     static void clear_display_mode_display_id(display_mode& dm);
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -93,22 +156,18 @@ public:
 
     static void update_displays();
 
-    static std::vector<display_id> get_display_ids();
-    static display* get_display(display_id id);
-    static display* get_primary_display();
+    static std::vector<display_id> list_display_ids();
+    static bool is_display_connected(display_id id);
 
-    static size_t display_count();
-    static display* enum_displays(size_t i);
+    static display_instance* get_display_instance(display_id id);
+    static display get_primary_display();
 
-    static display* get_display_for_point(const math::vec2i& p);
-    static display* get_display_for_rect(const math::recti& rect);
-    static display* get_display_at_origin(const math::vec2i& o);
-    static display* get_display_for_window(const window& w);
+    static display get_display_for_point(const math::vec2i& p);
+    static display get_display_for_rect(const math::recti& rect);
+    static display get_display_at_origin(const math::vec2i& o);
+    static display get_display_for_window(const window& w);
 
     static math::recti get_desktop_area();
-    static display_id get_display_id(const display& d);
-
-    static void init_display_modes(const display& d);
 
     ///////////////////////////////////////////////////////////////////////////////
     // windows
@@ -178,8 +237,6 @@ public:
     template <typename T>
     static const auto* get_impl(const T& x) { return x.m_impl.get(); }
 };
-
-using video_internal = _priv::video_internal;
 
 } // namespace video
 } // namespace app

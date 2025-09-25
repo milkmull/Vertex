@@ -43,10 +43,7 @@ struct shcore
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
-bool init_impl();
-void quit_impl();
-
-struct driver_data
+struct video_impl_data
 {
     user32 user32;
     shcore shcore;
@@ -55,38 +52,53 @@ struct driver_data
     bool registered_app = false;
 };
 
-extern driver_data s_driver_data;
-
-process_dpi_awareness get_dpi_awareness_impl();
-system_theme get_system_theme_impl();
-
-///////////////////////////////////////////////////////////////////////////////
-// capabilities
-///////////////////////////////////////////////////////////////////////////////
-
-inline constexpr capabilities get_capabilities() noexcept
+class video_impl
 {
-    return capabilities::SENDS_DISPLAY_CHANGES;
-}
+public:
 
-inline constexpr bool has_capabilities(capabilities caps) noexcept
-{
-    return get_capabilities() & caps;
-}
+    static bool init();
+    static bool is_init();
+    static void quit();
+
+    static process_dpi_awareness get_dpi_awareness();
+    static system_theme get_system_theme();
+
+    static inline constexpr capabilities get_capabilities() noexcept
+    {
+        return capabilities::SENDS_DISPLAY_CHANGES;
+    }
+
+    static inline constexpr bool has_capabilities(capabilities caps) noexcept
+    {
+        return get_capabilities() & caps;
+    }
+
+    static void update_displays(std::vector<owner_ptr<display>>& displays);
+
+    static inline display* get_display_for_window(const window& w)
+    {
+        return nullptr;
+    }
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // display_mode_impl
 ///////////////////////////////////////////////////////////////////////////////
 
-class _priv::display_mode_impl
+struct display_mode_impl_data
 {
-public:
-
     DEVMODE devmode;
 };
 
+class display_mode_impl
+{
+public:
+
+    display_mode_impl_data data;
+};
+
 ///////////////////////////////////////////////////////////////////////////////
-// display polling
+// display_impl
 ///////////////////////////////////////////////////////////////////////////////
 
 enum class display_state
@@ -96,48 +108,29 @@ enum class display_state
     REMOVED = (1 << 1)
 };
 
-void update_displays_impl(std::vector<owner_ptr<display>>& displays);
-
-///////////////////////////////////////////////////////////////////////////////
-// display_impl
-///////////////////////////////////////////////////////////////////////////////
-
-class _priv::display_impl
+struct display_impl_data
 {
-public:
-
-    static bool create_display(
-        size_t index,
-        std::vector<owner_ptr<display>>& displays,
-        HMONITOR hMonitor,
-        const MONITORINFOEX* info
-    );
-
-    static bool get_display_mode(
-        const WCHAR* device_name,
-        display_mode& mode, DWORD index, display_orientation* orientation
-    );
-
-    void list_display_modes(std::vector<display_mode>& modes) const;
-    bool set_display_mode(display_mode& mode, bool is_desktop_mode) const;
-
-    bool get_bounds(math::recti& bounds) const;
-    bool get_work_area(math::recti& work_area) const;
-
     HMONITOR handle = NULL;
     std::wstring device_name;
     display_state state = display_state::NONE;
     math::recti last_bounds;
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// windows
-///////////////////////////////////////////////////////////////////////////////
-
-inline display* get_display_for_window_impl(const window& w)
+class display_impl
 {
-    return nullptr;
-}
+public:
+
+    static bool get_display_mode(
+        const WCHAR* device_name,
+        display_mode_instance& mode, DWORD index, display_orientation* orientation
+    );
+
+    static void list_display_modes(std::vector<display_mode_instance>& modes);
+    static bool set_display_mode(display_mode_instance& mode, bool is_desktop_mode);
+
+    static bool get_bounds(math::recti& bounds);
+    static bool get_work_area(math::recti& work_area);
+};
 
 } // namespace video
 } // namespace app

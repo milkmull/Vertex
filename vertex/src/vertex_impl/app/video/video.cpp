@@ -18,35 +18,32 @@ namespace video {
 
 bool video_internal::init()
 {
-    if (!init_impl())
+    if (is_init())
     {
+        return true;
+    }
+
+    if (!video_impl::init())
+    {
+        s_video_data_ptr.reset();
         return false;
     }
 
     video_internal::update_displays();
     if (data.displays.empty())
     {
+        s_video_data_ptr.reset();
         return false;
     }
 
     return true;
 }
 
-VX_API bool init()
-{
-    return video_internal::init();
-}
-
 ////////////////////////////////////////
 
 bool video_internal::is_init()
 {
-    return true;
-}
-
-VX_API bool is_init()
-{
-    return video_internal::is_init();
+    return s_video_data_ptr != nullptr;
 }
 
 ////////////////////////////////////////
@@ -59,11 +56,6 @@ void video_internal::quit()
     video_internal::destroy_windows();
 
     quit_impl();
-}
-
-VX_API void quit()
-{
-    video_internal::quit();
 }
 
 ///////////////////////////////////////////////////////////////////////////////

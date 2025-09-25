@@ -123,6 +123,7 @@ class mouse_internal
 public:
 
     static bool init();
+    static bool is_init();
     static void quit();
 
     //-------------------------------------------------------------------------

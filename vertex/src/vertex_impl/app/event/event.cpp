@@ -43,14 +43,36 @@ static void log_event(const event&);
 
 bool event_internal::init()
 {
+    if (!is_init())
+    {
+        s_event_data_ptr.reset(new event_data);
+
+        if (!s_event_data_ptr)
+        {
+            return false;
+        }
+    }
+
+    ++data.refcount;
     return true;
 }
 
-////////////////////////////////////////
+bool event_internal::is_init()
+{
+    return s_event_data_ptr != nullptr;
+}
 
 void event_internal::quit()
 {
+    if (!is_init())
+    {
+        return;
+    }
 
+    if (--data.refcount == 0)
+    {
+        s_event_data_ptr.reset();
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,7 +89,7 @@ size_t event_queue::add(const event* events, size_t count)
         return added;
     }
 
-    os::lock_guard<os::mutex> lock(mutex);
+    os::lock_guard lock(mutex);
 
     for (size_t i = 0; i < count; ++i)
     {
@@ -112,7 +134,7 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
     const bool copy = (events && count > 0);
     size_t matched = 0;
 
-    os::lock_guard<os::mutex> lock(mutex);
+    os::lock_guard lock(mutex);
 
     if (queue.empty())
     {

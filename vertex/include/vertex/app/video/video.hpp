@@ -18,18 +18,7 @@ namespace video {
 // video
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool init();
-VX_API bool is_init();
-VX_API void quit();
-
-class display_mode;
-class display;
 class window;
-
-namespace _priv { class video_internal; }
-namespace _priv { class display_mode_impl; }
-namespace _priv { class display_impl; }
-namespace _priv { class window_impl; }
 
 using display_id = id_type;
 using window_id = id_type;
@@ -56,39 +45,16 @@ VX_API system_theme get_system_theme();
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
-class display_mode
+struct display_mode_data
 {
-public:
-
-    VX_API display_mode();
-    VX_API display_mode(const display_mode&);
-    VX_API display_mode(display_mode&&) noexcept;
-    VX_API ~display_mode();
-
-    VX_API display_mode& operator=(const display_mode&);
-    VX_API display_mode& operator=(display_mode&&) noexcept;
-
-    VX_API static bool compare(const display_mode& mode1, const display_mode& mode2);
-
-public:
-
     math::vec2i resolution;             // resolution
     int bpp;                            // bits per pixel
     pixel::pixel_format pixel_format;   // pixel format
     float pixel_density;                // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
     float refresh_rate;                 // refresh rate
-
-private:
-
-    friend _priv::video_internal;
-
-    friend display;
-    friend _priv::display_impl;
-    mutable display_id m_display_id;     // the display that this mode is associated with
-
-    friend _priv::display_mode_impl;
-    std::shared_ptr<_priv::display_mode_impl> m_impl;
 };
+
+VX_API bool compare_display_modes(const display_mode_data& mode1, const display_mode_data& mode2);
 
 ///////////////////////////////////////////////////////////////////////////////
 // displays
@@ -96,15 +62,14 @@ private:
 
 VX_API void update_displays();
 
-VX_API display* const get_display(display_id id);
-VX_API display* const get_primary_display();
+VX_API std::vector<display_id> list_display_ids();
+VX_API bool is_display_connected(display_id id);
 
-VX_API size_t display_count();
-VX_API display* const enum_displays(size_t i);
+VX_API display_id get_primary_display();
 
-VX_API display* const get_display_for_point(const math::vec2i& p);
-VX_API display* const get_display_for_rect(const math::recti& rect);
-VX_API display* const get_display_for_window(const window& w);
+VX_API display_id get_display_for_point(const math::vec2i& p);
+VX_API display_id get_display_for_rect(const math::recti& rect);
+VX_API display_id get_display_for_window(const window& w);
 
 VX_API math::recti get_desktop_area();
 
@@ -123,57 +88,34 @@ class display
 {
 private:
 
-    display();
-    ~display();
-
-    display(display&&) noexcept;
-    display& operator=(display&&) noexcept;
-
-    display(const display&) = delete;
-    display& operator=(const display&) = delete;
+    display(display_id id) : m_id(id) {}
+    ~display() {}
 
 public:
 
-    VX_API display_id id() const;
-    VX_API const std::string& name() const;
+    display_id id() const noexcept { return m_id; }
+    bool is_connected() const { return display_connected(m_id); }
 
+    VX_API const char* get_name() const;
     VX_API display_orientation get_orientation() const;
-    VX_API const math::vec2& get_content_scale() const;
+    VX_API math::vec2 get_content_scale() const;
 
     VX_API math::recti get_bounds() const;
     VX_API math::recti get_work_area() const;
 
-    VX_API const display_mode& get_desktop_mode() const;
-    VX_API const display_mode& get_current_mode() const;
+    VX_API bool get_desktop_mode(display_mode_data& mode) const;
+    VX_API bool get_current_mode(display_mode_data& mode) const;
 
-    VX_API bool set_current_mode(const display_mode& mode);
-    VX_API void clear_mode();
+    VX_API bool set_current_mode(const display_mode_data& mode);
+    VX_API void reset_mode();
 
-    VX_API const std::vector<display_mode>& list_modes() const;
-    VX_API const display_mode* find_mode(const display_mode& mode) const;
-    VX_API const display_mode* find_closest_mode(int width, int height, float refresh_rate) const;
+    VX_API std::vector<display_mode_data> list_modes() const;
+    VX_API bool has_mode(const display_mode_data& mode) const;
+    VX_API bool find_closest_mode(const display_mode_data& mode, display_mode_data& closest) const;
 
 private:
 
     display_id m_id;
-    std::string m_name;
-
-    display_mode m_desktop_mode;
-    display_mode m_current_mode;
-    mutable std::vector<display_mode> m_modes;
-
-    display_orientation m_orientation;
-    math::vec2 m_content_scale;
-
-    window_id m_fullscreen_window_id;
-
-private:
-
-    friend _priv::video_internal;
-    friend owner_ptr<display>;
-
-    friend _priv::display_impl;
-    std::unique_ptr<_priv::display_impl> m_impl;
 };
 
 ///////////////////////////////////////////////////////////////////////////////

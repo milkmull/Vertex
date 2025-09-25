@@ -25,7 +25,7 @@ struct event_queue
 {
     std::list<event> queue;
     using iterator_type = typename decltype(queue)::iterator;
-    mutable os::mutex mutex;
+    os::recursive_mutex mutex;
 
     size_t add(const event* e, size_t count);
     size_t match(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
@@ -59,6 +59,7 @@ struct event_data
 {
     event_queue queue;
     event_watch_list watch;
+    uint8_t refcount = 0;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -74,6 +75,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     static bool init();
+    static bool is_init();
     static void quit();
 
     ///////////////////////////////////////////////////////////////////////////////
