@@ -10,37 +10,127 @@ namespace app {
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
-static owner_ptr<app_data> s_app_data_ptr;
+static owner_ptr<app_instance> s_app;
 
-#define data (*s_app_data_ptr)
+////////////////////////////////////////
+
+VX_API bool init()
+{
+    if (is_init())
+    {
+        return true;
+    }
+
+    s_app_ptr.reset(new app_instance);
+
+    if (!s_app_ptr)
+    {
+        err::set(err::OUT_OF_MEMORY, "Failed to create application instance");
+        return false;
+    }
+
+    if (!s_app_ptr->init())
+    {
+        quit();
+        return false;
+    }
+
+    return true;
+}
+
+////////////////////////////////////////
+
+VX_API bool is_init()
+{
+    return s_app_ptr != nullptr;
+}
+
+////////////////////////////////////////
+
+VX_API void quit()
+{
+    if (is_init())
+    {
+        s_app_ptr->quit();
+        s_app_ptr.reset();
+    }
+}
+
+////////////////////////////////////////
+
+VX_API init_flag init_subsystem(init_flag flags)
+{
+    if (!is_init() && !init())
+    {
+        return init_flag::NONE;
+    }
+
+    return s_app_ptr->init_subsystem(flags);
+}
+
+////////////////////////////////////////
+
+VX_API bool is_subsystem_init(init_flag flags)
+{
+    VX_CHECK_APP_INIT(false);
+    return s_app_ptr->is_subsystem_init(flags);
+}
+
+////////////////////////////////////////
+
+VX_API void quit_subsystem(init_flag flags)
+{
+    VX_CHECK_APP_INIT_VOID();
+    s_app_ptr->quit_subsystem(flags);
+}
+
+////////////////////////////////////////
+
+bool app_instance::init()
+{
+    if (!init_hints())
+    {
+        quit();
+        return false;
+    }
+
+    return true;
+}
+
+////////////////////////////////////////
+
+void app_instance::quit()
+{
+    if (data.flags & INIT_VIDEO)
+    {
+        quit_video();
+    }
+
+    if (data.flags & INIT_EVENTS)
+    {
+        quit_events();
+    }
+
+    quit_hints();
+}
 
 ////////////////////////////////////////
 
 #define add_flag(dst, flag) dst = static_cast<init_flag>(dst | flag)
 #define remove_flag(dst, flag) dst = static_cast<init_flag>(dst & ~flag)
 
-VX_API init_flag init(init_flag flags)
-{
-    return app_internal::init(flags);
-}
-
-init_flag app_internal::init(init_flag flags)
+init_flag app_instance::init_subsystem(init_flag flags)
 {
     init_flag initialized = NONE;
 
-    if (!init_app())
-    {
-        return initialized;
-    }
-
     if (flags & INIT_EVENTS)
     {
-        if (init_events(true))
+        if (init_events())
         {
             add_flag(initialized, INIT_EVENTS);
         }
     }
-
+    
     if (flags & INIT_VIDEO)
     {
         if (!init_video())
@@ -54,34 +144,14 @@ init_flag app_internal::init(init_flag flags)
 
 ////////////////////////////////////////
 
-VX_API bool is_init(init_flag flags)
-{
-    if (!s_app_data_ptr)
-    {
-        return false;
-    }
-
-    return app_internal::is_init(flags);
-}
-
-bool app_internal::is_init(init_flag flags)
+bool app_instance::is_subsystem_init(init_flag flags) const
 {
     return (data.flags & flags) == flags;
 }
 
 ////////////////////////////////////////
 
-VX_API void quit(init_flag flags)
-{
-    if (!s_app_data_ptr)
-    {
-        return;
-    }
-
-    app_internal::quit(flags);
-}
-
-void app_internal::quit(init_flag flags)
+void app_instance::quit_subsystem(init_flag flags)
 {
     if (flags & INIT_VIDEO)
     {
@@ -96,59 +166,16 @@ void app_internal::quit(init_flag flags)
 
 ////////////////////////////////////////
 
-VX_API void shutdown()
+bool app_instance::init_hints()
 {
-    app_internal::shutdown();
-}
-
-void app_internal::shutdown()
-{
-    quit(init_flag::INIT_EVERYTHING);
-    VX_ASSERT(data.flags == NONE);
-    s_app_data_ptr.reset();
-}
-
-////////////////////////////////////////
-
-bool app_internal::init_app()
-{
-    if (s_app_data_ptr)
+    data.hints_ptr.reset(new hint::hints_instance);
+    if (!data.hints_ptr)
     {
-        return true;
-    }
-
-    s_app_data_ptr.reset(new app_data);
-
-    if (!s_app_data_ptr)
-    {
-        quit_app();
+        VX_SET_HINTS_SUBSYSTEM_INIT_FAILED_ERROR();
         return false;
     }
 
-    if (!init_hints())
-    {
-        quit_app();
-        return false;
-    }
-
-    return true;
-}
-
-void app_internal::quit_app()
-{
-    quit_hints();
-
-    if (s_app_data_ptr)
-    {
-        s_app_data_ptr.reset();
-    }
-}
-
-////////////////////////////////////////
-
-bool app_internal::init_hints()
-{
-    if (!hint::hint_internal::init())
+    if (!data.hints_ptr->init(this))
     {
         quit_hints();
         return false;
@@ -157,33 +184,60 @@ bool app_internal::init_hints()
     return true;
 }
 
-void app_internal::quit_hints()
+bool app_instance::is_hints_init() const
 {
-    hint::hint_internal::quit();
+    return data.hints_ptr != nullptr;
+}
+
+void app_instance::quit_hints()
+{
+    if (data.hints_ptr)
+    {
+        data.hints_ptr->quit();
+        data.hints_ptr.reset();
+    }
 }
 
 ////////////////////////////////////////
 
-bool app_internal::init_events()
+bool app_instance::init_events()
 {
-    if (!event::event_internal::init())
+    data.events_ptr.reset(new event::events_instance);
+    if (!data.events_ptr)
     {
+        VX_SET_EVENTS_SUBSYSTEM_INIT_FAILED_ERROR();
+        return false;
+    }
+
+    if (!data.events_ptr->init(this))
+    {
+        quit_events();
         return false;
     }
 
     add_flag(data.flags, INIT_EVENTS);
+    ++data.events_ref_count;
     return true;
 }
 
-void app_internal::quit_events()
+bool app_instance::is_events_init() const
 {
-    event::event_internal::quit();
-    remove_flag(data.flags, INIT_EVENTS);
+    return data.events_ptr != nullptr;
+}
+
+void app_instance::quit_events()
+{
+    if (data.hints_ptr && (--data.events_ref_count == 0))
+    {
+        data.hints_ptr->quit();
+        data.hints_ptr.reset();
+        remove_flag(data.flags, INIT_EVENTS);
+    }
 }
 
 ////////////////////////////////////////
 
-bool app_internal::init_video()
+bool app_instance::init_video()
 {
     // video subsystem requires events
     if (!init_events())
@@ -201,7 +255,12 @@ bool app_internal::init_video()
     return true;
 }
 
-void app_internal::quit_video()
+bool app_instance::is_video_init() const
+{
+    return false;
+}
+
+void app_instance::quit_video()
 {
     video::video_internal::quit();
     remove_flag(data.flags, INIT_VIDEO);

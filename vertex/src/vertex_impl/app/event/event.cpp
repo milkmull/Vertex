@@ -38,41 +38,22 @@ static void log_event(const event&);
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
-// simulate data being a member of event_internal
-#define data (*s_event_data_ptr)
-
-bool event_internal::init()
+bool events_instance::init(app_instance* owner)
 {
-    if (!is_init())
-    {
-        s_event_data_ptr.reset(new event_data);
-
-        if (!s_event_data_ptr)
-        {
-            return false;
-        }
-    }
-
-    ++data.refcount;
+    VX_ASSERT(!app);
+    VX_ASSERT(owner);
+    app = owner;
     return true;
 }
 
-bool event_internal::is_init()
+bool events_instance::is_init() const
 {
-    return s_event_data_ptr != nullptr;
+    return app != nullptr;
 }
 
-void event_internal::quit()
+void events_instance::quit()
 {
-    if (!is_init())
-    {
-        return;
-    }
-
-    if (--data.refcount == 0)
-    {
-        s_event_data_ptr.reset();
-    }
+    app = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -113,16 +94,6 @@ size_t event_queue::add(const event* events, size_t count)
         queue.push_back(e);
         ++added;
     }
-
-#if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
-
-    // if we happen to be blocking in another thread, send a wakeup event
-    if (app_internal::is_video_init())
-    {
-        video::video_internal::send_wakeup_event();
-    }
-
-#endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
     return added;
 }
@@ -212,27 +183,27 @@ void event_queue::add_sentinel()
 
 VX_API void pump_events(bool process_all)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
-    event_internal::pump_events(process_all);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
+    s_events_ptr->pump_events(process_all);
 }
 
-void event_internal::pump_events(bool process_all)
+void events_instance::pump_events(bool process_all)
 {
     events_instance_impl::pump_events(process_all);
 }
 
 ////////////////////////////////////////
 
-void event_internal::pump_events_maintenance()
+void events_instance::pump_events_maintenance()
 {
 
 }
 
 ////////////////////////////////////////
 
-static void pump_events_internal(bool push_sentinel)
+void events_instance::pump_events_internal(bool push_sentinel)
 {
-    if (app_internal::is_video_init())
+    if (app->is_video_init())
     {
         // release any keys heald down from last frame
         keyboard::keyboard_internal::release_auto_release_keys();
@@ -242,7 +213,7 @@ static void pump_events_internal(bool push_sentinel)
     }
 
     // pump events for other subsystems
-    event_internal::pump_events_maintenance();
+    events_instance::pump_events_maintenance();
 
     if (push_sentinel)
     {
@@ -254,24 +225,38 @@ static void pump_events_internal(bool push_sentinel)
 
 VX_API size_t add_events(const event* e, size_t count)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT(0);
-    return event_internal::add_events(e, count);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(0);
+    return s_events_ptr->add_events(e, count);
 }
 
-size_t event_internal::add_events(const event* e, size_t count)
+size_t events_instance::add_events(const event* e, size_t count)
 {
-    return data.queue.add(e, count);
+    const size_t n = data.queue.add(e, count);
+
+#if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
+
+    // if we happen to be blocking in another thread, send a
+    // wakeup event to signal that an event was added to the queue
+
+    if (n && app->is_video_init())
+    {
+        video::video_internal::send_wakeup_event();
+    }
+
+#endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
+
+    return n;
 }
 
 ////////////////////////////////////////
 
 VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT(0);
-    return event_internal::match_events(matcher, user_data, events, count, remove);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(0);
+    return s_events_ptr->match_events(matcher, user_data, events, count, remove);
 }
 
-size_t event_internal::match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
+size_t events_instance::match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
     return data.queue.match(matcher, user_data, events, count, remove);
 }
@@ -280,7 +265,7 @@ size_t event_internal::match_events(event_filter matcher, void* user_data, event
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1506
 
-time::time_point event_internal::get_polling_interval()
+time::time_point events_instance::get_polling_interval() const
 {
     time::time_point interval = time::max();
 
@@ -293,7 +278,7 @@ time::time_point event_internal::get_polling_interval()
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-int event_internal::wait_event_timeout_video(video::window* w, event& e, time::time_point t, time::time_point start)
+int events_instance::wait_event_timeout_video(video::window* w, event& e, time::time_point t, time::time_point start)
 {
     // Get the global polling interval (or time::max if disabled)
     time::time_point poll_interval = get_polling_interval();
@@ -372,11 +357,11 @@ int event_internal::wait_event_timeout_video(video::window* w, event& e, time::t
 
 VX_API bool wait_event_timeout(event& e, time::time_point t)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
-    return event_internal::wait_event_timeout(e, t);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
+    return s_events_ptr->wait_event_timeout(e, t);
 }
 
-bool event_internal::wait_event_timeout(event& e, time::time_point t)
+bool events_instance::wait_event_timeout(event& e, time::time_point t)
 {
     const bool zero_timeout = t.is_zero();
 
@@ -417,7 +402,7 @@ bool event_internal::wait_event_timeout(event& e, time::time_point t)
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-    if (app_internal::is_video_init())
+    if (app->is_video_init())
     {
         video::window* w = video::video_internal::get_active_window();
         if (w)
@@ -473,29 +458,29 @@ bool event_internal::wait_event_timeout(event& e, time::time_point t)
 
 VX_API bool push_event(const event& e)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
-    return event_internal::push_event(e);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
+    return s_events_ptr->push_event(e);
 }
 
-bool event_internal::push_event(const event& e)
+bool events_instance::push_event(const event& e)
 {
     if (!dispatch_event_watch(e))
     {
         return false;
     }
 
-    return data.queue.add(&e, 1);
+    return add_events(&e, 1) == 1;
 }
 
 ////////////////////////////////////////
 
 VX_API bool poll_event(event& e)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT(false);
-    return event_internal::poll_event(e);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
+    return s_events_ptr->poll_event(e);
 }
 
-bool event_internal::poll_event(event& e)
+bool events_instance::poll_event(event& e)
 {
     return wait_event_timeout(e, time::zero());
 }
@@ -504,11 +489,11 @@ bool event_internal::poll_event(event& e)
 
 VX_API void set_event_filter(event_filter filter, void* user_data)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
-    event_internal::set_event_filter(filter, user_data);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
+    s_events_ptr->set_event_filter(filter, user_data);
 }
 
-void event_internal::set_event_filter(event_filter filter, void* user_data)
+void events_instance::set_event_filter(event_filter filter, void* user_data)
 {
     os::lock_guard lock(data.watch.mutex);
 
@@ -523,11 +508,11 @@ void event_internal::set_event_filter(event_filter filter, void* user_data)
 
 VX_API void get_event_filter(event_filter& filter, void*& user_data)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
-    event_internal::get_event_filter(filter, user_data);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
+    s_events_ptr->get_event_filter(filter, user_data);
 }
 
-void event_internal::get_event_filter(event_filter& filter, void*& user_data)
+void events_instance::get_event_filter(event_filter& filter, void*& user_data)
 {
     os::lock_guard lock(data.watch.mutex);
 
@@ -539,11 +524,11 @@ void event_internal::get_event_filter(event_filter& filter, void*& user_data)
 
 VX_API void add_event_watch(event_filter callback, void* user_data)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
-    event_internal::add_event_watch(callback, user_data);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
+    s_events_ptr->add_event_watch(callback, user_data);
 }
 
-void event_internal::add_event_watch(event_filter callback, void* user_data)
+void events_instance::add_event_watch(event_filter callback, void* user_data)
 {
     event_watcher watcher{ callback, user_data, false };
 
@@ -555,11 +540,11 @@ void event_internal::add_event_watch(event_filter callback, void* user_data)
 
 VX_API void remove_event_watch(event_filter callback, void* user_data)
 {
-    VX_CHECK_EVENT_SUBSYSTEM_INIT_VOID();
-    event_internal::remove_event_watch(callback, user_data);
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
+    s_events_ptr->remove_event_watch(callback, user_data);
 }
 
-void event_internal::remove_event_watch(event_filter callback, void* user_data)
+void events_instance::remove_event_watch(event_filter callback, void* user_data)
 {
     os::lock_guard lock(data.watch.mutex);
    
@@ -584,7 +569,7 @@ void event_internal::remove_event_watch(event_filter callback, void* user_data)
 
 ////////////////////////////////////////
 
-static void prune_removed_watchers()
+void events_instance::prune_removed_watchers()
 {
     for (auto it = data.watch.watchers.begin(); it != data.watch.watchers.end();)
     {
@@ -599,7 +584,7 @@ static void prune_removed_watchers()
     }
 }
 
-bool event_internal::dispatch_event_watch(const event& e)
+bool events_instance::dispatch_event_watch(const event& e)
 {
     if (e.type == event_type::INTERNAL_EVENT_POLL_SENTINEL)
     {

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/app/owner_ptr.hpp"
 
 namespace vx {
 namespace app {
@@ -19,26 +18,14 @@ enum init_flag
     INIT_REQUIRES_EVENTS    = INIT_EVENTS | INIT_VIDEO | INIT_AUDIO | INIT_CAMERA
 };
 
-//VX_API init_flag init(init_flag flags);
-//VX_API bool is_init(init_flag flags);
-//VX_API void quit(init_flag flags = init_flag::INIT_EVERYTHING);
-//VX_API void shutdown();
 
-class application_impl;
+VX_API bool init();
+VX_API bool is_init();
+VX_API void quit();
 
-class application
-{
-public:
-
-    VX_API init_flag init(init_flag flags);
-    VX_API bool is_init(init_flag flags);
-    VX_API void quit(init_flag flags = init_flag::INIT_EVERYTHING);
-    VX_API void shutdown();
-
-private:
-
-    owner_ptr<application_impl> m_impl;
-};
+VX_API init_flag init_subsystem(init_flag flags);
+VX_API bool is_subsystem_init(init_flag flags);
+VX_API void quit_subsystem(init_flag flags);
 
 } // namespace app
 } // namespace vx

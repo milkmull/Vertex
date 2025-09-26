@@ -9,49 +9,37 @@ namespace hint {
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
-// simulate data being a member of hint_internal
-#define data (*s_hint_data_ptr)
-
-bool hint_internal::init()
+bool hints_instance::init(app_instance* owner)
 {
-    s_app_data_ptr.reset(new app_data);
-
-    if (!s_app_data_ptr)
-    {
-        return false;
-    }
-
+    VX_ASSERT(!app);
+    VX_ASSERT(owner);
+    app = owner;
     return true;
 }
 
-bool hint_internal::is_init()
+bool hints_instance::is_init() const
 {
-    return s_hint_data_ptr != nullptr;
+    return app != nullptr;
 }
 
-void hint_internal::quit()
+void hints_instance::quit()
 {
-    s_hint_data_ptr.reset();
+    app = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // checkers
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool hint_entry_exists(hint_t name)
-{
-    return data.hints.count(name);
-}
-
 ////////////////////////////////////////
 
 VX_API bool has_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(false);
-    return hint_internal::has_hint(name);
+    return s_hints_ptr->has_hint(name);
 }
 
-bool hint_internal::has_hint(hint_t name)
+bool hints_instance::has_hint(hint_t name) const
 {
     os::lock_guard lock(data.mutex);
 
@@ -71,10 +59,10 @@ bool hint_internal::has_hint(hint_t name)
 VX_API const char* get_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(nullptr);
-    return hint_internal::get_hint(name);
+    return s_hints_ptr->get_hint(name);
 }
 
-const char* hint_internal::get_hint(hint_t name)
+const char* hints_instance::get_hint(hint_t name) const
 {
     os::lock_guard lock(data.mutex);
     const hint_entry& h = data.hints.at(name);
@@ -110,10 +98,10 @@ void hint_entry::update(hint_t name, const char* old_value, const char* new_valu
 VX_API bool set_hint(hint_t name, const char* value)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(false);
-    return hint_internal::set_hint(name, value);
+    return s_hints_ptr->set_hint(name, value);
 }
 
-bool hint_internal::set_hint(hint_t name, const char* value)
+bool hints_instance::set_hint(hint_t name, const char* value)
 {
     if (!value)
     {
@@ -145,10 +133,10 @@ bool hint_internal::set_hint(hint_t name, const char* value)
 VX_API void reset_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
-    return hint_internal::reset_hint(name);
+    return s_hints_ptr->reset_hint(name);
 }
 
-void hint_internal::reset_hint(hint_t name)
+void hints_instance::reset_hint(hint_t name)
 {
     os::lock_guard lock(data.mutex);
 
@@ -176,7 +164,7 @@ void hint_internal::reset_hint(hint_t name)
 
 ////////////////////////////////////////
 
-bool hint_internal::set_hint_default_value(hint_t name, const char* value, bool override_user_value)
+bool hints_instance::set_hint_default_value(hint_t name, const char* value, bool override_user_value)
 {
     if (!value)
     {
@@ -210,7 +198,7 @@ bool hint_internal::set_hint_default_value(hint_t name, const char* value, bool 
 // callbacks
 ///////////////////////////////////////////////////////////////////////////////
 
-void hint_internal::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     if (!callback)
     {
@@ -246,10 +234,10 @@ void hint_internal::add_hint_callback(hint_t name, hint_callback callback, void*
 VX_API void remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
-    hint_internal::remove_hint_callback(name, callback, user_data);
+    s_hints_ptr->remove_hint_callback(name, callback, user_data);
 }
 
-void hint_internal::remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void hints_instance::remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     if (!callback)
     {
@@ -277,13 +265,7 @@ void hint_internal::remove_hint_callback(hint_t name, hint_callback callback, vo
 
 ////////////////////////////////////////
 
-void add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value)
-{
-    VX_CHECK_HINTS_SUBSYSTEM_INIT_BACKEND_VOID();
-    hint_internal::add_hint_callback_and_default_value(name, callback, user_data, default_value);
-}
-
-void hint_internal::add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value)
+void hints_instance::add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value)
 {
     // set the default value first so the callback is not triggered
     set_hint_default_value(name, default_value, false);
