@@ -43,6 +43,11 @@
 #endif
 #define VX_VIDEO_HAVE_DISPLAY_GET_WORK_AREA 1
 
+#ifdef VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS
+#   undef VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS
+#endif
+#define VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS 1
+
 // ------------------------------------------------------------
 // Event handling
 // ------------------------------------------------------------
@@ -62,14 +67,19 @@
 #endif
 #define VX_VIDEO_HAVE_SEND_WAKEUP_EVENT 1
 
-#ifdef VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER
-#   undef VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER
+#ifdef VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#   undef VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
 #endif
-#define VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER 1
+#define VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER 1
 
 // ------------------------------------------------------------
 // Window management
 // ------------------------------------------------------------
+
+#ifdef VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT
+#   undef VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT
+#endif
+#define VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT 1
 
 #ifdef VX_VIDEO_HAVE_WINDOW_CREATE
 #   undef VX_VIDEO_HAVE_WINDOW_CREATE

@@ -46,14 +46,8 @@ bool events_instance::init(app_instance* owner)
     return true;
 }
 
-bool events_instance::is_init() const
-{
-    return app != nullptr;
-}
-
 void events_instance::quit()
 {
-    app = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -619,6 +613,7 @@ bool events_instance::dispatch_event_watch(const event& e)
     {
         auto& watcher = data.watch.watchers[i];
         
+        // only call the watcher if it was not removed in a callback
         if (!watcher.removed)
         {
             watcher.callback(e, watcher.user_data);
@@ -627,6 +622,7 @@ bool events_instance::dispatch_event_watch(const event& e)
 
     data.watch.dispatching = false;
 
+    // remove any watchers removed in callbacks
     if (data.watch.removed)
     {
         prune_removed_watchers();

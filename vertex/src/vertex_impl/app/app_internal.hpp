@@ -13,9 +13,20 @@ namespace app {
 
 namespace hint { struct hints_instance; }
 namespace event { struct events_instance; }
-namespace video { struct video_data; }
+namespace video { struct video_instance; }
 namespace audio { struct audio_data; }
 namespace camera { struct camera_data; }
+
+enum subsystem
+{
+    HINTS_SUBSYSTEM,
+    EVENTS_SUBSYSTEM,
+    VIDEO_SUBSYSTEM,
+    AUDIO_SUBSYSTEM,
+    CAMERA_SUBSYSTEM,
+
+    SUBSYSTEM_COUNT
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // data
@@ -23,12 +34,13 @@ namespace camera { struct camera_data; }
 
 struct app_data
 {
-    init_flag flags = init_flag::NONE;
+    app_metadata metadata;
 
     owner_ptr<hint::hints_instance> hints_ptr;
     owner_ptr<event::events_instance> events_ptr;
-    size_t events_ref_count = 0;
-    //owner_ptr<video::video_data> video_data_ptr;
+    owner_ptr<video::video_instance> video_ptr;
+
+    size_t ref_counts[SUBSYSTEM_COUNT] = {};
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +55,7 @@ public:
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool init();
+    bool init(const app_metadata& metadata = {});
     void quit();
 
     init_flag init_subsystem(init_flag flags);
@@ -61,6 +73,13 @@ public:
     bool init_video();
     bool is_video_init() const;
     void quit_video();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // metadata
+    ///////////////////////////////////////////////////////////////////////////////
+
+    void set_metadata(const app_metadata& metadata);
+    const app_metadata& get_metadata() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
@@ -158,15 +177,16 @@ do \
 
 ///////////////////////////////////////
 
-//#define s_video_data_ptr (s_app->video_data_ptr)
-//
-//#define VX_CHECK_VIDEO_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Video subsystem, s_video_data_ptr, r)
-//#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT(void())
-//
-//#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_video_data_ptr, r)
-//#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(void())
-//
-//#define VX_SAFE_VIDEO_CALL(expr) VX_SAFE_CALL(s_video_data_ptr, expr)
+#define s_video_ptr (s_app_ptr->data.video_ptr)
+
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Video subsystem, s_video_ptr, r)
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT(void())
+
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(r) VX_CHECK_SUBSYSTEM_INIT_BACKEND(s_video_ptr, r)
+#define VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT_BACKEND(void())
+
+#define VX_SAFE_VIDEO_CALL(expr) VX_SAFE_CALL(s_video_ptr, expr)
+#define VX_SET_VIDEO_SUBSYSTEM_INIT_FAILED_ERROR() VX_SET_SUBSYSTEM_INIT_FAILED_ERROR(Video)
 
 } // namespace app
 } // namespace vx

@@ -17,14 +17,8 @@ bool hints_instance::init(app_instance* owner)
     return true;
 }
 
-bool hints_instance::is_init() const
-{
-    return app != nullptr;
-}
-
 void hints_instance::quit()
 {
-    app = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -265,11 +259,19 @@ void hints_instance::remove_hint_callback(hint_t name, hint_callback callback, v
 
 ////////////////////////////////////////
 
-void hints_instance::add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value)
+void hints_instance::add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value, bool trigger_callback)
 {
-    // set the default value first so the callback is not triggered
-    set_hint_default_value(name, default_value, false);
-    add_hint_callback(name, callback, user_data);
+    if (trigger_callback)
+    {
+        add_hint_callback(name, callback, user_data);
+        set_hint_default_value(name, default_value, false);
+    }
+    else
+    {
+        // set the default value first so the callback is not triggered
+        set_hint_default_value(name, default_value, false);
+        add_hint_callback(name, callback, user_data);
+    }
 }
 
 } // namespace hint

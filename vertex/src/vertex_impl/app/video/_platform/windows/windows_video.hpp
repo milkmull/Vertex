@@ -48,41 +48,77 @@ struct video_impl_data
     user32 user32;
     shcore shcore;
 
-    static LPCWSTR app_name;
+    std::wstring app_name;
     bool registered_app = false;
+
+    system_theme system_theme_cache = system_theme::UNKNOWN;
 };
 
-class video_impl
+class video_instance_impl
 {
 public:
 
-    static bool init();
-    static bool is_init();
-    static void quit();
+    ///////////////////////////////////////////////////////////////////////////////
+    // libraries
+    ///////////////////////////////////////////////////////////////////////////////
 
-    static process_dpi_awareness get_dpi_awareness();
+    bool load_libraries();
+    void free_libraries();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // initialization
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool init(video_instance* owner);
+    void quit();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // dpi
+    ///////////////////////////////////////////////////////////////////////////////
+
+    process_dpi_awareness get_dpi_awareness() const;
+    bool set_dpi_awareness(process_dpi_awareness awareness);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // system theme
+    ///////////////////////////////////////////////////////////////////////////////
+
     static system_theme get_system_theme();
 
-    static inline constexpr capabilities get_capabilities() noexcept
-    {
-        return capabilities::SENDS_DISPLAY_CHANGES;
-    }
+    ///////////////////////////////////////////////////////////////////////////////
+    // screen saver
+    ///////////////////////////////////////////////////////////////////////////////
 
-    static inline constexpr bool has_capabilities(capabilities caps) noexcept
-    {
-        return get_capabilities() & caps;
-    }
+    bool suspend_screen_saver();
 
-    static void update_displays(std::vector<owner_ptr<display>>& displays);
+    ///////////////////////////////////////////////////////////////////////////////
+    // displays
+    ///////////////////////////////////////////////////////////////////////////////
 
-    static inline display* get_display_for_window(const window& w)
+    bool create_display(
+        size_t index,
+        std::vector<display_instance>& displays,
+        HMONITOR hMonitor,
+        const MONITORINFOEX* info
+    ) const;
+
+    void update_displays();
+
+    inline display* get_display_for_window(const window& w)
     {
         return nullptr;
     }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
+
+    video_instance* video = nullptr;
+    video_impl_data data;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// display_mode_impl
+// display_mode_instance_impl
 ///////////////////////////////////////////////////////////////////////////////
 
 struct display_mode_impl_data
@@ -90,7 +126,7 @@ struct display_mode_impl_data
     DEVMODE devmode;
 };
 
-class display_mode_impl
+class display_mode_instance_impl
 {
 public:
 
@@ -116,20 +152,17 @@ struct display_impl_data
     math::recti last_bounds;
 };
 
-class display_impl
+class display_instance_impl
 {
 public:
 
-    static bool get_display_mode(
-        const WCHAR* device_name,
-        display_mode_instance& mode, DWORD index, display_orientation* orientation
-    );
+    void list_display_modes(std::vector<display_mode_instance>& modes) const;
+    bool set_display_mode(display_mode_instance& mode, bool is_desktop_mode);
 
-    static void list_display_modes(std::vector<display_mode_instance>& modes);
-    static bool set_display_mode(display_mode_instance& mode, bool is_desktop_mode);
+    bool get_bounds(math::recti& bounds) const;
+    bool get_work_area(math::recti& work_area) const;
 
-    static bool get_bounds(math::recti& bounds);
-    static bool get_work_area(math::recti& work_area);
+    display_impl_data data;
 };
 
 } // namespace video

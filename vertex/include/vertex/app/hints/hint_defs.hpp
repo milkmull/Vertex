@@ -40,7 +40,14 @@ struct hint_traits<name> \
 // hints
 ///////////////////////////////////////////////////////////////////////////////
 
-CRETAE_HINT(HINT_VIDEO_ALLOW_SCREENSAVER, 1, "false");
+CRETAE_HINT(HINT_VIDEO_ALLOW_SCREEN_SAVER, 1, "false");
+CRETAE_HINT(HINT_VIDEO_SYNC_WINDOW_OPERATIONS, 2, "false");
+CRETAE_HINT(HINT_VIDEO_DISPLAY_USABLE_BOUNDS, 3, "0,0,0,0");
+
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_HINT_GET_NAME(hint_) ::vx::app::hint::hint_traits<(hint_)>::hint
+#define VX_HINT_GET_DEFAULT_VALUE(hint_) ::vx::app::hint::hint_traits<(hint_)>::default_value
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -10,13 +10,13 @@ namespace video {
 // library loading
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool load_libraries()
+bool video_instance_impl::load_libraries()
 {
-#   define set_fn_ptr(lib, fn) s_driver_data.lib.fn = s_driver_data.lib.dll.get<decltype(s_driver_data.lib.fn)>(#fn)
+#   define set_fn_ptr(lib, fn) data.lib.fn = data.lib.dll.get<decltype(data.lib.fn)>(#fn)
 
     // user32
     {
-        if (!s_driver_data.user32.dll.load("user32.dll"))
+        if (!data.user32.dll.load("user32.dll"))
         {
             return false;
         }
@@ -38,7 +38,7 @@ static bool load_libraries()
 
     // shcore
     {
-        if (!s_driver_data.shcore.dll.load("shcore.dll"))
+        if (!data.shcore.dll.load("shcore.dll"))
         {
             return false;
         }
@@ -51,31 +51,31 @@ static bool load_libraries()
     return true;
 }
 
-static void free_libraries()
+void video_instance_impl::free_libraries()
 {
-    s_driver_data.user32.dll.free();
-    s_driver_data.shcore.dll.free();
+    data.user32 = user32{};
+    data.shcore = shcore{};
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // dpi
 ///////////////////////////////////////////////////////////////////////////////
 
-process_dpi_awareness get_dpi_awareness_impl()
+process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 {
-    if (s_driver_data.user32.GetAwarenessFromDpiAwarenessContext && s_driver_data.user32.AreDpiAwarenessContextsEqual)
+    if (data.user32.GetAwarenessFromDpiAwarenessContext && data.user32.AreDpiAwarenessContextsEqual)
     {
-        DPI_AWARENESS_CONTEXT context = s_driver_data.user32.GetThreadDpiAwarenessContext();
+        DPI_AWARENESS_CONTEXT context = data.user32.GetThreadDpiAwarenessContext();
 
-        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_UNAWARE))
+        if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_UNAWARE))
         {
             return process_dpi_awareness::UNAWARE;
         }
-        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE))
+        if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE))
         {
             return process_dpi_awareness::SYSTEM;
         }
-        if (s_driver_data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
+        if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
         {
             return process_dpi_awareness::PER_MONITOR;
         }
@@ -84,7 +84,7 @@ process_dpi_awareness get_dpi_awareness_impl()
     return process_dpi_awareness::UNAWARE;
 }
 
-static bool set_dpi_awareness(process_dpi_awareness awareness)
+bool video_instance_impl::set_dpi_awareness(process_dpi_awareness awareness)
 {
     // https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process
 
@@ -92,48 +92,48 @@ static bool set_dpi_awareness(process_dpi_awareness awareness)
     {
         case process_dpi_awareness::UNAWARE:
         {
-            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            if (data.user32.SetProcessDpiAwarenessContext)
             {
                 // Windows 10, version 1607
-                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
+                return data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE);
             }
-            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            if (data.shcore.SetProcessDpiAwareness)
             {
                 // Windows 8.1
-                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_DPI_UNAWARE));
+                return SUCCEEDED(data.shcore.SetProcessDpiAwareness(PROCESS_DPI_UNAWARE));
             }
             break;
         }
         case process_dpi_awareness::SYSTEM:
         {
-            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            if (data.user32.SetProcessDpiAwarenessContext)
             {
                 // Windows 10, version 1607
-                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+                return data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
             }
-            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            if (data.shcore.SetProcessDpiAwareness)
             {
                 // Windows 8.1
-                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE));
+                return SUCCEEDED(data.shcore.SetProcessDpiAwareness(PROCESS_SYSTEM_DPI_AWARE));
             }
-            if (s_driver_data.user32.SetProcessDPIAware)
+            if (data.user32.SetProcessDPIAware)
             {
                 // Windows Vista
-                return s_driver_data.user32.SetProcessDPIAware();
+                return data.user32.SetProcessDPIAware();
             }
             break;
         }
         case process_dpi_awareness::PER_MONITOR:
         {
-            if (s_driver_data.user32.SetProcessDpiAwarenessContext)
+            if (data.user32.SetProcessDpiAwarenessContext)
             {
                 // Windows 10, version 1607
-                return s_driver_data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
+                return data.user32.SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE);
             }
-            if (s_driver_data.shcore.SetProcessDpiAwareness)
+            if (data.shcore.SetProcessDpiAwareness)
             {
                 // Windows 8.1
-                return SUCCEEDED(s_driver_data.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE));
+                return SUCCEEDED(data.shcore.SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE));
             }
             else
             {
@@ -151,14 +151,9 @@ static bool set_dpi_awareness(process_dpi_awareness awareness)
 // app registration
 ///////////////////////////////////////////////////////////////////////////////
 
-LPCWSTR driver_data::app_name = L"Vertex_App";
-
 static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 {
-    if (!name)
-    {
-        name = driver_data::app_name;
-    }
+    VX_ASSERT(name);
 
     if (!hInstance)
     {
@@ -170,9 +165,9 @@ static bool register_app(LPCWSTR name, HINSTANCE hInstance)
     style = (CS_BYTEALIGNCLIENT | CS_OWNDC);
 #endif
 
-    WNDCLASSW wc{};
+    WNDCLASSW wc{}; 
     wc.style = style;
-    wc.lpfnWndProc = _priv::window_impl::window_proc;
+    wc.lpfnWndProc = window_impl::window_proc;
     wc.hInstance = hInstance; // needed for dll
     wc.hIcon = NULL;
     wc.hCursor = NULL;
@@ -183,10 +178,7 @@ static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 
 static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 {
-    if (!name)
-    {
-        name = driver_data::app_name;
-    }
+    VX_ASSERT(name);
 
     if (!hInstance)
     {
@@ -200,48 +192,62 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
-driver_data s_driver_data = driver_data{};
-
-bool init_impl()
+bool video_instance_impl::init(video_instance* owner)
 {
+    VX_ASSERT(!video);
+    VX_ASSERT(owner);
+    video = owner;
+
     if (!load_libraries())
     {
+        quit();
         return false;
     }
 
     if (!set_dpi_awareness(process_dpi_awareness::UNAWARE))
     {
+        quit();
         return false;
     }
 
-    if (!s_driver_data.registered_app)
+    // register app
     {
-        s_driver_data.registered_app = register_app(NULL, NULL);
-        
-        if (!s_driver_data.registered_app)
+        const char* app_name = video->app->data.metadata.name;
+        data.app_name = str::string_cast<wchar_t>(app_name);
+
+        if (!register_app(data.app_name.c_str(), NULL))
         {
+            quit();
             return false;
         }
+
+        data.registered_app = true;
     }
+
+    data.system_theme_cache = get_system_theme();
 
     return true;
 }
 
-void quit_impl()
+void video_instance_impl::quit()
 {
     free_libraries();
 
-    if (!s_driver_data.registered_app)
+    if (data.registered_app)
     {
-        unregister_app(NULL, NULL);
+        unregister_app(data.app_name.c_str(), NULL);
+        data.registered_app = false;
     }
+
+    data.app_name.clear();
+    data.system_theme_cache = system_theme::UNKNOWN;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // system theme
 ///////////////////////////////////////////////////////////////////////////////
 
-system_theme get_system_theme_impl()
+system_theme video_instance_impl::get_system_theme()
 {
     LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
     LPCWSTR value = L"AppsUseLightTheme";
@@ -265,14 +271,42 @@ system_theme get_system_theme_impl()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// screen saver
+///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L168
+
+bool video_instance_impl::suspend_screen_saver()
+{
+    DWORD res;
+
+    if (video->data.suspend_screen_saver)
+    {
+        res = ::SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED);
+    }
+    else
+    {
+        res = ::SetThreadExecutionState(ES_CONTINUOUS);
+    }
+
+    if (res == 0)
+    {
+        os::windows::error_message("SetThreadExecutionState()");
+        return false;
+    }
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // display name
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool get_display_name_vista(const WCHAR* device_name, std::string& display_name)
+static bool get_display_name_vista(const user32& user32, const WCHAR* device_name, std::string& display_name)
 {
-    if (!s_driver_data.user32.GetDisplayConfigBufferSizes ||
-        !s_driver_data.user32.QueryDisplayConfig ||
-        !s_driver_data.user32.DisplayConfigGetDeviceInfo)
+    if (!user32.GetDisplayConfigBufferSizes ||
+        !user32.QueryDisplayConfig ||
+        !user32.DisplayConfigGetDeviceInfo)
     {
         return false;
     }
@@ -285,7 +319,7 @@ static bool get_display_name_vista(const WCHAR* device_name, std::string& displa
     std::vector<DISPLAYCONFIG_PATH_INFO> paths;
     std::vector<DISPLAYCONFIG_MODE_INFO> modes;
 
-    rc = s_driver_data.user32.GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &path_count, &mode_count);
+    rc = user32.GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &path_count, &mode_count);
     if (rc != ERROR_SUCCESS)
     {
         return false;
@@ -294,7 +328,7 @@ static bool get_display_name_vista(const WCHAR* device_name, std::string& displa
     paths.resize(path_count);
     modes.resize(mode_count);
 
-    rc = s_driver_data.user32.QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &path_count, paths.data(), &mode_count, modes.data(), 0);
+    rc = user32.QueryDisplayConfig(QDC_ONLY_ACTIVE_PATHS, &path_count, paths.data(), &mode_count, modes.data(), 0);
 
     if (rc != ERROR_SUCCESS)
     {
@@ -311,7 +345,7 @@ static bool get_display_name_vista(const WCHAR* device_name, std::string& displa
         source_name.header.id = paths[i].sourceInfo.id;
 
         // retrieve the source (GPU output) GDI device name
-        rc = s_driver_data.user32.DisplayConfigGetDeviceInfo(&source_name.header);
+        rc = user32.DisplayConfigGetDeviceInfo(&source_name.header);
         if (rc != ERROR_SUCCESS)
         {
             return false;
@@ -330,7 +364,7 @@ static bool get_display_name_vista(const WCHAR* device_name, std::string& displa
         target_name.header.adapterId = paths[i].targetInfo.adapterId;
         target_name.header.id = paths[i].targetInfo.id;
 
-        rc = s_driver_data.user32.DisplayConfigGetDeviceInfo(&target_name.header);
+        rc = user32.DisplayConfigGetDeviceInfo(&target_name.header);
         if (rc != ERROR_SUCCESS)
         {
             return false;
@@ -347,15 +381,15 @@ static bool get_display_name_vista(const WCHAR* device_name, std::string& displa
 // display content scale
 ///////////////////////////////////////////////////////////////////////////////
 
-static math::vec2 get_display_content_scale(const HMONITOR handle)
+static math::vec2 get_display_content_scale(const shcore& shcore, const HMONITOR handle)
 {
     UINT xdpi = 1;
     UINT ydpi = 1;
     bool dpi_set = false;
 
-    if (s_driver_data.shcore.GetDpiForMonitor)
+    if (shcore.GetDpiForMonitor)
     {
-        if (s_driver_data.shcore.GetDpiForMonitor(handle, MDT_EFFECTIVE_DPI, &xdpi, &ydpi) == S_OK)
+        if (shcore.GetDpiForMonitor(handle, MDT_EFFECTIVE_DPI, &xdpi, &ydpi) == S_OK)
         {
             dpi_set = true;
         }
@@ -367,12 +401,12 @@ static math::vec2 get_display_content_scale(const HMONITOR handle)
         xdpi = ydpi = USER_DEFAULT_SCREEN_DPI;
 
         // Window 8.0 and below: same DPI for all monitors 
-        HDC hdc = GetDC(NULL);
+        HDC hdc = ::GetDC(NULL);
         if (hdc)
         {
-            xdpi = GetDeviceCaps(hdc, LOGPIXELSX);
-            ydpi = GetDeviceCaps(hdc, LOGPIXELSY);
-            ReleaseDC(NULL, hdc);
+            xdpi = ::GetDeviceCaps(hdc, LOGPIXELSX);
+            ydpi = ::GetDeviceCaps(hdc, LOGPIXELSY);
+            ::ReleaseDC(NULL, hdc);
         }
     }
 
@@ -421,26 +455,26 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
     switch (get_natural_orientation(mode))
     {
         default:
-        case video::display_orientation::LANDSCAPE:
+        case display_orientation::LANDSCAPE:
         {
             switch (mode->dmDisplayOrientation)
             {
-                case DMDO_DEFAULT: return video::display_orientation::LANDSCAPE;
-                case DMDO_90:      return video::display_orientation::PORTRAIT;
-                case DMDO_180:     return video::display_orientation::LANDSCAPE_FLIPPED;
-                case DMDO_270:     return video::display_orientation::PORTRAIT_FLIPPED;
-                default:           return video::display_orientation::UNKNOWN;
+                case DMDO_DEFAULT: return display_orientation::LANDSCAPE;
+                case DMDO_90:      return display_orientation::PORTRAIT;
+                case DMDO_180:     return display_orientation::LANDSCAPE_FLIPPED;
+                case DMDO_270:     return display_orientation::PORTRAIT_FLIPPED;
+                default:           return display_orientation::UNKNOWN;
             }
         }
-        case video::display_orientation::PORTRAIT:
+        case display_orientation::PORTRAIT:
         {
             switch (mode->dmDisplayOrientation)
             {
-                case DMDO_DEFAULT: return video::display_orientation::PORTRAIT;
-                case DMDO_90:      return video::display_orientation::LANDSCAPE_FLIPPED;
-                case DMDO_180:     return video::display_orientation::PORTRAIT_FLIPPED;
-                case DMDO_270:     return video::display_orientation::LANDSCAPE;
-                default:           return video::display_orientation::UNKNOWN;
+                case DMDO_DEFAULT: return display_orientation::PORTRAIT;
+                case DMDO_90:      return display_orientation::LANDSCAPE_FLIPPED;
+                case DMDO_180:     return display_orientation::PORTRAIT_FLIPPED;
+                case DMDO_270:     return display_orientation::LANDSCAPE;
+                default:           return display_orientation::UNKNOWN;
             }
         }
     }
@@ -450,7 +484,7 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
-bool _priv::display_impl::get_display_mode(const WCHAR* device_name, display_mode& mode, DWORD index, display_orientation* orientation)
+static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation)
 {
     DEVMODE dm{ sizeof(dm) };
 
@@ -464,15 +498,20 @@ bool _priv::display_impl::get_display_mode(const WCHAR* device_name, display_mod
         return false;
     }
 
-    mode.resolution.x = dm.dmPelsWidth;
-    mode.resolution.y = dm.dmPelsHeight;
-    mode.bpp = dm.dmBitsPerPel;
-    mode.pixel_format = pixel::pixel_format::UNKNOWN; // TODO: figure out how to get the pixel format
-    mode.pixel_density = 1.0f;
-    mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
+    mode.data.mode.resolution.x = dm.dmPelsWidth;
+    mode.data.mode.resolution.y = dm.dmPelsHeight;
+    mode.data.mode.bpp = dm.dmBitsPerPel;
+    mode.data.mode.pixel_format = pixel::pixel_format::UNKNOWN; // TODO: figure out how to get the pixel format
+    mode.data.mode.pixel_density = 1.0f;
+    mode.data.mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
 
-    mode.m_impl = std::make_unique<_priv::display_mode_impl>();
-    mode.m_impl->devmode = dm;
+    mode.impl_ptr.reset(new display_mode_instance_impl);
+    if (!mode.impl_ptr)
+    {
+        return false;
+    }
+
+    mode.impl_ptr->data.devmode = dm;
 
     if (orientation)
     {
@@ -488,19 +527,20 @@ bool _priv::display_impl::get_display_mode(const WCHAR* device_name, display_mod
 
 struct poll_display_data
 {
+    video_instance_impl* video = nullptr;
     size_t index; // track the index of the displays we add to our list
     bool find_primary;
-    std::vector<owner_ptr<video::display>>* displays;
+    std::vector<display_instance>* displays;
 };
 
-bool _priv::display_impl::create_display(
+bool video_instance_impl::create_display(
     size_t index,
-    std::vector<owner_ptr<display>>& displays,
+    std::vector<display_instance>& displays,
     HMONITOR hMonitor,
     const MONITORINFOEX* info
-)
+) const
 {
-    display_mode current_mode;
+    display_mode_instance current_mode;
     display_orientation current_orientation;
 
     if (!get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation))
@@ -508,7 +548,7 @@ bool _priv::display_impl::create_display(
         return false;
     }
 
-    const math::vec2 current_content_scale = get_display_content_scale(hMonitor);
+    const math::vec2 current_content_scale = get_display_content_scale(data.shcore, hMonitor);
 
     // Prevent adding duplicate displays. Do this after we know the display is
     // ready to be added to allow any displays that we can't fully query to be
@@ -517,12 +557,12 @@ bool _priv::display_impl::create_display(
     bool found = false;
     for (size_t i = 0; i < displays.size(); ++i)
     {
-        display* d = displays[i].get();
-        _priv::display_impl* d_impl = video_internal::get_impl(*d);
+        display_instance& d = displays[i];
+        display_instance_impl* d_impl = d.impl_ptr.get();
 
-        if (d_impl->device_name == info->szDevice)
+        if (d_impl->data.device_name == info->szDevice)
         {
-            if (d_impl->state != display_state::REMOVED)
+            if (d_impl->data.state != display_state::REMOVED)
             {
                 // This display has already been enumerated and is still valid;
                 // no need to re-add or move it.
@@ -544,21 +584,21 @@ bool _priv::display_impl::create_display(
             }
 
             // Reactivate the display and update its state.
-            d_impl->handle = hMonitor;
-            d_impl->state = display_state::NONE;
+            d_impl->data.handle = hMonitor;
+            d_impl->data.state = display_state::NONE;
 
-            if (!s_video_data->setting_display_mode)
+            if (!video->data.setting_display_mode)
             {
-                const math::recti current_bounds = d->get_bounds();
-                if (moved || d->get_bounds() != d_impl->last_bounds)
+                const math::recti current_bounds = d.get_bounds();
+                if (moved || d.get_bounds() != d_impl->data.last_bounds)
                 {
                     // moved
-                    d_impl->last_bounds = current_bounds;
-                    video_internal::post_display_moved(*d);
+                    d_impl->data.last_bounds = current_bounds;
+                    video->post_display_moved(d);
                 }
 
-                video_internal::post_display_orientation_changed(*d, current_orientation);
-                video_internal::post_display_content_scale_changed(*d, current_content_scale);
+                video->post_display_orientation_changed(d, current_orientation);
+                video->post_display_content_scale_changed(d, current_content_scale);
             }
 
             found = true;
@@ -568,31 +608,34 @@ bool _priv::display_impl::create_display(
 
     if (!found)
     {
-        displays.emplace_back(new display);
-        display* d = displays.back().get();
-        _priv::display_impl* d_impl = video_internal::get_impl(*d);
+        displays.emplace_back(new display_instance);
 
-        d_impl->handle = hMonitor;
-        d_impl->device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
-        d_impl->state = display_state::ADDED; // Mark as added
-        d_impl->last_bounds = d->get_bounds();
+        display_instance& d = displays.back();
+        d.video = video;
+        d.data.id = video->data.display_id_generator.next();
 
-        d->m_id = generate_device_id();
+        display_instance_impl* d_impl = d.impl_ptr.get();
+        d_impl->data.handle = hMonitor;
+        d_impl->data.device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
+        d_impl->data.state = display_state::ADDED; // Mark as added
+        d_impl->data.last_bounds = d.get_bounds();
+
 
         // Get the display device name (printable)
-        if (!get_display_name_vista(info->szDevice, d->m_name))
+        if (!get_display_name_vista(data.user32, info->szDevice, d.data.name))
         {
             DISPLAY_DEVICE dev{ sizeof(dev) };
             if (EnumDisplayDevices(info->szDevice, 0, &dev, NULL))
             {
-                d->m_name = str::string_cast<char>(dev.DeviceString);
+                d.data.name = str::string_cast<char>(dev.DeviceString);
             }
         }
 
-        current_mode.m_display_id = d->m_id;
-        d->m_desktop_mode = d->m_current_mode = current_mode;
-        d->m_orientation = current_orientation;
-        d->m_content_scale = current_content_scale;
+        current_mode.data.display_id = d.data.id;
+        d.data.current_mode = current_mode.data.mode;
+        d.data.desktop_mode = std::move(current_mode);
+        d.data.orientation = current_orientation;
+        d.data.content_scale = current_content_scale;
     }
 
     return true;
@@ -612,7 +655,7 @@ static BOOL CALLBACK enum_displays_callback(HMONITOR hMonitor, HDC, LPRECT, LPAR
         // proceed if we found what we are looking for
         if (data.find_primary == is_primary)
         {
-            _priv::display_impl::create_display(data.index, *data.displays, hMonitor, &info);
+            data.video->create_display(data.index, *data.displays, hMonitor, &info);
             ++data.index;
 
             if (data.find_primary)
@@ -641,16 +684,19 @@ static void poll_displays_internal(poll_display_data& data, MONITORENUMPROC call
 
 // https://github.com/libsdl-org/SDL/blob/561c99ee1171f680088ff98c773de2efe94b0f5e/src/video/windows/SDL_windowsmodes.c#L887
 
-void update_displays_impl(std::vector<owner_ptr<display>>& displays)
+void video_instance_impl::update_displays()
 {
+    std::vector<display_instance>& displays = video->data.displays;
+
     poll_display_data data{};
+    data.video = this;
     data.displays = &displays;
 
     // mark all displays as invalid to detect
     // entries that have actually been removed
     for (const auto& d : displays)
     {
-        _priv::video_internal::get_impl(*d)->state = display_state::REMOVED;
+        d.impl_ptr->data.state = display_state::REMOVED;
     }
 
     // first locate the primary display
@@ -665,11 +711,11 @@ void update_displays_impl(std::vector<owner_ptr<display>>& displays)
     auto it = displays.begin();
     while (it != displays.end())
     {
-        const display& d = *(it->get());
+        const display_instance& d = *it;
 
-        if (_priv::video_internal::get_impl(d)->state == display_state::REMOVED)
+        if (d.impl_ptr->data.state == display_state::REMOVED)
         {
-            video_internal::post_display_removed(d);
+            video->post_display_removed(d);
             it = displays.erase(it);
         }
         else
@@ -681,9 +727,9 @@ void update_displays_impl(std::vector<owner_ptr<display>>& displays)
     // add new displays
     for (const auto& d : displays)
     {
-        if (_priv::video_internal::get_impl(*d.get())->state == display_state::ADDED)
+        if (d.impl_ptr->data.state == display_state::ADDED)
         {
-            video_internal::post_display_added(*d);
+            video->post_display_added(d);
         }
     }
 }
@@ -692,23 +738,23 @@ void update_displays_impl(std::vector<owner_ptr<display>>& displays)
 // display modes
 ///////////////////////////////////////////////////////////////////////////////
 
-void _priv::display_impl::list_display_modes(std::vector<display_mode>& modes) const
+void display_instance_impl::list_display_modes(std::vector<display_mode_instance>& modes) const
 {
     DWORD display_mode_index = 0;
-    display_mode mode;
+    display_mode_instance mode;
 
     while (true)
     {
-        if (!get_display_mode(device_name.c_str(), mode, display_mode_index++, nullptr))
+        if (!get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr))
         {
             break;
         }
 
         // don't add duplicates
         bool found = false;
-        for (const display_mode& m : modes)
+        for (const display_mode_instance& m : modes)
         {
-            if (display_mode::compare(m, mode))
+            if (compare_display_modes(m.data.mode, mode.data.mode))
             {
                 found = true;
                 break;
@@ -724,7 +770,7 @@ void _priv::display_impl::list_display_modes(std::vector<display_mode>& modes) c
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsmodes.c#L826
 
-bool _priv::display_impl::set_display_mode(display_mode& mode, bool is_desktop_mode) const
+bool display_instance_impl::set_display_mode(display_mode_instance& mode, bool is_desktop_mode)
 {
     LONG status;
 
@@ -733,11 +779,11 @@ bool _priv::display_impl::set_display_mode(display_mode& mode, bool is_desktop_m
         // NOTE: Passing NULL for DEVMODE* here tells Windows to restore the OS’s saved
         // desktop mode (resolution + DPI scaling). This avoids unintended DPI changes
         // that can occur if you pass a copied DEVMODE, even if the pixel dimensions match.
-        status = ::ChangeDisplaySettingsExW(device_name.c_str(), NULL, NULL, CDS_FULLSCREEN, NULL);
+        status = ::ChangeDisplaySettingsExW(data.device_name.c_str(), NULL, NULL, CDS_FULLSCREEN, NULL);
     }
     else
     {
-        status = ::ChangeDisplaySettingsExW(device_name.c_str(), &mode.m_impl->devmode, NULL, CDS_FULLSCREEN, NULL);
+        status = ::ChangeDisplaySettingsExW(data.device_name.c_str(), &mode.impl_ptr->data.devmode, NULL, CDS_FULLSCREEN, NULL);
     }
 
     if (status != DISP_CHANGE_SUCCESSFUL)
@@ -775,18 +821,19 @@ bool _priv::display_impl::set_display_mode(display_mode& mode, bool is_desktop_m
     if (is_desktop_mode)
     {
         // Refresh stored DEVMODE with the actual settings now active
-        ::EnumDisplaySettingsW(device_name.c_str(), ENUM_CURRENT_SETTINGS, &mode.m_impl->devmode);
+        ::EnumDisplaySettingsW(data.device_name.c_str(), ENUM_CURRENT_SETTINGS, &mode.impl_ptr->data.devmode);
     }
 
     return true;
 }
 
-bool _priv::display_impl::get_bounds(math::recti& bounds) const
+bool display_instance_impl::get_bounds(math::recti& bounds) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(handle, &info))
+    if (!GetMonitorInfo(data.handle, &info))
     {
+        os::windows::error_message("GetMonitorInfo()");
         return false;
     }
 
@@ -798,12 +845,13 @@ bool _priv::display_impl::get_bounds(math::recti& bounds) const
     return true;
 }
 
-bool _priv::display_impl::get_work_area(math::recti& work_area) const
+bool display_instance_impl::get_work_area(math::recti& work_area) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(handle, &info))
+    if (!GetMonitorInfo(data.handle, &info))
     {
+        os::windows::error_message("GetMonitorInfo()");
         return false;
     }
 

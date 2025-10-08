@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
@@ -9,117 +9,54 @@
 
 namespace vx {
 namespace app {
+
+class app_instance;
+
 namespace video {
 
 ///////////////////////////////////////////////////////////////////////////////
-// video capabilities
+// video hint cache
 ///////////////////////////////////////////////////////////////////////////////
 
-enum capabilities
+struct video_hints
 {
-    NONE                            = 0,
-    MODE_SWITCHING_EMULATED         = (1 << 0),
-    SENDS_FULLSCREEN_DIMENSIONS     = (1 << 1),
-    IS_FULLSCREEN_ONLY              = (1 << 2),
-    SENDS_DISPLAY_CHANGES           = (1 << 3),
-    DISABLE_FULLSCREEN_MOUSE_WARP   = (1 << 4),
-    SENDS_HDR_CHANGES               = (1 << 5)
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// display mode internal
-///////////////////////////////////////////////////////////////////////////////
-
-struct display_mode_impl_data;
-
-class display_mode_instance
-{
-public:
-
-    display_mode_data data;
-    owner_ptr<display_mode_impl_data> impl_data;
-};
-
-///////////////////////////////////////////////////////////////////////////////
-// display internal
-///////////////////////////////////////////////////////////////////////////////
-
-struct display_data
-{
-    display_id id;
-    std::string name;
-
-    display_mode_instance desktop_mode;
-    display_mode_instance current_mode;
-    std::vector<display_mode_instance> modes;
-
-    display_orientation orientation;
-    math::vec2 content_scale;
-
-    window_id fullscreen_window_id;
-};
-
-struct display_impl_data;
-
-class display_instance
-{
-public:
-
-    const char* get_name() const;
-    display_orientation get_orientation() const;
-    math::vec2 get_content_scale() const;
-
-    math::recti get_bounds() const;
-    math::recti get_work_area() const;
-
-    bool get_desktop_mode(display_mode_data& mode) const;
-    bool get_current_mode(display_mode_data& mode) const;
-
-    bool set_current_mode(const display_mode_data& mode);
-    void reset_mode();
-
-    std::vector<display_mode_data> list_modes() const;
-    bool has_mode(const display_mode_data& mode) const;
-    bool find_closest_mode(const display_mode_data& mode, display_mode_data& closest) const;
-
-public:
-
-    void init_modes();
-
-public:
-
-    display_data data;
-    owner_ptr<display_impl_data> impl_data;
+    bool sync_window_operations = false;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 // video data
 ///////////////////////////////////////////////////////////////////////////////
 
-struct video_impl_data;
+struct video_instance_impl;
 
 struct video_data
 {
-    //owner_ptr<mouse::mouse_data> mouse_data_ptr;
-    //owner_ptr<keyboard::keyboard_data> keyboard_data_ptr;
+    owner_ptr<mouse::mouse_instance> mouse_ptr;
+    owner_ptr<keyboard::keyboard_instance> keyboard_ptr;
 
+    id_generator display_id_generator;
     std::vector<display_instance> displays;
     bool setting_display_mode = false;
 
     std::vector<owner_ptr<window>> windows;
     os::atomic<const window*> wakeup_window = nullptr;
 
-    owner_ptr<video_impl_data> impl_data;
+    bool suspend_screen_saver = false;
+    video_hints hints;
 };
 
-#define s_mouse_data_ptr        (s_video_data_ptr->mouse_data_ptr)
-#define s_keyboard_data_ptr     (s_video_data_ptr->keyboard_data_ptr)
-
 ///////////////////////////////////////////////////////////////////////////////
-// video_internal
+// forward declares
 ///////////////////////////////////////////////////////////////////////////////
 
-class video_internal
+class display_mode_instance;
+class display_instance;
+
+///////////////////////////////////////////////////////////////////////////////
+// video_instance
+///////////////////////////////////////////////////////////////////////////////
+
+class video_instance
 {
 public:
 
@@ -127,76 +64,110 @@ public:
     // video
     ///////////////////////////////////////////////////////////////////////////////
 
-    static bool init();
-    static bool is_init();
-    static void quit();
+    bool init(app_instance* owner);
+    void quit();
 
     ///////////////////////////////////////////////////////////////////////////////
     // dpi
     ///////////////////////////////////////////////////////////////////////////////
 
-    static process_dpi_awareness get_dpi_awareness();
+    process_dpi_awareness get_dpi_awareness() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // system theme
     ///////////////////////////////////////////////////////////////////////////////
 
-    static system_theme get_system_theme();
+    // https://github.com/libsdl-org/SDL/blob/a34d31322ce7423b54db29ca6da5883c189b82ee/src/video/SDL_video.c#L773C6-L773C24
+
+    system_theme get_system_theme() const;
+    void set_system_theme(system_theme theme);
 
     ///////////////////////////////////////////////////////////////////////////////
     // display mode
     ///////////////////////////////////////////////////////////////////////////////
 
-    static bool compare_display_modes(const display_mode_data& mode1, const display_mode_data& mode2);
-    static void clear_display_mode_display_id(display_mode& dm);
+    void clear_display_mode_display_id(display_mode_instance& dm);
 
     ///////////////////////////////////////////////////////////////////////////////
     // displays
     ///////////////////////////////////////////////////////////////////////////////
 
-    static void update_displays();
+    static display create_display_reference(display_id id) { return display(id); }
+#   define invalid_display display(INVALID_ID)
 
-    static std::vector<display_id> list_display_ids();
-    static bool is_display_connected(display_id id);
+    void update_displays();
 
-    static display_instance* get_display_instance(display_id id);
-    static display get_primary_display();
+    std::vector<display_id> list_displays() const;
+    size_t get_display_index(display_id id) const;
+    bool is_display_connected(display_id id) const;
 
-    static display get_display_for_point(const math::vec2i& p);
-    static display get_display_for_rect(const math::recti& rect);
-    static display get_display_at_origin(const math::vec2i& o);
-    static display get_display_for_window(const window& w);
+    display_instance* get_display_instance(display_id id);
+    const display_instance* get_display_instance(display_id id) const;
 
-    static math::recti get_desktop_area();
+    display_id get_primary_display() const;
+
+    display_id get_display_for_point(const math::vec2i& p) const;
+    display_id get_display_for_rect(const math::recti& rect) const;
+    display_id get_display_at_origin(const math::vec2i& o) const;
+    display_id get_display_for_window(const window& w) const;
+
+    math::recti get_desktop_area() const;
+
+    ///////////////////////////////////////
+
+    std::string get_display_name(display_id id) const;
+    display_orientation get_display_orientation(display_id id) const;
+    math::vec2 get_display_content_scale(display_id id) const;
+
+    math::recti get_display_bounds(display_id id) const;
+    math::recti get_display_work_area(display_id id) const;
+
+    bool get_display_desktop_mode(display_id id, display_mode& mode) const;
+    bool get_display_current_mode(display_id id, display_mode& mode) const;
+
+    bool set_display_current_mode(display_id id, const display_mode& mode);
+    void reset_display_mode(display_id id);
+
+    std::vector<display_mode> list_display_modes_for_display(display_id id) const;
+    bool display_has_mode(display_id id, const display_mode& mode) const;
+    bool find_closest_display_mode_for_display(display_id id, const display_mode& mode, display_mode& closest) const;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // screen saver
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool enable_screen_saver();
+    bool screen_saver_enabled() const;
+    bool disable_screen_saver();
 
     ///////////////////////////////////////////////////////////////////////////////
     // windows
     ///////////////////////////////////////////////////////////////////////////////
 
-    static window* create_window(const window_config& config);
-    static void destroy_window(window& w);
-    static void destroy_windows();
+    window* create_window(const window_config& config);
+    void destroy_window(window& w);
+    void destroy_windows();
 
-    static std::vector<window_id> get_window_ids();
-    static window* get_window(window_id id);
-    static window_id get_window_id(const window& w);
+    std::vector<window_id> get_window_ids();
+    window* get_window(window_id id);
+    window_id get_window_id(const window& w);
 
-    static size_t window_count();
-    static window* enum_windows(size_t i);
+    size_t window_count();
+    window* enum_windows(size_t i);
 
-    static void check_window_display_changed(window& w);
+    void check_window_display_changed(window& w);
 
-    static window* get_active_window();
-    static void set_wakeup_window(window* w);
+    window* get_active_window();
+    void set_wakeup_window(window* w);
 
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    static window_id get_display_fullscreen_window_id(const display& d);
-    static void set_display_fullscreen_window_id(display& d, window_id id);
-    static void clear_display_fullscreen_window_id(display& d);
-    static display* find_display_with_fullscreen_window(const window& w);
+    window_id get_display_fullscreen_window_id(const display& d);
+    void set_display_fullscreen_window_id(display& d, window_id id);
+    void clear_display_fullscreen_window_id(display& d);
+    display* find_display_with_fullscreen_window(const window& w);
 
     ///////////////////////////////////////////////////////////////////////////////
     // events
@@ -204,38 +175,126 @@ public:
 
     // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsevents.c#L2432
 
-    static void pump_events();
-    static bool wait_event_timeout(const window* w, time::time_point t);
-    static void send_wakeup_event();
+    void pump_events();
+    bool wait_event_timeout(const window* w, time::time_point t);
+    void send_wakeup_event();
 
-    static bool post_display_added(const display& d);
-    static void on_display_added();
+    bool post_system_theme_changed(system_theme theme);
 
-    static bool post_display_removed(const display& d);
-    static bool post_display_moved(const display& d);
-    static bool post_display_orientation_changed(display& d, display_orientation orientation);
-    static bool post_display_desktop_mode_changed(display& d, const display_mode& mode);
-    static bool post_display_current_mode_changed(display& d, const display_mode& mode);
-    static bool post_display_content_scale_changed(display& d, const math::vec2& content_scale);
+    bool post_display_added(const display_instance& d);
+    void on_display_added();
+
+    bool post_display_removed(const display_instance& d);
+    bool post_display_moved(const display_instance& d);
+    bool post_display_orientation_changed(display_instance& d, display_orientation orientation);
+    bool post_display_desktop_mode_changed(display_instance& d, const display_mode& mode);
+    bool post_display_current_mode_changed(display_instance& d, const display_mode& mode);
+    bool post_display_content_scale_changed(display_instance& d, const math::vec2& content_scale);
 
     ///////////////////////////////////////////////////////////////////////////////
     // impl helpers
     ///////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    static T* create() { return new T; }
+    T* create() { return new T; }
 
     template <typename T>
-    static T construct() { return T{}; }
+    T construct() { return T{}; }
 
     template <typename T>
-    static auto create_impl() { return std::make_unique<T>(); }
+    auto create_impl() { return std::make_unique<T>(); }
 
     template <typename T>
-    static auto* get_impl(T& x) { return x.m_impl.get(); }
+    auto* get_impl(T& x) { return x.m_impl.get(); }
 
     template <typename T>
-    static const auto* get_impl(const T& x) { return x.m_impl.get(); }
+    const auto* get_impl(const T& x) { return x.m_impl.get(); }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // data
+    ///////////////////////////////////////////////////////////////////////////////
+
+    app_instance* app = nullptr;
+    video_data data;
+    owner_ptr<video_instance_impl> impl_ptr;
+
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display mode
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_mode_data
+{
+    display_mode mode;
+    display_id display_id = INVALID_ID;
+};
+
+struct display_mode_instance_impl;
+
+class display_mode_instance
+{
+public:
+
+    display_mode_data data;
+    owner_ptr<display_mode_instance_impl> impl_ptr;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_data
+{
+    display_id id;
+    std::string name;
+
+    display_mode current_mode;
+    display_mode_instance desktop_mode;
+    mutable std::vector<display_mode_instance> modes;
+    bool setting_display_mode = false;
+
+    display_orientation orientation;
+    math::vec2 content_scale;
+
+    window_id fullscreen_window_id;
+};
+
+struct display_instance_impl;
+
+class display_instance
+{
+public:
+
+    display as_display() const { return video_instance::create_display_reference(data.id); }
+
+    const std::string& get_name() const;
+    display_orientation get_orientation() const;
+    math::vec2 get_content_scale() const;
+
+    math::recti get_bounds() const;
+    math::recti get_work_area() const;
+
+    bool get_desktop_mode(display_mode& mode) const;
+    bool get_current_mode(display_mode& mode) const;
+
+    bool set_current_mode(const display_mode& mode);
+    void reset_mode();
+
+    std::vector<display_mode> list_modes() const;
+    bool has_mode(const display_mode& mode) const;
+    const display_mode_instance* find_mode(const display_mode& mode) const;
+    bool find_closest_mode(const display_mode& mode, display_mode& closest) const;
+
+public:
+
+    void init_modes() const;
+
+public:
+
+    video_instance* video = nullptr;
+    display_data data;
+    owner_ptr<display_instance_impl> impl_ptr;
 };
 
 } // namespace video

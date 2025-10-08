@@ -1,3 +1,4 @@
+#include "vertex/config/version.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
@@ -86,7 +87,7 @@ VX_API void quit_subsystem(init_flag flags)
 
 ////////////////////////////////////////
 
-bool app_instance::init()
+bool app_instance::init(const app_metadata& metadata)
 {
     if (!init_hints())
     {
@@ -94,6 +95,7 @@ bool app_instance::init()
         return false;
     }
 
+    set_metadata(metadata);
     return true;
 }
 
@@ -101,16 +103,8 @@ bool app_instance::init()
 
 void app_instance::quit()
 {
-    if (data.flags & INIT_VIDEO)
-    {
-        quit_video();
-    }
-
-    if (data.flags & INIT_EVENTS)
-    {
-        quit_events();
-    }
-
+    quit_video();
+    quit_events();
     quit_hints();
 }
 
@@ -146,7 +140,19 @@ init_flag app_instance::init_subsystem(init_flag flags)
 
 bool app_instance::is_subsystem_init(init_flag flags) const
 {
-    return (data.flags & flags) == flags;
+    init_flag initialized = NONE;
+
+    if (is_events_init())
+    {
+        add_flag(initialized, INIT_EVENTS);
+    }
+
+    if (is_video_init())
+    {
+        add_flag(initialized, INIT_VIDEO);
+    }
+
+    return (initialized & flags) == flags;
 }
 
 ////////////////////////////////////////
@@ -168,19 +174,24 @@ void app_instance::quit_subsystem(init_flag flags)
 
 bool app_instance::init_hints()
 {
-    data.hints_ptr.reset(new hint::hints_instance);
-    if (!data.hints_ptr)
+    if (!is_hints_init())
     {
-        VX_SET_HINTS_SUBSYSTEM_INIT_FAILED_ERROR();
-        return false;
+        data.hints_ptr.reset(new hint::hints_instance);
+
+        if (!data.hints_ptr)
+        {
+            VX_SET_HINTS_SUBSYSTEM_INIT_FAILED_ERROR();
+            return false;
+        }
+
+        if (!data.hints_ptr->init(this))
+        {
+            quit_hints();
+            return false;
+        }
     }
 
-    if (!data.hints_ptr->init(this))
-    {
-        quit_hints();
-        return false;
-    }
-
+    ++data.ref_counts[HINTS_SUBSYSTEM];
     return true;
 }
 
@@ -191,7 +202,14 @@ bool app_instance::is_hints_init() const
 
 void app_instance::quit_hints()
 {
-    if (data.hints_ptr)
+    if (!is_hints_init())
+    {
+        VX_ASSERT(data.ref_counts[HINTS_SUBSYSTEM] == 0);
+        return;
+    }
+
+    --data.ref_counts[HINTS_SUBSYSTEM];
+    if (data.ref_counts[HINTS_SUBSYSTEM] == 0)
     {
         data.hints_ptr->quit();
         data.hints_ptr.reset();
@@ -202,21 +220,24 @@ void app_instance::quit_hints()
 
 bool app_instance::init_events()
 {
-    data.events_ptr.reset(new event::events_instance);
-    if (!data.events_ptr)
+    if (!is_events_init())
     {
-        VX_SET_EVENTS_SUBSYSTEM_INIT_FAILED_ERROR();
-        return false;
+        data.events_ptr.reset(new event::events_instance);
+
+        if (!data.events_ptr)
+        {
+            VX_SET_EVENTS_SUBSYSTEM_INIT_FAILED_ERROR();
+            return false;
+        }
+
+        if (!data.events_ptr->init(this))
+        {
+            quit_events();
+            return false;
+        }
     }
 
-    if (!data.events_ptr->init(this))
-    {
-        quit_events();
-        return false;
-    }
-
-    add_flag(data.flags, INIT_EVENTS);
-    ++data.events_ref_count;
+    ++data.ref_counts[EVENTS_SUBSYSTEM];
     return true;
 }
 
@@ -227,11 +248,17 @@ bool app_instance::is_events_init() const
 
 void app_instance::quit_events()
 {
-    if (data.hints_ptr && (--data.events_ref_count == 0))
+    if (!is_events_init())
     {
-        data.hints_ptr->quit();
-        data.hints_ptr.reset();
-        remove_flag(data.flags, INIT_EVENTS);
+        VX_ASSERT(data.ref_counts[EVENTS_SUBSYSTEM] == 0);
+        return;
+    }
+
+    --data.ref_counts[EVENTS_SUBSYSTEM];
+    if (data.ref_counts[EVENTS_SUBSYSTEM] == 0)
+    {
+        data.events_ptr->quit();
+        data.events_ptr.reset();
     }
 }
 
@@ -245,26 +272,69 @@ bool app_instance::init_video()
         return false;
     }
 
-    if (!video::video_internal::init())
+    if (!is_video_init())
     {
-        quit_video();
-        return false;
+        data.video_ptr.reset(new video::video_instance);
+
+        if (!data.video_ptr)
+        {
+            VX_SET_VIDEO_SUBSYSTEM_INIT_FAILED_ERROR();
+            return false;
+        }
+
+        if (!data.video_ptr->init(this))
+        {
+            quit_video();
+            return false;
+        }
     }
 
-    add_flag(data.flags, INIT_VIDEO);
+    ++data.ref_counts[VIDEO_SUBSYSTEM];
     return true;
 }
 
 bool app_instance::is_video_init() const
 {
-    return false;
+    return data.video_ptr != nullptr;
 }
 
 void app_instance::quit_video()
 {
-    video::video_internal::quit();
-    remove_flag(data.flags, INIT_VIDEO);
-    quit_events();
+    if (!is_video_init())
+    {
+        VX_ASSERT(data.ref_counts[VIDEO_SUBSYSTEM] == 0);
+        return;
+    }
+
+    --data.ref_counts[VIDEO_SUBSYSTEM];
+    if (data.ref_counts[VIDEO_SUBSYSTEM] == 0)
+    {
+        quit_events();
+        data.video_ptr->quit();
+        data.video_ptr.reset();
+    }
+}
+
+////////////////////////////////////////
+
+VX_API const app_metadata& get_metadata()
+{
+    VX_CHECK_APP_INIT(app_metadata{});
+    s_app_ptr->get_metadata();
+}
+
+void app_instance::set_metadata(const app_metadata& metadata)
+{
+    data.metadata.name = metadata.name ? metadata.name : "Vertex_App";
+    data.metadata.version = metadata.version ? metadata.version : VX_VERSION_STRING;
+    data.metadata.id = metadata.id;
+    data.metadata.creator = metadata.creator;
+    data.metadata.url = metadata.url;
+}
+
+const app_metadata& app_instance::get_metadata() const
+{
+    return data.metadata;
 }
 
 } // namespace app

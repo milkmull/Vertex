@@ -18,7 +18,6 @@ enum init_flag
     INIT_REQUIRES_EVENTS    = INIT_EVENTS | INIT_VIDEO | INIT_AUDIO | INIT_CAMERA
 };
 
-
 VX_API bool init();
 VX_API bool is_init();
 VX_API void quit();
@@ -26,6 +25,17 @@ VX_API void quit();
 VX_API init_flag init_subsystem(init_flag flags);
 VX_API bool is_subsystem_init(init_flag flags);
 VX_API void quit_subsystem(init_flag flags);
+
+struct app_metadata
+{
+    const char* name = nullptr;
+    const char* version = nullptr;
+    const char* id = nullptr;
+    const char* creator = nullptr;
+    const char* url = nullptr;
+};
+
+VX_API void set_metadata(const app_metadata& metadata);
 
 } // namespace app
 } // namespace vx

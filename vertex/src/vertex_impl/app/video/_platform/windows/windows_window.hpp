@@ -9,7 +9,7 @@ namespace video {
 
 #define IS_RECT_EMPTY(rect) ((rect.right <= rect.left) || (rect.bottom <= rect.top))
 
-class _priv::window_impl
+class window_impl
 {
 public:
 

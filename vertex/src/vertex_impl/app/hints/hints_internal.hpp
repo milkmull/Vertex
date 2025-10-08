@@ -52,7 +52,6 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     bool init(app_instance* owner);
-    bool is_init() const;
     void quit();
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -72,6 +71,31 @@ public:
 
     const char* get_hint(hint_t name) const;
 
+    inline const char* get_hint_string(hint_t name, const char* default_value) const
+    {
+        return parse_string(get_hint(name), default_value);
+    }
+
+    inline bool get_hint_boolean(hint_t name, bool default_value) const
+    {
+        return parse_boolean(get_hint(name), default_value);
+    }
+
+    inline int64_t get_hint_integer(hint_t name, int64_t default_value) const
+    {
+        return parse_integer(get_hint(name), default_value);
+    }
+
+    inline uint64_t get_hint_unsigned_integer(hint_t name, uint64_t default_value) const
+    {
+        return parse_hint_unsigned_integer(get_hint(name), default_value);
+    }
+
+    inline float get_hint_float(hint_t name, float default_value) const
+    {
+        return parse_hint_float(get_hint(name), default_value);
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // setters
     ///////////////////////////////////////////////////////////////////////////////
@@ -88,7 +112,7 @@ public:
     void add_hint_callback(hint_t name, hint_callback callback, void* user_data);
     void remove_hint_callback(hint_t name, hint_callback callback, void* user_data);
 
-    void add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value);
+    void add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value, bool trigger_callback = false);
 
     ///////////////////////////////////////////////////////////////////////////////
     // data

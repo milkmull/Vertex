@@ -21,7 +21,7 @@
 #define VX_FEAT_EVENT_PUMP                      0
 #define VX_FEAT_EVENT_WAIT_TIMEOUT              0
 #define VX_FEAT_EVENT_SEND_WAKEUP               0
-#define VX_FEAT_EVENT_SUSPEND_SCREENSAVER       0
+#define VX_FEAT_EVENT_SUSPEND_SCREEN_SAVER      0
 
 // Window management
 #define VX_FEAT_WINDOW_CREATE                   0

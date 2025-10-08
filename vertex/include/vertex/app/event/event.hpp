@@ -230,6 +230,14 @@ public:
 
     union
     {
+        // app events
+
+        struct
+        {
+            video::system_theme system_theme;
+        }
+        system_theme_changed;
+
         // display events
 
         struct

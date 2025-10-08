@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/config/os.hpp"
+#include "vertex/app/video/config.hpp"
 
 // ------------------------------------------------------------
 // Video backend feature flags
@@ -16,14 +16,20 @@
 #define VX_VIDEO_HAVE_DISPLAY_SET_MODE                  0
 #define VX_VIDEO_HAVE_DISPLAY_GET_BOUNDS                0
 #define VX_VIDEO_HAVE_DISPLAY_GET_WORK_AREA             0
+#define VX_VIDEO_MODE_SWITCHING_EMULATED                0
+#define VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS            0
+#define VX_VIDEO_FULLSCREEN_ONLY                        0
+#define VX_VIDEO_SENDS_DISPLAY_CHANGES                  0
+#define VX_VIDEO_SENDS_HDR_CHANGES                      0
 
 // Event handling
 #define VX_VIDEO_HAVE_EVENT_PUMP                        0
 #define VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT                0
 #define VX_VIDEO_HAVE_SEND_WAKEUP_EVENT                 0
-#define VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER         0
+#define VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER              0
 
 // Window management
+#define VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT              0
 #define VX_VIDEO_HAVE_WINDOW_CREATE                     0
 #define VX_VIDEO_HAVE_WINDOW_DESTROY                    0
 #define VX_VIDEO_HAVE_WINDOW_SET_TITLE                  0
@@ -60,7 +66,7 @@
 #define VX_VIDEO_HAVE_CLIPBOARD_HAS_DATA                0
 #define VX_VIDEO_HAVE_CLIPBOARD_SCREEN_KEYBOARD         0
 
-#if defined(VX_OS_WINDOWS)
+#if defined(VX_VIDEO_WINDOWS)
 #   include "vertex_impl/app/video/_platform/windows/windows_features.hpp"
 #else
 #   include "vertex_impl/app/video/_platform/dummy/dummy_features.hpp"
@@ -111,6 +117,31 @@
 #endif
 #define VX_VIDEO_HAVE_DISPLAY_GET_WORK_AREA 1
 
+#ifdef VX_VIDEO_MODE_SWITCHING_EMULATED
+#   undef VX_VIDEO_MODE_SWITCHING_EMULATED
+#endif
+#define VX_VIDEO_MODE_SWITCHING_EMULATED 1
+
+#ifdef VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS
+#   undef VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS
+#endif
+#define VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS 1
+
+#ifdef VX_VIDEO_FULLSCREEN_ONLY
+#   undef VX_VIDEO_FULLSCREEN_ONLY
+#endif
+#define VX_VIDEO_FULLSCREEN_ONLY 1
+
+#ifdef VX_VIDEO_SENDS_DISPLAY_CHANGES
+#   undef VX_VIDEO_SENDS_DISPLAY_CHANGES
+#endif
+#define VX_VIDEO_SENDS_DISPLAY_CHANGES 1
+
+#ifdef VX_VIDEO_SENDS_HDR_CHANGES
+#   undef VX_VIDEO_SENDS_HDR_CHANGES
+#endif
+#define VX_VIDEO_SENDS_HDR_CHANGES 1
+
 // ------------------------------------------------------------
 // Event handling
 // ------------------------------------------------------------
@@ -130,14 +161,19 @@
 #endif
 #define VX_VIDEO_HAVE_SEND_WAKEUP_EVENT 1
 
-#ifdef VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER
-#   undef VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER
+#ifdef VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#   undef VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
 #endif
-#define VX_VIDEO_HAVE_EVENT_SUSPEND_SCREENSAVER 1
+#define VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER 1
 
 // ------------------------------------------------------------
 // Window management
 // ------------------------------------------------------------
+
+#ifdef VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT
+#   undef VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT
+#endif
+#define VX_VIDEO_HAVE_POPUP_WINDOW_SUPPORT 1
 
 #ifdef VX_VIDEO_HAVE_WINDOW_CREATE
 #   undef VX_VIDEO_HAVE_WINDOW_CREATE

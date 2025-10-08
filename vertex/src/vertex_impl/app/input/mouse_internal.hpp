@@ -6,6 +6,9 @@
 
 namespace vx {
 namespace app {
+
+namespace video { class video_instance; }
+
 namespace mouse {
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -118,108 +121,115 @@ struct mouse_data
 // mouse internal
 ///////////////////////////////////////////////////////////////////////////////
 
-class mouse_internal
+class mouse_instance
 {
 public:
 
-    static bool init();
-    static bool is_init();
-    static void quit();
+    bool init(video::video_instance* owner);
+    bool is_init();
+    void quit();
 
     //-------------------------------------------------------------------------
     // Device Management
     //-------------------------------------------------------------------------
 
-    static void add_mouse(mouse_id id, const char* name, bool send_event);      ///< Register a new mouse
-    static void remove_mouse(mouse_id id, bool send_event);                     ///< Remove a mouse
+    void add_mouse(mouse_id id, const char* name, bool send_event);      ///< Register a new mouse
+    void remove_mouse(mouse_id id, bool send_event);                     ///< Remove a mouse
 
-    static bool is_mouse(uint16_t vendor, uint16_t product);                    ///< Identify device by VID/PID
-    static bool any_connected();                                                ///< True if any mouse is connected
-    static std::vector<mouse_id> list_ids();                                    ///< List connected mouse IDs
-    static const char* get_name(mouse_id id = DEFAULT_MOUSE_ID);                ///< Get mouse name
+    bool is_mouse(uint16_t vendor, uint16_t product);                    ///< Identify device by VID/PID
+    bool any_connected();                                                ///< True if any mouse is connected
+    std::vector<mouse_id> list_ids();                                    ///< List connected mouse IDs
+    const char* get_name(mouse_id id = DEFAULT_MOUSE_ID);                ///< Get mouse name
 
     //-------------------------------------------------------------------------
     // Focus (window association)
     //-------------------------------------------------------------------------
 
-    static const video::window* get_focus();         ///< Window currently receiving mouse focus
-    static void set_focus(const video::window* w);   ///< Set the active focus window
+    const video::window* get_focus();         ///< Window currently receiving mouse focus
+    void set_focus(const video::window* w);   ///< Set the active focus window
 
     //-------------------------------------------------------------------------
     // State (buttons + position)
     //-------------------------------------------------------------------------
 
-    static mouse_state get_state();            ///< State relative to focus window
-    static mouse_state get_global_state();     ///< State in global desktop coordinates
-    static mouse_state get_relative_state();   ///< Relative motion since last call
+    mouse_state get_state();            ///< State relative to focus window
+    mouse_state get_global_state();     ///< State in global desktop coordinates
+    mouse_state get_relative_state();   ///< Relative motion since last call
 
     //-------------------------------------------------------------------------
     // Position control
     //-------------------------------------------------------------------------
 
-    static void set_position_in_window(const video::window* w, const math::vec2& position); ///< Move mouse inside a window
-    static void set_position_global(const math::vec2& position);                            ///< Move mouse in global space
+    void set_position_in_window(const video::window* w, const math::vec2& position); ///< Move mouse inside a window
+    void set_position_global(const math::vec2& position);                            ///< Move mouse in global space
 
     //-------------------------------------------------------------------------
     // Relative Mode
     //-------------------------------------------------------------------------
 
-    static bool set_relative_mode(const video::window* w, bool enabled); ///< Enable/disable relative mode for a window
-    static bool relative_mode_enabled(const video::window* w);           ///< Check if relative mode is active
-    static void update_relative_mouse_mode();                           ///< Internal update of relative mode state
-    static void disable_mouse_warp_emulation();                         ///< Disable warp emulation workaround
+    bool set_relative_mode(const video::window* w, bool enabled); ///< Enable/disable relative mode for a window
+    bool relative_mode_enabled(const video::window* w);           ///< Check if relative mode is active
+    void update_relative_mouse_mode();                           ///< Internal update of relative mode state
+    void disable_mouse_warp_emulation();                         ///< Disable warp emulation workaround
 
     //-------------------------------------------------------------------------
     // Capture
     //-------------------------------------------------------------------------
 
-    static bool set_capture(bool enabled);                  ///< Enable/disable capture
-    static bool update_mouse_capture(bool force_release);   ///< Refresh capture (force release if needed)
+    bool set_capture(bool enabled);                  ///< Enable/disable capture
+    bool update_mouse_capture(bool force_release);   ///< Refresh capture (force release if needed)
 
     //-------------------------------------------------------------------------
     // Event dispatch (internal)
     //-------------------------------------------------------------------------
 
-    static void send_mouse_motion(const video::window* w, mouse_id id, bool relative, float x, float y);
-    static void send_mouse_button(const video::window* w, mouse_id id, button b, bool down);
-    static void send_mouse_button_clicks(const video::window* w, mouse_id id, button b, bool down, int clicks);
-    static void send_mouse_wheel(const video::window* w, mouse_id id, float x, float y, wheel_direction direction);
-    static void perform_warp_mouse_in_window(const video::window* w, float x, float y, bool ignore_relative_mode);
+    void send_mouse_motion(const video::window* w, mouse_id id, bool relative, float x, float y);
+    void send_mouse_button(const video::window* w, mouse_id id, button b, bool down);
+    void send_mouse_button_clicks(const video::window* w, mouse_id id, button b, bool down, int clicks);
+    void send_mouse_wheel(const video::window* w, mouse_id id, float x, float y, wheel_direction direction);
+    void perform_warp_mouse_in_window(const video::window* w, float x, float y, bool ignore_relative_mode);
 
     //-------------------------------------------------------------------------
     // Relative Mode
     //-------------------------------------------------------------------------
 
-    static bool set_relative_mouse_mode(bool enabled);
-    static bool get_relative_mouse_mode();
-    static void update_relative_mouse_mode();
-    static void disable_mouse_warp_emulation();
+    bool set_relative_mouse_mode(bool enabled);
+    bool get_relative_mouse_mode();
+    void update_relative_mouse_mode();
+    void disable_mouse_warp_emulation();
 
     //-------------------------------------------------------------------------
     // Cursor Management
     //-------------------------------------------------------------------------
 
     // -- Creation & Destruction
-    static cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
-    static cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
-    static cursor_id create_system_cursor(cursor_shape id);
+    cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
+    cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
+    cursor_id create_system_cursor(cursor_shape id);
 
     // -- Cursor Info
-    static cursor_shape get_shape(cursor_id id);
-    static math::vec2i get_hotspot(cursor_id id);
+    cursor_shape get_shape(cursor_id id);
+    math::vec2i get_hotspot(cursor_id id);
 
     // -- Active cursor
-    static bool set_cursor(cursor_id id);
-    static cursor_id get_cursor();
-    static cursor_id get_default_cursor();
-    static void set_default_cursor(const cursor& cursor);
-    static cursor get_default_system_cursor();
+    bool set_cursor(cursor_id id);
+    cursor_id get_cursor();
+    cursor_id get_default_cursor();
+    void set_default_cursor(const cursor& cursor);
+    cursor get_default_system_cursor();
 
     // -- Visibility
-    static bool show_cursor();
-    static bool hide_cursor();
-    static bool cursor_visible();
-    static void redraw_cursor();
+    bool show_cursor();
+    bool hide_cursor();
+    bool cursor_visible();
+    void redraw_cursor();
+
+    //-------------------------------------------------------------------------
+    // Data
+    //-------------------------------------------------------------------------
+
+    owner_ptr<video::video_data> video;
+    mouse_data data;
 };
 
 } // namespace mouse

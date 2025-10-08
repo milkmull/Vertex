@@ -45,7 +45,7 @@ VX_API system_theme get_system_theme();
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
-struct display_mode_data
+struct display_mode
 {
     math::vec2i resolution;             // resolution
     int bpp;                            // bits per pixel
@@ -54,24 +54,11 @@ struct display_mode_data
     float refresh_rate;                 // refresh rate
 };
 
-VX_API bool compare_display_modes(const display_mode_data& mode1, const display_mode_data& mode2);
+VX_API bool compare_display_modes(const display_mode& mode1, const display_mode& mode2);
 
 ///////////////////////////////////////////////////////////////////////////////
 // displays
 ///////////////////////////////////////////////////////////////////////////////
-
-VX_API void update_displays();
-
-VX_API std::vector<display_id> list_display_ids();
-VX_API bool is_display_connected(display_id id);
-
-VX_API display_id get_primary_display();
-
-VX_API display_id get_display_for_point(const math::vec2i& p);
-VX_API display_id get_display_for_rect(const math::recti& rect);
-VX_API display_id get_display_for_window(const window& w);
-
-VX_API math::recti get_desktop_area();
 
 enum class display_orientation
 {
@@ -86,37 +73,64 @@ enum class display_orientation
 
 class display
 {
-private:
+public:
 
+    // implicit on purpose: allows seamless conversion
     display(display_id id) : m_id(id) {}
     ~display() {}
 
 public:
 
-    display_id id() const noexcept { return m_id; }
-    bool is_connected() const { return display_connected(m_id); }
+    // implicit conversion back to id
+    operator display_id() const noexcept { return m_id; }
 
-    VX_API const char* get_name() const;
+    display_id id() const noexcept { return m_id; }
+
+    bool is_valid() const noexcept { return m_id != INVALID_ID; }
+    bool is_connected() const { return is_display_connected(m_id); }
+
+    VX_API std::string get_name() const;
     VX_API display_orientation get_orientation() const;
     VX_API math::vec2 get_content_scale() const;
 
     VX_API math::recti get_bounds() const;
     VX_API math::recti get_work_area() const;
 
-    VX_API bool get_desktop_mode(display_mode_data& mode) const;
-    VX_API bool get_current_mode(display_mode_data& mode) const;
+    VX_API bool get_desktop_mode(display_mode& mode) const;
+    VX_API bool get_current_mode(display_mode& mode) const;
 
-    VX_API bool set_current_mode(const display_mode_data& mode);
+    VX_API bool set_current_mode(const display_mode& mode);
     VX_API void reset_mode();
 
-    VX_API std::vector<display_mode_data> list_modes() const;
-    VX_API bool has_mode(const display_mode_data& mode) const;
-    VX_API bool find_closest_mode(const display_mode_data& mode, display_mode_data& closest) const;
+    VX_API std::vector<display_mode> list_modes() const;
+    VX_API bool has_mode(const display_mode& mode) const;
+    VX_API bool find_closest_mode(const display_mode& mode, display_mode& closest) const;
 
 private:
 
     display_id m_id;
 };
+
+VX_API void update_displays();
+
+VX_API std::vector<display> list_displays();
+VX_API bool is_display_connected(display d);
+
+VX_API display get_primary_display();
+
+VX_API display get_display_for_point(const math::vec2i& p);
+VX_API display get_display_for_rect(const math::recti& rect);
+VX_API display get_display_for_window(const window& w);
+
+VX_API math::recti get_desktop_area();
+
+///////////////////////////////////////////////////////////////////////////////
+// screen saver
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API bool enable_screen_saver();
+VX_API bool screen_saver_enabled();
+VX_API bool disable_screen_saver();
 
 ///////////////////////////////////////////////////////////////////////////////
 // windows

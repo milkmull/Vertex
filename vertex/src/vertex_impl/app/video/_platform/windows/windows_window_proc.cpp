@@ -11,7 +11,7 @@ namespace video {
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsevents.c#L1150C1-L1150C83
 
-LRESULT CALLBACK _priv::window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK window_impl::window_proc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
     window* win = nullptr;
     LRESULT return_code = -1;

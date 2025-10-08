@@ -13,8 +13,6 @@ namespace pen {
 // pen
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace _priv { class pen_instance; }
-
 using pen_id = id_type;
 enum : pen_id { DEFAULT_PEN_ID = DEFAULT_ID };
 
