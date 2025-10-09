@@ -5,8 +5,8 @@
 namespace vx {
 namespace app {
 
-template <typename T>
-using owner_ptr = mem::friend_unique_ptr<T>;
+template <typename T, typename Deleter = mem::default_delete<T>>
+using owner_ptr = mem::friend_unique_ptr<T, Deleter>;
 
 } // namespace app
 } // namespace vx

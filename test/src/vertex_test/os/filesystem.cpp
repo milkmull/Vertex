@@ -673,7 +673,7 @@ VX_TEST_CASE(test_canonical)
 
         // make sure the result starts with "X:"
         VX_CHECK(text.size() > file.size() - 1);
-        VX_CHECK(os::__detail::path_parser::is_letter(text[0]) && text[1] == L':');
+        VX_CHECK(os::_priv::path_parser::is_letter(text[0]) && text[1] == L':');
 
         // make sure the result ends with "/filename"
         const auto diff = static_cast<ptrdiff_t>(file.size());

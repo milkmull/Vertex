@@ -42,9 +42,9 @@ struct event_queue
 
 struct event_watcher
 {
-    event_filter callback;
-    void* user_data;
-    bool removed;
+    event_filter callback = nullptr;
+    void* user_data = nullptr;
+    bool removed = false;
 };
 
 struct event_watch_list
@@ -52,8 +52,8 @@ struct event_watch_list
     os::recursive_mutex mutex;
     event_watcher filter;
     std::vector<event_watcher> watchers;
-    bool dispatching;
-    bool removed;
+    bool dispatching = false;
+    bool removed = false;
 };
 
 ////////////////////////////////////////

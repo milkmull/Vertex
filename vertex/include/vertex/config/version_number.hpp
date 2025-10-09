@@ -13,7 +13,7 @@
 #define VX_VERSION_NUMBER_MINOR(V) (((V) / 100000) % 100)
 #define VX_VERSION_NUMBER_PATCH(V) ((V) % 100000)
 
-#define VX_VERSION_STRING(major, minor, patch) (VX_STRINGIFY(major) "." VX_STRINGIFY(minor) "." VX_STRINGIFY(patch))
+#define VX_MAKE_VERSION_STRING(major, minor, patch) (VX_STRINGIFY(major) "." VX_STRINGIFY(minor) "." VX_STRINGIFY(patch))
 
 ///////////////////////////////////////////////////////////////////////////////
 // decomposition

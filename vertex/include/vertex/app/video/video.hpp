@@ -47,11 +47,11 @@ VX_API system_theme get_system_theme();
 
 struct display_mode
 {
-    math::vec2i resolution;             // resolution
-    int bpp;                            // bits per pixel
-    pixel::pixel_format pixel_format;   // pixel format
-    float pixel_density;                // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
-    float refresh_rate;                 // refresh rate
+    math::vec2i resolution;                                                     // resolution
+    int bpp = 0;                                                                // bits per pixel
+    pixel::pixel_format pixel_format = pixel::pixel_format::UNKNOWN;            // pixel format
+    float pixel_density = 1.0f;                                                 // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
+    float refresh_rate = 0.0f;                                                  // refresh rate
 };
 
 VX_API bool compare_display_modes(const display_mode& mode1, const display_mode& mode2);
@@ -87,10 +87,11 @@ public:
     display_id id() const noexcept { return m_id; }
 
     bool is_valid() const noexcept { return m_id != INVALID_ID; }
-    bool is_connected() const { return is_display_connected(m_id); }
+    bool is_connected() const;
 
     VX_API std::string get_name() const;
     VX_API display_orientation get_orientation() const;
+    VX_API display_orientation get_natural_orientation() const;
     VX_API math::vec2 get_content_scale() const;
 
     VX_API math::recti get_bounds() const;
@@ -114,8 +115,6 @@ private:
 VX_API void update_displays();
 
 VX_API std::vector<display> list_displays();
-VX_API bool is_display_connected(display d);
-
 VX_API display get_primary_display();
 
 VX_API display get_display_for_point(const math::vec2i& p);

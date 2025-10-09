@@ -2,6 +2,7 @@
 
 #include "vertex/config/assert.hpp"
 #include "vertex/util/bit/bit.hpp"
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 
@@ -9,7 +10,7 @@ template <size_t N, typename T = size_t>
 class bit_field
 {
     VX_STATIC_ASSERT(N > 0, "N must be greater than 0");
-    VX_STATIC_ASSERT(is_unsigned<T>::value, "T must be unsigned integer type");
+    VX_STATIC_ASSERT(std::is_unsigned<T>::value, "T must be unsigned integer type");
 
 public:
 
@@ -131,7 +132,7 @@ public:
 
         for (size_t i = 0; i < blocks; ++i)
         {
-            total += bit::popcount(m_data[i])
+            total += bit::popcount(m_data[i]);
         }
 
         return total;

@@ -420,14 +420,14 @@ VX_TEST_CASE(title)
     VX_CHECK(str::title("").empty());
 }
 
-VX_TEST_CASE(case_insensitive_compare)
+VX_TEST_CASE(casecmp)
 {
-    VX_CHECK(str::case_insensitive_compare("aBcDeFgHiJkLmNoPqRsTuVwXyZ", "AbCdEfGhIjKlMnOpQrStUvWxYz"));
-    VX_CHECK(str::case_insensitive_compare("123", "123"));
-    VX_CHECK(!str::case_insensitive_compare("abc", "abcd"));
-    VX_CHECK(!str::case_insensitive_compare("abc", "ABCD123"));
+    VX_CHECK(str::casecmp("aBcDeFgHiJkLmNoPqRsTuVwXyZ", "AbCdEfGhIjKlMnOpQrStUvWxYz"));
+    VX_CHECK(str::casecmp("123", "123"));
+    VX_CHECK(!str::casecmp("abc", "abcd"));
+    VX_CHECK(!str::casecmp("abc", "ABCD123"));
 
-    VX_CHECK(str::case_insensitive_compare("", ""));
+    VX_CHECK(str::casecmp("", ""));
 }
 
 VX_TEST_CASE(strip)

@@ -54,7 +54,8 @@ VX_TEST_CASE(test_get_performance_frequency)
 
 VX_TEST_CASE(test_sleep)
 {
-    constexpr time::time_point sleep_ms = time::milliseconds(10);
+    constexpr int64_t sleep_time_ms = 10;
+    constexpr time::time_point sleep_ms = time::milliseconds(sleep_time_ms);
     time::time_point t1, t2;
 
     VX_EXPECT_NO_ERROR(t1 = os::get_ticks());
@@ -66,6 +67,9 @@ VX_TEST_CASE(test_sleep)
     const auto dif = t2.as_float_milliseconds() - t1.as_float_milliseconds();
     // sometimes sleep can take a little longer, we check if we are within 30 ms
     VX_CHECK(std::abs(dif - sleep_ms.as_float_milliseconds()) < 30.0);
+
+    VX_MESSAGE("  Expected sleep time: ", sleep_time_ms, " ms");
+    VX_MESSAGE("  Actual sleep time: ", dif, " ms");
 }
 
 ///////////////////////////////////////////////////////////////////////////////

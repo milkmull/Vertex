@@ -42,7 +42,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_window.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_window.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_window_proc.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_events.cpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_APP_VIDEO_PLATFORM_SOURCE_FILES})

@@ -333,6 +333,14 @@ private:
 
 constexpr time_point zero() noexcept { return time_point(0); }
 
+#ifdef min
+#   undef min
+#endif
+
+#ifdef max
+#   undef max
+#endif
+
 constexpr time_point max() noexcept { return time_point(INT64_MAX); }
 constexpr time_point min() noexcept { return time_point(INT64_MIN); }
 

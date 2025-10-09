@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <utility>
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace mem {
@@ -15,6 +16,36 @@ inline T exchange(T& obj, U&& new_value)
 }
 
 template <typename T>
+struct default_delete
+{
+    constexpr default_delete() noexcept = default;
+
+    template <typename U, VX_REQUIRES((std::is_convertible<U*, T*>::valud))>
+    default_delete(const default_delete<U>&) noexcept {}
+
+    void operator()(T* ptr) const noexcept
+    {
+        VX_STATIC_ASSERT(sizeof(T) > 0, "Cannot delete incomplete type");
+        delete ptr;
+    }
+};
+
+template <typename T>
+struct default_delete<T[]>
+{
+    constexpr default_delete() noexcept = default;
+
+    template <typename U, VX_REQUIRES((std::is_convertible<U(*)[], T(*)[]>::value))>
+    default_delete(const default_delete<U[]>&) noexcept {}
+
+    void operator()(T* ptr) const noexcept
+    {
+        VX_STATIC_ASSERT(sizeof(T) > 0, "Cannot delete incomplete type");
+        delete[] ptr;
+    }
+};
+
+template <typename T, typename Deleter = default_delete<T>>
 class friend_unique_ptr
 {
 public:
@@ -22,7 +53,7 @@ public:
     using element_type = T;
 
     friend_unique_ptr() noexcept = default;
-    ~friend_unique_ptr() { if (m_ptr) { delete m_ptr; } }
+    ~friend_unique_ptr() { delete_data(); }
 
     explicit friend_unique_ptr(T* ptr) noexcept : m_ptr(ptr) {}
 
@@ -51,7 +82,7 @@ public:
     {
         if (m_ptr != ptr)
         {
-            delete m_ptr;
+            delete_data();
             m_ptr = ptr;
         }
     }
@@ -74,8 +105,11 @@ public:
 
 private:
 
+    void delete_data() { if (m_ptr) { m_deleter(m_ptr); } }
+
+    Deleter m_deleter{};
     T* m_ptr = nullptr;
 };
 
-}
-}
+} // namespace mem
+} // namespace vx

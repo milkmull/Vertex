@@ -20,7 +20,7 @@ class cursor_internal;
 struct cursor
 {
     cursor_id id;
-    owner_ptr<cursor_internal> internal;
+    //owner_ptr<cursor_internal> internal;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -45,31 +45,31 @@ struct input_source
 
 struct relative_mode_state
 {
-    bool enabled;                     // is relative mode active
-    bool warp_motion;                 // generate motion events on warp
-    bool hide_cursor;                 // hide cursor while active
-    bool center;                      // lock to window center
-    bool warp_emulation_hint;         // hint for warp emulation
-    bool warp_emulation_active;
-    bool warp_emulation_prohibited;
+    bool enabled = false;                     // is relative mode active
+    bool warp_motion = false;                 // generate motion events on warp
+    bool hide_cursor = false;                 // hide cursor while active
+    bool center = false;                      // lock to window center
+    bool warp_emulation_hint = false;         // hint for warp emulation
+    bool warp_emulation_active = false;
+    bool warp_emulation_prohibited = false;
     time::time_point last_center_warp_time;
 };
 
 struct scale_state
 {
-    bool normal_enabled;
-    float normal_scale;
-    bool relative_enabled;
-    float relative_scale;
-    bool system_relative_enabled;
+    bool normal_enabled = false;
+    float normal_scale = 0.0f;
+    bool relative_enabled = false;
+    float relative_scale = 0.0f;
+    bool system_relative_enabled = false;
 };
 
 struct cursor_data
 {
     std::vector<cursor> cursors;
-    cursor_id default_cursor;
-    cursor_id current_cursor;
-    bool visible;
+    cursor_id default_cursor = INVALID_ID;
+    cursor_id current_cursor = INVALID_ID;
+    bool visible= false;
 };
 
 struct mouse_data
@@ -125,9 +125,9 @@ class mouse_instance
 {
 public:
 
-    bool init(video::video_instance* owner);
+    bool init(video::video_instance* owner) { return true; }
     bool is_init();
-    void quit();
+    void quit() {}
 
     //-------------------------------------------------------------------------
     // Device Management
@@ -190,15 +190,6 @@ public:
     void perform_warp_mouse_in_window(const video::window* w, float x, float y, bool ignore_relative_mode);
 
     //-------------------------------------------------------------------------
-    // Relative Mode
-    //-------------------------------------------------------------------------
-
-    bool set_relative_mouse_mode(bool enabled);
-    bool get_relative_mouse_mode();
-    void update_relative_mouse_mode();
-    void disable_mouse_warp_emulation();
-
-    //-------------------------------------------------------------------------
     // Cursor Management
     //-------------------------------------------------------------------------
 
@@ -228,7 +219,7 @@ public:
     // Data
     //-------------------------------------------------------------------------
 
-    owner_ptr<video::video_data> video;
+    video::video_instance* video = nullptr;
     mouse_data data;
 };
 

@@ -31,6 +31,15 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// video_instance_impl
+///////////////////////////////////////////////////////////////////////////////
+
+void video_instance_impl_deleter::operator()(video_instance_impl* ptr) const noexcept
+{
+    if (ptr) { delete ptr; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // video
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -132,6 +141,7 @@ void video_instance::quit()
     }
 
     // remove hint callbacks
+    if (app)
     {
         app->data.hints_ptr->remove_hint_callback(
             VX_HINT_GET_NAME(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS),
@@ -177,6 +187,15 @@ void video_instance::set_system_theme(system_theme theme)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// display mode impl
+///////////////////////////////////////////////////////////////////////////////
+
+void display_mode_instance_impl_deleter::operator()(display_mode_instance_impl* ptr) const noexcept
+{
+    if (ptr) { delete ptr; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -190,6 +209,15 @@ VX_API bool compare_display_modes(const display_mode& mode1, const display_mode&
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// display impl
+///////////////////////////////////////////////////////////////////////////////
+
+void display_instance_impl_deleter::operator()(display_instance_impl* ptr) const noexcept
+{
+    if (ptr) { delete ptr; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // displays
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -199,6 +227,22 @@ void video_instance::update_displays()
 }
 
 ////////////////////////////////////////
+
+VX_API std::vector<display> list_displays()
+{
+    std::vector<display> displays;
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(displays);
+
+    const std::vector<display_id> display_ids = s_video_ptr->list_displays();
+    displays.reserve(display_ids.size());
+
+    for (const display_id id : display_ids)
+    {
+        displays.push_back(id);
+    }
+
+    return displays;
+}
 
 std::vector<display_id> video_instance::list_displays() const
 {
@@ -228,6 +272,12 @@ size_t video_instance::get_display_index(display_id id) const
 }
 
 ////////////////////////////////////////
+
+VX_API bool display::is_connected() const
+{
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
+    return s_video_ptr->is_display_connected(m_id);
+}
 
 bool video_instance::is_display_connected(display_id id) const
 {
@@ -446,7 +496,7 @@ math::recti video_instance::get_desktop_area() const
 
 VX_API std::string display::get_name() const
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(nullptr);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::string{});
     return s_video_ptr->get_display_name(m_id);
 }
 
@@ -459,6 +509,19 @@ std::string video_instance::get_display_name(display_id id) const
 const std::string& display_instance::get_name() const
 {
     return data.name;
+}
+
+///////////////////////////////////////
+
+void display_instance::set_orientation(display_orientation orientation)
+{
+    if (data.orientation == orientation)
+    {
+        return;
+    }
+
+    data.orientation = orientation;
+    video->post_display_orientation_changed(*this, orientation);
 }
 
 ///////////////////////////////////////
@@ -482,6 +545,26 @@ display_orientation display_instance::get_orientation() const
 
 ///////////////////////////////////////
 
+VX_API display_orientation display::get_natural_orientation() const
+{
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(display_orientation::UNKNOWN);
+    return s_video_ptr->get_display_natural_orientation(m_id);
+}
+
+display_orientation video_instance::get_display_natural_orientation(display_id id) const
+{
+    const display_instance* d = get_display_instance(id);
+    return d ? d->get_natural_orientation() : display_orientation::UNKNOWN;
+}
+
+display_orientation display_instance::get_natural_orientation() const
+{
+    // default to landscape
+    return (data.natural_orientation != display_orientation::UNKNOWN) ? data.natural_orientation : display_orientation::LANDSCAPE;
+}
+
+///////////////////////////////////////
+
 VX_API math::vec2 display::get_content_scale() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(math::vec2{});
@@ -497,6 +580,28 @@ math::vec2 video_instance::get_display_content_scale(display_id id) const
 math::vec2 display_instance::get_content_scale() const
 {
     return data.content_scale;
+}
+
+///////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1143
+
+void display_instance::set_content_scale(const math::vec2& scale)
+{
+    if (scale == data.content_scale)
+    {
+        return;
+    }
+
+    data.content_scale = scale;
+    video->post_display_content_scale_changed(*this, scale);
+
+    // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1883
+
+    //for (const auto& w : video->data.windows)
+    //{
+    //    if (data.id == w->displa)
+    //}
 }
 
 ///////////////////////////////////////
@@ -622,6 +727,32 @@ bool display_instance::get_desktop_mode(display_mode& mode) const
 
 ///////////////////////////////////////
 
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1443
+
+void display_instance::set_desktop_mode(display_mode_instance& mode)
+{
+    if (data.fullscreen_window_id != INVALID_ID)
+    {
+        // This is a temporary mode change, don't save the desktop mode
+        return;
+    }
+
+    const display_mode last_mode = data.desktop_mode.data.mode;
+    data.desktop_mode = std::move(mode);
+
+    if (!compare_display_modes(last_mode, data.desktop_mode.data.mode))
+    {
+        video->post_display_desktop_mode_changed(*this, data.desktop_mode.data.mode);
+
+        if (!compare_display_modes(data.current_mode, data.desktop_mode.data.mode))
+        {
+            video->post_display_current_mode_changed(*this, data.desktop_mode.data.mode);
+        }
+    }
+}
+
+///////////////////////////////////////
+
 VX_API bool display::get_current_mode(display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
@@ -657,7 +788,7 @@ bool video_instance::set_display_current_mode(display_id id, const display_mode&
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1509
 
-VX_API bool display_instance::set_current_mode(const display_mode& mode)
+bool display_instance::set_current_mode(const display_mode& mode)
 {
 #if VX_VIDEO_MODE_SWITCHING_EMULATED && defined(VX_VIDEO_X11)
 
@@ -725,7 +856,7 @@ void video_instance::reset_display_mode(display_id id)
     if (d) d->reset_mode();
 }
 
-VX_API void display_instance::reset_mode()
+void display_instance::reset_mode()
 {
     set_current_mode(data.desktop_mode.data.mode);
 }
@@ -781,7 +912,7 @@ const display_mode_instance* display_instance::find_mode(const display_mode& mod
 VX_API bool display::has_mode(const display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->display_has_mode(m_id);
+    return s_video_ptr->display_has_mode(m_id, mode);
 }
 
 bool video_instance::display_has_mode(display_id id, const display_mode& mode) const
@@ -949,10 +1080,12 @@ bool video_instance::disable_screen_saver()
 
     return impl_ptr->suspend_screen_saver();
 
-#endif // VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#else
 
     VX_UNSUPPORTED("disable_screen_saver()");
     return false;
+
+#endif // VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -1008,16 +1141,16 @@ bool video_instance::disable_screen_saver()
 //    VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
 //    video_instance::destroy_window(w);
 //}
-//
-//////////////////////////////////////////
-//
-//void video_instance::destroy_windows()
-//{
-//    data.windows.clear();
-//}
-//
-//////////////////////////////////////////
-//
+
+////////////////////////////////////////
+
+void video_instance::destroy_windows()
+{
+    //data.windows.clear();
+}
+
+////////////////////////////////////////
+
 //window* video_instance::get_window(window_id id)
 //{
 //    if (id == INVALID_ID)
@@ -1079,11 +1212,11 @@ bool video_instance::disable_screen_saver()
 //    VX_CHECK_VIDEO_SUBSYSTEM_INIT(nullptr);
 //    return video_instance::enum_windows(i);
 //}
-//
-//////////////////////////////////////////
-//
-//void video_instance::check_window_display_changed(window& w)
-//{
+
+////////////////////////////////////////
+
+void video_instance::check_window_display_changed(window& w)
+{
 //    VX_ASSERT(w.validate());
 //
 //    if (!has_capabilities(capabilities::SENDS_DISPLAY_CHANGES))
@@ -1139,27 +1272,27 @@ bool video_instance::disable_screen_saver()
 //
 //        w.post_window_display_changed(*new_display);
 //    }
-//}
-//
-//////////////////////////////////////////
-//
-//window* video_instance::get_active_window()
-//{
-//    for (auto& w : data.windows)
-//    {
-//        if (!w->m_destroying)
-//        {
-//            return w.get();
-//        }
-//    }
-//
-//    return nullptr;
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// fullscreen helpers
-/////////////////////////////////////////////////////////////////////////////////
-//
+}
+
+////////////////////////////////////////
+
+window* video_instance::get_active_window()
+{
+    //for (auto& w : data.windows)
+    //{
+    //    if (!w->m_destroying)
+    //    {
+    //        return w.get();
+    //    }
+    //}
+
+    return nullptr;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// fullscreen helpers
+///////////////////////////////////////////////////////////////////////////////
+
 //window_id video_instance::get_display_fullscreen_window_id(const display& d)
 //{
 //    return d.m_fullscreen_window_id;
@@ -1187,58 +1320,86 @@ bool video_instance::disable_screen_saver()
 //
 //    return nullptr;
 //}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// event handlers
-/////////////////////////////////////////////////////////////////////////////////
-//
-//#if VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1572
-//
-//bool video_instance::wait_event_timeout(const window* w, time::time_point t)
-//{
-//    bool status = false;
-//
-//    // Obtain the pointer to the wakeup window so other threads
-//    // know to wake this window up if an event is added to the queue.
-//    data.wakeup_window = w;
-//    //status = _priv::window_impl::wait_event_timeout();
-//    data.wakeup_window = nullptr;
-//
-//    return status;
-//}
-//
-//#endif // VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
-//
-//#if VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
-//
-//void video_instance::send_wakeup_event()
-//{
-//    // This function is called when a new event is added to the queue
-//    // while another thread may be blocked waiting for events.
-//    //
-//    // The waiting thread sets data.wakeup_window before calling into the OS
-//    // to wait for events. If we get here, it means new activity happened
-//    // and we must wake that thread immediately.
-//    //
-//    // We clear data.wakeup_window atomically right away to ensure:
-//    //   1. Only one wakeup happens per wait cycle (multiple threads adding
-//    //      events won’t flood the OS queue with wakeup messages).
-//    //   2. Other threads are free to reuse or take ownership of the window
-//    //      handle without being blocked by us holding it longer than needed.
-//    //
-//    // If there was a valid wakeup window, we send the wakeup event through
-//    // the platform-specific mechanism (e.g. PostMessage on Windows).
-//
-//    const window* w = data.wakeup_window.exchange(nullptr);
-//    if (w)
-//    {
-//        //w->send_wakeup_event();
-//    }
-//}
-//
-//#endif // VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
+
+///////////////////////////////////////////////////////////////////////////////
+// events
+///////////////////////////////////////////////////////////////////////////////
+
+void video_instance::pump_events()
+{
+#if VX_VIDEO_HAVE_PUMP_EVENTS
+
+    impl_ptr->pump_events();
+
+#endif // VX_VIDEO_HAVE_PUMP_EVENTS
+}
+
+////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1572
+
+bool video_instance::wait_event_timeout(const window* w, time::time_point t)
+{
+#if VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
+
+    bool status = false;
+    
+    // Obtain the pointer to the wakeup window so other threads
+    // know to wake this window up if an event is added to the queue.
+    data.wakeup_window.exchange(w);
+    status = impl_ptr->wait_event_timeout(t);
+    data.wakeup_window.exchange(nullptr);
+    
+    return status;
+
+#else
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
+}
+
+////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1103
+
+void video_instance::send_wakeup_event()
+{
+#if defined(VX_VIDEO_ANDROID)
+
+#else
+
+#if VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
+
+    // This function is called when a new event is added to the queue
+    // while another thread may be blocked waiting for events.
+    //
+    // The waiting thread sets data.wakeup_window before calling into the OS
+    // to wait for events. If we get here, it means new activity happened
+    // and we must wake that thread immediately.
+    //
+    // We clear data.wakeup_window atomically right away to ensure:
+    //   1. Only one wakeup happens per wait cycle (multiple threads adding
+    //      events won’t flood the OS queue with wakeup messages).
+    //   2. Other threads are free to reuse or take ownership of the window
+    //      handle without being blocked by us holding it longer than needed.
+    //
+    // If there was a valid wakeup window, we send the wakeup event through
+    // the platform-specific mechanism (e.g. PostMessage on Windows).
+    
+    const window* w = data.wakeup_window.exchange(nullptr);
+
+    if (w)
+    {
+        //w->send_wakeup_event();
+    }
+
+#endif // VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
+
+#endif // VX_VIDEO_ANDROID
+}
+
+////////////////////////////////////////
 
 bool video_instance::post_system_theme_changed(system_theme theme)
 {
@@ -1281,10 +1442,7 @@ void video_instance::on_display_added()
 
 bool video_instance::post_display_removed(const display_instance& d)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_REMOVED;
@@ -1296,10 +1454,7 @@ bool video_instance::post_display_removed(const display_instance& d)
 
 bool video_instance::post_display_moved(const display_instance& d)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_MOVED;
@@ -1311,17 +1466,7 @@ bool video_instance::post_display_moved(const display_instance& d)
 
 bool video_instance::post_display_orientation_changed(display_instance& d, display_orientation orientation)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
-
-    if (orientation == display_orientation::UNKNOWN || d.get_orientation() == orientation)
-    {
-        return false;
-    }
-
-    d.data.orientation = orientation;
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_ORIENTATION_CHANGED;
@@ -1334,17 +1479,7 @@ bool video_instance::post_display_orientation_changed(display_instance& d, displ
 
 bool video_instance::post_display_desktop_mode_changed(display_instance& d, const display_mode& mode)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
-
-    if (display_mode::compare(mode, d.get_desktop_mode()))
-    {
-        return false;
-    }
-
-    d.m_desktop_mode = mode;
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_DESKTOP_MODE_CHANGED;
@@ -1356,17 +1491,7 @@ bool video_instance::post_display_desktop_mode_changed(display_instance& d, cons
 
 bool video_instance::post_display_current_mode_changed(display_instance& d, const display_mode& mode)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
-
-    if (display_mode::compare(mode, d.get_current_mode()))
-    {
-        return false;
-    }
-
-    d.m_current_mode = mode;
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_CURRENT_MODE_CHANGED;
@@ -1378,17 +1503,7 @@ bool video_instance::post_display_current_mode_changed(display_instance& d, cons
 
 bool video_instance::post_display_content_scale_changed(display_instance& d, const math::vec2& content_scale)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
-
-    if (d.get_content_scale() == content_scale)
-    {
-        return false;
-    }
-
-    d.m_content_scale = content_scale;
+    VX_ASSERT(d.data.id != INVALID_ID);
 
     event::event e{};
     e.type = event::DISPLAY_CONTENT_SCALE_CHANGED;

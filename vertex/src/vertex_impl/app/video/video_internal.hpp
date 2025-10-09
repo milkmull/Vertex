@@ -15,6 +15,13 @@ class app_instance;
 namespace video {
 
 ///////////////////////////////////////////////////////////////////////////////
+// forward declares
+///////////////////////////////////////////////////////////////////////////////
+
+class display_mode_instance;
+class display_instance;
+
+///////////////////////////////////////////////////////////////////////////////
 // video hint cache
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,8 +33,6 @@ struct video_hints
 ///////////////////////////////////////////////////////////////////////////////
 // video data
 ///////////////////////////////////////////////////////////////////////////////
-
-struct video_instance_impl;
 
 struct video_data
 {
@@ -46,11 +51,15 @@ struct video_data
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// forward declares
+// video_instance_impl
 ///////////////////////////////////////////////////////////////////////////////
 
-class display_mode_instance;
-class display_instance;
+class video_instance_impl;
+
+struct video_instance_impl_deleter
+{
+    void operator()(video_instance_impl* ptr) const noexcept;
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // video_instance
@@ -117,6 +126,7 @@ public:
 
     std::string get_display_name(display_id id) const;
     display_orientation get_display_orientation(display_id id) const;
+    display_orientation get_display_natural_orientation(display_id id) const;
     math::vec2 get_display_content_scale(display_id id) const;
 
     math::recti get_display_bounds(display_id id) const;
@@ -124,8 +134,8 @@ public:
 
     bool get_display_desktop_mode(display_id id, display_mode& mode) const;
     bool get_display_current_mode(display_id id, display_mode& mode) const;
-
     bool set_display_current_mode(display_id id, const display_mode& mode);
+
     void reset_display_mode(display_id id);
 
     std::vector<display_mode> list_display_modes_for_display(display_id id) const;
@@ -177,7 +187,7 @@ public:
 
     void pump_events();
     bool wait_event_timeout(const window* w, time::time_point t);
-    void send_wakeup_event();
+    void send_wakeup_event(); 
 
     bool post_system_theme_changed(system_theme theme);
 
@@ -216,8 +226,19 @@ public:
 
     app_instance* app = nullptr;
     video_data data;
-    owner_ptr<video_instance_impl> impl_ptr;
+    owner_ptr<video_instance_impl, video_instance_impl_deleter> impl_ptr;
 
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display mode impl
+///////////////////////////////////////////////////////////////////////////////
+
+class display_mode_instance_impl;
+
+struct display_mode_instance_impl_deleter
+{
+    void operator()(display_mode_instance_impl* ptr) const noexcept;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -230,14 +251,23 @@ struct display_mode_data
     display_id display_id = INVALID_ID;
 };
 
-struct display_mode_instance_impl;
-
 class display_mode_instance
 {
 public:
 
     display_mode_data data;
-    owner_ptr<display_mode_instance_impl> impl_ptr;
+    owner_ptr<display_mode_instance_impl, display_mode_instance_impl_deleter> impl_ptr;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display impl
+///////////////////////////////////////////////////////////////////////////////
+
+class display_instance_impl;
+
+struct display_instance_impl_deleter
+{
+    void operator()(display_instance_impl* ptr) const noexcept;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -255,12 +285,11 @@ struct display_data
     bool setting_display_mode = false;
 
     display_orientation orientation;
+    display_orientation natural_orientation;
     math::vec2 content_scale;
 
-    window_id fullscreen_window_id;
+    window_id fullscreen_window_id = INVALID_ID;
 };
-
-struct display_instance_impl;
 
 class display_instance
 {
@@ -269,16 +298,23 @@ public:
     display as_display() const { return video_instance::create_display_reference(data.id); }
 
     const std::string& get_name() const;
+
+    void set_orientation(display_orientation orientation);
     display_orientation get_orientation() const;
+    display_orientation get_natural_orientation() const;
+
     math::vec2 get_content_scale() const;
+    void set_content_scale(const math::vec2& scale);
 
     math::recti get_bounds() const;
     math::recti get_work_area() const;
 
     bool get_desktop_mode(display_mode& mode) const;
-    bool get_current_mode(display_mode& mode) const;
+    void set_desktop_mode(display_mode_instance& mode);
 
+    bool get_current_mode(display_mode& mode) const;
     bool set_current_mode(const display_mode& mode);
+
     void reset_mode();
 
     std::vector<display_mode> list_modes() const;
@@ -294,7 +330,7 @@ public:
 
     video_instance* video = nullptr;
     display_data data;
-    owner_ptr<display_instance_impl> impl_ptr;
+    owner_ptr<display_instance_impl, display_instance_impl_deleter> impl_ptr;
 };
 
 } // namespace video

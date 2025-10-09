@@ -11,11 +11,11 @@ namespace app {
 // subsystem instances
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace hint { struct hints_instance; }
-namespace event { struct events_instance; }
-namespace video { struct video_instance; }
-namespace audio { struct audio_data; }
-namespace camera { struct camera_data; }
+namespace hint { class hints_instance; }
+namespace event { class events_instance; }
+namespace video { class video_instance; }
+namespace audio { class audio_instance; }
+namespace camera { class camera_instance; }
 
 enum subsystem
 {

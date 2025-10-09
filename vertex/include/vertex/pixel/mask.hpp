@@ -36,6 +36,13 @@ inline void create_alpha_bitmask(
     }
 }
 
+struct mask_pair
+{
+    size_t width, height;
+    std::vector<uint8_t> and_mask;
+    std::vector<uint8_t> xor_mask; 
+};
+
 template <pixel_format F>
 inline bitmask create_bitmask(
     size_t w, size_t h,

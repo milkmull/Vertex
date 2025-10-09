@@ -529,6 +529,10 @@ inline bool add_event(const event& e) { return add_events(&e, 1) == 1; }
 
 ////////////////////////////////////////
 
+using event_filter = bool(*)(const event&, void*);
+
+////////////////////////////////////////
+
 VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
 
 inline bool type_matcher(const event& e, void* user_data) noexcept
@@ -601,8 +605,6 @@ VX_API bool push_event(const event& e);
 VX_API bool poll_event(event& e);
 
 ////////////////////////////////////////
-
-using event_filter = bool(*)(const event&, void*);
 
 VX_API void set_event_filter(event_filter filter, void* user_data);
 VX_API void get_event_filter(event_filter& filter, void*& user_data);

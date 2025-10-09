@@ -120,7 +120,7 @@ static HANDLE get_waitable_timer()
     {
         if (s_wtt.kernel32.load("kernel32.dll"))
         {
-            s_wtt.CreateWaitableTimerExW = s_wtt.kernel32.get<CreateWaitableTimerExW_t>("CreateWaitableTimerExW_t");
+            s_wtt.CreateWaitableTimerExW = s_wtt.kernel32.get<CreateWaitableTimerExW_t>("CreateWaitableTimerExW");
             s_wtt.SetWaitableTimerEx = s_wtt.kernel32.get<SetWaitableTimerEx_t>("SetWaitableTimerEx");
 
             if (!s_wtt.available())

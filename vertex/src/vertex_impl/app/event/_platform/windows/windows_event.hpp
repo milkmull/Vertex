@@ -18,7 +18,7 @@ class events_instance_impl
 public:
 
     static void pump_events(bool process_all);
-    static bool wait_event_timeout(uint32_t timeout_ms);
+    //static bool wait_event_timeout(uint32_t timeout_ms);
 };
 
 } // namespace event

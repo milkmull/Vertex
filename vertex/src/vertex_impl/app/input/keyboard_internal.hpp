@@ -61,9 +61,9 @@ private:
     std::unordered_map<scancode, keycode> m_scancode_to_keycode;
     std::unordered_map<keycode, scancode> m_keycode_to_scancode;
     scancode m_next_reserved_scancode = scancode::SCANCODE_COUNT;
-    bool m_french_numbers;
-    bool m_thai_keyboard;
-    bool m_latin_letters;
+    bool m_french_numbers = false;
+    bool m_thai_keyboard = false;
+    bool m_latin_letters = false;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,7 +155,7 @@ public:
     bool send_key_and_scancode(keyboard_id id, int raw, scancode sc, keycode key, bool down);
 
     bool send_key_auto_release(scancode sc);
-    void release_auto_release_keys();
+    void release_auto_release_keys() {}
 
     bool hardware_key_pressed();
 
@@ -195,7 +195,7 @@ public:
     // Data
     //-------------------------------------------------------------------------
 
-    video::video_instance* video;
+    video::video_instance* video = nullptr;
     keyboard_data data;
 };
 

@@ -33,17 +33,17 @@ void events_instance_impl::pump_events(bool process_all)
     }
 }
 
-void events_instance_impl::wait_events()
-{
-    ::WaitMessage();
-    pump_events(false);
-}
-
-void events_instance_impl::wait_events_timeout(unsigned int timeout_ms)
-{
-    ::MsgWaitForMultipleObjects(0, NULL, FALSE, static_cast<DWORD>(timeout_ms), QS_ALLINPUT);
-    pump_events(false);
-}
+//void events_instance_impl::wait_events()
+//{
+//    ::WaitMessage();
+//    pump_events(false);
+//}
+//
+//void events_instance_impl::wait_events_timeout(unsigned int timeout_ms)
+//{
+//    ::MsgWaitForMultipleObjects(0, NULL, FALSE, static_cast<DWORD>(timeout_ms), QS_ALLINPUT);
+//    pump_events(false);
+//}
 
 } // namespace event
 } // namespace app

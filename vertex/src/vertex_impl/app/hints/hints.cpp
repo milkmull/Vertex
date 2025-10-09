@@ -1,5 +1,6 @@
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
+#include "vertex/util/string/string.hpp"
 
 namespace vx {
 namespace app {
@@ -59,15 +60,19 @@ VX_API const char* get_hint(hint_t name)
 const char* hints_instance::get_hint(hint_t name) const
 {
     os::lock_guard lock(data.mutex);
-    const hint_entry& h = data.hints.at(name);
 
-    if (h.user_value)
+    if (hint_entry_exists(name))
     {
-        return h.user_value;
-    }
-    if (h.default_value)
-    {
-        return h.default_value;
+        const hint_entry& h = data.hints.at(name);
+
+        if (h.user_value)
+        {
+            return h.user_value;
+        }
+        if (h.default_value)
+        {
+            return h.default_value;
+        }
     }
 
     return nullptr;
@@ -105,18 +110,11 @@ bool hints_instance::set_hint(hint_t name, const char* value)
     os::lock_guard lock(data.mutex);
     hint_entry& h = data.hints[name];
 
-    if (h.user_value || h.default_value)
-    {
-        const char* old_value = h.user_value ? h.user_value : h.default_value;
+    const char* old_value = h.user_value ? h.user_value : h.default_value;
 
-        if (std::strcmp(value, old_value) != 0)
-        {
-            h.update(name, old_value, h.user_value);
-        }
-    }
-    else
+    if (!str::cstrcmp(value, old_value))
     {
-        h.update(name, nullptr, h.user_value);
+        h.update(name, old_value, h.user_value);
     }
 
     return true;
@@ -170,22 +168,25 @@ bool hints_instance::set_hint_default_value(hint_t name, const char* value, bool
 
     if (!h.user_value || override_user_value)
     {
+        // if we are overriding the user data we need to notify of change
         const char* old_value = h.user_value ? h.user_value : h.default_value;
 
-        if (std::strcmp(value, old_value) != 0)
+        if (!str::cstrcmp(value, old_value))
         {
             if (override_user_value)
             {
                 h.user_value = nullptr;
             }
 
-            h.update(name, old_value, h.default_value);
+            h.update(name, old_value, value);
         }
     }
     else
     {
         h.default_value = value;
     }
+
+    return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -4,6 +4,7 @@
 #include "vertex/app/id.hpp"
 #include "vertex/app/input/scancode.hpp"
 #include "vertex/app/input/keycode.hpp"
+#include "vertex/math/rect.hpp"
 
 namespace vx {
 namespace app {

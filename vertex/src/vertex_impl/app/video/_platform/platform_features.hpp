@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/app/video/config.hpp"
+#include "vertex/app/video/config/video_backend.hpp"
 
 // ------------------------------------------------------------
 // Video backend feature flags
@@ -23,7 +23,7 @@
 #define VX_VIDEO_SENDS_HDR_CHANGES                      0
 
 // Event handling
-#define VX_VIDEO_HAVE_EVENT_PUMP                        0
+#define VX_VIDEO_HAVE_PUMP_EVENTS                        0
 #define VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT                0
 #define VX_VIDEO_HAVE_SEND_WAKEUP_EVENT                 0
 #define VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER              0
@@ -66,7 +66,7 @@
 #define VX_VIDEO_HAVE_CLIPBOARD_HAS_DATA                0
 #define VX_VIDEO_HAVE_CLIPBOARD_SCREEN_KEYBOARD         0
 
-#if defined(VX_VIDEO_WINDOWS)
+#if defined(VX_VIDEO_BACKEND_WINDOWS)
 #   include "vertex_impl/app/video/_platform/windows/windows_features.hpp"
 #else
 #   include "vertex_impl/app/video/_platform/dummy/dummy_features.hpp"
@@ -146,10 +146,10 @@
 // Event handling
 // ------------------------------------------------------------
 
-#ifdef VX_VIDEO_HAVE_EVENT_PUMP
-#   undef VX_VIDEO_HAVE_EVENT_PUMP
+#ifdef VX_VIDEO_HAVE_PUMP_EVENTS
+#   undef VX_VIDEO_HAVE_PUMP_EVENTS
 #endif
-#define VX_VIDEO_HAVE_EVENT_PUMP 1
+#define VX_VIDEO_HAVE_PUMP_EVENTS 1
 
 #ifdef VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
 #   undef VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT

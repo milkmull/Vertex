@@ -1,10 +1,40 @@
 #include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
 #include "vertex_impl/app/app_internal.hpp"
+#include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex/util/string/string_cast.hpp"
 
 namespace vx {
 namespace app {
 namespace video {
+
+///////////////////////////////////////////////////////////////////////////////
+// hints
+///////////////////////////////////////////////////////////////////////////////
+
+static void use_raw_keyboard_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+{
+    video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
+    const bool enabled = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD));
+    //WIN_SetRawKeyboardEnabled(_this, enabled);
+}
+
+static void enable_message_loop_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+{
+    video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
+    this_->data.enable_message_loop_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP));
+}
+
+static void enable_menu_mnemonics_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+{
+    video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
+    this_->data.enable_menu_mnemonics_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS));
+}
+
+static void window_frame_usable_while_cursor_hidden_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+{
+    video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
+    this_->data.frame_usable_while_cursor_hidden_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // library loading
@@ -192,6 +222,8 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L579
+
 bool video_instance_impl::init(video_instance* owner)
 {
     VX_ASSERT(!video);
@@ -224,7 +256,39 @@ bool video_instance_impl::init(video_instance* owner)
         data.registered_app = true;
     }
 
+    data._VX_WAKEUP = ::RegisterWindowMessageA("_VX_WAKEUP");
     data.system_theme_cache = get_system_theme();
+
+    // hints
+    {
+        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+            hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD,
+            use_raw_keyboard_hint_watcher,
+            this,
+            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD)
+        );
+
+        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+            hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP,
+            enable_message_loop_hint_watcher,
+            this,
+            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP)
+        );
+
+        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+            hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS,
+            enable_menu_mnemonics_hint_watcher,
+            this,
+            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS)
+        );
+
+        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+            hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN,
+            window_frame_usable_while_cursor_hidden_hint_watcher,
+            this,
+            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN)
+        );
+    }
 
     return true;
 }
@@ -240,7 +304,36 @@ void video_instance_impl::quit()
     }
 
     data.app_name.clear();
+    data._VX_WAKEUP = 0;
     data.system_theme_cache = system_theme::UNKNOWN;
+
+    // remove hint callbacks
+    if (video)
+    {
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD,
+            use_raw_keyboard_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP,
+            enable_message_loop_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS,
+            enable_menu_mnemonics_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN,
+            window_frame_usable_while_cursor_hidden_hint_watcher,
+            this
+        );
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -436,7 +529,7 @@ static float get_refresh_rate(DWORD rate)
 // display orientation
 ///////////////////////////////////////////////////////////////////////////////
 
-static video::display_orientation get_natural_orientation(const PDEVMODE mode)
+static display_orientation get_natural_orientation(const PDEVMODE mode)
 {
     int w = mode->dmPelsWidth;
     int h = mode->dmPelsHeight;
@@ -450,9 +543,16 @@ static video::display_orientation get_natural_orientation(const PDEVMODE mode)
     return (w >= h) ? video::display_orientation::LANDSCAPE : video::display_orientation::PORTRAIT;
 }
 
-static video::display_orientation get_display_orientation(const PDEVMODE mode)
+static display_orientation get_display_orientation(const PDEVMODE mode, display_orientation* natural_orientation_ptr)
 {
-    switch (get_natural_orientation(mode))
+    const display_orientation natural_orientation = get_natural_orientation(mode);
+
+    if (natural_orientation_ptr)
+    {
+        *natural_orientation_ptr = natural_orientation;
+    }
+
+    switch (natural_orientation)
     {
         default:
         case display_orientation::LANDSCAPE:
@@ -484,7 +584,7 @@ static video::display_orientation get_display_orientation(const PDEVMODE mode)
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation)
+static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation, display_orientation* natural_orientation)
 {
     DEVMODE dm{ sizeof(dm) };
 
@@ -515,7 +615,7 @@ static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mo
 
     if (orientation)
     {
-        *orientation = get_display_orientation(&dm);
+        *orientation = get_display_orientation(&dm, natural_orientation);
     }
 
     return true;
@@ -541,9 +641,10 @@ bool video_instance_impl::create_display(
 ) const
 {
     display_mode_instance current_mode;
+    display_orientation natural_orientation;
     display_orientation current_orientation;
 
-    if (!get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation))
+    if (!get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation, &natural_orientation))
     {
         return false;
     }
@@ -589,16 +690,25 @@ bool video_instance_impl::create_display(
 
             if (!video->data.setting_display_mode)
             {
+                d.data.modes.clear();
+                d.set_desktop_mode(current_mode);
+
+                bool changed_bounds = false;
                 const math::recti current_bounds = d.get_bounds();
-                if (moved || d.get_bounds() != d_impl->data.last_bounds)
+                if (current_bounds != d_impl->data.last_bounds)
                 {
                     // moved
                     d_impl->data.last_bounds = current_bounds;
+                    changed_bounds = true;
+                }
+
+                if (moved || changed_bounds)
+                {
                     video->post_display_moved(d);
                 }
 
-                video->post_display_orientation_changed(d, current_orientation);
-                video->post_display_content_scale_changed(d, current_content_scale);
+                d.set_orientation(current_orientation);
+                d.set_content_scale(current_content_scale);
             }
 
             found = true;
@@ -608,7 +718,17 @@ bool video_instance_impl::create_display(
 
     if (!found)
     {
-        displays.emplace_back(new display_instance);
+        {
+            display_instance tmp;
+
+            tmp.impl_ptr.reset(new display_instance_impl);
+            if (!tmp.impl_ptr)
+            {
+                return false;
+            }
+
+            displays.emplace_back(std::move(tmp));
+        }
 
         display_instance& d = displays.back();
         d.video = video;
@@ -619,7 +739,6 @@ bool video_instance_impl::create_display(
         d_impl->data.device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
         d_impl->data.state = display_state::ADDED; // Mark as added
         d_impl->data.last_bounds = d.get_bounds();
-
 
         // Get the display device name (printable)
         if (!get_display_name_vista(data.user32, info->szDevice, d.data.name))
@@ -634,6 +753,7 @@ bool video_instance_impl::create_display(
         current_mode.data.display_id = d.data.id;
         d.data.current_mode = current_mode.data.mode;
         d.data.desktop_mode = std::move(current_mode);
+        d.data.natural_orientation = natural_orientation;
         d.data.orientation = current_orientation;
         d.data.content_scale = current_content_scale;
     }
@@ -688,9 +808,9 @@ void video_instance_impl::update_displays()
 {
     std::vector<display_instance>& displays = video->data.displays;
 
-    poll_display_data data{};
-    data.video = this;
-    data.displays = &displays;
+    poll_display_data poll_data{};
+    poll_data.video = this;
+    poll_data.displays = &displays;
 
     // mark all displays as invalid to detect
     // entries that have actually been removed
@@ -700,12 +820,12 @@ void video_instance_impl::update_displays()
     }
 
     // first locate the primary display
-    data.find_primary = true;
-    poll_displays_internal(data, enum_displays_callback);
+    poll_data.find_primary = true;
+    poll_displays_internal(poll_data, enum_displays_callback);
 
     // second pass for secondary monitors
-    data.find_primary = false;
-    poll_displays_internal(data, enum_displays_callback);
+    poll_data.find_primary = false;
+    poll_displays_internal(poll_data, enum_displays_callback);
 
     // remove any unaccounted for displays
     auto it = displays.begin();
@@ -745,7 +865,7 @@ void display_instance_impl::list_display_modes(std::vector<display_mode_instance
 
     while (true)
     {
-        if (!get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr))
+        if (!get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr, nullptr))
         {
             break;
         }
@@ -763,7 +883,7 @@ void display_instance_impl::list_display_modes(std::vector<display_mode_instance
 
         if (!found)
         {
-            modes.push_back(mode);
+            modes.push_back(std::move(mode));
         }
     }
 }

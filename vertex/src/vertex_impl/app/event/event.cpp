@@ -58,7 +58,7 @@ size_t event_queue::add(const event* events, size_t count)
 {
     size_t added = 0;
 
-    if (!events)
+    if (!events || count == 0)
     {
         VX_ASSERT(false);
         return added;
@@ -183,7 +183,7 @@ VX_API void pump_events(bool process_all)
 
 void events_instance::pump_events(bool process_all)
 {
-    events_instance_impl::pump_events(process_all);
+    pump_events_internal(false);
 }
 
 ////////////////////////////////////////
@@ -200,14 +200,14 @@ void events_instance::pump_events_internal(bool push_sentinel)
     if (app->is_video_init())
     {
         // release any keys heald down from last frame
-        keyboard::keyboard_internal::release_auto_release_keys();
+        app->data.video_ptr->data.keyboard_ptr->release_auto_release_keys();
 
         // pump events from video subsystem
-        video::video_internal::pump_events();
+        app->data.video_ptr->pump_events();
     }
 
     // pump events for other subsystems
-    events_instance::pump_events_maintenance();
+    pump_events_maintenance();
 
     if (push_sentinel)
     {
@@ -227,17 +227,13 @@ size_t events_instance::add_events(const event* e, size_t count)
 {
     const size_t n = data.queue.add(e, count);
 
-#if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
-
     // if we happen to be blocking in another thread, send a
     // wakeup event to signal that an event was added to the queue
 
     if (n && app->is_video_init())
     {
-        video::video_internal::send_wakeup_event();
+        app->data.video_ptr->send_wakeup_event();
     }
-
-#endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
     return n;
 }
@@ -274,6 +270,8 @@ time::time_point events_instance::get_polling_interval() const
 
 int events_instance::wait_event_timeout_video(video::window* w, event& e, time::time_point t, time::time_point start)
 {
+    VX_ASSERT(app->is_video_init());
+
     // Get the global polling interval (or time::max if disabled)
     time::time_point poll_interval = get_polling_interval();
     const bool polling_enabled = (poll_interval != time::max());
@@ -323,7 +321,7 @@ int events_instance::wait_event_timeout_video(video::window* w, event& e, time::
         }
 
         // Block and wait for OS/window events up to loop_timeout
-        const int result = video::video_internal::wait_event_timeout(w, loop_timeout);
+        const int result = app->data.video_ptr->wait_event_timeout(w, loop_timeout);
 
         if (result <= 0)
         {
@@ -362,7 +360,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     // initialize to zero
     time::time_point start, expiration;
 
-    if (t.is_positive() > 0)
+    if (t.is_positive())
     {
         start = os::get_ticks();
         expiration = start + t;
@@ -398,7 +396,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
 
     if (app->is_video_init())
     {
-        video::window* w = video::video_internal::get_active_window();
+        video::window* w = app->data.video_ptr->get_active_window();
         if (w)
         {
             const int result = wait_event_timeout_video(w, e, t, start);

@@ -52,10 +52,10 @@
 // Event handling
 // ------------------------------------------------------------
 
-#ifdef VX_VIDEO_HAVE_EVENT_PUMP
-#   undef VX_VIDEO_HAVE_EVENT_PUMP
+#ifdef VX_VIDEO_HAVE_PUMP_EVENTS
+#   undef VX_VIDEO_HAVE_PUMP_EVENTS
 #endif
-#define VX_VIDEO_HAVE_EVENT_PUMP 1
+#define VX_VIDEO_HAVE_PUMP_EVENTS 1
 
 #ifdef VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
 #   undef VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT

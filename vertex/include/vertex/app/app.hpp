@@ -35,6 +35,7 @@ struct app_metadata
     const char* url = nullptr;
 };
 
+VX_API bool get_metadata(app_metadata& metadata);
 VX_API void set_metadata(const app_metadata& metadata);
 
 } // namespace app

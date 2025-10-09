@@ -16,27 +16,27 @@ struct user32
 {
     os::shared_library dll;
 
-    BOOL(WINAPI* SetProcessDPIAware)(void);
-    BOOL(WINAPI* SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
-    DPI_AWARENESS_CONTEXT(WINAPI* SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
-    DPI_AWARENESS_CONTEXT(WINAPI* GetThreadDpiAwarenessContext)(void);
+    BOOL(WINAPI* SetProcessDPIAware)(void) = nullptr;
+    BOOL(WINAPI* SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
+    DPI_AWARENESS_CONTEXT(WINAPI* SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
+    DPI_AWARENESS_CONTEXT(WINAPI* GetThreadDpiAwarenessContext)(void) = nullptr;
     DPI_AWARENESS(WINAPI* GetAwarenessFromDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
-    BOOL(WINAPI* EnableNonClientDpiScaling)(HWND);
-    BOOL(WINAPI* AdjustWindowRectExForDpi)(LPRECT, DWORD, BOOL, DWORD, UINT);
-    UINT(WINAPI* GetDpiForWindow)(HWND);
-    BOOL(WINAPI* AreDpiAwarenessContextsEqual)(DPI_AWARENESS_CONTEXT, DPI_AWARENESS_CONTEXT);
-    BOOL(WINAPI* IsValidDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
-    LONG(WINAPI* GetDisplayConfigBufferSizes)(UINT32, UINT32*, UINT32*);
-    LONG(WINAPI* QueryDisplayConfig)(UINT32, UINT32*, DISPLAYCONFIG_PATH_INFO*, UINT32*, DISPLAYCONFIG_MODE_INFO*, DISPLAYCONFIG_TOPOLOGY_ID*);
-    LONG(WINAPI* DisplayConfigGetDeviceInfo)(DISPLAYCONFIG_DEVICE_INFO_HEADER*);
+    BOOL(WINAPI* EnableNonClientDpiScaling)(HWND) = nullptr;
+    BOOL(WINAPI* AdjustWindowRectExForDpi)(LPRECT, DWORD, BOOL, DWORD, UINT) = nullptr;
+    UINT(WINAPI* GetDpiForWindow)(HWND) = nullptr;
+    BOOL(WINAPI* AreDpiAwarenessContextsEqual)(DPI_AWARENESS_CONTEXT, DPI_AWARENESS_CONTEXT) = nullptr;
+    BOOL(WINAPI* IsValidDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
+    LONG(WINAPI* GetDisplayConfigBufferSizes)(UINT32, UINT32*, UINT32*) = nullptr;
+    LONG(WINAPI* QueryDisplayConfig)(UINT32, UINT32*, DISPLAYCONFIG_PATH_INFO*, UINT32*, DISPLAYCONFIG_MODE_INFO*, DISPLAYCONFIG_TOPOLOGY_ID*) = nullptr;
+    LONG(WINAPI* DisplayConfigGetDeviceInfo)(DISPLAYCONFIG_DEVICE_INFO_HEADER*) = nullptr;
 };
 
 struct shcore
 {
     os::shared_library dll;
 
-    HRESULT(WINAPI* GetDpiForMonitor)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*);
-    HRESULT(WINAPI* SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS);
+    HRESULT(WINAPI* GetDpiForMonitor)(HMONITOR, MONITOR_DPI_TYPE, UINT*, UINT*) = nullptr;
+    HRESULT(WINAPI* SetProcessDpiAwareness)(PROCESS_DPI_AWARENESS) = nullptr;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,13 @@ struct video_impl_data
     std::wstring app_name;
     bool registered_app = false;
 
+    UINT _VX_WAKEUP = 0;
+
     system_theme system_theme_cache = system_theme::UNKNOWN;
+
+    bool enable_message_loop_hint_cache = true;
+    bool enable_menu_mnemonics_hint_cache = false;
+    bool frame_usable_while_cursor_hidden_hint_cache = true;
 };
 
 class video_instance_impl
@@ -108,6 +114,14 @@ public:
     {
         return nullptr;
     }
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // events
+    ///////////////////////////////////////////////////////////////////////////////
+
+    void pump_events();
+    bool wait_event_timeout(time::time_point t);
+    void send_wakeup_event(window* w);
 
     ///////////////////////////////////////////////////////////////////////////////
     // data

@@ -11,7 +11,7 @@ namespace app {
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
-static owner_ptr<app_instance> s_app;
+owner_ptr<app_instance> s_app;
 
 ////////////////////////////////////////
 
@@ -127,7 +127,7 @@ init_flag app_instance::init_subsystem(init_flag flags)
     
     if (flags & INIT_VIDEO)
     {
-        if (!init_video())
+        if (init_video())
         {
             add_flag(initialized, INIT_VIDEO);
         }
@@ -317,10 +317,11 @@ void app_instance::quit_video()
 
 ////////////////////////////////////////
 
-VX_API const app_metadata& get_metadata()
+VX_API bool get_metadata(app_metadata& metadata)
 {
-    VX_CHECK_APP_INIT(app_metadata{});
-    s_app_ptr->get_metadata();
+    VX_CHECK_APP_INIT(false);
+    metadata = s_app_ptr->get_metadata();
+    return true;
 }
 
 void app_instance::set_metadata(const app_metadata& metadata)
