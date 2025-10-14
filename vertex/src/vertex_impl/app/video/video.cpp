@@ -1,11 +1,12 @@
 #include <vector>
 
+#include "vertex/math/geometry/2d/functions/collision.hpp"
+#include "vertex_impl/app/app_internal.hpp"
+#include "vertex_impl/app/event/event_internal.hpp"
+#include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/_platform/platform_video.hpp"
-#include "vertex_impl/app/app_internal.hpp"
-#include "vertex_impl/app/hints/hints_internal.hpp"
-#include "vertex_impl/app/event/event_internal.hpp"
-#include "vertex/math/geometry/2d/functions/collision.hpp"
+#include "vertex_impl/app/video/_platform/platform_window.hpp"
 
 namespace vx {
 namespace app {
@@ -80,7 +81,6 @@ bool video_instance::init(app_instance* owner)
         return false;
     }
 
-    update_displays();
     if (data.displays.empty())
     {
         quit();
@@ -149,6 +149,8 @@ void video_instance::quit()
             this
         );
     }
+
+    app = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -221,27 +223,10 @@ void display_instance_impl_deleter::operator()(display_instance_impl* ptr) const
 // displays
 ///////////////////////////////////////////////////////////////////////////////
 
-void video_instance::update_displays()
+VX_API std::vector<display_id> list_displays()
 {
-    impl_ptr->update_displays();
-}
-
-////////////////////////////////////////
-
-VX_API std::vector<display> list_displays()
-{
-    std::vector<display> displays;
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(displays);
-
-    const std::vector<display_id> display_ids = s_video_ptr->list_displays();
-    displays.reserve(display_ids.size());
-
-    for (const display_id id : display_ids)
-    {
-        displays.push_back(id);
-    }
-
-    return displays;
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<display_id>{});
+    return s_video_ptr->list_displays();
 }
 
 std::vector<display_id> video_instance::list_displays() const
@@ -260,6 +245,11 @@ std::vector<display_id> video_instance::list_displays() const
 
 size_t video_instance::get_display_index(display_id id) const
 {
+    if (!is_valid_id(id))
+    {
+        return VX_INVALID_INDEX;
+    }
+
     for (size_t i = 0; i < data.displays.size(); ++i)
     {
         if (data.displays[i].data.id == id)
@@ -268,7 +258,7 @@ size_t video_instance::get_display_index(display_id id) const
         }
     }
 
-    return SIZE_MAX;
+    return VX_INVALID_INDEX;
 }
 
 ////////////////////////////////////////
@@ -281,22 +271,14 @@ VX_API bool display::is_connected() const
 
 bool video_instance::is_display_connected(display_id id) const
 {
-    for (const display_instance& d : data.displays)
-    {
-        if (d.data.id == id)
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return get_display_index(id) != VX_INVALID_INDEX;
 }
 
 ////////////////////////////////////////
 
 display_instance* video_instance::get_display_instance(display_id id)
 {
-    if (id == INVALID_ID)
+    if (!is_valid_id(id))
     {
         return nullptr;
     }
@@ -314,7 +296,7 @@ display_instance* video_instance::get_display_instance(display_id id)
 
 const display_instance* video_instance::get_display_instance(display_id id) const
 {
-    if (id == INVALID_ID)
+    if (!is_valid_id(id))
     {
         return nullptr;
     }
@@ -332,9 +314,9 @@ const display_instance* video_instance::get_display_instance(display_id id) cons
 
 ////////////////////////////////////////
 
-VX_API display get_primary_display()
+VX_API display_id get_primary_display()
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_display);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
     return s_video_ptr->get_primary_display();
 }
 
@@ -345,9 +327,9 @@ display_id video_instance::get_primary_display() const
 
 ////////////////////////////////////////
 
-VX_API display get_display_for_point(const math::vec2i& p)
+VX_API display_id get_display_for_point(const math::vec2i& p)
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_display);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
     return s_video_ptr->get_display_for_point(p);
 }
 
@@ -383,9 +365,9 @@ display_id video_instance::get_display_for_point(const math::vec2i& p) const
 
 ////////////////////////////////////////
 
-VX_API display get_display_for_rect(const math::recti& rect)
+VX_API display_id get_display_for_rect(const math::recti& rect)
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_display);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
     return s_video_ptr->get_display_for_rect(rect);
 }
 
@@ -396,76 +378,78 @@ display_id video_instance::get_display_for_rect(const math::recti& rect) const
 
 ////////////////////////////////////////
 
-display_id video_instance::get_display_at_origin(const math::vec2i& o) const
+display_id video_instance::get_display_at_origin(const math::vec2i& origin) const
 {
     for (const display_instance& di : data.displays)
     {
-        if (di.get_work_area().position == o)
+        if (di.get_work_area().position == origin)
         {
             return di.as_display();
         }
     }
 
-    return invalid_display;
+    return INVALID_ID;
 }
 
 ////////////////////////////////////////
 
-VX_API display get_display_for_window(const window& w)
+VX_API display_id get_display_for_window(const window& w)
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_display);
-    return s_video_ptr->get_display_for_window(w);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
+    return s_video_ptr->get_display_for_window(w, false);
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1769
 
-display_id video_instance::get_display_for_window(const window& w) const
+display_id video_instance::get_display_for_window(window_id id, bool ignore_pending) const
 {
     display_id d = INVALID_ID;
+    const window_instance* w = get_window_instance(id);
 
-    //if (!w.validate())
-    //{
-    //    return d;
-    //}
-    //
-    //if (w.is_fullscreen())
-    //{
-    //    d = get_display(w.m_current_fullscreen_mode.m_display_id);
-    //
-    //    if (!d)
-    //    {
-    //        d = get_display(w.m_pending_display_id);
-    //    }
-    //}
-    //
-    //if (!d)
-    //{
-    //    // first try any built in method that the os may have
-    //    d = get_display_for_window_impl(w);
-    //}
-    //
-    //if (!d)
-    //{
-    //    if (w.is_fullscreen())
-    //    {
-    //        // When fullscreen windows are moved between displays of different sizes,
-    //        // the window size and position updates may arrive out of order. This can
-    //        // temporarily make the window larger than the display. In such cases,
-    //        // using the center of the window rectangle might incorrectly identify the
-    //        // display, so we use the origin instead.
-    //        d = get_display_for_point(w.m_position);
-    //    }
-    //    else
-    //    {
-    //        d = get_display_for_rect(math::recti(w.m_position, w.m_size));
-    //    }
-    //}
-    //
-    //// The primary display is a good default
-    //if (!d)
-    //{
-    //    d = get_primary_display();
-    //}
+    const bool is_fullscreen = (w->data.flags & window_flags::FULLSCREEN);
+    
+    if (is_fullscreen)
+    {
+        d = w->data.current_fullscreen_mode.display;
+    
+        if (!ignore_pending && !is_valid_id(d))
+        {
+            d = w->data.pending_display_id;
+        }
+    }
+
+#if VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+    
+    if (!is_valid_id(d))
+    {
+        // first try any built in method that the os may have
+        //d = get_display_for_window_impl(w);
+    }
+
+#endif // VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+    
+    if (!is_valid_id(d))
+    {
+        if (is_fullscreen)
+        {
+            // When fullscreen windows are moved between displays of different sizes,
+            // the window size and position updates may arrive out of order. This can
+            // temporarily make the window larger than the display. In such cases,
+            // using the center of the window rectangle might incorrectly identify the
+            // display, so we use the origin instead.
+            d = get_display_for_point(w->data.position);
+        }
+        else
+        {
+            d = get_display_for_rect(math::recti(w->data.position, w->data.size));
+        }
+    }
+    
+    // The primary display is a good default
+    if (!is_valid_id(d))
+    {
+        d = get_primary_display();
+    }
 
     return d;
 }
@@ -521,7 +505,7 @@ void display_instance::set_orientation(display_orientation orientation)
     }
 
     data.orientation = orientation;
-    video->post_display_orientation_changed(*this, orientation);
+    video->post_display_orientation_changed(data.id, orientation);
 }
 
 ///////////////////////////////////////
@@ -594,7 +578,7 @@ void display_instance::set_content_scale(const math::vec2& scale)
     }
 
     data.content_scale = scale;
-    video->post_display_content_scale_changed(*this, scale);
+    video->post_display_content_scale_changed(data.id, scale);
 
     // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1883
 
@@ -635,7 +619,7 @@ math::recti display_instance::get_bounds() const
     if (data.id != video->get_primary_display())
     {
         const size_t i = video->get_display_index(data.id);
-        VX_ASSERT(i != SIZE_MAX);
+        VX_ASSERT(i != VX_INVALID_INDEX);
         bounds = video->data.displays[i].get_bounds();
         bounds.position.x += bounds.size.x;
     }
@@ -710,19 +694,26 @@ void display_instance::init_modes() const
 VX_API bool display::get_desktop_mode(display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->get_display_desktop_mode(m_id, mode);
+
+    const display_mode_instance* dmi = s_video_ptr->get_display_desktop_mode(m_id);
+    if (!dmi)
+    {
+        return false;
+    }
+
+    mode = dmi->data.mode;
+    return true;
 }
 
-bool video_instance::get_display_desktop_mode(display_id id, display_mode& mode) const
+const display_mode_instance* video_instance::get_display_desktop_mode(display_id id) const
 {
     const display_instance* d = get_display_instance(id);
-    return d ? d->get_desktop_mode(mode) : false;
+    return d ? &d->get_desktop_mode() : nullptr;
 }
 
-bool display_instance::get_desktop_mode(display_mode& mode) const
+const display_mode_instance& display_instance::get_desktop_mode() const
 {
-    mode = data.desktop_mode.data.mode;
-    return true;
+    return data.desktop_mode;
 }
 
 ///////////////////////////////////////
@@ -742,11 +733,11 @@ void display_instance::set_desktop_mode(display_mode_instance& mode)
 
     if (!compare_display_modes(last_mode, data.desktop_mode.data.mode))
     {
-        video->post_display_desktop_mode_changed(*this, data.desktop_mode.data.mode);
+        video->post_display_desktop_mode_changed(data.id, data.desktop_mode.data.mode);
 
         if (!compare_display_modes(data.current_mode, data.desktop_mode.data.mode))
         {
-            video->post_display_current_mode_changed(*this, data.desktop_mode.data.mode);
+            video->post_display_current_mode_changed(data.id, data.desktop_mode.data.mode);
         }
     }
 }
@@ -756,20 +747,27 @@ void display_instance::set_desktop_mode(display_mode_instance& mode)
 VX_API bool display::get_current_mode(display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->get_display_current_mode(m_id, mode);
+
+    const display_mode* dm = s_video_ptr->get_display_current_mode(m_id);
+    if (!dm)
+    {
+        return false;
+    }
+
+    mode = *dm;
+    return true;
 }
 
-bool video_instance::get_display_current_mode(display_id id, display_mode& mode) const
+const display_mode* video_instance::get_display_current_mode(display_id id) const
 {
     const display_instance* d = get_display_instance(id);
-    return d ? d->get_current_mode(mode) : false;
+    return d ? &d->get_current_mode() : nullptr;
 }
 
-bool display_instance::get_current_mode(display_mode& mode) const
+const display_mode& display_instance::get_current_mode() const
 {
     init_modes();
-    mode = data.current_mode;
-    return true;
+    return data.current_mode;
 }
 
 ///////////////////////////////////////
@@ -838,7 +836,7 @@ bool display_instance::set_current_mode(const display_mode& mode)
 
 #endif // VX_VIDEO_HAVE_DISPLAY_SET_MODE
 
-    video->post_display_current_mode_changed(*this, mode);
+    video->post_display_current_mode_changed(data.id, mode);
     return true;
 }
 
@@ -891,6 +889,22 @@ std::vector<display_mode> display_instance::list_modes() const
 
 ///////////////////////////////////////
 
+const display_mode_instance* video_instance::find_display_mode_for_display(display_id id, const display_mode& mode) const
+{
+    if (!is_valid_id(id))
+    {
+        id = get_primary_display();
+    }
+
+    const display_instance* d = get_display_instance(id);
+    if (!d)
+    {
+        return nullptr;
+    }
+
+    return d->find_mode(mode);
+}
+
 const display_mode_instance* display_instance::find_mode(const display_mode& mode) const
 {
     // if we haven't listed the modes yet, list them now
@@ -941,16 +955,24 @@ bool display_instance::has_mode(const display_mode& mode) const
 VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& closest) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->find_closest_display_mode_for_display(m_id, mode, closest);
+
+    const display_mode_instance* dmi = s_video_ptr->find_closest_display_mode_for_display(m_id, mode);
+    if (!dmi)
+    {
+        return false;
+    }
+
+    closest = dmi->data.mode;
+    return true;
 }
 
-bool video_instance::find_closest_display_mode_for_display(display_id id, const display_mode& mode, display_mode& closest) const
+const display_mode_instance* video_instance::find_closest_display_mode_for_display(display_id id, const display_mode& mode) const
 {
     const display_instance* d = get_display_instance(id);
-    return d ? d->find_closest_mode(mode, closest) : false;
+    return d->find_closest_mode(mode);
 }
 
-bool display_instance::find_closest_mode(const display_mode& mode, display_mode& closest) const
+const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode) const
 {
     const int width = mode.resolution.x;
     const int height = mode.resolution.y;
@@ -968,11 +990,11 @@ bool display_instance::find_closest_mode(const display_mode& mode, display_mode&
     // if we haven't listed the modes yet, list them now
     init_modes();
 
-    bool closest_set = false;
+    const display_mode_instance* closest = nullptr;
 
-    for (const display_mode_instance& mi : data.modes)
+    for (const display_mode_instance& dmi : data.modes)
     {
-        const display_mode& mode = mi.data.mode;
+        const display_mode& mode = dmi.data.mode;
 
         // Skip modes with a smaller width than requested
         if (width > mode.resolution.x)
@@ -991,10 +1013,10 @@ bool display_instance::find_closest_mode(const display_mode& mode, display_mode&
         }
 
         // If we already have a candidate mode, check if this one is a worse match
-        if (closest_set)
+        if (closest)
         {
             const float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / mode.resolution.y;
-            const float closest_mode_aspect_ratio = static_cast<float>(closest.resolution.x) / closest.resolution.y;
+            const float closest_mode_aspect_ratio = static_cast<float>(closest->data.mode.resolution.x) / closest->data.mode.resolution.y;
 
             // Prefer mode with aspect ratio closer to target
             if (math::abs(aspect_ratio - closest_mode_aspect_ratio) < math::abs(aspect_ratio - current_mode_aspect_ratio))
@@ -1003,18 +1025,17 @@ bool display_instance::find_closest_mode(const display_mode& mode, display_mode&
             }
 
             // If resolutions are the same, prefer refresh rate closer to target
-            if ((mode.resolution == closest.resolution) &&
-                (math::abs(refresh_rate - closest.refresh_rate) < math::abs(refresh_rate - mode.refresh_rate)))
+            if ((mode.resolution == closest->data.mode.resolution) &&
+                (math::abs(refresh_rate - closest->data.mode.refresh_rate) < math::abs(refresh_rate - mode.refresh_rate)))
             {
                 continue;
             }
         }
 
-        closest = mode;
-        closest_set = true;
+        closest = &dmi;
     }
 
-    return closest_set;
+    return closest;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1088,195 +1109,219 @@ bool video_instance::disable_screen_saver()
 #endif // VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
 }
 
-/////////////////////////////////////////////////////////////////////////////////
-//// window
-/////////////////////////////////////////////////////////////////////////////////
-//
-//window* video_instance::create_window(const window_config& config)
-//{
-//    owner_ptr<window> w(new window);
-//    if (w && w->create(config) && w->validate())
-//    {
-//        data.windows.push_back(std::move(w));
-//        return data.windows.back().get();
-//    }
-//
-//    return nullptr;
-//}
-//
-//VX_API window* const create_window(const window_config& config)
-//{
-//    VX_CHECK_VIDEO_SUBSYSTEM_INIT(nullptr);
-//    return video_instance::create_window(config);
-//}
-//
-//////////////////////////////////////////
-//
-//void video_instance::destroy_window(window& w)
-//{
-//    VX_ASSERT(w.validate());
-//
-//    const window_id id = w.m_id;
-//    for (auto it = data.windows.begin(); it != data.windows.end(); ++it)
-//    {
-//        if ((*it)->m_id == w.m_id)
-//        {
-//            data.windows.erase(it);
-//            break;
-//        }
-//    }
-//
-//    // Make sure no displays reference the window
-//    for (auto& d : data.displays)
-//    {
-//        if (d->m_fullscreen_window_id == id)
-//        {
-//            d->m_fullscreen_window_id = INVALID_ID;
-//        }
-//    }
-//}
-//
-//VX_API void destroy_window(window& w)
-//{
-//    VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
-//    video_instance::destroy_window(w);
-//}
+///////////////////////////////////////////////////////////////////////////////
+// window
+///////////////////////////////////////////////////////////////////////////////
+
+VX_API window_id create_window(const window_config& config)
+{
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
+    return s_video_ptr->create_window(config);
+}
+
+window_id video_instance::create_window(const window_config& config)
+{
+    window_instance w;
+    
+    if (w.create(this, config))
+    {
+        data.windows.push_back(std::move(w));
+        return data.windows.back().data.id;
+    }
+
+    return INVALID_ID;
+}
+
+////////////////////////////////////////
+
+VX_API void destroy_window(window_id id)
+{
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
+    s_video_ptr->destroy_window(id);
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4457
+
+void video_instance::destroy_window(window_id id)
+{
+    if (!is_valid_id(id))
+    {
+        return;
+    }
+
+    window_instance* w = get_window_instance(id);
+    if (!w)
+    {
+        return;
+    }
+
+    w->data.destroying = true;
+    post_window_destroyed(id);
+
+    // restore original fullscreen mode
+    w->update_fullscreen_mode(window_instance::fullscreen_op::LEAVE, true);
+    w->hide();
+
+    // Make sure the destroyed window isn't referenced by any display as a fullscreen window
+    for (size_t i = 0; i < data.displays.size(); ++i)
+    {
+        if (data.displays[i].data.fullscreen_window_id == id)
+        {
+            data.displays[i].data.fullscreen_window_id = INVALID_ID;
+        }
+    }
+
+    if (data.keyboard_ptr->get_focus() == id)
+    {
+        data.keyboard_ptr->set_focus(INVALID_ID);
+    }
+    if (w->mouse_capture_enabled())
+    {
+        data.mouse_ptr->update_mouse_capture(true);
+    }
+    if (data.mouse_ptr->get_focus() == id)
+    {
+        data.mouse_ptr->set_focus(INVALID_ID);
+    }
+
+    if (w->impl_ptr)
+    {
+        w->impl_ptr->destroy();
+    }
+
+    if (data.grabbed_window == id)
+    {
+        data.grabbed_window = INVALID_ID;
+    }
+
+    data.wakeup_window.compare_exchange_strong(id, INVALID_ID);
+    
+    for (auto it = data.windows.begin(); it != data.windows.end(); ++it)
+    {
+        if (it->data.id == id)
+        {
+            data.windows.erase(it);
+            break;
+        }
+    }
+}
 
 ////////////////////////////////////////
 
 void video_instance::destroy_windows()
 {
-    //data.windows.clear();
+    data.windows.clear();
 }
 
 ////////////////////////////////////////
 
-//window* video_instance::get_window(window_id id)
-//{
-//    if (id == INVALID_ID)
-//    {
-//        return nullptr;
-//    }
-//
-//    for (const auto& w : data.windows)
-//    {
-//        if (w->m_id == id)
-//        {
-//            return w.get();
-//        }
-//    }
-//
-//    return nullptr;
-//}
-//
-//VX_API window* const get_window(window_id id)
-//{
-//    VX_CHECK_VIDEO_SUBSYSTEM_INIT(nullptr);
-//    return video_instance::get_window(id);
-//}
-//
-//////////////////////////////////////////
-//
-//window_id video_instance::get_window_id(const window& w)
-//{
-//    return w.m_id;
-//}
-//
-//////////////////////////////////////////
-//
-//window_id video_instance::window_count()
-//{
-//    return data.windows.size();
-//}
-//
-//VX_API size_t window_count()
-//{
-//    VX_CHECK_VIDEO_SUBSYSTEM_INIT(0);
-//    return video_instance::window_count();
-//}
-//
-//////////////////////////////////////////
-//
-//window* video_instance::enum_windows(size_t i)
-//{
-//    if (data.windows.size() < i)
-//    {
-//        return data.windows[i].get();
-//    }
-//
-//    return nullptr;
-//}
-//
-//VX_API window* const enum_windows(size_t i)
-//{
-//    VX_CHECK_VIDEO_SUBSYSTEM_INIT(nullptr);
-//    return video_instance::enum_windows(i);
-//}
-
-////////////////////////////////////////
-
-void video_instance::check_window_display_changed(window& w)
+VX_API std::vector<window_id> list_windows()
 {
-//    VX_ASSERT(w.validate());
-//
-//    if (!has_capabilities(capabilities::SENDS_DISPLAY_CHANGES))
-//    {
-//        return;
-//    }
-//
-//    display* new_display = get_display_for_window(w);
-//    if (!new_display)
-//    {
-//        return;
-//    }
-//
-//    window_id w_id = w.m_id;
-//
-//    display_id new_window_display_id = new_display->m_id;
-//    display_id old_window_display_id = w.m_last_display_id;
-//
-//    window_id new_display_fullscreen_window_id = new_display->m_fullscreen_window_id;
-//
-//    if (new_window_display_id != old_window_display_id)
-//    {
-//        for (const auto& d : data.displays)
-//        {
-//            display_id display_id = d->m_id;
-//            window_id display_fullscreen_window_id = d->m_fullscreen_window_id;
-//
-//            if (display_fullscreen_window_id == w_id)
-//            {
-//                if (display_id != new_window_display_id)
-//                {
-//                    // We found an old display that still has the window set as
-//                    // its fullscreen window
-//
-//                    if (new_display_fullscreen_window_id && new_display_fullscreen_window_id != w_id)
-//                    {
-//                        // If the new display already has a fullscreen window, minimize it
-//
-//                        window* ow = get_window(new_display_fullscreen_window_id);
-//                        if (ow)
-//                        {
-//                            ow->minimize();
-//                        }
-//                    }
-//
-//                    new_display->m_fullscreen_window_id = w_id;
-//                    d->m_fullscreen_window_id = 0;
-//                }
-//
-//                break;
-//            }
-//        }
-//
-//        w.post_window_display_changed(*new_display);
-//    }
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<window_id>{});
+    return s_video_ptr->list_windows();
+}
+
+std::vector<window_id> video_instance::list_windows() const
+{
+    std::vector<window_id> windows(data.windows.size());
+
+    for (size_t i = 0; i < data.windows.size(); ++i)
+    {
+        windows[i] = data.windows[i].data.id;
+    }
+
+    return windows;
 }
 
 ////////////////////////////////////////
 
-window* video_instance::get_active_window()
+VX_API bool window_exists(window_id id)
+{
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
+    return s_video_ptr->window_exists(id);
+}
+
+bool video_instance::window_exists(window_id id) const
+{
+    return get_window_index(id) != VX_INVALID_INDEX;
+}
+
+////////////////////////////////////////
+
+size_t video_instance::get_window_index(window_id id) const
+{
+    if (!is_valid_id(id))
+    {
+        return VX_INVALID_INDEX;
+    }
+
+    for (size_t i = 0; i < data.windows.size(); ++i)
+    {
+        if (data.windows[i].data.id == id)
+        {
+            return i;
+        }
+    }
+
+    return VX_INVALID_INDEX;
+}
+
+////////////////////////////////////////
+
+window_instance* video_instance::get_window_instance(window_id id)
+{
+    if (!is_valid_id(id))
+    {
+        return nullptr;
+    }
+
+    for (window_instance& d : data.windows)
+    {
+        if (d.data.id == id)
+        {
+            return &d;
+        }
+    }
+
+    return nullptr;
+}
+
+const window_instance* video_instance::get_window_instance(window_id id) const
+{
+    if (!is_valid_id(id))
+    {
+        return nullptr;
+    }
+
+    for (const window_instance& d : data.windows)
+    {
+        if (d.data.id == id)
+        {
+            return &d;
+        }
+    }
+
+    return nullptr;
+}
+
+////////////////////////////////////////
+
+void video_instance::check_window_display_changed(window_id id)
+{
+    VX_ASSERT(is_valid_id(id));
+
+#if VX_VIDEO_SENDS_DISPLAY_CHANGES
+
+#else
+
+    return;
+
+#endif // VX_VIDEO_SENDS_DISPLAY_CHANGES
+}
+
+////////////////////////////////////////
+
+window_id video_instance::get_active_window()
 {
     //for (auto& w : data.windows)
     //{
@@ -1286,7 +1331,7 @@ window* video_instance::get_active_window()
     //    }
     //}
 
-    return nullptr;
+    return INVALID_ID;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1338,7 +1383,7 @@ void video_instance::pump_events()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1572
 
-bool video_instance::wait_event_timeout(const window* w, time::time_point t)
+bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 {
 #if VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
 
@@ -1348,7 +1393,7 @@ bool video_instance::wait_event_timeout(const window* w, time::time_point t)
     // know to wake this window up if an event is added to the queue.
     data.wakeup_window.exchange(w);
     status = impl_ptr->wait_event_timeout(t);
-    data.wakeup_window.exchange(nullptr);
+    data.wakeup_window.exchange(INVALID_ID);
     
     return status;
 
@@ -1387,7 +1432,7 @@ void video_instance::send_wakeup_event()
     // If there was a valid wakeup window, we send the wakeup event through
     // the platform-specific mechanism (e.g. PostMessage on Windows).
     
-    const window* w = data.wakeup_window.exchange(nullptr);
+    const window_id w = data.wakeup_window.exchange(INVALID_ID);
 
     if (w)
     {
@@ -1416,16 +1461,13 @@ bool video_instance::post_system_theme_changed(system_theme theme)
     return posted;
 }
 
-bool video_instance::post_display_added(const display_instance& d)
+bool video_instance::post_display_added(display_id id)
 {
-    if (d.data.id == INVALID_ID)
-    {
-        return false;
-    }
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_ADDED;
-    e.display_added.display_id = d.data.id;
+    e.display_added.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     on_display_added();
@@ -1436,78 +1478,78 @@ void video_instance::on_display_added()
 {
     for (const auto& w : data.windows)
     {
-        video_instance::check_window_display_changed(*w);
+        video_instance::check_window_display_changed(w.data.id);
     }
 }
 
-bool video_instance::post_display_removed(const display_instance& d)
+bool video_instance::post_display_removed(display_id id)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_REMOVED;
-    e.display_removed.display_id = d.data.id;
+    e.display_removed.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
 }
 
-bool video_instance::post_display_moved(const display_instance& d)
+bool video_instance::post_display_moved(display_id id)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_MOVED;
-    e.display_moved.display_id = d.data.id;
+    e.display_moved.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
 }
 
-bool video_instance::post_display_orientation_changed(display_instance& d, display_orientation orientation)
+bool video_instance::post_display_orientation_changed(display_id id, display_orientation orientation)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_ORIENTATION_CHANGED;
-    e.display_orientation_changed.display_id = d.data.id;
+    e.display_orientation_changed.display_id = id;
     e.display_orientation_changed.orientation = orientation;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
 }
 
-bool video_instance::post_display_desktop_mode_changed(display_instance& d, const display_mode& mode)
+bool video_instance::post_display_desktop_mode_changed(display_id id, const display_mode& mode)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_DESKTOP_MODE_CHANGED;
-    e.display_desktop_mode_changed.display_id = d.data.id;
+    e.display_desktop_mode_changed.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
 }
 
-bool video_instance::post_display_current_mode_changed(display_instance& d, const display_mode& mode)
+bool video_instance::post_display_current_mode_changed(display_id id, const display_mode& mode)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_CURRENT_MODE_CHANGED;
-    e.display_current_mode_changed.display_id = d.data.id;
+    e.display_current_mode_changed.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
 }
 
-bool video_instance::post_display_content_scale_changed(display_instance& d, const math::vec2& content_scale)
+bool video_instance::post_display_content_scale_changed(display_id id, const math::vec2& content_scale)
 {
-    VX_ASSERT(d.data.id != INVALID_ID);
+    VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::DISPLAY_CONTENT_SCALE_CHANGED;
-    e.display_content_scale_changed.display_id = d.data.id;
+    e.display_content_scale_changed.display_id = id;
     e.display_content_scale_changed.x = content_scale.x;
     e.display_content_scale_changed.y = content_scale.y;
     const bool posted = app->data.events_ptr->push_event(e);

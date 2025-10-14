@@ -5,728 +5,969 @@ namespace vx {
 namespace app {
 namespace video {
 
-#define IS_FULLSCREEN_VISIBLE(w) (((w)->is_fullscreen()) && ((w)->is_visible()) && !((w)->is_minimized()))
+///////////////////////////////////////////////////////////////////////////////
+// window_instance_impl
+///////////////////////////////////////////////////////////////////////////////
+
+void window_instance_impl_deleter::operator()(window_instance_impl* ptr) const noexcept
+{
+    if (ptr) { delete ptr; }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// helpers
+///////////////////////////////////////////////////////////////////////////////
+
+#define IS_FULLSCREEN_VISIBLE(w) (((w)->data.flags & window_flags::FULLSCREEN) && !((w)->data.flags & window_flags::HIDDEN) && !((w)->data.flags & window_flags::MINIMIZED))
+
+///////////////////////////////////////
+
+#define VX_CHECK_WINDOW_INIT(r) \
+do \
+{ \
+    if (!(validate())) \
+    { \
+        return (r); \
+    } \
+} while (0)
+
+#define VX_CHECK_WINDOW_INIT_VOID() VX_CHECK_WINDOW_INIT(void())
 
 ///////////////////////////////////////////////////////////////////////////////
 // constructors
 ///////////////////////////////////////////////////////////////////////////////
 
-//window::window()
-//    : m_id(generate_device_id())
-//    , m_locked_aspect(0.0f)
-//    , m_last_position_pending(false), m_last_size_pending(false)
-//    , m_flags(flags::NONE), m_pending_flags(flags::NONE)
-//    , m_pending_display_id(INVALID_DEVICE_ID)
-//    , m_last_display_id(INVALID_DEVICE_ID)
-//    , m_last_fullscreen_exclusive_display_id(INVALID_DEVICE_ID)
-//    , m_requested_fullscreen_mode_set(false)
-//    , m_fullscreen_exclusive(false)
-//    , m_last_fullscreen_exclusive_display_id(0)
-//    , m_opacity(0.0f)
-//    , m_initializing(false)
-//    , m_destroying(false)
-//    , m_hiding(false)
-//    , m_tiled(false)
-//{
-//}
-//
-//window::~window()
-//{
-//    destroy();
-//}
-//
-//window::window(window&& w) noexcept
-//    : m_id(w.m_id)
-//    , m_title(w.m_title)
-//    , m_position(w.m_position), m_size(w.m_size)
-//    , m_min_size(w.m_min_size), m_max_size(w.m_max_size)
-//    , m_locked_aspect(w.m_locked_aspect)
-//    , m_windowed_rect(w.m_windowed_rect), m_floating_rect(w.m_floating_rect)
-//    , m_flags(w.m_flags), m_pending_flags(w.m_pending_flags)
-//    , m_last_display_id(w.m_last_display_id)
-//    , m_requested_fullscreen_mode(std::move(w.m_requested_fullscreen_mode))
-//    , m_current_fullscreen_mode(std::move(w.m_current_fullscreen_mode))
-//    , m_requested_fullscreen_mode_set(w.m_requested_fullscreen_mode_set)
-//    , m_fullscreen_exclusive(w.m_fullscreen_exclusive)
-//    , m_last_fullscreen_exclusive_display_id(w.m_last_fullscreen_exclusive_display_id)
-//    , m_opacity(w.m_opacity)
-//    , m_initializing(w.m_initializing)
-//    , m_destroying(w.m_destroying)
-//    , m_hiding(w.m_hiding)
-//    , m_tiled(w.m_tiled)
-//    , m_impl(std::move(w.m_impl))
-//{
-//    if (m_impl)
-//    {
-//        m_impl->m_owner = this;
-//    }
-//}
-//
-//window& window::operator=(window&& w) noexcept
-//{
-//    m_id = w.m_id;
-//    m_title = w.m_title;
-//    m_position = w.m_position;
-//    m_size = w.m_size;
-//    m_min_size = w.m_min_size;
-//    m_max_size = w.m_max_size;
-//    m_locked_aspect = w.m_locked_aspect;
-//    m_windowed_rect = w.m_windowed_rect;
-//    m_floating_rect = w.m_floating_rect;
-//    m_flags = w.m_flags;
-//    m_pending_flags = w.m_pending_flags;
-//    m_last_display_id = w.m_last_display_id;
-//    m_requested_fullscreen_mode = std::move(w.m_requested_fullscreen_mode);
-//    m_current_fullscreen_mode = std::move(w.m_current_fullscreen_mode);
-//    m_requested_fullscreen_mode_set = w.m_requested_fullscreen_mode_set;
-//    m_opacity = w.m_opacity;
-//    m_initializing = w.m_initializing;
-//    m_destroying = w.m_destroying;
-//    m_hiding = w.m_hiding;
-//    m_tiled = w.m_tiled;
-//
-//    m_impl = std::move(w.m_impl);
-//    if (m_impl)
-//    {
-//        m_impl->m_owner = this;
-//    }
-//
-//    return *this;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2378
-//
-//bool window::create(const window_config& config)
-//{
-//    m_initializing = true;
-//
-//    m_position = config.position;
-//    m_size = config.size;
-//
-//    // Some backends don't support 0 sized windows
-//    if (m_size.x <= 0)
-//    {
-//        m_size.x = 1;
-//    }
-//    if (m_size.y <= 0)
-//    {
-//        m_size.y = 1;
-//    }
-//
-//    // Find the display for the window
-//    const display* display = nullptr;
-//    {
-//        video_internal::update_displays();
-//
-//        display = video_internal::get_display(config.display_id);
-//
-//        if (!display)
-//        {
-//            display = video_internal::get_primary_display();
-//        }
-//        if (!display)
-//        {
-//            return false;
-//        }
-//    }
-//
-//    if (config.center_on_display)
-//    {
-//        const math::recti bounds = display->get_work_area();
-//        m_position = bounds.position + (bounds.size - m_size) / 2;
-//    }
-//
-//    m_floating_rect.position = m_windowed_rect.position = m_position;
-//    m_floating_rect.size = m_windowed_rect.size = m_size;
-//    m_pending_display_id = display->id();
-//
-//    flags::type window_flags = flags::NONE;
-//
-//    if (config.minimized)
-//    {
-//        window_flags |= flags::MINIMIZED;
-//    }
-//    if (config.maximized)
-//    {
-//        window_flags |= flags::MAXIMIZED;
-//    }
-//    if (config.hidden)
-//    {
-//        window_flags |= flags::HIDDEN;
-//    }
-//    if (config.borderless)
-//    {
-//        window_flags |= flags::BORDERLESS;
-//    }
-//    if (config.resizable)
-//    {
-//        window_flags |= flags::RESIZABLE;
-//    }
-//    if (config.topmost)
-//    {
-//        window_flags |= flags::TOPMOST;
-//    }
-//
-//    if (config.fullscreen || (has_capabilities(capabilities::IS_FULLSCREEN_ONLY)))
-//    {
-//        const math::recti bounds = display->get_bounds();
-//
-//        m_position = bounds.position;
-//        m_size = bounds.size;
-//
-//        m_pending_flags |= flags::FULLSCREEN;
-//        window_flags |= flags::FULLSCREEN;
-//    }
-//
-//    // Flags that should be set when the window is created
-//    m_flags = window_flags & (flags::HIDDEN | flags::MINIMIZED | flags::BORDERLESS | flags::RESIZABLE | flags::TOPMOST);
-//
-//    m_impl = std::make_unique<_priv::window_impl>();
-//    if (!m_impl || !m_impl->create(this))
-//    {
-//        return false;
-//    }
-//
-//    // Clear minimized if not on windows, only windows
-//    // handles it at create rather than FinishWindowCreation,
-//    // but it's important or window focus will get
-//    // broken on windows!
-//#if !defined(VX_OS_WINDOWS)
-//    if (m_flags & flags::MINIMIZED)
-//    {
-//        m_flags &= ~flags::MINIMIZED;
-//    }
-//#endif // VX_OS_WINDOWS
-//
-//    m_initializing = false;
-//
-//    set_title(config.title);
-//    finish_creation(window_flags);
-//
-//    return true;
-//}
-//
-//void window::finish_creation(flags::type new_flags)
-//{
-//    // drag and drop
-//    apply_flags(new_flags);
-//
-//    if (!(new_flags & flags::HIDDEN))
-//    {
-//        show();
-//    }
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4375
-//
-//void window::destroy()
-//{
-//    m_destroying = true;
-//    post_window_destroyed();
-//
-//    if (m_impl)
-//    {
-//        // restore original fullscreen mode
-//        update_fullscreen_mode(window::fullscreen_op::LEAVE, true);
-//        hide();
-//    }
-//
-//    // Kill focus
-//
-//    if (m_impl)
-//    {
-//        m_impl->destroy();
-//        m_impl = nullptr;
-//    }
-//}
-//
-//bool window::validate() const
-//{
-//    return (m_id != INVALID_DEVICE_ID) && m_impl && m_impl->validate();
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2271
-//
-//void window::apply_flags(flags::type new_flags)
-//{
-//    if (!(new_flags & (flags::MINIMIZED | flags::MAXIMIZED)))
-//    {
-//        restore();
-//    }
-//    if (new_flags & flags::MAXIMIZED)
-//    {
-//        maximize();
-//    }
-//
-//    set_fullscreen(new_flags & flags::FULLSCREEN);
-//
-//    if (new_flags & flags::MINIMIZED)
-//    {
-//        minimize();
-//    }
-//
-//    // grab mouse or keyboard
-//}
-//
-//device_id window::id() const
-//{
-//    return m_id;
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// sync
-/////////////////////////////////////////////////////////////////////////////////
-//
-//void window::sync()
-//{
-//    m_impl->sync();
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// title
-/////////////////////////////////////////////////////////////////////////////////
-//
-//const std::string& window::get_title() const
-//{
-//    return m_title;
-//}
-//
-//void window::set_title(const std::string& title)
-//{
-//    if (title == m_title)
-//    {
-//        return;
-//    }
-//
-//    m_title = title;
-//    m_impl->set_title(title);
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// position and size
-/////////////////////////////////////////////////////////////////////////////////
-//
-//void window::set_resizable(bool resizable)
-//{
-//    if (resizable != is_resizable())
-//    {
-//        if (resizable)
-//        {
-//            m_flags |= flags::RESIZABLE;
-//        }
-//        else
-//        {
-//            m_flags &= ~flags::RESIZABLE;
-//            m_windowed_rect = m_floating_rect;
-//        }
-//
-//        m_impl->set_resizable();
-//    }
-//}
-//
-//bool window::is_resizable() const
-//{
-//    return (m_flags & flags::RESIZABLE);
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2971
-//
-//math::vec2i window::get_position() const
-//{
-//    if (m_flags & flags::FULLSCREEN)
-//    {
-//        // Fullscreen windows should always be at the origin
-//        // of their displays even when minimized or hidden.
-//        const display* d = get_display_for_window(*this);
-//        if (d)
-//        {
-//            // update the current bounds and return the origin
-//            return d->get_bounds().position;
-//        }
-//
-//        // if fullscreen, default is the origin
-//        return math::vec2i(0, 0);
-//    }
-//
-//    // Some backends delay position updates for hidden windows until they
-//    // are shown again. If the window is hidden and a move has been requested,
-//    // the actual position may still reflect the old value. In that case, we
-//    // return the pending position instead of the backend-reported one.
-//    // Once the backend applies the move, m_last_position_pending is cleared,
-//    // ensuring this logic always returns the most up-to-date position available.
-//    const bool use_pending = (m_flags & flags::HIDDEN) && m_last_position_pending;
-//    return use_pending ? m_pending_rect.position : m_position;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2901
-//
-//void window::set_position(const math::vec2i& position)
-//{
-//    // update the pending display id
-//    const display* d = video_internal::get_display_at_origin(position);
-//    m_pending_display_id = d ? d->id() : INVALID_DEVICE_ID;
-//
-//    m_pending_rect.position = position;
-//    // set the position as pending while we wait for the backend to adjust
-//    m_last_position_pending = true;
-//
-//    m_impl->set_position();
-//    sync();
-//}
-//
-//const math::vec2i& window::get_size() const
-//{
-//    return m_size;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3072
-//
-//void window::set_size(const math::vec2i& size)
-//{
-//    int w = size.x;
-//    int h = size.y;
-//
-//    if (w <= 0)
-//    {
-//        w = 1;
-//    }
-//    if (h <= 0)
-//    {
-//        h = 1;
-//    }
-//
-//    // Note: Aspect ratio is applied first, but min/max constraints
-//    // may override it. This means the final size may not perfectly
-//    // match the locked aspect ratio if constraints are stricter.
-//    if (m_locked_aspect > 0.0f)
-//    {
-//        const float new_aspect_ratio = static_cast<float>(w) / static_cast<float>(h);
-//
-//        if (new_aspect_ratio > m_locked_aspect)
-//        {
-//            // Adjust width to maintain aspect ratio
-//            w = static_cast<int>(math::round(h * m_locked_aspect));
-//        }
-//        else if (new_aspect_ratio < m_locked_aspect)
-//        {
-//            // Adjust height to maintain aspect ratio
-//            h = static_cast<int>(math::round(w / m_locked_aspect));
-//        }
-//    }
-//
-//    // Enforce minimum and maximum size constraints
-//    if (m_min_size.x > 0 && w < m_min_size.x)
-//    {
-//        w = m_min_size.x;
-//    }
-//    if (m_max_size.x > 0 && w > m_max_size.x)
-//    {
-//        w = m_max_size.x;
-//    }
-//    if (m_min_size.y > 0 && h < m_min_size.y)
-//    {
-//        h = m_min_size.y;
-//    }
-//    if (m_max_size.y > 0 && h > m_max_size.y)
-//    {
-//        h = m_max_size.y;
-//    }
-//
-//    m_last_size_pending = true;
-//    m_pending_rect.size.x = w;
-//    m_pending_rect.size.y = h;
-//
-//    m_impl->set_size();
-//    sync();
-//}
-//
-//math::vec2i window::get_center() const
-//{
-//    return get_position() + (get_size() / 2);
-//}
-//
-//math::recti window::get_rect() const
-//{
-//    return math::recti(get_position(), get_size());
-//}
-//
-//void window::get_border_size(int32_t& left, int32_t& right, int32_t& bottom, int32_t& top) const
-//{
-//    left = right = bottom = top = 0;
-//    m_impl->get_border_size(left, right, bottom, top);
-//}
-//
-//const math::vec2i& window::get_min_size() const
-//{
-//    return m_min_size;
-//}
-//
-//const math::vec2i& window::get_max_size() const
-//{
-//    return m_max_size;
-//}
-//
-//bool window::set_min_size(const math::vec2i& size)
-//{
-//    if (size.x < 0 || size.y < 0)
-//    {
-//        return false;
-//    }
-//
-//    if ((m_max_size.x && size.x > m_max_size.x) ||
-//        (m_max_size.y && size.y > m_max_size.y))
-//    {
-//        // error
-//        return false;
-//    }
-//
-//    m_min_size = size;
-//    m_impl->set_min_size(size);
-//
-//    // ensure window is not smaller than min size
-//    math::vec2i adjusted_size = m_last_size_pending ? m_pending_rect.size : m_floating_rect.size;
-//    adjusted_size.x = m_min_size.x ? math::max(m_min_size.x, adjusted_size.x) : adjusted_size.x;
-//    adjusted_size.y = m_min_size.y ? math::max(m_min_size.y, adjusted_size.y) : adjusted_size.y;
-//    set_size(adjusted_size);
-//
-//    return true;
-//}
-//
-//bool window::set_max_size(const math::vec2i& size)
-//{
-//    if (size.x < 0 || size.y < 0)
-//    {
-//        return false;
-//    }
-//
-//    if ((m_min_size.x && size.x < m_min_size.x) ||
-//        (m_min_size.y && size.y < m_min_size.y))
-//    {
-//        // error
-//        return false;
-//    }
-//
-//    m_max_size = size;
-//    m_impl->set_max_size(size);
-//
-//    // ensure window is not larger than max size
-//    math::vec2i adjusted_size = m_last_size_pending ? m_pending_rect.size : m_floating_rect.size;
-//    adjusted_size.x = m_max_size.x ? math::min(m_max_size.x, adjusted_size.x) : adjusted_size.x;
-//    adjusted_size.y = m_max_size.y ? math::min(m_max_size.y, adjusted_size.y) : adjusted_size.y;
-//    set_size(adjusted_size);
-//
-//    return true;
-//}
-//
-//float window::get_aspect_ratio() const
-//{
-//    return static_cast<float>(m_size.x) / static_cast<float>(m_size.y);
-//}
-//
-//void window::lock_aspect_ratio(float aspect_ratio)
-//{
-//    m_locked_aspect = math::max(0.0f, aspect_ratio);
-//    set_size(m_size);
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// bordered
-/////////////////////////////////////////////////////////////////////////////////
-//
-//void window::set_bordered(bool bordered)
-//{
-//    if (bordered != is_bordered())
-//    {
-//        if (bordered)
-//        {
-//            m_flags &= ~flags::BORDERLESS;
-//        }
-//        else
-//        {
-//            m_flags |= flags::BORDERLESS;
-//        }
-//
-//        m_impl->set_bordered();
-//    }
-//}
-//
-//bool window::is_bordered() const
-//{
-//    return !(m_flags & flags::BORDERLESS);
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// always on top
-/////////////////////////////////////////////////////////////////////////////////
-//
-//void window::set_always_on_top(bool always_on_top)
-//{
-//    if (always_on_top != is_always_on_top())
-//    {
-//        if (always_on_top)
-//        {
-//            m_flags |= flags::TOPMOST;
-//        }
-//        else
-//        {
-//            m_flags &= ~flags::TOPMOST;
-//        }
-//
-//        m_impl->set_always_on_top();
-//    }
-//}
-//
-//bool window::is_always_on_top() const
-//{
-//    return (m_flags & flags::TOPMOST);
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// window operators
-/////////////////////////////////////////////////////////////////////////////////
-//
-//void window::show()
-//{
-//    if (!(m_flags & flags::HIDDEN))
-//    {
-//        return;
-//    }
-//
-//    m_impl->show();
-//    post_window_shown();
-//}
-//
-//void window::hide()
-//{
-//    if (m_flags & flags::HIDDEN)
-//    {
-//        return;
-//    }
-//
-//    m_pending_flags = m_flags;
-//
-//    m_hiding = true;
-//    m_impl->hide();
-//    m_hiding = false;
-//
-//    post_window_hidden();
-//}
-//
-//bool window::is_visible() const
-//{
-//    return !(m_flags & flags::HIDDEN);
-//}
-//
-//bool window::is_hidden() const
-//{
-//    return !is_visible();
-//}
-//
-//void window::minimize()
-//{
-//    // check support
-//
-//    if (m_flags & flags::HIDDEN)
-//    {
-//        m_pending_flags |= flags::MINIMIZED;
-//        return;
-//    }
-//
-//    m_impl->minimize();
-//    sync();
-//}
-//
-//bool window::is_minimized() const
-//{
-//    return (m_flags & flags::MINIMIZED);
-//}
-//
-//void window::maximize()
-//{
-//    // check support
-//
-//    if (!(m_flags & flags::RESIZABLE))
-//    {
-//        return;
-//    }
-//    
-//    if (m_flags & flags::HIDDEN)
-//    {
-//        m_pending_flags |= flags::MAXIMIZED;
-//        return;
-//    }
-//
-//    m_impl->maximize();
-//    sync();
-//}
-//
-//bool window::is_maximized() const
-//{
-//    return (m_flags & flags::MAXIMIZED);
-//}
-//
-//void window::restore()
-//{
-//    if (m_flags & flags::HIDDEN)
-//    {
-//        m_pending_flags &= ~(flags::MINIMIZED | flags::MAXIMIZED);
-//        return;
-//    }
-//
-//    m_impl->restore();
-//    sync();
-//}
-//
-//void window::focus()
-//{
-//    m_impl->focus();
-//}
-//
-//bool window::is_focused() const
-//{
-//    return m_impl->is_focused();
-//}
-//
-//void window::flash(flash_op operation)
-//{
-//    m_impl->flash(operation);
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// fullscreen
-/////////////////////////////////////////////////////////////////////////////////
-//
-//const display_mode& window::get_fullscreen_mode() const
-//{
-//    return (m_flags & flags::FULLSCREEN) ? m_current_fullscreen_mode : m_requested_fullscreen_mode;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2127
-//
-//bool window::set_fullscreen_mode(const display_mode& mode)
-//{
-//    m_requested_fullscreen_mode = mode;
-//
-//    if (IS_FULLSCREEN_VISIBLE(this))
-//    {
-//        update_fullscreen_mode(fullscreen_op::UPDATE, true);
-//        sync();
-//    }
-//
-//    return true;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1894
-//
-//bool window::update_fullscreen_mode(fullscreen_op fullscreen, bool commit)
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2378
+
+bool window_instance::create(video_instance* owner, const window_config& config)
+{
+    if (!owner || video)
+    {
+        return false;
+    }
+
+    video = owner;
+    data.id = video->data.window_id_generator.next();
+    data.initializing = true;
+
+    data.position = config.position;
+    data.size = config.size;
+
+    // Some backends don't support 0 sized windows
+    if (data.size.x <= 0)
+    {
+        data.size.x = 1;
+    }
+    if (data.size.y <= 0)
+    {
+        data.size.y = 1;
+    }
+
+#if VX_VIDEO_HAVE_REFRESH_DISPLAYS
+
+    video->impl_ptr->refresh_displays();
+
+#endif // VX_VIDEO_HAVE_REFRESH_DISPLAYS
+
+    // Find the display for the window
+    display_id display = config.display_id;
+    {
+        if (!video->is_display_connected(display))
+        {
+            display = video->get_primary_display();
+        }
+        if (!is_valid_id(display))
+        {
+            return false;
+        }
+    }
+
+    if (config.center_on_display)
+    {
+        const math::recti bounds = video->get_display_work_area(display);
+        data.position = bounds.position + (bounds.size - data.size) / 2;
+    }
+
+    data.floating_rect.position = data.windowed_rect.position = data.position;
+    data.floating_rect.size = data.windowed_rect.size = data.size;
+    data.pending_display_id = display;
+
+    // collect all flags that should be set based on the configuration
+    typename window_flags::type window_flags = window_flags::NONE;
+
+    if (config.minimized)
+    {
+        window_flags |= window_flags::MINIMIZED;
+    }
+    if (config.maximized)
+    {
+        window_flags |= window_flags::MAXIMIZED;
+    }
+    if (config.hidden)
+    {
+        window_flags |= window_flags::HIDDEN;
+    }
+    if (config.borderless)
+    {
+        window_flags |= window_flags::BORDERLESS;
+    }
+    if (config.resizable)
+    {
+        window_flags |= window_flags::RESIZABLE;
+    }
+    if (config.topmost)
+    {
+        window_flags |= window_flags::TOPMOST;
+    }
+
+    if (config.fullscreen || VX_VIDEO_FULLSCREEN_ONLY)
+    {
+        const math::recti bounds = video->get_display_bounds(display);
+
+        data.position = bounds.position;
+        data.size = bounds.size;
+
+        data.pending_flags |= window_flags::FULLSCREEN;
+        window_flags |= window_flags::FULLSCREEN;
+    }
+
+    // Flags that should be set by the os when the window is created
+    data.flags = window_flags & window_flags::CREATE_FLAGS;
+    data.display_scale = 1.0f;
+    data.opacity = 1.0f;
+    data.destroying = false;
+    data.last_display_id = video->get_display_for_window(data.id, false);
+
+    impl_ptr.reset(new window_instance_impl);
+    if (!impl_ptr || !impl_ptr->create(this))
+    {
+        return false;
+    }
+
+    // Clear minimized if not on windows, only windows handles it
+    // at create rather than FinishWindowCreation, but it's important
+    // or window focus will get broken on windows!
+#if !defined(VX_VIDEO_BACKEND_WINDOWS)
+    if (data.flags & window_flags::MINIMIZED)
+    {
+        data.flags &= ~window_flags::MINIMIZED;
+    }
+#endif // VX_VIDEO_BACKEND_WINDOWS
+
+    data.initializing = false;
+
+    set_title(config.title);
+    finish_creation(window_flags);
+
+    return true;
+}
+
+void window_instance::finish_creation(typename window_flags::type new_flags)
+{
+    // drag and drop
+    apply_flags(new_flags);
+
+    if (!(new_flags & window_flags::HIDDEN))
+    {
+        show();
+    }
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4375
+
+void window_instance::destroy()
+{
+    data.destroying = true;
+    post_window_destroyed();
+
+    // restore original fullscreen mode
+    update_fullscreen_mode(fullscreen_op::LEAVE, true);
+    hide();
+
+    if (impl_ptr)
+    {
+        impl_ptr->destroy();
+    }
+}
+
+bool window_instance::validate() const
+{
+    return is_valid_id(data.id) && impl_ptr != nullptr;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2271
+
+void window_instance::apply_flags(typename window_flags::type new_flags)
+{
+    if (!(new_flags & (window_flags::MINIMIZED | window_flags::MAXIMIZED)))
+    {
+        restore();
+    }
+    if (new_flags & window_flags::MAXIMIZED)
+    {
+        maximize();
+    }
+    
+    set_fullscreen(new_flags & window_flags::FULLSCREEN);
+    
+    if (new_flags & window_flags::MINIMIZED)
+    {
+        minimize();
+    }
+
+    if (new_flags & window_flags::MOUSE_GRABBED)
+    {
+        set_mouse_grab(true);
+    }
+    if (new_flags & window_flags::KEYBOARD_GRABBED)
+    {
+        set_keyboard_grab(true);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// sync
+///////////////////////////////////////////////////////////////////////////////
+
+void window_instance::sync()
+{
+#if VX_VIDEO_HAVE_WINDOW_SYNC
+
+    impl_ptr->sync();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SYNC
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// title
+///////////////////////////////////////////////////////////////////////////////
+
+const std::string& window_instance::get_title() const
+{
+    return data.title;
+}
+
+bool window_instance::set_title(const std::string& title)
+{
+    if (title == data.title)
+    {
+        return true;
+    }
+
+    data.title = title;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_TITLE
+
+    return impl_ptr->set_title(title);
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_TITLE
+
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// position and size
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::set_resizable(bool resizable)
+{
+#if VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE
+
+    if (resizable != (data.flags & window_flags::RESIZABLE))
+    {
+        if (resizable)
+        {
+            data.flags |= window_flags::RESIZABLE;
+        }
+        else
+        {
+            data.flags &= ~window_flags::RESIZABLE;
+            data.windowed_rect = data.floating_rect;
+        }
+
+        impl_ptr->set_resizable(resizable);
+    }
+
+#else
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE
+}
+
+bool window_instance::is_resizable() const
+{
+    return (data.flags & window_flags::RESIZABLE);
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3048
+
+bool window_instance::get_position(int* x, int* y) const
+{
+    if (x)
+    {
+        *x = 0;
+    }
+    if (y)
+    {
+        *y = 0;
+    }
+
+#if defined(VX_OS_MACOS)
+
+    // On newer MacBooks, the fullscreen window might be placed
+    // below the camera notch, so use the actual window position
+    const bool use_display_origin = false;
+
+#else
+
+    // fullscreen windows should always be at the origin of their display
+    const bool use_display_origin = (data.flags & window_flags::FULLSCREEN);
+
+#endif // VX_VIDEO_BACKEND_COCOA
+
+    if (use_display_origin)
+    {
+        const display_id display = video->get_display_for_window(data.id, false);
+        if (is_valid_id(display))
+        {
+            const math::recti bounds = video->get_display_bounds(display);
+
+            if (x)
+            {
+                *x = bounds.position.x;
+            }
+            if (y)
+            {
+                *y = bounds.position.y;
+            }
+        }
+
+        // if fullscreen, default is the origin
+        return true;
+    }
+
+    // Some backends delay position updates for hidden windows until they
+    // are shown again. If the window is hidden and a move has been requested,
+    // the actual position may still reflect the old value. In that case, we
+    // return the pending position instead of the backend-reported one.
+    // Once the backend applies the move, data.last_position_pending is cleared,
+    // ensuring this logic always returns the most up-to-date position available.
+    const bool use_pending = (data.flags & window_flags::HIDDEN) && data.last_position_pending;
+
+    if (x)
+    {
+        *x = use_pending ? data.pending_rect.position.x : data.position.x;
+    }
+    if (y)
+    {
+        *y = use_pending ? data.pending_rect.position.y : data.position.y;
+    }
+
+    return true;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2901
+
+bool window_instance::set_position(int x, int y)
+{
+    const math::vec2i position{ x, y };
+
+    // update the pending display id
+    data.pending_display_id = video->get_display_at_origin(position);
+
+    data.pending_rect.position = position;
+    // set the position as pending while we wait for the backend to adjust
+    data.last_position_pending = true;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_POSITION
+
+    if (!impl_ptr->set_position())
+    {
+        return false;
+    }
+
+    sync();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_POSITION
+
+    return true;
+}
+
+bool window_instance::get_size(int* x, int* y) const
+{
+    if (x)
+    {
+        *x = data.size.x;
+    }
+    if (y)
+    {
+        *y = data.size.y;
+    }
+
+    return true;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3072
+
+bool window_instance::set_size(int w, int h)
+{
+    if (w <= 0)
+    {
+        w = 1;
+    }
+    if (h <= 0)
+    {
+        h = 1;
+    }
+
+    // Note: Aspect ratio is applied first, but min/max constraints
+    // may override it. This means the final size may not perfectly
+    // match the locked aspect ratio if constraints are stricter.
+    if (data.locked_aspect > 0.0f)
+    {
+        const float new_aspect_ratio = static_cast<float>(w) / static_cast<float>(h);
+
+        if (new_aspect_ratio > data.locked_aspect)
+        {
+            // Adjust width to maintain aspect ratio
+            w = static_cast<int>(math::round(h * data.locked_aspect));
+        }
+        else if (new_aspect_ratio < data.locked_aspect)
+        {
+            // Adjust height to maintain aspect ratio
+            h = static_cast<int>(math::round(w / data.locked_aspect));
+        }
+    }
+
+    // Enforce minimum and maximum size constraints
+    if (data.min_size.x > 0 && w < data.min_size.x)
+    {
+        w = data.min_size.x;
+    }
+    if (data.max_size.x > 0 && w > data.max_size.x)
+    {
+        w = data.max_size.x;
+    }
+    if (data.min_size.y > 0 && h < data.min_size.y)
+    {
+        h = data.min_size.y;
+    }
+    if (data.max_size.y > 0 && h > data.max_size.y)
+    {
+        h = data.max_size.y;
+    }
+
+    data.last_size_pending = true;
+    data.pending_rect.size.x = w;
+    data.pending_rect.size.y = h;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_SIZE
+
+    if (!impl_ptr->set_size())
+    {
+        return false;
+    }
+
+    sync();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_SIZE
+
+    return true;
+}
+
+math::vec2i window_instance::get_center() const
+{
+    math::vec2i position;
+    get_position(&position.x, &position.y);
+
+    math::vec2i size;
+    get_size(&size.x, &size.y);
+
+    return position + (size / 2);
+}
+
+math::recti window_instance::get_rect() const
+{
+    int x, y, w, h;
+
+    get_position(&x, &y);
+    get_size(&w, &h);
+
+    return math::recti(x, y, w, h);
+}
+
+bool window_instance::get_border_size(int* left, int* right, int* bottom, int* top) const
+{
+    int dummy = 0;
+
+    if (!left)
+    {
+        left = &dummy;
+    }
+    if (!right)
+    {
+        right = &dummy;
+    }
+    if (!bottom)
+    {
+        bottom = &dummy;
+    }
+    if (!top)
+    {
+        top = &dummy;
+    }
+
+    *top = *left = *bottom = *right = 0;
+
+#if VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
+    
+    return impl_ptr->get_border_size(left, right, bottom, top);
+
+#endif // VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
+
+    return true;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3269
+
+bool window_instance::get_window_size_in_pixels(int* w, int* h)
+{
+    int dummy;
+
+    if (!w)
+    {
+        w = &dummy;
+    }
+    if (!h)
+    {
+        h = &dummy;
+    }
+
+#if VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS && 0
+
+    return impl_ptr->get_size_in_pixels(w, h);
+
+#else
+
+    const display_id id = video->get_display_for_window(data.id, true);
+    if (!is_valid_id(id))
+    {
+        return false;
+    }
+
+    const display_instance* display = video->get_display_instance(id);
+    if (!display)
+    {
+        return false;
+    }
+
+    get_size(w, h);
+
+    const display_mode& mode = display->get_current_mode();
+    const float pixel_density = mode.pixel_density;
+
+    *w = math::ceil(*w * pixel_density);
+    *h = math::ceil(*h * pixel_density);
+
+#endif // VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS
+
+    return true;
+}
+
+bool window_instance::get_min_size(int* w, int* h) const
+{
+    if (w)
+    {
+        *w = data.min_size.x;
+    }
+    if (h)
+    {
+        *h = data.min_size.y;
+    }
+
+    return true;
+}
+
+bool window_instance::get_max_size(int* w, int* h) const
+{
+    if (w)
+    {
+        *w = data.max_size.x;
+    }
+    if (h)
+    {
+        *h = data.max_size.y;
+    }
+
+    return true;
+}
+
+bool window_instance::set_min_size(int w, int h)
+{
+    if (w < 0)
+    {
+        err::set(err::INVALID_ARGUMENT, "w");
+        return false;
+    }
+    if (h < 0)
+    {
+        err::set(err::INVALID_ARGUMENT, "h");
+        return false;
+    }
+
+    if ((data.max_size.x && w > data.max_size.x) ||
+        (data.max_size.y && h > data.max_size.y))
+    {
+        err::set(err::SYSTEM_ERROR, "min size cannot be larger than max size");
+        return false;
+    }
+
+    data.min_size.x = w;
+    data.min_size.y = h;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+
+    impl_ptr->set_min_size();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+
+    // ensure window is not smaller than min size
+    math::vec2i adjusted_size = data.last_size_pending ? data.pending_rect.size : data.floating_rect.size;
+    adjusted_size.x = data.min_size.x ? math::max(data.min_size.x, adjusted_size.x) : adjusted_size.x;
+    adjusted_size.y = data.min_size.y ? math::max(data.min_size.y, adjusted_size.y) : adjusted_size.y;
+
+    return set_size(adjusted_size.x, adjusted_size.y);
+}
+
+bool window_instance::set_max_size(int w, int h)
+{
+    if (w < 0)
+    {
+        err::set(err::INVALID_ARGUMENT, "w");
+        return false;
+    }
+    if (h < 0)
+    {
+        err::set(err::INVALID_ARGUMENT, "h");
+        return false;
+    }
+
+    if ((data.min_size.x && w < data.min_size.x) ||
+        (data.min_size.y && h < data.min_size.y))
+    {
+        err::set(err::SYSTEM_ERROR, "max size cannot be smaller than min size");
+        return false;
+    }
+
+    data.max_size.x = w;
+    data.max_size.y = h;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+
+    impl_ptr->set_max_size();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+
+    // ensure window is not larger than max size
+    math::vec2i adjusted_size = data.last_size_pending ? data.pending_rect.size : data.floating_rect.size;
+    adjusted_size.x = data.max_size.x ? math::min(data.max_size.x, adjusted_size.x) : adjusted_size.x;
+    adjusted_size.y = data.max_size.y ? math::min(data.max_size.y, adjusted_size.y) : adjusted_size.y;
+
+    return set_size(adjusted_size.x, adjusted_size.y);
+}
+
+float window_instance::get_aspect_ratio() const
+{
+    return static_cast<float>(data.size.x) / static_cast<float>(data.size.y);
+}
+
+float window_instance::get_locked_aspect_ratio() const
+{
+    return data.locked_aspect;
+}
+
+bool window_instance::lock_aspect_ratio(float aspect_ratio)
+{
+    data.locked_aspect = math::max(0.0f, aspect_ratio);
+
+#if VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+
+    impl_ptr->set_aspect_ratio();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+
+    return set_size(data.floating_rect.size.x, data.floating_rect.size.y);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// bordered
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::set_bordered(bool bordered)
+{
+    const bool is_bordered = !(data.flags & window_flags::BORDERLESS);
+
+    if (bordered != is_bordered)
+    {
+        if (bordered)
+        {
+            data.flags &= ~window_flags::BORDERLESS;
+        }
+        else
+        {
+            data.flags |= window_flags::BORDERLESS;
+        }
+
+#if VX_VIDEO_HAVE_WINDOW_SET_BORDERED
+
+        return impl_ptr->set_bordered();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_BORDERED
+    }
+
+    return true;
+}
+
+bool window_instance::is_bordered() const
+{
+    return !(data.flags & window_flags::BORDERLESS);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// always on top
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::set_always_on_top(bool always_on_top)
+{
+    const bool is_always_on_top = (data.flags & window_flags::TOPMOST);
+
+    if (always_on_top != is_always_on_top)
+    {
+        if (always_on_top)
+        {
+            data.flags |= window_flags::TOPMOST;
+        }
+        else
+        {
+            data.flags &= ~window_flags::TOPMOST;
+        }
+
+#if VX_VIDEO_HAVE_WINDOW_SET_ALWAYS_ON_TOP
+
+        return impl_ptr->set_always_on_top();
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_ALWAYS_ON_TOP
+    }
+
+    return true;
+}
+
+bool window_instance::is_always_on_top() const
+{
+    return (data.flags & window_flags::TOPMOST);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// window operators
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::show()
+{
+    if (!(data.flags & window_flags::HIDDEN))
+    {
+        return;
+    }
+
+#if VX_VIDEO_HAVE_WINDOW_SHOW
+
+    impl_ptr->show();
+
+#else
+
+    video->data.mouse_ptr->set_focus(data.id);
+    video->data.keyboard_ptr->set_focus(data.id);
+
+#endif // VX_VIDEO_HAVE_WINDOW_SHOW
+
+    post_window_shown();
+}
+
+bool window_instance::hide()
+{
+    if (data.flags & window_flags::HIDDEN)
+    {
+        data.restore_on_show = false;
+        return true;
+    }
+
+    data.pending_flags = (data.flags & window_flags::PENDING_FLAGS);
+
+    data.hiding = true;
+
+#if VX_VIDEO_HAVE_WINDOW_HIDE
+
+    impl_ptr->hide();
+
+#else
+
+    video->data.mouse_ptr->set_focus(INVALID_ID);
+    video->data.keyboard_ptr->set_focus(INVALID_ID);
+
+#endif // VX_VIDEO_HAVE_WINDOW_HIDE
+
+    data.hiding = false;
+
+    post_window_hidden();
+    return true;
+}
+
+bool window_instance::is_visible() const
+{
+    return !(data.flags & window_flags::HIDDEN);
+}
+
+bool window_instance::is_hidden() const
+{
+    return !is_visible();
+}
+
+bool window_instance::minimize()
+{
+#if !VX_VIDEO_HAVE_WINDOW_MINIMIZE
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_MINIMIZE
+
+    if (data.flags & window_flags::HIDDEN)
+    {
+        // we will minimize when shown again
+        data.pending_flags |= window_flags::MINIMIZED;
+        return true;
+    }
+
+    impl_ptr->minimize();
+    sync();
+
+    return true;
+}
+
+bool window_instance::is_minimized() const
+{
+    return (data.flags & window_flags::MINIMIZED);
+}
+
+bool window_instance::maximize()
+{
+#if !VX_VIDEO_HAVE_WINDOW_MAXIMIZE
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_MAXIMIZE
+
+    if (!(data.flags & window_flags::RESIZABLE))
+    {
+        return false;
+    }
+    
+    if (data.flags & window_flags::HIDDEN)
+    {
+        // we will maximize when shown again
+        data.pending_flags |= window_flags::MAXIMIZED;
+        return;
+    }
+
+    impl_ptr->maximize();
+    sync();
+
+    return true;
+}
+
+bool window_instance::is_maximized() const
+{
+    return (data.flags & window_flags::MAXIMIZED);
+}
+
+bool window_instance::restore()
+{
+#if !VX_VIDEO_HAVE_WINDOW_RESTORE
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_RESTORE
+
+    if (data.flags & window_flags::HIDDEN)
+    {
+        // remove any pending minimize or maximize states
+        data.pending_flags &= ~(window_flags::MINIMIZED | window_flags::MAXIMIZED);
+        return true;
+    }
+
+    impl_ptr->restore();
+    sync();
+
+    return true;
+}
+
+bool window_instance::flash(window_flash_op operation)
+{
+#if VX_VIDEO_HAVE_WINDOW_FLASH
+
+    return impl_ptr->flash(operation);
+
+#else
+
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_FLASH
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// fullscreen
+///////////////////////////////////////////////////////////////////////////////
+
+const display_mode_instance* window_instance::get_fullscreen_mode() const
+{
+    const display_mode_pair& pair = (data.flags & window_flags::FULLSCREEN) ? data.current_fullscreen_mode : data.requested_fullscreen_mode;
+
+    // first try to find an exact match
+    const display_mode_instance* dmi = video->find_display_mode_for_display(pair.display, pair.mode);
+    if (dmi)
+    {
+        return dmi;
+    }
+
+    // return the best candidate mode
+    return video->find_closest_display_mode_for_display(pair.display, pair.mode);
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2127
+
+bool window_instance::set_fullscreen_mode(const display_mode& mode)
+{
+    data.requested_fullscreen_mode = mode;
+
+    if (IS_FULLSCREEN_VISIBLE(this))
+    {
+        update_fullscreen_mode(fullscreen_op::UPDATE, true);
+        sync();
+    }
+
+    return true;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1894
+
+//bool window_instance::update_fullscreen_mode(fullscreen_op fullscreen, bool commit)
 //{
 //    display* d = nullptr;
 //    const display_mode* mode = nullptr;
 //
-//    m_fullscreen_exclusive = false;
+//    data.fullscreen_exclusive = false;
 //
 //    // If we are hiding or destroying, don't go back into fullscreen
-//    if (m_hiding || m_destroying)
+//    if (data.hiding || data.destroying)
 //    {
 //        fullscreen = fullscreen_op::LEAVE;
 //    }
@@ -758,7 +999,7 @@ namespace video {
 //            goto error;
 //        }
 //
-//        m_fullscreen_exclusive = true;
+//        data.fullscreen_exclusive = true;
 //    }
 //
 //    if (d)
@@ -777,7 +1018,7 @@ namespace video {
 //        // d is guarenteed not to be null here
 //
 //        const device_id d_fullscreen_window_id = video_internal::get_display_fullscreen_window_id(*d);
-//        if (d_fullscreen_window_id != m_id)
+//        if (d_fullscreen_window_id != data.id)
 //        {
 //            // If there is another fullscreen window on the target display, minimize it
 //            window* w = get_window(d_fullscreen_window_id);
@@ -795,29 +1036,29 @@ namespace video {
 //
 //        if (commit)
 //        {
-//            if (!m_impl->set_fullscreen(fullscreen, d))
+//            if (!impl_ptr->set_fullscreen(fullscreen, d))
 //            {
 //                goto error;
 //            }
 //
 //            // Set the current fullscreen mode
-//            m_current_fullscreen_mode = final_mode;
+//            data.current_fullscreen_mode = final_mode;
 //
 //            // Post the enter fullscreen event if it has not been posted yet
-//            if (!(m_flags & flags::FULLSCREEN))
+//            if (!(data.flags & window_flags::FULLSCREEN))
 //            {
 //                post_window_enter_fullscreen();
 //            }
 //        }
 //
-//        if (m_flags & flags::FULLSCREEN)
+//        if (data.flags & window_flags::FULLSCREEN)
 //        {
-//            video_internal::set_display_fullscreen_window_id(*d, m_id);
+//            video_internal::set_display_fullscreen_window_id(*d, data.id);
 //
 //            // Some backends don't send a new window size event when fullscreening
 //            if (!(has_capabilities(capabilities::SENDS_FULLSCREEN_DIMENSIONS)))
 //            {
-//                if (m_size != mode->resolution)
+//                if (data.size != mode->resolution)
 //                {
 //                    post_window_resized(mode->resolution.x, mode->resolution.y);
 //                }
@@ -843,22 +1084,22 @@ namespace video {
 //
 //        if (commit)
 //        {
-//            if (!m_impl->set_fullscreen(fullscreen_op::LEAVE, (d ? d : get_display_for_window(*this))))
+//            if (!impl_ptr->set_fullscreen(fullscreen_op::LEAVE, (d ? d : get_display_for_window(*this))))
 //            {
 //                goto error;
 //            }
 //
 //            // Clear the current fullscreen mode
-//            video_internal::clear_display_mode_display_id(m_current_fullscreen_mode);
+//            video_internal::clear_display_mode_display_id(data.current_fullscreen_mode);
 //
 //            // Post the leave fullscreen event if it has not been posted yet
-//            if (m_flags & flags::FULLSCREEN)
+//            if (data.flags & window_flags::FULLSCREEN)
 //            {
 //                post_window_leave_fullscreen();
 //            }
 //        }
 //
-//        if (!(m_flags & flags::FULLSCREEN))
+//        if (!(data.flags & window_flags::FULLSCREEN))
 //        {
 //            if (d)
 //            {
@@ -868,9 +1109,9 @@ namespace video {
 //            // Some backends don't send a new window size event when fullscreening
 //            if (!(has_capabilities(capabilities::SENDS_FULLSCREEN_DIMENSIONS)))
 //            {
-//                if (m_size != m_windowed_rect.size)
+//                if (data.size != data.windowed_rect.size)
 //                {
-//                    post_window_resized(m_windowed_rect.size.x, m_windowed_rect.size.y);
+//                    post_window_resized(data.windowed_rect.size.x, data.windowed_rect.size.y);
 //                }
 //                else
 //                {
@@ -887,13 +1128,13 @@ namespace video {
 //
 //    done:
 //    {
-//        if (d && (m_flags & flags::FULLSCREEN) && m_fullscreen_exclusive)
+//        if (d && (data.flags & window_flags::FULLSCREEN) && data.fullscreen_exclusive)
 //        {
-//            m_last_fullscreen_exclusive_display_id = video_internal::get_display_id(*d);
+//            data.last_fullscreen_exclusive_display_id = video_internal::get_display_id(*d);
 //        }
 //        else
 //        {
-//            m_last_fullscreen_exclusive_display_id = 0;
+//            data.last_fullscreen_exclusive_display_id = 0;
 //        }
 //
 //        return true;
@@ -911,24 +1152,24 @@ namespace video {
 //    }
 //}
 //
-//bool window::is_fullscreen() const
+//bool window_instance::is_fullscreen() const
 //{
-//    return m_flags & flags::FULLSCREEN;
+//    return data.flags & window_flags::FULLSCREEN;
 //}
 //
 //// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3448
 //
-//bool window::set_fullscreen(bool fullscreen)
+//bool window_instance::set_fullscreen(bool fullscreen)
 //{
-//    if (m_flags & flags::HIDDEN)
+//    if (data.flags & window_flags::HIDDEN)
 //    {
 //        if (fullscreen)
 //        {
-//            m_pending_flags |= flags::FULLSCREEN;
+//            data.pending_flags |= window_flags::FULLSCREEN;
 //        }
 //        else
 //        {
-//            m_pending_flags &= ~flags::FULLSCREEN;
+//            data.pending_flags &= ~window_flags::FULLSCREEN;
 //        }
 //
 //        return true;
@@ -947,19 +1188,19 @@ namespace video {
 //// icon
 /////////////////////////////////////////////////////////////////////////////////
 //
-//bool window::set_icon(const pixel::surface_rgba8& surf)
+//bool window_instance::set_icon(const pixel::surface_rgba8& surf)
 //{
 //    if (surf.empty())
 //    {
 //        return false;
 //    }
 //
-//    return m_impl->set_icon(surf);
+//    return impl_ptr->set_icon(surf);
 //}
 //
-//void window::clear_icon()
+//void window_instance::clear_icon()
 //{
-//    m_impl->clear_icon();
+//    impl_ptr->clear_icon();
 //}
 //
 /////////////////////////////////////////////////////////////////////////////////
@@ -978,101 +1219,101 @@ namespace video {
 //    return false;
 //}
 //
-//bool window::post_window_shown()
+//bool window_instance::post_window_shown()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (!(m_flags & flags::HIDDEN))
+//    if (!(data.flags & window_flags::HIDDEN))
 //    {
 //        return false;
 //    }
 //
-//    m_flags &= ~(flags::HIDDEN | flags::MINIMIZED);
+//    data.flags &= ~(window_flags::HIDDEN | window_flags::MINIMIZED);
 //
 //    event::event e{};
 //    e.type = event::WINDOW_SHOWN;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    on_window_shown();
 //    return posted;
 //}
 //
-//void window::on_window_shown()
+//void window_instance::on_window_shown()
 //{
-//    apply_flags(m_pending_flags);
-//    m_pending_flags = window::flags::NONE;
+//    apply_flags(data.pending_flags);
+//    data.pending_flags = window_instance::window_flags::NONE;
 //}
 //
-//bool window::post_window_hidden()
+//bool window_instance::post_window_hidden()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (m_flags & window::flags::HIDDEN)
+//    if (data.flags & window_instance::window_flags::HIDDEN)
 //    {
 //        return false;
 //    }
 //
-//    m_flags |= window::flags::HIDDEN;
+//    data.flags |= window_instance::window_flags::HIDDEN;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_HIDDEN;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    on_window_hidden();
 //    return posted;
 //}
 //
-//void window::on_window_hidden()
+//void window_instance::on_window_hidden()
 //{
 //    // We will restore the state of these flags when the window is shown again
-//    m_pending_flags |= (m_flags & (window::flags::FULLSCREEN | window::flags::MAXIMIZED));
+//    data.pending_flags |= (data.flags & (window_instance::window_flags::FULLSCREEN | window_instance::window_flags::MAXIMIZED));
 //    update_fullscreen_mode(fullscreen_op::LEAVE, false);
 //}
 //
 //// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_windowevents.c#L99
 //
-//bool window::post_window_moved(int32_t x, int32_t y)
+//bool window_instance::post_window_moved(int32_t x, int32_t y)
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    m_last_position_pending = false;
+//    data.last_position_pending = false;
 //
-//    if (!(m_flags & flags::FULLSCREEN))
+//    if (!(data.flags & window_flags::FULLSCREEN))
 //    {
-//        m_windowed_rect.position.x = x;
-//        m_windowed_rect.position.y = y;
+//        data.windowed_rect.position.x = x;
+//        data.windowed_rect.position.y = y;
 //
-//        if (!(m_flags & flags::MAXIMIZED) && !m_tiled)
+//        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
 //        {
-//            m_floating_rect.position.x = x;
-//            m_floating_rect.position.y = y;
+//            data.floating_rect.position.x = x;
+//            data.floating_rect.position.y = y;
 //        }
 //    }
 //
-//    if (m_position.x == x && m_position.y == y)
+//    if (data.position.x == x && data.position.y == y)
 //    {
 //        return false;
 //    }
 //
-//    m_position.x = x;
-//    m_position.y = y;
+//    data.position.x = x;
+//    data.position.y = y;
 //
 //    event::flush_events(event::WINDOW_MOVED);
 //
 //    event::event e{};
 //    e.type = event::WINDOW_MOVED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    e.window_moved.x = x;
 //    e.window_moved.y = y;
 //
@@ -1083,43 +1324,43 @@ namespace video {
 //    return posted;
 //}
 //
-//void window::on_window_moved()
+//void window_instance::on_window_moved()
 //{
 //    video_internal::check_window_display_changed(*this);
 //}
 //
-//bool window::post_window_resized(int32_t w, int32_t h)
+//bool window_instance::post_window_resized(int32_t w, int32_t h)
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    m_last_size_pending = false;
+//    data.last_size_pending = false;
 //
-//    if (!(m_flags & flags::FULLSCREEN))
+//    if (!(data.flags & window_flags::FULLSCREEN))
 //    {
-//        m_windowed_rect.size.x = w;
-//        m_windowed_rect.size.y = h;
+//        data.windowed_rect.size.x = w;
+//        data.windowed_rect.size.y = h;
 //
-//        if (!(m_flags & flags::MAXIMIZED) && !m_tiled)
+//        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
 //        {
-//            m_floating_rect.size.x = w;
-//            m_floating_rect.size.y = h;
+//            data.floating_rect.size.x = w;
+//            data.floating_rect.size.y = h;
 //        }
 //    }
 //
-//    if (m_size.x == w && m_size.y == h)
+//    if (data.size.x == w && data.size.y == h)
 //    {
 //        return false;
 //    }
 //
-//    m_size.x = w;
-//    m_size.y = h;
+//    data.size.x = w;
+//    data.size.y = h;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_RESIZED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    e.window_resized.w = w;
 //    e.window_resized.h = h;
 //
@@ -1130,165 +1371,165 @@ namespace video {
 //    return posted;
 //}
 //
-//void window::on_window_resized()
+//void window_instance::on_window_resized()
 //{
 //    video_internal::check_window_display_changed(*this);
 //
 //    // update window shape & safe area
 //}
 //
-//bool window::post_window_minimized()
+//bool window_instance::post_window_minimized()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (m_flags & flags::MINIMIZED)
+//    if (data.flags & window_flags::MINIMIZED)
 //    {
 //        return false;
 //    }
 //
-//    m_flags &= ~flags::MAXIMIZED;
-//    m_flags |= flags::MINIMIZED;
+//    data.flags &= ~window_flags::MAXIMIZED;
+//    data.flags |= window_flags::MINIMIZED;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_MINIMIZED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    on_window_minimized();
 //    return posted;
 //}
 //
-//void window::on_window_minimized()
+//void window_instance::on_window_minimized()
 //{
-//    if (m_flags & flags::FULLSCREEN)
+//    if (data.flags & window_flags::FULLSCREEN)
 //    {
 //        update_fullscreen_mode(fullscreen_op::LEAVE, false);
 //    }
 //}
 //
-//bool window::post_window_maximized()
+//bool window_instance::post_window_maximized()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (m_flags & flags::MAXIMIZED)
+//    if (data.flags & window_flags::MAXIMIZED)
 //    {
 //        return false;
 //    }
 //
-//    m_flags &= ~flags::MINIMIZED;
-//    m_flags |= flags::MAXIMIZED;
+//    data.flags &= ~window_flags::MINIMIZED;
+//    data.flags |= window_flags::MAXIMIZED;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_MAXIMIZED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    on_window_maximized();
 //    return posted;
 //}
 //
-//void window::on_window_maximized()
+//void window_instance::on_window_maximized()
 //{
 //}
 //
-//bool window::post_window_restored()
+//bool window_instance::post_window_restored()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (!(m_flags & (flags::MINIMIZED | flags::MAXIMIZED)))
+//    if (!(data.flags & (window_flags::MINIMIZED | window_flags::MAXIMIZED)))
 //    {
 //        return false;
 //    }
 //
-//    m_flags &= ~(flags::MINIMIZED | flags::MAXIMIZED);
+//    data.flags &= ~(window_flags::MINIMIZED | window_flags::MAXIMIZED);
 //
 //    event::event e{};
 //    e.type = event::WINDOW_RESTORED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    on_window_restored();
 //    return posted;
 //}
 //
-//void window::on_window_restored()
+//void window_instance::on_window_restored()
 //{
-//    if (m_flags & flags::FULLSCREEN)
+//    if (data.flags & window_flags::FULLSCREEN)
 //    {
 //        update_fullscreen_mode(fullscreen_op::ENTER, true);
 //    }
 //}
 //
-//bool window::post_window_enter_fullscreen()
+//bool window_instance::post_window_enter_fullscreen()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (m_flags & window::flags::FULLSCREEN)
+//    if (data.flags & window_instance::window_flags::FULLSCREEN)
 //    {
 //        return false;
 //    }
 //
-//    m_flags |= window::flags::FULLSCREEN;
+//    data.flags |= window_instance::window_flags::FULLSCREEN;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_ENTER_FULLSCREEN;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    return posted;
 //}
 //
-//bool window::post_window_leave_fullscreen()
+//bool window_instance::post_window_leave_fullscreen()
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (!(m_flags & window::flags::FULLSCREEN))
+//    if (!(data.flags & window_instance::window_flags::FULLSCREEN))
 //    {
 //        return false;
 //    }
 //
-//    m_flags &= ~window::flags::FULLSCREEN;
+//    data.flags &= ~window_instance::window_flags::FULLSCREEN;
 //
 //    event::event e{};
 //    e.type = event::WINDOW_LEAVE_FULLSCREEN;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    return posted;
 //}
 //
-//bool window::post_window_display_changed(const display& d)
+//bool window_instance::post_window_display_changed(const display& d)
 //{
-//    if (m_destroying)
+//    if (data.destroying)
 //    {
 //        return false;
 //    }
 //
-//    if (m_last_display_id == d.id())
+//    if (data.last_display_id == d.id())
 //    {
 //        return false;
 //    }
 //
-//    m_last_display_id = d.id();
+//    data.last_display_id = d.id();
 //
 //    event::event e{};
 //    e.type = event::WINDOW_DISPLAY_CHANGED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    e.window_display_changed.display_id = d.id();
 //    bool posted = event::post_event(e);
 //
@@ -1296,18 +1537,18 @@ namespace video {
 //    return posted;
 //}
 //
-//void window::on_window_display_changed(const display& d)
+//void window_instance::on_window_display_changed(const display& d)
 //{
 //    if (is_fullscreen())
 //    {
 //        const display_mode* new_mode = nullptr;
 //
-//        if (m_requested_fullscreen_mode_set)
+//        if (data.requested_fullscreen_mode_set)
 //        {
 //            new_mode = d.find_closest_mode(
-//                m_requested_fullscreen_mode.resolution.x,
-//                m_requested_fullscreen_mode.resolution.y,
-//                m_requested_fullscreen_mode.refresh_rate
+//                data.requested_fullscreen_mode.resolution.x,
+//                data.requested_fullscreen_mode.resolution.y,
+//                data.requested_fullscreen_mode.refresh_rate
 //            );
 //        }
 //
@@ -1318,21 +1559,21 @@ namespace video {
 //    }
 //}
 //
-//bool window::post_window_close_requested()
+//bool window_instance::post_window_close_requested()
 //{
 //    event::event e{};
 //    e.type = event::WINDOW_CLOSE_REQUESTED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    return posted;
 //}
 //
-//bool window::post_window_destroyed()
+//bool window_instance::post_window_destroyed()
 //{
 //    event::event e{};
 //    e.type = event::WINDOW_DESTROYED;
-//    e.window_id = m_id;
+//    e.window_id = data.id;
 //    bool posted = event::post_event(e);
 //
 //    return posted;

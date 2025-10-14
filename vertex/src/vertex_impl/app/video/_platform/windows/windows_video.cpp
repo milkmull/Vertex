@@ -197,7 +197,7 @@ static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 
     WNDCLASSW wc{}; 
     wc.style = style;
-    wc.lpfnWndProc = window_impl::window_proc;
+    wc.lpfnWndProc = window_instance_impl::window_proc;
     wc.hInstance = hInstance; // needed for dll
     wc.hIcon = NULL;
     wc.hCursor = NULL;
@@ -222,6 +222,7 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L219
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L579
 
 bool video_instance_impl::init(video_instance* owner)
@@ -229,18 +230,6 @@ bool video_instance_impl::init(video_instance* owner)
     VX_ASSERT(!video);
     VX_ASSERT(owner);
     video = owner;
-
-    if (!load_libraries())
-    {
-        quit();
-        return false;
-    }
-
-    if (!set_dpi_awareness(process_dpi_awareness::UNAWARE))
-    {
-        quit();
-        return false;
-    }
 
     // register app
     {
@@ -256,8 +245,35 @@ bool video_instance_impl::init(video_instance* owner)
         data.registered_app = true;
     }
 
-    data._VX_WAKEUP = ::RegisterWindowMessageA("_VX_WAKEUP");
     data.system_theme_cache = get_system_theme();
+
+    if (!load_libraries())
+    {
+        quit();
+        return false;
+    }
+
+    ///////////////////////////////////////
+
+    // needed for drag and drop support
+    if (data.com.initialize())
+    {
+        data.ole.initialize();
+    }
+
+    if (!set_dpi_awareness(process_dpi_awareness::UNAWARE))
+    {
+        quit();
+        return false;
+    }
+
+    if (!init_displays())
+    {
+        quit();
+        return false;
+    }
+
+    data._VX_WAKEUP = ::RegisterWindowMessageA("_VX_WAKEUP");
 
     // hints
     {
@@ -293,20 +309,11 @@ bool video_instance_impl::init(video_instance* owner)
     return true;
 }
 
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L647
+// https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L190
+
 void video_instance_impl::quit()
 {
-    free_libraries();
-
-    if (data.registered_app)
-    {
-        unregister_app(data.app_name.c_str(), NULL);
-        data.registered_app = false;
-    }
-
-    data.app_name.clear();
-    data._VX_WAKEUP = 0;
-    data.system_theme_cache = system_theme::UNKNOWN;
-
     // remove hint callbacks
     if (video)
     {
@@ -334,6 +341,23 @@ void video_instance_impl::quit()
             this
         );
     }
+
+    quit_displays();
+
+    data.ole.uninitialize();
+    data.com.uninitialize();
+
+    ///////////////////////////////////////
+
+    if (data.registered_app)
+    {
+        unregister_app(data.app_name.c_str(), NULL);
+        data.registered_app = false;
+    }
+
+    free_libraries();
+
+    video = nullptr;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -349,7 +373,7 @@ system_theme video_instance_impl::get_system_theme()
     DWORD size = sizeof(data);
     DWORD type = 0;
 
-    if (RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
+    if (::RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
     {
         // Dark mode if 0, light mode if 1
         switch (data)
@@ -704,7 +728,7 @@ bool video_instance_impl::create_display(
 
                 if (moved || changed_bounds)
                 {
-                    video->post_display_moved(d);
+                    video->post_display_moved(d.data.id);
                 }
 
                 d.set_orientation(current_orientation);
@@ -804,7 +828,7 @@ static void poll_displays_internal(poll_display_data& data, MONITORENUMPROC call
 
 // https://github.com/libsdl-org/SDL/blob/561c99ee1171f680088ff98c773de2efe94b0f5e/src/video/windows/SDL_windowsmodes.c#L887
 
-void video_instance_impl::update_displays()
+void video_instance_impl::refresh_displays()
 {
     std::vector<display_instance>& displays = video->data.displays;
 
@@ -835,7 +859,7 @@ void video_instance_impl::update_displays()
 
         if (d.impl_ptr->data.state == display_state::REMOVED)
         {
-            video->post_display_removed(d);
+            video->post_display_removed(d.data.id);
             it = displays.erase(it);
         }
         else
@@ -849,9 +873,20 @@ void video_instance_impl::update_displays()
     {
         if (d.impl_ptr->data.state == display_state::ADDED)
         {
-            video->post_display_added(d);
+            video->post_display_added(d.data.id);
         }
     }
+}
+
+bool video_instance_impl::init_displays()
+{
+    refresh_displays();
+    return true;
+}
+
+void video_instance_impl::quit_displays()
+{
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

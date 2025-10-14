@@ -73,7 +73,10 @@ public:
 public:
 
     bool is_valid() const noexcept { return is_valid_handle(m_handle); }
-    native_handle get() const noexcept { return m_handle; }
+
+    native_handle& get() noexcept { return m_handle; }
+    const native_handle& get() const noexcept { return m_handle; }
+
     void reset() noexcept { m_handle = VX_INVALID_HANDLE; }
 
     void close() noexcept

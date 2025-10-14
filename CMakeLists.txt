@@ -25,6 +25,9 @@ message(STATUS "Vertex Version: ${VX_PROJECT_VERSION}")
 # Define the project
 project(Vertex VERSION ${VX_PROJECT_VERSION} LANGUAGES CXX)
 
+# Enable c language in case we need to check for c headers or anything
+enable_language(C)
+
 # Check if this is the main project or part of another
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
     set(VX_MAIN_PROJECT TRUE)
@@ -44,6 +47,7 @@ include(CMakePushCheckState)
 include(GNUInstallDirs)
 include(CheckFunctionExists)
 include(CheckSymbolExists)
+include(CheckIncludeFile)
 
 # Include Vertex-specific modules
 include(cmake/Config.cmake)

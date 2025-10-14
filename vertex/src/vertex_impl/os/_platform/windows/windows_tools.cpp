@@ -56,7 +56,7 @@ void error_message(const char* msg)
 // COM
 ///////////////////////////////////////////////////////////////////////////////
 
-com_scoped_initializer::com_scoped_initializer() noexcept
+bool com_initializer::initialize() noexcept
 {
     m_hr = ::CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
 
@@ -76,20 +76,45 @@ com_scoped_initializer::com_scoped_initializer() noexcept
     if (!succeeded())
     {
         error_message("CoInitializeEx()");
+        return false;
     }
+
+    return true;
 }
 
-com_scoped_initializer::~com_scoped_initializer() noexcept
+void com_initializer::uninitialize() noexcept
 {
     if (succeeded())
     {
         ::CoUninitialize();
+        m_hr = E_FAIL;
     }
 }
 
-bool com_scoped_initializer::succeeded() const noexcept
+///////////////////////////////////////////////////////////////////////////////
+// OLE
+///////////////////////////////////////////////////////////////////////////////
+
+bool ole_initializer::initialize() noexcept
 {
-    return SUCCEEDED(m_hr);
+    m_hr = ::OleInitialize(NULL);
+
+    if (!succeeded())
+    {
+        error_message("OleInitialize()");
+        return false;
+    }
+
+    return true;
+}
+
+void ole_initializer::uninitialize() noexcept
+{
+    if (succeeded())
+    {
+        ::OleUninitialize();
+        m_hr = E_FAIL;
+    }
 }
 
 } // namespace windows

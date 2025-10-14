@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "vertex/app/video/video.hpp"
 #include "vertex/app/input/keyboard.hpp"
 #include "vertex/util/bit_field.hpp"
 #include "vertex/math/rect.hpp"
@@ -125,8 +126,8 @@ public:
     // Focus / Window Association
     //-------------------------------------------------------------------------
 
-    video::window* get_focus();
-    bool set_focus(const video::window& w);
+    video::window_id get_focus() { return INVALID_ID; }
+    bool set_focus(video::window_id id);
 
     //-------------------------------------------------------------------------
     // Keymap / Scancode <-> Keycode mapping
@@ -163,7 +164,7 @@ public:
     // Key State / Modifiers
     //-------------------------------------------------------------------------
 
-    std::vector<bool> get_keyboard_state();
+    const bit_field<scancode::SCANCODE_COUNT, bool>& get_keyboard_state();
     void reset_keyboard();
 
     key_mod get_mod_state();

@@ -173,7 +173,7 @@ function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
     check_function_exists(${FUNCTION_NAME} ${MACRO_NAME})
 
     # If the function exists, add the definition to the target
-    if (${MACRO_NAME})
+    if(${MACRO_NAME})
         target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
     
@@ -189,7 +189,7 @@ function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
     check_symbol_exists(${SYMBOL_NAME} ${HEADER} ${MACRO_NAME})
 
     # If the symbol exists, add the definition to the target
-    if (${MACRO_NAME})
+    if(${MACRO_NAME})
         target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
 
@@ -205,7 +205,7 @@ function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
     check_include_file(${INCLUDE_NAME} ${MACRO_NAME})
 
     # If the header exists, add the definition to the target
-    if (${MACRO_NAME})
+    if(${MACRO_NAME})
         target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
     endif()
 

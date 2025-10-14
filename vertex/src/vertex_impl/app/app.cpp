@@ -87,6 +87,13 @@ VX_API void quit_subsystem(init_flag flags)
 
 ////////////////////////////////////////
 
+app_instance::~app_instance()
+{
+    quit();
+}
+
+////////////////////////////////////////
+
 bool app_instance::init(const app_metadata& metadata)
 {
     if (!init_hints())

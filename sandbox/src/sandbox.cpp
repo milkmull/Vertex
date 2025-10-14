@@ -4,6 +4,7 @@
 #include "vertex/app/app.hpp"
 #include "vertex/app/hints/hints.hpp"
 #include "vertex/app/event/event.hpp"
+#include "vertex/math/core/util.hpp"
 
 using namespace vx;
 
@@ -15,12 +16,7 @@ static void run_app()
     while (true)
     {
         app::event::pump_events(true);
-
-        app::event::event e;
-        while (app::event::poll_event(e))
-        {
-            std::cout << e.type << std::endl;
-        }
+        os::sleep(time::milliseconds(100));
     }
 }
 

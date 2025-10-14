@@ -91,10 +91,10 @@ public:
     size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
 
     time::time_point get_polling_interval() const;
-    int wait_event_timeout_video(video::window* w, event& e, time::time_point t, time::time_point start);
+    int wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start);
     bool wait_event_timeout(event& e, time::time_point t);
 
-    bool push_event(const event& e);
+    bool push_event(event& e);
     bool poll_event(event& e);
 
     void set_event_filter(event_filter filter, void* user_data);

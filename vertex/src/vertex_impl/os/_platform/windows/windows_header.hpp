@@ -28,3 +28,5 @@
 
 typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
 #define STATUS_SUCCESS ((NTSTATUS)0x00000000L)
+
+typedef unsigned __int64 QWORD;

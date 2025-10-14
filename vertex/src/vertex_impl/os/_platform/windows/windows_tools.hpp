@@ -44,25 +44,76 @@ inline constexpr void time_point_to_file_time(time::time_point t, DWORD& low, DW
 #   undef DELTA_EPOCH_1601_100NS
 
 ///////////////////////////////////////////////////////////////////////////////
-// COM
+// Scoped Manager
 ///////////////////////////////////////////////////////////////////////////////
 
-class com_scoped_initializer
+template <typename T>
+class scoped_manager
 {
 public:
 
-    com_scoped_initializer() noexcept;
-    ~com_scoped_initializer() noexcept;
+    scoped_manager() { m_initializer.initialize(); }
+    ~scoped_manager() { m_initializer.uninitialize(); }
 
-    com_scoped_initializer(const com_scoped_initializer&) = delete;
-    com_scoped_initializer& operator=(const com_scoped_initializer&) = delete;
+    scoped_manager(const scoped_manager&) = delete;
+    scoped_manager& operator=(const scoped_manager&) = delete;
 
-    bool succeeded() const noexcept;
+    bool succeeded() const { return m_initializer.succeeded(); }
 
 private:
 
-    HRESULT m_hr;
+    T m_initializer;
 };
+
+///////////////////////////////////////////////////////////////////////////////
+// COM
+///////////////////////////////////////////////////////////////////////////////
+
+class com_initializer
+{
+public:
+
+    com_initializer() noexcept = default;
+    ~com_initializer() noexcept = default;
+
+    com_initializer(const com_initializer&) = delete;
+    com_initializer& operator=(const com_initializer&) = delete;
+
+    bool initialize() noexcept;
+    bool succeeded() const noexcept { return SUCCEEDED(m_hr); }
+    void uninitialize() noexcept;
+
+private:
+
+    HRESULT m_hr = E_FAIL;
+};
+
+using com_scoped_initializer = scoped_manager<com_initializer>;
+
+///////////////////////////////////////////////////////////////////////////////
+// OLE
+///////////////////////////////////////////////////////////////////////////////
+
+class ole_initializer
+{
+public:
+
+    ole_initializer() noexcept = default;
+    ~ole_initializer() noexcept = default;
+
+    ole_initializer(const ole_initializer&) = delete;
+    ole_initializer& operator=(const ole_initializer&) = delete;
+
+    bool initialize() noexcept;
+    bool succeeded() const noexcept { return SUCCEEDED(m_hr); }
+    void uninitialize() noexcept;
+
+private:
+
+    HRESULT m_hr = E_FAIL;
+};
+
+using ole_scoped_initializer = scoped_manager<ole_initializer>;
 
 } // namespace windows
 } // namespace os

@@ -22,6 +22,10 @@ enum : uint32_t
 #define MAKE_EXTENDED_KEYCODE(i) (i | _priv::EXTENDED_MASK)
 #define MAKE_KEYCODE(sc) (sc | _priv::SCANCODE_MASK)
 
+#if defined(KEY_EXECUTE)
+#   undef KEY_EXECUTE
+#endif
+
 enum keycode : uint32_t
 {
     KEY_UNKNOWN                 = 0,

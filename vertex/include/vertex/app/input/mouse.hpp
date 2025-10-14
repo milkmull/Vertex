@@ -15,13 +15,19 @@ namespace mouse {
 ///////////////////////////////////////////////////////////////////////////////
 
 using mouse_id = id_type;
-enum : mouse_id { DEFAULT_MOUSE_ID = DEFAULT_ID };
+
+enum : mouse_id
+{
+    GLOBAL_MOUSE_ID = 1,
+    DEFAULT_MOUSE_ID = 2,
+    TOUCH_MOUSE_ID = static_cast<mouse_id>(-1)
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // mouse state
 ///////////////////////////////////////////////////////////////////////////////
 
-enum button
+enum buttons
 {
     NONE            = 0,
 
@@ -41,14 +47,14 @@ enum wheel_direction
 
 struct mouse_state
 {
-    button button_flags;
+    buttons button_flags;
     float x, y;
 
-    bool left_button_down() const noexcept { return button_flags & button::BUTTON_LEFT; }
-    bool right_button_down() const noexcept { return button_flags & button::BUTTON_RIGHT; }
-    bool middle_button_down() const noexcept { return button_flags & button::BUTTON_MIDDLE; }
-    bool extra_1_button_down() const noexcept { return button_flags & button::BUTTON_EXTRA_1; }
-    bool extra_2_button_down() const noexcept { return button_flags & button::BUTTON_EXTRA_2; }
+    bool left_button_down() const noexcept { return button_flags & buttons::BUTTON_LEFT; }
+    bool right_button_down() const noexcept { return button_flags & buttons::BUTTON_RIGHT; }
+    bool middle_button_down() const noexcept { return button_flags & buttons::BUTTON_MIDDLE; }
+    bool extra_1_button_down() const noexcept { return button_flags & buttons::BUTTON_EXTRA_1; }
+    bool extra_2_button_down() const noexcept { return button_flags & buttons::BUTTON_EXTRA_2; }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -83,8 +89,6 @@ VX_API bool set_capture(bool enabled);
 // cursor
 ///////////////////////////////////////////////////////////////////////////////
 
-namespace _priv { class cursor_impl; }
-
 using cursor_id = id_type;
 
 enum cursor_shape
@@ -101,17 +105,38 @@ enum cursor_shape
     CURSOR_SHAPE_NOT_ALLOWED,
 };
 
+class cursor
+{
+public:
+
+    // implicit on purpose: allows seamless conversion
+    cursor(cursor_id id) : m_id(id) {}
+    ~cursor() {}
+
+public:
+
+    // implicit conversion back to id
+    operator cursor_id() const noexcept { return m_id; }
+
+    cursor_id id() const noexcept { return m_id; }
+    bool is_valid() const noexcept { return is_valid_id(m_id); }
+    VX_API bool exists() const;
+
+    VX_API cursor_shape get_shape() const;
+    VX_API math::vec2i get_hotspot() const;
+
+private:
+
+    cursor_id m_id;
+};
+
 // Creation / Destruction
 VX_API cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
 VX_API cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
 VX_API cursor_id create_system_cursor(cursor_shape id);
 
-// Cursor Info
-VX_API cursor_shape get_shape(cursor_id id);
-VX_API math::vec2i get_hotspot(cursor_id id);
-
 // Active cursor
-VX_API bool set_cursor(cursor_id id);
+VX_API bool set_cursor(cursor c);
 VX_API cursor_id get_cursor();
 VX_API cursor_id get_default_cursor();
 

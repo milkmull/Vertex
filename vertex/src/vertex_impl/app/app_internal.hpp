@@ -55,6 +55,8 @@ public:
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
 
+    ~app_instance();
+
     bool init(const app_metadata& metadata = {});
     void quit();
 

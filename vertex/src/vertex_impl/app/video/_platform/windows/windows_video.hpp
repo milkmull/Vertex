@@ -2,6 +2,7 @@
 
 #include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex_impl/app/_platform/windows/windows_header.hpp"
+#include "vertex_impl/app/input/_platform/windows/windows_raw_input.hpp"
 #include "vertex/os/shared_library.hpp"
 
 namespace vx {
@@ -48,10 +49,14 @@ struct video_impl_data
     user32 user32;
     shcore shcore;
 
+    os::windows::com_initializer com;
+    os::windows::ole_initializer ole;
+
     std::wstring app_name;
     bool registered_app = false;
-
     UINT _VX_WAKEUP = 0;
+
+    owner_ptr<input::raw_input_manager> raw_input;
 
     system_theme system_theme_cache = system_theme::UNKNOWN;
 
@@ -108,12 +113,9 @@ public:
         const MONITORINFOEX* info
     ) const;
 
-    void update_displays();
-
-    inline display* get_display_for_window(const window& w)
-    {
-        return nullptr;
-    }
+    bool init_displays();
+    void quit_displays();
+    void refresh_displays();
 
     ///////////////////////////////////////////////////////////////////////////////
     // events

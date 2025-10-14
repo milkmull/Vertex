@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "vertex/config/language_config.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/app/id.hpp"
 #include "vertex/math/rect.hpp"
 #include "vertex/pixel/pixel_format.hpp"
@@ -17,8 +16,6 @@ namespace video {
 ///////////////////////////////////////////////////////////////////////////////
 // video
 ///////////////////////////////////////////////////////////////////////////////
-
-class window;
 
 using display_id = id_type;
 using window_id = id_type;
@@ -83,10 +80,9 @@ public:
 
     // implicit conversion back to id
     operator display_id() const noexcept { return m_id; }
-
     display_id id() const noexcept { return m_id; }
 
-    bool is_valid() const noexcept { return m_id != INVALID_ID; }
+    bool is_valid() const noexcept { return is_valid_id(m_id); }
     bool is_connected() const;
 
     VX_API std::string get_name() const;
@@ -112,14 +108,13 @@ private:
     display_id m_id;
 };
 
-VX_API void update_displays();
+VX_API std::vector<display_id> list_displays();
+inline bool is_display_connected(display_id id) { return display(id).is_connected(); }
+VX_API display_id get_primary_display();
 
-VX_API std::vector<display> list_displays();
-VX_API display get_primary_display();
-
-VX_API display get_display_for_point(const math::vec2i& p);
-VX_API display get_display_for_rect(const math::recti& rect);
-VX_API display get_display_for_window(const window& w);
+VX_API display_id get_display_for_point(const math::vec2i& p);
+VX_API display_id get_display_for_rect(const math::recti& rect);
+VX_API display_id get_display_for_window(window_id w);
 
 VX_API math::recti get_desktop_area();
 
@@ -143,7 +138,7 @@ struct window_config
 
     float opacity = 1.0f;
 
-    window_id display_id = INVALID_ID;
+    display_id display_id = INVALID_ID;
     bool center_on_display = false;
 
     bool minimized = false;
@@ -161,12 +156,11 @@ struct window_config
     bool mouse_capture = false;
 };
 
-VX_API window* const create_window(const window_config& config);
-VX_API void destroy_window(window& w);
-VX_API window* const get_window(window_id id);
+VX_API window_id create_window(const window_config& config);
+VX_API void destroy_window(window_id id);
 
-VX_API size_t window_count();
-VX_API window* const enum_windows(size_t i);
+VX_API bool window_exists(window_id id);
+VX_API std::vector<window_id> list_windows();
 
 } // namespace video
 } // namespace app

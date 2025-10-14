@@ -268,7 +268,7 @@ time::time_point events_instance::get_polling_interval() const
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-int events_instance::wait_event_timeout_video(video::window* w, event& e, time::time_point t, time::time_point start)
+int events_instance::wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start)
 {
     VX_ASSERT(app->is_video_init());
 
@@ -396,8 +396,8 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
 
     if (app->is_video_init())
     {
-        video::window* w = app->data.video_ptr->get_active_window();
-        if (w)
+        video::window_id w = app->data.video_ptr->get_active_window();
+        if (is_valid_id(w))
         {
             const int result = wait_event_timeout_video(w, e, t, start);
 
@@ -448,14 +448,19 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
 
 ////////////////////////////////////////
 
-VX_API bool push_event(const event& e)
+VX_API bool push_event(event& e)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->push_event(e);
 }
 
-bool events_instance::push_event(const event& e)
+bool events_instance::push_event(event& e)
 {
+    if (e.time.is_zero())
+    {
+        e.time = os::get_ticks();
+    }
+    
     if (!dispatch_event_watch(e))
     {
         return false;
@@ -652,6 +657,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_ADDED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_added.display_id,
                 " }"
             );
@@ -661,6 +667,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_REMOVED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_removed.display_id,
                 " }"
             );
@@ -670,6 +677,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_MOVED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_moved.display_id,
                 " }"
             );
@@ -679,6 +687,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_ORIENTATION_CHANGED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_orientation_changed.display_id, ',',
                 " orientation: ", static_cast<int>(e.display_orientation_changed.orientation),
                 " }"
@@ -689,6 +698,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_DESKTOP_MODE_CHANGED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_desktop_mode_changed.display_id,
                 " }"
             );
@@ -698,6 +708,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_CURRENT_MODE_CHANGED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_current_mode_changed.display_id,
                 " }"
             );
@@ -707,6 +718,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "DISPLAY_CONTENT_SCALE_CHANGED {",
+                " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_content_scale_changed.display_id, ',',
                 " scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, " }",
                 " }"
@@ -719,6 +731,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_SHOWN {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_shown.window_id,
                 " }"
             );
@@ -728,6 +741,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_HIDDEN {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_hidden.window_id,
                 " }"
             );
@@ -737,6 +751,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MOVED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_moved.window_id,
                 " position: {", e.window_moved.x, ", ", e.window_moved.y, " }",
                 " }"
@@ -747,6 +762,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_RESIZED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_resized.window_id, ',',
                 " size: {", e.window_resized.w, ", ", e.window_resized.h, " }",
                 " }"
@@ -757,6 +773,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MINIMIZED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_minimized.window_id,
                 " }"
             );
@@ -766,6 +783,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_MAXIMIZED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_maximized.window_id,
                 " }"
             );
@@ -775,6 +793,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_RESTORED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_restored.window_id,
                 " }"
             );
@@ -784,6 +803,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_ENTER_FULLSCREEN {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_enter_fullscreen.window_id,
                 " }"
             );
@@ -793,6 +813,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_LEAVE_FULLSCREEN {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_leave_fullscreen.window_id,
                 " }"
             );
@@ -802,6 +823,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_GAINED_FOCUS {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_gained_focus.window_id,
                 " }"
             );
@@ -811,6 +833,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_LOST_FOCUS {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_lost_focus.window_id,
                 " }"
             );
@@ -825,6 +848,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_DISPLAY_CHANGED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_display_changed.window_id, ',',
                 " display_id: ", e.window_display_changed.display_id,
                 " }"
@@ -839,6 +863,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_CLOSE_REQUESTED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_close_requested.window_id,
                 " }"
             );
@@ -848,6 +873,7 @@ static void log_event(const event& e)
         {
             VX_LOG_INFO(
                 "WINDOW_DESTROYED {",
+                " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_destroyed.window_id,
                 " }"
             );

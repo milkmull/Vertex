@@ -11,7 +11,7 @@
 #define VX_VIDEO_HAVE_QUIT                              0
 
 // Display management
-#define VX_VIDEO_HAVE_DISPLAY_UPDATE                    0
+#define VX_VIDEO_HAVE_REFRESH_DISPLAYS                  0
 #define VX_VIDEO_HAVE_DISPLAY_LIST_MODES                0
 #define VX_VIDEO_HAVE_DISPLAY_SET_MODE                  0
 #define VX_VIDEO_HAVE_DISPLAY_GET_BOUNDS                0
@@ -23,7 +23,7 @@
 #define VX_VIDEO_SENDS_HDR_CHANGES                      0
 
 // Event handling
-#define VX_VIDEO_HAVE_PUMP_EVENTS                        0
+#define VX_VIDEO_HAVE_PUMP_EVENTS                       0
 #define VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT                0
 #define VX_VIDEO_HAVE_SEND_WAKEUP_EVENT                 0
 #define VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER              0
@@ -37,7 +37,10 @@
 #define VX_VIDEO_HAVE_WINDOW_SET_POSITION               0
 #define VX_VIDEO_HAVE_WINDOW_SET_SIZE                   0
 #define VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE            0
-#define VX_VIDEO_HAVE_WINDOW_GET_PIXEL_SIZE             0
+#define VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS         0
+#define VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE               0
+#define VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE               0
+#define VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO           0
 #define VX_VIDEO_HAVE_WINDOW_SET_OPACITY                0
 #define VX_VIDEO_HAVE_WINDOW_SHOW                       0
 #define VX_VIDEO_HAVE_WINDOW_HIDE                       0
@@ -45,14 +48,30 @@
 #define VX_VIDEO_HAVE_WINDOW_MAXIMIZE                   0
 #define VX_VIDEO_HAVE_WINDOW_MINIMIZE                   0
 #define VX_VIDEO_HAVE_WINDOW_RESTORE                    0
+#define VX_VIDEO_HAVE_WINDOW_FLASH                      0
+#define VX_VIDEO_HAVE_WINDOW_SYNC                       0
 #define VX_VIDEO_HAVE_WINDOW_SET_BORDERED               0
 #define VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE              0
 #define VX_VIDEO_HAVE_WINDOW_SET_ALWAYS_ON_TOP          0
 #define VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN             0
 #define VX_VIDEO_HAVE_WINDOW_GET_ICC_PROFILE            0
+#define VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW         0
 #define VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT             0
 #define VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB             0
 #define VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB          0
+
+// Mouse
+#define VX_MOUSE_HAVE_CREATE_CURSOR                     0
+#define VX_MOUSE_HAVE_CREATE_SYSTEM_CURSOR              0
+#define VX_MOUSE_HAVE_SHOW_CURSOR                       0
+#define VX_MOUSE_HAVE_MOVE_CURSOR                       0
+#define VX_MOUSE_HAVE_FREE_CURSOR                       0
+#define VX_MOUSE_HAVE_WARP_MOUSE                        0
+#define VX_MOUSE_HAVE_WARP_MOUSE_GLOBAL                 0
+#define VX_MOUSE_HAVE_SET_RELATIVE_MOUSE_MODE           0
+#define VX_MOUSE_HAVE_CAPTURE_MOUSE                     0
+#define VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE            0
+#define VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE            0
 
 // Text input
 #define VX_VIDEO_HAVE_TEXT_INPUT_START                  0
@@ -92,10 +111,10 @@
 // Display management
 // ------------------------------------------------------------
 
-#ifdef VX_VIDEO_HAVE_DISPLAY_UPDATE
-#   undef VX_VIDEO_HAVE_DISPLAY_UPDATE
+#ifdef VX_VIDEO_HAVE_REFRESH_DISPLAYS
+#   undef VX_VIDEO_HAVE_REFRESH_DISPLAYS
 #endif
-#define VX_VIDEO_HAVE_DISPLAY_UPDATE 1
+#define VX_VIDEO_HAVE_REFRESH_DISPLAYS 1
 
 #ifdef VX_VIDEO_HAVE_DISPLAY_LIST_MODES
 #   undef VX_VIDEO_HAVE_DISPLAY_LIST_MODES
@@ -210,10 +229,25 @@
 #endif
 #define VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE 1
 
-#ifdef VX_VIDEO_HAVE_WINDOW_GET_PIXEL_SIZE
-#   undef VX_VIDEO_HAVE_WINDOW_GET_PIXEL_SIZE
+#ifdef VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS
+#   undef VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS
 #endif
-#define VX_VIDEO_HAVE_WINDOW_GET_PIXEL_SIZE 1
+#define VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS 1
+
+#ifdef VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+#   undef VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+#endif
+#define VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE 1
+
+#ifdef VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+#   undef VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+#endif
+#define VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE 1
+
+#ifdef VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+#   undef VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+#endif
+#define VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO 1
 
 #ifdef VX_VIDEO_HAVE_WINDOW_SET_OPACITY
 #   undef VX_VIDEO_HAVE_WINDOW_SET_OPACITY
@@ -250,6 +284,16 @@
 #endif
 #define VX_VIDEO_HAVE_WINDOW_RESTORE 1
 
+#ifdef VX_VIDEO_HAVE_WINDOW_FLASH
+#   undef VX_VIDEO_HAVE_WINDOW_FLASH
+#endif
+#define VX_VIDEO_HAVE_WINDOW_FLASH 1
+
+#ifdef VX_VIDEO_HAVE_WINDOW_SYNC
+#   undef VX_VIDEO_HAVE_WINDOW_SYNC
+#endif
+#define VX_VIDEO_HAVE_WINDOW_SYNC 1
+
 #ifdef VX_VIDEO_HAVE_WINDOW_SET_BORDERED
 #   undef VX_VIDEO_HAVE_WINDOW_SET_BORDERED
 #endif
@@ -275,6 +319,11 @@
 #endif
 #define VX_VIDEO_HAVE_WINDOW_GET_ICC_PROFILE 1
 
+#ifdef VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+#   undef VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+#endif
+#define VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW 1
+
 #ifdef VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
 #   undef VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
 #endif
@@ -289,6 +338,65 @@
 #   undef VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
 #endif
 #define VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB 1
+
+// ------------------------------------------------------------
+// Mouse
+// ------------------------------------------------------------
+
+#ifdef VX_MOUSE_HAVE_CREATE_CURSOR
+#   undef VX_MOUSE_HAVE_CREATE_CURSOR
+#endif
+#define VX_MOUSE_HAVE_CREATE_CURSOR 1
+
+#ifdef VX_MOUSE_HAVE_CREATE_SYSTEM_CURSOR
+#   undef VX_MOUSE_HAVE_CREATE_SYSTEM_CURSOR
+#endif
+#define VX_MOUSE_HAVE_CREATE_SYSTEM_CURSOR 1
+
+#ifdef VX_MOUSE_HAVE_SHOW_CURSOR
+#   undef VX_MOUSE_HAVE_SHOW_CURSOR
+#endif
+#define VX_MOUSE_HAVE_SHOW_CURSOR 1
+
+#ifdef VX_MOUSE_HAVE_MOVE_CURSOR
+#   undef VX_MOUSE_HAVE_MOVE_CURSOR
+#endif
+#define VX_MOUSE_HAVE_MOVE_CURSOR 1
+
+#ifdef VX_MOUSE_HAVE_FREE_CURSOR
+#   undef VX_MOUSE_HAVE_FREE_CURSOR
+#endif
+#define VX_MOUSE_HAVE_FREE_CURSOR 1
+
+#ifdef VX_MOUSE_HAVE_WARP_MOUSE
+#   undef VX_MOUSE_HAVE_WARP_MOUSE
+#endif
+#define VX_MOUSE_HAVE_WARP_MOUSE 1
+
+#ifdef VX_MOUSE_HAVE_WARP_MOUSE_GLOBAL
+#   undef VX_MOUSE_HAVE_WARP_MOUSE_GLOBAL
+#endif
+#define VX_MOUSE_HAVE_WARP_MOUSE_GLOBAL 1
+
+#ifdef VX_MOUSE_HAVE_SET_RELATIVE_MOUSE_MODE
+#   undef VX_MOUSE_HAVE_SET_RELATIVE_MOUSE_MODE
+#endif
+#define VX_MOUSE_HAVE_SET_RELATIVE_MOUSE_MODE 1
+
+#ifdef VX_MOUSE_HAVE_CAPTURE_MOUSE
+#   undef VX_MOUSE_HAVE_CAPTURE_MOUSE
+#endif
+#define VX_MOUSE_HAVE_CAPTURE_MOUSE 1
+
+#ifdef VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE
+#   undef VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE
+#endif
+#define VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE 1
+
+#ifdef VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE
+#   undef VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE
+#endif
+#define VX_MOUSE_HAVE_GET_GLOBAL_MOUSE_STATE 1
 
 // ------------------------------------------------------------
 // Text input

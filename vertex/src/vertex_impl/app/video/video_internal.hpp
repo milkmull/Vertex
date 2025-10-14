@@ -2,6 +2,7 @@
 
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
+#include "vertex_impl/app/video/window_internal.hpp"
 #include "vertex_impl/app/input/mouse_internal.hpp"
 #include "vertex_impl/app/input/keyboard_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
@@ -43,8 +44,10 @@ struct video_data
     std::vector<display_instance> displays;
     bool setting_display_mode = false;
 
-    std::vector<owner_ptr<window>> windows;
-    os::atomic<const window*> wakeup_window = nullptr;
+    id_generator window_id_generator;
+    std::vector<window_instance> windows;
+    window_id grabbed_window = INVALID_ID;
+    os::atomic<window_id> wakeup_window = INVALID_ID;
 
     bool suspend_screen_saver = false;
     video_hints hints;
@@ -102,9 +105,6 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     static display create_display_reference(display_id id) { return display(id); }
-#   define invalid_display display(INVALID_ID)
-
-    void update_displays();
 
     std::vector<display_id> list_displays() const;
     size_t get_display_index(display_id id) const;
@@ -117,8 +117,8 @@ public:
 
     display_id get_display_for_point(const math::vec2i& p) const;
     display_id get_display_for_rect(const math::recti& rect) const;
-    display_id get_display_at_origin(const math::vec2i& o) const;
-    display_id get_display_for_window(const window& w) const;
+    display_id get_display_at_origin(const math::vec2i& origin) const;
+    display_id get_display_for_window(window_id id, bool ignore_pending) const;
 
     math::recti get_desktop_area() const;
 
@@ -132,15 +132,16 @@ public:
     math::recti get_display_bounds(display_id id) const;
     math::recti get_display_work_area(display_id id) const;
 
-    bool get_display_desktop_mode(display_id id, display_mode& mode) const;
-    bool get_display_current_mode(display_id id, display_mode& mode) const;
+    const display_mode_instance* get_display_desktop_mode(display_id id) const;
+    const display_mode* get_display_current_mode(display_id id) const;
     bool set_display_current_mode(display_id id, const display_mode& mode);
 
     void reset_display_mode(display_id id);
 
     std::vector<display_mode> list_display_modes_for_display(display_id id) const;
     bool display_has_mode(display_id id, const display_mode& mode) const;
-    bool find_closest_display_mode_for_display(display_id id, const display_mode& mode, display_mode& closest) const;
+    const display_mode_instance* find_display_mode_for_display(display_id id, const display_mode& mode) const;
+    const display_mode_instance* find_closest_display_mode_for_display(display_id id, const display_mode& mode) const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // screen saver
@@ -154,20 +155,20 @@ public:
     // windows
     ///////////////////////////////////////////////////////////////////////////////
 
-    window* create_window(const window_config& config);
-    void destroy_window(window& w);
+    window_id create_window(const window_config& config);
+    void destroy_window(window_id id);
     void destroy_windows();
 
-    std::vector<window_id> get_window_ids();
-    window* get_window(window_id id);
-    window_id get_window_id(const window& w);
+    std::vector<window_id> list_windows() const;
+    size_t get_window_index(window_id id) const;
+    bool window_exists(window_id id) const;
 
-    size_t window_count();
-    window* enum_windows(size_t i);
+    window_instance* get_window_instance(window_id id);
+    const window_instance* get_window_instance(window_id id) const;
 
-    void check_window_display_changed(window& w);
+    void check_window_display_changed(window_id id);
 
-    window* get_active_window();
+    window_id get_active_window();
     void set_wakeup_window(window* w);
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -186,39 +187,22 @@ public:
     // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsevents.c#L2432
 
     void pump_events();
-    bool wait_event_timeout(const window* w, time::time_point t);
+    bool wait_event_timeout(window_id w, time::time_point t);
     void send_wakeup_event(); 
 
     bool post_system_theme_changed(system_theme theme);
 
-    bool post_display_added(const display_instance& d);
+    bool post_display_added(display_id id);
     void on_display_added();
 
-    bool post_display_removed(const display_instance& d);
-    bool post_display_moved(const display_instance& d);
-    bool post_display_orientation_changed(display_instance& d, display_orientation orientation);
-    bool post_display_desktop_mode_changed(display_instance& d, const display_mode& mode);
-    bool post_display_current_mode_changed(display_instance& d, const display_mode& mode);
-    bool post_display_content_scale_changed(display_instance& d, const math::vec2& content_scale);
+    bool post_display_removed(display_id id);
+    bool post_display_moved(display_id id);
+    bool post_display_orientation_changed(display_id id, display_orientation orientation);
+    bool post_display_desktop_mode_changed(display_id id, const display_mode& mode);
+    bool post_display_current_mode_changed(display_id id, const display_mode& mode);
+    bool post_display_content_scale_changed(display_id id, const math::vec2& content_scale);
 
-    ///////////////////////////////////////////////////////////////////////////////
-    // impl helpers
-    ///////////////////////////////////////////////////////////////////////////////
-
-    template <typename T>
-    T* create() { return new T; }
-
-    template <typename T>
-    T construct() { return T{}; }
-
-    template <typename T>
-    auto create_impl() { return std::make_unique<T>(); }
-
-    template <typename T>
-    auto* get_impl(T& x) { return x.m_impl.get(); }
-
-    template <typename T>
-    const auto* get_impl(const T& x) { return x.m_impl.get(); }
+    bool post_window_destroyed(window_id id);
 
     ///////////////////////////////////////////////////////////////////////////////
     // data
@@ -309,10 +293,10 @@ public:
     math::recti get_bounds() const;
     math::recti get_work_area() const;
 
-    bool get_desktop_mode(display_mode& mode) const;
+    const display_mode_instance& get_desktop_mode() const;
     void set_desktop_mode(display_mode_instance& mode);
 
-    bool get_current_mode(display_mode& mode) const;
+    const display_mode& get_current_mode() const;
     bool set_current_mode(const display_mode& mode);
 
     void reset_mode();
@@ -320,7 +304,7 @@ public:
     std::vector<display_mode> list_modes() const;
     bool has_mode(const display_mode& mode) const;
     const display_mode_instance* find_mode(const display_mode& mode) const;
-    bool find_closest_mode(const display_mode& mode, display_mode& closest) const;
+    const display_mode_instance* find_closest_mode(const display_mode& mode) const;
 
 public:
 

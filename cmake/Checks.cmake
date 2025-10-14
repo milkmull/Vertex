@@ -44,8 +44,10 @@ endfunction()
 function(vx_check_available_features TARGET_NAME)
 
     vx_link_threads(${TARGET_NAME})
+    
+    if(VX_CMAKE_PLATFORM_WINDOWS)
 
-    if(VX_CMAKE_PLATFORM_UNIX)
+    elseif(VX_CMAKE_PLATFORM_UNIX)
     
         vx_check_function_exists(${TARGET_NAME} "localtime_r"     HAVE_GMTIME_R)
         vx_check_function_exists(${TARGET_NAME} "localtime_r"     HAVE_LOCALTIME_R)

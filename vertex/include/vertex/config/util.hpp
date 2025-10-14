@@ -11,3 +11,5 @@
 #define VX_CONCAT(a, b) _VX_CONCAT(a, b)
 
 #define VX_BIT(i) (1u << (i))
+
+#define VX_INVALID_INDEX SIZE_MAX

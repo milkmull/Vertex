@@ -28,6 +28,8 @@ public:
     id_type next() { return ++m_id; }
     void reset() { m_id = INVALID_ID; }
 
+    id_type operator()() { return next(); }
+
 private:
 
     os::atomic<id_type> m_id = 0;

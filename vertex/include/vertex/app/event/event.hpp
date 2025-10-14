@@ -227,6 +227,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     event_type type;
+    time::time_point time;
 
     union
     {
@@ -484,7 +485,7 @@ public:
 
         struct
         {
-            mouse::button button;
+            mouse::buttons buttons;
             int32_t x, y;
             uint8_t clicks;
         }
@@ -492,7 +493,7 @@ public:
 
         struct
         {
-            mouse::button button;
+            mouse::buttons buttons;
             int32_t x, y;
         }
         mouse_button_up;
@@ -601,7 +602,7 @@ inline bool wait_event(event& e)
 
 ////////////////////////////////////////
 
-VX_API bool push_event(const event& e);
+VX_API bool push_event(event& e);
 VX_API bool poll_event(event& e);
 
 ////////////////////////////////////////
