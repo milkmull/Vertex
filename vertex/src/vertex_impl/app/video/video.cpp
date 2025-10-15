@@ -410,7 +410,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
     
     if (is_fullscreen)
     {
-        d = w->data.current_fullscreen_mode.display;
+        d = w->data.current_fullscreen_mode.mode.display;
     
         if (!ignore_pending && !is_valid_id(d))
         {
@@ -683,7 +683,7 @@ void display_instance::init_modes() const
 
     for (display_mode_instance& m : data.modes)
     {
-        m.data.display_id = data.id;
+        m.data.mode.display = data.id;
     }
 
 #endif // VX_VIDEO_HAVE_DISPLAY_LIST_MODES
@@ -722,7 +722,7 @@ const display_mode_instance& display_instance::get_desktop_mode() const
 
 void display_instance::set_desktop_mode(display_mode_instance& mode)
 {
-    if (data.fullscreen_window_id != INVALID_ID)
+    if (data.fullscreen_active)
     {
         // This is a temporary mode change, don't save the desktop mode
         return;
@@ -845,18 +845,23 @@ bool display_instance::set_current_mode(const display_mode& mode)
 VX_API void display::reset_mode()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
-    s_video_ptr->reset_display_mode(m_id);
+    s_video_ptr->reset_display_mode(m_id, false);
 }
 
-void video_instance::reset_display_mode(display_id id)
+void video_instance::reset_display_mode(display_id id, bool clear_fullscreen_window)
 {
     display_instance* d = get_display_instance(id);
-    if (d) d->reset_mode();
+    if (d) d->reset_mode(clear_fullscreen_window);
 }
 
-void display_instance::reset_mode()
+void display_instance::reset_mode(bool clear_fullscreen_window)
 {
     set_current_mode(data.desktop_mode.data.mode);
+
+    if (clear_fullscreen_window)
+    {
+        data.fullscreen_window_id = INVALID_ID;
+    }
 }
 
 ///////////////////////////////////////
@@ -889,12 +894,9 @@ std::vector<display_mode> display_instance::list_modes() const
 
 ///////////////////////////////////////
 
-const display_mode_instance* video_instance::find_display_mode_for_display(display_id id, const display_mode& mode) const
+const display_mode_instance* video_instance::find_display_mode(const display_mode& mode) const
 {
-    if (!is_valid_id(id))
-    {
-        id = get_primary_display();
-    }
+    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
 
     const display_instance* d = get_display_instance(id);
     if (!d)
@@ -956,7 +958,13 @@ VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& c
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
 
-    const display_mode_instance* dmi = s_video_ptr->find_closest_display_mode_for_display(m_id, mode);
+    const display_instance* di = s_video_ptr->get_display_instance(m_id);
+    if (!di)
+    {
+        return false;
+    }
+
+    const display_mode_instance* dmi = di->find_closest_mode(mode);
     if (!dmi)
     {
         return false;
@@ -966,9 +974,16 @@ VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& c
     return true;
 }
 
-const display_mode_instance* video_instance::find_closest_display_mode_for_display(display_id id, const display_mode& mode) const
+const display_mode_instance* video_instance::find_closest_display_mode(const display_mode& mode) const
 {
+    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+
     const display_instance* d = get_display_instance(id);
+    if (!d)
+    {
+        return nullptr;
+    }
+
     return d->find_closest_mode(mode);
 }
 
@@ -1036,6 +1051,33 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
     }
 
     return closest;
+}
+
+////////////////////////////////////////
+
+const display_mode_instance* video_instance::find_display_mode_candidate(const display_mode& mode) const
+{
+    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+
+    const display_instance* d = get_display_instance(id);
+    if (!d)
+    {
+        return nullptr;
+    }
+
+    const display_mode_instance* candidate = d->find_mode(mode);
+
+    if (!candidate)
+    {
+        candidate = d->find_closest_mode(mode);
+    }
+
+    if (!candidate)
+    {
+        candidate = &d->get_desktop_mode();
+    }
+
+    return candidate;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1334,37 +1376,111 @@ window_id video_instance::get_active_window()
     return INVALID_ID;
 }
 
+////////////////////////////////////////
+
+window_instance* video_instance::get_grabbed_window()
+{
+    return get_window_instance(data.grabbed_window);
+}
+
+////////////////////////////////////////
+
+void video_instance::set_grabbed_window(window_id w)
+{
+    if (data.grabbed_window == w)
+    {
+        return;
+    }
+
+    window_instance* grabbed_window = get_grabbed_window();
+    if (grabbed_window)
+    {
+        grabbed_window->clear_grab();
+    }
+
+    data.grabbed_window = w;
+}
+
+////////////////////////////////////////
+
+void video_instance::validate_grabbed_window()
+{
+    window_instance* grabbed_window = get_grabbed_window();
+
+    if (grabbed_window && !(grabbed_window->data.flags & (window_flags::MOUSE_GRABBED | window_flags::KEYBOARD_GRABBED)))
+    {
+        data.grabbed_window = INVALID_ID;
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // fullscreen helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-//window_id video_instance::get_display_fullscreen_window_id(const display& d)
-//{
-//    return d.m_fullscreen_window_id;
-//}
-//
-//void video_instance::set_display_fullscreen_window_id(display& d, window_id id)
-//{
-//    d.m_fullscreen_window_id = id;
-//}
-//
-//void video_instance::clear_display_fullscreen_window_id(display& d)
-//{
-//    d.m_fullscreen_window_id = INVALID_ID;
-//}
-//
-//display* video_instance::find_display_with_fullscreen_window(const window& w)
-//{
-//    for (const auto& d : data.displays)
-//    {
-//        if (d->m_fullscreen_window_id == w.m_id)
-//        {
-//            return d.get();
-//        }
-//    }
-//
-//    return nullptr;
-//}
+window_id video_instance::get_display_fullscreen_window_id(display_id id) const
+{
+    if (!is_valid_id(id))
+    {
+        return INVALID_ID;
+    }
+
+    const display_instance* d = get_display_instance(id);
+    return d ? d->data.fullscreen_window_id : INVALID_ID;
+}
+
+////////////////////////////////////////
+
+void video_instance::set_display_fullscreen_window_id(display_id id, window_id wid)
+{
+    if (!is_valid_id(id))
+    {
+        return;
+    }
+
+    display_instance* d = get_display_instance(id);
+    if (d)
+    {
+        d->data.fullscreen_window_id = wid;
+    }
+}
+
+////////////////////////////////////////
+
+display_id video_instance::find_display_with_fullscreen_window(window_id id)
+{
+    if (!is_valid_id(id))
+    {
+        return INVALID_ID;
+    }
+
+    for (const display_instance& d : data.displays)
+    {
+        if (d.data.fullscreen_window_id == id)
+        {
+            return d.data.id;
+        }
+    }
+
+    return INVALID_ID;
+}
+
+////////////////////////////////////////
+
+void video_instance::reset_display_modes_for_window(window_id w, display_id target_display)
+{
+    if (!is_valid_id(w))
+    {
+        return;
+    }
+
+    for (display_instance& di : data.displays)
+    {
+        if (di.data.id != target_display && di.data.fullscreen_window_id == w)
+        {
+            di.reset_mode(true);
+        }
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // events

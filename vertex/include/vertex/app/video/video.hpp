@@ -44,6 +44,7 @@ VX_API system_theme get_system_theme();
 
 struct display_mode
 {
+    display_id display = INVALID_ID;
     math::vec2i resolution;                                                     // resolution
     int bpp = 0;                                                                // bits per pixel
     pixel::pixel_format pixel_format = pixel::pixel_format::UNKNOWN;            // pixel format

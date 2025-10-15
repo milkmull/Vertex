@@ -114,7 +114,7 @@ public:
 
     void restore();
 
-    bool set_fullscreen(typename window_instance::fullscreen_op fullscreen, const display* d);
+    typename window_instance::fullscreen_result set_fullscreen(typename window_instance::fullscreen_op::type fullscreen, display_instance& display);
 
     void focus();
     bool is_focused() const;
@@ -130,6 +130,13 @@ public:
 
     bool set_icon(const pixel::surface_rgba8& surf);
     void clear_icon();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // grab
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool set_mouse_grab(bool grabbed);
+    bool set_keyboard_grab(bool grabbed);
 
     ///////////////////////////////////////////////////////////////////////////////
     // mouse

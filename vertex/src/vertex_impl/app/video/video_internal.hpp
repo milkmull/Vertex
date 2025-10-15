@@ -136,12 +136,14 @@ public:
     const display_mode* get_display_current_mode(display_id id) const;
     bool set_display_current_mode(display_id id, const display_mode& mode);
 
-    void reset_display_mode(display_id id);
+    void reset_display_mode(display_id id, bool clear_fullscreen_window);
 
     std::vector<display_mode> list_display_modes_for_display(display_id id) const;
     bool display_has_mode(display_id id, const display_mode& mode) const;
-    const display_mode_instance* find_display_mode_for_display(display_id id, const display_mode& mode) const;
-    const display_mode_instance* find_closest_display_mode_for_display(display_id id, const display_mode& mode) const;
+
+    const display_mode_instance* find_display_mode(const display_mode& mode) const;
+    const display_mode_instance* find_closest_display_mode(const display_mode& mode) const;
+    const display_mode_instance* find_display_mode_candidate(const display_mode& mode) const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // screen saver
@@ -171,14 +173,19 @@ public:
     window_id get_active_window();
     void set_wakeup_window(window* w);
 
+    window_instance* get_grabbed_window();
+    void set_grabbed_window(window_id w);
+    void validate_grabbed_window();
+
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    window_id get_display_fullscreen_window_id(const display& d);
-    void set_display_fullscreen_window_id(display& d, window_id id);
-    void clear_display_fullscreen_window_id(display& d);
-    display* find_display_with_fullscreen_window(const window& w);
+    window_id get_display_fullscreen_window_id(display_id id) const;
+    void set_display_fullscreen_window_id(display_id id, window_id wid);
+    display_id find_display_with_fullscreen_window(window_id id);
+
+    void reset_display_modes_for_window(window_id w, display_id target_display);
 
     ///////////////////////////////////////////////////////////////////////////////
     // events
@@ -232,7 +239,6 @@ struct display_mode_instance_impl_deleter
 struct display_mode_data
 {
     display_mode mode;
-    display_id display_id = INVALID_ID;
 };
 
 class display_mode_instance
@@ -272,6 +278,8 @@ struct display_data
     display_orientation natural_orientation;
     math::vec2 content_scale;
 
+    // This is true if we are fullscreen or fullscreen is pending
+    bool fullscreen_active = false;
     window_id fullscreen_window_id = INVALID_ID;
 };
 
@@ -299,7 +307,7 @@ public:
     const display_mode& get_current_mode() const;
     bool set_current_mode(const display_mode& mode);
 
-    void reset_mode();
+    void reset_mode(bool clear_fullscreen_window);
 
     std::vector<display_mode> list_modes() const;
     bool has_mode(const display_mode& mode) const;

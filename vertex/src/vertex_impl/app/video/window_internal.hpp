@@ -58,12 +58,6 @@ enum window_rect_type
 // window data
 ///////////////////////////////////////////////////////////////////////////////
 
-struct display_mode_pair
-{
-    display_id display;
-    display_mode mode;
-};
-
 struct window_data
 {
     window_id id = INVALID_ID;
@@ -131,16 +125,15 @@ struct window_data
 
     // stores the requested mode inormation, can be used to look up the closes mode to the requested
     // configuration if the exact requestes mode does not exist
-    display_mode_pair requested_fullscreen_mode;
-    display_mode_pair current_fullscreen_mode;
+    display_mode requested_fullscreen_mode;
+    bool requested_fullscreen_mode_set = false;
+    // when the fullscreen flag is set, it is assumed that this value is valid
+    display_mode current_fullscreen_mode;
+
+    bool update_fullscreen_on_display_changed = false;
 
     bool fullscreen_exclusive = false;
-
-#if defined(VX_VIDEO_BACKEND_COCOA)
-
     display_id last_fullscreen_exclusive_display_id = INVALID_ID;
-
-#endif // VX_VIDEO_BACKEND_COCOA
 
     // The id of the display that the window was last detected on
     display_id last_display_id = INVALID_ID;
@@ -271,19 +264,33 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
     
     bool is_fullscreen() const;
+    bool is_fullscreen_visible() const;
+    
+    const display_mode& get_fullscreen_mode() const;
+    bool set_fullscreen_mode(const display_mode* mode);  
+
     bool set_fullscreen(bool fullscreen);
-    
-    const display_mode_instance* get_fullscreen_mode() const;
-    bool set_fullscreen_mode(const display_mode& mode);
-    
-    enum fullscreen_op
+
+    struct fullscreen_op
     {
-        LEAVE = 0,
-        ENTER = 1,
-        UPDATE
+        using type = int;
+
+        enum : type
+        {
+            LEAVE = 0,
+            ENTER = 1,
+            UPDATE
+        };
+    };
+
+    enum class fullscreen_result
+    {
+        FAILED,
+        SUCCEEDED,
+        PENDING
     };
     
-    bool update_fullscreen_mode(fullscreen_op fullscreen, bool commit);
+    bool update_fullscreen_mode(typename fullscreen_op::type fullscreen, bool commit);
 
     ///////////////////////////////////////////////////////////////////////////////
     // icon
@@ -293,26 +300,31 @@ public:
     void clear_icon();
 
     ///////////////////////////////////////////////////////////////////////////////
-    // mouse
+    // grab
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool set_mouse_grab(bool grabbed);
+    bool set_keyboard_grab(bool grabbed);
+
+    void clear_grab();
+    void update_grab();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // focus
     ///////////////////////////////////////////////////////////////////////////////
 
     bool has_mouse_focus() const;
+    bool has_keyboard_focus() const;
 
-    bool set_mouse_grab(bool grabbed);
+    ///////////////////////////////////////////////////////////////////////////////
+    // mouse
+    ///////////////////////////////////////////////////////////////////////////////
 
     void set_mouse_capture(bool capture);
     bool mouse_capture_enabled() const;
-
-    ///////////////////////////////////////////////////////////////////////////////
-    // keyboard
-    ///////////////////////////////////////////////////////////////////////////////
-
-    bool has_keyboard_focus() const;
-
-    bool set_keyboard_grab(bool grabbed);
     
     ///////////////////////////////////////////////////////////////////////////////
-    // window_instance events
+    // events
     ///////////////////////////////////////////////////////////////////////////////
     
     bool post_window_shown();

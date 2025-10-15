@@ -1,5 +1,6 @@
 #include "vertex_impl/app/video/_platform/platform_window.hpp"
-#include "vertex/app/event/event.hpp"
+#include "vertex_impl/app/app_internal.hpp"
+#include "vertex_impl/app/event/event_internal.hpp"
 
 namespace vx {
 namespace app {
@@ -17,10 +18,6 @@ void window_instance_impl_deleter::operator()(window_instance_impl* ptr) const n
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
 ///////////////////////////////////////////////////////////////////////////////
-
-#define IS_FULLSCREEN_VISIBLE(w) (((w)->data.flags & window_flags::FULLSCREEN) && !((w)->data.flags & window_flags::HIDDEN) && !((w)->data.flags & window_flags::MINIMIZED))
-
-///////////////////////////////////////
 
 #define VX_CHECK_WINDOW_INIT(r) \
 do \
@@ -927,28 +924,85 @@ bool window_instance::flash(window_flash_op operation)
 // fullscreen
 ///////////////////////////////////////////////////////////////////////////////
 
-const display_mode_instance* window_instance::get_fullscreen_mode() const
+bool window_instance::is_fullscreen() const
 {
-    const display_mode_pair& pair = (data.flags & window_flags::FULLSCREEN) ? data.current_fullscreen_mode : data.requested_fullscreen_mode;
+    return (data.flags & window_flags::FULLSCREEN);
+}
 
-    // first try to find an exact match
-    const display_mode_instance* dmi = video->find_display_mode_for_display(pair.display, pair.mode);
-    if (dmi)
+bool window_instance::is_fullscreen_visible() const
+{
+    return ((data.flags & window_flags::FULLSCREEN) && !(data.flags & window_flags::HIDDEN) && !(data.flags & window_flags::MINIMIZED));
+}
+
+const display_mode& window_instance::get_fullscreen_mode() const
+{
+    const display_mode_instance* mode = nullptr;
+
+    if (data.flags & window_flags::FULLSCREEN)
     {
-        return dmi;
+        mode = video->find_display_mode_candidate(data.current_fullscreen_mode);
+    }
+    else if (data.requested_fullscreen_mode_set)
+    {
+        mode = video->find_display_mode_candidate(data.requested_fullscreen_mode);
     }
 
-    // return the best candidate mode
-    return video->find_closest_display_mode_for_display(pair.display, pair.mode);
+    if (!mode)
+    {
+        // fallback to desktop mode for current display
+        const display_id d = video->get_display_for_window(data.id, false);
+        mode = video->get_display_desktop_mode(d);
+    }
+
+    VX_ASSERT(mode);
+    return mode->data.mode;
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2127
 
-bool window_instance::set_fullscreen_mode(const display_mode& mode)
+bool window_instance::set_fullscreen_mode(const display_mode* mode)
 {
-    data.requested_fullscreen_mode = mode;
+    if (mode)
+    {
+        if (!video->find_display_mode_candidate(*mode))
+        {
+            err::set(err::SYSTEM_ERROR, "invalid fullscreen display mode");
+            return false;
+        }
 
-    if (IS_FULLSCREEN_VISIBLE(this))
+        data.requested_fullscreen_mode = *mode;
+        data.requested_fullscreen_mode_set = true;
+    }
+    else
+    {
+        data.requested_fullscreen_mode_set = false;
+    }
+
+    // Mirror the requested mode into the "current" mode immediately
+    //
+    // This ensures that if the backend is already in the middle of an asynchronous
+    // fullscreen transition (e.g. entering fullscreen), we don’t end up with stale
+    // data. The actual active mode may still change when the transition completes,
+    // but this keeps the app’s internal state consistent until then.
+    data.current_fullscreen_mode = get_fullscreen_mode();
+
+#if defined(VX_VIDEO_BACKEND_COCOA)
+
+    // On macOS, entering fullscreen involves an OS-level "Spaces" animation
+    // and transition that temporarily detaches the window from normal rendering
+    // control. If we try to change display modes during that transition,
+    // the window can get stuck in a corrupted or undefined state.
+    //
+    // So here, we wait until the transition is finished before continuing.
+
+    if (impl_ptr->in_fullscreen_space_transition())
+    {
+        sync();
+    }
+
+#endif // VX_VIDEO_BACKEND_COCOA
+
+    if (is_fullscreen_visible())
     {
         update_fullscreen_mode(fullscreen_op::UPDATE, true);
         sync();
@@ -959,625 +1013,897 @@ bool window_instance::set_fullscreen_mode(const display_mode& mode)
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1894
 
-//bool window_instance::update_fullscreen_mode(fullscreen_op fullscreen, bool commit)
-//{
-//    display* d = nullptr;
-//    const display_mode* mode = nullptr;
-//
-//    data.fullscreen_exclusive = false;
-//
-//    // If we are hiding or destroying, don't go back into fullscreen
-//    if (data.hiding || data.destroying)
-//    {
-//        fullscreen = fullscreen_op::LEAVE;
-//    }
-//
-//    if (fullscreen)
-//    {
-//        d = get_display_for_window(*this);
-//        if (!d)
-//        {
-//            // Should never happen
-//            goto done;
-//        }
-//    }
-//    else
-//    {
-//        // Check if the window is currently fullscreen on any display
-//        display* od = video_internal::find_display_with_fullscreen_window(*this);
-//        if (od)
-//        {
-//            d = od;
-//        }
-//    }
-//
-//    if (fullscreen)
-//    {
-//        mode = get_fullscreen_mode();
-//        if (!mode)
-//        {
-//            goto error;
-//        }
-//
-//        data.fullscreen_exclusive = true;
-//    }
-//
-//    if (d)
-//    {
-//        // If the window is switching displays, restore the display mode on the old ones
-//        display* od = video_internal::find_display_with_fullscreen_window(*this);
-//        if (od && d != od)
-//        {
-//            od->clear_mode();
-//            video_internal::clear_display_fullscreen_window_id(*od);
-//        }
-//    }
-//
-//    if (fullscreen)
-//    {
-//        // d is guarenteed not to be null here
-//
-//        const device_id d_fullscreen_window_id = video_internal::get_display_fullscreen_window_id(*d);
-//        if (d_fullscreen_window_id != data.id)
-//        {
-//            // If there is another fullscreen window on the target display, minimize it
-//            window* w = get_window(d_fullscreen_window_id);
-//            if (w)
-//            {
-//                w->minimize();
-//            }
-//        }
-//
-//        display_mode final_mode = *mode;
-//        if (!d->set_current_mode(final_mode))
-//        {
-//            goto error;
-//        }
-//
-//        if (commit)
-//        {
-//            if (!impl_ptr->set_fullscreen(fullscreen, d))
-//            {
-//                goto error;
-//            }
-//
-//            // Set the current fullscreen mode
-//            data.current_fullscreen_mode = final_mode;
-//
-//            // Post the enter fullscreen event if it has not been posted yet
-//            if (!(data.flags & window_flags::FULLSCREEN))
-//            {
-//                post_window_enter_fullscreen();
-//            }
-//        }
-//
-//        if (data.flags & window_flags::FULLSCREEN)
-//        {
-//            video_internal::set_display_fullscreen_window_id(*d, data.id);
-//
-//            // Some backends don't send a new window size event when fullscreening
-//            if (!(has_capabilities(capabilities::SENDS_FULLSCREEN_DIMENSIONS)))
-//            {
-//                if (data.size != mode->resolution)
-//                {
-//                    post_window_resized(mode->resolution.x, mode->resolution.y);
-//                }
-//                else
-//                {
-//                    on_window_resized();
-//                }
-//            }
-//
-//            if (!(has_capabilities(capabilities::DISABLE_FULLSCREEN_MOUSE_WARP)))
-//            {
-//                // restore cursor position
-//            }
-//        }
-//    }
-//    else
-//    {
-//        // Restore desktop mode
-//        if (d)
-//        {
-//            d->clear_mode();
-//        }
-//
-//        if (commit)
-//        {
-//            if (!impl_ptr->set_fullscreen(fullscreen_op::LEAVE, (d ? d : get_display_for_window(*this))))
-//            {
-//                goto error;
-//            }
-//
-//            // Clear the current fullscreen mode
-//            video_internal::clear_display_mode_display_id(data.current_fullscreen_mode);
-//
-//            // Post the leave fullscreen event if it has not been posted yet
-//            if (data.flags & window_flags::FULLSCREEN)
-//            {
-//                post_window_leave_fullscreen();
-//            }
-//        }
-//
-//        if (!(data.flags & window_flags::FULLSCREEN))
-//        {
-//            if (d)
-//            {
-//                video_internal::clear_display_fullscreen_window_id(*d);
-//            }
-//
-//            // Some backends don't send a new window size event when fullscreening
-//            if (!(has_capabilities(capabilities::SENDS_FULLSCREEN_DIMENSIONS)))
-//            {
-//                if (data.size != data.windowed_rect.size)
-//                {
-//                    post_window_resized(data.windowed_rect.size.x, data.windowed_rect.size.y);
-//                }
-//                else
-//                {
-//                    on_window_resized();
-//                }
-//            }
-//
-//            if (d && !(has_capabilities(capabilities::DISABLE_FULLSCREEN_MOUSE_WARP)))
-//            {
-//                // restore cursor position
-//            }
-//        }
-//    }
-//
-//    done:
-//    {
-//        if (d && (data.flags & window_flags::FULLSCREEN) && data.fullscreen_exclusive)
-//        {
-//            data.last_fullscreen_exclusive_display_id = video_internal::get_display_id(*d);
-//        }
-//        else
-//        {
-//            data.last_fullscreen_exclusive_display_id = 0;
-//        }
-//
-//        return true;
-//    }
-//
-//    error:
-//    {
-//        if (fullscreen)
-//        {
-//            // Something went wrong, exit fullscreen
-//            update_fullscreen_mode(fullscreen_op::LEAVE, commit);
-//        }
-//
-//        return false;
-//    }
-//}
-//
-//bool window_instance::is_fullscreen() const
-//{
-//    return data.flags & window_flags::FULLSCREEN;
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3448
-//
-//bool window_instance::set_fullscreen(bool fullscreen)
-//{
-//    if (data.flags & window_flags::HIDDEN)
-//    {
-//        if (fullscreen)
-//        {
-//            data.pending_flags |= window_flags::FULLSCREEN;
-//        }
-//        else
-//        {
-//            data.pending_flags &= ~window_flags::FULLSCREEN;
-//        }
-//
-//        return true;
-//    }
-//
-//    if (update_fullscreen_mode(fullscreen ? fullscreen_op::ENTER : fullscreen_op::LEAVE, true))
-//    {
-//        sync();
-//        return true;
-//    }
-//
-//    return false;
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// icon
-/////////////////////////////////////////////////////////////////////////////////
-//
-//bool window_instance::set_icon(const pixel::surface_rgba8& surf)
-//{
-//    if (surf.empty())
-//    {
-//        return false;
-//    }
-//
-//    return impl_ptr->set_icon(surf);
-//}
-//
-//void window_instance::clear_icon()
-//{
-//    impl_ptr->clear_icon();
-//}
-//
-/////////////////////////////////////////////////////////////////////////////////
-//// window events
-/////////////////////////////////////////////////////////////////////////////////
-//
-//static bool filter_duplicate_window_events(const event::event& e, void* user_data)
-//{
-//    const event::event* ne = reinterpret_cast<const event::event*>(user_data);
-//
-//    if (e.type == ne->type)
-//    {
-//        return e.window_id == ne->window_id;
-//    }
-//
-//    return false;
-//}
-//
-//bool window_instance::post_window_shown()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (!(data.flags & window_flags::HIDDEN))
-//    {
-//        return false;
-//    }
-//
-//    data.flags &= ~(window_flags::HIDDEN | window_flags::MINIMIZED);
-//
-//    event::event e{};
-//    e.type = event::WINDOW_SHOWN;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    on_window_shown();
-//    return posted;
-//}
-//
-//void window_instance::on_window_shown()
-//{
-//    apply_flags(data.pending_flags);
-//    data.pending_flags = window_instance::window_flags::NONE;
-//}
-//
-//bool window_instance::post_window_hidden()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (data.flags & window_instance::window_flags::HIDDEN)
-//    {
-//        return false;
-//    }
-//
-//    data.flags |= window_instance::window_flags::HIDDEN;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_HIDDEN;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    on_window_hidden();
-//    return posted;
-//}
-//
-//void window_instance::on_window_hidden()
-//{
-//    // We will restore the state of these flags when the window is shown again
-//    data.pending_flags |= (data.flags & (window_instance::window_flags::FULLSCREEN | window_instance::window_flags::MAXIMIZED));
-//    update_fullscreen_mode(fullscreen_op::LEAVE, false);
-//}
-//
-//// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_windowevents.c#L99
-//
-//bool window_instance::post_window_moved(int32_t x, int32_t y)
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    data.last_position_pending = false;
-//
-//    if (!(data.flags & window_flags::FULLSCREEN))
-//    {
-//        data.windowed_rect.position.x = x;
-//        data.windowed_rect.position.y = y;
-//
-//        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
-//        {
-//            data.floating_rect.position.x = x;
-//            data.floating_rect.position.y = y;
-//        }
-//    }
-//
-//    if (data.position.x == x && data.position.y == y)
-//    {
-//        return false;
-//    }
-//
-//    data.position.x = x;
-//    data.position.y = y;
-//
-//    event::flush_events(event::WINDOW_MOVED);
-//
-//    event::event e{};
-//    e.type = event::WINDOW_MOVED;
-//    e.window_id = data.id;
-//    e.window_moved.x = x;
-//    e.window_moved.y = y;
-//
-//    event::filter_events(filter_duplicate_window_events, static_cast<void*>(&e));
-//    bool posted = event::post_event(e);
-//
-//    on_window_moved();
-//    return posted;
-//}
-//
-//void window_instance::on_window_moved()
-//{
-//    video_internal::check_window_display_changed(*this);
-//}
-//
-//bool window_instance::post_window_resized(int32_t w, int32_t h)
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    data.last_size_pending = false;
-//
-//    if (!(data.flags & window_flags::FULLSCREEN))
-//    {
-//        data.windowed_rect.size.x = w;
-//        data.windowed_rect.size.y = h;
-//
-//        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
-//        {
-//            data.floating_rect.size.x = w;
-//            data.floating_rect.size.y = h;
-//        }
-//    }
-//
-//    if (data.size.x == w && data.size.y == h)
-//    {
-//        return false;
-//    }
-//
-//    data.size.x = w;
-//    data.size.y = h;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_RESIZED;
-//    e.window_id = data.id;
-//    e.window_resized.w = w;
-//    e.window_resized.h = h;
-//
-//    event::filter_events(filter_duplicate_window_events, static_cast<void*>(&e));
-//    bool posted = event::post_event(e);
-//
-//    on_window_resized();
-//    return posted;
-//}
-//
-//void window_instance::on_window_resized()
-//{
-//    video_internal::check_window_display_changed(*this);
-//
-//    // update window shape & safe area
-//}
-//
-//bool window_instance::post_window_minimized()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (data.flags & window_flags::MINIMIZED)
-//    {
-//        return false;
-//    }
-//
-//    data.flags &= ~window_flags::MAXIMIZED;
-//    data.flags |= window_flags::MINIMIZED;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_MINIMIZED;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    on_window_minimized();
-//    return posted;
-//}
-//
-//void window_instance::on_window_minimized()
-//{
-//    if (data.flags & window_flags::FULLSCREEN)
-//    {
-//        update_fullscreen_mode(fullscreen_op::LEAVE, false);
-//    }
-//}
-//
-//bool window_instance::post_window_maximized()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (data.flags & window_flags::MAXIMIZED)
-//    {
-//        return false;
-//    }
-//
-//    data.flags &= ~window_flags::MINIMIZED;
-//    data.flags |= window_flags::MAXIMIZED;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_MAXIMIZED;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    on_window_maximized();
-//    return posted;
-//}
-//
-//void window_instance::on_window_maximized()
-//{
-//}
-//
-//bool window_instance::post_window_restored()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (!(data.flags & (window_flags::MINIMIZED | window_flags::MAXIMIZED)))
-//    {
-//        return false;
-//    }
-//
-//    data.flags &= ~(window_flags::MINIMIZED | window_flags::MAXIMIZED);
-//
-//    event::event e{};
-//    e.type = event::WINDOW_RESTORED;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    on_window_restored();
-//    return posted;
-//}
-//
-//void window_instance::on_window_restored()
-//{
-//    if (data.flags & window_flags::FULLSCREEN)
-//    {
-//        update_fullscreen_mode(fullscreen_op::ENTER, true);
-//    }
-//}
-//
-//bool window_instance::post_window_enter_fullscreen()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (data.flags & window_instance::window_flags::FULLSCREEN)
-//    {
-//        return false;
-//    }
-//
-//    data.flags |= window_instance::window_flags::FULLSCREEN;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_ENTER_FULLSCREEN;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    return posted;
-//}
-//
-//bool window_instance::post_window_leave_fullscreen()
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (!(data.flags & window_instance::window_flags::FULLSCREEN))
-//    {
-//        return false;
-//    }
-//
-//    data.flags &= ~window_instance::window_flags::FULLSCREEN;
-//
-//    event::event e{};
-//    e.type = event::WINDOW_LEAVE_FULLSCREEN;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    return posted;
-//}
-//
-//bool window_instance::post_window_display_changed(const display& d)
-//{
-//    if (data.destroying)
-//    {
-//        return false;
-//    }
-//
-//    if (data.last_display_id == d.id())
-//    {
-//        return false;
-//    }
-//
-//    data.last_display_id = d.id();
-//
-//    event::event e{};
-//    e.type = event::WINDOW_DISPLAY_CHANGED;
-//    e.window_id = data.id;
-//    e.window_display_changed.display_id = d.id();
-//    bool posted = event::post_event(e);
-//
-//    on_window_display_changed(d);
-//    return posted;
-//}
-//
-//void window_instance::on_window_display_changed(const display& d)
-//{
-//    if (is_fullscreen())
-//    {
-//        const display_mode* new_mode = nullptr;
-//
-//        if (data.requested_fullscreen_mode_set)
-//        {
-//            new_mode = d.find_closest_mode(
-//                data.requested_fullscreen_mode.resolution.x,
-//                data.requested_fullscreen_mode.resolution.y,
-//                data.requested_fullscreen_mode.refresh_rate
-//            );
-//        }
-//
-//        if (new_mode && IS_FULLSCREEN_VISIBLE(this))
-//        {
-//            update_fullscreen_mode(fullscreen_op::UPDATE, true);
-//        }
-//    }
-//}
-//
-//bool window_instance::post_window_close_requested()
-//{
-//    event::event e{};
-//    e.type = event::WINDOW_CLOSE_REQUESTED;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    return posted;
-//}
-//
-//bool window_instance::post_window_destroyed()
-//{
-//    event::event e{};
-//    e.type = event::WINDOW_DESTROYED;
-//    e.window_id = data.id;
-//    bool posted = event::post_event(e);
-//
-//    return posted;
-//}
+bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullscreen, bool commit)
+{
+    // Track the display we are operating on
+    display_id target_display_id = INVALID_ID;
+    const display_mode* target_mode = nullptr;
+
+    // Reset fullscreen state flags
+    data.fullscreen_exclusive = false;
+    data.update_fullscreen_on_display_changed = false;
+
+    // If the window is being hidden or destroyed, force leaving fullscreen
+    if (data.hiding || data.destroying)
+    {
+        fullscreen = fullscreen_op::LEAVE;
+    }
+
+    // Determine the relevant display based on fullscreen operation
+    if (fullscreen)
+    {
+        target_display_id = video->get_display_for_window(data.id, false);
+        if (!is_valid_id(target_display_id))
+        {
+            goto done; // Should never happen
+        }
+
+        target_mode = &get_fullscreen_mode();
+    }
+    else
+    {
+        // Check if the window is currently fullscreen on any display
+        target_display_id = video->find_display_with_fullscreen_window(data.id);
+    }
+
+#if defined(VX_VIDEO_BACKEND_COCOA)
+
+    // ------------------ COCOA-SPECIFIC LOGIC ------------------
+       // Cocoa has two types of fullscreen:
+       // 1. Fullscreen Spaces (macOS native fullscreen)  
+       // 2. Exclusive fullscreen (true fullscreen mode for games, controlled display resolution)
+       //
+       // Switching between these modes requires careful ordering:
+       // - We may need to leave one type before entering the other
+       // - If we destroy the window without a last exclusive fullscreen, skip mode changes to avoid flicker
+
+    if (data.destroying && !is_valid_id(data.last_fullscreen_exclusive_display_id))
+    {
+        // If window is being destroyed and was never in exclusive fullscreen,
+        // just reset the exclusive flag and remove fullscreen reference from the display
+
+        data.fullscreen_exclusive = false;
+
+        if (is_valid_id(target_display_id))
+        {
+            video->set_display_fullscreen_window_id(d, INVALID_ID);
+        }
+
+        goto done;
+    }
+
+    if (commit)
+    {
+        // Switching between fullscreen Space and exclusive fullscreen requires a temporary reset
+        if (fullscreen && impl_ptr->in_fullscreen_space() && !is_valid_id(data.last_fullscreen_exclusive_display_id) && data.fullscreen_exclusive)
+        {
+            // If currently in a Space (Cocoa fullscreen) but we want exclusive fullscreen:
+            // temporarily leave fullscreen Space first. This avoids a visual glitch.
+
+            if (!impl_ptr->set_fullscreen_space(false, true))
+            {
+                goto error;
+            }
+        }
+        else if (fullscreen && is_valid_id(data.last_fullscreen_exclusive_display_id) && !data.fullscreen_exclusive)
+        {
+            // If previously in exclusive fullscreen but now want fullscreen Space:
+            // reset display modes for this window first
+            video->reset_display_modes_for_window(data.id, target_display_id);
+        }
+
+        // Attempt to apply fullscreen Space directly if supported
+        // This may succeed immediately, in which case we are done
+        if (impl_ptr->set_fullscreen_space(fullscreen, true))
+        {
+            goto done;
+        }
+    }
+
+#endif // VX_VIDEO_BACKEND_COCOA
+
+    // Restore previous display modes if switching displays
+    if (is_valid_id(target_display_id))
+    {
+        video->reset_display_modes_for_window(data.id, target_display_id);
+    }
+
+    if (fullscreen)
+    {
+        // ------------------ ENTER FULLSCREEN ------------------
+
+        bool resized = false;
+
+        // target_display_id is guarenteed not to be null here
+        VX_ASSERT(is_valid_id(target_display_id));
+
+        display_instance* display_inst = video->get_display_instance(target_display_id);
+        if (!display_inst)
+        {
+            goto error;
+        }
+
+        if (display_inst->data.fullscreen_window_id != data.id)
+        {
+            // Minimize any other fullscreen window on this display
+            window_instance* other_window = video->get_window_instance(display_inst->data.fullscreen_window_id);
+            if (other_window)
+            {
+                other_window->minimize();
+            }
+        }
+
+        display_inst->data.fullscreen_active = data.fullscreen_exclusive;
+
+        // Apply target fullscreen mode
+        if (!display_inst->set_current_mode(*target_mode))
+        {
+            goto error;
+        }
+
+        if (commit)
+        {
+            fullscreen_result result = fullscreen_result::SUCCEEDED;
+
+
+#if VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+            // Platform-specific API to actually enter fullscreen
+            result = impl_ptr->set_fullscreen(fullscreen, *display_inst);
+#else
+            // On platforms without this API, we must resize the window manually
+            resized = true;
+#endif
+
+            if (result == fullscreen_result::SUCCEEDED)
+            {
+                // Window is fullscreen immediately upon return. If the driver hasn't already sent the event, do so now.
+                if (!(data.flags & window_flags::FULLSCREEN))
+                {
+                    post_window_enter_fullscreen();
+                }
+            }
+            else if (result == fullscreen_result::FAILED)
+            {
+                display_inst->data.fullscreen_active = false;
+                goto error;
+            }
+
+            if (data.flags & window_flags::FULLSCREEN)
+            {
+                display_inst->data.fullscreen_window_id = data.id;
+
+                // If the OS does not generate an event telling us the final window
+                // size, we must manually adjust the position and size here.
+
+                if (!VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS)
+                {
+                    const math::rect display_rect = video->get_display_bounds(target_mode->display);
+
+                    if (data.size != target_mode->resolution)
+                    {
+                        resized = true;
+                    }
+
+                    post_window_moved(display_rect.position.x, display_rect.position.y);
+
+                    if (resized)
+                    {
+                        post_window_resized(target_mode->resolution.x, target_mode->resolution.y);
+                    }
+                    else
+                    {
+                        on_window_resized();
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        // ------------------ LEAVE FULLSCREEN ------------------
+
+        bool resized = false;
+        display_instance* display_inst = video->get_display_instance(target_display_id);
+
+        // Restore desktop mode if display exists
+        if (display_inst)
+        {
+            display_inst->data.fullscreen_active = false;
+            display_inst->reset_mode(false);
+        }
+
+        if (commit)
+        {
+            fullscreen_result result = fullscreen_result::SUCCEEDED;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+
+            display_instance* target_display_inst = display_inst ? display_inst : video->get_display_instance(video->get_display_for_window(data.id, false));
+
+            if (target_display_inst)
+            {
+                result = impl_ptr->set_fullscreen(fullscreen_op::LEAVE, *target_display_inst);
+            }
+
+#else
+
+            resized = true;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+
+            if (result == fullscreen_result::SUCCEEDED)
+            {
+                // Window left fullscreen immediately upon return. If the driver hasn't already sent the event, do so now.
+                if (!(data.flags & window_flags::FULLSCREEN))
+                {
+                    post_window_leave_fullscreen();
+                }
+            }
+            else if (result == fullscreen_result::FAILED)
+            {
+                goto error;
+            }
+        }
+
+        if (!(data.flags & window_flags::FULLSCREEN))
+        {
+            if (display_inst)
+            {
+                display_inst->data.fullscreen_window_id = INVALID_ID;
+            }
+
+            if (!VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS)
+            {
+                // If the OS does not generate an event telling us the final window
+                // size, we must manually adjust the position and size here.
+
+                post_window_moved(data.windowed_rect.position.x, data.windowed_rect.position.y);
+
+                if (resized)
+                {
+                    post_window_resized(data.windowed_rect.size.x, data.windowed_rect.size.y);
+                }
+                else
+                {
+                    on_window_resized();
+                }
+            }
+        }
+    }
+
+    done:
+    {
+        // This is used by Cocoa to know if the last fullscreen was exclusive, which affects Space transitions
+        data.last_fullscreen_exclusive_display_id
+            = (is_valid_id(target_display_id) && (data.flags & window_flags::FULLSCREEN) && data.fullscreen_exclusive)
+            ? target_display_id
+            : INVALID_ID;
+
+        return true;
+    }
+
+    error:
+    {
+        if (fullscreen)
+        {
+            // Something went wrong, exit fullscreen
+            update_fullscreen_mode(fullscreen_op::LEAVE, commit);
+        }
+
+        return false;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// icon
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::set_icon(const pixel::surface_rgba8& surf)
+{
+#if VX_VIDEO_HAVE_WINDOW_SET_ICON
+
+    if (surf.empty())
+    {
+        return false;
+    }
+
+    return impl_ptr->set_icon(surf);
+
+#else
+
+    VX_UNSUPPORTED();
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_ICON
+}
+
+void window_instance::clear_icon()
+{
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// grab
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::set_mouse_grab(bool grabbed)
+{
+    if (data.flags & window_flags::HIDDEN)
+    {
+        if (grabbed)
+        {
+            data.pending_flags |= window_flags::MOUSE_GRABBED;
+        }
+        else
+        {
+            data.pending_flags &= ~window_flags::MOUSE_GRABBED;
+        }
+
+        return true;
+    }
+
+    if (grabbed == !!(data.flags & window_flags::MOUSE_GRABBED))
+    {
+        data.flags |= window_flags::MOUSE_GRABBED;
+    }
+    else
+    {
+        data.flags &= ~window_flags::MOUSE_GRABBED;
+    }
+
+    update_grab();
+
+    if (grabbed && !(data.flags & window_flags::MOUSE_GRABBED))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool window_instance::set_keyboard_grab(bool grabbed)
+{
+    if (data.flags & window_flags::HIDDEN)
+    {
+        if (grabbed)
+        {
+            data.pending_flags |= window_flags::KEYBOARD_GRABBED;
+        }
+        else
+        {
+            data.pending_flags &= ~window_flags::KEYBOARD_GRABBED;
+        }
+
+        return true;
+    }
+
+    if (grabbed == !!(data.flags & window_flags::KEYBOARD_GRABBED))
+    {
+        data.flags |= window_flags::KEYBOARD_GRABBED;
+    }
+    else
+    {
+        data.flags &= ~window_flags::KEYBOARD_GRABBED;
+    }
+
+    update_grab();
+
+    if (grabbed && !(data.flags & window_flags::KEYBOARD_GRABBED))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+void window_instance::clear_grab()
+{
+    data.flags &= ~(window_flags::MOUSE_GRABBED | window_flags::KEYBOARD_GRABBED);
+
+#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+
+    impl_ptr->set_mouse_grab(false);
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+
+#if VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+
+    impl_ptr->set_keyboard_grab(false);
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+}
+
+void window_instance::update_grab()
+{
+    bool mouse_grabbed = false;
+    bool keyboard_grabbed = false;
+
+    if (data.flags & window_flags::FOCUSSED)
+    {
+        if (video->data.mouse_ptr->data.relative_mode.enabled || (data.flags & window_flags::MOUSE_GRABBED))
+        {
+            mouse_grabbed = true;
+        }
+        else
+        {
+            mouse_grabbed = false;
+        }
+
+        if (data.flags & window_flags::KEYBOARD_GRABBED)
+        {
+            keyboard_grabbed = true;
+        }
+        else
+        {
+            keyboard_grabbed = false;
+        }
+    }
+
+    if (mouse_grabbed || keyboard_grabbed)
+    {
+        // stealing grab from another window
+        video->set_grabbed_window(data.id);
+    }
+    else if (video->data.grabbed_window == data.id)
+    {
+        video->set_grabbed_window(INVALID_ID);
+    }
+
+#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+
+    if (!impl_ptr->set_mouse_grab(mouse_grabbed))
+    {
+        data.flags &= ~window_flags::MOUSE_GRABBED;
+    }
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+
+#if VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+
+    if (!impl_ptr->set_keyboard_grab(keyboard_grabbed))
+    {
+        data.flags &= ~window_flags::KEYBOARD_GRABBED;
+    }
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+
+    video->validate_grabbed_window();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// focus
+///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::has_mouse_focus() const
+{
+    return video->data.mouse_ptr->get_focus() == data.id;
+}
+
+bool window_instance::has_keyboard_focus() const
+{
+    return video->data.keyboard_ptr->get_focus() == data.id;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// mouse
+///////////////////////////////////////////////////////////////////////////////
+
+void window_instance::set_mouse_capture(bool capture)
+{
+
+}
+
+bool window_instance::mouse_capture_enabled() const
+{
+    return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// events
+///////////////////////////////////////////////////////////////////////////////
+
+static bool filter_duplicate_window_events(const event::event& e, void* user_data)
+{
+    const event::event* ne = reinterpret_cast<const event::event*>(user_data);
+
+    if (e.type == ne->type)
+    {
+        return e.window_id == ne->window_id;
+    }
+
+    return false;
+}
+
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_windowevents.c#L71
+
+bool window_instance::post_window_shown()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (!(data.flags & window_flags::HIDDEN))
+    {
+        return false;
+    }
+
+    data.flags &= ~(window_flags::HIDDEN | window_flags::MINIMIZED);
+
+    event::event e{};
+    e.type = event::WINDOW_SHOWN;
+    e.window_shown.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_shown();
+    return posted;
+}
+
+void window_instance::on_window_shown()
+{
+    apply_flags(data.pending_flags);
+    data.pending_flags = window_flags::NONE;
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_hidden()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (data.flags & window_flags::HIDDEN)
+    {
+        return false;
+    }
+
+    data.flags |= window_flags::HIDDEN;
+
+    event::event e{};
+    e.type = event::WINDOW_HIDDEN;
+    e.window_hidden.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_hidden();
+    return posted;
+}
+
+void window_instance::on_window_hidden()
+{
+    // We will restore the state of these flags when the window is shown again
+    data.pending_flags |= (data.flags & (window_flags::FULLSCREEN | window_flags::MAXIMIZED));
+    update_fullscreen_mode(fullscreen_op::LEAVE, false);
+}
+
+////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_windowevents.c#L99
+
+bool window_instance::post_window_moved(int32_t x, int32_t y)
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    /* Clear the pending display if this move was not the result of an explicit request,
+     * and the window is not scheduled to become fullscreen when shown.
+     */
+    if (data.last_position_pending && !(data.pending_flags & window_flags::FULLSCREEN))
+    {
+        data.pending_display_id = INVALID_ID;
+    }
+
+    data.last_position_pending = false;
+
+    if (!(data.flags & window_flags::FULLSCREEN))
+    {
+        data.windowed_rect.position.x = x;
+        data.windowed_rect.position.y = y;
+
+        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
+        {
+            data.floating_rect.position.x = x;
+            data.floating_rect.position.y = y;
+        }
+    }
+
+    if (data.position.x == x && data.position.y == y)
+    {
+        return false;
+    }
+
+    data.position.x = x;
+    data.position.y = y;
+
+    event::flush_events(event::WINDOW_MOVED);
+
+    event::event e{};
+    e.type = event::WINDOW_MOVED;
+    e.window_moved.window_id = data.id;
+    e.window_moved.x = x;
+    e.window_moved.y = y;
+
+    event::filter_events(filter_duplicate_window_events, static_cast<void*>(&e));
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_moved();
+    return posted;
+}
+
+void window_instance::on_window_moved()
+{
+    video_internal::check_window_display_changed(*this);
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_resized(int32_t w, int32_t h)
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    data.last_size_pending = false;
+
+    if (!(data.flags & window_flags::FULLSCREEN))
+    {
+        data.windowed_rect.size.x = w;
+        data.windowed_rect.size.y = h;
+
+        if (!(data.flags & window_flags::MAXIMIZED) && !data.tiled)
+        {
+            data.floating_rect.size.x = w;
+            data.floating_rect.size.y = h;
+        }
+    }
+
+    if (data.size.x == w && data.size.y == h)
+    {
+        return false;
+    }
+
+    data.size.x = w;
+    data.size.y = h;
+
+    event::event e{};
+    e.type = event::WINDOW_RESIZED;
+    e.window_id = data.id;
+    e.window_resized.w = w;
+    e.window_resized.h = h;
+
+    event::filter_events(filter_duplicate_window_events, static_cast<void*>(&e));
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_resized();
+    return posted;
+}
+
+void window_instance::on_window_resized()
+{
+    video_internal::check_window_display_changed(*this);
+
+    // update window shape & safe area
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_minimized()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (data.flags & window_flags::MINIMIZED)
+    {
+        return false;
+    }
+
+    data.flags &= ~window_flags::MAXIMIZED;
+    data.flags |= window_flags::MINIMIZED;
+
+    event::event e{};
+    e.type = event::WINDOW_MINIMIZED;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_minimized();
+    return posted;
+}
+
+void window_instance::on_window_minimized()
+{
+    if (data.flags & window_flags::FULLSCREEN)
+    {
+        update_fullscreen_mode(fullscreen_op::LEAVE, false);
+    }
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_maximized()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (data.flags & window_flags::MAXIMIZED)
+    {
+        return false;
+    }
+
+    data.flags &= ~window_flags::MINIMIZED;
+    data.flags |= window_flags::MAXIMIZED;
+
+    event::event e{};
+    e.type = event::WINDOW_MAXIMIZED;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_maximized();
+    return posted;
+}
+
+void window_instance::on_window_maximized()
+{
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_restored()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (!(data.flags & (window_flags::MINIMIZED | window_flags::MAXIMIZED)))
+    {
+        return false;
+    }
+
+    data.flags &= ~(window_flags::MINIMIZED | window_flags::MAXIMIZED);
+
+    event::event e{};
+    e.type = event::WINDOW_RESTORED;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_restored();
+    return posted;
+}
+
+void window_instance::on_window_restored()
+{
+    if (data.flags & window_flags::FULLSCREEN)
+    {
+        update_fullscreen_mode(fullscreen_op::ENTER, true);
+    }
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_enter_fullscreen()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (data.flags & window_flags::FULLSCREEN)
+    {
+        return false;
+    }
+
+    data.flags |= window_flags::FULLSCREEN;
+
+    event::event e{};
+    e.type = event::WINDOW_ENTER_FULLSCREEN;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    return posted;
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_leave_fullscreen()
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (!(data.flags & window_flags::FULLSCREEN))
+    {
+        return false;
+    }
+
+    data.flags &= ~window_flags::FULLSCREEN;
+
+    event::event e{};
+    e.type = event::WINDOW_LEAVE_FULLSCREEN;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    return posted;
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_display_changed(const display& d)
+{
+    if (data.destroying)
+    {
+        return false;
+    }
+
+    if (data.last_display_id == d.id())
+    {
+        return false;
+    }
+
+    data.last_display_id = d.id();
+
+    event::event e{};
+    e.type = event::WINDOW_DISPLAY_CHANGED;
+    e.window_id = data.id;
+    e.window_display_changed.display_id = d.id();
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    on_window_display_changed(d);
+    return posted;
+}
+
+void window_instance::on_window_display_changed(const display& d)
+{
+    if (is_fullscreen())
+    {
+        const display_mode* new_mode = nullptr;
+
+        if (data.requested_fullscreen_mode_set)
+        {
+            new_mode = d.find_closest_mode(
+                data.requested_fullscreen_mode.resolution.x,
+                data.requested_fullscreen_mode.resolution.y,
+                data.requested_fullscreen_mode.refresh_rate
+            );
+        }
+
+        if (new_mode && IS_FULLSCREEN_VISIBLE(this))
+        {
+            update_fullscreen_mode(fullscreen_op::UPDATE, true);
+        }
+    }
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_close_requested()
+{
+    event::event e{};
+    e.type = event::WINDOW_CLOSE_REQUESTED;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    return posted;
+}
+
+////////////////////////////////////////
+
+bool window_instance::post_window_destroyed()
+{
+    event::event e{};
+    e.type = event::WINDOW_DESTROYED;
+    e.window_id = data.id;
+    const bool posted = video->app->data.events_ptr->push_event(e);
+
+    return posted;
+}
 
 } // namespace video
 } // namespace app

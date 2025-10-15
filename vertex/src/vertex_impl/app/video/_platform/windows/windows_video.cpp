@@ -774,7 +774,7 @@ bool video_instance_impl::create_display(
             }
         }
 
-        current_mode.data.display_id = d.data.id;
+        current_mode.data.mode.display = d.data.id;
         d.data.current_mode = current_mode.data.mode;
         d.data.desktop_mode = std::move(current_mode);
         d.data.natural_orientation = natural_orientation;
