@@ -215,6 +215,296 @@ enum event_type : event_type_t
 #undef EVENT_TYPE_USER
 
 ///////////////////////////////////////////////////////////////////////////////
+// app events
+///////////////////////////////////////////////////////////////////////////////
+
+struct app_event_common {};
+
+struct system_theme_changed_event
+{
+    video::system_theme system_theme;
+};
+
+struct app_event_type
+{
+    app_event_common common;
+
+    union
+    {
+        system_theme_changed_event system_theme_changed;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// display events
+///////////////////////////////////////////////////////////////////////////////
+
+struct display_event_common
+{
+    video::display_id display_id;
+};
+
+struct display_added_event {};
+struct display_removed_event {};
+struct display_moved_event {};
+
+struct display_orientation_changed_event
+{
+    video::display_orientation orientation;
+};
+
+struct display_desktop_mode_changed_event {};
+struct display_current_mode_changed_event {};
+
+struct display_content_scale_changed_event
+{
+    float x, y;
+};
+
+struct display_event_type
+{
+    display_event_common comon;
+
+    union
+    {
+        display_added_event display_added;
+        display_removed_event display_removed;
+        display_moved_event display_moved;
+        display_orientation_changed_event display_orientation_changed;
+        display_desktop_mode_changed_event display_desktop_mode_changed;
+        display_current_mode_changed_event display_current_mode_changed;
+        display_content_scale_changed_event display_content_scale_changed;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// window events
+///////////////////////////////////////////////////////////////////////////////
+
+struct window_event_common
+{
+    video::window_id window_id;
+};
+
+struct window_created_event {};
+struct window_destroyed_event {};
+
+struct window_shown_event {};
+struct window_hidden_event {};
+
+struct window_exposed_event {};
+struct window_occluded_event {};
+
+struct window_moved_event
+{
+    int32_t x, y;
+};
+
+struct window_resized_event
+{
+    int32_t w, h;
+};
+
+struct window_pixel_size_changed_event
+{
+    int32_t w, h;
+};
+
+struct window_minimized_event {};
+struct window_maximized_event {};
+struct window_restored_event {};
+
+struct window_enter_fullscreen_event {};
+struct window_leave_fullscreen_event {};
+
+struct window_gained_focus_event {};
+struct window_lost_focus_event {};
+
+struct window_mouse_enter_event {};
+struct window_mouse_leave_event {};
+
+struct window_hit_test_event {};
+
+struct window_display_changed_event
+{
+    video::display_id display_id;
+};
+
+struct window_display_scale_changed_event
+{
+    math::vec2 scale;
+};
+
+struct window_safe_area_changed_event
+{
+    math::recti area;
+};
+
+struct window_close_requested_event {};
+
+struct window_event_type
+{
+    window_event_common common;
+
+    union
+    {
+        window_created_event window_created;
+        window_destroyed_event window_destroyed;
+        window_shown_event window_shown;
+        window_hidden_event window_hidden;
+        window_exposed_event window_exposed;
+        window_occluded_event window_occluded;
+        window_moved_event window_moved;
+        window_resized_event window_resized;
+        window_pixel_size_changed_event window_pixel_size_changed;
+        window_minimized_event window_minimized;
+        window_maximized_event window_maximized;
+        window_restored_event window_restored;
+        window_enter_fullscreen_event window_enter_fullscreen;
+        window_leave_fullscreen_event window_leave_fullscreen;
+        window_gained_focus_event window_gained_focus;
+        window_lost_focus_event window_lost_focus;
+        window_mouse_enter_event window_mouse_enter;
+        window_mouse_leave_event window_mouse_leave;
+        window_hit_test_event window_hit_test;
+        window_display_changed_event window_display_changed;
+        window_display_scale_changed_event window_display_scale_changed;
+        window_safe_area_changed_event window_safe_area_changed;
+        window_close_requested_event window_close_requested;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// key events
+///////////////////////////////////////////////////////////////////////////////
+
+struct key_event_common
+{
+    keyboard::keyboard_id keyboard_id;
+};
+
+struct keyboard_added_event {};
+struct keyboard_removed_event {};
+
+struct key_press_event_base
+{
+    video::window_id window_id;
+    keyboard::scancode scancode;
+    keyboard::keycode key;
+    keyboard::key_mod mods;
+    uint16_t raw;
+    bool repeate;
+};
+
+struct key_down_event : key_press_event_base {};
+struct key_up_event : key_press_event_base {};
+
+struct key_event_type
+{
+    key_event_common common;
+
+    union
+    {
+        keyboard_added_event keyboard_added;
+        keyboard_removed_event keyboard_removed;
+        key_down_event key_down;
+        key_up_event key_up;
+        text_input_event text_input;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// text events
+///////////////////////////////////////////////////////////////////////////////
+
+struct text_event_common {};
+
+struct text_input_event
+{
+    char32_t text;
+};
+
+struct text_event_type
+{
+    text_event_common common;
+
+    union
+    {
+        text_input_event text_input;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// mouse events
+///////////////////////////////////////////////////////////////////////////////
+
+struct mouse_event_common
+{
+    int32_t x, y;
+};
+
+struct mouse_moved_event
+{
+    int32_t x, y;
+    int32_t dx, dy;
+};
+
+struct mouse_button_down_event
+{
+    mouse::buttons buttons;
+    uint8_t clicks;
+};
+
+struct mouse_button_up_event
+{
+    mouse::buttons buttons;
+};
+
+struct mouse_wheel_event
+{
+    mouse::wheel_direction wheel;
+    float delta;
+};
+
+struct mouse_event_type
+{
+    mouse_event_common common;
+
+    union
+    {
+        mouse_moved_event mouse_moved;
+        mouse_button_down_event mouse_button_down;
+        mouse_button_up_event mouse_button_up;
+        mouse_wheel_event mouse_wheel;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// touch events
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// pen events
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// clipboard events
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// drag and drop events
+///////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
+// user events
+///////////////////////////////////////////////////////////////////////////////
+
+struct user_event_type
+{
+    void* user_data;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // event
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -233,287 +523,38 @@ public:
     {
         // app events
 
-        struct
-        {
-            video::system_theme system_theme;
-        }
-        system_theme_changed;
+        app_event_type app_event;
 
         // display events
 
-        struct
-        {
-            video::display_id display_id;
-        }
-        display_added;
-
-        struct
-        {
-            video::display_id display_id;
-        }
-        display_removed;
-
-        struct
-        {
-            video::display_id display_id;
-        }
-        display_moved;
-
-        struct
-        {
-            video::display_id display_id;
-            video::display_orientation orientation;
-        }
-        display_orientation_changed;
-
-        struct
-        {
-            video::display_id display_id;
-        }
-        display_desktop_mode_changed;
-
-        struct
-        {
-            video::display_id display_id;
-        }
-        display_current_mode_changed;
-
-        struct
-        {
-            video::display_id display_id;
-            float x, y;
-        }
-        display_content_scale_changed;
+        display_event_type display_event;
 
         // window events
 
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_created;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_destroyed;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_shown;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_hidden;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_exposed;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_occluded;
-
-        struct
-        {
-            video::window_id window_id;
-            int32_t x, y;
-        }
-        window_moved;
-
-        struct
-        {
-            video::window_id window_id;
-            int32_t w, h;
-        }
-        window_resized;
-
-        struct
-        {
-            video::display_id display_id;
-            float x, y;
-        }
-        window_pixel_size_changed;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_minimized;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_maximized;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_restored;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_enter_fullscreen;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_leave_fullscreen;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_gained_focus;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_lost_focus;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_mouse_enter;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_mouse_leave;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_hit_test;
-
-        struct
-        {
-            video::window_id window_id;
-            video::display_id display_id;
-        }
-        window_display_changed;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_display_scale_changed;
-
-        struct
-        {
-            video::window_id window_id;
-            int32_t x, y, w, h;
-        }
-        window_safe_area_changed;
-
-        struct
-        {
-            video::window_id window_id;
-        }
-        window_close_requested;
+        window_event_type window_event;
 
         // key events
 
-        struct
-        {
-            keyboard::keyboard_id keyboard_id;
-        }
-        keyboard_added;
-
-        struct
-        {
-            keyboard::keyboard_id keyboard_id;
-        }
-        keyboard_removed;
-
-        struct
-        {
-            keyboard::keyboard_id keyboard_id;
-            video::window_id window_id;
-            keyboard::scancode scancode;
-            keyboard::keycode key;
-            keyboard::key_mod mods;
-            uint16_t raw;
-            bool repeate;
-        }
-        key_down;
-
-        struct
-        {
-            keyboard::keyboard_id keyboard_id;
-            video::window_id window_id;
-            keyboard::scancode scancode;
-            keyboard::keycode key;
-            keyboard::key_mod mods;
-            uint16_t raw;
-            bool repeate;
-        }
-        key_up;
-
-        struct
-        {
-            char32_t text;
-        }
-        text_input;
+        key_event_type key_event;
 
         // mouse events
 
-        struct
-        {
-            int32_t x, y;
-            int32_t dx, dy;
-        }
-        mouse_moved;
-
-        struct
-        {
-            mouse::buttons buttons;
-            int32_t x, y;
-            uint8_t clicks;
-        }
-        mouse_button_down;
-
-        struct
-        {
-            mouse::buttons buttons;
-            int32_t x, y;
-        }
-        mouse_button_up;
-
-        struct
-        {
-            mouse::wheel_direction wheel;
-            float delta;
-            int32_t x, y;
-        }
-        mouse_wheel;
+        mouse_event_type mouse_event;
 
         // user event
 
-        struct
-        {
-            void* user_data;
-
-        } user_event;
+        user_event_type user_event;
     };
+
+    video::window_id get_window_id() const
+    {
+        if (get_category(type) == CATEGORY_WINDOW)
+        {
+            return window_event.common.window_id;
+        }
+
+        return INVALID_ID;
+    }
 };
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -113,6 +113,7 @@ public:
     void maximize();
 
     void restore();
+    bool raise();
 
     typename window_instance::fullscreen_result set_fullscreen(typename window_instance::fullscreen_op::type fullscreen, display_instance& display);
 
@@ -130,6 +131,12 @@ public:
 
     bool set_icon(const pixel::surface_rgba8& surf);
     void clear_icon();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // icc profile
+    ///////////////////////////////////////////////////////////////////////////////
+
+    std::vector<uint8_t> get_icc_profile() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // grab

@@ -142,8 +142,8 @@ public:
     bool display_has_mode(display_id id, const display_mode& mode) const;
 
     const display_mode_instance* find_display_mode(const display_mode& mode) const;
-    const display_mode_instance* find_closest_display_mode(const display_mode& mode) const;
-    const display_mode_instance* find_display_mode_candidate(const display_mode& mode) const;
+    const display_mode_instance* find_closest_display_mode(const display_mode& mode, bool include_high_density_modes) const;
+    const display_mode_instance* find_display_mode_candidate(const display_mode& mode, bool include_high_density_modes) const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // screen saver
@@ -312,7 +312,7 @@ public:
     std::vector<display_mode> list_modes() const;
     bool has_mode(const display_mode& mode) const;
     const display_mode_instance* find_mode(const display_mode& mode) const;
-    const display_mode_instance* find_closest_mode(const display_mode& mode) const;
+    const display_mode_instance* find_closest_mode(const display_mode& mode, bool include_high_density_modes) const;
 
 public:
 

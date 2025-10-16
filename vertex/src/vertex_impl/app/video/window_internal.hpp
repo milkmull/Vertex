@@ -31,12 +31,13 @@ struct window_flags
         TOPMOST = (1 << 5),
 
         HIDDEN = (1 << 6),
-        FOCUSSED = (1 << 7),
+        OCCLUDED = (1 << 7),
+        FOCUSSED = (1 << 8),
 
-        MOUSE_GRABBED = (1 << 8),
-        MOUSE_CAPTURE = (1 << 9),
+        MOUSE_GRABBED = (1 << 9),
+        MOUSE_CAPTURE = (1 << 10),
 
-        KEYBOARD_GRABBED = (1 << 10),
+        KEYBOARD_GRABBED = (1 << 11),
 
         // flags to be set by the os on window creation
         CREATE_FLAGS = (HIDDEN | MINIMIZED | BORDERLESS | RESIZABLE | TOPMOST),
@@ -115,6 +116,12 @@ struct window_data
     //    and rendering correctness depends on the real value.
     bool last_size_pending = false;
 
+    math::recti safe_inset;
+
+    // the last recored pixel size of the window;
+    math::vec2i pixel_size;
+    math::vec2 display_scale;
+
     typename window_flags::type flags = window_flags::NONE;
 
     // Flags representing window state changes (minimized, maximized, restored, fullscreen, etc.)
@@ -130,6 +137,12 @@ struct window_data
     // when the fullscreen flag is set, it is assumed that this value is valid
     display_mode current_fullscreen_mode;
 
+    // Prevent running fullscreen update logic if a fullscreen operation has already been
+    // performed by an event watcher in response to a window display change event. Watchers
+    // are invoked when the event is posted—before the "on display change" function runs.
+    // That function normally updates the fullscreen mode for the new display when a fullscreen
+    // window is moved. If a watcher has already changed the display or fullscreen mode, we
+    // skip the update to avoid overriding the new configuration.
     bool update_fullscreen_on_display_changed = false;
 
     bool fullscreen_exclusive = false;
@@ -140,7 +153,6 @@ struct window_data
     // Stores the display that was initially requested to show the window
     display_id pending_display_id = INVALID_ID;
 
-    float display_scale = 1.0f;
     float opacity = 1.0f;
 
     bool initializing = false;
@@ -152,6 +164,8 @@ struct window_data
     bool tiled = false;
 
     bool mouse_capture = false;
+
+    bool surface_valid = false;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -214,7 +228,8 @@ public:
     math::recti get_rect() const;
 
     bool get_border_size(int* left, int* right, int* bottom, int* top) const;
-    bool get_window_size_in_pixels(int* w, int* h);
+    bool get_size_in_pixels(int* w, int* h) const;
+    float get_pixel_density() const;
     
     bool get_min_size(int* w, int* h) const;
     bool get_max_size(int* w, int* h) const;
@@ -225,6 +240,13 @@ public:
     float get_aspect_ratio() const;
     float get_locked_aspect_ratio() const;
     bool lock_aspect_ratio(float aspect_ratio);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // safe area
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool set_safe_area(const math::recti& area);
+    math::recti get_safe_area() const;
     
     ///////////////////////////////////////////////////////////////////////////////
     // bordered
@@ -256,6 +278,7 @@ public:
     bool is_maximized() const;
     
     bool restore();
+    bool raise();
     
     bool flash(window_flash_op operation);
     
@@ -266,7 +289,7 @@ public:
     bool is_fullscreen() const;
     bool is_fullscreen_visible() const;
     
-    const display_mode& get_fullscreen_mode() const;
+    const display_mode_instance* get_fullscreen_mode() const;
     bool set_fullscreen_mode(const display_mode* mode);  
 
     bool set_fullscreen(bool fullscreen);
@@ -300,6 +323,12 @@ public:
     void clear_icon();
 
     ///////////////////////////////////////////////////////////////////////////////
+    // icc profile
+    ///////////////////////////////////////////////////////////////////////////////
+
+    std::vector<uint8_t> get_icc_profile() const;
+
+    ///////////////////////////////////////////////////////////////////////////////
     // grab
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -315,6 +344,8 @@ public:
 
     bool has_mouse_focus() const;
     bool has_keyboard_focus() const;
+
+    bool should_minimize_on_focus_loss() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // mouse
@@ -332,12 +363,26 @@ public:
     
     bool post_window_hidden();
     void on_window_hidden();
+
+    bool post_window_exposed();
+    void on_window_exposed();
     
     bool post_window_moved(int32_t x, int32_t y);
     void on_window_moved();
     
     bool post_window_resized(int32_t w, int32_t h);
     void on_window_resized();
+
+    void check_pixel_size_changed();
+    bool post_window_pixel_size_changed(int32_t w, int32_t h);
+    void on_window_pixel_size_changed();
+
+    void check_display_scale_changed();
+    bool post_window_display_scale_changed(const math::vec2& scale);
+    void on_window_display_scale_changed();
+
+    bool post_window_safe_area_changed(const math::recti& area);
+    void on_window_safe_area_changed();
     
     bool post_window_minimized();
     void on_window_minimized();
@@ -349,20 +394,32 @@ public:
     void on_window_restored();
     
     bool post_window_enter_fullscreen();
+    void on_window_enter_fullscreen();
+
     bool post_window_leave_fullscreen();
+    void on_window_leave_fullscreen();
     
-    //bool post_window_gained_focus();
-    //bool post_window_lost_focus();
-    //bool post_window_mouse_enter();
-    //bool post_window_mouse_leave();
+    bool post_window_gained_focus();
+    void on_window_gained_focus();
+
+    bool post_window_lost_focus();
+    void on_window_lost_focus();
+
+    bool post_window_mouse_enter();
+    void on_window_mouse_enter();
+
+    bool post_window_mouse_leave();
+    void on_window_mouse_leave();
     
+    void check_window_display_changed();
     bool post_window_display_changed(const display& d);
     void on_window_display_changed(const display& d);
     
-    //bool post_window_display_scale_changed();
-    
     bool post_window_close_requested();
+    void on_window_close_requested();
+
     bool post_window_destroyed();
+    void on_window_destroyed();
 
     ///////////////////////////////////////////////////////////////////////////////
     // data

@@ -456,14 +456,24 @@ VX_API bool push_event(event& e)
 
 bool events_instance::push_event(event& e)
 {
+    return push_event_filtered(e, nullptr, nullptr);
+}
+
+bool events_instance::push_event_filtered(event& e, event_filter filter, void* user_data)
+{
     if (e.time.is_zero())
     {
         e.time = os::get_ticks();
     }
-    
+
     if (!dispatch_event_watch(e))
     {
         return false;
+    }
+
+    if (filter)
+    {
+        match_events(filter, user_data, nullptr, 0, true);
     }
 
     return add_events(&e, 1) == 1;

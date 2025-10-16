@@ -410,7 +410,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
     
     if (is_fullscreen)
     {
-        d = w->data.current_fullscreen_mode.mode.display;
+        d = w->data.current_fullscreen_mode.display;
     
         if (!ignore_pending && !is_valid_id(d))
         {
@@ -974,7 +974,7 @@ VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& c
     return true;
 }
 
-const display_mode_instance* video_instance::find_closest_display_mode(const display_mode& mode) const
+const display_mode_instance* video_instance::find_closest_display_mode(const display_mode& mode, bool include_high_density_modes) const
 {
     const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
 
@@ -984,10 +984,12 @@ const display_mode_instance* video_instance::find_closest_display_mode(const dis
         return nullptr;
     }
 
-    return d->find_closest_mode(mode);
+    return d->find_closest_mode(mode, include_high_density_modes);
 }
 
-const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode) const
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1367
+
+const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode, bool include_high_density_modes) const
 {
     const int width = mode.resolution.x;
     const int height = mode.resolution.y;
@@ -1022,7 +1024,7 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
             continue;
         }
         // Skip modes with non-default pixel density (e.g., HiDPI scaling)
-        if (mode.pixel_density != 1.0f)
+        if (mode.pixel_density > 1.0f && !include_high_density_modes)
         {
             continue;
         }
@@ -1055,7 +1057,7 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
 
 ////////////////////////////////////////
 
-const display_mode_instance* video_instance::find_display_mode_candidate(const display_mode& mode) const
+const display_mode_instance* video_instance::find_display_mode_candidate(const display_mode& mode, bool include_high_density_modes) const
 {
     const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
 
@@ -1069,7 +1071,7 @@ const display_mode_instance* video_instance::find_display_mode_candidate(const d
 
     if (!candidate)
     {
-        candidate = d->find_closest_mode(mode);
+        candidate = d->find_closest_mode(mode, include_high_density_modes);
     }
 
     if (!candidate)
@@ -1571,7 +1573,7 @@ bool video_instance::post_system_theme_changed(system_theme theme)
 
     event::event e{};
     e.type = event::APP_SYSTEM_THEME_CHANGED;
-    e.system_theme_changed.system_theme = theme;
+    e.app_event.system_theme_changed.system_theme = theme;
 
     const bool posted = app->data.events_ptr->push_event(e);
     return posted;
@@ -1583,7 +1585,7 @@ bool video_instance::post_display_added(display_id id)
 
     event::event e{};
     e.type = event::DISPLAY_ADDED;
-    e.display_added.display_id = id;
+    e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     on_display_added();
@@ -1604,7 +1606,7 @@ bool video_instance::post_display_removed(display_id id)
 
     event::event e{};
     e.type = event::DISPLAY_REMOVED;
-    e.display_removed.display_id = id;
+    e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
@@ -1616,7 +1618,7 @@ bool video_instance::post_display_moved(display_id id)
 
     event::event e{};
     e.type = event::DISPLAY_MOVED;
-    e.display_moved.display_id = id;
+    e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
@@ -1628,8 +1630,8 @@ bool video_instance::post_display_orientation_changed(display_id id, display_ori
 
     event::event e{};
     e.type = event::DISPLAY_ORIENTATION_CHANGED;
-    e.display_orientation_changed.display_id = id;
-    e.display_orientation_changed.orientation = orientation;
+    e.display_event.comon.display_id = id;
+    e.display_event.display_orientation_changed.orientation = orientation;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
@@ -1641,7 +1643,7 @@ bool video_instance::post_display_desktop_mode_changed(display_id id, const disp
 
     event::event e{};
     e.type = event::DISPLAY_DESKTOP_MODE_CHANGED;
-    e.display_desktop_mode_changed.display_id = id;
+    e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
@@ -1653,7 +1655,7 @@ bool video_instance::post_display_current_mode_changed(display_id id, const disp
 
     event::event e{};
     e.type = event::DISPLAY_CURRENT_MODE_CHANGED;
-    e.display_current_mode_changed.display_id = id;
+    e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;
@@ -1665,9 +1667,9 @@ bool video_instance::post_display_content_scale_changed(display_id id, const mat
 
     event::event e{};
     e.type = event::DISPLAY_CONTENT_SCALE_CHANGED;
-    e.display_content_scale_changed.display_id = id;
-    e.display_content_scale_changed.x = content_scale.x;
-    e.display_content_scale_changed.y = content_scale.y;
+    e.display_event.comon.display_id = id;
+    e.display_event.display_content_scale_changed.x = content_scale.x;
+    e.display_event.display_content_scale_changed.y = content_scale.y;
     const bool posted = app->data.events_ptr->push_event(e);
 
     return posted;

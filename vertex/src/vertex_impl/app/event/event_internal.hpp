@@ -95,6 +95,8 @@ public:
     bool wait_event_timeout(event& e, time::time_point t);
 
     bool push_event(event& e);
+    bool push_event_filtered(event& e, event_filter filter, void* user_data);
+
     bool poll_event(event& e);
 
     void set_event_filter(event_filter filter, void* user_data);

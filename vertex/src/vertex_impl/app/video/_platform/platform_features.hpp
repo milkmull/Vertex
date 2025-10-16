@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vertex/app/video/config/video_backend.hpp"
+#include "vertex/app/video/config/video_driver.hpp"
 
 // ------------------------------------------------------------
 // Video backend feature flags
@@ -59,6 +59,7 @@
 #define VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT             0
 #define VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB             0
 #define VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB          0
+#define VX_VIDEO_HAVE_WINDOW_GET_CONTENT_SCALE          0
 
 // Mouse
 #define VX_MOUSE_HAVE_CREATE_CURSOR                     0
@@ -85,7 +86,7 @@
 #define VX_VIDEO_HAVE_CLIPBOARD_HAS_DATA                0
 #define VX_VIDEO_HAVE_CLIPBOARD_SCREEN_KEYBOARD         0
 
-#if defined(VX_VIDEO_BACKEND_WINDOWS)
+#if defined(VX_VIDEO_DRIVER_WINDOWS)
 #   include "vertex_impl/app/video/_platform/windows/windows_features.hpp"
 #else
 #   include "vertex_impl/app/video/_platform/dummy/dummy_features.hpp"
@@ -338,6 +339,11 @@
 #   undef VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
 #endif
 #define VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB 1
+
+#ifdef VX_VIDEO_HAVE_WINDOW_GET_CONTENT_SCALE
+#   undef VX_VIDEO_HAVE_WINDOW_GET_CONTENT_SCALE
+#endif
+#define VX_VIDEO_HAVE_WINDOW_GET_CONTENT_SCALE 1
 
 // ------------------------------------------------------------
 // Mouse
