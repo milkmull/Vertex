@@ -456,6 +456,44 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_8888>
 _STATIC_FORMAT_CHECK(ABGR_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
+
+template <>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_8888>
+{
+    using channel_type = uint8_t;
+    using pixel_type = uint32_t;
+    using float_type = float;
+
+    static constexpr pixel_format format = pixel_format::ARGB_8888;
+    static constexpr channel_info info = get_channel_info(format);
+    pixel_type data;
+
+    VX_FORCE_INLINE constexpr raw_pixel() noexcept : data{ 0 } {}
+
+    VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
+        _PACKED_ENCODE_CHANNEL(r) |
+        _PACKED_ENCODE_CHANNEL(g) |
+        _PACKED_ENCODE_CHANNEL(b) |
+        _PACKED_ENCODE_CHANNEL(a)
+        )) {
+    }
+
+    VX_FORCE_INLINE constexpr operator math::color() const noexcept
+    {
+        return math::color(
+            _PACKED_DECODE_CHANNEL(r),
+            _PACKED_DECODE_CHANNEL(g),
+            _PACKED_DECODE_CHANNEL(b),
+            _PACKED_DECODE_CHANNEL(a)
+        );
+    }
+
+    VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
+};
+
+_STATIC_FORMAT_CHECK(ABGR_8888);
+
+///////////////////////////////////////////////////////////////////////////////
 // 2101010
 ///////////////////////////////////////////////////////////////////////////////
 

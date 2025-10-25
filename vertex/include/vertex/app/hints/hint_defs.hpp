@@ -49,11 +49,15 @@ CRETAE_HINT(HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP, 5, "1");
 CRETAE_HINT(HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS, 6, "0");
 CRETAE_HINT(HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN, 7, "1");
 CRETAE_HINT(HINT_VIDEO_WINDOW_MINIMIZE_ON_FOCUS_LOSS, 8, "0");
+CRETAE_HINT(HINT_VIDEO_WINDOW_MATCH_EXCLUSIVE_MODE_ON_MOVE, 9, "1");
+
+CRETAE_HINT(HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE, 10, "1");
 
 ///////////////////////////////////////////////////////////////////////////////
 
 #define VX_HINT_GET_NAME(hint_) ::vx::app::hint::hint_traits<(hint_)>::hint
 #define VX_HINT_GET_DEFAULT_VALUE(hint_) ::vx::app::hint::hint_traits<(hint_)>::default_value
+#define HINT_AND_DEFAULT_VALUE(hint_) (hint_), VX_HINT_GET_DEFAULT_VALUE(hint_)
 
 ///////////////////////////////////////////////////////////////////////////////
 

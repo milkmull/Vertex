@@ -276,24 +276,6 @@ bool video_instance::is_display_connected(display_id id) const
 
 ////////////////////////////////////////
 
-display_instance* video_instance::get_display_instance(display_id id)
-{
-    if (!is_valid_id(id))
-    {
-        return nullptr;
-    }
-
-    for (display_instance& d : data.displays)
-    {
-        if (d.data.id == id)
-        {
-            return &d;
-        }
-    }
-
-    return nullptr;
-}
-
 const display_instance* video_instance::get_display_instance(display_id id) const
 {
     if (!is_valid_id(id))
@@ -310,6 +292,11 @@ const display_instance* video_instance::get_display_instance(display_id id) cons
     }
 
     return nullptr;
+}
+
+display_instance* video_instance::get_display_instance(display_id id)
+{
+    return const_cast<display_instance*>(get_display_instance(id));
 }
 
 ////////////////////////////////////////
@@ -401,18 +388,23 @@ VX_API display_id get_display_for_window(const window& w)
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1769
 
-display_id video_instance::get_display_for_window(window_id id, bool ignore_pending) const
+display_id video_instance::get_display_for_window(window_id id, bool ignore_pending_display_id) const
 {
-    display_id d = INVALID_ID;
     const window_instance* w = get_window_instance(id);
+    if (!w)
+    {
+        return INVALID_ID;
+    }
+
+    display_id d = INVALID_ID;
 
     const bool is_fullscreen = (w->data.flags & window_flags::FULLSCREEN);
-    
+
     if (is_fullscreen)
     {
         d = w->data.current_fullscreen_mode.display;
-    
-        if (!ignore_pending && !is_valid_id(d))
+
+        if (!ignore_pending_display_id && !is_valid_id(d))
         {
             d = w->data.pending_display_id;
         }
@@ -423,7 +415,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
     if (!is_valid_id(d))
     {
         // first try any built in method that the os may have
-        //d = get_display_for_window_impl(w);
+        d = impl_ptr->get_display_for_window(w);
     }
 
 #endif // VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
@@ -444,7 +436,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
             d = get_display_for_rect(math::recti(w->data.position, w->data.size));
         }
     }
-    
+
     // The primary display is a good default
     if (!is_valid_id(d))
     {
@@ -580,12 +572,13 @@ void display_instance::set_content_scale(const math::vec2& scale)
     data.content_scale = scale;
     video->post_display_content_scale_changed(data.id, scale);
 
-    // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1883
-
-    //for (const auto& w : video->data.windows)
-    //{
-    //    if (data.id == w->displa)
-    //}
+    for (window_instance& w : video->data.windows)
+    {
+        if (data.id == w.data.current_display_id)
+        {
+            w.check_display_scale_changed();
+        }
+    }
 }
 
 ///////////////////////////////////////
@@ -788,7 +781,7 @@ bool video_instance::set_display_current_mode(display_id id, const display_mode&
 
 bool display_instance::set_current_mode(const display_mode& mode)
 {
-#if VX_VIDEO_MODE_SWITCHING_EMULATED && defined(VX_VIDEO_X11)
+#if VX_VIDEO_MODE_SWITCHING_EMULATED && defined(VX_VIDEO_DRIVER_X11)
 
     return true;
 
@@ -894,9 +887,12 @@ std::vector<display_mode> display_instance::list_modes() const
 
 ///////////////////////////////////////
 
-const display_mode_instance* video_instance::find_display_mode(const display_mode& mode) const
+const display_mode_instance* video_instance::find_display_mode_for_display(display_id id, const display_mode& mode) const
 {
-    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    if (!is_valid_id(id))
+    {
+        id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    }
 
     const display_instance* d = get_display_instance(id);
     if (!d)
@@ -964,7 +960,7 @@ VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& c
         return false;
     }
 
-    const display_mode_instance* dmi = di->find_closest_mode(mode);
+    const display_mode_instance* dmi = di->find_closest_mode(mode, true, false);
     if (!dmi)
     {
         return false;
@@ -974,9 +970,14 @@ VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& c
     return true;
 }
 
-const display_mode_instance* video_instance::find_closest_display_mode(const display_mode& mode, bool include_high_density_modes) const
+const display_mode_instance* video_instance::find_closest_display_mode_for_display(
+    display_id id, const display_mode& mode, bool include_high_density_modes, bool match_resolution
+) const
 {
-    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    if (!is_valid_id(id))
+    {
+        id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    }
 
     const display_instance* d = get_display_instance(id);
     if (!d)
@@ -984,12 +985,12 @@ const display_mode_instance* video_instance::find_closest_display_mode(const dis
         return nullptr;
     }
 
-    return d->find_closest_mode(mode, include_high_density_modes);
+    return d->find_closest_mode(mode, include_high_density_modes, match_resolution);
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1367
 
-const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode, bool include_high_density_modes) const
+const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode, bool include_high_density_modes, bool match_resolution) const
 {
     const int width = mode.resolution.x;
     const int height = mode.resolution.y;
@@ -1013,16 +1014,27 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
     {
         const display_mode& mode = dmi.data.mode;
 
-        // Skip modes with a smaller width than requested
-        if (width > mode.resolution.x)
+        if (match_resolution)
         {
-            break;
+            if (width != mode.resolution.x || height != mode.resolution.y)
+            {
+                continue;
+            }
         }
-        // Skip modes with smaller height than requested
-        if (height > mode.resolution.y)
+        else
         {
-            continue;
+            // Skip modes with a smaller width than requested
+            if (width > mode.resolution.x)
+            {
+                break;
+            }
+            // Skip modes with smaller height than requested
+            if (height > mode.resolution.y)
+            {
+                continue;
+            }
         }
+
         // Skip modes with non-default pixel density (e.g., HiDPI scaling)
         if (mode.pixel_density > 1.0f && !include_high_density_modes)
         {
@@ -1057,9 +1069,12 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
 
 ////////////////////////////////////////
 
-const display_mode_instance* video_instance::find_display_mode_candidate(const display_mode& mode, bool include_high_density_modes) const
+const display_mode_instance* video_instance::find_display_mode_candidate_for_display(display_id id, const display_mode& mode, bool include_high_density_modes, bool match_resolution) const
 {
-    const display_id id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    if (!is_valid_id(id))
+    {
+        id = is_valid_id(mode.display) ? mode.display : get_primary_display();
+    }
 
     const display_instance* d = get_display_instance(id);
     if (!d)
@@ -1071,7 +1086,7 @@ const display_mode_instance* video_instance::find_display_mode_candidate(const d
 
     if (!candidate)
     {
-        candidate = d->find_closest_mode(mode, include_high_density_modes);
+        candidate = d->find_closest_mode(mode, include_high_density_modes, match_resolution);
     }
 
     if (!candidate)
@@ -1350,21 +1365,6 @@ const window_instance* video_instance::get_window_instance(window_id id) const
 
 ////////////////////////////////////////
 
-void video_instance::check_window_display_changed(window_id id)
-{
-    VX_ASSERT(is_valid_id(id));
-
-#if VX_VIDEO_SENDS_DISPLAY_CHANGES
-
-#else
-
-    return;
-
-#endif // VX_VIDEO_SENDS_DISPLAY_CHANGES
-}
-
-////////////////////////////////////////
-
 window_id video_instance::get_active_window()
 {
     //for (auto& w : data.windows)
@@ -1415,34 +1415,79 @@ void video_instance::validate_grabbed_window()
     }
 }
 
+////////////////////////////////////////
+
+bool video_instance::should_quit_on_window_close() const
+{
+    const bool quit_on_last_window_close = app->data.hints_ptr->get_hint_boolean(
+        HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE)
+    );
+
+    if (quit_on_last_window_close)
+    {
+        size_t top_level_count = 0;
+
+        for (const window_instance& w : data.windows)
+        {
+            if (!(w.data.flags && window_flags::HIDDEN))
+            {
+                ++top_level_count;
+            }
+        }
+
+        if (top_level_count <= 1)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // fullscreen helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-window_id video_instance::get_display_fullscreen_window_id(display_id id) const
+void video_instance::set_display_fullscreen_window(display_id id, window_id wid, bool post_event)
 {
-    if (!is_valid_id(id))
-    {
-        return INVALID_ID;
-    }
-
-    const display_instance* d = get_display_instance(id);
-    return d ? d->data.fullscreen_window_id : INVALID_ID;
-}
-
-////////////////////////////////////////
-
-void video_instance::set_display_fullscreen_window_id(display_id id, window_id wid)
-{
-    if (!is_valid_id(id))
+    display_instance* display = get_display_instance(id);
+    if (!display)
     {
         return;
     }
 
-    display_instance* d = get_display_instance(id);
-    if (d)
+    display_instance* old_display = get_display_instance(find_display_with_fullscreen_window(wid));
+    if (old_display)
     {
-        d->data.fullscreen_window_id = wid;
+        if (old_display->data.id == id)
+        {
+            // the id is already set to the new display, don't need to change anything
+            return;
+        }
+
+        // window is no longer on the old display, clear the old display fullscreen window id
+        old_display->data.fullscreen_window_id = INVALID_ID;
+    }
+
+    if (is_valid_id(display->data.fullscreen_window_id) && display->data.fullscreen_window_id != wid)
+    {
+        // there is already a fullscreen window here, minimize it
+        window_instance* w = get_window_instance(display->data.fullscreen_window_id);
+        if (w)
+        {
+            w->minimize();
+        }
+    }
+    
+    display->data.fullscreen_window_id = wid;
+
+    if (post_event)
+    {
+        window_instance* w = get_window_instance(wid);
+        if (w)
+        {
+            w->post_window_display_changed(id);
+        }
     }
 }
 

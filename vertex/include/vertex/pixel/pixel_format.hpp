@@ -88,291 +88,299 @@ enum class pixel_format : uint32_t
 
     UNKNOWN = 0x00000000,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_NONE,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_NONE,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::NONE,
+    //     pixel_channel_order::NONE,
+    //     pixel_pack_layout::_NONE,
     //     0, 0, false
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGB_332 = 0x13130001,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_8,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_332,
+    //     pixel_type::PACKED_8,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_332,
     //     3, 1, false
-    // )
+    // ),
     
     ///////////////////////////////////////////////////////////////////////////////
 
     RGBA_4444 = 0x25240802,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA, 
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_4444,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::RGBA, 
+    //     pixel_pack_layout::_4444,
     //     4, 2, true
-    // )
+    // ),
 
     BGRA_4444 = 0x26240802,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_4444,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::BGRA,
+    //     pixel_pack_layout::_4444,
     //     4, 2, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGB_565 = 0x23330002,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_565,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_565,
     //     3, 2, false
-    // )
+    // ),
 
     BGR_565 = 0x24330002,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGR,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_565,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::BGR,
+    //     pixel_pack_layout::_565,
     //     3, 2, false
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGBA_5551 = 0x25440802,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_5551,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_5551,
     //     4, 2, true
-    // )
+    // ),
 
     BGRA_5551 = 0x26440802,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_5551,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::BGRA,
+    //     pixel_pack_layout::_5551,
     //     4, 2, true
-    // )
+    // ),
 
     ARGB_1555 = 0x27540802,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_16,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_ARGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_1555,
+    //     pixel_type::PACKED_16,
+    //     pixel_channel_order::ARGB,
+    //     pixel_pack_layout::_1555,
     //     4, 2, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     R_8 = 0x41010001,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::R,
+    //     pixel_pack_layout::_NONE,
     //     1, 1, false
-    // )
+    // ),
 
     RG_8 = 0x42020002,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RG,
+    //     pixel_pack_layout::_NONE,
     //     2, 2, false
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGB_8 = 0x43030003,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_NONE,
     //     3, 3, false
-    // )
+    // ),
 
     BGR_8 = 0x44030003,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGR,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::BGR,
+    //     pixel_pack_layout::_NONE,
     //     3, 3, false
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGBA_8888 = 0x35940804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_32,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_8888,
     //     4, 4, true
-    // )
+    // ),
 
     BGRA_8888 = 0x36940804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_32,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::BGRA,
+    //     pixel_pack_layout::_8888,
     //     4, 4, true
-    // )
+    // ),
 
     ABGR_8888 = 0x38940804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_32,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_8888,
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::ABGR,
+    //     pixel_pack_layout::_8888,
     //     4, 4, true
-    // )
+    // ),
+
+    ARGB_8888 = 0x37940804,
+    // create_pixel_format(
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::ARGB,
+    //     pixel_pack_layout::_8888,
+    //     4, 4, true
+    // ),,
 
     ///////////////////////////////////////////////////////////////////////////////
 
     ARGB_2101010 = 0x37A40804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_32,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_ARGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_2101010,
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::ARGB,
+    //     pixel_pack_layout::_2101010,
     //     4, 4, true
-    // )
+    // ),
 
     ABGR_2101010 = 0x38A40804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_PACKED_32,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_2101010,
+    //     pixel_type::PACKED_32,
+    //     pixel_channel_order::ABGR,
+    //     pixel_pack_layout::_2101010,
     //     4, 4, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     RGBA_8 = 0x45040804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_NONE,
     //     4, 4, true
-    // )
+    // ),
 
     BGRA_8 = 0x46040804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_BGRA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::BGRA,
+    //     pixel_pack_layout::_NONE,
     //     4, 4, true
-    // )
+    // ),
 
     ABGR_8 = 0x48040804,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_ABGR,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::ABGR,
+    //     pixel_pack_layout::_NONE,
     //     4, 4, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     R_16 = 0x41010002,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::R,
+    //     pixel_pack_layout::_NONE,
     //     1, 2, false
-    // )
+    // ),
 
     RG_16 = 0x42020004,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RG,
+    //     pixel_pack_layout::_NONE,
     //     2, 4, false
-    // )
+    // ),
 
     RGB_16 = 0x43030006,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_NONE,
     //     3, 6, false
-    // )
+    // ),
 
     RGBA_16 = 0x45040808,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_NONE,
     //     4, 8, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     //R_32 = 0x41010004,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::R,
+    //     pixel_pack_layout::_NONE,
     //     1, 4, false
-    // )
+    // ),
 
     //RG_32 = 0x42020008,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RG,
+    //     pixel_pack_layout::_NONE,
     //     2, 8, false
-    // )
+    // ),
 
     //RGB_32 = 0x4303000C,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_NONE,
     //     3, 12, false
-    // )
+    // ),
 
     //RGBA_32 = 0x45040810,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_UINT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::UINT_ARRAY,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_NONE,
     //     4, 16, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
     R_32F = 0x51010004,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_R,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::FLOAT_ARRAY,
+    //     pixel_channel_order::R,
+    //     pixel_pack_layout::_NONE,
     //     1, 4, false
-    // )
+    // ),
 
     RG_32F = 0x52020008,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RG,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::FLOAT_ARRAY,
+    //     pixel_channel_order::RG,
+    //     pixel_pack_layout::_NONE,
     //     2, 8, false
-    // )
+    // ),
 
     RGB_32F = 0x5303000C,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGB,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::FLOAT_ARRAY,
+    //     pixel_channel_order::RGB,
+    //     pixel_pack_layout::_NONE,
     //     3, 12, false
-    // )
+    // ),
 
     RGBA_32F = 0x55040810,
     // create_pixel_format(
-    //     pixel_type::PIXEL_TYPE_FLOAT_ARRAY,
-    //     pixel_channel_order::PIXEL_CHANNEL_ORDER_RGBA,
-    //     pixel_pack_layout::PIXEL_PACK_LAYOUT_NONE,
+    //     pixel_type::FLOAT_ARRAY,
+    //     pixel_channel_order::RGBA,
+    //     pixel_pack_layout::_NONE,
     //     4, 16, true
-    // )
+    // ),
 
     ///////////////////////////////////////////////////////////////////////////////
 };
@@ -533,6 +541,14 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.g = { 2, 8, 0x00FF0000, 16 };
             info.b = { 1, 8, 0x0000FF00,  8 };
             info.a = { 0, 8, 0x000000FF,  0 };
+            break;
+        }
+        case pixel_format::ARGB_8888:
+        {
+            info.r = { 1, 8, 0x00FF0000,  8 };
+            info.g = { 2, 8, 0x0000FF00, 16 };
+            info.b = { 3, 8, 0x000000FF, 24 };
+            info.a = { 0, 8, 0xFF000000,  0 };
             break;
         }
         case pixel_format::ARGB_2101010:

@@ -345,5 +345,23 @@ const app_metadata& app_instance::get_metadata() const
     return data.metadata;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// events
+///////////////////////////////////////////////////////////////////////////////
+
+bool app_instance::post_app_quit()
+{
+    event::event e{};
+    e.type = event::APP_QUIT;
+    return data.events_ptr->push_event(e);
+}
+
+bool app_instance::post_app_terminating() { return false; }
+bool app_instance::post_app_low_memory() { return false; }
+bool app_instance::post_app_will_enter_background() { return false; }
+bool app_instance::post_app_did_enter_background() { return false; }
+bool app_instance::post_app_will_enter_foreground() { return false; }
+bool app_instance::post_event_did_enter_foreground() { return false; }
+
 } // namespace app
 } // namespace vx

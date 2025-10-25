@@ -3,6 +3,7 @@
 #include "vertex/app/video/window.hpp"
 #include "vertex/app/owner_ptr.hpp"
 #include "vertex/pixel/surface.hpp"
+#include "vertex/pixel/pixel_format.hpp"
 
 namespace vx {
 namespace app {
@@ -13,6 +14,10 @@ class video_instance;
 ///////////////////////////////////////////////////////////////////////////////
 // helper defs
 ///////////////////////////////////////////////////////////////////////////////
+
+#if defined(TRANSPARENT)
+#   undef TRANSPARENT
+#endif
 
 struct window_flags
 {
@@ -29,15 +34,18 @@ struct window_flags
         BORDERLESS = (1 << 3),
         RESIZABLE = (1 << 4),
         TOPMOST = (1 << 5),
+        TRANSPARENT = (1 << 6),
 
-        HIDDEN = (1 << 6),
-        OCCLUDED = (1 << 7),
-        FOCUSSED = (1 << 8),
+        HIDDEN = (1 << 7),
+        OCCLUDED = (1 << 8),
 
-        MOUSE_GRABBED = (1 << 9),
-        MOUSE_CAPTURE = (1 << 10),
+        INPUT_FOCUS = (1 << 9),
+        MOUSE_FOCUS = (1 << 10),
 
-        KEYBOARD_GRABBED = (1 << 11),
+        MOUSE_GRABBED = (1 << 11),
+        KEYBOARD_GRABBED = (1 << 12),
+
+        MOUSE_CAPTURE = (1 << 13),
 
         // flags to be set by the os on window creation
         CREATE_FLAGS = (HIDDEN | MINIMIZED | BORDERLESS | RESIZABLE | TOPMOST),
@@ -58,6 +66,8 @@ enum window_rect_type
 ///////////////////////////////////////////////////////////////////////////////
 // window data
 ///////////////////////////////////////////////////////////////////////////////
+
+using argb_surface = pixel::surface<pixel::pixel_format::ARGB_8888>;
 
 struct window_data
 {
@@ -133,7 +143,6 @@ struct window_data
     // stores the requested mode inormation, can be used to look up the closes mode to the requested
     // configuration if the exact requestes mode does not exist
     display_mode requested_fullscreen_mode;
-    bool requested_fullscreen_mode_set = false;
     // when the fullscreen flag is set, it is assumed that this value is valid
     display_mode current_fullscreen_mode;
 
@@ -149,7 +158,7 @@ struct window_data
     display_id last_fullscreen_exclusive_display_id = INVALID_ID;
 
     // The id of the display that the window was last detected on
-    display_id last_display_id = INVALID_ID;
+    display_id current_display_id = INVALID_ID;
     // Stores the display that was initially requested to show the window
     display_id pending_display_id = INVALID_ID;
 
@@ -166,6 +175,7 @@ struct window_data
     bool mouse_capture = false;
 
     bool surface_valid = false;
+    argb_surface shape_surface;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -263,7 +273,7 @@ public:
     bool is_always_on_top() const;
     
     ///////////////////////////////////////////////////////////////////////////////
-    // window_instance operators
+    // operators
     ///////////////////////////////////////////////////////////////////////////////
     
     bool show();
@@ -279,8 +289,14 @@ public:
     
     bool restore();
     bool raise();
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // system
+    ///////////////////////////////////////////////////////////////////////////////
     
     bool flash(window_flash_op operation);
+    bool show_system_menu(int x, int y);
+    bool set_hit_test(window_hit_test callback, void* user_data);
     
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen
@@ -289,7 +305,7 @@ public:
     bool is_fullscreen() const;
     bool is_fullscreen_visible() const;
     
-    const display_mode_instance* get_fullscreen_mode() const;
+    const display_mode& get_fullscreen_mode() const;
     bool set_fullscreen_mode(const display_mode* mode);  
 
     bool set_fullscreen(bool fullscreen);
@@ -323,14 +339,28 @@ public:
     void clear_icon();
 
     ///////////////////////////////////////////////////////////////////////////////
+    // shape
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool set_shape(const argb_surface& shape);
+    bool update_shape(bool force);
+
+    float get_opacity() const;
+    bool set_opacity(float opacity);
+
+    ///////////////////////////////////////////////////////////////////////////////
     // icc profile
     ///////////////////////////////////////////////////////////////////////////////
 
     std::vector<uint8_t> get_icc_profile() const;
+    pixel::pixel_format get_pixel_format() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // grab
     ///////////////////////////////////////////////////////////////////////////////
+
+    bool get_mouse_grab() const;
+    bool get_keyboard_grab() const;
 
     bool set_mouse_grab(bool grabbed);
     bool set_keyboard_grab(bool grabbed);
@@ -341,6 +371,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
     // focus
     ///////////////////////////////////////////////////////////////////////////////
+
+    bool set_focusable(bool focusable);
 
     bool has_mouse_focus() const;
     bool has_keyboard_focus() const;
@@ -353,6 +385,9 @@ public:
 
     void set_mouse_capture(bool capture);
     bool mouse_capture_enabled() const;
+
+    const math::recti& get_mouse_rect() const;
+    bool set_mouse_rect(const math::recti& rect);
     
     ///////////////////////////////////////////////////////////////////////////////
     // events
@@ -363,6 +398,9 @@ public:
     
     bool post_window_hidden();
     void on_window_hidden();
+
+    bool post_window_occluded();
+    void on_window_occluded();
 
     bool post_window_exposed();
     void on_window_exposed();
@@ -412,8 +450,8 @@ public:
     void on_window_mouse_leave();
     
     void check_window_display_changed();
-    bool post_window_display_changed(const display& d);
-    void on_window_display_changed(const display& d);
+    bool post_window_display_changed(display_id d);
+    void on_window_display_changed(display_id d);
     
     bool post_window_close_requested();
     void on_window_close_requested();

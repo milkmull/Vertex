@@ -50,6 +50,10 @@ struct display_mode
     pixel::pixel_format pixel_format = pixel::pixel_format::UNKNOWN;            // pixel format
     float pixel_density = 1.0f;                                                 // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
     float refresh_rate = 0.0f;                                                  // refresh rate
+
+    bool is_set() const noexcept { return resolution.x && resolution.y; }
+    void clear() noexcept { *this = display_mode{}; }
+    bool is_high_density() const noexcept { return pixel_density > 1.0f; }
 };
 
 VX_API bool compare_display_modes(const display_mode& mode1, const display_mode& mode2);

@@ -7,6 +7,8 @@ namespace vx {
 namespace app {
 namespace video {
 
+class window;
+
 ///////////////////////////////////////////////////////////////////////////////
 // helper defs
 ///////////////////////////////////////////////////////////////////////////////
@@ -17,6 +19,22 @@ enum class window_flash_op
     BRIEF,
     UNTIL_FOCUSED
 };
+
+enum class hit_test_result
+{
+    NORMAL,             /**< Region is normal. No special properties. */
+    DRAGGABLE,          /**< Region can drag entire window. */
+    RESIZE_TOPLEFT,     /**< Region is the resizable top-left corner border. */
+    RESIZE_TOP,         /**< Region is the resizable top border. */
+    RESIZE_TOPRIGHT,    /**< Region is the resizable top-right corner border. */
+    RESIZE_RIGHT,       /**< Region is the resizable right border. */
+    RESIZE_BOTTOMRIGHT, /**< Region is the resizable bottom-right corner border. */
+    RESIZE_BOTTOM,      /**< Region is the resizable bottom border. */
+    RESIZE_BOTTOMLEFT,  /**< Region is the resizable bottom-left corner border. */
+    RESIZE_LEFT         /**< Region is the resizable left border. */
+};
+
+using window_hit_test = hit_test_result(*)(window* w, int x, int y, void* user_data);
 
 ///////////////////////////////////////////////////////////////////////////////
 // window instance

@@ -23,6 +23,12 @@ class display_mode_instance;
 class display_instance;
 
 ///////////////////////////////////////////////////////////////////////////////
+// helpers
+///////////////////////////////////////////////////////////////////////////////
+
+#define as_id(ptr) ((ptr) ? (ptr)->data.id : INVALID_ID)
+
+///////////////////////////////////////////////////////////////////////////////
 // video hint cache
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -110,15 +116,15 @@ public:
     size_t get_display_index(display_id id) const;
     bool is_display_connected(display_id id) const;
 
-    display_instance* get_display_instance(display_id id);
     const display_instance* get_display_instance(display_id id) const;
+    display_instance* get_display_instance(display_id id);
 
     display_id get_primary_display() const;
 
     display_id get_display_for_point(const math::vec2i& p) const;
     display_id get_display_for_rect(const math::recti& rect) const;
     display_id get_display_at_origin(const math::vec2i& origin) const;
-    display_id get_display_for_window(window_id id, bool ignore_pending) const;
+    display_id get_display_for_window(window_id w, bool ignore_pending_display_id) const;
 
     math::recti get_desktop_area() const;
 
@@ -141,9 +147,9 @@ public:
     std::vector<display_mode> list_display_modes_for_display(display_id id) const;
     bool display_has_mode(display_id id, const display_mode& mode) const;
 
-    const display_mode_instance* find_display_mode(const display_mode& mode) const;
-    const display_mode_instance* find_closest_display_mode(const display_mode& mode, bool include_high_density_modes) const;
-    const display_mode_instance* find_display_mode_candidate(const display_mode& mode, bool include_high_density_modes) const;
+    const display_mode_instance* find_display_mode_for_display(display_id id, const display_mode& mode) const;
+    const display_mode_instance* find_closest_display_mode_for_display(display_id id, const display_mode& mode, bool include_high_density_modes, bool match_resolution) const;
+    const display_mode_instance* find_display_mode_candidate_for_display(display_id id, const display_mode& mode, bool include_high_density_modes, bool match_resolution) const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // screen saver
@@ -168,8 +174,6 @@ public:
     window_instance* get_window_instance(window_id id);
     const window_instance* get_window_instance(window_id id) const;
 
-    void check_window_display_changed(window_id id);
-
     window_id get_active_window();
     void set_wakeup_window(window* w);
 
@@ -177,14 +181,14 @@ public:
     void set_grabbed_window(window_id w);
     void validate_grabbed_window();
 
+    bool should_quit_on_window_close() const;
+
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen helpers
     ///////////////////////////////////////////////////////////////////////////////
 
-    window_id get_display_fullscreen_window_id(display_id id) const;
-    void set_display_fullscreen_window_id(display_id id, window_id wid);
+    void set_display_fullscreen_window(display_id id, window_id wid, bool post_event);
     display_id find_display_with_fullscreen_window(window_id id);
-
     void reset_display_modes_for_window(window_id w, display_id target_display);
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -312,7 +316,7 @@ public:
     std::vector<display_mode> list_modes() const;
     bool has_mode(const display_mode& mode) const;
     const display_mode_instance* find_mode(const display_mode& mode) const;
-    const display_mode_instance* find_closest_mode(const display_mode& mode, bool include_high_density_modes) const;
+    const display_mode_instance* find_closest_mode(const display_mode& mode, bool include_high_density_modes, bool match_resolution) const;
 
 public:
 
