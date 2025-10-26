@@ -277,7 +277,7 @@ VX_FORCE_INLINE constexpr vec4b each_less_or_equal(const vec<4, T>& x, const vec
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool is_inf(T x) noexcept
 {
 #if (VX_CPP_STANDARD >= 23)
@@ -287,7 +287,7 @@ VX_FORCE_INLINE constexpr bool is_inf(T x) noexcept
 #endif
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool is_inf(T) noexcept
 {
     return false;
@@ -375,7 +375,7 @@ VX_FORCE_INLINE constexpr vec4b each_is_inf(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool is_nan(T x) noexcept
 {
 #if (VX_CPP_STANDARD >= 23)
@@ -385,7 +385,7 @@ VX_FORCE_INLINE constexpr bool is_nan(T x) noexcept
 #endif
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool is_nan(T) noexcept
 {
     return false;
@@ -473,13 +473,13 @@ VX_FORCE_INLINE constexpr vec4b each_is_nan(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T>::epsilon) noexcept
 {
     return ((x < static_cast<T>(0)) ? -x : x) <= epsilon;
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool is_zero_approx(T x, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -619,13 +619,13 @@ VX_FORCE_INLINE constexpr vec4b each_is_zero_approx(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return is_zero_approx(a - b, epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -775,13 +775,13 @@ VX_FORCE_INLINE constexpr vec4b each_equal_approx(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool not_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return !is_zero_approx(a - b, epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool not_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -929,13 +929,13 @@ VX_FORCE_INLINE constexpr vec4b each_not_equal_approx(
 // greater_approx
 //////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool greater_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return a > (b + epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool greater_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -992,13 +992,13 @@ VX_FORCE_INLINE constexpr vec4b each_greater_approx(
 // less_approx
 //////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool less_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return a < (b - epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool less_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -1055,13 +1055,13 @@ VX_FORCE_INLINE constexpr vec4b each_less_approx(
 // greater_or_equal_approx
 //////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return a >= (b - epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool greater_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -1118,13 +1118,13 @@ VX_FORCE_INLINE constexpr vec4b each_greater_or_equal_approx(
 // less_or_equal_approx
 //////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     return a <= (b + epsilon);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr bool less_or_equal_approx(T a, T b, const T epsilon = constants<T>::epsilon) noexcept
 {
     (void)epsilon; // suppress unused parameter warning
@@ -1181,7 +1181,7 @@ VX_FORCE_INLINE constexpr vec4b each_less_or_equal_approx(
 // is_identity_approx
 //////////////////////////////////////////////////////////////////////////////
 
-template <size_t M, size_t N, typename T, VXM_REQ(M == N)>
+template <size_t M, size_t N, typename T, VX_MATH_REQ(M == N)>
 VX_FORCE_INLINE constexpr bool is_identity_approx(
     const mat<M, N, T>& x,
     const T epsilon = constants<T>::epsilon
@@ -1205,7 +1205,7 @@ VX_FORCE_INLINE constexpr bool is_identity_approx(
 // any
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr bool any(T x) noexcept
 {
     return !!x;
@@ -1233,7 +1233,7 @@ VX_FORCE_INLINE constexpr bool any(const vec<4, T>& x) noexcept
 // all
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr bool all(T x) noexcept
 {
     return !!x;
@@ -1261,7 +1261,7 @@ VX_FORCE_INLINE constexpr bool all(const vec<4, T>& x) noexcept
 // none
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr bool none(T x) noexcept
 {
     return !x;

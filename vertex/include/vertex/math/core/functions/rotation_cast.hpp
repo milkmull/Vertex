@@ -9,7 +9,7 @@ namespace math {
 // quat to mat3
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, typename T, VXM_REQ(is_float_mat3<To>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat3<To>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const quat_t<T>& q) noexcept
 {
     using mat_type = mat<3, 3, typename To::scalar_type>;
@@ -43,7 +43,7 @@ VX_FORCE_INLINE constexpr To rotation_cast(const quat_t<T>& q) noexcept
 // quat to mat4
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, typename T, VXM_REQ(is_float_mat4<To>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat4<To>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const quat_t<T>& q) noexcept
 {
     using mat_type = mat<4, 4, typename To::scalar_type>;
@@ -85,7 +85,7 @@ VX_FORCE_INLINE constexpr To rotation_cast(const quat_t<T>& q) noexcept
 // mat3 or mat4 to quat
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, size_t M, typename T, VXM_REQ(is_quat<To>::value && (M == 3 || M == 4) && is_float<T>::value)>
+template <typename To, size_t M, typename T, VX_MATH_REQ(is_quat<To>::value && (M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const mat<M, M, T>& m) noexcept
 {
     using quat_type = quat_t<typename To::scalar_type>;
@@ -146,7 +146,7 @@ VX_FORCE_INLINE constexpr To rotation_cast(const mat<M, M, T>& m) noexcept
 // mat3 to mat4
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, typename T, VXM_REQ(is_float_mat4<To>::value && is_float<T>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat4<To>::value && is_float<T>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const mat<3, 3, T>& m) noexcept
 {
     using mat_type = mat<4, 4, typename To::scalar_type>;
@@ -178,7 +178,7 @@ VX_FORCE_INLINE constexpr To rotation_cast(const mat<3, 3, T>& m) noexcept
 // mat4 to mat3
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, typename T, VXM_REQ(is_float_mat3<To>::value && is_float<T>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat3<To>::value && is_float<T>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const mat<4, 4, T>& m) noexcept
 {
     using mat_type = mat<3, 3, typename To::scalar_type>;
@@ -189,21 +189,21 @@ VX_FORCE_INLINE constexpr To rotation_cast(const mat<4, 4, T>& m) noexcept
 // identity casts
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename To, typename T, VXM_REQ(is_quat<To>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_quat<To>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const quat_t<T>& q) noexcept
 {
     using quat_type = quat_t<typename To::scalar_type>;
     return quat_type(q);
 }
 
-template <typename To, typename T, VXM_REQ(is_float_mat3<To>::value && is_float<T>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat3<To>::value && is_float<T>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const mat<3, 3, T>& m) noexcept
 {
     using mat3_type = mat<3, 3, typename To::scalar_type>;
     return mat3_type(m);
 }
 
-template <typename To, typename T, VXM_REQ(is_float_mat4<To>::value&& is_float<T>::value)>
+template <typename To, typename T, VX_MATH_REQ(is_float_mat4<To>::value&& is_float<T>::value)>
 VX_FORCE_INLINE constexpr To rotation_cast(const mat<4, 4, T>& m) noexcept
 {
     using mat4_type = mat<4, 4, typename To::scalar_type>;

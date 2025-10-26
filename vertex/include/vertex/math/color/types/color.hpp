@@ -13,12 +13,12 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 {
 #if defined(VX_MATH_SIMD_ENABLED)
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::vec<4, _T>::cond))>
-#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::vec<4, _T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ( (simd::vec<4, _T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(simd::vec<4, _T>::cond))>
 
 #else
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(is_same<_T, _T>::value))>
 #   define _SIMD_FALLBACK(cond)
 
 #endif
@@ -73,7 +73,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_NUM(U)>
+    template <typename U, VX_MATH_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit color_t(U scalar) noexcept
         : r(static_cast<scalar_type>(scalar))
         , g(static_cast<scalar_type>(scalar))
@@ -121,7 +121,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // int to float
 
-    template <typename U, VXM_REQ(is_int<U>::value)>
+    template <typename U, VX_MATH_REQ(is_int<U>::value)>
     VX_FORCE_INLINE constexpr color_t(const color_t<U>& c)
         : r(static_cast<scalar_type>(c.r) / static_cast<scalar_type>(color_t<U>::max_channel_value))
         , g(static_cast<scalar_type>(c.g) / static_cast<scalar_type>(color_t<U>::max_channel_value))
@@ -130,7 +130,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 
     // float to float
 
-    template <typename U, VXM_REQ(is_float<U>::value)>
+    template <typename U, VX_MATH_REQ(is_float<U>::value)>
     VX_FORCE_INLINE constexpr explicit color_t(const color_t<U>& c)
         : r(static_cast<scalar_type>(c.r))
         , g(static_cast<scalar_type>(c.g))

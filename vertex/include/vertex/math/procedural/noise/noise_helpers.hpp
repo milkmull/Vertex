@@ -15,13 +15,13 @@ namespace _priv {
 // mod289
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T mod289(T x) noexcept
 {
     return x - floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> mod289(const vec<L, T>& x) noexcept
 {
     return x - floor(x * (static_cast<T>(1) / static_cast<T>(289))) * static_cast<T>(289);
@@ -31,7 +31,7 @@ VX_FORCE_INLINE constexpr vec<L, T> mod289(const vec<L, T>& x) noexcept
 // mod7
 ////////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> mod7(const vec<L, T>& x) noexcept
 {
     return x - floor(x * (static_cast<T>(1) / static_cast<T>(7))) * static_cast<T>(7);
@@ -41,13 +41,13 @@ VX_FORCE_INLINE constexpr vec<L, T> mod7(const vec<L, T>& x) noexcept
 // permute
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T permute(T x) noexcept
 {
     return mod289(((x * static_cast<T>(34)) + static_cast<T>(1)) * x);
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> permute(const vec<L, T>& x) noexcept
 {
     return mod289(((x * static_cast<T>(34)) + static_cast<T>(1)) * x);
@@ -57,13 +57,13 @@ VX_FORCE_INLINE constexpr vec<L, T> permute(const vec<L, T>& x) noexcept
 // taylor_inv_sqrt
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T taylor_inv_sqrt(T r) noexcept
 {
     return static_cast<T>(1.79284291400159) - static_cast<T>(0.85373472095314) * r;
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> taylor_inv_sqrt(const vec<L, T>& r) noexcept
 {
     return static_cast<T>(1.79284291400159) - static_cast<T>(0.85373472095314) * r;
@@ -73,7 +73,7 @@ VX_FORCE_INLINE constexpr vec<L, T> taylor_inv_sqrt(const vec<L, T>& r) noexcept
 // fade
 ////////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> fade(const vec<L, T>& t) noexcept
 {
     return (t * t * t) * (t * (t * static_cast<T>(6) - static_cast<T>(15)) + static_cast<T>(10));
@@ -83,7 +83,7 @@ VX_FORCE_INLINE constexpr vec<L, T> fade(const vec<L, T>& t) noexcept
 // grad4
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> grad4(T j, const vec<4, T>& ip) noexcept
 {
     vec<3, T> pxyz = floor(fract(vec<3, T>(j) * vec<3, T>(ip)) * static_cast<T>(7)) * ip.z - static_cast<T>(1);

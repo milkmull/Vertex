@@ -43,7 +43,7 @@ VX_FORCE_INLINE constexpr T dot(
 // orthogonal
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ(is_signed<T>::value)>
+template <typename T, VX_MATH_REQ(is_signed<T>::value)>
 VX_FORCE_INLINE constexpr vec<2, T> orthogonal(const vec<2, T>& v) noexcept
 {
     return vec<2, T>(-v.y, v.x);
@@ -53,7 +53,7 @@ VX_FORCE_INLINE constexpr vec<2, T> orthogonal(const vec<2, T>& v) noexcept
 // cross
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T cross(
     const vec<2, T>& v,
     const vec<2, T>& u
@@ -62,7 +62,7 @@ VX_FORCE_INLINE constexpr T cross(
     return (v.x * u.y) - (v.y * u.x);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> cross(
     const vec<3, T>& v,
     const vec<3, T>& u
@@ -79,13 +79,13 @@ VX_FORCE_INLINE constexpr vec<3, T> cross(
 // length_squared
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_NUM(T)>
+template <size_t L, typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T length_squared(const vec<L, T>& v) noexcept
 {
     return dot(v, v);
 }
 
-template <size_t L, typename T, VXM_REQ_NUM(T)>
+template <size_t L, typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T magnitude_squared(const vec<L, T>& v) noexcept
 {
     return length_squared(v);
@@ -95,13 +95,13 @@ VX_FORCE_INLINE constexpr T magnitude_squared(const vec<L, T>& v) noexcept
 // length
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T length(const vec<L, T>& v) noexcept
 {
     return sqrt(length_squared(v));
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T magnitude(const vec<L, T>& v) noexcept
 {
     return length(v);
@@ -111,7 +111,7 @@ VX_FORCE_INLINE constexpr T magnitude(const vec<L, T>& v) noexcept
 // distance_squared
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_NUM(T)>
+template <size_t L, typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T distance_squared(
     const vec<L, T>& p0,
     const vec<L, T>& p1
@@ -124,7 +124,7 @@ VX_FORCE_INLINE constexpr T distance_squared(
 // distance
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T distance(
     const vec<L, T>& p0,
     const vec<L, T>& p1
@@ -137,7 +137,7 @@ VX_FORCE_INLINE constexpr T distance(
 // normalize
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> normalize(const vec<L, T>& v) noexcept
 {
     const T magsq = length_squared(v);
@@ -148,7 +148,7 @@ VX_FORCE_INLINE constexpr vec<L, T> normalize(const vec<L, T>& v) noexcept
 // normalize_fast
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> normalize_fast(const vec<L, T>& v) noexcept
 {
     return v * inverse_sqrt(length_squared(v));
@@ -158,7 +158,7 @@ VX_FORCE_INLINE constexpr vec<L, T> normalize_fast(const vec<L, T>& v) noexcept
 // is_normalized
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr bool is_normalized(
     const vec<L, T>& v,
     const T epsilon = constants<T>::epsilon
@@ -171,7 +171,7 @@ VX_FORCE_INLINE constexpr bool is_normalized(
 // normalized_dot
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr auto normalized_dot(
     const vec<L, T>& v,
     const vec<L, T>& u
@@ -184,14 +184,14 @@ VX_FORCE_INLINE constexpr auto normalized_dot(
 // set_length
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> set_length(const vec<L, T>& v, T mag) noexcept
 {
     VX_ASSERT(!is_zero_approx(length(v)));
     return v * (mag / length(v));
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> set_magnitude(const vec<L, T>& v, T mag) noexcept
 {
     return set_length(v, mag);
@@ -201,7 +201,7 @@ VX_FORCE_INLINE constexpr vec<L, T> set_magnitude(const vec<L, T>& v, T mag) noe
 // clamp_length
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> clamp_length(
     const vec<L, T>& v,
     T min,
@@ -214,7 +214,7 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_length(
     return v * scale;
 }
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
     const vec<L, T>& v,
     T min,
@@ -228,22 +228,22 @@ VX_FORCE_INLINE constexpr vec<L, T> clamp_magnitude(
 // aspect
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T aspect(T x, T y) noexcept
 {
     return static_cast<T>(is_zero_approx(y)) ? static_cast<T>(0) : (x / y);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T aspect(const vec<2, T>& v) noexcept
 {
     return aspect(v.x, v.y);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr auto aspect(const vec<2, T>& v) noexcept
 {
-    using F = VXM_FLOAT_TYPE(T);
+    using F = VX_MATH_FLOAT_TYPE(T);
     return aspect(static_cast<F>(v.x), static_cast<F>(v.y));
 }
 
@@ -273,7 +273,7 @@ VX_FORCE_INLINE constexpr T volume(const vec<3, T>& v) noexcept
 
 // vec2
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr auto angle(const vec<2, T>& v) noexcept
 {
     return atan2(v.y, v.x);
@@ -281,7 +281,7 @@ VX_FORCE_INLINE constexpr auto angle(const vec<2, T>& v) noexcept
 
 // vec3
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T angle(
     const vec<L, T>& from,
     const vec<L, T>& to
@@ -294,7 +294,7 @@ VX_FORCE_INLINE constexpr T angle(
 // signed_angle
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T signed_angle(
     const vec<2, T>& from,
     const vec<2, T>& to
@@ -323,7 +323,7 @@ VX_FORCE_INLINE constexpr T signed_angle(
 // direction
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> direction(T angle) noexcept
 {
     return vec<2, T>(
@@ -338,7 +338,7 @@ VX_FORCE_INLINE constexpr vec<2, T> direction(T angle) noexcept
 
 // axis (2d)
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle) noexcept
 {
     const T cosa = cos(angle);
@@ -354,7 +354,7 @@ VX_FORCE_INLINE constexpr vec<2, T> rotate(const vec<2, T>& v, T angle) noexcept
 
 // https://en.wikipedia.org/wiki/Rodrigues%27_rotation_formula
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const vec<3, T>& axis,
@@ -373,7 +373,7 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
 // project
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> project(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -389,7 +389,7 @@ VX_FORCE_INLINE constexpr vec<L, T> project(
 
 // https://registry.khronos.org/OpenGL-Refpages/gl4/html/reflect.xhtml
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> reflect(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -403,7 +403,7 @@ VX_FORCE_INLINE constexpr vec<L, T> reflect(
 // bounce
 ///////////////////////////////////////////////////////////////////////////////
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> bounce(
     const vec<L, T>& i,
     const vec<L, T>& n
@@ -419,7 +419,7 @@ VX_FORCE_INLINE constexpr vec<L, T> bounce(
 
 // https://registry.khronos.org/OpenGL-Refpages/gl4/html/refract.xhtml
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> refract(
     const vec<L, T>& i,
     const vec<L, T>& n,
@@ -442,7 +442,7 @@ VX_FORCE_INLINE constexpr vec<L, T> refract(
 
 // https://registry.khronos.org/OpenGL-Refpages/gl4/html/faceforward.xhtml
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> face_forward(
     const vec<L, T>& n,
     const vec<L, T>& i,

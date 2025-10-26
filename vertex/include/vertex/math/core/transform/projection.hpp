@@ -13,7 +13,7 @@ namespace projection {
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterlh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
     T left, T right,
     T top, T bottom,
@@ -45,7 +45,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
     T left, T right,
     T top, T bottom,
@@ -79,7 +79,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh_no(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixorthooffcenterrh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
     T left, T right,
     T top, T bottom,
@@ -111,7 +111,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_no(
     T left, T right,
     T top, T bottom,
@@ -143,7 +143,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_zo(
     T left, T right,
     T top, T bottom,
@@ -159,7 +159,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_no(
     T left, T right,
     T top, T bottom,
@@ -175,7 +175,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh(
     T left, T right,
     T top, T bottom,
@@ -191,7 +191,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_lh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh(
     T left, T right,
     T top, T bottom,
@@ -207,7 +207,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho_rh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
     T left, T right,
     T top, T bottom,
@@ -231,7 +231,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> ortho(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectiveoffcenterlh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_zo(
     T left, T right,
     T top, T bottom,
@@ -263,7 +263,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_no(
     T left, T right,
     T top, T bottom,
@@ -297,7 +297,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh_no(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectiveoffcenterrh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_zo(
     T left, T right,
     T top, T bottom,
@@ -329,7 +329,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_no(
     T left, T right,
     T top, T bottom,
@@ -361,7 +361,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_zo(
     T left, T right,
     T top, T bottom,
@@ -377,7 +377,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_no(
     T left, T right,
     T top, T bottom,
@@ -393,7 +393,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh(
     T left, T right,
     T top, T bottom,
@@ -409,7 +409,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_lh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh(
     T left, T right,
     T top, T bottom,
@@ -425,7 +425,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum_rh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> frustum(
     T left, T right,
     T top, T bottom,
@@ -449,7 +449,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> frustum(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovlh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
     T fovy, T aspect,
     T znear, T zfar
@@ -482,7 +482,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
     T fovy, T aspect,
     T znear, T zfar
@@ -518,7 +518,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh_no(
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixperspectivefovrh
 
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
     T fovy, T aspect,
     T znear, T zfar
@@ -551,7 +551,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_no(
     T fovy, T aspect,
     T znear, T zfar
@@ -584,7 +584,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_zo(
     T fovy, T aspect,
     T znear, T zfar
@@ -599,7 +599,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_no(
     T fovy, T aspect,
     T znear, T zfar
@@ -614,7 +614,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh(
     T fovy, T aspect,
     T znear, T zfar
@@ -629,7 +629,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_lh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh(
     T fovy, T aspect,
     T znear, T zfar
@@ -644,7 +644,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective_rh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
     T fovy, T aspect,
     T znear, T zfar
@@ -665,7 +665,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> perspective(
 // project
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> project_zo(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -690,7 +690,7 @@ VX_FORCE_INLINE constexpr vec<3, T> project_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> project_no(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -716,7 +716,7 @@ VX_FORCE_INLINE constexpr vec<3, T> project_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> project(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -735,7 +735,7 @@ VX_FORCE_INLINE constexpr vec<3, T> project(
 // unproject
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -759,7 +759,7 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_zo(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -784,7 +784,7 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject_no(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, typename U, VXM_REQ_FLOAT(T)>
+template <typename T, typename U, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> unproject(
     const vec<3, T>& object,
     const mat<4, 4, T>& model,
@@ -803,7 +803,7 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject(
 // projection
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, T>& v) noexcept
 {
     vec<4, T> v4(v, static_cast<T>(1));
@@ -812,7 +812,7 @@ VX_FORCE_INLINE constexpr vec<3, T> project(const mat<4, 4, T>& m, const vec<3, 
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> project(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
 {
     const vec<4, T> v4 = m * v;
@@ -822,7 +822,7 @@ VX_FORCE_INLINE constexpr vec<4, T> project(const mat<4, 4, T>& m, const vec<4, 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3, T>& v) noexcept
 {
     vec<4, T> v4(v, static_cast<T>(1));
@@ -831,7 +831,7 @@ VX_FORCE_INLINE constexpr vec<3, T> unproject(const mat<4, 4, T>& m, const vec<3
     return vec<3, T>(v4.x * invw, v4.y * invw, v4.z * invw);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> unproject(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
 {
     const vec<4, T> v4 = inverse(m) * v;

@@ -21,12 +21,12 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
 #if defined(VX_MATH_SIMD_ENABLED)
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::quat_t<_T>::cond))>
-#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::quat_t<_T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ( (simd::quat_t<_T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(simd::quat_t<_T>::cond))>
 
 #else
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(is_same<_T, _T>::value))>
 #   define _SIMD_FALLBACK(cond)
 
 #endif

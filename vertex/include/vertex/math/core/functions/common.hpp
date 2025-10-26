@@ -45,13 +45,13 @@ VX_FORCE_INLINE constexpr vec<3, T> min(const vec<3, T>& x, T y) noexcept
     return vec<3, T>(min(x.x, y), min(x.y, y), min(x.z, y));
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> min(const vec<4, T>& x, T y) noexcept
 {
     return vec<4, T>(min(x.x, y), min(x.y, y), min(x.z, y), min(x.w, y));
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE vec<4, T> min(const vec<4, T>& x, T y) noexcept
 {
     return simd::vec<4, T>::min(x, y);
@@ -77,7 +77,7 @@ VX_FORCE_INLINE constexpr vec<3, T> min(
     return vec<3, T>(min(x.x, y.x), min(x.y, y.y), min(x.z, y.z));
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> min(
     const vec<4, T>& x,
     const vec<4, T>& y
@@ -86,7 +86,7 @@ VX_FORCE_INLINE constexpr vec<4, T> min(
     return vec<4, T>(min(x.x, y.x), min(x.y, y.y), min(x.z, y.z), min(x.w, y.w));
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE vec<4, T> min(
     const vec<4, T>& x,
     const vec<4, T>& y
@@ -131,13 +131,13 @@ VX_FORCE_INLINE constexpr vec<3, T> max(const vec<3, T>& x, T y) noexcept
     return vec<3, T>(max(x.x, y), max(x.y, y), max(x.z, y));
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> max(const vec<4, T>& x, T y) noexcept
 {
     return vec<4, T>(max(x.x, y), max(x.y, y), max(x.z, y), max(x.w, y));
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE vec<4, T> max(const vec<4, T>& x, T y) noexcept
 {
     return simd::vec<4, T>::max(x, y);
@@ -163,7 +163,7 @@ VX_FORCE_INLINE constexpr vec<3, T> max(
     return vec<3, T>(max(x.x, y.x), max(x.y, y.y), max(x.z, y.z));
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE constexpr vec<4, T> max(
     const vec<4, T>& x,
     const vec<4, T>& y
@@ -172,7 +172,7 @@ VX_FORCE_INLINE constexpr vec<4, T> max(
     return vec<4, T>(max(x.x, y.x), max(x.y, y.y), max(x.z, y.z), max(x.w, y.w));
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_MIN))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_MIN))>
 VX_FORCE_INLINE vec<4, T> max(
     const vec<4, T>& x,
     const vec<4, T>& y
@@ -253,19 +253,19 @@ VX_FORCE_INLINE constexpr T csum(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T abs(T x) noexcept
 {
     return std::abs(x);
 }
 
-template <typename T, VXM_REQ_SINT(T)>
+template <typename T, VX_MATH_REQ_SINT(T)>
 VX_FORCE_INLINE constexpr T abs(T x) noexcept
 {
     return (x < 0) ? -x : x;
 }
 
-template <typename T, VXM_REQ_UINT(T)>
+template <typename T, VX_MATH_REQ_UINT(T)>
 VX_FORCE_INLINE constexpr T abs(T x) noexcept
 {
     return x;
@@ -305,7 +305,7 @@ VX_FORCE_INLINE constexpr auto abs(const quat_t<T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T round(T x) noexcept
 {
     return std::round(x);
@@ -313,19 +313,19 @@ VX_FORCE_INLINE constexpr T round(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> round(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(round(x.x), round(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> round(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(round(x.x), round(x.y), round(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> round(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(round(x.x), round(x.y), round(x.z), round(x.w));
@@ -337,7 +337,7 @@ VX_FORCE_INLINE constexpr vec<4, T> round(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T trunc(T x) noexcept
 {
     return std::trunc(x);
@@ -345,19 +345,19 @@ VX_FORCE_INLINE constexpr T trunc(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> trunc(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(trunc(x.x), trunc(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> trunc(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(trunc(x.x), trunc(x.y), trunc(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> trunc(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(trunc(x.x), trunc(x.y), trunc(x.z), trunc(x.w));
@@ -369,7 +369,7 @@ VX_FORCE_INLINE constexpr vec<4, T> trunc(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T floor(T x) noexcept
 {
     return std::floor(x);
@@ -377,19 +377,19 @@ VX_FORCE_INLINE constexpr T floor(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> floor(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(floor(x.x), floor(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> floor(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(floor(x.x), floor(x.y), floor(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> floor(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(floor(x.x), floor(x.y), floor(x.z), floor(x.w));
@@ -401,7 +401,7 @@ VX_FORCE_INLINE constexpr vec<4, T> floor(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T ceil(T x) noexcept
 {
     return std::ceil(x);
@@ -409,19 +409,19 @@ VX_FORCE_INLINE constexpr T ceil(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> ceil(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(ceil(x.x), ceil(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> ceil(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(ceil(x.x), ceil(x.y), ceil(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> ceil(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(ceil(x.x), ceil(x.y), ceil(x.z), ceil(x.w));
@@ -433,7 +433,7 @@ VX_FORCE_INLINE constexpr vec<4, T> ceil(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_NUM(T)>
+template <typename T, VX_MATH_REQ_NUM(T)>
 VX_FORCE_INLINE constexpr T sign(T x) noexcept
 {
     return static_cast<T>((static_cast<T>(0) < x) - (static_cast<T>(0) > x));
@@ -475,7 +475,7 @@ VX_FORCE_INLINE constexpr auto sign(const quat_t<T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T fract(T x) noexcept
 {
     return x - floor(x);
@@ -483,19 +483,19 @@ VX_FORCE_INLINE constexpr T fract(T x) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> fract(const vec<2, T>& x) noexcept
 {
     return vec<2, T>(fract(x.x), fract(x.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> fract(const vec<3, T>& x) noexcept
 {
     return vec<3, T>(fract(x.x), fract(x.y), fract(x.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
 {
     return vec<4, T>(fract(x.x), fract(x.y), fract(x.z), fract(x.w));
@@ -507,7 +507,7 @@ VX_FORCE_INLINE constexpr vec<4, T> fract(const vec<4, T>& x) noexcept
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T fmod(T x, T y) noexcept
 {
     return x - y * trunc(x / y);
@@ -515,19 +515,19 @@ VX_FORCE_INLINE constexpr T fmod(T x, T y) noexcept
 
 // vec scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> fmod(const vec<2, T>& x, T y) noexcept
 {
     return vec<2, T>(fmod(x.x, y), fmod(x.y, y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> fmod(const vec<3, T>& x, T y) noexcept
 {
     return vec<3, T>(fmod(x.x, y), fmod(x.y, y), fmod(x.z, y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> fmod(const vec<4, T>& x, T y) noexcept
 {
     return vec<4, T>(fmod(x.x, y), fmod(x.y, y), fmod(x.z, y), fmod(x.w, y));
@@ -535,7 +535,7 @@ VX_FORCE_INLINE constexpr vec<4, T> fmod(const vec<4, T>& x, T y) noexcept
 
 // vec binary
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> fmod(
     const vec<2, T>& x,
     const vec<2, T>& y
@@ -544,7 +544,7 @@ VX_FORCE_INLINE constexpr vec<2, T> fmod(
     return vec<2, T>(fmod(x.x, y.x), fmod(x.y, y.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> fmod(
     const vec<3, T>& x,
     const vec<3, T>& y
@@ -553,7 +553,7 @@ VX_FORCE_INLINE constexpr vec<3, T> fmod(
     return vec<3, T>(fmod(x.x, y.x), fmod(x.y, y.y), fmod(x.z, y.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> fmod(
     const vec<4, T>& x,
     const vec<4, T>& y
@@ -570,13 +570,13 @@ VX_FORCE_INLINE constexpr vec<4, T> fmod(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T mod(T x, T y) noexcept
 {
     return x - y * floor(x / y);
 }
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr T mod(T x, T y) noexcept
 {
     return (x % y + y) % y;
@@ -587,21 +587,21 @@ VX_FORCE_INLINE constexpr T mod(T x, T y) noexcept
 template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<2, T>& x, T y) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<2, R>(mod(x.x, y), mod(x.y, y));
 }
 
 template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<3, T>& x, T y) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<3, R>(mod(x.x, y), mod(x.y, y), mod(x.z, y));
 }
 
 template <typename T>
 VX_FORCE_INLINE constexpr auto mod(const vec<4, T>& x, T y) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<4, R>(mod(x.x, y), mod(x.y, y), mod(x.z, y), mod(x.w, y));
 }
 
@@ -613,7 +613,7 @@ VX_FORCE_INLINE constexpr auto mod(
     const vec<2, T>& y
 ) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<2, R>(mod(x.x, y.x), mod(x.y, y.y));
 }
 
@@ -623,7 +623,7 @@ VX_FORCE_INLINE constexpr auto mod(
     const vec<3, T>& y
 ) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<3, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z));
 }
 
@@ -633,7 +633,7 @@ VX_FORCE_INLINE constexpr auto mod(
     const vec<4, T>& y
 ) noexcept
 {
-    using R = VXM_RET_TYPE2(T, mod);
+    using R = VX_MATH_RET_TYPE2(T, mod);
     return vec<4, R>(mod(x.x, y.x), mod(x.y, y.y), mod(x.z, y.z), mod(x.w, y.w));
 }
 
@@ -643,7 +643,7 @@ VX_FORCE_INLINE constexpr auto mod(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr auto modf(T x, T& intpart) noexcept
 {
     return std::modf(x, &intpart);
@@ -651,7 +651,7 @@ VX_FORCE_INLINE constexpr auto modf(T x, T& intpart) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> modf(
     const vec<2, T>& x,
     vec<2, T>& intpart
@@ -660,7 +660,7 @@ VX_FORCE_INLINE constexpr vec<2, T> modf(
     return vec<2, T>(modf(x.x, intpart.x), modf(x.y, intpart.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> modf(
     const vec<3, T>& x,
     vec<3, T>& intpart
@@ -669,7 +669,7 @@ VX_FORCE_INLINE constexpr vec<3, T> modf(
     return vec<3, T>(modf(x.x, intpart.x), modf(x.y, intpart.y), modf(x.z, intpart.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> modf(
     const vec<4, T>& x,
     vec<4, T>& intpart
@@ -684,7 +684,7 @@ VX_FORCE_INLINE constexpr vec<4, T> modf(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T frexp(T x, i32& exp) noexcept
 {
     return std::frexp(x, &exp);
@@ -692,7 +692,7 @@ VX_FORCE_INLINE constexpr T frexp(T x, i32& exp) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> frexp(
     const vec<2, T>& x,
     vec<2, i32>& exp
@@ -701,7 +701,7 @@ VX_FORCE_INLINE constexpr vec<2, T> frexp(
     return vec<2, T>(frexp(x.x, exp.x), frexp(x.y, exp.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> frexp(
     const vec<3, T>& x,
     vec<3, i32>& exp
@@ -710,7 +710,7 @@ VX_FORCE_INLINE constexpr vec<3, T> frexp(
     return vec<3, T>(frexp(x.x, exp.x), frexp(x.y, exp.y), frexp(x.z, exp.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> frexp(
     const vec<4, T>& x,
     vec<4, i32>& exp
@@ -725,7 +725,7 @@ VX_FORCE_INLINE constexpr vec<4, T> frexp(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T ldexp(T x, i32 exp) noexcept
 {
     return std::ldexp(x, exp);
@@ -733,7 +733,7 @@ VX_FORCE_INLINE constexpr T ldexp(T x, i32 exp) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> ldexp(
     const vec<2, T>& x,
     const vec<2, i32>& exp
@@ -742,7 +742,7 @@ VX_FORCE_INLINE constexpr vec<2, T> ldexp(
     return vec<2, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> ldexp(
     const vec<3, T>& x,
     const vec<3, i32>& exp
@@ -751,7 +751,7 @@ VX_FORCE_INLINE constexpr vec<3, T> ldexp(
     return vec<3, T>(ldexp(x.x, exp.x), ldexp(x.y, exp.y), ldexp(x.z, exp.z));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> ldexp(
     const vec<4, T>& x,
     const vec<4, i32>& exp
@@ -766,7 +766,7 @@ VX_FORCE_INLINE constexpr vec<4, T> ldexp(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T fma(T x, T y, T z) noexcept
 {
     return std::fma(x, y, z);
@@ -774,7 +774,7 @@ VX_FORCE_INLINE constexpr T fma(T x, T y, T z) noexcept
 
 // vec
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> fma(
     const vec<2, T>& x,
     const vec<2, T>& y,
@@ -787,7 +787,7 @@ VX_FORCE_INLINE constexpr vec<2, T> fma(
     );
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> fma(
     const vec<3, T>& x,
     const vec<3, T>& y,
@@ -801,7 +801,7 @@ VX_FORCE_INLINE constexpr vec<3, T> fma(
     );
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> fma(
     const vec<4, T>& x,
     const vec<4, T>& y,
@@ -858,7 +858,7 @@ VX_FORCE_INLINE constexpr vec<3, T> clamp(
     );
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     T min,
@@ -873,7 +873,7 @@ VX_FORCE_INLINE constexpr vec<4, T> clamp(
     );
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_CLAMP))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE vec<4, T> clamp(
     const vec<4, T>& x,
     T min,
@@ -912,7 +912,7 @@ VX_FORCE_INLINE constexpr vec<3, T> clamp(
     );
 }
 
-template <typename T, VXM_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
+template <typename T, VX_MATH_REQ(!(simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE constexpr vec<4, T> clamp(
     const vec<4, T>& x,
     const vec<4, T>& min,
@@ -927,7 +927,7 @@ VX_FORCE_INLINE constexpr vec<4, T> clamp(
     );
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_CLAMP))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_CLAMP))>
 VX_FORCE_INLINE vec<4, T> clamp(
     const vec<4, T>& x,
     const vec<4, T>& min,
@@ -943,7 +943,7 @@ VX_FORCE_INLINE vec<4, T> clamp(
 
 // scalar
 
-template <typename T, VXM_REQ_INT(T)>
+template <typename T, VX_MATH_REQ_INT(T)>
 VX_FORCE_INLINE constexpr T gcd(T a, T b) noexcept
 {
     while (b != static_cast<T>(0))

@@ -21,7 +21,7 @@ namespace math {
 // 2D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T simplex_noise(const vec<2, T>& v) noexcept
 {
     constexpr vec<4, T> C(
@@ -93,7 +93,7 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<2, T>& v) noexcept
 // 3D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T simplex_noise(const vec<3, T>& v) noexcept
 {
     constexpr vec<2, T> C(static_cast<T>(1.0) / static_cast<T>(6.0), static_cast<T>(1.0) / static_cast<T>(3.0));
@@ -173,7 +173,7 @@ VX_FORCE_INLINE constexpr T simplex_noise(const vec<3, T>& v) noexcept
 // 4D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T simplex_noise(const vec<4, T>& v) noexcept
 {
     constexpr T F4 = static_cast<T>(0.309016994374947451);

@@ -174,7 +174,7 @@ VX_FORCE_INLINE constexpr T angle(
 // axis_angle
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> axis_angle(const vec<3, T>& axis, T angle) noexcept
 {
     // (assume axis is normalized)
@@ -191,7 +191,7 @@ VX_FORCE_INLINE constexpr quat_t<T> axis_angle(const vec<3, T>& axis, T angle) n
 
 // https://en.m.wikipedia.org/wiki/Euler%E2%80%93Rodrigues_formula
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> rotate(
     const vec<3, T>& v,
     const quat_t<T>& rotation
@@ -213,7 +213,7 @@ VX_FORCE_INLINE constexpr vec<3, T> rotate(
 // https://github.com/g-truc/glm/blob/586a402397dd35d66d7a079049856d1e2cbab300/glm/gtx/quaternion.inl
 // https://www.cesarkallas.net/arquivos/livros/informatica/game/Game%20Programming%20Gems%201.pdf (page 215 (pdf page 211))
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> rotate_between(
     const vec<3, T>& from,
     const vec<3, T>& to

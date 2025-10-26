@@ -8,7 +8,7 @@ namespace math {
 
 // https://www.rapidtables.com/convert/color/rgb-to-hsl.html
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l) noexcept
 {
     h = clamp(h, static_cast<T>(0), static_cast<T>(360));
@@ -44,7 +44,7 @@ inline constexpr vec<3, T> hsl_to_rgb(T h, T s, T l) noexcept
     return vec<3, T>(0);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 inline constexpr vec<3, T> rgb_to_hsl(T r, T g, T b) noexcept
 {
     r = clamp(r, static_cast<T>(0), static_cast<T>(1));

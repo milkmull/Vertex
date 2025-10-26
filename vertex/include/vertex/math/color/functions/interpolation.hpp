@@ -10,7 +10,7 @@ namespace math {
 // lerp
 ///////////////////////////////////////////////////////////////////////////////
 
-VXM_FORCE_TEMPLATE()
+VX_MATH_FORCE_TEMPLATE()
 VX_FORCE_INLINE constexpr color lerp(
     const color& x,
     const color& y,
@@ -24,7 +24,7 @@ VX_FORCE_INLINE constexpr color lerp(
 // mix
 ///////////////////////////////////////////////////////////////////////////////
 
-VXM_FORCE_TEMPLATE()
+VX_MATH_FORCE_TEMPLATE()
 VX_FORCE_INLINE constexpr color mix(
     const color& x,
     const color& y,
@@ -38,7 +38,7 @@ VX_FORCE_INLINE constexpr color mix(
 // lerp_clamped
 //////////////////////////////////////////////////////////////////////////////
 
-VXM_FORCE_TEMPLATE()
+VX_MATH_FORCE_TEMPLATE()
 VX_FORCE_INLINE constexpr color lerp_clamped(
     const color& x,
     const color& y,
@@ -52,7 +52,7 @@ VX_FORCE_INLINE constexpr color lerp_clamped(
 // step
 ///////////////////////////////////////////////////////////////////////////////
 
-VXM_FORCE_TEMPLATE()
+VX_MATH_FORCE_TEMPLATE()
 VX_FORCE_INLINE constexpr color step(
     f32 edge,
     const color& x
@@ -70,7 +70,7 @@ VX_FORCE_INLINE constexpr color step(
 // smoothstep
 ///////////////////////////////////////////////////////////////////////////////
 
-VXM_FORCE_TEMPLATE()
+VX_MATH_FORCE_TEMPLATE()
 VX_FORCE_INLINE constexpr color smoothstep(
     f32 edge0,
     f32 edge1,

@@ -11,7 +11,7 @@ namespace math {
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T lerp(T x, T y, T t) noexcept
 {
     return x * (static_cast<T>(1) - t) + y * t;
@@ -19,7 +19,7 @@ VX_FORCE_INLINE constexpr T lerp(T x, T y, T t) noexcept
 
 // vec scalar
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -31,7 +31,7 @@ VX_FORCE_INLINE constexpr vec<L, T> lerp(
 
 // vec trinary
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> lerp(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -47,7 +47,7 @@ VX_FORCE_INLINE constexpr vec<L, T> lerp(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T mix(T x, T y, T t) noexcept
 {
     return lerp(x, y, t);
@@ -55,7 +55,7 @@ VX_FORCE_INLINE constexpr T mix(T x, T y, T t) noexcept
 
 // vec scalar
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -67,7 +67,7 @@ VX_FORCE_INLINE constexpr vec<L, T> mix(
 
 // vec trinary
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> mix(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -83,7 +83,7 @@ VX_FORCE_INLINE constexpr vec<L, T> mix(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T lerp_clamped(T x, T y, T t) noexcept
 {
     return clamp(lerp(x, y, t), static_cast<T>(x), static_cast<T>(y));
@@ -91,7 +91,7 @@ VX_FORCE_INLINE constexpr T lerp_clamped(T x, T y, T t) noexcept
 
 // vec scalar
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> lerp_clamped(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -103,7 +103,7 @@ VX_FORCE_INLINE constexpr vec<L, T> lerp_clamped(
 
 // vec trinary
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> lerp_clamped(
     const vec<L, T>& x,
     const vec<L, T>& y,
@@ -152,7 +152,7 @@ VX_FORCE_INLINE constexpr vec<3, T> step(
     );
 }
 
-template <typename T, VXM_REQ((!simd::vec<4, T>::HAVE_STEP))>
+template <typename T, VX_MATH_REQ((!simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE constexpr vec<4, T> step(
     T edge,
     const vec<4, T>& x
@@ -166,7 +166,7 @@ VX_FORCE_INLINE constexpr vec<4, T> step(
     );
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_STEP))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE vec<4, T> step(
     T edge,
     const vec<4, T>& x
@@ -202,7 +202,7 @@ VX_FORCE_INLINE constexpr vec<3, T> step(
     );
 }
 
-template <typename T, VXM_REQ((!simd::vec<4, T>::HAVE_STEP))>
+template <typename T, VX_MATH_REQ((!simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE constexpr vec<4, T> step(
     const vec<4, T>& edge,
     const vec<4, T>& x
@@ -216,7 +216,7 @@ VX_FORCE_INLINE constexpr vec<4, T> step(
     );
 }
 
-template <typename T, VXM_REQ((simd::vec<4, T>::HAVE_STEP))>
+template <typename T, VX_MATH_REQ((simd::vec<4, T>::HAVE_STEP))>
 VX_FORCE_INLINE vec<4, T> step(
     const vec<4, T>& edge,
     const vec<4, T>& x
@@ -233,7 +233,7 @@ VX_FORCE_INLINE vec<4, T> step(
 
 // scalar
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T smoothstep(T edge0, T edge1, T x) noexcept
 {
     const T v = (x - edge0) / (edge1 - edge0);
@@ -243,7 +243,7 @@ VX_FORCE_INLINE constexpr T smoothstep(T edge0, T edge1, T x) noexcept
 
 // vec scalar
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
     T edge0,
     T edge1,
@@ -256,7 +256,7 @@ VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
 
 // vec trinary
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
     const vec<L, T>& edge0,
     const vec<L, T>& edge1,
@@ -275,7 +275,7 @@ VX_FORCE_INLINE constexpr vec<L, T> smoothstep(
 // https://www.euclideanspace.com/maths/algebra/realNormedAlgebra/quaternions/slerp/index.htm
 // https://en.wikipedia.org/wiki/Slerp
 
-template <size_t L, typename T, VXM_REQ_FLOAT(T)>
+template <size_t L, typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<L, T> slerp(
     const vec<L, T>& x,
     const vec<L, T>& y,

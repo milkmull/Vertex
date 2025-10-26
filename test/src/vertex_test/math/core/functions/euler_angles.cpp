@@ -8,7 +8,7 @@ using namespace vx::math;
 
 #define VX_CHECK_EQ(a, b) VX_CHECK(equal_approx(a, b))
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T equivalent_angle(
     T a,
     T b,

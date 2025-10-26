@@ -52,7 +52,7 @@ struct noise_sampler
     // cellular
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <size_t L, VXM_REQ(L == 2 || L == 3)>
+    template <size_t L, VX_MATH_REQ(L == 2 || L == 3)>
     vec2 cellular_noise(const vec<L, f32>& uv) const
     {
         using T = decltype(uv);

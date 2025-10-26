@@ -60,7 +60,7 @@ struct color_t<u8>
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_NUM(U)>
+    template <typename U, VX_MATH_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit color_t(U scalar) noexcept
         : r(static_cast<scalar_type>(scalar))
         , g(static_cast<scalar_type>(scalar))
@@ -108,13 +108,13 @@ struct color_t<u8>
 
     // int to int
 
-    template <typename U, VXM_REQ(is_int<U>::value)>
+    template <typename U, VX_MATH_REQ(is_int<U>::value)>
     VX_FORCE_INLINE constexpr explicit color_t(const color_t<U>& c)
         : color_t(color(c)) {}
 
     // float to int
 
-    template <typename U, VXM_REQ(is_float<U>::value)>
+    template <typename U, VX_MATH_REQ(is_float<U>::value)>
     VX_FORCE_INLINE constexpr color_t(const color_t<U>& c)
         : r(static_cast<scalar_type>(clamp(c.r, static_cast<U>(0), static_cast<U>(1)) * max_channel_value))
         , g(static_cast<scalar_type>(clamp(c.g, static_cast<U>(0), static_cast<U>(1)) * max_channel_value))

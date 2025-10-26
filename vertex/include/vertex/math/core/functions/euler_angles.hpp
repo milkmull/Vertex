@@ -256,7 +256,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const quat_t<T>& q)
 
 // xyz
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xyz(const mat<M, M, T>& m) noexcept
 {
     const T y = asin_clamped(m.columns[2].x);
@@ -283,7 +283,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xyz(const mat<M, M, T>&
 
 // xzy
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xzy(const mat<M, M, T>& m) noexcept
 {
     const T z = asin_clamped(-m.columns[1].x);
@@ -310,7 +310,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_xzy(const mat<M, M, T>&
 
 // yxz
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yxz(const mat<M, M, T>& m) noexcept
 {
     const T x = asin_clamped(-m.columns[2].y);
@@ -337,7 +337,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yxz(const mat<M, M, T>&
 
 // yzx
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yzx(const mat<M, M, T>& m) noexcept
 {
     const T z = asin_clamped(m.columns[0].y);
@@ -364,7 +364,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_yzx(const mat<M, M, T>&
 
 // zxy
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zxy(const mat<M, M, T>& m) noexcept
 {
     const T x = asin_clamped(m.columns[1].z);
@@ -391,7 +391,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zxy(const mat<M, M, T>&
 
 // zyx
 
-template <size_t M, typename T, VXM_REQ((M == 3 || M == 4) && is_float<T>::value)>
+template <size_t M, typename T, VX_MATH_REQ((M == 3 || M == 4) && is_float<T>::value)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const mat<M, M, T>& m) noexcept
 {
     const T y = asin_clamped(-m.columns[0].z);
@@ -424,7 +424,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_euler_angles_zyx(const mat<M, M, T>&
 
 // xyz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_xyz(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -449,7 +449,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_xyz(T x, T y, T z) no
 
 // xzy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_xzy(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -474,7 +474,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_xzy(T x, T y, T z) no
 
 // yxz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_yxz(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -499,7 +499,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_yxz(T x, T y, T z) no
 
 // yzx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_yzx(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -524,7 +524,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_yzx(T x, T y, T z) no
 
 // zxy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_zxy(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -549,7 +549,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_zxy(T x, T y, T z) no
 
 // zyx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_zyx(T x, T y, T z) noexcept
 {
     x *= static_cast<T>(0.5);
@@ -580,7 +580,7 @@ VX_FORCE_INLINE constexpr quat_t<T> quat_from_euler_angles_zyx(T x, T y, T z) no
 
 // xyz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_xyz(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -608,7 +608,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_xyz(T x, T y, T z)
 
 // xzy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_xzy(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -636,7 +636,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_xzy(T x, T y, T z)
 
 // yxz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_yxz(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -664,7 +664,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_yxz(T x, T y, T z)
 
 // yzx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_yzx(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -692,7 +692,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_yzx(T x, T y, T z)
 
 // zxy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_zxy(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -720,7 +720,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_zxy(T x, T y, T z)
 
 // zyx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_zyx(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -752,7 +752,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> mat3_from_euler_angles_zyx(T x, T y, T z)
 
 // xyz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_xyz(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -788,7 +788,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_xyz(T x, T y, T z)
 
 // xzy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_xzy(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -824,7 +824,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_xzy(T x, T y, T z)
 
 // yxz
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_yxz(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -860,7 +860,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_yxz(T x, T y, T z)
 
 // yzx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_yzx(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -896,7 +896,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_yzx(T x, T y, T z)
 
 // zxy
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_zxy(T x, T y, T z) noexcept
 {
     const T cx = cos(x);
@@ -932,7 +932,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_zxy(T x, T y, T z)
 
 // zyx
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> mat4_from_euler_angles_zyx(T x, T y, T z) noexcept
 {
     const T cx = cos(x);

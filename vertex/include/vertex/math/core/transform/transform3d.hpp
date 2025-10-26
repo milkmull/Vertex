@@ -11,7 +11,7 @@ namespace transform3d {
 // translation
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> translate(const vec<3, T>& translation) noexcept
 {
     return mat<4, 4, T>(
@@ -24,7 +24,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> translate(const vec<3, T>& translation) n
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_translation(const mat<4, 4, T>& m) noexcept
 {
     return vec<3, T>(m.columns[3].x, m.columns[3].y, m.columns[3].z);
@@ -34,7 +34,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_translation(const mat<4, 4, T>& m) n
 // rotation
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> rotate(const vec<3, T>& axis, T angle) noexcept
 {
     const T cosa = cos(angle);
@@ -68,7 +68,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> rotate(const vec<3, T>& axis, T angle) no
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> rotate(const quat_t<T>& q) noexcept
 {
     return rotation_cast<mat<4, 4, T>>(q);
@@ -76,7 +76,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> rotate(const quat_t<T>& q) noexcept
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr quat_t<T> extract_rotation(const mat<4, 4, T>& m) noexcept
 {
     const vec3 c0(m.columns[0]);
@@ -96,7 +96,7 @@ VX_FORCE_INLINE constexpr quat_t<T> extract_rotation(const mat<4, 4, T>& m) noex
 // scale
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> scale(const vec<3, T>& scale) noexcept
 {
     return mat<4, 4, T>(
@@ -124,7 +124,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> scale(const vec<3, T>& scale) noexcept
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> extract_scale(const mat<4, 4, T>& m) noexcept
 {
     return vec<3, T>(
@@ -138,7 +138,7 @@ VX_FORCE_INLINE constexpr vec<3, T> extract_scale(const mat<4, 4, T>& m) noexcep
 // trs
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> trs(
     const vec<3, T>& translation,
     const vec<3, T>& axis, T angle,
@@ -176,7 +176,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> trs(
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> trs(
     const vec<3, T>& translation,
     const quat_t<T>& q,
@@ -222,7 +222,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> trs(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixlookatlh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_lh(
     const vec<3, T>& eye,
     const vec<3, T>& target,
@@ -260,7 +260,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_lh(
 
 // https://learn.microsoft.com/en-us/windows/win32/direct3d9/d3dxmatrixlookatrh
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_rh(
     const vec<3, T>& eye,
     const vec<3, T>& target,
@@ -299,7 +299,7 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> look_at_rh(
 
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 static VX_FORCE_INLINE constexpr mat<4, 4, T> look_at(
     const vec<3, T>& eye,
     const vec<3, T>& target,
@@ -317,7 +317,7 @@ static VX_FORCE_INLINE constexpr mat<4, 4, T> look_at(
 // transform
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3, T>& v) noexcept
 {
     return vec<3, T>(
@@ -327,7 +327,7 @@ VX_FORCE_INLINE constexpr vec<3, T> transform(const mat<4, 4, T>& m, const vec<3
     );
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<4, T> transform(const mat<4, 4, T>& m, const vec<4, T>& v) noexcept
 {
     return vec<4, T>(
@@ -342,7 +342,7 @@ VX_FORCE_INLINE constexpr vec<4, T> transform(const mat<4, 4, T>& m, const vec<4
 // inverse
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
 {
     const mat<3, 3, T> ibasis = inverse(mat<3, 3, T>(m));

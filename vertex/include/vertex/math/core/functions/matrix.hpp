@@ -105,13 +105,13 @@ VX_FORCE_INLINE constexpr mat<4, 4, T> transpose(const mat<4, 4, T>& m)
 
 // http://www.euclideanspace.com/maths/algebra/matrix/functions/determinant/twoD/index.htm
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T determinant(const mat<2, 2, T>& m) noexcept
 {
     return (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T determinant(const mat<3, 3, T>& m) noexcept
 {
     return (
@@ -121,7 +121,7 @@ VX_FORCE_INLINE constexpr T determinant(const mat<3, 3, T>& m) noexcept
     );
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m) noexcept
 {
     const T subfac00 = (m.columns[2].z * m.columns[3].w) - (m.columns[2].w * m.columns[3].z);
@@ -143,7 +143,7 @@ VX_FORCE_INLINE constexpr T determinant(const mat<4, 4, T>& m) noexcept
 // inverse
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<2, 2, T> inverse(const mat<2, 2, T>& m) noexcept
 {
     const T det = (m.columns[0].x * m.columns[1].y) - (m.columns[1].x * m.columns[0].y);
@@ -158,7 +158,7 @@ VX_FORCE_INLINE constexpr mat<2, 2, T> inverse(const mat<2, 2, T>& m) noexcept
     );
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m) noexcept
 {
     const T coef00 = (m.columns[1].y * m.columns[2].z) - (m.columns[2].y * m.columns[1].z);
@@ -199,7 +199,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m) noexcept
 // https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
 // https://github.com/glslify/glsl-inverse/blob/master/index.glsl
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE mat<4, 4, T> inverse(const mat<4, 4, T>& m) noexcept
 {
     const T a00 = m.columns[0].x;

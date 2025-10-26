@@ -76,7 +76,7 @@ struct mat<4, 2, T>
     // conversion matrix constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_NUM(U)>
+    template <typename U, VX_MATH_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit mat(U scalar) noexcept
         : columns{ col_type(static_cast<scalar_type>(scalar)),
                    col_type(static_cast<scalar_type>(scalar)),
@@ -112,7 +112,7 @@ struct mat<4, 2, T>
                    static_cast<col_type>(c3),
                    static_cast<col_type>(c4) } {}
 
-    template <size_t M, size_t N, typename U, VXM_REQ(M >= width && N >= height)>
+    template <size_t M, size_t N, typename U, VX_MATH_REQ(M >= width && N >= height)>
     VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m) noexcept
         : columns{ static_cast<col_type>(m.columns[0]),
                    static_cast<col_type>(m.columns[1]),

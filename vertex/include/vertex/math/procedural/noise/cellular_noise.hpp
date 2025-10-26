@@ -21,7 +21,7 @@ namespace math {
 // 2D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<2, T>& P) noexcept
 {
     constexpr T K = static_cast<T>(0.142857142857); // 1/7
@@ -75,7 +75,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<2, T>& P) noexcept
 // 3D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
 {
     constexpr T K = static_cast<T>(0.142857142857); // 1/7
@@ -224,7 +224,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise(const vec<3, T>& P) noexcept
 // 2x2
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2(const vec<2, T>& P) noexcept
 {
     constexpr T K = static_cast<T>(0.142857142857);   // 1/7
@@ -279,7 +279,7 @@ VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2(const vec<2, T>& P) noexc
 // 2x2x2
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> cellular_noise_2x2x2(const vec<3, T>& P) noexcept
 {
     constexpr T K = static_cast<T>(0.142857142857); // 1/7

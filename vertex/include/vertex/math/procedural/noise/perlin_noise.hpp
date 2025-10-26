@@ -18,7 +18,7 @@ namespace math {
 // 2D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T perlin_noise(const vec<2, T>& p) noexcept
 {
     const vec<4, T> pi = mod(floor(vec<4, T>(p.x, p.y, p.x, p.y)) + vec<4, T>(static_cast<T>(0), static_cast<T>(0), static_cast<T>(1), static_cast<T>(1)), static_cast<T>(289));
@@ -68,7 +68,7 @@ VX_FORCE_INLINE constexpr T perlin_noise(const vec<2, T>& p) noexcept
 // 3D
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T perlin_noise(const vec<3, T>& p)
 {
     vec<3, T> pi0 = floor(p); // Integer part for indexing

@@ -13,12 +13,12 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) mat<4, 4, T>
 {
 #if defined(VX_MATH_SIMD_ENABLED)
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::vec<4, _T>::cond))>
-#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::vec<4, _T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ( (simd::vec<4, _T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(simd::vec<4, _T>::cond))>
 
 #else
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(is_same<_T, _T>::value))>
 #   define _SIMD_FALLBACK(cond)
 
 #endif
@@ -90,7 +90,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) mat<4, 4, T>
     // conversion matrix constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_NUM(U)>
+    template <typename U, VX_MATH_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit mat(U scalar) noexcept
         : columns{ col_type(static_cast<scalar_type>(scalar), static_cast<scalar_type>(0), static_cast<scalar_type>(0), static_cast<scalar_type>(0)),
                    col_type(static_cast<scalar_type>(0), static_cast<scalar_type>(scalar), static_cast<scalar_type>(0), static_cast<scalar_type>(0)),
@@ -126,7 +126,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) mat<4, 4, T>
                    static_cast<col_type>(c3),
                    static_cast<col_type>(c4) } {}
 
-    template <size_t M, size_t N, typename U, VXM_REQ(M >= width && N >= height)>
+    template <size_t M, size_t N, typename U, VX_MATH_REQ(M >= width && N >= height)>
     VX_FORCE_INLINE constexpr explicit mat(const mat<M, N, U>& m) noexcept
         : columns{ static_cast<col_type>(m.columns[0]),
                    static_cast<col_type>(m.columns[1]),

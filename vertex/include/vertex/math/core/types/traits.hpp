@@ -333,48 +333,48 @@ struct enable_if<true, T> { using type = T; };
 // static checks
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VXM_STATIC_ASSERT_SIGNED(type) VX_STATIC_ASSERT(is_signed<type>::value, "Operation not supported for unsigned types.")
-#define VXM_STATIC_ASSERT_NUMERIC(type) VX_STATIC_ASSERT(!is_bool<type>::value, "Operation not supported for bool types.")
-#define VXM_STATIC_ASSERT_INT(type) VX_STATIC_ASSERT(is_int<type>::value, "Operation not supported for non-integral types.")
+#define VX_MATH_STATIC_ASSERT_SIGNED(type) VX_STATIC_ASSERT(is_signed<type>::value, "Operation not supported for unsigned types.")
+#define VX_MATH_STATIC_ASSERT_NUMERIC(type) VX_STATIC_ASSERT(!is_bool<type>::value, "Operation not supported for bool types.")
+#define VX_MATH_STATIC_ASSERT_INT(type) VX_STATIC_ASSERT(is_int<type>::value, "Operation not supported for non-integral types.")
 
 ///////////////////////////////////////////////////////////////////////////////
 // requires
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VXM_REQ(condition) typename ::vx::math::enable_if<(condition), int>::type = 0
+#define VX_MATH_REQ(condition) typename ::vx::math::enable_if<(condition), int>::type = 0
 
-#define VXM_REQ_SIGNED(type) VXM_REQ(::vx::math::is_signed<type>::value)
-#define VXM_REQ_FLOAT(type) VXM_REQ(::vx::math::is_float<type>::value)
-#define VXM_REQ_INT(type) VXM_REQ(::vx::math::is_int<type>::value)
-#define VXM_REQ_SINT(type) VXM_REQ(::vx::math::is_signed_int<type>::value)
-#define VXM_REQ_UINT(type) VXM_REQ(::vx::math::is_unsigned<type>::value)
+#define VX_MATH_REQ_SIGNED(type) VX_MATH_REQ(::vx::math::is_signed<type>::value)
+#define VX_MATH_REQ_FLOAT(type) VX_MATH_REQ(::vx::math::is_float<type>::value)
+#define VX_MATH_REQ_INT(type) VX_MATH_REQ(::vx::math::is_int<type>::value)
+#define VX_MATH_REQ_SINT(type) VX_MATH_REQ(::vx::math::is_signed_int<type>::value)
+#define VX_MATH_REQ_UINT(type) VX_MATH_REQ(::vx::math::is_unsigned<type>::value)
 
-#define VXM_FLOAT_TYPE(t) typename ::vx::math::to_float_type<t>::type;
+#define VX_MATH_FLOAT_TYPE(t) typename ::vx::math::to_float_type<t>::type;
 
-#define VXM_RET_TYPE(t, fn)  decltype(fn(std::declval<T>()))
-#define VXM_RET_TYPE2(t, fn) decltype(fn(std::declval<T>(), std::declval<T>()))
-#define VXM_RET_TYPE3(t, fn) decltype(fn(std::declval<T>(), std::declval<T>(), std::declval<T>()))
+#define VX_MATH_RET_TYPE(t, fn)  decltype(fn(std::declval<T>()))
+#define VX_MATH_RET_TYPE2(t, fn) decltype(fn(std::declval<T>(), std::declval<T>()))
+#define VX_MATH_RET_TYPE3(t, fn) decltype(fn(std::declval<T>(), std::declval<T>(), std::declval<T>()))
 
 #define _IS_NUMERIC_1(t1) is_numeric<t1>::value
 #define _IS_NUMERIC_2(t1, t2) _IS_NUMERIC_1(t1) && _IS_NUMERIC_1(t2)
 #define _IS_NUMERIC_3(t1, t2, t3) _IS_NUMERIC_2(t1, t2) && _IS_NUMERIC_1(t3)
 #define _IS_NUMERIC_4(t1, t2, t3, t4) _IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_1(t4)
 
-#define VXM_REQ_NUM(t1) VXM_REQ(_IS_NUMERIC_1(t1))
-#define VXM_REQ_NUM2(t1, t2) VXM_REQ(_IS_NUMERIC_2(t1, t2))
-#define VXM_REQ_NUM3(t1, t2, t3) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3))
-#define VXM_REQ_NUM4(t1, t2, t3, t4) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4))
-#define VXM_REQ_NUM6(t1, t2, t3, t4, t5, t6) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6))
-#define VXM_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8))
-#define VXM_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VXM_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6) && _IS_NUMERIC_3(t7, t8, t9))
-#define VXM_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12))
-#define VXM_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VXM_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12) && _IS_NUMERIC_4(t13, t14, t15, t16))
+#define VX_MATH_REQ_NUM(t1) VX_MATH_REQ(_IS_NUMERIC_1(t1))
+#define VX_MATH_REQ_NUM2(t1, t2) VX_MATH_REQ(_IS_NUMERIC_2(t1, t2))
+#define VX_MATH_REQ_NUM3(t1, t2, t3) VX_MATH_REQ(_IS_NUMERIC_3(t1, t2, t3))
+#define VX_MATH_REQ_NUM4(t1, t2, t3, t4) VX_MATH_REQ(_IS_NUMERIC_4(t1, t2, t3, t4))
+#define VX_MATH_REQ_NUM6(t1, t2, t3, t4, t5, t6) VX_MATH_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6))
+#define VX_MATH_REQ_NUM8(t1, t2, t3, t4, t5, t6, t7, t8) VX_MATH_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8))
+#define VX_MATH_REQ_NUM9(t1, t2, t3, t4, t5, t6, t7, t8, t9) VX_MATH_REQ(_IS_NUMERIC_3(t1, t2, t3) && _IS_NUMERIC_3(t4, t5, t6) && _IS_NUMERIC_3(t7, t8, t9))
+#define VX_MATH_REQ_NUM12(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12) VX_MATH_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12))
+#define VX_MATH_REQ_NUM16(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16) VX_MATH_REQ(_IS_NUMERIC_4(t1, t2, t3, t4) && _IS_NUMERIC_4(t5, t6, t7, t8) && _IS_NUMERIC_4(t9, t10, t11, t12) && _IS_NUMERIC_4(t13, t14, t15, t16))
 
 ///////////////////////////////////////////////////////////////////////////////
 // helper macros
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VXM_FORCE_TEMPLATE() template <typename _T = void>
+#define VX_MATH_FORCE_TEMPLATE() template <typename _T = void>
 
 } // namespace vx
 } // namespace math

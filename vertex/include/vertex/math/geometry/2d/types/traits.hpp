@@ -18,7 +18,7 @@ template <typename T> struct is_shape<rect_t<T>> : true_t {};
 template <typename T> struct is_shape<circle_t<T>> : true_t {};
 template <typename T> struct is_shape<triangle_t<T>> : true_t {};
 
-#define VXM_REQ_SHAPE(T) VXM_REQ((is_shape<T>::value))
+#define VX_MATH_REQ_SHAPE(T) VX_MATH_REQ((is_shape<T>::value))
 
 } // namespace g2
 } // namespace math

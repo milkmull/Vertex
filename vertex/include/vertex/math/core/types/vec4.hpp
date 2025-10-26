@@ -12,12 +12,12 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
 {
 #if defined(VX_MATH_SIMD_ENABLED)
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::vec<4, _T>::cond))>
-#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::vec<4, _T>::cond))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ( (simd::vec<4, _T>::cond))>
+#   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(simd::vec<4, _T>::cond))>
 
 #else
 
-#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ(!(is_same<_T, _T>::value))>
+#   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VX_MATH_REQ(!(is_same<_T, _T>::value))>
 #   define _SIMD_FALLBACK(cond)
 
 #endif
@@ -68,7 +68,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
     // conversion constructors
     ///////////////////////////////////////////////////////////////////////////////
 
-    template <typename U, VXM_REQ_NUM(U)>
+    template <typename U, VX_MATH_REQ_NUM(U)>
     VX_FORCE_INLINE constexpr explicit vec(U scalar) noexcept
         : x(static_cast<scalar_type>(scalar))
         , y(static_cast<scalar_type>(scalar))

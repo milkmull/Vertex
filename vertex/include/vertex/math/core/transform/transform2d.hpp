@@ -11,7 +11,7 @@ namespace transform2d {
 // translation
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> translate(const vec<2, T>& translation) noexcept
 {
     return mat<3, 3, T>(
@@ -23,7 +23,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> translate(const vec<2, T>& translation) n
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> extract_translation(const mat<3, 3, T>& m) noexcept
 {
     return vec<2, T>(m.columns[2].x, m.columns[2].y);
@@ -33,7 +33,7 @@ VX_FORCE_INLINE constexpr vec<2, T> extract_translation(const mat<3, 3, T>& m) n
 // rotation
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> rotate(T angle) noexcept
 {
     const T cosa = cos(angle);
@@ -48,7 +48,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> rotate(T angle) noexcept
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T extract_rotation(const mat<3, 3, T>& m) noexcept
 {
     return atan2(m.columns[0].y, m.columns[0].x);
@@ -58,7 +58,7 @@ VX_FORCE_INLINE constexpr T extract_rotation(const mat<3, 3, T>& m) noexcept
 // scale
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> scale(const vec<2, T>& scale) noexcept
 {
     return mat<3, 3, T>(
@@ -70,7 +70,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> scale(const vec<2, T>& scale) noexcept
 
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> extract_scale(const mat<3, 3, T>& m) noexcept
 {
     return vec<2, T>(
@@ -83,7 +83,7 @@ VX_FORCE_INLINE constexpr vec<2, T> extract_scale(const mat<3, 3, T>& m) noexcep
 // trs
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> trs(const vec<2, T>& translation, T angle, const vec<2, T>& scale) noexcept
 {
     const T cosa = cos(angle);
@@ -100,7 +100,7 @@ VX_FORCE_INLINE constexpr mat<3, 3, T> trs(const vec<2, T>& translation, T angle
 // transform
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2, T>& v) noexcept
 {
     return vec<2, T>(
@@ -113,7 +113,7 @@ VX_FORCE_INLINE constexpr vec<2, T> transform(const mat<3, 3, T>& m, const vec<2
 // inverse
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr mat<3, 3, T> inverse(const mat<3, 3, T>& m) noexcept
 {
     const mat<2, 2, T> ibasis = inverse(mat<2, 2, T>(m));

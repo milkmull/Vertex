@@ -12,51 +12,51 @@ namespace sdf2d {
 // operators
 ////////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_round(T d, T r) noexcept
 {
     return d - r;
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_annularize(T d, T r) noexcept
 {
     return abs(d) - r;
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_union(T d1, T d2) noexcept
 {
     return min(d1, d2);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_smooth_union(T d1, T d2, T k) noexcept
 {
     const T h = clamp(static_cast<T>(0.5) + static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
     return mix(d2, d1, h) - k * h * (static_cast<T>(1) - h);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_subtract(T dist1, T dist2) noexcept
 {
     return max(-dist1, dist2);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_smooth_subtract(T d1, T d2, T k) noexcept
 {
     const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 + d1) / k, static_cast<T>(0), static_cast<T>(1));
     return mix(d2, -d1, h) + k * h * (static_cast<T>(1) - h);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_intersection(T d1, T d2) noexcept
 {
     return max(d1, d2);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T op_smooth_itersection(T d1, T d2, T k) noexcept
 {
     const T h = clamp(static_cast<T>(0.5) - static_cast<T>(0.5) * (d2 - d1) / k, static_cast<T>(0), static_cast<T>(1));
@@ -67,13 +67,13 @@ VX_FORCE_INLINE constexpr T op_smooth_itersection(T d1, T d2, T k) noexcept
 // sdfs
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_circle(const vec<2, T>& p, T r) noexcept
 {
     return length(p) - r;
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_rounded_box(
     const vec<2, T>& p,
     const vec<2, T>& b,
@@ -96,7 +96,7 @@ VX_FORCE_INLINE constexpr T sd_rounded_box(
     return min(max(q.x, q.y), static_cast<T>(0)) + length(max(q, static_cast<T>(0))) - ir.x;
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_box(
     const vec<2, T>& p,
     const vec<2, T>& b
@@ -107,7 +107,7 @@ VX_FORCE_INLINE constexpr T sd_box(
     return length(max(d, static_cast<T>(0))) + min(max(d.x, d.y), static_cast<T>(0));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_segment(
     const vec<2, T>& p,
     const vec<2, T>& a,
@@ -120,7 +120,7 @@ VX_FORCE_INLINE constexpr T sd_segment(
     return length(pa - ba * h);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_equilateral_triangle(const vec<2, T>& p, T r) noexcept
 {
     vec<2, T> ip(p);
@@ -139,7 +139,7 @@ VX_FORCE_INLINE constexpr T sd_equilateral_triangle(const vec<2, T>& p, T r) noe
     return -length(ip) * sign(ip.y);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_isosceles_triangle(
     const vec<2, T>& p,
     const vec<2, T>& q
@@ -160,7 +160,7 @@ VX_FORCE_INLINE constexpr T sd_isosceles_triangle(
     return -sqrt(d.x) * sign(d.y);
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_triangle(
     const vec<2, T>& p,
     const vec<2, T>& p0,
@@ -189,7 +189,7 @@ VX_FORCE_INLINE constexpr T sd_triangle(
 // sc is the sin/cos of the arc's aperture
 // use a 2x2 rotation matrix to rotate p to get rotated version
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_pie(
     const vec<2, T>& p,
     const vec<2, T>& sc,
@@ -204,7 +204,7 @@ VX_FORCE_INLINE constexpr T sd_pie(
     return max(l, m * sign(sc.y * ip.x - sc.x * ip.y));
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_arc(
     const vec<2, T>& p,
     const vec<2, T>& sc,
@@ -217,7 +217,7 @@ VX_FORCE_INLINE constexpr T sd_arc(
     return ((sc.y * ip.x > sc.x * ip.y) ? length(ip - sc * ra) : abs(length(ip) - ra)) - rb;
 }
 
-template <typename T, VXM_REQ_FLOAT(T)>
+template <typename T, VX_MATH_REQ_FLOAT(T)>
 VX_FORCE_INLINE constexpr T sd_ring(
     const vec<2, T>& p,
     const vec<2, T>& sc,

@@ -14,7 +14,7 @@ namespace ease {
 // linear
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_linear(const T& x) noexcept
 {
     return x;
@@ -24,19 +24,19 @@ VX_FORCE_INLINE constexpr T ease_linear(const T& x) noexcept
 // quadratic
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_quad(const T& x) noexcept
 {
     return x * x;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_quad(const T& x) noexcept
 {
     return x * (static_cast<T>(2) - x);
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_quad(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
@@ -54,20 +54,20 @@ VX_FORCE_INLINE constexpr T ease_in_out_quad(const T& x) noexcept
 // cubic
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_cubic(const T& x) noexcept
 {
     return x * x * x;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_cubic(const T& x) noexcept
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y);
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_cubic(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
@@ -85,20 +85,20 @@ VX_FORCE_INLINE constexpr T ease_in_out_cubic(const T& x) noexcept
 // quartic
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_quart(const T& x) noexcept
 {
     return x * x * x * x;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_quart(const T& x) noexcept
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y * y);
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_quart(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
@@ -116,20 +116,20 @@ VX_FORCE_INLINE constexpr T ease_in_out_quart(const T& x) noexcept
 // quintic
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_quint(const T& x) noexcept
 {
     return x * x * x * x * x;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_quint(const T& x) noexcept
 {
     const T y = static_cast<T>(1) - x;
     return static_cast<T>(1) - (y * y * y * y * y);
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_quint(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
@@ -147,19 +147,19 @@ VX_FORCE_INLINE constexpr T ease_in_out_quint(const T& x) noexcept
 // sine
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_sine(const T& x) noexcept
 {
     return static_cast<T>(1) - cos((x * constants<T>::pi) * static_cast<T>(0.5));
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_sine(const T& x) noexcept
 {
     return sin((x * constants<T>::pi) * static_cast<T>(0.5));
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_sine(const T& x) noexcept
 {
     return (static_cast<T>(1) - cos(constants<T>::pi * x)) * static_cast<T>(0.5);
@@ -169,7 +169,7 @@ VX_FORCE_INLINE constexpr T ease_in_out_sine(const T& x) noexcept
 // exponential
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_expo(const T& x) noexcept
 {
     if (x <= static_cast<T>(0))
@@ -183,7 +183,7 @@ VX_FORCE_INLINE constexpr T ease_in_expo(const T& x) noexcept
     }
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_expo(const T& x) noexcept
 {
     if (x >= static_cast<T>(1))
@@ -197,7 +197,7 @@ VX_FORCE_INLINE constexpr T ease_out_expo(const T& x) noexcept
     }
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_expo(const T& x) noexcept
 {
     if (x <= static_cast<T>(0))
@@ -224,19 +224,19 @@ VX_FORCE_INLINE constexpr T ease_in_out_expo(const T& x) noexcept
 // circular
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_circ(const T& x) noexcept
 {
     return static_cast<T>(1) - sqrt(static_cast<T>(1) - (x * x));
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_circ(const T& x) noexcept
 {
     return sqrt(x * (static_cast<T>(2) - x));
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_circ(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
@@ -255,7 +255,7 @@ VX_FORCE_INLINE constexpr T ease_in_out_circ(const T& x) noexcept
 // back
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_back(const T& x) noexcept
 {
     constexpr T c1 = static_cast<T>(1.70158);
@@ -264,7 +264,7 @@ VX_FORCE_INLINE constexpr T ease_in_back(const T& x) noexcept
     return c3 * x * x * x - c1 * x * x;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_back(const T& x) noexcept
 {
     constexpr T c1 = static_cast<T>(1.70158);
@@ -274,7 +274,7 @@ VX_FORCE_INLINE constexpr T ease_out_back(const T& x) noexcept
     return static_cast<T>(1) + c3 * y * y * y + c1 * y * y;
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_back(const T& x) noexcept
 {
     constexpr T c1 = static_cast<T>(1.70158);
@@ -296,7 +296,7 @@ VX_FORCE_INLINE constexpr T ease_in_out_back(const T& x) noexcept
 // elastic
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_elastic(const T& x) noexcept
 {
     constexpr T c4 = constants<T>::two_pi / static_cast<T>(3);
@@ -316,7 +316,7 @@ VX_FORCE_INLINE constexpr T ease_in_elastic(const T& x) noexcept
     }
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_elastic(const T& x) noexcept
 {
     constexpr T c4 = constants<T>::two_pi / static_cast<T>(3);
@@ -336,7 +336,7 @@ VX_FORCE_INLINE constexpr T ease_out_elastic(const T& x) noexcept
     }
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_elastic(const T& x) noexcept
 {
     constexpr T c5 = constants<T>::two_pi / static_cast<T>(4.5);
@@ -365,13 +365,13 @@ VX_FORCE_INLINE constexpr T ease_in_out_elastic(const T& x) noexcept
 // bounce
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_bounce(const T& x) noexcept
 {
     return static_cast<T>(1) - ease_out_bounce(static_cast<T>(1) - x);
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_out_bounce(const T& x) noexcept
 {
     constexpr T n1 = static_cast<T>(7.5625);
@@ -399,7 +399,7 @@ VX_FORCE_INLINE constexpr T ease_out_bounce(const T& x) noexcept
     }
 }
 
-template <typename T, VXM_REQ_FLOAT(typename scalar_type<T>::type)>
+template <typename T, VX_MATH_REQ_FLOAT(typename scalar_type<T>::type)>
 VX_FORCE_INLINE constexpr T ease_in_out_bounce(const T& x) noexcept
 {
     if (x < static_cast<T>(0.5))
