@@ -18,7 +18,6 @@ file(GLOB VX_PIXEL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/palette.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/palette_surface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/palette_surface_iterator.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/quantization.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/filter/filter_box.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filter/filter_nearest.hpp"

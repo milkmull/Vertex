@@ -48,12 +48,12 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -81,14 +81,14 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1MSB>
         return data;
     }
 
-    VX_FORCE_INLINE constexpr block_type get_index(uint8_t sub_index) const noexcept
+    VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
-    VX_FORCE_INLINE constexpr void set_index(uint8_t sub_index, block_type value) noexcept
+    VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -120,12 +120,12 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -155,12 +155,12 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2MSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -192,12 +192,12 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -227,12 +227,12 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4MSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(sub_index);
+        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(sub_index, value);
+        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
     }
 };
 
@@ -262,7 +262,7 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_8>
         return data;
     }
 
-    VX_FORCE_INLINE constexpr uint8_t get_index(size_t) const noexcept
+    VX_FORCE_INLINE constexpr block_type get_index(size_t) const noexcept
     {
         return data;
     }
