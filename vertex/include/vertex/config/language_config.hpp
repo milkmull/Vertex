@@ -125,7 +125,7 @@
 
 // https://github.com/libsdl-org/SDL/blob/0e08d15cca61f59341858f7f239d9bce3dc99f54/include/SDL3/SDL_begin_code.h#L57
 
-#if !defined(VX_STATIC)
+#if !defined(VX_BUILD_STATIC)
 
 #   if defined(_MSC_VER) // Should just be windows
 
@@ -146,7 +146,7 @@
 
 #endif
 
-#if defined(VX_DLL_EXPORT)
+#if defined(VX_BUILD_SHARED)
 #   define VX_API VX_API_EXPORT
 #else
 #   define VX_API VX_API_IMPORT
@@ -360,3 +360,9 @@
     // Note: This will not show the message but will still fail the build
 #   define VX_STATIC_ASSERT(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Unused
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_UNUSED(x) ((void)(x))

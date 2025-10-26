@@ -3,10 +3,8 @@
 # Project Options Configuration
 #--------------------------------------------------------------------
 
-vx_set_option(VX_MATH_ENABLE_SIMD BOOL FALSE "Enable simd optimization for math library if available")
-
-if(VX_MATH_ENABLE_SIMD)
-    target_compile_definitions(Vertex PUBLIC "VXM_ENABLE_SIMD")
+if(VX_MATH_SIMD_ENABLED)
+    target_compile_definitions(Vertex PUBLIC VX_MATH_SIMD_ENABLED)
 endif()
 
 #--------------------------------------------------------------------

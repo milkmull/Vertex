@@ -68,29 +68,59 @@ set(VX_SHARED_AVAILABLE TRUE)
 
 message(STATUS "Configuring Vertex build options...")
 
+#--------------------------------------------------
+# Build type / linkage
+#--------------------------------------------------
+
 # Option to build shared libraries if available
 if(VX_SHARED_AVAILABLE)
     vx_set_option(VX_BUILD_SHARED_LIBS BOOL FALSE "Build shared libraries.")
 endif()
 
+#--------------------------------------------------
+# Tooling and runtime behavior
+#--------------------------------------------------
+
 # Enable AddressSanitizer (ASan)
 #vx_set_option(VX_ENABLE_ASAN        BOOL FALSE "Enable AddressSanitizer for Debug builds")
 
-# Application type option
-vx_set_option(VX_GUI_APP            BOOL FALSE "Build as a GUI application (no console window on supported platforms).")
+#--------------------------------------------------
+# Platform / Implementation targets
+#--------------------------------------------------
 
 # Module-specific build options
 vx_set_option(VX_DUMMY_PLATFORM     BOOL FALSE "Build the dummy os implimentation")
-vx_set_option(VX_BUILD_APP_VIDEO    BOOL TRUE  "Enable building the video backend.")
-#vx_set_option(VX_BUILD_APP_RENDERER BOOL TRUE  "Enable building the rendering backend.")
-#vx_set_option(VX_BUILD_APP_AUDIO    BOOL TRUE  "Enable building the audio backend.")
-vx_set_option(VX_BUILD_IMAGE        BOOL TRUE  "Enable image loading and writing capabilities.")
-#vx_set_option(VX_BUILD_NETWORK      BOOL TRUE  "Enable networking capabilities.")
 
-# Test and Sandbox options
+#--------------------------------------------------
+# Library Feature Modules
+#--------------------------------------------------
+
+vx_set_option(VX_MATH_SIMD_ENABLED   BOOL FALSE "Enable simd optimization for math library if available")
+vx_set_option(VX_IMAGE_ENABLED       BOOL TRUE  "Enable image loading and writing capabilities.")
+#vx_set_option(VX_NETWORK_ENABLED      BOOL TRUE  "Enable networking capabilities.")
+vx_set_option(VX_APP_ENABLED         BOOL FALSE "Enable building the application features.")
+
+#--------------------------------------------------
+# Application Features
+#--------------------------------------------------
+
+# App options (maybe only show these after configuring with VX_ENABLE_APP?)
+if(VX_APP_ENABLED)
+
+    vx_set_option(VX_GUI_APP                    BOOL FALSE "Build as a GUI application (no console window on supported platforms).")
+    vx_set_option(VX_APP_VIDEO_ENABLED          BOOL TRUE  "Enable building the video backend.")
+    #vx_set_option(VX_APP_RENDERER_ENABLED       BOOL TRUE  "Enable building the rendering backend.")
+    #vx_set_option(VX_APP_AUDIO_ENABLED          BOOL TRUE  "Enable building the audio backend.")
+    
+endif()
+
+#--------------------------------------------------
+# Testing and Sandbox
+#--------------------------------------------------
+
 vx_set_option(VX_BUILD_TESTS        BOOL FALSE "Enable building of test executables.")
-vx_set_option(VX_BUILD_SANDBOX      BOOL TRUE  "Enable building of the sandbox application.")
 vx_set_option(VX_INSTALL_TESTS      BOOL FALSE "Enable installation of test executables.")
+vx_set_option(VX_BUILD_SANDBOX      BOOL TRUE  "Enable building of the sandbox application.")
 
 # Automatically enable tests if installation of tests is requested
 if(VX_INSTALL_TESTS)
@@ -148,17 +178,32 @@ add_custom_target(uninstall
 # Configuration Summary
 #--------------------------------------------------------------------
 
+message(STATUS "-----------------------------------------")
 message(STATUS "Vertex Configuration Summary:")
-message(STATUS "  GUI Application         : ${VX_GUI_APP}")
-message(STATUS "  Build Dummy Platform    : ${VX_DUMMY_PLATFORM}")
-message(STATUS "  Build Shared Libraries  : ${VX_BUILD_SHARED_LIBS}")
-message(STATUS "  SIMD Enabled            : ${VX_MATH_ENABLE_SIMD}")
-#message(STATUS "  AddressSanitizer        : ${VX_ENABLE_ASAN}")
-#message(STATUS "  Use Static Std Libraries: ${VX_USE_STATIC_STD_LIBS}")
-message(STATUS "  Build Video Backend     : ${VX_BUILD_APP_VIDEO}")
-#message(STATUS "  Build Audio Backend     : ${VX_BUILD_APP_AUDIO}")
-message(STATUS "  Build Image Module      : ${VX_BUILD_IMAGE}")
-#message(STATUS "  Build Network Module    : ${VX_BUILD_NETWORK}")
-message(STATUS "  Build Tests             : ${VX_BUILD_TESTS}")
-message(STATUS "  Install Tests           : ${VX_INSTALL_TESTS}")
-message(STATUS "  Build Sandbox           : ${VX_BUILD_SANDBOX}")
+message(STATUS "-----------------------------------------")
+
+# Build / Runtime
+print_option(VX_BUILD_SHARED_LIBS    "Shared Libraries")
+print_option(VX_DUMMY_PLATFORM       "Dummy Platform")
+print_option(VX_MATH_SIMD_ENABLED    "SIMD Math")
+print_option(VX_GUI_APP              "GUI Application")
+# print_option(VX_ENABLE_ASAN        "AddressSanitizer") # uncomment if needed
+
+# Library Modules
+print_option(VX_IMAGE_ENABLED        "Image Module")
+# print_option(VX_NETWORK_ENABLED    "Network Module") 
+
+# App Features
+print_option(VX_APP_ENABLED          "Application Features")
+if(VX_APP_ENABLED)
+    print_option(VX_APP_VIDEO_ENABLED     "  Video Backend")
+    print_option(VX_APP_RENDERER_ENABLED  "  Renderer Backend")
+    print_option(VX_APP_AUDIO_ENABLED     "  Audio Backend")
+endif()
+
+# Testing / Sandbox
+print_option(VX_BUILD_TESTS          "Build Tests")
+print_option(VX_INSTALL_TESTS        "Install Tests")
+print_option(VX_BUILD_SANDBOX        "Build Sandbox")
+
+message(STATUS "-----------------------------------------")

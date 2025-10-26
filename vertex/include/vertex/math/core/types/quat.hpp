@@ -19,7 +19,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 {
     VX_STATIC_ASSERT(is_float<T>::value, "type T must be floating point type");
 
-#if defined(VXM_ENABLE_SIMD)
+#if defined(VX_MATH_SIMD_ENABLED)
 
 #   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::quat_t<_T>::cond))>
 #   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::quat_t<_T>::cond))>

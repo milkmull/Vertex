@@ -18,6 +18,18 @@ endfunction()
 
 #--------------------------------------------------------------------
 
+function(print_option name description)
+
+    if(DEFINED ${name})
+        message(STATUS "  ${description}: ${${name}}")
+    else()
+        message(STATUS "  ${description}: <undefined>")
+    endif()
+    
+endfunction()
+
+#--------------------------------------------------------------------
+
 # Helper function to hide public symbols by default in shared libraries.
 # This reduces the size of the exported symbol table, improves load times,
 # and enhances security by hiding internal implementation details.

@@ -5,7 +5,7 @@
 
 // https://github.com/VXorg/predef/tree/e1211a4ca467bb6512e99025772ca25afa8d6159/include/VX/predef/platform
 
-#if !defined(VX_DUMMY_PLATFORM)
+#if !defined(VX_PLATFORM_DUMMY)
 
 ///////////////////////////////////////////////////////////////////////////////
 // android

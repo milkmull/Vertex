@@ -9,6 +9,10 @@ if(VX_GUI_APP)
     target_compile_definitions(Vertex PUBLIC VX_GUI_APP)
 endif()
 
+if(VX_APP_VIDEO_ENABLED)
+    target_compile_definitions(Vertex PUBLIC VX_APP_VIDEO_ENABLED)
+endif()
+
 #--------------------------------------------------------------------
 # General files
 #--------------------------------------------------------------------
@@ -33,8 +37,8 @@ target_sources(Vertex PRIVATE ${VX_APP_HEADER_FILES})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hints")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/event")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/input")
 
-if(VX_BUILD_APP_VIDEO)
+if(VX_APP_VIDEO_ENABLED)
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/input")
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/video")
 endif()

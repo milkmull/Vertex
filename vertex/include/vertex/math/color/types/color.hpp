@@ -11,7 +11,7 @@ namespace math {
 template <>
 struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
 {
-#if defined(VXM_ENABLE_SIMD)
+#if defined(VX_MATH_SIMD_ENABLED)
 
 #   define _SIMD_OVERLOAD(cond) template <typename _T = scalar_type, VXM_REQ( (simd::vec<4, _T>::cond))>
 #   define _SIMD_FALLBACK(cond) template <typename _T = scalar_type, VXM_REQ(!(simd::vec<4, _T>::cond))>

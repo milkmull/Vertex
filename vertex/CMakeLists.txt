@@ -65,13 +65,13 @@ if(VX_BUILD_SHARED_LIBS)
 
     set_target_properties(Vertex PROPERTIES
         POSITION_INDEPENDENT_CODE TRUE
-        DEFINE_SYMBOL "VX_DLL_EXPORT"
+        DEFINE_SYMBOL "VX_BUILD_SHARED"
     )
     
 else()
 
-    # Define VX_STATIC for static libraries
-    target_compile_definitions(Vertex PUBLIC "VX_STATIC")
+    # Define VX_BUILD_STATIC for static libraries
+    target_compile_definitions(Vertex PUBLIC "VX_BUILD_STATIC")
    
 endif()
 
@@ -142,7 +142,7 @@ vx_create_source_groups(Vertex "${CMAKE_CURRENT_SOURCE_DIR}")
 if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
 
     configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/__platform/windows/version.rc.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_impl/os/_platform/windows/version.rc.in"
         "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
         @ONLY
     )
