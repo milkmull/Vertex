@@ -136,5 +136,31 @@ VX_FORCE_INLINE constexpr color_t<T> clamp(
     );
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// distance
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T>
+VX_FORCE_INLINE constexpr T distance_squared(
+    const color_t<T>& a,
+    const color_t<T>& b
+) noexcept
+{
+    const T dr = a.r - b.r;
+    const T dg = a.g - b.g;
+    const T db = a.b - b.b;
+    const T da = a.a - b.a;
+    return dr * dr + dg * dg + db * db + da * da;
+}
+
+template <typename T>
+VX_FORCE_INLINE T distance(
+    const color_t<T>& a,
+    const color_t<T>& b
+) noexcept
+{
+    return static_cast<T>(sqrt(distance_squared(a, b)));
+}
+
 } // namespace math
 } // namespace vx

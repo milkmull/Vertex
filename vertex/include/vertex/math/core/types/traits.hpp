@@ -341,15 +341,15 @@ struct enable_if<true, T> { using type = T; };
 // requires
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VXM_REQ(condition) typename enable_if<(condition), int>::type = 0
+#define VXM_REQ(condition) typename ::vx::math::enable_if<(condition), int>::type = 0
 
-#define VXM_REQ_SIGNED(type) VXM_REQ(is_signed<type>::value)
-#define VXM_REQ_FLOAT(type) VXM_REQ(is_float<type>::value)
-#define VXM_REQ_INT(type) VXM_REQ(is_int<type>::value)
-#define VXM_REQ_SINT(type) VXM_REQ(is_signed_int<type>::value)
-#define VXM_REQ_UINT(type) VXM_REQ(is_unsigned<type>::value)
+#define VXM_REQ_SIGNED(type) VXM_REQ(::vx::math::is_signed<type>::value)
+#define VXM_REQ_FLOAT(type) VXM_REQ(::vx::math::is_float<type>::value)
+#define VXM_REQ_INT(type) VXM_REQ(::vx::math::is_int<type>::value)
+#define VXM_REQ_SINT(type) VXM_REQ(::vx::math::is_signed_int<type>::value)
+#define VXM_REQ_UINT(type) VXM_REQ(::vx::math::is_unsigned<type>::value)
 
-#define VXM_FLOAT_TYPE(t) typename to_float_type<t>::type;
+#define VXM_FLOAT_TYPE(t) typename ::vx::math::to_float_type<t>::type;
 
 #define VXM_RET_TYPE(t, fn)  decltype(fn(std::declval<T>()))
 #define VXM_RET_TYPE2(t, fn) decltype(fn(std::declval<T>(), std::declval<T>()))

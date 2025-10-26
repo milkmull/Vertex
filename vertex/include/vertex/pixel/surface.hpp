@@ -2,9 +2,12 @@
 
 #include <cstring>
 #include <memory>
+#include <unordered_set>
 
+#include "vertex/pixel/palette.hpp"
 #include "vertex/pixel/iterator.hpp"
 #include "vertex/math/rect.hpp"
+#include "vertex/math/color/util/hash.hpp"
 
 namespace vx {
 namespace pixel {
@@ -18,16 +21,17 @@ public:
     // format details
     ///////////////////////////////////////////////////////////////////////////////
 
+    VX_STATIC_ASSERT(F != pixel_format::UNKNOWN, "Unknown format not allowed");
     static constexpr pixel_format format = F;
 
     static VX_FORCE_INLINE constexpr size_t channels() noexcept { return get_pixel_channel_count(format); }
     static VX_FORCE_INLINE constexpr bool has_alpha() noexcept { return pixel_has_alpha(format); }
     static VX_FORCE_INLINE constexpr size_t pixel_size() noexcept { return get_pixel_size(format); }
-    static VX_FORCE_INLINE constexpr bool unknown_format() noexcept { return format == pixel_format::UNKNOWN; }
 
     using raw_pixel_type = raw_pixel<format>;
     using pixel_type = typename raw_pixel_type::pixel_type;
     using channel_type = typename raw_pixel_type::channel_type;
+    using color_type = math::color;
 
     ///////////////////////////////////////////////////////////////////////////////
     // constructors
@@ -37,11 +41,11 @@ public:
 
     surface(size_t width, size_t height)
         : m_width(width), m_height(height)
-        , m_data(new raw_pixel_type[m_width * m_height]) {}
+        , m_data(std::make_unique<raw_pixel_type[]>(pixel_count())) {}
 
     surface(const byte_type* data, size_t width, size_t height)
         : m_width(width), m_height(height)
-        , m_data(new raw_pixel_type[m_width * m_height])
+        , m_data(std::make_unique<raw_pixel_type[]>(pixel_count()))
     {
         std::memcpy(m_data.get(), data, data_size());
     }
@@ -53,7 +57,7 @@ public:
     surface(const surface& other)
         : m_width(other.m_width)
         , m_height(other.m_height)
-        , m_data(new raw_pixel_type[other.m_width * other.m_height])
+        , m_data(std::make_unique<raw_pixel_type[]>(other.pixel_count()))
     {
         std::memcpy(m_data.get(), other.m_data.get(), data_size());
     }
@@ -64,7 +68,7 @@ public:
         {
             m_width = other.m_width;
             m_height = other.m_height;
-            m_data.reset(new raw_pixel_type[m_width * m_height]);
+            m_data = std::make_unique<raw_pixel_type[]>(other.pixel_count());
             std::memcpy(m_data.get(), other.m_data.get(), data_size());
         }
 
@@ -98,6 +102,7 @@ public:
     size_t height() const noexcept { return m_height; }
     size_t stride() const noexcept { return m_width * pixel_size(); }
 
+    size_t pixel_count() const noexcept { return m_width * m_height; }
     math::vec2i size() const noexcept { return math::vec2i(m_width, m_height); }
     math::recti get_rect() const noexcept { return math::recti(0, 0, m_width, m_height); }
 
@@ -124,17 +129,17 @@ public:
         return m_data[y * m_width + x];
     }
 
-    math::color get_pixel(size_t x, size_t y, const math::color& default_color = math::color()) const noexcept
+    color_type get_pixel(size_t x, size_t y, const color_type& default_color = color_type()) const noexcept
     {
         if (x >= m_width || y >= m_height)
         {
             return default_color;
         }
 
-        return static_cast<math::color>(at(x, y));
+        return static_cast<color_type>(at(x, y));
     }
 
-    math::color get_pixel(const math::vec2i& p, const math::color& default_color = math::color()) const noexcept
+    color_type get_pixel(const math::vec2i& p, const color_type& default_color = color_type()) const noexcept
     {
         return get_pixel(
             static_cast<size_t>(p.x),
@@ -143,7 +148,7 @@ public:
         );
     }
 
-    void set_pixel(size_t x, size_t y, const math::color& color) noexcept
+    void set_pixel(size_t x, size_t y, const color_type& color) noexcept
     {
         if (x >= m_width || y >= m_height)
         {
@@ -153,12 +158,12 @@ public:
         at(x, y) = raw_pixel_type(color);
     }
 
-    void set_pixel(const math::vec2i& p, const math::color& color) noexcept
+    void set_pixel(const math::vec2i& p, const color_type& color) noexcept
     {
         set_pixel(static_cast<size_t>(p.x), static_cast<size_t>(p.y), color);
     }
 
-    void fill(const math::color& color)
+    void fill(const color_type& color)
     {
         raw_pixel_type px(color);
         std::fill(m_data.get(), m_data.get() + (m_width * m_height), px);
@@ -171,6 +176,8 @@ public:
     template <pixel_format F2>
     surface<F2> convert() const
     {
+        VX_STATIC_ASSERT(F2 != pixel_format::UNKNOWN, "Unknown format not allowed");
+
         surface<F2> converted(m_width, m_height);
 
         VX_IF_CONSTEXPR(F == F2)
@@ -192,6 +199,34 @@ public:
     }
 
     ///////////////////////////////////////////////////////////////////////////////
+    // palette
+    ///////////////////////////////////////////////////////////////////////////////
+
+    palette generate_palette() const
+    {
+        std::unordered_set<color_type> colors;
+
+        for (size_t y = 0; y < m_height; ++y)
+        {
+            for (size_t x = 0; x < m_width; ++x)
+            {
+                const color_type c = get_pixel(x, y);
+                colors.insert(c);
+            }
+        }
+
+        palette p(colors.size());
+        size_t i = 0;
+
+        for (const color_type& c : colors)
+        {
+            p[i++] = c;
+        }
+
+        return p;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////
     // iteration
     ///////////////////////////////////////////////////////////////////////////////
 
@@ -205,7 +240,7 @@ public:
 
     iterator end()
     {
-        return iterator(m_data.get() + m_width * m_height, 0, m_height, m_width, m_height);
+        return iterator(m_data.get() + pixel_count(), 0, m_height, m_width, m_height);
     }
 
     const_iterator begin() const
@@ -215,7 +250,7 @@ public:
 
     const_iterator end() const
     {
-        return const_iterator(m_data.get() + m_width * m_height, 0, m_height, m_width, m_height);
+        return const_iterator(m_data.get() + pixel_count(), 0, m_height, m_width, m_height);
     }
 
     const_iterator cbegin() const

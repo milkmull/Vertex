@@ -332,12 +332,12 @@ struct window_display_changed_event
 
 struct window_display_scale_changed_event
 {
-    math::vec2 scale;
+    float xscale, yscale;
 };
 
 struct window_safe_area_changed_event
 {
-    math::recti area;
+    int32_t x, y, w, h;
 };
 
 struct window_close_requested_event {};
@@ -409,7 +409,6 @@ struct key_event_type
         keyboard_removed_event keyboard_removed;
         key_down_event key_down;
         key_up_event key_up;
-        text_input_event text_input;
     };
 };
 

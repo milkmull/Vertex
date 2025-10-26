@@ -410,7 +410,7 @@ VX_FORCE_INLINE constexpr size_t get_pixel_size(pixel_format format) noexcept
     return (static_cast<uint32_t>(format) & 0x000007FF);
 }
 
-VX_FORCE_INLINE constexpr size_t get_pixel_bit_count(pixel_format format) noexcept
+VX_FORCE_INLINE constexpr size_t get_bits_per_pixel(pixel_format format) noexcept
 {
     return get_pixel_size(format) * 8;
 }
@@ -733,6 +733,110 @@ enum class wrap_mode
     MIRRORED_REPEAT,
     MIRROR_CLAMP_TO_EDGE
 };
+
+///////////////////////////////////////////////////////////////////////////////
+
+enum class palette_order : uint32_t
+{
+    LSB = 0,
+    MSB = 1
+};
+
+VX_FORCE_INLINE constexpr uint32_t create_palette_format(
+    palette_order order,
+    uint32_t block_size,
+    uint32_t sub_index_count
+) noexcept
+{
+    return (static_cast<uint32_t>(order) << 31) | // order           = 1 bit
+           (block_size                   << 16) | // size            = 8 bits
+           (sub_index_count              <<  8);  // sub index count = 8 bits
+}
+
+enum class palette_format : uint32_t
+{
+    INDEX_1LSB = 0x00010800,
+    // create_palette_format(
+    //     palette_order::LSB,
+    //     1,
+    //     8
+    // ),
+
+    INDEX_1MSB = 0x80010800,
+    // create_palette_format(
+    //     palette_order::MSB,
+    //     1,
+    //     8
+    // ),
+
+    INDEX_2LSB = 0x80010400,
+    // create_palette_format(
+    //     palette_order::MSB,
+    //     1,
+    //     4
+    // ),
+
+    INDEX_2MSB = 0x00010400,
+    // create_palette_format(
+    //     palette_order::LSB,
+    //     1,
+    //     4
+    // ),
+
+    INDEX_4LSB = 0x00010200,
+    // create_palette_format(
+    //     palette_order::LSB,
+    //     1,
+    //     2
+    // ),
+
+    INDEX_4MSB = 0x80010200,
+    // create_palette_format(
+    //     palette_order::MSB,
+    //     1,
+    //     2
+    // ),
+
+    INDEX_8 = 0x00010100,
+    // create_palette_format(
+    //     palette_order::LSB,
+    //     1,
+    //     1
+    // ),
+
+    INDEX_8LSB = INDEX_8,
+    INDEX_8MSB = INDEX_8
+};
+
+VX_FORCE_INLINE constexpr palette_order get_palette_order(palette_format format) noexcept
+{
+    return static_cast<palette_order>((static_cast<uint32_t>(format) >> 31) & 0x01);
+}
+
+VX_FORCE_INLINE constexpr size_t get_block_size(palette_format format) noexcept
+{
+    return (static_cast<uint32_t>(format) >> 16) & 0xFF;
+}
+
+VX_FORCE_INLINE constexpr size_t get_bits_per_block(palette_format format) noexcept
+{
+    return get_block_size(format) * 8;
+}
+
+VX_FORCE_INLINE constexpr size_t get_sub_index_count(palette_format format) noexcept
+{
+    return (static_cast<uint32_t>(format) >> 8) & 0xFF;
+}
+
+VX_FORCE_INLINE constexpr size_t get_bits_per_sub_index(palette_format format) noexcept
+{
+    return get_bits_per_block(format) / get_sub_index_count(format);
+}
+
+VX_FORCE_INLINE constexpr size_t get_max_palette_size(palette_format format) noexcept
+{
+    return get_sub_index_count(format) * (1ull << get_bits_per_sub_index(format));
+}
 
 } // namespace pixel
 } // namespace vx

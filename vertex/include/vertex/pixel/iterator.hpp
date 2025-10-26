@@ -312,7 +312,7 @@ inline pixel_iterator<F> begin(surface<F>& surf) noexcept
 template <pixel_format F>
 inline pixel_iterator<F> end(surface<F>& surf) noexcept
 {
-    return pixel_iterator<F>(reinterpret_cast<typename pixel_iterator<F>::pointer>(surf.data()) + surf.width() * surf.height(), 0, surf.height(), surf.width(), surf.height());
+    return pixel_iterator<F>(reinterpret_cast<typename pixel_iterator<F>::pointer>(surf.data()) + surf.pixel_count(), 0, surf.height(), surf.width(), surf.height());
 }
 
 template <pixel_format F>
@@ -324,7 +324,7 @@ inline const_pixel_iterator<F> begin(const surface<F>& surf) noexcept
 template <pixel_format F>
 const_pixel_iterator<F> end(const surface<F>& surf) noexcept
 {
-    return const_pixel_iterator<F>(reinterpret_cast<typename const_pixel_iterator<F>::pointer>(surf.data()) + surf.width() * surf.height(), 0, surf.height(), surf.width(), surf.height());
+    return const_pixel_iterator<F>(reinterpret_cast<typename const_pixel_iterator<F>::pointer>(surf.data()) + surf.pixel_count(), 0, surf.height(), surf.width(), surf.height());
 }
 
 } // namespace pixel

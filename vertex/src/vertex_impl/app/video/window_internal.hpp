@@ -39,13 +39,14 @@ struct window_flags
         HIDDEN = (1 << 7),
         OCCLUDED = (1 << 8),
 
-        INPUT_FOCUS = (1 << 9),
-        MOUSE_FOCUS = (1 << 10),
+        NOT_FOCUSABLE = (1 << 9),
+        INPUT_FOCUS = (1 << 10),
+        MOUSE_FOCUS = (1 << 11),
 
-        MOUSE_GRABBED = (1 << 11),
-        KEYBOARD_GRABBED = (1 << 12),
+        MOUSE_GRABBED = (1 << 12),
+        KEYBOARD_GRABBED = (1 << 13),
 
-        MOUSE_CAPTURE = (1 << 13),
+        MOUSE_CAPTURE = (1 << 14),
 
         // flags to be set by the os on window creation
         CREATE_FLAGS = (HIDDEN | MINIMIZED | BORDERLESS | RESIZABLE | TOPMOST),
@@ -173,6 +174,7 @@ struct window_data
     bool tiled = false;
 
     bool mouse_capture = false;
+    math::rect mouse_rect;
 
     bool surface_valid = false;
     argb_surface shape_surface;
@@ -295,9 +297,7 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
     
     bool flash(window_flash_op operation);
-    bool show_system_menu(int x, int y);
-    bool set_hit_test(window_hit_test callback, void* user_data);
-    
+
     ///////////////////////////////////////////////////////////////////////////////
     // fullscreen
     ///////////////////////////////////////////////////////////////////////////////

@@ -668,7 +668,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_ADDED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_added.display_id,
+                " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
@@ -678,7 +678,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_REMOVED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_removed.display_id,
+                " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
@@ -688,7 +688,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_MOVED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_moved.display_id,
+                " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
@@ -698,8 +698,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_ORIENTATION_CHANGED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_orientation_changed.display_id, ',',
-                " orientation: ", static_cast<int>(e.display_orientation_changed.orientation),
+                " display_id: ", e.display_event.comon.display_id, ',',
+                " orientation: ", static_cast<int>(e.display_event.display_orientation_changed.orientation),
                 " }"
             );
             break;
@@ -709,7 +709,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_DESKTOP_MODE_CHANGED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_desktop_mode_changed.display_id,
+                " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
@@ -719,7 +719,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_CURRENT_MODE_CHANGED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_current_mode_changed.display_id,
+                " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
@@ -729,8 +729,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "DISPLAY_CONTENT_SCALE_CHANGED {",
                 " time: ", e.time.as_nanoseconds(),
-                " display_id: ", e.display_content_scale_changed.display_id, ',',
-                " scale: {", e.display_content_scale_changed.x, ", ", e.display_content_scale_changed.y, " }",
+                " display_id: ", e.display_event.comon.display_id, ',',
+                " scale: {", e.display_event.display_content_scale_changed.x, ", ", e.display_event.display_content_scale_changed.y, " }",
                 " }"
             );
             break;
@@ -742,7 +742,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_SHOWN {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_shown.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -752,7 +752,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_HIDDEN {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_hidden.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -762,8 +762,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MOVED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_moved.window_id,
-                " position: {", e.window_moved.x, ", ", e.window_moved.y, " }",
+                " window_id: ", e.window_event.common.window_id,
+                " position: {", e.window_event.window_moved.x, ", ", e.window_event.window_moved.y, " }",
                 " }"
             );
             break;
@@ -773,8 +773,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_RESIZED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_resized.window_id, ',',
-                " size: {", e.window_resized.w, ", ", e.window_resized.h, " }",
+                " window_id: ", e.window_event.common.window_id, ',',
+                " size: {", e.window_event.window_resized.w, ", ", e.window_event.window_resized.h, " }",
                 " }"
             );
             break;
@@ -784,7 +784,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MINIMIZED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_minimized.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -794,7 +794,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_MAXIMIZED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_maximized.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -804,7 +804,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_RESTORED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_restored.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -814,7 +814,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_ENTER_FULLSCREEN {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_enter_fullscreen.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -824,7 +824,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_LEAVE_FULLSCREEN {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_leave_fullscreen.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -834,7 +834,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_GAINED_FOCUS {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_gained_focus.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -844,7 +844,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_LOST_FOCUS {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_lost_focus.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -859,8 +859,8 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_DISPLAY_CHANGED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_display_changed.window_id, ',',
-                " display_id: ", e.window_display_changed.display_id,
+                " window_id: ", e.window_event.common.window_id, ',',
+                " display_id: ", e.window_event.window_display_changed.display_id,
                 " }"
             );
             break;
@@ -874,7 +874,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_CLOSE_REQUESTED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_close_requested.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
@@ -884,7 +884,7 @@ static void log_event(const event& e)
             VX_LOG_INFO(
                 "WINDOW_DESTROYED {",
                 " time: ", e.time.as_nanoseconds(),
-                " window_id: ", e.window_destroyed.window_id,
+                " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;

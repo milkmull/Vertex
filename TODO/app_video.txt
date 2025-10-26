@@ -7,5 +7,6 @@ todo:
     - complete window class (front facing wrapper and internal video api)
     - keep some data initialized when calling init and quit? maye bet parent pointer in constructor?
     - finish input front ends
+    - disable app subsystems based on compiler configuration
     
     - handle app callback mode and quitting, signals

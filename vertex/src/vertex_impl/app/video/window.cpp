@@ -959,6 +959,10 @@ bool window_instance::raise()
     return true;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// system
+///////////////////////////////////////////////////////////////////////////////
+
 bool window_instance::flash(window_flash_op operation)
 {
 #if VX_VIDEO_HAVE_WINDOW_FLASH
@@ -1445,6 +1449,33 @@ bool window_instance::update_shape(bool force)
     return true;
 }
 
+float window_instance::get_opacity() const
+{
+    return data.opacity;
+}
+
+bool window_instance::set_opacity(float opacity)
+{
+#if VX_VIDEO_HAVE_WINDOW_SET_OPACITY
+
+    opacity = math::clamp(opacity, 0.0f, 1.0f);
+
+    const bool result = impl_ptr->set_opacity(opacity);
+    if (result)
+    {
+        data.opacity = opacity;
+    }
+
+    return result;
+
+#else
+
+    VX_UNSUPPORTED("set_opacity()");
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_OPACITY
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // icc profile
 ///////////////////////////////////////////////////////////////////////////////
@@ -1457,15 +1488,32 @@ std::vector<uint8_t> window_instance::get_icc_profile() const
 
 #else
 
-    VX_UNSUPPORTED();
+    VX_UNSUPPORTED("get_icc_profile()");
     return nullptr;
 
 #endif // VX_VIDEO_HAVE_WINDOW_GET_ICC_PROFILE
 }
 
+pixel::pixel_format window_instance::get_pixel_format() const
+{
+    const display_id display = video->get_display_for_window(data.id, true);
+    const display_mode* mode = video->get_display_current_mode(display);
+    return mode ? mode->pixel_format : pixel::pixel_format::UNKNOWN;
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // grab
 ///////////////////////////////////////////////////////////////////////////////
+
+bool window_instance::get_mouse_grab() const
+{
+    return video->data.grabbed_window == data.id && (data.flags & window_flags::MOUSE_GRABBED);
+}
+
+bool window_instance::get_keyboard_grab() const
+{
+    return video->data.grabbed_window == data.id && (data.flags & window_flags::KEYBOARD_GRABBED);
+}
 
 bool window_instance::set_mouse_grab(bool grabbed)
 {
@@ -1615,6 +1663,31 @@ void window_instance::update_grab()
 // focus
 ///////////////////////////////////////////////////////////////////////////////
 
+bool window_instance::set_focusable(bool focusable)
+{
+    const bool is_focusable = !(data.flags & window_flags::NOT_FOCUSABLE);
+
+    if (focusable != is_focusable)
+    {
+        if (!focusable)
+        {
+            data.flags |= window_flags::NOT_FOCUSABLE;
+        }
+        else
+        {
+            data.flags &= ~window_flags::NOT_FOCUSABLE;
+        }
+
+#if VX_VIDEO_HAVE_WINDOW_SET_FOCUSABLE
+
+        return impl_ptr->set_focusable(focusable);
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_FOCUSABLE
+    }
+
+    return true;
+}
+
 bool window_instance::has_mouse_focus() const
 {
     return video->data.mouse_ptr->get_focus() == data.id;
@@ -1693,6 +1766,26 @@ void window_instance::set_mouse_capture(bool capture)
 bool window_instance::mouse_capture_enabled() const
 {
     return false;
+}
+
+const math::recti& window_instance::get_mouse_rect() const
+{
+    return data.mouse_rect;
+}
+
+bool window_instance::set_mouse_rect(const math::recti& rect)
+{
+    data.mouse_rect = rect;
+
+#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
+
+    return impl_ptr->set_mouse_rect(rect);
+
+#else
+
+    return true;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
 }
 
 ///////////////////////////////////////////////////////////////////////////////
