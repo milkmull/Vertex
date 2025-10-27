@@ -116,8 +116,8 @@ public:
     size_t get_display_index(display_id id) const;
     bool is_display_connected(display_id id) const;
 
-    const display_instance* get_display_instance(display_id id) const;
     display_instance* get_display_instance(display_id id);
+    const display_instance* get_display_instance(display_id id) const;
 
     display_id get_primary_display() const;
 

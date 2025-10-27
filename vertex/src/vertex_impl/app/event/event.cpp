@@ -1,8 +1,11 @@
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/event/_platform/platform_event.hpp"
-#include "vertex_impl/app/input/keyboard_internal.hpp"
-#include "vertex_impl/app/video/video_internal.hpp"
+
+#if defined(VX_APP_VIDEO_ENABLED)
+#   include "vertex_impl/app/input/keyboard_internal.hpp"
+#   include "vertex_impl/app/video/video_internal.hpp"
+#endif // VX_APP_VIDEO_ENABLED
 
 ///////////////////////////////////////////////////////////////////////////////
 // feature macros
@@ -43,6 +46,12 @@ bool events_instance::init(app_instance* owner)
     VX_ASSERT(!app);
     VX_ASSERT(owner);
     app = owner;
+
+    if (!data.was_init)
+    {
+        data.was_init = true;
+    }
+
     return true;
 }
 
@@ -197,6 +206,8 @@ void events_instance::pump_events_maintenance()
 
 void events_instance::pump_events_internal(bool push_sentinel)
 {
+#if defined(VX_APP_VIDEO_ENABLED)
+
     if (app->is_video_init())
     {
         // release any keys heald down from last frame
@@ -205,6 +216,8 @@ void events_instance::pump_events_internal(bool push_sentinel)
         // pump events from video subsystem
         app->data.video_ptr->pump_events();
     }
+
+#endif // VX_APP_VIDEO_ENABLED
 
     // pump events for other subsystems
     pump_events_maintenance();
@@ -230,10 +243,14 @@ size_t events_instance::add_events(const event* e, size_t count)
     // if we happen to be blocking in another thread, send a
     // wakeup event to signal that an event was added to the queue
 
+#if defined(VX_APP_VIDEO_ENABLED)
+
     if (n && app->is_video_init())
     {
         app->data.video_ptr->send_wakeup_event();
     }
+
+#endif // VX_APP_VIDEO_ENABLED
 
     return n;
 }
@@ -662,6 +679,8 @@ static void log_event(const event& e)
             break;
         }
 
+#if defined(VX_APP_VIDEO_ENABLED)
+
         // display events
         case DISPLAY_ADDED:
         {
@@ -906,6 +925,9 @@ static void log_event(const event& e)
         {
             break;
         }
+
+#endif // VX_APP_VIDEO_ENABLED
+
         default:
         {
             break;

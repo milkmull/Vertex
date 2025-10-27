@@ -2,7 +2,10 @@
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
-#include "vertex_impl/app/video/video_internal.hpp"
+
+#if defined(VX_APP_VIDEO_ENABLED)
+#   include "vertex_impl/app/video/video_internal.hpp"
+#endif // VX_APP_VIDEO_ENABLED
 
 namespace vx {
 namespace app {
@@ -273,6 +276,8 @@ void app_instance::quit_events()
 
 bool app_instance::init_video()
 {
+#if defined(VX_APP_VIDEO_ENABLED)
+
     // video subsystem requires events
     if (!init_events())
     {
@@ -298,15 +303,28 @@ bool app_instance::init_video()
 
     ++data.ref_counts[VIDEO_SUBSYSTEM];
     return true;
+
+#else
+
+    VX_UNSUPPORTED("init_video()");
+    return false;
+
+#endif // VX_APP_VIDEO_ENABLED
 }
 
 bool app_instance::is_video_init() const
 {
+#if defined(VX_APP_VIDEO_ENABLED)
     return data.video_ptr != nullptr;
+#else
+    return false;
+#endif // VX_APP_VIDEO_ENABLED
 }
 
 void app_instance::quit_video()
 {
+#if defined(VX_APP_VIDEO_ENABLED)
+
     if (!is_video_init())
     {
         VX_ASSERT(data.ref_counts[VIDEO_SUBSYSTEM] == 0);
@@ -320,6 +338,8 @@ void app_instance::quit_video()
         data.video_ptr->quit();
         data.video_ptr.reset();
     }
+
+#endif // VX_APP_VIDEO_ENABLED
 }
 
 ////////////////////////////////////////

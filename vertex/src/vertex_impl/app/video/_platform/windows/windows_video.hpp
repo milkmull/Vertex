@@ -21,7 +21,7 @@ struct user32
     BOOL(WINAPI* SetProcessDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
     DPI_AWARENESS_CONTEXT(WINAPI* SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
     DPI_AWARENESS_CONTEXT(WINAPI* GetThreadDpiAwarenessContext)(void) = nullptr;
-    DPI_AWARENESS(WINAPI* GetAwarenessFromDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
+    DPI_AWARENESS(WINAPI* GetAwarenessFromDpiAwarenessContext)(DPI_AWARENESS_CONTEXT) = nullptr;
     BOOL(WINAPI* EnableNonClientDpiScaling)(HWND) = nullptr;
     BOOL(WINAPI* AdjustWindowRectExForDpi)(LPRECT, DWORD, BOOL, DWORD, UINT) = nullptr;
     UINT(WINAPI* GetDpiForWindow)(HWND) = nullptr;

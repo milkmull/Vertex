@@ -87,9 +87,9 @@ public:
     // position and size
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool adjust_rect_with_style(RECT& rect, window::rect_type rect_type, DWORD style, DWORD ex_style) const;
-    bool adjust_rect(RECT& rect, window::rect_type rect_type) const;
-    void set_position_internal(UINT flags, window::rect_type rect_type);
+    bool adjust_rect_with_style(RECT& rect, window_rect_type rect_type, DWORD style, DWORD ex_style) const;
+    bool adjust_rect(RECT& rect, window_rect_type rect_type) const;
+    void set_position_internal(UINT flags, window_rect_type rect_type);
 
     bool set_position();
     bool set_size();

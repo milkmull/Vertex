@@ -276,14 +276,14 @@ bool video_instance::is_display_connected(display_id id) const
 
 ////////////////////////////////////////
 
-const display_instance* video_instance::get_display_instance(display_id id) const
+display_instance* video_instance::get_display_instance(display_id id)
 {
     if (!is_valid_id(id))
     {
         return nullptr;
     }
 
-    for (const display_instance& d : data.displays)
+    for (display_instance& d : data.displays)
     {
         if (d.data.id == id)
         {
@@ -294,9 +294,9 @@ const display_instance* video_instance::get_display_instance(display_id id) cons
     return nullptr;
 }
 
-display_instance* video_instance::get_display_instance(display_id id)
+const display_instance* video_instance::get_display_instance(display_id id) const
 {
-    return const_cast<display_instance*>(get_display_instance(id));
+    return const_cast<video_instance*>(this)->get_display_instance(id);
 }
 
 ////////////////////////////////////////
@@ -1639,9 +1639,9 @@ bool video_instance::post_display_added(display_id id)
 
 void video_instance::on_display_added()
 {
-    for (const auto& w : data.windows)
+    for (window_instance& w : data.windows)
     {
-        video_instance::check_window_display_changed(w.data.id);
+        w.check_window_display_changed();
     }
 }
 

@@ -3,10 +3,11 @@ todo:
     - normalize internal video api to take and return pointers to display_instance instead of display_id
     - normalize macros, including feature flags and hints
     - hint descriptions
-    - finish window events
+    x finish window events
+    - finish video api
     - complete window class (front facing wrapper and internal video api)
     - keep some data initialized when calling init and quit? maye bet parent pointer in constructor?
     - finish input front ends
-    - disable app subsystems based on compiler configuration
+    x disable app subsystems based on compiler configuration
     
     - handle app callback mode and quitting, signals

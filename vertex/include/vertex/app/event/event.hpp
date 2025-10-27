@@ -24,7 +24,7 @@ using event_type_t = uint32_t;
 
 enum event_category : uint32_t
 {
-    CATEGORY_APP,
+    CATEGORY_APP = 1,
     CATEGORY_DISPLAY,
     CATEGORY_WINDOW,
     CATEGORY_KEY,
@@ -33,6 +33,7 @@ enum event_category : uint32_t
     CATEGORY_PEN,
     CATEGORY_CLIPBOARD,
     CATEGORY_DROP,
+    CATEGORY_USER,
     CATEGORY_INTERNAL
 };
 
@@ -99,6 +100,8 @@ inline constexpr uint32_t get_number(event_type_t type) noexcept
 
 enum event_type : event_type_t
 {
+    INVALID_EVENT = 0,
+
     // app events
     EVENT_TYPE(APP_EVENT_FIRST,                 CATEGORY_APP,       0),
     EVENT_TYPE(APP_QUIT,                        CATEGORY_APP,       1),
@@ -206,9 +209,12 @@ enum event_type : event_type_t
     EVENT_TYPE(DROP_POSITION,                   CATEGORY_DROP,      5),
     EVENT_TYPE(DROP_EVENT_LAST,                 CATEGORY_DROP,      6),
 
+    // user event
+    EVENT_TYPE_USER(USER_EVENT_FIRST,           CATEGORY_USER,      0),
+    EVENT_TYPE_USER(USER_EVENT_LAST,            CATEGORY_USER,      0),
+
     // internal events
-    EVENT_TYPE(INTERNAL_EVENT_POLL_SENTINEL,    CATEGORY_APP,       0),
-    EVENT_TYPE(INTERNAL_EVENT_TOMBSTONE,        CATEGORY_APP,       1)
+    EVENT_TYPE(INTERNAL_EVENT_POLL_SENTINEL,    CATEGORY_APP,       0)
 };
 
 #undef EVENT_TYPE
@@ -234,6 +240,8 @@ struct app_event_type
         system_theme_changed_event system_theme_changed;
     };
 };
+
+#if defined(VX_APP_VIDEO_ENABLED)
 
 ///////////////////////////////////////////////////////////////////////////////
 // display events
@@ -494,6 +502,8 @@ struct mouse_event_type
 // drag and drop events
 ///////////////////////////////////////////////////////////////////////////////
 
+#endif // VX_APP_VIDEO_ENABLED
+
 ///////////////////////////////////////////////////////////////////////////////
 // user events
 ///////////////////////////////////////////////////////////////////////////////
@@ -522,7 +532,9 @@ public:
     {
         // app events
 
-        app_event_type app_event;
+        app_event_type app_event{};
+
+#if defined(VX_APP_VIDEO_ENABLED)
 
         // display events
 
@@ -540,10 +552,14 @@ public:
 
         mouse_event_type mouse_event;
 
+#endif // VX_APP_VIDEO_ENABLED
+
         // user event
 
         user_event_type user_event;
     };
+
+#if defined(VX_APP_VIDEO_ENABLED)
 
     video::window_id get_window_id() const
     {
@@ -554,6 +570,9 @@ public:
 
         return INVALID_ID;
     }
+
+#endif // VX_APP_VIDEO_ENABLED
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////

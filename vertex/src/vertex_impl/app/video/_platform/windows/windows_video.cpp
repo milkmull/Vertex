@@ -550,63 +550,6 @@ static float get_refresh_rate(DWORD rate)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// display pixel format
-///////////////////////////////////////////////////////////////////////////////
-
-// this only works for the current display mode
-static pixel::pixel_format get_pixel_format(LPCWSTR device_name, bool current_mode)
-{
-    if (current_mode)
-    {
-        HDC hdc = ::CreateDCW(device_name, NULL, NULL, NULL);
-        if (hdc == NULL)
-        {
-            return pixel::pixel_format::UNKNOWN;
-        }
-
-        char bmi_data[sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD)]{};
-
-        LPBITMAPINFO bmi = reinterpret_cast<LPBITMAPINFO>(bmi_data);
-        bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-
-        HBITMAP hbm = ::CreateCompatibleBitmap(hdc, 1, 1);
-        ::GetDIBits(hdc, hbm, 0, 1, NULL, bmi, DIB_RGB_COLORS);
-        ::GetDIBits(hdc, hbm, 0, 1, NULL, bmi, DIB_RGB_COLORS);
-
-        ::DeleteObject(hbm);
-        ::DeleteDC(hdc);
-
-        if (bmi->bmiHeader.biCompression == BI_BITFIELDS)
-        {
-            switch (*reinterpret_cast<uint32_t*>(bmi->bmiColors))
-            {
-                case 0x00FF0000: return pixel::pixel_format::ARGB_8888;
-                case 0x000000FF:
-                    mode->format = SDL_PIXELFORMAT_XBGR8888;
-                    break;
-                case 0xF800:
-                    mode->format = SDL_PIXELFORMAT_RGB565;
-                    break;
-                case 0x7C00:
-                    mode->format = SDL_PIXELFORMAT_XRGB1555;
-                    break;
-            }
-        }
-        else if (bmi->bmiHeader.biCompression == BI_RGB) {
-            if (bmi->bmiHeader.biBitCount == 24) {
-                mode->format = SDL_PIXELFORMAT_RGB24;
-            }
-            else if (bmi->bmiHeader.biBitCount == 8) {
-                mode->format = SDL_PIXELFORMAT_INDEX8;
-            }
-            else if (bmi->bmiHeader.biBitCount == 4) {
-                mode->format = SDL_PIXELFORMAT_INDEX4LSB;
-            }
-        }
-    }
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // display orientation
 ///////////////////////////////////////////////////////////////////////////////
 

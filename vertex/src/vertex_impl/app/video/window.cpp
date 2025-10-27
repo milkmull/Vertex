@@ -266,9 +266,11 @@ bool window_instance::set_title(const std::string& title)
 
     return impl_ptr->set_title(title);
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_TITLE
+#else
 
     return true;
+
+#endif // VX_VIDEO_HAVE_WINDOW_SET_TITLE
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -294,9 +296,11 @@ bool window_instance::set_resizable(bool resizable)
         impl_ptr->set_resizable(resizable);
     }
 
+    return true;
+
 #else
 
-    return false;
+    return true;
 
 #endif // VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE
 }
@@ -530,9 +534,12 @@ bool window_instance::get_border_size(int* left, int* right, int* bottom, int* t
     
     return impl_ptr->get_border_size(left, right, bottom, top);
 
-#endif // VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
+#else
 
-    return true;
+    VX_UNSUPPORTED("get_border_size()");
+    return false;
+
+#endif // VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3269
@@ -726,6 +733,7 @@ bool window_instance::lock_aspect_ratio(float aspect_ratio)
 bool window_instance::set_safe_area(const math::recti& area)
 {
     post_window_safe_area_changed(area);
+    return true;
 }
 
 math::recti window_instance::get_safe_area() const
@@ -809,7 +817,7 @@ bool window_instance::show()
 {
     if (!(data.flags & window_flags::HIDDEN))
     {
-        return;
+        return true;
     }
 
 #if VX_VIDEO_HAVE_WINDOW_SHOW
@@ -824,6 +832,7 @@ bool window_instance::show()
 #endif // VX_VIDEO_HAVE_WINDOW_SHOW
 
     post_window_shown();
+    return true;
 }
 
 bool window_instance::hide()
@@ -908,7 +917,7 @@ bool window_instance::maximize()
     {
         // we will maximize when shown again
         data.pending_flags |= window_flags::MAXIMIZED;
-        return;
+        return true;
     }
 
     impl_ptr->maximize();
@@ -2113,7 +2122,8 @@ bool window_instance::post_window_display_scale_changed(const math::vec2& scale)
     event::event e{};
     e.type = event::WINDOW_DISPLAY_SCALE_CHANGED;
     e.window_event.common.window_id = data.id;
-    e.window_event.window_display_scale_changed.scale = scale;
+    e.window_event.window_display_scale_changed.xscale = scale.x;
+    e.window_event.window_display_scale_changed.yscale = scale.y;
     const bool posted = events_ptr->push_event(e);
 
     on_window_display_scale_changed();
@@ -2144,7 +2154,10 @@ bool window_instance::post_window_safe_area_changed(const math::recti& area)
     event::event e{};
     e.type = event::WINDOW_SAFE_AREA_CHANGED;
     e.window_event.common.window_id = data.id;
-    e.window_event.window_safe_area_changed.area = area;
+    e.window_event.window_safe_area_changed.x = area.position.x;
+    e.window_event.window_safe_area_changed.y = area.position.y;
+    e.window_event.window_safe_area_changed.w = area.size.x;
+    e.window_event.window_safe_area_changed.h = area.size.y;
     const bool posted = events_ptr->push_event_filtered(e, filter_duplicate_window_events, &e);
 
     on_window_safe_area_changed();

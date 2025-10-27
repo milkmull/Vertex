@@ -13,7 +13,12 @@ namespace app {
 
 namespace hint { class hints_instance; }
 namespace event { class events_instance; }
+
+#if defined(VX_APP_VIDEO_ENABLED)
 namespace video { class video_instance; }
+#endif // VX_APP_VIDEO_ENABLED
+
+
 namespace audio { class audio_instance; }
 namespace camera { class camera_instance; }
 
@@ -38,7 +43,10 @@ struct app_data
 
     owner_ptr<hint::hints_instance> hints_ptr;
     owner_ptr<event::events_instance> events_ptr;
+
+#if defined(VX_APP_VIDEO_ENABLED)
     owner_ptr<video::video_instance> video_ptr;
+#endif // VX_APP_VIDEO_ENABLED
 
     size_t ref_counts[SUBSYSTEM_COUNT] = {};
 };

@@ -283,52 +283,52 @@ bool raw_input_manager::set_raw_keyboard_enabled(bool enabled)
 
 void raw_input_manager::handle_raw_mouse_input(time::time_point t, os::handle device_handle, RAWMOUSE* raw)
 {
-    struct raw_button
-    {
-        USHORT usButtonFlags;
-        mouse::buttons button;
-        bool down;
-    };
-
-    raw_button raw_buttons[] = {
-
-        { RI_MOUSE_LEFT_BUTTON_DOWN, mouse::BUTTON_LEFT, true },
-        { RI_MOUSE_LEFT_BUTTON_UP, mouse::BUTTON_LEFT, false },
-
-        { RI_MOUSE_RIGHT_BUTTON_DOWN, mouse::BUTTON_RIGHT, true },
-        { RI_MOUSE_RIGHT_BUTTON_UP, mouse::BUTTON_RIGHT, false },
-
-        { RI_MOUSE_MIDDLE_BUTTON_DOWN, mouse::BUTTON_MIDDLE, true },
-        { RI_MOUSE_MIDDLE_BUTTON_UP, mouse::BUTTON_MIDDLE, false },
-
-        { RI_MOUSE_BUTTON_4_DOWN, mouse::BUTTON_EXTRA_1, true },
-        { RI_MOUSE_BUTTON_4_UP, mouse::BUTTON_EXTRA_1, false },
-
-        { RI_MOUSE_BUTTON_5_DOWN, mouse::BUTTON_EXTRA_2, true },
-        { RI_MOUSE_BUTTON_5_UP, mouse::BUTTON_EXTRA_2, false }
-
-    };
-
-    const int dx = static_cast<int>(raw->lLastX);
-    const int dy = static_cast<int>(raw->lLastY);
-    const bool have_motion = (dx || dy);
-    const bool have_button = (raw->usButtonFlags != 0);
-    const bool is_absolute = ((raw->usFlags & MOUSE_MOVE_ABSOLUTE) != 0);
-    const mouse::mouse_id id = (mouse::mouse_id)(uintptr_t)device_handle.get();
-
-    if (!data.raw_mouse_enabled)
-    {
-        return;
-    }
-
-    // Relative mouse motion is delivered to the window with keyboard focus
-    const video::window_id w = video->data.keyboard_ptr->get_focus();
-    if (!is_valid_id(w))
-    {
-        return;
-    }
-
-    //if (GetMouseMess)
+    //struct raw_button
+    //{
+    //    USHORT usButtonFlags;
+    //    mouse::buttons button;
+    //    bool down;
+    //};
+    //
+    //raw_button raw_buttons[] = {
+    //
+    //    { RI_MOUSE_LEFT_BUTTON_DOWN, mouse::BUTTON_LEFT, true },
+    //    { RI_MOUSE_LEFT_BUTTON_UP, mouse::BUTTON_LEFT, false },
+    //
+    //    { RI_MOUSE_RIGHT_BUTTON_DOWN, mouse::BUTTON_RIGHT, true },
+    //    { RI_MOUSE_RIGHT_BUTTON_UP, mouse::BUTTON_RIGHT, false },
+    //
+    //    { RI_MOUSE_MIDDLE_BUTTON_DOWN, mouse::BUTTON_MIDDLE, true },
+    //    { RI_MOUSE_MIDDLE_BUTTON_UP, mouse::BUTTON_MIDDLE, false },
+    //
+    //    { RI_MOUSE_BUTTON_4_DOWN, mouse::BUTTON_EXTRA_1, true },
+    //    { RI_MOUSE_BUTTON_4_UP, mouse::BUTTON_EXTRA_1, false },
+    //
+    //    { RI_MOUSE_BUTTON_5_DOWN, mouse::BUTTON_EXTRA_2, true },
+    //    { RI_MOUSE_BUTTON_5_UP, mouse::BUTTON_EXTRA_2, false }
+    //
+    //};
+    //
+    //const int dx = static_cast<int>(raw->lLastX);
+    //const int dy = static_cast<int>(raw->lLastY);
+    //const bool have_motion = (dx || dy);
+    //const bool have_button = (raw->usButtonFlags != 0);
+    //const bool is_absolute = ((raw->usFlags & MOUSE_MOVE_ABSOLUTE) != 0);
+    //const mouse::mouse_id id = (mouse::mouse_id)(uintptr_t)device_handle.get();
+    //
+    //if (!data.raw_mouse_enabled)
+    //{
+    //    return;
+    //}
+    //
+    //// Relative mouse motion is delivered to the window with keyboard focus
+    //const video::window_id w = video->data.keyboard_ptr->get_focus();
+    //if (!is_valid_id(w))
+    //{
+    //    return;
+    //}
+    //
+    ////if (GetMouseMess)
 
 }
 
