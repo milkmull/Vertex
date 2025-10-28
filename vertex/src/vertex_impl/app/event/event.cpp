@@ -55,6 +55,9 @@ bool events_instance::init(app_instance* owner)
     VX_ASSERT(owner);
     app = owner;
 
+    // initialize ticks if they have not been already
+    os::get_ticks();
+
     return true;
 }
 

@@ -57,6 +57,8 @@ struct video_data
 
     bool suspend_screen_saver = false;
     video_hints hints;
+
+    math::recti desktop_area;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -98,7 +100,6 @@ public:
     // https://github.com/libsdl-org/SDL/blob/a34d31322ce7423b54db29ca6da5883c189b82ee/src/video/SDL_video.c#L773C6-L773C24
 
     system_theme get_system_theme() const;
-    void set_system_theme(system_theme theme);
 
     ///////////////////////////////////////////////////////////////////////////////
     // display mode
@@ -111,6 +112,10 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     static display create_display_reference(display_id id) { return display(id); }
+
+    bool add_display(display_instance& display, bool post_event);
+    void remove_display(display_id id, bool post_event);
+    void clear_displays(bool post_events);
 
     std::vector<display_id> list_displays() const;
     size_t get_display_index(display_id id) const;
@@ -126,6 +131,7 @@ public:
     display_id get_display_at_origin(const math::vec2i& origin) const;
     display_id get_display_for_window(window_id w, bool ignore_pending_display_id) const;
 
+    void update_desktop_area();
     math::recti get_desktop_area() const;
 
     ///////////////////////////////////////
@@ -207,7 +213,10 @@ public:
     void on_display_added();
 
     bool post_display_removed(display_id id);
+
     bool post_display_moved(display_id id);
+    void on_display_moved();
+
     bool post_display_orientation_changed(display_id id, display_orientation orientation);
     bool post_display_desktop_mode_changed(display_id id, const display_mode& mode);
     bool post_display_current_mode_changed(display_id id, const display_mode& mode);
@@ -247,6 +256,10 @@ struct display_mode_data
 
 class display_mode_instance
 {
+public:
+
+    void finalize();
+
 public:
 
     display_mode_data data;
@@ -320,6 +333,7 @@ public:
 
 public:
 
+    void finalize();
     void init_modes() const;
 
 public:

@@ -219,6 +219,33 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// system theme
+///////////////////////////////////////////////////////////////////////////////
+
+static system_theme get_system_theme()
+{
+    LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    LPCWSTR value = L"AppsUseLightTheme";
+
+    DWORD data = 0;
+    DWORD size = sizeof(data);
+    DWORD type = 0;
+
+    if (::RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
+    {
+        // Dark mode if 0, light mode if 1
+        switch (data)
+        {
+            case 0:  return system_theme::DARK;
+            case 1:  return system_theme::LIGHT;
+            default: break;
+        }
+    }
+
+    return system_theme::UNKNOWN;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -358,33 +385,6 @@ void video_instance_impl::quit()
     free_libraries();
 
     video = nullptr;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// system theme
-///////////////////////////////////////////////////////////////////////////////
-
-system_theme video_instance_impl::get_system_theme()
-{
-    LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
-    LPCWSTR value = L"AppsUseLightTheme";
-
-    DWORD data = 0;
-    DWORD size = sizeof(data);
-    DWORD type = 0;
-
-    if (::RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
-    {
-        // Dark mode if 0, light mode if 1
-        switch (data)
-        {
-            case 0:  return system_theme::DARK;
-            case 1:  return system_theme::LIGHT;
-            default: break;
-        }
-    }
-
-    return system_theme::UNKNOWN;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -742,21 +742,13 @@ bool video_instance_impl::create_display(
 
     if (!found)
     {
+        display_instance d;
+
+        d.impl_ptr.reset(new display_instance_impl);
+        if (!d.impl_ptr)
         {
-            display_instance tmp;
-
-            tmp.impl_ptr.reset(new display_instance_impl);
-            if (!tmp.impl_ptr)
-            {
-                return false;
-            }
-
-            displays.emplace_back(std::move(tmp));
+            return false;
         }
-
-        display_instance& d = displays.back();
-        d.video = video;
-        d.data.id = video->data.display_id_generator.next();
 
         display_instance_impl* d_impl = d.impl_ptr.get();
         d_impl->data.handle = hMonitor;
@@ -774,12 +766,15 @@ bool video_instance_impl::create_display(
             }
         }
 
-        current_mode.data.mode.display = d.data.id;
-        d.data.current_mode = current_mode.data.mode;
         d.data.desktop_mode = std::move(current_mode);
         d.data.natural_orientation = natural_orientation;
         d.data.orientation = current_orientation;
         d.data.content_scale = current_content_scale;
+
+        if (!video->add_display(d, false))
+        {
+            return false;
+        }
     }
 
     return true;
@@ -852,19 +847,15 @@ void video_instance_impl::refresh_displays()
     poll_displays_internal(poll_data, enum_displays_callback);
 
     // remove any unaccounted for displays
-    auto it = displays.begin();
-    while (it != displays.end())
+    for (size_t i = 0; i < displays.size();)
     {
-        const display_instance& d = *it;
-
-        if (d.impl_ptr->data.state == display_state::REMOVED)
+        if (displays[i].impl_ptr->data.state == display_state::REMOVED)
         {
-            video->post_display_removed(d.data.id);
-            it = displays.erase(it);
+            video->remove_display(displays[i].data.id, true);
         }
         else
         {
-            ++it;
+            ++i;
         }
     }
 

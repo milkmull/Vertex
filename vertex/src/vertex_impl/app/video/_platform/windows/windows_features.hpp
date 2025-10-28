@@ -62,6 +62,11 @@
 #endif
 #define VX_VIDEO_BACKEND_HAVE_SUSPEND_SCREEN_SAVER 1
 
+#ifdef VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME
+#   undef VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME
+#endif
+#define VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME 1
+
 // ------------------------------------------------------------
 // Event handling
 // ------------------------------------------------------------

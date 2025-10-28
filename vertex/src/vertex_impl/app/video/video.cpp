@@ -74,6 +74,7 @@ bool video_instance::init(app_instance* owner)
     //    return false;
     //}
 
+    // initialize backend
     impl_ptr.reset(new video_instance_impl);
     if (!impl_ptr || !impl_ptr->init(this))
     {
@@ -81,14 +82,19 @@ bool video_instance::init(app_instance* owner)
         return false;
     }
 
+    // make sure we found at least one display
     if (data.displays.empty())
     {
+        err::set(err::SYSTEM_ERROR, "No usable displays found");
         quit();
         return false;
     }
 
-    VX_ASSERT(app->data.hints_ptr);
+    // hints
     {
+        // hints subsystem should be initialized by app
+        VX_ASSERT(app->data.hints_ptr);
+
         app->data.hints_ptr->add_hint_callback_and_default_value(
             VX_HINT_GET_NAME(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS),
             sync_window_operations_hint_watcher,
@@ -98,20 +104,20 @@ bool video_instance::init(app_instance* owner)
         );
 
         // disable the screen saver by default
-        if (!app->data.hints_ptr->get_hint_boolean(
-            hint::HINT_VIDEO_ALLOW_SCREEN_SAVER,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_ALLOW_SCREEN_SAVER)))
+        if (!app->data.hints_ptr->get_hint_boolean(HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_ALLOW_SCREEN_SAVER)))
         {
             disable_screen_saver();
         }
     }
+
+    // data.mouse->post_init();?
 
     return true;
 }
 
 ////////////////////////////////////////
 
-// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L726
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4607
 
 void video_instance::quit()
 {
@@ -134,11 +140,21 @@ void video_instance::quit()
     // Destroy any existing windows
     destroy_windows();
 
+    // clean up backend
     if (impl_ptr)
     {
         impl_ptr->quit();
         impl_ptr.reset();
     }
+
+    clear_displays(false);
+
+    // SDL_CancelClipboardData(0);
+    // 
+    // if (_this->primary_selection_text) {
+    //     SDL_free(_this->primary_selection_text);
+    //     _this->primary_selection_text = NULL;
+    // }
 
     // remove hint callbacks
     if (app)
@@ -180,12 +196,16 @@ VX_API system_theme get_system_theme()
 
 system_theme video_instance::get_system_theme() const
 {
-    return impl_ptr->data.system_theme_cache;
-}
+#if VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME
 
-void video_instance::set_system_theme(system_theme theme)
-{
-    impl_ptr->data.system_theme_cache = theme;
+    return impl_ptr->get_system_theme();
+
+#else
+
+    VX_UNSUPPORTED("get_system_theme()");
+    return system_theme::UNKNOWN;
+
+#endif // VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,6 +228,16 @@ VX_API bool compare_display_modes(const display_mode& mode1, const display_mode&
         && mode1.pixel_format == mode2.pixel_format
         && mode1.pixel_density == mode2.pixel_density
         && mode1.refresh_rate == mode2.refresh_rate;
+}
+
+////////////////////////////////////////
+
+void display_mode_instance::finalize()
+{
+    if (data.mode.pixel_density <= 0.0f)
+    {
+        data.mode.pixel_density = 1.0f;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -239,6 +269,56 @@ std::vector<display_id> video_instance::list_displays() const
     }
 
     return displays;
+}
+
+////////////////////////////////////////
+
+bool video_instance::add_display(display_instance& display, bool post_event)
+{
+    data.displays.emplace_back(std::move(display));
+    display_instance& new_display = data.displays.back();
+
+    new_display.video = this;
+    new_display.data.id = data.display_id_generator.next();
+    new_display.finalize();
+
+    update_desktop_area();
+
+    if (post_event)
+    {
+        post_display_added(new_display.data.id);
+    }
+
+    return true;
+}
+
+////////////////////////////////////////
+
+void video_instance::remove_display(display_id id, bool post_event)
+{
+    for (auto it = data.displays.begin(); it != data.displays.end(); ++it)
+    {
+        if (it->data.id == id)
+        {
+            if (post_event)
+            {
+                post_display_removed(id);
+            }
+
+            data.displays.erase(it);
+            break;
+        }
+    }
+
+    update_desktop_area();
+}
+
+void video_instance::clear_displays(bool post_events)
+{
+    while (!data.displays.empty())
+    {
+        remove_display(data.displays.front().data.id, post_events);
+    }
 }
 
 ////////////////////////////////////////
@@ -433,7 +513,8 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
         }
         else
         {
-            d = get_display_for_rect(math::recti(w->data.position, w->data.size));
+            const math::recti rect(w->data.position, w->data.size);
+            d = get_display_for_rect(rect);
         }
     }
 
@@ -444,6 +525,20 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
     }
 
     return d;
+}
+
+////////////////////////////////////////
+
+void video_instance::update_desktop_area()
+{
+    math::recti area;
+
+    for (const display_instance& di : data.displays)
+    {
+        area = math::g2::bounding_box(area, di.get_bounds());
+    }
+
+    data.desktop_area = area;
 }
 
 ////////////////////////////////////////
@@ -659,6 +754,34 @@ math::recti display_instance::get_work_area() const
 
     // just give the entire display_bounds
     return get_bounds();
+}
+
+///////////////////////////////////////
+
+void display_instance::finalize()
+{
+    if (data.name.empty())
+    {
+        data.name = std::to_string(data.id);
+    }
+
+    if (data.content_scale.x == 0.0f)
+    {
+        data.content_scale.x = 1.0f;
+    }
+    if (data.content_scale.y == 0.0f)
+    {
+        data.content_scale.y = 1.0f;
+    }
+
+    data.desktop_mode.data.mode.display = data.id;
+    data.current_mode = data.desktop_mode.data.mode;
+    data.desktop_mode.finalize();
+
+    for (display_mode_instance& mode : data.modes)
+    {
+        mode.data.mode.display = data.id;
+    }
 }
 
 ///////////////////////////////////////
@@ -1269,6 +1392,11 @@ void video_instance::destroy_window(window_id id)
 
 void video_instance::destroy_windows()
 {
+    for (window_instance& w : data.windows)
+    {
+        w.destroy();
+    }
+
     data.windows.clear();
 }
 
@@ -1666,7 +1794,13 @@ bool video_instance::post_display_moved(display_id id)
     e.display_event.comon.display_id = id;
     const bool posted = app->data.events_ptr->push_event(e);
 
+    on_display_moved();
     return posted;
+}
+
+void video_instance::on_display_moved()
+{
+    update_desktop_area();
 }
 
 bool video_instance::post_display_orientation_changed(display_id id, display_orientation orientation)
