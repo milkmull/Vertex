@@ -326,8 +326,9 @@ public:
 
     void reset_mode(bool clear_fullscreen_window);
 
+    bool add_mode(display_mode_instance& mode) const;
     std::vector<display_mode> list_modes() const;
-    bool has_mode(const display_mode& mode) const;
+    bool has_mode(const display_mode& mode, bool in_add_mode) const;
     const display_mode_instance* find_mode(const display_mode& mode) const;
     const display_mode_instance* find_closest_mode(const display_mode& mode, bool include_high_density_modes, bool match_resolution) const;
 

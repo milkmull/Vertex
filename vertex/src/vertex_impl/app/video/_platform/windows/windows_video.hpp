@@ -172,7 +172,7 @@ class display_instance_impl
 {
 public:
 
-    void list_display_modes(std::vector<display_mode_instance>& modes) const;
+    void list_display_modes(const display_instance* display) const;
     bool set_display_mode(display_mode_instance& mode, bool is_desktop_mode);
 
     bool get_bounds(math::recti& bounds) const;

@@ -22,21 +22,6 @@ void window_instance_impl_deleter::operator()(window_instance_impl* ptr) const n
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// helpers
-///////////////////////////////////////////////////////////////////////////////
-
-#define VX_CHECK_WINDOW_INIT(r) \
-do \
-{ \
-    if (!(validate())) \
-    { \
-        return (r); \
-    } \
-} while (0)
-
-#define VX_CHECK_WINDOW_INIT_VOID() VX_CHECK_WINDOW_INIT(void())
-
-///////////////////////////////////////////////////////////////////////////////
 // constructors
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1112,6 +1097,12 @@ bool window_instance::set_fullscreen_mode(const display_mode* mode)
 {
     if (mode)
     {
+        // Attempt to auto-detect the target display.
+        // Passing INVALID_ID triggers automatic display resolution inside
+        // find_display_mode_for_display(), which defaults to the display set in `mode`
+        // (if valid) or the primary display otherwise.
+        //
+        // Callers may pre-set `mode.display` to force a specific display.
         if (!video->find_display_mode_for_display(INVALID_ID, *mode))
         {
             err::set(err::SYSTEM_ERROR, "invalid fullscreen display mode");

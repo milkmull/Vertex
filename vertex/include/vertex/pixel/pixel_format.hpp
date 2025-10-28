@@ -14,40 +14,44 @@ using byte_type = uint8_t;
 
 enum class pixel_type : uint32_t
 {
-    NONE          = 0,
+    NONE = 0,
                   
-    PACKED_8      = 1,
-    PACKED_16     = 2,
-    PACKED_32     = 3,
-    UINT_ARRAY    = 4,
-    FLOAT_ARRAY   = 5
+    PACKED_8,
+    PACKED_16,
+    PACKED_32,
+    UINT_ARRAY,
+    FLOAT_ARRAY 
 };
 
 enum class pixel_channel_order : uint32_t
 {
     NONE = 0,
 
-    R    = 1,
-    RG   = 2,
-    RGB  = 3,
-    BGR  = 4,
-    RGBA = 5,
-    BGRA = 6,
-    ARGB = 7,
-    ABGR = 8
+    R,
+    RG,
+    RGB,
+    BGR,
+    RGBX,
+    BGRX,
+    RGBA,
+    BGRA,
+    XRGB,
+    XBGR,
+    ARGB,
+    ABGR 
 };
 
 enum class pixel_pack_layout : uint32_t
 {
-    NONE    = 0,
+    NONE = 0,
        
-    _332     = 1,
-    _4444    = 2,
-    _565     = 3,
-    _5551    = 4,
-    _1555    = 5,
-    _8888    = 9,
-    _2101010 = 10
+    _332,
+    _4444,
+    _565,
+    _5551,
+    _1555,
+    _8888,
+    _2101010
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -86,301 +90,307 @@ enum class pixel_format : uint32_t
 {
     ///////////////////////////////////////////////////////////////////////////////
 
-    UNKNOWN = 0x00000000,
-    // create_pixel_format(
-    //     pixel_type::NONE,
-    //     pixel_channel_order::NONE,
-    //     pixel_pack_layout::_NONE,
-    //     0, 0, false
-    // ),
+    UNKNOWN = create_pixel_format(
+        pixel_type::NONE,
+        pixel_channel_order::NONE,
+        pixel_pack_layout::NONE,
+        0, 0, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGB_332 = 0x13130001,
-    // create_pixel_format(
-    //     pixel_type::PACKED_8,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_332,
-    //     3, 1, false
-    // ),
+    RGB_332 = create_pixel_format(
+         pixel_type::PACKED_8,
+         pixel_channel_order::RGB,
+         pixel_pack_layout::_332,
+         3, 1, false
+     ),
     
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_4444 = 0x25240802,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::RGBA, 
-    //     pixel_pack_layout::_4444,
-    //     4, 2, true
-    // ),
+    RGBA_4444 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::RGBA, 
+        pixel_pack_layout::_4444,
+        4, 2, true
+    ),
 
-    BGRA_4444 = 0x26240802,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::BGRA,
-    //     pixel_pack_layout::_4444,
-    //     4, 2, true
-    // ),
+    BGRA_4444 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::BGRA,
+        pixel_pack_layout::_4444,
+        4, 2, true
+    ),
 
-    ///////////////////////////////////////////////////////////////////////////////
+    XRGB_4444 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::XRGB,
+        pixel_pack_layout::_4444,
+        4, 2, false
+    ),
 
-    RGB_565 = 0x23330002,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_565,
-    //     3, 2, false
-    // ),
-
-    BGR_565 = 0x24330002,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::BGR,
-    //     pixel_pack_layout::_565,
-    //     3, 2, false
-    // ),
+    XBGR_4444 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::XBGR,
+        pixel_pack_layout::_4444,
+        4, 2, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_5551 = 0x25440802,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_5551,
-    //     4, 2, true
-    // ),
+    RGB_565 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::RGB,
+        pixel_pack_layout::_565,
+        3, 2, false
+    ),
 
-    BGRA_5551 = 0x26440802,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::BGRA,
-    //     pixel_pack_layout::_5551,
-    //     4, 2, true
-    // ),
-
-    ARGB_1555 = 0x27540802,
-    // create_pixel_format(
-    //     pixel_type::PACKED_16,
-    //     pixel_channel_order::ARGB,
-    //     pixel_pack_layout::_1555,
-    //     4, 2, true
-    // ),
+    BGR_565 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::BGR,
+        pixel_pack_layout::_565,
+        3, 2, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_8 = 0x41010001,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::R,
-    //     pixel_pack_layout::_NONE,
-    //     1, 1, false
-    // ),
+    RGBA_5551 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::RGBA,
+        pixel_pack_layout::_5551,
+        4, 2, true
+    ),
 
-    RG_8 = 0x42020002,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RG,
-    //     pixel_pack_layout::_NONE,
-    //     2, 2, false
-    // ),
+    BGRA_5551 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::BGRA,
+        pixel_pack_layout::_5551,
+        4, 2, true
+    ),
 
-    ///////////////////////////////////////////////////////////////////////////////
+    ARGB_1555 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::ARGB,
+        pixel_pack_layout::_1555,
+        4, 2, true
+    ),
 
-    RGB_8 = 0x43030003,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_NONE,
-    //     3, 3, false
-    // ),
+    XRGB_1555 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::XRGB,
+        pixel_pack_layout::_1555,
+        4, 2, false
+    ),
 
-    BGR_8 = 0x44030003,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::BGR,
-    //     pixel_pack_layout::_NONE,
-    //     3, 3, false
-    // ),
-
-    ///////////////////////////////////////////////////////////////////////////////
-
-    RGBA_8888 = 0x35940804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_8888,
-    //     4, 4, true
-    // ),
-
-    BGRA_8888 = 0x36940804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::BGRA,
-    //     pixel_pack_layout::_8888,
-    //     4, 4, true
-    // ),
-
-    ABGR_8888 = 0x38940804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::ABGR,
-    //     pixel_pack_layout::_8888,
-    //     4, 4, true
-    // ),
-
-    ARGB_8888 = 0x37940804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::ARGB,
-    //     pixel_pack_layout::_8888,
-    //     4, 4, true
-    // ),,
+    XBGR_1555 = create_pixel_format(
+        pixel_type::PACKED_16,
+        pixel_channel_order::XBGR,
+        pixel_pack_layout::_1555,
+        4, 2, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    ARGB_2101010 = 0x37A40804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::ARGB,
-    //     pixel_pack_layout::_2101010,
-    //     4, 4, true
-    // ),
+    R_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::R,
+        pixel_pack_layout::NONE,
+        1, 1, false
+    ),
 
-    ABGR_2101010 = 0x38A40804,
-    // create_pixel_format(
-    //     pixel_type::PACKED_32,
-    //     pixel_channel_order::ABGR,
-    //     pixel_pack_layout::_2101010,
-    //     4, 4, true
-    // ),
+    RG_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::RG,
+        pixel_pack_layout::NONE,
+        2, 2, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_8 = 0x45040804,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_NONE,
-    //     4, 4, true
-    // ),
+    RGB_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::RGB,
+        pixel_pack_layout::NONE,
+        3, 3, false
+    ),
 
-    BGRA_8 = 0x46040804,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::BGRA,
-    //     pixel_pack_layout::_NONE,
-    //     4, 4, true
-    // ),
-
-    ABGR_8 = 0x48040804,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::ABGR,
-    //     pixel_pack_layout::_NONE,
-    //     4, 4, true
-    // ),
+    BGR_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::BGR,
+        pixel_pack_layout::NONE,
+        3, 3, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_16 = 0x41010002,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::R,
-    //     pixel_pack_layout::_NONE,
-    //     1, 2, false
-    // ),
+    RGBA_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::RGBA,
+        pixel_pack_layout::_8888,
+        4, 4, true
+    ),
 
-    RG_16 = 0x42020004,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RG,
-    //     pixel_pack_layout::_NONE,
-    //     2, 4, false
-    // ),
+    BGRA_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::BGRA,
+        pixel_pack_layout::_8888,
+        4, 4, true
+    ),
 
-    RGB_16 = 0x43030006,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_NONE,
-    //     3, 6, false
-    // ),
+    ARGB_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::ARGB,
+        pixel_pack_layout::_8888,
+        4, 4, true
+    ),
 
-    RGBA_16 = 0x45040808,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_NONE,
-    //     4, 8, true
-    // ),
+    ABGR_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::ABGR,
+        pixel_pack_layout::_8888,
+        4, 4, true
+    ),
 
-    ///////////////////////////////////////////////////////////////////////////////
+    RGBX_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::RGBX,
+        pixel_pack_layout::_8888,
+        4, 4, false
+    ),
 
-    //R_32 = 0x41010004,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::R,
-    //     pixel_pack_layout::_NONE,
-    //     1, 4, false
-    // ),
+    BGRX_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::BGRX,
+        pixel_pack_layout::_8888,
+        4, 4, false
+    ),
 
-    //RG_32 = 0x42020008,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RG,
-    //     pixel_pack_layout::_NONE,
-    //     2, 8, false
-    // ),
+    XRGB_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::XRGB,
+        pixel_pack_layout::_8888,
+        4, 4, false
+    ),
 
-    //RGB_32 = 0x4303000C,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_NONE,
-    //     3, 12, false
-    // ),
-
-    //RGBA_32 = 0x45040810,
-    // create_pixel_format(
-    //     pixel_type::UINT_ARRAY,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_NONE,
-    //     4, 16, true
-    // ),
+    XBGR_8888 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::XBGR,
+        pixel_pack_layout::_8888,
+        4, 4, false
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_32F = 0x51010004,
-    // create_pixel_format(
-    //     pixel_type::FLOAT_ARRAY,
-    //     pixel_channel_order::R,
-    //     pixel_pack_layout::_NONE,
-    //     1, 4, false
-    // ),
+    ARGB_2101010 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::ARGB,
+        pixel_pack_layout::_2101010,
+        4, 4, true
+    ),
 
-    RG_32F = 0x52020008,
-    // create_pixel_format(
-    //     pixel_type::FLOAT_ARRAY,
-    //     pixel_channel_order::RG,
-    //     pixel_pack_layout::_NONE,
-    //     2, 8, false
-    // ),
+    ABGR_2101010 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::ABGR,
+        pixel_pack_layout::_2101010,
+        4, 4, true
+    ),
 
-    RGB_32F = 0x5303000C,
-    // create_pixel_format(
-    //     pixel_type::FLOAT_ARRAY,
-    //     pixel_channel_order::RGB,
-    //     pixel_pack_layout::_NONE,
-    //     3, 12, false
-    // ),
+    XRGB_2101010 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::XRGB,
+        pixel_pack_layout::_2101010,
+        4, 4, false
+    ),
 
-    RGBA_32F = 0x55040810,
-    // create_pixel_format(
-    //     pixel_type::FLOAT_ARRAY,
-    //     pixel_channel_order::RGBA,
-    //     pixel_pack_layout::_NONE,
-    //     4, 16, true
-    // ),
+    XBGR_2101010 = create_pixel_format(
+        pixel_type::PACKED_32,
+        pixel_channel_order::XBGR,
+        pixel_pack_layout::_2101010,
+        4, 4, false
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    RGBA_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::RGBA,
+        pixel_pack_layout::NONE,
+        4, 4, true
+    ),
+
+    BGRA_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::BGRA,
+        pixel_pack_layout::NONE,
+        4, 4, true
+    ),
+
+    ABGR_8 = create_pixel_format(
+        pixel_type::UINT_ARRAY,
+        pixel_channel_order::ABGR,
+        pixel_pack_layout::NONE,
+        4, 4, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    R_16F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::R,
+        pixel_pack_layout::NONE,
+        1, 2, false
+    ),
+
+    RG_16F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RG,
+        pixel_pack_layout::NONE,
+        2, 4, false
+    ),
+
+    RGB_16F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RGB,
+        pixel_pack_layout::NONE,
+        3, 6, false
+    ),
+
+    RGBA_16F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RGBA,
+        pixel_pack_layout::NONE,
+        4, 8, true
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    R_32F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::R,
+        pixel_pack_layout::NONE,
+        1, 4, false
+    ),
+
+    RG_32F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RG,
+        pixel_pack_layout::NONE,
+        2, 8, false
+    ),
+
+    RGB_32F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RGB,
+        pixel_pack_layout::NONE,
+        3, 12, false
+    ),
+
+    RGBA_32F = create_pixel_format(
+        pixel_type::FLOAT_ARRAY,
+        pixel_channel_order::RGBA,
+        pixel_pack_layout::NONE,
+        4, 16, true
+    ),
 
     ///////////////////////////////////////////////////////////////////////////////
 };
@@ -445,6 +455,7 @@ struct channel_info
     channel_data r, g, b, a;
 };
 
+// try not to call this at run time
 inline constexpr channel_info get_channel_info(pixel_format format) noexcept
 {
     channel_info info{};
@@ -519,6 +530,22 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 0, 1, 0x0001,  0 };
             break;
         }
+        case pixel_format::XRGB_1555:
+        {
+            info.r = { 1, 5, 0x003E,  1 };
+            info.g = { 2, 5, 0x07C0,  6 };
+            info.b = { 3, 5, 0XF800, 11 };
+            info.a = { 0, 0, 0x0000,  0 };
+            break;
+        }
+        case pixel_format::XBGR_1555:
+        {
+            info.r = { 3, 5, 0XF800, 11 };
+            info.g = { 2, 5, 0x07C0,  6 };
+            info.b = { 1, 5, 0x003E,  1 };
+            info.a = { 0, 0, 0x0000,  0 };
+            break;
+        }
         case pixel_format::RGBA_8888:
         {
             info.r = { 0, 8, 0x000000FF,  0 };
@@ -535,6 +562,14 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 8, 0xFF000000, 24 };
             break;
         }
+        case pixel_format::ARGB_8888:
+        {
+            info.r = { 1, 8, 0x00FF0000,  8 };
+            info.g = { 2, 8, 0x0000FF00, 16 };
+            info.b = { 3, 8, 0x000000FF, 24 };
+            info.a = { 0, 8, 0xFF000000,  0 };
+            break;
+        }
         case pixel_format::ABGR_8888:
         {
             info.r = { 3, 8, 0xFF000000, 24 };
@@ -543,12 +578,36 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 0, 8, 0x000000FF,  0 };
             break;
         }
-        case pixel_format::ARGB_8888:
+        case pixel_format::RGBX_8888:
+        {
+            info.r = { 0, 8, 0x000000FF,  0 };
+            info.g = { 1, 8, 0x0000FF00,  8 };
+            info.b = { 2, 8, 0x00FF0000, 16 };
+            info.a = { 3, 0, 0x00000000,  0 };
+            break;
+        }
+        case pixel_format::BGRX_8888:
+        {
+            info.r = { 2, 8, 0x00FF0000, 16 };
+            info.g = { 1, 8, 0x0000FF00,  8 };
+            info.b = { 0, 8, 0x000000FF,  0 };
+            info.a = { 3, 0, 0x00000000,  0 };
+            break;
+        }
+        case pixel_format::XRGB_8888:
         {
             info.r = { 1, 8, 0x00FF0000,  8 };
             info.g = { 2, 8, 0x0000FF00, 16 };
             info.b = { 3, 8, 0x000000FF, 24 };
-            info.a = { 0, 8, 0xFF000000,  0 };
+            info.a = { 0, 0, 0x00000000,  0 };
+            break;
+        }
+        case pixel_format::XBGR_8888:
+        {
+            info.r = { 3, 8, 0xFF000000, 24 };
+            info.g = { 2, 8, 0x00FF0000, 16 };
+            info.b = { 1, 8, 0x0000FF00,  8 };
+            info.a = { 0, 0, 0x00000000,  0 };
             break;
         }
         case pixel_format::ARGB_2101010:
@@ -565,6 +624,23 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.g = { 2, 10, 0x003FF000, 12 };
             info.b = { 1, 10, 0x00000FFC,  2 };
             info.a = { 0,  2, 0x00000003,  0 };
+            break;
+        }
+
+        case pixel_format::XRGB_2101010:
+        {
+            info.r = { 1, 10, 0x00000FFC,  2 };
+            info.g = { 2, 10, 0x003FF000, 12 };
+            info.b = { 3, 10, 0xFFC00000, 22 };
+            info.a = { 0,  0, 0x00000000,  0 };
+            break;
+        }
+        case pixel_format::XBGR_2101010:
+        {
+            info.r = { 3, 10, 0xFFC00000, 22 };
+            info.g = { 2, 10, 0x003FF000, 12 };
+            info.b = { 1, 10, 0x00000FFC,  2 };
+            info.a = { 0,  0, 0x00000000,  0 };
             break;
         }
         // For array pixel types, the shift represents the array index of the channel
@@ -624,7 +700,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 0, 8, 0, 0 };
             break;
         }
-        case pixel_format::R_16:
+        case pixel_format::R_16F:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1,  0, 0, 0 };
@@ -632,7 +708,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RG_16:
+        case pixel_format::RG_16F:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -640,7 +716,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGB_16:
+        case pixel_format::RGB_16F:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -648,7 +724,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGBA_16:
+        case pixel_format::RGBA_16F:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -755,54 +831,47 @@ VX_FORCE_INLINE constexpr uint32_t create_palette_format(
 
 enum class palette_format : uint32_t
 {
-    INDEX_1LSB = 0x00010800,
-    // create_palette_format(
-    //     palette_order::LSB,
-    //     1,
-    //     8
-    // ),
+    INDEX_1LSB = create_palette_format(
+        palette_order::LSB,
+        1,
+        8
+    ),
 
-    INDEX_1MSB = 0x80010800,
-    // create_palette_format(
-    //     palette_order::MSB,
-    //     1,
-    //     8
-    // ),
+    INDEX_1MSB = create_palette_format(
+        palette_order::MSB,
+        1,
+        8
+    ),
 
-    INDEX_2LSB = 0x80010400,
-    // create_palette_format(
-    //     palette_order::MSB,
-    //     1,
-    //     4
-    // ),
+    INDEX_2LSB = create_palette_format(
+        palette_order::MSB,
+        1,
+        4
+    ),
 
-    INDEX_2MSB = 0x00010400,
-    // create_palette_format(
-    //     palette_order::LSB,
-    //     1,
-    //     4
-    // ),
+    INDEX_2MSB = create_palette_format(
+        palette_order::LSB,
+        1,
+        4
+    ),
 
-    INDEX_4LSB = 0x00010200,
-    // create_palette_format(
-    //     palette_order::LSB,
-    //     1,
-    //     2
-    // ),
+    INDEX_4LSB = create_palette_format(
+        palette_order::LSB,
+        1,
+        2
+    ),
 
-    INDEX_4MSB = 0x80010200,
-    // create_palette_format(
-    //     palette_order::MSB,
-    //     1,
-    //     2
-    // ),
+    INDEX_4MSB = create_palette_format(
+        palette_order::MSB,
+        1,
+        2
+    ),
 
-    INDEX_8 = 0x00010100,
-    // create_palette_format(
-    //     palette_order::LSB,
-    //     1,
-    //     1
-    // ),
+    INDEX_8 = create_palette_format(
+        palette_order::LSB,
+        1,
+        1
+    ),
 
     INDEX_8LSB = INDEX_8,
     INDEX_8MSB = INDEX_8

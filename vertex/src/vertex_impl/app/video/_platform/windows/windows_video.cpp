@@ -605,34 +605,112 @@ static display_orientation get_display_orientation(const PDEVMODE mode, display_
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// pixel format
+///////////////////////////////////////////////////////////////////////////////
+
+static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, bool current_mode)
+{
+    if (current_mode)
+    {
+        HDC hdc = ::CreateDCW(device_name, NULL, NULL, NULL);
+        if (hdc == NULL)
+        {
+            return pixel::pixel_format::UNKNOWN;
+        }
+
+        char bmi_data[sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD)]{};
+
+        LPBITMAPINFO bmi = reinterpret_cast<LPBITMAPINFO>(bmi_data);
+        bmi->bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+
+        HBITMAP hbm = ::CreateCompatibleBitmap(hdc, 1, 1);
+        ::GetDIBits(hdc, hbm, 0, 1, NULL, bmi, DIB_RGB_COLORS);
+        ::GetDIBits(hdc, hbm, 0, 1, NULL, bmi, DIB_RGB_COLORS);
+
+        ::DeleteObject(hbm);
+        ::DeleteDC(hdc);
+
+        if (bmi->bmiHeader.biCompression == BI_BITFIELDS)
+        {
+            switch (*reinterpret_cast<uint32_t*>(bmi->bmiColors))
+            {
+                case 0x00FF0000: return pixel::pixel_format::ARGB_8888;
+                case 0x000000FF: return pixel::pixel_format::XBGR_8888;
+                case 0x0000F800: return pixel::pixel_format::RGB_565;
+                case 0x00007C00: return pixel::pixel_format::XRGB_1555;
+            }
+        }
+        else if (bmi->bmiHeader.biCompression == BI_RGB)
+        {
+            switch (bmi->bmiHeader.biBitCount)
+            {
+                case 24: return pixel::pixel_format::RGB_8;
+                default: break; // palette format (unsupported) 
+            }
+        }
+    }
+    else
+    {
+        if ((dm.dmFields & DM_BITSPERPEL) == DM_BITSPERPEL)
+        {
+            // not sure this is the best way
+            switch (dm.dmBitsPerPel)
+            {
+                case 32:    return pixel::pixel_format::XRGB_8888;
+                case 24:    return pixel::pixel_format::RGB_8;
+                case 16:    return pixel::pixel_format::RGB_565;
+                case 15:    return pixel::pixel_format::XRGB_1555;
+                default:    break; // palette format (unsupported) 
+            }
+        }
+    }
+
+    return pixel::pixel_format::UNKNOWN;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // display mode
 ///////////////////////////////////////////////////////////////////////////////
 
-static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation, display_orientation* natural_orientation)
+enum class mode_result
+{
+    ADD_MODE,
+    SKIP_MODE,
+    EXIT
+};
+
+static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation, display_orientation* natural_orientation)
 {
     DEVMODE dm{ sizeof(dm) };
 
-    if (!EnumDisplaySettings(device_name, index, &dm))
+    if (!::EnumDisplaySettings(device_name, index, &dm))
     {
-        return false;
+        return mode_result::EXIT;
     }
 
     if (dm.dmBitsPerPel == 0)
     {
-        return false;
+        return mode_result::SKIP_MODE;
+    }
+
+    const bool is_current_mode = (index == ENUM_CURRENT_SETTINGS);
+    const pixel::pixel_format format = get_pixel_format(dm, device_name, is_current_mode);
+    if (format == pixel::pixel_format::UNKNOWN)
+    {
+        return mode_result::SKIP_MODE;
     }
 
     mode.data.mode.resolution.x = dm.dmPelsWidth;
     mode.data.mode.resolution.y = dm.dmPelsHeight;
     mode.data.mode.bpp = dm.dmBitsPerPel;
-    mode.data.mode.pixel_format = pixel::pixel_format::UNKNOWN; // TODO: figure out how to get the pixel format
+    mode.data.mode.pixel_format = format;
     mode.data.mode.pixel_density = 1.0f;
     mode.data.mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);
 
     mode.impl_ptr.reset(new display_mode_instance_impl);
     if (!mode.impl_ptr)
     {
-        return false;
+        return mode_result::EXIT;
     }
 
     mode.impl_ptr->data.devmode = dm;
@@ -642,7 +720,7 @@ static bool get_display_mode(const WCHAR* device_name, display_mode_instance& mo
         *orientation = get_display_orientation(&dm, natural_orientation);
     }
 
-    return true;
+    return mode_result::ADD_MODE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -668,7 +746,8 @@ bool video_instance_impl::create_display(
     display_orientation natural_orientation;
     display_orientation current_orientation;
 
-    if (!get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation, &natural_orientation))
+    const mode_result result = get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation, &natural_orientation);
+    if (result != mode_result::ADD_MODE)
     {
         return false;
     }
@@ -884,32 +963,22 @@ void video_instance_impl::quit_displays()
 // display modes
 ///////////////////////////////////////////////////////////////////////////////
 
-void display_instance_impl::list_display_modes(std::vector<display_mode_instance>& modes) const
+void display_instance_impl::list_display_modes(const display_instance* display) const
 {
     DWORD display_mode_index = 0;
     display_mode_instance mode;
 
     while (true)
     {
-        if (!get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr, nullptr))
+        const mode_result result = get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr, nullptr);
+
+        if (result == mode_result::ADD_MODE)
+        {
+            display->add_mode(mode);
+        }
+        else if (result == mode_result::EXIT)
         {
             break;
-        }
-
-        // don't add duplicates
-        bool found = false;
-        for (const display_mode_instance& m : modes)
-        {
-            if (compare_display_modes(m.data.mode, mode.data.mode))
-            {
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
-        {
-            modes.push_back(std::move(mode));
         }
     }
 }
@@ -977,7 +1046,7 @@ bool display_instance_impl::get_bounds(math::recti& bounds) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(data.handle, &info))
+    if (!::GetMonitorInfo(data.handle, &info))
     {
         os::windows::error_message("GetMonitorInfo()");
         return false;
@@ -995,7 +1064,7 @@ bool display_instance_impl::get_work_area(math::recti& work_area) const
 {
     MONITORINFO info{ sizeof(info) };
 
-    if (!GetMonitorInfo(data.handle, &info))
+    if (!::GetMonitorInfo(data.handle, &info))
     {
         os::windows::error_message("GetMonitorInfo()");
         return false;

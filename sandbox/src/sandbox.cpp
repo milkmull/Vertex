@@ -6,6 +6,7 @@
 #include "vertex/image/load.hpp"
 #include "vertex/image/write.hpp"
 #include "vertex/pixel/palette_surface_iterator.hpp"
+#include "vertex/pixel/raw_pixel.hpp"
 
 using namespace vx;
 using namespace vx::pixel;

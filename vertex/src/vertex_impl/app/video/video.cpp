@@ -795,12 +795,7 @@ void display_instance::init_modes() const
 
 #if VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 
-    impl_ptr->list_display_modes(data.modes);
-
-    for (display_mode_instance& m : data.modes)
-    {
-        m.data.mode.display = data.id;
-    }
+    impl_ptr->list_display_modes(this);
 
 #endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 }
@@ -845,7 +840,10 @@ void display_instance::set_desktop_mode(display_mode_instance& mode)
     }
 
     const display_mode last_mode = data.desktop_mode.data.mode;
+
     data.desktop_mode = std::move(mode);
+    data.desktop_mode.data.mode.display = data.id;
+    data.desktop_mode.finalize();
 
     if (!compare_display_modes(last_mode, data.desktop_mode.data.mode))
     {
@@ -982,6 +980,23 @@ void display_instance::reset_mode(bool clear_fullscreen_window)
 
 ///////////////////////////////////////
 
+bool display_instance::add_mode(display_mode_instance& mode) const
+{
+    mode.data.mode.display = data.id;
+    mode.finalize();
+
+    // don't add duplicates
+    if (has_mode(mode.data.mode, true))
+    {
+        return false;
+    }
+
+    data.modes.emplace_back(std::move(mode));
+    return true;
+}
+
+///////////////////////////////////////
+
 VX_API std::vector<display_mode> display::list_modes() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<display_mode>{});
@@ -1014,6 +1029,8 @@ const display_mode_instance* video_instance::find_display_mode_for_display(displ
 {
     if (!is_valid_id(id))
     {
+        // Convention: Passing an invalid display_id triggers automatic display detection.
+        // We default to the display specified in `mode` (if valid), otherwise fall back to the primary display.
         id = is_valid_id(mode.display) ? mode.display : get_primary_display();
     }
 
@@ -1053,12 +1070,16 @@ VX_API bool display::has_mode(const display_mode& mode) const
 bool video_instance::display_has_mode(display_id id, const display_mode& mode) const
 {
     const display_instance* d = get_display_instance(id);
-    return d ? d->has_mode(mode) : false;
+    return d ? d->has_mode(mode, false) : false;
 }
 
-bool display_instance::has_mode(const display_mode& mode) const
+bool display_instance::has_mode(const display_mode& mode, bool in_add_mode) const
 {
-    init_modes();
+    // avoid recursive call when calling from add_mode to check for duplicate modes
+    if (!in_add_mode)
+    {
+        init_modes();
+    }
 
     for (const display_mode_instance& m : data.modes)
     {
