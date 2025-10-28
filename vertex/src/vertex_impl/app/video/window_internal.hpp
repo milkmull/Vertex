@@ -164,6 +164,7 @@ struct window_data
     display_id pending_display_id = INVALID_ID;
 
     float opacity = 1.0f;
+    pixel::surface_rgba8 icon;
 
     bool initializing = false;
     bool destroying = false;
@@ -204,11 +205,18 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     bool create(video_instance* owner, const window_config& config);
+    bool recreate(typename window_flags::type flags);
     void finish_creation(typename window_flags::type new_flags);
     void destroy();
 
     bool validate() const;
     void apply_flags(typename window_flags::type new_flags);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // surface
+    ///////////////////////////////////////////////////////////////////////////////
+
+    bool destroy_surface();
     
     ///////////////////////////////////////////////////////////////////////////////
     // sync
@@ -388,6 +396,12 @@ public:
 
     const math::recti& get_mouse_rect() const;
     bool set_mouse_rect(const math::recti& rect);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // drag and drop
+    ///////////////////////////////////////////////////////////////////////////////
+
+    void prepare_drag_and_drop_support();
     
     ///////////////////////////////////////////////////////////////////////////////
     // events

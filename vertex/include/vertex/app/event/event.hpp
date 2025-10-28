@@ -22,9 +22,10 @@ using event_type_t = uint32_t;
 // event category
 ///////////////////////////////////////////////////////////////////////////////
 
-enum event_category : uint32_t
+enum event_category : uint8_t
 {
-    CATEGORY_APP = 1,
+    CATEGORY_NONE = 0,
+    CATEGORY_APP,
     CATEGORY_DISPLAY,
     CATEGORY_WINDOW,
     CATEGORY_KEY,
@@ -33,7 +34,6 @@ enum event_category : uint32_t
     CATEGORY_PEN,
     CATEGORY_CLIPBOARD,
     CATEGORY_DROP,
-    CATEGORY_USER,
     CATEGORY_INTERNAL
 };
 
@@ -51,23 +51,28 @@ namespace _priv {
 
 enum : uint32_t
 {
-    USER_FLAG_SHIFT = 31,
-    USER_FLAG_MASK = 0x80000000,
+    USER_FLAG_SHIFT = 24,
+    USER_FLAG_MASK  = 0xFF000000,  // top byte
 
-    CATEGORY_SHIFT = 24,
-    CATEGORY_MASK = 0x7F000000,
-    
-    NUMBER_SHIFT = 0,
-    NUMBER_MASK = 0x00FFFFFF
+    CATEGORY_SHIFT  = 16,
+    CATEGORY_MASK   = 0x00FF0000,  // next byte
+
+    NUMBER_SHIFT    = 0,
+    NUMBER_MASK     = 0x0000FFFF   // low 16 bits
 };
 
 } // namespace _priv
 
-inline constexpr event_type_t make_event(event_category category, uint32_t number, bool user_defined = false) noexcept
+inline constexpr event_type_t make_event(uint8_t category, uint16_t number, bool user_defined = false) noexcept
 {
-    return (static_cast<event_type_t>(user_defined) << _priv::USER_FLAG_SHIFT) |
-        (static_cast<event_type_t>(category) << _priv::CATEGORY_SHIFT) |
-        (number & _priv::NUMBER_MASK);
+    return (static_cast<event_type_t>(user_defined ? 1u : 0u) << _priv::USER_FLAG_SHIFT) |
+           (static_cast<event_type_t>(category) << _priv::CATEGORY_SHIFT) |
+           static_cast<event_type_t>(number);
+}
+
+inline constexpr event_type_t make_user_event(uint8_t category, uint16_t number) noexcept
+{
+    return make_event(category, number, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -76,17 +81,17 @@ inline constexpr event_type_t make_event(event_category category, uint32_t numbe
 
 inline constexpr bool is_user_event(event_type_t type) noexcept
 {
-    return type & _priv::USER_FLAG_MASK;
+    return static_cast<bool>(type & _priv::USER_FLAG_MASK);
 }
 
-inline constexpr event_category get_category(event_type_t type) noexcept
+inline constexpr uint8_t get_category(event_type_t type) noexcept
 {
-    return static_cast<event_category>((type >> _priv::CATEGORY_SHIFT) & _priv::CATEGORY_MASK);
+    return static_cast<uint8_t>((type >> _priv::CATEGORY_SHIFT) & _priv::CATEGORY_MASK);
 }
 
-inline constexpr uint32_t get_number(event_type_t type) noexcept
+inline constexpr uint16_t get_number(event_type_t type) noexcept
 {
-    return type & _priv::NUMBER_MASK;
+    return static_cast<uint16_t>(type & _priv::NUMBER_MASK);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -208,10 +213,6 @@ enum event_type : event_type_t
     EVENT_TYPE(DROP_END,                        CATEGORY_DROP,      4),
     EVENT_TYPE(DROP_POSITION,                   CATEGORY_DROP,      5),
     EVENT_TYPE(DROP_EVENT_LAST,                 CATEGORY_DROP,      6),
-
-    // user event
-    EVENT_TYPE_USER(USER_EVENT_FIRST,           CATEGORY_USER,      0),
-    EVENT_TYPE_USER(USER_EVENT_LAST,            CATEGORY_USER,      0),
 
     // internal events
     EVENT_TYPE(INTERNAL_EVENT_POLL_SENTINEL,    CATEGORY_APP,       0)

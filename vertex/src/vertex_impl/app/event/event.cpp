@@ -19,11 +19,19 @@
 
 ////////////////////////////////////////
 
+#if defined(VX_APP_VIDEO_ENABLED)
+
 // Feature macro indicating that the video subsystem supports both
 // timed waits and external wakeups. In this mode, the OS can block
 // while waiting for window events, and another thread can explicitly
 // wake the window from that blocked state.
-#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM (VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT && VX_VIDEO_HAVE_SEND_WAKEUP_EVENT) 
+#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM (VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT && VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT)
+
+#else
+
+#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM 0
+
+#endif // VX_APP_VIDEO_ENABLED
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -46,11 +54,6 @@ bool events_instance::init(app_instance* owner)
     VX_ASSERT(!app);
     VX_ASSERT(owner);
     app = owner;
-
-    if (!data.was_init)
-    {
-        data.was_init = true;
-    }
 
     return true;
 }
@@ -357,6 +360,10 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
 
     return 0;
 }
+
+#else
+
+int events_instance::wait_event_timeout_video(video::window_id, event&, time::time_point, time::time_point) { return 0; }
 
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 

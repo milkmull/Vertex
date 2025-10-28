@@ -60,7 +60,6 @@ struct event_watch_list
 
 struct events_data
 {
-    bool was_init = false;
     event_queue queue;
     event_watch_list watch;
 };

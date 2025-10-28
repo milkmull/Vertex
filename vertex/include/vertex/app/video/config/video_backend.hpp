@@ -7,10 +7,10 @@
 // windows
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(_VX_VIDEO_DRIVER_DETECTED) && defined(VX_OS_WINDOWS)
+#if !defined(_VX_VIDEO_BACKEND_DETECTED) && defined(VX_OS_WINDOWS)
 
-#   define VX_VIDEO_DRIVER_WINDOWS
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_WINDOWS
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // windows
 
@@ -19,10 +19,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Newer Linux display protocol (used by GNOME, KDE, etc.)
-#if defined(VX_VIDEO_DRIVER_PREFER_WAYLAND) && !defined(_VX_VIDEO_DRIVER_DETECTED) && defined(VX_OS_LINUX)
+#if defined(VX_VIDEO_BACKEND_PREFER_WAYLAND) && !defined(_VX_VIDEO_BACKEND_DETECTED) && defined(VX_OS_LINUX)
 
-#   define VX_VIDEO_DRIVER_WAYLAND
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_WAYLAND
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // wayland
 
@@ -31,11 +31,11 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // Commonly used on Linux and BSD desktop systems
-#if !defined(_VX_VIDEO_DRIVER_DETECTED) && \
+#if !defined(_VX_VIDEO_BACKEND_DETECTED) && \
     (defined(VX_OS_LINUX) || defined(VX_OS_BSD))
 
-#   define VX_VIDEO_DRIVER_X11
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_X11
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // x11
 
@@ -44,10 +44,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // macOS native display system
-#if !defined(_VX_VIDEO_DRIVER_DETECTED) && defined(VX_OS_MACOS)
+#if !defined(_VX_VIDEO_BACKEND_DETECTED) && defined(VX_OS_MACOS)
 
-#   define VX_VIDEO_DRIVER_COCOA
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_COCOA
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // cocoa
 
@@ -56,10 +56,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 // iOS uses UIKit instead of Cocoa
-#if !defined(_VX_VIDEO_DRIVER_DETECTED) && defined(VX_OS_IOS)
+#if !defined(_VX_VIDEO_BACKEND_DETECTED) && defined(VX_OS_IOS)
 
-#   define VX_VIDEO_DRIVER_UIKIT
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_UIKIT
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // ios (uikit)
 
@@ -67,10 +67,10 @@
 // android
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(_VX_VIDEO_DRIVER_DETECTED) && defined(VX_OS_ANDROID)
+#if !defined(_VX_VIDEO_BACKEND_DETECTED) && defined(VX_OS_ANDROID)
 
-#   define VX_VIDEO_DRIVER_ANDROID
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_ANDROID
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif // android
 
@@ -78,10 +78,10 @@
 // dummy / fallback
 ///////////////////////////////////////////////////////////////////////////////
 
-#if !defined(_VX_VIDEO_DRIVER_DETECTED)
+#if !defined(_VX_VIDEO_BACKEND_DETECTED)
 
-#   define VX_VIDEO_DRIVER_DUMMY
-#   define _VX_VIDEO_DRIVER_DETECTED
+#   define VX_VIDEO_BACKEND_DUMMY
+#   define _VX_VIDEO_BACKEND_DETECTED
 
 #endif
 
@@ -89,6 +89,6 @@
 // cleanup
 ///////////////////////////////////////////////////////////////////////////////
 
-#if defined(_VX_VIDEO_DRIVER_DETECTED)
-#   undef _VX_VIDEO_DRIVER_DETECTED
+#if defined(_VX_VIDEO_BACKEND_DETECTED)
+#   undef _VX_VIDEO_BACKEND_DETECTED
 #endif

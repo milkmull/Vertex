@@ -410,7 +410,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
         }
     }
 
-#if VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+#if VX_VIDEO_BACKEND_HAVE_GET_DISPLAY_FOR_WINDOW
     
     if (!is_valid_id(d))
     {
@@ -418,7 +418,7 @@ display_id video_instance::get_display_for_window(window_id id, bool ignore_pend
         d = impl_ptr->get_display_for_window(w);
     }
 
-#endif // VX_VIDEO_HAVE_WINDOW_DISPLAY_FOR_WINDOW
+#endif // VX_VIDEO_BACKEND_HAVE_GET_DISPLAY_FOR_WINDOW
     
     if (!is_valid_id(d))
     {
@@ -599,14 +599,14 @@ math::recti display_instance::get_bounds() const
 {
     math::recti bounds;
 
-#if VX_VIDEO_HAVE_DISPLAY_GET_BOUNDS
+#if VX_VIDEO_BACKEND_HAVE_DISPLAY_GET_BOUNDS
 
     if (impl_ptr->get_bounds(bounds))
     {
         return bounds;
     }
 
-#endif // VX_VIDEO_HAVE_DISPLAY_GET_BOUNDS
+#endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_GET_BOUNDS
 
     // assume displays are left to right
     if (data.id != video->get_primary_display())
@@ -648,14 +648,14 @@ math::recti display_instance::get_work_area() const
         }
     }
 
-#if VX_VIDEO_HAVE_DISPLAY_GET_WORK_AREA
+#if VX_VIDEO_BACKEND_HAVE_DISPLAY_GET_WORK_AREA
 
     if (impl_ptr->get_work_area(rect))
     {
         return rect;
     }
 
-#endif // VX_VIDEO_HAVE_DISPLAY_GET_WORK_AREA
+#endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_GET_WORK_AREA
 
     // just give the entire display_bounds
     return get_bounds();
@@ -670,7 +670,7 @@ void display_instance::init_modes() const
         return;
     }
 
-#if VX_VIDEO_HAVE_DISPLAY_LIST_MODES
+#if VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 
     impl_ptr->list_display_modes(data.modes);
 
@@ -679,7 +679,7 @@ void display_instance::init_modes() const
         m.data.mode.display = data.id;
     }
 
-#endif // VX_VIDEO_HAVE_DISPLAY_LIST_MODES
+#endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 }
 
 ///////////////////////////////////////
@@ -781,11 +781,11 @@ bool video_instance::set_display_current_mode(display_id id, const display_mode&
 
 bool display_instance::set_current_mode(const display_mode& mode)
 {
-#if VX_VIDEO_MODE_SWITCHING_EMULATED && defined(VX_VIDEO_DRIVER_X11)
+#if VX_VIDEO_BACKEND_MODE_SWITCHING_EMULATED && defined(VX_VIDEO_BACKEND_X11)
 
     return true;
 
-#endif // VX_VIDEO_MODE_SWITCHING_EMULATED
+#endif // VX_VIDEO_BACKEND_MODE_SWITCHING_EMULATED
 
     display_mode_instance* native_mode = nullptr;
 
@@ -815,7 +815,7 @@ bool display_instance::set_current_mode(const display_mode& mode)
         return true;
     }
 
-#if VX_VIDEO_HAVE_DISPLAY_SET_MODE
+#if VX_VIDEO_BACKEND_HAVE_DISPLAY_SET_MODE
 
     // set the mode
     data.setting_display_mode = true;
@@ -827,7 +827,7 @@ bool display_instance::set_current_mode(const display_mode& mode)
         return false;
     }
 
-#endif // VX_VIDEO_HAVE_DISPLAY_SET_MODE
+#endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_SET_MODE
 
     video->post_display_current_mode_changed(data.id, mode);
     return true;
@@ -1116,11 +1116,11 @@ bool video_instance::enable_screen_saver()
 
     data.suspend_screen_saver = false;
 
-#if VX_VIDEO_HAVE_SUSPEND_SCREENSAVER
+#if VX_VIDEO_BACKEND_HAVE_SUSPEND_SCREEN_SAVER
 
     return impl_ptr->suspend_screen_saver();
 
-#endif // VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#endif // VX_VIDEO_BACKEND_HAVE_SUSPEND_SCREEN_SAVER
 
     VX_UNSUPPORTED("enable_screen_saver()");
     return false;
@@ -1156,7 +1156,7 @@ bool video_instance::disable_screen_saver()
 
     data.suspend_screen_saver = true;
 
-#if VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#if VX_VIDEO_BACKEND_HAVE_SUSPEND_SCREEN_SAVER
 
     return impl_ptr->suspend_screen_saver();
 
@@ -1165,7 +1165,7 @@ bool video_instance::disable_screen_saver()
     VX_UNSUPPORTED("disable_screen_saver()");
     return false;
 
-#endif // VX_VIDEO_HAVE_SUSPEND_SCREEN_SAVER
+#endif // VX_VIDEO_BACKEND_HAVE_SUSPEND_SCREEN_SAVER
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1535,11 +1535,11 @@ void video_instance::reset_display_modes_for_window(window_id w, display_id targ
 
 void video_instance::pump_events()
 {
-#if VX_VIDEO_HAVE_PUMP_EVENTS
+#if VX_VIDEO_BACKEND_HAVE_PUMP_EVENTS
 
     impl_ptr->pump_events();
 
-#endif // VX_VIDEO_HAVE_PUMP_EVENTS
+#endif // VX_VIDEO_BACKEND_HAVE_PUMP_EVENTS
 }
 
 ////////////////////////////////////////
@@ -1548,7 +1548,7 @@ void video_instance::pump_events()
 
 bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 {
-#if VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
+#if VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT
 
     bool status = false;
     
@@ -1564,7 +1564,7 @@ bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 
     return false;
 
-#endif // VX_VIDEO_HAVE_WAIT_EVENT_TIMEOUT
+#endif // VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT
 }
 
 ////////////////////////////////////////
@@ -1577,7 +1577,7 @@ void video_instance::send_wakeup_event()
 
 #else
 
-#if VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
+#if VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
 
     // This function is called when a new event is added to the queue
     // while another thread may be blocked waiting for events.
@@ -1602,7 +1602,7 @@ void video_instance::send_wakeup_event()
         //w->send_wakeup_event();
     }
 
-#endif // VX_VIDEO_HAVE_SEND_WAKEUP_EVENT
+#endif // VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
 
 #endif // VX_VIDEO_ANDROID
 }

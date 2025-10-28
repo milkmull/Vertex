@@ -56,7 +56,7 @@ bool window_instance::create(video_instance* owner, const window_config& config)
     data.position = config.position;
     data.size = config.size;
 
-    // Some DRIVERs don't support 0 sized windows
+    // Some drivers don't support 0 sized windows
     if (data.size.x <= 0)
     {
         data.size.x = 1;
@@ -66,11 +66,11 @@ bool window_instance::create(video_instance* owner, const window_config& config)
         data.size.y = 1;
     }
 
-#if VX_VIDEO_HAVE_REFRESH_DISPLAYS
+#if VX_VIDEO_BACKEND_HAVE_REFRESH_DISPLAYS
 
     video->impl_ptr->refresh_displays();
 
-#endif // VX_VIDEO_HAVE_REFRESH_DISPLAYS
+#endif // VX_VIDEO_BACKEND_HAVE_REFRESH_DISPLAYS
 
     // Find the display for the window
     display_id display = config.display_id;
@@ -123,7 +123,7 @@ bool window_instance::create(video_instance* owner, const window_config& config)
         window_flags |= window_flags::TOPMOST;
     }
 
-    if (config.fullscreen || VX_VIDEO_FULLSCREEN_ONLY)
+    if (config.fullscreen || VX_VIDEO_BACKEND_FULLSCREEN_ONLY)
     {
         const math::recti bounds = video->get_display_bounds(display);
 
@@ -150,12 +150,12 @@ bool window_instance::create(video_instance* owner, const window_config& config)
     // Clear minimized if not on windows, only windows handles it
     // at create rather than FinishWindowCreation, but it's important
     // or window focus will get broken on windows!
-#if !defined(VX_VIDEO_DRIVER_WINDOWS)
+#if !defined(VX_VIDEO_BACKEND_WINDOWS)
     if (data.flags & window_flags::MINIMIZED)
     {
         data.flags &= ~window_flags::MINIMIZED;
     }
-#endif // VX_VIDEO_DRIVER_WINDOWS
+#endif // VX_VIDEO_BACKEND_WINDOWS
 
     data.initializing = false;
 
@@ -165,6 +165,88 @@ bool window_instance::create(video_instance* owner, const window_config& config)
     // make sure pixel size is up to date
     check_pixel_size_changed();
 
+    return true;
+}
+
+bool window_instance::recreate(typename window_flags::type flags)
+{
+    // Restore video mode, etc.
+    const bool restore_on_show = data.restore_on_show;
+    hide();
+    data.restore_on_show = restore_on_show;
+
+    // destroy the window surface
+    destroy_surface();
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_DESTROY
+
+    impl_ptr->destroy();
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_DESTROY
+
+    data.flags = window_flags::CREATE_FLAGS | window_flags::HIDDEN;
+    data.destroying = false;
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_CREATE
+
+    // Reset the position and size to the floating value so
+    // the recreated window has the proper base position and size
+    data.position = data.windowed_rect.position = data.floating_rect.position;
+    data.size = data.windowed_rect.size = data.floating_rect.size;
+
+    if (!impl_ptr->create(this))
+    {
+        return false;
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_CREATE
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_TITLE
+
+    if (!data.title.empty())
+    {
+        impl_ptr->set_title(data.title);
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_TITLE
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
+
+    if (!data.icon.empty())
+    {
+        return impl_ptr->set_icon(data.icon);
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MIN_SIZE
+
+    if (data.min_size.x || data.min_size.y)
+    {
+        impl_ptr->set_min_size();
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MIN_SIZE
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MAX_SIZE
+
+    if (data.max_size.x || data.max_size.y)
+    {
+        impl_ptr->set_max_size();
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MAX_SIZE
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ASPECT_RATIO
+
+    if (data.locked_aspect)
+    {
+        impl_ptr->set_aspect_ratio();
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ASPECT_RATIO
+
+    finish_creation(flags);
     return true;
 }
 
@@ -237,11 +319,11 @@ void window_instance::apply_flags(typename window_flags::type new_flags)
 
 void window_instance::sync()
 {
-#if VX_VIDEO_HAVE_WINDOW_SYNC
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SYNC
 
     impl_ptr->sync();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SYNC
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SYNC
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -262,7 +344,7 @@ bool window_instance::set_title(const std::string& title)
 
     data.title = title;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_TITLE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_TITLE
 
     return impl_ptr->set_title(title);
 
@@ -270,7 +352,7 @@ bool window_instance::set_title(const std::string& title)
 
     return true;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_TITLE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_TITLE
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -279,7 +361,7 @@ bool window_instance::set_title(const std::string& title)
 
 bool window_instance::set_resizable(bool resizable)
 {
-#if VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_RESIZABLE
 
     if (resizable != (data.flags & window_flags::RESIZABLE))
     {
@@ -302,7 +384,7 @@ bool window_instance::set_resizable(bool resizable)
 
     return true;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_RESIZABLE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_RESIZABLE
 }
 
 bool window_instance::is_resizable() const
@@ -357,11 +439,11 @@ bool window_instance::get_position(int* x, int* y) const
         return true;
     }
 
-    // Some DRIVERs delay position updates for hidden windows until they
+    // Some drivers delay position updates for hidden windows until they
     // are shown again. If the window is hidden and a move has been requested,
     // the actual position may still reflect the old value. In that case, we
-    // return the pending position instead of the DRIVER-reported one.
-    // Once the DRIVER applies the move, data.last_position_pending is cleared,
+    // return the pending position instead of the driver-reported one.
+    // Once the driver applies the move, data.last_position_pending is cleared,
     // ensuring this logic always returns the most up-to-date position available.
     const bool use_pending = (data.flags & window_flags::HIDDEN) && data.last_position_pending;
 
@@ -387,10 +469,10 @@ bool window_instance::set_position(int x, int y)
     data.pending_display_id = video->get_display_at_origin(position);
 
     data.pending_rect.position = position;
-    // set the position as pending while we wait for the DRIVER to adjust
+    // set the position as pending while we wait for the driver to adjust
     data.last_position_pending = true;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_POSITION
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_POSITION
 
     if (!impl_ptr->set_position())
     {
@@ -399,7 +481,7 @@ bool window_instance::set_position(int x, int y)
 
     sync();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_POSITION
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_POSITION
 
     return true;
 }
@@ -472,7 +554,7 @@ bool window_instance::set_size(int w, int h)
     data.pending_rect.size.x = w;
     data.pending_rect.size.y = h;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_SIZE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_SIZE
 
     if (!impl_ptr->set_size())
     {
@@ -481,7 +563,7 @@ bool window_instance::set_size(int w, int h)
 
     sync();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_SIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_SIZE
 
     return true;
 }
@@ -530,7 +612,7 @@ bool window_instance::get_border_size(int* left, int* right, int* bottom, int* t
 
     *top = *left = *bottom = *right = 0;
 
-#if VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_GET_BORDER_SIZE
     
     return impl_ptr->get_border_size(left, right, bottom, top);
 
@@ -539,7 +621,7 @@ bool window_instance::get_border_size(int* left, int* right, int* bottom, int* t
     VX_UNSUPPORTED("get_border_size()");
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_GET_BORDER_SIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_GET_BORDER_SIZE
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L3269
@@ -557,7 +639,7 @@ bool window_instance::get_size_in_pixels(int* w, int* h) const
         h = &dummy;
     }
 
-#if VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS && 0
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_GET_SIZE_IN_PIXELS
 
     return impl_ptr->get_size_in_pixels(w, h);
 
@@ -583,7 +665,7 @@ bool window_instance::get_size_in_pixels(int* w, int* h) const
     *w = math::ceil(*w * pixel_density);
     *h = math::ceil(*h * pixel_density);
 
-#endif // VX_VIDEO_HAVE_WINDOW_GET_SIZE_IN_PIXELS
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_GET_SIZE_IN_PIXELS
 
     return true;
 }
@@ -652,11 +734,11 @@ bool window_instance::set_min_size(int w, int h)
     data.min_size.x = w;
     data.min_size.y = h;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MIN_SIZE
 
     impl_ptr->set_min_size();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_MIN_SIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MIN_SIZE
 
     // ensure window is not smaller than min size
     math::vec2i adjusted_size = data.last_size_pending ? data.pending_rect.size : data.floating_rect.size;
@@ -689,11 +771,11 @@ bool window_instance::set_max_size(int w, int h)
     data.max_size.x = w;
     data.max_size.y = h;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MAX_SIZE
 
     impl_ptr->set_max_size();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_MAX_SIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MAX_SIZE
 
     // ensure window is not larger than max size
     math::vec2i adjusted_size = data.last_size_pending ? data.pending_rect.size : data.floating_rect.size;
@@ -717,11 +799,11 @@ bool window_instance::lock_aspect_ratio(float aspect_ratio)
 {
     data.locked_aspect = math::max(0.0f, aspect_ratio);
 
-#if VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ASPECT_RATIO
 
     impl_ptr->set_aspect_ratio();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_ASPECT_RATIO
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ASPECT_RATIO
 
     return set_size(data.floating_rect.size.x, data.floating_rect.size.y);
 }
@@ -760,11 +842,11 @@ bool window_instance::set_bordered(bool bordered)
             data.flags |= window_flags::BORDERLESS;
         }
 
-#if VX_VIDEO_HAVE_WINDOW_SET_BORDERED
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_BORDERED
 
         return impl_ptr->set_bordered();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_BORDERED
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_BORDERED
     }
 
     return true;
@@ -794,11 +876,11 @@ bool window_instance::set_always_on_top(bool always_on_top)
             data.flags &= ~window_flags::TOPMOST;
         }
 
-#if VX_VIDEO_HAVE_WINDOW_SET_ALWAYS_ON_TOP
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ALWAYS_ON_TOP
 
         return impl_ptr->set_always_on_top();
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_ALWAYS_ON_TOP
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ALWAYS_ON_TOP
     }
 
     return true;
@@ -820,7 +902,7 @@ bool window_instance::show()
         return true;
     }
 
-#if VX_VIDEO_HAVE_WINDOW_SHOW
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SHOW
 
     impl_ptr->show();
 
@@ -829,7 +911,7 @@ bool window_instance::show()
     video->data.mouse_ptr->set_focus(data.id);
     video->data.keyboard_ptr->set_focus(data.id);
 
-#endif // VX_VIDEO_HAVE_WINDOW_SHOW
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SHOW
 
     post_window_shown();
     return true;
@@ -847,7 +929,7 @@ bool window_instance::hide()
 
     data.hiding = true;
 
-#if VX_VIDEO_HAVE_WINDOW_HIDE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_HIDE
 
     impl_ptr->hide();
 
@@ -856,7 +938,7 @@ bool window_instance::hide()
     video->data.mouse_ptr->set_focus(INVALID_ID);
     video->data.keyboard_ptr->set_focus(INVALID_ID);
 
-#endif // VX_VIDEO_HAVE_WINDOW_HIDE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_HIDE
 
     data.hiding = false;
 
@@ -876,11 +958,11 @@ bool window_instance::is_hidden() const
 
 bool window_instance::minimize()
 {
-#if !VX_VIDEO_HAVE_WINDOW_MINIMIZE
+#if !VX_VIDEO_BACKEND_HAVE_WINDOW_MINIMIZE
 
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_MINIMIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_MINIMIZE
 
     if (data.flags & window_flags::HIDDEN)
     {
@@ -902,11 +984,11 @@ bool window_instance::is_minimized() const
 
 bool window_instance::maximize()
 {
-#if !VX_VIDEO_HAVE_WINDOW_MAXIMIZE
+#if !VX_VIDEO_BACKEND_HAVE_WINDOW_MAXIMIZE
 
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_MAXIMIZE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_MAXIMIZE
 
     if (!(data.flags & window_flags::RESIZABLE))
     {
@@ -933,11 +1015,11 @@ bool window_instance::is_maximized() const
 
 bool window_instance::restore()
 {
-#if !VX_VIDEO_HAVE_WINDOW_RESTORE
+#if !VX_VIDEO_BACKEND_HAVE_WINDOW_RESTORE
 
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_RESTORE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_RESTORE
 
     if (data.flags & window_flags::HIDDEN)
     {
@@ -959,11 +1041,11 @@ bool window_instance::raise()
         return true;
     }
 
-#if VX_VIDEO_HAVE_WINDOW_RAISE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_RAISE
 
     impl_ptr->raise();
 
-#endif
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_RAISE
 
     return true;
 }
@@ -974,7 +1056,7 @@ bool window_instance::raise()
 
 bool window_instance::flash(window_flash_op operation)
 {
-#if VX_VIDEO_HAVE_WINDOW_FLASH
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_FLASH
 
     return impl_ptr->flash(operation);
 
@@ -982,7 +1064,7 @@ bool window_instance::flash(window_flash_op operation)
 
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_FLASH
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_FLASH
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1045,13 +1127,13 @@ bool window_instance::set_fullscreen_mode(const display_mode* mode)
 
     // Mirror the requested mode into the "current" mode immediately
     //
-    // This ensures that if the DRIVER is already in the middle of an asynchronous
+    // This ensures that if the driver is already in the middle of an asynchronous
     // fullscreen transition (e.g. entering fullscreen), we don’t end up with stale
     // data. The actual active mode may still change when the transition completes,
     // but this keeps the app’s internal state consistent until then.
     data.current_fullscreen_mode = data.requested_fullscreen_mode;
 
-#if defined(VX_VIDEO_DRIVER_COCOA)
+#if defined(VX_VIDEO_BACKEND_COCOA)
 
     // On macOS, entering fullscreen involves an OS-level "Spaces" animation
     // and transition that temporarily detaches the window from normal rendering
@@ -1065,7 +1147,7 @@ bool window_instance::set_fullscreen_mode(const display_mode* mode)
         sync();
     }
 
-#endif // VX_VIDEO_DRIVER_COCOA
+#endif // VX_VIDEO_BACKEND_COCOA
 
     if (is_fullscreen_visible())
     {
@@ -1119,7 +1201,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
         target_mode = &get_fullscreen_mode();
     }
 
-#if defined(VX_VIDEO_DRIVER_COCOA)
+#if defined(VX_VIDEO_BACKEND_COCOA)
 
     // ------------------ COCOA-SPECIFIC LOGIC ------------------
        // Cocoa has two types of fullscreen:
@@ -1173,7 +1255,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
         }
     }
 
-#endif // VX_VIDEO_DRIVER_COCOA
+#endif // VX_VIDEO_BACKEND_COCOA
 
     // Restore previous display modes if switching displays
     if (is_valid_id(target_display_id))
@@ -1219,7 +1301,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
             fullscreen_result result = fullscreen_result::SUCCEEDED;
 
 
-#if VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FULLSCREEN
             // Platform-specific API to actually enter fullscreen
             result = impl_ptr->set_fullscreen(fullscreen, *display_inst);
 #else
@@ -1248,7 +1330,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
                 // If the OS does not generate an event telling us the final window
                 // size, we must manually adjust the position and size here.
 
-                if (!VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS)
+                if (!VX_VIDEO_BACKEND_SENDS_FULLSCREEN_DIMENSIONS)
                 {
                     const math::rect display_rect = video->get_display_bounds(target_mode->display);
 
@@ -1289,7 +1371,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
         {
             fullscreen_result result = fullscreen_result::SUCCEEDED;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FULLSCREEN
 
             display_instance* target_display_inst = display_inst ? display_inst : video->get_display_instance(video->get_display_for_window(data.id, false));
 
@@ -1302,7 +1384,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
 
             resized = true;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_FULLSCREEN
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FULLSCREEN
 
             if (result == fullscreen_result::SUCCEEDED)
             {
@@ -1325,7 +1407,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
                 display_inst->data.fullscreen_window_id = INVALID_ID;
             }
 
-            if (!VX_VIDEO_SENDS_FULLSCREEN_DIMENSIONS)
+            if (!VX_VIDEO_BACKEND_SENDS_FULLSCREEN_DIMENSIONS)
             {
                 // If the OS does not generate an event telling us the final window
                 // size, we must manually adjust the position and size here.
@@ -1407,7 +1489,9 @@ bool window_instance::set_fullscreen(bool fullscreen)
 
 bool window_instance::set_icon(const pixel::surface_rgba8& surf)
 {
-#if VX_VIDEO_HAVE_WINDOW_SET_ICON
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
+
+    data.icon = surf;
 
     if (surf.empty())
     {
@@ -1418,10 +1502,10 @@ bool window_instance::set_icon(const pixel::surface_rgba8& surf)
 
 #else
 
-    VX_UNSUPPORTED();
+    VX_UNSUPPORTED("set_icon()");
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_ICON
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
 }
 
 void window_instance::clear_icon()
@@ -1446,14 +1530,14 @@ bool window_instance::set_shape(const argb_surface& shape)
 
 bool window_instance::update_shape(bool force)
 {
-#if VX_VIDEO_HAVE_WINDOW_UPDATE_SHAPE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_UPDATE_SHAPE
 
     if ((data.flags & window_flags::TRANSPARENT) && (force || !data.shape_surface.empty()))
     {
         return impl_ptr->update_shape(data.shape_surface);
     }
 
-#endif // VX_VIDEO_HAVE_WINDOW_UPDATE_SHAPE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_UPDATE_SHAPE
 
     return true;
 }
@@ -1465,7 +1549,7 @@ float window_instance::get_opacity() const
 
 bool window_instance::set_opacity(float opacity)
 {
-#if VX_VIDEO_HAVE_WINDOW_SET_OPACITY
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_OPACITY
 
     opacity = math::clamp(opacity, 0.0f, 1.0f);
 
@@ -1482,7 +1566,7 @@ bool window_instance::set_opacity(float opacity)
     VX_UNSUPPORTED("set_opacity()");
     return false;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_OPACITY
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_OPACITY
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1491,16 +1575,16 @@ bool window_instance::set_opacity(float opacity)
 
 std::vector<uint8_t> window_instance::get_icc_profile() const
 {
-#if VX_VIDEO_HAVE_WINDOW_GET_ICC_PROFILE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_GET_ICC_PROFILE
 
     return impl_ptr->get_icc_profile();
 
 #else
 
     VX_UNSUPPORTED("get_icc_profile()");
-    return nullptr;
+    return std::vector<uint8_t>{};
 
-#endif // VX_VIDEO_HAVE_WINDOW_GET_ICC_PROFILE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_GET_ICC_PROFILE
 }
 
 pixel::pixel_format window_instance::get_pixel_format() const
@@ -1598,17 +1682,17 @@ void window_instance::clear_grab()
 {
     data.flags &= ~(window_flags::MOUSE_GRABBED | window_flags::KEYBOARD_GRABBED);
 
-#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_GRAB
 
     impl_ptr->set_mouse_grab(false);
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_GRAB
 
-#if VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_KEYBOARD_GRAB
 
     impl_ptr->set_keyboard_grab(false);
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_KEYBOARD_GRAB
 }
 
 void window_instance::update_grab()
@@ -1647,23 +1731,23 @@ void window_instance::update_grab()
         video->set_grabbed_window(INVALID_ID);
     }
 
-#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_GRAB
 
     if (!impl_ptr->set_mouse_grab(mouse_grabbed))
     {
         data.flags &= ~window_flags::MOUSE_GRABBED;
     }
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_GRAB
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_GRAB
 
-#if VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_KEYBOARD_GRAB
 
     if (!impl_ptr->set_keyboard_grab(keyboard_grabbed))
     {
         data.flags &= ~window_flags::KEYBOARD_GRABBED;
     }
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_KEYBOARD_GRAB
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_KEYBOARD_GRAB
 
     video->validate_grabbed_window();
 }
@@ -1687,11 +1771,11 @@ bool window_instance::set_focusable(bool focusable)
             data.flags &= ~window_flags::NOT_FOCUSABLE;
         }
 
-#if VX_VIDEO_HAVE_WINDOW_SET_FOCUSABLE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FOCUSABLE
 
         return impl_ptr->set_focusable(focusable);
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_FOCUSABLE
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FOCUSABLE
     }
 
     return true;
@@ -1716,7 +1800,7 @@ bool window_instance::should_minimize_on_focus_loss() const
         return false;
     }
 
-#if defined(VX_VIDEO_DRIVER_COCOA)
+#if defined(VX_VIDEO_BACKEND_COCOA)
 
     // On macOS (Cocoa backend):
     //
@@ -1739,7 +1823,7 @@ bool window_instance::should_minimize_on_focus_loss() const
         return false;
     }
 
-#endif // VX_VIDEO_DRIVER_COCOA
+#endif // VX_VIDEO_BACKEND_COCOA
 
 #if defined(VX_PLATFORM_ANDROID)
 
@@ -1760,7 +1844,7 @@ bool window_instance::should_minimize_on_focus_loss() const
     // - If this is an exclusive fullscreen mode (one that changed the display mode)
     // - And if the video mode switching is *not* emulated (i.e., it's a real mode switch)
     // Then we minimize on focus loss to restore the desktop video mode.
-    return data.fullscreen_exclusive && !VX_VIDEO_MODE_SWITCHING_EMULATED;
+    return data.fullscreen_exclusive && !VX_VIDEO_BACKEND_MODE_SWITCHING_EMULATED;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1786,7 +1870,7 @@ bool window_instance::set_mouse_rect(const math::recti& rect)
 {
     data.mouse_rect = rect;
 
-#if VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_RECT
 
     return impl_ptr->set_mouse_rect(rect);
 
@@ -1794,7 +1878,16 @@ bool window_instance::set_mouse_rect(const math::recti& rect)
 
     return true;
 
-#endif // VX_VIDEO_HAVE_WINDOW_SET_MOUSE_RECT
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_MOUSE_RECT
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// drag and drop
+///////////////////////////////////////////////////////////////////////////////
+
+void window_instance::prepare_drag_and_drop_support()
+{
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////
