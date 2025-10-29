@@ -253,14 +253,42 @@ void window_instance::destroy()
     data.destroying = true;
     post_window_destroyed();
 
+    destroy_surface();
+
     // restore original fullscreen mode
     update_fullscreen_mode(fullscreen_op::LEAVE, true);
     hide();
+
+    video->clear_fullscreen_window_from_all_displays(data.id);
+
+    if (video->data.keyboard_ptr->get_focus() == data.id)
+    {
+        video->data.keyboard_ptr->set_focus(INVALID_ID);
+    }
+    if (data.flags & window_flags::MOUSE_CAPTURE)
+    {
+        video->data.mouse_ptr->update_mouse_capture(true);
+    }
+    if (video->data.mouse_ptr->get_focus() == data.id)
+    {
+        video->data.mouse_ptr->set_focus(INVALID_ID);
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_DESTROY
 
     if (impl_ptr)
     {
         impl_ptr->destroy();
     }
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_DESTROY
+
+    if (video->data.grabbed_window == data.id)
+    {
+        video->data.grabbed_window = INVALID_ID;
+    }
+
+    video->data.wakeup_window.compare_exchange_strong(data.id, INVALID_ID);
 }
 
 bool window_instance::validate() const
@@ -1282,7 +1310,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
         display_inst->data.fullscreen_active = data.fullscreen_exclusive;
 
         // Apply target fullscreen mode
-        if (!display_inst->set_current_mode(*target_mode))
+        if (!display_inst->set_display_mode(*target_mode))
         {
             goto error;
         }
@@ -1355,7 +1383,7 @@ bool window_instance::update_fullscreen_mode(typename fullscreen_op::type fullsc
         if (display_inst)
         {
             display_inst->data.fullscreen_active = false;
-            display_inst->reset_mode(false);
+            display_inst->reset_display_mode(false);
         }
 
         if (commit)
@@ -1884,6 +1912,15 @@ void window_instance::prepare_drag_and_drop_support()
 ///////////////////////////////////////////////////////////////////////////////
 // events
 ///////////////////////////////////////////////////////////////////////////////
+
+void window_instance::send_wakeup_event() const
+{
+#if VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
+
+    impl_ptr->send_wakeup_event();
+
+#endif // VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
+}
 
 #define events_ptr video->app->data.events_ptr
 

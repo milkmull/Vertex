@@ -101,8 +101,8 @@ public:
     VX_API bool get_desktop_mode(display_mode& mode) const;
     VX_API bool get_current_mode(display_mode& mode) const;
 
-    VX_API bool set_current_mode(const display_mode& mode);
-    VX_API void reset_mode();
+    VX_API bool set_display_mode(const display_mode& mode);
+    VX_API void reset_display_mode();
 
     VX_API std::vector<display_mode> list_modes() const;
     VX_API bool has_mode(const display_mode& mode) const;

@@ -178,6 +178,33 @@ bool video_instance_impl::set_dpi_awareness(process_dpi_awareness awareness)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// system theme
+///////////////////////////////////////////////////////////////////////////////
+
+system_theme video_instance_impl::get_system_theme() const
+{
+    LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+    LPCWSTR value = L"AppsUseLightTheme";
+
+    DWORD data = 0;
+    DWORD size = sizeof(data);
+    DWORD type = 0;
+
+    if (::RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
+    {
+        // Dark mode if 0, light mode if 1
+        switch (data)
+        {
+            case 0:  return system_theme::DARK;
+            case 1:  return system_theme::LIGHT;
+            default: break;
+        }
+    }
+
+    return system_theme::UNKNOWN;
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // app registration
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -219,33 +246,6 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// system theme
-///////////////////////////////////////////////////////////////////////////////
-
-static system_theme get_system_theme()
-{
-    LPCWSTR subkey = L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
-    LPCWSTR value = L"AppsUseLightTheme";
-
-    DWORD data = 0;
-    DWORD size = sizeof(data);
-    DWORD type = 0;
-
-    if (::RegGetValue(HKEY_CURRENT_USER, subkey, value, RRF_RT_REG_DWORD, &type, &data, &size) == ERROR_SUCCESS)
-    {
-        // Dark mode if 0, light mode if 1
-        switch (data)
-        {
-            case 0:  return system_theme::DARK;
-            case 1:  return system_theme::LIGHT;
-            default: break;
-        }
-    }
-
-    return system_theme::UNKNOWN;
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // video_impl
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -272,7 +272,7 @@ bool video_instance_impl::init(video_instance* owner)
         data.registered_app = true;
     }
 
-    data.system_theme_cache = get_system_theme();
+    video->data.theme = get_system_theme();
 
     if (!load_libraries())
     {
@@ -793,7 +793,7 @@ bool video_instance_impl::create_display(
 
             if (!video->data.setting_display_mode)
             {
-                d.data.modes.clear();
+                d.reset_modes();
                 d.set_desktop_mode(current_mode);
 
                 bool changed_bounds = false;

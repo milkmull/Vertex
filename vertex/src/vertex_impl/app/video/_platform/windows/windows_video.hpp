@@ -58,8 +58,6 @@ struct video_impl_data
 
     owner_ptr<input::raw_input_manager> raw_input;
 
-    system_theme system_theme_cache = system_theme::UNKNOWN;
-
     bool enable_message_loop_hint_cache = true;
     bool enable_menu_mnemonics_hint_cache = false;
     bool frame_usable_while_cursor_hidden_hint_cache = true;
@@ -94,7 +92,7 @@ public:
     // system theme
     ///////////////////////////////////////////////////////////////////////////////
 
-    system_theme get_system_theme() const noexcept { return data.system_theme_cache; }
+    system_theme get_system_theme() const;
 
     ///////////////////////////////////////////////////////////////////////////////
     // screen saver
