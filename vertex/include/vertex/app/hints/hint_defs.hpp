@@ -58,17 +58,20 @@ CREATE_HINT(HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP, 5, "1");
 // Enable Windows-style menu mnemonics (Alt+key shortcuts).
 CREATE_HINT(HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS, 6, "0");
 
+// Enable a specific dpi configuration for windows ("unaware", "system", "permonitor")
+CREATE_HINT(HINT_VIDEO_WINDOWS_DPI_AWARENESS, 7, ""); // default is no dpi change
+
 // Allow interacting with window frame even when cursor is hidden (for games, etc.).
-CREATE_HINT(HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN, 7, "1");
+CREATE_HINT(HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN, 8, "1");
 
 // Minimize window when losing focus (useful for exclusive fullscreen apps).
-CREATE_HINT(HINT_VIDEO_WINDOW_MINIMIZE_ON_FOCUS_LOSS, 8, "0");
+CREATE_HINT(HINT_VIDEO_WINDOW_MINIMIZE_ON_FOCUS_LOSS, 9, "0");
 
 // Keep exclusive mode consistent when moving the window between monitors.
-CREATE_HINT(HINT_VIDEO_WINDOW_MATCH_EXCLUSIVE_MODE_ON_MOVE, 9, "1");
+CREATE_HINT(HINT_VIDEO_WINDOW_MATCH_EXCLUSIVE_MODE_ON_MOVE, 10, "1");
 
 // Automatically quit the app when the last window is closed.
-CREATE_HINT(HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE, 10, "1");
+CREATE_HINT(HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE, 11, "1");
 
 ///////////////////////////////////////////////////////////////////////////////
 

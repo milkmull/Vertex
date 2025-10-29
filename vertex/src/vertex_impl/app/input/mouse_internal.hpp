@@ -192,24 +192,24 @@ public:
     // Position control
     //-------------------------------------------------------------------------
 
-    void set_position_in_window(video::window_id w, const math::vec2& position); ///< Move mouse inside a window
-    void set_position_global(const math::vec2& position);                            ///< Move mouse in global space
+    void set_position_in_window(video::window_id w, const math::vec2& position) {} ///< Move mouse inside a window
+    void set_position_global(const math::vec2& position) {}                            ///< Move mouse in global space
 
     //-------------------------------------------------------------------------
     // Relative Mode
     //-------------------------------------------------------------------------
 
-    bool set_relative_mode(video::window_id w, bool enabled); ///< Enable/disable relative mode for a window
-    bool relative_mode_enabled(video::window_id w);           ///< Check if relative mode is active
-    void update_relative_mouse_mode();                           ///< Internal update of relative mode state
-    void disable_mouse_warp_emulation();                         ///< Disable warp emulation workaround
+    bool set_relative_mode(video::window_id w, bool enabled) { return false; } ///< Enable/disable relative mode for a window
+    bool relative_mode_enabled(video::window_id w) { return false; }           ///< Check if relative mode is active
+    void update_relative_mouse_mode() {}                           ///< Internal update of relative mode state
+    void disable_mouse_warp_emulation() {}                         ///< Disable warp emulation workaround
 
     //-------------------------------------------------------------------------
     // Capture
     //-------------------------------------------------------------------------
 
-    bool set_capture(bool enabled);                  ///< Enable/disable capture
-    bool update_mouse_capture(bool force_release);   ///< Refresh capture (force release if needed)
+    bool set_capture(bool enabled) { return false; }                  ///< Enable/disable capture
+    bool update_mouse_capture(bool force_release) { return false; }   ///< Refresh capture (force release if needed)
 
     //-------------------------------------------------------------------------
     // Event dispatch (internal)

@@ -46,10 +46,10 @@ public:
     keymap(keymap&&) noexcept = default;
     keymap& operator=(keymap&&) noexcept = default;
 
-    void set_entry(scancode sc, key_mod mod_state, keycode kc);
-    keycode get_keycode(scancode sc, key_mod mod_state) const;
-    scancode get_scancode(keycode kc, key_mod mod_state) const;
-    scancode get_next_reserved_scancode();
+    void set_entry(scancode sc, key_mod mod_state, keycode kc) {}
+    keycode get_keycode(scancode sc, key_mod mod_state) const { return (keycode)0; }
+    scancode get_scancode(keycode kc, key_mod mod_state) const { return (scancode)0; }
+    scancode get_next_reserved_scancode() { return (scancode)0; }
 
     bool french_numbers() const noexcept { return m_french_numbers; }
     bool thai_keyboard() const noexcept { return m_thai_keyboard; }
@@ -113,21 +113,21 @@ public:
     // Device Management
     //-------------------------------------------------------------------------
 
-    void add_keyboard(keyboard_id id, const char* name, bool send_event);
-    void remove_keyboard(keyboard_id id, bool send_event);
+    void add_keyboard(keyboard_id id, const char* name, bool send_event) {}
+    void remove_keyboard(keyboard_id id, bool send_event) {}
 
-    bool is_keyboard(uint16_t vendor, uint16_t product, size_t key_count);
-    bool has_keyboard();
+    bool is_keyboard(uint16_t vendor, uint16_t product, size_t key_count) { return false; }
+    bool has_keyboard() { return false; }
 
-    std::vector<keyboard_id> list_keyboard_ids();
-    const char* get_keyboard_name(keyboard_id id);
+    std::vector<keyboard_id> list_keyboard_ids() { return {}; }
+    const char* get_keyboard_name(keyboard_id id) { return nullptr; }
 
     //-------------------------------------------------------------------------
     // Focus / Window Association
     //-------------------------------------------------------------------------
 
     video::window_id get_focus() { return INVALID_ID; }
-    bool set_focus(video::window_id id);
+    bool set_focus(video::window_id id) { return false; }
 
     //-------------------------------------------------------------------------
     // Keymap / Scancode <-> Keycode mapping

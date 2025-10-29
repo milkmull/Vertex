@@ -63,10 +63,10 @@ public:
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
 
-    ~app_instance();
-
     bool init(const app_metadata& metadata = {});
     void quit();
+
+    ~app_instance();
 
     init_flag init_subsystem(init_flag flags);
     bool is_subsystem_init(init_flag flags) const;

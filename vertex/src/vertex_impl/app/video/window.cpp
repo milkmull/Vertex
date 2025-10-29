@@ -2734,7 +2734,7 @@ bool window_instance::post_window_destroyed()
     return posted;
 }
 
-void on_window_destroyed()
+void window_instance::on_window_destroyed()
 {
 
 }

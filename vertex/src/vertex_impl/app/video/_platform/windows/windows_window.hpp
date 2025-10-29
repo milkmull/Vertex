@@ -59,14 +59,14 @@ public:
     // creation
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool create(window_instance* owner);
-    void destroy();
+    bool create(window_instance* owner) { return true; }
+    void destroy() {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // sync
     ///////////////////////////////////////////////////////////////////////////////
 
-    void sync();
+    void sync() {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // style
@@ -80,8 +80,8 @@ public:
     // title
     ///////////////////////////////////////////////////////////////////////////////
 
-    std::string get_title() const;
-    bool set_title(const std::string& title);
+    std::string get_title() const { return ""; }
+    bool set_title(const std::string& title) { return false; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // position and size
@@ -91,96 +91,96 @@ public:
     bool adjust_rect(RECT& rect, window_rect_type rect_type) const;
     void set_position_internal(UINT flags, window_rect_type rect_type);
 
-    bool set_position();
-    bool set_size();
+    bool set_position() { return false; }
+    bool set_size() { return false; }
 
-    bool get_size_in_pixels(int* w, int* h) const;
+    bool get_size_in_pixels(int* w, int* h) const { return false; }
 
-    bool get_border_size(int* left, int* right, int* bottom, int* top) const;
+    bool get_border_size(int* left, int* right, int* bottom, int* top) const { return false; }
 
-    bool set_resizable(bool resizable);
-    bool set_bordered();
-    bool set_always_on_top();
+    bool set_resizable(bool resizable) { return false; }
+    bool set_bordered() { return false; }
+    bool set_always_on_top() { return false; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // window operators
     ///////////////////////////////////////////////////////////////////////////////
 
-    void show();
-    void hide();
+    void show() {}
+    void hide() {}
 
-    void minimize();
-    void maximize();
+    void minimize() {}
+    void maximize() {}
 
-    void restore();
-    bool raise();
+    void restore() {}
+    bool raise() { return false; }
 
-    typename window_instance::fullscreen_result set_fullscreen(typename window_instance::fullscreen_op::type fullscreen, display_instance& display);
+    typename window_instance::fullscreen_result set_fullscreen(typename window_instance::fullscreen_op::type fullscreen, display_instance& display) { return (typename window_instance::fullscreen_result)0; }
 
-    void focus();
-    bool is_focused() const;
+    void focus() {}
+    bool is_focused() const { return false; }
 
-    bool flash(window_flash_op operation);
+    bool flash(window_flash_op operation) { return false; }
 
-    void set_topmost(bool enabled);
-    bool is_topmost() const;
+    void set_topmost(bool enabled) {}
+    bool is_topmost() const { return false; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // icon
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_icon(const pixel::surface_rgba8& surf);
-    void clear_icon();
+    bool set_icon(const pixel::surface_rgba8& surf) { return false; }
+    void clear_icon() {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // shape
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool update_shape(const argb_surface& shape);
-    bool set_opacity(float opacity);
+    bool update_shape(const argb_surface& shape) { return false; }
+    bool set_opacity(float opacity) { return false; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // icc profile
     ///////////////////////////////////////////////////////////////////////////////
 
-    std::vector<uint8_t> get_icc_profile() const;
+    std::vector<uint8_t> get_icc_profile() const { return {}; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // grab
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_mouse_grab(bool grabbed);
-    bool set_keyboard_grab(bool grabbed);
+    bool set_mouse_grab(bool grabbed) { return false; }
+    bool set_keyboard_grab(bool grabbed) { return false; }
 
     ///////////////////////////////////////////////////////////////////////////////
     // mouse
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_focusable(bool focusable);
-    bool set_mouse_rect(const math::recti& rect);
+    bool set_focusable(bool focusable) { return false; }
+    bool set_mouse_rect(const math::recti& rect) { return false; }
 
-    void set_mouse_tracking(bool enabled);
-    void update_mouse_tracking();
+    void set_mouse_tracking(bool enabled) {}
+    void update_mouse_tracking() {}
 
-    math::vec2i get_mouse_position() const;
-    void set_mouse_position(const math::vec2i& position);
+    math::vec2i get_mouse_position() const { return {}; }
+    void set_mouse_position(const math::vec2i& position) {}
 
-    bool is_hovered() const;
+    bool is_hovered() const {}
 
-    bool get_cursor_visibility() const;
-    void set_cursor_visibility(bool visible);
+    bool get_cursor_visibility() const { return false; }
+    void set_cursor_visibility(bool visible) {}
 
     //cursor get_cursor() const;
     //bool set_cursor(cursor cursor);
 
-    bool is_cursor_grabbed() const;
-    void set_cursor_grabbed(bool grabbed);
+    bool is_cursor_grabbed() const { return false; }
+    void set_cursor_grabbed(bool grabbed) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // events
     ///////////////////////////////////////////////////////////////////////////////
 
-    void send_wakeup_event();
+    void send_wakeup_event() {}
     void on_window_mouse_enter();
 
     ///////////////////////////////////////////////////////////////////////////////

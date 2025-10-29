@@ -1,7 +1,7 @@
-#include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
+#include "vertex/util/string/string_cast.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
-#include "vertex/util/string/string_cast.hpp"
+#include "vertex_impl/app/video/_platform/windows/windows_window.hpp"
 
 namespace vx {
 namespace app {
@@ -114,7 +114,25 @@ process_dpi_awareness video_instance_impl::get_dpi_awareness() const
     return process_dpi_awareness::UNAWARE;
 }
 
-bool video_instance_impl::set_dpi_awareness(process_dpi_awareness awareness)
+bool video_instance_impl::set_dpi_awareness()
+{
+    const char* hint = video->app->data.hints_ptr->get_hint_string(HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_DPI_AWARENESS));
+
+    if (!hint || std::strcmp(hint, "permonitor") == 0)
+    {
+        return set_dpi_awareness_internal(process_dpi_awareness::PER_MONITOR);
+    }
+    else if (std::strcmp(hint, "system"))
+    {
+        return set_dpi_awareness_internal(process_dpi_awareness::SYSTEM);
+    }
+    else if (std::strcmp(hint, "unaware"))
+    {
+        return set_dpi_awareness_internal(process_dpi_awareness::UNAWARE);
+    }
+}
+
+bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness awareness)
 {
     // https://learn.microsoft.com/en-us/windows/win32/hidpi/setting-the-default-dpi-awareness-for-a-process
 
@@ -168,7 +186,7 @@ bool video_instance_impl::set_dpi_awareness(process_dpi_awareness awareness)
             else
             {
                 // Older OS: fall back to system DPI aware
-                return set_dpi_awareness(process_dpi_awareness::SYSTEM);
+                return set_dpi_awareness_internal(process_dpi_awareness::SYSTEM);
             }
             break;
         }
@@ -288,7 +306,7 @@ bool video_instance_impl::init(video_instance* owner)
         data.ole.initialize();
     }
 
-    if (!set_dpi_awareness(process_dpi_awareness::UNAWARE))
+    if (!set_dpi_awareness())
     {
         quit();
         return false;

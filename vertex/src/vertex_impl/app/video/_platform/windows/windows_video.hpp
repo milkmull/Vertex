@@ -86,7 +86,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     process_dpi_awareness get_dpi_awareness() const;
-    bool set_dpi_awareness(process_dpi_awareness awareness);
+    bool set_dpi_awareness();
+    bool set_dpi_awareness_internal(process_dpi_awareness awareness);
 
     ///////////////////////////////////////////////////////////////////////////////
     // system theme

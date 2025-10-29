@@ -8,24 +8,58 @@
 
 using namespace vx;
 
-//static void run_app()
-//{
-//    app::hint::set_hint(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, "true");
-//    const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, false);
-//
-//    while (true)
-//    {
-//        app::event::pump_events(true);
-//        os::sleep(time::milliseconds(100));
-//    }
-//}
+static bool display_added_event_watcher(const app::event::event& e, void*)
+{
+    if (e.type != app::event::DISPLAY_ADDED)
+    {
+        return false;
+    }
+
+    std::cout << (int)(e.type) << std::endl;
+
+    const app::video::display d = e.display_event.comon.display_id;
+
+    if (d.is_connected())
+    {
+        std::cout << "display " << d.id() << std::endl;
+
+        const auto modes = d.list_modes();
+
+        for (size_t i = 0; i < modes.size(); ++i)
+        {
+            std::cout << "mode " << i << ": " << (int)modes[i].pixel_format << std::endl;
+        }
+
+        std::cout << std::endl;
+    }
+
+    app::event::remove_event_watch(display_added_event_watcher, nullptr);
+    return false;
+}
+
+static void run_app()
+{
+    app::hint::set_hint(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, "true");
+    const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, false);
+
+    while (true)
+    {
+        app::event::pump_events(true);
+        os::sleep(time::milliseconds(100));
+    }
+}
 
 int main(int argc, char* argv[])
 {
-    //if (app::init() && app::init_subsystem(app::INIT_VIDEO))
-    //{
-    //    run_app();
-    //}
-    //
-    //app::quit();
+    if (app::init() && app::init_subsystem(app::INIT_EVENTS))
+    {
+        app::event::add_event_watch(display_added_event_watcher, nullptr);
+
+        if (app::init_subsystem(app::INIT_VIDEO))
+        {
+            run_app();
+        }
+    }
+
+    app::quit();
 }
