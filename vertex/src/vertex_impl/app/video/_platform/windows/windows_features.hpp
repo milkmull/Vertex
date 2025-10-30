@@ -225,6 +225,11 @@
 #endif
 #define VX_VIDEO_BACKEND_HAVE_WINDOW_SET_FOCUSABLE 1
 
+#ifdef VX_VIDEO_BACKEND_HAVE_WINDOW_ACCEPT_DRAG_AND_DROP
+#   undef VX_VIDEO_BACKEND_HAVE_WINDOW_ACCEPT_DRAG_AND_DROP
+#endif
+#define VX_VIDEO_BACKEND_HAVE_WINDOW_ACCEPT_DRAG_AND_DROP 1
+
 // ------------------------------------------------------------
 // Mouse
 // ------------------------------------------------------------

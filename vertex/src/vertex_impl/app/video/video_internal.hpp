@@ -29,11 +29,6 @@ class display_instance_impl;
 // video data
 //=============================================================================
 
-struct video_hints
-{
-    bool sync_window_operations = false;
-};
-
 struct video_data
 {
     // Input
@@ -53,7 +48,7 @@ struct video_data
 
     // System settings
     bool suspend_screen_saver = false;
-    video_hints hints;
+    bool sync_window_operations = false;
     system_theme theme = system_theme::UNKNOWN;
     math::recti desktop_area;
 };
@@ -181,6 +176,12 @@ public:
     display_id find_display_with_fullscreen_window(window_id id);
     void reset_display_modes_for_window(window_id w, display_id target_display);
     void clear_fullscreen_window_from_all_displays(window_id id);
+
+    //=============================================================================
+    // input
+    //=============================================================================
+
+    void set_all_focus(window_id w);
 
     //=============================================================================
     // events

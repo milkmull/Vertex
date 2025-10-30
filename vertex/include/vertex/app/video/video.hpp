@@ -159,6 +159,8 @@ struct window_config
 
     bool mouse_grabbed = false;
     bool mouse_capture = false;
+
+    bool drag_and_drop = false;
 };
 
 VX_API window_id create_window(const window_config& config);

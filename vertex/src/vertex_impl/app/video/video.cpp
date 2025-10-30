@@ -38,7 +38,7 @@ void display_instance_impl_deleter::operator()(display_instance_impl* ptr) const
 static void sync_window_operations_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance* this_ = static_cast<video_instance*>(user_data);
-    this_->data.hints.sync_window_operations = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS));
+    this_->data.sync_window_operations = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS));
 }
 
 static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect)
@@ -300,7 +300,7 @@ void video_instance::clear_displays(bool post_events)
 {
     while (!data.displays.empty())
     {
-        remove_display(data.displays.front().data.id, post_events);
+        remove_display(data.displays[0].data.id, post_events);
     }
 }
 
@@ -392,7 +392,7 @@ VX_API display_id get_primary_display()
 
 display_id video_instance::get_primary_display() const
 {
-    return !data.displays.empty() ? INVALID_ID : data.displays.front().data.id;
+    return !data.displays.empty() ? INVALID_ID : data.displays[0].data.id;
 }
 
 //=============================================================================
@@ -1379,22 +1379,15 @@ void video_instance::destroy_window(window_id id)
         return;
     }
 
-    w->destroy();
+    w->begin_destroy();
 
-    // Make sure the destroyed window isn't referenced by any display as a fullscreen window
-    for (size_t i = 0; i < data.displays.size(); ++i)
-    {
-        if (data.displays[i].data.fullscreen_window_id == id)
-        {
-            data.displays[i].data.fullscreen_window_id = INVALID_ID;
-        }
-    }
+    clear_fullscreen_window_from_all_displays(id);
 
     if (data.keyboard_ptr->get_focus() == id)
     {
         data.keyboard_ptr->set_focus(INVALID_ID);
     }
-    if (w->mouse_capture_enabled())
+    if (w->data.flags & window_flags::MOUSE_CAPTURE)
     {
         data.mouse_ptr->update_mouse_capture(true);
     }
@@ -1403,10 +1396,7 @@ void video_instance::destroy_window(window_id id)
         data.mouse_ptr->set_focus(INVALID_ID);
     }
 
-    if (w->impl_ptr)
-    {
-        w->impl_ptr->destroy();
-    }
+    w->destroy();
 
     if (data.grabbed_window == id)
     {
@@ -1414,7 +1404,7 @@ void video_instance::destroy_window(window_id id)
     }
 
     data.wakeup_window.compare_exchange_strong(id, INVALID_ID);
-    
+
     for (auto it = data.windows.begin(); it != data.windows.end(); ++it)
     {
         if (it->data.id == id)
@@ -1429,12 +1419,10 @@ void video_instance::destroy_window(window_id id)
 
 void video_instance::destroy_windows()
 {
-    for (window_instance& w : data.windows)
+    while (!data.windows.empty())
     {
-        w.destroy();
+        destroy_window(data.windows[0].data.id);
     }
-
-    data.windows.clear();
 }
 
 //=============================================================================
@@ -1694,6 +1682,16 @@ void video_instance::clear_fullscreen_window_from_all_displays(window_id id)
             data.displays[i].data.fullscreen_window_id = INVALID_ID;
         }
     }
+}
+
+//=============================================================================
+// input
+//=============================================================================
+
+void video_instance::set_all_focus(window_id w)
+{
+    data.mouse_ptr->set_focus(w);
+    data.keyboard_ptr->set_focus(w);
 }
 
 //=============================================================================

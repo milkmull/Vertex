@@ -130,6 +130,8 @@ bool video_instance_impl::set_dpi_awareness()
     {
         return set_dpi_awareness_internal(process_dpi_awareness::UNAWARE);
     }
+
+    return true;
 }
 
 bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness awareness)

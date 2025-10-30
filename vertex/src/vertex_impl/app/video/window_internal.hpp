@@ -72,6 +72,7 @@ enum window_rect_type
 // window data
 //=============================================================================
 
+// common format used by windows, macOS, X11, etc
 using argb_surface = pixel::surface<pixel::pixel_format::ARGB_8888>;
 
 struct window_data
@@ -140,7 +141,7 @@ struct window_data
     bool last_size_pending = false;
 
     math::recti safe_inset;
-    math::vec2i pixel_size;
+    math::vec2i last_pixel_size;
     math::vec2 display_scale;
 
     //=============================================================================
@@ -186,7 +187,7 @@ struct window_data
     //=============================================================================
 
     float opacity = 1.0f;
-    pixel::surface_rgba8 icon;
+    argb_surface icon;
 
     bool surface_valid = false;
     argb_surface shape_surface;
@@ -207,6 +208,12 @@ struct window_data
 
     bool mouse_capture = false;
     math::rect mouse_rect;
+
+    //=============================================================================
+    // drag and drop
+    //=============================================================================
+
+    bool drag_and_drop_enabled = false;
 };
 
 //=============================================================================
@@ -234,10 +241,11 @@ public:
 
     bool create(video_instance* owner, const window_config& config);
     bool recreate(typename window_flags::type flags);
-    void finish_creation(typename window_flags::type new_flags);
+    void finish_creation(typename window_flags::type new_flags, bool drag_and_drop);
+
+    void begin_destroy();
     void destroy();
 
-    bool validate() const;
     void apply_flags(typename window_flags::type new_flags);
 
     //=============================================================================
@@ -251,6 +259,7 @@ public:
     //=============================================================================
     
     void sync();
+    void sync_if_required();
     
     //=============================================================================
     // title
@@ -266,24 +275,24 @@ public:
     bool set_resizable(bool resizable);
     bool is_resizable() const;
     
-    bool get_position(int* x, int* y) const;
-    bool set_position(int x, int y);
+    bool get_position(int32_t* x, int32_t* y) const;
+    bool set_position(int32_t x, int32_t y);
     
-    bool get_size(int* w, int* h) const;
-    bool set_size(int w, int h);
+    bool get_size(int32_t* w, int32_t* h) const;
+    bool set_size(int32_t w, int32_t h);
     
     math::vec2i get_center() const;
     math::recti get_rect() const;
 
-    bool get_border_size(int* left, int* right, int* bottom, int* top) const;
-    bool get_size_in_pixels(int* w, int* h) const;
+    bool get_border_size(int32_t* left, int32_t* right, int32_t* bottom, int32_t* top) const;
+    bool get_size_in_pixels(int32_t* w, int32_t* h) const;
     float get_pixel_density() const;
     
-    bool get_min_size(int* w, int* h) const;
-    bool get_max_size(int* w, int* h) const;
+    bool get_min_size(int32_t* w, int32_t* h) const;
+    bool get_max_size(int32_t* w, int32_t* h) const;
     
-    bool set_min_size(int w, int h);
-    bool set_max_size(int w, int h);
+    bool set_min_size(int32_t w, int32_t h);
+    bool set_max_size(int32_t w, int32_t h);
     
     float get_aspect_ratio() const;
     float get_locked_aspect_ratio() const;
@@ -318,6 +327,9 @@ public:
     bool hide();
     bool is_visible() const;
     bool is_hidden() const;
+
+    bool is_occluded() const;
+    bool is_exposed() const;
 
     //=============================================================================
     // minimize / maximize / restore
@@ -375,8 +387,8 @@ public:
     // icon
     //=============================================================================
     
-    bool set_icon(const pixel::surface_rgba8& surf);
-    void clear_icon();
+    bool set_icon(const argb_surface& surf);
+    const argb_surface& get_icon() const;
 
     //=============================================================================
     // appearence
@@ -387,10 +399,6 @@ public:
 
     float get_opacity() const;
     bool set_opacity(float opacity);
-
-    //=============================================================================
-    // icc profile
-    //=============================================================================
 
     std::vector<uint8_t> get_icc_profile() const;
     pixel::pixel_format get_pixel_format() const;
@@ -421,17 +429,14 @@ public:
     // mouse
     //=============================================================================
 
-    void set_mouse_capture(bool capture);
-    bool mouse_capture_enabled() const;
-
-    const math::recti& get_mouse_rect() const;
+    math::recti get_mouse_rect() const;
     bool set_mouse_rect(const math::recti& rect);
 
     //=============================================================================
     // drag and drop
     //=============================================================================
 
-    void prepare_drag_and_drop_support();
+    bool toggle_drag_and_drop(bool enabled);
     
     //=============================================================================
     // events
@@ -446,10 +451,10 @@ public:
     void on_window_hidden();
 
     bool post_window_occluded();
-    void on_window_occluded();
+    void on_window_occluded() {}
 
     bool post_window_exposed();
-    void on_window_exposed();
+    void on_window_exposed() {}
     
     bool post_window_moved(int32_t x, int32_t y);
     void on_window_moved();
@@ -462,26 +467,26 @@ public:
     void on_window_pixel_size_changed();
 
     void check_display_scale_changed();
-    bool post_window_display_scale_changed(const math::vec2& scale);
-    void on_window_display_scale_changed();
+    bool post_window_display_scale_changed();
+    void on_window_display_scale_changed() {}
 
     bool post_window_safe_area_changed(const math::recti& area);
-    void on_window_safe_area_changed();
+    void on_window_safe_area_changed() {}
     
     bool post_window_minimized();
     void on_window_minimized();
     
     bool post_window_maximized();
-    void on_window_maximized();
+    void on_window_maximized() {}
     
     bool post_window_restored();
     void on_window_restored();
     
     bool post_window_enter_fullscreen();
-    void on_window_enter_fullscreen();
+    void on_window_enter_fullscreen() {}
 
     bool post_window_leave_fullscreen();
-    void on_window_leave_fullscreen();
+    void on_window_leave_fullscreen() {}
     
     bool post_window_gained_focus();
     void on_window_gained_focus();
@@ -493,7 +498,7 @@ public:
     void on_window_mouse_enter();
 
     bool post_window_mouse_leave();
-    void on_window_mouse_leave();
+    void on_window_mouse_leave() {}
     
     void check_window_display_changed();
     bool post_window_display_changed(display_id d);
@@ -503,7 +508,7 @@ public:
     void on_window_close_requested();
 
     bool post_window_destroyed();
-    void on_window_destroyed();
+    void on_window_destroyed() {}
 
     //=============================================================================
     // data
