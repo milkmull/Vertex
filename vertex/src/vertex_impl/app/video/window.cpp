@@ -1022,6 +1022,16 @@ bool window_instance::is_hidden() const
     return !is_visible();
 }
 
+bool window_instance::is_occluded() const
+{
+    return (data.flags & window_flags::OCCLUDED);
+}
+
+bool window_instance::is_exposed() const
+{
+    return !is_occluded();
+}
+
 //=============================================================================
 
 bool window_instance::minimize()
@@ -1589,7 +1599,7 @@ bool window_instance::set_fullscreen(bool fullscreen)
 // icon
 //=============================================================================
 
-bool window_instance::set_icon(const argb_surface& surf)
+bool window_instance::set_icon(const surface_argb& surf)
 {
 #if VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
 
@@ -1610,7 +1620,7 @@ bool window_instance::set_icon(const argb_surface& surf)
 #endif // VX_VIDEO_BACKEND_HAVE_WINDOW_SET_ICON
 }
 
-const argb_surface& window_instance::get_icon() const
+const surface_argb& window_instance::get_icon() const
 {
     return data.icon;
 }
@@ -1619,7 +1629,7 @@ const argb_surface& window_instance::get_icon() const
 // shape
 //=============================================================================
 
-bool window_instance::set_shape(const argb_surface& shape)
+bool window_instance::set_shape(const surface_argb& shape)
 {
     if (!(data.flags & window_flags::TRANSPARENT))
     {

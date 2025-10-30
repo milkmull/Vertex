@@ -73,7 +73,7 @@ enum window_rect_type
 //=============================================================================
 
 // common format used by windows, macOS, X11, etc
-using argb_surface = pixel::surface<pixel::pixel_format::ARGB_8888>;
+using surface_argb = pixel::surface<pixel::pixel_format::ARGB_8888>;
 
 struct window_data
 {
@@ -187,10 +187,10 @@ struct window_data
     //=============================================================================
 
     float opacity = 1.0f;
-    argb_surface icon;
+    surface_argb icon;
 
     bool surface_valid = false;
-    argb_surface shape_surface;
+    surface_argb shape_surface;
 
     //=============================================================================
     // lifecycle
@@ -387,14 +387,15 @@ public:
     // icon
     //=============================================================================
     
-    bool set_icon(const argb_surface& surf);
-    const argb_surface& get_icon() const;
+    bool set_icon(const surface_argb& surf);
+    const surface_argb& get_icon() const;
 
     //=============================================================================
     // appearence
     //=============================================================================
 
-    bool set_shape(const argb_surface& shape);
+    bool set_shape(const surface_argb& shape);
+    const surface_argb& get_shape();
     bool update_shape(bool force);
 
     float get_opacity() const;

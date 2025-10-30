@@ -88,7 +88,7 @@ public:
     display_id id() const noexcept { return m_id; }
 
     bool is_valid() const noexcept { return is_valid_id(m_id); }
-    bool is_connected() const;
+    VX_API bool is_connected() const;
 
     VX_API std::string get_name() const;
     VX_API display_orientation get_orientation() const;
