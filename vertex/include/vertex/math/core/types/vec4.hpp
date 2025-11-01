@@ -37,7 +37,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
     scalar_type x, y, z, w;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr vec() noexcept
@@ -45,9 +45,6 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
         , y(static_cast<scalar_type>(0))
         , z(static_cast<scalar_type>(0))
         , w(static_cast<scalar_type>(0)) {}
-
-    VX_FORCE_INLINE constexpr vec(const type& v) noexcept
-        : x(v.x), y(v.y), z(v.z), w(v.w) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -134,15 +131,6 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& v) noexcept
-    {
-        x = v.x;
-        y = v.y;
-        z = v.z;
-        w = v.w;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const vec<4, U>& v) noexcept

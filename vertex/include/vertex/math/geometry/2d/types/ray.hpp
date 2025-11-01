@@ -25,13 +25,10 @@ struct ray_t
     vec<2, scalar_type> direction;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr ray_t() noexcept = default;
-
-    VX_FORCE_INLINE constexpr ray_t(const type& r) noexcept
-        : origin(r.origin), direction(r.direction) {}
+    ray_t() = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -71,13 +68,6 @@ struct ray_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& r) noexcept
-    {
-        origin = r.origin;
-        direction = r.direction;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const ray_t<U>& r) noexcept

@@ -46,7 +46,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
     scalar_type w, x, y, z;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr quat_t() noexcept
@@ -54,9 +54,6 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
         , x(static_cast<scalar_type>(0))
         , y(static_cast<scalar_type>(0))
         , z(static_cast<scalar_type>(0)) {}
-
-    VX_FORCE_INLINE constexpr quat_t(const type& q) noexcept
-        : w(q.w), x(q.x), y(q.y), z(q.z) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -111,15 +108,6 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& q) noexcept
-    {
-        w = q.w;
-        x = q.x;
-        y = q.y;
-        z = q.z;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const quat_t<U>& q) noexcept

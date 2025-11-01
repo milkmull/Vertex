@@ -31,15 +31,12 @@ struct mat<2, 2, T>
     col_type columns[width];
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr mat() noexcept
         : columns{ col_type(static_cast<scalar_type>(1), static_cast<scalar_type>(0)),
                    col_type(static_cast<scalar_type>(0), static_cast<scalar_type>(1)) } {}
-
-    VX_FORCE_INLINE constexpr mat(const type& m) noexcept
-        : columns{ m.columns[0], m.columns[1] } {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -91,13 +88,6 @@ struct mat<2, 2, T>
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& m) noexcept
-    {
-        columns[0] = m.columns[0];
-        columns[1] = m.columns[1];
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const mat<width, height, U>& m) noexcept

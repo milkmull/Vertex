@@ -24,14 +24,12 @@ struct vec<2, T>
     scalar_type x, y;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr vec() noexcept
-        : x(static_cast<scalar_type>(0)), y(static_cast<scalar_type>(0)) {}
-
-    VX_FORCE_INLINE constexpr vec(const type& v) noexcept
-        : x(v.x), y(v.y) {}
+        : x(static_cast<scalar_type>(0))
+        , y(static_cast<scalar_type>(0)) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -75,13 +73,6 @@ struct vec<2, T>
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& v) noexcept
-    {
-        x = v.x;
-        y = v.y;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const vec<2, U>& v) noexcept

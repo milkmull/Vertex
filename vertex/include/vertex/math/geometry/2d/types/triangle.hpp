@@ -27,13 +27,10 @@ struct triangle_t
     point_type c;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr triangle_t() noexcept = default;
-
-    VX_FORCE_INLINE constexpr triangle_t(const type& t) noexcept
-        : a(t.a), b(t.b), c(t.c) {}
+    triangle_t() = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -84,14 +81,6 @@ struct triangle_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& t) noexcept
-    {
-        a = t.a;
-        b = t.b;
-        c = t.c;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const triangle_t<U>& t) noexcept

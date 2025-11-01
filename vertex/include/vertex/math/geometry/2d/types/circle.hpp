@@ -22,16 +22,13 @@ struct circle_t
     ///////////////////////////////////////////////////////////////////////////////
 
     point_type center;
-    scalar_type radius = static_cast<scalar_type>(0);
+    scalar_type radius = 0;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr circle_t() noexcept = default;
-
-    VX_FORCE_INLINE constexpr circle_t(const type& c) noexcept
-        : center(c.center), radius(c.radius) {}
+    circle_t() = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -71,13 +68,6 @@ struct circle_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& c) noexcept
-    {
-        center = c.center;
-        radius = c.radius;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const circle_t<U>& c) noexcept

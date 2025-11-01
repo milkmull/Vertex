@@ -42,7 +42,7 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
     scalar_type r, g, b, a;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
     VX_FORCE_INLINE constexpr color_t() noexcept
@@ -50,9 +50,6 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
         , g(min_channel_value)
         , b(min_channel_value)
         , a(max_channel_value) {}
-
-    VX_FORCE_INLINE constexpr color_t(const type& c) noexcept
-        : r(c.r), g(c.g), b(c.b), a(c.a) {}
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -155,15 +152,6 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& c) noexcept
-    {
-        r = c.r;
-        g = c.g;
-        b = c.b;
-        a = c.a;
-        return *this;
-    }
 
     VX_FORCE_INLINE constexpr type& operator=(const vec<4, scalar_type>& v) noexcept
     {

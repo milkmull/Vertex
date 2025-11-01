@@ -26,13 +26,10 @@ struct rect_t
     vec<2, scalar_type> size;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr rect_t() noexcept = default;
-
-    VX_FORCE_INLINE constexpr rect_t(const type& r) noexcept
-        : position(r.position), size(r.size) {}
+    rect_t() = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -91,13 +88,6 @@ struct rect_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& r) noexcept
-    {
-        position = r.position;
-        size = r.size;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const rect_t<U>& r) noexcept

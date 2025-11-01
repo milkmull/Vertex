@@ -25,13 +25,10 @@ struct line_t
     point_type b;
 
     ///////////////////////////////////////////////////////////////////////////////
-    // implicit constructors
+    // default constructor
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_FORCE_INLINE constexpr line_t() noexcept = default;
-
-    VX_FORCE_INLINE constexpr line_t(const type& p) noexcept
-        : a(p.a), b(p.b) {}
+    line_t() = default;
 
     ///////////////////////////////////////////////////////////////////////////////
     // explicit constructors
@@ -71,13 +68,6 @@ struct line_t
     ///////////////////////////////////////////////////////////////////////////////
     // assignment operators
     ///////////////////////////////////////////////////////////////////////////////
-
-    VX_FORCE_INLINE constexpr type& operator=(const type& l) noexcept
-    {
-        a = l.a;
-        b = l.b;
-        return *this;
-    }
 
     template <typename U>
     VX_FORCE_INLINE constexpr type& operator=(const line_t<U>& l) noexcept
