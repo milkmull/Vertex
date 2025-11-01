@@ -129,14 +129,14 @@ public:
     // icon
     //=============================================================================
 
-    bool set_icon(const argb_surface& surf) { return false; }
+    bool set_icon(const surface_argb& surf) { return false; }
     void clear_icon() {}
 
     //=============================================================================
     // shape
     //=============================================================================
 
-    bool update_shape(const argb_surface& shape) { return false; }
+    bool update_shape(const surface_argb& shape) { return false; }
     bool set_opacity(float opacity) { return false; }
 
     //=============================================================================

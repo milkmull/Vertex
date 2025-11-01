@@ -3,6 +3,8 @@
 #include <memory>
 #include <iterator>
 
+#include "vertex/config/language_config.hpp"
+
 namespace vx {
 
 template <typename T>
@@ -10,9 +12,9 @@ class fixed_array
 {
 public:
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // member types
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     using value_type = T;
     using allocator_type = std::allocator<T>;
@@ -27,17 +29,82 @@ public:
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-    ///////////////////////////////////////////////////////////////////////////////
+private:
+
+    //=============================================================================
+    // memory
+    //=============================================================================
+
+    static T* alloc_mem(size_type count) noexcept
+    {
+        VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
+        {
+            return std::malloc(sizeof(T) * count);
+        }
+        else
+        {
+            return new T[count];
+        }
+    }
+
+    static T* realloc_mem(T* old_ptr, size_type old_count, size_type new_count)
+    {
+        VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
+        {
+            return std::realloc(old_ptr, sizeof(T) * new_count);
+        }
+        else
+        {
+            T* new_ptr = new T[new_count];
+
+            if (new_ptr)
+            {
+                const size_type n = std::min(old_count, new_count);
+                std::move(old_ptr, old_ptr + n, new_ptr);
+                delete[] old_ptr;
+            }
+
+            return new_ptr;
+        }
+    }
+
+    static void copy_mem(T* dst, const T* src, size_type count)
+    {
+        VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
+        {
+            std::memmove(dst, src, sizeof(T) * count);
+        }
+        else
+        {
+            std::copy(src, src + count, dst);
+        }
+    }
+
+    static void free_mem(T* ptr) noexcept
+    {
+        VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
+        {
+            std::free(ptr);
+        }
+        else
+        {
+            delete[] ptr;
+        }
+    }
+
+public:
+
+    //=============================================================================
     // constructors
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     fixed_array() noexcept : m_size(0), m_data(nullptr) {}
 
     explicit fixed_array(size_type count)
-        : m_size(count), m_data(new T[count]) {}
+        : m_size(count), m_data(alloc_mem(count)) {}
 
     explicit fixed_array(size_type count, const T& value)
-        : m_size(count), m_data(new T[count])
+        : m_size(count), m_data(alloc_mem(count))
     {
         std::fill(m_data, m_data + count, value);
     }
@@ -68,15 +135,15 @@ public:
         other.m_data = nullptr;
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // destructor
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     ~fixed_array() { delete[] m_data; }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // assignment
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     fixed_array& operator=(const fixed_array& rhs)
     {
@@ -156,9 +223,9 @@ public:
         return operator=(ilist);
     }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // element access
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     reference operator[](size_type index)
     {
@@ -203,17 +270,59 @@ public:
     pointer data() noexcept { return m_data; }
     const_pointer data() const noexcept { return m_data; }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // capacity
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     size_type size() const noexcept { return m_size; }
     bool empty() const noexcept { return m_size == 0; }
     constexpr size_type max_size() const noexcept{ return std::numeric_limits<size_type>::max(); }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //===========================================================
+    // resizing and growth
+    //===========================================================
+
+    void resize(size_type new_size)
+    {
+        if (new_size == m_size)
+        {
+            return;
+        }
+
+        const size_type n = std::min(m_size, new_size);
+
+        if constexpr (std::is_trivially_copyable_v<T>)
+        {
+            m_data = std::reall
+            std::memmove(new_data, m_data, n * sizeof(T));
+        }
+        else
+        {
+            T* new_data = new T[new_size];
+            std::move(m_data, m_data + n, new_data);
+
+            delete[] m_data;
+            m_data = new_data;
+        }
+
+        m_size = new_size;
+    }
+
+    void push_back(const T& value)
+    {
+        resize(m_size + 1);
+        m_data[m_size - 1] = value;
+    }
+
+    void push_back(T&& value)
+    {
+        resize(m_size + 1);
+        m_data[m_size - 1] = std::move(value);
+    }
+
+    //=============================================================================
     // iterators
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     iterator begin() noexcept { return m_data; }
     const_iterator begin() const noexcept { return m_data; }
@@ -231,9 +340,9 @@ public:
     const_reverse_iterator rend() const noexcept { return const_reverse_iterator(begin()); }
     const_reverse_iterator crend() const noexcept { return const_reverse_iterator(begin()); }
 
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
     // comparison
-    ///////////////////////////////////////////////////////////////////////////////
+    //=============================================================================
 
     bool operator==(const fixed_array& rhs) const
     {

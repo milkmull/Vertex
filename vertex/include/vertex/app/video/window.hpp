@@ -20,22 +20,6 @@ enum class window_flash_op
     UNTIL_FOCUSED
 };
 
-enum class hit_test_result
-{
-    NORMAL,             /**< Region is normal. No special properties. */
-    DRAGGABLE,          /**< Region can drag entire window. */
-    RESIZE_TOPLEFT,     /**< Region is the resizable top-left corner border. */
-    RESIZE_TOP,         /**< Region is the resizable top border. */
-    RESIZE_TOPRIGHT,    /**< Region is the resizable top-right corner border. */
-    RESIZE_RIGHT,       /**< Region is the resizable right border. */
-    RESIZE_BOTTOMRIGHT, /**< Region is the resizable bottom-right corner border. */
-    RESIZE_BOTTOM,      /**< Region is the resizable bottom border. */
-    RESIZE_BOTTOMLEFT,  /**< Region is the resizable bottom-left corner border. */
-    RESIZE_LEFT         /**< Region is the resizable left border. */
-};
-
-using window_hit_test = hit_test_result(*)(window* w, int x, int y, void* user_data);
-
 //=============================================================================
 // window instance
 //=============================================================================
@@ -44,8 +28,7 @@ class window
 {
 public:
 
-    window(window_id id) : m_id(id) {}
-    ~window() {}
+    window(window_id id) noexcept : m_id(id) {}
 
 public:
 
@@ -53,7 +36,7 @@ public:
     window_id id() const noexcept { return m_id; }
 
     bool is_valid() const noexcept { return is_valid_id(m_id); }
-    VX_API bool exists() const;
+    bool exists() const { return window_exists(m_id); }
 
     //=============================================================================
     // sync
@@ -65,8 +48,8 @@ public:
     // title
     //=============================================================================
 
-    VX_API const std::string& get_title() const;
-    VX_API void set_title(const std::string& title);
+    VX_API std::string get_title() const;
+    VX_API bool set_title(const std::string& title);
 
     //=============================================================================
     // position and size
@@ -75,24 +58,24 @@ public:
     VX_API bool set_resizable(bool resizable);
     VX_API bool is_resizable() const;
 
-    VX_API bool get_position(int32_t* x, int32_t* y) const;
-    VX_API bool set_position(int32_t x, int32_t y);
+    VX_API math::vec2i get_position() const;
+    VX_API bool set_position(const math::vec2i& position);
 
-    VX_API bool get_size(int32_t* w, int32_t* h) const;
-    VX_API bool set_size(int32_t w, int32_t h);
+    VX_API math::vec2i get_size() const;
+    VX_API bool set_size(const math::vec2i& size);
 
     VX_API math::vec2i get_center() const;
     VX_API math::recti get_rect() const;
 
-    VX_API bool get_border_size(int32_t* left, int32_t* right, int32_t* bottom, int32_t* top) const;
-    VX_API bool get_size_in_pixels(int32_t* w, int32_t* h) const;
+    VX_API math::recti get_border_size() const;
+    VX_API math::vec2i get_size_in_pixels() const;
     VX_API float get_pixel_density() const;
 
-    VX_API bool get_min_size(int32_t* w, int32_t* h) const;
-    VX_API bool get_max_size(int32_t* w, int32_t* h) const;
+    VX_API math::vec2i get_min_size() const;
+    VX_API math::vec2i get_max_size() const;
 
-    VX_API bool set_min_size(int32_t w, int32_t h);
-    VX_API bool set_max_size(int32_t w, int32_t h);
+    VX_API bool set_min_size(const math::vec2i& size);
+    VX_API bool set_max_size(const math::vec2i& size);
 
     VX_API float get_aspect_ratio() const;
     VX_API float get_locked_aspect_ratio() const;

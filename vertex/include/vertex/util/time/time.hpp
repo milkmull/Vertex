@@ -24,12 +24,7 @@ class time_point
 {
 public:
 
-    /**
-     * @brief Default constructor, initializes time_point to zero.
-     *
-     * This constructor creates a time_point representing zero time.
-     */
-    constexpr time_point() noexcept = default;
+    time_point() = default;
 
     /**
      * @brief Constructs a time_point from nanoseconds.
@@ -53,10 +48,10 @@ public:
      * @return True if the time_point is zero, false otherwise.
      */
     constexpr bool is_zero() const noexcept { return m_count == 0; }
+    constexpr explicit operator bool() const noexcept { return !is_zero(); }
 
     constexpr bool is_positive() const noexcept { return m_count > 0; }
     constexpr bool is_negative() const noexcept { return m_count < 0; }
-
 
     /**
      * @brief Retrieves the time in nanoseconds.

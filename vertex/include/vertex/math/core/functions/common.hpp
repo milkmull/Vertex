@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/math/core/constants.hpp"

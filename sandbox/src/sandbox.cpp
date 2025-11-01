@@ -5,6 +5,7 @@
 #include "vertex/app/hints/hints.hpp"
 #include "vertex/app/event/event.hpp"
 #include "vertex/math/core/util.hpp"
+#include "vertex/math/geometry/2d/types/circle.hpp"
 
 using namespace vx;
 
@@ -51,6 +52,9 @@ static void run_app()
 
 int main(int argc, char* argv[])
 {
+    constexpr auto x = math::g2::circle_t<int>().radius;
+
+
     if (app::init() && app::init_subsystem(app::INIT_EVENTS))
     {
         app::event::add_event_watch(display_added_event_watcher, nullptr);

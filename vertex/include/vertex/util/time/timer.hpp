@@ -21,7 +21,6 @@ class timer
 public:
 
     timer() noexcept = default;
-    ~timer() noexcept = default;
 
     /**
      * @brief Starts the timer.

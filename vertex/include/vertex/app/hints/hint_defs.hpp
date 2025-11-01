@@ -6,15 +6,15 @@ namespace vx {
 namespace app {
 namespace hint {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // hint type
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 using hint_t = uint64_t;
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // helpers
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 template <hint_t hint>
 struct hint_traits
@@ -22,7 +22,7 @@ struct hint_traits
     VX_STATIC_ASSERT(hint != hint, "invalid hint");
 };
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 #define CREATE_HINT_DEF(name, id) enum : hint_t { name = id }
 
@@ -36,9 +36,9 @@ struct hint_traits<name> \
 
 #define CREATE_HINT(name, id, value) CREATE_HINT_DEF(name, id); CREATE_HINT_TRAITS(name, value)
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // hints
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // Prevents screen saver activation while the video system is active.
 CREATE_HINT(HINT_VIDEO_ALLOW_SCREEN_SAVER, 1, "0");
@@ -73,13 +73,50 @@ CREATE_HINT(HINT_VIDEO_WINDOW_MATCH_EXCLUSIVE_MODE_ON_MOVE, 10, "1");
 // Automatically quit the app when the last window is closed.
 CREATE_HINT(HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE, 11, "1");
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
+// input / mouse / touch / pen hints
+//=============================================================================
+
+// Apply system scaling to relative mode (1 = enabled).
+CREATE_HINT(HINT_MOUSE_RELATIVE_SYSTEM_SCALE, 12, "1");
+
+// Keep cursor centered in relative mode.
+CREATE_HINT(HINT_MOUSE_RELATIVE_MODE_CENTER, 13, "0");
+
+// Emulate warp with relative motion events when warping is unavailable.
+CREATE_HINT(HINT_MOUSE_EMULATE_WARP_WITH_RELATIVE, 14, "1");
+
+// Generate mouse events from touch input.
+CREATE_HINT(HINT_TOUCH_MOUSE_EVENTS, 15, "1");
+
+// Generate touch events from mouse input.
+CREATE_HINT(HINT_MOUSE_TOUCH_EVENTS, 16, "0");
+
+// Generate mouse events from pen input.
+CREATE_HINT(HINT_PEN_MOUSE_EVENTS, 17, "1");
+
+// Generate touch events from pen input.
+CREATE_HINT(HINT_PEN_TOUCH_EVENTS, 18, "0");
+
+// Automatically capture mouse when button pressed inside window (Windows).
+CREATE_HINT(HINT_MOUSE_AUTO_CAPTURE, 19, "1");
+
+// Generate motion events when cursor is warped in relative mode.
+CREATE_HINT(HINT_MOUSE_RELATIVE_WARP_MOTION, 20, "0");
+
+// Keep cursor visible in relative mode.
+CREATE_HINT(HINT_MOUSE_RELATIVE_CURSOR_VISIBLE, 21, "0");
+
+// Integer motion mode (non-standard, experimental).
+CREATE_HINT(HINT_MOUSE_INTEGER_MODE, 22, "0");
+
+//=============================================================================
 
 #define VX_HINT_GET_NAME(hint_) ::vx::app::hint::hint_traits<(hint_)>::hint
 #define VX_HINT_GET_DEFAULT_VALUE(hint_) ::vx::app::hint::hint_traits<(hint_)>::default_value
 #define HINT_AND_DEFAULT_VALUE(hint_) (hint_), VX_HINT_GET_DEFAULT_VALUE(hint_)
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 #undef CREATE_HINT_DEF
 #undef CREATE_HINT_TRAITS

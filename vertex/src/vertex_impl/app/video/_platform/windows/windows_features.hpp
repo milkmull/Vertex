@@ -284,6 +284,16 @@
 #endif
 #define VX_VIDEO_BACKEND_HAVE_MOUSE_GET_GLOBAL_MOUSE_STATE 1
 
+#ifdef VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
+#   undef VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
+#endif
+#define VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME 1
+
+#ifdef VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_AREA
+#   undef VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_AREA
+#endif
+#define VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_AREA 1
+
 // ------------------------------------------------------------
 // Text input
 // ------------------------------------------------------------

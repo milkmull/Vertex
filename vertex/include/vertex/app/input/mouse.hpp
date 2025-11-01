@@ -20,7 +20,8 @@ enum : mouse_id
 {
     GLOBAL_MOUSE_ID = 1,
     DEFAULT_MOUSE_ID = 2,
-    TOUCH_MOUSE_ID = static_cast<mouse_id>(-1)
+    TOUCH_MOUSE_ID = MAX_ID,
+    PEN_MOUSE_ID = MAX_ID - 1
 };
 
 ///////////////////////////////////////////////////////////////////////////////

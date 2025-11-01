@@ -78,8 +78,7 @@ class display
 public:
 
     // implicit on purpose: allows seamless conversion
-    display(display_id id) : m_id(id) {}
-    ~display() {}
+    display(display_id id) noexcept : m_id(id) {}
 
 public:
 
@@ -134,6 +133,8 @@ VX_API bool disable_screen_saver();
 ///////////////////////////////////////////////////////////////////////////////
 // windows
 ///////////////////////////////////////////////////////////////////////////////
+
+class window;
 
 struct window_config
 {

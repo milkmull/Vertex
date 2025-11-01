@@ -4,6 +4,7 @@
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/input/mouse.hpp"
 #include "vertex/app/input/keyboard.hpp"
+#include "vertex/app/input/touch.hpp"
 #include "vertex/util/time.hpp"
 
 // https://www.glfw.org/docs/3.3/input_guide.html
@@ -30,7 +31,8 @@ enum event_category : uint8_t
     CATEGORY_WINDOW,
     CATEGORY_KEY,
     CATEGORY_MOUSE,
-    CATEGORY_FINGER,
+    CATEGORY_TOUCH,
+    CATEGORY_PINCH,
     CATEGORY_PEN,
     CATEGORY_CLIPBOARD,
     CATEGORY_DROP,
@@ -181,12 +183,19 @@ enum event_type : event_type_t
     EVENT_TYPE(MOUSE_EVENT_LAST,                CATEGORY_MOUSE,     7),
 
     // touch events
-    EVENT_TYPE(FINGER_EVENT_FIRST,              CATEGORY_FINGER,    0),
-    EVENT_TYPE(FINGER_MOVED,                    CATEGORY_FINGER,    1),
-    EVENT_TYPE(FINGER_DOWN,                     CATEGORY_FINGER,    2),
-    EVENT_TYPE(FINGER_UP,                       CATEGORY_FINGER,    3),
-    EVENT_TYPE(FINGER_CANCELED,                 CATEGORY_FINGER,    4),
-    EVENT_TYPE(FINGER_EVENT_LAST,               CATEGORY_FINGER,    5),
+    EVENT_TYPE(FINGER_EVENT_FIRST,              CATEGORY_TOUCH,     0),
+    EVENT_TYPE(FINGER_MOVED,                    CATEGORY_TOUCH,     1),
+    EVENT_TYPE(FINGER_DOWN,                     CATEGORY_TOUCH,     2),
+    EVENT_TYPE(FINGER_UP,                       CATEGORY_TOUCH,     3),
+    EVENT_TYPE(FINGER_CANCELED,                 CATEGORY_TOUCH,     4),
+    EVENT_TYPE(FINGER_EVENT_LAST,               CATEGORY_TOUCH,     5),
+
+    // pinch events
+    EVENT_TYPE(PINCH_EVENT_FIRST,               CATEGORY_TOUCH,     0),
+    EVENT_TYPE(PINCH_BEGIN,                     CATEGORY_TOUCH,     1),
+    EVENT_TYPE(PINCH_UPDATE,                    CATEGORY_TOUCH,     2),
+    EVENT_TYPE(PINCH_END,                       CATEGORY_TOUCH,     3),
+    EVENT_TYPE(PINCH_EVENT_LAST,                CATEGORY_TOUCH,     4),
 
     // pen events
     EVENT_TYPE(PEN_EVENT_FIRST,                 CATEGORY_PEN,       0),
@@ -448,13 +457,14 @@ struct text_event_type
 
 struct mouse_event_common
 {
-    int32_t x, y;
+    mouse::mouse_id mouse_id;
+    video::window_id window_id;
+    float x, y;
 };
 
 struct mouse_moved_event
 {
-    int32_t x, y;
-    int32_t dx, dy;
+    float dx, dy;
 };
 
 struct mouse_button_down_event
@@ -490,6 +500,64 @@ struct mouse_event_type
 ///////////////////////////////////////////////////////////////////////////////
 // touch events
 ///////////////////////////////////////////////////////////////////////////////
+
+struct touch_event_common
+{
+    touch::touch_id touch_id;
+    touch::finger_id finger_id;
+    float x, y;
+    float pressure;
+    video::window_id window_id;
+};
+
+struct finger_moved_event
+{
+    float dx, dy;
+    float pressure_difference;
+};
+
+struct finger_down_event {};
+struct finger_up_event {};
+struct finger_cancelled_event {};
+
+struct touch_event_type
+{
+    touch_event_common common;
+
+    union
+    {
+        finger_moved_event finger_moved;
+        finger_down_event finger_down;
+        finger_up_event finger_up;
+        finger_cancelled_event finger_cancelled;
+    };
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// pinch events
+///////////////////////////////////////////////////////////////////////////////
+
+struct pinch_event_common
+{
+    float scale;
+    video::window_id window_id;
+};
+
+struct pinch_event_begin {};
+struct pinch_event_update {};
+struct pinch_event_end {};
+
+struct pinch_event_type
+{
+    pinch_event_common common;
+
+    union
+    {
+        pinch_event_begin pinch_begin;
+        pinch_event_update pinch_update;
+        pinch_event_end pinch_end;
+    };
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // pen events
@@ -552,6 +620,14 @@ public:
         // mouse events
 
         mouse_event_type mouse_event;
+
+        // touch events
+
+        touch_event_type touch_event;
+
+        // pinch events
+
+        pinch_event_type pinch_event;
 
 #endif // VX_APP_VIDEO_ENABLED
 

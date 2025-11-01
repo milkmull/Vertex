@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "vertex/os/atomic.hpp"
 
 namespace vx {
@@ -10,7 +12,8 @@ using id_type = size_t;
 enum : id_type
 {
     INVALID_ID = 0,
-    DEFAULT_ID = 1
+    DEFAULT_ID = 1,
+    MAX_ID = std::numeric_limits<id_type>::max()
 };
 
 inline constexpr bool is_valid_id(id_type id) noexcept
@@ -21,9 +24,6 @@ inline constexpr bool is_valid_id(id_type id) noexcept
 class id_generator
 {
 public:
-
-    id_generator() = default;
-    ~id_generator() = default;
 
     id_type next() { return ++m_id; }
     void reset() { m_id = INVALID_ID; }

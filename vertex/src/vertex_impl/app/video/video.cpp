@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "vertex/config/util.hpp"
 #include "vertex/math/geometry/2d/functions/collision.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
@@ -463,7 +464,7 @@ display_id video_instance::get_display_at_origin(const math::vec2i& origin) cons
 
 //=============================================================================
 
-VX_API display_id get_display_for_window(const window& w)
+VX_API display_id get_display_for_window(window_id w)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(INVALID_ID);
     return s_video_ptr->get_display_for_window(w, false);
@@ -795,6 +796,7 @@ void display_instance::init_modes() const
 #if VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 
     impl_ptr->list_display_modes(this);
+    data.modes.shrink_to_fit();
 
 #endif // VX_VIDEO_BACKEND_HAVE_DISPLAY_LIST_MODES
 }
@@ -1349,7 +1351,7 @@ window_id video_instance::create_window(const window_config& config)
     
     if (w.create(this, config))
     {
-        data.windows.push_back(std::move(w));
+        VX_VEC_GROW_BY_1(data.windows, std::move(w));
         return data.windows.back().data.id;
     }
 

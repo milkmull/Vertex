@@ -1,3 +1,4 @@
+#include "vertex/config/util.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/event/_platform/platform_event.hpp"
@@ -567,7 +568,7 @@ void events_instance::add_event_watch(event_filter callback, void* user_data)
     event_watcher watcher{ callback, user_data, false };
 
     os::lock_guard lock(data.watch.mutex);
-    data.watch.watchers.push_back(watcher);
+    VX_VEC_GROW_BY_1(data.watch.watchers, watcher);
 }
 
 ////////////////////////////////////////
