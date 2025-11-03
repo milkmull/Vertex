@@ -9,10 +9,10 @@ enum init_flag
 {
     NONE                    = 0,
 
-    INIT_EVENTS             = (1 << 0),
-    INIT_VIDEO              = (1 << 1),
-    INIT_AUDIO              = (1 << 2),
-    INIT_CAMERA             = (1 << 3),
+    INIT_EVENTS             = VX_BIT(0),
+    INIT_VIDEO              = VX_BIT(1),
+    INIT_AUDIO              = VX_BIT(2),
+    INIT_CAMERA             = VX_BIT(3),
 
     INIT_EVERYTHING         = INIT_EVENTS | INIT_VIDEO | INIT_AUDIO | INIT_CAMERA,
     INIT_REQUIRES_EVENTS    = INIT_EVENTS | INIT_VIDEO | INIT_AUDIO | INIT_CAMERA

@@ -13,8 +13,8 @@ namespace _priv {
 
 enum : uint32_t
 {
-    EXTENDED_MASK = (1u << 29),
-    SCANCODE_MASK = (1u << 30)
+    EXTENDED_MASK = VX_BIT(29),
+    SCANCODE_MASK = VX_BIT(30)
 };
 
 } // namespace _priv

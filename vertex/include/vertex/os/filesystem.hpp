@@ -445,10 +445,10 @@ struct copy_options
     enum : type
     {
         NONE                = 0,            // No options set
-        OVERWRITE_EXISTING  = (1 << 1),     // Overwrite the destination file if it already exists
-        SKIP_SYMLINKS       = (1 << 2),     // Skip copying symlinks
-        DIRECTORIES_ONLY    = (1 << 3),     // Copy only directories, skipping files
-        RECURSIVE           = (1 << 4)      // Copy directories and their contents recursively
+        OVERWRITE_EXISTING  = VX_BIT(1),    // Overwrite the destination file if it already exists
+        SKIP_SYMLINKS       = VX_BIT(2),    // Skip copying symlinks
+        DIRECTORIES_ONLY    = VX_BIT(3),    // Copy only directories, skipping files
+        RECURSIVE           = VX_BIT(4)     // Copy directories and their contents recursively
     };
 };
 

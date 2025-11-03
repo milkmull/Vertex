@@ -30,14 +30,14 @@ class pen_capability
     enum : type
     {
         NONE                = 0,
-        PRESSURE            = (1 << 0),
-        XTILT               = (1 << 1),
-        YTILT               = (1 << 2),
-        DISTANCE            = (1 << 3),
-        ROTATION            = (1 << 4),
-        SLIDER              = (1 << 5),
-        TANGENTAIL_PRESSURE = (1 << 6),
-        ERASER              = (1 << 7),
+        PRESSURE            = VX_BIT(0),
+        XTILT               = VX_BIT(1),
+        YTILT               = VX_BIT(2),
+        DISTANCE            = VX_BIT(3),
+        ROTATION            = VX_BIT(4),
+        SLIDER              = VX_BIT(5),
+        TANGENTAIL_PRESSURE = VX_BIT(6),
+        ERASER              = VX_BIT(7),
     };
 }
 

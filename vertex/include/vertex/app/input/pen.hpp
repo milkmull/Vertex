@@ -18,13 +18,13 @@ enum : pen_id { DEFAULT_PEN_ID = DEFAULT_ID };
 
 enum pen_input_flags
 {
-    PEN_INPUT_DOWN        = (1u << 0),
-    PEN_INPUT_BUTTON_1    = (1u << 1),
-    PEN_INPUT_BUTTON_2    = (1u << 2),
-    PEN_INPUT_BUTTON_3    = (1u << 3),
-    PEN_INPUT_BUTTON_4    = (1u << 4),
-    PEN_INPUT_BUTTON_5    = (1u << 5),
-    PEN_INPUT_ERASER_TIP  = (1u << 30)
+    PEN_INPUT_DOWN        = VX_BIT(0),
+    PEN_INPUT_BUTTON_1    = VX_BIT(1),
+    PEN_INPUT_BUTTON_2    = VX_BIT(2),
+    PEN_INPUT_BUTTON_3    = VX_BIT(3),
+    PEN_INPUT_BUTTON_4    = VX_BIT(4),
+    PEN_INPUT_BUTTON_5    = VX_BIT(5),
+    PEN_INPUT_ERASER_TIP  = VX_BIT(30)
 };
 
 enum pen_axis

@@ -32,12 +32,12 @@ enum buttons
 {
     NONE            = 0,
 
-    BUTTON_LEFT     = (1 << 0),
-    BUTTON_RIGHT    = (1 << 1),
-    BUTTON_MIDDLE   = (1 << 2),
+    BUTTON_LEFT     = VX_BIT(0),
+    BUTTON_RIGHT    = VX_BIT(1),
+    BUTTON_MIDDLE   = VX_BIT(2),
 
-    BUTTON_EXTRA_1  = (1 << 3),
-    BUTTON_EXTRA_2  = (1 << 4)
+    BUTTON_EXTRA_1  = VX_BIT(3),
+    BUTTON_EXTRA_2  = VX_BIT(4)
 };
 
 enum wheel_direction

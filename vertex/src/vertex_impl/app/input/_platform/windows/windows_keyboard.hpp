@@ -22,8 +22,8 @@ struct raw_input_flags
     enum : type
     {
         NONE = 0,
-        ENABLE_RAW_MOUSE_INPUT = (1 << 0),
-        ENABLE_RAW_KEYBOARD_INPUT = (1 << 1)
+        ENABLE_RAW_MOUSE_INPUT = VX_BIT(0),
+        ENABLE_RAW_KEYBOARD_INPUT = VX_BIT(1)
     };
 };
 

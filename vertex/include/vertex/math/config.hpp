@@ -5,10 +5,10 @@
 // Coordinate system, define VX_FORCE_LEFT_HANDED before including vertex
 // to use left handed coordinate system by default.
 
-#define VX_CLIP_CONTROL_ZO_BIT (1 << 0) // ZERO_TO_ONE
-#define VX_CLIP_CONTROL_NO_BIT (1 << 1) // NEGATIVE_ONE_TO_ONE
-#define VX_CLIP_CONTROL_LH_BIT (1 << 2) // LEFT_HANDED, For DirectX, Metal, Vulkan (+z is into the screen)
-#define VX_CLIP_CONTROL_RH_BIT (1 << 3) // RIGHT_HANDED, For OpenGL, default in VX (+z is out of the screen)
+#define VX_CLIP_CONTROL_ZO_BIT VX_BIT(0) // ZERO_TO_ONE
+#define VX_CLIP_CONTROL_NO_BIT VX_BIT(1) // NEGATIVE_ONE_TO_ONE
+#define VX_CLIP_CONTROL_LH_BIT VX_BIT(2) // LEFT_HANDED, For DirectX, Metal, Vulkan (+z is into the screen)
+#define VX_CLIP_CONTROL_RH_BIT VX_BIT(3) // RIGHT_HANDED, For OpenGL, default in VX (+z is out of the screen)
 
 #define VX_CLIP_CONTROL_LH_ZO (VX_CLIP_CONTROL_LH_BIT | VX_CLIP_CONTROL_ZO_BIT)
 #define VX_CLIP_CONTROL_LH_NO (VX_CLIP_CONTROL_LH_BIT | VX_CLIP_CONTROL_NO_BIT)

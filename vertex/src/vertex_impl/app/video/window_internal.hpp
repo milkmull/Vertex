@@ -27,26 +27,26 @@ struct window_flags
     {
         NONE = 0,
 
-        FULLSCREEN = (1 << 0),
-        MINIMIZED = (1 << 1),
-        MAXIMIZED = (1 << 2),
+        FULLSCREEN = VX_BIT(0),
+        MINIMIZED = VX_BIT(1),
+        MAXIMIZED = VX_BIT(2),
 
-        BORDERLESS = (1 << 3),
-        RESIZABLE = (1 << 4),
-        TOPMOST = (1 << 5),
-        TRANSPARENT = (1 << 6),
+        BORDERLESS = VX_BIT(3),
+        RESIZABLE = VX_BIT(4),
+        TOPMOST = VX_BIT(5),
+        TRANSPARENT = VX_BIT(6),
 
-        HIDDEN = (1 << 7),
-        OCCLUDED = (1 << 8),
+        HIDDEN = VX_BIT(7),
+        OCCLUDED = VX_BIT(8),
 
-        NOT_FOCUSABLE = (1 << 9),
-        INPUT_FOCUS = (1 << 10),
-        MOUSE_FOCUS = (1 << 11),
+        NOT_FOCUSABLE = VX_BIT(9),
+        INPUT_FOCUS = VX_BIT(10),
+        MOUSE_FOCUS = VX_BIT(11),
 
-        MOUSE_GRABBED = (1 << 12),
-        KEYBOARD_GRABBED = (1 << 13),
+        MOUSE_GRABBED = VX_BIT(12),
+        KEYBOARD_GRABBED = VX_BIT(13),
 
-        MOUSE_CAPTURE = (1 << 14),
+        MOUSE_CAPTURE = VX_BIT(14),
 
         // flags to be set by the os on window creation
         CREATE_FLAGS = (HIDDEN | MINIMIZED | BORDERLESS | RESIZABLE | TOPMOST),

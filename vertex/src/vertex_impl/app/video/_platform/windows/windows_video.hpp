@@ -155,8 +155,8 @@ public:
 enum class display_state
 {
     NONE    = 0,
-    ADDED   = (1 << 0),
-    REMOVED = (1 << 1)
+    ADDED   = VX_BIT(0),
+    REMOVED = VX_BIT(1)
 };
 
 struct display_impl_data
