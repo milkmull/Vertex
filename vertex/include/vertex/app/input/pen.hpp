@@ -39,6 +39,11 @@ enum pen_axis
     PEN_AXIS_COUNT
 };
 
+enum pen_device_type
+{
+
+};
+
 } // namespace pen
 } // namespace app
 } // namespace vx
