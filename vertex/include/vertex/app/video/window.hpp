@@ -15,9 +15,9 @@ class window;
 
 enum class window_flash_op
 {
-    CANCEL,
-    BRIEF,
-    UNTIL_FOCUSED
+    cancel,
+    brief,
+    until_focused
 };
 
 //=============================================================================

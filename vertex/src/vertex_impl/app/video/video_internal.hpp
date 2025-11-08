@@ -43,13 +43,13 @@ struct video_data
     // Windows
     id_generator window_id_generator;
     std::vector<window_instance> windows;
-    window_id grabbed_window = INVALID_ID;
-    os::atomic<window_id> wakeup_window = INVALID_ID;
+    window_id grabbed_window = invalid_id;
+    os::atomic<window_id> wakeup_window = invalid_id;
 
     // System settings
     bool suspend_screen_saver = false;
     bool sync_window_operations = false;
-    system_theme theme = system_theme::UNKNOWN;
+    system_theme theme = system_theme::unknown;
     math::recti desktop_area;
 };
 
@@ -257,7 +257,7 @@ struct display_data
 
     // This is true if we are fullscreen or fullscreen is pending
     bool fullscreen_active = false;
-    window_id fullscreen_window_id = INVALID_ID;
+    window_id fullscreen_window_id = invalid_id;
 };
 
 class display_instance

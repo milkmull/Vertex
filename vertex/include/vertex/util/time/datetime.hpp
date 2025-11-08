@@ -58,13 +58,6 @@ constexpr civil civil_from_days(int32_t days) noexcept
     return civil{ y + (m <= 2), m, d };
 }
 
-enum : int64_t
-{
-    SEC_PER_MIN = 60,
-    SEC_PER_HOUR = (SEC_PER_MIN * 60),
-    SEC_PER_DAY = (SEC_PER_HOUR * 24),
-};
-
 } // namespace _priv
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -73,29 +66,29 @@ enum : int64_t
 
 enum class weekday : int32_t
 {
-    SUNDAY = 0,
-    MONDAY = 1,
-    TUESDAY = 2,
-    WEDNESDAY = 3,
-    THURSDAY = 4,
-    FRIDAY = 5,
-    SATURDAY = 6
+    sunday = 0,
+    monday = 1,
+    tuesday = 2,
+    wednesday = 3,
+    thursday = 4,
+    friday = 5,
+    saturday = 6
 };
 
 enum class month : int32_t
 {
-    JANUARY = 1,
-    FEBRUARY = 2,
-    MARCH = 3,
-    APRIL = 4,
-    MAY = 5,
-    JUNE = 6,
-    JULY = 7,
-    AUGUST = 8,
-    SEPTEMBER = 9,
-    OCTOBER = 10,
-    NOVEMBER = 11,
-    DECEMBER = 12
+    january = 1,
+    february = 2,
+    march = 3,
+    april = 4,
+    may = 5,
+    june = 6,
+    july = 7,
+    august = 8,
+    september = 9,
+    october = 10,
+    november = 11,
+    december = 12
 };
 
 // https://docs.godotengine.org/en/stable/classes/class_time.html
@@ -141,7 +134,7 @@ constexpr int32_t get_days_in_month(int32_t year, month month) noexcept
 {
     constexpr uint8_t dim[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     const int32_t days = dim[static_cast<int32_t>(month) - 1];
-    return (month == month::FEBRUARY) ? (days + is_leap_year(year)) : days;
+    return (month == month::february) ? (days + is_leap_year(year)) : days;
 }
 
 /**
@@ -188,9 +181,9 @@ constexpr weekday get_day_of_week(int32_t year, month month, int32_t day) noexce
 struct datetime
 {
     int32_t year = 0;                                       // year
-    time::month month = time::month::JANUARY;               // month [1-12]
+    time::month month = time::month::january;               // month [1-12]
     int32_t day = 0;                                        // day [1-31]
-    time::weekday weekday = time::weekday::SUNDAY;          // weekday [0-6]
+    time::weekday weekday = time::weekday::sunday;          // weekday [0-6]
     int32_t hour = 0;                                       // hour [0-23]
     int32_t minute = 0;                                     // minute [0-59]
     int32_t second = 0;                                     // second [0-59] leap seconds not supported
@@ -228,19 +221,19 @@ struct datetime
 
         // Convert local time to seconds, adjust by utc offset
         const int64_t total_seconds = (
-            total_days * _priv::SEC_PER_DAY +
-            hour       * _priv::SEC_PER_HOUR +
-            minute     * _priv::SEC_PER_MIN +
+            total_days * seconds_per_day +
+            hour       * seconds_per_hour +
+            minute     * seconds_per_minute +
             second
         ) - utc_offset_seconds;
 
         // Convert back to UTC date and time
-        int32_t new_days = static_cast<int32_t>(total_seconds / _priv::SEC_PER_DAY);
-        int32_t remaining_seconds = static_cast<int32_t>(total_seconds % _priv::SEC_PER_DAY);
+        int32_t new_days = static_cast<int32_t>(total_seconds / seconds_per_day);
+        int32_t remaining_seconds = static_cast<int32_t>(total_seconds % seconds_per_day);
         if (remaining_seconds < 0)
         {
             --new_days;
-            remaining_seconds += _priv::SEC_PER_DAY;
+            remaining_seconds += seconds_per_day;
         }
 
         datetime utc_dt{};
@@ -252,10 +245,10 @@ struct datetime
         utc_dt.day = static_cast<int32_t>(civil.day);
         utc_dt.weekday = get_day_of_week(utc_dt.year, utc_dt.month, utc_dt.day);
 
-        utc_dt.hour = remaining_seconds / _priv::SEC_PER_HOUR;
-        remaining_seconds %= _priv::SEC_PER_HOUR;
-        utc_dt.minute = remaining_seconds / _priv::SEC_PER_MIN;
-        utc_dt.second = remaining_seconds % _priv::SEC_PER_MIN;
+        utc_dt.hour = remaining_seconds / seconds_per_hour;
+        remaining_seconds %= seconds_per_hour;
+        utc_dt.minute = remaining_seconds / seconds_per_day;
+        utc_dt.second = remaining_seconds % seconds_per_day;
         utc_dt.nanosecond = nanosecond; // nanoseconds remain unchanged
 
         return utc_dt;
@@ -274,9 +267,9 @@ struct datetime
         const int32_t days_since_epoch = _priv::civil_to_days(year, static_cast<int32_t>(month), day);
         // Calculate the total seconds since the Unix epoch (1970-01-01)
         const int64_t seconds_since_epoch = (
-            days_since_epoch * _priv::SEC_PER_DAY +
-            hour             * _priv::SEC_PER_HOUR +
-            minute           * _priv::SEC_PER_MIN +
+            days_since_epoch * seconds_per_day +
+            hour             * seconds_per_hour +
+            minute           * seconds_per_minute +
             second
         );
         // Convert to nanoseconds and add the nanosecond component
@@ -325,7 +318,6 @@ constexpr const char* weekday_to_string(weekday weekday)
 
     return conversion_table[static_cast<int>(weekday)];
 }
-
 
 /**
  * @brief Converts a month enum to its corresponding string representation.

@@ -11,7 +11,7 @@ VX_API file::file(file&& other) noexcept
     : m_mode(other.m_mode)
     , m_handle(std::move(other.m_handle))
 {
-    other.m_mode = mode::NONE;
+    other.m_mode = mode::none;
 }
 
 VX_API file& file::operator=(file&& other) noexcept
@@ -23,7 +23,7 @@ VX_API file& file::operator=(file&& other) noexcept
         m_mode = other.m_mode;
         m_handle = std::move(other.m_handle);
 
-        other.m_mode = mode::NONE;
+        other.m_mode = mode::none;
     }
 
     return *this;
@@ -43,20 +43,20 @@ VX_API bool file::exists(const path& p)
 VX_API bool file::create(const path& p)
 {
     file f;
-    return f.open(p, mode::WRITE);
+    return f.open(p, mode::write);
 }
 
 VX_API bool file::open(const path& p, mode file_mode)
 {
     if (is_open())
     {
-        err::set(err::FILE_OPEN_FAILED, "file already open");
+        err::set(err::file_open_failed, "file already open");
         return false;
     }
 
-    if (file_mode == mode::NONE)
+    if (file_mode == mode::none)
     {
-        err::set(err::FILE_OPEN_FAILED, "invalid file mode");
+        err::set(err::file_open_failed, "invalid file mode");
         return false;
     }
 
@@ -71,13 +71,13 @@ VX_API bool file::open(const path& p, mode file_mode)
 
 VX_API bool file::is_open() const
 {
-    return (m_mode != mode::NONE) && m_handle.is_valid();
+    return (m_mode != mode::none) && m_handle.is_valid();
 }
 
 VX_API void file::close()
 {
     m_handle.close();
-    m_mode = mode::NONE;
+    m_mode = mode::none;
 }
 
 VX_API size_t file::size() const
@@ -97,7 +97,7 @@ VX_API bool file::seek(int off, stream_position from)
 
 VX_API size_t file::tell() const
 {
-    return is_open() ? _priv::file_impl::tell(m_handle) : INVALID_POSITION;
+    return is_open() ? _priv::file_impl::tell(m_handle) : invalid_position;
 }
 
 VX_API bool file::eof() const
@@ -119,7 +119,7 @@ static bool read_check(const bool can_read)
 {
     if (!can_read)
     {
-        err::set(err::FILE_READ_FAILED, "file not open in read mode");
+        err::set(err::file_read_failed, "file not open in read mode");
     }
     return can_read;
 }
@@ -128,7 +128,7 @@ static bool write_check(const bool can_write)
 {
     if (!can_write)
     {
-        err::set(err::FILE_WRITE_FAILED, "file not open in write mode");
+        err::set(err::file_write_failed, "file not open in write mode");
     }
     return can_write;
 }
@@ -193,7 +193,7 @@ VX_API bool file::write_line(const char* line)
 VX_API bool file::write_file(const path& p, const char* text)
 {
     file f;
-    if (!f.open(p, mode::WRITE))
+    if (!f.open(p, mode::write))
     {
         return false;
     }
@@ -245,7 +245,7 @@ file file::from_native_handle(typename handle::native_handle h, mode m)
         return f;
     }
 
-    if (m == file::mode::NONE)
+    if (m == file::mode::none)
     {
         return f;
     }

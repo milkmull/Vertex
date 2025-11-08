@@ -60,12 +60,12 @@ void video::quit()
 
 static void uninitialized_video()
 {
-    VX_ERROR(error::error_code::UNSUPPORTED_OPERATION) << "Video subsystem has not been initialized";
+    VX_ERROR(error::error_code::unsupported_operation) << "Video subsystem has not been initialized";
 }
 
 bool video::is_init()
 {
-    VX_ERROR(error::error_code::UNSUPPORTED_OPERATION) << "Video subsystem has not been initialized";
+    VX_ERROR(error::error_code::unsupported_operation) << "Video subsystem has not been initialized";
     return s_video_data.is_init;
 }
 

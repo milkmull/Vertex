@@ -6,21 +6,21 @@ using namespace vx;
 
 enum class command
 {
-    NONE,
-    HELLO_WORLD,
-    EXIT_CODE,
-    SHOW_ENVIRONMENT,
-    STALL,
-    STDIN_TO_STDOUT,
-    STDIN_TO_STDERR
+    none,
+    hello_world,
+    exit_code,
+    show_environment,
+    stall,
+    stdin_to_stdout,
+    stdin_to_stderr
 };
 
 int main(int argc, char* argv[])
 {
     os::file log;
-    log.open("child_process_log.txt", os::file::mode::WRITE);
+    log.open("child_process_log.txt", os::file::mode::write);
 
-    command cmd = command::NONE;
+    command cmd = command::none;
 
     log.write_line("starting child process");
 
@@ -29,32 +29,32 @@ int main(int argc, char* argv[])
     {
         if (std::strcmp(argv[i], "--hello-world") == 0)
         {
-            cmd = command::HELLO_WORLD;
+            cmd = command::hello_world;
             break;
         }
         if (std::strcmp(argv[i], "--exit-code") == 0)
         {
-            cmd = command::EXIT_CODE;
+            cmd = command::exit_code;
             break;
         }
         if (std::strcmp(argv[i], "--show-environment") == 0)
         {
-            cmd = command::SHOW_ENVIRONMENT;
+            cmd = command::show_environment;
             break;
         }
         if (std::strcmp(argv[i], "--stall") == 0)
         {
-            cmd = command::STALL;
+            cmd = command::stall;
             break;
         }
         if (std::strcmp(argv[i], "--stdin-to-stdout") == 0)
         {
-            cmd = command::STDIN_TO_STDOUT;
+            cmd = command::stdin_to_stdout;
             break;
         }
         if (std::strcmp(argv[i], "--stdin-to-stderr") == 0)
         {
-            cmd = command::STDIN_TO_STDERR;
+            cmd = command::stdin_to_stderr;
             break;
         }
     }
@@ -63,14 +63,14 @@ int main(int argc, char* argv[])
 
     switch (cmd)
     {
-        case command::HELLO_WORLD:
+        case command::hello_world:
         {
             log.write_line("running --hello-world");
 
             os::this_process::get_stdout().write_line("Hello World");
             break;
         }
-        case command::EXIT_CODE:
+        case command::exit_code:
         {
             log.write("running --exit-code");
             log.write_line(argv[i]);
@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
             const int exit_code = str::to_int32(argv[i]);
             return exit_code;
         }
-        case command::SHOW_ENVIRONMENT:
+        case command::show_environment:
         {
             log.write_line("running --show-environment");
 
@@ -94,7 +94,7 @@ int main(int argc, char* argv[])
 
             break;
         }
-        case command::STALL:
+        case command::stall:
         {
             log.write("running --stall");
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[])
 
             break;
         }
-        case command::STDIN_TO_STDOUT:
+        case command::stdin_to_stdout:
         {
             log.write_line("running --stdin-to-stdout");
 
@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
             log.write_line("finished stdout");
             break;
         }
-        case command::STDIN_TO_STDERR:
+        case command::stdin_to_stderr:
         {
             log.write_line("running --stdin-to-stderr");
 

@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "vertex/config/flags.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/input/keyboard.hpp"
 #include "vertex/util/bit_field.hpp"
@@ -20,14 +21,15 @@ class keyboard_instance;
 // keycode options
 ///////////////////////////////////////////////////////////////////////////////
 
-enum keycode_options
+VX_FLAGS_DECLARE_BEGIN(keycode_options)
 {
-    KEYCODE_OPTION_NONE             = 0,
-    KEYCODE_OPTION_HIDE_NUMPAD      = VX_BIT(0),
-    KEYCODE_OPTION_FRENCH_NUMBERS   = VX_BIT(1),
-    KEYCODE_OPTION_LATIN_LETTERS    = VX_BIT(2),
-    KEYCODE_OPTION_DEFAULT_OPTIONS  = (KEYCODE_OPTION_FRENCH_NUMBERS | KEYCODE_OPTION_LATIN_LETTERS),
-};
+    none             = 0,
+    hide_numpad      = VX_BIT(0),
+    french_numbers   = VX_BIT(1),
+    latin_letters    = VX_BIT(2),
+    default_options  = (french_numbers | latin_letters),
+}
+VX_FLAGS_DECLARE_END(keycode_options)
 
 ///////////////////////////////////////////////////////////////////////////////
 // keymap
@@ -61,7 +63,7 @@ private:
 
     std::unordered_map<scancode, keycode> m_scancode_to_keycode;
     std::unordered_map<keycode, scancode> m_keycode_to_scancode;
-    scancode m_next_reserved_scancode = scancode::SCANCODE_COUNT;
+    scancode m_next_reserved_scancode = _scancode_count;
     bool m_french_numbers = false;
     bool m_thai_keyboard = false;
     bool m_latin_letters = false;
@@ -71,27 +73,27 @@ private:
 // keyboard data
 ///////////////////////////////////////////////////////////////////////////////
 
-enum key_source : uint8_t
+enum class key_source
 {
-    KEY_SOURCE_HARDWARE,
-    KEY_SOURCE_AUTORELEASE
+    hardware,
+    autorelease
 };
 
 struct input_source
 {
-    keyboard_id id = INVALID_ID;
+    keyboard_id id = invalid_id;
     const char* name = nullptr;
 };
 
 struct keyboard_data
 {
     video::window* focus = nullptr;
-    key_mod mod_state = MOD_NONE;
-    bit_field<scancode::SCANCODE_COUNT, bool> key_state;
+    key_mod mod_state = key_mod::none;
+    bit_field<_scancode_count, bool> key_state;
     keymap map;
     bool map_configures = false;
     bool autorelease_pending = false;
-    keycode_options keycode_options_cache = keycode_options::KEYCODE_OPTION_DEFAULT_OPTIONS;
+    keycode_options keycode_options_cache = keycode_options::default_options;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,7 +128,7 @@ public:
     // Focus / Window Association
     //-------------------------------------------------------------------------
 
-    video::window_id get_focus() { return INVALID_ID; }
+    video::window_id get_focus() { return invalid_id; }
     bool set_focus(video::window_id id) { return false; }
 
     //-------------------------------------------------------------------------
@@ -164,7 +166,7 @@ public:
     // Key State / Modifiers
     //-------------------------------------------------------------------------
 
-    const bit_field<scancode::SCANCODE_COUNT, bool>& get_keyboard_state();
+    const bit_field<_scancode_count, bool>& get_keyboard_state();
     void reset_keyboard();
 
     key_mod get_mod_state();

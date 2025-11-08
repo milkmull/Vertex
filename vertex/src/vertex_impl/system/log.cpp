@@ -28,7 +28,7 @@ public:
     {
         stop();
 
-        m_file.open(filename, os::file::mode::WRITE);
+        m_file.open(filename, os::file::mode::write);
         if (!m_file.is_open())
         {
             stop();
@@ -67,7 +67,7 @@ public:
 
 private:
 
-    level m_level = level::TRACE;
+    level m_level = level::trace;
     os::file m_file;
 };
 

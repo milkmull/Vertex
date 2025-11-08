@@ -154,16 +154,16 @@ public:
 
 enum class display_state
 {
-    NONE    = 0,
-    ADDED   = VX_BIT(0),
-    REMOVED = VX_BIT(1)
+    none = 0,
+    added,
+    removed 
 };
 
 struct display_impl_data
 {
     HMONITOR handle = NULL;
     std::wstring device_name;
-    display_state state = display_state::NONE;
+    display_state state = display_state::none;
     math::recti last_bounds;
 };
 

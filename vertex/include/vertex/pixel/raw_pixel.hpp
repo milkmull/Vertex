@@ -65,13 +65,13 @@ inline constexpr float_type decode_array_channel(channel_type value) noexcept
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct raw_pixel<pixel_format::UNKNOWN>
+struct raw_pixel<pixel_format::unknown>
 {
     using channel_type = uint8_t;
     using pixel_type = void;
     using float_type = void;
 
-    static constexpr channel_info info = get_channel_info(pixel_format::UNKNOWN);
+    static constexpr channel_info info = get_channel_info(pixel_format::unknown);
 
     VX_FORCE_INLINE constexpr raw_pixel() noexcept {}
     VX_FORCE_INLINE constexpr raw_pixel(const math::color&) noexcept {}
@@ -83,13 +83,13 @@ struct raw_pixel<pixel_format::UNKNOWN>
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::RGB_332>
+struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::rgb_332>
 {
     using channel_type = uint8_t;
     using pixel_type = uint8_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_332;
+    static constexpr pixel_format format = pixel_format::rgb_332;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -114,20 +114,20 @@ struct alignas(alignof(uint8_t)) raw_pixel<pixel_format::RGB_332>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGB_332);
+_STATIC_FORMAT_CHECK(rgb_332);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 4444
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(uint16_t) raw_pixel<pixel_format::RGBA_4444>
+struct alignas(uint16_t) raw_pixel<pixel_format::rgba_4444>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_4444;
+    static constexpr pixel_format format = pixel_format::rgba_4444;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -153,18 +153,18 @@ struct alignas(uint16_t) raw_pixel<pixel_format::RGBA_4444>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_4444);
+_STATIC_FORMAT_CHECK(rgba_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_4444>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::bgra_4444>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGRA_4444;
+    static constexpr pixel_format format = pixel_format::bgra_4444;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -190,18 +190,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_4444>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGRA_4444);
+_STATIC_FORMAT_CHECK(bgra_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(uint16_t) raw_pixel<pixel_format::XRGB_4444>
+struct alignas(uint16_t) raw_pixel<pixel_format::xrgb_4444>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XRGB_4444;
+    static constexpr pixel_format format = pixel_format::xrgb_4444;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -228,18 +228,18 @@ struct alignas(uint16_t) raw_pixel<pixel_format::XRGB_4444>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XRGB_4444);
+_STATIC_FORMAT_CHECK(xrgb_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XBGR_4444>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::xbgr_4444>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XBGR_4444;
+    static constexpr pixel_format format = pixel_format::xbgr_4444;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -266,20 +266,20 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XBGR_4444>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XBGR_4444);
+_STATIC_FORMAT_CHECK(xbgr_4444);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 565
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGB_565>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::rgb_565>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_565;
+    static constexpr pixel_format format = pixel_format::rgb_565;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -304,18 +304,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGB_565>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGB_565);
+_STATIC_FORMAT_CHECK(rgb_565);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGR_565>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::bgr_565>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_565;
+    static constexpr pixel_format format = pixel_format::rgb_565;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -340,20 +340,20 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGR_565>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGR_565);
+_STATIC_FORMAT_CHECK(bgr_565);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 5551 & 1555
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGBA_5551>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::rgba_5551>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_5551;
+    static constexpr pixel_format format = pixel_format::rgba_5551;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -379,18 +379,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::RGBA_5551>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_5551);
+_STATIC_FORMAT_CHECK(rgba_5551);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_5551>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::bgra_5551>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGRA_5551;
+    static constexpr pixel_format format = pixel_format::bgra_5551;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -416,18 +416,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::BGRA_5551>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGRA_5551);
+_STATIC_FORMAT_CHECK(bgra_5551);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::ARGB_1555>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::argb_1555>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ARGB_1555;
+    static constexpr pixel_format format = pixel_format::argb_1555;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -453,18 +453,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::ARGB_1555>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ARGB_1555);
+_STATIC_FORMAT_CHECK(argb_1555);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XRGB_1555>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::xrgb_1555>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XRGB_1555;
+    static constexpr pixel_format format = pixel_format::xrgb_1555;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -489,18 +489,18 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XRGB_1555>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XRGB_1555);
+_STATIC_FORMAT_CHECK(xrgb_1555);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XBGR_1555>
+struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::xbgr_1555>
 {
     using channel_type = uint8_t;
     using pixel_type = uint16_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XBGR_1555;
+    static constexpr pixel_format format = pixel_format::xbgr_1555;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -525,20 +525,20 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::XBGR_1555>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XBGR_1555);
+_STATIC_FORMAT_CHECK(xbgr_1555);
 
 ///////////////////////////////////////////////////////////////////////////////
 // packed 8 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBA_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::rgba_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_8888;
+    static constexpr pixel_format format = pixel_format::rgba_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -564,18 +564,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBA_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_8888);
+_STATIC_FORMAT_CHECK(rgba_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRA_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::bgra_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGRA_8888;
+    static constexpr pixel_format format = pixel_format::bgra_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -601,18 +601,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRA_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGRA_8888);
+_STATIC_FORMAT_CHECK(bgra_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::abgr_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ABGR_8888;
+    static constexpr pixel_format format = pixel_format::abgr_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -638,18 +638,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ABGR_8888);
+_STATIC_FORMAT_CHECK(abgr_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::argb_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ARGB_8888;
+    static constexpr pixel_format format = pixel_format::argb_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -676,18 +676,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ABGR_8888);
+_STATIC_FORMAT_CHECK(abgr_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBX_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::rgbx_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBX_8888;
+    static constexpr pixel_format format = pixel_format::rgbx_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -712,18 +712,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::RGBX_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBX_8888);
+_STATIC_FORMAT_CHECK(rgbx_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRX_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::bgrx_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGRX_8888;
+    static constexpr pixel_format format = pixel_format::bgrx_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -748,18 +748,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::BGRX_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGRX_8888);
+_STATIC_FORMAT_CHECK(bgrx_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XRGB_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::xrgb_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XRGB_8888;
+    static constexpr pixel_format format = pixel_format::xrgb_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -784,18 +784,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XRGB_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XRGB_8888);
+_STATIC_FORMAT_CHECK(xrgb_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XBGR_8888>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::xbgr_8888>
 {
     using channel_type = uint8_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XBGR_8888;
+    static constexpr pixel_format format = pixel_format::xbgr_8888;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -820,20 +820,20 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XBGR_8888>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XBGR_8888);
+_STATIC_FORMAT_CHECK(xbgr_8888);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 2101010
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_2101010>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::argb_2101010>
 {
     using channel_type = uint16_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ARGB_2101010;
+    static constexpr pixel_format format = pixel_format::argb_2101010;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -859,18 +859,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ARGB_2101010>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ARGB_2101010);
+_STATIC_FORMAT_CHECK(argb_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_2101010>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::abgr_2101010>
 {
     using channel_type = uint16_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ABGR_2101010;
+    static constexpr pixel_format format = pixel_format::abgr_2101010;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -896,18 +896,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::ABGR_2101010>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ABGR_2101010);
+_STATIC_FORMAT_CHECK(abgr_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XRGB_2101010>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::xrgb_2101010>
 {
     using channel_type = uint16_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XRGB_2101010;
+    static constexpr pixel_format format = pixel_format::xrgb_2101010;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -932,18 +932,18 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XRGB_2101010>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XRGB_2101010);
+_STATIC_FORMAT_CHECK(xrgb_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XBGR_2101010>
+struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::xbgr_2101010>
 {
     using channel_type = uint16_t;
     using pixel_type = uint32_t;
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::XBGR_2101010;
+    static constexpr pixel_format format = pixel_format::xbgr_2101010;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -968,20 +968,20 @@ struct alignas(alignof(uint32_t)) raw_pixel<pixel_format::XBGR_2101010>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(XBGR_2101010);
+_STATIC_FORMAT_CHECK(xbgr_2101010);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 8 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::R_8>
+struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::r_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::R_8;
+    static constexpr pixel_format format = pixel_format::r_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1005,18 +1005,18 @@ struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::R_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(R_8);
+_STATIC_FORMAT_CHECK(r_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::RG_8>
+struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::rg_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[2];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RG_8;
+    static constexpr pixel_format format = pixel_format::rg_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1041,18 +1041,18 @@ struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::RG_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RG_8);
+_STATIC_FORMAT_CHECK(rg_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::RGB_8>
+struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::rgb_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[3];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_8;
+    static constexpr pixel_format format = pixel_format::rgb_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1078,18 +1078,18 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::RGB_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGB_8);
+_STATIC_FORMAT_CHECK(rgb_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::BGR_8>
+struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::bgr_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[3];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGR_8;
+    static constexpr pixel_format format = pixel_format::bgr_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1115,18 +1115,18 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::BGR_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGR_8);
+_STATIC_FORMAT_CHECK(bgr_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::RGBA_8>
+struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::rgba_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[4];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_8;
+    static constexpr pixel_format format = pixel_format::rgba_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1153,18 +1153,18 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::RGBA_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_8);
+_STATIC_FORMAT_CHECK(rgba_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::BGRA_8>
+struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::bgra_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[4];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::BGRA_8;
+    static constexpr pixel_format format = pixel_format::bgra_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1191,18 +1191,18 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::BGRA_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(BGRA_8);
+_STATIC_FORMAT_CHECK(bgra_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::ABGR_8>
+struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::abgr_8>
 {
     using channel_type = uint8_t;
     using pixel_type = channel_type[4];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::ABGR_8;
+    static constexpr pixel_format format = pixel_format::abgr_8;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1229,20 +1229,20 @@ struct alignas(alignof(uint8_t[4])) raw_pixel<pixel_format::ABGR_8>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(ABGR_8);
+_STATIC_FORMAT_CHECK(abgr_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 16 bit float
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::R_16F>
+struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::r_16f>
 {
     using channel_type = math::half_t;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::R_16F;
+    static constexpr pixel_format format = pixel_format::r_16f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1266,18 +1266,18 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::R_16F>
     VX_FORCE_INLINE auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(R_16F);
+_STATIC_FORMAT_CHECK(r_16f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RG_16F>
+struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::rg_16f>
 {
     using channel_type = math::half_t;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RG_16F;
+    static constexpr pixel_format format = pixel_format::rg_16f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1302,18 +1302,18 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RG_16F>
     VX_FORCE_INLINE auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RG_16F);
+_STATIC_FORMAT_CHECK(rg_16f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RGB_16F>
+struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::rgb_16f>
 {
     using channel_type = math::half_t;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_16F;
+    static constexpr pixel_format format = pixel_format::rgb_16f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1339,18 +1339,18 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RGB_16F>
     VX_FORCE_INLINE auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGB_16F);
+_STATIC_FORMAT_CHECK(rgb_16f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RGBA_16F>
+struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::rgba_16f>
 {
     using channel_type = math::half_t;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_16F;
+    static constexpr pixel_format format = pixel_format::rgba_16f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1377,7 +1377,7 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::RGBA_16F>
     VX_FORCE_INLINE auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_16F);
+_STATIC_FORMAT_CHECK(rgba_16f);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 32 bit float
@@ -1386,13 +1386,13 @@ _STATIC_FORMAT_CHECK(RGBA_16F);
 VX_STATIC_ASSERT(sizeof(float) == 4, "invalid float size");
 
 template <>
-struct alignas(alignof(float[1])) raw_pixel<pixel_format::R_32F>
+struct alignas(alignof(float[1])) raw_pixel<pixel_format::r_32f>
 {
     using channel_type = float;
     using pixel_type = channel_type[1];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::R_32F;
+    static constexpr pixel_format format = pixel_format::r_32f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1416,18 +1416,18 @@ struct alignas(alignof(float[1])) raw_pixel<pixel_format::R_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(R_32F);
+_STATIC_FORMAT_CHECK(r_32f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(float[2])) raw_pixel<pixel_format::RG_32F>
+struct alignas(alignof(float[2])) raw_pixel<pixel_format::rg_32f>
 {
     using channel_type = float;
     using pixel_type = channel_type[2];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RG_32F;
+    static constexpr pixel_format format = pixel_format::rg_32f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1452,18 +1452,18 @@ struct alignas(alignof(float[2])) raw_pixel<pixel_format::RG_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RG_32F);
+_STATIC_FORMAT_CHECK(rg_32f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(float[3])) raw_pixel<pixel_format::RGB_32F>
+struct alignas(alignof(float[3])) raw_pixel<pixel_format::rgb_32f>
 {
     using channel_type = float;
     using pixel_type = channel_type[3];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGB_32F;
+    static constexpr pixel_format format = pixel_format::rgb_32f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1489,18 +1489,18 @@ struct alignas(alignof(float[3])) raw_pixel<pixel_format::RGB_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGB_32F);
+_STATIC_FORMAT_CHECK(rgb_32f);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(float[4])) raw_pixel<pixel_format::RGBA_32F>
+struct alignas(alignof(float[4])) raw_pixel<pixel_format::rgba_32f>
 {
     using channel_type = float;
     using pixel_type = channel_type[4];
     using float_type = float;
 
-    static constexpr pixel_format format = pixel_format::RGBA_32F;
+    static constexpr pixel_format format = pixel_format::rgba_32f;
     static constexpr channel_info info = get_channel_info(format);
     pixel_type data;
 
@@ -1527,7 +1527,7 @@ struct alignas(alignof(float[4])) raw_pixel<pixel_format::RGBA_32F>
     VX_FORCE_INLINE constexpr auto color() const noexcept { return operator math::color(); }
 };
 
-_STATIC_FORMAT_CHECK(RGBA_32F);
+_STATIC_FORMAT_CHECK(rgba_32f);
 
 ///////////////////////////////////////////////////////////////////////////////
 

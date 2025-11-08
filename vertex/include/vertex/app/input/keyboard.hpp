@@ -21,8 +21,8 @@ using keyboard_id = id_type;
 
 enum : keyboard_id
 {
-    GLOBAL_KEYBOARD_ID = 0,
-    DEFAULT_KEYBOARD_ID = 1
+    global_keyboard_id = 0,
+    default_keyboard_id = 1
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,24 +58,24 @@ VX_API keycode get_key_from_name(const char* name);
 
 enum class text_input_type
 {
-    TEXT,
-    TEXT_NAME,
-    TEXT_EMAIL,
-    TEXT_USERNAME,
-    TEXT_PASSWORD_HIDDEN,
-    TEXT_PASSWORD_VISIBLE,
+    text,
+    text_name,
+    text_email,
+    text_username,
+    text_password_hidden,
+    text_password_visible,
 
-    NUMBER,
-    NUMBER_PASSWORD_HIDDEN,
-    NUMBER_PASSWORD_VISIBLE
+    number,
+    number_password_hidden,
+    number_password_visible
 };
 
 enum class text_input_capitalization
 {
-    NONE,
-    SENTENCES,
-    WORDS,
-    LETTERS
+    none,
+    sentences,
+    words,
+    letters
 };
 
 struct text_input_options

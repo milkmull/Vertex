@@ -24,13 +24,13 @@ namespace camera { class camera_instance; }
 
 enum subsystem
 {
-    HINTS_SUBSYSTEM,
-    EVENTS_SUBSYSTEM,
-    VIDEO_SUBSYSTEM,
-    AUDIO_SUBSYSTEM,
-    CAMERA_SUBSYSTEM,
+    hints_index,
+    events_index,
+    video_index,
+    audio_index,
+    camera_index,
 
-    SUBSYSTEM_COUNT
+    subsystem_count
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,7 +48,7 @@ struct app_data
     owner_ptr<video::video_instance> video_ptr;
 #endif // VX_APP_VIDEO_ENABLED
 
-    size_t ref_counts[SUBSYSTEM_COUNT] = {};
+    size_t ref_counts[subsystem_count] = {};
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -68,9 +68,9 @@ public:
 
     ~app_instance();
 
-    init_flag init_subsystem(init_flag flags);
-    bool is_subsystem_init(init_flag flags) const;
-    void quit_subsystem(init_flag flags);
+    init_flags init_subsystem(init_flags flags);
+    bool is_subsystem_init(init_flags flags) const;
+    void quit_subsystem(init_flags flags);
 
     bool init_hints();
     bool is_hints_init() const;
@@ -116,8 +116,8 @@ extern owner_ptr<app_instance> s_app;
 // helpers
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VX_SET_SUBSYSTEM_NOT_INIT_ERROR(name) err::set(err::UNSUPPORTED_OPERATION, #name " not initialized")
-#define VX_SET_SUBSYSTEM_INIT_FAILED_ERROR(name) err::set(err::OUT_OF_MEMORY, "Failed to initialize " #name " subsystem")
+#define VX_SET_SUBSYSTEM_NOT_INIT_ERROR(name) err::set(err::unsupported_operation, #name " not initialized")
+#define VX_SET_SUBSYSTEM_INIT_FAILED_ERROR(name) err::set(err::out_of_memory, "Failed to initialize " #name " subsystem")
 
 ///////////////////////////////////////
 
@@ -128,7 +128,7 @@ do \
     { \
         expr; \
     } \
-} while (0)
+} while (VX_NULL_WHILE_LOOP_CONDITION)
 
 ///////////////////////////////////////
 
@@ -142,7 +142,7 @@ do \
         VX_SET_SUBSYSTEM_NOT_INIT_ERROR(App); \
         return (r); \
     } \
-} while (0)
+} while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_CHECK_APP_INIT_VOID() VX_CHECK_APP_INIT(void())
 #define VX_SAFE_APP_CALL(expr) VX_SAFE_CALL(s_app_ptr, expr)
@@ -158,7 +158,7 @@ do \
         VX_SET_SUBSYSTEM_NOT_INIT_ERROR(name); \
         return (r); \
     } \
-} while (0)
+} while (VX_NULL_WHILE_LOOP_CONDITION)
 
 ///////////////////////////////////////
 
@@ -169,7 +169,7 @@ do \
     { \
         return (r); \
     } \
-} while (0)
+} while (VX_NULL_WHILE_LOOP_CONDITION)
 
 ///////////////////////////////////////
 

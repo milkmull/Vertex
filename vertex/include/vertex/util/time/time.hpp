@@ -391,7 +391,11 @@ enum : int64_t
 {
     milliseconds_per_second = seconds(1).as_milliseconds(),
     microseconds_per_second = seconds(1).as_microseconds(),
-    nanoseconds_per_second  = seconds(1).as_nanoseconds()
+    nanoseconds_per_second  = seconds(1).as_nanoseconds(),
+
+    seconds_per_minute = minutes(1).as_seconds(),
+    seconds_per_hour = hours(1).as_seconds(),
+    seconds_per_day = seconds_per_hour * 24
 };
 
 } // namespace time

@@ -9,14 +9,14 @@ namespace os {
 
 enum class power_state
 {
-    UNKNOWN,
-    ON_BATTERY,
-    NO_BATTERY,
-    CHARGING,
-    CHARGED
+    unknown,
+    on_battery,
+    no_battery,
+    charging,
+    charged
 };
 
-enum : uint8_t { BATTERY_PERCENT_UNKNOWN = 0xFF };
+enum : uint8_t { battery_percent_unknown = 0xFF };
 
 struct power_info
 {

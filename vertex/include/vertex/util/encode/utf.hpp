@@ -15,9 +15,9 @@ namespace utf {
 
 using code_point = uint32_t;
 
-enum : code_point { INVALID_CODE_POINT = 0xFFFFFFFF };
+enum : code_point { invalid_code_point = 0xFFFFFFFF };
 
-enum : size_t { INVALID_TRAIL_COUNT = std::numeric_limits<size_t>::max() };
+enum : size_t { invalid_trail_count = std::numeric_limits<size_t>::max() };
 
 /**
  * @brief Checks if a given Unicode codepoint is valid.
@@ -68,7 +68,7 @@ struct utf_base_traits<1> // utf8
      * according to the UTF-8 encoding scheme.
      *
      * @param lead The lead byte to check.
-     * @return The number of trailing bytes, or `INVALID_TRAIL_COUNT` if the lead byte is invalid.
+     * @return The number of trailing bytes, or `invalid_trail_count` if the lead byte is invalid.
      */
     static constexpr size_t trail_count(utype lead) noexcept
     {
@@ -93,7 +93,7 @@ struct utf_base_traits<1> // utf8
             return 3;
         }
         
-        return INVALID_TRAIL_COUNT;
+        return invalid_trail_count;
     }
 
     /**
@@ -183,7 +183,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
         VX_ITERATOR_VALID_RANGE(first, last);
         const size_t size = static_cast<size_t>(std::distance(first, last));
 
-        c = INVALID_CODE_POINT;
+        c = invalid_code_point;
 
         // Empty range
         if (VX_UNLIKELY(size == 0))
@@ -195,7 +195,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
         const size_t trail_bytes = trail_count(lead);
 
         // Indicates invalid lead byte
-        if (trail_bytes == INVALID_TRAIL_COUNT)
+        if (trail_bytes == invalid_trail_count)
         {
             return first;
         }
@@ -218,7 +218,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
             {
                 if (first == last)
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -226,7 +226,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
 
                 if (!is_trail(byte))
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -237,7 +237,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
             {
                 if (first == last)
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -245,7 +245,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
 
                 if (!is_trail(byte))
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -256,7 +256,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
             {
                 if (first == last)
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -264,7 +264,7 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
 
                 if (!is_trail(byte))
                 {
-                    c = INVALID_CODE_POINT;
+                    c = invalid_code_point;
                     return first;
                 }
 
@@ -274,14 +274,14 @@ struct utf_traits<char_t, 1> : utf_base_traits<1>
 
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {
-            c = INVALID_CODE_POINT;
+            c = invalid_code_point;
             return first;
         }
 
         // check for overlong encoding
         if (VX_UNLIKELY(width(c) != trail_bytes + 1))
         {
-            c = INVALID_CODE_POINT;
+            c = invalid_code_point;
             return first;
         }
 
@@ -391,7 +391,7 @@ struct utf_base_traits<2> // utf16
      * the given code unit in UTF-16 encoding.
      *
      * @param c The UTF-16 code unit to check.
-     * @return The number of trailing code units, or `INVALID_TRAIL_COUNT` if not a valid surrogate.
+     * @return The number of trailing code units, or `invalid_trail_count` if not a valid surrogate.
      */
     static constexpr size_t trail_count(utype c) noexcept
     {
@@ -401,7 +401,7 @@ struct utf_base_traits<2> // utf16
         }
         if (is_second_surrogate(c))
         {
-            return INVALID_TRAIL_COUNT;
+            return invalid_trail_count;
         }
 
         return 0;
@@ -472,7 +472,7 @@ struct utf_traits<char_t, 2> : utf_base_traits<2>
     {
         VX_ITERATOR_VALID_RANGE(first, last);
 
-        c = INVALID_CODE_POINT;
+        c = invalid_code_point;
 
         // Empty range
         if (VX_UNLIKELY(first == last))
@@ -562,7 +562,7 @@ struct utf_base_traits<4> // utf32
      * UTF-32 is a fixed-length encoding, so it doesn't have trailing bytes for valid codepoints.
      *
      * @param c The UTF-32 codepoint to check.
-     * @return Always 0 for valid codepoints, `INVALID_TRAIL_COUNT` otherwise.
+     * @return Always 0 for valid codepoints, `invalid_trail_count` otherwise.
      */
     static constexpr size_t trail_count(utype c) noexcept
     {
@@ -571,7 +571,7 @@ struct utf_base_traits<4> // utf32
             return 0;
         }
 
-        return INVALID_TRAIL_COUNT;
+        return invalid_trail_count;
     }
 
     /**
@@ -636,7 +636,7 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
     {
         VX_ITERATOR_VALID_RANGE(first, last);
 
-        c = INVALID_CODE_POINT;
+        c = invalid_code_point;
 
         // Empty range
         if (VX_UNLIKELY(first == last))
@@ -647,7 +647,7 @@ struct utf_traits<char_t, 4> : utf_base_traits<4>
         c = static_cast<code_point>(*first++);
         if (VX_UNLIKELY(!is_valid_codepoint(c)))
         {
-            c = INVALID_CODE_POINT;
+            c = invalid_code_point;
         }
 
         return first;

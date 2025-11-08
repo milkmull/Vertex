@@ -14,36 +14,36 @@ using byte_type = uint8_t;
 
 enum class pixel_type : uint32_t
 {
-    NONE = 0,
+    none = 0,
                   
-    PACKED_8,
-    PACKED_16,
-    PACKED_32,
-    UINT_ARRAY,
-    FLOAT_ARRAY 
+    packed_8,
+    packed_16,
+    packed_32,
+    uint_array,
+    float_array 
 };
 
 enum class pixel_channel_order : uint32_t
 {
-    NONE = 0,
+    none = 0,
 
-    R,
-    RG,
-    RGB,
-    BGR,
-    RGBX,
-    BGRX,
-    RGBA,
-    BGRA,
-    XRGB,
-    XBGR,
-    ARGB,
-    ABGR 
+    r,
+    rg,
+    rgb,
+    bgr,
+    rgbx,
+    bgrx,
+    rgba,
+    bgra,
+    xrgb,
+    xbgr,
+    argb,
+    abgr 
 };
 
 enum class pixel_pack_layout : uint32_t
 {
-    NONE = 0,
+    none = 0,
        
     _332,
     _4444,
@@ -90,307 +90,307 @@ enum class pixel_format : uint32_t
 {
     ///////////////////////////////////////////////////////////////////////////////
 
-    UNKNOWN = create_pixel_format(
-        pixel_type::NONE,
-        pixel_channel_order::NONE,
-        pixel_pack_layout::NONE,
+    unknown = create_pixel_format(
+        pixel_type::none,
+        pixel_channel_order::none,
+        pixel_pack_layout::none,
         0, 0, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGB_332 = create_pixel_format(
-         pixel_type::PACKED_8,
-         pixel_channel_order::RGB,
+    rgb_332 = create_pixel_format(
+         pixel_type::packed_8,
+         pixel_channel_order::rgb,
          pixel_pack_layout::_332,
          3, 1, false
      ),
     
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_4444 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::RGBA, 
+    rgba_4444 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::rgba, 
         pixel_pack_layout::_4444,
         4, 2, true
     ),
 
-    BGRA_4444 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::BGRA,
+    bgra_4444 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::bgra,
         pixel_pack_layout::_4444,
         4, 2, true
     ),
 
-    XRGB_4444 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::XRGB,
+    xrgb_4444 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::xrgb,
         pixel_pack_layout::_4444,
         4, 2, false
     ),
 
-    XBGR_4444 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::XBGR,
+    xbgr_4444 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::xbgr,
         pixel_pack_layout::_4444,
         4, 2, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGB_565 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::RGB,
+    rgb_565 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::rgb,
         pixel_pack_layout::_565,
         3, 2, false
     ),
 
-    BGR_565 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::BGR,
+    bgr_565 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::bgr,
         pixel_pack_layout::_565,
         3, 2, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_5551 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::RGBA,
+    rgba_5551 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::rgba,
         pixel_pack_layout::_5551,
         4, 2, true
     ),
 
-    BGRA_5551 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::BGRA,
+    bgra_5551 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::bgra,
         pixel_pack_layout::_5551,
         4, 2, true
     ),
 
-    ARGB_1555 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::ARGB,
+    argb_1555 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::argb,
         pixel_pack_layout::_1555,
         4, 2, true
     ),
 
-    XRGB_1555 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::XRGB,
+    xrgb_1555 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::xrgb,
         pixel_pack_layout::_1555,
         4, 2, false
     ),
 
-    XBGR_1555 = create_pixel_format(
-        pixel_type::PACKED_16,
-        pixel_channel_order::XBGR,
+    xbgr_1555 = create_pixel_format(
+        pixel_type::packed_16,
+        pixel_channel_order::xbgr,
         pixel_pack_layout::_1555,
         4, 2, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::R,
-        pixel_pack_layout::NONE,
+    r_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::r,
+        pixel_pack_layout::none,
         1, 1, false
     ),
 
-    RG_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::RG,
-        pixel_pack_layout::NONE,
+    rg_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::rg,
+        pixel_pack_layout::none,
         2, 2, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGB_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::RGB,
-        pixel_pack_layout::NONE,
+    rgb_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::rgb,
+        pixel_pack_layout::none,
         3, 3, false
     ),
 
-    BGR_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::BGR,
-        pixel_pack_layout::NONE,
+    bgr_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::bgr,
+        pixel_pack_layout::none,
         3, 3, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::RGBA,
+    rgba_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::rgba,
         pixel_pack_layout::_8888,
         4, 4, true
     ),
 
-    BGRA_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::BGRA,
+    bgra_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::bgra,
         pixel_pack_layout::_8888,
         4, 4, true
     ),
 
-    ARGB_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::ARGB,
+    argb_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::argb,
         pixel_pack_layout::_8888,
         4, 4, true
     ),
 
-    ABGR_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::ABGR,
+    abgr_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::abgr,
         pixel_pack_layout::_8888,
         4, 4, true
     ),
 
-    RGBX_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::RGBX,
+    rgbx_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::rgbx,
         pixel_pack_layout::_8888,
         4, 4, false
     ),
 
-    BGRX_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::BGRX,
+    bgrx_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::bgrx,
         pixel_pack_layout::_8888,
         4, 4, false
     ),
 
-    XRGB_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::XRGB,
+    xrgb_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::xrgb,
         pixel_pack_layout::_8888,
         4, 4, false
     ),
 
-    XBGR_8888 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::XBGR,
+    xbgr_8888 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::xbgr,
         pixel_pack_layout::_8888,
-        4, 4, false
-    ),
-
-    ///////////////////////////////////////////////////////////////////////////////
-
-    ARGB_2101010 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::ARGB,
-        pixel_pack_layout::_2101010,
-        4, 4, true
-    ),
-
-    ABGR_2101010 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::ABGR,
-        pixel_pack_layout::_2101010,
-        4, 4, true
-    ),
-
-    XRGB_2101010 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::XRGB,
-        pixel_pack_layout::_2101010,
-        4, 4, false
-    ),
-
-    XBGR_2101010 = create_pixel_format(
-        pixel_type::PACKED_32,
-        pixel_channel_order::XBGR,
-        pixel_pack_layout::_2101010,
         4, 4, false
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    RGBA_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::RGBA,
-        pixel_pack_layout::NONE,
+    argb_2101010 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::argb,
+        pixel_pack_layout::_2101010,
         4, 4, true
     ),
 
-    BGRA_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::BGRA,
-        pixel_pack_layout::NONE,
+    abgr_2101010 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::abgr,
+        pixel_pack_layout::_2101010,
         4, 4, true
     ),
 
-    ABGR_8 = create_pixel_format(
-        pixel_type::UINT_ARRAY,
-        pixel_channel_order::ABGR,
-        pixel_pack_layout::NONE,
+    xrgb_2101010 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::xrgb,
+        pixel_pack_layout::_2101010,
+        4, 4, false
+    ),
+
+    xbgr_2101010 = create_pixel_format(
+        pixel_type::packed_32,
+        pixel_channel_order::xbgr,
+        pixel_pack_layout::_2101010,
+        4, 4, false
+    ),
+
+    ///////////////////////////////////////////////////////////////////////////////
+
+    rgba_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::rgba,
+        pixel_pack_layout::none,
+        4, 4, true
+    ),
+
+    bgra_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::bgra,
+        pixel_pack_layout::none,
+        4, 4, true
+    ),
+
+    abgr_8 = create_pixel_format(
+        pixel_type::uint_array,
+        pixel_channel_order::abgr,
+        pixel_pack_layout::none,
         4, 4, true
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_16F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::R,
-        pixel_pack_layout::NONE,
+    r_16f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::r,
+        pixel_pack_layout::none,
         1, 2, false
     ),
 
-    RG_16F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RG,
-        pixel_pack_layout::NONE,
+    rg_16f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rg,
+        pixel_pack_layout::none,
         2, 4, false
     ),
 
-    RGB_16F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RGB,
-        pixel_pack_layout::NONE,
+    rgb_16f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rgb,
+        pixel_pack_layout::none,
         3, 6, false
     ),
 
-    RGBA_16F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RGBA,
-        pixel_pack_layout::NONE,
+    rgba_16f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rgba,
+        pixel_pack_layout::none,
         4, 8, true
     ),
 
     ///////////////////////////////////////////////////////////////////////////////
 
-    R_32F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::R,
-        pixel_pack_layout::NONE,
+    r_32f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::r,
+        pixel_pack_layout::none,
         1, 4, false
     ),
 
-    RG_32F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RG,
-        pixel_pack_layout::NONE,
+    rg_32f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rg,
+        pixel_pack_layout::none,
         2, 8, false
     ),
 
-    RGB_32F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RGB,
-        pixel_pack_layout::NONE,
+    rgb_32f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rgb,
+        pixel_pack_layout::none,
         3, 12, false
     ),
 
-    RGBA_32F = create_pixel_format(
-        pixel_type::FLOAT_ARRAY,
-        pixel_channel_order::RGBA,
-        pixel_pack_layout::NONE,
+    rgba_32f = create_pixel_format(
+        pixel_type::float_array,
+        pixel_channel_order::rgba,
+        pixel_pack_layout::none,
         4, 16, true
-    ),
+    )
 
     ///////////////////////////////////////////////////////////////////////////////
 };
@@ -407,7 +407,7 @@ VX_FORCE_INLINE constexpr bool is_packed_format(pixel_format format) noexcept
 
 VX_FORCE_INLINE constexpr bool is_normalized_format(pixel_format format) noexcept
 {
-    return get_pixel_type(format) == pixel_type::FLOAT_ARRAY;
+    return get_pixel_type(format) == pixel_type::float_array;
 }
 
 VX_FORCE_INLINE constexpr size_t get_pixel_channel_count(pixel_format format) noexcept
@@ -434,11 +434,11 @@ inline constexpr pixel_format channel_count_to_8_bit_format(size_t channels) noe
 {
     switch (channels)
     {
-        case 1:     return pixel_format::R_8;
-        case 2:     //return pixel_format::RG_8;
-        case 3:     return pixel_format::RGB_8;
-        case 4:     return pixel_format::RGBA_8;
-        default:    return pixel_format::UNKNOWN;
+        case 1:     return pixel_format::r_8;
+        case 2:     //return pixel_format::rg_8;
+        case 3:     return pixel_format::rgb_8;
+        case 4:     return pixel_format::rgba_8;
+        default:    return pixel_format::unknown;
     }
 }
 
@@ -462,189 +462,189 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
 
     switch (format)
     {
-        case pixel_format::UNKNOWN:
+        case pixel_format::unknown:
         {
             break;
         }
-        case pixel_format::RGB_332:
+        case pixel_format::rgb_332:
         {
             info.r = { 0, 3, 0x07, 0 };
             info.g = { 1, 3, 0x38, 3 };
-            info.b = { 2, 2, 0xC0, 6 };
+            info.b = { 2, 2, 0xc0, 6 };
             info.a = { 3, 0, 0x00, 0 };
             break;
         }
-        case pixel_format::RGBA_4444:
+        case pixel_format::rgba_4444:
         {
-            info.r = { 0, 4, 0x000F,  0 };
-            info.g = { 1, 4, 0x00F0,  4 };
-            info.b = { 2, 4, 0x0F00,  8 };
-            info.a = { 3, 4, 0xF000, 12 };
+            info.r = { 0, 4, 0x000f,  0 };
+            info.g = { 1, 4, 0x00f0,  4 };
+            info.b = { 2, 4, 0x0f00,  8 };
+            info.a = { 3, 4, 0xf000, 12 };
             break;
         }
-        case pixel_format::BGRA_4444:
+        case pixel_format::bgra_4444:
         {
-            info.r = { 2, 4, 0x0F00,  8 };
-            info.g = { 1, 4, 0x00F0,  4 };
-            info.b = { 0, 4, 0x000F,  0 };
-            info.a = { 3, 4, 0xF000, 12 };
+            info.r = { 2, 4, 0x0f00,  8 };
+            info.g = { 1, 4, 0x00f0,  4 };
+            info.b = { 0, 4, 0x000f,  0 };
+            info.a = { 3, 4, 0xf000, 12 };
             break;
         }
-        case pixel_format::RGB_565:
+        case pixel_format::rgb_565:
         {
-            info.r = { 0, 5, 0x001F,  0 };
-            info.g = { 1, 6, 0x07E0,  5 };
-            info.b = { 2, 5, 0xF800, 11 };
+            info.r = { 0, 5, 0x001f,  0 };
+            info.g = { 1, 6, 0x07e0,  5 };
+            info.b = { 2, 5, 0xf800, 11 };
             info.a = { 3, 0, 0x0000,  0 };
             break;
         }
-        case pixel_format::BGR_565:
+        case pixel_format::bgr_565:
         {
-            info.r = { 2, 5, 0xF800, 11 };
-            info.g = { 1, 6, 0x07E0,  5 };
-            info.b = { 0, 5, 0x001F,  0 };
+            info.r = { 2, 5, 0xf800, 11 };
+            info.g = { 1, 6, 0x07e0,  5 };
+            info.b = { 0, 5, 0x001f,  0 };
             info.a = { 3, 0, 0x0000,  0 };
             break;
         }
-        case pixel_format::RGBA_5551:
+        case pixel_format::rgba_5551:
         {
-            info.r = { 0, 5, 0x001F,  0 };
-            info.g = { 1, 5, 0x03E0,  5 };
-            info.b = { 2, 5, 0x7C00, 10 };
+            info.r = { 0, 5, 0x001f,  0 };
+            info.g = { 1, 5, 0x03e0,  5 };
+            info.b = { 2, 5, 0x7c00, 10 };
             info.a = { 3, 1, 0x8000, 15 };
             break;
         }
-        case pixel_format::BGRA_5551:
+        case pixel_format::bgra_5551:
         {
-            info.r = { 2, 5, 0x7C00, 10 };
-            info.g = { 1, 5, 0x03E0,  5 };
-            info.b = { 0, 5, 0x001F,  0 };
+            info.r = { 2, 5, 0x7c00, 10 };
+            info.g = { 1, 5, 0x03e0,  5 };
+            info.b = { 0, 5, 0x001f,  0 };
             info.a = { 3, 1, 0x8000, 15 };
             break;
         }
-        case pixel_format::ARGB_1555:
+        case pixel_format::argb_1555:
         {
-            info.r = { 1, 5, 0x003E,  1 };
-            info.g = { 2, 5, 0x07C0,  6 };
-            info.b = { 3, 5, 0XF800, 11 };
+            info.r = { 1, 5, 0x003e,  1 };
+            info.g = { 2, 5, 0x07c0,  6 };
+            info.b = { 3, 5, 0xf800, 11 };
             info.a = { 0, 1, 0x0001,  0 };
             break;
         }
-        case pixel_format::XRGB_1555:
+        case pixel_format::xrgb_1555:
         {
-            info.r = { 1, 5, 0x003E,  1 };
-            info.g = { 2, 5, 0x07C0,  6 };
-            info.b = { 3, 5, 0XF800, 11 };
+            info.r = { 1, 5, 0x003e,  1 };
+            info.g = { 2, 5, 0x07c0,  6 };
+            info.b = { 3, 5, 0xf800, 11 };
             info.a = { 0, 0, 0x0000,  0 };
             break;
         }
-        case pixel_format::XBGR_1555:
+        case pixel_format::xbgr_1555:
         {
-            info.r = { 3, 5, 0XF800, 11 };
-            info.g = { 2, 5, 0x07C0,  6 };
-            info.b = { 1, 5, 0x003E,  1 };
+            info.r = { 3, 5, 0xf800, 11 };
+            info.g = { 2, 5, 0x07c0,  6 };
+            info.b = { 1, 5, 0x003e,  1 };
             info.a = { 0, 0, 0x0000,  0 };
             break;
         }
-        case pixel_format::RGBA_8888:
+        case pixel_format::rgba_8888:
         {
-            info.r = { 0, 8, 0x000000FF,  0 };
-            info.g = { 1, 8, 0x0000FF00,  8 };
-            info.b = { 2, 8, 0x00FF0000, 16 };
-            info.a = { 3, 8, 0xFF000000, 24 };
+            info.r = { 0, 8, 0x000000ff,  0 };
+            info.g = { 1, 8, 0x0000ff00,  8 };
+            info.b = { 2, 8, 0x00ff0000, 16 };
+            info.a = { 3, 8, 0xff000000, 24 };
             break;
         }
-        case pixel_format::BGRA_8888:
+        case pixel_format::bgra_8888:
         {
-            info.r = { 2, 8, 0x00FF0000, 16 };
-            info.g = { 1, 8, 0x0000FF00,  8 };
-            info.b = { 0, 8, 0x000000FF,  0 };
-            info.a = { 3, 8, 0xFF000000, 24 };
+            info.r = { 2, 8, 0x00ff0000, 16 };
+            info.g = { 1, 8, 0x0000ff00,  8 };
+            info.b = { 0, 8, 0x000000ff,  0 };
+            info.a = { 3, 8, 0xff000000, 24 };
             break;
         }
-        case pixel_format::ARGB_8888:
+        case pixel_format::argb_8888:
         {
-            info.r = { 1, 8, 0x00FF0000,  8 };
-            info.g = { 2, 8, 0x0000FF00, 16 };
-            info.b = { 3, 8, 0x000000FF, 24 };
-            info.a = { 0, 8, 0xFF000000,  0 };
+            info.r = { 1, 8, 0x00ff0000,  8 };
+            info.g = { 2, 8, 0x0000ff00, 16 };
+            info.b = { 3, 8, 0x000000ff, 24 };
+            info.a = { 0, 8, 0xff000000,  0 };
             break;
         }
-        case pixel_format::ABGR_8888:
+        case pixel_format::abgr_8888:
         {
-            info.r = { 3, 8, 0xFF000000, 24 };
-            info.g = { 2, 8, 0x00FF0000, 16 };
-            info.b = { 1, 8, 0x0000FF00,  8 };
-            info.a = { 0, 8, 0x000000FF,  0 };
+            info.r = { 3, 8, 0xff000000, 24 };
+            info.g = { 2, 8, 0x00ff0000, 16 };
+            info.b = { 1, 8, 0x0000ff00,  8 };
+            info.a = { 0, 8, 0x000000ff,  0 };
             break;
         }
-        case pixel_format::RGBX_8888:
+        case pixel_format::rgbx_8888:
         {
-            info.r = { 0, 8, 0x000000FF,  0 };
-            info.g = { 1, 8, 0x0000FF00,  8 };
-            info.b = { 2, 8, 0x00FF0000, 16 };
+            info.r = { 0, 8, 0x000000ff,  0 };
+            info.g = { 1, 8, 0x0000ff00,  8 };
+            info.b = { 2, 8, 0x00ff0000, 16 };
             info.a = { 3, 0, 0x00000000,  0 };
             break;
         }
-        case pixel_format::BGRX_8888:
+        case pixel_format::bgrx_8888:
         {
-            info.r = { 2, 8, 0x00FF0000, 16 };
-            info.g = { 1, 8, 0x0000FF00,  8 };
-            info.b = { 0, 8, 0x000000FF,  0 };
+            info.r = { 2, 8, 0x00ff0000, 16 };
+            info.g = { 1, 8, 0x0000ff00,  8 };
+            info.b = { 0, 8, 0x000000ff,  0 };
             info.a = { 3, 0, 0x00000000,  0 };
             break;
         }
-        case pixel_format::XRGB_8888:
+        case pixel_format::xrgb_8888:
         {
-            info.r = { 1, 8, 0x00FF0000,  8 };
-            info.g = { 2, 8, 0x0000FF00, 16 };
-            info.b = { 3, 8, 0x000000FF, 24 };
+            info.r = { 1, 8, 0x00ff0000,  8 };
+            info.g = { 2, 8, 0x0000ff00, 16 };
+            info.b = { 3, 8, 0x000000ff, 24 };
             info.a = { 0, 0, 0x00000000,  0 };
             break;
         }
-        case pixel_format::XBGR_8888:
+        case pixel_format::xbgr_8888:
         {
-            info.r = { 3, 8, 0xFF000000, 24 };
-            info.g = { 2, 8, 0x00FF0000, 16 };
-            info.b = { 1, 8, 0x0000FF00,  8 };
+            info.r = { 3, 8, 0xff000000, 24 };
+            info.g = { 2, 8, 0x00ff0000, 16 };
+            info.b = { 1, 8, 0x0000ff00,  8 };
             info.a = { 0, 0, 0x00000000,  0 };
             break;
         }
-        case pixel_format::ARGB_2101010:
+        case pixel_format::argb_2101010:
         {
-            info.r = { 1, 10, 0x00000FFC,  2 };
-            info.g = { 2, 10, 0x003FF000, 12 };
-            info.b = { 3, 10, 0xFFC00000, 22 };
+            info.r = { 1, 10, 0x00000ffc,  2 };
+            info.g = { 2, 10, 0x003ff000, 12 };
+            info.b = { 3, 10, 0xffc00000, 22 };
             info.a = { 0,  2, 0x00000003,  0 };
             break;
         }
-        case pixel_format::ABGR_2101010:
+        case pixel_format::abgr_2101010:
         {
-            info.r = { 3, 10, 0xFFC00000, 22 };
-            info.g = { 2, 10, 0x003FF000, 12 };
-            info.b = { 1, 10, 0x00000FFC,  2 };
+            info.r = { 3, 10, 0xffc00000, 22 };
+            info.g = { 2, 10, 0x003ff000, 12 };
+            info.b = { 1, 10, 0x00000ffc,  2 };
             info.a = { 0,  2, 0x00000003,  0 };
             break;
         }
 
-        case pixel_format::XRGB_2101010:
+        case pixel_format::xrgb_2101010:
         {
-            info.r = { 1, 10, 0x00000FFC,  2 };
-            info.g = { 2, 10, 0x003FF000, 12 };
-            info.b = { 3, 10, 0xFFC00000, 22 };
+            info.r = { 1, 10, 0x00000ffc,  2 };
+            info.g = { 2, 10, 0x003ff000, 12 };
+            info.b = { 3, 10, 0xffc00000, 22 };
             info.a = { 0,  0, 0x00000000,  0 };
             break;
         }
-        case pixel_format::XBGR_2101010:
+        case pixel_format::xbgr_2101010:
         {
-            info.r = { 3, 10, 0xFFC00000, 22 };
-            info.g = { 2, 10, 0x003FF000, 12 };
-            info.b = { 1, 10, 0x00000FFC,  2 };
+            info.r = { 3, 10, 0xffc00000, 22 };
+            info.g = { 2, 10, 0x003ff000, 12 };
+            info.b = { 1, 10, 0x00000ffc,  2 };
             info.a = { 0,  0, 0x00000000,  0 };
             break;
         }
-        // For array pixel types, the shift represents the array index of the channel
-        case pixel_format::R_8:
+        // for array pixel types, the shift represents the array index of the channel
+        case pixel_format::r_8:
         {
             info.r = { 0, 8, 0, 0 };
             info.g = { 1, 0, 0, 0 };
@@ -652,7 +652,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 0, 0, 0 };
             break;
         }
-        case pixel_format::RG_8:
+        case pixel_format::rg_8:
         {
             info.r = { 0, 8, 0, 0 };
             info.g = { 1, 8, 0, 0 };
@@ -660,7 +660,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 0, 0, 0 };
             break;
         }
-        case pixel_format::RGB_8:
+        case pixel_format::rgb_8:
         {
             info.r = { 0, 8, 0, 0 };
             info.g = { 1, 8, 0, 0 };
@@ -668,7 +668,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 0, 0, 0 };
             break;
         }
-        case pixel_format::BGR_8:
+        case pixel_format::bgr_8:
         {
             info.r = { 2, 8, 0, 0 };
             info.g = { 0, 8, 0, 0 };
@@ -676,7 +676,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 8, 0, 0 };
             break;
         }
-        case pixel_format::RGBA_8:
+        case pixel_format::rgba_8:
         {
             info.r = { 0, 8, 0, 0 };
             info.g = { 1, 8, 0, 0 };
@@ -684,7 +684,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 8, 0, 0 };
             break;
         }
-        case pixel_format::BGRA_8:
+        case pixel_format::bgra_8:
         {
             info.r = { 2, 8, 0, 0 };
             info.g = { 1, 8, 0, 0 };
@@ -692,7 +692,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 8, 0, 0 };
             break;
         }
-        case pixel_format::ABGR_8:
+        case pixel_format::abgr_8:
         {
             info.r = { 3, 8, 0, 0 };
             info.g = { 2, 8, 0, 0 };
@@ -700,7 +700,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 0, 8, 0, 0 };
             break;
         }
-        case pixel_format::R_16F:
+        case pixel_format::r_16f:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1,  0, 0, 0 };
@@ -708,7 +708,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RG_16F:
+        case pixel_format::rg_16f:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -716,7 +716,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGB_16F:
+        case pixel_format::rgb_16f:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -724,7 +724,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGBA_16F:
+        case pixel_format::rgba_16f:
         {
             info.r = { 0, 16, 0, 0 };
             info.g = { 1, 16, 0, 0 };
@@ -732,7 +732,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 16, 0, 0 };
             break;
         }
-        case pixel_format::R_32F:
+        case pixel_format::r_32f:
         {
             info.r = { 0, 32, 0, 0 };
             info.g = { 1,  0, 0, 0 };
@@ -740,7 +740,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RG_32F:
+        case pixel_format::rg_32f:
         {
             info.r = { 0, 32, 0, 0 };
             info.g = { 1, 32, 0, 0 };
@@ -748,7 +748,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGB_32F:
+        case pixel_format::rgb_32f:
         {
             info.r = { 0, 32, 0, 0 };
             info.g = { 1, 32, 0, 0 };
@@ -756,7 +756,7 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3,  0, 0, 0 };
             break;
         }
-        case pixel_format::RGBA_32F:
+        case pixel_format::rgba_32f:
         {
             info.r = { 0, 32, 0, 0 };
             info.g = { 1, 32, 0, 0 };
@@ -797,25 +797,25 @@ inline constexpr std::array<uint32_t, 4> build_shift_array(pixel_format format) 
 
 enum class filter_mode
 {
-    NEAREST,
-    LINEAR
+    nearest,
+    linear
 };
 
 enum class wrap_mode
 {
-    CLAMP_TO_EDGE,
-    CLAMP_TO_BORDER,
-    REPEAT,
-    MIRRORED_REPEAT,
-    MIRROR_CLAMP_TO_EDGE
+    clamp_to_edge,
+    clamp_to_border,
+    repeat,
+    mirrored_repeat,
+    mirror_clamp_to_edge
 };
 
 ///////////////////////////////////////////////////////////////////////////////
 
 enum class palette_order : uint32_t
 {
-    LSB = 0,
-    MSB = 1
+    lsb = 0,
+    msb = 1
 };
 
 VX_FORCE_INLINE constexpr uint32_t create_palette_format(
@@ -831,50 +831,50 @@ VX_FORCE_INLINE constexpr uint32_t create_palette_format(
 
 enum class palette_format : uint32_t
 {
-    INDEX_1LSB = create_palette_format(
-        palette_order::LSB,
+    index_1_lsb = create_palette_format(
+        palette_order::lsb,
         1,
         8
     ),
 
-    INDEX_1MSB = create_palette_format(
-        palette_order::MSB,
+    index_1_msb = create_palette_format(
+        palette_order::msb,
         1,
         8
     ),
 
-    INDEX_2LSB = create_palette_format(
-        palette_order::MSB,
+    index_2_lsb = create_palette_format(
+        palette_order::msb,
         1,
         4
     ),
 
-    INDEX_2MSB = create_palette_format(
-        palette_order::LSB,
+    index_2_msb = create_palette_format(
+        palette_order::lsb,
         1,
         4
     ),
 
-    INDEX_4LSB = create_palette_format(
-        palette_order::LSB,
+    index_4_lsb = create_palette_format(
+        palette_order::lsb,
         1,
         2
     ),
 
-    INDEX_4MSB = create_palette_format(
-        palette_order::MSB,
+    index_4_msb = create_palette_format(
+        palette_order::msb,
         1,
         2
     ),
 
-    INDEX_8 = create_palette_format(
-        palette_order::LSB,
+    index_8 = create_palette_format(
+        palette_order::lsb,
         1,
         1
     ),
 
-    INDEX_8LSB = INDEX_8,
-    INDEX_8MSB = INDEX_8
+    index_8_lsb = index_8,
+    index_8_msb = index_8
 };
 
 VX_FORCE_INLINE constexpr palette_order get_palette_order(palette_format format) noexcept

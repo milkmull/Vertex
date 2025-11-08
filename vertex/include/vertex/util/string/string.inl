@@ -706,80 +706,139 @@ inline std::string to_hex_string(const void* data, size_t size)
 
 inline int64_t to_int64(const std::string& s, size_t* count, int base)
 {
-    return to_int64(s.c_str(), count, base);
+    int64_t value = 0;
+    size_t i = 0;
+
+    if (base < 2 || base > 36)
+    {
+        err::set(err::invalid_argument, "base should be between 2 and 36");
+        return value;
+    }
+
+    try
+    {
+        value = static_cast<int64_t>(std::stoll(s, &i, base));
+    }
+    catch (const std::invalid_argument&)
+    {
+        err::set(err::invalid_argument, "invalid character");
+    }
+    catch (const std::out_of_range&)
+    {
+        err::set(err::out_of_range);
+    }
+
+    if (count)
+    {
+        *count = i;
+    }
+
+    return value;
 }
 
 inline int32_t to_int32(const std::string& s, size_t* count, int base)
 {
-    return to_int32(s.c_str(), count, base);
+    return static_cast<int32_t>(to_int64(s, count, base));
 }
 
 inline uint64_t to_uint64(const std::string& s, size_t* count, int base)
 {
-    return to_uint64(s.c_str(), count, base);
+    uint64_t value = 0;
+    size_t i = 0;
+
+    if (base < 2 || base > 36)
+    {
+        err::set(err::invalid_argument, "base should be between 2 and 36");
+        return value;
+    }
+
+    try
+    {
+        value = static_cast<uint64_t>(std::stoull(s, &i, base));
+    }
+    catch (const std::invalid_argument&)
+    {
+        err::set(err::invalid_argument, "invalid character");
+    }
+    catch (const std::out_of_range&)
+    {
+        err::set(err::out_of_range);
+    }
+
+    if (count)
+    {
+        *count = i;
+    }
+
+    return value;
 }
 
 inline uint32_t to_uint32(const std::string& s, size_t* count, int base)
 {
-    return to_uint32(s.c_str(), count, base);
+    return static_cast<uint32_t>(to_uint64(s, count, base));
 }
 
 inline double to_double(const std::string& s, size_t* count)
 {
-    return to_double(s.c_str(), count);
+    double value = 0.0;
+    size_t i = 0;
+
+    try
+    {
+        value = std::stod(s, &i);
+    }
+    catch (const std::invalid_argument&)
+    {
+        err::set(err::invalid_argument, "invalid character");
+    }
+    catch (const std::out_of_range&)
+    {
+        err::set(err::out_of_range);
+    }
+
+    if (count)
+    {
+        *count = i;
+    }
+
+    return value;
 }
 
 inline float to_float(const std::string& s, size_t* count)
 {
-    return to_float(s.c_str(), count);
+    return static_cast<float>(to_double(s, count));
 }
 
 inline int64_t to_int64(const char* s, size_t* count, int base)
 {
-    char* end = nullptr;
-    const auto value = std::strtoll(s, &end, base);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<int64_t>(value);
-}
+    int64_t value = 0;
+    size_t i = 0;
 
-inline int32_t to_int32(const char* s, size_t* count, int base)
-{
-    char* end = nullptr;
-    const auto value = std::strtol(s, &end, base);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<int32_t>(value);
-}
+    if (base < 2 || base > 36)
+    {
+        err::set(err::invalid_argument, "base should be between 2 and 36");
+        return value;
+    }
 
-inline uint64_t to_uint64(const char* s, size_t* count, int base)
-{
-    char* end = nullptr;
-    const auto value = std::strtoull(s, &end, base);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<uint64_t>(value);
-}
+    try
+    {
+        value = static_cast<int64_t>(std::stoll(s, &i, base));
+    }
+    catch (const std::invalid_argument&)
+    {
+        err::set(err::invalid_argument, "invalid character");
+    }
+    catch (const std::out_of_range&)
+    {
+        err::set(err::out_of_range);
+    }
 
-inline uint32_t to_uint32(const char* s, size_t* count, int base)
-{
-    char* end = nullptr;
-    const auto value = std::strtoul(s, &end, base);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<uint32_t>(value);
-}
+    if (count)
+    {
+        *count = i;
+    }
 
-inline double to_double(const char* s, size_t* count)
-{
-    char* end = nullptr;
-    const auto value = std::strtod(s, &end);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<double>(value);
-}
-
-inline float to_float(const char* s, size_t* count)
-{
-    char* end = nullptr;
-    const auto value = std::strtof(s, &end);
-    if (count) *count = static_cast<size_t>(end - s);
-    return static_cast<float>(value);
+    return value;
 }
 
 } // namespace str

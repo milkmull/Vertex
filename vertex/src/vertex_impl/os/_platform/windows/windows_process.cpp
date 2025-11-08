@@ -169,8 +169,8 @@ bool process::process_impl::start(process* p, const config& config)
 
     enum : int
     {
-        READ_PIPE  = 0,
-        WRITE_PIPE = 1
+        read_pipe_index = 0,
+        write_pipe_index = 1
     };
 
     struct stream_data
@@ -180,20 +180,20 @@ bool process::process_impl::start(process* p, const config& config)
         HANDLE pipes[2];
         file* redirect;
 
-        HANDLE& read_pipe() { return pipes[READ_PIPE]; }
-        HANDLE& write_pipe() { return pipes[WRITE_PIPE]; }
+        HANDLE& read_pipe() noexcept { return pipes[read_pipe_index]; }
+        HANDLE& write_pipe() noexcept { return pipes[write_pipe_index]; }
 
-        int user_pipe_index() const { return (type == STD_INPUT_HANDLE) ? WRITE_PIPE : READ_PIPE; }
-        int proc_pipe_index() const { return (type == STD_INPUT_HANDLE) ? READ_PIPE : WRITE_PIPE; }
+        int user_pipe_index() const noexcept { return (type == STD_INPUT_HANDLE) ? write_pipe_index : read_pipe_index; }
+        int proc_pipe_index() const noexcept { return (type == STD_INPUT_HANDLE) ? read_pipe_index : write_pipe_index; }
 
-        HANDLE& user_pipe() { return pipes[user_pipe_index()]; }
-        HANDLE& proc_pipe() { return pipes[proc_pipe_index()]; }
+        HANDLE& user_pipe() noexcept { return pipes[user_pipe_index()]; }
+        HANDLE& proc_pipe() noexcept { return pipes[proc_pipe_index()]; }
 
-        file::mode user_file_mode() const { return (type == STD_INPUT_HANDLE) ? file::mode::WRITE : file::mode::READ; }
-        file::mode proc_file_mode() const { return (type == STD_INPUT_HANDLE) ? file::mode::READ : file::mode::WRITE; }
+        file::mode user_file_mode() const noexcept { return (type == STD_INPUT_HANDLE) ? file::mode::write : file::mode::read; }
+        file::mode proc_file_mode() const noexcept { return (type == STD_INPUT_HANDLE) ? file::mode::read : file::mode::write; }
     };
 
-    stream_data streams[STREAM_COUNT] = {
+    stream_data streams[stream_count] = {
         // stdin
         { 
             STD_INPUT_HANDLE,
@@ -217,19 +217,19 @@ bool process::process_impl::start(process* p, const config& config)
         }
     };
 
-    for (int i = 0; i < STREAM_COUNT; ++i)
+    for (int i = 0; i < stream_count; ++i)
     {
         stream_data& stream = streams[i];
 
-        if (config.background && stream.option == io_option::INHERIT)
+        if (config.background && stream.option == io_option::inherit)
         {
             // If running in the background, redirect all streams to null
-            stream.option = io_option::NONE;
+            stream.option = io_option::none;
         }
 
         switch (stream.option)
         {
-            case io_option::NONE:
+            case io_option::none:
             {
                 // Redirect to a null device if the stream is null
                 HANDLE h = CreateFileW(
@@ -251,7 +251,7 @@ bool process::process_impl::start(process* p, const config& config)
                 stream.proc_pipe() = h;
                 break;
             }
-            case io_option::CREATE:
+            case io_option::create:
             {
                 // Create a pipe for communication between parent and child process
                 if (!::CreatePipe(&stream.read_pipe(), &stream.write_pipe(), &security_attributes, 0))
@@ -275,18 +275,18 @@ bool process::process_impl::start(process* p, const config& config)
 
                 break;
             }
-            case io_option::REDIRECT:
+            case io_option::redirect:
             {
                 if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
-                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream was null");
+                    err::set(err::invalid_argument, "process::start(): redirect stream was null");
                     goto cleanup;
                 }
 
-                if ((stream.proc_file_mode() == file::mode::READ && !stream.redirect->can_read()) ||
-                    (stream.proc_file_mode() == file::mode::WRITE && !stream.redirect->can_write()))
+                if ((stream.proc_file_mode() == file::mode::read && !stream.redirect->can_read()) ||
+                    (stream.proc_file_mode() == file::mode::write && !stream.redirect->can_write()))
                 {
-                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream mode is incompatable with expected file mode");
+                    err::set(err::invalid_argument, "process::start(): redirect stream mode is incompatable with expected file mode");
                     goto cleanup;
                 }
 
@@ -320,7 +320,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 break;
             }
-            case io_option::INHERIT:
+            case io_option::inherit:
             default:
             {
                 // Duplicate the handle from the parent process
@@ -344,9 +344,9 @@ bool process::process_impl::start(process* p, const config& config)
     }
 
     // Assign the handles to the STARTUPINFO structure
-    startup_info.hStdInput  = streams[STDIN ].proc_pipe();
-    startup_info.hStdOutput = streams[STDOUT].proc_pipe();
-    startup_info.hStdError  = streams[STDERR].proc_pipe();
+    startup_info.hStdInput  = streams[stdin_index ].proc_pipe();
+    startup_info.hStdOutput = streams[stdout_index].proc_pipe();
+    startup_info.hStdError  = streams[stderr_index].proc_pipe();
 
     if (!::CreateProcessW(
         NULL,                       // Executable path (null if using command line args)
@@ -365,9 +365,9 @@ bool process::process_impl::start(process* p, const config& config)
     }
 
     // Setup user end of created streams
-    for (int i = 0; i < STREAM_COUNT; ++i)
+    for (int i = 0; i < stream_count; ++i)
     {
-        if (streams[i].option == io_option::CREATE)
+        if (streams[i].option == io_option::create)
         {
             // Create file object from handle for the corresponding stream
             p->m_streams[i] = _priv::file_impl::from_native_handle(
@@ -392,7 +392,7 @@ bool process::process_impl::start(process* p, const config& config)
             // - It was created (CREATE or NONE), not redirected or inherited
             // - We succeeded and the child has inherited it already
             // - OR we failed to create the process, in which case everything must be cleaned up
-            const bool created_pipe = (s.option == io_option::CREATE || s.option == io_option::NONE);
+            const bool created_pipe = (s.option == io_option::create || s.option == io_option::none);
 
             if (s.proc_pipe() != INVALID_HANDLE_VALUE)
             {
@@ -606,7 +606,7 @@ static io_stream get_stream_handle(DWORD nStdHandle)
 
     return _priv::file_impl::from_native_handle(
         h,
-        (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::READ : io_stream::mode::WRITE
+        (nStdHandle == STD_INPUT_HANDLE) ? io_stream::mode::read : io_stream::mode::write
     );
 }
 

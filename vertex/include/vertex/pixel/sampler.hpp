@@ -16,13 +16,13 @@ public:
 
     math::vec2 resolution = math::vec2(1.0f);
 
-    wrap_mode xwrap = wrap_mode::REPEAT;
-    wrap_mode ywrap = wrap_mode::REPEAT;
+    wrap_mode xwrap = wrap_mode::repeat;
+    wrap_mode ywrap = wrap_mode::repeat;
 
     math::color border;
 
-    filter_mode min_filter = filter_mode::NEAREST;
-    filter_mode mag_filter = filter_mode::LINEAR;
+    filter_mode min_filter = filter_mode::nearest;
+    filter_mode mag_filter = filter_mode::linear;
 
 public:
 
@@ -84,11 +84,11 @@ private:
 
         switch (wrap)
         {
-            case wrap_mode::CLAMP_TO_EDGE:         return math::wrap::clamp_to_edge(p, size);
-            case wrap_mode::CLAMP_TO_BORDER:       return math::wrap::clamp_to_border(p, size);
-            case wrap_mode::REPEAT:                return math::wrap::repeat(p, size);
-            case wrap_mode::MIRRORED_REPEAT:       return math::wrap::mirrored_repeat(p, size);
-            case wrap_mode::MIRROR_CLAMP_TO_EDGE:  return math::wrap::mirror_clamp_to_edge(p, size);
+            case wrap_mode::clamp_to_edge:         return math::wrap::clamp_to_edge(p, size);
+            case wrap_mode::clamp_to_border:       return math::wrap::clamp_to_border(p, size);
+            case wrap_mode::repeat:                return math::wrap::repeat(p, size);
+            case wrap_mode::mirrored_repeat:       return math::wrap::mirrored_repeat(p, size);
+            case wrap_mode::mirror_clamp_to_edge:  return math::wrap::mirror_clamp_to_edge(p, size);
             default:                               return p;
         }
     }

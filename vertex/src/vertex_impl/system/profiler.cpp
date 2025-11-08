@@ -22,7 +22,7 @@ public:
     {
         stop();
 
-        m_file.open(output_file, os::file::mode::WRITE);
+        m_file.open(output_file, os::file::mode::write);
         if (m_file.is_open())
         {
             write_header();

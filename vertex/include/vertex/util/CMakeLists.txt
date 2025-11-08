@@ -2,7 +2,6 @@
 file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/bit/bit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/bit/endian.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/bit/enum_bitwise_operators.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/bit.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/FNV1a.hpp"

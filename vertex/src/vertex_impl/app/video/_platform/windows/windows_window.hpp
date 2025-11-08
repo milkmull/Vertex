@@ -115,7 +115,7 @@ public:
     void restore() {}
     bool raise() { return false; }
 
-    typename window_instance::fullscreen_result set_fullscreen(typename window_instance::fullscreen_op::type fullscreen, display_instance& display) { return (typename window_instance::fullscreen_result)0; }
+    window_instance::fullscreen_result set_fullscreen(window_instance::fullscreen_op fullscreen, display_instance& display) { return (window_instance::fullscreen_result)0; }
 
     void focus() {}
     bool is_focused() const { return false; }

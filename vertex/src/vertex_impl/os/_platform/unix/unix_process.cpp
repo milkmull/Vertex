@@ -169,8 +169,14 @@ bool process::process_impl::start(process* p, const config& config)
 
     enum : int
     {
-        READ_PIPE = 0,
-        WRITE_PIPE = 1
+        read_pipe_index = 0,
+        write_pipe_index = 1,
+
+        stdin_index = 0,
+        stdout_index = 1,
+        stderr_index = 2,
+
+        stream_count = 3
     };
 
     struct stream_data
@@ -180,23 +186,23 @@ bool process::process_impl::start(process* p, const config& config)
         int pipes[2];
         file* redirect;
 
-        int& read_pipe() { return pipes[READ_PIPE]; }
-        int& write_pipe() { return pipes[WRITE_PIPE]; }
+        int& read_pipe() noexcept { return pipes[read_pipe_index]; }
+        int& write_pipe() noexcept { return pipes[write_pipe_index]; }
 
-        int user_pipe_index() const { return (type == STDIN_FILENO) ? WRITE_PIPE : READ_PIPE; }
-        int proc_pipe_index() const { return (type == STDIN_FILENO) ? READ_PIPE : WRITE_PIPE; }
+        int user_pipe_index() const noexcept { return (type == STDIN_FILENO) ? write_pipe_index : read_pipe_index; }
+        int proc_pipe_index() const noexcept { return (type == STDIN_FILENO) ? read_pipe_index : write_pipe_index; }
 
-        int& user_pipe() { return pipes[user_pipe_index()]; }
-        int& proc_pipe() { return pipes[proc_pipe_index()]; }
+        int& user_pipe() noexcept { return pipes[user_pipe_index()]; }
+        int& proc_pipe() noexcept { return pipes[proc_pipe_index()]; }
 
-        file::mode user_file_mode() const { return (type == STDIN_FILENO) ? file::mode::WRITE : file::mode::READ; }
-        file::mode proc_file_mode() const { return (type == STDIN_FILENO) ? file::mode::READ : file::mode::WRITE; }
+        file::mode user_file_mode() const noexcept { return (type == STDIN_FILENO) ? file::mode::write : file::mode::read; }
+        file::mode proc_file_mode() const noexcept { return (type == STDIN_FILENO) ? file::mode::read : file::mode::write; }
 
-        int proc_posix_file_permissions() const { return (type == STDIN_FILENO) ? O_RDONLY : O_WRONLY; }
-        mode_t proc_posix_file_mode() const { return (type == STDIN_FILENO) ? 0 : 0644; }
+        int proc_posix_file_permissions() const noexcept { return (type == STDIN_FILENO) ? O_RDONLY : O_WRONLY; }
+        mode_t proc_posix_file_mode() const noexcept { return (type == STDIN_FILENO) ? 0 : 0644; }
     };
 
-    stream_data streams[STREAM_COUNT] = {
+    stream_data streams[stream_count] = {
         // stdin
         {
             STDIN_FILENO,
@@ -254,19 +260,19 @@ bool process::process_impl::start(process* p, const config& config)
 #endif
     }
 
-    for (int i = 0; i < STREAM_COUNT; ++i)
+    for (int i = 0; i < stream_count; ++i)
     {
         stream_data& stream = streams[i];
 
-        if (config.background && stream.option == io_option::INHERIT)
+        if (config.background && stream.option == io_option::inherit)
         {
             // If running in the background, redirect all streams to null
-            stream.option = io_option::NONE;
+            stream.option = io_option::none;
         }
 
         switch (stream.option)
         {
-            case io_option::NONE:
+            case io_option::none:
             {
                 if (::posix_spawn_file_actions_addopen(
                     &fa,
@@ -305,7 +311,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 break;
             }
-            case io_option::REDIRECT:
+            case io_option::redirect:
             {
                 if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
@@ -313,8 +319,8 @@ bool process::process_impl::start(process* p, const config& config)
                     goto posix_spawn_fail_all;
                 }
 
-                if ((stream.proc_file_mode() == file::mode::READ && !stream.redirect->can_read()) ||
-                    (stream.proc_file_mode() == file::mode::WRITE && !stream.redirect->can_write()))
+                if ((stream.proc_file_mode() == file::mode::read && !stream.redirect->can_read()) ||
+                    (stream.proc_file_mode() == file::mode::write && !stream.redirect->can_write()))
                 {
                     err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream mode is incompatable with expected file mode");
                     goto posix_spawn_fail_all;
@@ -329,7 +335,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 break;
             }
-            case io_option::INHERIT:
+            case io_option::inherit:
             default:
             {
                 // Default behaviour
@@ -405,9 +411,9 @@ bool process::process_impl::start(process* p, const config& config)
     }
 
     // Setup user end of created streams
-    for (int i = 0; i < STREAM_COUNT; ++i)
+    for (int i = 0; i < stream_count; ++i)
     {
-        if (streams[i].option == io_option::CREATE)
+        if (streams[i].option == io_option::create)
         {
             // Set the file descriptor to non-blocking mode
             const int fd = streams[i].user_pipe();
@@ -449,7 +455,7 @@ bool process::process_impl::start(process* p, const config& config)
             // - It was created (CREATE or NONE), not redirected or inherited
             // - We succeeded and the child has inherited it already
             // - OR we failed to create the process, in which case everything must be cleaned up
-            const bool created_pipe = (s.option == io_option::CREATE || s.option == io_option::NONE);
+            const bool created_pipe = (s.option == io_option::create || s.option == io_option::none);
 
             if (s.proc_pipe() != -1)
             {
@@ -490,7 +496,7 @@ process::process_impl::wait_status process::process_impl::wait(
 {
     if (m_complete)
     {
-        return wait_status::COMPLETE;
+        return wait_status::complete;
     }
 
     if (m_background)
@@ -501,7 +507,7 @@ process::process_impl::wait_status process::process_impl::wait(
             if (!block)
             {
                 // just check once
-                return wait_status::ALIVE;
+                return wait_status::alive;
             }
 
             os::sleep(time::milliseconds(10));
@@ -510,7 +516,7 @@ process::process_impl::wait_status process::process_impl::wait(
         // Process is no longer alive, but we can't retrieve exit status
         m_complete = true;
         m_exit_code = default_background_exit_code;
-        return wait_status::COMPLETE;
+        return wait_status::complete;
     }
 
     int status = 0;
@@ -519,11 +525,11 @@ process::process_impl::wait_status process::process_impl::wait(
     if (res < 0)
     {
         unix_::error_message("waitpid()");
-        return wait_status::FAILED;
+        return wait_status::failed;
     }
     else if (res == 0)
     {
-        return wait_status::ALIVE;
+        return wait_status::alive;
     }
     else // (res > 0)
     {
@@ -542,26 +548,26 @@ process::process_impl::wait_status process::process_impl::wait(
             m_exit_code = 1;
         }
 
-        return wait_status::COMPLETE;
+        return wait_status::complete;
     }
 }
 
 bool process::process_impl::is_alive() const
 {
     assert_process_configured();
-    return wait(false, 0) == wait_status::ALIVE;
+    return wait(false, 0) == wait_status::alive;
 }
 
 bool process::process_impl::is_complete() const
 {
     assert_process_configured();
-    return wait(false, 0) == wait_status::COMPLETE;
+    return wait(false, 0) == wait_status::complete;
 }
 
 bool process::process_impl::join()
 {
     assert_process_configured();
-    return wait(true, 0) == wait_status::COMPLETE;
+    return wait(true, 0) == wait_status::complete;
 }
 
 bool process::process_impl::kill(bool force)
@@ -579,7 +585,7 @@ bool process::process_impl::kill(bool force)
         // If we are running in the background, just check if the
         // process is still alive. If it is, the signal failed. If
         // it is not, consider it an exit failure (code 1).
-        return (wait(true, 1) == wait_status::COMPLETE);
+        return (wait(true, 1) == wait_status::complete);
     }
 
     return join();
@@ -665,7 +671,7 @@ static io_stream get_stream_handle(int fd)
 
     return _priv::file_impl::from_native_handle(
         dup_fd,
-        (fd == STDIN_FILENO) ? io_stream::mode::READ : io_stream::mode::WRITE
+        (fd == STDIN_FILENO) ? io_stream::mode::read : io_stream::mode::write
     );
 }
 

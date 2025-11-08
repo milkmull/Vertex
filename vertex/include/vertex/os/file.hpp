@@ -23,9 +23,9 @@ struct file_impl;
 
 enum class stream_position
 {
-    BEGIN,
-    CURRENT,
-    END
+    begin,
+    current,
+    end
 };
 
 /**
@@ -48,19 +48,19 @@ public:
      */
     enum class mode
     {
-        NONE,
-        READ,               // File must exist
-        WRITE,              // Always create or truncate the file
-        APPEND,             // Create if not exists, otherwise open existing
-        READ_WRITE_EXISTS,  // File must exist
-        READ_WRITE_CREATE   // Truncate if file exists, or create a new one
+        none,
+        read,               // file must exist
+        write,              // always create or truncate the file
+        append,             // create if not exists, otherwise open existing
+        read_write_exists,  // file must exist
+        read_write_create   // truncate if file exists, or create a new one
     };
 
 
     enum : size_t
     {
-        INVALID_SIZE        = std::numeric_limits<size_t>::max(),
-        INVALID_POSITION    = std::numeric_limits<size_t>::max()
+        invalid_size        = std::numeric_limits<size_t>::max(),
+        invalid_position    = invalid_size
     };
 
 public:
@@ -139,14 +139,14 @@ public:
      *
      * @return True if the file is open for reading, false otherwise.
      */
-    bool can_read() const noexcept { return (m_mode == mode::READ || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE); }
+    bool can_read() const noexcept { return (m_mode == mode::read || m_mode == mode::read_write_exists || m_mode == mode::read_write_create); }
 
     /**
      * @brief Checks if the file is open in a mode that allows writing.
      *
      * @return True if the file is open for writing, false otherwise.
      */
-    bool can_write() const noexcept { return (m_mode == mode::WRITE || m_mode == mode::READ_WRITE_EXISTS || m_mode == mode::READ_WRITE_CREATE || m_mode == mode::APPEND); }
+    bool can_write() const noexcept { return (m_mode == mode::write || m_mode == mode::read_write_exists || m_mode == mode::read_write_create || m_mode == mode::append); }
 
     /**
      * @brief Gets the size of the file.
@@ -181,10 +181,10 @@ public:
      * Seeks to the specified offset from a given stream position.
      *
      * @param off The offset to seek to.
-     * @param from The position from which to seek (e.g., BEGIN, CURRENT, END).
+     * @param from The position from which to seek (e.g., begin, current, end).
      * @return True if the seek was successful, false otherwise.
      */
-    VX_API bool seek(int off, stream_position from = stream_position::BEGIN);
+    VX_API bool seek(int off, stream_position from = stream_position::begin);
 
     /**
      * @brief Gets the current file position.
@@ -400,7 +400,7 @@ public:
     static bool read_file(const path& p, std::vector<uint8_t>& data)
     {
         file f;
-        if (!f.open(p, mode::READ))
+        if (!f.open(p, mode::read))
         {
             return false;
         }
@@ -419,7 +419,7 @@ public:
     static bool read_file(const path& p, std::string& text)
     {
         file f;
-        if (!f.open(p, mode::READ))
+        if (!f.open(p, mode::read))
         {
             return false;
         }
@@ -447,7 +447,7 @@ public:
     static bool write_file(const path& p, const uint8_t* data, size_t size)
     {
         file f;
-        return f.open(p, mode::WRITE) && f.write(data, size);
+        return f.open(p, mode::write) && f.write(data, size);
     }
 
     /**
@@ -500,7 +500,7 @@ public:
     static bool clear_file(const path& p)
     {
         file f;
-        return f.open(p, mode::READ_WRITE_EXISTS) && f.clear();
+        return f.open(p, mode::read_write_exists) && f.clear();
     }
 
 private:
@@ -512,7 +512,7 @@ private:
 
     friend _priv::file_impl;
 
-    mode m_mode = mode::NONE;
+    mode m_mode = mode::none;
     handle m_handle;
 };
 

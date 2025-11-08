@@ -52,7 +52,7 @@ public:
 
         if (m_thread.joinable())
         {
-            err::set(err::UNSUPPORTED_OPERATION, "thread already started");
+            err::set(err::unsupported_operation, "thread already started");
             return false;
         }
 

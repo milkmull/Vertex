@@ -27,36 +27,36 @@ struct file_impl
         switch (mode)
         {
             // File must exist
-            case file::mode::NONE:
-            case file::mode::READ:
+            case file::mode::none:
+            case file::mode::read:
             {
                 access = GENERIC_READ;
                 creation = OPEN_EXISTING;
                 break;
             }
             // Always create or truncate the file
-            case file::mode::WRITE:
+            case file::mode::write:
             {
                 access = GENERIC_WRITE;
                 creation = CREATE_ALWAYS;
                 break;
             }
             // Create if not exists, otherwise open existing
-            case file::mode::APPEND:
+            case file::mode::append:
             {
                 access = FILE_APPEND_DATA;
                 creation = OPEN_ALWAYS;
                 break;
             }
             // File must exist
-            case file::mode::READ_WRITE_EXISTS:
+            case file::mode::read_write_exists:
             {
                 access = GENERIC_READ | GENERIC_WRITE;
                 creation = OPEN_EXISTING;
                 break;
             }
             // Truncate if file exists, or create a new one
-            case file::mode::READ_WRITE_CREATE:
+            case file::mode::read_write_create:
             {
                 access = GENERIC_READ | GENERIC_WRITE;
                 creation = CREATE_ALWAYS;
@@ -92,7 +92,7 @@ struct file_impl
         if (!::GetFileSizeEx(h.get(), &size))
         {
             windows::error_message("GetFileSizeEx()");
-            return file::INVALID_SIZE;
+            return file::invalid_size;
         }
 
         return static_cast<size_t>(size.QuadPart);
@@ -108,17 +108,17 @@ struct file_impl
         DWORD method = 0;
         switch (from)
         {
-            case stream_position::BEGIN:
+            case stream_position::begin:
             {
                 method = FILE_BEGIN;
                 break;
             }
-            case stream_position::CURRENT:
+            case stream_position::current:
             {
                 method = FILE_CURRENT;
                 break;
             }
-            case stream_position::END:
+            case stream_position::end:
             {
                 method = FILE_END;
                 break;
@@ -138,7 +138,7 @@ struct file_impl
     {
         assert_is_open(h);
 
-        if (!seek(h, static_cast<int>(size), stream_position::BEGIN))
+        if (!seek(h, static_cast<int>(size), stream_position::begin))
         {
             return false;
         }
@@ -163,7 +163,7 @@ struct file_impl
         if (!::SetFilePointerEx(h.get(), off, &off, FILE_CURRENT))
         {
             windows::error_message("SetFilePointerEx()");
-            return file::INVALID_POSITION;
+            return file::invalid_position;
         }
 
         return static_cast<size_t>(off.QuadPart);

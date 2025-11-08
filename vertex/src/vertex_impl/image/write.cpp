@@ -52,7 +52,7 @@ static void write_process_error(const char* filename, error_code code)
 {
     std::ostringstream oss;
     oss << "failed to save image file \"" << filename << "\": " << error_code_to_string(code);
-    err::set(err::FILE_WRITE_FAILED, oss.str().c_str());
+    err::set(err::file_write_failed, oss.str().c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ struct image_write_data
 {
     image_info info{};
     const byte_type* data = nullptr;
-    error_code error = error_code::NONE;
+    error_code error = error_code::none;
 };
 
 static bool get_write_data(const char* filename, const image& img, image_write_data& data)
@@ -73,7 +73,7 @@ static bool get_write_data(const char* filename, const image& img, image_write_d
     data.info.format = pixel::channel_count_to_8_bit_format(img.channels());
 
     data.error = get_image_info_error(data.info);
-    if (data.error != error_code::NONE)
+    if (data.error != error_code::none)
     {
         write_process_error(filename, data.error);
         return false;

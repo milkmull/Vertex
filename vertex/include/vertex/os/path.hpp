@@ -61,13 +61,13 @@ using path_string_type = std::basic_string<path_value_type>;
 
 namespace path_parser {
 
-enum state
+enum class state
 {
-    BEGIN,
-    ROOT_NAME,
-    ROOT_DIRECTORY,
-    RELATIVE_PATH,
-    END
+    begin,
+    root_name,
+    root_directory,
+    relative_path,
+    end
 };
 
 struct substring
@@ -370,23 +370,23 @@ public:
 
     path_iterator& operator++()
     {
-        if (m_state == path_parser::state::END)
+        if (m_state == path_parser::state::end)
         {
             return *this;
         }
 
         const auto& path = m_path->native();
 
-        if (m_state <= path_parser::state::ROOT_NAME)
+        if (m_state <= path_parser::state::root_name)
         {
             const auto root_directory = path_parser::parse_root_directory(path);
             
-            if (m_state == path_parser::state::BEGIN && root_directory.pos != 0)
+            if (m_state == path_parser::state::begin && root_directory.pos != 0)
             {
                 // The iterator was just initialized and the first element is the root name
                 m_element.m_path = path.substr(0, root_directory.pos);
                 m_position = root_directory.pos;
-                m_state = path_parser::state::ROOT_NAME;
+                m_state = path_parser::state::root_name;
                 return *this;
             }
             else if (root_directory.size != 0)
@@ -394,7 +394,7 @@ public:
                 // Root directory exists, so next is root directory
                 m_element.m_path = path.substr(root_directory.pos, 1);
                 m_position = root_directory.pos + root_directory.size;
-                m_state = path_parser::state::ROOT_DIRECTORY;
+                m_state = path_parser::state::root_directory;
                 return *this;
             }
         }
@@ -406,7 +406,7 @@ public:
             // We are at the end of the path
             m_element.clear();
             m_position = path_size;
-            m_state = path_parser::state::END;
+            m_state = path_parser::state::end;
             return *this;
         }
 
@@ -424,7 +424,7 @@ public:
         const size_t start = m_position;
         m_position = path_parser::find_separator(path.data(), start, path_size);
         m_element.m_path = path.substr(start, m_position - start);
-        m_state = path_parser::state::RELATIVE_PATH;
+        m_state = path_parser::state::relative_path;
 
         return *this;
     }
@@ -453,7 +453,7 @@ private:
     const path_t* m_path = nullptr;
     path_t m_element;
     size_t m_position = 0;
-    typename path_parser::state m_state = path_parser::state::BEGIN;
+    path_parser::state m_state = path_parser::state::begin;
 };
 
 } // namespace _priv
@@ -1068,7 +1068,7 @@ public:
 
         for (auto it = begin(); it != end(); ++it)
         {
-            if (it.m_state == parse_state::ROOT_NAME)
+            if (it.m_state == parse_state::root_name)
             {
                 // 3. Replace each slash character in the root-name with path::preferred_separator.
                 for (const value_type c : it->native())
@@ -1079,7 +1079,7 @@ public:
                 continue;
             }
 
-            else if (it.m_state == parse_state::ROOT_DIRECTORY)
+            else if (it.m_state == parse_state::root_directory)
             {
                 // Root-directory will only ever be made up of separators.
                 // We can just replace it with a single preferred separator.
@@ -1560,7 +1560,7 @@ public:
 
     inline iterator end() const
     {
-        return iterator(this, _priv::path_parser::state::END);
+        return iterator(this, _priv::path_parser::state::end);
     }
 
     inline iterator cbegin() const

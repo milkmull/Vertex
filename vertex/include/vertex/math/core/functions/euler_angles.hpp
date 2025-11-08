@@ -11,12 +11,12 @@ namespace math {
 
 enum class euler_order
 {
-    XYZ,
-    XZY,
-    YXZ,
-    YZX,
-    ZXY,
-    ZYX
+    xyz,
+    xzy,
+    yxz,
+    yzx,
+    zxy,
+    zyx
 };
 
 ///////////////////////////////////////////////////////////////////////////////

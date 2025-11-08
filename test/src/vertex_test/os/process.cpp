@@ -114,7 +114,7 @@ VX_TEST_CASE(test_basic_process)
 
     os::process::config cfg;
     cfg.args = { child_process, "--hello-world" };
-    cfg.stdout_option = os::process::io_option::INHERIT;
+    cfg.stdout_option = os::process::io_option::inherit;
     VX_CHECK_AND_EXPECT_NO_ERROR(p.start(cfg));
 
     VX_CHECK(p.is_valid());
@@ -179,7 +179,7 @@ static std::string echo_argument(const std::string& arg)
     os::process::config cfg;
 
     // create a new stdout stream
-    cfg.stdout_option = os::process::io_option::CREATE;
+    cfg.stdout_option = os::process::io_option::create;
 
 #if defined(VX_OS_WINDOWS)
 
@@ -271,7 +271,7 @@ VX_TEST_CASE(test_environment)
         // Configure the process
         os::process::config config;
         config.args = { child_process, "--show-environment" };
-        config.stdout_option = os::process::io_option::CREATE;
+        config.stdout_option = os::process::io_option::create;
 
         // Start the process
         os::process p;
@@ -308,7 +308,7 @@ VX_TEST_CASE(test_environment)
         // Configure the process
         os::process::config config;
         config.args = { child_process, "--show-environment" };
-        config.stdout_option = os::process::io_option::CREATE;
+        config.stdout_option = os::process::io_option::create;
         config.environment["test_new_environment"] = "true";
 
         // Start the process
@@ -349,7 +349,7 @@ VX_TEST_CASE(test_kill)
     // Configure the process
     os::process::config config;
     config.args = { child_process, "--stall" };
-    config.stdout_option = os::process::io_option::CREATE;
+    config.stdout_option = os::process::io_option::create;
 
     // Start the process
     os::process p;
@@ -382,8 +382,8 @@ VX_TEST_CASE(test_stdin_to_stdout)
     // Configure the process
     os::process::config config;
     config.args = { child_process, "--stdin-to-stdout" };
-    config.stdin_option = os::process::io_option::CREATE;
-    config.stdout_option = os::process::io_option::CREATE;
+    config.stdin_option = os::process::io_option::create;
+    config.stdout_option = os::process::io_option::create;
 
     // Start the process
     os::process p;
@@ -439,8 +439,8 @@ VX_TEST_CASE(test_stdin_to_stderr)
     // Configure the process
     os::process::config config;
     config.args = { child_process, "--stdin-to-stderr" };
-    config.stdin_option = os::process::io_option::CREATE;
-    config.stderr_option = os::process::io_option::CREATE;
+    config.stdin_option = os::process::io_option::create;
+    config.stderr_option = os::process::io_option::create;
 
     // Start the process
     os::process p;
@@ -498,15 +498,15 @@ VX_TEST_CASE(test_multiprocess_stdin_to_stdout)
     config.args = { child_process, "--stdin-to-stdout" };
 
     // Configure and start the first process
-    config.stdin_option = os::process::io_option::CREATE;
-    config.stdout_option = os::process::io_option::CREATE;
+    config.stdin_option = os::process::io_option::create;
+    config.stdout_option = os::process::io_option::create;
     os::process p1;
     VX_CHECK(p1.start(config));
 
     // Configure and start the second process
-    config.stdin_option = os::process::io_option::REDIRECT;
+    config.stdin_option = os::process::io_option::redirect;
     config.stdin_redirect = &p1.get_stdout();
-    config.stdout_option = os::process::io_option::CREATE;
+    config.stdout_option = os::process::io_option::create;
     os::process p2;
     VX_CHECK(p2.start(config));
 
@@ -560,7 +560,7 @@ VX_TEST_CASE(test_write_to_completed_process)
 
     os::process::config cfg;
     cfg.args = { child_process, "--hello-world" };
-    cfg.stdin_option = os::process::io_option::CREATE;
+    cfg.stdin_option = os::process::io_option::create;
     VX_CHECK_AND_EXPECT_NO_ERROR(p.start(cfg));
 
     VX_CHECK(p.is_valid());
@@ -595,19 +595,19 @@ VX_TEST_CASE(test_stream_redirection)
     const os::path stdin_path = "stdin.txt";
     // create the parent process input side of the pipe
     os::io_stream stream;
-    VX_CHECK(stream.open(stdin_path, os::file::mode::WRITE));
+    VX_CHECK(stream.open(stdin_path, os::file::mode::write));
 
     // create the child process input side of the pipe
     os::file p_stdin;
-    VX_CHECK(p_stdin.open(stdin_path, os::file::mode::READ));
+    VX_CHECK(p_stdin.open(stdin_path, os::file::mode::read));
 
     const os::path stdout_path = "stdout.txt";
     os::file p_stdout;
-    VX_CHECK(p_stdout.open(stdout_path, os::file::mode::WRITE));
+    VX_CHECK(p_stdout.open(stdout_path, os::file::mode::write));
 
     const os::path stderr_path = "stderr.txt";
     os::file p_stderr;
-    VX_CHECK(p_stderr.open(stderr_path, os::file::mode::WRITE));
+    VX_CHECK(p_stderr.open(stderr_path, os::file::mode::write));
 
     VX_SECTION("stdin to stdout redirection")
     {
@@ -616,10 +616,10 @@ VX_TEST_CASE(test_stream_redirection)
         os::process::config cfg;
         cfg.args = { child_process, "--stdin-to-stdout" };
 
-        cfg.stdin_option = os::process::io_option::REDIRECT;
+        cfg.stdin_option = os::process::io_option::redirect;
         cfg.stdin_redirect = &p_stdin;
 
-        cfg.stdout_option = os::process::io_option::REDIRECT;
+        cfg.stdout_option = os::process::io_option::redirect;
         cfg.stdout_redirect = &p_stdout;
 
         // Start the process
@@ -640,7 +640,7 @@ VX_TEST_CASE(test_stream_redirection)
         VX_CHECK(exit_code == 0);
 
         os::io_stream stdout_stream;
-        VX_CHECK(stdout_stream.open(stdout_path, os::file::mode::READ));
+        VX_CHECK(stdout_stream.open(stdout_path, os::file::mode::read));
 
         // read the lines back
         std::string read_line;
@@ -656,10 +656,10 @@ VX_TEST_CASE(test_stream_redirection)
         os::process::config cfg;
         cfg.args = { child_process, "--stdin-to-stderr" };
 
-        cfg.stdin_option = os::process::io_option::REDIRECT;
+        cfg.stdin_option = os::process::io_option::redirect;
         cfg.stdin_redirect = &p_stdin;
 
-        cfg.stderr_option = os::process::io_option::REDIRECT;
+        cfg.stderr_option = os::process::io_option::redirect;
         cfg.stderr_redirect = &p_stderr;
 
         // Start the process
@@ -680,7 +680,7 @@ VX_TEST_CASE(test_stream_redirection)
         VX_CHECK(exit_code == 0);
 
         os::io_stream stderr_stream;
-        VX_CHECK(stderr_stream.open(stderr_path, os::file::mode::READ));
+        VX_CHECK(stderr_stream.open(stderr_path, os::file::mode::read));
 
         // read the lines back
         std::string read_line;

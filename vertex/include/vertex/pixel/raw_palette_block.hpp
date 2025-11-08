@@ -16,21 +16,21 @@ template <palette_format f> struct raw_palette_block;
 #define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_palette_block<F>) == alignof(typename raw_palette_block<F>::block_type), "invalid block alignment for format " FS)
 #define _STATIC_FORMAT_CHECK(F)           _STATIC_CHECK_SIZE(palette_format::F, #F); _STATIC_CHECK_ALIGNMENT(palette_format::F, #F)
 
-#define _DECODE_BLOCK_LSB(si) (((data) >> ((si) * bpsi)) & ((1u << bpsi) - 1))
-#define _ENCODE_BLOCK_LSB(si, i) (((data) & ~(((1u << (bpsi)) - 1) << ((si) * bpsi))) | (((i) & ((1u << (bpsi)) - 1)) << ((si) * bpsi)))
+#define _DECODE_BLOCK__lsb(si) (((data) >> ((si) * bpsi)) & ((1u << bpsi) - 1))
+#define _ENCODE_BLOCK__lsb(si, i) (((data) & ~(((1u << (bpsi)) - 1) << ((si) * bpsi))) | (((i) & ((1u << (bpsi)) - 1)) << ((si) * bpsi)))
 
-#define _DECODE_BLOCK_MSB(si) (((data) >> (sizeof(block_type) * 8 - (si) - (bpsi)))
-#define _ENCODE_BLOCK_MSB(si, i) (((data) & ~(((1u << (bpsi)) - 1) << (sizeof(block_type) * 8 - (si) - (bpsi)))) | (((i) & ((1u << (bpsi)) - 1)) << (sizeof(block_type) * 8 - (si) - (bpsi)))))
+#define _DECODE_BLOCK__msb(si) (((data) >> (sizeof(block_type) * 8 - (si) - (bpsi)))
+#define _ENCODE_BLOCK__msb(si, i) (((data) & ~(((1u << (bpsi)) - 1) << (sizeof(block_type) * 8 - (si) - (bpsi)))) | (((i) & ((1u << (bpsi)) - 1)) << (sizeof(block_type) * 8 - (si) - (bpsi)))))
 
 ///////////////////////////////////////////////////////////////////////////////
 // 1 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1LSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_1_lsb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_1LSB;
+    static constexpr palette_format format = palette_format::index_1_lsb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -48,24 +48,24 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_1LSB);
+_STATIC_FORMAT_CHECK(index_1_lsb);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1MSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_1_msb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_1MSB;
+    static constexpr palette_format format = palette_format::index_1_msb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -83,26 +83,26 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_1MSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_1MSB);
+_STATIC_FORMAT_CHECK(index_1_msb);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 2 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2LSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_2_lsb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_2LSB;
+    static constexpr palette_format format = palette_format::index_2_lsb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -120,24 +120,24 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_2LSB);
+_STATIC_FORMAT_CHECK(index_2_lsb);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2MSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_2_msb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_2MSB;
+    static constexpr palette_format format = palette_format::index_2_msb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -155,26 +155,26 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_2MSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_2MSB);
+_STATIC_FORMAT_CHECK(index_2_msb);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 4 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4LSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_4_lsb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_4LSB;
+    static constexpr palette_format format = palette_format::index_4_lsb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -192,24 +192,24 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4LSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_4LSB);
+_STATIC_FORMAT_CHECK(index_4_lsb);
 
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4MSB>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_4_msb>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_4MSB;
+    static constexpr palette_format format = palette_format::index_4_msb;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -227,26 +227,26 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_4MSB>
 
     VX_FORCE_INLINE constexpr block_type get_index(size_t sub_index) const noexcept
     {
-        return _DECODE_BLOCK_LSB(static_cast<block_type>(sub_index));
+        return _DECODE_BLOCK__lsb(static_cast<block_type>(sub_index));
     }
 
     VX_FORCE_INLINE constexpr void set_index(size_t sub_index, block_type value) noexcept
     {
-        data = _ENCODE_BLOCK_LSB(static_cast<block_type>(sub_index), value);
+        data = _ENCODE_BLOCK__lsb(static_cast<block_type>(sub_index), value);
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_4MSB);
+_STATIC_FORMAT_CHECK(index_4_msb);
 
 ///////////////////////////////////////////////////////////////////////////////
 // 8 bit
 ///////////////////////////////////////////////////////////////////////////////
 
 template <>
-struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_8>
+struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::index_8>
 {
     using block_type = uint8_t;
-    static constexpr palette_format format = palette_format::INDEX_8;
+    static constexpr palette_format format = palette_format::index_8;
 
     static constexpr size_t bpb = get_bits_per_block(format);
     static constexpr size_t bpsi = get_bits_per_sub_index(format);
@@ -273,7 +273,7 @@ struct alignas(alignof(uint8_t)) raw_palette_block<palette_format::INDEX_8>
     }
 };
 
-_STATIC_FORMAT_CHECK(INDEX_8);
+_STATIC_FORMAT_CHECK(index_8);
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -346,11 +346,11 @@ private:
 #undef _STATIC_CHECK_ALIGNMENT
 #undef _STATIC_FORMAT_CHECK
 
-#undef _DECODE_BLOCK_LSB
-#undef _DECODE_BLOCK_MSB
+#undef _DECODE_BLOCK__lsb
+#undef _DECODE_BLOCK__msb
 
-#undef _ENCODE_BLOCK_LSB
-#undef _ENCODE_BLOCK_MSB
+#undef _ENCODE_BLOCK__lsb
+#undef _ENCODE_BLOCK__msb
 
 } // namespace pixel
 } // namespace vx

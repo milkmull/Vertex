@@ -13,7 +13,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
 {
     if (dt.hour < 0 || dt.hour > 23)
     {
-        if (code != err::NONE)
+        if (code != err::none)
         {
             err::set(code, "hour");
         }
@@ -21,7 +21,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
     }
     if (dt.minute < 0 || dt.minute > 59)
     {
-        if (code != err::NONE)
+        if (code != err::none)
         {
             err::set(code, "minute");
         }
@@ -29,7 +29,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
     }
     if (dt.second < 0 || dt.second > 59) // leap second not supported
     {
-        if (code != err::NONE)
+        if (code != err::none)
         {
             err::set(code, "second");
         }
@@ -37,7 +37,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
     }
     if (dt.nanosecond < 0 || dt.nanosecond > 1000000000)
     {
-        if (code != err::NONE)
+        if (code != err::none)
         {
             err::set(code, "nanosecond");
         }
@@ -49,7 +49,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
 
 VX_API bool datetime::is_valid() const noexcept
 {
-    return check_datetime(*this, err::NONE);
+    return check_datetime(*this, err::none);
 }
 
 // https://en.wikipedia.org/wiki/ISO_8601
@@ -60,7 +60,7 @@ VX_API std::string datetime::to_string() const
     // YYYY-MM-DDTHH:MM:SS±HH:MM or YYYY-MM-DDTHH:MM:SSZ
     char buffer[26]{};
 
-    if (!check_datetime(*this, err::INVALID_ARGUMENT))
+    if (!check_datetime(*this, err::invalid_argument))
     {
         return buffer;
     }
@@ -91,8 +91,8 @@ VX_API std::string datetime::to_string() const
         // - offset_minutes: Ranges from 0 to 59 (representing the remaining minutes after extracting hours).
 
         const int32_t abs_offset_seconds = std::abs(utc_offset_seconds);
-        const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / _priv::SEC_PER_HOUR) % 15; // Limit to range [0, 14]
-        const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % _priv::SEC_PER_HOUR) / _priv::SEC_PER_MIN;
+        const int32_t offset_hours = static_cast<int32_t>(abs_offset_seconds / seconds_per_hour) % 15; // Limit to range [0, 14]
+        const int32_t offset_minutes = static_cast<int32_t>(abs_offset_seconds % seconds_per_hour) / seconds_per_minute;
 
         buffer[19] = (utc_offset_seconds < 0) ? '-' : '+';
         std::sprintf(&buffer[20], "%02d:%02d",

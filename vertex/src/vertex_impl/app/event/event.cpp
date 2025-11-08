@@ -84,15 +84,15 @@ size_t event_queue::add(const event* events, size_t count)
 
     for (size_t i = 0; i < count; ++i)
     {
-        if (queue.size() + 1 >= MAX_EVENTS)
+        if (queue.size() + 1 >= max_events)
         {
-            err::set(err::SIZE_ERROR, "event queue full");
+            err::set(err::size_error, "event queue full");
             break;
         }
 
         const event& e = events[i];
 
-        if (e.type == INTERNAL_EVENT_POLL_SENTINEL)
+        if (e.type == internal_event_poll_sentinel)
         {
             ++sentinel_pending;
         }
@@ -134,7 +134,7 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
 
             if (remove)
             {
-                if (it->type == INTERNAL_EVENT_POLL_SENTINEL)
+                if (it->type == internal_event_poll_sentinel)
                 {
                     --sentinel_pending;
                 }
@@ -169,13 +169,13 @@ bool event_queue::poll(event& e)
 
 static bool sentinel_filter(const event& e, void*) noexcept
 {
-    return (e.type == INTERNAL_EVENT_POLL_SENTINEL);
+    return (e.type == internal_event_poll_sentinel);
 }
 
 void event_queue::add_sentinel()
 {
     event e;
-    e.type = INTERNAL_EVENT_POLL_SENTINEL;
+    e.type = internal_event_poll_sentinel;
 
     if (sentinel_pending > 0)
     {
@@ -309,7 +309,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
         // attempt to get the next event
         const bool res = data.queue.match(poll_filter, nullptr, &e, 1, true);
 
-        if (res && e.type != INTERNAL_EVENT_POLL_SENTINEL)
+        if (res && e.type != internal_event_poll_sentinel)
         {
             // found an event
             return 1;
@@ -407,12 +407,12 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     {
         // looking for an event right away, we succeed
         // as long at the event is not the sentinel
-        return res && (e.type != INTERNAL_EVENT_POLL_SENTINEL);
+        return res && (e.type != internal_event_poll_sentinel);
     }
 
     VX_ASSERT(!zero_timeout);
 
-    if (res && e.type != INTERNAL_EVENT_POLL_SENTINEL)
+    if (res && e.type != internal_event_poll_sentinel)
     {
         // found an event right away, no need to wait
         return true;
@@ -454,7 +454,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
             return true;
         }
 
-        time::time_point delay = time::milliseconds(DEFAULT_POLL_INTERVAL_MS);
+        time::time_point delay = time::milliseconds(default_poll_interval_ms);
 
         if (t.is_positive())
         {
@@ -621,7 +621,7 @@ void events_instance::prune_removed_watchers()
 
 bool events_instance::dispatch_event_watch(const event& e)
 {
-    if (e.type == event_type::INTERNAL_EVENT_POLL_SENTINEL)
+    if (e.type == internal_event_poll_sentinel)
     {
         return true;
     }
@@ -684,49 +684,49 @@ static void log_event(const event& e)
     switch (e.type)
     {
         // app events
-        case APP_TERMINATING:
+        case app_terminating:
         {
-            VX_LOG_INFO("APP_TERMINATING");
+            VX_LOG_INFO("app_terminating");
             break;
         }
 
 #if defined(VX_APP_VIDEO_ENABLED)
 
         // display events
-        case DISPLAY_ADDED:
+        case display_added:
         {
             VX_LOG_INFO(
-                "DISPLAY_ADDED {",
+                "display_added {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
         }
-        case DISPLAY_REMOVED:
+        case display_removed:
         {
             VX_LOG_INFO(
-                "DISPLAY_REMOVED {",
+                "display_removed {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
         }
-        case DISPLAY_MOVED:
+        case display_moved:
         {
             VX_LOG_INFO(
-                "DISPLAY_MOVED {",
+                "display_moved {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
         }
-        case DISPLAY_ORIENTATION_CHANGED:
+        case display_orientation_changed:
         {
             VX_LOG_INFO(
-                "DISPLAY_ORIENTATION_CHANGED {",
+                "display_orientation_changed {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id, ',',
                 " orientation: ", static_cast<int>(e.display_event.display_orientation_changed.orientation),
@@ -734,30 +734,30 @@ static void log_event(const event& e)
             );
             break;
         }
-        case DISPLAY_DESKTOP_MODE_CHANGED:
+        case display_desktop_mode_changed:
         {
             VX_LOG_INFO(
-                "DISPLAY_DESKTOP_MODE_CHANGED {",
+                "display_desktop_mode_changed {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
         }
-        case DISPLAY_CURRENT_MODE_CHANGED:
+        case display_current_mode_changed:
         {
             VX_LOG_INFO(
-                "DISPLAY_CURRENT_MODE_CHANGED {",
+                "display_current_mode_changed {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id,
                 " }"
             );
             break;
         }
-        case DISPLAY_CONTENT_SCALE_CHANGED:
+        case display_content_scale_changed:
         {
             VX_LOG_INFO(
-                "DISPLAY_CONTENT_SCALE_CHANGED {",
+                "display_content_scale_changed {",
                 " time: ", e.time.as_nanoseconds(),
                 " display_id: ", e.display_event.comon.display_id, ',',
                 " scale: {", e.display_event.display_content_scale_changed.x, ", ", e.display_event.display_content_scale_changed.y, " }",
@@ -767,30 +767,30 @@ static void log_event(const event& e)
         }
 
         // window events
-        case WINDOW_SHOWN:
+        case window_shown:
         {
             VX_LOG_INFO(
-                "WINDOW_SHOWN {",
+                "window_shown {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_HIDDEN:
+        case window_hidden:
         {
             VX_LOG_INFO(
-                "WINDOW_HIDDEN {",
+                "window_hidden {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_MOVED:
+        case window_moved:
         {
             VX_LOG_INFO(
-                "WINDOW_MOVED {",
+                "window_moved {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " position: {", e.window_event.window_moved.x, ", ", e.window_event.window_moved.y, " }",
@@ -798,10 +798,10 @@ static void log_event(const event& e)
             );
             break;
         }
-        case WINDOW_RESIZED:
+        case window_resized:
         {
             VX_LOG_INFO(
-                "WINDOW_RESIZED {",
+                "window_resized {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id, ',',
                 " size: {", e.window_event.window_resized.w, ", ", e.window_event.window_resized.h, " }",
@@ -809,85 +809,85 @@ static void log_event(const event& e)
             );
             break;
         }
-        case WINDOW_MINIMIZED:
+        case window_minimized:
         {
             VX_LOG_INFO(
-                "WINDOW_MINIMIZED {",
+                "window_minimized {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_MAXIMIZED:
+        case window_maximized:
         {
             VX_LOG_INFO(
-                "WINDOW_MAXIMIZED {",
+                "window_maximized {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_RESTORED:
+        case window_restored:
         {
             VX_LOG_INFO(
-                "WINDOW_RESTORED {",
+                "window_restored {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_ENTER_FULLSCREEN:
+        case window_enter_fullscreen:
         {
             VX_LOG_INFO(
-                "WINDOW_ENTER_FULLSCREEN {",
+                "window_enter_fullscreen {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_LEAVE_FULLSCREEN:
+        case window_leave_fullscreen:
         {
             VX_LOG_INFO(
-                "WINDOW_LEAVE_FULLSCREEN {",
+                "window_leave_fullscreen {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_GAINED_FOCUS:
+        case window_gained_focus:
         {
             VX_LOG_INFO(
-                "WINDOW_GAINED_FOCUS {",
+                "window_gained_focus {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_LOST_FOCUS:
+        case window_lost_focus:
         {
             VX_LOG_INFO(
-                "WINDOW_LOST_FOCUS {",
+                "window_lost_focus {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_MOUSE_ENTER:
-        case WINDOW_MOUSE_LEAVE:
+        case window_mouse_enter:
+        case window_mouse_leave:
         {
             break;
         }
-        case WINDOW_DISPLAY_CHANGED:
+        case window_display_changed:
         {
             VX_LOG_INFO(
-                "WINDOW_DISPLAY_CHANGED {",
+                "window_display_changed {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id, ',',
                 " display_id: ", e.window_event.window_display_changed.display_id,
@@ -895,24 +895,24 @@ static void log_event(const event& e)
             );
             break;
         }
-        case WINDOW_DISPLAY_SCALE_CHANGED:
+        case window_display_scale_changed:
         {
             break;
         }
-        case WINDOW_CLOSE_REQUESTED:
+        case window_close_requested:
         {
             VX_LOG_INFO(
-                "WINDOW_CLOSE_REQUESTED {",
+                "window_close_requested {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
             );
             break;
         }
-        case WINDOW_DESTROYED:
+        case window_destroyed:
         {
             VX_LOG_INFO(
-                "WINDOW_DESTROYED {",
+                "window_destroyed {",
                 " time: ", e.time.as_nanoseconds(),
                 " window_id: ", e.window_event.common.window_id,
                 " }"
@@ -921,18 +921,18 @@ static void log_event(const event& e)
         }
 
         // key events
-        case KEY_DOWN:
-        case KEY_UP:
-        case TEXT_INPUT:
+        case key_down:
+        case key_up:
+        case text_input:
         {
             break;
         }
 
         // mouse events
-        case MOUSE_MOVED:
-        case MOUSE_BUTTON_DOWN:
-        case MOUSE_BUTTON_UP:
-        case MOUSE_WHEEL:
+        case mouse_moved:
+        case mouse_button_down:
+        case mouse_button_up:
+        case mouse_wheel:
         {
             break;
         }

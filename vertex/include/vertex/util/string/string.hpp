@@ -773,13 +773,6 @@ inline double to_double(const std::string& s, size_t* count = nullptr);
  */
 inline float to_float(const std::string& s, size_t* count = nullptr);
 
-inline int64_t to_int64(const char* s, size_t* count = nullptr, int base = 10);
-inline int32_t to_int32(const char* s, size_t* count = nullptr, int base = 10);
-inline uint64_t to_uint64(const char* s, size_t* count = nullptr, int base = 10);
-inline uint32_t to_uint32(const char* s, size_t* count = nullptr, int base = 10);
-inline double to_double(const char* s, size_t* count = nullptr);
-inline float to_float(const char* s, size_t* count = nullptr);
-
 } // namespace str
 } // namespace vx
 

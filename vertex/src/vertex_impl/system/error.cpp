@@ -1,4 +1,5 @@
 #include <cstring>
+#include <string>
 
 #include "vertex/system/error.hpp"
 
@@ -11,8 +12,8 @@ namespace err {
 
 struct info_impl
 {
-    code err;
-    char message[ERROR_MESSAGE_MAX_SIZE + 1];
+    code err = none;
+    std::string msg;
 };
 
 static thread_local info_impl s_err;
@@ -38,14 +39,14 @@ VX_API void _priv::set_error_printing_enabled(bool enabled) noexcept
 
 VX_API info get() noexcept
 {
-    return { s_err.err, s_err.message };
+    return { s_err.err, s_err.msg.c_str() };
 }
 
 VX_API void set(code err, const char* msg) noexcept
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 
-    if (s_print_errors && err != NONE)
+    if (s_print_errors && err != none)
     {
         std::cerr << "[ERROR] " << static_cast<int>(err) << ": " << msg << std::endl;
     }
@@ -53,11 +54,7 @@ VX_API void set(code err, const char* msg) noexcept
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
     s_err.err = err;
-
-    constexpr size_t max_size = ERROR_MESSAGE_MAX_SIZE;
-    const size_t msg_size = std::strlen(msg);
-    std::memcpy(s_err.message, msg, std::min(max_size, msg_size));
-    s_err.message[msg_size] = 0;
+    s_err.msg = msg;
 }
 
 } // namespace err

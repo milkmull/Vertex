@@ -36,10 +36,10 @@ public:
 
     enum class io_option
     {
-        NONE,      // No I/O stream
-        CREATE,    // Create new I/O stream
-        REDIRECT,  // Redirect the I/O stream to a given file
-        INHERIT    // Inherit the I/O stream from parent process
+        none,      // No I/O stream
+        create,    // Create new I/O stream
+        redirect,  // Redirect the I/O stream to a given file
+        inherit    // Inherit the I/O stream from parent process
     };
 
     struct config
@@ -50,9 +50,9 @@ public:
         bool background = true;                     // Whether the process runs in the background
         path working_directory;                     // Working directory of the process
 
-        io_option stdin_option = io_option::NONE;   // I/O option for stdin
-        io_option stdout_option = io_option::NONE;  // I/O option for stdout
-        io_option stderr_option = io_option::NONE;  // I/O option for stderr
+        io_option stdin_option = io_option::none;   // I/O option for stdin
+        io_option stdout_option = io_option::none;  // I/O option for stdout
+        io_option stderr_option = io_option::none;  // I/O option for stderr
 
         io_stream* stdin_redirect = nullptr;        // Stream to redirect stdin
         io_stream* stdout_redirect = nullptr;       // Stream to redirect stdout
@@ -63,10 +63,10 @@ private:
 
     enum : int
     {
-        STDIN = 0,
-        STDOUT = 1,
-        STDERR = 2,
-        STREAM_COUNT = 3
+        stdin_index = 0,
+        stdout_index = 1,
+        stderr_index = 2,
+        stream_count = 3
     };
 
 public:
@@ -155,7 +155,7 @@ public:
 
 private:
 
-    io_stream m_streams[STREAM_COUNT]{};
+    io_stream m_streams[stream_count]{};
 
     class process_impl;
     std::unique_ptr<process_impl> m_impl;

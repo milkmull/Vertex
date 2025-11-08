@@ -3,17 +3,17 @@
 
 VX_TEST_CASE(endian)
 {
-    switch (vx::endian::order::NATIVE)
+    switch (vx::endian::order::native)
     {
         default:
-        case vx::endian::order::LITTLE:
+        case vx::endian::order::little:
         {
-            VX_MESSAGE("  Order: LITTLE");
+            VX_MESSAGE("  Order: little");
             break;
         }
-        case vx::endian::order::BIG:
+        case vx::endian::order::big:
         {
-            VX_MESSAGE("  Order: BIG");
+            VX_MESSAGE("  Order: big");
             break;
         }
     }

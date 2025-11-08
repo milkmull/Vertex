@@ -18,17 +18,17 @@ namespace img {
 
 enum class load_error
 {
-    NONE = 0,
+    none = 0,
 
-    BAD_FILE,
-    MAX_SIZE,
-    OUT_OF_MEMORY,
+    bad_file,
+    max_size,
+    out_of_memory,
 
-    CORRUPT_BMP,
-    CORRUPT_JPEG,
-    CORRUPT_PNG,
+    corrupt_bmp,
+    corrupt_jpeg,
+    corrupt_png,
 
-    UNSUPPORTED_PIXEL_FORMAT
+    unsupported_pixel_format
 };
 
 ///////////////////////////////////////////////////////////////////////////////

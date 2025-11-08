@@ -19,20 +19,20 @@ using finger_id = id_type;
 
 enum : touch_id
 {
-    MOUSE_TOUCH_ID = MAX_ID,
-    PEN_TOUCH_ID = MAX_ID - 1
+    mouse_touch_id = max_id,
+    pen_touch_id = max_id - 1
 };
 
 //=============================================================================
 // type
 //=============================================================================
 
-enum touch_device_type
+enum class touch_device_type
 {
-    TOUCH_DEVICE_INVALID = -1,
-    TOUCH_DEVICE_DIRECT,
-    TOUCH_DEVICE_INDIRECT_ABSOLUTE,
-    TOUCH_DEVICE_INDIRECT_RELATIVE
+    invalid = -1,
+    direct,
+    indirect_absolute,
+    indirect_relative
 };
 
 //=============================================================================

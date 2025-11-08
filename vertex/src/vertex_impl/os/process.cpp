@@ -41,13 +41,13 @@ VX_API bool process::start(const config& cfg)
 {
     if (is_valid())
     {
-        err::set(err::UNSUPPORTED_OPERATION, "process already started");
+        err::set(err::unsupported_operation, "process already started");
         return false;
     }
 
     if (cfg.args.empty())
     {
-        err::set(err::INVALID_ARGUMENT, "no arguments were specified");
+        err::set(err::invalid_argument, "no arguments were specified");
         return false;
     }
 
@@ -102,9 +102,9 @@ VX_API bool process::get_exit_code(int* exit_code) const
     return (exit_code && is_complete()) ? m_impl->get_exit_code(exit_code) : false;
 }
 
-VX_API io_stream& process::get_stdin()  { return m_streams[STDIN ]; }
-VX_API io_stream& process::get_stdout() { return m_streams[STDOUT]; }
-VX_API io_stream& process::get_stderr() { return m_streams[STDERR]; }
+VX_API io_stream& process::get_stdin()  { return m_streams[stdin_index ]; }
+VX_API io_stream& process::get_stdout() { return m_streams[stdout_index]; }
+VX_API io_stream& process::get_stderr() { return m_streams[stderr_index]; }
 
 ///////////////////////////////////////////////////////////////////////////////
 // this_process

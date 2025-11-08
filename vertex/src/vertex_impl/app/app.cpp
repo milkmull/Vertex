@@ -29,7 +29,7 @@ VX_API bool init()
 
     if (!s_app_ptr)
     {
-        err::set(err::OUT_OF_MEMORY, "Failed to create application instance");
+        err::set(err::out_of_memory, "Failed to create application instance");
         return false;
     }
 
@@ -62,11 +62,11 @@ VX_API void quit()
 
 ////////////////////////////////////////
 
-VX_API init_flag init_subsystem(init_flag flags)
+VX_API init_flags init_subsystem(init_flags flags)
 {
     if (!is_init() && !init())
     {
-        return init_flag::NONE;
+        return init_flags::none;
     }
 
     return s_app_ptr->init_subsystem(flags);
@@ -74,7 +74,7 @@ VX_API init_flag init_subsystem(init_flag flags)
 
 ////////////////////////////////////////
 
-VX_API bool is_subsystem_init(init_flag flags)
+VX_API bool is_subsystem_init(init_flags flags)
 {
     VX_CHECK_APP_INIT(false);
     return s_app_ptr->is_subsystem_init(flags);
@@ -82,7 +82,7 @@ VX_API bool is_subsystem_init(init_flag flags)
 
 ////////////////////////////////////////
 
-VX_API void quit_subsystem(init_flag flags)
+VX_API void quit_subsystem(init_flags flags)
 {
     VX_CHECK_APP_INIT_VOID();
     s_app_ptr->quit_subsystem(flags);
@@ -120,26 +120,26 @@ void app_instance::quit()
 
 ////////////////////////////////////////
 
-#define add_flag(dst, flag) dst = static_cast<init_flag>(dst | flag)
-#define remove_flag(dst, flag) dst = static_cast<init_flag>(dst & ~flag)
+#define add_flag(dst, flag) dst = static_cast<init_flags>(dst | flag)
+#define remove_flag(dst, flag) dst = static_cast<init_flags>(dst & ~flag)
 
-init_flag app_instance::init_subsystem(init_flag flags)
+init_flags app_instance::init_subsystem(init_flags flags)
 {
-    init_flag initialized = NONE;
+    init_flags initialized = init_flags::none;
 
-    if (flags & INIT_EVENTS)
+    if (flags & init_flags::events)
     {
         if (init_events())
         {
-            add_flag(initialized, INIT_EVENTS);
+            add_flag(initialized, init_flags::events);
         }
     }
     
-    if (flags & INIT_VIDEO)
+    if (flags & init_flags::video)
     {
         if (init_video())
         {
-            add_flag(initialized, INIT_VIDEO);
+            add_flag(initialized, init_flags::video);
         }
     }
 
@@ -148,18 +148,18 @@ init_flag app_instance::init_subsystem(init_flag flags)
 
 ////////////////////////////////////////
 
-bool app_instance::is_subsystem_init(init_flag flags) const
+bool app_instance::is_subsystem_init(init_flags flags) const
 {
-    init_flag initialized = NONE;
+    init_flags initialized = init_flags::none;
 
     if (is_events_init())
     {
-        add_flag(initialized, INIT_EVENTS);
+        add_flag(initialized, init_flags::events);
     }
 
     if (is_video_init())
     {
-        add_flag(initialized, INIT_VIDEO);
+        add_flag(initialized, init_flags::video);
     }
 
     return (initialized & flags) == flags;
@@ -167,14 +167,14 @@ bool app_instance::is_subsystem_init(init_flag flags) const
 
 ////////////////////////////////////////
 
-void app_instance::quit_subsystem(init_flag flags)
+void app_instance::quit_subsystem(init_flags flags)
 {
-    if (flags & INIT_VIDEO)
+    if (flags & init_flags::video)
     {
         quit_video();
     }
 
-    if (flags & INIT_EVENTS)
+    if (flags & init_flags::events)
     {
         quit_events();
     }
@@ -201,7 +201,7 @@ bool app_instance::init_hints()
         }
     }
 
-    ++data.ref_counts[HINTS_SUBSYSTEM];
+    ++data.ref_counts[hints_index];
     return true;
 }
 
@@ -214,12 +214,12 @@ void app_instance::quit_hints()
 {
     if (!is_hints_init())
     {
-        VX_ASSERT(data.ref_counts[HINTS_SUBSYSTEM] == 0);
+        VX_ASSERT(data.ref_counts[hints_index] == 0);
         return;
     }
 
-    --data.ref_counts[HINTS_SUBSYSTEM];
-    if (data.ref_counts[HINTS_SUBSYSTEM] == 0)
+    --data.ref_counts[hints_index];
+    if (data.ref_counts[hints_index] == 0)
     {
         data.hints_ptr->quit();
         data.hints_ptr.reset();
@@ -247,7 +247,7 @@ bool app_instance::init_events()
         }
     }
 
-    ++data.ref_counts[EVENTS_SUBSYSTEM];
+    ++data.ref_counts[events_index];
     return true;
 }
 
@@ -260,12 +260,12 @@ void app_instance::quit_events()
 {
     if (!is_events_init())
     {
-        VX_ASSERT(data.ref_counts[EVENTS_SUBSYSTEM] == 0);
+        VX_ASSERT(data.ref_counts[events_index] == 0);
         return;
     }
 
-    --data.ref_counts[EVENTS_SUBSYSTEM];
-    if (data.ref_counts[EVENTS_SUBSYSTEM] == 0)
+    --data.ref_counts[events_index];
+    if (data.ref_counts[events_index] == 0)
     {
         data.events_ptr->quit();
         data.events_ptr.reset();
@@ -301,7 +301,7 @@ bool app_instance::init_video()
         }
     }
 
-    ++data.ref_counts[VIDEO_SUBSYSTEM];
+    ++data.ref_counts[video_index];
     return true;
 
 #else
@@ -327,12 +327,12 @@ void app_instance::quit_video()
 
     if (!is_video_init())
     {
-        VX_ASSERT(data.ref_counts[VIDEO_SUBSYSTEM] == 0);
+        VX_ASSERT(data.ref_counts[video_index] == 0);
         return;
     }
 
-    --data.ref_counts[VIDEO_SUBSYSTEM];
-    if (data.ref_counts[VIDEO_SUBSYSTEM] == 0)
+    --data.ref_counts[video_index];
+    if (data.ref_counts[video_index] == 0)
     {
         quit_events();
         data.video_ptr->quit();
@@ -372,7 +372,7 @@ const app_metadata& app_instance::get_metadata() const
 bool app_instance::post_app_quit()
 {
     event::event e{};
-    e.type = event::APP_QUIT;
+    e.type = event::app_quit;
     return data.events_ptr->push_event(e);
 }
 

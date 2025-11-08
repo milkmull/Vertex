@@ -50,14 +50,14 @@ VX_TEST_CASE(test_open_and_close)
     os::file f;
 
     VX_CHECK(!f.is_open());
-    VX_CHECK(f.get_mode() == os::file::mode::NONE);
+    VX_CHECK(f.get_mode() == os::file::mode::none);
     VX_CHECK(!f.can_read());
     VX_CHECK(!f.can_write());
 
     VX_CHECK(f.size() == 0);
 
     VX_CHECK(!f.seek(0));
-    VX_CHECK(f.tell() == os::file::INVALID_POSITION);
+    VX_CHECK(f.tell() == os::file::invalid_position);
     VX_CHECK(!f.eof());
 
     uint8_t byte{};
@@ -65,15 +65,15 @@ VX_TEST_CASE(test_open_and_close)
     VX_CHECK(!f.write(&byte, 1));
     VX_CHECK(!f.flush());
 
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
 
     // File is already open, should fail
-    VX_CHECK_AND_EXPECT_ERROR(!f.open(filename, os::file::mode::READ));
+    VX_CHECK_AND_EXPECT_ERROR(!f.open(filename, os::file::mode::read));
 
     f.close();
     VX_CHECK(!f.is_open());
-    VX_CHECK(f.get_mode() == os::file::mode::NONE);
+    VX_CHECK(f.get_mode() == os::file::mode::none);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -81,7 +81,7 @@ VX_TEST_CASE(test_open_and_close)
 VX_TEST_CASE(test_move_operators)
 {
     os::file f1;
-    VX_CHECK(f1.open(filename, os::file::mode::READ));
+    VX_CHECK(f1.open(filename, os::file::mode::read));
     VX_CHECK(f1.is_open());
 
     VX_DISABLE_MSVC_WARNING_PUSH();
@@ -104,17 +104,17 @@ VX_TEST_CASE(test_move_operators)
 VX_TEST_CASE(test_seek_and_tell)
 {
     os::file f;
-    VX_CHECK(f.open(filename, os::file::mode::READ));
+    VX_CHECK(f.open(filename, os::file::mode::read));
     VX_CHECK(f.is_open());
 
     VX_CHECK(f.tell() == 0);
-    VX_CHECK(f.seek(0, os::stream_position::END));
+    VX_CHECK(f.seek(0, os::stream_position::end));
     VX_CHECK(f.eof());
 
     VX_CHECK(f.seek(1000000));
     VX_CHECK(f.tell() == 1000000);
 
-    VX_CHECK(f.seek(-5, os::stream_position::CURRENT));
+    VX_CHECK(f.seek(-5, os::stream_position::current));
     VX_CHECK(f.tell() == 1000000 - 5);
 
     // Cannot move pointer before the beginning
@@ -126,7 +126,7 @@ VX_TEST_CASE(test_seek_and_tell)
 VX_TEST_CASE(test_mode_NONE)
 {
     os::file f;
-    VX_CHECK(!f.open(temp_path / "test_file.txt", os::file::mode::NONE));
+    VX_CHECK(!f.open(temp_path / "test_file.txt", os::file::mode::none));
     VX_CHECK(!f.is_open());
 }
 
@@ -139,12 +139,12 @@ VX_TEST_CASE(test_mode_READ_WRITE_EXISTS)
     os::file f;
 
     // First try to open a file that does not exist (should fail)
-    VX_CHECK_AND_EXPECT_ERROR(!f.open(temp_path / "fakefile", os::file::mode::READ_WRITE_EXISTS));
+    VX_CHECK_AND_EXPECT_ERROR(!f.open(temp_path / "fakefile", os::file::mode::read_write_exists));
     // Open the file we created initially
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_EXISTS));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_exists));
     VX_CHECK(f.is_open());
 
-    VX_CHECK(f.get_mode() == os::file::mode::READ_WRITE_EXISTS);
+    VX_CHECK(f.get_mode() == os::file::mode::read_write_exists);
     VX_CHECK(f.can_read());
     VX_CHECK(f.can_write());
 
@@ -162,7 +162,7 @@ VX_TEST_CASE(test_mode_READ_WRITE_EXISTS)
 
     // Reopening the file should not truncate the text
     f.close();
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_EXISTS));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_exists));
     VX_CHECK(f.size() == count);
     VX_CHECK(f.read(out_text, count) == count);
     VX_CHECK(std::memcmp(in_text, out_text, count) == 0);
@@ -177,10 +177,10 @@ VX_TEST_CASE(test_mode_READ_WRITE_CREATE)
     os::file f;
 
     // Open the file we created initially
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
 
-    VX_CHECK(f.get_mode() == os::file::mode::READ_WRITE_CREATE);
+    VX_CHECK(f.get_mode() == os::file::mode::read_write_create);
     VX_CHECK(f.can_read());
     VX_CHECK(f.can_write());
 
@@ -202,7 +202,7 @@ VX_TEST_CASE(test_mode_READ_WRITE_CREATE)
 
     // Try opening a new file, it should be created
     const os::path new_filename = temp_path / current_time_file();
-    VX_CHECK(f.open(new_filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(new_filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
     VX_CHECK(os::file::exists(new_filename));
 }
@@ -215,10 +215,10 @@ VX_TEST_CASE(test_mode_READ)
     os::file f;
 
     // Open the file we created initially
-    VX_CHECK(f.open(filename, os::file::mode::READ));
+    VX_CHECK(f.open(filename, os::file::mode::read));
     VX_CHECK(f.is_open());
 
-    VX_CHECK(f.get_mode() == os::file::mode::READ);
+    VX_CHECK(f.get_mode() == os::file::mode::read);
     VX_CHECK(f.can_read());
     VX_CHECK(!f.can_write());
 
@@ -248,10 +248,10 @@ VX_TEST_CASE(test_mode_WRITE)
     os::file f;
 
     // Open the file we created initially
-    VX_CHECK(f.open(filename, os::file::mode::WRITE));
+    VX_CHECK(f.open(filename, os::file::mode::write));
     VX_CHECK(f.is_open());
 
-    VX_CHECK(f.get_mode() == os::file::mode::WRITE);
+    VX_CHECK(f.get_mode() == os::file::mode::write);
     VX_CHECK(!f.can_read());
     VX_CHECK(f.can_write());
 
@@ -269,7 +269,7 @@ VX_TEST_CASE(test_mode_WRITE)
 
     // Try opening a new file, it should be created
     const os::path new_filename = temp_path / current_time_file();
-    VX_CHECK(f.open(new_filename, os::file::mode::WRITE));
+    VX_CHECK(f.open(new_filename, os::file::mode::write));
     VX_CHECK(f.is_open());
     VX_CHECK(os::file::exists(new_filename));
 }
@@ -282,10 +282,10 @@ VX_TEST_CASE(test_mode_APPEND)
     os::file f;
 
     // Open the file we created initially
-    VX_CHECK(f.open(filename, os::file::mode::APPEND));
+    VX_CHECK(f.open(filename, os::file::mode::append));
     VX_CHECK(f.is_open());
 
-    VX_CHECK(f.get_mode() == os::file::mode::APPEND);
+    VX_CHECK(f.get_mode() == os::file::mode::append);
     VX_CHECK(!f.can_read());
     VX_CHECK(f.can_write());
 
@@ -307,7 +307,7 @@ VX_TEST_CASE(test_mode_APPEND)
 
     // Try opening a new file, it should be created
     const os::path new_filename = temp_path / current_time_file();
-    VX_CHECK(f.open(new_filename, os::file::mode::APPEND));
+    VX_CHECK(f.open(new_filename, os::file::mode::append));
     VX_CHECK(f.is_open());
     VX_CHECK(os::file::exists(new_filename));
 }
@@ -318,7 +318,7 @@ VX_TEST_CASE(test_read_and_write_data)
 {
     os::file f;
 
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
 
     const int in_1[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -353,7 +353,7 @@ VX_TEST_CASE(test_flush)
     os::file f;
 
     // Open the file and truncate
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
 
     // Write some data to the file
@@ -376,7 +376,7 @@ VX_TEST_CASE(test_resize)
     os::file f;
 
     // Open the file and truncate
-    VX_CHECK(f.open(filename, os::file::mode::READ_WRITE_CREATE));
+    VX_CHECK(f.open(filename, os::file::mode::read_write_create));
     VX_CHECK(f.is_open());
 
     // Write some data to the file
@@ -463,7 +463,7 @@ VX_TEST_CASE(test_read_and_write_line)
     os::file f;
 
     // open the file and truncate
-    VX_CHECK(f.open(filename, os::file::mode::WRITE));
+    VX_CHECK(f.open(filename, os::file::mode::write));
     VX_CHECK(f.is_open());
 
     // write our lines
@@ -483,7 +483,7 @@ VX_TEST_CASE(test_read_and_write_line)
     VX_CHECK(read_and_compare_text_file(filename, expected_text));
 
     // open file for reading
-    VX_CHECK(f.open(filename, os::file::mode::READ));
+    VX_CHECK(f.open(filename, os::file::mode::read));
     VX_CHECK(f.is_open());
 
     std::string line;

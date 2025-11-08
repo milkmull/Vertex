@@ -9,10 +9,6 @@
 
 // https://www.glfw.org/docs/3.3/input_guide.html
 
-#if defined(MOUSE_MOVED)
-#   undef MOUSE_MOVED
-#endif
-
 namespace vx {
 namespace app {
 namespace event {
@@ -25,18 +21,18 @@ using event_type_t = uint32_t;
 
 enum event_category : uint8_t
 {
-    CATEGORY_NONE = 0,
-    CATEGORY_APP,
-    CATEGORY_DISPLAY,
-    CATEGORY_WINDOW,
-    CATEGORY_KEY,
-    CATEGORY_MOUSE,
-    CATEGORY_TOUCH,
-    CATEGORY_PINCH,
-    CATEGORY_PEN,
-    CATEGORY_CLIPBOARD,
-    CATEGORY_DROP,
-    CATEGORY_INTERNAL
+    category_none = 0,
+    category_app,
+    category_display,
+    category_window,
+    category_key,
+    category_mouse,
+    category_touch,
+    category_pinch,
+    category_pen,
+    category_clipboard,
+    category_drop,
+    category_internal
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -53,22 +49,22 @@ namespace _priv {
 
 enum : uint32_t
 {
-    USER_FLAG_SHIFT = 24,
-    USER_FLAG_MASK  = 0xFF000000,  // top byte
+    user_flag_shift = 24,
+    user_flag_mask  = 0xFF000000,  // top byte
 
-    CATEGORY_SHIFT  = 16,
-    CATEGORY_MASK   = 0x00FF0000,  // next byte
+    category_shift  = 16,
+    category_mask   = 0x00FF0000,  // next byte
 
-    NUMBER_SHIFT    = 0,
-    NUMBER_MASK     = 0x0000FFFF   // low 16 bits
+    number_shift    = 0,
+    number_mask     = 0x0000FFFF   // low 16 bits
 };
 
 } // namespace _priv
 
 inline constexpr event_type_t make_event(uint8_t category, uint16_t number, bool user_defined = false) noexcept
 {
-    return (static_cast<event_type_t>(user_defined ? 1u : 0u) << _priv::USER_FLAG_SHIFT) |
-           (static_cast<event_type_t>(category) << _priv::CATEGORY_SHIFT) |
+    return (static_cast<event_type_t>(user_defined ? 1u : 0u) << _priv::user_flag_shift) |
+           (static_cast<event_type_t>(category) << _priv::category_shift) |
            static_cast<event_type_t>(number);
 }
 
@@ -83,17 +79,17 @@ inline constexpr event_type_t make_user_event(uint8_t category, uint16_t number)
 
 inline constexpr bool is_user_event(event_type_t type) noexcept
 {
-    return static_cast<bool>(type & _priv::USER_FLAG_MASK);
+    return static_cast<bool>(type & _priv::user_flag_mask);
 }
 
 inline constexpr uint8_t get_category(event_type_t type) noexcept
 {
-    return static_cast<uint8_t>((type >> _priv::CATEGORY_SHIFT) & _priv::CATEGORY_MASK);
+    return static_cast<uint8_t>((type >> _priv::category_shift) & _priv::category_mask);
 }
 
 inline constexpr uint16_t get_number(event_type_t type) noexcept
 {
-    return static_cast<uint16_t>(type & _priv::NUMBER_MASK);
+    return static_cast<uint16_t>(type & _priv::number_mask);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -107,124 +103,124 @@ inline constexpr uint16_t get_number(event_type_t type) noexcept
 
 enum event_type : event_type_t
 {
-    INVALID_EVENT = 0,
+    invalid_event = 0,
 
     // app events
-    EVENT_TYPE(APP_EVENT_FIRST,                 CATEGORY_APP,       0),
-    EVENT_TYPE(APP_QUIT,                        CATEGORY_APP,       1),
-    EVENT_TYPE(APP_TERMINATING,                 CATEGORY_APP,       2),
-    EVENT_TYPE(APP_LOW_MEMORY,                  CATEGORY_APP,       3),
-    EVENT_TYPE(APP_WILL_ENTER_BACKGROUND,       CATEGORY_APP,       4),
-    EVENT_TYPE(APP_DID_ENTER_BACKGROUND,        CATEGORY_APP,       5),
-    EVENT_TYPE(APP_WILL_ENTER_FOREGROUND,       CATEGORY_APP,       6),
-    EVENT_TYPE(APP_DID_ENTER_FOREGROUND,        CATEGORY_APP,       7),
-    EVENT_TYPE(APP_LOCALE_CHANGED,              CATEGORY_APP,       8),
-    EVENT_TYPE(APP_SYSTEM_THEME_CHANGED,        CATEGORY_APP,       9),
-    EVENT_TYPE(APP_EVENT_LAST,                  CATEGORY_APP,      10),
+    EVENT_TYPE(app_event_first,                 category_app,       0),
+    EVENT_TYPE(app_quit,                        category_app,       1),
+    EVENT_TYPE(app_terminating,                 category_app,       2),
+    EVENT_TYPE(app_low_memory,                  category_app,       3),
+    EVENT_TYPE(app_will_enter_background,       category_app,       4),
+    EVENT_TYPE(app_did_enter_background,        category_app,       5),
+    EVENT_TYPE(app_will_enter_foreground,       category_app,       6),
+    EVENT_TYPE(app_did_enter_foreground,        category_app,       7),
+    EVENT_TYPE(app_locale_changed,              category_app,       8),
+    EVENT_TYPE(app_system_theme_changed,        category_app,       9),
+    EVENT_TYPE(app_event_last,                  category_app,      10),
 
     // display events
-    EVENT_TYPE(DISPLAY_EVENT_FIRST,             CATEGORY_DISPLAY,   0),
-    EVENT_TYPE(DISPLAY_ADDED,                   CATEGORY_DISPLAY,   1),
-    EVENT_TYPE(DISPLAY_REMOVED,                 CATEGORY_DISPLAY,   2),
-    EVENT_TYPE(DISPLAY_MOVED,                   CATEGORY_DISPLAY,   3),
-    EVENT_TYPE(DISPLAY_ORIENTATION_CHANGED,     CATEGORY_DISPLAY,   4),
-    EVENT_TYPE(DISPLAY_DESKTOP_MODE_CHANGED,    CATEGORY_DISPLAY,   5),
-    EVENT_TYPE(DISPLAY_CURRENT_MODE_CHANGED,    CATEGORY_DISPLAY,   6),
-    EVENT_TYPE(DISPLAY_CONTENT_SCALE_CHANGED,   CATEGORY_DISPLAY,   7),
-    EVENT_TYPE(DISPLAY_EVENT_LAST,              CATEGORY_DISPLAY,   8),
+    EVENT_TYPE(display_event_first,             category_display,   0),
+    EVENT_TYPE(display_added,                   category_display,   1),
+    EVENT_TYPE(display_removed,                 category_display,   2),
+    EVENT_TYPE(display_moved,                   category_display,   3),
+    EVENT_TYPE(display_orientation_changed,     category_display,   4),
+    EVENT_TYPE(display_desktop_mode_changed,    category_display,   5),
+    EVENT_TYPE(display_current_mode_changed,    category_display,   6),
+    EVENT_TYPE(display_content_scale_changed,   category_display,   7),
+    EVENT_TYPE(display_event_last,              category_display,   8),
 
     // window events
-    EVENT_TYPE(WINDOW_EVENT_FIRST,              CATEGORY_WINDOW,    0),
-    EVENT_TYPE(WINDOW_CREATED,                  CATEGORY_WINDOW,    1),
-    EVENT_TYPE(WINDOW_DESTROYED,                CATEGORY_WINDOW,    2),
-    EVENT_TYPE(WINDOW_SHOWN,                    CATEGORY_WINDOW,    3),
-    EVENT_TYPE(WINDOW_HIDDEN,                   CATEGORY_WINDOW,    4),
-    EVENT_TYPE(WINDOW_EXPOSED,                  CATEGORY_WINDOW,    5),
-    EVENT_TYPE(WINDOW_OCCLUDED,                 CATEGORY_WINDOW,    6),
-    EVENT_TYPE(WINDOW_MOVED,                    CATEGORY_WINDOW,    7),
-    EVENT_TYPE(WINDOW_RESIZED,                  CATEGORY_WINDOW,    8),
-    EVENT_TYPE(WINDOW_PIXEL_SIZE_CHANGED,       CATEGORY_WINDOW,    9),
-    EVENT_TYPE(WINDOW_MINIMIZED,                CATEGORY_WINDOW,   10),
-    EVENT_TYPE(WINDOW_MAXIMIZED,                CATEGORY_WINDOW,   11),
-    EVENT_TYPE(WINDOW_RESTORED,                 CATEGORY_WINDOW,   12),
-    EVENT_TYPE(WINDOW_ENTER_FULLSCREEN,         CATEGORY_WINDOW,   13),
-    EVENT_TYPE(WINDOW_LEAVE_FULLSCREEN,         CATEGORY_WINDOW,   14),
-    EVENT_TYPE(WINDOW_GAINED_FOCUS,             CATEGORY_WINDOW,   15),
-    EVENT_TYPE(WINDOW_LOST_FOCUS,               CATEGORY_WINDOW,   16),
-    EVENT_TYPE(WINDOW_MOUSE_ENTER,              CATEGORY_WINDOW,   17),
-    EVENT_TYPE(WINDOW_MOUSE_LEAVE,              CATEGORY_WINDOW,   18),
-    EVENT_TYPE(WINDOW_HIT_TEST,                 CATEGORY_WINDOW,   19),
-    EVENT_TYPE(WINDOW_DISPLAY_CHANGED,          CATEGORY_WINDOW,   20),
-    EVENT_TYPE(WINDOW_DISPLAY_SCALE_CHANGED,    CATEGORY_WINDOW,   21),
-    EVENT_TYPE(WINDOW_SAFE_AREA_CHANGED,        CATEGORY_WINDOW,   22),
-    EVENT_TYPE(WINDOW_CLOSE_REQUESTED,          CATEGORY_WINDOW,   23),
-    EVENT_TYPE(WINDOW_EVENT_LAST,               CATEGORY_WINDOW,   24),
+    EVENT_TYPE(window_event_first,              category_window,    0),
+    EVENT_TYPE(window_created,                  category_window,    1),
+    EVENT_TYPE(window_destroyed,                category_window,    2),
+    EVENT_TYPE(window_shown,                    category_window,    3),
+    EVENT_TYPE(window_hidden,                   category_window,    4),
+    EVENT_TYPE(window_exposed,                  category_window,    5),
+    EVENT_TYPE(window_occluded,                 category_window,    6),
+    EVENT_TYPE(window_moved,                    category_window,    7),
+    EVENT_TYPE(window_resized,                  category_window,    8),
+    EVENT_TYPE(window_pixel_size_changed,       category_window,    9),
+    EVENT_TYPE(window_minimized,                category_window,   10),
+    EVENT_TYPE(window_maximized,                category_window,   11),
+    EVENT_TYPE(window_restored,                 category_window,   12),
+    EVENT_TYPE(window_enter_fullscreen,         category_window,   13),
+    EVENT_TYPE(window_leave_fullscreen,         category_window,   14),
+    EVENT_TYPE(window_gained_focus,             category_window,   15),
+    EVENT_TYPE(window_lost_focus,               category_window,   16),
+    EVENT_TYPE(window_mouse_enter,              category_window,   17),
+    EVENT_TYPE(window_mouse_leave,              category_window,   18),
+    EVENT_TYPE(window_hit_test,                 category_window,   19),
+    EVENT_TYPE(window_display_changed,          category_window,   20),
+    EVENT_TYPE(window_display_scale_changed,    category_window,   21),
+    EVENT_TYPE(window_safe_area_changed,        category_window,   22),
+    EVENT_TYPE(window_close_requested,          category_window,   23),
+    EVENT_TYPE(window_event_last,               category_window,   24),
 
     // key events
-    EVENT_TYPE(KEY_EVENT_FIRST,                 CATEGORY_KEY,       0),
-    EVENT_TYPE(KEYBOARD_ADDED,                  CATEGORY_KEY,       1),
-    EVENT_TYPE(KEYBOARD_REMOVED,                CATEGORY_KEY,       2),
-    EVENT_TYPE(KEY_DOWN,                        CATEGORY_KEY,       3),
-    EVENT_TYPE(KEY_UP,                          CATEGORY_KEY,       4),
-    EVENT_TYPE(TEXT_EDITING,                    CATEGORY_KEY,       5),
-    EVENT_TYPE(TEXT_INPUT,                      CATEGORY_KEY,       6),
-    EVENT_TYPE(KEYMAP_CHANGED,                  CATEGORY_KEY,       7),
-    EVENT_TYPE(TEXT_EDITING_CANDIDATES,         CATEGORY_KEY,       8),
-    EVENT_TYPE(KEY_EVENT_LAST,                  CATEGORY_KEY,       9),
+    EVENT_TYPE(key_event_first,                 category_key,       0),
+    EVENT_TYPE(keyboard_added,                  category_key,       1),
+    EVENT_TYPE(keyboard_removed,                category_key,       2),
+    EVENT_TYPE(key_down,                        category_key,       3),
+    EVENT_TYPE(key_up,                          category_key,       4),
+    EVENT_TYPE(text_editing,                    category_key,       5),
+    EVENT_TYPE(text_input,                      category_key,       6),
+    EVENT_TYPE(keymap_changed,                  category_key,       7),
+    EVENT_TYPE(text_editing_candidates,         category_key,       8),
+    EVENT_TYPE(key_event_last,                  category_key,       9),
 
     // mouse events
-    EVENT_TYPE(MOUSE_EVENT_FIRST,               CATEGORY_MOUSE,     0),
-    EVENT_TYPE(MOUSE_ADDED,                     CATEGORY_MOUSE,     1),
-    EVENT_TYPE(MOUSE_REMOVED,                   CATEGORY_MOUSE,     2),
-    EVENT_TYPE(MOUSE_MOVED,                     CATEGORY_MOUSE,     3),
-    EVENT_TYPE(MOUSE_BUTTON_DOWN,               CATEGORY_MOUSE,     4),
-    EVENT_TYPE(MOUSE_BUTTON_UP,                 CATEGORY_MOUSE,     5),
-    EVENT_TYPE(MOUSE_WHEEL,                     CATEGORY_MOUSE,     6),
-    EVENT_TYPE(MOUSE_EVENT_LAST,                CATEGORY_MOUSE,     7),
+    EVENT_TYPE(mouse_event_first,               category_mouse,     0),
+    EVENT_TYPE(mouse_added,                     category_mouse,     1),
+    EVENT_TYPE(mouse_removed,                   category_mouse,     2),
+    EVENT_TYPE(mouse_moved,                     category_mouse,     3),
+    EVENT_TYPE(mouse_button_down,               category_mouse,     4),
+    EVENT_TYPE(mouse_button_up,                 category_mouse,     5),
+    EVENT_TYPE(mouse_wheel,                     category_mouse,     6),
+    EVENT_TYPE(mouse_event_last,                category_mouse,     7),
 
     // touch events
-    EVENT_TYPE(FINGER_EVENT_FIRST,              CATEGORY_TOUCH,     0),
-    EVENT_TYPE(FINGER_MOVED,                    CATEGORY_TOUCH,     1),
-    EVENT_TYPE(FINGER_DOWN,                     CATEGORY_TOUCH,     2),
-    EVENT_TYPE(FINGER_UP,                       CATEGORY_TOUCH,     3),
-    EVENT_TYPE(FINGER_CANCELED,                 CATEGORY_TOUCH,     4),
-    EVENT_TYPE(FINGER_EVENT_LAST,               CATEGORY_TOUCH,     5),
+    EVENT_TYPE(finger_event_first,              category_touch,     0),
+    EVENT_TYPE(finger_moved,                    category_touch,     1),
+    EVENT_TYPE(finger_down,                     category_touch,     2),
+    EVENT_TYPE(finger_up,                       category_touch,     3),
+    EVENT_TYPE(finger_canceled,                 category_touch,     4),
+    EVENT_TYPE(finger_event_last,               category_touch,     5),
 
     // pinch events
-    EVENT_TYPE(PINCH_EVENT_FIRST,               CATEGORY_TOUCH,     0),
-    EVENT_TYPE(PINCH_BEGIN,                     CATEGORY_TOUCH,     1),
-    EVENT_TYPE(PINCH_UPDATE,                    CATEGORY_TOUCH,     2),
-    EVENT_TYPE(PINCH_END,                       CATEGORY_TOUCH,     3),
-    EVENT_TYPE(PINCH_EVENT_LAST,                CATEGORY_TOUCH,     4),
+    EVENT_TYPE(pinch_event_first,               category_touch,     0),
+    EVENT_TYPE(pinch_begin,                     category_touch,     1),
+    EVENT_TYPE(pinch_update,                    category_touch,     2),
+    EVENT_TYPE(pinch_end,                       category_touch,     3),
+    EVENT_TYPE(pinch_event_last,                category_touch,     4),
 
     // pen events
-    EVENT_TYPE(PEN_EVENT_FIRST,                 CATEGORY_PEN,       0),
-    EVENT_TYPE(PEN_PROXIMITY_IN,                CATEGORY_PEN,       1),
-    EVENT_TYPE(PEN_PROXIMITY_OUT,               CATEGORY_PEN,       2),
-    EVENT_TYPE(PEN_MOVED,                       CATEGORY_PEN,       3),
-    EVENT_TYPE(PEN_UP,                          CATEGORY_PEN,       4),
-    EVENT_TYPE(PEN_DOWN,                        CATEGORY_PEN,       5),
-    EVENT_TYPE(PEN_BUTTON_UP,                   CATEGORY_PEN,       6),
-    EVENT_TYPE(PEN_BUTTON_DOWN,                 CATEGORY_PEN,       7),
-    EVENT_TYPE(PEN_AXIS_CHANGED,                CATEGORY_PEN,       8),
-    EVENT_TYPE(PEN_EVENT_LAST,                  CATEGORY_PEN,       9),
+    EVENT_TYPE(pen_event_first,                 category_pen,       0),
+    EVENT_TYPE(pen_proximity_in,                category_pen,       1),
+    EVENT_TYPE(pen_proximity_out,               category_pen,       2),
+    EVENT_TYPE(pen_moved,                       category_pen,       3),
+    EVENT_TYPE(pen_up,                          category_pen,       4),
+    EVENT_TYPE(pen_down,                        category_pen,       5),
+    EVENT_TYPE(pen_button_up,                   category_pen,       6),
+    EVENT_TYPE(pen_button_down,                 category_pen,       7),
+    EVENT_TYPE(pen_axis_changed,                category_pen,       8),
+    EVENT_TYPE(pen_event_last,                  category_pen,       9),
 
     // clipboard events
-    EVENT_TYPE(CLIPBOARD_EVENT_FIRST,           CATEGORY_CLIPBOARD, 0),
-    EVENT_TYPE(CLIPBOARD_UPDATED,               CATEGORY_CLIPBOARD, 1),
-    EVENT_TYPE(CLIPBOARD_EVENT_LAST,            CATEGORY_CLIPBOARD, 2),
+    EVENT_TYPE(clipboard_event_first,           category_clipboard, 0),
+    EVENT_TYPE(clipboard_updated,               category_clipboard, 1),
+    EVENT_TYPE(clipboard_event_last,            category_clipboard, 2),
 
     // drag and drop events
-    EVENT_TYPE(DROP_EVENT_FIRST,                CATEGORY_DROP,      0),
-    EVENT_TYPE(DROP_FILE,                       CATEGORY_DROP,      1),
-    EVENT_TYPE(DROP_TEXT,                       CATEGORY_DROP,      2),
-    EVENT_TYPE(DROP_BEGIN,                      CATEGORY_DROP,      3),
-    EVENT_TYPE(DROP_END,                        CATEGORY_DROP,      4),
-    EVENT_TYPE(DROP_POSITION,                   CATEGORY_DROP,      5),
-    EVENT_TYPE(DROP_EVENT_LAST,                 CATEGORY_DROP,      6),
+    EVENT_TYPE(drop_event_first,                category_drop,      0),
+    EVENT_TYPE(drop_file,                       category_drop,      1),
+    EVENT_TYPE(drop_text,                       category_drop,      2),
+    EVENT_TYPE(drop_begin,                      category_drop,      3),
+    EVENT_TYPE(drop_end,                        category_drop,      4),
+    EVENT_TYPE(drop_position,                   category_drop,      5),
+    EVENT_TYPE(drop_event_last,                 category_drop,      6),
 
     // internal events
-    EVENT_TYPE(INTERNAL_EVENT_POLL_SENTINEL,    CATEGORY_APP,       0)
+    EVENT_TYPE(internal_event_poll_sentinel,    category_internal,  0)
 };
 
 #undef EVENT_TYPE
@@ -640,12 +636,12 @@ public:
 
     video::window_id get_window_id() const
     {
-        if (get_category(type) == CATEGORY_WINDOW)
+        if (get_category(type) == category_window)
         {
             return window_event.common.window_id;
         }
 
-        return INVALID_ID;
+        return invalid_id;
     }
 
 #endif // VX_APP_VIDEO_ENABLED

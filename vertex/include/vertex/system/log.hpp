@@ -22,12 +22,12 @@ namespace log {
 
 enum class level
 {
-    TRACE = 0,
-    DEBUG = 1,
-    INFO = 2,
-    WARNING = 3,
-    ERROR = 4,
-    CRITICAL = 5
+    trace = 0,
+    debug = 1,
+    info = 2,
+    warning = 3,
+    error = 4,
+    critical = 5
 };
 
 /**
@@ -96,12 +96,12 @@ private:
     {
         switch (m_level)
         {
-            case level::TRACE:    m_stream << "[TRACE] ";    break;
-            case level::DEBUG:    m_stream << "[DEBUG] ";    break;
-            case level::INFO:     m_stream << "[INFO] ";     break;
-            case level::WARNING:  m_stream << "[WARNING] ";  break;
-            case level::ERROR:    m_stream << "[ERROR] ";    break;
-            case level::CRITICAL: m_stream << "[CRITICAL] "; break;
+            case level::trace:    m_stream << "[TRACE] ";    break;
+            case level::debug:    m_stream << "[DEBUG] ";    break;
+            case level::info:     m_stream << "[INFO] ";     break;
+            case level::warning:  m_stream << "[WARNING] ";  break;
+            case level::error:    m_stream << "[ERROR] ";    break;
+            case level::critical: m_stream << "[CRITICAL] "; break;
         }
     }
 
@@ -150,19 +150,19 @@ private:
 
 #if VX_ENABLE_LOGGING
 
-#   define VX_LOG_TRACE(...)                ::vx::log::_priv::log_stream(::vx::log::level::TRACE                     ).stream(__VA_ARGS__)
-#   define VX_LOG_DEBUG(...)                ::vx::log::_priv::log_stream(::vx::log::level::DEBUG                     ).stream(__VA_ARGS__)
-#   define VX_LOG_INFO(...)                 ::vx::log::_priv::log_stream(::vx::log::level::INFO                      ).stream(__VA_ARGS__)
-#   define VX_LOG_WARNING(...)              ::vx::log::_priv::log_stream(::vx::log::level::WARNING                   ).stream(__VA_ARGS__)
-#   define VX_LOG_ERROR(...)                ::vx::log::_priv::log_stream(::vx::log::level::ERROR                     ).stream(__VA_ARGS__)
-#   define VX_LOG_CRITICAL(...)             ::vx::log::_priv::log_stream(::vx::log::level::CRITICAL                  ).stream(__VA_ARGS__)
+#   define VX_LOG_TRACE(...)                ::vx::log::_priv::log_stream(::vx::log::level::trace                     ).stream(__VA_ARGS__)
+#   define VX_LOG_DEBUG(...)                ::vx::log::_priv::log_stream(::vx::log::level::debug                     ).stream(__VA_ARGS__)
+#   define VX_LOG_INFO(...)                 ::vx::log::_priv::log_stream(::vx::log::level::info                      ).stream(__VA_ARGS__)
+#   define VX_LOG_WARNING(...)              ::vx::log::_priv::log_stream(::vx::log::level::warning                   ).stream(__VA_ARGS__)
+#   define VX_LOG_ERROR(...)                ::vx::log::_priv::log_stream(::vx::log::level::error                     ).stream(__VA_ARGS__)
+#   define VX_LOG_CRITICAL(...)             ::vx::log::_priv::log_stream(::vx::log::level::critical                  ).stream(__VA_ARGS__)
 
-#   define VX_LOG_TRACE_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::TRACE,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_DEBUG_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::DEBUG,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_INFO_FULL(...)            ::vx::log::_priv::log_stream(::vx::log::level::INFO,     VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_WARNING_FULL(...)         ::vx::log::_priv::log_stream(::vx::log::level::WARNING,  VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_ERROR_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::ERROR,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
-#   define VX_LOG_CRITICAL_FULL(...)        ::vx::log::_priv::log_stream(::vx::log::level::CRITICAL, VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_TRACE_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::trace,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_DEBUG_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::debug,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_INFO_FULL(...)            ::vx::log::_priv::log_stream(::vx::log::level::info,     VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_WARNING_FULL(...)         ::vx::log::_priv::log_stream(::vx::log::level::warning,  VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_ERROR_FULL(...)           ::vx::log::_priv::log_stream(::vx::log::level::error,    VX_LINE, VX_FILE).stream(__VA_ARGS__)
+#   define VX_LOG_CRITICAL_FULL(...)        ::vx::log::_priv::log_stream(::vx::log::level::critical, VX_LINE, VX_FILE).stream(__VA_ARGS__)
 
 #else
 

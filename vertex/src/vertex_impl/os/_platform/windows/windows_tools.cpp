@@ -46,7 +46,7 @@ void error_message(const char* msg)
         }
     }
 
-    VX_ERR(vx::err::SYSTEM_ERROR)
+    VX_ERR(vx::err::system_error)
         << msg
         << ((msg_size == 0) ? "" : ": ")
         << str::string_cast<char>(buffer);

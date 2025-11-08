@@ -21,7 +21,7 @@ public:
     // format details
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_STATIC_ASSERT(F != pixel_format::UNKNOWN, "Unknown format not allowed");
+    VX_STATIC_ASSERT(F != pixel_format::unknown, "Unknown format not allowed");
     static constexpr pixel_format format = F;
 
     static VX_FORCE_INLINE constexpr size_t channels() noexcept { return get_pixel_channel_count(format); }
@@ -270,10 +270,10 @@ private:
     std::unique_ptr<raw_pixel_type[]> m_data;
 };
 
-using surface_r8 = surface<pixel_format::R_8>;
-using surface_rg8 = surface<pixel_format::RG_8>;
-using surface_rgb8 = surface<pixel_format::RGB_8>;
-using surface_rgba8 = surface<pixel_format::RGBA_8>;
+using surface_r8 = surface<pixel_format::r_8>;
+using surface_rg8 = surface<pixel_format::rg_8>;
+using surface_rgb8 = surface<pixel_format::rgb_8>;
+using surface_rgba8 = surface<pixel_format::rgba_8>;
 
 } // namespace pixel
 } // namespace vx

@@ -11,21 +11,21 @@ namespace img {
 
 enum rgb_order : int
 {
-    RGB = 1,
-    BGR = -1
+    rgb = 1,
+    bgr = -1
 };
 
 enum alpha_order : int
 {
-    NONE = 0,
-    FIRST = 1,
-    LAST = -1
+    none = 0,
+    first = 1,
+    last = -1
 };
 
 enum virtical_direction : int
 {
-    NORMAL = 1,
-    FLIPPED = -1
+    normal = 1,
+    flipped = -1
 };
 
 struct pixel_writer

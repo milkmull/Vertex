@@ -81,7 +81,7 @@ static void load_error(const char* filename)
         oss << ": " << stbi_failure_reason();
     }
 
-    err::set(err::FILE_OPEN_FAILED, oss.str().c_str());
+    err::set(err::file_open_failed, oss.str().c_str());
 }
 
 static void load_process_error(const char* filename, error_code code)
@@ -89,7 +89,7 @@ static void load_process_error(const char* filename, error_code code)
     std::ostringstream oss;
     oss << "failed to load image file \"" << filename << "\": " << error_code_to_string(code);
 
-    err::set(err::FAILED, oss.str().c_str());
+    err::set(err::failed, oss.str().c_str());
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -99,7 +99,7 @@ static void load_process_error(const char* filename, error_code code)
 static bool get_file_info(const char* filename, image_info& info)
 {
     info.width = info.height = 0;
-    info.format = pixel::pixel_format::UNKNOWN;
+    info.format = pixel::pixel_format::unknown;
 
     int width, height, channels;
     const bool success = stbi_info(filename, &width, &height, &channels);
@@ -130,7 +130,7 @@ static bool load_internal(const char* filename, image_info& info, std::vector<by
 
     // check for any errors in final image info
     err = get_image_info_error(info);
-    if (err != error_code::NONE)
+    if (err != error_code::none)
     {
         load_process_error(filename, err);
         return false;

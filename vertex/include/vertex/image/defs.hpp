@@ -7,35 +7,31 @@ namespace img {
 
 enum class file_format
 {
-    UNKNOWN = 0,
-    BMP,
-    JPG,
-    JPEG = JPG,
-    PNG
+    unknown = 0,
+    bmp,
+    jpg,
+    jpeg = jpg,
+    png
 };
 
 enum class pixel_format : uint32_t
 {
-    UNKNOWN         = static_cast<uint32_t>(pixel::pixel_format::UNKNOWN),
+    unknown         = static_cast<uint32_t>(pixel::pixel_format::unknown),
 
-    R_8             = static_cast<uint32_t>(pixel::pixel_format::R_8),
-    RG_8            = static_cast<uint32_t>(pixel::pixel_format::RG_8),
-    RGB_8           = static_cast<uint32_t>(pixel::pixel_format::RGB_8),
-    RGBA_8          = static_cast<uint32_t>(pixel::pixel_format::RGBA_8)
+    r_8             = static_cast<uint32_t>(pixel::pixel_format::r_8),
+    rg_8            = static_cast<uint32_t>(pixel::pixel_format::rg_8),
+    rgb_8           = static_cast<uint32_t>(pixel::pixel_format::rgb_8),
+    rgba_8          = static_cast<uint32_t>(pixel::pixel_format::rgba_8)
 };
 
 enum : size_t
 {
-    IMAGE_SIZE_LIMIT_MAX_DIMENSIONS = 4096,
+    max_dimensions = 4096,
 
-    IMAGE_SIZE_LIMIT_MIN_CHANNELS = 1,
-    IMAGE_SIZE_LIMIT_MAX_CHANNELS = 4,
+    min_channels = 1,
+    max_channels = 4,
 
-    IMAGE_SIZE_LIMIT_MAX_BYTES = (
-        IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        IMAGE_SIZE_LIMIT_MAX_DIMENSIONS *
-        IMAGE_SIZE_LIMIT_MAX_CHANNELS
-    )
+    max_bytes = (max_dimensions * max_dimensions * max_channels)
 };
 
 class image;

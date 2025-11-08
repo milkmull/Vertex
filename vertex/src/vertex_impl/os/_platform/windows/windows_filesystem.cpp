@@ -116,25 +116,25 @@ static bool update_file_permissions_internal(
 
 bool update_permissions_impl(
     const path& p,
-    typename file_permissions::type permissions,
+    file_permissions permissions,
     file_permission_operator op,
     bool follow_symlinks
 )
 {
-    const auto write_perms = (permissions & file_permissions::ALL_WRITE);
+    const auto write_perms = (permissions & file_permissions::all_write);
     bool read_only = false;
 
     switch (op)
     {
-        case file_permission_operator::REPLACE:
+        case file_permission_operator::replace:
         {
             // always apply FILE_ATTRIBUTE_READONLY according to permissions
-            read_only = (write_perms == file_permissions::NONE);
+            read_only = (write_perms == file_permissions::none);
             break;
         }
-        case file_permission_operator::ADD:
+        case file_permission_operator::add:
         {
-            if (write_perms == file_permissions::NONE)
+            if (write_perms == file_permissions::none)
             {
                 // if we aren't adding any write bits, then we won't change
                 // FILE_ATTRIBUTE_READONLY, so there's nothing to do
@@ -144,9 +144,9 @@ bool update_permissions_impl(
             read_only = false;
             break;
         }
-        case file_permission_operator::REMOVE:
+        case file_permission_operator::remove:
         {
-            if (write_perms != file_permissions::ALL_WRITE)
+            if (write_perms != file_permissions::all_write)
             {
                 // if we aren't removing all write bits, then we won't change
                 // FILE_ATTRIBUTE_READONLY, so there's nothing to do
@@ -266,7 +266,7 @@ static file_type get_file_type(const path& p, const DWORD attrs)
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
         const DWORD error = ::GetLastError();
-        return (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) ? file_type::NOT_FOUND : file_type::UNKNOWN;
+        return (error == ERROR_FILE_NOT_FOUND || error == ERROR_PATH_NOT_FOUND) ? file_type::not_found : file_type::unknown;
     }
 
     if (attrs & FILE_ATTRIBUTE_REPARSE_POINT)
@@ -276,46 +276,46 @@ static file_type get_file_type(const path& p, const DWORD attrs)
         if (get_reparse_point_data(p, reparse_data, false) &&
             is_symlink_reparse_tag(reparse_data->rdb.ReparseTag))
         {
-            return file_type::SYMLINK;
+            return file_type::symlink;
         }
     }
 
     if (attrs & FILE_ATTRIBUTE_DIRECTORY)
     {
-        return file_type::DIRECTORY;
+        return file_type::directory;
     }
 
-    return file_type::REGULAR;
+    return file_type::regular;
 }
 
 static file_type file_type_from_error(const DWORD error)
 {
     if (error == ENOENT || error == ENOTDIR)
     {
-        return file_type::NOT_FOUND;
+        return file_type::not_found;
     }
     else if (error == ERROR_SHARING_VIOLATION)
     {
-        return file_type::UNKNOWN;
+        return file_type::unknown;
     }
 
-    return file_type::NONE;
+    return file_type::none;
 }
 
 // https://github.com/boostorg/filesystem/blob/0848f5347b69bd9f8f0459dc0cb88e7a52714448/src/windows_tools.hpp#L89
 
-static typename file_permissions::type get_file_permissions(const path& p, const DWORD attrs)
+static file_permissions get_file_permissions(const path& p, const DWORD attrs)
 {
     if (attrs == INVALID_FILE_ATTRIBUTES)
     {
-        return file_permissions::NONE;
+        return file_permissions::none;
     }
 
-    typename file_permissions::type permissions = file_permissions::OWNER_READ | file_permissions::GROUP_READ | file_permissions::OTHERS_READ;
+    file_permissions permissions = file_permissions::owner_read | file_permissions::group_read | file_permissions::others_read;
 
     if (!(attrs & FILE_ATTRIBUTE_READONLY))
     {
-        permissions |= file_permissions::OWNER_WRITE | file_permissions::GROUP_WRITE | file_permissions::OTHERS_WRITE;
+        permissions |= permissions | file_permissions::group_write | file_permissions::others_write;
     }
 
     const auto& ext = p.extension().native();
@@ -324,7 +324,7 @@ static typename file_permissions::type get_file_permissions(const path& p, const
         (ext == L".bat" || ext == L".BAT") ||
         (ext == L".cmd" || ext == L".CMD"))
     {
-        permissions |= file_permissions::OWNER_EXEC | file_permissions::GROUP_EXEC | file_permissions::OTHERS_EXEC;
+        permissions |= file_permissions::owner_exec | file_permissions::group_exec | file_permissions::others_exec;
     }
 
     return permissions;
@@ -380,7 +380,7 @@ file_info get_file_info_impl(const path& p)
 {
     file_info info = get_symlink_info_impl(p);
 
-    if (info.type == file_type::SYMLINK)
+    if (info.type == file_type::symlink)
     {
         // Resolve the symbolic link
         handle h = CreateFileW(
@@ -798,37 +798,37 @@ path get_user_folder_impl(user_folder folder)
     KNOWNFOLDERID id{};
     switch (folder)
     {
-        case user_folder::HOME:
+        case user_folder::home:
         {
             id = FOLDERID_Profile;
             break;
         }
-        case user_folder::DESKTOP:
+        case user_folder::desktop:
         {
             id = FOLDERID_Desktop;
             break;
         }
-        case user_folder::DOCUMENTS:
+        case user_folder::documents:
         {
             id = FOLDERID_Documents;
             break;
         }
-        case user_folder::DOWNLOADS:
+        case user_folder::downloads:
         {
             id = FOLDERID_Downloads;
             break;
         }
-        case user_folder::MUSIC:
+        case user_folder::music:
         {
             id = FOLDERID_Music;
             break;
         }
-        case user_folder::PICTURES:
+        case user_folder::pictures:
         {
             id = FOLDERID_Pictures;
             break;
         }
-        case user_folder::VIDEOS:
+        case user_folder::videos:
         {
             id = FOLDERID_Videos;
             break;
@@ -1030,11 +1030,11 @@ static _priv::remove_error remove_directory(const path& p, bool in_recursive_rem
         }
 
         return not_empty
-            ? _priv::remove_error::DIRECTORY_NOT_EMPTY
-            : _priv::remove_error::OTHER;
+            ? _priv::remove_error::directory_not_empty
+            : _priv::remove_error::other;
     }
 
-    return _priv::remove_error::NONE;
+    return _priv::remove_error::none;
 }
 
 static _priv::remove_error remove_file(const path& p, DWORD attrs)
@@ -1044,10 +1044,10 @@ static _priv::remove_error remove_file(const path& p, DWORD attrs)
         restore_readonly_attributes(p, attrs);
 
         windows::error_message("DeleteFileW()");
-        return _priv::remove_error::OTHER;
+        return _priv::remove_error::other;
     }
 
-    return _priv::remove_error::NONE;
+    return _priv::remove_error::none;
 }
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L1494
@@ -1073,11 +1073,11 @@ _priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
         if (not_found_error(e))
         {
             // path or file is already gone
-            return _priv::remove_error::PATH_NOT_FOUND;
+            return _priv::remove_error::path_not_found;
         }
 
         windows::error_message("GetFileAttributesExW()");
-        return _priv::remove_error::OTHER;
+        return _priv::remove_error::other;
     }
 
     if (data.dwFileAttributes & FILE_ATTRIBUTE_READONLY)
@@ -1086,7 +1086,7 @@ _priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
         // remove a read-only file, so we have to drop the attribute
         if (!clear_readonly_attribute(p, data.dwFileAttributes))
         {
-            return _priv::remove_error::OTHER;
+            return _priv::remove_error::other;
         }
     }
 

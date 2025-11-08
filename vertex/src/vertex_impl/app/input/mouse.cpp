@@ -254,7 +254,7 @@ bool mouse_instance::set_double_click_time(time::time_point t)
 {
     if (t.is_negative())
     {
-        err::set(err::INVALID_ARGUMENT, "t");
+        err::set(err::invalid_argument, "t");
         return false;
     }
 
@@ -295,7 +295,7 @@ bool mouse_instance::set_double_click_radius(int32_t r)
 {
     if (r < 0)
     {
-        err::set(err::INVALID_ARGUMENT, "r");
+        err::set(err::invalid_argument, "r");
         return false;
     }
 
@@ -385,7 +385,7 @@ bool mouse_instance::update_mouse_focus(video::window_id wid, float x, float y, 
     {
         if (wid == data.focus)
         {
-            set_focus(INVALID_ID);
+            set_focus(invalid_id);
 
             if (send_motion)
             {
@@ -417,13 +417,13 @@ bool mouse_instance::update_mouse_focus(video::window_id wid, float x, float y, 
 
 buttons mouse_instance::get_button_state(mouse_id id, bool include_touch) const
 {
-    buttons state = buttons::NONE;
+    buttons state = button_none;
 
     for (const input_source& source : data.sources)
     {
-        if (id == GLOBAL_MOUSE_ID || id == TOUCH_MOUSE_ID)
+        if (id == global_mouse_id || id == touch_mouse_id)
         {
-            if (include_touch || source.id == TOUCH_MOUSE_ID)
+            if (include_touch || source.id == touch_mouse_id)
             {
                 state = static_cast<buttons>(state | source.button_state);
             }
@@ -454,7 +454,7 @@ buttons mouse_instance::get_state(float* x, float* y) const
         *y = data.y;
     }
 
-    return get_button_state(GLOBAL_MOUSE_ID, true);
+    return get_button_state(global_mouse_id, true);
 }
 
 //=============================================================================
@@ -473,7 +473,7 @@ buttons mouse_instance::get_relative_state(float* x, float* y)
     data.x_accu = 0.0f;
     data.y_accu = 0.0f;
 
-    return get_button_state(GLOBAL_MOUSE_ID, true);
+    return get_button_state(global_mouse_id, true);
 }
 
 //=============================================================================
@@ -516,7 +516,7 @@ bool mouse_instance::is_position_in_window(video::window_id wid, float x, float 
         return false;
     }
 
-    if (w->data.flags & video::window_flags::MOUSE_CAPTURE)
+    if (w->data.flags & video::window_flags::mouse_capture)
     {
         if (x < 0.0f ||
             y < 0.0f ||
@@ -549,7 +549,7 @@ bool mouse_instance::send_mouse_added(mouse_id id)
     VX_ASSERT(is_valid_id(id));
 
     event::event e{};
-    e.type = event::MOUSE_ADDED;
+    e.type = event::mouse_added;
     e.mouse_event.common.mouse_id = id;
     const bool posted = video->app->data.events_ptr->push_event(e);
 
@@ -563,7 +563,7 @@ bool mouse_instance::send_mouse_removed(mouse_id id)
     VX_ASSERT(is_valid_id(id));
 
     event::event e{};
-    e.type = event::MOUSE_REMOVED;
+    e.type = event::mouse_removed;
     e.mouse_event.common.mouse_id = id;
     const bool posted = video->app->data.events_ptr->push_event(e);
 
@@ -579,7 +579,7 @@ bool mouse_instance::send_mouse_motion(time::time_point t, video::window_id w, m
     if (is_valid_id(w) && !relative)
     {
         const buttons button_state = get_button_state(id, true);
-        const bool send_motion = (id != TOUCH_MOUSE_ID && id != PEN_MOUSE_ID);
+        const bool send_motion = (id != touch_mouse_id && id != pen_mouse_id);
 
         if (!update_mouse_focus(w, x, y, button_state, send_motion))
         {

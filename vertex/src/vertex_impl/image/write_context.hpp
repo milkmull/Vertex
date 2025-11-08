@@ -18,10 +18,9 @@ namespace img {
 
 enum class write_error
 {
-    NONE = 0,
-
-    BAD_FILE,
-    MAX_SIZE
+    none = 0,
+    bad_file,
+    max_size
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -34,7 +33,7 @@ struct write_context
     // error info
     ///////////////////////////////////////////////////////////////////////////////
 
-    write_error err = write_error::NONE;
+    write_error err = write_error::none;
     const char* msg = nullptr;
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -60,7 +59,7 @@ struct write_context
     {
         if (!file.open(filename, os::file::mode::WRITE))
         {
-            err = write_error::BAD_FILE;
+            err = write_error::bad_file;
             return false;
         }
 

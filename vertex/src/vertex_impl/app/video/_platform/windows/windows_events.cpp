@@ -44,8 +44,8 @@ void video_instance_impl::pump_events()
                  */
                 ++new_msg;
 
-                enum { MAX_NEW_MESSAGES = 3 };
-                if (new_msg > MAX_NEW_MESSAGES)
+                enum { max_new_messages = 3 };
+                if (new_msg > max_new_messages)
                 {
                     break;
                 }

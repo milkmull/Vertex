@@ -11,14 +11,14 @@ using id_type = size_t;
 
 enum : id_type
 {
-    INVALID_ID = 0,
-    DEFAULT_ID = 1,
-    MAX_ID = std::numeric_limits<id_type>::max()
+    invalid_id = 0,
+    default_id = 1,
+    max_id = std::numeric_limits<id_type>::max()
 };
 
 inline constexpr bool is_valid_id(id_type id) noexcept
 {
-    return id != INVALID_ID;
+    return id != invalid_id;
 }
 
 class id_generator
@@ -26,7 +26,7 @@ class id_generator
 public:
 
     id_type next() { return ++m_id; }
-    void reset() { m_id = INVALID_ID; }
+    void reset() { m_id = invalid_id; }
 
     id_type operator()() { return next(); }
 

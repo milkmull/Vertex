@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "vertex/config/flags.hpp"
 #include "vertex/os/path.hpp"
 #include "vertex/util/time.hpp"
 
@@ -15,12 +16,12 @@ namespace filesystem {
 
 enum class file_type
 {
-    NONE,
-    NOT_FOUND,
-    REGULAR,
-    DIRECTORY,
-    SYMLINK,
-    UNKNOWN
+    none,
+    not_found,
+    regular,
+    directory,
+    symlink,
+    unknown
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -29,49 +30,45 @@ enum class file_type
 
 // https://en.cppreference.com/w/cpp/filesystem/perms
 
-struct file_permissions
+VX_FLAGS_DECLARE_BEGIN(file_permissions)
 {
-    using type = unsigned int;
+    none = 0,             // No permissions
 
-    enum : type
-    {
-        NONE = 0,             // No permissions
+    owner_read = 0400,    // Owner has read permission
+    owner_write = 0200,   // Owner has write permission
+    owner_exec = 0100,    // Owner has execute permission
+    owner_all = 0700,     // Owner has all permissions
 
-        OWNER_READ = 0400,    // Owner has read permission
-        OWNER_WRITE = 0200,   // Owner has write permission
-        OWNER_EXEC = 0100,    // Owner has execute permission
-        OWNER_ALL = 0700,     // Owner has all permissions
+    group_read = 040,     // Group has read permission
+    group_write = 020,    // Group has write permission
+    group_exec = 010,     // Group has execute permission
+    group_all = 070,      // Group has all permissions
 
-        GROUP_READ = 040,     // Group has read permission
-        GROUP_WRITE = 020,    // Group has write permission
-        GROUP_EXEC = 010,     // Group has execute permission
-        GROUP_ALL = 070,      // Group has all permissions
+    others_read = 04,     // Others have read permission
+    others_write = 02,    // Others have write permission
+    others_exec = 01,     // Others have execute permission
+    others_all = 07,      // Others have all permissions
 
-        OTHERS_READ = 04,     // Others have read permission
-        OTHERS_WRITE = 02,    // Others have write permission
-        OTHERS_EXEC = 01,     // Others have execute permission
-        OTHERS_ALL = 07,      // Others have all permissions
+    all_read = owner_read | group_read | others_read,             // All users have read permission
+    all_write = owner_write | group_write | others_write,         // All users have write permission
+    all_read_write = all_read | all_write,                        // All users have read and write permissions
+    all_exec = owner_exec | group_exec | others_exec,             // All users have execute permission
 
-        ALL_READ = OWNER_READ | GROUP_READ | OTHERS_READ,             // All users have read permission
-        ALL_WRITE = OWNER_WRITE | GROUP_WRITE | OTHERS_WRITE,         // All users have write permission
-        ALL_READ_WRITE = ALL_READ | ALL_WRITE,                        // All users have read and write permissions
-        ALL_EXEC = OWNER_EXEC | GROUP_EXEC | OTHERS_EXEC,             // All users have execute permission
+    all = 0777,           // All permissions for owner, group, and others
 
-        ALL = 0777,           // All permissions for owner, group, and others
+    set_uid = 04000,      // Set user ID on execution
+    get_gid = 02000,      // Set group ID on execution
 
-        SET_UID = 04000,      // Set user ID on execution
-        GET_GID = 02000,      // Set group ID on execution
-
-        MASK = 07777,         // Bitmask for all permissions and special bits
-        UNKNOWN = 0xFFFF      // Unknown or invalid permissions
-    };
-};
+    mask = 07777,         // Bitmask for all permissions and special bits
+    unknown = 0xffff      // Unknown or invalid permissions
+}
+VX_FLAGS_DECLARE_END(file_permissions)
 
 enum class file_permission_operator
 {
-    REPLACE,
-    ADD,
-    REMOVE
+    replace,
+    add,
+    remove
 };
 
 /**
@@ -91,8 +88,8 @@ enum class file_permission_operator
  */
 VX_API bool update_permissions(
     const path& p,
-    typename file_permissions::type permissions,
-    file_permission_operator op = file_permission_operator::REPLACE,
+    file_permissions permissions,
+    file_permission_operator op = file_permission_operator::replace,
     bool follow_symlinks = false
 );
 
@@ -102,8 +99,8 @@ VX_API bool update_permissions(
 
 struct file_info
 {
-    file_type type = file_type::NONE;
-    typename file_permissions::type permissions = file_permissions::NONE;
+    file_type type = file_type::none;
+    file_permissions permissions = file_permissions::none;
     size_t size = 0;
     time::time_point create_time;
     time::time_point modify_time;
@@ -112,25 +109,25 @@ struct file_info
      * @brief Checks whether the file exists.
      * @return True if the file exists; false otherwise.
      */
-    constexpr bool exists() const noexcept { return !(type == file_type::NONE || type == file_type::NOT_FOUND); }
+    constexpr bool exists() const noexcept { return !(type == file_type::none || type == file_type::not_found); }
 
     /**
      * @brief Checks if the file is a regular file.
      * @return True if the file is regular; false otherwise.
      */
-    constexpr bool is_regular_file() const noexcept { return type == file_type::REGULAR; }
+    constexpr bool is_regular_file() const noexcept { return type == file_type::regular; }
 
     /**
      * @brief Checks if the file is a directory.
      * @return True if the file is a directory; false otherwise.
      */
-    constexpr bool is_directory() const noexcept { return type == file_type::DIRECTORY; }
+    constexpr bool is_directory() const noexcept { return type == file_type::directory; }
 
     /**
      * @brief Checks if the file is a symbolic link.
      * @return True if the file is a symlink; false otherwise.
      */
-    constexpr bool is_symlink() const noexcept { return type == file_type::SYMLINK; }
+    constexpr bool is_symlink() const noexcept { return type == file_type::symlink; }
 
     /**
      * @brief Checks if the file is not a regular file, directory, or symlink.
@@ -178,7 +175,7 @@ inline time::time_point get_modify_time(const path& p)
     
     if (!info.exists())
     {
-        err::set(err::INVALID_ARGUMENT);
+        err::set(err::invalid_argument);
         return time::time_point{};
     }
 
@@ -346,13 +343,13 @@ VX_API path get_temp_path();
 
 enum class user_folder
 {
-    HOME,
-    DESKTOP,
-    DOCUMENTS,
-    DOWNLOADS,
-    MUSIC,
-    PICTURES,
-    VIDEOS
+    home,
+    desktop,
+    documents,
+    downloads,
+    music,
+    pictures,
+    videos
 };
 
 /**
@@ -438,19 +435,15 @@ VX_API bool create_hard_link(const path& target, const path& link);
 // Copy
 ///////////////////////////////////////////////////////////////////////////////
 
-struct copy_options
+VX_FLAGS_UT_DECLARE_BEGIN(copy_options, uint32_t)
 {
-    using type = uint32_t;
-
-    enum : type
-    {
-        NONE                = 0,            // No options set
-        OVERWRITE_EXISTING  = VX_BIT(1),    // Overwrite the destination file if it already exists
-        SKIP_SYMLINKS       = VX_BIT(2),    // Skip copying symlinks
-        DIRECTORIES_ONLY    = VX_BIT(3),    // Copy only directories, skipping files
-        RECURSIVE           = VX_BIT(4)     // Copy directories and their contents recursively
-    };
-};
+    none                = 0,            // No options set
+    overwrite_existing  = VX_BIT(1),    // Overwrite the destination file if it already exists
+    skip_symlinks       = VX_BIT(2),    // Skip copying symlinks
+    directories_only    = VX_BIT(3),    // Copy only directories, skipping files
+    recursive           = VX_BIT(4)     // Copy directories and their contents recursively
+}
+VX_FLAGS_DECLARE_END(copy_options)
 
 /**
  * @brief Copies a regular file to a new location.
@@ -495,7 +488,7 @@ VX_API bool copy_symlink(const path& from, const path& to);
  * @note If the source and destination paths are equivalent, the operation will fail.
  * @note If the source is unsupported (not a regular file, symlink, or directory), the operation will fail.
  */
-VX_API bool copy(const path& from, const path& to, typename copy_options::type options = copy_options::NONE);
+VX_API bool copy(const path& from, const path& to, copy_options options = copy_options::none);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Rename
@@ -521,10 +514,10 @@ namespace _priv {
 
 enum class remove_error
 {
-    NONE,
-    PATH_NOT_FOUND,
-    DIRECTORY_NOT_EMPTY,
-    OTHER
+    none,
+    path_not_found,
+    directory_not_empty,
+    other
 };
 
 } // namespace _priv
@@ -879,7 +872,7 @@ inline bool is_empty(const os::path& p)
 
     if (!info.exists())
     {
-        err::set(err::INVALID_ARGUMENT);
+        err::set(err::invalid_argument);
         return false;
     }
 

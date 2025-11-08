@@ -18,8 +18,8 @@ namespace event {
 
 enum
 {
-    MAX_EVENTS = 65535,
-    DEFAULT_POLL_INTERVAL_MS = 1
+    max_events = 65535,
+    default_poll_interval_ms = 1
 };
 
 ////////////////////////////////////////

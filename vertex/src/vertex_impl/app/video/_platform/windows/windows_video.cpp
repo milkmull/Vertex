@@ -99,19 +99,19 @@ process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 
         if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_UNAWARE))
         {
-            return process_dpi_awareness::UNAWARE;
+            return process_dpi_awareness::unaware;
         }
         if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_SYSTEM_AWARE))
         {
-            return process_dpi_awareness::SYSTEM;
+            return process_dpi_awareness::system;
         }
         if (data.user32.AreDpiAwarenessContextsEqual(context, DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE))
         {
-            return process_dpi_awareness::PER_MONITOR;
+            return process_dpi_awareness::per_monitor;
         }
     }
 
-    return process_dpi_awareness::UNAWARE;
+    return process_dpi_awareness::unaware;
 }
 
 bool video_instance_impl::set_dpi_awareness()
@@ -120,15 +120,15 @@ bool video_instance_impl::set_dpi_awareness()
 
     if (!hint || std::strcmp(hint, "permonitor") == 0)
     {
-        return set_dpi_awareness_internal(process_dpi_awareness::PER_MONITOR);
+        return set_dpi_awareness_internal(process_dpi_awareness::per_monitor);
     }
     else if (std::strcmp(hint, "system"))
     {
-        return set_dpi_awareness_internal(process_dpi_awareness::SYSTEM);
+        return set_dpi_awareness_internal(process_dpi_awareness::system);
     }
     else if (std::strcmp(hint, "unaware"))
     {
-        return set_dpi_awareness_internal(process_dpi_awareness::UNAWARE);
+        return set_dpi_awareness_internal(process_dpi_awareness::unaware);
     }
 
     return true;
@@ -140,7 +140,7 @@ bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness aware
 
     switch (awareness)
     {
-        case process_dpi_awareness::UNAWARE:
+        case process_dpi_awareness::unaware:
         {
             if (data.user32.SetProcessDpiAwarenessContext)
             {
@@ -154,7 +154,7 @@ bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness aware
             }
             break;
         }
-        case process_dpi_awareness::SYSTEM:
+        case process_dpi_awareness::system:
         {
             if (data.user32.SetProcessDpiAwarenessContext)
             {
@@ -173,7 +173,7 @@ bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness aware
             }
             break;
         }
-        case process_dpi_awareness::PER_MONITOR:
+        case process_dpi_awareness::per_monitor:
         {
             if (data.user32.SetProcessDpiAwarenessContext)
             {
@@ -188,7 +188,7 @@ bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness aware
             else
             {
                 // Older OS: fall back to system DPI aware
-                return set_dpi_awareness_internal(process_dpi_awareness::SYSTEM);
+                return set_dpi_awareness_internal(process_dpi_awareness::system);
             }
             break;
         }
@@ -215,13 +215,13 @@ system_theme video_instance_impl::get_system_theme() const
         // Dark mode if 0, light mode if 1
         switch (data)
         {
-            case 0:  return system_theme::DARK;
-            case 1:  return system_theme::LIGHT;
+            case 0:  return system_theme::dark;
+            case 1:  return system_theme::light;
             default: break;
         }
     }
 
-    return system_theme::UNKNOWN;
+    return system_theme::unknown;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -584,7 +584,7 @@ static display_orientation get_natural_orientation(const PDEVMODE mode)
     }
 
     // The best we can do is guess
-    return (w >= h) ? video::display_orientation::LANDSCAPE : video::display_orientation::PORTRAIT;
+    return (w >= h) ? video::display_orientation::landscape : video::display_orientation::portrait;
 }
 
 static display_orientation get_display_orientation(const PDEVMODE mode, display_orientation* natural_orientation_ptr)
@@ -599,26 +599,26 @@ static display_orientation get_display_orientation(const PDEVMODE mode, display_
     switch (natural_orientation)
     {
         default:
-        case display_orientation::LANDSCAPE:
+        case display_orientation::landscape:
         {
             switch (mode->dmDisplayOrientation)
             {
-                case DMDO_DEFAULT: return display_orientation::LANDSCAPE;
-                case DMDO_90:      return display_orientation::PORTRAIT;
-                case DMDO_180:     return display_orientation::LANDSCAPE_FLIPPED;
-                case DMDO_270:     return display_orientation::PORTRAIT_FLIPPED;
-                default:           return display_orientation::UNKNOWN;
+                case DMDO_DEFAULT: return display_orientation::landscape;
+                case DMDO_90:      return display_orientation::portrait;
+                case DMDO_180:     return display_orientation::landscape_flipped;
+                case DMDO_270:     return display_orientation::portrait_flipped;
+                default:           return display_orientation::unknown;
             }
         }
-        case display_orientation::PORTRAIT:
+        case display_orientation::portrait:
         {
             switch (mode->dmDisplayOrientation)
             {
-                case DMDO_DEFAULT: return display_orientation::PORTRAIT;
-                case DMDO_90:      return display_orientation::LANDSCAPE_FLIPPED;
-                case DMDO_180:     return display_orientation::PORTRAIT_FLIPPED;
-                case DMDO_270:     return display_orientation::LANDSCAPE;
-                default:           return display_orientation::UNKNOWN;
+                case DMDO_DEFAULT: return display_orientation::portrait;
+                case DMDO_90:      return display_orientation::landscape_flipped;
+                case DMDO_180:     return display_orientation::portrait_flipped;
+                case DMDO_270:     return display_orientation::landscape;
+                default:           return display_orientation::unknown;
             }
         }
     }
@@ -635,7 +635,7 @@ static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, boo
         HDC hdc = ::CreateDCW(device_name, NULL, NULL, NULL);
         if (hdc == NULL)
         {
-            return pixel::pixel_format::UNKNOWN;
+            return pixel::pixel_format::unknown;
         }
 
         char bmi_data[sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD)]{};
@@ -654,17 +654,17 @@ static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, boo
         {
             switch (*reinterpret_cast<uint32_t*>(bmi->bmiColors))
             {
-                case 0x00FF0000: return pixel::pixel_format::ARGB_8888;
-                case 0x000000FF: return pixel::pixel_format::XBGR_8888;
-                case 0x0000F800: return pixel::pixel_format::RGB_565;
-                case 0x00007C00: return pixel::pixel_format::XRGB_1555;
+                case 0x00FF0000: return pixel::pixel_format::argb_8888;
+                case 0x000000FF: return pixel::pixel_format::xbgr_8888;
+                case 0x0000F800: return pixel::pixel_format::rgb_565;
+                case 0x00007C00: return pixel::pixel_format::xrgb_1555;
             }
         }
         else if (bmi->bmiHeader.biCompression == BI_RGB)
         {
             switch (bmi->bmiHeader.biBitCount)
             {
-                case 24: return pixel::pixel_format::RGB_8;
+                case 24: return pixel::pixel_format::rgb_8;
                 default: break; // palette format (unsupported) 
             }
         }
@@ -676,16 +676,16 @@ static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, boo
             // not sure this is the best way
             switch (dm.dmBitsPerPel)
             {
-                case 32:    return pixel::pixel_format::XRGB_8888;
-                case 24:    return pixel::pixel_format::RGB_8;
-                case 16:    return pixel::pixel_format::RGB_565;
-                case 15:    return pixel::pixel_format::XRGB_1555;
+                case 32:    return pixel::pixel_format::xrgb_8888;
+                case 24:    return pixel::pixel_format::rgb_8;
+                case 16:    return pixel::pixel_format::rgb_565;
+                case 15:    return pixel::pixel_format::xrgb_1555;
                 default:    break; // palette format (unsupported) 
             }
         }
     }
 
-    return pixel::pixel_format::UNKNOWN;
+    return pixel::pixel_format::unknown;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -694,9 +694,9 @@ static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, boo
 
 enum class mode_result
 {
-    ADD_MODE,
-    SKIP_MODE,
-    EXIT
+    add_mode,
+    skip_mode,
+    exit
 };
 
 static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& mode, DWORD index, display_orientation* orientation, display_orientation* natural_orientation)
@@ -705,19 +705,19 @@ static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& 
 
     if (!::EnumDisplaySettings(device_name, index, &dm))
     {
-        return mode_result::EXIT;
+        return mode_result::exit;
     }
 
     if (dm.dmBitsPerPel == 0)
     {
-        return mode_result::SKIP_MODE;
+        return mode_result::skip_mode;
     }
 
     const bool is_current_mode = (index == ENUM_CURRENT_SETTINGS);
     const pixel::pixel_format format = get_pixel_format(dm, device_name, is_current_mode);
-    if (format == pixel::pixel_format::UNKNOWN)
+    if (format == pixel::pixel_format::unknown)
     {
-        return mode_result::SKIP_MODE;
+        return mode_result::skip_mode;
     }
 
     mode.data.mode.resolution.x = dm.dmPelsWidth;
@@ -730,7 +730,7 @@ static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& 
     mode.impl_ptr.reset(new display_mode_instance_impl);
     if (!mode.impl_ptr)
     {
-        return mode_result::EXIT;
+        return mode_result::exit;
     }
 
     mode.impl_ptr->data.devmode = dm;
@@ -740,7 +740,7 @@ static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& 
         *orientation = get_display_orientation(&dm, natural_orientation);
     }
 
-    return mode_result::ADD_MODE;
+    return mode_result::add_mode;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -767,7 +767,7 @@ bool video_instance_impl::create_display(
     display_orientation current_orientation;
 
     const mode_result result = get_display_mode(info->szDevice, current_mode, ENUM_CURRENT_SETTINGS, &current_orientation, &natural_orientation);
-    if (result != mode_result::ADD_MODE)
+    if (result != mode_result::add_mode)
     {
         return false;
     }
@@ -786,7 +786,7 @@ bool video_instance_impl::create_display(
 
         if (d_impl->data.device_name == info->szDevice)
         {
-            if (d_impl->data.state != display_state::REMOVED)
+            if (d_impl->data.state != display_state::removed)
             {
                 // This display has already been enumerated and is still valid;
                 // no need to re-add or move it.
@@ -809,7 +809,7 @@ bool video_instance_impl::create_display(
 
             // Reactivate the display and update its state.
             d_impl->data.handle = hMonitor;
-            d_impl->data.state = display_state::NONE;
+            d_impl->data.state = display_state::none;
 
             if (!video->data.setting_display_mode)
             {
@@ -852,7 +852,7 @@ bool video_instance_impl::create_display(
         display_instance_impl* d_impl = d.impl_ptr.get();
         d_impl->data.handle = hMonitor;
         d_impl->data.device_name = info->szDevice; // Unique identifier for the monitor determined by graphics card
-        d_impl->data.state = display_state::ADDED; // Mark as added
+        d_impl->data.state = display_state::added; // Mark as added
         d_impl->data.last_bounds = d.get_bounds();
 
         // Get the display device name (printable)
@@ -934,7 +934,7 @@ void video_instance_impl::refresh_displays()
     // entries that have actually been removed
     for (const auto& d : displays)
     {
-        d.impl_ptr->data.state = display_state::REMOVED;
+        d.impl_ptr->data.state = display_state::removed;
     }
 
     // first locate the primary display
@@ -948,7 +948,7 @@ void video_instance_impl::refresh_displays()
     // remove any unaccounted for displays
     for (size_t i = 0; i < displays.size();)
     {
-        if (displays[i].impl_ptr->data.state == display_state::REMOVED)
+        if (displays[i].impl_ptr->data.state == display_state::removed)
         {
             video->remove_display(displays[i].data.id, true);
         }
@@ -961,7 +961,7 @@ void video_instance_impl::refresh_displays()
     // add new displays
     for (const auto& d : displays)
     {
-        if (d.impl_ptr->data.state == display_state::ADDED)
+        if (d.impl_ptr->data.state == display_state::added)
         {
             video->post_display_added(d.data.id);
         }
@@ -992,11 +992,11 @@ void display_instance_impl::list_display_modes(const display_instance* display) 
     {
         const mode_result result = get_display_mode(data.device_name.c_str(), mode, display_mode_index++, nullptr, nullptr);
 
-        if (result == mode_result::ADD_MODE)
+        if (result == mode_result::add_mode)
         {
             display->add_mode(mode);
         }
-        else if (result == mode_result::EXIT)
+        else if (result == mode_result::exit)
         {
             break;
         }
@@ -1049,7 +1049,7 @@ bool display_instance_impl::set_display_mode(display_mode_instance& mode, bool i
             }
         }
 
-        VX_ERR(vx::err::SYSTEM_ERROR) << "ChangeDisplaySettingsEx(): " << reason;
+        VX_ERR(vx::err::system_error) << "ChangeDisplaySettingsEx(): " << reason;
         return false;
     }
 

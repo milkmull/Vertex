@@ -1,9 +1,11 @@
 #pragma once
 
-#include "vertex/app/video/window.hpp"
+#include "vertex/config/flags.hpp"
 #include "vertex/app/owner_ptr.hpp"
-#include "vertex/pixel/surface.hpp"
+#include "vertex/app/video/window.hpp"
+#include "vertex/config/scoped_enum.hpp"
 #include "vertex/pixel/pixel_format.hpp"
+#include "vertex/pixel/surface.hpp"
 
 namespace vx {
 namespace app {
@@ -15,57 +17,49 @@ class video_instance;
 // window flags
 //=============================================================================
 
-#if defined(TRANSPARENT)
-#   undef TRANSPARENT
-#endif
-
-struct window_flags
+VX_FLAGS_UT_DECLARE_BEGIN(window_flags, uint32_t)
 {
-    using type = uint64_t;
+    none                = 0,
 
-    enum : type
-    {
-        NONE = 0,
+    fullscreen          = VX_BIT(0),
+    minimized           = VX_BIT(1),
+    maximized           = VX_BIT(2),
 
-        FULLSCREEN = VX_BIT(0),
-        MINIMIZED = VX_BIT(1),
-        MAXIMIZED = VX_BIT(2),
+    borderless          = VX_BIT(3),
+    resizable           = VX_BIT(4),
+    topmost             = VX_BIT(5),
+    transparent         = VX_BIT(6),
 
-        BORDERLESS = VX_BIT(3),
-        RESIZABLE = VX_BIT(4),
-        TOPMOST = VX_BIT(5),
-        TRANSPARENT = VX_BIT(6),
+    hidden              = VX_BIT(7),
+    occluded            = VX_BIT(8),
 
-        HIDDEN = VX_BIT(7),
-        OCCLUDED = VX_BIT(8),
+    not_focusable       = VX_BIT(9),
+    input_focus         = VX_BIT(10),
+    mouse_focus         = VX_BIT(11),
 
-        NOT_FOCUSABLE = VX_BIT(9),
-        INPUT_FOCUS = VX_BIT(10),
-        MOUSE_FOCUS = VX_BIT(11),
+    mouse_grabbed       = VX_BIT(12),
+    keyboard_grabbed    = VX_BIT(13),
 
-        MOUSE_GRABBED = VX_BIT(12),
-        KEYBOARD_GRABBED = VX_BIT(13),
+    mouse_capture       = VX_BIT(14),
 
-        MOUSE_CAPTURE = VX_BIT(14),
+    // flags to be set by the os on window creation
+    create_flags        = (hidden | minimized | borderless | resizable | topmost),
 
-        // flags to be set by the os on window creation
-        CREATE_FLAGS = (HIDDEN | MINIMIZED | BORDERLESS | RESIZABLE | TOPMOST),
-
-        // flags to be restored when a hidden window is shown again
-        PENDING_FLAGS = (MAXIMIZED | MINIMIZED | FULLSCREEN | KEYBOARD_GRABBED | MOUSE_GRABBED)
-    };
-};
+    // flags to be restored when a hidden window is shown again
+    pending_flags       = (maximized | minimized | fullscreen | keyboard_grabbed | mouse_grabbed)
+}
+VX_FLAGS_DECLARE_END(window_flags)
 
 //=============================================================================
 // window rect type
 //=============================================================================
 
-enum window_rect_type
+enum class window_rect_type
 {
-    INPUT = 0,
-    CURRENT,
-    WINDOWED,
-    FLOATING
+    input = 0,
+    current,
+    windowed,
+    floating
 };
 
 //=============================================================================
@@ -73,7 +67,7 @@ enum window_rect_type
 //=============================================================================
 
 // common format used by windows, macOS, X11, etc
-using surface_argb = pixel::surface<pixel::pixel_format::ARGB_8888>;
+using surface_argb = pixel::surface<pixel::pixel_format::argb_8888>;
 
 struct window_data
 {
@@ -81,7 +75,7 @@ struct window_data
     // identity
     //=============================================================================
 
-    window_id id = INVALID_ID;
+    window_id id = invalid_id;
     std::string title;
 
     //=============================================================================
@@ -148,13 +142,13 @@ struct window_data
     // flags
     //=============================================================================
 
-    typename window_flags::type flags = window_flags::NONE;
+    window_flags flags = window_flags::none;
 
     // Flags representing window state changes (minimized, maximized, restored, fullscreen, etc.)
     // that should take effect once the window becomes visible again.
     // If the window is hidden when a state change is requested, the desired state is stored here
     // and applied when the window is shown.
-    typename window_flags::type pending_flags = window_flags::NONE;
+    window_flags pending_flags = window_flags::none;
 
     //=============================================================================
     // fullscreen
@@ -175,12 +169,12 @@ struct window_data
     bool update_fullscreen_on_display_changed = false;
 
     bool fullscreen_exclusive = false;
-    display_id last_fullscreen_exclusive_display_id = INVALID_ID;
+    display_id last_fullscreen_exclusive_display_id = invalid_id;
 
     // the display that the window was last detected on
-    display_id current_display_id = INVALID_ID;
+    display_id current_display_id = invalid_id;
     // the display that was initially requested to show the window
-    display_id pending_display_id = INVALID_ID;
+    display_id pending_display_id = invalid_id;
 
     //=============================================================================
     // appearence
@@ -240,13 +234,13 @@ public:
     //=============================================================================
 
     bool create(video_instance* owner, const window_config& config);
-    bool recreate(typename window_flags::type flags);
-    void finish_creation(typename window_flags::type new_flags, bool drag_and_drop);
+    bool recreate(typename window_flags flags);
+    void finish_creation(typename window_flags new_flags, bool drag_and_drop);
 
     void begin_destroy();
     void destroy();
 
-    void apply_flags(typename window_flags::type new_flags);
+    void apply_flags(typename window_flags new_flags);
 
     //=============================================================================
     // surface
@@ -362,26 +356,21 @@ public:
 
     bool set_fullscreen(bool fullscreen);
 
-    struct fullscreen_op
+    enum class fullscreen_op
     {
-        using type = int;
-
-        enum : type
-        {
-            LEAVE = 0,
-            ENTER = 1,
-            UPDATE
-        };
+        leave = 0,
+        enter = 1,
+        update
     };
 
     enum class fullscreen_result
     {
-        FAILED,
-        SUCCEEDED,
-        PENDING
+        failed,
+        succeeded,
+        pending
     };
     
-    bool update_fullscreen_mode(typename fullscreen_op::type fullscreen, bool commit);
+    bool update_fullscreen_mode(fullscreen_op fullscreen, bool commit);
 
     //=============================================================================
     // icon

@@ -11,11 +11,11 @@ namespace endian {
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER LITTLE
+#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
 
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER BIG
+#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER big
 
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_PDP_ENDIAN__) && __BYTE_ORDER__ == __ORDER_PDP_ENDIAN__
 
@@ -23,15 +23,15 @@ namespace endian {
 
 #elif defined(__LITTLE_ENDIAN__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER LITTLE
+#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
 
 #elif defined(__BIG_ENDIAN__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER BIG
+#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER big
 
 #elif defined(_MSC_VER) || defined(__i386__) || defined(__x86_64__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER LITTLE
+#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
 
 #else
 
@@ -41,9 +41,9 @@ namespace endian {
 
 enum class order
 {
-    BIG,
-    LITTLE,
-    NATIVE = VX_ENDIAN_NATIVE_ORDER_INITIALIZER
+    big,
+    little,
+    native = VX_ENDIAN_NATIVE_ORDER_INITIALIZER
 };
 
 #undef VX_ENDIAN_NATIVE_ORDER_INITIALIZER
@@ -76,7 +76,7 @@ VX_FORCE_INLINE constexpr T convert(T x, order from, order to) noexcept
 template<typename T>
 VX_FORCE_INLINE constexpr T big_to_native(T value) noexcept
 {
-    return convert(value, order::BIG, order::NATIVE);
+    return convert(value, order::big, order::native);
 }
 
 /**
@@ -89,7 +89,7 @@ VX_FORCE_INLINE constexpr T big_to_native(T value) noexcept
 template<typename T>
 VX_FORCE_INLINE constexpr T native_to_big(T value) noexcept
 {
-    return convert(value, order::NATIVE, order::BIG);
+    return convert(value, order::native, order::big);
 }
 
 /**
@@ -102,7 +102,7 @@ VX_FORCE_INLINE constexpr T native_to_big(T value) noexcept
 template<typename T>
 VX_FORCE_INLINE constexpr T little_to_native(T value) noexcept
 {
-    return convert(value, order::LITTLE, order::NATIVE);
+    return convert(value, order::little, order::native);
 }
 
 /**
@@ -115,7 +115,7 @@ VX_FORCE_INLINE constexpr T little_to_native(T value) noexcept
 template<typename T>
 VX_FORCE_INLINE constexpr T native_to_little(T value) noexcept
 {
-    return convert(value, order::NATIVE, order::LITTLE);
+    return convert(value, order::native, order::little);
 }
 
 } // namespace endian

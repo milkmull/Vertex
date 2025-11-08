@@ -1,5 +1,6 @@
 #pragma once
 
+#include "vertex/config/flags.hpp"
 #include "vertex/app/id.hpp"
 #include "vertex/pixel/mask.hpp"
 
@@ -18,10 +19,10 @@ using mouse_id = id_type;
 
 enum : mouse_id
 {
-    GLOBAL_MOUSE_ID = 1,
-    DEFAULT_MOUSE_ID = 2,
-    TOUCH_MOUSE_ID = MAX_ID,
-    PEN_MOUSE_ID = MAX_ID - 1
+    global_mouse_id = 1,
+    default_mouse_id = 2,
+    touch_mouse_id = max_id,
+    pen_mouse_id = max_id - 1
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -30,20 +31,20 @@ enum : mouse_id
 
 enum buttons
 {
-    NONE            = 0,
+    button_none         = 0,
 
-    BUTTON_LEFT     = VX_BIT(0),
-    BUTTON_RIGHT    = VX_BIT(1),
-    BUTTON_MIDDLE   = VX_BIT(2),
+    button_left         = VX_BIT(0),
+    button_right        = VX_BIT(1),
+    button_middle       = VX_BIT(2),
 
-    BUTTON_EXTRA_1  = VX_BIT(3),
-    BUTTON_EXTRA_2  = VX_BIT(4)
+    button_extra_1      = VX_BIT(3),
+    button_extra_2      = VX_BIT(4)
 };
 
 enum wheel_direction
 {
-    VERTICAL,
-    HORIZONTAL
+    wheel_vertical,
+    wheel_horizontal
 };
 
 struct mouse_state
@@ -51,11 +52,17 @@ struct mouse_state
     buttons button_flags;
     float x, y;
 
-    bool left_button_down() const noexcept { return button_flags & buttons::BUTTON_LEFT; }
-    bool right_button_down() const noexcept { return button_flags & buttons::BUTTON_RIGHT; }
-    bool middle_button_down() const noexcept { return button_flags & buttons::BUTTON_MIDDLE; }
-    bool extra_1_button_down() const noexcept { return button_flags & buttons::BUTTON_EXTRA_1; }
-    bool extra_2_button_down() const noexcept { return button_flags & buttons::BUTTON_EXTRA_2; }
+    bool left_button_down() const noexcept { return button_flags & button_left; }
+    bool right_button_down() const noexcept { return button_flags & button_right; }
+    bool middle_button_down() const noexcept { return button_flags & button_middle; }
+    bool extra_1_button_down() const noexcept { return button_flags & button_extra_1; }
+    bool extra_2_button_down() const noexcept { return button_flags & button_extra_2; }
+
+    bool left_button_up() const noexcept { return !left_button_down(); }
+    bool right_button_up() const noexcept { return !right_button_down(); }
+    bool middle_button_up() const noexcept { return !middle_button_down(); }
+    bool extra_1_button_up() const noexcept { return !extra_1_button_down(); }
+    bool extra_2_button_up() const noexcept { return !extra_2_button_down(); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -65,7 +72,7 @@ struct mouse_state
 // Devices
 VX_API bool any_connected();
 VX_API std::vector<mouse_id> list_ids();
-VX_API const char* get_name(mouse_id id = DEFAULT_MOUSE_ID);
+VX_API const char* get_name(mouse_id id = default_mouse_id);
 
 // Focus
 VX_API const video::window* get_focus();
@@ -92,18 +99,18 @@ VX_API bool set_capture(bool enabled);
 
 using cursor_id = id_type;
 
-enum cursor_shape
+enum class cursor_shape
 {
-    CURSOR_SHAPE_USER_DEFINED,
-    CURSOR_SHAPE_ARROW,
-    CURSOR_SHAPE_IBEAM,
-    CURSOR_SHAPE_WAIT,
-    CURSOR_SHAPE_CROSSHAIR,
-    CURSOR_SHAPE_HAND,
-    CURSOR_SHAPE_HRESIZE,
-    CURSOR_SHAPE_VRESIZE,
-    CURSOR_SHAPE_ALL_RESIZE,
-    CURSOR_SHAPE_NOT_ALLOWED,
+    user_defined,
+    arrow,
+    ibeam,
+    wait,
+    crosshair,
+    hand,
+    hresize,
+    vresize,
+    all_resize,
+    not_allowed,
 };
 
 class cursor

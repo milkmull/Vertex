@@ -11,7 +11,7 @@ using namespace vx;
 
 static bool display_added_event_watcher(const app::event::event& e, void*)
 {
-    if (e.type != app::event::DISPLAY_ADDED)
+    if (e.type != app::event::display_added)
     {
         return false;
     }
@@ -55,11 +55,11 @@ int main(int argc, char* argv[])
     constexpr auto x = math::g2::circle_t<int>().radius;
 
 
-    if (app::init() && app::init_subsystem(app::INIT_EVENTS))
+    if (app::init() && app::init_subsystem(app::init_flags::events))
     {
         app::event::add_event_watch(display_added_event_watcher, nullptr);
 
-        if (app::init_subsystem(app::INIT_VIDEO))
+        if (app::init_subsystem(app::init_flags::video))
         {
             run_app();
         }

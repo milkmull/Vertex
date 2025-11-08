@@ -30,7 +30,7 @@ bool get_entropy_impl(uint8_t* bytes, size_t count)
 
         if (err != 0)
         {
-            VX_ERR(err::SYSTEM_ERROR) << "rand_s(): " << err;
+            VX_ERR(err::system_error) << "rand_s(): " << err;
             return false;
         }
 

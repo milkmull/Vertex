@@ -38,7 +38,7 @@ void raw_input_manager::quit()
 
 void raw_input_manager::reset_thread()
 {
-    data.thread_data.flags = raw_input_flags::NONE;
+    data.thread_data.flags = raw_input_flags::none;
 
     if (data.thread_data.thread.is_valid())
     {
@@ -60,7 +60,7 @@ static void thread_entry(raw_input_manager* this_)
 
 ////////////////////////////////////////
 
-bool raw_input_manager::start_thread(typename raw_input_flags::type flags)
+bool raw_input_manager::start_thread(raw_input_flags flags)
 {
     reset_thread();
 
@@ -95,7 +95,7 @@ bool raw_input_manager::start_thread(typename raw_input_flags::type flags)
         // Wait for the thread to signal ready or exit
         if (::WaitForSingleObject(data.thread_data.ready_event.get(), INFINITE) != WAIT_OBJECT_0)
         {
-            err::set(err::SYSTEM_ERROR, "Filed to set up raw input handling");
+            err::set(err::system_error, "Filed to set up raw input handling");
             goto done;
         }
 
@@ -133,19 +133,19 @@ void raw_input_manager::thread()
     RAWINPUTDEVICE devices[2]{};
     UINT count = 0;
 
-    if (data.thread_data.flags & raw_input_flags::ENABLE_RAW_MOUSE_INPUT)
+    if (data.thread_data.flags & raw_input_flags::raw_mouse)
     {
-        devices[count].usUsagePage = usb::USAGEPAGE_GENERIC_DESKTOP;
-        devices[count].usUsage = usb::USAGE_GENERIC_MOUSE;
+        devices[count].usUsagePage = usb::usagepage_generic_desktop;
+        devices[count].usUsage = usb::usage_generic_mouse;
         devices[count].dwFlags = 0;// RIDEV_INPUTSINK;  // <-- must sink input
         devices[count].hwndTarget = window;
         ++count;
     }
 
-    if (data.thread_data.flags & raw_input_flags::ENABLE_RAW_KEYBOARD_INPUT)
+    if (data.thread_data.flags & raw_input_flags::raw_keyboard)
     {
-        devices[count].usUsagePage = usb::USAGEPAGE_GENERIC_DESKTOP;
-        devices[count].usUsage = usb::USAGE_GENERIC_KEYBOARD;
+        devices[count].usUsagePage = usb::usagepage_generic_desktop;
+        devices[count].usUsage = usb::usage_generic_keyboard;
         devices[count].dwFlags = 0;// RIDEV_INPUTSINK;  // <-- must sink input
         devices[count].hwndTarget = window;
         ++count;
@@ -212,7 +212,7 @@ void raw_input_manager::thread()
 // configure
 ///////////////////////////////////////////////////////////////////////////////
 
-bool raw_input_manager::set_raw_input_enabled(typename raw_input_flags::type flags)
+bool raw_input_manager::set_raw_input_enabled(raw_input_flags flags)
 {
     return start_thread(flags);
 }
@@ -221,15 +221,15 @@ bool raw_input_manager::set_raw_input_enabled(typename raw_input_flags::type fla
 
 bool raw_input_manager::update_raw_input_enabled()
 {
-    typename raw_input_flags::type flags = raw_input_flags::NONE;
+    raw_input_flags flags = raw_input_flags::none;
 
     if (data.raw_mouse_enabled)
     {
-        flags |= raw_input_flags::ENABLE_RAW_MOUSE_INPUT;
+        flags |= raw_input_flags::raw_mouse;
     }
     if (data.raw_keyboard_enabled)
     {
-        flags |= raw_input_flags::ENABLE_RAW_KEYBOARD_INPUT;
+        flags |= raw_input_flags::raw_keyboard;
     }
 
     if (flags != data.flags)

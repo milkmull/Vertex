@@ -51,8 +51,8 @@ public:
 struct touch_data
 {
     bool finger_touching = false;
-    finger_id track_finger = INVALID_ID;
-    touch_id track_touch = INVALID_ID;
+    finger_id track_finger = invalid_id;
+    touch_id track_touch = invalid_id;
     std::vector<touch_device_instance> touch_devices;
 
     id_generator touch_id_generator;

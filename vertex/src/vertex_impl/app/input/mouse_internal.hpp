@@ -112,8 +112,8 @@ struct scale_state
 struct mouse_cursor_data
 {
     std::vector<cursor_instance> cursors;
-    cursor_id default_cursor = INVALID_ID;
-    cursor_id current_cursor = INVALID_ID;
+    cursor_id default_cursor = invalid_id;
+    cursor_id current_cursor = invalid_id;
     bool visible = false;
 };
 
@@ -124,7 +124,7 @@ struct mouse_data
     bool quitting = false;
 
     // Window focus
-    video::window_id focus = INVALID_ID;
+    video::window_id focus = invalid_id;
 
     // Position
     float x = 0.0f, y = 0.0f;           // current position in window space
@@ -206,7 +206,7 @@ public:
     bool is_mouse(uint16_t vendor, uint16_t product) const { return true; }
     bool any_connected() const;
     std::vector<mouse_id> list_mice() const;
-    const char* get_name(mouse_id id = DEFAULT_MOUSE_ID) const;
+    const char* get_name(mouse_id id = default_mouse_id) const;
 
     //=============================================================================
     // configure

@@ -51,7 +51,7 @@ VX_API bool encode(const uint8_t* data, size_t size, std::string& encoded)
 
     if (!data)
     {
-        err::set(err::INVALID_ARGUMENT);
+        err::set(err::invalid_argument);
         return false;
     }
     if (size == 0)
@@ -117,7 +117,7 @@ VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool 
     
     if (size % 4 != 0)
     {
-        err::set(err::SIZE_ERROR);
+        err::set(err::size_error);
         return false;
     }
 
@@ -136,7 +136,7 @@ VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool 
         
         if (validate && (c1 == 64 || c2 == 64 || c3 == 64 || c4 == 64))
         {
-            err::set(err::INVALID_ARGUMENT);
+            err::set(err::invalid_argument);
             return false;
         }
         

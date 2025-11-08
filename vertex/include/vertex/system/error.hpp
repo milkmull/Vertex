@@ -4,10 +4,6 @@
 
 #include "vertex/config/language_config.hpp"
 
-#if defined(ERROR)
-#   undef ERROR
-#endif
-
 #define VX_ERROR_PRINTING_AVAILABLE VX_DEBUG
 
 namespace vx {
@@ -16,8 +12,6 @@ using error_t = uint8_t;
 
 namespace err {
 
-enum { ERROR_MESSAGE_MAX_SIZE = 1024 };
-
 ///////////////////////////////////////////////////////////////////////////////
 // error code
 ///////////////////////////////////////////////////////////////////////////////
@@ -25,46 +19,42 @@ enum { ERROR_MESSAGE_MAX_SIZE = 1024 };
 enum code : error_t
 {
     // General success and error indicators
-    NONE = 0,               // No error; indicates a successful operation or no action needed
-    OK = NONE,              // Alias for NONE, to clearly indicate successful completion
-
-    ERROR = 1,              // General error indicator
-    FAILED = ERROR,         // Alias for ERROR, to indicate operation failure
+    none = 0,               // No error; indicates a successful operation or no action needed
+    failed = 1,             // General error indicator
 
     // Runtime-specific errors
-    RUNTIME_ERROR,          // Error occurring during runtime, often due to unexpected conditions
-    NOT_CONFIGURED,         // Attempted operation without required configuration settings
+    runtime_error,          // Error occurring during runtime, often due to unexpected conditions
+    not_configured,         // Attempted operation without required configuration settings
 
     // Boundary and memory errors
-    OUT_OF_RANGE,           // Attempted to access beyond valid range, e.g., index out of bounds
-    OUT_OF_MEMORY,          // Insufficient memory for requested operation
-    SIZE_ERROR,             // Inappropriate or invalid size for an operation
+    out_of_range,           // Attempted to access beyond valid range, e.g., index out of bounds
+    out_of_memory,          // Insufficient memory for requested operation
+    size_error,             // Inappropriate or invalid size for an operation
 
     // Data validation and argument errors
-    INVALID_DATA,           // Data provided is invalid or corrupted
-    INVALID_ARGUMENT,       // Provided argument is invalid or inappropriate for the function
-    UNSUPPORTED_FORMAT,     // Format of input or output is not supported
-    UNSUPPORTED_CONVERSION, // Attempted conversion between incompatible types
-    UNSUPPORTED_OPERATION,  // Operation requested is unsupported or not implemented
+    invalid_data,           // Data provided is invalid or corrupted
+    invalid_argument,       // Provided argument is invalid or inappropriate for the function
+    unsupported_format,     // Format of input or output is not supported
+    unsupported_conversion, // Attempted conversion between incompatible types
+    unsupported_operation,  // Operation requested is unsupported or not implemented
 
     // Resource-related errors
-    RESOURCE_NOT_FOUND,     // Resource, such as a file or database entry, could not be found
-    RESOURCE_ALREADY_EXISTS,// Resource already exists, e.g., trying to create a file that already exists
+    resource_not_found,     // Resource, such as a file or database entry, could not be found
+    resource_already_exists,// Resource already exists, e.g., trying to create a file that already exists
 
     // File operation errors
-    FILE_OPERATION_FAILED,  // General file operation failure
-    FILE_OPEN_FAILED,       // Failed to open the specified file
-    FILE_READ_FAILED,       // Error occurred while reading from a file
-    FILE_WRITE_FAILED,      // Error occurred while writing to a file
+    file_operation_failed,  // General file operation failure
+    file_open_failed,       // Failed to open the specified file
+    file_read_failed,       // Error occurred while reading from a file
+    file_write_failed,      // Error occurred while writing to a file
 
     // File-specific conditions
-    FILE_NO_PERMISSION,     // Lack of permission to perform a file operation
-    FILE_IN_USE,            // File is currently in use and cannot be accessed
-    FILE_CORRUPT,           // File is corrupted or unreadable
+    file_no_permission,     // Lack of permission to perform a file operation
+    file_in_use,            // File is currently in use and cannot be accessed
+    file_corrupt,           // File is corrupted or unreadable
 
     // Platform-specific error
-    SYSTEM_ERROR,           // Error specific to the platform, e.g., system-level failures
-    UNSUPPORTED             // Operation is unsupported on the current platform
+    system_error            // Error specific to the platform, e.g., system-level failures
 };
 
 /**
@@ -80,36 +70,35 @@ constexpr const char* code_to_string(code err) noexcept
 {
     switch (err)
     {
-        case code::NONE:                        return "none";
-        case code::ERROR:                       return "error";
+        case code::none:                        return "none";
+        case code::failed:                      return "failed";
 
-        case code::RUNTIME_ERROR:               return "runtime error";
-        case code::NOT_CONFIGURED:              return "not configured";
+        case code::runtime_error:               return "runtime error";
+        case code::not_configured:              return "not configured";
 
-        case code::OUT_OF_RANGE:                return "out of range";
-        case code::OUT_OF_MEMORY:               return "out of memory";
-        case code::SIZE_ERROR:                  return "size error";
+        case code::out_of_range:                return "out of range";
+        case code::out_of_memory:               return "out of memory";
+        case code::size_error:                  return "size error";
 
-        case code::INVALID_DATA:                return "invalid data";
-        case code::INVALID_ARGUMENT:            return "invalid argument";
-        case code::UNSUPPORTED_FORMAT:          return "unsupported format";
-        case code::UNSUPPORTED_CONVERSION:      return "unsupported conversion";
-        case code::UNSUPPORTED_OPERATION:       return "unsupported operation";
+        case code::invalid_data:                return "invalid data";
+        case code::invalid_argument:            return "invalid argument";
+        case code::unsupported_format:          return "unsupported format";
+        case code::unsupported_conversion:      return "unsupported conversion";
+        case code::unsupported_operation:       return "unsupported operation";
 
-        case code::RESOURCE_NOT_FOUND:          return "resource not found";
-        case code::RESOURCE_ALREADY_EXISTS:     return "resource already exists";
+        case code::resource_not_found:          return "resource not found";
+        case code::resource_already_exists:     return "resource already exists";
 
-        case code::FILE_OPERATION_FAILED:       return "file operation failed";
-        case code::FILE_OPEN_FAILED:            return "file open failed";
-        case code::FILE_READ_FAILED:            return "file read failed";
-        case code::FILE_WRITE_FAILED:           return "file write failed";
+        case code::file_operation_failed:       return "file operation failed";
+        case code::file_open_failed:            return "file open failed";
+        case code::file_read_failed:            return "file read failed";
+        case code::file_write_failed:           return "file write failed";
 
-        case code::FILE_NO_PERMISSION:          return "file no permission";
-        case code::FILE_IN_USE:                 return "file in use";
-        case code::FILE_CORRUPT:                return "file corrupt";
+        case code::file_no_permission:          return "file no permission";
+        case code::file_in_use:                 return "file in use";
+        case code::file_corrupt:                return "file corrupt";
 
-        case code::SYSTEM_ERROR:                return "system error";
-        case code::UNSUPPORTED:                 return "unsupported operation";
+        case code::system_error:                return "system error";
         default:                                return "";
     }
 }
@@ -124,10 +113,10 @@ constexpr const char* code_to_string(code err) noexcept
  */
 struct info
 {
-    code err = code::NONE;
+    code err = code::none;
     const char* message;
 
-    constexpr explicit operator bool() const noexcept { return (err != code::NONE); }
+    constexpr explicit operator bool() const noexcept { return (err != code::none); }
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -186,7 +175,7 @@ inline void set(code err) noexcept
  */
 inline bool is_set() noexcept
 {
-    return get().err != NONE;
+    return get().err != none;
 }
 
 /**
@@ -196,7 +185,7 @@ inline bool is_set() noexcept
  */
 inline void clear() noexcept
 {
-    set(code::NONE, "");
+    set(code::none, "");
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -216,7 +205,7 @@ struct error_stream
 
 inline void unsupported(const char* operation)
 {
-    error_stream(UNSUPPORTED).stream << operation << " is not a supported operation on this platform";
+    error_stream(unsupported_operation).stream << operation << " is not a supported operation on this platform";
 }
 
 } // namespace _priv

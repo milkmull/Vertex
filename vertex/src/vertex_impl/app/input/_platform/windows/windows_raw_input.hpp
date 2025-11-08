@@ -3,6 +3,7 @@
 #include "vertex/os/handle.hpp"
 #include "vertex/os/thread.hpp"
 #include "vertex_impl/os/_platform/windows/windows_tools.hpp"
+#include "vertex/config/flags.hpp"
 
 namespace vx {
 namespace app {
@@ -15,17 +16,13 @@ namespace input {
 // flags
 ///////////////////////////////////////////////////////////////////////////////
 
-struct raw_input_flags
+VX_FLAGS_DECLARE_BEGIN(raw_input_flags)
 {
-    using type = int;
-
-    enum : type
-    {
-        NONE = 0,
-        ENABLE_RAW_MOUSE_INPUT = VX_BIT(0),
-        ENABLE_RAW_KEYBOARD_INPUT = VX_BIT(1)
-    };
-};
+    none            = 0,
+    raw_mouse       = VX_BIT(0),
+    raw_keyboard    = VX_BIT(1)
+}
+VX_FLAGS_DECLARE_END(raw_input_flags)
 
 ///////////////////////////////////////////////////////////////////////////////
 // thread data
@@ -33,7 +30,7 @@ struct raw_input_flags
 
 struct raw_input_thread_data
 {
-    typename raw_input_flags::type flags = raw_input_flags::NONE;
+    raw_input_flags flags = raw_input_flags::none;
 
     bool done = false;
     os::handle ready_event;
@@ -47,7 +44,7 @@ struct raw_input_thread_data
 
 struct raw_input_data
 {
-    typename raw_input_flags::type flags = raw_input_flags::NONE;
+    raw_input_flags flags = raw_input_flags::none;
 
     bool raw_mouse_enabled = false;
     bool raw_keyboard_enabled = false;
@@ -79,14 +76,14 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     void reset_thread();
-    bool start_thread(typename raw_input_flags::type flags);
+    bool start_thread(raw_input_flags flags);
     void thread();
 
     ///////////////////////////////////////////////////////////////////////////////
     // configure
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool set_raw_input_enabled(typename raw_input_flags::type flags);
+    bool set_raw_input_enabled(raw_input_flags flags);
     bool update_raw_input_enabled();
 
     bool set_raw_mouse_enabled(bool enabled);

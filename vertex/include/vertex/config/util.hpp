@@ -28,4 +28,4 @@ do \
 { \
     (vec).reserve((vec).size() + 1); \
     (vec).push_back((x)); \
-} while (0)
+} while (VX_NULL_WHILE_LOOP_CONDITION)

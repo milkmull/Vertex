@@ -152,7 +152,7 @@ inline SampleIterator sample(
 
     if (weights.probabilities().size() != static_cast<size_t>(range))
     {
-        err::set(err::SIZE_ERROR, "weights distribution size must match population size");
+        err::set(err::size_error, "weights distribution size must match population size");
         return out;
     }
 

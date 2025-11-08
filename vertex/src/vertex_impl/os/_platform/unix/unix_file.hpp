@@ -31,34 +31,34 @@ struct file_impl
         switch (mode)
         {
             // File must exist
-            case file::mode::NONE:
-            case file::mode::READ:
+            case file::mode::none:
+            case file::mode::read:
             {
                 flags = O_RDONLY;
                 break;
             }
             // Always create or truncate the file
-            case file::mode::WRITE:
+            case file::mode::write:
             {
                 flags = O_WRONLY | O_CREAT | O_TRUNC;
                 file_mode = S_IRUSR | S_IWUSR; // Read and write permissions
                 break;
             }
             // Create if not exists, otherwise open existing
-            case file::mode::APPEND:
+            case file::mode::append:
             {
                 flags = O_WRONLY | O_CREAT | O_APPEND;
                 file_mode = S_IRUSR | S_IWUSR;
                 break;
             }
             // File must exist
-            case file::mode::READ_WRITE_EXISTS:
+            case file::mode::read_write_exists:
             {
                 flags = O_RDWR;
                 break;
             }
             // Truncate if file exists, or create a new one
-            case file::mode::READ_WRITE_CREATE:
+            case file::mode::read_write_create:
             {
                 flags = O_RDWR | O_CREAT | O_TRUNC;
                 file_mode = S_IRUSR | S_IWUSR;
@@ -95,7 +95,7 @@ struct file_impl
         if (::fstat(h.get(), &stat_buf) != 0)
         {
             unix_::error_message("fstat()");
-            return file::INVALID_SIZE;
+            return file::invalid_size;
         }
 
         return static_cast<size_t>(stat_buf.st_size);
@@ -121,17 +121,17 @@ struct file_impl
         int whence = 0;
         switch (from)
         {
-            case stream_position::BEGIN:
+            case stream_position::begin:
             {
                 whence = SEEK_SET;
                 break;
             }
-            case stream_position::CURRENT:
+            case stream_position::current:
             {
                 whence = SEEK_CUR;
                 break;
             }
-            case stream_position::END:
+            case stream_position::end:
             {
                 whence = SEEK_END;
                 break;
@@ -155,7 +155,7 @@ struct file_impl
         if (pos == static_cast<off_t>(-1))
         {
             unix_::error_message("lseek()");
-            return file::INVALID_POSITION;
+            return file::invalid_position;
         }
 
         return static_cast<size_t>(pos);

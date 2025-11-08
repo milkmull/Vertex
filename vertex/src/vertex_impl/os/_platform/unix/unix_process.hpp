@@ -25,9 +25,9 @@ private:
 
     enum class wait_status
     {
-        ALIVE,
-        COMPLETE,
-        FAILED
+        alive,
+        complete,
+        failed
     };
 
     wait_status wait(bool block, int default_background_exit_code) const;

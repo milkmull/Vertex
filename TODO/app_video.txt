@@ -1,7 +1,15 @@
+first:
+    
+    - rework enums
+    - prune unused files
+    - constexpr base64
+    - compile on raspberry pi
+    - rework hints
+
 todo:
 
     - normalize internal video api to take and return pointers to display_instance instead of display_id
-    - normalize macros, including feature flags and hints
+    x normalize macros, including feature flags and hints
     - hint descriptions
     x finish window events
     - finish video api

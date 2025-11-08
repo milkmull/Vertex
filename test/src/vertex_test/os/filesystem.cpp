@@ -93,13 +93,13 @@ VX_TEST_CASE(test_current_path_and_temp_path)
 VX_TEST_CASE(test_user_folders)
 {
     std::pair<os::filesystem::user_folder, const char*> folders[] = {
-        { os::filesystem::user_folder::HOME, "Home" },
-        { os::filesystem::user_folder::DESKTOP, "Desktop" },
-        { os::filesystem::user_folder::DOCUMENTS, "Documents" },
-        { os::filesystem::user_folder::DOWNLOADS, "Downloads" },
-        { os::filesystem::user_folder::MUSIC, "Music" },
-        { os::filesystem::user_folder::PICTURES, "Pictures" },
-        { os::filesystem::user_folder::VIDEOS, "Videos" }
+        { os::filesystem::user_folder::home, "Home" },
+        { os::filesystem::user_folder::desktop, "Desktop" },
+        { os::filesystem::user_folder::documents, "Documents" },
+        { os::filesystem::user_folder::downloads, "Downloads" },
+        { os::filesystem::user_folder::music, "Music" },
+        { os::filesystem::user_folder::pictures, "Pictures" },
+        { os::filesystem::user_folder::videos, "Videos" }
     };
 
     for (const auto& pair : folders)
@@ -123,8 +123,8 @@ VX_TEST_CASE(test_default_file_info)
 {
     os::filesystem::file_info info{};
 
-    VX_CHECK(info.type == os::filesystem::file_type::NONE);
-    VX_CHECK(info.permissions == os::filesystem::file_permissions::NONE);
+    VX_CHECK(info.type == os::filesystem::file_type::none);
+    VX_CHECK(info.permissions == os::filesystem::file_permissions::none);
     VX_CHECK(info.size == 0);
     VX_CHECK(info.create_time.as_nanoseconds() == 0);
     VX_CHECK(info.modify_time.as_nanoseconds() == 0);
@@ -145,8 +145,8 @@ VX_TEST_CASE(test_create_directory)
         os::filesystem::directory_entry directory_entry{ directory };
         directory_entry.refresh();
 
-        VX_CHECK(directory_entry.info.type == os::filesystem::file_type::DIRECTORY);
-        VX_CHECK(directory_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_entry.info.type == os::filesystem::file_type::directory);
+        VX_CHECK(directory_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(directory_entry.info.size == 0);
         VX_CHECK(directory_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_entry.info.modify_time.as_nanoseconds() != 0);
@@ -258,8 +258,8 @@ VX_TEST_CASE(test_create_file)
         os::filesystem::directory_entry file_entry{ file };
         file_entry.refresh();
 
-        VX_CHECK(file_entry.info.type == os::filesystem::file_type::REGULAR);
-        VX_CHECK(file_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(file_entry.info.type == os::filesystem::file_type::regular);
+        VX_CHECK(file_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(file_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(file_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -305,8 +305,8 @@ VX_TEST_CASE(test_create_symlink)
         os::filesystem::directory_entry symlink_entry{ symlink };
         symlink_entry.refresh();
 
-        VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::symlink);
+        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -335,8 +335,8 @@ VX_TEST_CASE(test_create_symlink)
         os::filesystem::directory_entry symlink_entry{ symlink };
         symlink_entry.refresh();
 
-        VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(symlink_entry.info.type == os::filesystem::file_type::symlink);
+        VX_CHECK(symlink_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -371,8 +371,8 @@ VX_TEST_CASE(test_create_directory_symlink)
         os::filesystem::directory_entry directory_symlink_entry{ directory_symlink };
         directory_symlink_entry.refresh();
 
-        VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::symlink);
+        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -401,8 +401,8 @@ VX_TEST_CASE(test_create_directory_symlink)
         os::filesystem::directory_entry directory_symlink_entry{ directory_symlink };
         directory_symlink_entry.refresh();
 
-        VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::SYMLINK);
-        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(directory_symlink_entry.info.type == os::filesystem::file_type::symlink);
+        VX_CHECK(directory_symlink_entry.info.permissions & os::filesystem::file_permissions::all_read_write);
         VX_CHECK(directory_symlink_entry.info.create_time.as_nanoseconds() != 0);
         VX_CHECK(directory_symlink_entry.info.modify_time.as_nanoseconds() != 0);
 
@@ -753,7 +753,7 @@ VX_TEST_CASE(test_update_permissions)
     {
         const os::path directory = os::filesystem::get_temp_path();
         VX_CHECK(!directory.empty());
-        VX_CHECK(os::filesystem::get_file_info(directory).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(directory).permissions & os::filesystem::file_permissions::all_read_write);
     }
 
     VX_SECTION("file")
@@ -761,30 +761,30 @@ VX_TEST_CASE(test_update_permissions)
         const os::path file = temp_dir.path / "file.txt";
         VX_CHECK(os::filesystem::create_file(file));
 
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ_WRITE));
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::all_read_write));
 
         // should have all read and write permissions
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read_write);
 
         // has no effect because some write bits still set
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::owner_write));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read_write);
 
         // make file read only
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ, os::filesystem::file_permission_operator::REPLACE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ);
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::all_read, os::filesystem::file_permission_operator::replace));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read);
 
         // adding any write bit removes FILE_ATTRIBUTE_READONLY
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::ADD));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::owner_write, os::filesystem::file_permission_operator::add));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read_write);
 
         // removing any write bit but not all has no effect
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::OWNER_WRITE, os::filesystem::file_permission_operator::REMOVE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ_WRITE);
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::owner_write, os::filesystem::file_permission_operator::remove));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read_write);
 
         // removing all write bits sets FILE_ATTRIBUTE_READONLY
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_WRITE, os::filesystem::file_permission_operator::REMOVE));
-        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::ALL_READ);
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::all_write, os::filesystem::file_permission_operator::remove));
+        VX_CHECK(os::filesystem::get_file_info(file).permissions & os::filesystem::file_permissions::all_read);
     }
 
 #else
@@ -1257,7 +1257,7 @@ VX_TEST_CASE(test_remove)
         VX_CHECK(os::filesystem::exists(file));
 
         // make file read only
-        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::ALL_READ));
+        VX_CHECK(os::filesystem::update_permissions(file, os::filesystem::file_permissions::all_read));
 
         VX_CHECK(os::filesystem::remove(file));
         VX_CHECK(!os::filesystem::exists(file));
@@ -1398,7 +1398,7 @@ VX_TEST_CASE(test_copy)
 
     const auto create_structure = [=, &file1_data, &file2_data, &file3_data]() -> bool
     {
-#       define verify(condition) do { if (!(condition)) return false; } while (0)
+#       define verify(condition) do { if (!(condition)) return false; } while (VX_NULL_WHILE_LOOP_CONDITION)
 
         verify(os::filesystem::remove_all(temp_dir_path));
         verify(os::filesystem::create_directories(dir2));
@@ -1413,21 +1413,21 @@ VX_TEST_CASE(test_copy)
 
     struct entry_info
     {
-        os::filesystem::file_type type = os::filesystem::file_type::NONE;
+        os::filesystem::file_type type = os::filesystem::file_type::none;
         bool found = false;
     };
 
     VX_SECTION("basic copy")
     {
         std::unordered_map<os::path, entry_info> paths = {
-            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::REGULAR } }
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::regular } }
         };
 
         VX_CHECK(create_structure());
@@ -1455,26 +1455,26 @@ VX_TEST_CASE(test_copy)
     VX_SECTION("target already exists")
     {
         VX_CHECK_AND_EXPECT_ERROR(!os::filesystem::copy(dir1, dir3));
-        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::OVERWRITE_EXISTING));
+        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::overwrite_existing));
     }
 
     VX_SECTION("recursive copy")
     {
         std::unordered_map<os::path, entry_info> paths = {
-            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir3/dir2",          { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir3/dir2/file3",    { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::REGULAR } }
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir3/dir2",          { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir3/dir2/file3",    { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3/file1",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3/file2",         { os::filesystem::file_type::regular } }
         };
 
         VX_CHECK(create_structure());
-        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::RECURSIVE));
+        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::recursive));
 
         os::filesystem::recursive_directory_iterator it(temp_dir_path);
         VX_CHECK(it.is_valid());
@@ -1498,16 +1498,16 @@ VX_TEST_CASE(test_copy)
     VX_SECTION("copy directories only")
     {
         std::unordered_map<os::path, entry_info> paths = {
-            { temp_dir_path / "dir1",               { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::DIRECTORY } },
-            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::REGULAR } },
-            { temp_dir_path / "dir3",               { os::filesystem::file_type::DIRECTORY } }
+            { temp_dir_path / "dir1",               { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2",          { os::filesystem::file_type::directory } },
+            { temp_dir_path / "dir1/dir2/file3",    { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file1",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir1/file2",         { os::filesystem::file_type::regular } },
+            { temp_dir_path / "dir3",               { os::filesystem::file_type::directory } }
         };
 
         VX_CHECK(create_structure());
-        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::DIRECTORIES_ONLY));
+        VX_CHECK(os::filesystem::copy(dir1, dir3, os::filesystem::copy_options::directories_only));
 
         os::filesystem::recursive_directory_iterator it(temp_dir_path);
         VX_CHECK(it.is_valid());

@@ -17,24 +17,24 @@ struct image_info
 // error handling
 ///////////////////////////////////////////////////////////////////////////////
 
-enum class error_code : int
+enum class error_code
 {
-    NONE = 0,
-    UNSUPPORTED_PIXEL_FORMAT,
-    MAX_SIZE,
-    UNSUPPORTED_CHANNEL_COUNT,
-    UNSUPPORTED_BITDEPTH
+    none = 0,
+    unsupported_pixel_format,
+    max_size,
+    unsupported_channel_count,
+    unsupported_bitdepth
 };
 
 inline const char* error_code_to_string(error_code code)
 {
     switch (code)
     {
-        case error_code::NONE:                          return "none";
-        case error_code::UNSUPPORTED_PIXEL_FORMAT:      return "unknown pixel format";
-        case error_code::MAX_SIZE:                      return "max image size";
-        case error_code::UNSUPPORTED_CHANNEL_COUNT:     return "unsupported image channel count";
-        case error_code::UNSUPPORTED_BITDEPTH:          return "unsupported image bit depth";
+        case error_code::none:                          return "none";
+        case error_code::unsupported_pixel_format:      return "unknown pixel format";
+        case error_code::max_size:                      return "max image size";
+        case error_code::unsupported_channel_count:     return "unsupported image channel count";
+        case error_code::unsupported_bitdepth:          return "unsupported image bit depth";
 
         default:                                        break;
     }
@@ -44,17 +44,17 @@ inline const char* error_code_to_string(error_code code)
 
 inline error_code get_image_info_error(const image_info& info) noexcept
 {
-    if (info.format == pixel::pixel_format::UNKNOWN)
+    if (info.format == pixel::pixel_format::unknown)
     {
-        return error_code::UNSUPPORTED_PIXEL_FORMAT;
+        return error_code::unsupported_pixel_format;
     }
 
-    if (info.width > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS || info.height > IMAGE_SIZE_LIMIT_MAX_DIMENSIONS)
+    if (info.width > max_dimensions || info.height > max_dimensions)
     {
-        return error_code::MAX_SIZE;
+        return error_code::max_size;
     }
 
-    return error_code::NONE;
+    return error_code::none;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -134,11 +134,11 @@ VX_FORCE_INLINE void* safe_malloc_mad(T a, T b, T c, T add) noexcept
 // scan stage
 ///////////////////////////////////////////////////////////////////////////////
 
-enum scan_stage
+enum class scan_stage
 {
-    scan_stage_load = 0,
-    scan_stage_type,
-    scan_stage_header
+    load = 0,
+    type,
+    header
 };
 
 } // namespace img

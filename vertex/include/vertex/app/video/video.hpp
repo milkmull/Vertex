@@ -22,18 +22,18 @@ using window_id = id_type;
 
 enum class process_dpi_awareness
 {
-    UNAWARE,
-    SYSTEM,
-    PER_MONITOR
+    unaware,
+    system,
+    per_monitor
 };
 
 VX_API process_dpi_awareness get_dpi_awareness();
 
 enum class system_theme
 {
-    UNKNOWN = 0,
-    LIGHT,
-    DARK
+    unknown = 0,
+    light,
+    dark
 };
 
 VX_API system_theme get_system_theme();
@@ -44,10 +44,10 @@ VX_API system_theme get_system_theme();
 
 struct display_mode
 {
-    display_id display = INVALID_ID;
+    display_id display = invalid_id;
     math::vec2i resolution;                                                     // resolution
     int bpp = 0;                                                                // bits per pixel
-    pixel::pixel_format pixel_format = pixel::pixel_format::UNKNOWN;            // pixel format
+    pixel::pixel_format pixel_format = pixel::pixel_format::unknown;            // pixel format
     float pixel_density = 1.0f;                                                 // scale converting size to pixels (e.g. a 1920x1080 mode with 2.0 scale would have 3840x2160 pixels)
     float refresh_rate = 0.0f;                                                  // refresh rate
 
@@ -64,13 +64,13 @@ VX_API bool compare_display_modes(const display_mode& mode1, const display_mode&
 
 enum class display_orientation
 {
-    UNKNOWN = 0,
+    unknown = 0,
 
-    PORTRAIT,
-    PORTRAIT_FLIPPED,
+    portrait,
+    portrait_flipped,
 
-    LANDSCAPE,
-    LANDSCAPE_FLIPPED
+    landscape,
+    landscape_flipped
 };
 
 class display
@@ -144,7 +144,7 @@ struct window_config
 
     float opacity = 1.0f;
 
-    display_id display_id = INVALID_ID;
+    display_id display_id = invalid_id;
     bool center_on_display = false;
 
     bool minimized = false;

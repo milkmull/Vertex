@@ -52,7 +52,7 @@ static bool quat_euler_test(
 {
     switch (order)
     {
-        case euler_order::XYZ:
+        case euler_order::xyz:
         {
             const quat q2 = quat_from_euler_angles_xyz(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -74,7 +74,7 @@ static bool quat_euler_test(
 
             break;
         }
-        case euler_order::XZY:
+        case euler_order::xzy:
         {
             const quat q2 = quat_from_euler_angles_xzy(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -96,7 +96,7 @@ static bool quat_euler_test(
 
             break;
         }
-        case euler_order::YXZ:
+        case euler_order::yxz:
         {
             const quat q2 = quat_from_euler_angles_yxz(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -118,7 +118,7 @@ static bool quat_euler_test(
 
             break;
         }
-        case euler_order::YZX:
+        case euler_order::yzx:
         {
             const quat q2 = quat_from_euler_angles_yzx(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -140,7 +140,7 @@ static bool quat_euler_test(
 
             break;
         }
-        case euler_order::ZXY:
+        case euler_order::zxy:
         {
             const quat q2 = quat_from_euler_angles_zxy(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -162,7 +162,7 @@ static bool quat_euler_test(
 
             break;
         }
-        case euler_order::ZYX:
+        case euler_order::zyx:
         {
             const quat q2 = quat_from_euler_angles_zyx(angles.x, angles.y, angles.z);
             if (!equal_approx(q, q2))
@@ -198,12 +198,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 angles(0.0f, 0.0f, 0.0f);
         const quat q = quat::identity();
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, angles));
     }
     
     {
@@ -216,24 +216,24 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         {
             const vec3 angles(0.5f, 0.5f, 0.5f);
 
-            VX_CHECK(quat_euler_test(euler_order::XYZ, angles, quat(a, b, c, b), angles));
-            VX_CHECK(quat_euler_test(euler_order::XZY, angles, quat(d, c, c, b), angles));
-            VX_CHECK(quat_euler_test(euler_order::YXZ, angles, quat(d, b, c, c), angles));
-            VX_CHECK(quat_euler_test(euler_order::YZX, angles, quat(a, b, b, c), angles));
-            VX_CHECK(quat_euler_test(euler_order::ZXY, angles, quat(a, c, b, b), angles));
-            VX_CHECK(quat_euler_test(euler_order::ZYX, angles, quat(d, c, b, c), angles));
+            VX_CHECK(quat_euler_test(euler_order::xyz, angles, quat(a, b, c, b), angles));
+            VX_CHECK(quat_euler_test(euler_order::xzy, angles, quat(d, c, c, b), angles));
+            VX_CHECK(quat_euler_test(euler_order::yxz, angles, quat(d, b, c, c), angles));
+            VX_CHECK(quat_euler_test(euler_order::yzx, angles, quat(a, b, b, c), angles));
+            VX_CHECK(quat_euler_test(euler_order::zxy, angles, quat(a, c, b, b), angles));
+            VX_CHECK(quat_euler_test(euler_order::zyx, angles, quat(d, c, b, c), angles));
         }
 
         // symmetric negative rotation
         {
             const vec3 angles(-0.5f, -0.5f, -0.5f);
 
-            VX_CHECK(quat_euler_test(euler_order::XYZ, angles, quat(d, -c, -b, -c), angles));
-            VX_CHECK(quat_euler_test(euler_order::XZY, angles, quat(a, -b, -b, -c), angles));
-            VX_CHECK(quat_euler_test(euler_order::YXZ, angles, quat(a, -c, -b, -b), angles));
-            VX_CHECK(quat_euler_test(euler_order::YZX, angles, quat(d, -c, -c, -b), angles));
-            VX_CHECK(quat_euler_test(euler_order::ZXY, angles, quat(d, -b, -c, -c), angles));
-            VX_CHECK(quat_euler_test(euler_order::ZYX, angles, quat(a, -b, -c, -b), angles));
+            VX_CHECK(quat_euler_test(euler_order::xyz, angles, quat(d, -c, -b, -c), angles));
+            VX_CHECK(quat_euler_test(euler_order::xzy, angles, quat(a, -b, -b, -c), angles));
+            VX_CHECK(quat_euler_test(euler_order::yxz, angles, quat(a, -c, -b, -b), angles));
+            VX_CHECK(quat_euler_test(euler_order::yzx, angles, quat(d, -c, -c, -b), angles));
+            VX_CHECK(quat_euler_test(euler_order::zxy, angles, quat(d, -b, -c, -c), angles));
+            VX_CHECK(quat_euler_test(euler_order::zyx, angles, quat(a, -b, -c, -b), angles));
         }
     }
     
@@ -242,12 +242,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 angles(constants<f32>::half_pi, 0.0f, 0.0f);
         const quat q(0.707106769f, 0.707106769f, 0.0f, 0.0f);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, angles, 1e-3f)); // gimbal lock
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, angles, 1e-3f)); // gimbal lock
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, angles));
     }
 
     // 90 about Y
@@ -255,12 +255,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 angles(0.0f, constants<f32>::half_pi, 0.0f);
         const quat q(0.707106769f, 0.0f, 0.707106769f, 0.0f);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, angles, 1e-3f)); // gimbal lock
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, angles, 1e-3f)); // gimbal lock
     }
 
     // 90 about Z
@@ -268,12 +268,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 angles(0.0f, 0.0f, constants<f32>::half_pi);
         const quat q(0.707106769f, 0.0f, 0.0f, 0.707106769f);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, angles, 1e-3f)); // gimbal lock
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, angles, 1e-3f)); // gimbal lock
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, angles, 1e-3f)); // gimbal lock
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, angles));
     }
 
     // 180 about X
@@ -284,12 +284,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 x_angles(-constants<f32>::pi, 0.0f, 0.0f);
         const vec3 mid_angles(0.0f, -constants<f32>::pi, -constants<f32>::pi);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, x_angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, x_angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, mid_angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, x_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, mid_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, x_angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, x_angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, x_angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, x_angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, x_angles));
     }
     
     // 180 about Y
@@ -300,12 +300,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 y_angles(0.0f, -constants<f32>::pi, 0.0f);
         const vec3 mid_angles(-constants<f32>::pi, 0.0f, -constants<f32>::pi);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, mid_angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, y_angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, y_angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, y_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, y_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, y_angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, y_angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, y_angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, y_angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, mid_angles));
     }
 
     // 180 about Z
@@ -316,12 +316,12 @@ VX_TEST_CASE(test_quat_euler_angles_conversion)
         const vec3 z_angles(0.0f, 0.0f, -constants<f32>::pi);
         const vec3 mid_angles(-constants<f32>::pi, -constants<f32>::pi, 0.0f);
 
-        VX_CHECK(quat_euler_test(euler_order::XYZ, angles, q, z_angles));
-        VX_CHECK(quat_euler_test(euler_order::XZY, angles, q, mid_angles));
-        VX_CHECK(quat_euler_test(euler_order::YXZ, angles, q, z_angles));
-        VX_CHECK(quat_euler_test(euler_order::YZX, angles, q, mid_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZXY, angles, q, z_angles));
-        VX_CHECK(quat_euler_test(euler_order::ZYX, angles, q, z_angles));
+        VX_CHECK(quat_euler_test(euler_order::xyz, angles, q, z_angles));
+        VX_CHECK(quat_euler_test(euler_order::xzy, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::yxz, angles, q, z_angles));
+        VX_CHECK(quat_euler_test(euler_order::yzx, angles, q, mid_angles));
+        VX_CHECK(quat_euler_test(euler_order::zxy, angles, q, z_angles));
+        VX_CHECK(quat_euler_test(euler_order::zyx, angles, q, z_angles));
     }
 }
 
@@ -346,7 +346,7 @@ static bool mat_euler_test(
 
     switch (order)
     {
-        case euler_order::XYZ:
+        case euler_order::xyz:
         {
             const mat3 m32 = mat3_from_euler_angles_xyz(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_xyz(angles.x, angles.y, angles.z);
@@ -389,7 +389,7 @@ static bool mat_euler_test(
 
             break;
         }
-        case euler_order::XZY:
+        case euler_order::xzy:
         {
             const mat3 m32 = mat3_from_euler_angles_xzy(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_xzy(angles.x, angles.y, angles.z);
@@ -432,7 +432,7 @@ static bool mat_euler_test(
 
             break;
         }
-        case euler_order::YXZ:
+        case euler_order::yxz:
         {
             const mat3 m32 = mat3_from_euler_angles_yxz(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_yxz(angles.x, angles.y, angles.z);
@@ -475,7 +475,7 @@ static bool mat_euler_test(
 
             break;
         }
-        case euler_order::YZX:
+        case euler_order::yzx:
         {
             const mat3 m32 = mat3_from_euler_angles_yzx(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_yzx(angles.x, angles.y, angles.z);
@@ -518,7 +518,7 @@ static bool mat_euler_test(
 
             break;
         }
-        case euler_order::ZXY:
+        case euler_order::zxy:
         {
             const mat3 m32 = mat3_from_euler_angles_zxy(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_zxy(angles.x, angles.y, angles.z);
@@ -561,7 +561,7 @@ static bool mat_euler_test(
 
             break;
         }
-        case euler_order::ZYX:
+        case euler_order::zyx:
         {
             const mat3 m32 = mat3_from_euler_angles_zyx(angles.x, angles.y, angles.z);
             const mat4 m42 = mat4_from_euler_angles_zyx(angles.x, angles.y, angles.z);
@@ -618,12 +618,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 angles(0.0f, 0.0f, 0.0f);
         const mat3 m = mat3::identity();
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, angles));
     }
 
     {
@@ -641,24 +641,24 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         {
             const vec3 angles(0.5f, 0.5f, 0.5f);
 
-            VX_CHECK(mat_euler_test(euler_order::XYZ, angles, mat3(a, b, -c, -d, e, b, f, -d, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::XZY, angles, mat3(a, g, -h, -f, a, d, d, -h, i), angles));
-            VX_CHECK(mat_euler_test(euler_order::YXZ, angles, mat3(i, d, -h, -h, a, g, d, -f, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::YZX, angles, mat3(a, f, -d, -c, a, b, b, -d, e), angles));
-            VX_CHECK(mat_euler_test(euler_order::ZXY, angles, mat3(e, b, -d, -d, a, f, b, -c, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::ZYX, angles, mat3(a, d, -f, -h, i, d, g, -h, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::xyz, angles, mat3(a, b, -c, -d, e, b, f, -d, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::xzy, angles, mat3(a, g, -h, -f, a, d, d, -h, i), angles));
+            VX_CHECK(mat_euler_test(euler_order::yxz, angles, mat3(i, d, -h, -h, a, g, d, -f, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::yzx, angles, mat3(a, f, -d, -c, a, b, b, -d, e), angles));
+            VX_CHECK(mat_euler_test(euler_order::zxy, angles, mat3(e, b, -d, -d, a, f, b, -c, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::zyx, angles, mat3(a, d, -f, -h, i, d, g, -h, a), angles));
         }
 
         // symmetric negative rotation
         {
             const vec3 angles(-0.5f, -0.5f, -0.5f);
 
-            VX_CHECK(mat_euler_test(euler_order::XYZ, angles, mat3(a, -h, g, d, i, -h, -f, d, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::XZY, angles, mat3(a, -c, b, f, a, -d, -d, b, e), angles));
-            VX_CHECK(mat_euler_test(euler_order::YXZ, angles, mat3(e, -d, b, b, a, -c, -d, f, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::YZX, angles, mat3(a, -f, d, g, a, -h, -h, d, i), angles));
-            VX_CHECK(mat_euler_test(euler_order::ZXY, angles, mat3(i, -h, d, d, a, -f, -h, g, a), angles));
-            VX_CHECK(mat_euler_test(euler_order::ZYX, angles, mat3(a, -d, f, b, e, -d, -c, b, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::xyz, angles, mat3(a, -h, g, d, i, -h, -f, d, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::xzy, angles, mat3(a, -c, b, f, a, -d, -d, b, e), angles));
+            VX_CHECK(mat_euler_test(euler_order::yxz, angles, mat3(e, -d, b, b, a, -c, -d, f, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::yzx, angles, mat3(a, -f, d, g, a, -h, -h, d, i), angles));
+            VX_CHECK(mat_euler_test(euler_order::zxy, angles, mat3(i, -h, d, d, a, -f, -h, g, a), angles));
+            VX_CHECK(mat_euler_test(euler_order::zyx, angles, mat3(a, -d, f, b, e, -d, -c, b, a), angles));
         }
     }
 
@@ -667,12 +667,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 angles(constants<f32>::half_pi, 0.0f, 0.0f);
         const mat3 m(1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -1.0f, 0.0f);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, angles));
     }
 
     // 90 about Y
@@ -680,12 +680,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 angles(0.0f, constants<f32>::half_pi, 0.0f);
         const mat3 m(0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, angles));
     }
 
     // 90 about Z
@@ -693,12 +693,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 angles(0.0f, 0.0f, constants<f32>::half_pi);
         const mat3 m(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, angles));
     }
 
     // 180 about X
@@ -709,12 +709,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 x_angles(-constants<f32>::pi, 0.0f, 0.0f);
         const vec3 mid_angles(0.0f, -constants<f32>::pi, -constants<f32>::pi);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, x_angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, x_angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, mid_angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, x_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, mid_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, x_angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, x_angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, x_angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, x_angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, x_angles));
     }
 
     // 180 about Y
@@ -725,12 +725,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 y_angles(0.0f, -constants<f32>::pi, 0.0f);
         const vec3 mid_angles(-constants<f32>::pi, 0.0f, -constants<f32>::pi);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, mid_angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, y_angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, y_angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, y_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, y_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, y_angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, y_angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, y_angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, y_angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, mid_angles));
     }
     
     // 180 about Z
@@ -741,12 +741,12 @@ VX_TEST_CASE(test_mat_euler_angles_conversion)
         const vec3 z_angles(0.0f, 0.0f, -constants<f32>::pi);
         const vec3 mid_angles(-constants<f32>::pi, -constants<f32>::pi, 0.0f);
 
-        VX_CHECK(mat_euler_test(euler_order::XYZ, angles, m, z_angles));
-        VX_CHECK(mat_euler_test(euler_order::XZY, angles, m, mid_angles));
-        VX_CHECK(mat_euler_test(euler_order::YXZ, angles, m, z_angles));
-        VX_CHECK(mat_euler_test(euler_order::YZX, angles, m, mid_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZXY, angles, m, z_angles));
-        VX_CHECK(mat_euler_test(euler_order::ZYX, angles, m, z_angles));
+        VX_CHECK(mat_euler_test(euler_order::xyz, angles, m, z_angles));
+        VX_CHECK(mat_euler_test(euler_order::xzy, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::yxz, angles, m, z_angles));
+        VX_CHECK(mat_euler_test(euler_order::yzx, angles, m, mid_angles));
+        VX_CHECK(mat_euler_test(euler_order::zxy, angles, m, z_angles));
+        VX_CHECK(mat_euler_test(euler_order::zyx, angles, m, z_angles));
     }
 }
 
