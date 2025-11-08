@@ -14,26 +14,26 @@ namespace video {
 static void use_raw_keyboard_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
-    const bool enabled = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD));
+    const bool enabled = hint::parse_boolean(new_value, false);
     //WIN_SetRawKeyboardEnabled(_this, enabled);
 }
 
 static void enable_message_loop_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
-    this_->data.enable_message_loop_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP));
+    this_->data.enable_message_loop_hint_cache = hint::parse_boolean(new_value, true);
 }
 
 static void enable_menu_mnemonics_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
-    this_->data.enable_menu_mnemonics_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS));
+    this_->data.enable_menu_mnemonics_hint_cache = hint::parse_boolean(new_value, false);
 }
 
 static void window_frame_usable_while_cursor_hidden_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
-    this_->data.frame_usable_while_cursor_hidden_hint_cache = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN));
+    this_->data.frame_usable_while_cursor_hidden_hint_cache = hint::parse_boolean(new_value, true);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -116,7 +116,7 @@ process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 
 bool video_instance_impl::set_dpi_awareness()
 {
-    const char* hint = video->app->data.hints_ptr->get_hint_string(HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_DPI_AWARENESS));
+    const char* hint = video->app->data.hints_ptr->get_hint_string(hint::video_windows_dpi_awareness, nullptr);
 
     if (!hint || std::strcmp(hint, "permonitor") == 0)
     {
@@ -325,31 +325,31 @@ bool video_instance_impl::init(video_instance* owner)
     // hints
     {
         video->app->data.hints_ptr->add_hint_callback_and_default_value(
-            hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD,
+            hint::video_windows_use_raw_keyboard,
             use_raw_keyboard_hint_watcher,
             this,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD)
+            "0"
         );
 
         video->app->data.hints_ptr->add_hint_callback_and_default_value(
-            hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP,
+            hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
             this,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP)
+            "1"
         );
 
         video->app->data.hints_ptr->add_hint_callback_and_default_value(
-            hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS,
+            hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
             this,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS)
+            "0"
         );
 
         video->app->data.hints_ptr->add_hint_callback_and_default_value(
-            hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN,
+            hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
             this,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN)
+            "1"
         );
     }
 
@@ -365,25 +365,25 @@ void video_instance_impl::quit()
     if (video)
     {
         video->app->data.hints_ptr->remove_hint_callback(
-            hint::HINT_VIDEO_WINDOWS_USE_RAW_KEYBOARD,
+            hint::video_windows_use_raw_keyboard,
             use_raw_keyboard_hint_watcher,
             this
         );
 
         video->app->data.hints_ptr->remove_hint_callback(
-            hint::HINT_VIDEO_WINDOWS_ENABLE_MESSAGE_LOOP,
+            hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
             this
         );
 
         video->app->data.hints_ptr->remove_hint_callback(
-            hint::HINT_VIDEO_WINDOWS_ENABLE_MENU_MNEMONICS,
+            hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
             this
         );
 
         video->app->data.hints_ptr->remove_hint_callback(
-            hint::HINT_VIDEO_WINDOW_FRAME_USABLE_WHILE_CURSOR_HIDDEN,
+            hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
             this
         );

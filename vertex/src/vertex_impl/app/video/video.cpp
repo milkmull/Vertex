@@ -39,8 +39,10 @@ void display_instance_impl_deleter::operator()(display_instance_impl* ptr) const
 static void sync_window_operations_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance* this_ = static_cast<video_instance*>(user_data);
-    this_->data.sync_window_operations = hint::parse_boolean(new_value, VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS));
+    this_->data.sync_window_operations = hint::parse_boolean(new_value, false);
 }
+
+//=============================================================================
 
 static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect)
 {
@@ -107,15 +109,14 @@ bool video_instance::init(app_instance* owner)
         VX_ASSERT(app->data.hints_ptr);
 
         app->data.hints_ptr->add_hint_callback_and_default_value(
-            VX_HINT_GET_NAME(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS),
+            hint::video_sync_window_operations,
             sync_window_operations_hint_watcher,
-            this,
-            VX_HINT_GET_DEFAULT_VALUE(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS),
-            true
+            this, "0", true
         );
 
         // disable the screen saver by default
-        if (!app->data.hints_ptr->get_hint_boolean(HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_ALLOW_SCREEN_SAVER)))
+        if (!app->data.hints_ptr->get_hint_boolean(
+            hint::video_allow_screen_saver, false))
         {
             disable_screen_saver();
         }
@@ -171,7 +172,7 @@ void video_instance::quit()
     if (app)
     {
         app->data.hints_ptr->remove_hint_callback(
-            VX_HINT_GET_NAME(hint::HINT_VIDEO_SYNC_WINDOW_OPERATIONS),
+            hint::video_sync_window_operations,
             sync_window_operations_hint_watcher,
             this
         );
@@ -762,7 +763,7 @@ math::recti display_instance::get_work_area() const
 
     if (data.id == video->get_primary_display())
     {
-        const char* hint = video->app->data.hints_ptr->get_hint(hint::HINT_VIDEO_DISPLAY_USABLE_BOUNDS);
+        const char* hint = video->app->data.hints_ptr->get_hint(hint::video_display_usable_bounds);
         if (parse_display_usable_bounds_hint(hint, rect))
         {
             return rect;
@@ -1297,7 +1298,7 @@ bool video_instance::enable_screen_saver()
 
 VX_API bool screen_saver_enabled()
 {
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
+    VX_CHECK_VIDEO_SUBSYSTEM_INIT(true);
     return s_video_ptr->screen_saver_enabled();
 }
 
@@ -1562,7 +1563,8 @@ void video_instance::validate_grabbed_window()
 bool video_instance::should_quit_on_window_close() const
 {
     const bool quit_on_last_window_close = app->data.hints_ptr->get_hint_boolean(
-        HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_QUIT_ON_LAST_WINDOW_CLOSE)
+        hint::video_quit_on_last_window_close,
+        true
     );
 
     if (!quit_on_last_window_close)

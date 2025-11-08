@@ -25,9 +25,9 @@ class touch_instance;
 
 struct touch_device_data
 {
-    touch_id id;
+    touch_id id = invalid_id;
     std::string name;
-    touch_device_type type;
+    touch_device_type type = touch_device_type::invalid;
     std::vector<finger> fingers;
 };
 

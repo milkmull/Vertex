@@ -1998,7 +1998,8 @@ bool window_instance::should_minimize_on_focus_loss() const
 
     // Real fullscreen windows should minimize on focus loss so the desktop video mode is restored
     const bool hint = video->app->data.hints_ptr->get_hint_boolean(
-        HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_MINIMIZE_ON_FOCUS_LOSS)
+        hint::video_window_minimize_on_focus_loss,
+        false
     );
 
     if (hint)
@@ -2758,7 +2759,8 @@ void window_instance::on_window_display_changed(display_id d)
     if (data.update_fullscreen_on_display_changed && (data.flags & window_flags::fullscreen))
     {
         const bool auto_mode_switch = video->app->data.hints_ptr->get_hint_boolean(
-            HINT_AND_DEFAULT_VALUE(hint::HINT_VIDEO_WINDOW_MATCH_EXCLUSIVE_MODE_ON_MOVE)
+            hint::video_window_match_exclusive_mode_on_move,
+            true
         );
 
         bool clear_requested_mode = true;

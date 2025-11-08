@@ -286,7 +286,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
         pump_events_internal(true);
 
         // attempt to get the next event
-        const bool res = data.queue.match(poll_filter, nullptr, &e, 1, true);
+        const bool res = data.queue.match(nullptr, nullptr, &e, 1, true);
 
         if (res && e.type != internal_event_poll_sentinel)
         {
