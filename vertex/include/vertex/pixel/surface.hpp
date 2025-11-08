@@ -176,7 +176,7 @@ public:
     template <pixel_format F2>
     surface<F2> convert() const
     {
-        VX_STATIC_ASSERT(F2 != pixel_format::UNKNOWN, "Unknown format not allowed");
+        VX_STATIC_ASSERT(F2 != pixel_format::unknown, "Unknown format not allowed");
 
         surface<F2> converted(m_width, m_height);
 

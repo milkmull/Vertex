@@ -490,6 +490,22 @@ inline constexpr channel_info get_channel_info(pixel_format format) noexcept
             info.a = { 3, 4, 0xf000, 12 };
             break;
         }
+        case pixel_format::xrgb_4444:
+        {
+            info.r = { 1, 4, 0x000f,  4 };
+            info.g = { 2, 4, 0x00f0,  8 };
+            info.b = { 3, 4, 0x0f00, 12 };
+            info.a = { 0, 0, 0x0000,  0 };
+            break;
+        }
+        case pixel_format::xbgr_4444:
+        {
+            info.r = { 3, 4, 0xf800, 12 };
+            info.g = { 2, 4, 0x07c0,  8 };
+            info.b = { 1, 4, 0x003e,  4 };
+            info.a = { 0, 0, 0x0000,  0 };
+            break;
+        }
         case pixel_format::rgb_565:
         {
             info.r = { 0, 5, 0x001f,  0 };

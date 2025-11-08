@@ -24,7 +24,7 @@ inline constexpr uint32_t half_to_float_ui(uint16_t h) noexcept
     // When em >= 31 << 10 (half exponent 31), add extra 112 << 23 to convert exp = 31 to exp = 255
     r += (em >= (31 << 10)) ? (112 << 23) : 0;
 
-    return static_cast<uint32_t>(s | r);
+    return static_cast<uint32_t>(s | static_cast<uint32_t>(r));
 }
 
 inline float half_to_float(half_t h) noexcept

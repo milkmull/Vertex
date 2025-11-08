@@ -20,7 +20,7 @@ bool get_country_code_impl(std::string& country_code)
     const char* lang_env = std::getenv("LANG");
     if (!lang_env)
     {
-        err::set(err::SYSTEM_ERROR, "LANG not defined in environment");
+        err::set(err::system_error, "LANG not defined in environment");
         return false;
     }
 
@@ -56,7 +56,7 @@ bool get_language_impl(std::string& language)
     const char* lang_env = std::getenv("LANG");
     if (!lang_env)
     {
-        err::set(err::SYSTEM_ERROR, "LANG not defined in environment");
+        err::set(err::system_error, "LANG not defined in environment");
         return false;
     }
 

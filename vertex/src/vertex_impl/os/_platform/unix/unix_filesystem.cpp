@@ -18,7 +18,7 @@ namespace filesystem {
 
 bool update_permissions_impl(
     const path& p,
-    typename file_permissions::type permissions,
+    file_permissions permissions,
     file_permission_operator op,
     bool follow_symlinks
 )
@@ -46,21 +46,21 @@ bool update_permissions_impl(
 
     const mode_t current_mode = st.st_mode;
     mode_t new_mode = current_mode;
-    const mode_t masked = permissions & file_permissions::MASK;
+    const mode_t masked = permissions & file_permissions::mask;
 
     switch (op)
     {
-        case file_permission_operator::REPLACE:
+        case file_permission_operator::replace:
         {
-            new_mode = (current_mode & ~file_permissions::ALL) | masked;
+            new_mode = (current_mode & ~file_permissions::all) | masked;
             break;
         }
-        case file_permission_operator::ADD:
+        case file_permission_operator::add:
         {
             new_mode = current_mode | masked;
             break;
         }
-        case file_permission_operator::REMOVE:
+        case file_permission_operator::remove:
         {
             new_mode = current_mode & ~masked;
             break;
@@ -94,31 +94,31 @@ static inline bool is_directory_internal(const path& p) noexcept
 
 static file_type to_file_type(mode_t mode) noexcept
 {
-    if (S_ISREG(mode))     return file_type::REGULAR;
-    if (S_ISDIR(mode))     return file_type::DIRECTORY;
-    if (S_ISLNK(mode))     return file_type::SYMLINK;
+    if (S_ISREG(mode))     return file_type::regular;
+    if (S_ISDIR(mode))     return file_type::directory;
+    if (S_ISLNK(mode))     return file_type::symlink;
 
-    return file_type::UNKNOWN;
+    return file_type::unknown;
 }
 
-static file_permissions::type to_file_permissions(mode_t mode) noexcept
+static file_permissions to_file_permissions(mode_t mode) noexcept
 {
-    file_permissions::type result = file_permissions::NONE;
+    file_permissions result = file_permissions::none;
 
-    if (mode & S_IRUSR) result |= file_permissions::OWNER_READ;
-    if (mode & S_IWUSR) result |= file_permissions::OWNER_WRITE;
-    if (mode & S_IXUSR) result |= file_permissions::OWNER_EXEC;
+    if (mode & S_IRUSR) result |= file_permissions::owner_read;
+    if (mode & S_IWUSR) result |= file_permissions::owner_write;
+    if (mode & S_IXUSR) result |= file_permissions::owner_exec;
 
-    if (mode & S_IRGRP) result |= file_permissions::GROUP_READ;
-    if (mode & S_IWGRP) result |= file_permissions::GROUP_WRITE;
-    if (mode & S_IXGRP) result |= file_permissions::GROUP_EXEC;
+    if (mode & S_IRGRP) result |= file_permissions::group_read;
+    if (mode & S_IWGRP) result |= file_permissions::group_write;
+    if (mode & S_IXGRP) result |= file_permissions::group_exec;
 
-    if (mode & S_IROTH) result |= file_permissions::OTHERS_READ;
-    if (mode & S_IWOTH) result |= file_permissions::OTHERS_WRITE;
-    if (mode & S_IXOTH) result |= file_permissions::OTHERS_EXEC;
+    if (mode & S_IROTH) result |= file_permissions::others_read;
+    if (mode & S_IWOTH) result |= file_permissions::others_write;
+    if (mode & S_IXOTH) result |= file_permissions::others_exec;
 
-    if (mode & S_ISUID) result |= file_permissions::SET_UID;
-    if (mode & S_ISGID) result |= file_permissions::GET_GID;
+    if (mode & S_ISUID) result |= file_permissions::set_uid;
+    if (mode & S_ISGID) result |= file_permissions::get_gid;
 
     return result;
 }
@@ -333,7 +333,7 @@ static std::string xdg_user_dir_lookup(const char* key)
         : path(home) / ".config/user-dirs.dirs";
 
     file f;
-    if (!f.open(config_file, file::mode::READ))
+    if (!f.open(config_file, file::mode::read))
     {
         return resolved;
     }
@@ -389,36 +389,36 @@ path get_user_folder_impl(user_folder folder)
 
     switch (folder)
     {
-        case user_folder::HOME:
+        case user_folder::home:
         {
             return home;
         }
-        case user_folder::DESKTOP:
+        case user_folder::desktop:
         {
             key = "XDG_DESKTOP_DIR";
             break;
         }
-        case user_folder::DOCUMENTS:
+        case user_folder::documents:
         {
             key = "XDG_DOCUMENTS_DIR";
             break;
         }
-        case user_folder::DOWNLOADS:
+        case user_folder::downloads:
         {
             key = "XDG_DOWNLOAD_DIR";
             break;
         }
-        case user_folder::MUSIC:
+        case user_folder::music:
         {
             key = "XDG_MUSIC_DIR";
             break;
         }
-        case user_folder::PICTURES:
+        case user_folder::pictures:
         {
             key = "XDG_PICTURES_DIR";
             break;
         }
-        case user_folder::VIDEOS:
+        case user_folder::videos:
         {
             key = "XDG_VIDEOS_DIR";
             break;
@@ -502,18 +502,18 @@ bool copy_file_impl(const path& from, const path& to, bool overwrite_existing)
     // Check if the destination file exists
     if (!overwrite_existing && exists(to))
     {
-        err::set(err::SYSTEM_ERROR, "copy_file(): file already exists");
+        err::set(err::system_error, "copy_file(): file already exists");
         return false; // Do not overwrite
     }
 
     file from_file;
-    if (!from_file.open(from, file::mode::READ))
+    if (!from_file.open(from, file::mode::read))
     {
         return false;
     }
 
     file to_file;
-    if (!to_file.open(to, file::mode::WRITE))
+    if (!to_file.open(to, file::mode::write))
     {
         return false;
     }
@@ -574,11 +574,11 @@ static _priv::remove_error remove_directory(const path& p, bool in_recursive_rem
         }
 
         return not_empty
-            ? _priv::remove_error::DIRECTORY_NOT_EMPTY
-            : _priv::remove_error::OTHER;
+            ? _priv::remove_error::directory_not_empty
+            : _priv::remove_error::other;
     }
 
-    return _priv::remove_error::NONE;
+    return _priv::remove_error::none;
 }
 
 static _priv::remove_error remove_file(const path& p) noexcept
@@ -586,10 +586,10 @@ static _priv::remove_error remove_file(const path& p) noexcept
     if (::unlink(p.c_str()) != 0)
     {
         unix_::error_message("unlink()");
-        return _priv::remove_error::OTHER;
+        return _priv::remove_error::other;
     }
 
-    return _priv::remove_error::NONE;
+    return _priv::remove_error::none;
 }
 
 _priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
@@ -600,11 +600,11 @@ _priv::remove_error remove_impl(const path& p, bool in_recursive_remove)
         if (errno == ENOENT || errno == ENOTDIR)
         {
             // path or file is already gone
-            return _priv::remove_error::PATH_NOT_FOUND;
+            return _priv::remove_error::path_not_found;
         }
 
         unix_::error_message("lstat()");
-        return _priv::remove_error::OTHER;
+        return _priv::remove_error::other;
     }
 
     if (S_ISDIR(st.st_mode))

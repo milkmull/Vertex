@@ -15,7 +15,7 @@ namespace filesystem {
 
 bool update_permissions_impl(
     const path& p,
-    typename file_permissions::type permissions,
+    file_permissions permissions,
     file_permission_operator op,
     bool follow_symlinks
 );

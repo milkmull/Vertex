@@ -74,7 +74,7 @@ public:
         catch (const std::regex_error& e)
         {
             m_valid = false;
-            err::set(err::code::INVALID_ARGUMENT, e.what());
+            err::set(err::invalid_argument, e.what());
         }
     }
 

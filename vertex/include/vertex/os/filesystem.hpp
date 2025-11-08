@@ -30,7 +30,7 @@ enum class file_type
 
 // https://en.cppreference.com/w/cpp/filesystem/perms
 
-VX_FLAGS_DECLARE_BEGIN(file_permissions)
+VX_FLAGS_UT_DECLARE_BEGIN(file_permissions, unsigned int)
 {
     none = 0,             // No permissions
 

@@ -21,7 +21,7 @@ template <pixel_format f> struct raw_pixel;
 namespace _priv {
 
 template <typename pixel_type, typename float_type>
-inline constexpr pixel_type encode_packed_channel(float_type value, uint32_t mask, uint32_t shift) noexcept
+inline constexpr pixel_type encode_packed_channel(float_type value, pixel_type mask, uint32_t shift) noexcept
 {
     const float_type range = static_cast<float_type>(mask >> shift);
     const float_type scaled = value * range + static_cast<float_type>(0.5);
@@ -30,7 +30,7 @@ inline constexpr pixel_type encode_packed_channel(float_type value, uint32_t mas
 }
 
 template <typename float_type, typename pixel_type>
-inline constexpr float_type decode_packed_channel(pixel_type data, uint32_t mask, uint32_t shift) noexcept
+inline constexpr float_type decode_packed_channel(pixel_type data, pixel_type mask, uint32_t shift) noexcept
 {
     const pixel_type quantized = (data & mask) >> shift;
     const float_type range = static_cast<float_type>(mask >> shift);
@@ -54,8 +54,8 @@ inline constexpr float_type decode_array_channel(channel_type value) noexcept
 
 } // namespace _priv
 
-#define _PACKED_ENCODE_CHANNEL(x) _priv::encode_packed_channel<pixel_type, float_type>(c.x, info.x.mask, info.x.shift)
-#define _PACKED_DECODE_CHANNEL(x) _priv::decode_packed_channel<float_type, pixel_type>(data, info.x.mask, info.x.shift)
+#define _PACKED_ENCODE_CHANNEL(x) _priv::encode_packed_channel<pixel_type, float_type>(c.x, static_cast<pixel_type>(info.x.mask), info.x.shift)
+#define _PACKED_DECODE_CHANNEL(x) _priv::decode_packed_channel<float_type, pixel_type>(data, static_cast<pixel_type>(info.x.mask), info.x.shift)
 
 #define _ARRAY_ENCODE_CHANNEL(x) _priv::encode_array_channel<channel_type, float_type>(c.x)
 #define _ARRAY_DECODE_CHANNEL(x) _priv::decode_array_channel<float_type, channel_type>(data[info.x.index])

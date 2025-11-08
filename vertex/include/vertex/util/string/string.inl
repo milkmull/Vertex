@@ -1,10 +1,11 @@
 #pragma once
 
-#include <sstream>
 #include <algorithm>
+#include <cstring>
+#include <sstream>
 
-#include "vertex/system/validate.hpp"
 #include "vertex/system/error.hpp"
+#include "vertex/system/validate.hpp"
 
 namespace vx {
 namespace str {

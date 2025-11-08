@@ -170,13 +170,7 @@ bool process::process_impl::start(process* p, const config& config)
     enum : int
     {
         read_pipe_index = 0,
-        write_pipe_index = 1,
-
-        stdin_index = 0,
-        stdout_index = 1,
-        stderr_index = 2,
-
-        stream_count = 3
+        write_pipe_index = 1
     };
 
     struct stream_data
@@ -254,7 +248,7 @@ bool process::process_impl::start(process* p, const config& config)
 
 #else
 
-        err::set(err::SYSTEM_ERROR, "process::start(): setting the working directory not supported");
+        err::set(err::system_error, "process::start(): setting the working directory not supported");
         goto posix_spawn_fail_all;
 
 #endif
@@ -288,7 +282,7 @@ bool process::process_impl::start(process* p, const config& config)
 
                 break;
             }
-            case io_option::CREATE:
+            case io_option::create:
             {
                 if (::pipe(stream.pipes) < 0)
                 {
@@ -315,14 +309,14 @@ bool process::process_impl::start(process* p, const config& config)
             {
                 if (!stream.redirect || !stream.redirect->is_open()) // no write?
                 {
-                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream was null");
+                    err::set(err::invalid_argument, "process::start(): redirect stream was null");
                     goto posix_spawn_fail_all;
                 }
 
                 if ((stream.proc_file_mode() == file::mode::read && !stream.redirect->can_read()) ||
                     (stream.proc_file_mode() == file::mode::write && !stream.redirect->can_write()))
                 {
-                    err::set(err::INVALID_ARGUMENT, "process::start(): redirect stream mode is incompatable with expected file mode");
+                    err::set(err::invalid_argument, "process::start(): redirect stream mode is incompatable with expected file mode");
                     goto posix_spawn_fail_all;
                 }
 
@@ -346,7 +340,7 @@ bool process::process_impl::start(process* p, const config& config)
 
     if (!add_file_descriptor_close_actions(&fa))
     {
-        err::set(err::SYSTEM_ERROR, "process::start(): failed to add file descriptor close actions");
+        err::set(err::system_error, "process::start(): failed to add file descriptor close actions");
         goto posix_spawn_fail_all;
     }
 

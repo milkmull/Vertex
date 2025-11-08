@@ -46,7 +46,7 @@ static bool get_sysctl_string(const char* name, std::string& value)
 static std::string get_os_release_info_value(const char* key)
 {
     os::file f;
-    if (!f.open("/etc/os-release", os::file::mode::READ))
+    if (!f.open("/etc/os-release", os::file::mode::read))
     {
         return {};
     }
@@ -174,7 +174,7 @@ std::string get_processor_name_impl()
             do
             {
                 os::file f;
-                if (!f.open("/proc/cpuinfo", os::file::mode::READ))
+                if (!f.open("/proc/cpuinfo", os::file::mode::read))
                 {
                     break;
                 }
@@ -248,7 +248,7 @@ bool get_version_impl(uint32_t* major, uint32_t* minor, uint32_t* patch)
     unsigned int maj = 0, min = 0, pat = 0;
     if (std::sscanf(u.release, "%u.%u.%u", &maj, &min, &pat) < 2)
     {
-        err::set(err::SYSTEM_ERROR, "invalid version file");
+        err::set(err::system_error, "invalid version file");
         return false;
     }
 
