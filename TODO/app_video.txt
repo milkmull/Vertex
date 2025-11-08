@@ -1,6 +1,6 @@
 first:
     
-    - rework enums
+    x rework enums
     - prune unused files
     - constexpr base64
     - compile on raspberry pi
