@@ -3,7 +3,7 @@
 #include "vertex/pixel/pixel_format.hpp"
 #include "vertex/math/core/functions/common.hpp"
 #include "vertex/math/color/types/color.hpp"
-#include "vertex/math/core/half.hpp"
+#include "vertex/math/half.hpp"
 
 namespace vx {
 namespace pixel {
@@ -210,8 +210,7 @@ struct alignas(uint16_t) raw_pixel<pixel_format::xrgb_4444>
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         _PACKED_ENCODE_CHANNEL(r) |
         _PACKED_ENCODE_CHANNEL(g) |
-        _PACKED_ENCODE_CHANNEL(b) |
-        _PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(b)
         )) {
     }
 
@@ -220,8 +219,7 @@ struct alignas(uint16_t) raw_pixel<pixel_format::xrgb_4444>
         return math::color(
             _PACKED_DECODE_CHANNEL(r),
             _PACKED_DECODE_CHANNEL(g),
-            _PACKED_DECODE_CHANNEL(b),
-            _PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(b)
         );
     }
 
@@ -248,8 +246,7 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::xbgr_4444>
     VX_FORCE_INLINE constexpr raw_pixel(const math::color& c) noexcept : data(static_cast<pixel_type>(
         _PACKED_ENCODE_CHANNEL(r) |
         _PACKED_ENCODE_CHANNEL(g) |
-        _PACKED_ENCODE_CHANNEL(b) |
-        _PACKED_ENCODE_CHANNEL(a)
+        _PACKED_ENCODE_CHANNEL(b)
         )) {
     }
 
@@ -258,8 +255,7 @@ struct alignas(alignof(uint16_t)) raw_pixel<pixel_format::xbgr_4444>
         return math::color(
             _PACKED_DECODE_CHANNEL(r),
             _PACKED_DECODE_CHANNEL(g),
-            _PACKED_DECODE_CHANNEL(b),
-            _PACKED_DECODE_CHANNEL(a)
+            _PACKED_DECODE_CHANNEL(b)
         );
     }
 
@@ -997,8 +993,7 @@ struct alignas(alignof(uint8_t[1])) raw_pixel<pixel_format::r_8>
         return math::color(
             _ARRAY_DECODE_CHANNEL(r),
             0.0f,
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1033,8 +1028,7 @@ struct alignas(alignof(uint8_t[2])) raw_pixel<pixel_format::rg_8>
         return math::color(
             _ARRAY_DECODE_CHANNEL(r),
             _ARRAY_DECODE_CHANNEL(g),
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1070,8 +1064,7 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::rgb_8>
         return math::color(
             _ARRAY_DECODE_CHANNEL(r),
             _ARRAY_DECODE_CHANNEL(g),
-            _ARRAY_DECODE_CHANNEL(b),
-            1.0f
+            _ARRAY_DECODE_CHANNEL(b)
         );
     }
 
@@ -1107,8 +1100,7 @@ struct alignas(alignof(uint8_t[3])) raw_pixel<pixel_format::bgr_8>
         return math::color(
             _ARRAY_DECODE_CHANNEL(r),
             _ARRAY_DECODE_CHANNEL(g),
-            _ARRAY_DECODE_CHANNEL(b),
-            1.0f
+            _ARRAY_DECODE_CHANNEL(b)
         );
     }
 
@@ -1258,8 +1250,7 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::r_16f>
         return math::color(
             math::half_to_float(data[info.r.index]),
             0.0f,
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1294,8 +1285,7 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::rg_16f>
         return math::color(
             math::half_to_float(data[info.r.index]),
             math::half_to_float(data[info.g.index]),
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1331,8 +1321,7 @@ struct alignas(alignof(math::half_t[1])) raw_pixel<pixel_format::rgb_16f>
         return math::color(
             math::half_to_float(data[info.r.index]),
             math::half_to_float(data[info.g.index]),
-            math::half_to_float(data[info.b.index]),
-            1.0f
+            math::half_to_float(data[info.b.index])
         );
     }
 
@@ -1408,8 +1397,7 @@ struct alignas(alignof(float[1])) raw_pixel<pixel_format::r_32f>
         return math::color(
             data[info.r.index],
             0.0f,
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1444,8 +1432,7 @@ struct alignas(alignof(float[2])) raw_pixel<pixel_format::rg_32f>
         return math::color(
             data[info.r.index],
             data[info.g.index],
-            0.0f,
-            1.0f
+            0.0f
         );
     }
 
@@ -1481,8 +1468,7 @@ struct alignas(alignof(float[3])) raw_pixel<pixel_format::rgb_32f>
         return math::color(
             data[info.r.index],
             data[info.g.index],
-            data[info.b.index],
-            1.0f
+            data[info.b.index]
         );
     }
 
