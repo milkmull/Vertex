@@ -83,7 +83,7 @@ public:
     // processing
     ///////////////////////////////////////////////////////////////////////////////
 
-    void pump_events(bool process_all);
+    void pump_events();
     void pump_events_internal(bool push_sentinel);
     void pump_events_maintenance();
 

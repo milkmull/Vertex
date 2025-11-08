@@ -125,7 +125,7 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
     auto it = queue.begin();
     while (it != queue.end() && (!copy || (matched < count)))
     {
-        if (matcher(*it, user_data))
+        if (!matcher || matcher(*it, user_data))
         {
             if (copy)
             {
@@ -155,14 +155,9 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
 
 ////////////////////////////////////////
 
-static bool poll_filter(const event& e, void*) noexcept
-{
-    return true;
-}
-
 bool event_queue::poll(event& e)
 {
-    return match(poll_filter, nullptr, &e, 1, true);
+    return match(nullptr, nullptr, &e, 1, true);
 }
 
 ////////////////////////////////////////
@@ -191,13 +186,13 @@ void event_queue::add_sentinel()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1454
 
-VX_API void pump_events(bool process_all)
+VX_API void pump_events()
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
-    s_events_ptr->pump_events(process_all);
+    s_events_ptr->pump_events();
 }
 
-void events_instance::pump_events(bool process_all)
+void events_instance::pump_events()
 {
     pump_events_internal(false);
 }
@@ -405,7 +400,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     }
 
     // attempt to get the next event
-    const bool res = data.queue.match(poll_filter, nullptr, &e, 1, true);
+    const bool res = data.queue.match(nullptr, nullptr, &e, 1, true);
 
     if (zero_timeout)
     {
@@ -452,7 +447,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     {
         pump_events_internal(true);
 
-        if (data.queue.match(poll_filter, nullptr, &e, 1, true))
+        if (data.queue.match(nullptr, nullptr, &e, 1, true))
         {
             // found an event
             return true;
