@@ -18,22 +18,6 @@
 #   include "vertex/system/log.hpp"
 #endif // VX_APP_LOG_EVENTS
 
-////////////////////////////////////////
-
-#if defined(VX_APP_VIDEO_ENABLED)
-
-// Feature macro indicating that the video subsystem supports both
-// timed waits and external wakeups. In this mode, the OS can block
-// while waiting for window events, and another thread can explicitly
-// wake the window from that blocked state.
-#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM (VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT && VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT)
-
-#else
-
-#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM 0
-
-#endif // VX_APP_VIDEO_ENABLED
-
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace vx {
@@ -283,8 +267,6 @@ time::time_point events_instance::get_polling_interval() const
 
 ////////////////////////////////////////
 
-#if defined(VX_APP_VIDEO_ENABLED)
-
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1532
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
@@ -362,13 +344,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
     return 0;
 }
 
-#else
-
-int events_instance::wait_event_timeout_video(video::window_id, event&, time::time_point, time::time_point) { return 0; }
-
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
-
-#endif // VX_APP_VIDEO_ENABLED
 
 ////////////////////////////////////////
 

@@ -4,6 +4,7 @@
 
 #include "vertex/app/event/event.hpp"
 #include "vertex/os/mutex.hpp"
+#include "vertex_impl/app/video/_platform/platform_features.hpp"
 
 namespace vx {
 namespace app {
@@ -11,6 +12,22 @@ namespace app {
 class app_instance;
 
 namespace event {
+
+////////////////////////////////////////
+
+#if defined(VX_APP_VIDEO_ENABLED)
+
+// Feature macro indicating that the video subsystem supports both
+// timed waits and external wakeups. In this mode, the OS can block
+// while waiting for window events, and another thread can explicitly
+// wake the window from that blocked state.
+#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM (VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT && VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT)
+
+#else
+
+#define VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM 0
+
+#endif // VX_APP_VIDEO_ENABLED
 
 ///////////////////////////////////////////////////////////////////////////////
 // event data
@@ -91,9 +108,9 @@ public:
     size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
 
     time::time_point get_polling_interval() const;
-#if defined(VX_APP_VIDEO_ENABLED)
+#if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
     int wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start);
-#endif // VX_APP_VIDEO_ENABLED
+#endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
     bool wait_event_timeout(event& e, time::time_point t);
 
     bool push_event(event& e);
