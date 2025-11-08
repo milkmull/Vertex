@@ -91,7 +91,9 @@ public:
     size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
 
     time::time_point get_polling_interval() const;
+#if defined(VX_APP_VIDEO_ENABLED)
     int wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start);
+#endif // VX_APP_VIDEO_ENABLED
     bool wait_event_timeout(event& e, time::time_point t);
 
     bool push_event(event& e);

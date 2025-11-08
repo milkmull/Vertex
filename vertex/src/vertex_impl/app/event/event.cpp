@@ -288,6 +288,8 @@ time::time_point events_instance::get_polling_interval() const
 
 ////////////////////////////////////////
 
+#if defined(VX_APP_VIDEO_ENABLED)
+
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1532
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
@@ -370,6 +372,8 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
 int events_instance::wait_event_timeout_video(video::window_id, event&, time::time_point, time::time_point) { return 0; }
 
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
+
+#endif // VX_APP_VIDEO_ENABLED
 
 ////////////////////////////////////////
 

@@ -1,11 +1,15 @@
 #pragma once
 
 #include "vertex/app/id.hpp"
-#include "vertex/app/video/video.hpp"
-#include "vertex/app/input/mouse.hpp"
-#include "vertex/app/input/keyboard.hpp"
-#include "vertex/app/input/touch.hpp"
 #include "vertex/util/time.hpp"
+
+#if defined(VX_APP_VIDEO_ENABLED)
+#   include "vertex/app/video/video.hpp"
+#   include "vertex/app/input/mouse.hpp"
+#   include "vertex/app/input/keyboard.hpp"
+#   include "vertex/app/input/touch.hpp"
+#endif // VX_APP_VIDEO_ENABLED
+
 
 // https://www.glfw.org/docs/3.3/input_guide.html
 
@@ -234,7 +238,9 @@ struct app_event_common {};
 
 struct system_theme_changed_event
 {
+#if defined(VX_APP_VIDEO_ENABLED)
     video::system_theme system_theme;
+#endif // VX_APP_VIDEO_ENABLED
 };
 
 struct app_event_type
