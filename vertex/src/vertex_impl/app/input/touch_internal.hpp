@@ -26,7 +26,7 @@ struct touch_device_data
 {
     touch_id id = invalid_id;
     std::string name;
-    touch_device_type type = touch_device_type::invalid;
+    device_type type = device_type::invalid;
     std::vector<finger> fingers;
 };
 
@@ -76,7 +76,7 @@ public:
     // devices
     //=============================================================================
 
-    bool add_touch(touch_id id, touch_device_type type, const char* name);
+    bool add_touch(touch_id id, device_type type, const char* name);
     void remove_touch(touch_id id);
     void clear_touch_devices();
 
@@ -86,7 +86,7 @@ public:
     const touch_device_instance* get_touch_device_instance(touch_id id) const;
 
     std::string get_device_name(touch_id id) const;
-    touch_device_type get_device_type(touch_id id) const;
+    device_type get_device_type(touch_id id) const;
     std::vector<finger> get_fingers(touch_id id) const;
 
     //=============================================================================

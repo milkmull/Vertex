@@ -73,38 +73,10 @@ struct input_source
 
 //=============================================================================
 
-class mouse_info
+struct mouse_info
 {
-public:
-
     mouse_id id;
     std::string name;
-};
-
-//=============================================================================
-
-struct relative_mode_state
-{
-    bool enabled = false;                     // is relative mode active
-    bool warp_motion = false;                 // generate motion events on warp
-    bool hide_cursor = false;                 // hide cursor while active
-    bool center = false;                      // lock to window center
-    bool warp_emulation_hint = false;         // hint for warp emulation
-    bool warp_emulation_active = false;
-    bool warp_emulation_prohibited = false;
-    time::time_point last_warp_time;
-    time::time_point last_center_warp_time;
-};
-
-//=============================================================================
-
-struct scale_state
-{
-    bool normal_enabled = false;
-    float normal_scale = 0.0f;
-    bool relative_enabled = false;
-    float relative_scale = 0.0f;
-    bool system_relative_enabled = false;
 };
 
 //=============================================================================
@@ -119,6 +91,16 @@ struct mouse_cursor_data
 
 //=============================================================================
 
+VX_FLAGS_UT_DECLARE_BEGIN(integer_mode, uint8_t)
+{
+    none    = 0,
+    motion  = VX_BIT(0),
+    scroll  = VX_BIT(1)
+}
+VX_FLAGS_DECLARE_END(integer_mode)
+
+//=============================================================================
+
 struct mouse_data
 {
     bool quitting = false;
@@ -128,34 +110,41 @@ struct mouse_data
 
     // Position
     float x = 0.0f, y = 0.0f;           // current position in window space
-    float last_x = 0.0f, last_y = 0.0f; // previous frame position
+    float last_x = 0.0f, last_y = 0.0f; // last recorded position
     float x_accu = 0.0f, y_accu = 0.0f; // accumulated subpixel motion
     bool has_position = false;          // true if position valid
-
-    // Scroll
-    float residual_scroll_x = 0.0f;
-    float residual_scroll_y = 0.0f;
 
     // Click motion thresholding
     double click_motion_x = 0.0;
     double click_motion_y = 0.0;
+
+    // Double click settings
     time::time_point double_click_time;
     int double_click_radius = 0;
 
-    // mice tracker
-    std::vector<mouse_info> mice;
+    // Relative mode
+    bool relative_mode_enabled = false;         // is relative mode active
+    bool relative_warp_motion = false;          // generate motion events on warp
+    bool relative_hide_cursor = false;          // hide cursor while active
+    bool relative_center = false;               // lock to window center
 
-    // Input sources (physical devices)
-    std::vector<input_source> sources;
+    // Warp enumlation
+    bool warp_emulation_hint = false;           // hint for warp emulation
+    bool warp_emulation_active = false;
+    bool warp_emulation_prohibited = false;
+    time::time_point last_center_warp_time;
 
-    // Modes & settings
-    relative_mode_state relative_mode;
-    scale_state scaling;
+    // Scaling
+    bool normal_speed_scale_enabled = false;
+    bool relative_speed_scale_enabled = false;
+    bool relative_system_scale_enabled = false;
+    float normal_speed_scale = 0.0f;
+    float relative_speed_scale = 0.0f;
 
     // Capture settings
     bool auto_capture = false;        // allow OS auto capture
     bool capture_desired = false;     // app requested capture
-    video::window* capture_window = nullptr;
+    video::window_id capture_window = invalid_id;
 
     // Event translation toggles
     bool touch_mouse_events = false;  // touch -> mouse
@@ -166,9 +155,20 @@ struct mouse_data
     bool added_mouse_touch_device = false;
     bool added_pen_touch_device = false;
 
-    float normal_speed_scale = 0.0f;
-    float relative_speed_scale = 0.0f;
+    // Integer mode
+    integer_mode integer_mode = integer_mode::none;
+    float integer_mode_residual_motion_x = 0.0f;
+    float integer_mode_residual_motion_y = 0.0f;
+    float integer_mode_residual_scroll_x = 0.0f;
+    float integer_mode_residual_scroll_y = 0.0f;
 
+    // mice tracker
+    std::vector<mouse_info> mice;
+
+    // Input sources (physical devices)
+    std::vector<input_source> sources;
+
+    // Cursors
     mouse_cursor_data cursors;
 };
 
@@ -218,24 +218,6 @@ public:
     const char* get_name(mouse_id id = default_mouse_id) const;
 
     //=============================================================================
-    // configure
-    //=============================================================================
-
-    time::time_point get_default_double_click_time() const;
-    time::time_point get_double_click_time() const;
-    bool set_double_click_time(time::time_point t);
-
-    int32_t get_default_double_click_radius() const;
-    int32_t get_double_click_radius() const;
-    bool set_double_click_radius(int32_t r);
-
-    float get_normal_speed_scale() const;
-    bool set_normal_speed_scale(float scale);
-
-    float get_relative_speed_scale() const;
-    bool set_relative_speed_scale(float scale);
-
-    //=============================================================================
     // focus
     //=============================================================================
 
@@ -267,7 +249,7 @@ public:
     // Relative Mode
     //=============================================================================
 
-    bool set_relative_mode(video::window_id w, bool enabled) { return false; } ///< Enable/disable relative mode for a window
+    bool set_relative_mode(bool enabled) { return false; } ///< Enable/disable relative mode for a window
     bool relative_mode_enabled(video::window_id w) { return false; }           ///< Check if relative mode is active
     void update_relative_mouse_mode() {}                           ///< Internal update of relative mode state
     void disable_mouse_warp_emulation() {}                         ///< Disable warp emulation workaround

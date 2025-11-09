@@ -19,31 +19,31 @@ inline const char* parse_string(const char* value, const char* default_value) no
 
 inline bool parse_boolean(const char* value, bool default_value)
 {
-    if (!value) return default_value;
+    if (!value || !*value) return default_value;
     return !((std::strcmp(value, "0") == 0) || str::casecmp(value, "false"));
 }
 
 inline int64_t parse_integer(const char* value, int64_t default_value)
 {
-    if (!value) return default_value;
+    if (!value || !*value) return default_value;
 
     char* end = nullptr;
     const auto result = std::strtoll(value, &end, 10);
     return (end != value) ? static_cast<int64_t>(result) : default_value;
 }
 
-inline uint64_t parse_hint_unsigned_integer(const char* value, uint64_t default_value)
+inline uint64_t parse_unsigned_integer(const char* value, uint64_t default_value)
 {
-    if (!value) return default_value;
+    if (!value || !*value) return default_value;
 
     char* end = nullptr;
     const auto result = std::strtoull(value, &end, 10);
     return (end != value) ? static_cast<uint64_t>(result) : default_value;
 }
 
-inline float parse_hint_float(const char* value, float default_value)
+inline float parse_float(const char* value, float default_value)
 {
-    if (!value) return default_value;
+    if (!value || !*value) return default_value;
 
     char* end = nullptr;
     const auto result = std::strtof(value, &end);
@@ -79,12 +79,12 @@ inline int64_t get_hint_integer(hint_t name, int64_t default_value)
 
 inline uint64_t get_hint_unsigned_integer(hint_t name, uint64_t default_value)
 {
-    return parse_hint_unsigned_integer(get_hint(name), default_value);
+    return parse_unsigned_integer(get_hint(name), default_value);
 }
 
 inline float get_hint_float(hint_t name, float default_value)
 {
-    return parse_hint_float(get_hint(name), default_value);
+    return parse_float(get_hint(name), default_value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

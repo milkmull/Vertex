@@ -40,12 +40,12 @@ static bool display_added_event_watcher(const app::event::event& e, void*)
 
 static void run_app()
 {
-    app::hint::set_hint(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, "true");
-    const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::HINT_VIDEO_ALLOW_SCREEN_SAVER, false);
+    app::hint::set_hint(app::hint::video_allow_screen_saver, "true");
+    const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::video_allow_screen_saver, false);
 
     //while (true)
     {
-        app::event::pump_events(true);
+        app::event::pump_events();
         os::sleep(time::milliseconds(100));
     }
 }

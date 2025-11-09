@@ -55,6 +55,18 @@ enum hint : hint_t
     // input / mouse / touch / pen hints
     //=============================================================================
 
+    // Maximum time interval (in milliseconds) between two clicks to register as a double click.
+    mouse_double_click_time,
+
+    // Maximum distance (in pixels) between two clicks to count as a double click.
+    mouse_double_click_radius,
+
+    // Scale factor for normal mouse movement speed.
+    mouse_normal_speed_scale,
+
+    // Scale factor for mouse movement speed in relative mode.
+    mouse_relative_speed_scale,
+
     // Apply system scaling to relative mode (1 = enabled).
     mouse_relative_system_scale,
 

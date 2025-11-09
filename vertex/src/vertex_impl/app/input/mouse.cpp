@@ -1,6 +1,7 @@
 #include "vertex/app/input/touch.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
+#include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_mouse.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
@@ -13,11 +14,231 @@ namespace mouse {
 // hints
 //=============================================================================
 
+static void double_click_time_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+
+#   define default_value 500
+
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
+
+    int64_t t_ms = mouse->impl_ptr->get_double_click_time().as_milliseconds();
+
+    if (t_ms <= 0)
+    {
+        t_ms = default_value;
+    }
+
+#else
+
+    const int64_t t_ms = default_value;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
+
+#   undef default_value
+
+    mouse->data.double_click_time = time::milliseconds(hint::parse_integer(new_value, t_ms));
+}
+
+//=============================================================================
+
+static void double_click_radius_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.double_click_radius = hint::parse_integer(new_value, 32);
+}
+
+//=============================================================================
+
+static void normal_speed_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+
+    mouse->data.normal_speed_scale = hint::parse_float(new_value, 1.0f);
+
+    if (mouse->data.normal_speed_scale != 1.0f)
+    {
+        mouse->data.normal_speed_scale_enabled = true;
+    }
+    else
+    {
+        mouse->data.normal_speed_scale_enabled = false;
+    }
+}
+
+//=============================================================================
+
+static void relative_speed_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+
+    mouse->data.relative_speed_scale = hint::parse_float(new_value, 1.0f);
+
+    if (mouse->data.relative_speed_scale != 1.0f)
+    {
+        mouse->data.relative_speed_scale_enabled = true;
+    }
+    else
+    {
+        mouse->data.relative_speed_scale_enabled = false;
+    }
+}
+
+//=============================================================================
+
+static void relative_mode_center_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.relative_center = hint::parse_boolean(new_value, true);
+}
+
+//=============================================================================
+
+static void relative_system_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.relative_system_scale_enabled = hint::parse_boolean(new_value, false);
+}
+
+//=============================================================================
+
+static void mouse_warp_emulation_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.warp_emulation_hint = hint::parse_boolean(new_value, true);
+
+    if (!mouse->data.warp_emulation_hint && mouse->data.warp_emulation_active)
+    {
+        mouse->set_relative_mode(false);
+        mouse->data.warp_emulation_active = false;
+    }
+}
+
+//=============================================================================
+
+static void touch_mouse_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.touch_mouse_events = hint::parse_boolean(new_value, true);
+}
+
+//=============================================================================
+
+static void mouse_touch_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+
+#if defined(VX_PLATFORM_MOBILE)
+#   define default_value true
+#else
+#   define default_value false
+#endif
+
+    mouse->data.mouse_touch_events = hint::parse_boolean(new_value, default_value);
+
+    if (mouse->data.mouse_touch_events)
+    {
+        if (!mouse->data.added_mouse_touch_device)
+        {
+            mouse->video->data.touch_ptr->add_touch(touch::mouse_touch_id, touch::device_type::direct, "mouse_input");
+            mouse->data.added_mouse_touch_device = true;
+        }
+    }
+    else
+    {
+        if (mouse->data.added_mouse_touch_device)
+        {
+            mouse->video->data.touch_ptr->remove_touch(touch::mouse_touch_id);
+            mouse->data.added_mouse_touch_device = false;
+        }
+    }
+
+#   undef default_value
+}
+
+//=============================================================================
+
+static void pen_mouse_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.pen_mouse_events = hint::parse_boolean(new_value, true);
+}
+
+//=============================================================================
+
+static void pen_touch_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.pen_touch_events = hint::parse_boolean(new_value, true);
+
+    if (mouse->data.pen_touch_events)
+    {
+        if (!mouse->data.added_pen_touch_device)
+        {
+            mouse->video->data.touch_ptr->add_touch(touch::pen_touch_id, touch::device_type::direct, "pen_input");
+            mouse->data.added_pen_touch_device = true;
+        }
+    }
+    else
+    {
+        if (mouse->data.added_pen_touch_device)
+        {
+            mouse->video->data.touch_ptr->remove_touch(touch::pen_touch_id);
+            mouse->data.added_pen_touch_device = false;
+        }
+    }
+}
+
+//=============================================================================
+
+static void auto_capture_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    const bool auto_capture = hint::parse_boolean(new_value, true);
+
+    if (auto_capture != mouse->data.auto_capture)
+    {
+        mouse->data.auto_capture = auto_capture;
+        mouse->update_mouse_capture(false);
+    }
+}
+
+//=============================================================================
+
+static void relative_warp_motion_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.relative_warp_motion = hint::parse_boolean(new_value, false);
+}
+
+//=============================================================================
+
+static void relative_cursor_visible_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.relative_hide_cursor = !hint::parse_boolean(new_value, false);
+    mouse->redraw_cursor();
+}
+
+//=============================================================================
+
+static void integer_mode_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+{
+    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse->data.integer_mode = static_cast<integer_mode>(hint::parse_integer(new_value, integer_mode::none));
+}
+
 //=============================================================================
 // cursor
 //=============================================================================
 
 class cursor_instance_impl {};
+
+cursor_instance::cursor_instance() = default;
+cursor_instance::~cursor_instance() = default;
+
+cursor_instance::cursor_instance(cursor_instance&&) noexcept = default;
+cursor_instance& cursor_instance::operator=(cursor_instance&&) noexcept = default;
 
 //=============================================================================
 // mouse internal
@@ -40,10 +261,100 @@ bool mouse_instance::init(video::video_instance* owner)
     VX_ASSERT(owner);
     video = owner;
 
-    data.was_touch_mouse_events = false;
-    data.cursors.visible = true;
+    data = mouse_data{};
 
-    //data.double_click_time 
+    // hints
+    {
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_double_click_time,
+            double_click_time_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_double_click_radius,
+            double_click_radius_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_normal_speed_scale,
+            normal_speed_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_relative_speed_scale,
+            relative_speed_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_relative_system_scale,
+            relative_system_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_relative_mode_center,
+            relative_mode_center_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_emulate_warp_with_relative,
+            mouse_warp_emulation_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::touch_mouse_events,
+            touch_mouse_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_touch_events,
+            mouse_touch_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::pen_mouse_events,
+            pen_mouse_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::pen_touch_events,
+            pen_touch_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_auto_capture,
+            auto_capture_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_relative_warp_motion,
+            relative_warp_motion_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_relative_cursor_visible,
+            relative_cursor_visible_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->add_hint_callback(
+            hint::mouse_integer_mode,
+            integer_mode_hint_watcher,
+            this
+        );
+    }
 
     return true;
 }
@@ -53,6 +364,99 @@ bool mouse_instance::init(video::video_instance* owner)
 void mouse_instance::quit()
 {
     quit_impl();
+
+    // hints
+    {
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_double_click_time,
+            double_click_time_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_double_click_radius,
+            double_click_radius_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_normal_speed_scale,
+            normal_speed_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_relative_speed_scale,
+            relative_speed_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_relative_system_scale,
+            relative_system_scale_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_relative_mode_center,
+            relative_mode_center_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_emulate_warp_with_relative,
+            mouse_warp_emulation_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::touch_mouse_events,
+            touch_mouse_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_touch_events,
+            mouse_touch_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::pen_mouse_events,
+            pen_mouse_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::pen_touch_events,
+            pen_touch_events_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_auto_capture,
+            auto_capture_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_relative_warp_motion,
+            relative_warp_motion_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_relative_cursor_visible,
+            relative_cursor_visible_hint_watcher,
+            this
+        );
+
+        video->app->data.hints_ptr->remove_hint_callback(
+            hint::mouse_integer_mode,
+            integer_mode_hint_watcher,
+            this
+        );
+    }
 }
 
 //=============================================================================
@@ -223,109 +627,6 @@ const char* mouse_instance::get_name(mouse_id id) const
 {
     const mouse_info* m = get_mouse(id);
     return m ? m->name.c_str() : nullptr;
-}
-
-//=============================================================================
-// configure
-//=============================================================================
-
-time::time_point mouse_instance::get_default_double_click_time() const
-{
-    time::time_point t;
-
-#if VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
-
-    t = impl_ptr->get_double_click_time();
-
-    if (t.is_positive())
-    {
-        return t;
-    }
-
-#endif
-
-    t = time::milliseconds(500);
-    return t;
-}
-
-time::time_point mouse_instance::get_double_click_time() const
-{
-    VX_ASSERT(data.double_click_time);
-    return data.double_click_time;
-}
-
-bool mouse_instance::set_double_click_time(time::time_point t)
-{
-    if (t.is_negative())
-    {
-        err::set(err::invalid_argument, "t");
-        return false;
-    }
-
-    if (t.is_zero())
-    {
-        t = get_default_double_click_time();
-    }
-
-    data.double_click_time = t;
-    return true;
-}
-
-int32_t mouse_instance::get_default_double_click_radius() const
-{
-    int32_t r = 0;
-
-#if VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_AREA
-
-    r = impl_ptr->get_double_click_radius();
-    if (r > 0)
-    {
-        return r;
-    }
-
-#endif
-
-    r = 32;
-    return r;
-}
-
-int32_t mouse_instance::get_double_click_radius() const
-{
-    VX_ASSERT(data.double_click_radius > 0);
-    return data.double_click_radius;
-}
-
-bool mouse_instance::set_double_click_radius(int32_t r)
-{
-    if (r < 0)
-    {
-        err::set(err::invalid_argument, "r");
-        return false;
-    }
-
-    data.double_click_radius = r;
-}
-
-float mouse_instance::get_normal_speed_scale() const
-{
-    return data.normal_speed_scale;
-}
-
-bool mouse_instance::set_normal_speed_scale(float scale)
-{
-    data.normal_speed_scale = scale;
-    return true;
-}
-
-float mouse_instance::get_relative_speed_scale() const
-{
-    return data.relative_speed_scale;
-}
-
-bool mouse_instance::set_relative_speed_scale(float scale)
-{
-    data.relative_speed_scale = scale;
-    return true;
 }
 
 //=============================================================================

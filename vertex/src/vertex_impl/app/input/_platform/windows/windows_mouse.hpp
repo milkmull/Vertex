@@ -28,8 +28,8 @@ public:
     // lifetime
     //=============================================================================
 
-    bool init(mouse_instance* owner);
-    void quit();
+    bool init(mouse_instance* owner) { return true; }
+    void quit() {}
 
     ~mouse_instance_impl() { quit(); }
 
@@ -37,10 +37,9 @@ public:
     // 
     //=============================================================================
 
-    button get_global_state(float* x, float* y) const;
+    button get_global_state(float* x, float* y) const { return button::none; }
 
-    time::time_point get_double_click_time() const;
-    int32_t get_double_click_radius() const;
+    time::time_point get_double_click_time() const { return time::zero(); }
 
     //=============================================================================
     // data

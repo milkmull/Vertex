@@ -1861,7 +1861,7 @@ void window_instance::update_grab()
 
     if (data.flags & window_flags::input_focus)
     {
-        if (video->data.mouse_ptr->data.relative_mode.enabled || (data.flags & window_flags::mouse_grabbed))
+        if (video->data.mouse_ptr->data.relative_mode_enabled || (data.flags & window_flags::mouse_grabbed))
         {
             mouse_grabbed = true;
         }
@@ -2580,7 +2580,7 @@ bool window_instance::post_window_gained_focus()
 
 void window_instance::on_window_gained_focus()
 {
-    if (video->data.mouse_ptr->data.relative_mode.enabled)
+    if (video->data.mouse_ptr->data.relative_mode_enabled)
     {
         video->data.mouse_ptr->set_focus(data.id);
     }

@@ -83,7 +83,7 @@ finger* touch_device_instance::get_finger(finger_id id)
 // devices
 //=============================================================================
 
-bool touch_instance::add_touch(touch_id id, touch_device_type type, const char* name)
+bool touch_instance::add_touch(touch_id id, device_type type, const char* name)
 {
     VX_ASSERT(is_valid_id(id));
 
@@ -172,10 +172,10 @@ std::string touch_instance::get_device_name(touch_id id) const
 
 //=============================================================================
 
-touch_device_type touch_instance::get_device_type(touch_id id) const
+device_type touch_instance::get_device_type(touch_id id) const
 {
     const touch_device_instance* device = get_touch_device_instance(id);
-    return device ? device->data.type : touch_device_type::invalid;
+    return device ? device->data.type : device_type::invalid;
 }
 
 //=============================================================================

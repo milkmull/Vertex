@@ -88,12 +88,12 @@ public:
 
     inline uint64_t get_hint_unsigned_integer(hint_t name, uint64_t default_value) const
     {
-        return parse_hint_unsigned_integer(get_hint(name), default_value);
+        return parse_unsigned_integer(get_hint(name), default_value);
     }
 
     inline float get_hint_float(hint_t name, float default_value) const
     {
-        return parse_hint_float(get_hint(name), default_value);
+        return parse_float(get_hint(name), default_value);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

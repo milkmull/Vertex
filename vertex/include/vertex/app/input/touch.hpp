@@ -27,7 +27,7 @@ enum : touch_id
 // type
 //=============================================================================
 
-enum class touch_device_type
+enum class device_type
 {
     invalid = -1,
     direct,
@@ -67,7 +67,7 @@ public:
     VX_API bool is_available() const;
 
     VX_API std::string get_name() const;
-    VX_API touch_device_type get_type() const;
+    VX_API device_type get_type() const;
     VX_API std::vector<finger> get_fingers() const;
 
 private:

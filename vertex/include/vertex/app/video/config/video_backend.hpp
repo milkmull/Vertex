@@ -90,11 +90,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #if defined(VX_OS_ANDROID) || defined(VX_OS_IOS)
-#   define VX_PLATFORM_MOBILE 1
-#   define VX_PLATFORM_DESKTOP 0
+#   define VX_PLATFORM_MOBILE
 #else
-#   define VX_PLATFORM_MOBILE 0
-#   define VX_PLATFORM_DESKTOP 1
+#   define VX_PLATFORM_DESKTOP
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
