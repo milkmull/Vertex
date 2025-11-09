@@ -56,7 +56,7 @@ struct video_impl_data
     bool registered_app = false;
     UINT _VX_WAKEUP = 0;
 
-    owner_ptr<input::raw_input_manager> raw_input;
+    std::unique_ptr<input::raw_input_manager> raw_input;
 
     bool enable_message_loop_hint_cache = true;
     bool enable_menu_mnemonics_hint_cache = false;

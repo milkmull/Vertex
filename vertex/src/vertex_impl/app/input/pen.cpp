@@ -4,6 +4,7 @@
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/input/mouse_internal.hpp"
 #include "vertex_impl/app/input/pen_internal.hpp"
+#include "vertex_impl/app/input/_platform/platform_pen.hpp"
 #include "vertex_impl/app/input/touch_internal.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
@@ -33,6 +34,14 @@ void pen_instance::quit()
 
 //=============================================================================
 // pen device
+//=============================================================================
+
+pen_device_instance::pen_device_instance() = default;
+pen_device_instance::~pen_device_instance() = default;
+
+pen_device_instance::pen_device_instance(pen_device_instance&&) noexcept = default;
+pen_device_instance& pen_device_instance::operator=(pen_device_instance&&) noexcept = default;
+
 //=============================================================================
 
 void pen_device_instance::finalize()

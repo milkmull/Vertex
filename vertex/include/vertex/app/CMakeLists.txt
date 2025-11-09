@@ -23,7 +23,6 @@ file(GLOB VX_APP_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/app.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/id.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/owner_ptr.hpp"
     
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/main_impl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/main.hpp"

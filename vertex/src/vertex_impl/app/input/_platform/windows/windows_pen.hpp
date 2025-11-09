@@ -1,55 +1,28 @@
 #pragma once
 
-#include "vertex_impl/app/input/mouse_internal.hpp"
-#include "vertex_impl/app/video/video_internal.hpp"
+#include "vertex_impl/app/_platform/windows/windows_header.hpp"
+#include "vertex_impl/app/input/pen_internal.hpp"
 
 namespace vx {
 namespace app {
-namespace mouse {
+namespace pen {
 
 //=============================================================================
-// data
+// pen_device_instance_impl
 //=============================================================================
 
-struct mouse_impl_data
+struct pen_device_impl_data
 {
-
+    UINT32 handle;
 };
 
-//=============================================================================
-// mouse_instance_impl
-//=============================================================================
-
-class mouse_instance_impl
+class pen_device_instance_impl
 {
 public:
 
-    //=============================================================================
-    // lifetime
-    //=============================================================================
-
-    bool init(mouse_instance* owner);
-    void quit();
-
-    ~mouse_instance_impl() { quit(); }
-
-    //=============================================================================
-    // 
-    //=============================================================================
-
-    buttons get_global_state(float* x, float* y) const;
-
-    time::time_point get_double_click_time() const;
-    int32_t get_double_click_radius() const;
-
-    //=============================================================================
-    // data
-    //=============================================================================
-
-    mouse_instance* mouse;
-    mouse_impl_data data;
+    pen_device_impl_data data;
 };
 
-} // namespace mouse
+} // namespace pen
 } // namespace app
 } // namespace vx

@@ -2,7 +2,6 @@
 
 #include "vertex/app/event/event.hpp"
 #include "vertex/app/input/pen.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/config/flags.hpp"
 #include "vertex/os/mutex.hpp"
@@ -26,7 +25,6 @@ class pen_instance;
 //=============================================================================
 
 class pen_device_instance_impl;
-struct pen_device_instance_impl_deleter { void operator()(pen_device_instance_impl* ptr) const noexcept; };
 
 //=============================================================================
 // helpers
@@ -72,12 +70,20 @@ class pen_device_instance
 {
 public:
 
+    pen_device_instance();
+    ~pen_device_instance();
+
+    pen_device_instance(pen_device_instance&&) noexcept;
+    pen_device_instance& operator=(pen_device_instance&&) noexcept;
+
+public:
+
     void finalize();
 
 public:
 
     pen_device_data data;
-    owner_ptr<pen_device_instance_impl, pen_device_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<pen_device_instance_impl> impl_ptr;
 };
 
 //=============================================================================

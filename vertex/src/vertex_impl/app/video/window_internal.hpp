@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vertex/config/flags.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/app/video/window.hpp"
 #include "vertex/config/scoped_enum.hpp"
 #include "vertex/pixel/pixel_format.hpp"
@@ -216,17 +215,20 @@ struct window_data
 
 class window_instance_impl;
 
-struct window_instance_impl_deleter
-{
-    void operator()(window_instance_impl* ptr) const noexcept;
-};
-
 //=============================================================================
 // window instance
 //=============================================================================
 
 class window_instance
 {
+public:
+
+    window_instance();
+    ~window_instance();
+
+    window_instance(window_instance&&) noexcept;
+    window_instance& operator=(window_instance&&) noexcept;
+
 public:
 
     //=============================================================================
@@ -506,7 +508,7 @@ public:
 
     video_instance* video = nullptr;
     window_data data;
-    owner_ptr<window_instance_impl, window_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<window_instance_impl> impl_ptr;
 };
 
 } // namespace video

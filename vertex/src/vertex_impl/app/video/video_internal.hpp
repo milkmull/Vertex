@@ -34,10 +34,10 @@ class display_instance_impl;
 struct video_data
 {
     // Input
-    owner_ptr<mouse::mouse_instance> mouse_ptr;
-    owner_ptr<keyboard::keyboard_instance> keyboard_ptr;
-    owner_ptr<touch::touch_instance> touch_ptr;
-    owner_ptr<pen::pen_instance> pen_ptr;
+    std::unique_ptr<mouse::mouse_instance> mouse_ptr;
+    std::unique_ptr<keyboard::keyboard_instance> keyboard_ptr;
+    std::unique_ptr<touch::touch_instance> touch_ptr;
+    std::unique_ptr<pen::pen_instance> pen_ptr;
 
     // Displays
     id_generator display_id_generator;
@@ -58,19 +58,22 @@ struct video_data
 };
 
 //=============================================================================
-// deleters
-//=============================================================================
-
-struct video_instance_impl_deleter { void operator()(video_instance_impl* ptr) const noexcept; };
-struct display_mode_instance_impl_deleter { void operator()(display_mode_instance_impl* ptr) const noexcept; };
-struct display_instance_impl_deleter { void operator()(display_instance_impl* ptr) const noexcept; };
-
-//=============================================================================
 // video_instance
 //=============================================================================
 
 class video_instance
 {
+public:
+
+    video_instance();
+    ~video_instance();
+
+    video_instance(const video_instance&) = delete;
+    video_instance& operator=(const video_instance&) = delete;
+
+    video_instance(video_instance&&) noexcept = delete;
+    video_instance& operator=(video_instance&&) noexcept = delete;
+
 public:
 
     //=============================================================================
@@ -79,8 +82,6 @@ public:
 
     bool init(app_instance* owner);
     void quit();
-
-    ~video_instance() { quit(); }
 
     //=============================================================================
     // dpi
@@ -214,7 +215,7 @@ public:
 
     app_instance* app = nullptr;
     video_data data;
-    owner_ptr<video_instance_impl, video_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<video_instance_impl> impl_ptr;
 };
 
 //=============================================================================
@@ -230,12 +231,20 @@ class display_mode_instance
 {
 public:
 
+    display_mode_instance();
+    ~display_mode_instance();
+
+    display_mode_instance(display_mode_instance&&) noexcept;
+    display_mode_instance& operator=(display_mode_instance&&) noexcept;
+
+public:
+
     void finalize();
 
 public:
 
     display_mode_data data;
-    owner_ptr<display_mode_instance_impl, display_mode_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<display_mode_instance_impl> impl_ptr;
 };
 
 //=============================================================================
@@ -266,6 +275,14 @@ struct display_data
 
 class display_instance
 {
+public:
+
+    display_instance();
+    ~display_instance();
+
+    display_instance(display_instance&&) noexcept;
+    display_instance& operator=(display_instance&&) noexcept;
+
 public:
 
     //=============================================================================
@@ -329,7 +346,7 @@ public:
 
     video_instance* video = nullptr;
     display_data data;
-    owner_ptr<display_instance_impl, display_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<display_instance_impl> impl_ptr;
 };
 
 } // namespace video

@@ -17,6 +17,7 @@ file(GLOB VX_APP_INPUT_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/touch_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/touch.cpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_pen.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/pen_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/pen.cpp"
 )

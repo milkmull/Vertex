@@ -19,13 +19,17 @@ namespace mouse {
 
 class cursor_instance_impl {};
 
-void cursor_instance_impl_deleter::operator()(cursor_instance_impl* ptr) const noexcept
-{
-    if (ptr) { delete ptr; }
-}
-
 //=============================================================================
 // mouse internal
+//=============================================================================
+
+mouse_instance::mouse_instance() = default;
+
+mouse_instance::~mouse_instance()
+{
+    quit();
+}
+
 //=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_mouse.c#L249

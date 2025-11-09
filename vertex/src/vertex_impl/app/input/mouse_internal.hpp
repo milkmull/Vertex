@@ -2,7 +2,6 @@
 
 #include "vertex/app/input/mouse.hpp"
 #include "vertex/app/video/video.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/util/time.hpp"
 
 namespace vx {
@@ -24,13 +23,6 @@ class cursor_instance;
 class cursor_instance_impl;
 
 //=============================================================================
-// deleters
-//=============================================================================
-
-struct mouse_instance_impl_deleter { void operator()(mouse_instance_impl* ptr) const noexcept; };
-struct cursor_instance_impl_deleter { void operator()(cursor_instance_impl* ptr) const noexcept; };
-
-//=============================================================================
 // cursor
 //=============================================================================
 
@@ -45,8 +37,16 @@ class cursor_instance
 {
 public:
 
+    cursor_instance();
+    ~cursor_instance();
+
+    cursor_instance(cursor_instance&&) noexcept;
+    cursor_instance& operator=(cursor_instance&&) noexcept;
+
+public:
+
     cursor_data data;
-    owner_ptr<cursor_instance_impl, cursor_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<cursor_instance_impl> impl_ptr;
 };
 
 //=============================================================================
@@ -180,14 +180,23 @@ class mouse_instance
 {
 public:
 
+    mouse_instance();
+    ~mouse_instance();
+
+    mouse_instance(const mouse_instance&) = delete;
+    mouse_instance& operator=(const mouse_instance&) = delete;
+
+    mouse_instance(mouse_instance&&) noexcept = delete;
+    mouse_instance& operator=(mouse_instance&&) noexcept = delete;
+
+public:
+
     //=============================================================================
     // lifetime
     //=============================================================================
 
     bool init(video::video_instance* owner);
     void quit();
-
-    ~mouse_instance() { quit(); }
 
     bool init_impl();
     void quit_impl();
@@ -315,7 +324,7 @@ public:
 
     video::video_instance* video = nullptr;
     mouse_data data;
-    owner_ptr<mouse_instance_impl, mouse_instance_impl_deleter> impl_ptr;
+    std::unique_ptr<mouse_instance_impl> impl_ptr;
 };
 
 } // namespace mouse

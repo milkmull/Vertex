@@ -14,25 +14,6 @@ namespace app {
 namespace video {
 
 //=============================================================================
-// deleters
-//=============================================================================
-
-void video_instance_impl_deleter::operator()(video_instance_impl* ptr) const noexcept
-{
-    if (ptr) { delete ptr; }
-}
-
-void display_mode_instance_impl_deleter::operator()(display_mode_instance_impl* ptr) const noexcept
-{
-    if (ptr) { delete ptr; }
-}
-
-void display_instance_impl_deleter::operator()(display_instance_impl* ptr) const noexcept
-{
-    if (ptr) { delete ptr; }
-}
-
-//=============================================================================
 // hints
 //=============================================================================
 
@@ -55,6 +36,15 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 
 //=============================================================================
 // video_instance lifecycle
+//=============================================================================
+
+video_instance::video_instance() = default;
+
+video_instance::~video_instance()
+{
+    quit();
+}
+
 //=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L611
@@ -257,6 +247,14 @@ VX_API bool compare_display_modes(const display_mode& mode1, const display_mode&
         && mode1.pixel_density == mode2.pixel_density
         && mode1.refresh_rate == mode2.refresh_rate;
 }
+
+//=============================================================================
+
+display_mode_instance::display_mode_instance() = default;
+display_mode_instance::~display_mode_instance() = default;
+
+display_mode_instance::display_mode_instance(display_mode_instance&&) noexcept = default;
+display_mode_instance& display_mode_instance::operator=(display_mode_instance&&) noexcept = default;
 
 //=============================================================================
 
@@ -577,6 +575,14 @@ math::recti video_instance::get_desktop_area() const
 
 //=============================================================================
 // display
+//=============================================================================
+
+display_instance::display_instance() = default;
+display_instance::~display_instance() = default;
+
+display_instance::display_instance(display_instance&&) noexcept = default;
+display_instance& display_instance::operator=(display_instance&&) noexcept = default;
+
 //=============================================================================
 
 void display_instance::finalize()

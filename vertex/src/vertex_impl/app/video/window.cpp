@@ -9,16 +9,15 @@ namespace app {
 namespace video {
 
 //=============================================================================
-// window_instance_impl
-//=============================================================================
-
-void window_instance_impl_deleter::operator()(window_instance_impl* ptr) const noexcept
-{
-    if (ptr) { delete ptr; }
-}
-
-//=============================================================================
 // creation
+//=============================================================================
+
+window_instance::window_instance() = default;
+window_instance::~window_instance() = default;
+
+window_instance::window_instance(window_instance&&) noexcept = default;
+window_instance& window_instance::operator=(window_instance&&) noexcept = default;
+
 //=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L2378

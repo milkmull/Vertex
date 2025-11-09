@@ -3,7 +3,6 @@
 #include "vertex/app/input/touch.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/event/event.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/util/time.hpp"
 
 namespace vx {

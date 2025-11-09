@@ -1,7 +1,6 @@
 #pragma once
 
 #include "vertex/app/app.hpp"
-#include "vertex/app/owner_ptr.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -41,11 +40,11 @@ struct app_data
 {
     app_metadata metadata;
 
-    owner_ptr<hint::hints_instance> hints_ptr;
-    owner_ptr<event::events_instance> events_ptr;
+    std::unique_ptr<hint::hints_instance> hints_ptr;
+    std::unique_ptr<event::events_instance> events_ptr;
 
 #if defined(VX_APP_VIDEO_ENABLED)
-    owner_ptr<video::video_instance> video_ptr;
+    std::unique_ptr<video::video_instance> video_ptr;
 #endif // VX_APP_VIDEO_ENABLED
 
     size_t ref_counts[subsystem_count] = {};
@@ -110,7 +109,7 @@ public:
     app_data data;
 };
 
-extern owner_ptr<app_instance> s_app;
+extern std::unique_ptr<app_instance> s_app;
 
 ///////////////////////////////////////////////////////////////////////////////
 // helpers
