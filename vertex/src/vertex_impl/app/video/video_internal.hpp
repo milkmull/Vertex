@@ -5,6 +5,8 @@
 #include "vertex/system/error.hpp"
 #include "vertex_impl/app/input/keyboard_internal.hpp"
 #include "vertex_impl/app/input/mouse_internal.hpp"
+#include "vertex_impl/app/input/pen_internal.hpp"
+#include "vertex_impl/app/input/touch_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/window_internal.hpp"
 
@@ -34,6 +36,8 @@ struct video_data
     // Input
     owner_ptr<mouse::mouse_instance> mouse_ptr;
     owner_ptr<keyboard::keyboard_instance> keyboard_ptr;
+    owner_ptr<touch::touch_instance> touch_ptr;
+    owner_ptr<pen::pen_instance> pen_ptr;
 
     // Displays
     id_generator display_id_generator;

@@ -29,17 +29,16 @@ enum : mouse_id
 // mouse state
 ///////////////////////////////////////////////////////////////////////////////
 
-enum buttons
+VX_FLAGS_DECLARE_BEGIN(button)
 {
-    button_none         = 0,
-
-    button_left         = VX_BIT(0),
-    button_right        = VX_BIT(1),
-    button_middle       = VX_BIT(2),
-
-    button_extra_1      = VX_BIT(3),
-    button_extra_2      = VX_BIT(4)
-};
+    none         = 0,
+    left         = VX_BIT(0),
+    right        = VX_BIT(1),
+    middle       = VX_BIT(2),
+    extra_1      = VX_BIT(3),
+    extra_2      = VX_BIT(4)
+}
+VX_FLAGS_DECLARE_END(button)
 
 enum wheel_direction
 {
@@ -49,14 +48,14 @@ enum wheel_direction
 
 struct mouse_state
 {
-    buttons button_flags;
+    button button_flags;
     float x, y;
 
-    bool left_button_down() const noexcept { return button_flags & button_left; }
-    bool right_button_down() const noexcept { return button_flags & button_right; }
-    bool middle_button_down() const noexcept { return button_flags & button_middle; }
-    bool extra_1_button_down() const noexcept { return button_flags & button_extra_1; }
-    bool extra_2_button_down() const noexcept { return button_flags & button_extra_2; }
+    bool left_button_down() const noexcept { return button_flags & button::left; }
+    bool right_button_down() const noexcept { return button_flags & button::right; }
+    bool middle_button_down() const noexcept { return button_flags & button::middle; }
+    bool extra_1_button_down() const noexcept { return button_flags & button::extra_1; }
+    bool extra_2_button_down() const noexcept { return button_flags & button::extra_2; }
 
     bool left_button_up() const noexcept { return !left_button_down(); }
     bool right_button_up() const noexcept { return !right_button_down(); }

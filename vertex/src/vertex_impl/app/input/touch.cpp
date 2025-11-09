@@ -128,7 +128,7 @@ void touch_instance::clear_touch_devices()
 
 //=============================================================================
 
-std::vector<touch_id> touch_instance::list_touch_devices()
+std::vector<touch_id> touch_instance::list_touch_devices() const
 {
     std::vector<touch_id> devices(data.touch_devices.size());
 
@@ -138,13 +138,6 @@ std::vector<touch_id> touch_instance::list_touch_devices()
     }
 
     return devices;
-}
-
-//=============================================================================
-
-bool touch_instance::is_device_available(touch_id id) const
-{
-    return get_touch_device_instance(id) != nullptr;
 }
 
 //=============================================================================
@@ -232,7 +225,7 @@ void touch_instance::post_touch_event(
                     const float wy = math::clamp(y * size.y, 0.0f, static_cast<float>(size.y));
 
                     mouse->send_mouse_motion(t, wid, mouse::touch_mouse_id, false, wx, wy);
-                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button_left, true);
+                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button::left, true);
                 }
 
                 data.finger_touching = true;
@@ -246,7 +239,7 @@ void touch_instance::post_touch_event(
             {
                 if (w)
                 {
-                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button_left, false);
+                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button::left, false);
                 }
 
                 data.finger_touching = true;

@@ -79,13 +79,19 @@ bool video_instance::init(app_instance* owner)
         return false;
     }
 
-    // duplicate for touch and pen
-    //data.mouse_ptr.reset(new mouse::mouse_instance);
-    //if (!data.mouse_ptr || !data.mouse_ptr->init(this))
-    //{
-    //    quit();
-    //    return false;
-    //}
+    data.touch_ptr.reset(new touch::touch_instance);
+    if (!data.touch_ptr || !data.touch_ptr->init(this))
+    {
+        quit();
+        return false;
+    }
+
+    data.pen_ptr.reset(new pen::pen_instance);
+    if (!data.pen_ptr || !data.pen_ptr->init(this))
+    {
+        quit();
+        return false;
+    }
 
     // initialize backend
     impl_ptr.reset(new video_instance_impl);
@@ -133,7 +139,17 @@ bool video_instance::init(app_instance* owner)
 
 void video_instance::quit()
 {
-    // destroy pen, touch
+    if (data.pen_ptr)
+    {
+        data.pen_ptr->quit();
+        data.pen_ptr.reset();
+    }
+
+    if (data.touch_ptr)
+    {
+        data.touch_ptr->quit();
+        data.touch_ptr.reset();
+    }
 
     if (data.mouse_ptr)
     {

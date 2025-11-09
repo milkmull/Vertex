@@ -37,7 +37,7 @@ public:
     // 
     //=============================================================================
 
-    button get_global_state(float* x, float* y) const;
+    buttons get_global_state(float* x, float* y) const;
 
     time::time_point get_double_click_time() const;
     int32_t get_double_click_radius() const;

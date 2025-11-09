@@ -1,10 +1,11 @@
 #pragma once
 
-#include "vertex/config/flags.hpp"
-#include "vertex/app/input/pen.hpp"
-#include "vertex/app/video/video.hpp"
 #include "vertex/app/event/event.hpp"
+#include "vertex/app/input/pen.hpp"
 #include "vertex/app/owner_ptr.hpp"
+#include "vertex/app/video/video.hpp"
+#include "vertex/config/flags.hpp"
+#include "vertex/os/mutex.hpp"
 #include "vertex/util/time.hpp"
 
 namespace vx {
@@ -21,10 +22,17 @@ namespace pen {
 class pen_instance;
 
 //=============================================================================
+// pen device instance
+//=============================================================================
+
+class pen_device_instance_impl;
+struct pen_device_instance_impl_deleter { void operator()(pen_device_instance_impl* ptr) const noexcept; };
+
+//=============================================================================
 // helpers
 //=============================================================================
 
-VX_FLAGS_UT_DECLARE_BEGIN(pen_capability, uint32_t)
+VX_FLAGS_UT_DECLARE_BEGIN(capability_flags, uint32_t)
 {
     none                = 0,
     pressure            = VX_BIT(0),
@@ -36,104 +44,108 @@ VX_FLAGS_UT_DECLARE_BEGIN(pen_capability, uint32_t)
     tangentail_pressure = VX_BIT(6),
     eraser              = VX_BIT(7),
 }
-VX_FLAGS_DECLARE_END(pen_capability)
-
-//enum class pen_type
-//{
-//
-//};
+VX_FLAGS_DECLARE_END(capability_flags)
 
 //=============================================================================
 // pen device
 //=============================================================================
 
-//struct pen_device_data
-//{
-//    pen_id id;
-//    std::string name;
-//    pen_device_type type;
-//    std::vector<finger> fingers;
-//};
-//
-//class pen_device_instance
-//{
-//public:
-//
-//    bool add_finger(finger_id id, float x, float y, float pressure);
-//    void remove_finger(finger_id id);
-//    finger* get_finger(finger_id id);
-//
-//public:
-//
-//    pen_device_data data;
-//};
-//
-////=============================================================================
-//// pen data
-////=============================================================================
-//
-//struct pen_data
-//{
-//    bool finger_pening = false;
-//    finger_id track_finger = invalid_id;
-//    pen_id track_pen = invalid_id;
-//    std::vector<pen_device_instance> pen_devices;
-//
-//    id_generator pen_id_generator;
-//    id_generator finger_id_generator;
-//};
-//
-////=============================================================================
-//// pen instance
-////=============================================================================
-//
-//class pen_instance
-//{
-//public:
-//
-//    //=============================================================================
-//    // lifecycle
-//    //=============================================================================
-//
-//    bool init(video::video_instance* owner);
-//    void quit();
-//
-//    ~pen_instance() { quit(); }
-//
-//    //=============================================================================
-//    // devices
-//    //=============================================================================
-//
-//    bool add_pen(pen_id id, pen_device_type type, const char* name);
-//    void remove_pen(pen_id id);
-//    void clear_pen_devices();
-//
-//    std::vector<pen_id> list_pen_devices();
-//    bool any_device_available() const noexcept { return !data.pen_devices.empty(); }
-//    bool is_device_available(pen_id id) const;
-//
-//    pen_device_instance* get_pen_device_instance(pen_id id);
-//    const pen_device_instance* get_pen_device_instance(pen_id id) const;
-//
-//    std::string get_device_name(pen_id id) const;
-//    pen_device_type get_device_type(pen_id id) const;
-//    std::vector<finger> get_fingers(pen_id id) const;
-//
-//    //=============================================================================
-//    // events
-//    //=============================================================================
-//
-//    void post_pen_event(time::time_point t, pen_id id, finger_id fid, video::window_id wid, event::event_type type, float x, float y, float pressure);
-//    void post_pen_motion(time::time_point t, pen_id id, finger_id fid, video::window_id wid, float x, float y, float pressure);
-//    bool post_pen_pinch(time::time_point t, event::event_type type, video::window_id wid, float scale);
-//
-//    //=============================================================================
-//    // data
-//    //=============================================================================
-//
-//    video::video_instance* video = nullptr;
-//    pen_data data;
-//};
+struct pen_info
+{
+    capability_flags capabilities = capability_flags::none;
+    float max_tilt = 0.0f;
+    uint32_t wacom_id = 0;
+    size_t button_count = 0;
+    device_type device_type = device_type::unknown;
+    subtype subtype = subtype::unknown;
+};
+
+struct pen_device_data
+{
+    pen_id id = invalid_id;
+    std::string name;
+    pen_info info;
+    pen_state state;
+};
+
+class pen_device_instance
+{
+public:
+
+    void finalize();
+
+public:
+
+    pen_device_data data;
+    owner_ptr<pen_device_instance_impl, pen_device_instance_impl_deleter> impl_ptr;
+};
+
+//=============================================================================
+// pen data
+//=============================================================================
+
+struct pen_data
+{
+    pen_id pen_touching = invalid_id;
+    std::vector<pen_device_instance> pens;
+    id_generator pen_id_generator;
+    mutable os::mutex mutex;
+};
+
+//=============================================================================
+// pen instance
+//=============================================================================
+
+class pen_instance
+{
+public:
+
+    //=============================================================================
+    // lifecycle
+    //=============================================================================
+
+    bool init(video::video_instance* owner);
+    void quit();
+
+    ~pen_instance() { quit(); }
+
+    //=============================================================================
+    // devices
+    //=============================================================================
+
+    bool add_pen(time::time_point t, pen_device_instance& pen);
+    void remove_pen(time::time_point t, pen_id id);
+    void remove_pen_internal(time::time_point t, pen_id id, bool post_event);
+    void clear_pens(bool post_events);
+
+    std::vector<pen_id> list_pens() const;
+    bool pen_connected(pen_id id) const;
+
+    pen_device_instance* get_pen_instance(pen_id id);
+    const pen_device_instance* get_pen_instance(pen_id id) const;
+    pen_device_instance* get_pen_instance_internal(pen_id id);
+
+    pen_device_instance* get_pen_from_handle(void* handle);
+
+    //=============================================================================
+    // events
+    //=============================================================================
+
+    void post_pen_proximity_in(time::time_point t, pen_id id);
+    void post_pen_proximity_out(time::time_point t, pen_id id);
+
+    void post_pen_touch(time::time_point t, pen_id id, video::window_id wid, bool eraser, bool down);
+    void post_pen_motion(time::time_point t, pen_id id, video::window_id wid, float x, float y);
+    void post_pen_axis(time::time_point t, pen_id id, video::window_id wid, axis_type axis, float value);
+    void post_pen_button(time::time_point t, pen_id id, video::window_id wid, uint8_t button, bool down);
+
+    //=============================================================================
+    // data
+    //=============================================================================
+
+    video::video_instance* video = nullptr;
+    pen_data data;
+};
 
 } // namespace pen
 } // namespace app

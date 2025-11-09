@@ -66,7 +66,7 @@ struct click_state
 struct input_source
 {
     mouse_id id;
-    buttons button_state;
+    button button_state;
     // probably can put a cap on this in the future
     std::vector<click_state> click_states;
 };
@@ -234,17 +234,17 @@ public:
     video::window_id get_focus() const;
     void set_focus(video::window_id w);
 
-    bool update_mouse_focus(video::window_id wid, float x, float y, buttons button_state, bool send_mouse_motion);
+    bool update_mouse_focus(video::window_id wid, float x, float y, button button_state, bool send_mouse_motion);
 
     //=============================================================================
     // state
     //=============================================================================
 
-    buttons get_button_state(mouse_id id, bool include_touch) const;
+    button get_button_state(mouse_id id, bool include_touch) const;
 
-    buttons get_state(float* x, float* y) const;            ///< State relative to focus window
-    buttons get_relative_state(float* x, float* y);   ///< Relative motion since last call
-    buttons get_global_state(float* x, float* y) const;     ///< State in global desktop coordinates
+    button get_state(float* x, float* y) const;            ///< State relative to focus window
+    button get_relative_state(float* x, float* y);   ///< Relative motion since last call
+    button get_global_state(float* x, float* y) const;     ///< State in global desktop coordinates
 
     //=============================================================================
     // position
@@ -278,8 +278,8 @@ public:
     bool send_mouse_removed(mouse_id id);
     bool send_mouse_motion(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y);
     bool send_mouse_motion_internal(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y);
-    bool send_mouse_button(time::time_point t, video::window_id w, mouse_id id, buttons b, bool down);
-    bool send_mouse_button_clicks(video::window_id w, mouse_id id, buttons b, bool down, int clicks);
+    bool send_mouse_button(time::time_point t, video::window_id w, mouse_id id, button b, bool down);
+    bool send_mouse_button_clicks(video::window_id w, mouse_id id, button b, bool down, int clicks);
     bool send_mouse_wheel(video::window_id w, mouse_id id, float x, float y, wheel_direction direction);
     bool perform_warp_mouse_in_window(video::window_id w, float x, float y, bool ignore_relative_mode);
 

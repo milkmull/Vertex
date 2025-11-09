@@ -9,6 +9,7 @@
 #include "vertex/app/input/mouse.hpp"
 #include "vertex/app/input/keyboard.hpp"
 #include "vertex/app/input/touch.hpp"
+#include "vertex/app/input/pen.hpp"
 
 #endif // VX_APP_VIDEO_ENABLED
 
@@ -473,13 +474,13 @@ struct mouse_moved_event
 
 struct mouse_button_down_event
 {
-    mouse::buttons buttons;
+    mouse::button buttons;
     uint8_t clicks;
 };
 
 struct mouse_button_up_event
 {
-    mouse::buttons buttons;
+    mouse::button buttons;
 };
 
 struct mouse_wheel_event
@@ -567,6 +568,50 @@ struct pinch_event_type
 // pen events
 ///////////////////////////////////////////////////////////////////////////////
 
+struct pen_event_common
+{
+    pen::pen_id pen_id;
+    float x, y;
+    pen::input_state state;
+    video::window_id window_id;
+};
+
+struct pen_proximity_in_event {};
+struct pen_proximity_out_event {};
+
+struct pen_moved_event {};
+
+struct pen_touch_event
+{
+    bool eraser;
+};
+
+struct pen_button_event
+{
+    uint8_t button;
+};
+
+struct pen_axis_changed_event
+{
+    pen::axis_type axis;
+    float value;
+};
+
+struct pen_event_type
+{
+    pen_event_common common;
+
+    union
+    {
+        pen_proximity_in_event pen_proximity_in;
+        pen_proximity_out_event pen_proximity_out;
+        pen_moved_event pen_moved;
+        pen_touch_event pen_touch;
+        pen_button_event pen_button;
+        pen_axis_changed_event pen_axis_changed;
+    };
+};
+
 ///////////////////////////////////////////////////////////////////////////////
 // clipboard events
 ///////////////////////////////////////////////////////////////////////////////
@@ -632,6 +677,10 @@ public:
         // pinch events
 
         pinch_event_type pinch_event;
+
+        // pen events
+
+        pen_event_type pen_event;
 
 #endif // VX_APP_VIDEO_ENABLED
 

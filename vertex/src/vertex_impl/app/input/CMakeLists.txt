@@ -53,6 +53,8 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_keyboard.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_keyboard.cpp"
+        
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_pen.hpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_APP_INPUT_PLATFORM_SOURCE_FILES})

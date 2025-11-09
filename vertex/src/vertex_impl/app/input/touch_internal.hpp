@@ -54,9 +54,6 @@ struct touch_data
     finger_id track_finger = invalid_id;
     touch_id track_touch = invalid_id;
     std::vector<touch_device_instance> touch_devices;
-
-    id_generator touch_id_generator;
-    id_generator finger_id_generator;
 };
 
 //=============================================================================
@@ -84,9 +81,7 @@ public:
     void remove_touch(touch_id id);
     void clear_touch_devices();
 
-    std::vector<touch_id> list_touch_devices();
-    bool any_device_available() const noexcept { return !data.touch_devices.empty(); }
-    bool is_device_available(touch_id id) const;
+    std::vector<touch_id> list_touch_devices() const;
 
     touch_device_instance* get_touch_device_instance(touch_id id);
     const touch_device_instance* get_touch_device_instance(touch_id id) const;
