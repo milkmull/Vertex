@@ -106,6 +106,7 @@ public:
 
     size_t add_events(const event* e, size_t count);
     size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
+    size_t flush_events(event_type type);
 
     time::time_point get_polling_interval() const;
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM

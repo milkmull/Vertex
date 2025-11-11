@@ -41,6 +41,13 @@ public:
 
     time::time_point get_double_click_time() const { return time::zero(); }
 
+    void apply_system_scale(time::time_point t, const video::window_instance* w, mouse_id id, float* x, float* y) const {}
+
+    void warp(const video::window_instance* w, float x, float y) {}
+    bool warp_global(float x, float y) { return false; }
+
+    bool set_relative_mode(bool enabled) { return false; }
+
     //=============================================================================
     // data
     //=============================================================================

@@ -12,6 +12,7 @@ namespace vx {
 namespace app {
 
 namespace video { class video_instance; }
+namespace video { class window_instance; }
 
 namespace keyboard {
 
@@ -129,6 +130,7 @@ public:
     //-------------------------------------------------------------------------
 
     video::window_id get_focus() { return invalid_id; }
+    video::window_instance* get_focus_instance() { return nullptr; }
     bool set_focus(video::window_id id) { return false; }
 
     //-------------------------------------------------------------------------

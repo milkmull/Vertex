@@ -827,7 +827,7 @@ bool video_instance_impl::create_display(
 
                 if (moved || changed_bounds)
                 {
-                    video->post_display_moved(d.data.id);
+                    video->send_display_moved(d.data.id);
                 }
 
                 d.set_orientation(current_orientation);
@@ -963,7 +963,7 @@ void video_instance_impl::refresh_displays()
     {
         if (d.impl_ptr->data.state == display_state::added)
         {
-            video->post_display_added(d.data.id);
+            video->send_display_added(d.data.id);
         }
     }
 }

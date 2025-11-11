@@ -121,8 +121,8 @@ public:
 
     bool add_pen(time::time_point t, pen_device_instance& pen);
     void remove_pen(time::time_point t, pen_id id);
-    void remove_pen_internal(time::time_point t, pen_id id, bool post_event);
-    void clear_pens(bool post_events);
+    void remove_pen_internal(time::time_point t, pen_id id, bool send_event);
+    void clear_pens(bool send_events);
 
     std::vector<pen_id> list_pens() const;
     bool pen_connected(pen_id id) const;
@@ -137,13 +137,12 @@ public:
     // events
     //=============================================================================
 
-    void post_pen_proximity_in(time::time_point t, pen_id id);
-    void post_pen_proximity_out(time::time_point t, pen_id id);
-
-    void post_pen_touch(time::time_point t, pen_id id, video::window_id wid, bool eraser, bool down);
-    void post_pen_motion(time::time_point t, pen_id id, video::window_id wid, float x, float y);
-    void post_pen_axis(time::time_point t, pen_id id, video::window_id wid, axis_type axis, float value);
-    void post_pen_button(time::time_point t, pen_id id, video::window_id wid, uint8_t button, bool down);
+    void send_proximity_in(time::time_point t, pen_id id);
+    void send_proximity_out(time::time_point t, pen_id id);
+    void send_touch(time::time_point t, pen_id id, video::window_instance* w, bool eraser, bool down);
+    void send_motion(time::time_point t, pen_id id, video::window_instance* w, float x, float y);
+    void send_axis(time::time_point t, pen_id id, video::window_instance* w, axis_type axis, float value);
+    void send_button(time::time_point t, pen_id id, video::window_instance* w, uint8_t button, bool down);
 
     //=============================================================================
     // data

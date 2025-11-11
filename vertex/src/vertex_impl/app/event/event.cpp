@@ -256,6 +256,13 @@ size_t events_instance::match_events(event_filter matcher, void* user_data, even
 
 ////////////////////////////////////////
 
+size_t events_instance::flush_events(event_type type)
+{
+    return match_events(type_matcher, &type, nullptr, 0, true);
+}
+
+////////////////////////////////////////
+
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1506
 
 time::time_point events_instance::get_polling_interval() const

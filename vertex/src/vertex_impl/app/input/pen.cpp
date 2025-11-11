@@ -66,7 +66,7 @@ bool pen_instance::add_pen(time::time_point t, pen_device_instance& pen)
     data.pens.push_back(std::move(pen));
     data.mutex.unlock();
 
-    post_pen_proximity_in(t, id);
+    send_proximity_in(t, id);
     return true;
 }
 
@@ -84,15 +84,15 @@ void pen_instance::remove_pen(time::time_point t, pen_id id)
     data.mutex.unlock();
 }
 
-void pen_instance::remove_pen_internal(time::time_point t, pen_id id, bool post_event)
+void pen_instance::remove_pen_internal(time::time_point t, pen_id id, bool send_event)
 {
     for (auto it = data.pens.begin(); it != data.pens.end(); ++it)
     {
         if (it->data.id == id)
         {
-            if (post_event)
+            if (send_event)
             {
-                post_pen_proximity_out(t, id);
+                send_proximity_out(t, id);
             }
 
             data.pens.erase(it);
@@ -103,13 +103,13 @@ void pen_instance::remove_pen_internal(time::time_point t, pen_id id, bool post_
 
 //=============================================================================
 
-void pen_instance::clear_pens(bool post_events)
+void pen_instance::clear_pens(bool send_events)
 {
     data.mutex.lock();
 
     while (!data.pens.empty())
     {
-        remove_pen_internal(time::zero(), data.pens[0].data.id, post_events);
+        remove_pen_internal(time::zero(), data.pens[0].data.id, send_events);
     }
 
     data.mutex.unlock();
@@ -175,7 +175,7 @@ pen_device_instance* pen_instance::get_pen_instance_internal(pen_id id)
 
 #define events_ptr video->app->data.events_ptr
 
-void pen_instance::post_pen_proximity_in(time::time_point t, pen_id id)
+void pen_instance::send_proximity_in(time::time_point t, pen_id id)
 {
     event::event e{};
     e.type = event::pen_proximity_in;
@@ -185,7 +185,7 @@ void pen_instance::post_pen_proximity_in(time::time_point t, pen_id id)
     events_ptr->push_event(e);
 }
 
-void pen_instance::post_pen_proximity_out(time::time_point t, pen_id id)
+void pen_instance::send_proximity_out(time::time_point t, pen_id id)
 {
     event::event e{};
     e.type = event::pen_proximity_out;
@@ -195,9 +195,9 @@ void pen_instance::post_pen_proximity_out(time::time_point t, pen_id id)
     events_ptr->push_event(e);
 }
 
-void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_id wid, bool eraser, bool down)
+void pen_instance::send_touch(time::time_point t, pen_id id, video::window_instance* w, bool eraser, bool down)
 {
-    bool post_event = false;
+    bool send_event = false;
     input_state state = input_state::none;
     float x = 0.0f;
     float y = 0.0f;
@@ -217,31 +217,33 @@ void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_i
             if (down && !(state & input_state::down))
             {
                 state |= input_state::down;
-                post_event = true;
+                send_event = true;
             }
             else if (!down && (state & input_state::down))
             {
                 state &= ~input_state::down;
-                post_event = true;
+                send_event = true;
             }
 
             if (eraser && !(state & input_state::eraser_tip))
             {
                 state |= input_state::eraser_tip;
-                post_event = true;
+                send_event = true;
             }
             else if (!eraser && (state & input_state::eraser_tip))
             {
                 state &= ~input_state::eraser_tip;
-                post_event = true;
+                send_event = true;
             }
 
             pen->data.state.state = state;
         }
     }
 
-    if (post_event)
+    if (send_event)
     {
+        const video::window_id wid = w ? w->data.id : invalid_id;
+
         event::event e{};
         e.type = down ? event::pen_down : event::pen_up;
         e.time = t;
@@ -253,7 +255,6 @@ void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_i
         e.pen_event.pen_touch.eraser = eraser;
         events_ptr->push_event(e);
 
-        video::window_instance* w = video->get_window_instance(wid);
         if (w)
         {
             mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
@@ -264,15 +265,15 @@ void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_i
                 {
                     if (!data.pen_touching)
                     {
-                        mouse->send_mouse_motion(t, wid, mouse::pen_mouse_id, false, x, y);
-                        mouse->send_mouse_button(t, wid, mouse::pen_mouse_id, mouse::button::left, true);
+                        mouse->send_motion(t, w, mouse::pen_mouse_id, false, x, y);
+                        mouse->send_button(t, w, mouse::pen_mouse_id, mouse::button::left, true);
                     }
                 }
                 else
                 {
                     if (data.pen_touching == id)
                     {
-                        mouse->send_mouse_button(t, wid, mouse::pen_mouse_id, mouse::button::left, false);
+                        mouse->send_button(t, w, mouse::pen_mouse_id, mouse::button::left, false);
                     }
                 }
             }
@@ -286,7 +287,7 @@ void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_i
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_instance* touch = video->data.touch_ptr.get();
-                    touch->post_touch_event(t, touch::pen_touch_id, mouse::button::left, wid, touch_event_type, x, y, pressure);
+                    touch->send_event(t, touch::pen_touch_id, mouse::button::left, w, touch_event_type, x, y, pressure);
                 }
             }
         }
@@ -310,9 +311,9 @@ void pen_instance::post_pen_touch(time::time_point t, pen_id id, video::window_i
 
 //=============================================================================
 
-void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_id wid, float x, float y)
+void pen_instance::send_motion(time::time_point t, pen_id id, video::window_instance* w, float x, float y)
 {
-    bool post_event = false;
+    bool send_event = false;
     input_state state = input_state::none;
     float pressure = 0.0f;
 
@@ -328,13 +329,15 @@ void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_
                 pen->data.state.y = y;
                 state = pen->data.state.state;
                 pressure = pen->data.state.axes[axis_type::pressure];
-                post_event = true;
+                send_event = true;
             }
         }
     }
 
-    if (post_event)
+    if (send_event)
     {
+        const video::window_id wid = w ? w->data.id : invalid_id;
+
         event::event e{};
         e.type = event::pen_moved;
         e.time = t;
@@ -345,7 +348,6 @@ void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_
         e.pen_event.common.window_id = wid;
         events_ptr->push_event(e);
 
-        video::window_instance* w = video->get_window_instance(wid);
         if (w)
         {
             mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
@@ -354,7 +356,7 @@ void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_
             {
                 if (mouse->data.pen_mouse_events)
                 {
-                    mouse->send_mouse_motion(t, wid, mouse::pen_mouse_id, false, x, y);
+                    mouse->send_motion(t, w, mouse::pen_mouse_id, false, x, y);
                 }
                 if (mouse->data.pen_touch_events)
                 {
@@ -362,13 +364,13 @@ void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_instance* touch = video->data.touch_ptr.get();
-                    touch->post_touch_motion(t, touch::pen_touch_id, mouse::button::left, wid, x, y, pressure);
+                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, pressure);
                 }
             }
             else if (!is_valid_id(data.pen_touching))
             {
                 // send mouse motion for pens that aren't touching
-                mouse->send_mouse_motion(t, wid, mouse::pen_mouse_id, false, x, y);
+                mouse->send_motion(t, w, mouse::pen_mouse_id, false, x, y);
             }
         }
     }
@@ -376,11 +378,11 @@ void pen_instance::post_pen_motion(time::time_point t, pen_id id, video::window_
 
 //=============================================================================
 
-void pen_instance::post_pen_axis(time::time_point t, pen_id id, video::window_id wid, axis_type axis, float value)
+void pen_instance::send_axis(time::time_point t, pen_id id, video::window_instance* w, axis_type axis, float value)
 {
     VX_ASSERT(axis >= 0 && axis < axis_count);
 
-    bool post_event = false;
+    bool send_event = false;
     input_state state = input_state::none;
     float x = 0.0f;
     float y = 0.0f;
@@ -397,13 +399,15 @@ void pen_instance::post_pen_axis(time::time_point t, pen_id id, video::window_id
                 state = pen->data.state.state;
                 x = pen->data.state.x;
                 y = pen->data.state.y;
-                post_event = true;
+                send_event = true;
             }
         }
     }
 
-    if (post_event)
+    if (send_event)
     {
+        const video::window_id wid = w ? w->data.id : invalid_id;
+
         event::event e{};
         e.type = event::pen_axis_changed;
         e.time = t;
@@ -418,7 +422,6 @@ void pen_instance::post_pen_axis(time::time_point t, pen_id id, video::window_id
 
         if ((axis == axis_type::pressure) && (data.pen_touching == id))
         {
-            video::window_instance* w = video->get_window_instance(wid);
             if (w)
             {
                 mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
@@ -429,7 +432,7 @@ void pen_instance::post_pen_axis(time::time_point t, pen_id id, video::window_id
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_instance* touch = video->data.touch_ptr.get();
-                    touch->post_touch_motion(t, touch::pen_touch_id, mouse::button::left, wid, x, y, value);
+                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, value);
                 }
             }
         }
@@ -438,7 +441,7 @@ void pen_instance::post_pen_axis(time::time_point t, pen_id id, video::window_id
 
 //=============================================================================
 
-void pen_instance::post_pen_button(time::time_point t, pen_id id, video::window_id wid, uint8_t button, bool down)
+void pen_instance::send_button(time::time_point t, pen_id id, video::window_instance* w, uint8_t button, bool down)
 {
     if (button < 1 || button > 5)
     { 
@@ -446,7 +449,7 @@ void pen_instance::post_pen_button(time::time_point t, pen_id id, video::window_
         return;
     }
 
-    bool post_event = false;
+    bool send_event = false;
     input_state state = input_state::none;
     float x = 0.0f;
     float y = 0.0f;
@@ -467,20 +470,22 @@ void pen_instance::post_pen_button(time::time_point t, pen_id id, video::window_
             if (down && !current)
             {
                 state |= flag;
-                post_event = true;
+                send_event = true;
             }
             else if (!down && current)
             {
                 state &= ~flag;
-                post_event = true;
+                send_event = true;
             }
 
             pen->data.state.state = state;
         }
     }
 
-    if (post_event)
+    if (send_event)
     {
+        const video::window_id wid = w ? w->data.id : invalid_id;
+
         event::event e{};
         e.type = down ? event::pen_button_down : event::pen_button_up;
         e.time = t;
@@ -494,24 +499,16 @@ void pen_instance::post_pen_button(time::time_point t, pen_id id, video::window_
 
         if (!is_valid_id(data.pen_touching) || (data.pen_touching == id))
         {
-            video::window_instance* w = video->get_window_instance(wid);
             if (w)
             {
                 mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
 
                 if (mouse->data.pen_mouse_events)
                 {
-                    static const mouse::button mouse_buttons[] = {
-                        mouse::button::left,
-                        mouse::button::right,
-                        mouse::button::middle,
-                        mouse::button::extra_1,
-                        mouse::button::extra_2
-                    };
-
-                    if (button < mem::array_size(mouse_buttons))
+                    if (button < mouse::button_count)
                     {
-                        mouse->send_mouse_button(t, wid, mouse::pen_mouse_id, mouse_buttons[button], down);
+                        const mouse::button mouse_button = mouse::button_mask(button + 1);
+                        mouse->send_button(t, w, mouse::pen_mouse_id, static_cast<uint8_t>(mouse_button), down);
                     }
                 }
             }

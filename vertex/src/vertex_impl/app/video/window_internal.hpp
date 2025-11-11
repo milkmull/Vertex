@@ -40,6 +40,7 @@ VX_FLAGS_UT_DECLARE_BEGIN(window_flags, uint32_t)
     keyboard_grabbed    = VX_BIT(13),
 
     mouse_capture       = VX_BIT(14),
+    mouse_relative_mode = VX_BIT(15),
 
     // flags to be set by the os on window creation
     create_flags        = (hidden | minimized | borderless | resizable | topmost),
@@ -200,7 +201,7 @@ struct window_data
     //=============================================================================
 
     bool mouse_capture = false;
-    math::rect mouse_rect;
+    math::recti mouse_rect;
 
     //=============================================================================
     // drag and drop
@@ -349,6 +350,8 @@ public:
     //=============================================================================
     // fullscreen
     //=============================================================================
+
+    display_id get_display(bool ignore_pending_display_id) const;
     
     bool is_fullscreen() const;
     bool is_fullscreen_visible() const;
@@ -436,71 +439,71 @@ public:
 
     void send_wakeup_event() const;
     
-    bool post_window_shown();
-    void on_window_shown();
+    bool send_shown();
+    void on_shown();
     
-    bool post_window_hidden();
-    void on_window_hidden();
+    bool send_hidden();
+    void on_hidden();
 
-    bool post_window_occluded();
-    void on_window_occluded() {}
+    bool send_occluded();
+    void on_occluded() {}
 
-    bool post_window_exposed();
-    void on_window_exposed() {}
+    bool send_exposed();
+    void on_exposed() {}
     
-    bool post_window_moved(int32_t x, int32_t y);
-    void on_window_moved();
+    bool send_moved(int32_t x, int32_t y);
+    void on_moved();
     
-    bool post_window_resized(int32_t w, int32_t h);
-    void on_window_resized();
+    bool send_resized(int32_t w, int32_t h);
+    void on_resized();
 
     void check_pixel_size_changed();
-    bool post_window_pixel_size_changed(int32_t w, int32_t h);
-    void on_window_pixel_size_changed();
+    bool send_pixel_size_changed(int32_t w, int32_t h);
+    void on_pixel_size_changed();
 
     void check_display_scale_changed();
-    bool post_window_display_scale_changed();
-    void on_window_display_scale_changed() {}
+    bool send_display_scale_changed();
+    void on_display_scale_changed() {}
 
-    bool post_window_safe_area_changed(const math::recti& area);
-    void on_window_safe_area_changed() {}
+    bool send_safe_area_changed(const math::recti& area);
+    void on_safe_area_changed() {}
     
-    bool post_window_minimized();
-    void on_window_minimized();
+    bool send_minimized();
+    void on_minimized();
     
-    bool post_window_maximized();
-    void on_window_maximized() {}
+    bool send_maximized();
+    void on_maximized() {}
     
-    bool post_window_restored();
-    void on_window_restored();
+    bool send_restored();
+    void on_restored();
     
-    bool post_window_enter_fullscreen();
-    void on_window_enter_fullscreen() {}
+    bool send_enter_fullscreen();
+    void on_enter_fullscreen() {}
 
-    bool post_window_leave_fullscreen();
-    void on_window_leave_fullscreen() {}
+    bool send_leave_fullscreen();
+    void on_leave_fullscreen() {}
     
-    bool post_window_gained_focus();
-    void on_window_gained_focus();
+    bool send_gained_focus();
+    void on_gained_focus();
 
-    bool post_window_lost_focus();
-    void on_window_lost_focus();
+    bool send_lost_focus();
+    void on_lost_focus();
 
-    bool post_window_mouse_enter();
-    void on_window_mouse_enter();
+    bool send_mouse_enter();
+    void on_mouse_enter();
 
-    bool post_window_mouse_leave();
-    void on_window_mouse_leave() {}
+    bool send_mouse_leave();
+    void on_mouse_leave() {}
     
-    void check_window_display_changed();
-    bool post_window_display_changed(display_id d);
-    void on_window_display_changed(display_id d);
+    void check_display_changed();
+    bool send_display_changed(display_id d);
+    void on_display_changed(display_id d);
     
-    bool post_window_close_requested();
-    void on_window_close_requested();
+    bool send_close_requested();
+    void on_close_requested();
 
-    bool post_window_destroyed();
-    void on_window_destroyed() {}
+    bool send_destroyed();
+    void on_destroyed() {}
 
     //=============================================================================
     // data

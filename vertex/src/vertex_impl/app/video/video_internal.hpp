@@ -1,5 +1,6 @@
  #pragma once
 
+#include "vertex/app/instance_pair.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
 #include "vertex/system/error.hpp"
@@ -100,9 +101,9 @@ public:
     // displays
     //=============================================================================
 
-    bool add_display(display_instance& display, bool post_event);
-    void remove_display(display_id id, bool post_event);
-    void clear_displays(bool post_events);
+    bool add_display(display_instance& display, bool send_event);
+    void remove_display(display_id id, bool send_event);
+    void clear_displays(bool send_events);
 
     std::vector<display_id> list_displays() const;
     size_t get_display_index(display_id id) const;
@@ -115,7 +116,6 @@ public:
     display_id get_display_for_point(const math::vec2i& p) const;
     display_id get_display_for_rect(const math::recti& rect) const;
     display_id get_display_at_origin(const math::vec2i& origin) const;
-    display_id get_display_for_window(window_id w, bool ignore_pending_display_id) const;
 
     void update_desktop_area();
     math::recti get_desktop_area() const;
@@ -177,10 +177,10 @@ public:
     // fullscreen helpers
     //=============================================================================
 
-    void set_display_fullscreen_window(display_id id, window_id wid, bool post_event);
-    display_id find_display_with_fullscreen_window(window_id id);
+    void set_display_fullscreen_window(display_id id, window_id wid, bool send_event);
+    display_id find_display_with_fullscreen_window(window_id w);
     void reset_display_modes_for_window(window_id w, display_id target_display);
-    void clear_fullscreen_window_from_all_displays(window_id id);
+    void clear_fullscreen_window_from_all_displays(window_id w);
 
     //=============================================================================
     // input
@@ -197,17 +197,17 @@ public:
     void send_wakeup_event(); 
 
     // System events
-    bool post_system_theme_changed(system_theme theme);
-    bool post_display_added(display_id id);
+    bool send_system_theme_changed(system_theme theme);
+    bool send_display_added(display_id id);
     void on_display_added();
-    bool post_display_removed(display_id id);
-    bool post_display_moved(display_id id);
+    bool send_display_removed(display_id id);
+    bool send_display_moved(display_id id);
     void on_display_moved();
 
-    bool post_display_orientation_changed(display_id id, display_orientation orientation);
-    bool post_display_desktop_mode_changed(display_id id, const display_mode& mode);
-    bool post_display_current_mode_changed(display_id id, const display_mode& mode);
-    bool post_display_content_scale_changed(display_id id, const math::vec2& content_scale);
+    bool send_display_orientation_changed(display_id id, display_orientation orientation);
+    bool send_display_desktop_mode_changed(display_id id, const display_mode& mode);
+    bool send_display_current_mode_changed(display_id id, const display_mode& mode);
+    bool send_display_content_scale_changed(display_id id, const math::vec2& content_scale);
 
     //=============================================================================
     // data

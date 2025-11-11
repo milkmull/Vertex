@@ -63,12 +63,22 @@ struct click_state
 
 //=============================================================================
 
-struct input_source
+struct input_source_data
 {
     mouse_id id;
     button button_state;
-    // probably can put a cap on this in the future
     std::vector<click_state> click_states;
+};
+
+class input_source
+{
+public:
+
+    click_state* get_click_state(uint8_t button);
+
+public:
+
+    input_source_data data;
 };
 
 //=============================================================================
@@ -154,6 +164,7 @@ struct mouse_data
     bool was_touch_mouse_events = false;
     bool added_mouse_touch_device = false;
     bool added_pen_touch_device = false;
+    bool track_mouse_down = false;
 
     // Integer mode
     integer_mode integer_mode = integer_mode::none;
@@ -168,8 +179,9 @@ struct mouse_data
     // Input sources (physical devices)
     std::vector<input_source> sources;
 
-    // Cursors
+    // Cursor
     mouse_cursor_data cursors;
+    bool cursor_visible = true;
 };
 
 //=============================================================================
@@ -217,15 +229,17 @@ public:
     std::vector<mouse_id> list_mice() const;
     const char* get_name(mouse_id id = default_mouse_id) const;
 
+    input_source* get_input_source(mouse_id id, bool down, uint8_t button);
+
     //=============================================================================
     // focus
     //=============================================================================
 
-    video::window_instance* get_focus_instance();
     video::window_id get_focus() const;
-    void set_focus(video::window_id w);
+    video::window_instance* get_focus_instance();
 
-    bool update_mouse_focus(video::window_id wid, float x, float y, button button_state, bool send_mouse_motion);
+    void set_focus(video::window_id wid);
+    bool update_focus(video::window_instance* w, float x, float y, button button_state, bool send_mouse_motion);
 
     //=============================================================================
     // state
@@ -233,68 +247,78 @@ public:
 
     button get_button_state(mouse_id id, bool include_touch) const;
 
-    button get_state(float* x, float* y) const;            ///< State relative to focus window
-    button get_relative_state(float* x, float* y);   ///< Relative motion since last call
-    button get_global_state(float* x, float* y) const;     ///< State in global desktop coordinates
+    button get_state(float* x, float* y) const;
+    button get_relative_state(float* x, float* y);
+    button get_global_state(float* x, float* y) const;
 
     //=============================================================================
     // position
     //=============================================================================
 
-    bool is_position_in_window(video::window_id wid, float x, float y);
-    void set_position_in_window(video::window_id w, float x, float y);
-    void set_position_global(float x, float y);
+    bool is_position_in_window(const video::window_instance* w, float x, float y);
+
+    void warp_in_window(video::window_instance* w, float x, float y);
+    void warp_in_window_internal(video::window_instance* w, float x, float y);
+
+    bool warp_global(float x, float y);
 
     //=============================================================================
     // Relative Mode
     //=============================================================================
 
-    bool set_relative_mode(bool enabled) { return false; } ///< Enable/disable relative mode for a window
-    bool relative_mode_enabled(video::window_id w) { return false; }           ///< Check if relative mode is active
-    void update_relative_mouse_mode() {}                           ///< Internal update of relative mode state
-    void disable_mouse_warp_emulation() {}                         ///< Disable warp emulation workaround
+    void maybe_enable_warp_emulation(const video::window_instance* w, float x, float y);
+    void disable_warp_emulation();
+
+    bool set_relative_mode(bool enabled);
+    bool get_relative_mode() const;
+    bool update_relative_mode();
 
     //=============================================================================
     // Capture
     //=============================================================================
 
-    bool set_capture(bool enabled) { return false; }                  ///< Enable/disable capture
-    bool update_mouse_capture(bool force_release) { return false; }   ///< Refresh capture (force release if needed)
+    bool set_capture(bool enabled) { return false; }
+    bool update_capture(bool force_release) { return false; }
+
+    void constrain_position(const video::window_instance* w, float* x, float* y) const;
 
     //=============================================================================
     //  events
     //=============================================================================
 
-    bool send_mouse_added(mouse_id id);
-    bool send_mouse_removed(mouse_id id);
-    bool send_mouse_motion(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y);
-    bool send_mouse_motion_internal(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y);
-    bool send_mouse_button(time::time_point t, video::window_id w, mouse_id id, button b, bool down);
-    bool send_mouse_button_clicks(video::window_id w, mouse_id id, button b, bool down, int clicks);
-    bool send_mouse_wheel(video::window_id w, mouse_id id, float x, float y, wheel_direction direction);
-    bool perform_warp_mouse_in_window(video::window_id w, float x, float y, bool ignore_relative_mode);
+    void send_mouse_added(mouse_id id);
+    void send_mouse_removed(mouse_id id);
+
+    void send_motion(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y);
+    void send_motion_internal(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y);
+
+    void send_button(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down);
+    void send_button_internal(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks);
+
+    void send_button_clicks(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks);
+    void send_wheel(time::time_point t, const video::window_instance* w, mouse_id id, float x, float y, wheel_direction direction);
 
     //=============================================================================
     // cursor
     //=============================================================================
 
-    // -- Creation & Destruction
+    // lifecycle
     cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
     cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
     cursor_id create_system_cursor(cursor_shape id);
 
-    // -- Cursor Info
+    // info
     cursor_shape get_shape(cursor_id id);
     math::vec2i get_hotspot(cursor_id id);
 
-    // -- Active cursor
+    // active cursor
     bool set_cursor(cursor_id id);
     cursor_id get_cursor();
     cursor_id get_default_cursor();
     void set_default_cursor(const cursor& cursor);
     cursor get_default_system_cursor();
 
-    // -- Visibility
+    // visibility
     bool show_cursor();
     bool hide_cursor();
     bool cursor_visible();

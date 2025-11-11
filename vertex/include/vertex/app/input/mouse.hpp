@@ -29,7 +29,7 @@ enum : mouse_id
 // mouse state
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_FLAGS_DECLARE_BEGIN(button)
+VX_FLAGS_UT_DECLARE_BEGIN(button, uint8_t)
 {
     none         = 0,
     left         = VX_BIT(0),
@@ -39,6 +39,13 @@ VX_FLAGS_DECLARE_BEGIN(button)
     extra_2      = VX_BIT(4)
 }
 VX_FLAGS_DECLARE_END(button)
+
+enum : size_t { button_count = 5 };
+
+inline constexpr button button_mask(uint8_t x) noexcept
+{
+    return static_cast<button>(1u << (x - 1));
+}
 
 enum wheel_direction
 {

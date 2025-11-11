@@ -118,7 +118,6 @@ VX_API display_id get_primary_display();
 
 VX_API display_id get_display_for_point(const math::vec2i& p);
 VX_API display_id get_display_for_rect(const math::recti& rect);
-VX_API display_id get_display_for_window(window_id w);
 
 VX_API math::recti get_desktop_area();
 

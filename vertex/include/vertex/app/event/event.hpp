@@ -474,19 +474,20 @@ struct mouse_moved_event
 
 struct mouse_button_down_event
 {
-    mouse::button buttons;
+    uint8_t button;
     uint8_t clicks;
 };
 
 struct mouse_button_up_event
 {
-    mouse::button buttons;
+    uint8_t button;
 };
 
 struct mouse_wheel_event
 {
-    mouse::wheel_direction wheel;
-    float delta;
+    mouse::wheel_direction direction;
+    float x, y;
+    int ix, iy;
 };
 
 struct mouse_event_type

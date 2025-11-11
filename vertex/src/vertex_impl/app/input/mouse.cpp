@@ -5,6 +5,7 @@
 #include "vertex_impl/app/input/_platform/platform_mouse.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
+#include "vertex/math/geometry/2d/functions/collision.hpp"
 
 namespace vx {
 namespace app {
@@ -199,7 +200,7 @@ static void auto_capture_hint_watcher(const hint::hint_t name, const char*, cons
     if (auto_capture != mouse->data.auto_capture)
     {
         mouse->data.auto_capture = auto_capture;
-        mouse->update_mouse_capture(false);
+        mouse->update_capture(false);
     }
 }
 
@@ -363,6 +364,21 @@ bool mouse_instance::init(video::video_instance* owner)
 
 void mouse_instance::quit()
 {
+    data.quitting = true;
+
+    if (data.added_mouse_touch_device)
+    {
+        video->data.touch_ptr->remove_touch(touch::mouse_touch_id);
+        data.added_mouse_touch_device = false;
+    }
+
+    if (data.added_pen_touch_device)
+    {
+        video->data.touch_ptr->remove_touch(touch::pen_touch_id);
+    }
+
+    //if (data.cap)
+
     quit_impl();
 
     // hints
@@ -492,6 +508,20 @@ void mouse_instance::quit_impl()
 }
 
 //=============================================================================
+// input source
+//=============================================================================
+
+click_state* input_source::get_click_state(uint8_t button)
+{
+    if (button >= data.click_states.size())
+    {
+        data.click_states.resize(button);
+    }
+
+    return &data.click_states.at(button);
+}
+
+//=============================================================================
 // Device Management
 //=============================================================================
 
@@ -588,7 +618,7 @@ void mouse_instance::remove_mouse(mouse_id id)
     // Remove any mouse input sources for this id
     for (auto it = data.sources.begin(); it != data.sources.end(); ++it)
     {
-        if (it->id == id)
+        if (it->data.id == id)
         {
             it = data.sources.erase(it);
         }
@@ -630,19 +660,61 @@ const char* mouse_instance::get_name(mouse_id id) const
 }
 
 //=============================================================================
-// Focus (window association)
-//=============================================================================
 
-video::window_instance* mouse_instance::get_focus_instance()
+input_source* mouse_instance::get_input_source(mouse_id id, bool down, uint8_t button)
 {
-    return video->get_window_instance(data.focus);
+    input_source* source = nullptr;
+
+    for (input_source& is : data.sources)
+    {
+        if (is.data.id == id)
+        {
+            source = &is;
+            break;
+        }
+    }
+
+    if (!down && (!source || !(source->data.button_state & button_mask(button))))
+    {
+        // Might be a button release from a transition between mouse messages and raw input.
+        // See if there is a source that already has the button down and use that instead.
+        for (input_source& is : data.sources)
+        {
+            if (is.data.button_state & button_mask(button))
+            {
+                source = &is;
+                break;
+            }
+        }
+    }
+
+    if (source)
+    {
+        return source;
+    }
+
+    // Add a new source if not found
+    input_source new_source;
+    new_source.data.id = id;
+    data.sources.push_back(std::move(new_source));
+
+    return &data.sources.back();
 }
 
+//=============================================================================
+// Focus (window association)
 //=============================================================================
 
 video::window_id mouse_instance::get_focus() const
 {
     return data.focus;
+}
+
+//=============================================================================
+
+video::window_instance* mouse_instance::get_focus_instance()
+{
+    return video->get_window_instance(data.focus);
 }
 
 //=============================================================================
@@ -660,7 +732,7 @@ void mouse_instance::set_focus(video::window_id w)
         video::window_instance* w = get_focus_instance();
         if (w)
         {
-            w->post_window_mouse_leave();
+            w->send_mouse_leave();
         }
     }
 
@@ -672,7 +744,7 @@ void mouse_instance::set_focus(video::window_id w)
         video::window_instance* w = get_focus_instance();
         if (w)
         {
-            w->post_window_mouse_enter();
+            w->send_mouse_enter();
         }
     }
 
@@ -682,20 +754,21 @@ void mouse_instance::set_focus(video::window_id w)
 
 //=============================================================================
 
-bool mouse_instance::update_mouse_focus(video::window_id wid, float x, float y, button button_state, bool send_motion)
+bool mouse_instance::update_focus(video::window_instance* w, float x, float y, button button_state, bool send_motion)
 {
-    const bool in_window = is_position_in_window(wid, x, y);
+    const bool in_window = is_position_in_window(w, x, y);
+    const video::window_id wid = w ? w->data.id : invalid_id;
 
     if (!in_window)
     {
         if (wid == data.focus)
         {
-            set_focus(invalid_id);
-
             if (send_motion)
             {
-                //send_mouse_motion(wid, )
+                send_motion_internal(time::zero(), w, global_mouse_id, false, x, y);
             }
+
+            set_focus(invalid_id);
         }
 
         return false;
@@ -708,7 +781,7 @@ bool mouse_instance::update_mouse_focus(video::window_id wid, float x, float y, 
 
             if (send_motion)
             {
-
+                send_motion_internal(time::zero(), w, global_mouse_id, false, x, y);
             }
         }
 
@@ -728,16 +801,16 @@ button mouse_instance::get_button_state(mouse_id id, bool include_touch) const
     {
         if (id == global_mouse_id || id == touch_mouse_id)
         {
-            if (include_touch || source.id == touch_mouse_id)
+            if (include_touch || source.data.id == touch_mouse_id)
             {
-                state |= source.button_state;
+                state |= source.data.button_state;
             }
         }
         else
         {
-            if (id == source.id)
+            if (id == source.data.id)
             {
-                state |= source.button_state;
+                state |= source.data.button_state;
                 break;
             }
         }
@@ -789,7 +862,7 @@ button mouse_instance::get_global_state(float* x, float* y) const
 
     float tmpx, tmpy;
 
-    // make sure these are never NULL for the backend implementations...
+    // make sure these are never NULL for the backend implementations
     if (!x)
     {
         x = &tmpx;
@@ -813,9 +886,8 @@ button mouse_instance::get_global_state(float* x, float* y) const
 // Position control
 //=============================================================================
 
-bool mouse_instance::is_position_in_window(video::window_id wid, float x, float y)
+bool mouse_instance::is_position_in_window(const video::window_instance* w, float x, float y)
 {
-    const video::window_instance* w = video->get_window_instance(wid);
     if (!w)
     {
         return false;
@@ -835,79 +907,697 @@ bool mouse_instance::is_position_in_window(video::window_id wid, float x, float 
     return true;
 }
 
-//void mouse_instance::set_position_in_window(video::window_id w, const math::vec2& position)
-//{
-//
-//}
-//
-//void mouse_instance::set_position_global(const math::vec2& position)
-//{
-//
-//}
+//=============================================================================
+
+void mouse_instance::warp_in_window(video::window_instance* w, float x, float y)
+{
+    maybe_enable_warp_emulation(w, x, y);
+    warp_in_window_internal(w, x, y);
+}
+
+void mouse_instance::warp_in_window_internal(video::window_instance* w, float x, float y)
+{
+    if (!w)
+    {
+        w = get_focus_instance();
+
+        if (!w)
+        {
+            return;
+        }
+    }
+
+    if (w->data.flags & video::window_flags::minimized)
+    {
+        return;
+    }
+
+    // ignore previous position when warping
+    data.last_x = x;
+    data.last_y = y;
+    data.has_position = false;
+
+    if (data.relative_mode_enabled)
+    {
+        if (!data.relative_warp_motion)
+        {
+            data.x = x;
+            data.y = y;
+            data.has_position = true;
+            return;
+        }
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_WARP
+
+    if (!data.relative_mode_enabled)
+    {
+        impl_ptr->warp(w, x, y);
+    }
+    else
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_WARP
+
+    {
+        send_motion_internal(time::zero(), w, global_mouse_id, false, x, y);
+    }
+}
+
+//=============================================================================
+
+bool mouse_instance::warp_global(float x, float y)
+{
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_WARP_GLOBAL
+
+    return impl_ptr->warp_global(x, y);
+
+#else
+
+    VX_UNSUPPORTED("set_position_global()");
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_WARP_GLOBAL
+}
+
+//=============================================================================
+// Relative Mode
+//=============================================================================
+
+void mouse_instance::maybe_enable_warp_emulation(const video::window_instance* w, float x, float y)
+{
+    if (!data.warp_emulation_prohibited && data.warp_emulation_hint && !data.cursor_visible && !data.warp_emulation_active)
+    {
+        if (!w)
+        {
+            w = get_focus_instance();
+        }
+
+        if (w)
+        {
+            const float cx = w->data.size.x * 0.5f;
+            const float cy = w->data.size.y * 0.5f;
+
+            if (x >= math::floor(cx) && x <= math::ceil(cx) &&
+                y >= math::floor(cy) && y <= math::ceil(cy))
+            {
+                // Detect two rapid center-warps (within ~30ms):
+                // this indicates the system tried to recenter the cursor
+                // but relative mode is unavailable, so emulate it.
+
+                const time::time_point now = os::get_ticks();
+                if (now - data.last_center_warp_time < time::milliseconds(30))
+                {
+                    // Try to enable relative mode. If it fails, cancel emulation.
+                    data.warp_emulation_active = set_relative_mode(true);
+                }
+
+                // Record last warp time to measure subsequent deltas.
+                data.last_center_warp_time = now;
+                return;
+            }
+        }
+
+        // Reset timing if warp center condition not met.
+        data.last_center_warp_time.zero();
+    }
+}
+
+//=============================================================================
+
+void mouse_instance::disable_warp_emulation()
+{
+    if (data.warp_emulation_active)
+    {
+        set_relative_mode(false);
+    }
+
+    data.warp_emulation_prohibited = true;
+}
+
+//=============================================================================
+
+bool mouse_instance::set_relative_mode(bool enabled)
+{
+    if (!enabled)
+    {
+        data.warp_emulation_active = false;
+    }
+
+    if (enabled == data.relative_mode_enabled)
+    {
+        return true;
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_SET_RELATIVE_MOUSE_MODE
+
+    if (!impl_ptr->set_relative_mode(enabled))
+    {
+        return false;
+    }
+
+    data.relative_mode_enabled = enabled;
+
+    if (enabled)
+    {
+        // update cursor visibility before we potantially warp the mouse
+        redraw_cursor();
+    }
+
+    video::window_instance* focus_window = video->data.keyboard_ptr->get_focus_instance();
+
+    if (enabled && focus_window)
+    {
+        set_focus(focus_window->data.id);
+    }
+
+    if (focus_window)
+    {
+        focus_window->update_grab();
+
+        // move the cursor back to where the app expects it
+        if (!enabled)
+        {
+            warp_in_window_internal(focus_window, data.x, data.y);
+        }
+
+        update_capture(false);
+    }
+
+    if (!enabled)
+    {
+        // update cursor visibility after restoring mouse position
+        redraw_cursor();
+    }
+
+    // flush any pending mouse motion
+    video->app->data.events_ptr->flush_events(event::mouse_moved);
+    return true;
+
+#else
+
+    VX_UNSUPPORTED("set_relative_mode()");
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_SET_RELATIVE_MOUSE_MODE
+}
+
+//=============================================================================
+
+bool mouse_instance::get_relative_mode() const
+{
+    return data.relative_mode_enabled;
+}
+
+//=============================================================================
+
+bool mouse_instance::update_relative_mode()
+{
+    video::window_instance* focus_window = video->data.keyboard_ptr->get_focus_instance();
+    const bool enabled = (focus_window && (focus_window->data.flags & video::window_flags::mouse_relative_mode));
+
+    if (enabled == data.relative_mode_enabled)
+    {
+        return true;
+    }
+
+    return set_relative_mode(enabled);
+}
+
+//=============================================================================
+// Capture
+//=============================================================================
+
+void mouse_instance::constrain_position(const video::window_instance* w, float* x, float* y) const
+{
+    if (w && !(w->data.flags & video::window_flags::mouse_capture))
+    {
+        const math::recti rect = w->get_mouse_rect();
+        const math::recti window_rect{ 0, 0, w->data.size.x, w->data.size.y };
+
+        const math::recti mouse_rect = rect.empty()
+            ? window_rect
+            : math::g2::crop(window_rect, rect);
+
+        if (mouse_rect.empty())
+        {
+            return;
+        }
+
+        const float x_min = static_cast<float>(mouse_rect.left());
+        const float x_max = static_cast<float>(mouse_rect.right());
+        const float y_min = static_cast<float>(mouse_rect.top());
+        const float y_max = static_cast<float>(mouse_rect.bottom());
+
+        if (*x >= static_cast<float>(x_max))
+        {
+            *x = math::max(static_cast<float>(x_max - 1), data.last_x);
+        }
+        if (*x < static_cast<float>(x_min))
+        {
+            *x = static_cast<float>(x_min);
+        }
+
+        if (*y >= static_cast<float>(y_max))
+        {
+            *y = math::max(static_cast<float>(y_max - 1), data.last_y);
+        }
+        if (*y < static_cast<float>(y_min))
+        {
+            *y = static_cast<float>(y_min);
+        }
+    }
+}
 
 //=============================================================================
 // Event dispatch (internal)
 //=============================================================================
 
-bool mouse_instance::send_mouse_added(mouse_id id)
+#define events_ptr video->app->data.events_ptr
+
+void mouse_instance::send_mouse_added(mouse_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::mouse_added;
     e.mouse_event.common.mouse_id = id;
-    const bool posted = video->app->data.events_ptr->push_event(e);
-
-    return posted;
+    events_ptr->push_event(e);
 }
 
 //=============================================================================
 
-bool mouse_instance::send_mouse_removed(mouse_id id)
+void mouse_instance::send_mouse_removed(mouse_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
     event::event e{};
     e.type = event::mouse_removed;
     e.mouse_event.common.mouse_id = id;
-    const bool posted = video->app->data.events_ptr->push_event(e);
-
-    return posted;
+    events_ptr->push_event(e);
 }
 
 //=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_mouse.c#L703
 
-bool mouse_instance::send_mouse_motion(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y)
+void mouse_instance::send_motion(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
 {
-    if (is_valid_id(w) && !relative)
+    if (w && !relative)
     {
         const button button_state = get_button_state(id, true);
         const bool send_motion = (id != touch_mouse_id && id != pen_mouse_id);
 
-        if (!update_mouse_focus(w, x, y, button_state, send_motion))
+        if (!update_focus(w, x, y, button_state, send_motion))
         {
-            return false;
+            return;
         }
     }
 
-    return send_mouse_motion_internal(t, w, id, relative, x, y);
+    send_motion_internal(t, w, id, relative, x, y);
 }
 
 //=============================================================================
 
-bool mouse_instance::send_mouse_motion_internal(time::time_point t, video::window_id w, mouse_id id, bool relative, float x, float y)
+void mouse_instance::send_motion_internal(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
 {
-    return false;
+    const video::window_id wid = w ? w->data.id : invalid_id;
+
+    // Convert mouse motion to touch motion if emulation is active.
+    // Triggered only when not already from a synthetic touch/pen source,
+    // and only when absolute (non-relative) motion occurs.
+    if (data.mouse_touch_events)
+    {
+        if ((id != touch_mouse_id) && (id != pen_mouse_id) && !relative && data.track_mouse_down)
+        {
+            if (w)
+            {
+                const float nx = x / static_cast<float>(w->data.size.x);
+                const float ny = y / static_cast<float>(w->data.size.y);
+                video->data.touch_ptr->send_motion(t, touch::mouse_touch_id, static_cast<touch::finger_id>(button::left), w, nx, ny, 1.0f);
+            }
+        }
+    }
+
+    // Ignore mouse events that are actually coming from touch when that mapping is disabled.
+    if (!data.touch_mouse_events && id == touch_mouse_id)
+    {
+        return;
+    }
+
+    float dx = 0.0f;
+    float dy = 0.0f;
+
+    if (relative)
+    {
+        // In relative mode, movement is reported as deltas rather than absolute coordinates.
+        if (data.relative_mode_enabled)
+        {
+            if (data.relative_system_scale_enabled)
+            {
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_APPLY_SYSTEM_SCALE
+
+                // Optionally scale deltas using system DPI scale (if backend supports it).
+                impl_ptr->apply_system_scale(t, w, id, &x, &y);
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_APPLY_SYSTEM_SCALE
+            }
+
+            // Apply user-defined speed scaling for relative mode.
+            if (data.relative_speed_scale_enabled)
+            {
+                x *= data.relative_speed_scale;
+                y *= data.relative_speed_scale;
+            }
+        }
+        else
+        {
+            // Fallback: apply normal movement scaling outside relative mode.
+            if (data.normal_speed_scale_enabled)
+            {
+                x *= data.normal_speed_scale;
+                y *= data.normal_speed_scale;
+            }
+        }
+
+        if (data.integer_mode & integer_mode::motion)
+        {
+            // Accumulate the fractional relative motion, only process integer portion
+            data.integer_mode_residual_motion_x = math::modf(data.integer_mode_residual_motion_x + x, x);
+            data.integer_mode_residual_motion_y = math::modf(data.integer_mode_residual_motion_y + y, y);
+        }
+
+        dx = x;
+        dy = y;
+
+        // Convert from delta to updated absolute coordinates.
+        x = data.last_x + dx;
+        y = data.last_y + dy;
+
+        constrain_position(w, &x, &y);
+    }
+    else
+    {
+        if (data.integer_mode & integer_mode::motion)
+        {
+            // discard fractional component
+            x = math::trunc(x);
+            y = math::trunc(y);
+        }
+
+        constrain_position(w, &x, &y);
+
+        // Compute deltas only if a previous position exists.
+        if (data.has_position)
+        {
+            dx = x - data.last_x;
+            dy = y - data.last_y;
+        }
+    }
+
+    // Skip redundant events (no movement since last frame).
+    if (data.has_position && dx == 0.0f && dy == 0.0f)
+    {
+        return;
+    }
+
+    // Ignore phantom relative movement generated on the first touch.
+    if (id == touch_mouse_id && !get_button_state(id, true))
+    {
+        dx = 0.0f;
+        dy = 0.0f;
+    }
+
+    // update internal state
+    {
+        data.x_accu += dx;
+        data.y_accu += dy;
+
+        // Update coordinates with constrained deltas in relative mode.
+        if (relative && data.has_position)
+        {
+            data.x = dx;
+            data.y = dy;
+            constrain_position(w, &data.x, &data.y);
+        }
+        else
+        {
+            data.x = x;
+            data.y = y;
+        }
+
+        data.has_position = true;
+
+        // Record unclamped last known position (for next delta computation).
+        data.last_x = relative ? data.x : x;
+        data.last_y = relative ? data.y : y;
+
+        // Accumulate click motion used for drag/double-click detection.
+        data.click_motion_x += dx;
+        data.click_motion_y += dy;
+    }
+
+    // post the event
+    {
+        // Convert event to global mouse if not in relative mode, or if relative motion is being emulated (warp mode).
+        if ((!data.relative_mode_enabled || data.warp_emulation_active) && (id != touch_mouse_id) && (id != pen_mouse_id))
+        {
+            id = global_mouse_id;
+        }
+
+        const video::window_instance* focus = get_focus_instance();
+        const bool window_is_relative = focus && (focus->data.flags & video::window_flags::mouse_relative_mode);
+
+        // When in relative mode but receiving absolute coordinates suppress warp motion events.
+        if (!relative && window_is_relative)
+        {
+            if (!data.relative_warp_motion)
+            {
+                return;
+            }
+
+            dx = 0.0f;
+            dy = 0.0f;
+        }
+
+        event::event e{};
+        e.type = event::mouse_moved;
+        e.time = t;
+        e.mouse_event.common.mouse_id = id;
+        e.mouse_event.common.window_id = data.focus;
+        e.mouse_event.common.x = data.x;
+        e.mouse_event.common.y = data.y;
+        e.mouse_event.mouse_moved.dx = dx;
+        e.mouse_event.mouse_moved.dy = dy;
+        events_ptr->push_event(e);
+    }
 }
 
 //=============================================================================
 
-bool mouse_instance::send_mouse_button(time::time_point t, video::window_id w, mouse_id id, button b, bool down) { return false; }
-bool mouse_instance::send_mouse_button_clicks(video::window_id w, mouse_id id, button b, bool down, int clicks) { return false; }
-bool mouse_instance::send_mouse_wheel(video::window_id w, mouse_id id, float x, float y, wheel_direction direction) { return false; }
-bool mouse_instance::perform_warp_mouse_in_window(video::window_id w, float x, float y, bool ignore_relative_mode) { return false; }
+void mouse_instance::send_button(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down)
+{
+    send_button_internal(t, w, id, b, down, -1);
+}
+
+//=============================================================================
+
+void mouse_instance::send_button_internal(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
+{
+    input_source* source = get_input_source(id, down, b);
+    if (!source)
+    {
+        return;
+    }
+
+    button button_state = source->data.button_state;
+    event::event_type type;
+
+    // Convert mouse motion to touch motion if emulation is active.
+    // Triggered only when not already from a synthetic touch/pen source,
+    // and only when absolute (non-relative) motion occurs.
+    if (data.mouse_touch_events)
+    {
+        if ((id != touch_mouse_id) && (id != pen_mouse_id) && (static_cast<button>(b) == button::left))
+        {
+            data.track_mouse_down = down;
+
+            if (w)
+            {
+                const float nx = data.x / static_cast<float>(w->data.size.x);
+                const float ny = data.y / static_cast<float>(w->data.size.y);
+
+                type = data.track_mouse_down ? event::finger_down : event::finger_up;
+                video->data.touch_ptr->send_event(t, touch::mouse_touch_id, static_cast<touch::finger_id>(button::left), w, type, nx, ny, 1.0f);
+            }
+        }
+    }
+
+    // Ignore mouse events that are actually coming from touch when that mapping is disabled.
+    if (!data.touch_mouse_events && id == touch_mouse_id)
+    {
+        return;
+    }
+
+    // Determine event type
+    if (down)
+    {
+        type = event::mouse_button_down;
+        button_state |= button_mask(b);
+    }
+    else
+    {
+        type = event::mouse_button_up;
+        button_state &= ~button_mask(b);
+    }
+
+    // Do this after calculating button state so button presses gain focus
+    if (w && down)
+    {
+        update_focus(w, data.x, data.y, button_state, true);
+    }
+
+    // No update
+    if (button_state == source->data.button_state)
+    {
+        return;
+    }
+    source->data.button_state = button_state;
+
+    if (clicks < 0)
+    {
+        click_state* click_state = source->get_click_state(b);
+        if (click_state)
+        {
+            if (down)
+            {
+                const time::time_point now = os::get_ticks();
+
+                if ((now >= (click_state->last_click_time + data.double_click_time)) ||
+                    (math::abs(data.click_motion_x - click_state->motion_x) > data.double_click_radius) ||
+                    (math::abs(data.click_motion_y - click_state->motion_y) > data.double_click_radius))
+                {
+                    click_state->click_count = 0;
+                }
+
+                click_state->last_click_time = now;
+                click_state->motion_x = data.click_motion_x;
+                click_state->motion_y = data.click_motion_y;
+
+                if (click_state->click_count < 255)
+                {
+                    ++click_state->click_count;
+                }
+            }
+
+            clicks = click_state->click_count;
+        }
+        else
+        {
+            clicks = 1;
+        }
+    }
+
+    // post the event
+    {
+        // Convert event to global mouse if not in relative mode, or if relative motion is being emulated (warp mode).
+        if ((!data.relative_mode_enabled || data.warp_emulation_active) && (id != touch_mouse_id) && (id != pen_mouse_id))
+        {
+            id = global_mouse_id;
+        }
+        else
+        {
+            id = source->data.id;
+        }
+
+        const video::window_id wid = w ? w->data.id : invalid_id;
+
+        event::event e{};
+        e.type = type;
+        e.mouse_event.common.mouse_id = id;
+        e.mouse_event.common.window_id = wid;
+        e.mouse_event.common.x = data.x;
+        e.mouse_event.common.y = data.y;
+        e.mouse_event.mouse_button_down.button = b;
+        e.mouse_event.mouse_button_down.clicks = clicks;
+        events_ptr->push_event(e);
+    }
+
+    // Do this after pushing event so bhtton release can lose focus
+    if (w && !down)
+    {
+        update_focus(w, data.x, data.y, button_state, true);
+    }
+
+    // Auto capture the mouse when buttons are pressed
+    if (data.auto_capture)
+    {
+        update_capture(false);
+    }
+}
+
+//=============================================================================
+
+void mouse_instance::send_button_clicks(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
+{
+    clicks = math::max(clicks, 0);
+    send_button_internal(t, w, id, b, down, clicks);
+}
+
+//=============================================================================
+
+void mouse_instance::send_wheel(time::time_point t, const video::window_instance* w, mouse_id id, float x, float y, wheel_direction direction)
+{
+    const video::window_id wid = w ? w->data.id : invalid_id;
+
+    if (w)
+    {
+        set_focus(wid);
+    }
+
+    if (x == 0.0f && y == 0.0f)
+    {
+        return;
+    }
+
+    // push event
+    {
+        // Convert event to global mouse if not in relative mode, or if relative motion is being emulated (warp mode).
+        if (!data.relative_mode_enabled || data.warp_emulation_active)
+        {
+            id = global_mouse_id;
+        }
+
+        event::event e{};
+        e.type = event::mouse_wheel;
+        e.time = t;
+        e.mouse_event.common.mouse_id = id;
+        e.mouse_event.common.window_id = wid;
+        e.mouse_event.common.x = data.x;
+        e.mouse_event.common.y = data.y;
+        e.mouse_event.mouse_wheel.direction = direction;
+
+        float ix, iy;
+       
+        data.integer_mode_residual_scroll_x = math::modf(data.integer_mode_residual_scroll_x + x, ix);
+        data.integer_mode_residual_scroll_y = math::modf(data.integer_mode_residual_scroll_y + y, iy);
+
+        e.mouse_event.mouse_wheel.ix = static_cast<int>(ix);
+        e.mouse_event.mouse_wheel.iy = static_cast<int>(iy);
+
+        if (data.integer_mode & integer_mode::scroll)
+        {
+            e.mouse_event.mouse_wheel.x = ix;
+            e.mouse_event.mouse_wheel.y = iy;
+        }
+        else
+        {
+            e.mouse_event.mouse_wheel.x = x;
+            e.mouse_event.mouse_wheel.y = y;
+        }
+
+        events_ptr->push_event(e);
+    }
+}
 
 } // namespace mouse
 } // namespace app

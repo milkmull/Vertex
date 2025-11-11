@@ -192,8 +192,10 @@ std::vector<finger> touch_instance::get_fingers(touch_id id) const
 
 #define events_ptr video->app->data.events_ptr
 
-void touch_instance::post_touch_event(
-    time::time_point t, touch_id id, finger_id fid, video::window_id wid,
+//=============================================================================
+
+void touch_instance::send_event(
+    time::time_point t, touch_id id, finger_id fid, video::window_instance* w,
     event::event_type type, float x, float y, float pressure
 )
 {
@@ -205,14 +207,13 @@ void touch_instance::post_touch_event(
         return;
     }
 
+    const video::window_id wid = w ? w->data.id : invalid_id;
     mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
     const bool down = (type == event::finger_down);
 
     // generating synthetic mouse events for touch input
     if (mouse->data.touch_mouse_events && (id != mouse_touch_id) && (id != pen_touch_id))
     {
-        video::window_instance* w = video->get_window_instance(wid);
-
         if (down)
         {
             if (!data.finger_touching)
@@ -224,8 +225,8 @@ void touch_instance::post_touch_event(
                     const float wx = math::clamp(x * size.x, 0.0f, static_cast<float>(size.x));
                     const float wy = math::clamp(y * size.y, 0.0f, static_cast<float>(size.y));
 
-                    mouse->send_mouse_motion(t, wid, mouse::touch_mouse_id, false, wx, wy);
-                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button::left, true);
+                    mouse->send_motion(t, w, mouse::touch_mouse_id, false, wx, wy);
+                    mouse->send_button(t, w, mouse::touch_mouse_id, mouse::button::left, true);
                 }
 
                 data.finger_touching = true;
@@ -239,7 +240,7 @@ void touch_instance::post_touch_event(
             {
                 if (w)
                 {
-                    mouse->send_mouse_button(t, wid, mouse::touch_mouse_id, mouse::button::left, false);
+                    mouse->send_button(t, w, mouse::touch_mouse_id, mouse::button::left, false);
                 }
 
                 data.finger_touching = true;
@@ -265,7 +266,7 @@ void touch_instance::post_touch_event(
         {
             // finger exists so it is already down, assume
             // the finger up event was lost and send a cancel
-            post_touch_event(t, id, fid, wid, event::finger_canceled, x, y, pressure);
+            send_event(t, id, fid, w, event::finger_canceled, x, y, pressure);
         }
 
         if (!touch->add_finger(fid, x, y, pressure))
@@ -306,8 +307,8 @@ void touch_instance::post_touch_event(
 
 //=============================================================================
 
-void touch_instance::post_touch_motion(
-    time::time_point t, touch_id id, finger_id fid, video::window_id wid,
+void touch_instance::send_motion(
+    time::time_point t, touch_id id, finger_id fid, video::window_instance* w,
     float x, float y, float pressure
 )
 {
@@ -317,18 +318,17 @@ void touch_instance::post_touch_motion(
         return;
     }
 
+    const video::window_id wid = w ? w->data.id : invalid_id;
     mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
 
     // generating synthetic mouse events for touch input
-    if (mouse->data.touch_mouse_events && (id != mouse_touch_id) && (id != pen_touch_id))
+    if (w && mouse->data.touch_mouse_events && (id != mouse_touch_id) && (id != pen_touch_id))
     {
-        video::window_instance* w = video->get_window_instance(wid);
-
         const auto& size = w->data.size;
         const float wx = math::clamp(x * size.x, 0.0f, static_cast<float>(size.x));
         const float wy = math::clamp(y * size.y, 0.0f, static_cast<float>(size.y));
 
-        mouse->send_mouse_motion(t, wid, mouse::touch_mouse_id, false, wx, wy);
+        mouse->send_motion(t, w, mouse::touch_mouse_id, false, wx, wy);
     }
 
     // discard synthetic touch or pen events coming from platform layer
@@ -340,7 +340,7 @@ void touch_instance::post_touch_motion(
     finger* finger = touch->get_finger(fid);
     if (!finger)
     {
-        post_touch_event(t, id, fid, wid, event::finger_down, x, y, pressure);
+        send_event(t, id, fid, w, event::finger_down, x, y, pressure);
         return;
     }
 
@@ -377,17 +377,17 @@ void touch_instance::post_touch_motion(
 
 //=============================================================================
 
-bool touch_instance::post_touch_pinch(time::time_point t, event::event_type type, video::window_id wid, float scale)
+void touch_instance::send_pinch(time::time_point t, event::event_type type, const video::window_instance* w, float scale)
 {
     VX_ASSERT(event::get_category(type) == event::category_pinch);
+    const video::window_id wid = w ? w->data.id : invalid_id;
 
     event::event e{};
     e.type = type;
     e.time = t;
     e.pinch_event.common.scale = scale;
     e.pinch_event.common.window_id = wid;
-
-    return events_ptr->push_event(e);
+    events_ptr->push_event(e);
 }
 
 } // namespace touch

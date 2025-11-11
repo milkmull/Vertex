@@ -94,13 +94,13 @@ public:
     // events
     ///////////////////////////////////////////////////////////////////////////////
 
-    bool post_app_quit();
-    bool post_app_terminating();
-    bool post_app_low_memory();
-    bool post_app_will_enter_background();
-    bool post_app_did_enter_background();
-    bool post_app_will_enter_foreground();
-    bool post_event_did_enter_foreground();
+    bool send_app_quit();
+    bool send_app_terminating();
+    bool send_app_low_memory();
+    bool send_app_will_enter_background();
+    bool send_app_did_enter_background();
+    bool send_app_will_enter_foreground();
+    bool send_event_did_enter_foreground();
 
     ///////////////////////////////////////////////////////////////////////////////
     // data

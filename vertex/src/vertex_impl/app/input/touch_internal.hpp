@@ -93,9 +93,9 @@ public:
     // events
     //=============================================================================
 
-    void post_touch_event(time::time_point t, touch_id id, finger_id fid, video::window_id wid, event::event_type type, float x, float y, float pressure);
-    void post_touch_motion(time::time_point t, touch_id id, finger_id fid, video::window_id wid, float x, float y, float pressure);
-    bool post_touch_pinch(time::time_point t, event::event_type type, video::window_id wid, float scale);
+    void send_event(time::time_point t, touch_id id, finger_id fid, video::window_instance* w, event::event_type type, float x, float y, float pressure);
+    void send_motion(time::time_point t, touch_id id, finger_id fid, video::window_instance* w, float x, float y, float pressure);
+    void send_pinch(time::time_point t, event::event_type type, const video::window_instance* w, float scale);
 
     //=============================================================================
     // data
