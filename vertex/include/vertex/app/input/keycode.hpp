@@ -10,18 +10,14 @@ namespace vx {
 namespace app {
 namespace keyboard {
 
-namespace _priv {
-
 enum : uint32_t
 {
-    extended_mask = VX_BIT(29),
-    scancode_mask = VX_BIT(30)
+    key_extended_mask = VX_BIT(29),
+    key_scancode_mask = VX_BIT(30)
 };
 
-} // namespace _priv
-
-#define MAKE_EXTENDED_KEYCODE(i) (i | _priv::extended_mask)
-#define MAKE_KEYCODE(sc) (sc | _priv::scancode_mask)
+#define MAKE_EXTENDED_KEYCODE(i) (i | key_extended_mask)
+#define MAKE_KEYCODE(sc) (sc | key_scancode_mask)
 
 enum keycode : uint32_t
 {
@@ -190,7 +186,7 @@ enum keycode : uint32_t
     key_exsel                   = MAKE_KEYCODE(scancode_exsel),
     key_kp_00                   = MAKE_KEYCODE(scancode_kp_00),
     key_kp_000                  = MAKE_KEYCODE(scancode_kp_000),
-    key_thousandsseparatoR      = MAKE_KEYCODE(scancode_thousandsseparator),
+    key_thousandsseparator      = MAKE_KEYCODE(scancode_thousandsseparator),
     key_decimalseparator        = MAKE_KEYCODE(scancode_decimalseparator),
     key_currencyunit            = MAKE_KEYCODE(scancode_currencyunit),
     key_currencysubunit         = MAKE_KEYCODE(scancode_currencysubunit),
@@ -250,10 +246,10 @@ enum keycode : uint32_t
     key_media_play              = MAKE_KEYCODE(scancode_media_play),
     key_media_pause             = MAKE_KEYCODE(scancode_media_pause),
     key_media_record            = MAKE_KEYCODE(scancode_media_record),
-    key_media_fast_forwarD      = MAKE_KEYCODE(scancode_media_fast_forward),
+    key_media_fast_forward      = MAKE_KEYCODE(scancode_media_fast_forward),
     key_media_rewind            = MAKE_KEYCODE(scancode_media_rewind),
     key_media_next_track        = MAKE_KEYCODE(scancode_media_next_track),
-    key_media_previous_trACK    = MAKE_KEYCODE(scancode_media_previous_track),
+    key_media_previous_track    = MAKE_KEYCODE(scancode_media_previous_track),
     key_media_stop              = MAKE_KEYCODE(scancode_media_stop),
     key_media_eject             = MAKE_KEYCODE(scancode_media_eject),
     key_media_play_pause        = MAKE_KEYCODE(scancode_media_play_pause),
@@ -289,6 +285,11 @@ enum keycode : uint32_t
 #undef MAKE_EXTENDED_KEYCODE
 #undef MAKE_KEYCODE
 
+inline constexpr keycode scancode_to_keycode(scancode sc) noexcept
+{
+    return static_cast<keycode>(sc | key_scancode_mask);
+}
+
 VX_FLAGS_UT_DECLARE_BEGIN(key_mod, uint16_t)
 {
     none   = 0x0000,
@@ -296,6 +297,7 @@ VX_FLAGS_UT_DECLARE_BEGIN(key_mod, uint16_t)
     lshift = 0x0001,
     rshift = 0x0002,
     shift  = (lshift | rshift),
+    level5 = 0x0004,
 
     lctrl  = 0x0040,
     rctrl  = 0x0080,

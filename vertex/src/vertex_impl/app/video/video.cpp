@@ -83,6 +83,8 @@ bool video_instance::init(app_instance* owner)
         return false;
     }
 
+    data.thread_id = os::this_thread::get_id();
+
     // initialize backend
     impl_ptr.reset(new video_instance_impl);
     if (!impl_ptr || !impl_ptr->init(this))
@@ -185,6 +187,13 @@ void video_instance::quit()
     }
 
     app = nullptr;
+}
+
+//=============================================================================
+
+bool video_instance::on_video_thread() const
+{
+    return os::this_thread::get_id() == data.thread_id;
 }
 
 //=============================================================================

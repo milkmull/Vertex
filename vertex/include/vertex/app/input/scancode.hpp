@@ -4,8 +4,11 @@ namespace vx {
 namespace app {
 namespace keyboard {
 
-enum scancode
+enum scancode : uint32_t
 {
+    scancode_unknown = 0,
+    scancode_count = 512,
+
     scancode_a = 4,
     scancode_b = 5,
     scancode_c = 6,
@@ -276,8 +279,7 @@ enum scancode
     scancode_endcall = 290,
 
     scancode_reserved = 400,
-
-    _scancode_count = 512
+    scancode_reserved_last = scancode_reserved + 100
 };
 
 } // namespace keyboard

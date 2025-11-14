@@ -1,11 +1,12 @@
 #include "vertex/app/input/touch.hpp"
+#include "vertex/math/geometry/2d/functions/collision.hpp"
+#include "vertex/pixel/surface.hpp"
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_mouse.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
-#include "vertex/math/geometry/2d/functions/collision.hpp"
 
 namespace vx {
 namespace app {
@@ -15,7 +16,7 @@ namespace mouse {
 // hints
 //=============================================================================
 
-static void double_click_time_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void double_click_time_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
 
@@ -254,6 +255,75 @@ mouse_instance::~mouse_instance()
 
 //=============================================================================
 
+void mouse_instance::init_data()
+{
+    data.quitting = false;
+
+    // Window focus
+    data.focus = invalid_id;
+
+    // Position
+    data.x = data.y = 0.0f;
+    data.last_x = data.last_y = 0.0f;
+    data.x_accu = data.y_accu = 0.0f;
+    data.has_position = false;
+
+    data.click_motion_x = 0.0f;
+    data.click_motion_y = 0.0f;
+
+    data.double_click_time.zero();
+    data.double_click_radius = 0;
+
+    // Relative mode
+    data.relative_mode_enabled = false;
+    data.relative_warp_motion = false; 
+    data.relative_hide_cursor = false;
+    data.relative_center = false; 
+
+    // Warp enumlation
+    data.warp_emulation_hint = false;
+    data.warp_emulation_active = false;
+    data.warp_emulation_prohibited = false;
+    data.last_center_warp_time.zero();
+
+    // Scaling
+    data.normal_speed_scale_enabled = false;
+    data.relative_speed_scale_enabled = false;
+    data.relative_system_scale_enabled = false;
+    data.normal_speed_scale = 0.0f;
+    data.relative_speed_scale = 0.0f;
+
+    // Capture settings
+    data.auto_capture = false;
+    data.capture_desired = false;
+    data.capture_window = invalid_id;
+
+    // Event translation toggles
+    data.touch_mouse_events = false;
+    data.mouse_touch_events = false;
+    data.pen_mouse_events = false;
+    data.pen_touch_events = false;
+    data.was_touch_mouse_events = false;
+    data.added_mouse_touch_device = false;
+    data.added_pen_touch_device = false;
+    data.track_mouse_down = false;
+
+    // Integer mode
+    data.integer_mode = integer_mode::none;
+    data.integer_mode_residual_motion_x = 0.0f;
+    data.integer_mode_residual_motion_y = 0.0f;
+    data.integer_mode_residual_scroll_x = 0.0f;
+    data.integer_mode_residual_scroll_y = 0.0f;
+
+    // Cursor
+    data.cursor_id_generator.reset();
+    data.default_cursor = invalid_id;
+    data.current_cursor = invalid_id;
+    data.cursor_visible = true;
+}
+
+//=============================================================================
+
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_mouse.c#L249
 
 bool mouse_instance::init(video::video_instance* owner)
@@ -262,7 +332,7 @@ bool mouse_instance::init(video::video_instance* owner)
     VX_ASSERT(owner);
     video = owner;
 
-    data = mouse_data{};
+    init_data();
 
     // hints
     {
@@ -377,7 +447,23 @@ void mouse_instance::quit()
         video->data.touch_ptr->remove_touch(touch::pen_touch_id);
     }
 
-    //if (data.cap)
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+
+    set_capture(false);
+    update_capture(true);
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+
+    set_relative_mode(false);
+    show_cursor();
+
+    if (is_valid_id(data.default_cursor))
+    {
+        set_default_cursor(invalid_id);
+    }
+
+    data.cursors.clear();
+    data.sources.clear();
 
     quit_impl();
 
@@ -473,6 +559,10 @@ void mouse_instance::quit()
             this
         );
     }
+
+    clear_mice();
+
+    data.quitting = false;
 }
 
 //=============================================================================
@@ -627,6 +717,16 @@ void mouse_instance::remove_mouse(mouse_id id)
     if (!data.quitting)
     {
         send_mouse_removed(id);
+    }
+}
+
+//=============================================================================
+
+void mouse_instance::clear_mice()
+{
+    while (!data.mice.empty())
+    {
+        remove_mouse(data.mice[0].id);
     }
 }
 
@@ -1127,6 +1227,112 @@ bool mouse_instance::update_relative_mode()
 // Capture
 //=============================================================================
 
+bool mouse_instance::set_capture(bool enabled)
+{
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+
+#if defined(VX_OS_WINDOWS)
+
+    // On Windows, mouse capture must be performed by the thread
+    // that created the target window. Event handling and capture
+    // must therefore occur on the same (main) thread.
+
+    if (!video->on_video_thread())
+    {
+        err::set(err::system_error, "set_capture() must be called on the main thread");
+        return false;
+    }
+
+#endif // VX_OS_WINDOW
+
+    // Capture can only be activated if a window currently has keyboard focus
+    if (enabled && !is_valid_id(video->data.keyboard_ptr->get_focus()))
+    {
+        err::set(err::system_error, "no window has focus");
+        return false;
+    }
+
+    data.capture_desired = enabled;
+    return update_capture(false);
+
+#else
+
+    VX_UNSUPPORTED("set_capture()");
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+}
+
+//=============================================================================
+
+bool mouse_instance::update_capture(bool force_release)
+{
+#if !VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+
+    return true;
+
+#else
+
+    const video::window_id old_capture_id = data.capture_window;
+    video::window_id new_capture_id = invalid_id;
+
+    if (!force_release)
+    {
+        // Capture is allowed only when:
+        // - no modal message boxes are open,
+        // - user requested capture or auto-capture is enabled, and
+        // - relative mouse mode is disabled (absolute movement).
+
+        if ((video->message_box_count() == 0) && (data.capture_desired || (data.auto_capture && get_button_state(global_mouse_id, false) != button::none)))
+        {
+            if (!data.relative_mode_enabled)
+            {
+                new_capture_id = data.focus;
+            }
+        }
+    }
+
+    if (new_capture_id != old_capture_id)
+    {
+        video::window_instance* old_capture = video->get_window_instance(old_capture_id);
+        if (old_capture)
+        {
+            old_capture->data.flags &= ~video::window_flags::mouse_capture;
+        }
+
+        video::window_instance* new_capture = video->get_window_instance(new_capture_id);
+        if (new_capture)
+        {
+            new_capture->data.flags |= video::window_flags::mouse_capture;
+        }
+
+        data.capture_window = new_capture_id;
+
+        if (!impl_ptr->capture_mouse(new_capture))
+        {
+            // restore state if failed
+
+            if (old_capture)
+            {
+                old_capture->data.flags |= video::window_flags::mouse_capture;
+            }
+            if (new_capture)
+            {
+                new_capture->data.flags &= ~video::window_flags::mouse_capture;
+            }
+
+            data.capture_window = old_capture_id;
+            return false;
+        }
+    }
+
+    return true;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
+}
+
+//=============================================================================
+
 void mouse_instance::constrain_position(const video::window_instance* w, float* x, float* y) const
 {
     if (w && !(w->data.flags & video::window_flags::mouse_capture))
@@ -1598,6 +1804,295 @@ void mouse_instance::send_wheel(time::time_point t, const video::window_instance
         events_ptr->push_event(e);
     }
 }
+
+//=============================================================================
+// cursor
+//=============================================================================
+
+cursor_id mouse_instance::add_cursor(cursor_instance& c)
+{
+    const cursor_id id = data.cursor_id_generator.next();
+    c.data.id = id;
+    data.cursors.push_back(std::move(c));
+    return id;
+}
+
+//=============================================================================
+
+void mouse_instance::remove_cursor(cursor_id id)
+{
+    if (!is_valid_id(id))
+    {
+        return;
+    }
+
+    for (auto it = data.cursors.begin(); it != data.cursors.end(); ++it)
+    {
+        if (it->data.id == id)
+        {
+            data.cursors.erase(it);
+            break;
+        }
+    }
+}
+
+//=============================================================================
+
+const cursor_instance* mouse_instance::get_cursor_instance(cursor_id id) const
+{
+    if (!is_valid_id(id))
+    {
+        return nullptr;
+    }
+
+    for (const cursor_instance& c : data.cursors)
+    {
+        if (c.data.id == id)
+        {
+            return &c;
+        }
+    }
+
+    return nullptr;
+}
+
+//=============================================================================
+
+cursor_id mouse_instance::create_cursor(const pixel::bitmask& mask, int hot_x, int hot_y)
+{
+    enum : uint32_t
+    {
+        black           = 0xFF000000,
+        white           = 0xFFFFFFFF,
+        transparent     = 0x00000000,
+#if defined(VX_OS_WINDOWS)
+
+        // Only Windows backend supports inverted pixels in mono cursors.
+        inverted        = 0x00FFFFFF
+
+#else
+
+        inverted        = 0xFF000000
+
+#endif // VX_OS_WINDOWS
+    };
+
+    // Make sure the width is a multiple of 8
+    const size_t w = ((mask.width + 7) & ~7);
+    const size_t h = mask.height;
+
+    argb_surface surf(w, h);
+
+    const uint8_t* and_ptr = mask.and_mask.data();
+    const uint8_t* xor_ptr = mask.xor_mask.data();
+
+    uint8_t and_byte = 0;
+    uint8_t xor_byte = 0;
+
+    for (size_t y = 0; y < h; ++y)
+    {
+        uint32_t* px = reinterpret_cast<uint32_t*>(surf.data() + y * surf.stride());
+
+        for (size_t x = 0; x < w; ++x)
+        {
+            if ((x % 8) == 0)
+            {
+                and_byte = *and_ptr++;
+                xor_byte = *xor_ptr++;
+            }
+
+            if (and_byte & 0x80)
+            {
+                *px++ = (and_byte & 0x80) ? black : white;
+            }
+            else
+            {
+                *px++ = (and_byte & 0x80) ? inverted : transparent;
+            }
+
+            and_byte <<= 1;
+            xor_byte <<= 1;
+        }
+    }
+
+    return create_color_cursor(surf, hot_x, hot_y);
+}
+
+//=============================================================================
+
+cursor_id mouse_instance::create_color_cursor(const argb_surface& surf, int hot_x, int hot_y)
+{
+    if (hot_x < 0 || hot_x >= surf.width())
+    {
+        err::set(err::invalid_argument, "hot_x");
+        return invalid_id;
+    }
+    if (hot_y < 0 || hot_y >= surf.height())
+    {
+        err::set(err::invalid_argument, "hot_y");
+        return invalid_id;
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_CREATE_CURSOR
+
+    return impl_ptr->create_cursor(surf, hot_x, hot_y);
+
+#else
+
+    cursor_instance cursor;
+    cursor.data.shape = cursor_shape::user_defined;
+    cursor.data.hot_x = hot_x;
+    cursor.data.hot_y = hot_y;
+
+    return add_cursor(cursor);
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_CREATE_CURSOR
+}
+
+//=============================================================================
+
+cursor_id mouse_instance::create_system_cursor(cursor_shape shape)
+{
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_CREATE_SYSTEM_CURSOR
+
+    return impl_ptr->create_system_cursor(shape);
+
+#else
+
+    VX_UNSUPPORTED("create_system_cursor()");
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_CREATE_SYSTEM_CURSOR
+}
+
+//=============================================================================
+
+cursor_id mouse_instance::get_cursor() const
+{
+    return data.current_cursor;
+}
+
+//=============================================================================
+
+bool mouse_instance::set_cursor(cursor_id cid)
+{
+    if (cid == data.current_cursor)
+    {
+        return true;
+    }
+
+    const cursor_instance* c = get_cursor_instance(cid);
+    if (!c)
+    {
+        return false;
+    }
+
+    data.current_cursor = cid;
+    redraw_cursor();
+
+    return true;
+}
+
+//=============================================================================
+
+void mouse_instance::set_default_cursor(cursor_id cid)
+{
+    if (cid == data.default_cursor)
+    {
+        return;
+    }
+
+    data.default_cursor = cid;
+
+    if (!is_valid_id(data.current_cursor))
+    {
+        set_cursor(cid);
+    }
+}
+
+//=============================================================================
+
+cursor_id mouse_instance::get_default_cursor() const
+{
+    return data.default_cursor;
+}
+
+//=============================================================================
+
+cursor_shape mouse_instance::get_default_system_cursor() const
+{
+    const auto id = video->app->data.hints_ptr->get_hint_integer(
+        hint::mouse_default_system_cursor,
+        static_cast<int64_t>(cursor_shape::default_)
+    );
+
+    const cursor_shape shape = (id >= 0 && id < system_cursor_count)
+        ? static_cast<cursor_shape>(id)
+        : cursor_shape::default_;
+
+    return shape;
+}
+
+//=============================================================================
+
+bool mouse_instance::show_cursor()
+{
+    if (data.warp_emulation_active)
+    {
+        set_relative_mode(false);
+        data.warp_emulation_active = false;
+    }
+
+    if (!data.cursor_visible)
+    {
+        data.cursor_visible = true;
+        redraw_cursor();
+    }
+
+    return true;
+}
+
+//=============================================================================
+
+bool mouse_instance::hide_cursor()
+{
+    if (data.cursor_visible)
+    {
+        data.cursor_visible = false;
+        redraw_cursor();
+    }
+
+    return true;
+}
+
+//=============================================================================
+
+bool mouse_instance::cursor_visible() const
+{
+    return data.cursor_visible;
+}
+
+//=============================================================================
+
+void mouse_instance::redraw_cursor()
+{
+#if VX_VIDEO_BACKEND_HAVE_MOUSE_SHOW_CURSOR
+
+    cursor_id id = is_valid_id(data.focus)
+        ? data.current_cursor
+        : data.default_cursor;
+
+    if (is_valid_id(data.focus) && (!data.cursor_visible || (data.relative_mode_enabled && data.relative_hide_cursor)))
+    {
+        id = invalid_id;
+    }
+
+    impl_ptr->show_cursor(id);
+
+#endif // VX_VIDEO_BACKEND_HAVE_MOUSE_SHOW_CURSOR
+}
+
+//=============================================================================
 
 } // namespace mouse
 } // namespace app

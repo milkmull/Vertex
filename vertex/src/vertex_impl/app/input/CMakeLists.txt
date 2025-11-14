@@ -10,6 +10,9 @@ file(GLOB VX_APP_INPUT_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/mouse_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mouse.cpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/keymap.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/keymap.cpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_keyboard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/keyboard_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/keyboard.cpp"

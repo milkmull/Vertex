@@ -3,6 +3,7 @@
 #include "vertex/app/input/mouse.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/util/time.hpp"
+#include "vertex_impl/app/app_internal.hpp"
 
 namespace vx {
 namespace app {
@@ -26,9 +27,11 @@ class cursor_instance_impl;
 // cursor
 //=============================================================================
 
-class cursor_data
+struct cursor_data
 {
     cursor_id id;
+    cursor_shape shape;
+    int hot_x, hot_y;
 };
 
 //=============================================================================
@@ -45,7 +48,7 @@ public:
 
 public:
 
-    cursor_data data;
+    cursor_data data{};
     std::unique_ptr<cursor_instance_impl> impl_ptr;
 };
 
@@ -91,16 +94,6 @@ struct mouse_info
 
 //=============================================================================
 
-struct mouse_cursor_data
-{
-    std::vector<cursor_instance> cursors;
-    cursor_id default_cursor = invalid_id;
-    cursor_id current_cursor = invalid_id;
-    bool visible = false;
-};
-
-//=============================================================================
-
 VX_FLAGS_UT_DECLARE_BEGIN(integer_mode, uint8_t)
 {
     none    = 0,
@@ -113,65 +106,65 @@ VX_FLAGS_DECLARE_END(integer_mode)
 
 struct mouse_data
 {
-    bool quitting = false;
+    bool quitting;
 
     // Window focus
-    video::window_id focus = invalid_id;
+    video::window_id focus;
 
     // Position
-    float x = 0.0f, y = 0.0f;           // current position in window space
-    float last_x = 0.0f, last_y = 0.0f; // last recorded position
-    float x_accu = 0.0f, y_accu = 0.0f; // accumulated subpixel motion
-    bool has_position = false;          // true if position valid
+    float x, y;                         // current position in window space
+    float last_x, last_y;               // last recorded position
+    float x_accu, y_accu;               // accumulated subpixel motion
+    bool has_position;                  // true if position valid
 
     // Click motion thresholding
-    double click_motion_x = 0.0;
-    double click_motion_y = 0.0;
+    double click_motion_x;
+    double click_motion_y;
 
     // Double click settings
     time::time_point double_click_time;
-    int double_click_radius = 0;
+    int double_click_radius;
 
     // Relative mode
-    bool relative_mode_enabled = false;         // is relative mode active
-    bool relative_warp_motion = false;          // generate motion events on warp
-    bool relative_hide_cursor = false;          // hide cursor while active
-    bool relative_center = false;               // lock to window center
+    bool relative_mode_enabled;         // is relative mode active
+    bool relative_warp_motion;          // generate motion events on warp
+    bool relative_hide_cursor;          // hide cursor while active
+    bool relative_center;               // lock to window center
 
     // Warp enumlation
-    bool warp_emulation_hint = false;           // hint for warp emulation
-    bool warp_emulation_active = false;
-    bool warp_emulation_prohibited = false;
+    bool warp_emulation_hint;           // hint for warp emulation
+    bool warp_emulation_active;
+    bool warp_emulation_prohibited;
     time::time_point last_center_warp_time;
 
     // Scaling
-    bool normal_speed_scale_enabled = false;
-    bool relative_speed_scale_enabled = false;
-    bool relative_system_scale_enabled = false;
-    float normal_speed_scale = 0.0f;
-    float relative_speed_scale = 0.0f;
+    bool normal_speed_scale_enabled;
+    bool relative_speed_scale_enabled;
+    bool relative_system_scale_enabled;
+    float normal_speed_scale;
+    float relative_speed_scale;
 
     // Capture settings
-    bool auto_capture = false;        // allow OS auto capture
-    bool capture_desired = false;     // app requested capture
-    video::window_id capture_window = invalid_id;
+    bool auto_capture;                  // allow OS auto capture
+    bool capture_desired;               // app requested capture
+    video::window_id capture_window;
 
     // Event translation toggles
-    bool touch_mouse_events = false;  // touch -> mouse
-    bool mouse_touch_events = false;  // mouse -> touch
-    bool pen_mouse_events = false;    // pen -> mouse
-    bool pen_touch_events = false;    // pen -> touch
-    bool was_touch_mouse_events = false;
-    bool added_mouse_touch_device = false;
-    bool added_pen_touch_device = false;
-    bool track_mouse_down = false;
+    bool touch_mouse_events;            // touch -> mouse
+    bool mouse_touch_events;            // mouse -> touch
+    bool pen_mouse_events;              // pen -> mouse
+    bool pen_touch_events;              // pen -> touch
+    bool was_touch_mouse_events;
+    bool added_mouse_touch_device;
+    bool added_pen_touch_device;
+    bool track_mouse_down;
 
     // Integer mode
-    integer_mode integer_mode = integer_mode::none;
-    float integer_mode_residual_motion_x = 0.0f;
-    float integer_mode_residual_motion_y = 0.0f;
-    float integer_mode_residual_scroll_x = 0.0f;
-    float integer_mode_residual_scroll_y = 0.0f;
+    integer_mode integer_mode;
+    float integer_mode_residual_motion_x;
+    float integer_mode_residual_motion_y;
+    float integer_mode_residual_scroll_x;
+    float integer_mode_residual_scroll_y;
 
     // mice tracker
     std::vector<mouse_info> mice;
@@ -180,8 +173,11 @@ struct mouse_data
     std::vector<input_source> sources;
 
     // Cursor
-    mouse_cursor_data cursors;
-    bool cursor_visible = true;
+    std::vector<cursor_instance> cursors;
+    id_generator cursor_id_generator;
+    cursor_id default_cursor;
+    cursor_id current_cursor;
+    bool cursor_visible;
 };
 
 //=============================================================================
@@ -207,6 +203,8 @@ public:
     // lifetime
     //=============================================================================
 
+    void init_data();
+
     bool init(video::video_instance* owner);
     void quit();
 
@@ -223,6 +221,7 @@ public:
 
     void add_mouse(mouse_id id, const char* name);
     void remove_mouse(mouse_id id);
+    void clear_mice();
 
     bool is_mouse(uint16_t vendor, uint16_t product) const { return true; }
     bool any_connected() const;
@@ -277,8 +276,8 @@ public:
     // Capture
     //=============================================================================
 
-    bool set_capture(bool enabled) { return false; }
-    bool update_capture(bool force_release) { return false; }
+    bool set_capture(bool enabled);
+    bool update_capture(bool force_release);
 
     void constrain_position(const video::window_instance* w, float* x, float* y) const;
 
@@ -302,27 +301,28 @@ public:
     // cursor
     //=============================================================================
 
-    // lifecycle
-    cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
-    cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
-    cursor_id create_system_cursor(cursor_shape id);
+    cursor_id add_cursor(cursor_instance& c);
+    void remove_cursor(cursor_id id);
 
-    // info
-    cursor_shape get_shape(cursor_id id);
-    math::vec2i get_hotspot(cursor_id id);
+    const cursor_instance* get_cursor_instance(cursor_id id) const;
 
-    // active cursor
-    bool set_cursor(cursor_id id);
-    cursor_id get_cursor();
-    cursor_id get_default_cursor();
-    void set_default_cursor(const cursor& cursor);
-    cursor get_default_system_cursor();
+    cursor_id create_cursor(const pixel::bitmask& mask, int hot_x, int hot_y);
+    cursor_id create_color_cursor(const argb_surface& surf, int hot_x, int hot_y);
+    cursor_id create_system_cursor(cursor_shape shape);
+
+    cursor_id get_cursor() const;
+    bool set_cursor(cursor_id cid);
+
+    cursor_id get_default_cursor() const;
+    void set_default_cursor(cursor_id cid);
+
+    cursor_shape get_default_system_cursor() const;
 
     // visibility
     bool show_cursor();
     bool hide_cursor();
-    bool cursor_visible();
-    void redraw_cursor() {}
+    bool cursor_visible() const;
+    void redraw_cursor();
 
     //=============================================================================
     // Data

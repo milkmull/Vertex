@@ -48,6 +48,12 @@ public:
 
     bool set_relative_mode(bool enabled) { return false; }
 
+    cursor_id create_cursor(const argb_surface& surf, int hot_x, int hot_y) { return invalid_id; }
+    cursor_id create_system_cursor(cursor_shape shape) { return invalid_id; }
+    void show_cursor(cursor_id id) {}
+
+    bool capture_mouse(video::window_instance* capture_window) { return false; }
+
     //=============================================================================
     // data
     //=============================================================================

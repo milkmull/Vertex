@@ -12,6 +12,15 @@ struct bitmask
     size_t width, height;
     std::vector<uint8_t> and_mask;
     std::vector<uint8_t> xor_mask;
+
+    bool is_valid() const
+    {
+        const size_t expected_size = ((width + 7) / 8) * height;
+        return and_mask.size() == expected_size
+            && xor_mask.size() == expected_size
+            && width > 0
+            && height > 0;
+    }
 };
 
 template <pixel_format F>

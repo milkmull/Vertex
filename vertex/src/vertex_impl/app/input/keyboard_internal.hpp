@@ -1,12 +1,11 @@
 #pragma once
 
-#include <unordered_map>
-
-#include "vertex/config/flags.hpp"
-#include "vertex/app/video/video.hpp"
 #include "vertex/app/input/keyboard.hpp"
-#include "vertex/util/bit_field.hpp"
+#include "vertex/app/video/video.hpp"
+#include "vertex/config/flags.hpp"
 #include "vertex/math/rect.hpp"
+#include "vertex/util/bit_field.hpp"
+#include "vertex_impl/app/input/keymap.hpp"
 
 namespace vx {
 namespace app {
@@ -18,61 +17,9 @@ namespace keyboard {
 
 class keyboard_instance;
 
-///////////////////////////////////////////////////////////////////////////////
-// keycode options
-///////////////////////////////////////////////////////////////////////////////
-
-VX_FLAGS_DECLARE_BEGIN(keycode_options)
-{
-    none             = 0,
-    hide_numpad      = VX_BIT(0),
-    french_numbers   = VX_BIT(1),
-    latin_letters    = VX_BIT(2),
-    default_options  = (french_numbers | latin_letters),
-}
-VX_FLAGS_DECLARE_END(keycode_options)
-
-///////////////////////////////////////////////////////////////////////////////
-// keymap
-///////////////////////////////////////////////////////////////////////////////
-
-class keymap
-{
-public:
-
-    keymap() = default;
-    ~keymap() = default;
-
-    keymap(const keymap&) = default;
-    keymap& operator=(const keymap&) = default;
-
-    keymap(keymap&&) noexcept = default;
-    keymap& operator=(keymap&&) noexcept = default;
-
-    void set_entry(scancode sc, key_mod mod_state, keycode kc) {}
-    keycode get_keycode(scancode sc, key_mod mod_state) const { return (keycode)0; }
-    scancode get_scancode(keycode kc, key_mod mod_state) const { return (scancode)0; }
-    scancode get_next_reserved_scancode() { return (scancode)0; }
-
-    bool french_numbers() const noexcept { return m_french_numbers; }
-    bool thai_keyboard() const noexcept { return m_thai_keyboard; }
-    bool latin_letters() const noexcept { return m_latin_letters; }
-
-private:
-
-    friend keyboard_instance;
-
-    std::unordered_map<scancode, keycode> m_scancode_to_keycode;
-    std::unordered_map<keycode, scancode> m_keycode_to_scancode;
-    scancode m_next_reserved_scancode = _scancode_count;
-    bool m_french_numbers = false;
-    bool m_thai_keyboard = false;
-    bool m_latin_letters = false;
-};
-
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // keyboard data
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 enum class key_source
 {
@@ -80,44 +27,77 @@ enum class key_source
     autorelease
 };
 
-struct input_source
+//=============================================================================
+
+struct input_source_data
 {
-    keyboard_id id = invalid_id;
-    const char* name = nullptr;
+    keyboard_id id;
+    const char* name;
 };
+
+class input_source
+{
+public:
+
+    input_source_data data{};
+};
+
+//=============================================================================
 
 struct keyboard_data
 {
-    video::window* focus = nullptr;
-    key_mod mod_state = key_mod::none;
-    bit_field<_scancode_count, bool> key_state;
-    keymap map;
-    bool map_configures = false;
-    bool autorelease_pending = false;
-    keycode_options keycode_options_cache = keycode_options::default_options;
+    video::window_id focus;
+
+    key_mod mod_state;
+    bit_field<scancode_count, bool> key_state;
+
+    std::unique_ptr<keymap> key_map;
+    bool key_map_configured;
+
+    bool auto_release_pending;
+    keycode_options keycode_options;
+
+    bool quitting;
 };
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // keyboard internal
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 class keyboard_instance
 {
 public:
 
-    //-------------------------------------------------------------------------
+    keyboard_instance();
+    ~keyboard_instance();
+
+    keyboard_instance(const keyboard_instance&) = delete;
+    keyboard_instance& operator=(const keyboard_instance&) = delete;
+
+    keyboard_instance(keyboard_instance&&) noexcept = delete;
+    keyboard_instance& operator=(keyboard_instance&&) noexcept = delete;
+
+public:
+
+    //=============================================================================
     // Initialization
-    //-------------------------------------------------------------------------
+    //=============================================================================
+
+    void init_data();
 
     bool init(video::video_instance* owner);
     void quit();
 
-    //-------------------------------------------------------------------------
-    // Device Management
-    //-------------------------------------------------------------------------
+    bool init_impl() {}
+    void quit_impl() {}
+
+    //=============================================================================
+    // devices
+    //=============================================================================
 
     void add_keyboard(keyboard_id id, const char* name, bool send_event) {}
     void remove_keyboard(keyboard_id id, bool send_event) {}
+    void clear_keyboards() {}
 
     bool is_keyboard(uint16_t vendor, uint16_t product, size_t key_count) { return false; }
     bool has_keyboard() { return false; }
@@ -125,17 +105,17 @@ public:
     std::vector<keyboard_id> list_keyboard_ids() { return {}; }
     const char* get_keyboard_name(keyboard_id id) { return nullptr; }
 
-    //-------------------------------------------------------------------------
+    //=============================================================================
     // Focus / Window Association
-    //-------------------------------------------------------------------------
+    //=============================================================================
 
     video::window_id get_focus() { return invalid_id; }
     video::window_instance* get_focus_instance() { return nullptr; }
     bool set_focus(video::window_id id) { return false; }
 
-    //-------------------------------------------------------------------------
-    // Keymap / Scancode <-> Keycode mapping
-    //-------------------------------------------------------------------------
+    //=============================================================================
+    // keymap
+    //=============================================================================
 
     void set_keymap(const keymap& map, bool send_event);
 
@@ -149,9 +129,9 @@ public:
     const char* get_key_name(keycode key);
     keycode get_key_from_name(const char* name);
 
-    //-------------------------------------------------------------------------
+    //=============================================================================
     // Key Events
-    //-------------------------------------------------------------------------
+    //=============================================================================
 
     void send_unicode_key(char32_t c);
 
@@ -164,20 +144,20 @@ public:
 
     bool hardware_key_pressed();
 
-    //-------------------------------------------------------------------------
+    //=============================================================================
     // Key State / Modifiers
-    //-------------------------------------------------------------------------
+    //=============================================================================
 
-    const bit_field<_scancode_count, bool>& get_keyboard_state();
+    const bit_field<scancode_count, bool>& get_keyboard_state();
     void reset_keyboard();
 
     key_mod get_mod_state();
     void set_mod_state(key_mod mod_state);
     void toggle_mod_state(key_mod state, bool toggle);
 
-    //-------------------------------------------------------------------------
+    //=============================================================================
     // Text Input / IME
-    //-------------------------------------------------------------------------
+    //=============================================================================
 
     bool start_text_input(video::window* w);
     bool start_text_input(video::window* w, text_input_options& options);
@@ -196,9 +176,9 @@ public:
     void send_editing_text(const char* text, size_t start, size_t size);
     void send_editing_text_candidates(const std::vector<const char*>& candidates, size_t selected_candidate, bool horizontal);
 
-    //-------------------------------------------------------------------------
+    //=============================================================================
     // Data
-    //-------------------------------------------------------------------------
+    //=============================================================================
 
     video::video_instance* video = nullptr;
     keyboard_data data;

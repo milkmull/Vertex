@@ -33,6 +33,7 @@ public: \
 \
 constexpr name(enum_type x) noexcept : m_value(static_cast<underlying_type>(x)) {} \
 constexpr explicit operator enum_type() const noexcept {return static_cast<enum_type>(m_value); } \
+constexpr underlying_type raw() const noexcept { return m_value; } \
 \
 constexpr explicit operator bool() const noexcept { return !!m_value; } \
 \

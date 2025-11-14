@@ -40,6 +40,9 @@ struct video_data
     std::unique_ptr<touch::touch_instance> touch_ptr;
     std::unique_ptr<pen::pen_instance> pen_ptr;
 
+    // Thread
+    typename os::thread::id thread_id;
+
     // Displays
     id_generator display_id_generator;
     std::vector<display_instance> displays;
@@ -83,6 +86,8 @@ public:
 
     bool init(app_instance* owner);
     void quit();
+
+    bool on_video_thread() const;
 
     //=============================================================================
     // dpi
@@ -187,6 +192,16 @@ public:
     //=============================================================================
 
     void set_all_focus(window_id w);
+
+    //=============================================================================
+    // message box
+    //=============================================================================
+
+    // https://github.com/libsdl-org/SDL/blob/b2585ac2369c563ce91962b6ac2382bb40e36340/include/SDL3/SDL_messagebox.h#L131
+
+    size_t message_box_count() const { return 0; }
+    bool show_message_box();
+    bool show_simple_message_box();
 
     //=============================================================================
     // events

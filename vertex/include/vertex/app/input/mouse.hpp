@@ -107,17 +107,42 @@ using cursor_id = id_type;
 
 enum class cursor_shape
 {
-    user_defined,
-    arrow,
-    ibeam,
+    // Basic pointers
+    default_,
+    pointer,
+    text,
     wait,
-    crosshair,
-    hand,
-    hresize,
-    vresize,
-    all_resize,
+    progress,
     not_allowed,
+    crosshair,
+    move,
+
+    // Resize cursors - edges
+    ns_resize,
+    ew_resize,
+
+    // Resize cursors - corners
+    nw_resize,
+    ne_resize,
+    se_resize,
+    sw_resize,
+
+    // Resize cursors - diagonal (usually NW-SE and NE-SW)
+    nwse_resize,
+    nesw_resize,
+
+    // Resize cursors - individual directions (if used separately)
+    n_resize,
+    e_resize,
+    s_resize,
+    w_resize,
+
+    _system_count,
+
+    user_defined
 };
+
+enum { system_cursor_count = cursor_shape::_system_count };
 
 class cursor
 {

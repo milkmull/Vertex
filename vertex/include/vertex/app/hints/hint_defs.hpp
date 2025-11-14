@@ -98,7 +98,13 @@ enum hint : hint_t
     mouse_relative_cursor_visible,
 
     // Integer motion mode (non-standard, experimental).
-    mouse_integer_mode
+    mouse_integer_mode,
+
+    // Default system cursor id to use
+    mouse_default_system_cursor,
+
+    // Keycode options
+    keyboard_keycode_options
 };
 
 } // namespace hint

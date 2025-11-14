@@ -1,6 +1,7 @@
 #pragma once
 
 #include "vertex/app/app.hpp"
+#include "vertex/pixel/surface.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -208,6 +209,10 @@ do \
 
 #define VX_SAFE_VIDEO_CALL(expr) VX_SAFE_CALL(s_video_ptr, expr)
 #define VX_SET_VIDEO_SUBSYSTEM_INIT_FAILED_ERROR() VX_SET_SUBSYSTEM_INIT_FAILED_ERROR(Video)
+
+///////////////////////////////////////
+
+using argb_surface = pixel::surface<pixel::pixel_format::argb_8888>;
 
 } // namespace app
 } // namespace vx
