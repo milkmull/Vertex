@@ -20,12 +20,16 @@ class keyboard_instance;
 // keyboard data
 //=============================================================================
 
-VX_FLAGS_UT_DECLARE_BEGIN(key_source, uint8_t)
+VX_FLAGS_UT_DECLARE_BEGIN(key_flags, uint8_t)
 {
-    hardware        = 0,
-    auto_release    = 1
+    none                = 0,
+    hardware            = VX_BIT(0),
+    auto_release        = VX_BIT(1),
+    source_mask         = (hardware | auto_release),
+    virtual_            = VX_BIT(2),
+    ignore_modifiers    = VX_BIT(3)
 }
-VX_FLAGS_DECLARE_END(key_source)
+VX_FLAGS_DECLARE_END(key_flags)
 
 //=============================================================================
 
@@ -42,7 +46,7 @@ struct keyboard_data
     video::window_id focus;
 
     key_mod mod_state;
-    key_state key_source;
+    key_flags key_source[scancode_count];
     key_state key_state;
     keymap* keymap_ptr;
 
@@ -116,12 +120,15 @@ public:
 
     void clear_keymap();
     void set_keymap(keymap* map, bool send_event);
+    bool create_keymap();
 
     keymap* get_current_keymap(bool ignore_options);
     const keymap* get_current_keymap(bool ignore_options) const;
 
+    void set_keymap_entry(scancode sc, key_mod mod_state, keycode kc);
     keycode get_key_from_scancode(scancode sc, key_mod mod_state, bool key_event) const;
     scancode get_scancode_from_key(keycode key, key_mod* mod_state) const;
+    scancode get_next_reserved_scancode();
 
     bool set_scancode_name(scancode sc, const char* name);
     const char* get_scancode_name(scancode sc) const;
@@ -151,17 +158,15 @@ public:
     void send_keyboard_removed(keyboard_id id);
 
     bool send_key(time::time_point t, keyboard_id id, int raw, scancode sc, bool down);
-    bool send_key_internal(time::time_point t, key_source source, keyboard_id id, int raw, scancode sc, bool down);
-
     bool send_key_no_mods(time::time_point t, keyboard_id id, int raw, scancode sc, bool down);
-    bool send_key_and_scancode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode key, bool down);
+    bool send_key_and_keycode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode kc, bool down);
+    bool send_key_auto_release(time::time_point t, scancode sc);
+    void send_unicode_key(time::time_point t, char32_t c);
 
-    void send_unicode_key(char32_t c);
-
-    bool send_key_auto_release(scancode sc);
-    void release_auto_release_keys() {}
+    bool send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down);
 
     bool hardware_key_pressed();
+    void release_auto_release_keys() {}
 
     //=============================================================================
     // Text Input / IME

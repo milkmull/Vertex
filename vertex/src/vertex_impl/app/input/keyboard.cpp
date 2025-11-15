@@ -409,6 +409,22 @@ void keyboard_instance::set_keymap(keymap* map, bool send_event)
 
 //=============================================================================
 
+bool keyboard_instance::create_keymap()
+{
+    clear_keymap();
+
+    data.keymap_ptr = new keymap;
+    if (!data.keymap_ptr)
+    {
+        return false;
+    }
+
+    data.keymap_ptr->data.auto_release = true;
+    return true;
+}
+
+//=============================================================================
+
 keymap* keyboard_instance::get_current_keymap(bool ignore_options)
 {
     keymap* map = data.keymap_ptr;
@@ -489,6 +505,21 @@ static keycode convert_numpad_keycode(keycode kc, bool numlock) noexcept
 
 //=============================================================================
 
+void keyboard_instance::set_keymap_entry(scancode sc, key_mod mod_state, keycode kc)
+{
+    if (!data.keymap_ptr)
+    {
+        if (!create_keymap())
+        {
+            return;
+        }
+    }
+
+    data.keymap_ptr->set_entry(sc, mod_state, kc);
+}
+
+//=============================================================================
+
 keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state, bool key_event) const
 {
     if (key_event)
@@ -530,6 +561,21 @@ keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state,
 scancode keyboard_instance::get_scancode_from_key(keycode key, key_mod* mod_state) const
 {
     return data.keymap_ptr ? data.keymap_ptr->get_scancode(key, mod_state) : scancode_unknown;
+}
+
+//=============================================================================
+
+scancode keyboard_instance::get_next_reserved_scancode()
+{
+    if (!data.keymap_ptr)
+    {
+        if (!create_keymap())
+        {
+            return scancode_unknown;
+        }
+    }
+
+    return data.keymap_ptr->get_next_reserved_scancode();
 }
 
 //=============================================================================
@@ -656,22 +702,196 @@ void keyboard_instance::send_keyboard_removed(keyboard_id id)
 
 bool keyboard_instance::send_key(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
 {
-    return send_key_internal(t, key_source::hardware, id, raw, sc, down);
+    return send_key_internal(t, key_flags::hardware, id, raw, sc, down);
 }
 
-bool keyboard_instance::send_key_internal(time::time_point t, key_source source, keyboard_id id, int raw, scancode sc, bool down)
+//=============================================================================
+
+bool keyboard_instance::send_key_no_mods(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
 {
+    return send_key_internal(t, key_flags::hardware | key_flags::ignore_modifiers, id, raw, sc, down);
+}
+
+//=============================================================================
+
+bool keyboard_instance::send_key_and_keycode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode kc, bool down)
+{
+    if (down)
+    {
+        // make sure we have this keycode in our map
+        set_keymap_entry(sc, data.mod_state, kc);
+    }
+
+    return send_key_internal(t, key_flags::hardware, id, raw, sc, down);
+}
+
+//=============================================================================
+
+bool keyboard_instance::send_key_auto_release(time::time_point t, scancode sc)
+{
+    return send_key_internal(t, key_flags::auto_release, global_keyboard_id, 0, sc, true);
+}
+
+//=============================================================================
+
+void keyboard_instance::send_unicode_key(time::time_point t, char32_t c)
+{
+    if (c == '\n')
+    {
+        c = key_return;
+    }
+
+    const keycode key = static_cast<keycode>(c);
+    key_mod mod_state = key_mod::none;
+    scancode sc = data.keymap_ptr ? data.keymap_ptr->get_scancode(key, &mod_state) : scancode_unknown;
+
+    // make sure we have this key code in out map
+    if (scancode_unknown < sc && sc < key_scancode_mask)
+    {
+        sc = get_next_reserved_scancode();
+        set_keymap_entry(sc, mod_state, key);
+    }
+
+    if (mod_state & key_mod::shift)
+    {
+        // if the character uses shift, press shift down
+        send_key_internal(t, key_flags::virtual_, global_keyboard_id, 0, scancode_lshift, true);
+    }
+
+    // send key down or key up for the character
+    send_key_internal(t, key_flags::virtual_, global_keyboard_id, 0, sc, true);
+    send_key_internal(t, key_flags::virtual_, global_keyboard_id, 0, sc, false);
+
+    if (mod_state & key_mod::shift)
+    {
+        // if the character uses shift, release shift
+        send_key_internal(t, key_flags::virtual_, global_keyboard_id, 0, scancode_lshift, false);
+    }
+}
+
+//=============================================================================
+
+bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down)
+{
+    const key_flags source = flags & key_flags::source_mask;
+    bool repeat = false;
+    keycode kc = key_unknown;
+
     if (scancode_unknown < sc && sc < scancode_count)
     {
         // drop events that don't change state
-        if (data.key_state[sc])
-        {
-            if (data.key_source[sc] != static_cast<bool>(source))
-            {
 
+        if (down)
+        {
+            if (data.key_state[sc])
+            {
+                if (!(data.key_source[sc] & source))
+                {
+                    data.key_source[sc] |= source;
+                    return false;
+                }
+
+                repeat = true;
+            }
+
+            data.key_source[sc] |= source;
+        }
+        else
+        {
+            if (!data.key_state[sc])
+            {
+                return false;
+            }
+
+            data.key_source[sc] = key_flags::none;
+        }
+
+        // update internal keyboard state
+        data.key_state[sc] = down;
+        kc = get_key_from_scancode(sc, data.mod_state, true);
+    }
+    else if (raw == 0)
+    {
+        // nothing to do
+        return false;
+    }
+
+    if (source == key_flags::hardware)
+    {
+        data.hardware_timestamp = os::get_ticks();
+    }
+    else if (source == key_flags::auto_release)
+    {
+        data.auto_release_pending = true;
+    }
+
+    // update modifier state
+    if (!(flags & key_flags::ignore_modifiers) && !repeat)
+    {
+        key_mod mod = key_mod::none;
+
+        switch (kc)
+        {
+            case key_lctrl:     mod = key_mod::lctrl;   break;
+            case key_rctrl:     mod = key_mod::rctrl;   break;
+            case key_lshift:    mod = key_mod::lshift;  break;
+            case key_rshift:    mod = key_mod::rshift;  break;
+            case key_lalt:      mod = key_mod::lalt;    break;
+            case key_ralt:      mod = key_mod::ralt;    break;
+            case key_lgui:      mod = key_mod::lgui;    break;
+            case key_rgui:      mod = key_mod::rgui;    break;
+            case key_mode:      mod = key_mod::mode;    break;
+            default:            mod = key_mod::none;    break;
+        }
+
+        if (down)
+        {
+            switch (kc)
+            {
+                case key_numlock_clear:     data.mod_state ^= key_mod::num;     break;
+                case key_capslock:          data.mod_state ^= key_mod::caps;    break;
+                case key_scrolllock:        data.mod_state ^= key_mod::scroll;  break;
+                default:                    data.mod_state |= mod;              break;
+            }
+        }
+        else
+        {
+            data.mod_state &= ~mod;
+        }
+    }
+
+    // post event
+    event::event e{};
+    e.type = down ? event::key_down : event::key_up;
+    e.time = t;
+    e.key_event.common.keyboard_id = id;
+    e.key_event.common.window_id = data.focus;
+    e.key_event.key.scancode = sc;
+    e.key_event.key.key = kc;
+    e.key_event.key.mods = data.mod_state;
+    e.key_event.key.raw = static_cast<uint16_t>(raw);
+    e.key_event.key.repeat = repeat;
+    e.key_event.key.down = down;
+    const bool sent = events_ptr->push_event(e);
+
+    // If the keyboard is grabbed and the grabbed window is in full-screen,
+    // minimize the window when we receive Alt+Tab, unless the application
+    // has explicitly opted out of this behavior.
+    if (kc == key_tab && down && (data.mod_state & key_mod::alt))
+    {
+        video::window_instance* w = get_focus_instance();
+        if (w && (w->data.flags & (video::window_flags::keyboard_grabbed | video::window_flags::fullscreen)))
+        {
+            if (video->app->data.hints_ptr->get_hint_boolean(hint::keyboard_allow_alt_tab_while_grabbed, true))
+            {
+                // We will temporarily forfeit our grab by minimizing our window,
+                // allowing the user to escape the application
+                w->minimize();
             }
         }
     }
+
+    return sent;
 }
 
 //=============================================================================

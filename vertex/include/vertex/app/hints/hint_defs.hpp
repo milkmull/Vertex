@@ -104,7 +104,9 @@ enum hint : hint_t
     mouse_default_system_cursor,
 
     // Keycode options
-    keyboard_keycode_options
+    keyboard_keycode_options,
+
+    keyboard_allow_alt_tab_while_grabbed
 };
 
 } // namespace hint
