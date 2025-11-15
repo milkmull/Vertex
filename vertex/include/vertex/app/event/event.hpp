@@ -404,23 +404,21 @@ struct window_event_type
 struct key_event_common
 {
     keyboard::keyboard_id keyboard_id;
+    video::window_id window_id;
 };
 
 struct keyboard_added_event {};
 struct keyboard_removed_event {};
 
-struct key_press_event_base
+struct key_event
 {
-    video::window_id window_id;
     keyboard::scancode scancode;
     keyboard::keycode key;
     keyboard::key_mod mods;
     uint16_t raw;
     bool repeate;
+    bool down;
 };
-
-struct key_down_event : key_press_event_base {};
-struct key_up_event : key_press_event_base {};
 
 struct key_event_type
 {
@@ -430,8 +428,7 @@ struct key_event_type
     {
         keyboard_added_event keyboard_added;
         keyboard_removed_event keyboard_removed;
-        key_down_event key_down;
-        key_up_event key_up;
+        key_event key;
     };
 };
 

@@ -465,7 +465,11 @@ void mouse_instance::quit()
     data.cursors.clear();
     data.sources.clear();
 
-    quit_impl();
+    if (impl_ptr)
+    {
+        impl_ptr->quit();
+        impl_ptr.reset();
+    }
 
     // hints
     {
@@ -566,38 +570,6 @@ void mouse_instance::quit()
 }
 
 //=============================================================================
-
-bool mouse_instance::init_impl()
-{
-    VX_ASSERT(video);
-
-    impl_ptr.reset(new mouse_instance_impl);
-    if (!impl_ptr)
-    {
-        return false;
-    }
-
-    if (!impl_ptr->init(this))
-    {
-        quit_impl();
-        return false;
-    }
-
-    return true;
-}
-
-//=============================================================================
-
-void mouse_instance::quit_impl()
-{
-    if (impl_ptr)
-    {
-        impl_ptr->quit();
-        impl_ptr.reset();
-    }
-}
-
-//=============================================================================
 // input source
 //=============================================================================
 
@@ -635,24 +607,6 @@ size_t mouse_instance::get_mouse_index(mouse_id id) const
 
 //=============================================================================
 
-const mouse_info* mouse_instance::get_mouse(mouse_id id) const
-{
-    if (!is_valid_id(id))
-    {
-        return nullptr;
-    }
-
-    for (const mouse_info& m : data.mice)
-    {
-        if (m.id == id)
-        {
-            return &m;
-        }
-    }
-
-    return nullptr;
-}
-
 mouse_info* mouse_instance::get_mouse(mouse_id id)
 {
     if (!is_valid_id(id))
@@ -669,6 +623,11 @@ mouse_info* mouse_instance::get_mouse(mouse_id id)
     }
 
     return nullptr;
+}
+
+const mouse_info* mouse_instance::get_mouse(mouse_id id) const
+{
+    return const_cast<mouse_instance*>(this)->get_mouse(id);
 }
 
 //=============================================================================
@@ -819,33 +778,33 @@ video::window_instance* mouse_instance::get_focus_instance()
 
 //=============================================================================
 
-void mouse_instance::set_focus(video::window_id w)
+void mouse_instance::set_focus(video::window_id wid)
 {
-    if (data.focus == w)
+    if (data.focus == wid)
     {
         return;
     }
 
-    // See if the current window has lost focus
-    if (is_valid_id(data.focus))
+    video::window_instance* new_focus = video->get_window_instance(wid);
+    if (new_focus && new_focus->data.destroying)
     {
-        video::window_instance* w = get_focus_instance();
-        if (w)
-        {
-            w->send_mouse_leave();
-        }
+        return;
     }
 
-    data.focus = w;
+    video::window_instance* old_focus = video->get_window_instance(data.focus);
+
+    // See if the current window has lost focus
+    if (old_focus)
+    {
+        old_focus->send_mouse_leave();
+    }
+
+    data.focus = wid;
     data.has_position = false;
 
-    if (is_valid_id(data.focus))
+    if (new_focus)
     {
-        video::window_instance* w = get_focus_instance();
-        if (w)
-        {
-            w->send_mouse_enter();
-        }
+        new_focus->send_mouse_enter();
     }
 
     // update cursor visibility

@@ -183,6 +183,19 @@ public:
     bool toggle_drag_and_drop(bool enabled) { return false; }
 
     //=============================================================================
+    // text input
+    //=============================================================================
+
+    void show_screen_keyboard() {}
+    void hide_screen_keyboard() {}
+
+    bool start_text_input() { return false; }
+    bool stop_text_input() { return false; }
+    bool clear_composition() { return false; }
+
+    bool update_text_input_area() { return false; }
+
+    //=============================================================================
     // events
     //=============================================================================
 

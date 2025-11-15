@@ -1,9 +1,11 @@
 #pragma once
 
-#include "vertex/config/language_config.hpp"
+#include <bitset>
+
 #include "vertex/app/id.hpp"
-#include "vertex/app/input/scancode.hpp"
 #include "vertex/app/input/keycode.hpp"
+#include "vertex/app/input/scancode.hpp"
+#include "vertex/config/language_config.hpp"
 #include "vertex/math/rect.hpp"
 
 namespace vx {
@@ -24,6 +26,10 @@ enum : keyboard_id
     global_keyboard_id = 0,
     default_keyboard_id = 1
 };
+
+//=============================================================================
+
+using key_state = std::bitset<scancode_count>;
 
 //=============================================================================
 // keyboard

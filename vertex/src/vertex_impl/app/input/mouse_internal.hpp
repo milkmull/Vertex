@@ -73,14 +73,9 @@ struct input_source_data
     std::vector<click_state> click_states;
 };
 
-class input_source
+struct input_source
 {
-public:
-
     click_state* get_click_state(uint8_t button);
-
-public:
-
     input_source_data data;
 };
 
@@ -208,22 +203,19 @@ public:
     bool init(video::video_instance* owner);
     void quit();
 
-    bool init_impl();
-    void quit_impl();
-
     //=============================================================================
     // devices
     //=============================================================================
 
     size_t get_mouse_index(mouse_id id) const;
-    const mouse_info* get_mouse(mouse_id id) const;
     mouse_info* get_mouse(mouse_id id);
+    const mouse_info* get_mouse(mouse_id id) const;
 
     void add_mouse(mouse_id id, const char* name);
     void remove_mouse(mouse_id id);
     void clear_mice();
 
-    bool is_mouse(uint16_t vendor, uint16_t product) const { return true; }
+    static bool is_mouse(uint16_t vendor, uint16_t product) { return true; }
     bool any_connected() const;
     std::vector<mouse_id> list_mice() const;
     const char* get_name(mouse_id id = default_mouse_id) const;

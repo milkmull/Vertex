@@ -89,7 +89,7 @@ constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix) noexcept
 
 inline bool is_alpha(const char c)
 {
-    return std::isalpha(c);
+    return is_upper(c) || is_lower(c);
 }
 
 inline bool is_alpha(const str_arg_t& s)
@@ -103,7 +103,7 @@ inline bool is_alpha(const str_arg_t& s)
 
 inline bool is_digit(const char c)
 {
-    return std::isdigit(c);
+    return ('0' <= c) && (c <= '9');
 }
 
 inline bool is_numeric(const str_arg_t& s)
@@ -117,7 +117,7 @@ inline bool is_numeric(const str_arg_t& s)
 
 inline bool is_alnum(const char c)
 {
-    return std::isalnum(c);
+    return is_alpha(c) || is_digit(c);
 }
 
 inline bool is_alnum(const str_arg_t& s)
@@ -145,7 +145,7 @@ inline bool is_ascii(const str_arg_t& s)
 
 inline bool is_space(const char c)
 {
-    return std::isspace(c);
+    return (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') || (c == '\v');
 }
 
 inline bool is_space(const str_arg_t& s)
@@ -159,7 +159,7 @@ inline bool is_space(const str_arg_t& s)
 
 inline bool is_hex_digit(const char c)
 {
-    return std::isxdigit(c);
+    return (('A' <= c) && (c <= 'F')) || (('a' <= c) && (c <= 'f')) || is_digit(c);
 }
 
 inline bool is_hex(const str_arg_t& s, const bool allow_prefix)
@@ -193,7 +193,7 @@ inline bool is_hex(const str_arg_t& s, const bool allow_prefix)
 
 inline bool is_lower(const char c)
 {
-    return std::islower(c);
+    return ('a' <= c) && (c <= 'z');
 }
 
 inline bool is_lower(const str_arg_t& s)
@@ -207,7 +207,7 @@ inline bool is_lower(const str_arg_t& s)
 
 inline char to_lower(const char c)
 {
-    return static_cast<char>(std::tolower(c));
+    return ('A' <= c) && (c <= 'Z') ? ('a' + (c - 'A')) : c;
 }
 
 inline std::string to_lower(const str_arg_t& s)
@@ -229,7 +229,7 @@ inline std::string to_lower(const str_arg_t& s)
 
 inline bool is_upper(const char c)
 {
-    return std::isupper(c);
+    return ('A' <= c) && (c <= 'Z');
 }
 
 inline bool is_upper(const str_arg_t& s)
@@ -243,7 +243,7 @@ inline bool is_upper(const str_arg_t& s)
 
 inline char to_upper(const char c)
 {
-    return static_cast<char>(std::toupper(c));
+    return ('a' <= c) && (c <= 'z') ? ('A' + (c - 'a')) : c;
 }
 
 inline std::string to_upper(const str_arg_t& s)

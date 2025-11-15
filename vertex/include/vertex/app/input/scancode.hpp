@@ -4,6 +4,8 @@ namespace vx {
 namespace app {
 namespace keyboard {
 
+// https://usb.org/sites/default/files/hut1_5.pdf
+
 enum scancode : uint32_t
 {
     scancode_unknown = 0,

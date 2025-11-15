@@ -14,6 +14,8 @@ namespace keyboard {
 
 struct keymap_data
 {
+    bool auto_release;
+
     std::unordered_map<uint32_t, uint32_t> scancode_to_keycode;
     std::unordered_map<uint32_t, uint32_t> keycode_to_scancode;
     uint32_t next_reserved_scancode;

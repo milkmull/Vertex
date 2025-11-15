@@ -2110,6 +2110,158 @@ bool window_instance::toggle_drag_and_drop(bool enabled)
 }
 
 //=============================================================================
+// text input
+//=============================================================================
+
+bool window_instance::start_text_input()
+{
+    return start_text_input(nullptr);
+}
+
+//=============================================================================
+
+bool window_instance::start_text_input(const keyboard::text_input_options* options)
+{
+    if (options)
+    {
+        data.text_input_options = *options;
+    }
+    else
+    {
+        data.text_input_options = keyboard::text_input_options{};
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SET_PROPERTIES
+
+    impl_ptr->set_text_input_properties();
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SET_PROPERTIES
+
+    keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
+
+    // show onscreen keyboard
+    if (keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
+    {
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SHOW_SCREEN_KEYBOARD
+
+        impl_ptr->show_screen_keyboard();
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SHOW_SCREEN_KEYBOARD
+    }
+
+    if (!data.text_input_active)
+    {
+        // start the text input system
+
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_START
+
+        if (!impl_ptr->start_text_input())
+        {
+            return false;
+        }
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_START
+
+        data.text_input_active = true;
+    }
+
+    return true;
+}
+
+//=============================================================================
+
+bool window_instance::text_input_active() const
+{
+    return data.text_input_active;
+}
+
+//=============================================================================
+
+void window_instance::stop_text_input()
+{
+    if (data.text_input_active)
+    {
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_STOP
+
+        impl_ptr->stop_text_input();
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_STOP
+
+        data.text_input_active = false;
+    }
+
+    keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
+
+    // hide onscreen keyboard
+    if (keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
+    {
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HIDE_SCREEN_KEYBOARD
+
+        impl_ptr->hide_screen_keyboard();
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HIDE_SCREEN_KEYBOARD
+    }
+}
+
+//=============================================================================
+
+bool window_instance::clear_composition()
+{
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_CLEAR_COMPOSITION
+
+    return impl_ptr->clear_composition();
+
+#else
+
+    return true;
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_CLEAR_COMPOSITION
+}
+
+//=============================================================================
+
+bool window_instance::set_text_input_area(const math::recti& rect, int cursor)
+{
+    if (!rect.empty())
+    {
+        data.text_input_rect = rect;
+        data.text_input_cursor = cursor;
+    }
+    else
+    {
+        data.text_input_rect = rect;
+        data.text_input_cursor = 0;
+    }
+
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_UPDATE_AREA
+
+    return impl_ptr->update_text_input_area();
+
+#else
+
+    return true;
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_UPDATE_AREA
+}
+
+//=============================================================================
+
+bool window_instance::get_text_input_area(math::recti* rect, int* cursor) const
+{
+    if (rect)
+    {
+        *rect = data.text_input_rect;
+    }
+
+    if (cursor)
+    {
+        *cursor = data.text_input_cursor;
+    }
+
+    return true;
+}
+
+//=============================================================================
 // events
 //=============================================================================
 

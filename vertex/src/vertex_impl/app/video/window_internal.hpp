@@ -208,6 +208,15 @@ struct window_data
     //=============================================================================
 
     bool drag_and_drop_enabled = false;
+
+    //=============================================================================
+    // text input
+    //=============================================================================
+
+    keyboard::text_input_options text_input_options;
+    bool text_input_active = false;
+    int text_input_cursor;
+    math::recti text_input_rect;
 };
 
 //=============================================================================
@@ -432,6 +441,20 @@ public:
     //=============================================================================
 
     bool toggle_drag_and_drop(bool enabled);
+
+    //=============================================================================
+    // text input
+    //=============================================================================
+
+    bool start_text_input();
+    bool start_text_input(const keyboard::text_input_options* options);
+    bool text_input_active() const;
+    void stop_text_input();
+
+    bool clear_composition();
+
+    bool set_text_input_area(const math::recti& rect, int cursor);
+    bool get_text_input_area(math::recti* rect, int* cursor) const;
     
     //=============================================================================
     // events
