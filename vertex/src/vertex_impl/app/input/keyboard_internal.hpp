@@ -166,7 +166,7 @@ public:
     bool send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down);
 
     bool hardware_key_pressed();
-    void release_auto_release_keys() {}
+    void release_auto_release_keys();
 
     //=============================================================================
     // Text Input / IME

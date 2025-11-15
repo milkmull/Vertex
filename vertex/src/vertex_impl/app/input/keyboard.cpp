@@ -896,30 +896,45 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
 
 //=============================================================================
 
-bool keyboard_instance::send_key_no_mods(time::time_point t, keyboard_id id, int raw, scancode sc, bool down);
-
-//=============================================================================
-
-bool keyboard_instance::send_key_and_scancode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode key, bool down);
-
-//=============================================================================
-
-void keyboard_instance::send_unicode_key(char32_t c)
+bool keyboard_instance::hardware_key_pressed()
 {
+    for (uint32_t sc = scancode_unknown; sc < scancode_count; ++sc)
+    {
+        if (data.key_source[sc] & key_flags::hardware)
+        {
+            return true;
+        }
+    }
 
+    return !data.hardware_timestamp.is_zero() ? true : false;
 }
 
 //=============================================================================
 
-bool keyboard_instance::send_key_auto_release(scancode sc);
+void keyboard_instance::release_auto_release_keys()
+{
+    if (data.auto_release_pending)
+    {
+        for (uint32_t sc = scancode_unknown; sc < scancode_count; ++sc)
+        {
+            if (data.key_source[sc] & key_flags::auto_release)
+            {
+                send_key_internal(time::zero(), key_flags::auto_release, global_keyboard_id, 0, static_cast<scancode>(sc), false);
+            }
+        }
 
-//=============================================================================
+        data.auto_release_pending = false;
+    }
 
-void keyboard_instance::release_auto_release_keys() {}
-
-//=============================================================================
-
-bool keyboard_instance::hardware_key_pressed();
+    if (!data.hardware_timestamp.is_zero())
+    {
+        // keep hardware keyboard "active" for 250 ms
+        if (os::get_ticks() >= data.hardware_timestamp + time::milliseconds(250))
+        {
+            data.hardware_timestamp.zero();
+        }
+    }
+}
 
 } // namespace keyboard
 } // namespace app
