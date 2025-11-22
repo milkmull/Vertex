@@ -18,7 +18,7 @@ static bool display_added_event_watcher(const app::event::event& e, void*)
 
     std::cout << (int)(e.type) << std::endl;
 
-    const app::video::display d = e.display_event.comon.display_id;
+    const app::video::display d = e.display_event.common.display_id;
 
     if (d.is_connected())
     {

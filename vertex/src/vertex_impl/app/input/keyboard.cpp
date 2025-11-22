@@ -46,6 +46,7 @@ void keyboard_instance::init_data()
 {
     data.focus = invalid_id;
     data.mod_state = key_mod::none;
+    data.keymap_ptr = nullptr;
     data.auto_release_pending = false;
     data.keycode_options = keycode_options::none;
     data.quitting = false;
@@ -258,7 +259,7 @@ bool keyboard_instance::set_focus(video::window_id wid)
 {
     if (data.focus == wid)
     {
-        return;
+        return true;
     }
 
     video::window_instance* new_focus = video->get_window_instance(wid);
@@ -684,7 +685,7 @@ void keyboard_instance::send_keyboard_added(keyboard_id id)
 {
     event::event e{};
     e.type = event::keyboard_added;
-    e.key_event.common.keyboard_id = id;
+    e.keyboard_event.common.keyboard_id = id;
     events_ptr->push_event(e);
 }
 
@@ -694,7 +695,7 @@ void keyboard_instance::send_keyboard_removed(keyboard_id id)
 {
     event::event e{};
     e.type = event::keyboard_removed;
-    e.key_event.common.keyboard_id = id;
+    e.keyboard_event.common.keyboard_id = id;
     events_ptr->push_event(e);
 }
 
@@ -864,14 +865,14 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
     event::event e{};
     e.type = down ? event::key_down : event::key_up;
     e.time = t;
-    e.key_event.common.keyboard_id = id;
-    e.key_event.common.window_id = data.focus;
-    e.key_event.key.scancode = sc;
-    e.key_event.key.key = kc;
-    e.key_event.key.mods = data.mod_state;
-    e.key_event.key.raw = static_cast<uint16_t>(raw);
-    e.key_event.key.repeat = repeat;
-    e.key_event.key.down = down;
+    e.keyboard_event.common.keyboard_id = id;
+    e.keyboard_event.common.window_id = data.focus;
+    e.keyboard_event.key.scancode = sc;
+    e.keyboard_event.key.key = kc;
+    e.keyboard_event.key.mods = data.mod_state;
+    e.keyboard_event.key.raw = static_cast<uint16_t>(raw);
+    e.keyboard_event.key.repeat = repeat;
+    e.keyboard_event.key.down = down;
     const bool sent = events_ptr->push_event(e);
 
     // If the keyboard is grabbed and the grabbed window is in full-screen,
@@ -935,6 +936,92 @@ void keyboard_instance::release_auto_release_keys()
         }
     }
 }
+
+//=============================================================================
+// Screen Keyboard
+//=============================================================================
+
+bool keyboard_instance::maybe_show_screen_keyboard() const
+{
+    const char* hint = video->app->data.hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
+
+    if ((!hint || (std::strcmp(hint, "auto") == 0) && !any_connected()) || hint::parse_boolean(hint, false))
+    {
+        return true;
+    }
+
+    return false;
+}
+
+//=============================================================================
+
+bool keyboard_instance::has_screen_keyboard_support()
+{
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HAS_SCREEN_KEYBOARD_SUPPORT
+
+    return false;// has_screen_keyboard_support_impl();
+
+#else
+
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HAS_SCREEN_KEYBOARD_SUPPORT
+}
+
+//=============================================================================
+
+bool keyboard_instance::screen_keyboard_shown() const
+{
+    return data.screen_keyboard_shown;
+}
+
+//=============================================================================
+
+void keyboard_instance::send_screen_keyboard_shown()
+{
+    event::event e{};
+    e.type = event::screen_keyboard_shown;
+    events_ptr->push_event(e);
+}
+
+//=============================================================================
+
+void keyboard_instance::send_screen_keyboard_hidden()
+{
+    event::event e{};
+    e.type = event::screen_keyboard_hidden;
+    events_ptr->push_event(e);
+}
+
+//=============================================================================
+// Text Input / IME
+//=============================================================================
+
+void keyboard_instance::send_text(const char* text)
+{
+    const video::window_instance* w = get_focus_instance();
+
+    if (!w || !w->text_input_active())
+    {
+        return;
+    }
+
+    if (!text || !*text)
+    {
+        return;
+    }
+
+    // ignore unprintable characters
+    //if (str::is_ctrl(c)
+}
+
+//=============================================================================
+
+//void keyboard_instance::send_editing_text(const char* text, size_t start, size_t size);
+
+//=============================================================================
+
+//void keyboard_instance::send_editing_text_candidates(const std::vector<const char*>& candidates, size_t selected_candidate, bool horizontal);
 
 } // namespace keyboard
 } // namespace app

@@ -4,6 +4,7 @@
 #include "vertex/app/video/video.hpp"
 #include "vertex/config/flags.hpp"
 #include "vertex/math/rect.hpp"
+#include "vertex/util/time/time.hpp"
 #include "vertex_impl/app/input/keymap.hpp"
 
 namespace vx {
@@ -56,6 +57,7 @@ struct keyboard_data
 
     std::vector<keyboard_info> keyboards;
 
+    bool screen_keyboard_shown;
     bool quitting;
 };
 
@@ -169,12 +171,19 @@ public:
     void release_auto_release_keys();
 
     //=============================================================================
-    // Text Input / IME
+    // Screen Keyboard
     //=============================================================================
 
-    bool auto_showing_screen_keyboard() const;
+    bool maybe_show_screen_keyboard() const;
     bool has_screen_keyboard_support();
-    bool screen_keyboard_shown();
+    bool screen_keyboard_shown() const;
+
+    void send_screen_keyboard_shown();
+    void send_screen_keyboard_hidden();
+
+    //=============================================================================
+    // Text Input / IME
+    //=============================================================================
 
     void send_text(const char* text);
     void send_editing_text(const char* text, size_t start, size_t size);

@@ -1682,8 +1682,9 @@ void mouse_instance::send_button_internal(time::time_point t, video::window_inst
         e.mouse_event.common.window_id = wid;
         e.mouse_event.common.x = data.x;
         e.mouse_event.common.y = data.y;
-        e.mouse_event.mouse_button_down.button = b;
-        e.mouse_event.mouse_button_down.clicks = clicks;
+        e.mouse_event.mouse_button.button = b;
+        e.mouse_event.mouse_button.clicks = clicks;
+        e.mouse_event.mouse_button.down = down;
         events_ptr->push_event(e);
     }
 

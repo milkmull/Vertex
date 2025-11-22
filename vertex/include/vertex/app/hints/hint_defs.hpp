@@ -106,7 +106,9 @@ enum hint : hint_t
     // Keycode options
     keyboard_keycode_options,
 
-    keyboard_allow_alt_tab_while_grabbed
+    keyboard_allow_alt_tab_while_grabbed,
+
+    keyboard_enable_screen_keyboard
 };
 
 } // namespace hint

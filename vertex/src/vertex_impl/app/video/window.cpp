@@ -2140,7 +2140,7 @@ bool window_instance::start_text_input(const keyboard::text_input_options* optio
     keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
 
     // show onscreen keyboard
-    if (keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
+    if (false)//keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
     {
 #if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SHOW_SCREEN_KEYBOARD
 
@@ -2193,7 +2193,7 @@ void window_instance::stop_text_input()
     keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
 
     // hide onscreen keyboard
-    if (keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
+    if (false)//keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
     {
 #if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HIDE_SCREEN_KEYBOARD
 

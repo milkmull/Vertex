@@ -23,215 +23,256 @@ namespace event {
 using event_type_t = uint32_t;
 
 ///////////////////////////////////////////////////////////////////////////////
+// event type
+///////////////////////////////////////////////////////////////////////////////
+
+// https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_events.h#L84
+
+enum event_type : event_type_t
+{
+    event_last = 0xFFFF,
+    event_first = 0,
+    invalid_event = event_first,
+
+    // app events
+    app_quit,
+    app_terminating,
+    app_low_memory,
+    app_will_enter_background,
+    app_did_enter_background,
+    app_will_enter_foreground,
+    app_did_enter_foreground,
+    app_locale_changed,
+    app_system_theme_changed,
+
+    _app_event_first = app_quit,
+    _app_event_last = app_system_theme_changed,
+
+    // display events
+    display_added,
+    display_removed,
+    display_moved,
+    display_orientation_changed,
+    display_desktop_mode_changed,
+    display_current_mode_changed,
+    display_content_scale_changed,
+
+    _display_event_first = display_added,
+    _display_event_last = display_content_scale_changed,
+
+    // window events
+    window_created,
+    window_destroyed,
+    window_shown,
+    window_hidden,
+    window_exposed,
+    window_occluded,
+    window_moved,
+    window_resized,
+    window_pixel_size_changed,
+    window_minimized,
+    window_maximized,
+    window_restored,
+    window_enter_fullscreen,
+    window_leave_fullscreen,
+    window_gained_focus,
+    window_lost_focus,
+    window_mouse_enter,
+    window_mouse_leave,
+    window_hit_test,
+    window_display_changed,
+    window_display_scale_changed,
+    window_safe_area_changed,
+    window_close_requested,
+
+    _window_event_first = window_created,
+    _window_event_last = window_close_requested,
+
+    // keyboard events
+    keyboard_added,
+    keyboard_removed,
+    keymap_changed,
+    key_down,
+    key_up,
+    screen_keyboard_shown,
+    screen_keyboard_hidden,
+
+    _keyboard_event_first = keyboard_added,
+    _keyboard_event_last = key_up,
+
+    // text events
+    text_editing,
+    text_input,
+    text_editing_candidates,
+
+    _text_event_first = text_editing,
+    _text_event_last = text_editing_candidates,
+
+    // mouse events
+    mouse_added,
+    mouse_removed,
+    mouse_moved,
+    mouse_button_down,
+    mouse_button_up,
+    mouse_wheel,
+
+    _mouse_event_first = mouse_added,
+    _mouse_event_last = mouse_wheel,
+
+    // touch events
+    finger_moved,
+    finger_down,
+    finger_up,
+    finger_canceled,
+
+    _touch_event_first = finger_moved,
+    _touch_event_last = finger_canceled,
+
+    // pinch events
+    pinch_begin,
+    pinch_update,
+    pinch_end,
+
+    _pinch_event_first = pinch_begin,
+    _pinch_event_last = pinch_end,
+
+    // pen events
+    pen_proximity_in,
+    pen_proximity_out,
+    pen_moved,
+    pen_up,
+    pen_down,
+    pen_button_up,
+    pen_button_down,
+    pen_axis_changed,
+
+    _pen_event_first = pen_proximity_in,
+    _pen_event_last = pen_axis_changed,
+
+    // clipboard events
+    clipboard_updated,
+
+    _clipboard_event_first = clipboard_updated,
+    _clipboard_event_last = clipboard_updated,
+
+    // drag and drop events
+    drop_file,
+    drop_text,
+    drop_begin,
+    drop_end,
+    drop_position,
+
+    _drop_event_first = drop_file,
+    _drop_event_last = drop_position,
+
+    // internal events (unchanged because there is no paired last event)
+    internal_event_poll_sentinel,
+
+    _internal_event_first = internal_event_poll_sentinel,
+    _internal_event_last = internal_event_poll_sentinel,
+
+    // user event
+    user_event = 0x8000
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// user events
+///////////////////////////////////////////////////////////////////////////////
+
+inline constexpr event_type_t make_user_event(uint16_t number) noexcept
+{
+    const uint32_t target = user_event + number;
+    return (target < event_last) ? target : invalid_event;
+}
+
+inline constexpr bool is_user_event(event_type_t type) noexcept
+{
+    return (user_event <= type) && (type < event_last);
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // event category
 ///////////////////////////////////////////////////////////////////////////////
 
-enum event_category : uint8_t
+enum event_category
 {
-    category_none = 0,
+    category_none,
     category_app,
     category_display,
     category_window,
-    category_key,
+    category_keyboard,
+    category_text,
     category_mouse,
     category_touch,
     category_pinch,
     category_pen,
     category_clipboard,
     category_drop,
-    category_internal
+    category_internal,
+    category_user
 };
 
-///////////////////////////////////////////////////////////////////////////////
-// event encoding
-///////////////////////////////////////////////////////////////////////////////
-//
-// [31]    -> user-defined flag (1 bit)
-// [30:24] -> category (7 bits, enough for 128 categories)
-// [23:0]  -> event number/index (24 bits, up to ~16 million per category)
-//
-///////////////////////////////////////////////////////////////////////////////
-
-namespace _priv {
-
-enum : uint32_t
+inline constexpr event_category get_category(event_type_t type) noexcept
 {
-    user_flag_shift = 24,
-    user_flag_mask  = 0xFF000000,  // top byte
+    if (type > event_last)
+    {
+        return category_none;
+    }
+    if (type >= user_event)
+    {
+        return category_user;
+    }
+    if (type >= _internal_event_first && type <= _internal_event_last)
+    {
+        return category_internal;
+    }
+    if (type >= _drop_event_first && type <= _drop_event_last)
+    {
+        return category_drop;
+    }
+    if (type >= _clipboard_event_first && type <= _clipboard_event_last)
+    {
+        return category_clipboard;
+    }
+    if (type >= _pen_event_first && type <= _pen_event_last)
+    {
+        return category_pen;
+    }
+    if (type >= _pinch_event_first && type <= _pinch_event_last)
+    {
+        return category_pinch;
+    }
+    if (type >= _touch_event_first && type <= _touch_event_last)
+    {
+        return category_touch;
+    }
+    if (type >= _mouse_event_first && type <= _mouse_event_last)
+    {
+        return category_mouse;
+    }
+    if (type >= _text_event_first && type <= _text_event_last)
+    {
+        return category_text;
+    }
+    if (type >= _keyboard_event_first && type <= _keyboard_event_last)
+    {
+        return category_keyboard;
+    }
+    if (type >= _window_event_first && type <= _window_event_last)
+    {
+        return category_window;
+    }
+    if (type >= _display_event_first && type <= _display_event_last)
+    {
+        return category_display;
+    }
+    if (type >= _app_event_first && type <= _app_event_last)
+    {
+        return category_app;
+    }
 
-    category_shift  = 16,
-    category_mask   = 0x00FF0000,  // next byte
-
-    number_shift    = 0,
-    number_mask     = 0x0000FFFF   // low 16 bits
-};
-
-} // namespace _priv
-
-inline constexpr event_type_t make_event(uint8_t category, uint16_t number, bool user_defined = false) noexcept
-{
-    return (static_cast<event_type_t>(user_defined ? 1u : 0u) << _priv::user_flag_shift) |
-           (static_cast<event_type_t>(category) << _priv::category_shift) |
-           static_cast<event_type_t>(number);
+    return category_none;
 }
-
-inline constexpr event_type_t make_user_event(uint8_t category, uint16_t number) noexcept
-{
-    return make_event(category, number, true);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// decoding helpers
-///////////////////////////////////////////////////////////////////////////////
-
-inline constexpr bool is_user_event(event_type_t type) noexcept
-{
-    return static_cast<bool>(type & _priv::user_flag_mask);
-}
-
-inline constexpr uint8_t get_category(event_type_t type) noexcept
-{
-    return static_cast<uint8_t>((type >> _priv::category_shift) & _priv::category_mask);
-}
-
-inline constexpr uint16_t get_number(event_type_t type) noexcept
-{
-    return static_cast<uint16_t>(type & _priv::number_mask);
-}
-
-///////////////////////////////////////////////////////////////////////////////
-// event type
-///////////////////////////////////////////////////////////////////////////////
-
-// https://github.com/libsdl-org/SDL/blob/main/include/SDL3/SDL_events.h#L84
-
-#define EVENT_TYPE(name, cat, i) name = make_event(cat, i)
-#define EVENT_TYPE_USER(name, cat, i) name = make_event(cat, i, true)
-
-enum event_type : event_type_t
-{
-    invalid_event = 0,
-
-    // app events
-    EVENT_TYPE(app_event_first,                 category_app,       0),
-    EVENT_TYPE(app_quit,                        category_app,       1),
-    EVENT_TYPE(app_terminating,                 category_app,       2),
-    EVENT_TYPE(app_low_memory,                  category_app,       3),
-    EVENT_TYPE(app_will_enter_background,       category_app,       4),
-    EVENT_TYPE(app_did_enter_background,        category_app,       5),
-    EVENT_TYPE(app_will_enter_foreground,       category_app,       6),
-    EVENT_TYPE(app_did_enter_foreground,        category_app,       7),
-    EVENT_TYPE(app_locale_changed,              category_app,       8),
-    EVENT_TYPE(app_system_theme_changed,        category_app,       9),
-    EVENT_TYPE(app_event_last,                  category_app,      10),
-
-    // display events
-    EVENT_TYPE(display_event_first,             category_display,   0),
-    EVENT_TYPE(display_added,                   category_display,   1),
-    EVENT_TYPE(display_removed,                 category_display,   2),
-    EVENT_TYPE(display_moved,                   category_display,   3),
-    EVENT_TYPE(display_orientation_changed,     category_display,   4),
-    EVENT_TYPE(display_desktop_mode_changed,    category_display,   5),
-    EVENT_TYPE(display_current_mode_changed,    category_display,   6),
-    EVENT_TYPE(display_content_scale_changed,   category_display,   7),
-    EVENT_TYPE(display_event_last,              category_display,   8),
-
-    // window events
-    EVENT_TYPE(window_event_first,              category_window,    0),
-    EVENT_TYPE(window_created,                  category_window,    1),
-    EVENT_TYPE(window_destroyed,                category_window,    2),
-    EVENT_TYPE(window_shown,                    category_window,    3),
-    EVENT_TYPE(window_hidden,                   category_window,    4),
-    EVENT_TYPE(window_exposed,                  category_window,    5),
-    EVENT_TYPE(window_occluded,                 category_window,    6),
-    EVENT_TYPE(window_moved,                    category_window,    7),
-    EVENT_TYPE(window_resized,                  category_window,    8),
-    EVENT_TYPE(window_pixel_size_changed,       category_window,    9),
-    EVENT_TYPE(window_minimized,                category_window,   10),
-    EVENT_TYPE(window_maximized,                category_window,   11),
-    EVENT_TYPE(window_restored,                 category_window,   12),
-    EVENT_TYPE(window_enter_fullscreen,         category_window,   13),
-    EVENT_TYPE(window_leave_fullscreen,         category_window,   14),
-    EVENT_TYPE(window_gained_focus,             category_window,   15),
-    EVENT_TYPE(window_lost_focus,               category_window,   16),
-    EVENT_TYPE(window_mouse_enter,              category_window,   17),
-    EVENT_TYPE(window_mouse_leave,              category_window,   18),
-    EVENT_TYPE(window_hit_test,                 category_window,   19),
-    EVENT_TYPE(window_display_changed,          category_window,   20),
-    EVENT_TYPE(window_display_scale_changed,    category_window,   21),
-    EVENT_TYPE(window_safe_area_changed,        category_window,   22),
-    EVENT_TYPE(window_close_requested,          category_window,   23),
-    EVENT_TYPE(window_event_last,               category_window,   24),
-
-    // key events
-    EVENT_TYPE(key_event_first,                 category_key,       0),
-    EVENT_TYPE(keyboard_added,                  category_key,       1),
-    EVENT_TYPE(keyboard_removed,                category_key,       2),
-    EVENT_TYPE(key_down,                        category_key,       3),
-    EVENT_TYPE(key_up,                          category_key,       4),
-    EVENT_TYPE(text_editing,                    category_key,       5),
-    EVENT_TYPE(text_input,                      category_key,       6),
-    EVENT_TYPE(keymap_changed,                  category_key,       7),
-    EVENT_TYPE(text_editing_candidates,         category_key,       8),
-    EVENT_TYPE(key_event_last,                  category_key,       9),
-
-    // mouse events
-    EVENT_TYPE(mouse_event_first,               category_mouse,     0),
-    EVENT_TYPE(mouse_added,                     category_mouse,     1),
-    EVENT_TYPE(mouse_removed,                   category_mouse,     2),
-    EVENT_TYPE(mouse_moved,                     category_mouse,     3),
-    EVENT_TYPE(mouse_button_down,               category_mouse,     4),
-    EVENT_TYPE(mouse_button_up,                 category_mouse,     5),
-    EVENT_TYPE(mouse_wheel,                     category_mouse,     6),
-    EVENT_TYPE(mouse_event_last,                category_mouse,     7),
-
-    // touch events
-    EVENT_TYPE(finger_event_first,              category_touch,     0),
-    EVENT_TYPE(finger_moved,                    category_touch,     1),
-    EVENT_TYPE(finger_down,                     category_touch,     2),
-    EVENT_TYPE(finger_up,                       category_touch,     3),
-    EVENT_TYPE(finger_canceled,                 category_touch,     4),
-    EVENT_TYPE(finger_event_last,               category_touch,     5),
-
-    // pinch events
-    EVENT_TYPE(pinch_event_first,               category_touch,     0),
-    EVENT_TYPE(pinch_begin,                     category_touch,     1),
-    EVENT_TYPE(pinch_update,                    category_touch,     2),
-    EVENT_TYPE(pinch_end,                       category_touch,     3),
-    EVENT_TYPE(pinch_event_last,                category_touch,     4),
-
-    // pen events
-    EVENT_TYPE(pen_event_first,                 category_pen,       0),
-    EVENT_TYPE(pen_proximity_in,                category_pen,       1),
-    EVENT_TYPE(pen_proximity_out,               category_pen,       2),
-    EVENT_TYPE(pen_moved,                       category_pen,       3),
-    EVENT_TYPE(pen_up,                          category_pen,       4),
-    EVENT_TYPE(pen_down,                        category_pen,       5),
-    EVENT_TYPE(pen_button_up,                   category_pen,       6),
-    EVENT_TYPE(pen_button_down,                 category_pen,       7),
-    EVENT_TYPE(pen_axis_changed,                category_pen,       8),
-    EVENT_TYPE(pen_event_last,                  category_pen,       9),
-
-    // clipboard events
-    EVENT_TYPE(clipboard_event_first,           category_clipboard, 0),
-    EVENT_TYPE(clipboard_updated,               category_clipboard, 1),
-    EVENT_TYPE(clipboard_event_last,            category_clipboard, 2),
-
-    // drag and drop events
-    EVENT_TYPE(drop_event_first,                category_drop,      0),
-    EVENT_TYPE(drop_file,                       category_drop,      1),
-    EVENT_TYPE(drop_text,                       category_drop,      2),
-    EVENT_TYPE(drop_begin,                      category_drop,      3),
-    EVENT_TYPE(drop_end,                        category_drop,      4),
-    EVENT_TYPE(drop_position,                   category_drop,      5),
-    EVENT_TYPE(drop_event_last,                 category_drop,      6),
-
-    // internal events
-    EVENT_TYPE(internal_event_poll_sentinel,    category_internal,  0)
-};
-
-#undef EVENT_TYPE
-#undef EVENT_TYPE_USER
 
 ///////////////////////////////////////////////////////////////////////////////
 // app events
@@ -239,12 +280,14 @@ enum event_type : event_type_t
 
 struct app_event_common {};
 
+#if defined(VX_APP_VIDEO_ENABLED)
+
 struct system_theme_changed_event
 {
-#if defined(VX_APP_VIDEO_ENABLED)
     video::system_theme system_theme;
-#endif // VX_APP_VIDEO_ENABLED
 };
+
+#endif // VX_APP_VIDEO_ENABLED
 
 struct app_event_type
 {
@@ -252,7 +295,11 @@ struct app_event_type
 
     union
     {
+#if defined(VX_APP_VIDEO_ENABLED)
+
         system_theme_changed_event system_theme_changed;
+
+#endif // VX_APP_VIDEO_ENABLED
     };
 };
 
@@ -267,17 +314,10 @@ struct display_event_common
     video::display_id display_id;
 };
 
-struct display_added_event {};
-struct display_removed_event {};
-struct display_moved_event {};
-
 struct display_orientation_changed_event
 {
     video::display_orientation orientation;
 };
-
-struct display_desktop_mode_changed_event {};
-struct display_current_mode_changed_event {};
 
 struct display_content_scale_changed_event
 {
@@ -286,16 +326,11 @@ struct display_content_scale_changed_event
 
 struct display_event_type
 {
-    display_event_common comon;
+    display_event_common common;
 
     union
     {
-        display_added_event display_added;
-        display_removed_event display_removed;
-        display_moved_event display_moved;
         display_orientation_changed_event display_orientation_changed;
-        display_desktop_mode_changed_event display_desktop_mode_changed;
-        display_current_mode_changed_event display_current_mode_changed;
         display_content_scale_changed_event display_content_scale_changed;
     };
 };
@@ -308,15 +343,6 @@ struct window_event_common
 {
     video::window_id window_id;
 };
-
-struct window_created_event {};
-struct window_destroyed_event {};
-
-struct window_shown_event {};
-struct window_hidden_event {};
-
-struct window_exposed_event {};
-struct window_occluded_event {};
 
 struct window_moved_event
 {
@@ -333,21 +359,6 @@ struct window_pixel_size_changed_event
     int32_t w, h;
 };
 
-struct window_minimized_event {};
-struct window_maximized_event {};
-struct window_restored_event {};
-
-struct window_enter_fullscreen_event {};
-struct window_leave_fullscreen_event {};
-
-struct window_gained_focus_event {};
-struct window_lost_focus_event {};
-
-struct window_mouse_enter_event {};
-struct window_mouse_leave_event {};
-
-struct window_hit_test_event {};
-
 struct window_display_changed_event
 {
     video::display_id display_id;
@@ -363,52 +374,30 @@ struct window_safe_area_changed_event
     int32_t x, y, w, h;
 };
 
-struct window_close_requested_event {};
-
 struct window_event_type
 {
     window_event_common common;
 
     union
     {
-        window_created_event window_created;
-        window_destroyed_event window_destroyed;
-        window_shown_event window_shown;
-        window_hidden_event window_hidden;
-        window_exposed_event window_exposed;
-        window_occluded_event window_occluded;
         window_moved_event window_moved;
         window_resized_event window_resized;
         window_pixel_size_changed_event window_pixel_size_changed;
-        window_minimized_event window_minimized;
-        window_maximized_event window_maximized;
-        window_restored_event window_restored;
-        window_enter_fullscreen_event window_enter_fullscreen;
-        window_leave_fullscreen_event window_leave_fullscreen;
-        window_gained_focus_event window_gained_focus;
-        window_lost_focus_event window_lost_focus;
-        window_mouse_enter_event window_mouse_enter;
-        window_mouse_leave_event window_mouse_leave;
-        window_hit_test_event window_hit_test;
         window_display_changed_event window_display_changed;
         window_display_scale_changed_event window_display_scale_changed;
         window_safe_area_changed_event window_safe_area_changed;
-        window_close_requested_event window_close_requested;
     };
 };
 
 ///////////////////////////////////////////////////////////////////////////////
-// key events
+// keyboard events
 ///////////////////////////////////////////////////////////////////////////////
 
-struct key_event_common
+struct keyboard_event_common
 {
     keyboard::keyboard_id keyboard_id;
     video::window_id window_id;
 };
-
-struct keyboard_added_event {};
-struct keyboard_removed_event {};
 
 struct key_event
 {
@@ -416,18 +405,16 @@ struct key_event
     keyboard::keycode key;
     keyboard::key_mod mods;
     uint16_t raw;
-    bool repeate;
+    bool repeat;
     bool down;
 };
 
-struct key_event_type
+struct keyboard_event_type
 {
-    key_event_common common;
+    keyboard_event_common common;
 
     union
     {
-        keyboard_added_event keyboard_added;
-        keyboard_removed_event keyboard_removed;
         key_event key;
     };
 };
@@ -440,7 +427,7 @@ struct text_event_common {};
 
 struct text_input_event
 {
-    char32_t text;
+    const char* text;
 };
 
 struct text_event_type
@@ -469,15 +456,11 @@ struct mouse_moved_event
     float dx, dy;
 };
 
-struct mouse_button_down_event
+struct mouse_button_event
 {
     uint8_t button;
     uint8_t clicks;
-};
-
-struct mouse_button_up_event
-{
-    uint8_t button;
+    bool down;
 };
 
 struct mouse_wheel_event
@@ -494,8 +477,7 @@ struct mouse_event_type
     union
     {
         mouse_moved_event mouse_moved;
-        mouse_button_down_event mouse_button_down;
-        mouse_button_up_event mouse_button_up;
+        mouse_button_event mouse_button;
         mouse_wheel_event mouse_wheel;
     };
 };
@@ -519,10 +501,6 @@ struct finger_moved_event
     float pressure_difference;
 };
 
-struct finger_down_event {};
-struct finger_up_event {};
-struct finger_cancelled_event {};
-
 struct touch_event_type
 {
     touch_event_common common;
@@ -530,9 +508,6 @@ struct touch_event_type
     union
     {
         finger_moved_event finger_moved;
-        finger_down_event finger_down;
-        finger_up_event finger_up;
-        finger_cancelled_event finger_cancelled;
     };
 };
 
@@ -546,20 +521,9 @@ struct pinch_event_common
     video::window_id window_id;
 };
 
-struct pinch_event_begin {};
-struct pinch_event_update {};
-struct pinch_event_end {};
-
 struct pinch_event_type
 {
     pinch_event_common common;
-
-    union
-    {
-        pinch_event_begin pinch_begin;
-        pinch_event_update pinch_update;
-        pinch_event_end pinch_end;
-    };
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -573,11 +537,6 @@ struct pen_event_common
     pen::input_state state;
     video::window_id window_id;
 };
-
-struct pen_proximity_in_event {};
-struct pen_proximity_out_event {};
-
-struct pen_moved_event {};
 
 struct pen_touch_event
 {
@@ -601,9 +560,6 @@ struct pen_event_type
 
     union
     {
-        pen_proximity_in_event pen_proximity_in;
-        pen_proximity_out_event pen_proximity_out;
-        pen_moved_event pen_moved;
         pen_touch_event pen_touch;
         pen_button_event pen_button;
         pen_axis_changed_event pen_axis_changed;
@@ -660,9 +616,13 @@ public:
 
         window_event_type window_event;
 
-        // key events
+        // keyboard events
 
-        key_event_type key_event;
+        keyboard_event_type keyboard_event;
+
+        // text events
+
+        text_event_type text_event;
 
         // mouse events
 

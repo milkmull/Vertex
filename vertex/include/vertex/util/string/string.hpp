@@ -127,7 +127,7 @@ constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix) noexcept;
  * @param c The character to check.
  * @return True if `c` is alphabetic, false otherwise.
  */
-inline constexpr bool is_alpha(const char c);
+inline constexpr bool is_alpha(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of alphabetic characters.
@@ -152,7 +152,7 @@ inline bool is_alpha(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is a digit, false otherwise.
  */
-inline constexpr bool is_digit(const char c);
+inline constexpr bool is_digit(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of numeric characters.
@@ -176,7 +176,7 @@ inline bool is_numeric(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is alphanumeric, false otherwise.
  */
-inline constexpr bool is_alnum(const char c);
+inline constexpr bool is_alnum(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of alphanumeric characters.
@@ -200,7 +200,7 @@ inline bool is_alnum(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is an ASCII character, false otherwise.
  */
-inline constexpr bool is_ascii(const char c);
+inline constexpr bool is_ascii(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of ASCII characters.
@@ -224,7 +224,7 @@ inline bool is_ascii(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is a whitespace character, false otherwise.
  */
-inline constexpr bool is_space(const char c);
+inline constexpr bool is_space(const char c) noexcept;
 
 
 /**
@@ -236,6 +236,12 @@ inline constexpr bool is_space(const char c);
  * @return True if all characters in `s` are whitespace, false otherwise.
  */
 inline bool is_space(const str_arg_t& s);
+
+///////////////////////////////////////////////////////////////////////////////
+// ctrl
+///////////////////////////////////////////////////////////////////////////////
+
+inline constexpr bool is_ctrl(const char c) noexcept;
 
 ///////////////////////////////////////////////////////////////////////////////
 // hex
@@ -250,7 +256,7 @@ inline bool is_space(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is a valid hexadecimal digit, false otherwise.
  */
-inline constexpr bool is_hex_digit(const char c);
+inline constexpr bool is_hex_digit(const char c) noexcept;
 
 /**
  * @brief Checks if a string represents a valid hexadecimal number.
@@ -276,7 +282,7 @@ inline bool is_hex(const str_arg_t& s, const bool allow_prefix = false);
  * @param c The character to check.
  * @return True if `c` is lowercase, false otherwise.
  */
-inline constexpr bool is_lower(const char c);
+inline constexpr bool is_lower(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of lowercase characters.
@@ -300,7 +306,7 @@ inline bool is_lower(const str_arg_t& s);
  * @param c The character to convert.
  * @return The lowercase version of `c`.
  */
-inline constexpr char to_lower(const char c);
+inline constexpr char to_lower(const char c) noexcept;
 
 /**
  * @brief Converts a string to lowercase.
@@ -324,7 +330,7 @@ inline std::string to_lower(const str_arg_t& s);
  * @param c The character to check.
  * @return True if `c` is uppercase, false otherwise.
  */
-inline constexpr bool is_upper(const char c);
+inline constexpr bool is_upper(const char c) noexcept;
 
 /**
  * @brief Checks if a string consists only of uppercase characters.
@@ -348,7 +354,7 @@ inline bool is_upper(const str_arg_t& s);
  * @param c The character to convert.
  * @return The uppercase version of `c`.
  */
-inline constexpr char to_upper(const char c);
+inline constexpr char to_upper(const char c) noexcept;
 
 /**
  * @brief Converts a string to uppercase.

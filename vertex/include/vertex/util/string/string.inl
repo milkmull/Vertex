@@ -87,7 +87,7 @@ constexpr bool ends_with(const str_arg_t& s, const str_arg_t& suffix) noexcept
 // alpha
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_alpha(const char c)
+inline constexpr bool is_alpha(const char c) noexcept
 {
     return is_upper(c) || is_lower(c);
 }
@@ -101,7 +101,7 @@ inline bool is_alpha(const str_arg_t& s)
 // numeric
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_digit(const char c)
+inline constexpr bool is_digit(const char c) noexcept
 {
     return ('0' <= c) && (c <= '9');
 }
@@ -115,7 +115,7 @@ inline bool is_numeric(const str_arg_t& s)
 // alnum
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_alnum(const char c)
+inline constexpr bool is_alnum(const char c) noexcept
 {
     return is_alpha(c) || is_digit(c);
 }
@@ -129,7 +129,7 @@ inline bool is_alnum(const str_arg_t& s)
 // ascii
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_ascii(const char c)
+inline constexpr bool is_ascii(const char c) noexcept
 {
     return static_cast<unsigned char>(c) < 0x80;
 }
@@ -143,7 +143,7 @@ inline bool is_ascii(const str_arg_t& s)
 // space
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_space(const char c)
+inline constexpr bool is_space(const char c) noexcept
 {
     return (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n') || (c == '\f') || (c == '\v');
 }
@@ -154,10 +154,19 @@ inline bool is_space(const str_arg_t& s)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+// ctrl
+///////////////////////////////////////////////////////////////////////////////
+
+inline constexpr bool is_ctrl(const char c) noexcept
+{
+    return ((c >= '\0') && (c <= '\x1f')) || (c == '\x7f');
+}
+
+///////////////////////////////////////////////////////////////////////////////
 // hex
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_hex_digit(const char c)
+inline constexpr bool is_hex_digit(const char c) noexcept
 {
     return (('A' <= c) && (c <= 'F')) || (('a' <= c) && (c <= 'f')) || is_digit(c);
 }
@@ -191,7 +200,7 @@ inline bool is_hex(const str_arg_t& s, const bool allow_prefix)
 // lower
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_lower(const char c)
+inline constexpr bool is_lower(const char c) noexcept
 {
     return ('a' <= c) && (c <= 'z');
 }
@@ -205,7 +214,7 @@ inline bool is_lower(const str_arg_t& s)
 // to_lower
 ///////////////////////////////////////////////////////////////////////////////
 
-inline char to_lower(const char c)
+inline constexpr char to_lower(const char c) noexcept
 {
     return ('A' <= c) && (c <= 'Z') ? ('a' + (c - 'A')) : c;
 }
@@ -227,7 +236,7 @@ inline std::string to_lower(const str_arg_t& s)
 // upper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline bool is_upper(const char c)
+inline constexpr bool is_upper(const char c) noexcept
 {
     return ('A' <= c) && (c <= 'Z');
 }
@@ -241,7 +250,7 @@ inline bool is_upper(const str_arg_t& s)
 // to_upper
 ///////////////////////////////////////////////////////////////////////////////
 
-inline char to_upper(const char c)
+inline constexpr char to_upper(const char c) noexcept
 {
     return ('a' <= c) && (c <= 'z') ? ('A' + (c - 'a')) : c;
 }

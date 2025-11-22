@@ -50,10 +50,17 @@ void give_temporary_memory(void* ptr);
 // event queue
 ///////////////////////////////////////////////////////////////////////////////
 
+struct temp_memory_entry
+{
+    void* ptr;
+    temp_memory_entry* prev;
+    temp_memory_entry* next;
+};
+
 struct event_queue_entry
 {
     event event;
-    struct temp_memory_entry* memory;
+    temp_memory_entry* memory;
 };
 
 struct event_queue

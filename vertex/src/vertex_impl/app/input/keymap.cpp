@@ -935,7 +935,7 @@ std::string get_key_name_internal(keycode key, const keymap* map)
 
     if (key & key_scancode_mask)
     {
-        return get_scancode_name(static_cast<scancode>(key & ~key_scancode_mask));
+        return get_scancode_name_internal(static_cast<scancode>(key & ~key_scancode_mask));
     }
 
     if (key & key_extended_mask)
@@ -952,12 +952,12 @@ std::string get_key_name_internal(keycode key, const keymap* map)
 
     switch (key)
     {
-        case key_return:    return get_scancode_name(scancode_return);
-        case key_escape:    return get_scancode_name(scancode_escape);
-        case key_backspace: return get_scancode_name(scancode_backspace);
-        case key_tab:       return get_scancode_name(scancode_tab);
-        case key_space:     return get_scancode_name(scancode_space);
-        case key_delete:    return get_scancode_name(scancode_delete);
+        case key_return:    return get_scancode_name_internal(scancode_return);
+        case key_escape:    return get_scancode_name_internal(scancode_escape);
+        case key_backspace: return get_scancode_name_internal(scancode_backspace);
+        case key_tab:       return get_scancode_name_internal(scancode_tab);
+        case key_space:     return get_scancode_name_internal(scancode_space);
+        case key_delete:    return get_scancode_name_internal(scancode_delete);
         default:            break;
     }
 

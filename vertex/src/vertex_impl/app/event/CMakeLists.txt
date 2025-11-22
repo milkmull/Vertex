@@ -5,6 +5,11 @@
 
 file(GLOB VX_APP_EVENT_SOURCE_FILES
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/event_watch.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/event_watch.cpp"
+    
+    "${CMAKE_CURRENT_SOURCE_DIR}/temporary_memory_pool.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_event.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/event_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/event.cpp"

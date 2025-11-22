@@ -1753,7 +1753,7 @@ bool video_instance::send_display_added(display_id id)
 
     event::event e{};
     e.type = event::display_added;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     const bool sent = app->data.events_ptr->push_event(e);
 
     on_display_added();
@@ -1778,7 +1778,7 @@ bool video_instance::send_display_removed(display_id id)
 
     event::event e{};
     e.type = event::display_removed;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     const bool sent = app->data.events_ptr->push_event(e);
 
     return sent;
@@ -1792,7 +1792,7 @@ bool video_instance::send_display_moved(display_id id)
 
     event::event e{};
     e.type = event::display_moved;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     const bool sent = app->data.events_ptr->push_event(e);
 
     on_display_moved();
@@ -1814,7 +1814,7 @@ bool video_instance::send_display_orientation_changed(display_id id, display_ori
 
     event::event e{};
     e.type = event::display_orientation_changed;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     e.display_event.display_orientation_changed.orientation = orientation;
     const bool sent = app->data.events_ptr->push_event(e);
 
@@ -1829,7 +1829,7 @@ bool video_instance::send_display_desktop_mode_changed(display_id id, const disp
 
     event::event e{};
     e.type = event::display_desktop_mode_changed;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     const bool sent = app->data.events_ptr->push_event(e);
 
     return sent;
@@ -1843,7 +1843,7 @@ bool video_instance::send_display_current_mode_changed(display_id id, const disp
 
     event::event e{};
     e.type = event::display_current_mode_changed;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     const bool sent = app->data.events_ptr->push_event(e);
 
     return sent;
@@ -1857,7 +1857,7 @@ bool video_instance::send_display_content_scale_changed(display_id id, const mat
 
     event::event e{};
     e.type = event::display_content_scale_changed;
-    e.display_event.comon.display_id = id;
+    e.display_event.common.display_id = id;
     e.display_event.display_content_scale_changed.x = content_scale.x;
     e.display_event.display_content_scale_changed.y = content_scale.y;
     const bool sent = app->data.events_ptr->push_event(e);

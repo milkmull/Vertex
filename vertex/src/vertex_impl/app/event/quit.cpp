@@ -110,13 +110,6 @@ void give_temporary_memory(void* ptr)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-static void free_temporary_memory()
-{
-    get_temporary_memory_pool().clear();
-}
-
-///////////////////////////////////////////////////////////////////////////////
 // event queue
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -124,7 +117,6 @@ bool event_queue::start()
 {
     os::lock_guard lock(mutex);
     active = true;
-    return true;
 }
 
 void event_queue::stop()
@@ -333,8 +325,6 @@ void events_instance::pump_events_maintenance()
 
 void events_instance::pump_events_internal(bool push_sentinel)
 {
-    free_temporary_memory();
-
 #if defined(VX_APP_VIDEO_ENABLED)
 
     if (app->is_video_init())
