@@ -43,10 +43,23 @@ static void run_app()
     app::hint::set_hint(app::hint::video_allow_screen_saver, "true");
     const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::video_allow_screen_saver, false);
 
-    //while (true)
+    bool running = true;
+
+    while (running)
     {
         app::event::pump_events();
         os::sleep(time::milliseconds(100));
+
+        app::event::event e;
+        while (app::event::poll_event(e))
+        {
+            if (e.type == app::event::app_quit)
+            {
+                std::cout << "quit detected" << std::endl;
+                running = false;
+                break;
+            }
+        }
     }
 }
 

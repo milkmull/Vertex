@@ -4,48 +4,65 @@ namespace vx {
 namespace app {
 namespace event {
 
-void event_watch_list::clear()
+void watch_pair::clear()
 {
-    os::lock_guard lock(mutex);
-
     filter.callback = nullptr;
     filter.user_data = nullptr;
+    filter.removed = false;
+
     watchers.clear();
 }
 
 ////////////////////////////////////////
 
-void event_watch_list::set_filter(event_filter f, void* user_data)
+void event_watch_list::clear()
 {
     os::lock_guard lock(mutex);
 
-    filter.callback = f;
-    filter.user_data = user_data;
+    for (auto& pair : watch_list)
+    {
+        pair.clear();
+    }
+
+    dispatching = false;
+    removed = false;
 }
 
 ////////////////////////////////////////
 
-void event_watch_list::get_filter(event_filter& f, void*& user_data) const
+void event_watch_list::set_filter(event_filter f, void* user_data, event_watch_priority priority)
 {
     os::lock_guard lock(mutex);
 
-    f = filter.callback;
-    user_data = filter.user_data;
+    watch_list[priority].filter.callback = f;
+    watch_list[priority].filter.user_data = user_data;
 }
 
 ////////////////////////////////////////
 
-void event_watch_list::add_watch(event_filter callback, void* user_data)
+void event_watch_list::get_filter(event_filter& f, void*& user_data, event_watch_priority priority) const
 {
     os::lock_guard lock(mutex);
-    watchers.push_back(event_watcher{ callback, user_data, false });
+
+    f = watch_list[priority].filter.callback;
+    user_data = watch_list[priority].filter.user_data;
 }
 
 ////////////////////////////////////////
 
-void event_watch_list::remove_watch(event_filter callback, void* user_data)
+void event_watch_list::add_watch(event_filter callback, void* user_data, event_watch_priority priority)
 {
     os::lock_guard lock(mutex);
+    watch_list[priority].watchers.push_back(event_watcher{ callback, user_data, false });
+}
+
+////////////////////////////////////////
+
+void event_watch_list::remove_watch(event_filter callback, void* user_data, event_watch_priority priority)
+{
+    os::lock_guard lock(mutex);
+
+    auto& watchers = watch_list[priority].watchers;
 
     for (auto it = watchers.begin(); it != watchers.end(); ++it)
     {
@@ -68,8 +85,10 @@ void event_watch_list::remove_watch(event_filter callback, void* user_data)
 
 ////////////////////////////////////////
 
-void event_watch_list::prune_removed_watchers()
+void event_watch_list::prune_removed_watchers(event_watch_priority priority)
 {
+    auto& watchers = watch_list[priority].watchers;
+
     for (auto it = watchers.begin(); it != watchers.end();)
     {
         if (it->removed)
@@ -85,12 +104,15 @@ void event_watch_list::prune_removed_watchers()
 
 ////////////////////////////////////////
 
-bool event_watch_list::dispatch(const event& e)
+bool event_watch_list::dispatch(const event& e, event_watch_priority priority)
 {
     if (e.type == internal_event_poll_sentinel)
     {
         return true;
     }
+
+    const auto& filter = watch_list[priority].filter;
+    const auto& watchers = watch_list[priority].watchers;
 
     if (!filter.callback && watchers.empty())
     {
@@ -130,11 +152,23 @@ bool event_watch_list::dispatch(const event& e)
     // remove any watchers removed in callbacks
     if (removed)
     {
-        prune_removed_watchers();
+        prune_removed_watchers(priority);
         removed = false;
     }
 
     return true;
+}
+
+////////////////////////////////////////
+
+bool event_watch_list::dispatch_all(const event& e)
+{
+    if (!dispatch(e, event_watch_priority_early))
+    {
+        return false;
+    }
+
+    return dispatch(e, event_watch_priority_normal);
 }
 
 } // namespace event

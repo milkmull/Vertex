@@ -58,7 +58,7 @@ struct event_queue_entry
 
 struct event_queue
 {
-    bool active = false;
+    bool active;
     std::list<event_queue_entry> queue;
     os::recursive_mutex mutex;
 
@@ -95,6 +95,8 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
     // initialization
     ///////////////////////////////////////////////////////////////////////////////
+
+    void init_data();
 
     bool init(app_instance* owner);
     void quit();
@@ -155,11 +157,11 @@ public:
     // watch
     ///////////////////////////////////////////////////////////////////////////////
 
-    void set_event_filter(event_filter filter, void* user_data);
-    void get_event_filter(event_filter& filter, void*& user_data);
+    void set_event_filter(event_filter filter, void* user_data, event_watch_priority priority);
+    void get_event_filter(event_filter& filter, void*& user_data, event_watch_priority priority);
 
-    void add_event_watch(event_filter callback, void* user_data);
-    void remove_event_watch(event_filter callback, void* user_data);
+    void add_event_watch(event_filter callback, void* user_data, event_watch_priority priority);
+    void remove_event_watch(event_filter callback, void* user_data, event_watch_priority priority);
     bool dispatch_event_watch(const event& e);
 
     ///////////////////////////////////////////////////////////////////////////////

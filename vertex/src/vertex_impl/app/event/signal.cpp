@@ -69,7 +69,7 @@ static void signal_init(const int sig)
 {
 #if defined(HAVE_SIGACTION)
 
-    struct sigacttion action {};
+    struct sigaction action {};
     ::sigaction(sig, NULL, &action);
 
     if (action.sa_handler == SIG_DFL
@@ -157,7 +157,7 @@ bool events_instance::init_signal_handler()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 
-    if (app->data.hints_ptr->get_hint_boolean(hint::app_no_signal_handlers, false))
+    if (!app->data.hints_ptr->get_hint_boolean(hint::app_no_signal_handlers, false))
     {
         return init_internal();
     }

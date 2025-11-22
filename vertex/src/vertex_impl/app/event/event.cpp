@@ -262,11 +262,19 @@ void event_queue::add_sentinel()
 // initialization
 ///////////////////////////////////////////////////////////////////////////////
 
+void events_instance::init_data()
+{
+    data.queue.active = false;
+    data.watch.clear();
+}
+
 bool events_instance::init(app_instance* owner)
 {
     VX_ASSERT(!app);
     VX_ASSERT(owner);
     app = owner;
+
+    init_data();
 
     // initialize ticks if they have not been already
     os::get_ticks();
@@ -277,12 +285,18 @@ bool events_instance::init(app_instance* owner)
         return false;
     }
 
+    init_signal_handler();
+
     return true;
 }
 
+////////////////////////////////////////
+
 void events_instance::quit()
 {
+    quit_signal_handler();
     stop_loop();
+    data.watch.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -293,18 +307,14 @@ void events_instance::quit()
 
 bool events_instance::start_loop()
 {
-    os::lock_guard lock(data.queue.mutex);
-    data.queue.start();
-    return true;
+    return data.queue.start();
 }
 
 ////////////////////////////////////////
 
 void events_instance::stop_loop()
 {
-    os::lock_guard lock(data.queue.mutex);
     data.queue.stop();
-    data.watch.clear();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -662,12 +672,12 @@ bool events_instance::push_event_filtered(event& e, event_filter filter, void* u
 VX_API void set_event_filter(event_filter filter, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
-    s_events_ptr->set_event_filter(filter, user_data);
+    s_events_ptr->set_event_filter(filter, user_data, event_watch_priority_normal);
 }
 
-void events_instance::set_event_filter(event_filter filter, void* user_data)
+void events_instance::set_event_filter(event_filter filter, void* user_data, event_watch_priority priority)
 {
-    data.watch.set_filter(filter, user_data);
+    data.watch.set_filter(filter, user_data, priority);
     // filter current events
     data.queue.match(filter, user_data, nullptr, 0, true);
 }
@@ -677,12 +687,12 @@ void events_instance::set_event_filter(event_filter filter, void* user_data)
 VX_API void get_event_filter(event_filter& filter, void*& user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
-    s_events_ptr->get_event_filter(filter, user_data);
+    s_events_ptr->get_event_filter(filter, user_data, event_watch_priority_normal);
 }
 
-void events_instance::get_event_filter(event_filter& filter, void*& user_data)
+void events_instance::get_event_filter(event_filter& filter, void*& user_data, event_watch_priority priority)
 {
-    data.watch.get_filter(filter, user_data);
+    data.watch.get_filter(filter, user_data, priority);
 }
 
 ////////////////////////////////////////
@@ -690,12 +700,12 @@ void events_instance::get_event_filter(event_filter& filter, void*& user_data)
 VX_API void add_event_watch(event_filter callback, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
-    s_events_ptr->add_event_watch(callback, user_data);
+    s_events_ptr->add_event_watch(callback, user_data, event_watch_priority_normal);
 }
 
-void events_instance::add_event_watch(event_filter callback, void* user_data)
+void events_instance::add_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
 {
-    data.watch.add_watch(callback, user_data);
+    data.watch.add_watch(callback, user_data, priority);
 }
 
 ////////////////////////////////////////
@@ -703,19 +713,19 @@ void events_instance::add_event_watch(event_filter callback, void* user_data)
 VX_API void remove_event_watch(event_filter callback, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
-    s_events_ptr->remove_event_watch(callback, user_data);
+    s_events_ptr->remove_event_watch(callback, user_data, event_watch_priority_normal);
 }
 
-void events_instance::remove_event_watch(event_filter callback, void* user_data)
+void events_instance::remove_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
 {
-    data.watch.remove_watch(callback, user_data);
+    data.watch.remove_watch(callback, user_data, priority);
 }
 
 ////////////////////////////////////////
 
 bool events_instance::dispatch_event_watch(const event& e)
 {
-    return data.watch.dispatch(e);
+    return data.watch.dispatch_all(e);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
