@@ -3028,7 +3028,7 @@ void window_instance::on_close_requested()
 {
     if (video->should_quit_on_window_close())
     {
-        video->app->send_app_quit();
+        events_ptr->send_quit();
     }
 }
 

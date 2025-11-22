@@ -211,6 +211,11 @@ public:
     bool wait_event_timeout(window_id w, time::time_point t);
     void send_wakeup_event(); 
 
+    void will_enter_background();
+    void did_enter_background();
+    void will_enter_foreground();
+    void did_enter_foreground();
+
     // System events
     bool send_system_theme_changed(system_theme theme);
     bool send_display_added(display_id id);

@@ -1658,6 +1658,10 @@ void video_instance::set_all_focus(window_id w)
 // events
 //=============================================================================
 
+#define events_ptr app->data.events_ptr
+
+//=============================================================================
+
 void video_instance::pump_events()
 {
 #if VX_VIDEO_BACKEND_HAVE_PUMP_EVENTS
@@ -1690,6 +1694,47 @@ bool video_instance::wait_event_timeout(window_id w, time::time_point t)
     return false;
 
 #endif // VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT
+}
+
+//=============================================================================
+
+void video_instance::will_enter_background()
+{
+    for (window_instance& w : data.windows)
+    {
+        // don't actually minimize the window, just pretend
+        w.send_minimized();
+    }
+
+    data.keyboard_ptr->set_focus(invalid_id);
+    events_ptr->send_critical_event(event::app_will_enter_background);
+}
+
+//=============================================================================
+
+void video_instance::did_enter_background()
+{
+    events_ptr->send_critical_event(event::app_did_enter_background);
+}
+
+//=============================================================================
+
+void video_instance::will_enter_foreground()
+{
+    events_ptr->send_critical_event(event::app_will_enter_foreground);
+}
+
+//=============================================================================
+
+void video_instance::did_enter_foreground()
+{
+    events_ptr->send_critical_event(event::app_did_enter_foreground);
+
+    for (window_instance& w : data.windows)
+    {
+        data.keyboard_ptr->set_focus(w.data.id);
+        w.send_restored();
+    }
 }
 
 //=============================================================================
@@ -1741,7 +1786,7 @@ bool video_instance::send_system_theme_changed(system_theme theme)
     e.type = event::app_system_theme_changed;
     e.app_event.system_theme_changed.system_theme = theme;
 
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
     return sent;
 }
 
@@ -1754,7 +1799,7 @@ bool video_instance::send_display_added(display_id id)
     event::event e{};
     e.type = event::display_added;
     e.display_event.common.display_id = id;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     on_display_added();
     return sent;
@@ -1779,7 +1824,7 @@ bool video_instance::send_display_removed(display_id id)
     event::event e{};
     e.type = event::display_removed;
     e.display_event.common.display_id = id;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     return sent;
 }
@@ -1793,7 +1838,7 @@ bool video_instance::send_display_moved(display_id id)
     event::event e{};
     e.type = event::display_moved;
     e.display_event.common.display_id = id;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     on_display_moved();
     return sent;
@@ -1816,7 +1861,7 @@ bool video_instance::send_display_orientation_changed(display_id id, display_ori
     e.type = event::display_orientation_changed;
     e.display_event.common.display_id = id;
     e.display_event.display_orientation_changed.orientation = orientation;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     return sent;
 }
@@ -1830,7 +1875,7 @@ bool video_instance::send_display_desktop_mode_changed(display_id id, const disp
     event::event e{};
     e.type = event::display_desktop_mode_changed;
     e.display_event.common.display_id = id;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     return sent;
 }
@@ -1844,7 +1889,7 @@ bool video_instance::send_display_current_mode_changed(display_id id, const disp
     event::event e{};
     e.type = event::display_current_mode_changed;
     e.display_event.common.display_id = id;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     return sent;
 }
@@ -1860,7 +1905,7 @@ bool video_instance::send_display_content_scale_changed(display_id id, const mat
     e.display_event.common.display_id = id;
     e.display_event.display_content_scale_changed.x = content_scale.x;
     e.display_event.display_content_scale_changed.y = content_scale.y;
-    const bool sent = app->data.events_ptr->push_event(e);
+    const bool sent = events_ptr->push_event(e);
 
     return sent;
 }

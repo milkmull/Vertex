@@ -181,6 +181,7 @@ endfunction()
 # and define a preprocessor directive if it does
 function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
 
+    include(CheckFunctionExists)
     # Check if the function exists
     check_function_exists(${FUNCTION_NAME} ${MACRO_NAME})
 
@@ -197,6 +198,7 @@ endfunction()
 # and define a preprocessor directive if it does
 function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
 
+    include(CheckSymbolExists)
     # Check if the symbol exists in the given header
     check_symbol_exists(${SYMBOL_NAME} ${HEADER} ${MACRO_NAME})
 
@@ -213,6 +215,7 @@ endfunction()
 # and define a preprocessor directive if it does
 function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
 
+    include(CheckIncludeFile)
     # Check if the header exists
     check_include_file(${INCLUDE_NAME} ${MACRO_NAME})
 
@@ -222,3 +225,20 @@ function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
     endif()
 
 endfunction()
+
+#--------------------------------------------------------------------
+# Function to check if a struct has a specific member
+# and define a preprocessor directive if it does
+function(vx_check_struct_member TARGET_NAME STRUCT_NAME MEMBER_NAME HEADER MACRO_NAME)
+
+    include(CheckStructHasMember)
+    # Check if the struct has the specified member
+    check_struct_has_member("${STRUCT_NAME}" ${MEMBER_NAME} ${HEADER} ${MACRO_NAME})
+
+    # If the member exists, add the definition to the target
+    if(${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+    endif()
+
+endfunction()
+#--------------------------------------------------------------------

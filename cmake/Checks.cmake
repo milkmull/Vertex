@@ -45,6 +45,11 @@ function(vx_check_available_features TARGET_NAME)
 
     vx_link_threads(${TARGET_NAME})
     
+    # signl utils
+    vx_check_include_exists(${TARGET_NAME}                                   "signal.h"  HAVE_SIGNAL_H)
+    vx_check_symbol_exists( ${TARGET_NAME} "sigaction"                       "signal.h"  HAVE_SIGACTION)
+    vx_check_struct_member( ${TARGET_NAME} "struct sigaction" "sa_sigaction" "signal.h"  HAVE_SA_SIGACTION)
+
     if(VX_CMAKE_PLATFORM_WINDOWS)
 
     elseif(VX_CMAKE_PLATFORM_UNIX)

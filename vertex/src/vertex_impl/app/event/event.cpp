@@ -88,13 +88,15 @@ const char* create_temporary_string(const char* src)
         return nullptr;
     }
 
-    char* dst = nullptr;
-    std::strcpy(dst, src);
+    const size_t size = std::strlen(src) + 1;
+    char* dst = static_cast<char*>(allocate_temporary_memory(sizeof(char) * size));
+
     if (!dst)
     {
         return nullptr;
     }
 
+    std::strcpy(dst, src);
     give_temporary_memory(dst);
     return dst;
 }
@@ -156,14 +158,14 @@ size_t event_queue::add(const event* events, size_t count)
 
         const event& e = events[i];
 
+#if VX_APP_LOG_EVENTS
+        log_event(e);
+#endif // VX_APP_LOG_EVENTS
+
         if (e.type == internal_event_poll_sentinel)
         {
             ++sentinel_pending;
         }
-
-#if VX_APP_LOG_EVENTS
-        log_event(e);
-#endif // VX_APP_LOG_EVENTS
 
         queue.push_back(event_queue_entry{ e, nullptr });
         claim_event_temporary_memory(queue.back());
@@ -324,9 +326,11 @@ void events_instance::pump_events()
 
 ////////////////////////////////////////
 
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1458
+
 void events_instance::pump_events_maintenance()
 {
-
+    send_pending_signal_events();
 }
 
 ////////////////////////////////////////
@@ -712,6 +716,22 @@ void events_instance::remove_event_watch(event_filter callback, void* user_data)
 bool events_instance::dispatch_event_watch(const event& e)
 {
     return data.watch.dispatch(e);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// events
+///////////////////////////////////////////////////////////////////////////////
+
+void events_instance::send_critical_event(event_type type)
+{
+    event e{ type };
+
+#if VX_APP_LOG_EVENTS
+    log_event(e);
+#endif // VX_APP_LOG_EVENTS
+
+    // needs to be handled in call stack by event watcher
+    dispatch_event_watch(e);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
