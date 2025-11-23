@@ -11,14 +11,16 @@ namespace keyboard {
 // hints
 //=============================================================================
 
-static void keycode_options_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void keycode_options_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     keyboard_instance* keyboard = static_cast<keyboard_instance*>(user_data);
 
     if (new_value && *new_value)
     {
         constexpr int64_t default_options = static_cast<int64_t>(keycode_options::default_options);
-        const int64_t hint = hint::parse_integer(new_value, default_options);
+        const auto hint = static_cast<typename keycode_options::underlying_type>(
+            hint::parse_integer(new_value, default_options)
+        );
         keyboard->data.options = static_cast<keycode_options>(hint);
     }
     else
@@ -194,7 +196,7 @@ void keyboard_instance::clear_keyboards()
 
 //=============================================================================
 
-bool keyboard_instance::is_keyboard(uint16_t vendor, uint16_t product, size_t key_count)
+bool keyboard_instance::is_keyboard(uint16_t, uint16_t, size_t key_count)
 {
     enum { real_keyboard_key_count = 50 };
 
@@ -301,8 +303,8 @@ bool keyboard_instance::set_focus(video::window_id wid)
             if (old_focus->data.flags & video::window_flags::minimized)
             {
                 // We can't warp the mouse within minimized windows, so manually restore the position
-                const float x = old_focus->data.position.x + mouse->data.x;
-                const float y = old_focus->data.position.y + mouse->data.y;
+                const float x = static_cast<float>(old_focus->data.position.x) + mouse->data.x;
+                const float y = static_cast<float>(old_focus->data.position.y) + mouse->data.y;
                 mouse->warp_global(x, y);
             }
         }
@@ -751,7 +753,7 @@ void keyboard_instance::send_unicode_key(time::time_point t, char32_t c)
     scancode sc = data.keymap_ptr ? data.keymap_ptr->get_scancode(key, &mod_state) : scancode_unknown;
 
     // make sure we have this key code in out map
-    if (scancode_unknown < sc && sc < key_scancode_mask)
+    if (scancode_unknown < sc && sc < static_cast<scancode>(key_scancode_mask))
     {
         sc = get_next_reserved_scancode();
         set_keymap_entry(sc, mod_state, key);
@@ -949,7 +951,7 @@ bool keyboard_instance::maybe_show_screen_keyboard() const
 {
     const char* hint = video->app->data.hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
 
-    if ((!hint || (std::strcmp(hint, "auto") == 0) && !any_connected()) || hint::parse_boolean(hint, false))
+    if (((!hint || std::strcmp(hint, "auto") == 0) && !any_connected()) || hint::parse_boolean(hint, false))
     {
         return true;
     }

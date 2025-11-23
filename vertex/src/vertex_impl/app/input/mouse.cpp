@@ -16,7 +16,7 @@ namespace mouse {
 // hints
 //=============================================================================
 
-static void double_click_time_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void double_click_time_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
 
@@ -44,15 +44,15 @@ static void double_click_time_hint_watcher(const hint::hint_t name, const char*,
 
 //=============================================================================
 
-static void double_click_radius_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void double_click_radius_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
-    mouse->data.double_click_radius = hint::parse_integer(new_value, 32);
+    mouse->data.double_click_radius = static_cast<int>(hint::parse_integer(new_value, 32));
 }
 
 //=============================================================================
 
-static void normal_speed_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void normal_speed_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
 
@@ -70,7 +70,7 @@ static void normal_speed_scale_hint_watcher(const hint::hint_t name, const char*
 
 //=============================================================================
 
-static void relative_speed_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void relative_speed_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
 
@@ -88,7 +88,7 @@ static void relative_speed_scale_hint_watcher(const hint::hint_t name, const cha
 
 //=============================================================================
 
-static void relative_mode_center_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void relative_mode_center_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.relative_center = hint::parse_boolean(new_value, true);
@@ -96,7 +96,7 @@ static void relative_mode_center_hint_watcher(const hint::hint_t name, const cha
 
 //=============================================================================
 
-static void relative_system_scale_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void relative_system_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.relative_system_scale_enabled = hint::parse_boolean(new_value, false);
@@ -104,7 +104,7 @@ static void relative_system_scale_hint_watcher(const hint::hint_t name, const ch
 
 //=============================================================================
 
-static void mouse_warp_emulation_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void mouse_warp_emulation_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.warp_emulation_hint = hint::parse_boolean(new_value, true);
@@ -118,7 +118,7 @@ static void mouse_warp_emulation_hint_watcher(const hint::hint_t name, const cha
 
 //=============================================================================
 
-static void touch_mouse_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void touch_mouse_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.touch_mouse_events = hint::parse_boolean(new_value, true);
@@ -126,7 +126,7 @@ static void touch_mouse_events_hint_watcher(const hint::hint_t name, const char*
 
 //=============================================================================
 
-static void mouse_touch_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void mouse_touch_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
 
@@ -160,7 +160,7 @@ static void mouse_touch_events_hint_watcher(const hint::hint_t name, const char*
 
 //=============================================================================
 
-static void pen_mouse_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void pen_mouse_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.pen_mouse_events = hint::parse_boolean(new_value, true);
@@ -168,7 +168,7 @@ static void pen_mouse_events_hint_watcher(const hint::hint_t name, const char*, 
 
 //=============================================================================
 
-static void pen_touch_events_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void pen_touch_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.pen_touch_events = hint::parse_boolean(new_value, true);
@@ -193,7 +193,7 @@ static void pen_touch_events_hint_watcher(const hint::hint_t name, const char*, 
 
 //=============================================================================
 
-static void auto_capture_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void auto_capture_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     const bool auto_capture = hint::parse_boolean(new_value, true);
@@ -207,7 +207,7 @@ static void auto_capture_hint_watcher(const hint::hint_t name, const char*, cons
 
 //=============================================================================
 
-static void relative_warp_motion_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void relative_warp_motion_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.relative_warp_motion = hint::parse_boolean(new_value, false);
@@ -215,7 +215,7 @@ static void relative_warp_motion_hint_watcher(const hint::hint_t name, const cha
 
 //=============================================================================
 
-static void relative_cursor_visible_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void relative_cursor_visible_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
     mouse->data.relative_hide_cursor = !hint::parse_boolean(new_value, false);
@@ -224,10 +224,13 @@ static void relative_cursor_visible_hint_watcher(const hint::hint_t name, const 
 
 //=============================================================================
 
-static void integer_mode_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
+static void integer_mode_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
-    mouse->data.int_mode = static_cast<integer_mode>(hint::parse_integer(new_value, integer_mode::none));
+    const auto hint = static_cast<typename integer_mode::underlying_type>(
+        hint::parse_integer(new_value, integer_mode::none)
+    );
+    mouse->data.int_mode = static_cast<integer_mode>(hint);
 }
 
 //=============================================================================
