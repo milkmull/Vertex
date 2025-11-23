@@ -47,11 +47,11 @@ static void claim_event_temporary_memory(event_queue_entry& entry)
 {
 #   define claim(ptr) entry.memory = get_temporary_memory_pool().release_entry(ptr)
 
-    switch (entry.event.type)
+    switch (entry.e.type)
     {
         case text_input:
         {
-            claim(entry.event.text_event.text_input.text);
+            claim(entry.e.text_event.text_input.text);
             break;
         }
         default:
@@ -193,16 +193,16 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
     auto it = queue.begin();
     while (it != queue.end() && (!copy || (matched < count)))
     {
-        if (!matcher || matcher(it->event, user_data))
+        if (!matcher || matcher(it->e, user_data))
         {
             if (copy)
             {
-                events[matched] = it->event;
+                events[matched] = it->e;
             }
 
             if (remove)
             {
-                if (it->event.type == internal_event_poll_sentinel)
+                if (it->e.type == internal_event_poll_sentinel)
                 {
                     --sentinel_pending;
                 }

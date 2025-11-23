@@ -72,7 +72,7 @@ void give_temporary_memory(void* ptr);
 
 struct event_queue_entry
 {
-    event event;
+    event e;
     struct temp_memory_entry* memory;
 };
 

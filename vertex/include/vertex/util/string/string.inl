@@ -159,7 +159,8 @@ inline bool is_space(const str_arg_t& s)
 
 inline constexpr bool is_ctrl(const char c) noexcept
 {
-    return ((c >= '\0') && (c <= '\x1f')) || (c == '\x7f');
+    const unsigned char uc = static_cast<unsigned char>(c);
+    return (uc <= '\x1f') || (uc == '\x7f');
 }
 
 ///////////////////////////////////////////////////////////////////////////////
