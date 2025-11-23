@@ -76,7 +76,7 @@ static void return_event_temporary_memory(event_queue_entry& entry)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void* allocate_temporary_memory(size_t size)
+void* allocate_temporary_memory_raw(size_t size)
 {
     return get_temporary_memory_pool().allocate_memory(size);
 }
@@ -89,7 +89,7 @@ const char* create_temporary_string(const char* src)
     }
 
     const size_t size = std::strlen(src) + 1;
-    char* dst = static_cast<char*>(allocate_temporary_memory(sizeof(char) * size));
+    char* dst = static_cast<char*>(allocate_temporary_memory_raw(sizeof(char) * size));
 
     if (!dst)
     {

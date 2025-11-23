@@ -1,21 +1,13 @@
-first:
-    
-    x rework enums
-    x prune unused files
-    - constexpr base64
-    x compile on raspberry pi
-    - rework hints
 
 todo:
 
-    - normalize internal video api to take and return pointers to display_instance instead of display_id
-    x normalize macros, including feature flags and hints
-    - hint descriptions
-    x finish window events
-    - finish video api
-    - complete window class (front facing wrapper and internal video api)
-    - keep some data initialized when calling init and quit? maye bet parent pointer in constructor?
-    - finish input front ends
-    x disable app subsystems based on compiler configuration
+    - remaining events (clipboard, drop)
+    - message box api
+    - tray api
     
-    - handle app callback mode and quitting, signals
+    - review add_hint_callback_and_default_value calls
+    - make sure all init and quit functions are correct
+    - all subsystems should have init data functions
+    - clean up classes (public, private, const api)
+    - handle app callback mode
+    - finish front end api

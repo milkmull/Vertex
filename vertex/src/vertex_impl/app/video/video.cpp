@@ -1655,6 +1655,21 @@ void video_instance::set_all_focus(window_id w)
 }
 
 //=============================================================================
+
+bool video_instance::has_screen_keyboard_support() const
+{
+#if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HAS_SCREEN_KEYBOARD_SUPPORT
+
+    return impl_ptr->has_screen_keyboard_support();
+
+#else
+
+    return false;
+
+#endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HAS_SCREEN_KEYBOARD_SUPPORT
+}
+
+//=============================================================================
 // events
 //=============================================================================
 

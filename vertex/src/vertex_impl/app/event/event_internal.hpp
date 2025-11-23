@@ -41,8 +41,28 @@ enum
 // memory
 ///////////////////////////////////////////////////////////////////////////////
 
-void* allocate_temporary_memory(size_t size);
+void* allocate_temporary_memory_raw(size_t size);
 const char* create_temporary_string(const char* src);
+
+template <typename T>
+inline T allocate_temporary_memory(size_t size)
+{
+    return static_cast<T>(allocate_temporary_memory_raw(size));
+}
+
+template <typename T>
+inline T* create_temporary_instance()
+{
+    return allocate_temporary_memory<T*>(sizeof(T));
+}
+
+template <typename T>
+inline T* create_temporary_array(size_t count)
+{
+    const size_t total_size = sizeof(T) * count;
+    return allocate_temporary_memory<T*>(total_size);
+}
+
 const void* release_temporary_memory(const void* ptr);
 void give_temporary_memory(void* ptr);
 

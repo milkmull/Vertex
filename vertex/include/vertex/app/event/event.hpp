@@ -423,11 +423,29 @@ struct keyboard_event_type
 // text events
 ///////////////////////////////////////////////////////////////////////////////
 
-struct text_event_common {};
+struct text_event_common
+{
+    video::window_id window_id;
+};
 
 struct text_input_event
 {
     const char* text;
+};
+
+struct text_editing_event
+{
+    const char* text;
+    size_t start;
+    size_t length;
+};
+
+struct text_editing_candidates_event
+{
+    const char* const* candidates;
+    size_t count;
+    size_t selected;
+    bool horizontal;
 };
 
 struct text_event_type
@@ -437,6 +455,8 @@ struct text_event_type
     union
     {
         text_input_event text_input;
+        text_editing_event text_editing;
+        text_editing_candidates_event text_editing_candidates;
     };
 };
 

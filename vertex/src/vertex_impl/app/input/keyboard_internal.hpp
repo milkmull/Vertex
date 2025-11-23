@@ -167,7 +167,7 @@ public:
 
     bool send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down);
 
-    bool hardware_key_pressed();
+    bool hardware_key_pressed() const;
     void release_auto_release_keys();
 
     //=============================================================================
@@ -175,7 +175,7 @@ public:
     //=============================================================================
 
     bool maybe_show_screen_keyboard() const;
-    bool has_screen_keyboard_support();
+    bool has_screen_keyboard_support() const;
     bool screen_keyboard_shown() const;
 
     void send_screen_keyboard_shown();
@@ -186,8 +186,8 @@ public:
     //=============================================================================
 
     void send_text(const char* text);
-    void send_editing_text(const char* text, size_t start, size_t size);
-    void send_editing_text_candidates(const std::vector<const char*>& candidates, size_t selected_candidate, bool horizontal);
+    void send_editing_text(const char* text, size_t start, size_t length);
+    void send_editing_text_candidates(char** candidates, size_t count, size_t selected, bool horizontal);
 
     //=============================================================================
     // Data
