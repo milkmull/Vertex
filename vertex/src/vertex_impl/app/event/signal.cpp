@@ -222,7 +222,8 @@ void events_instance::send_quit()
 
 #endif // HAVE_SIGNAL_SUPPORT
 
-    event e{ app_quit };
+    event e{};
+    e.type = app_quit;
     push_event(e);
 }
 

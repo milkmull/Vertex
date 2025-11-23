@@ -739,7 +739,8 @@ bool events_instance::dispatch_event_watch(const event& e)
 
 void events_instance::send_critical_event(event_type type)
 {
-    event e{ type };
+    event e{};
+    e.type = type;
 
 #if VX_APP_LOG_EVENTS
     log_event(e);

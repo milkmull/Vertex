@@ -975,7 +975,8 @@ bool keyboard_instance::screen_keyboard_shown() const
 
 void keyboard_instance::send_screen_keyboard_shown()
 {
-    event::event e{ event::screen_keyboard_shown };
+    event::event e{};
+    e.type = event::screen_keyboard_shown;
     events_ptr->push_event(e);
 }
 
@@ -983,7 +984,8 @@ void keyboard_instance::send_screen_keyboard_shown()
 
 void keyboard_instance::send_screen_keyboard_hidden()
 {
-    event::event e{ event::screen_keyboard_hidden };
+    event::event e{};
+    e.type = event::screen_keyboard_hidden;
     events_ptr->push_event(e);
 }
 
@@ -1012,7 +1014,8 @@ void keyboard_instance::send_text(const char* text)
 
     const video::window_id wid = w ? w->data.id : invalid_id;
 
-    event::event e{ event::text_input };
+    event::event e{};
+    e.type = event::text_input;
     e.text_event.common.window_id = wid;
     e.text_event.text_input.text = temp_text;
     events_ptr->push_event(e);
@@ -1041,7 +1044,8 @@ void keyboard_instance::send_editing_text(const char* text, size_t start, size_t
 
     const video::window_id wid = w ? w->data.id : invalid_id;
 
-    event::event e{ event::text_editing };
+    event::event e{};
+    e.type = event::text_editing;
     e.text_event.common.window_id = wid;
     e.text_event.text_editing.text = temp_text;
     e.text_event.text_editing.start = start;
@@ -1113,7 +1117,8 @@ void keyboard_instance::send_editing_text_candidates(char** candidates, size_t c
 
     const video::window_id wid = w ? w->data.id : invalid_id;
 
-    event::event e{ event::text_editing };
+    event::event e{};
+    e.type = event::text_editing;
     e.text_event.common.window_id = wid;
     e.text_event.text_editing_candidates.candidates = event_candidates;
     e.text_event.text_editing_candidates.count = count;
