@@ -230,7 +230,7 @@ public:
     video::window_instance* get_focus_instance();
 
     void set_focus(video::window_id wid);
-    bool update_focus(video::window_instance* w, float x, float y, button button_state, bool send_mouse_motion);
+    bool update_focus(video::window_instance* w, float x, float y, bool send_mouse_motion);
 
     //=============================================================================
     // state

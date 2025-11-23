@@ -816,7 +816,7 @@ void mouse_instance::set_focus(video::window_id wid)
 
 //=============================================================================
 
-bool mouse_instance::update_focus(video::window_instance* w, float x, float y, button button_state, bool send_motion)
+bool mouse_instance::update_focus(video::window_instance* w, float x, float y, bool send_motion)
 {
     const bool in_window = is_position_in_window(w, x, y);
     const video::window_id wid = w ? w->data.id : invalid_id;
@@ -1035,6 +1035,8 @@ bool mouse_instance::warp_global(float x, float y)
 
 #else
 
+    VX_UNUSED(x);
+    VX_UNUSED(y);
     VX_UNSUPPORTED("set_position_global()");
     return false;
 
@@ -1056,8 +1058,8 @@ void mouse_instance::maybe_enable_warp_emulation(const video::window_instance* w
 
         if (w)
         {
-            const float cx = w->data.size.x * 0.5f;
-            const float cy = w->data.size.y * 0.5f;
+            const float cx = static_cast<float>(w->data.size.x) * 0.5f;
+            const float cy = static_cast<float>(w->data.size.y) * 0.5f;
 
             if (x >= math::floor(cx) && x <= math::ceil(cx) &&
                 y >= math::floor(cy) && y <= math::ceil(cy))
@@ -1219,6 +1221,7 @@ bool mouse_instance::set_capture(bool enabled)
 
 #else
 
+    VX_UNUSED(enabled);
     VX_UNSUPPORTED("set_capture()");
     return false;
 
@@ -1231,6 +1234,7 @@ bool mouse_instance::update_capture(bool force_release)
 {
 #if !VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
 
+    VX_UNUSED(force_release);
     return true;
 
 #else
@@ -1375,7 +1379,7 @@ void mouse_instance::send_motion(time::time_point t, video::window_instance* w, 
         const button button_state = get_button_state(id, true);
         const bool send_motion = (id != touch_mouse_id && id != pen_mouse_id);
 
-        if (!update_focus(w, x, y, button_state, send_motion))
+        if (!update_focus(w, x, y, send_motion))
         {
             return;
         }
@@ -1388,8 +1392,6 @@ void mouse_instance::send_motion(time::time_point t, video::window_instance* w, 
 
 void mouse_instance::send_motion_internal(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
 {
-    const video::window_id wid = w ? w->data.id : invalid_id;
-
     // Convert mouse motion to touch motion if emulation is active.
     // Triggered only when not already from a synthetic touch/pen source,
     // and only when absolute (non-relative) motion occurs.
@@ -1520,8 +1522,8 @@ void mouse_instance::send_motion_internal(time::time_point t, video::window_inst
         data.last_y = relative ? data.y : y;
 
         // Accumulate click motion used for drag/double-click detection.
-        data.click_motion_x += dx;
-        data.click_motion_y += dy;
+        data.click_motion_x += static_cast<double>(dx);
+        data.click_motion_y += static_cast<double>(dy);
     }
 
     // post the event
@@ -1621,7 +1623,7 @@ void mouse_instance::send_button_internal(time::time_point t, video::window_inst
     // Do this after calculating button state so button presses gain focus
     if (w && down)
     {
-        update_focus(w, data.x, data.y, button_state, true);
+        update_focus(w, data.x, data.y, true);
     }
 
     // No update
@@ -1686,7 +1688,7 @@ void mouse_instance::send_button_internal(time::time_point t, video::window_inst
         e.mouse_event.common.x = data.x;
         e.mouse_event.common.y = data.y;
         e.mouse_event.mouse_button.button = b;
-        e.mouse_event.mouse_button.clicks = clicks;
+        e.mouse_event.mouse_button.clicks = static_cast<uint8_t>(clicks);
         e.mouse_event.mouse_button.down = down;
         events_ptr->push_event(e);
     }
@@ -1694,7 +1696,7 @@ void mouse_instance::send_button_internal(time::time_point t, video::window_inst
     // Do this after pushing event so bhtton release can lose focus
     if (w && !down)
     {
-        update_focus(w, data.x, data.y, button_state, true);
+        update_focus(w, data.x, data.y, true);
     }
 
     // Auto capture the mouse when buttons are pressed
@@ -1841,7 +1843,7 @@ cursor_id mouse_instance::create_cursor(const pixel::mask_pair& mask, int hot_x,
     };
 
     // Make sure the width is a multiple of 8
-    const size_t w = ((mask.width + 7) & ~7);
+    const size_t w = ((mask.width + 7) & ~7u);
     const size_t h = mask.height;
 
     argb_surface surf(w, h);
@@ -1885,12 +1887,12 @@ cursor_id mouse_instance::create_cursor(const pixel::mask_pair& mask, int hot_x,
 
 cursor_id mouse_instance::create_color_cursor(const argb_surface& surf, int hot_x, int hot_y)
 {
-    if (hot_x < 0 || hot_x >= surf.width())
+    if (hot_x < 0 || hot_x >= static_cast<int>(surf.width()))
     {
         err::set(err::invalid_argument, "hot_x");
         return invalid_id;
     }
-    if (hot_y < 0 || hot_y >= surf.height())
+    if (hot_y < 0 || hot_y >= static_cast<int>(surf.height()))
     {
         err::set(err::invalid_argument, "hot_y");
         return invalid_id;
@@ -1922,6 +1924,7 @@ cursor_id mouse_instance::create_system_cursor(cursor_shape shape)
 
 #else
 
+    VX_UNUSED(shape);
     VX_UNSUPPORTED("create_system_cursor()");
     return false;
 
