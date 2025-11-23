@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "vertex/math/core/types/base.hpp"
+#include "vertex/math/core/types/traits.hpp"
 
 namespace vx {
 namespace math {

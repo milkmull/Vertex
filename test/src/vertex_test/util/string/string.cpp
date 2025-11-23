@@ -221,10 +221,10 @@ VX_TEST_CASE(is_alpha)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::is_alpha('a'));
-        VX_CHECK(str::is_alpha('Z'));
-        VX_CHECK(!str::is_alpha('1'));
-        VX_CHECK(!str::is_alpha('@'));
+        VX_STATIC_CHECK(str::is_alpha('a'));
+        VX_STATIC_CHECK(str::is_alpha('Z'));
+        VX_STATIC_CHECK(!str::is_alpha('1'));
+        VX_STATIC_CHECK(!str::is_alpha('@'));
     }
 
     VX_SECTION("string")
@@ -239,10 +239,10 @@ VX_TEST_CASE(is_alpha)
 
 VX_TEST_CASE(is_digit)
 {
-    VX_CHECK(str::is_digit('0'));
-    VX_CHECK(str::is_digit('9'));
-    VX_CHECK(!str::is_digit('a'));
-    VX_CHECK(!str::is_digit('!'));
+    VX_STATIC_CHECK(str::is_digit('0'));
+    VX_STATIC_CHECK(str::is_digit('9'));
+    VX_STATIC_CHECK(!str::is_digit('a'));
+    VX_STATIC_CHECK(!str::is_digit('!'));
 }
 
 VX_TEST_CASE(is_numeric)
@@ -259,10 +259,10 @@ VX_TEST_CASE(is_alnum)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::is_alnum('a'));
-        VX_CHECK(str::is_alnum('Z'));
-        VX_CHECK(str::is_alnum('1'));
-        VX_CHECK(!str::is_alnum('@'));
+        VX_STATIC_CHECK(str::is_alnum('a'));
+        VX_STATIC_CHECK(str::is_alnum('Z'));
+        VX_STATIC_CHECK(str::is_alnum('1'));
+        VX_STATIC_CHECK(!str::is_alnum('@'));
     }
 
     VX_SECTION("string")
@@ -282,10 +282,10 @@ VX_TEST_CASE(is_ascii)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::is_ascii('a'));
-        VX_CHECK(str::is_ascii('Z'));
-        VX_CHECK(!str::is_ascii('\xF1'));
-        VX_CHECK(!str::is_ascii('\xA9'));
+        VX_STATIC_CHECK(str::is_ascii('a'));
+        VX_STATIC_CHECK(str::is_ascii('Z'));
+        VX_STATIC_CHECK(!str::is_ascii('\xF1'));
+        VX_STATIC_CHECK(!str::is_ascii('\xA9'));
     }
 
     VX_SECTION("string")
@@ -303,10 +303,10 @@ VX_TEST_CASE(is_space)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::is_space(' '));
-        VX_CHECK(str::is_space('\t'));
-        VX_CHECK(str::is_space('\n'));
-        VX_CHECK(!str::is_space('a'));
+        VX_STATIC_CHECK(str::is_space(' '));
+        VX_STATIC_CHECK(str::is_space('\t'));
+        VX_STATIC_CHECK(str::is_space('\n'));
+        VX_STATIC_CHECK(!str::is_space('a'));
     }
 
     VX_SECTION("string")
@@ -320,38 +320,51 @@ VX_TEST_CASE(is_space)
     }
 }
 
+VX_TEST_CASE(is_ctrl)
+{
+    VX_SECTION("char")
+    {
+        VX_STATIC_CHECK(str::is_ctrl('\0'));    // Null character (control)
+        VX_STATIC_CHECK(str::is_ctrl('\x1F'));  // Unit Separator (control)
+        VX_STATIC_CHECK(str::is_ctrl('\x7F'));  // Delete (control)
+        VX_STATIC_CHECK(!str::is_ctrl('a'));    // Regular character
+        VX_STATIC_CHECK(!str::is_ctrl(' '));    // Space is not control
+        VX_STATIC_CHECK(!str::is_ctrl('1'));    // Digit is not control
+    }
+}
+
 VX_TEST_CASE(is_hex_digit)
 {
-    VX_CHECK(str::is_hex_digit('0'));
-    VX_CHECK(str::is_hex_digit('1'));
-    VX_CHECK(str::is_hex_digit('2'));
-    VX_CHECK(str::is_hex_digit('3'));
-    VX_CHECK(str::is_hex_digit('4'));
-    VX_CHECK(str::is_hex_digit('5'));
-    VX_CHECK(str::is_hex_digit('6'));
-    VX_CHECK(str::is_hex_digit('7'));
-    VX_CHECK(str::is_hex_digit('8'));
-    VX_CHECK(str::is_hex_digit('9'));
-    VX_CHECK(str::is_hex_digit('a'));
-    VX_CHECK(str::is_hex_digit('b'));
-    VX_CHECK(str::is_hex_digit('c'));
-    VX_CHECK(str::is_hex_digit('d'));
-    VX_CHECK(str::is_hex_digit('e'));
-    VX_CHECK(str::is_hex_digit('f'));
-    VX_CHECK(str::is_hex_digit('A'));
-    VX_CHECK(str::is_hex_digit('B'));
-    VX_CHECK(str::is_hex_digit('C'));
-    VX_CHECK(str::is_hex_digit('D'));
-    VX_CHECK(str::is_hex_digit('E'));
-    VX_CHECK(str::is_hex_digit('F'));
-    VX_CHECK(str::is_hex_digit('F'));
+    VX_STATIC_CHECK(str::is_hex_digit('0'));
+    VX_STATIC_CHECK(str::is_hex_digit('1'));
+    VX_STATIC_CHECK(str::is_hex_digit('2'));
+    VX_STATIC_CHECK(str::is_hex_digit('3'));
+    VX_STATIC_CHECK(str::is_hex_digit('4'));
+    VX_STATIC_CHECK(str::is_hex_digit('5'));
+    VX_STATIC_CHECK(str::is_hex_digit('6'));
+    VX_STATIC_CHECK(str::is_hex_digit('7'));
+    VX_STATIC_CHECK(str::is_hex_digit('8'));
+    VX_STATIC_CHECK(str::is_hex_digit('9'));
+    VX_STATIC_CHECK(str::is_hex_digit('a'));
+    VX_STATIC_CHECK(str::is_hex_digit('b'));
+    VX_STATIC_CHECK(str::is_hex_digit('c'));
+    VX_STATIC_CHECK(str::is_hex_digit('d'));
+    VX_STATIC_CHECK(str::is_hex_digit('e'));
+    VX_STATIC_CHECK(str::is_hex_digit('f'));
+    VX_STATIC_CHECK(str::is_hex_digit('A'));
+    VX_STATIC_CHECK(str::is_hex_digit('B'));
+    VX_STATIC_CHECK(str::is_hex_digit('C'));
+    VX_STATIC_CHECK(str::is_hex_digit('D'));
+    VX_STATIC_CHECK(str::is_hex_digit('E'));
+    VX_STATIC_CHECK(str::is_hex_digit('F'));
+    VX_STATIC_CHECK(str::is_hex_digit('F'));
 
-    VX_CHECK(!str::is_hex_digit('G'));
-    VX_CHECK(!str::is_hex_digit('g'));
-    VX_CHECK(!str::is_hex_digit('!'));
-    VX_CHECK(!str::is_hex_digit('z'));
-    VX_CHECK(!str::is_hex_digit('&'));
-    VX_CHECK(!str::is_hex_digit('-'));
+    VX_STATIC_CHECK(!str::is_hex_digit('G'));
+    VX_STATIC_CHECK(!str::is_hex_digit('g'));
+    VX_STATIC_CHECK(!str::is_hex_digit('!'));
+    VX_STATIC_CHECK(!str::is_hex_digit('z'));
+    VX_STATIC_CHECK(!str::is_hex_digit('&'));
+    VX_STATIC_CHECK(!str::is_hex_digit('-'));
 }
 
 VX_TEST_CASE(is_hex)
@@ -373,10 +386,10 @@ VX_TEST_CASE(to_lower)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::to_lower('A') == 'a');
-        VX_CHECK(str::to_lower('Z') == 'z');
-        VX_CHECK(str::to_lower('1') == '1');
-        VX_CHECK(str::to_lower('!') == '!');
+        VX_STATIC_CHECK(str::to_lower('A') == 'a');
+        VX_STATIC_CHECK(str::to_lower('Z') == 'z');
+        VX_STATIC_CHECK(str::to_lower('1') == '1');
+        VX_STATIC_CHECK(str::to_lower('!') == '!');
     }
 
     VX_SECTION("string")
@@ -393,10 +406,10 @@ VX_TEST_CASE(to_upper)
 {
     VX_SECTION("char")
     {
-        VX_CHECK(str::to_upper('a') == 'A');
-        VX_CHECK(str::to_upper('z') == 'Z');
-        VX_CHECK(str::to_upper('1') == '1');
-        VX_CHECK(str::to_upper('!') == '!');
+        VX_STATIC_CHECK(str::to_upper('a') == 'A');
+        VX_STATIC_CHECK(str::to_upper('z') == 'Z');
+        VX_STATIC_CHECK(str::to_upper('1') == '1');
+        VX_STATIC_CHECK(str::to_upper('!') == '!');
     }
 
     VX_SECTION("string")
