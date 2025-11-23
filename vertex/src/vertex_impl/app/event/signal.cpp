@@ -72,14 +72,14 @@ static void signal_init(const int sig)
     struct sigaction action {};
     ::sigaction(sig, NULL, &action);
 
-    if (action.sa_handler == SIG_DFL
-#if defined(HAVE_SA_SIGACTION)
-        && (void (*)(int))action.sa_sigaction == SIG_DFL
-#endif
-        )
+    // Only change if the disposition is the default and no SA_SIGINFO set
+    if (!(action.sa_flags & SA_SIGINFO) && action.sa_handler == SIG_DFL)
     {
-        action.sa_handler = handle_sig;
-        sigaction(sig, &action, NULL);
+        struct sigaction new_action {};
+        new_action.sa_handler = handle_sig;
+        ::sigemptyset(&new_action.sa_mask);
+        new_action.sa_flags = 0;
+        ::sigaction(sig, &new_action, NULL);
     }
 
 #elif defined(HAVE_SIGNAL_H)

@@ -31,16 +31,15 @@ process::process_impl::~process_impl()
 static void ignore_signal(int sig)
 {
     struct sigaction action {};
-    ::sigaction(SIGPIPE, NULL, &action);
+    ::sigaction(sig, NULL, &action);
 
-    if (action.sa_handler == SIG_DFL
-#if defined(HAVE_SA_SIGACTION)
-        && (void (*)(int))action.sa_sigaction == SIG_DFL
-#endif
-        )
+    // Only change if the disposition is the default
+    if (!(action.sa_flags & SA_SIGINFO) && action.sa_handler == SIG_DFL)
     {
-        action.sa_handler = SIG_IGN;
-        sigaction(sig, &action, NULL);
+        struct sigaction new_action {};
+        new_action.sa_handler = SIG_IGN;
+        ::sigemptyset(&new_action.sa_mask);
+        ::sigaction(sig, &new_action, NULL);
     }
 }
 
