@@ -48,10 +48,10 @@ struct keyboard_data
 
     key_mod mod_state;
     key_flags key_source[scancode_count];
-    key_state key_state;
+    key_state state;
     keymap* keymap_ptr;
 
-    keycode_options keycode_options;
+    keycode_options options;
     bool auto_release_pending;
     time::time_point hardware_timestamp;
 

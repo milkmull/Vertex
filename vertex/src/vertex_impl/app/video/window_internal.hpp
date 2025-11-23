@@ -246,13 +246,13 @@ public:
     //=============================================================================
 
     bool create(video_instance* owner, const window_config& config);
-    bool recreate(typename window_flags flags);
-    void finish_creation(typename window_flags new_flags, bool drag_and_drop);
+    bool recreate(window_flags flags);
+    void finish_creation(window_flags new_flags, bool drag_and_drop);
 
     void begin_destroy();
     void destroy();
 
-    void apply_flags(typename window_flags new_flags);
+    void apply_flags(window_flags new_flags);
 
     //=============================================================================
     // surface

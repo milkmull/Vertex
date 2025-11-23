@@ -155,7 +155,7 @@ struct mouse_data
     bool track_mouse_down;
 
     // Integer mode
-    integer_mode integer_mode;
+    integer_mode int_mode;
     float integer_mode_residual_motion_x;
     float integer_mode_residual_motion_y;
     float integer_mode_residual_scroll_x;
@@ -215,7 +215,7 @@ public:
     void remove_mouse(mouse_id id);
     void clear_mice();
 
-    static bool is_mouse(uint16_t vendor, uint16_t product) { return true; }
+    static bool is_mouse(uint16_t, uint16_t) { return true; }
     bool any_connected() const;
     std::vector<mouse_id> list_mice() const;
     const char* get_name(mouse_id id = default_mouse_id) const;
@@ -298,7 +298,7 @@ public:
 
     const cursor_instance* get_cursor_instance(cursor_id id) const;
 
-    cursor_id create_cursor(const pixel::bitmask& mask, int hot_x, int hot_y);
+    cursor_id create_cursor(const pixel::mask_pair& mask, int hot_x, int hot_y);
     cursor_id create_color_cursor(const argb_surface& surf, int hot_x, int hot_y);
     cursor_id create_system_cursor(cursor_shape shape);
 

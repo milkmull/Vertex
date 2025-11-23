@@ -19,11 +19,11 @@ static void keycode_options_hint_watcher(const hint::hint_t name, const char*, c
     {
         constexpr int64_t default_options = static_cast<int64_t>(keycode_options::default_options);
         const int64_t hint = hint::parse_integer(new_value, default_options);
-        keyboard->data.keycode_options = static_cast<keycode_options>(hint);
+        keyboard->data.options = static_cast<keycode_options>(hint);
     }
     else
     {
-        keyboard->data.keycode_options = keycode_options::default_options;
+        keyboard->data.options = keycode_options::default_options;
     }
 }
 
@@ -48,7 +48,7 @@ void keyboard_instance::init_data()
     data.mod_state = key_mod::none;
     data.keymap_ptr = nullptr;
     data.auto_release_pending = false;
-    data.keycode_options = keycode_options::none;
+    data.options = keycode_options::none;
     data.quitting = false;
 }
 
@@ -438,7 +438,7 @@ keymap* keyboard_instance::get_current_keymap(bool ignore_options)
             return nullptr;
         }
 
-        if (data.keycode_options & keycode_options::latin_letters)
+        if (data.options & keycode_options::latin_letters)
         {
             // We'll use the default QWERTY keymap
             return nullptr;
@@ -534,7 +534,7 @@ keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state,
         // no mods by default
         mod_state = key_mod::none;
 
-        if ((data.keycode_options & keycode_options::french_numbers) &&
+        if ((data.options & keycode_options::french_numbers) &&
             (map->data.french_numbers) &&
             ((scancode_1 <= sc) && (sc <= scancode_0)))
         {
@@ -544,7 +544,7 @@ keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state,
 
         keycode kc = map->get_keycode(sc, mod_state);
 
-        if (data.keycode_options & keycode_options::hide_numpad)
+        if (data.options & keycode_options::hide_numpad)
         {
             const bool numlock = (mod_state & key_mod::num);
             kc = convert_numpad_keycode(kc, numlock);
@@ -624,7 +624,7 @@ keycode keyboard_instance::get_key_from_name(const char* name) const
 
 const key_state& keyboard_instance::get_key_state() const
 {
-    return data.key_state;
+    return data.state;
 }
 
 //=============================================================================
@@ -633,7 +633,7 @@ void keyboard_instance::reset()
 {
     for (uint32_t sc = scancode_unknown; sc < scancode_count; ++sc)
     {
-        if (data.key_state[sc])
+        if (data.state[sc])
         {
             send_key(time::zero(), global_keyboard_id, 0, static_cast<scancode>(sc), false);
         }
@@ -788,7 +788,7 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
 
         if (down)
         {
-            if (data.key_state[sc])
+            if (data.state[sc])
             {
                 if (!(data.key_source[sc] & source))
                 {
@@ -803,7 +803,7 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
         }
         else
         {
-            if (!data.key_state[sc])
+            if (!data.state[sc])
             {
                 return false;
             }
@@ -812,7 +812,7 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
         }
 
         // update internal keyboard state
-        data.key_state[sc] = down;
+        data.state[sc] = down;
         kc = get_key_from_scancode(sc, data.mod_state, true);
     }
     else if (raw == 0)

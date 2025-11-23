@@ -85,7 +85,7 @@ enum class device_type
     indirect
 };
 
-enum class subtype
+enum class device_subtype
 {
     unknown,
     eraser,

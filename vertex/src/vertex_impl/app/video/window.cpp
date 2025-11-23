@@ -53,8 +53,8 @@ bool window_instance::create(video_instance* owner, const window_config& config)
 #endif // VX_VIDEO_BACKEND_HAVE_REFRESH_DISPLAYS
 
     // Find the display for the window
-    const display_id display = video->is_display_connected(config.display_id)
-        ? config.display_id
+    const display_id display = video->is_display_connected(config.display)
+        ? config.display
         : video->get_primary_display();
 
     if (!display)

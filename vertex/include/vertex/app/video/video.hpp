@@ -143,7 +143,7 @@ struct window_config
 
     float opacity = 1.0f;
 
-    display_id display_id = invalid_id;
+    display_id display = invalid_id;
     bool center_on_display = false;
 
     bool minimized = false;

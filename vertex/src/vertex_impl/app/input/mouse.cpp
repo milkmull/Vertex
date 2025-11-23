@@ -227,7 +227,7 @@ static void relative_cursor_visible_hint_watcher(const hint::hint_t name, const 
 static void integer_mode_hint_watcher(const hint::hint_t name, const char*, const char* new_value, void* user_data)
 {
     mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
-    mouse->data.integer_mode = static_cast<integer_mode>(hint::parse_integer(new_value, integer_mode::none));
+    mouse->data.int_mode = static_cast<integer_mode>(hint::parse_integer(new_value, integer_mode::none));
 }
 
 //=============================================================================
@@ -309,7 +309,7 @@ void mouse_instance::init_data()
     data.track_mouse_down = false;
 
     // Integer mode
-    data.integer_mode = integer_mode::none;
+    data.int_mode = integer_mode::none;
     data.integer_mode_residual_motion_x = 0.0f;
     data.integer_mode_residual_motion_y = 0.0f;
     data.integer_mode_residual_scroll_x = 0.0f;
@@ -1444,7 +1444,7 @@ void mouse_instance::send_motion_internal(time::time_point t, video::window_inst
             }
         }
 
-        if (data.integer_mode & integer_mode::motion)
+        if (data.int_mode & integer_mode::motion)
         {
             // Accumulate the fractional relative motion, only process integer portion
             data.integer_mode_residual_motion_x = math::modf(data.integer_mode_residual_motion_x + x, x);
@@ -1462,7 +1462,7 @@ void mouse_instance::send_motion_internal(time::time_point t, video::window_inst
     }
     else
     {
-        if (data.integer_mode & integer_mode::motion)
+        if (data.int_mode & integer_mode::motion)
         {
             // discard fractional component
             x = math::trunc(x);
@@ -1750,7 +1750,7 @@ void mouse_instance::send_wheel(time::time_point t, const video::window_instance
         e.mouse_event.mouse_wheel.ix = static_cast<int>(ix);
         e.mouse_event.mouse_wheel.iy = static_cast<int>(iy);
 
-        if (data.integer_mode & integer_mode::scroll)
+        if (data.int_mode & integer_mode::scroll)
         {
             e.mouse_event.mouse_wheel.x = ix;
             e.mouse_event.mouse_wheel.y = iy;
@@ -1818,7 +1818,7 @@ const cursor_instance* mouse_instance::get_cursor_instance(cursor_id id) const
 
 //=============================================================================
 
-cursor_id mouse_instance::create_cursor(const pixel::bitmask& mask, int hot_x, int hot_y)
+cursor_id mouse_instance::create_cursor(const pixel::mask_pair& mask, int hot_x, int hot_y)
 {
     enum : uint32_t
     {

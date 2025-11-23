@@ -142,7 +142,7 @@ enum class cursor_shape
     user_defined
 };
 
-enum { system_cursor_count = cursor_shape::_system_count };
+enum { system_cursor_count = static_cast<int>(cursor_shape::_system_count) };
 
 class cursor
 {
@@ -170,7 +170,7 @@ private:
 };
 
 // Creation / Destruction
-VX_API cursor_id create_cursor(const pixel::bitmask& mask, const math::vec2i& hotspot);
+VX_API cursor_id create_cursor(const pixel::mask_pair& mask, const math::vec2i& hotspot);
 VX_API cursor_id create_color_cursor(const pixel::surface_rgba8& surf, const math::vec2i& hotspot);
 VX_API cursor_id create_system_cursor(cursor_shape id);
 

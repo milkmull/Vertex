@@ -54,8 +54,8 @@ struct pen_info
     float max_tilt = 0.0f;
     uint32_t wacom_id = 0;
     size_t button_count = 0;
-    device_type device_type = device_type::unknown;
-    subtype subtype = subtype::unknown;
+    device_type type = device_type::unknown;
+    device_subtype subtype = device_subtype::unknown;
 };
 
 struct pen_device_data
