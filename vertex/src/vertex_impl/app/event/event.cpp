@@ -49,11 +49,16 @@ static void claim_event_temporary_memory(event_queue_entry& entry)
 
     switch (entry.e.type)
     {
+#if defined(VX_APP_VIDEO_ENABLED)
+
         case text_input:
         {
             claim(entry.e.text_event.text_input.text);
             break;
         }
+
+#endif // VX_APP_VIDEO_ENABLED
+
         default:
         {
             return;
