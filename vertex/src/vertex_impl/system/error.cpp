@@ -12,8 +12,8 @@ namespace err {
 
 struct info_impl
 {
-    code err = none;
-    std::string msg;
+    code err;
+    char message[error_message_max_size + 1];
 };
 
 static thread_local info_impl s_err;
@@ -39,10 +39,10 @@ VX_API void _priv::set_error_printing_enabled(bool enabled) noexcept
 
 VX_API info get() noexcept
 {
-    return { s_err.err, s_err.msg.c_str() };
+    return { s_err.err, s_err.message };
 }
 
-VX_API void set(code err, const char* msg) noexcept
+VX_API void set(code err, const char* msg) noexcept(VX_ERROR_PRINTING_AVAILABLE)
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 
@@ -54,7 +54,11 @@ VX_API void set(code err, const char* msg) noexcept
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
     s_err.err = err;
-    s_err.msg = msg;
+
+    constexpr size_t max_size = error_message_max_size;
+    const size_t msg_size = std::strlen(msg);
+    std::memcpy(s_err.message, msg, std::min(max_size, msg_size));
+    s_err.message[msg_size] = '\0';
 }
 
 } // namespace err

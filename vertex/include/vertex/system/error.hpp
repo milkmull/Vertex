@@ -12,6 +12,8 @@ using error_t = uint8_t;
 
 namespace err {
 
+enum { error_message_max_size = 1024 };
+
 ///////////////////////////////////////////////////////////////////////////////
 // error code
 ///////////////////////////////////////////////////////////////////////////////
@@ -155,7 +157,7 @@ VX_API info get() noexcept;
  * @param err The error code.
  * @param msg A descriptive message for the error.
  */
-VX_API void set(code err, const char* msg) noexcept;
+VX_API void set(code err, const char* msg) noexcept(VX_ERROR_PRINTING_AVAILABLE);
 
 /**
  * @brief Sets the current thread's error state using only an error code.

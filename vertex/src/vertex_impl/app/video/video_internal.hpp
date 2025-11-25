@@ -54,6 +54,9 @@ struct video_data
     window_id grabbed_window = invalid_id;
     os::atomic<window_id> wakeup_window = invalid_id;
 
+    // message box
+    static os::atomic<size_t> message_box_count;
+
     // System settings
     bool suspend_screen_saver = false;
     bool sync_window_operations = false;
@@ -200,9 +203,11 @@ public:
 
     // https://github.com/libsdl-org/SDL/blob/b2585ac2369c563ce91962b6ac2382bb40e36340/include/SDL3/SDL_messagebox.h#L131
 
-    size_t message_box_count() const { return 0; }
-    bool show_message_box();
-    bool show_simple_message_box();
+    static size_t message_box_count();
+
+    // these functions can be called before video system is initialized so they are static
+    static bool show_message_box(video_instance* this_, const message_box::config& config, message_box::button_id* button);
+    static bool show_simple_message_box(video_instance* this_, message_box::type type, const std::string& title, const std::string& messag, window_id w);
 
     //=============================================================================
     // events

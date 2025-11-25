@@ -29,6 +29,8 @@ file(GLOB VX_UTIL_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/memory/friend_unique_ptr.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/optional.hpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/random/algorithm.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/bernoulli_distribution.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random/discrete_distribution.hpp"

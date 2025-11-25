@@ -231,6 +231,15 @@
 #define VX_VIDEO_BACKEND_HAVE_WINDOW_ACCEPT_DRAG_AND_DROP 1
 
 // ------------------------------------------------------------
+// Message Box
+// ------------------------------------------------------------
+
+#ifdef VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+#   undef VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+#endif
+#define VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX 1
+
+// ------------------------------------------------------------
 // Mouse
 // ------------------------------------------------------------
 

@@ -2,6 +2,7 @@
 
 #include "vertex/config/flags.hpp"
 #include "vertex/app/video/window.hpp"
+#include "vertex/app/video/message_box.hpp"
 #include "vertex/config/scoped_enum.hpp"
 #include "vertex/pixel/pixel_format.hpp"
 #include "vertex/pixel/surface.hpp"

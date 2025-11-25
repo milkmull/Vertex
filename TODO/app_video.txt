@@ -2,9 +2,10 @@
 todo:
 
     x clipboard
-    - drop events
-    - message box api
+    x drop events
+    x message box api
     
+    x make err setting noexcept again
     - consider removing input backend api in favor of having everything under video_impl
     - review add_hint_callback_and_default_value calls
     - make sure all init and quit functions are correct
