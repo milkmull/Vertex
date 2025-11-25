@@ -106,6 +106,46 @@ const char* create_temporary_string(const char* src)
     return dst;
 }
 
+const char** create_temporary_string_array(const char* const* src, size_t count)
+{
+    // Space for the pointer table:
+    // (count + 1) entries of 'const char*'
+    // The +1 is for the final nullptr terminator.
+    size_t total_length = (count + 1) * sizeof(char);
+
+    // Add the space required for all strings stored consecutively,
+    // each including its null terminator.
+    for (size_t i = 0; i < count; ++i)
+    {
+        total_length += std::strlen(src[i]) + 1;
+    }
+
+    // Allocate a single contiguous block:
+    // [pointer table][string data...]
+    const char** dst = allocate_temporary_memory<const char**>(total_length);
+    if (!dst)
+    {
+        return nullptr;
+    }
+
+    // Pointer where string storage begins.
+    // This jumps past the pointer table:
+    char* ptr = reinterpret_cast<char*>(const_cast<char**>(dst + (count + 1)));
+
+    // Copy each string into the packed region and
+    // populate the pointer table to point at each copied string.
+    for (size_t i = 0; i < count; ++i)
+    {
+        const size_t length = std::strlen(src[i]) + 1;
+        std::memcpy(ptr, src[i], length);
+        ptr += length;
+    }
+
+    // Null-terminate the pointer array
+    dst[count] = nullptr;
+    return dst;
+}
+
 const void* release_temporary_memory(const void* ptr)
 {
     return get_temporary_memory_pool().release_memory(ptr);
@@ -748,6 +788,135 @@ void events_instance::send_critical_event(event_type type)
 
     // needs to be handled in call stack by event watcher
     dispatch_event_watch(e);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// drop events
+///////////////////////////////////////////////////////////////////////////////
+
+bool events_instance::send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y)
+{
+#if defined(VX_APP_VIDEO_ENABLED)
+#   define set_drop_event_window_id(w, e) e.drop_event.common.window_id = w ? w->data.id : invalid_id
+#else
+#   define set_drop_event_window_id(w, e)
+#endif
+
+    bool& is_dropping_ref = 
+#if defined(VX_APP_VIDEO_ENABLED)
+        w ? w->data.is_dropping :
+#endif // VX_APP_VIDEO_ENABLED
+        data.drop.is_dropping;
+
+    if (!is_dropping_ref)
+    {
+        event e{};
+        e.type = drop_begin;
+        set_drop_event_window_id(w, e);
+
+        if (!push_event(e))
+        {
+            return false;
+        }
+    }
+
+    event e{};
+    e.type = type;
+    set_drop_event_window_id(w, e);
+
+    const char* event_source = nullptr;
+    const char* event_data = nullptr;
+
+    if (source && *source)
+    {
+        event_source = create_temporary_string(source);
+        if (!event_source)
+        {
+            return false;
+        }
+    }
+
+    if (drop_data && *drop_data)
+    {
+        event_data = create_temporary_string(drop_data);
+        if (!event_data)
+        {
+            return false;
+        }
+    }
+
+    switch (type)
+    {
+        case drop_file:
+        {
+            e.drop_event.drop_file.source = event_source;
+            e.drop_event.drop_file.file = event_data;
+            break;
+        }
+        case drop_text:
+        {
+            e.drop_event.drop_text.text = event_data;
+            break;
+        }
+        case drop_position:
+        {
+            data.drop.last_x = x;
+            data.drop.last_y = y;
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
+    e.drop_event.common.x = data.drop.last_x;
+    e.drop_event.common.y = data.drop.last_y;
+
+    if (!push_event(e))
+    {
+        return false;
+    }
+
+    if (type == drop_complete)
+    {
+        is_dropping_ref = false;
+
+        data.drop.last_x = 0;
+        data.drop.last_y = 0;
+    }
+
+    return true;
+
+#   undef set_drop_event_window_id
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool events_instance::send_drop_file(const window_ptr_type w, const char* source, const char* file)
+{
+    return send_drop_event(w, drop_file, source, file, 0, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool events_instance::send_drop_position(const window_ptr_type w, float x, float y)
+{
+    return send_drop_event(w, drop_position, nullptr, nullptr, 0, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool events_instance::send_drop_text(const window_ptr_type w, const char* text)
+{
+    return send_drop_event(w, drop_text, nullptr, text, 0, 0);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+bool events_instance::send_drop_complete(const window_ptr_type w)
+{
+    return send_drop_event(w, drop_complete, nullptr, nullptr, 0, 0);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

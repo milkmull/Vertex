@@ -13,9 +13,6 @@
 
 #endif // VX_APP_VIDEO_ENABLED
 
-
-// https://www.glfw.org/docs/3.3/input_guide.html
-
 namespace vx {
 namespace app {
 namespace event {
@@ -159,7 +156,7 @@ enum event_type : event_type_t
     drop_file,
     drop_text,
     drop_begin,
-    drop_end,
+    drop_complete,
     drop_position,
 
     _drop_event_first = drop_file,
@@ -293,14 +290,15 @@ struct app_event_type
 {
     app_event_common common;
 
-    union
-    {
+    // keep this outside the union until we have other events inside
 #if defined(VX_APP_VIDEO_ENABLED)
 
+    union
+    {
         system_theme_changed_event system_theme_changed;
+    };
 
 #endif // VX_APP_VIDEO_ENABLED
-    };
 };
 
 #if defined(VX_APP_VIDEO_ENABLED)
@@ -590,11 +588,65 @@ struct pen_event_type
 // clipboard events
 ///////////////////////////////////////////////////////////////////////////////
 
+struct clipboard_updated_event
+{
+    bool owner;
+    const char** mime_types;
+    size_t mime_type_count;
+};
+
+struct clipboard_event_type
+{
+    union
+    {
+        clipboard_updated_event clipboard_updated;
+    };
+};
+
+#endif // VX_APP_VIDEO_ENABLED
+
 ///////////////////////////////////////////////////////////////////////////////
 // drag and drop events
 ///////////////////////////////////////////////////////////////////////////////
 
+// drop_file,
+// drop_text,
+// drop_begin,
+// drop_end,
+// drop_position,
+
+struct drop_event_common
+{
+#if defined(VX_APP_VIDEO_ENABLED)
+
+    video::window_id window_id;
+
 #endif // VX_APP_VIDEO_ENABLED
+
+    float x, y;
+};
+
+struct drop_file_event
+{
+    const char* source;
+    const char* file;
+};
+
+struct drop_text_event
+{
+    const char* text;
+};
+
+struct drop_event_type
+{
+    drop_event_common common;
+
+    union
+    {
+        drop_file_event drop_file;
+        drop_text_event drop_text;
+    };
+};
 
 ///////////////////////////////////////////////////////////////////////////////
 // user events
@@ -660,7 +712,15 @@ public:
 
         pen_event_type pen_event;
 
+        // clipboard events
+
+        clipboard_event_type clipboard_event;
+
 #endif // VX_APP_VIDEO_ENABLED
+
+        // drop events
+
+        drop_event_type drop_event;
 
         // user event
 

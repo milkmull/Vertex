@@ -1346,6 +1346,8 @@ void mouse_instance::constrain_position(const video::window_instance* w, float* 
 
 #define events_ptr video->app->data.events_ptr
 
+//=============================================================================
+
 void mouse_instance::send_mouse_added(mouse_id id)
 {
     VX_ASSERT(is_valid_id(id));

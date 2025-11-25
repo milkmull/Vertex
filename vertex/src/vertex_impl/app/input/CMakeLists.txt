@@ -6,6 +6,10 @@ file(GLOB VX_APP_INPUT_SOURCE_FILES
 
     "${CMAKE_CURRENT_SOURCE_DIR}/usb_ids.hpp"
     
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_clipboard.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/clipboard_internal.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/clipboard.cpp"
+    
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_mouse.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mouse_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mouse.cpp"
@@ -33,6 +37,7 @@ target_sources(Vertex PRIVATE ${VX_APP_INPUT_SOURCE_FILES})
 
 # Header files for dummy modules
 file(GLOB VX_APP_INPUT_DUMMY_SOURCE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_clipboard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_mouse.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_keyboard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_touch.hpp"
@@ -51,6 +56,9 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
 
         #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_game_input.hpp"
         #"${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_game_input.cpp"
+        
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_clipboard.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_clipboard.cpp"
             
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_mouse.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_mouse.cpp"

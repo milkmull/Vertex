@@ -18,21 +18,21 @@ static bool display_added_event_watcher(const app::event::event& e, void*)
 
     std::cout << (int)(e.type) << std::endl;
 
-    const app::video::display d = e.display_event.common.display_id;
-
-    if (d.is_connected())
-    {
-        std::cout << "display " << d.id() << std::endl;
-
-        const auto modes = d.list_modes();
-
-        for (size_t i = 0; i < modes.size(); ++i)
-        {
-            std::cout << "mode " << i << ": " << (int)modes[i].pixel_format << std::endl;
-        }
-
-        std::cout << std::endl;
-    }
+    //const app::video::display d = e.display_event.common.display_id;
+    //
+    //if (d.is_connected())
+    //{
+    //    std::cout << "display " << d.id() << std::endl;
+    //
+    //    const auto modes = d.list_modes();
+    //
+    //    for (size_t i = 0; i < modes.size(); ++i)
+    //    {
+    //        std::cout << "mode " << i << ": " << (int)modes[i].pixel_format << std::endl;
+    //    }
+    //
+    //    std::cout << std::endl;
+    //}
 
     app::event::remove_event_watch(display_added_event_watcher, nullptr);
     return false;

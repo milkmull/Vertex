@@ -9,6 +9,7 @@ namespace vx {
 namespace app {
 
 class app_instance;
+namespace video { class window_instance; }
 
 namespace event {
 
@@ -43,6 +44,7 @@ enum
 
 void* allocate_temporary_memory_raw(size_t size);
 const char* create_temporary_string(const char* src);
+const char** create_temporary_string_array(const char* const* src, size_t count);
 
 template <typename T>
 inline T allocate_temporary_memory(size_t size)
@@ -65,6 +67,7 @@ inline T* create_temporary_array(size_t count)
 
 const void* release_temporary_memory(const void* ptr);
 void give_temporary_memory(void* ptr);
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // event queue
@@ -95,6 +98,16 @@ struct event_queue
 };
 
 ///////////////////////////////////////////////////////////////////////////////
+// drop state
+///////////////////////////////////////////////////////////////////////////////
+
+struct drop_state
+{
+    bool is_dropping;
+    float last_x, last_y;
+};
+
+///////////////////////////////////////////////////////////////////////////////
 // event data
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -102,6 +115,7 @@ struct events_data
 {
     event_queue queue;
     event_watch_list watch;
+    drop_state drop;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -189,6 +203,24 @@ public:
     ///////////////////////////////////////////////////////////////////////////////
 
     void send_critical_event(event_type type);
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // drop events
+    ///////////////////////////////////////////////////////////////////////////////
+
+    using window_ptr_type =
+#if defined(VX_APP_VIDEO_ENABLED)
+        video::window_instance*
+#else
+        std::nullptr_t
+#endif // VX_APP_VIDEO_ENABLED
+        ;
+
+    bool send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y);
+    bool send_drop_file(const window_ptr_type w, const char* source, const char* file);
+    bool send_drop_position(const window_ptr_type w, float x, float y);
+    bool send_drop_text(const window_ptr_type w, const char* text);
+    bool send_drop_complete(const window_ptr_type w);
 
     ///////////////////////////////////////////////////////////////////////////////
     // data

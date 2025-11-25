@@ -1057,48 +1057,6 @@ void keyboard_instance::send_editing_text(const char* text, size_t start, size_t
 
 //=============================================================================
 
-static const char* const* create_candidates(char** candidates, size_t count)
-{
-    // Space for the pointer table:
-    // (count + 1) entries of 'const char*'
-    // The +1 is for the final nullptr terminator.
-    size_t total_length = (count + 1) * sizeof(char);
-
-    // Add the space required for all strings stored consecutively,
-    // each including its null terminator.
-    for (size_t i = 0; i < count; ++i)
-    {
-        total_length += std::strlen(candidates[i]) + 1;
-    }
-
-    // Allocate a single contiguous block:
-    // [pointer table][string data...]
-    const char** event_candidates = event::allocate_temporary_memory<const char**>(total_length);
-    if (!event_candidates)
-    {
-        return nullptr;
-    }
-
-    // Pointer where string storage begins.
-    // This jumps past the pointer table:
-    // reinterpret_cast is required because event_candidates is const char**
-    char* ptr = reinterpret_cast<char*>(const_cast<char**>(event_candidates + (count + 1)));
-
-    // Copy each string into the packed region and
-    // populate the pointer table to point at each copied string.
-    for (size_t i = 0; i < count; ++i)
-    {
-        const size_t length = std::strlen(candidates[i]) + 1;
-        std::memcpy(ptr, candidates[i], length);
-        ptr += length;
-    }
-
-    // Null-terminate the pointer array
-    event_candidates[count] = nullptr;
-
-    return event_candidates;
-}
-
 void keyboard_instance::send_editing_text_candidates(char** candidates, size_t count, size_t selected, bool horizontal)
 {
     const video::window_instance* w = get_focus_instance();
@@ -1110,7 +1068,7 @@ void keyboard_instance::send_editing_text_candidates(char** candidates, size_t c
     const char* const* event_candidates = nullptr;
     if (count > 0)
     {
-        event_candidates = create_candidates(candidates, count);
+        event_candidates = event::create_temporary_string_array(candidates, count);
         if (!event_candidates)
         {
             return;
