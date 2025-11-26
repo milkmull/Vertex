@@ -9,9 +9,9 @@
 #   include "vertex_impl/app/video/video_internal.hpp"
 #endif // VX_APP_VIDEO_ENABLED
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // feature macros
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 #define VX_APP_LOG_EVENTS 1
 
@@ -19,21 +19,27 @@
 #   include "vertex/system/log.hpp"
 #endif // VX_APP_LOG_EVENTS
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
+// helper macros
+//=============================================================================
+
+#define video_ptr app->data.video_ptr 
+
+//=============================================================================
 
 namespace vx {
 namespace app {
 namespace event {
 
-////////////////////////////////////////
+//=============================================================================
 
 #if defined(VX_APP_LOG_EVENTS)
 static void log_event(const event&);
 #endif // VX_APP_LOG_EVENTS
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // memory
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static temporary_memory_pool& get_temporary_memory_pool()
 {
@@ -41,7 +47,7 @@ static temporary_memory_pool& get_temporary_memory_pool()
     return stl_pool;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static void claim_event_temporary_memory(event_queue_entry& entry)
 {
@@ -68,7 +74,7 @@ static void claim_event_temporary_memory(event_queue_entry& entry)
 #   undef claim
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static void return_event_temporary_memory(event_queue_entry& entry)
 {
@@ -79,7 +85,7 @@ static void return_event_temporary_memory(event_queue_entry& entry)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 void* allocate_temporary_memory_raw(size_t size)
 {
@@ -156,16 +162,16 @@ void give_temporary_memory(void* ptr)
     get_temporary_memory_pool().give_memory(ptr);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static void free_temporary_memory()
 {
     get_temporary_memory_pool().clear();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // event queue
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool event_queue::start()
 {
@@ -221,7 +227,7 @@ size_t event_queue::add(const event* events, size_t count)
     return added;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 size_t event_queue::match(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
@@ -267,14 +273,14 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
     return matched;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool event_queue::poll(event& e)
 {
     return match(nullptr, nullptr, &e, 1, true);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void event_queue::clear()
 {
@@ -283,7 +289,7 @@ void event_queue::clear()
     VX_ASSERT(sentinel_pending == 0);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 static bool sentinel_filter(const event& e, void*) noexcept
 {
@@ -303,15 +309,9 @@ void event_queue::add_sentinel()
     add(&e, 1);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // initialization
-///////////////////////////////////////////////////////////////////////////////
-
-void events_instance::init_data()
-{
-    data.queue.active = false;
-    data.watch.clear();
-}
+//=============================================================================
 
 bool events_instance::init(app_instance* owner)
 {
@@ -319,23 +319,26 @@ bool events_instance::init(app_instance* owner)
     VX_ASSERT(owner);
     app = owner;
 
-    init_data();
-
     // initialize ticks if they have not been already
     os::get_ticks();
 
     if (!start_loop())
     {
-        quit();
-        return false;
+        goto failed;
     }
 
     init_signal_handler();
 
     return true;
+
+    failed:
+    {
+        quit();
+        return false;
+    }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void events_instance::quit()
 {
@@ -344,9 +347,9 @@ void events_instance::quit()
     data.watch.clear();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // loop
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1008
 
@@ -355,16 +358,16 @@ bool events_instance::start_loop()
     return data.queue.start();
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void events_instance::stop_loop()
 {
     data.queue.stop();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // pump
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1454
 
@@ -379,7 +382,7 @@ void events_instance::pump_events()
     pump_events_internal(false);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1458
 
@@ -388,7 +391,7 @@ void events_instance::pump_events_maintenance()
     send_pending_signal_events();
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void events_instance::pump_events_internal(bool push_sentinel)
 {
@@ -399,10 +402,10 @@ void events_instance::pump_events_internal(bool push_sentinel)
     if (app->is_video_init())
     {
         // release any keys heald down from last frame
-        app->data.video_ptr->data.keyboard_ptr->release_auto_release_keys();
+        video_ptr->data.keyboard_ptr->release_auto_release_keys();
 
         // pump events from video subsystem
-        app->data.video_ptr->pump_events();
+        video_ptr->pump_events();
     }
 
 #endif // VX_APP_VIDEO_ENABLED
@@ -416,15 +419,9 @@ void events_instance::pump_events_internal(bool push_sentinel)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // edit
-///////////////////////////////////////////////////////////////////////////////
-
-VX_API size_t add_events(const event* e, size_t count)
-{
-    VX_CHECK_EVENTS_SUBSYSTEM_INIT(0);
-    return s_events_ptr->add_events(e, count);
-}
+//=============================================================================
 
 size_t events_instance::add_events(const event* e, size_t count)
 {
@@ -437,7 +434,7 @@ size_t events_instance::add_events(const event* e, size_t count)
 
     if (n && app->is_video_init())
     {
-        app->data.video_ptr->send_wakeup_event();
+        video_ptr->send_wakeup_event();
     }
 
 #endif // VX_APP_VIDEO_ENABLED
@@ -445,7 +442,7 @@ size_t events_instance::add_events(const event* e, size_t count)
     return n;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
@@ -458,16 +455,16 @@ size_t events_instance::match_events(event_filter matcher, void* user_data, even
     return data.queue.match(matcher, user_data, events, count, remove);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 size_t events_instance::flush_events(event_type type)
 {
     return match_events(type_matcher, &type, nullptr, 0, true);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // poll
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1506
 
@@ -478,7 +475,7 @@ time::time_point events_instance::get_polling_interval() const
     return interval;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1532
 
@@ -537,7 +534,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
         }
 
         // Block and wait for OS/window events up to loop_timeout
-        const int result = app->data.video_ptr->wait_event_timeout(w, loop_timeout);
+        const int result = video_ptr->wait_event_timeout(w, loop_timeout);
 
         if (result <= 0)
         {
@@ -559,7 +556,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
 
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1606
 
@@ -612,7 +609,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
 
     if (app->is_video_init())
     {
-        video::window_id w = app->data.video_ptr->get_active_window();
+        video::window_id w = video_ptr->get_active_window();
         if (is_valid_id(w))
         {
             const int result = wait_event_timeout_video(w, e, t, start);
@@ -662,7 +659,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     return false;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool poll_event(event& e)
 {
@@ -675,9 +672,9 @@ bool events_instance::poll_event(event& e)
     return wait_event_timeout(e, time::zero());
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // push
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 VX_API bool push_event(event& e)
 {
@@ -710,9 +707,9 @@ bool events_instance::push_event_filtered(event& e, event_filter filter, void* u
     return add_events(&e, 1) == 1;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // watch
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 VX_API void set_event_filter(event_filter filter, void* user_data)
 {
@@ -727,7 +724,7 @@ void events_instance::set_event_filter(event_filter filter, void* user_data, eve
     data.queue.match(filter, user_data, nullptr, 0, true);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void get_event_filter(event_filter& filter, void*& user_data)
 {
@@ -740,7 +737,7 @@ void events_instance::get_event_filter(event_filter& filter, void*& user_data, e
     data.watch.get_filter(filter, user_data, priority);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void add_event_watch(event_filter callback, void* user_data)
 {
@@ -753,7 +750,7 @@ void events_instance::add_event_watch(event_filter callback, void* user_data, ev
     data.watch.add_watch(callback, user_data, priority);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void remove_event_watch(event_filter callback, void* user_data)
 {
@@ -766,16 +763,16 @@ void events_instance::remove_event_watch(event_filter callback, void* user_data,
     data.watch.remove_watch(callback, user_data, priority);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::dispatch_event_watch(const event& e)
 {
     return data.watch.dispatch_all(e);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // events
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 void events_instance::send_critical_event(event_type type)
 {
@@ -790,9 +787,9 @@ void events_instance::send_critical_event(event_type type)
     dispatch_event_watch(e);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // drop events
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y)
 {
@@ -891,37 +888,37 @@ bool events_instance::send_drop_event(const window_ptr_type w, const event_type 
 #   undef set_drop_event_window_id
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::send_drop_file(const window_ptr_type w, const char* source, const char* file)
 {
     return send_drop_event(w, drop_file, source, file, 0, 0);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::send_drop_position(const window_ptr_type w, float x, float y)
 {
     return send_drop_event(w, drop_position, nullptr, nullptr, 0, 0);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::send_drop_text(const window_ptr_type w, const char* text)
 {
     return send_drop_event(w, drop_text, nullptr, text, 0, 0);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool events_instance::send_drop_complete(const window_ptr_type w)
 {
     return send_drop_event(w, drop_complete, nullptr, nullptr, 0, 0);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // event logging
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 #if VX_APP_LOG_EVENTS
 

@@ -217,7 +217,7 @@ struct window_data
 
     keyboard::text_input_options text_input_options;
     bool text_input_active = false;
-    int text_input_cursor;
+    int text_input_cursor = 0;
     math::recti text_input_rect;
 };
 
@@ -400,7 +400,7 @@ public:
     //=============================================================================
 
     bool set_shape(const surface_argb& shape);
-    const surface_argb& get_shape();
+    //const surface_argb& get_shape();
     bool update_shape(bool force);
 
     float get_opacity() const;

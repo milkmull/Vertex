@@ -308,6 +308,7 @@ public:
     cursor_id get_default_cursor() const;
     void set_default_cursor(cursor_id cid);
 
+    void create_dummy_cursor();
     cursor_shape get_default_system_cursor() const;
 
     // visibility

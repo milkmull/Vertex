@@ -339,7 +339,7 @@ void window_instance::sync_if_required()
 {
 #if VX_VIDEO_BACKEND_HAVE_WINDOW_SYNC
 
-    if (video->data.sync_window_operations)
+    if (video->s_data.sync_window_operations)
     {
         sync();
     }

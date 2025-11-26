@@ -9,6 +9,15 @@
 #include "vertex_impl/app/video/_platform/platform_video.hpp"
 #include "vertex_impl/app/video/_platform/platform_window.hpp"
 
+//=============================================================================
+// helper macros
+//=============================================================================
+
+#define hints_ptr app->data.hints_ptr
+#define events_ptr app->data.events_ptr
+
+//=============================================================================
+
 namespace vx {
 namespace app {
 namespace video {
@@ -20,7 +29,7 @@ namespace video {
 static void sync_window_operations_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
 {
     video_instance* this_ = static_cast<video_instance*>(user_data);
-    this_->data.sync_window_operations = hint::parse_boolean(new_value, false);
+    this_->s_data.sync_window_operations = hint::parse_boolean(new_value, false);
 }
 
 //=============================================================================
@@ -35,7 +44,7 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 }
 
 //=============================================================================
-// video_instance lifecycle
+// video_instance
 //=============================================================================
 
 video_instance::video_instance() = default;
@@ -46,6 +55,10 @@ video_instance::~video_instance()
 }
 
 //=============================================================================
+// init
+//=============================================================================
+
+static_video_data video_instance::s_data{};
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L611
 
@@ -55,74 +68,87 @@ bool video_instance::init(app_instance* owner)
     VX_ASSERT(owner);
     app = owner;
 
+    // clipboard
+    data.clipboard_ptr.reset(new clipboard::clipboard_instance);
+    if (!data.clipboard_ptr || !data.clipboard_ptr->init(this))
+    {
+        goto failed;
+    }
+
+    // keyboard
     data.keyboard_ptr.reset(new keyboard::keyboard_instance);
     if (!data.keyboard_ptr || !data.keyboard_ptr->init(this))
     {
-        quit();
-        return false;
+        goto failed;
     }
 
+    // mouse
     data.mouse_ptr.reset(new mouse::mouse_instance);
     if (!data.mouse_ptr || !data.mouse_ptr->init(this))
     {
-        quit();
-        return false;
+        goto failed;
     }
 
+    // touch
     data.touch_ptr.reset(new touch::touch_instance);
     if (!data.touch_ptr || !data.touch_ptr->init(this))
     {
-        quit();
-        return false;
+        goto failed;
     }
 
+    // pen
     data.pen_ptr.reset(new pen::pen_instance);
     if (!data.pen_ptr || !data.pen_ptr->init(this))
     {
-        quit();
-        return false;
+        goto failed;
     }
 
+    // remember current thread id
     data.thread_id = os::this_thread::get_id();
 
     // initialize backend
     impl_ptr.reset(new video_instance_impl);
     if (!impl_ptr || !impl_ptr->init(this))
     {
-        quit();
-        return false;
+        goto failed;
     }
 
     // make sure we found at least one display
     if (data.displays.empty())
     {
         err::set(err::system_error, "No usable displays found");
-        quit();
-        return false;
+        goto failed;
     }
 
     // hints
     {
         // hints subsystem should be initialized by app
-        VX_ASSERT(app->data.hints_ptr);
+        VX_ASSERT(hints_ptr);
 
-        app->data.hints_ptr->add_hint_callback_and_default_value(
+        hints_ptr->add_hint_callback(
             hint::video_sync_window_operations,
             sync_window_operations_hint_watcher,
-            this, "0", true
+            nullptr
         );
 
         // disable the screen saver by default
-        if (!app->data.hints_ptr->get_hint_boolean(
+        if (!hints_ptr->get_hint_boolean(
             hint::video_allow_screen_saver, false))
         {
             disable_screen_saver();
         }
     }
 
-    // data.mouse->post_init();?
+    // create dummy mouse cursor after video backend has been initialized
+    data.mouse_ptr->create_dummy_cursor();
 
     return true;
+
+    failed:
+    {
+        quit();
+        return false;
+    }
 }
 
 //=============================================================================
@@ -131,55 +157,29 @@ bool video_instance::init(app_instance* owner)
 
 void video_instance::quit()
 {
-    if (data.pen_ptr)
-    {
-        data.pen_ptr->quit();
-        data.pen_ptr.reset();
-    }
+    // reset input
+    data.pen_ptr.reset();
+    data.touch_ptr.reset();
+    data.mouse_ptr.reset();
+    data.keyboard_ptr.reset();
+    data.clipboard_ptr.reset();
 
-    if (data.touch_ptr)
-    {
-        data.touch_ptr->quit();
-        data.touch_ptr.reset();
-    }
-
-    if (data.mouse_ptr)
-    {
-        data.mouse_ptr->quit();
-        data.mouse_ptr.reset();
-    }
-
-    if (data.keyboard_ptr)
-    {
-        data.keyboard_ptr->quit();
-        data.keyboard_ptr.reset();
-    }
-
+    // restore screen saver
     enable_screen_saver();
 
     // Destroy any existing windows
     destroy_windows();
 
     // clean up backend
-    if (impl_ptr)
-    {
-        impl_ptr->quit();
-        impl_ptr.reset();
-    }
+    impl_ptr.reset();
 
-    clear_displays(false);
-
-    // SDL_CancelClipboardData(0);
-    // 
-    // if (_this->primary_selection_text) {
-    //     SDL_free(_this->primary_selection_text);
-    //     _this->primary_selection_text = NULL;
-    // }
+    // clear displays
+    data.displays.clear();
 
     // remove hint callbacks
-    if (app)
+    if (app && app->is_hints_init())
     {
-        app->data.hints_ptr->remove_hint_callback(
+        hints_ptr->remove_hint_callback(
             hint::video_sync_window_operations,
             sync_window_operations_hint_watcher,
             this
@@ -317,16 +317,6 @@ void video_instance::remove_display(display_id id, bool send_event)
     }
 
     update_desktop_area();
-}
-
-//=============================================================================
-
-void video_instance::clear_displays(bool send_events)
-{
-    while (!data.displays.empty())
-    {
-        remove_display(data.displays[0].data.id, send_events);
-    }
 }
 
 //=============================================================================
@@ -725,7 +715,7 @@ math::recti display_instance::get_work_area() const
 
     if (data.id == video->get_primary_display())
     {
-        const char* hint = video->app->data.hints_ptr->get_hint(hint::video_display_usable_bounds);
+        const char* hint = video->hints_ptr->get_hint(hint::video_display_usable_bounds);
         if (parse_display_usable_bounds_hint(hint, rect))
         {
             return rect;
@@ -1415,12 +1405,7 @@ std::vector<window_id> video_instance::list_windows() const
 VX_API bool window_exists(window_id id)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->window_exists(id);
-}
-
-bool video_instance::window_exists(window_id id) const
-{
-    return get_window_index(id) != VX_INVALID_INDEX;
+    return s_video_ptr->get_window_index(id) != VX_INVALID_INDEX;
 }
 
 //=============================================================================
@@ -1470,7 +1455,7 @@ const window_instance* video_instance::get_window_instance(window_id id) const
 
 //=============================================================================
 
-window_id video_instance::get_active_window()
+window_id video_instance::get_active_window() const
 {
     for (const window_instance& w : data.windows)
     {
@@ -1524,7 +1509,7 @@ void video_instance::validate_grabbed_window()
 
 bool video_instance::should_quit_on_window_close() const
 {
-    const bool quit_on_last_window_close = app->data.hints_ptr->get_hint_boolean(
+    const bool quit_on_last_window_close = hints_ptr->get_hint_boolean(
         hint::video_quit_on_last_window_close,
         true
     );
@@ -1670,11 +1655,114 @@ bool video_instance::has_screen_keyboard_support() const
 }
 
 //=============================================================================
-// events
+// message box
 //=============================================================================
 
-#define events_ptr app->data.events_ptr
+size_t video_instance::message_box_count()
+{
+    return s_data.message_box_count.load();
+}
 
+//=============================================================================
+
+bool video_instance::show_message_box(video_instance* this_, const message_box::config& config, message_box::button_id* button)
+{
+#if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+
+    VX_UNUSED(this_);
+    VX_UNUSED(config);
+    VX_UNUSED(button);
+    VX_UNSUPPORTED("show_message_box()");
+    return false;
+
+#else
+
+    ++s_data.message_box_count;
+
+    video::window_instance* current_window = nullptr;
+    bool show_cursor_prev = false;
+
+    if (this_)
+    {
+        current_window = this_->data.keyboard_ptr->get_focus_instance();
+        this_->data.mouse_ptr->update_capture(false);
+        this_->data.mouse_ptr->set_relative_mode(false);
+        show_cursor_prev = this_->data.mouse_ptr->cursor_visible();
+        this_->data.mouse_ptr->show_cursor();
+        this_->data.keyboard_ptr->reset();
+    }
+
+    message_box::button_id dummy_button{};
+    if (!button)
+    {
+        button = &dummy_button;
+    }
+
+    err::clear();
+    const bool result = false;// show_message_box_impl(this_, config, button);
+    err::clear();
+
+    --s_data.message_box_count;
+
+    if (this_)
+    {
+        if (current_window)
+        {
+            current_window->raise();
+        }
+
+        if (!show_cursor_prev)
+        {
+            this_->data.mouse_ptr->hide_cursor();
+        }
+
+        this_->data.mouse_ptr->update_relative_mode();
+        this_->data.mouse_ptr->update_capture(false);
+    }
+
+    return result;
+
+#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+}
+
+//=============================================================================
+
+bool video_instance::show_simple_message_box(video_instance* this_, message_box::type type, const std::string& title, const std::string& message, window_id w)
+{
+#if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+
+    VX_UNUSED(this_);
+    VX_UNUSED(type);
+    VX_UNUSED(title);
+    VX_UNUSED(message);
+    VX_UNUSED(w);
+    VX_UNSUPPORTED("show_simple_message_box()");
+    return false;
+
+#else
+
+    message_box::config config;
+    config.message_type = type;
+    config.layout = message_box::button_layout::left_to_right;
+    config.title = title;
+    config.message = message;
+    config.buttons.emplace_back(
+        message_box::button_config
+        {
+            message_box::default_button_keys::any,
+            0,
+            "OK"
+        }
+    );
+    config.parent_window = w;
+
+    return show_message_box(this_, config, nullptr);
+
+#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+}
+
+//=============================================================================
+// events
 //=============================================================================
 
 void video_instance::pump_events()
@@ -1706,9 +1794,52 @@ bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 
 #else
 
+    VX_UNUSED(w);
+    VX_UNUSED(t);
     return false;
 
 #endif // VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT
+}
+
+//=============================================================================
+
+// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1103
+
+void video_instance::send_wakeup_event()
+{
+#if defined(VX_OS_ANDROID)
+
+#else
+
+#if VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
+
+    // This function is called when a new event is added to the queue
+    // while another thread may be blocked waiting for events.
+    //
+    // The waiting thread sets data.wakeup_window before calling into the OS
+    // to wait for events. If we get here, it means new activity happened
+    // and we must wake that thread immediately.
+    //
+    // We clear data.wakeup_window atomically right away to ensure:
+    //   1. Only one wakeup happens per wait cycle (multiple threads adding
+    //      events won’t flood the OS queue with wakeup messages).
+    //   2. Other threads are free to reuse or take ownership of the window
+    //      handle without being blocked by us holding it longer than needed.
+    //
+    // If there was a valid wakeup window, we send the wakeup event through
+    // the platform-specific mechanism (e.g. PostMessage on Windows).
+
+    const window_id wid = data.wakeup_window.exchange(invalid_id);
+
+    const window_instance* w = get_window_instance(wid);
+    if (w)
+    {
+        w->send_wakeup_event();
+    }
+
+#endif // VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
+
+#endif // VX_OS_ANDROID
 }
 
 //=============================================================================
@@ -1750,47 +1881,6 @@ void video_instance::did_enter_foreground()
         data.keyboard_ptr->set_focus(w.data.id);
         w.send_restored();
     }
-}
-
-//=============================================================================
-
-// https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1103
-
-void video_instance::send_wakeup_event()
-{
-#if defined(VX_OS_ANDROID)
-
-#else
-
-#if VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
-
-    // This function is called when a new event is added to the queue
-    // while another thread may be blocked waiting for events.
-    //
-    // The waiting thread sets data.wakeup_window before calling into the OS
-    // to wait for events. If we get here, it means new activity happened
-    // and we must wake that thread immediately.
-    //
-    // We clear data.wakeup_window atomically right away to ensure:
-    //   1. Only one wakeup happens per wait cycle (multiple threads adding
-    //      events won’t flood the OS queue with wakeup messages).
-    //   2. Other threads are free to reuse or take ownership of the window
-    //      handle without being blocked by us holding it longer than needed.
-    //
-    // If there was a valid wakeup window, we send the wakeup event through
-    // the platform-specific mechanism (e.g. PostMessage on Windows).
-    
-    const window_id wid = data.wakeup_window.exchange(invalid_id);
-
-    const window_instance* w = get_window_instance(wid);
-    if (w)
-    {
-        w->send_wakeup_event();
-    }
-
-#endif // VX_VIDEO_BACKEND_HAVE_SEND_WAKEUP_EVENT
-
-#endif // VX_OS_ANDROID
 }
 
 //=============================================================================

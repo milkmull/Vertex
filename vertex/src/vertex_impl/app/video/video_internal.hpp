@@ -1,6 +1,7 @@
  #pragma once
 
 #include "vertex/app/instance_pair.hpp"
+#include "vertex/app/video/message_box.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
 #include "vertex/system/error.hpp"
@@ -8,6 +9,7 @@
 #include "vertex_impl/app/input/mouse_internal.hpp"
 #include "vertex_impl/app/input/pen_internal.hpp"
 #include "vertex_impl/app/input/touch_internal.hpp"
+#include "vertex_impl/app/input/clipboard_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/window_internal.hpp"
 
@@ -32,34 +34,61 @@ class display_instance_impl;
 // video data
 //=============================================================================
 
+struct static_video_data
+{
+    //=======================================
+    // hints
+    //=======================================
+    
+    bool sync_window_operations;
+
+    //=======================================
+    // message box
+    //=======================================
+
+    os::atomic<size_t> message_box_count;
+};
+
 struct video_data
 {
-    // Input
+    //=======================================
+    // input
+    //=======================================
+
     std::unique_ptr<mouse::mouse_instance> mouse_ptr;
     std::unique_ptr<keyboard::keyboard_instance> keyboard_ptr;
     std::unique_ptr<touch::touch_instance> touch_ptr;
     std::unique_ptr<pen::pen_instance> pen_ptr;
+    std::unique_ptr<clipboard::clipboard_instance> clipboard_ptr;
 
-    // Thread
+    //=======================================
+    // thread
+    //=======================================
+
     typename os::thread::id thread_id;
 
-    // Displays
+    //=======================================
+    // displays
+    //=======================================
+
     id_generator display_id_generator;
     std::vector<display_instance> displays;
     bool setting_display_mode = false;
 
-    // Windows
+    //=======================================
+    // windows
+    //=======================================
+
     id_generator window_id_generator;
     std::vector<window_instance> windows;
     window_id grabbed_window = invalid_id;
-    os::atomic<window_id> wakeup_window = invalid_id;
+    os::atomic<window_id> wakeup_window;
 
-    // message box
-    static os::atomic<size_t> message_box_count;
+    //=======================================
+    // system
+    //=======================================
 
-    // System settings
     bool suspend_screen_saver = false;
-    bool sync_window_operations = false;
     system_theme theme = system_theme::unknown;
     math::recti desktop_area;
 };
@@ -84,11 +113,15 @@ public:
 public:
 
     //=============================================================================
-    // lifecycle
+    // init
     //=============================================================================
 
     bool init(app_instance* owner);
     void quit();
+
+    //=============================================================================
+    // thread
+    //=============================================================================
 
     bool on_video_thread() const;
 
@@ -111,7 +144,6 @@ public:
 
     bool add_display(display_instance& display, bool send_event);
     void remove_display(display_id id, bool send_event);
-    void clear_displays(bool send_events);
 
     std::vector<display_id> list_displays() const;
     size_t get_display_index(display_id id) const;
@@ -168,12 +200,10 @@ public:
 
     std::vector<window_id> list_windows() const;
     size_t get_window_index(window_id id) const;
-    bool window_exists(window_id id) const;
 
+    window_id get_active_window() const;
     window_instance* get_window_instance(window_id id);
     const window_instance* get_window_instance(window_id id) const;
-
-    window_id get_active_window();
 
     window_instance* get_grabbed_window();
     void set_grabbed_window(window_id w);
@@ -241,6 +271,7 @@ public:
 
     app_instance* app = nullptr;
     video_data data;
+    static static_video_data s_data;
     std::unique_ptr<video_instance_impl> impl_ptr;
 };
 
@@ -269,6 +300,7 @@ public:
 
 public:
 
+    video_instance* video;
     display_mode_data data;
     std::unique_ptr<display_mode_instance_impl> impl_ptr;
 };
@@ -370,7 +402,7 @@ public:
 
 public:
 
-    video_instance* video = nullptr;
+    video_instance* video;
     display_data data;
     std::unique_ptr<display_instance_impl> impl_ptr;
 };

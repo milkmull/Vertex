@@ -23,26 +23,19 @@ clipboard_instance::~clipboard_instance()
 // Initialization
 //=============================================================================
 
-void clipboard_instance::init_data()
-{
-    data.callback = nullptr;
-    data.cleanup = nullptr;
-    data.user_data = nullptr;
-}
-
 bool clipboard_instance::init(video::video_instance* owner)
 {
     VX_ASSERT(!video);
     VX_ASSERT(owner);
     video = owner;
-
-    init_data();
     return true;
 }
 
 void clipboard_instance::quit()
 {
-
+    cancel_data(0);
+    data.primary_selection_text.clear();
+    data.sequence = 0;
 }
 
 //=============================================================================

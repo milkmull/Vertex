@@ -2,12 +2,11 @@
 
 #include "vertex/config/flags.hpp"
 #include "vertex/math/color/types/color8.hpp"
+#include "vertex/app/video/window.hpp"
 
 namespace vx {
 namespace app {
 namespace video {
-
-class window_id;
 
 //=============================================================================
 // message_box
@@ -66,13 +65,13 @@ using color_scheme = math::color8[color_type::_count];
 
 struct config
 {
-    type message_type;
-    button_layout layout;
+    type message_type = type::error;
+    button_layout layout = button_layout::left_to_right;
     std::string title;
     std::string message;
     std::vector<button_config> buttons;
-    math::color8* color_scheme;
-    window_id parent_window;
+    math::color8* color_scheme = nullptr;
+    window_id parent_window = invalid_id;
 };
 
 } // namespace message_box

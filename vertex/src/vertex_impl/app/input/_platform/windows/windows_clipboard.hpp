@@ -38,7 +38,7 @@ public:
     //=============================================================================
 
     bool has_data(const char* mime_type) const { return false; }
-    std::vector<uint8_t> get_data() const;
+    std::vector<uint8_t> get_data() const { return {}; }
     bool set_data() { return false; }
 
     //=============================================================================

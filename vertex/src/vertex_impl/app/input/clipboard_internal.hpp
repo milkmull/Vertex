@@ -1,10 +1,12 @@
 #pragma once
 
-#include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex/app/input/clipboard.hpp"
 
 namespace vx {
 namespace app {
+
+namespace video { class video_instance; }
+
 namespace clipboard {
 
 //=============================================================================
@@ -22,10 +24,10 @@ struct clipboard_data
     // When the clipboard data is set, no data is actually coppied. Instead this
     // callback provides a way to retrieve  pointer to the data only when it is
     // needed.
-    data_callback callback;
-    cleanup_callback cleanup;
-    void* user_data;
-    uint32_t sequence;
+    data_callback callback = nullptr;
+    cleanup_callback cleanup = nullptr;
+    void* user_data = nullptr;
+    uint32_t sequence = 0;
     std::vector<std::string> mime_types;
     std::string primary_selection_text;
 };
@@ -61,8 +63,6 @@ public:
     //=============================================================================
     // Initialization
     //=============================================================================
-
-    void init_data();
 
     bool init(video::video_instance* owner);
     void quit();

@@ -98,10 +98,10 @@ enum class text_input_capitalization
 
 struct text_input_options
 {
-    text_input_type type;
-    text_input_capitalization capitalization;
-    bool auto_correct;
-    bool multiline;
+    text_input_type type = text_input_type::text;
+    text_input_capitalization capitalization = text_input_capitalization::none;
+    bool auto_correct = false;
+    bool multiline = false;
 };
 
 //VX_API bool start_text_input(video::window* w);

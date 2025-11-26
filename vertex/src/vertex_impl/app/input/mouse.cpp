@@ -1987,6 +1987,18 @@ cursor_id mouse_instance::get_default_cursor() const
 
 //=============================================================================
 
+// Create a dummy mouse cursor for video backends that don't support true cursors,
+// so that mouse grab and focus functionality will work.
+
+void mouse_instance::create_dummy_cursor()
+{
+    argb_surface surf(1, 1);
+    const cursor_id default_cursor = create_color_cursor(surf, 0, 0);
+    set_default_cursor(default_cursor);
+}
+
+//=============================================================================
+
 cursor_shape mouse_instance::get_default_system_cursor() const
 {
     const auto id = video->app->data.hints_ptr->get_hint_integer(
