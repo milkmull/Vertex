@@ -36,6 +36,7 @@ void clipboard_instance::quit()
     cancel_data(0);
     data.primary_selection_text.clear();
     data.sequence = 0;
+    video = nullptr;
 }
 
 //=============================================================================
