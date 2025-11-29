@@ -13,10 +13,22 @@ namespace app {
 namespace pen {
 
 //=============================================================================
-// lifecycle
+// helper macros
 //=============================================================================
 
-bool pen_instance::init(video::video_instance* owner)
+#define hints_ptr video->app->data.hints_ptr
+#define events_ptr video->app->data.events_ptr
+
+//=============================================================================
+// initialization
+//=============================================================================
+
+pen_manager::pen_manager() = default;
+pen_manager::~pen_manager() { quit(); }
+
+//=============================================================================
+
+bool pen_manager::init(video::video_instance* owner)
 {
     if (video)
     {
@@ -29,40 +41,34 @@ bool pen_instance::init(video::video_instance* owner)
 
 //=============================================================================
 
-void pen_instance::quit()
+void pen_manager::quit()
 {
-    clear_pens(false);
+    data.pens.clear();
+    data.pen_touching = invalid_id;
 }
 
 //=============================================================================
-// pen device
+// pen instance
 //=============================================================================
 
-pen_device_instance::pen_device_instance() = default;
-pen_device_instance::~pen_device_instance() = default;
+pen_instance::pen_instance() = default;
+pen_instance::~pen_instance() = default;
 
-pen_device_instance::pen_device_instance(pen_device_instance&&) noexcept = default;
-pen_device_instance& pen_device_instance::operator=(pen_device_instance&&) noexcept = default;
-
-//=============================================================================
-
-void pen_device_instance::finalize()
-{
-    if (data.name.empty())
-    {
-        data.name = std::to_string(data.id);
-    }
-}
+pen_instance::pen_instance(pen_instance&&) noexcept = default;
+pen_instance& pen_instance::operator=(pen_instance&&) noexcept = default;
 
 //=============================================================================
 // devices
 //=============================================================================
 
-bool pen_instance::add_pen(time::time_point t, pen_device_instance& pen)
+bool pen_manager::add_pen(time::time_point t, pen_instance& pen)
 {
     const pen_id id = data.pen_id_generator.next();
     pen.data.id = id;
-    pen.finalize();
+    if (pen.data.name.empty())
+    {
+        pen.data.name = "Pen";
+    }
 
     data.mutex.lock();
     data.pens.push_back(std::move(pen));
@@ -74,7 +80,7 @@ bool pen_instance::add_pen(time::time_point t, pen_device_instance& pen)
 
 //=============================================================================
 
-void pen_instance::remove_pen(time::time_point t, pen_id id)
+void pen_manager::remove_pen(time::time_point t, pen_id id)
 {
     if (!is_valid_id(id))
     {
@@ -82,36 +88,15 @@ void pen_instance::remove_pen(time::time_point t, pen_id id)
     }
 
     data.mutex.lock();
-    remove_pen_internal(t, id, true);
-    data.mutex.unlock();
-}
 
-void pen_instance::remove_pen_internal(time::time_point t, pen_id id, bool send_event)
-{
     for (auto it = data.pens.begin(); it != data.pens.end(); ++it)
     {
         if (it->data.id == id)
         {
-            if (send_event)
-            {
-                send_proximity_out(t, id);
-            }
-
+            send_proximity_out(t, id);
             data.pens.erase(it);
             break;
         }
-    }
-}
-
-//=============================================================================
-
-void pen_instance::clear_pens(bool send_events)
-{
-    data.mutex.lock();
-
-    while (!data.pens.empty())
-    {
-        remove_pen_internal(time::zero(), data.pens[0].data.id, send_events);
     }
 
     data.mutex.unlock();
@@ -119,7 +104,7 @@ void pen_instance::clear_pens(bool send_events)
 
 //=============================================================================
 
-std::vector<pen_id> pen_instance::list_pens() const
+std::vector<pen_id> pen_manager::list_pens() const
 {
     data.mutex.lock();
 
@@ -137,34 +122,34 @@ std::vector<pen_id> pen_instance::list_pens() const
 
 //=============================================================================
 
-bool pen_instance::pen_connected(pen_id id) const
+bool pen_manager::pen_connected(pen_id id) const
 {
     return get_pen_instance(id) != nullptr;
 }
 
 //=============================================================================
 
-pen_device_instance* pen_instance::get_pen_instance(pen_id id)
+pen_instance* pen_manager::get_pen_instance(pen_id id)
 {
     data.mutex.lock();
-    pen_device_instance* pen = get_pen_instance_internal(id);
+    pen_instance* info = get_pen_instance_internal(id);
     data.mutex.unlock();
 
-    return pen;
+    return info;
 }
 
-const pen_device_instance* pen_instance::get_pen_instance(pen_id id) const
+const pen_instance* pen_manager::get_pen_instance(pen_id id) const
 {
-    return const_cast<pen_instance*>(this)->get_pen_instance(id);
+    return const_cast<pen_manager*>(this)->get_pen_instance(id);
 }
 
-pen_device_instance* pen_instance::get_pen_instance_internal(pen_id id)
+pen_instance* pen_manager::get_pen_instance_internal(pen_id id)
 {
-    for (pen_device_instance& device : data.pens)
+    for (pen_instance& pen : data.pens)
     {
-        if (device.data.id == id)
+        if (pen.data.id == id)
         {
-            return &device;
+            return &pen;
         }
     }
 
@@ -175,9 +160,7 @@ pen_device_instance* pen_instance::get_pen_instance_internal(pen_id id)
 // events
 //=============================================================================
 
-#define events_ptr video->app->data.events_ptr
-
-void pen_instance::send_proximity_in(time::time_point t, pen_id id)
+void pen_manager::send_proximity_in(time::time_point t, pen_id id)
 {
     event::event e{};
     e.type = event::pen_proximity_in;
@@ -187,7 +170,7 @@ void pen_instance::send_proximity_in(time::time_point t, pen_id id)
     events_ptr->push_event(e);
 }
 
-void pen_instance::send_proximity_out(time::time_point t, pen_id id)
+void pen_manager::send_proximity_out(time::time_point t, pen_id id)
 {
     event::event e{};
     e.type = event::pen_proximity_out;
@@ -197,7 +180,7 @@ void pen_instance::send_proximity_out(time::time_point t, pen_id id)
     events_ptr->push_event(e);
 }
 
-void pen_instance::send_touch(time::time_point t, pen_id id, video::window_instance* w, bool eraser, bool down)
+void pen_manager::send_touch(time::time_point t, pen_id id, video::window_instance* w, bool eraser, bool down)
 {
     bool send_event = false;
     input_state state = input_state::none;
@@ -208,7 +191,7 @@ void pen_instance::send_touch(time::time_point t, pen_id id, video::window_insta
     {
         os::lock_guard lock(data.mutex);
 
-        pen_device_instance* pen = get_pen_instance_internal(id);
+        pen_instance* pen = get_pen_instance_internal(id);
         if (pen)
         {
             state = pen->data.state.state;
@@ -288,7 +271,7 @@ void pen_instance::send_touch(time::time_point t, pen_id id, video::window_insta
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_instance* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->data.touch_ptr.get();
                     touch->send_event(t, touch::pen_touch_id, mouse::button::left, w, touch_event_type, x, y, pressure);
                 }
             }
@@ -313,7 +296,7 @@ void pen_instance::send_touch(time::time_point t, pen_id id, video::window_insta
 
 //=============================================================================
 
-void pen_instance::send_motion(time::time_point t, pen_id id, video::window_instance* w, float x, float y)
+void pen_manager::send_motion(time::time_point t, pen_id id, video::window_instance* w, float x, float y)
 {
     bool send_event = false;
     input_state state = input_state::none;
@@ -322,7 +305,7 @@ void pen_instance::send_motion(time::time_point t, pen_id id, video::window_inst
     {
         os::lock_guard lock(data.mutex);
 
-        pen_device_instance* pen = get_pen_instance_internal(id);
+        pen_instance* pen = get_pen_instance_internal(id);
         if (pen)
         {
             if (pen->data.state.x != x || pen->data.state.y != y)
@@ -365,7 +348,7 @@ void pen_instance::send_motion(time::time_point t, pen_id id, video::window_inst
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_instance* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->data.touch_ptr.get();
                     touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, pressure);
                 }
             }
@@ -380,7 +363,7 @@ void pen_instance::send_motion(time::time_point t, pen_id id, video::window_inst
 
 //=============================================================================
 
-void pen_instance::send_axis(time::time_point t, pen_id id, video::window_instance* w, axis_type axis, float value)
+void pen_manager::send_axis(time::time_point t, pen_id id, video::window_instance* w, axis_type axis, float value)
 {
     VX_ASSERT(axis >= 0 && axis < axis_count);
 
@@ -392,7 +375,7 @@ void pen_instance::send_axis(time::time_point t, pen_id id, video::window_instan
     {
         os::lock_guard lock(data.mutex);
 
-        pen_device_instance* pen = get_pen_instance_internal(id);
+        pen_instance* pen = get_pen_instance_internal(id);
         if (pen)
         {
             if (pen->data.state.axes[axis] != value)
@@ -433,7 +416,7 @@ void pen_instance::send_axis(time::time_point t, pen_id id, video::window_instan
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_instance* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->data.touch_ptr.get();
                     touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, value);
                 }
             }
@@ -443,7 +426,7 @@ void pen_instance::send_axis(time::time_point t, pen_id id, video::window_instan
 
 //=============================================================================
 
-void pen_instance::send_button(time::time_point t, pen_id id, video::window_instance* w, uint8_t button, bool down)
+void pen_manager::send_button(time::time_point t, pen_id id, video::window_instance* w, uint8_t button, bool down)
 {
     if (button < 1 || button > 5)
     { 
@@ -459,7 +442,7 @@ void pen_instance::send_button(time::time_point t, pen_id id, video::window_inst
     {
         os::lock_guard lock(data.mutex);
 
-        pen_device_instance* pen = get_pen_instance_internal(id);
+        pen_instance* pen = get_pen_instance_internal(id);
         if (pen)
         {
             state = pen->data.state.state;

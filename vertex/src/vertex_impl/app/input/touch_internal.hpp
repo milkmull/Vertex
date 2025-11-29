@@ -13,16 +13,10 @@ namespace video { class video_instance; }
 namespace touch {
 
 //=============================================================================
-// forward declares
+// touch data
 //=============================================================================
 
-class touch_instance;
-
-//=============================================================================
-// touch device
-//=============================================================================
-
-struct touch_device_data
+struct touch_data
 {
     touch_id id = invalid_id;
     std::string name;
@@ -30,7 +24,7 @@ struct touch_device_data
     std::vector<finger> fingers;
 };
 
-class touch_device_instance
+class touch_instance
 {
 public:
 
@@ -40,37 +34,46 @@ public:
 
 public:
 
-    touch_device_data data;
+    touch_data data;
 };
 
 //=============================================================================
-// touch data
+// touch manager data
 //=============================================================================
 
-struct touch_data
+struct touch_manager_data
 {
     bool finger_touching = false;
     finger_id track_finger = invalid_id;
     touch_id track_touch = invalid_id;
-    std::vector<touch_device_instance> touch_devices;
+    std::vector<touch_instance> touch_devices;
 };
 
 //=============================================================================
 // touch instance
 //=============================================================================
 
-class touch_instance
+class touch_manager
 {
 public:
 
+    touch_manager();
+    ~touch_manager();
+
+    touch_manager(const touch_manager&) = delete;
+    touch_manager& operator=(const touch_manager&) = delete;
+
+    touch_manager(touch_manager&&) noexcept = delete;
+    touch_manager& operator=(touch_manager&&) noexcept = delete;
+
+public:
+
     //=============================================================================
-    // lifecycle
+    // initialization
     //=============================================================================
 
     bool init(video::video_instance* owner);
     void quit();
-
-    ~touch_instance() { quit(); }
 
     //=============================================================================
     // devices
@@ -78,12 +81,10 @@ public:
 
     bool add_touch(touch_id id, device_type type, const char* name);
     void remove_touch(touch_id id);
-    void clear_touch_devices();
-
     std::vector<touch_id> list_touch_devices() const;
 
-    touch_device_instance* get_touch_device_instance(touch_id id);
-    const touch_device_instance* get_touch_device_instance(touch_id id) const;
+    touch_instance* get_touch_device_instance(touch_id id);
+    const touch_instance* get_touch_device_instance(touch_id id) const;
 
     std::string get_device_name(touch_id id) const;
     device_type get_device_type(touch_id id) const;
@@ -102,7 +103,7 @@ public:
     //=============================================================================
 
     video::video_instance* video = nullptr;
-    touch_data data;
+    touch_manager_data data;
 };
 
 } // namespace touch

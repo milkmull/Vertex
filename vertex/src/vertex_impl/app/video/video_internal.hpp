@@ -57,8 +57,8 @@ struct video_data
 
     std::unique_ptr<mouse::mouse_instance> mouse_ptr;
     std::unique_ptr<keyboard::keyboard_instance> keyboard_ptr;
-    std::unique_ptr<touch::touch_instance> touch_ptr;
-    std::unique_ptr<pen::pen_instance> pen_ptr;
+    std::unique_ptr<touch::touch_manager> touch_ptr;
+    std::unique_ptr<pen::pen_manager> pen_ptr;
     std::unique_ptr<clipboard::clipboard_instance> clipboard_ptr;
 
     //=======================================
@@ -114,7 +114,7 @@ public:
 public:
 
     //=============================================================================
-    // init
+    // initialization
     //=============================================================================
 
     bool init(app_instance* owner);
@@ -249,8 +249,6 @@ public:
     void send_wakeup_event(); 
 
     void will_enter_background();
-    void did_enter_background();
-    void will_enter_foreground();
     void did_enter_foreground();
 
     // System events

@@ -2,6 +2,7 @@
 #include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
+#include "vertex_impl/app/video/video_internal.hpp"
 
 #if defined(HAVE_SIGNAL_H)
 #   include <signal.h>
@@ -194,7 +195,10 @@ void events_instance::send_pending_signal_events()
     if (sig_state & signal_flags::send_background_pending)
     {
         sig_state &= ~signal_flags::send_background_pending;
-        app->will_enter_background();
+        if (app->is_video_init())
+        {
+            app->will_enter_background();
+        }
     }
 
 #endif // VX_BACKGROUNDING_SIGNAL
@@ -204,7 +208,10 @@ void events_instance::send_pending_signal_events()
     if (sig_state & signal_flags::send_foreground_pending)
     {
         sig_state &= ~signal_flags::send_foreground_pending;
-        app->did_enter_foreground();
+        if (app->is_video_init())
+        {
+            app->did_enter_foreground();
+        }
     }
 
 #endif // VX_FOREGROUNDING_SIGNAL

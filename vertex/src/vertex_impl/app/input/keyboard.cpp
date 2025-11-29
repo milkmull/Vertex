@@ -3,18 +3,16 @@
 #include "vertex_impl/app/input/keyboard_internal.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
+namespace vx {
+namespace app {
+namespace keyboard {
+
 //=============================================================================
 // helper macros
 //=============================================================================
 
 #define hints_ptr video->app->data.hints_ptr
 #define events_ptr video->app->data.events_ptr
-
-//=============================================================================
-
-namespace vx {
-namespace app {
-namespace keyboard {
 
 //=============================================================================
 // hints
@@ -39,18 +37,12 @@ static void keycode_options_hint_watcher(const hint::hint_t, const char*, const 
 }
 
 //=============================================================================
-// keyboard internal
+// initialization
 //=============================================================================
 
 keyboard_instance::keyboard_instance() = default;
+keyboard_instance::~keyboard_instance() { quit(); }
 
-keyboard_instance::~keyboard_instance()
-{
-    quit();
-}
-
-//=============================================================================
-// Initialization
 //=============================================================================
 
 bool keyboard_instance::init(video::video_instance* owner)
@@ -80,7 +72,7 @@ void keyboard_instance::quit()
 {
     data.is_quitting = true;
 
-    clear_keyboards();
+    data.keyboards.clear();
     clear_keymap();
 
     // hints
@@ -177,16 +169,6 @@ void keyboard_instance::remove_keyboard(keyboard_id id)
     }
 
     send_keyboard_removed(id);
-}
-
-//=============================================================================
-
-void keyboard_instance::clear_keyboards()
-{
-    while (!data.keyboards.empty())
-    {
-        remove_keyboard(data.keyboards[0].id);
-    }
 }
 
 //=============================================================================

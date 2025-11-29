@@ -27,6 +27,7 @@ struct clipboard_data
     data_callback callback = nullptr;
     cleanup_callback cleanup = nullptr;
     void* user_data = nullptr;
+
     uint32_t sequence = 0;
     std::vector<std::string> mime_types;
     std::string primary_selection_text;
@@ -61,19 +62,23 @@ public:
 public:
 
     //=============================================================================
-    // Initialization
+    // initialization
     //=============================================================================
 
     bool init(video::video_instance* owner);
     void quit();
 
     //=============================================================================
-    // data
+    // mime types
     //=============================================================================
 
     const std::vector<std::string>& get_mime_types() const;
     const char** get_text_mime_types(size_t& count) const;
     bool update_mime_types(const std::vector<std::string>& mime_types);
+
+    //=============================================================================
+    // data
+    //=============================================================================
 
     bool has_internal_data(const char* mime_type) const;
     std::vector<uint8_t> get_internal_data(const char* mime_type) const;

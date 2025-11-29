@@ -9,18 +9,19 @@ namespace app {
 namespace clipboard {
 
 //=============================================================================
-// keyboard internal
+// helper macros
+//=============================================================================
+
+#define hints_ptr video->app->data.hints_ptr
+#define events_ptr video->app->data.events_ptr
+
+//=============================================================================
+// initialization
 //=============================================================================
 
 clipboard_instance::clipboard_instance() = default;
+clipboard_instance::~clipboard_instance() { quit(); }
 
-clipboard_instance::~clipboard_instance()
-{
-    quit();
-}
-
-//=============================================================================
-// Initialization
 //=============================================================================
 
 bool clipboard_instance::init(video::video_instance* owner)
@@ -42,7 +43,7 @@ void clipboard_instance::quit()
 }
 
 //=============================================================================
-// data
+// mime types
 //=============================================================================
 
 const std::vector<std::string>& clipboard_instance::get_mime_types() const
@@ -73,6 +74,8 @@ bool clipboard_instance::update_mime_types(const std::vector<std::string>& mime_
     return true;
 }
 
+//=============================================================================
+// data
 //=============================================================================
 
 void clipboard_instance::cancel_data(uint32_t sequence)
@@ -394,10 +397,6 @@ bool clipboard_instance::set_primary_selection_text(const std::string& text)
 
 //=============================================================================
 // events
-//=============================================================================
-
-#define events_ptr video->app->data.events_ptr
-
 //=============================================================================
 
 void clipboard_instance::send_update(bool owner, const std::vector<std::string>& mime_types)

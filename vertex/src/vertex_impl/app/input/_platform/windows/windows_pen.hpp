@@ -8,19 +8,19 @@ namespace app {
 namespace pen {
 
 //=============================================================================
-// pen_device_instance_impl
+// pen impl
 //=============================================================================
 
-struct pen_device_impl_data
+struct pen_impl_data
 {
     UINT32 handle;
 };
 
-class pen_device_instance_impl
+class pen_instance_impl
 {
 public:
 
-    pen_device_impl_data data;
+    pen_impl_data data;
 };
 
 } // namespace pen

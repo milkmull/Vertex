@@ -44,17 +44,15 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 }
 
 //=============================================================================
-// video_instance
+// initialization
 //=============================================================================
+
+static_video_data video_instance::s_data{};
 
 video_instance::video_instance() = default;
 video_instance::~video_instance() { quit(); }
 
 //=============================================================================
-// init
-//=============================================================================
-
-static_video_data video_instance::s_data{};
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L611
 
@@ -88,14 +86,14 @@ bool video_instance::init(app_instance* owner)
     }
 
     // touch
-    data.touch_ptr.reset(new touch::touch_instance);
+    data.touch_ptr.reset(new touch::touch_manager);
     if (!data.touch_ptr || !data.touch_ptr->init(this))
     {
         goto failed;
     }
 
     // pen
-    data.pen_ptr.reset(new pen::pen_instance);
+    data.pen_ptr.reset(new pen::pen_manager);
     if (!data.pen_ptr || !data.pen_ptr->init(this))
     {
         goto failed;
@@ -1771,6 +1769,11 @@ bool video_instance::show_simple_message_box(video_instance* this_, message_box:
 
 void video_instance::pump_events()
 {
+    if (data.is_quitting)
+    {
+        return;
+    }
+
 #if VX_VIDEO_BACKEND_HAVE_PUMP_EVENTS
 
     impl_ptr->pump_events();
@@ -1784,6 +1787,11 @@ void video_instance::pump_events()
 
 bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 {
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
 #if VX_VIDEO_BACKEND_HAVE_WAIT_EVENT_TIMEOUT
 
     bool status = false;
@@ -1811,6 +1819,11 @@ bool video_instance::wait_event_timeout(window_id w, time::time_point t)
 
 void video_instance::send_wakeup_event()
 {
+    if (data.is_quitting)
+    {
+        return;
+    }
+
 #if defined(VX_OS_ANDROID)
 
 #else
@@ -1857,29 +1870,12 @@ void video_instance::will_enter_background()
     }
 
     data.keyboard_ptr->set_focus(invalid_id);
-    events_ptr->send_critical_event(event::app_will_enter_background);
-}
-
-//=============================================================================
-
-void video_instance::did_enter_background()
-{
-    events_ptr->send_critical_event(event::app_did_enter_background);
-}
-
-//=============================================================================
-
-void video_instance::will_enter_foreground()
-{
-    events_ptr->send_critical_event(event::app_will_enter_foreground);
 }
 
 //=============================================================================
 
 void video_instance::did_enter_foreground()
 {
-    events_ptr->send_critical_event(event::app_did_enter_foreground);
-
     for (window_instance& w : data.windows)
     {
         data.keyboard_ptr->set_focus(w.data.id);

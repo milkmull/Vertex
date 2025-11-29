@@ -15,8 +15,6 @@ namespace video { class window_instance; }
 
 namespace keyboard {
 
-class keyboard_instance;
-
 //=============================================================================
 // keyboard data
 //=============================================================================
@@ -62,7 +60,7 @@ struct keyboard_data
 };
 
 //=============================================================================
-// keyboard internal
+// keyboard instance
 //=============================================================================
 
 class keyboard_instance
@@ -81,7 +79,7 @@ public:
 public:
 
     //=============================================================================
-    // Initialization
+    // initialization
     //=============================================================================
 
     bool init(video::video_instance* owner);
@@ -97,7 +95,6 @@ public:
 
     void add_keyboard(keyboard_id id, const char* name);
     void remove_keyboard(keyboard_id id);
-    void clear_keyboards();
 
     static bool is_keyboard(uint16_t vendor, uint16_t product, size_t key_count);
     bool any_connected() const;

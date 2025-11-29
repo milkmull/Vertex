@@ -10,10 +10,22 @@ namespace app {
 namespace touch {
 
 //=============================================================================
-// lifecycle
+// helper macros
 //=============================================================================
 
-bool touch_instance::init(video::video_instance* owner)
+#define hints_ptr video->app->data.hints_ptr
+#define events_ptr video->app->data.events_ptr
+
+//=============================================================================
+// initialization
+//=============================================================================
+
+touch_manager::touch_manager() = default;
+touch_manager::~touch_manager() { quit(); }
+
+//=============================================================================
+
+bool touch_manager::init(video::video_instance* owner)
 {
     if (video)
     {
@@ -26,16 +38,20 @@ bool touch_instance::init(video::video_instance* owner)
 
 //=============================================================================
 
-void touch_instance::quit()
+void touch_manager::quit()
 {
-    clear_touch_devices();
+    data.touch_devices.clear();
+
+    data.finger_touching = false;
+    data.track_finger = invalid_id;
+    data.track_touch = invalid_id;
 }
 
 //=============================================================================
 // touch device
 //=============================================================================
 
-bool touch_device_instance::add_finger(finger_id id, float x, float y, float pressure)
+bool touch_instance::add_finger(finger_id id, float x, float y, float pressure)
 {
     finger f;
     f.id = id;
@@ -49,7 +65,7 @@ bool touch_device_instance::add_finger(finger_id id, float x, float y, float pre
 
 //=============================================================================
 
-void touch_device_instance::remove_finger(finger_id id)
+void touch_instance::remove_finger(finger_id id)
 {
     for (auto it = data.fingers.begin(); it != data.fingers.end(); ++it)
     {
@@ -63,7 +79,7 @@ void touch_device_instance::remove_finger(finger_id id)
 
 //=============================================================================
 
-finger* touch_device_instance::get_finger(finger_id id)
+finger* touch_instance::get_finger(finger_id id)
 {
     if (!is_valid_id(id))
     {
@@ -85,17 +101,17 @@ finger* touch_device_instance::get_finger(finger_id id)
 // devices
 //=============================================================================
 
-bool touch_instance::add_touch(touch_id id, device_type type, const char* name)
+bool touch_manager::add_touch(touch_id id, device_type type, const char* name)
 {
     VX_ASSERT(is_valid_id(id));
 
-    const touch_device_instance* tdi = get_touch_device_instance(id);
+    const touch_instance* tdi = get_touch_device_instance(id);
     if (tdi)
     {
         return true;
     }
 
-    touch_device_instance touch;
+    touch_instance touch;
     touch.data.id = id;
     touch.data.type = type;
     touch.data.name = name ? name : "";
@@ -106,7 +122,7 @@ bool touch_instance::add_touch(touch_id id, device_type type, const char* name)
 
 //=============================================================================
 
-void touch_instance::remove_touch(touch_id id)
+void touch_manager::remove_touch(touch_id id)
 {
     for (auto it = data.touch_devices.begin(); it != data.touch_devices.end(); ++it)
     {
@@ -120,17 +136,7 @@ void touch_instance::remove_touch(touch_id id)
 
 //=============================================================================
 
-void touch_instance::clear_touch_devices()
-{
-    while (!data.touch_devices.empty())
-    {
-        remove_touch(data.touch_devices[0].data.id);
-    }
-}
-
-//=============================================================================
-
-std::vector<touch_id> touch_instance::list_touch_devices() const
+std::vector<touch_id> touch_manager::list_touch_devices() const
 {
     std::vector<touch_id> devices(data.touch_devices.size());
 
@@ -144,9 +150,9 @@ std::vector<touch_id> touch_instance::list_touch_devices() const
 
 //=============================================================================
 
-touch_device_instance* touch_instance::get_touch_device_instance(touch_id id)
+touch_instance* touch_manager::get_touch_device_instance(touch_id id)
 {
-    for (touch_device_instance& device : data.touch_devices)
+    for (touch_instance& device : data.touch_devices)
     {
         if (device.data.id == id)
         {
@@ -159,32 +165,32 @@ touch_device_instance* touch_instance::get_touch_device_instance(touch_id id)
 
 //=============================================================================
 
-const touch_device_instance* touch_instance::get_touch_device_instance(touch_id id) const
+const touch_instance* touch_manager::get_touch_device_instance(touch_id id) const
 {
-    return const_cast<touch_instance*>(this)->get_touch_device_instance(id);
+    return const_cast<touch_manager*>(this)->get_touch_device_instance(id);
 }
 
 //=============================================================================
 
-std::string touch_instance::get_device_name(touch_id id) const
+std::string touch_manager::get_device_name(touch_id id) const
 {
-    const touch_device_instance* device = get_touch_device_instance(id);
+    const touch_instance* device = get_touch_device_instance(id);
     return device ? device->data.name : std::string{};
 }
 
 //=============================================================================
 
-device_type touch_instance::get_device_type(touch_id id) const
+device_type touch_manager::get_device_type(touch_id id) const
 {
-    const touch_device_instance* device = get_touch_device_instance(id);
+    const touch_instance* device = get_touch_device_instance(id);
     return device ? device->data.type : device_type::invalid;
 }
 
 //=============================================================================
 
-std::vector<finger> touch_instance::get_fingers(touch_id id) const
+std::vector<finger> touch_manager::get_fingers(touch_id id) const
 {
-    const touch_device_instance* device = get_touch_device_instance(id);
+    const touch_instance* device = get_touch_device_instance(id);
     return device ? device->data.fingers : std::vector<finger>{};
 }
 
@@ -196,14 +202,14 @@ std::vector<finger> touch_instance::get_fingers(touch_id id) const
 
 //=============================================================================
 
-void touch_instance::send_event(
+void touch_manager::send_event(
     time::time_point t, touch_id id, finger_id fid, video::window_instance* w,
     event::event_type type, float x, float y, float pressure
 )
 {
     VX_ASSERT(event::get_category(type) == event::category_touch);
 
-    touch_device_instance* touch = get_touch_device_instance(id);
+    touch_instance* touch = get_touch_device_instance(id);
     if (!touch)
     {
         return;
@@ -309,12 +315,12 @@ void touch_instance::send_event(
 
 //=============================================================================
 
-void touch_instance::send_motion(
+void touch_manager::send_motion(
     time::time_point t, touch_id id, finger_id fid, video::window_instance* w,
     float x, float y, float pressure
 )
 {
-    touch_device_instance* touch = get_touch_device_instance(id);
+    touch_instance* touch = get_touch_device_instance(id);
     if (!touch)
     {
         return;
@@ -379,7 +385,7 @@ void touch_instance::send_motion(
 
 //=============================================================================
 
-void touch_instance::send_pinch(time::time_point t, event::event_type type, const video::window_instance* w, float scale)
+void touch_manager::send_pinch(time::time_point t, event::event_type type, const video::window_instance* w, float scale)
 {
     VX_ASSERT(event::get_category(type) == event::category_pinch);
     const video::window_id wid = w ? w->data.id : invalid_id;

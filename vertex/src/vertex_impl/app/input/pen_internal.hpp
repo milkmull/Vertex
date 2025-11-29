@@ -15,19 +15,7 @@ namespace video { class video_instance; }
 namespace pen {
 
 //=============================================================================
-// forward declares
-//=============================================================================
-
-class pen_instance;
-
-//=============================================================================
-// pen device instance
-//=============================================================================
-
-class pen_device_instance_impl;
-
-//=============================================================================
-// helpers
+// pen data
 //=============================================================================
 
 VX_FLAGS_UT_DECLARE_BEGIN(capability_flags, uint32_t)
@@ -44,11 +32,7 @@ VX_FLAGS_UT_DECLARE_BEGIN(capability_flags, uint32_t)
 }
 VX_FLAGS_DECLARE_END(capability_flags)
 
-//=============================================================================
-// pen device
-//=============================================================================
-
-struct pen_info
+struct pen_device_info
 {
     capability_flags capabilities = capability_flags::none;
     float max_tilt = 0.0f;
@@ -58,80 +42,89 @@ struct pen_info
     device_subtype subtype = device_subtype::unknown;
 };
 
-struct pen_device_data
+struct pen_data
 {
     pen_id id = invalid_id;
     std::string name;
-    pen_info info;
+    pen_device_info device_info;
     pen_state state;
 };
 
-class pen_device_instance
-{
-public:
-
-    pen_device_instance();
-    ~pen_device_instance();
-
-    pen_device_instance(pen_device_instance&&) noexcept;
-    pen_device_instance& operator=(pen_device_instance&&) noexcept;
-
-public:
-
-    void finalize();
-
-public:
-
-    pen_device_data data;
-    std::unique_ptr<pen_device_instance_impl> impl_ptr;
-};
-
 //=============================================================================
-// pen data
+// pen
 //=============================================================================
 
-struct pen_data
-{
-    pen_id pen_touching = invalid_id;
-    std::vector<pen_device_instance> pens;
-    id_generator pen_id_generator;
-    mutable os::mutex mutex;
-};
-
-//=============================================================================
-// pen instance
-//=============================================================================
+class pen_instance_impl;
 
 class pen_instance
 {
 public:
 
+    pen_instance();
+    ~pen_instance();
+
+    pen_instance(pen_instance&&) noexcept;
+    pen_instance& operator=(pen_instance&&) noexcept;
+
+public:
+
+    pen_data data;
+    std::unique_ptr<pen_instance_impl> impl_ptr;
+};
+
+//=============================================================================
+// pen manager data
+//=============================================================================
+
+struct pen_manager_data
+{
+    pen_id pen_touching = invalid_id;
+    std::vector<pen_instance> pens;
+    id_generator pen_id_generator;
+    mutable os::mutex mutex;
+};
+
+//=============================================================================
+// pen manager
+//=============================================================================
+
+class pen_manager
+{
+public:
+
+    pen_manager();
+    ~pen_manager();
+
+    pen_manager(const pen_manager&) = delete;
+    pen_manager& operator=(const pen_manager&) = delete;
+
+    pen_manager(pen_manager&&) noexcept = delete;
+    pen_manager& operator=(pen_manager&&) noexcept = delete;
+
+public:
+
     //=============================================================================
-    // lifecycle
+    // initialization
     //=============================================================================
 
     bool init(video::video_instance* owner);
     void quit();
 
-    ~pen_instance() { quit(); }
-
     //=============================================================================
     // devices
     //=============================================================================
 
-    bool add_pen(time::time_point t, pen_device_instance& pen);
+    bool add_pen(time::time_point t, pen_instance& pen);
     void remove_pen(time::time_point t, pen_id id);
-    void remove_pen_internal(time::time_point t, pen_id id, bool send_event);
-    void clear_pens(bool send_events);
 
     std::vector<pen_id> list_pens() const;
     bool pen_connected(pen_id id) const;
 
-    pen_device_instance* get_pen_instance(pen_id id);
-    const pen_device_instance* get_pen_instance(pen_id id) const;
-    pen_device_instance* get_pen_instance_internal(pen_id id);
+    pen_instance* get_pen_instance(pen_id id);
+    const pen_instance* get_pen_instance(pen_id id) const;
+    pen_instance* get_pen_instance_internal(pen_id id);
 
-    pen_device_instance* get_pen_from_handle(void* handle);
+    pen_instance* get_pen_from_handle(void* handle) { return nullptr; }
 
     //=============================================================================
     // events
@@ -149,7 +142,7 @@ public:
     //=============================================================================
 
     video::video_instance* video = nullptr;
-    pen_data data;
+    pen_manager_data data;
 };
 
 } // namespace pen
