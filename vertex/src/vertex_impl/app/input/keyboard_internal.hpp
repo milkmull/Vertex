@@ -44,21 +44,21 @@ struct keyboard_info
 
 struct keyboard_data
 {
-    video::window_id focus;
+    video::window_id focus = invalid_id;
 
-    key_mod mod_state;
+    key_mod mod_state = key_mod::none;
     key_flags key_source[scancode_count];
     key_state state;
-    keymap* keymap_ptr;
+    keymap* keymap_ptr = nullptr;
 
-    keycode_options options;
-    bool auto_release_pending;
+    keycode_options options = keycode_options::none;
+    bool auto_release_pending = false;
     time::time_point hardware_timestamp;
 
     std::vector<keyboard_info> keyboards;
 
-    bool screen_keyboard_shown;
-    bool quitting;
+    bool screen_keyboard_shown = false;
+    bool is_quitting = false;
 };
 
 //=============================================================================
@@ -83,8 +83,6 @@ public:
     //=============================================================================
     // Initialization
     //=============================================================================
-
-    void init_data();
 
     bool init(video::video_instance* owner);
     void quit();

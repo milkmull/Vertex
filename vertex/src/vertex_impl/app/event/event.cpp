@@ -313,10 +313,15 @@ void event_queue::add_sentinel()
 // initialization
 //=============================================================================
 
+events_instance::events_instance() = default;
+events_instance::~events_instance() { quit(); }
+
 bool events_instance::init(app_instance* owner)
 {
-    VX_ASSERT(!app);
-    VX_ASSERT(owner);
+    if (app)
+    {
+        quit();
+    }
     app = owner;
 
     // initialize ticks if they have not been already
@@ -345,6 +350,7 @@ void events_instance::quit()
     quit_signal_handler();
     stop_loop();
     data.watch.clear();
+    app = nullptr;
 }
 
 //=============================================================================

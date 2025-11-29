@@ -7,38 +7,38 @@ namespace vx {
 namespace app {
 namespace video {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // hints
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
-static void use_raw_keyboard_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void use_raw_keyboard_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
     const bool enabled = hint::parse_boolean(new_value, false);
     //WIN_SetRawKeyboardEnabled(_this, enabled);
 }
 
-static void enable_message_loop_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void enable_message_loop_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
     this_->data.enable_message_loop_hint_cache = hint::parse_boolean(new_value, true);
 }
 
-static void enable_menu_mnemonics_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void enable_menu_mnemonics_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
     this_->data.enable_menu_mnemonics_hint_cache = hint::parse_boolean(new_value, false);
 }
 
-static void window_frame_usable_while_cursor_hidden_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void window_frame_usable_while_cursor_hidden_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     video_instance_impl* this_ = static_cast<video_instance_impl*>(user_data);
     this_->data.frame_usable_while_cursor_hidden_hint_cache = hint::parse_boolean(new_value, true);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // library loading
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool video_instance_impl::load_libraries()
 {
@@ -87,9 +87,9 @@ void video_instance_impl::free_libraries()
     data.shcore = shcore{};
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // dpi
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 {
@@ -197,9 +197,9 @@ bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness aware
     return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // system theme
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 system_theme video_instance_impl::get_system_theme() const
 {
@@ -224,9 +224,9 @@ system_theme video_instance_impl::get_system_theme() const
     return system_theme::unknown;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // app registration
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static bool register_app(LPCWSTR name, HINSTANCE hInstance)
 {
@@ -265,17 +265,19 @@ static void unregister_app(LPCWSTR name, HINSTANCE hInstance)
     UnregisterClass(name, hInstance);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // video_impl
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L219
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L579
 
 bool video_instance_impl::init(video_instance* owner)
 {
-    VX_ASSERT(!video);
-    VX_ASSERT(owner);
+    if (video)
+    {
+        quit();
+    }
     video = owner;
 
     // register app
@@ -324,32 +326,31 @@ bool video_instance_impl::init(video_instance* owner)
 
     // hints
     {
-        video->app->data.hints_ptr->add_hint_callback_and_default_value(
-            hint::video_windows_use_raw_keyboard,
-            use_raw_keyboard_hint_watcher,
-            this,
-            "0"
-        );
+        //video->app->data.hints_ptr->add_hint_callback(
+        //    hint::video_windows_use_raw_keyboard,
+        //    use_raw_keyboard_hint_watcher,
+        //    this
+        //);
 
-        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+        data.enable_message_loop_hint_cache = true;
+        video->app->data.hints_ptr->add_hint_callback(
             hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
-            this,
-            "1"
+            this
         );
 
-        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+        data.enable_menu_mnemonics_hint_cache = false;
+        video->app->data.hints_ptr->add_hint_callback(
             hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
-            this,
-            "0"
+            this
         );
 
-        video->app->data.hints_ptr->add_hint_callback_and_default_value(
+        data.frame_usable_while_cursor_hidden_hint_cache = true;
+        video->app->data.hints_ptr->add_hint_callback(
             hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
-            this,
-            "1"
+            this
         );
     }
 
@@ -407,9 +408,9 @@ void video_instance_impl::quit()
     video = nullptr;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // screen saver
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/windows/SDL_windowsvideo.c#L168
 
@@ -435,9 +436,9 @@ bool video_instance_impl::suspend_screen_saver()
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display name
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static bool get_display_name_vista(const user32& user32, const WCHAR* device_name, std::string& display_name)
 {
@@ -514,9 +515,9 @@ static bool get_display_name_vista(const user32& user32, const WCHAR* device_nam
     return !display_name.empty();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display content scale
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static math::vec2 get_display_content_scale(const shcore& shcore, const HMONITOR handle)
 {
@@ -553,9 +554,9 @@ static math::vec2 get_display_content_scale(const shcore& shcore, const HMONITOR
     );
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display refresh rate
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static float get_refresh_rate(DWORD rate)
 {
@@ -569,9 +570,9 @@ static float get_refresh_rate(DWORD rate)
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display orientation
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static display_orientation get_natural_orientation(const PDEVMODE mode)
 {
@@ -624,9 +625,9 @@ static display_orientation get_display_orientation(const PDEVMODE mode, display_
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // pixel format
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, bool current_mode)
 {
@@ -688,9 +689,9 @@ static pixel::pixel_format get_pixel_format(DEVMODE dm, LPCWSTR device_name, boo
     return pixel::pixel_format::unknown;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display mode
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 enum class mode_result
 {
@@ -743,9 +744,9 @@ static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& 
     return mode_result::add_mode;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display polling
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 struct poll_display_data
 {
@@ -979,18 +980,18 @@ void video_instance_impl::quit_displays()
 
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // input
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 bool video_instance_impl::has_screen_keyboard_support() const
 {
     return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // display modes
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 void display_instance_impl::list_display_modes(const display_instance* display) const
 {

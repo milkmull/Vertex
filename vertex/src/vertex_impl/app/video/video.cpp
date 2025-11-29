@@ -48,11 +48,7 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 //=============================================================================
 
 video_instance::video_instance() = default;
-
-video_instance::~video_instance()
-{
-    quit();
-}
+video_instance::~video_instance() { quit(); }
 
 //=============================================================================
 // init
@@ -64,8 +60,10 @@ static_video_data video_instance::s_data{};
 
 bool video_instance::init(app_instance* owner)
 {
-    VX_ASSERT(!app);
-    VX_ASSERT(owner);
+    if (app)
+    {
+        quit();
+    }
     app = owner;
 
     // clipboard
@@ -155,9 +153,13 @@ bool video_instance::init(app_instance* owner)
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4607
 
+// no events should be emmitted during quit
+
 void video_instance::quit()
 {
-    // reset input
+    data.is_quitting = true;
+
+    // quit input
     data.pen_ptr.reset();
     data.touch_ptr.reset();
     data.mouse_ptr.reset();
@@ -187,6 +189,7 @@ void video_instance::quit()
     }
 
     app = nullptr;
+    data.is_quitting = false;
 }
 
 //=============================================================================
@@ -316,7 +319,10 @@ void video_instance::remove_display(display_id id, bool send_event)
         }
     }
 
-    update_desktop_area();
+    if (!data.is_quitting)
+    {
+        update_desktop_area();
+    }
 }
 
 //=============================================================================
@@ -1323,11 +1329,6 @@ VX_API void destroy_window(window_id id)
 
 void video_instance::destroy_window(window_id id)
 {
-    if (!is_valid_id(id))
-    {
-        return;
-    }
-
     window_instance* w = get_window_instance(id);
     if (!w)
     {
@@ -1338,17 +1339,20 @@ void video_instance::destroy_window(window_id id)
 
     clear_fullscreen_window_from_all_displays(id);
 
-    if (data.keyboard_ptr->get_focus() == id)
+    if (!data.is_quitting)
     {
-        data.keyboard_ptr->set_focus(invalid_id);
-    }
-    if (w->data.flags & window_flags::mouse_capture)
-    {
-        data.mouse_ptr->update_capture(true);
-    }
-    if (data.mouse_ptr->get_focus() == id)
-    {
-        data.mouse_ptr->set_focus(invalid_id);
+        if (data.keyboard_ptr->get_focus() == id)
+        {
+            data.keyboard_ptr->set_focus(invalid_id);
+        }
+        if (w->data.flags & window_flags::mouse_capture)
+        {
+            data.mouse_ptr->update_capture(true);
+        }
+        if (data.mouse_ptr->get_focus() == id)
+        {
+            data.mouse_ptr->set_focus(invalid_id);
+        }
     }
 
     w->destroy();
@@ -1887,6 +1891,11 @@ void video_instance::did_enter_foreground()
 
 bool video_instance::send_system_theme_changed(system_theme theme)
 {
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::app_system_theme_changed;
     e.app_event.system_theme_changed.system_theme = theme;
@@ -1900,6 +1909,11 @@ bool video_instance::send_system_theme_changed(system_theme theme)
 bool video_instance::send_display_added(display_id id)
 {
     VX_ASSERT(is_valid_id(id));
+
+    if (data.is_quitting)
+    {
+        return false;
+    }
 
     event::event e{};
     e.type = event::display_added;
@@ -1926,6 +1940,11 @@ bool video_instance::send_display_removed(display_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::display_removed;
     e.display_event.common.display_id = id;
@@ -1939,6 +1958,11 @@ bool video_instance::send_display_removed(display_id id)
 bool video_instance::send_display_moved(display_id id)
 {
     VX_ASSERT(is_valid_id(id));
+
+    if (data.is_quitting)
+    {
+        return false;
+    }
 
     event::event e{};
     e.type = event::display_moved;
@@ -1962,6 +1986,11 @@ bool video_instance::send_display_orientation_changed(display_id id, display_ori
 {
     VX_ASSERT(is_valid_id(id));
 
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::display_orientation_changed;
     e.display_event.common.display_id = id;
@@ -1977,6 +2006,11 @@ bool video_instance::send_display_desktop_mode_changed(display_id id, const disp
 {
     VX_ASSERT(is_valid_id(id));
 
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::display_desktop_mode_changed;
     e.display_event.common.display_id = id;
@@ -1991,6 +2025,11 @@ bool video_instance::send_display_current_mode_changed(display_id id, const disp
 {
     VX_ASSERT(is_valid_id(id));
 
+    if (data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::display_current_mode_changed;
     e.display_event.common.display_id = id;
@@ -2004,6 +2043,11 @@ bool video_instance::send_display_current_mode_changed(display_id id, const disp
 bool video_instance::send_display_content_scale_changed(display_id id, const math::vec2& content_scale)
 {
     VX_ASSERT(is_valid_id(id));
+
+    if (data.is_quitting)
+    {
+        return false;
+    }
 
     event::event e{};
     e.type = event::display_content_scale_changed;

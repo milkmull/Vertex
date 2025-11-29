@@ -3036,6 +3036,11 @@ void window_instance::on_close_requested()
 
 bool window_instance::send_destroyed()
 {
+    if (video->data.is_quitting)
+    {
+        return false;
+    }
+
     event::event e{};
     e.type = event::window_destroyed;
     e.window_event.common.window_id = data.id;

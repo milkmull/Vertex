@@ -6,27 +6,31 @@ namespace vx {
 namespace app {
 namespace hint {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // initialization
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
+
+hints_instance::hints_instance() = default;
+hints_instance::~hints_instance() { quit(); }
 
 bool hints_instance::init(app_instance* owner)
 {
-    VX_ASSERT(!app);
-    VX_ASSERT(owner);
+    if (app)
+    {
+        quit();
+    }
     app = owner;
     return true;
 }
 
 void hints_instance::quit()
 {
+    app = nullptr;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // checkers
-///////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool has_hint(hint_t name)
 {
@@ -44,12 +48,12 @@ bool hints_instance::has_hint(hint_t name) const
     }
 
     const hint_entry& h = data.hints.at(name);
-    return h.user_value || h.default_value;
+    return h.value != nullptr;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // getters
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 VX_API const char* get_hint(hint_t name)
 {
@@ -65,26 +69,22 @@ const char* hints_instance::get_hint(hint_t name) const
     {
         const hint_entry& h = data.hints.at(name);
 
-        if (h.user_value)
+        if (h.value)
         {
-            return h.user_value;
-        }
-        if (h.default_value)
-        {
-            return h.default_value;
+            return h.value;
         }
     }
 
     return nullptr;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // setters
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 void hint_entry::update(hint_t name, const char* old_value, const char* new_value)
 {
-    user_value = new_value;
+    value = new_value;
 
     for (const auto& cb : callbacks)
     {
@@ -92,7 +92,7 @@ void hint_entry::update(hint_t name, const char* old_value, const char* new_valu
     }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool set_hint(hint_t name, const char* value)
 {
@@ -110,17 +110,15 @@ bool hints_instance::set_hint(hint_t name, const char* value)
     os::lock_guard lock(data.mutex);
     hint_entry& h = data.hints[name];
 
-    const char* old_value = h.user_value ? h.user_value : h.default_value;
-
-    if (!str::cstrcmp(value, old_value))
+    if (!str::cstrcmp(h.value, value))
     {
-        h.update(name, old_value, h.user_value);
+        h.update(name, h.value, value);
     }
 
     return true;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void reset_hint(hint_t name)
 {
@@ -139,59 +137,21 @@ void hints_instance::reset_hint(hint_t name)
 
     hint_entry& h = data.hints[name];
 
-    // if we are returning to a default value, notify the callbacks
-    if (h.user_value)
+    if (h.value)
     {
-        const char* old_value = h.user_value;
-        const char* new_value = h.default_value ? h.default_value : nullptr;
-        h.update(name, old_value, new_value);
+        h.update(name, h.value, nullptr);
     }
 
-    // if this hint has no default value or callbacks we can remove the entry
-    if (!h.default_value && h.callbacks.empty())
+    // if this hint has no callbacks we can remove the entry
+    if (h.callbacks.empty())
     {
         data.hints.erase(name);
     }
 }
 
-////////////////////////////////////////
-
-bool hints_instance::set_hint_default_value(hint_t name, const char* value, bool override_user_value)
-{
-    if (!value)
-    {
-        return false;
-    }
-
-    os::lock_guard lock(data.mutex);
-    hint_entry& h = data.hints[name];
-
-    if (!h.user_value || override_user_value)
-    {
-        // if we are overriding the user data we need to notify of change
-        const char* old_value = h.user_value ? h.user_value : h.default_value;
-
-        if (!str::cstrcmp(value, old_value))
-        {
-            if (override_user_value)
-            {
-                h.user_value = nullptr;
-            }
-
-            h.update(name, old_value, value);
-        }
-    }
-    else
-    {
-        h.default_value = value;
-    }
-
-    return true;
-}
-
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // callbacks
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
@@ -224,7 +184,7 @@ void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void
     hint->callbacks.push_back({ callback, user_data });
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
@@ -255,23 +215,6 @@ void hints_instance::remove_hint_callback(hint_t name, hint_callback callback, v
             hint->callbacks.erase(it);
             break;
         }
-    }
-}
-
-////////////////////////////////////////
-
-void hints_instance::add_hint_callback_and_default_value(hint_t name, hint_callback callback, void* user_data, const char* default_value, bool trigger_callback)
-{
-    if (trigger_callback)
-    {
-        add_hint_callback(name, callback, user_data);
-        set_hint_default_value(name, default_value, false);
-    }
-    else
-    {
-        // set the default value first so the callback is not triggered
-        set_hint_default_value(name, default_value, false);
-        add_hint_callback(name, callback, user_data);
     }
 }
 

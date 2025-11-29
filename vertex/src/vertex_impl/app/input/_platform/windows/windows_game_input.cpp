@@ -14,8 +14,10 @@ namespace input {
 
 bool game_input_manager::init(video::video_instance* owner)
 {
-    VX_ASSERT(!video);
-    VX_ASSERT(owner);
+    if (video)
+    {
+        quit();
+    }
     video = owner;
 
     if (!data.game_input_dll.load("gameinput.dll"))

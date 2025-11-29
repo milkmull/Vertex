@@ -88,6 +88,7 @@ struct video_data
     // system
     //=======================================
 
+    bool is_quitting = false;
     bool suspend_screen_saver = false;
     system_theme theme = system_theme::unknown;
     math::recti desktop_area;
@@ -300,7 +301,7 @@ public:
 
 public:
 
-    video_instance* video;
+    video_instance* video = nullptr;
     display_mode_data data;
     std::unique_ptr<display_mode_instance_impl> impl_ptr;
 };
@@ -311,7 +312,7 @@ public:
 
 struct display_data
 {
-    display_id id;
+    display_id id = invalid_id;
     std::string name;
 
     display_mode current_mode;
@@ -322,8 +323,8 @@ struct display_data
     mutable std::vector<display_mode_instance> modes;
     bool setting_display_mode = false;
 
-    display_orientation orientation;
-    display_orientation natural_orientation;
+    display_orientation orientation = display_orientation::unknown;
+    display_orientation natural_orientation = display_orientation::unknown;
     math::vec2 content_scale;
 
     // This is true if we are fullscreen or fullscreen is pending
@@ -402,7 +403,7 @@ public:
 
 public:
 
-    video_instance* video;
+    video_instance* video = nullptr;
     display_data data;
     std::unique_ptr<display_instance_impl> impl_ptr;
 };

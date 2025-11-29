@@ -3,6 +3,15 @@
 #include "vertex_impl/app/input/keyboard_internal.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
+//=============================================================================
+// helper macros
+//=============================================================================
+
+#define hints_ptr video->app->data.hints_ptr
+#define events_ptr video->app->data.events_ptr
+
+//=============================================================================
+
 namespace vx {
 namespace app {
 namespace keyboard {
@@ -44,29 +53,18 @@ keyboard_instance::~keyboard_instance()
 // Initialization
 //=============================================================================
 
-void keyboard_instance::init_data()
-{
-    data.focus = invalid_id;
-    data.mod_state = key_mod::none;
-    data.keymap_ptr = nullptr;
-    data.auto_release_pending = false;
-    data.options = keycode_options::none;
-    data.quitting = false;
-}
-
-//=============================================================================
-
 bool keyboard_instance::init(video::video_instance* owner)
 {
-    VX_ASSERT(!video);
-    VX_ASSERT(owner);
+    if (video)
+    {
+        quit();
+    }
     video = owner;
-
-    init_data();
 
     // hints
     {
-        video->app->data.hints_ptr->add_hint_callback(
+        data.options = keycode_options::default_options;
+        hints_ptr->add_hint_callback(
             hint::keyboard_keycode_options,
             keycode_options_hint_watcher,
             this
@@ -80,21 +78,21 @@ bool keyboard_instance::init(video::video_instance* owner)
 
 void keyboard_instance::quit()
 {
-    data.quitting = true;
+    data.is_quitting = true;
 
     clear_keyboards();
     clear_keymap();
 
     // hints
     {
-        video->app->data.hints_ptr->remove_hint_callback(
+        hints_ptr->remove_hint_callback(
             hint::keyboard_keycode_options,
             keycode_options_hint_watcher,
             this
         );
     }
 
-    data.quitting = false;
+    data.is_quitting = false;
 }
 
 //=============================================================================
@@ -178,10 +176,7 @@ void keyboard_instance::remove_keyboard(keyboard_id id)
         }
     }
 
-    if (!data.quitting)
-    {
-        send_keyboard_removed(id);
-    }
+    send_keyboard_removed(id);
 }
 
 //=============================================================================
@@ -674,10 +669,6 @@ void keyboard_instance::toggle_mod_state(key_mod mod_state, bool toggle)
 // Key Events
 //=============================================================================
 
-#define events_ptr video->app->data.events_ptr
-
-//=============================================================================
-
 void keyboard_instance::send_keymap_changed()
 {
     event::event e{};
@@ -889,7 +880,7 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
         video::window_instance* w = get_focus_instance();
         if (w && (w->data.flags & (video::window_flags::keyboard_grabbed | video::window_flags::fullscreen)))
         {
-            if (video->app->data.hints_ptr->get_hint_boolean(hint::keyboard_allow_alt_tab_while_grabbed, true))
+            if (hints_ptr->get_hint_boolean(hint::keyboard_allow_alt_tab_while_grabbed, true))
             {
                 // We will temporarily forfeit our grab by minimizing our window,
                 // allowing the user to escape the application
@@ -949,7 +940,7 @@ void keyboard_instance::release_auto_release_keys()
 
 bool keyboard_instance::maybe_show_screen_keyboard() const
 {
-    const char* hint = video->app->data.hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
+    const char* hint = hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
 
     if (((!hint || std::strcmp(hint, "auto") == 0) && !any_connected()) || hint::parse_boolean(hint, false))
     {

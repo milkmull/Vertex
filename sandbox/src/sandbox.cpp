@@ -9,35 +9,6 @@
 
 using namespace vx;
 
-static bool display_added_event_watcher(const app::event::event& e, void*)
-{
-    if (e.type != app::event::display_added)
-    {
-        return false;
-    }
-
-    std::cout << (int)(e.type) << std::endl;
-
-    //const app::video::display d = e.display_event.common.display_id;
-    //
-    //if (d.is_connected())
-    //{
-    //    std::cout << "display " << d.id() << std::endl;
-    //
-    //    const auto modes = d.list_modes();
-    //
-    //    for (size_t i = 0; i < modes.size(); ++i)
-    //    {
-    //        std::cout << "mode " << i << ": " << (int)modes[i].pixel_format << std::endl;
-    //    }
-    //
-    //    std::cout << std::endl;
-    //}
-
-    app::event::remove_event_watch(display_added_event_watcher, nullptr);
-    return false;
-}
-
 static void run_app()
 {
     app::hint::set_hint(app::hint::video_allow_screen_saver, "true");
@@ -49,7 +20,7 @@ static void run_app()
     {
         app::event::pump_events();
         os::sleep(time::milliseconds(100));
-
+    
         app::event::event e;
         while (app::event::poll_event(e))
         {
@@ -65,17 +36,19 @@ static void run_app()
 
 int main(int argc, char* argv[])
 {
-    constexpr auto x = math::g2::circle_t<int>().radius;
-
-
-    if (app::init() && app::init_subsystem(app::init_flags::events))
+    if (!app::init())
     {
-        app::event::add_event_watch(display_added_event_watcher, nullptr);
+        return 1;
+    }
 
-        if (app::init_subsystem(app::init_flags::video))
-        {
-            run_app();
-        }
+    if (!app::init_subsystem(app::init_flags::events))
+    {
+        return 1;
+    }
+
+    if (!app::init_subsystem(app::init_flags::video))
+    {
+        return 1;
     }
 
     app::quit();

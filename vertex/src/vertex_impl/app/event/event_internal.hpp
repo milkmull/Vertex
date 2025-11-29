@@ -103,8 +103,9 @@ struct event_queue
 
 struct drop_state
 {
-    bool is_dropping;
-    float last_x, last_y;
+    bool is_dropping = false;
+    float last_x = 0.0f;
+    float last_y = 0.0f;
 };
 
 //=============================================================================
@@ -124,6 +125,17 @@ struct events_data
 
 class events_instance
 {
+public:
+
+    events_instance();
+    ~events_instance();
+
+    events_instance(const events_instance&) = delete;
+    events_instance& operator=(const events_instance&) = delete;
+
+    events_instance(events_instance&&) noexcept = delete;
+    events_instance& operator=(events_instance&&) noexcept = delete;
+
 public:
 
     //=============================================================================

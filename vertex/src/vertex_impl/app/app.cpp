@@ -267,7 +267,6 @@ void app_instance::quit_events()
     --data.ref_counts[events_index];
     if (data.ref_counts[events_index] == 0)
     {
-        data.events_ptr->quit();
         data.events_ptr.reset();
     }
 }
@@ -334,9 +333,8 @@ void app_instance::quit_video()
     --data.ref_counts[video_index];
     if (data.ref_counts[video_index] == 0)
     {
-        quit_events();
-        data.video_ptr->quit();
         data.video_ptr.reset();
+        quit_events();
     }
 
 #endif // VX_APP_VIDEO_ENABLED

@@ -15,8 +15,10 @@ namespace input {
 
 bool raw_input_manager::init(video::video_instance* owner)
 {
-    VX_ASSERT(!video);
-    VX_ASSERT(owner);
+    if (video)
+    {
+        quit();
+    }
     video = owner;
 
     data.raw_mouse_enabled = false;

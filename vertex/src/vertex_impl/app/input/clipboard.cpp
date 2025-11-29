@@ -25,8 +25,10 @@ clipboard_instance::~clipboard_instance()
 
 bool clipboard_instance::init(video::video_instance* owner)
 {
-    VX_ASSERT(!video);
-    VX_ASSERT(owner);
+    if (video)
+    {
+        quit();
+    }
     video = owner;
     return true;
 }
