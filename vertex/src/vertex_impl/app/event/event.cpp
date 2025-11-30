@@ -794,6 +794,52 @@ void events_instance::send_critical_event(event_type type)
 }
 
 //=============================================================================
+
+void events_instance::will_enter_background()
+{
+#if defined(VX_APP_VIDEO_ENABLED)
+
+    if (app->is_video_init())
+    {
+        video_ptr->will_enter_background();
+    }
+
+#endif // VX_APP_VIDEO_ENABLED
+
+    send_critical_event(app_will_enter_background);
+}
+
+//=============================================================================
+
+void events_instance::did_enter_background()
+{
+    send_critical_event(app_did_enter_background);
+}
+
+//=============================================================================
+
+void events_instance::will_enter_foreground()
+{
+    send_critical_event(app_will_enter_foreground);
+}
+
+//=============================================================================
+
+void events_instance::did_enter_foreground()
+{
+    send_critical_event(app_did_enter_foreground);
+
+#if defined(VX_APP_VIDEO_ENABLED)
+
+    if (app->is_video_init())
+    {
+        video_ptr->did_enter_foreground();
+    }
+
+#endif // VX_APP_VIDEO_ENABLED
+}
+
+//=============================================================================
 // drop events
 //=============================================================================
 

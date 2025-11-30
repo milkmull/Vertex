@@ -339,66 +339,6 @@ void app_instance::quit_video()
 }
 
 //=============================================================================
-// events
-//=============================================================================
-
-void app_instance::will_enter_background()
-{
-#if defined(VX_APP_VIDEO_ENABLED)
-
-    if (is_video_init())
-    {
-        data.video_ptr->will_enter_background();
-    }
-
-#endif // VX_APP_VIDEO_ENABLED
-
-    if (is_events_init())
-    {
-        data.events_ptr->send_critical_event(event::app_will_enter_background);
-    }
-}
-
-//=============================================================================
-
-void app_instance::did_enter_background()
-{
-    if (is_events_init())
-    {
-        data.events_ptr->send_critical_event(event::app_did_enter_background);
-    }
-}
-
-//=============================================================================
-
-void app_instance::will_enter_foreground()
-{
-    if (is_events_init())
-    {
-        data.events_ptr->send_critical_event(event::app_will_enter_foreground);
-    }
-}
-
-//=============================================================================
-
-void app_instance::did_enter_foreground()
-{
-    if (is_events_init())
-    {
-        data.events_ptr->send_critical_event(event::app_did_enter_foreground);
-    }
-
-#if defined(VX_APP_VIDEO_ENABLED)
-
-    if (is_video_init())
-    {
-        data.video_ptr->did_enter_foreground();
-    }
-
-#endif // VX_APP_VIDEO_ENABLED
-}
-
-//=============================================================================
 // metadata
 //=============================================================================
 

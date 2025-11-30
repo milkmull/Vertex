@@ -195,10 +195,7 @@ void events_instance::send_pending_signal_events()
     if (sig_state & signal_flags::send_background_pending)
     {
         sig_state &= ~signal_flags::send_background_pending;
-        if (app->is_video_init())
-        {
-            app->will_enter_background();
-        }
+        will_enter_background();
     }
 
 #endif // VX_BACKGROUNDING_SIGNAL
@@ -208,10 +205,7 @@ void events_instance::send_pending_signal_events()
     if (sig_state & signal_flags::send_foreground_pending)
     {
         sig_state &= ~signal_flags::send_foreground_pending;
-        if (app->is_video_init())
-        {
-            app->did_enter_foreground();
-        }
+        did_enter_foreground();
     }
 
 #endif // VX_FOREGROUNDING_SIGNAL

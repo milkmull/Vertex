@@ -214,6 +214,11 @@ public:
 
     void send_critical_event(event_type type);
 
+    void will_enter_background();
+    void did_enter_background();
+    void will_enter_foreground();
+    void did_enter_foreground();
+
     //=============================================================================
     // drop events
     //=============================================================================
