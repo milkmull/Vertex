@@ -124,7 +124,7 @@ public:
     const pen_instance* get_pen_instance(pen_id id) const;
     pen_instance* get_pen_instance_internal(pen_id id);
 
-    pen_instance* get_pen_from_handle(void* handle) { return nullptr; }
+    pen_instance* get_pen_from_handle(void*) { return nullptr; }
 
     //=============================================================================
     // events

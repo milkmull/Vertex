@@ -10,7 +10,7 @@ todo:
     x review add_hint_callback_and_default_value calls
     x make sure all init and quit functions are correct
     x all subsystems should have init data functions
-    - dummy impl classes
+    x dummy impl classes
     - clean up classes (public, private, const api)
     - handle app callback mode
     - finish front end api

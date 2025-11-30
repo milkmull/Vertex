@@ -14,7 +14,7 @@ namespace keyboard {
 
 #define key_to_scancode(key) (key & 0x00FFFF)
 #define scancode_to_key(mod_state, sc) ((static_cast<uint32_t>((mod_state).raw()) << 16) | (sc))
-#define get_mod(sc) (static_cast<key_mod>(sc >> 16))
+#define get_mod(sc) (static_cast<key_mod>(static_cast<uint16_t>(sc >> 16)))
 
 #define check_scancode_range(sc, ret) \
 do \
@@ -451,7 +451,7 @@ static scancode get_default_scancode_from_key(keycode key, key_mod* mod_state)
         return static_cast<scancode>(scancode_a + key - 'A');
     }
 
-    for (int i = 0; i < mem::array_size(normal_default_symbols); ++i)
+    for (size_t i = 0; i < mem::array_size(normal_default_symbols); ++i)
     {
         if (key == normal_default_symbols[i])
         {
@@ -459,7 +459,7 @@ static scancode get_default_scancode_from_key(keycode key, key_mod* mod_state)
         }
     }
 
-    for (int i = 0; i < mem::array_size(shifted_default_symbols); ++i)
+    for (size_t i = 0; i < mem::array_size(shifted_default_symbols); ++i)
     {
         if (key == shifted_default_symbols[i])
         {

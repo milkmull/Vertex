@@ -35,7 +35,7 @@ VX_FLAGS_DECLARE_BEGIN(default_button_keys)
     escape      = VX_BIT(1),
     any         = (return_ | escape)
 }
-VX_FLAGS_DECLARE_END(default_button_keys);
+VX_FLAGS_DECLARE_END(default_button_keys)
 
 using button_id = size_t;
 

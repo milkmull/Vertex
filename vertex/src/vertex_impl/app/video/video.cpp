@@ -78,16 +78,16 @@ bool video_instance::init(app_instance* owner)
         goto failed;
     }
 
-    // touch
-    data.touch_ptr.reset(new touch::touch_manager);
-    if (!data.touch_ptr || !data.touch_ptr->init(this))
+    // pen
+    data.pen_ptr.reset(new pen::pen_manager);
+    if (!data.pen_ptr || !data.pen_ptr->init(this))
     {
         goto failed;
     }
 
-    // pen
-    data.pen_ptr.reset(new pen::pen_manager);
-    if (!data.pen_ptr || !data.pen_ptr->init(this))
+    // touch
+    data.touch_ptr.reset(new touch::touch_manager);
+    if (!data.touch_ptr || !data.touch_ptr->init(this))
     {
         goto failed;
     }

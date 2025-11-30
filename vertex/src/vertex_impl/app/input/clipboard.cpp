@@ -1,5 +1,3 @@
-#pragma once
-
 #include "vertex/util/memory/memory.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_clipboard.hpp"

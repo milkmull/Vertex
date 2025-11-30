@@ -905,7 +905,7 @@ bool events_instance::send_drop_file(const window_ptr_type w, const char* source
 
 bool events_instance::send_drop_position(const window_ptr_type w, float x, float y)
 {
-    return send_drop_event(w, drop_position, nullptr, nullptr, 0, 0);
+    return send_drop_event(w, drop_position, nullptr, nullptr, x, y);
 }
 
 //=============================================================================
