@@ -181,7 +181,10 @@ void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void
         }
     }
 
+    // add the callback
     hint->callbacks.push_back({ callback, user_data });
+    // call it with the current value
+    callback(name, hint->value, hint->value, user_data);
 }
 
 //=============================================================================

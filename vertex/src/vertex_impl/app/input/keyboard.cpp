@@ -55,7 +55,6 @@ bool keyboard_instance::init(video::video_instance* owner)
 
     // hints
     {
-        data.options = keycode_options::default_options;
         hints_ptr->add_hint_callback(
             hint::keyboard_keycode_options,
             keycode_options_hint_watcher,
@@ -70,8 +69,6 @@ bool keyboard_instance::init(video::video_instance* owner)
 
 void keyboard_instance::quit()
 {
-    data.is_quitting = true;
-
     data.keyboards.clear();
     clear_keymap();
 
@@ -83,8 +80,6 @@ void keyboard_instance::quit()
             this
         );
     }
-
-    data.is_quitting = false;
 }
 
 //=============================================================================

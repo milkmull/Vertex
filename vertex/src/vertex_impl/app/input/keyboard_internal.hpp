@@ -45,7 +45,7 @@ struct keyboard_data
     video::window_id focus = invalid_id;
 
     key_mod mod_state = key_mod::none;
-    key_flags key_source[scancode_count];
+    key_flags key_source[scancode_count] = {};
     key_state state;
     keymap* keymap_ptr = nullptr;
 
@@ -56,7 +56,6 @@ struct keyboard_data
     std::vector<keyboard_info> keyboards;
 
     bool screen_keyboard_shown = false;
-    bool is_quitting = false;
 };
 
 //=============================================================================

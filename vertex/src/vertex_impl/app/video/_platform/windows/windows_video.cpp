@@ -332,21 +332,18 @@ bool video_instance_impl::init(video_instance* owner)
         //    this
         //);
 
-        data.enable_message_loop_hint_cache = true;
         video->app->data.hints_ptr->add_hint_callback(
             hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
             this
         );
 
-        data.enable_menu_mnemonics_hint_cache = false;
         video->app->data.hints_ptr->add_hint_callback(
             hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
             this
         );
 
-        data.frame_usable_while_cursor_hidden_hint_cache = true;
         video->app->data.hints_ptr->add_hint_callback(
             hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
