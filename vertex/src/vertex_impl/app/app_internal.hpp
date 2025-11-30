@@ -59,14 +59,23 @@ class app_instance
 {
 public:
 
+    app_instance();
+    ~app_instance();
+
+    app_instance(const app_instance&) = delete;
+    app_instance& operator=(const app_instance&) = delete;
+
+    app_instance(app_instance&&) noexcept = delete;
+    app_instance& operator=(app_instance&&) noexcept = delete;
+
+public:
+
     //=============================================================================
     // initialization
     //=============================================================================
 
     bool init(const app_metadata& metadata = {});
     void quit();
-
-    ~app_instance();
 
     init_flags init_subsystem(init_flags flags);
     bool is_subsystem_init(init_flags flags) const;

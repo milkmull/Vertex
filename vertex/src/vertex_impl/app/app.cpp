@@ -16,7 +16,7 @@ namespace app {
 
 std::unique_ptr<app_instance> s_app;
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool init()
 {
@@ -42,14 +42,14 @@ VX_API bool init()
     return true;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool is_init()
 {
     return s_app_ptr != nullptr;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void quit()
 {
@@ -60,7 +60,7 @@ VX_API void quit()
     }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API init_flags init_subsystem(init_flags flags)
 {
@@ -72,7 +72,7 @@ VX_API init_flags init_subsystem(init_flags flags)
     return s_app_ptr->init_subsystem(flags);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API bool is_subsystem_init(init_flags flags)
 {
@@ -80,7 +80,7 @@ VX_API bool is_subsystem_init(init_flags flags)
     return s_app_ptr->is_subsystem_init(flags);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 VX_API void quit_subsystem(init_flags flags)
 {
@@ -88,14 +88,12 @@ VX_API void quit_subsystem(init_flags flags)
     s_app_ptr->quit_subsystem(flags);
 }
 
-////////////////////////////////////////
+//=============================================================================
 
-app_instance::~app_instance()
-{
-    quit();
-}
+app_instance::app_instance() = default;
+app_instance::~app_instance() { quit(); }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool app_instance::init(const app_metadata& metadata)
 {
@@ -109,7 +107,7 @@ bool app_instance::init(const app_metadata& metadata)
     return true;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void app_instance::quit()
 {
@@ -118,7 +116,7 @@ void app_instance::quit()
     quit_hints();
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 #define add_flag(dst, flag) dst = static_cast<init_flags>(dst | flag)
 #define remove_flag(dst, flag) dst = static_cast<init_flags>(dst & ~flag)
@@ -146,7 +144,7 @@ init_flags app_instance::init_subsystem(init_flags flags)
     return initialized;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool app_instance::is_subsystem_init(init_flags flags) const
 {
@@ -165,7 +163,7 @@ bool app_instance::is_subsystem_init(init_flags flags) const
     return (initialized & flags) == flags;
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 void app_instance::quit_subsystem(init_flags flags)
 {
@@ -180,7 +178,7 @@ void app_instance::quit_subsystem(init_flags flags)
     }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool app_instance::init_hints()
 {
@@ -226,7 +224,7 @@ void app_instance::quit_hints()
     }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool app_instance::init_events()
 {
@@ -271,7 +269,7 @@ void app_instance::quit_events()
     }
 }
 
-////////////////////////////////////////
+//=============================================================================
 
 bool app_instance::init_video()
 {
