@@ -428,6 +428,7 @@ bool window_instance::set_resizable(bool resizable)
 
 #else
 
+    VX_UNUSED(resizable);
     VX_UNSUPPORTED("set_resizable()");
     return false;
 
@@ -595,12 +596,12 @@ bool window_instance::set_size(int32_t w, int32_t h)
         if (new_aspect_ratio > data.locked_aspect)
         {
             // Adjust width to maintain aspect ratio
-            w = static_cast<int>(math::round(h * data.locked_aspect));
+            w = static_cast<int>(math::round(static_cast<float>(h) * data.locked_aspect));
         }
         else if (new_aspect_ratio < data.locked_aspect)
         {
             // Adjust height to maintain aspect ratio
-            h = static_cast<int>(math::round(w / data.locked_aspect));
+            h = static_cast<int>(math::round(static_cast<float>(w) / data.locked_aspect));
         }
     }
 
@@ -740,8 +741,8 @@ bool window_instance::get_size_in_pixels(int32_t* w, int32_t* h) const
     const display_mode& mode = display->get_current_mode();
     const float pixel_density = mode.pixel_density;
 
-    *w = math::ceil(*w * pixel_density);
-    *h = math::ceil(*h * pixel_density);
+    *w = math::ceil(static_cast<float>(*w) * pixel_density);
+    *h = math::ceil(static_cast<float>(*h) * pixel_density);
 
     return true;
 
@@ -755,7 +756,7 @@ float window_instance::get_pixel_density() const
 
     if (get_size(&window_w, &window_h) && get_size_in_pixels(&pixel_w, &pixel_h))
     {
-        return static_cast<float>(pixel_w) / window_w;
+        return static_cast<float>(pixel_w) / static_cast<float>(window_w);
     }
 
     return 1.0f;
@@ -943,6 +944,7 @@ bool window_instance::set_bordered(bool bordered)
 
 #else
 
+    VX_UNUSED(bordered);
     VX_UNSUPPORTED("set_bordered()");
     return false;
 
@@ -984,6 +986,7 @@ bool window_instance::set_always_on_top(bool always_on_top)
 
 #else
 
+    VX_UNUSED(always_on_top);
     VX_UNSUPPORTED("set_always_on_top()");
     return false;
 
@@ -1195,6 +1198,7 @@ bool window_instance::flash(window_flash_op operation)
 
 #else
 
+    VX_UNUSED(operation);
     VX_UNSUPPORTED("flash()");
     return false;
 
@@ -1544,7 +1548,10 @@ bool window_instance::update_fullscreen_mode(fullscreen_op fullscreen_operation,
                         resized = true;
                     }
 
-                    send_moved(display_rect.position.x, display_rect.position.y);
+                    send_moved(
+                        static_cast<int>(display_rect.position.x),
+                        static_cast<int>(display_rect.position.y)
+                    );
 
                     if (resized)
                     {
@@ -1713,6 +1720,7 @@ bool window_instance::set_icon(const surface_argb& surf)
 
 #else
 
+    VX_UNUSED(surf);
     VX_UNSUPPORTED("set_icon()");
     return false;
 
@@ -1742,14 +1750,18 @@ bool window_instance::set_shape(const surface_argb& shape)
 
 bool window_instance::update_shape(bool force)
 {
-#if VX_VIDEO_BACKEND_HAVE_WINDOW_update_SHAPE
+#if VX_VIDEO_BACKEND_HAVE_WINDOW_UPDATE_SHAPE
 
     if ((data.flags & window_flags::transparent) && (force || !data.shape_surface.empty()))
     {
         return impl_ptr->update_shape(data.shape_surface);
     }
 
-#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_update_SHAPE
+#else
+
+    VX_UNUSED(force);
+
+#endif // VX_VIDEO_BACKEND_HAVE_WINDOW_UPDATE_SHAPE
 
     return true;
 }
@@ -1777,6 +1789,7 @@ bool window_instance::set_opacity(float opacity)
 
 #else
 
+    VX_UNUSED(opacity);
     VX_UNSUPPORTED("set_opacity()");
     return false;
 
@@ -1994,6 +2007,7 @@ bool window_instance::set_focusable(bool focusable)
 
 #else
 
+    VX_UNUSED(focusable);
     VX_UNSUPPORTED("set_focusable()");
     return false;
 
@@ -2103,6 +2117,7 @@ bool window_instance::toggle_drag_and_drop(bool enabled)
 
 #else
 
+    VX_UNUSED(enabled);
     VX_UNSUPPORTED("toggle_drag_and_drop()");
     return false;
 
@@ -2140,7 +2155,7 @@ bool window_instance::start_text_input(const keyboard::text_input_options* optio
     keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
 
     // show onscreen keyboard
-    if (false)//keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
+    if (keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
     {
 #if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SHOW_SCREEN_KEYBOARD
 
@@ -2193,7 +2208,7 @@ void window_instance::stop_text_input()
     keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
 
     // hide onscreen keyboard
-    if (false)//keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
+    if (keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
     {
 #if VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_HIDE_SCREEN_KEYBOARD
 
@@ -2799,7 +2814,7 @@ void window_instance::on_gained_focus()
 
 bool window_instance::send_lost_focus()
 {
-    if (!(data.flags && window_flags::input_focus))
+    if (!(data.flags & window_flags::input_focus))
     {
         return false;
     }
@@ -2915,8 +2930,8 @@ void window_instance::check_display_changed()
         const math::recti old_intersection = math::g2::crop(old_bounds, window_rect);
         const math::recti new_intersection = math::g2::crop(new_bounds, window_rect);
 
-        const int old_area = old_intersection.area();
-        const int new_area = new_intersection.area();
+        const float old_area = static_cast<float>(old_intersection.area());
+        const float new_area = static_cast<float>(new_intersection.area());
 
         // only accept the new display if we are no longer 80% on it
         const float new_overlap_ratio = (new_area / (static_cast<float>(old_area) + new_area));
@@ -2952,13 +2967,13 @@ bool window_instance::send_display_changed(display_id d)
     e.window_event.window_display_changed.display_id = d;
     const bool sent = events_ptr->push_event(e);
 
-    on_display_changed(d);
+    on_display_changed();
     return sent;
 }
 
-// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4198
+// https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4211
 
-void window_instance::on_display_changed(display_id d)
+void window_instance::on_display_changed()
 {
     // Prevent override of configuration if a fullscreen change was made
     // in an event watcher callback in response to a display changed event

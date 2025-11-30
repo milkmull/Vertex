@@ -168,7 +168,7 @@ public:
     // Screen Keyboard
     //=============================================================================
 
-    bool maybe_show_screen_keyboard() const;
+    bool auto_showing_screen_keyboard() const;
     bool has_screen_keyboard_support() const;
     bool screen_keyboard_shown() const;
 

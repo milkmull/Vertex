@@ -917,7 +917,7 @@ void keyboard_instance::release_auto_release_keys()
 // Screen Keyboard
 //=============================================================================
 
-bool keyboard_instance::maybe_show_screen_keyboard() const
+bool keyboard_instance::auto_showing_screen_keyboard() const
 {
     const char* hint = hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
 

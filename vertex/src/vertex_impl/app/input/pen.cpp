@@ -347,7 +347,7 @@ void pen_manager::send_motion(time::time_point t, pen_id id, video::window_insta
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_manager* touch = video->data.touch_ptr.get();
-                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, pressure);
+                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, nx, ny, pressure);
                 }
             }
             else if (!is_valid_id(data.pen_touching))
