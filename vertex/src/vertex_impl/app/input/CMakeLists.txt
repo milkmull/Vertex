@@ -16,8 +16,6 @@ file(GLOB VX_APP_INPUT_SOURCE_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/keymap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/keymap.cpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_keyboard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/keyboard_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/keyboard.cpp"
     
@@ -39,9 +37,6 @@ target_sources(Vertex PRIVATE ${VX_APP_INPUT_SOURCE_FILES})
 file(GLOB VX_APP_INPUT_DUMMY_SOURCE_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_clipboard.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_mouse.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_keyboard.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_touch.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_platform/dummy/dummy_pen.hpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_APP_INPUT_DUMMY_SOURCE_FILES})

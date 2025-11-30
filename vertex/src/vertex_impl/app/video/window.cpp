@@ -129,9 +129,9 @@ bool window_instance::create(video_instance* owner, const window_config& config)
     // at create rather than FinishWindowCreation, but it's important
     // or window focus will get broken on windows!
 #if !defined(VX_VIDEO_BACKEND_WINDOWS)
-    if (data.flags & window_flags::MINIMIZED)
+    if (data.flags & window_flags::minimized)
     {
-        data.flags &= ~window_flags::MINIMIZED;
+        data.flags &= ~window_flags::minimized;
     }
 #endif // VX_VIDEO_BACKEND_WINDOWS
 

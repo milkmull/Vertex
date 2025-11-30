@@ -6,10 +6,10 @@ todo:
     x message box api
     
     x make err setting noexcept again
-    - consider removing input backend api in favor of having everything under video_impl
-    - review add_hint_callback_and_default_value calls
-    - make sure all init and quit functions are correct
-    - all subsystems should have init data functions
+    x consider removing input backend api in favor of having everything under video_impl
+    x review add_hint_callback_and_default_value calls
+    x make sure all init and quit functions are correct
+    x all subsystems should have init data functions
     - dummy impl classes
     - clean up classes (public, private, const api)
     - handle app callback mode

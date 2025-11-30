@@ -14,7 +14,7 @@ namespace filesystem {
 
 static bool update_permissions_impl(
     const path&,
-    typename file_permissions::type,
+    file_permissions,
     file_permission_operator,
     bool
 )
@@ -170,7 +170,7 @@ static bool rename_impl(const path&, const path&)
 static _priv::remove_error remove_impl(const path&, bool)
 {
     unsupported("remove");
-    return _priv::remove_error::OTHER;
+    return _priv::remove_error::other;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

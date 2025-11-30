@@ -401,7 +401,6 @@ void video_instance_impl::quit()
     }
 
     free_libraries();
-
     video = nullptr;
 }
 

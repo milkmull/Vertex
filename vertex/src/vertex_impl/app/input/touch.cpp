@@ -45,6 +45,8 @@ void touch_manager::quit()
     data.finger_touching = false;
     data.track_finger = invalid_id;
     data.track_touch = invalid_id;
+
+    video = nullptr;
 }
 
 //=============================================================================

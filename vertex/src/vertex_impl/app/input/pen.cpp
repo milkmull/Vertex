@@ -1,10 +1,7 @@
-#include "vertex/math/color/functions/common.hpp"
-#include "vertex/util/memory.hpp"
-#include "vertex_impl/app/app_internal.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
+#include "vertex_impl/app/input/_platform/platform_pen.hpp"
 #include "vertex_impl/app/input/mouse_internal.hpp"
 #include "vertex_impl/app/input/pen_internal.hpp"
-#include "vertex_impl/app/input/_platform/platform_pen.hpp"
 #include "vertex_impl/app/input/touch_internal.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
@@ -45,6 +42,7 @@ void pen_manager::quit()
 {
     data.pens.clear();
     data.pen_touching = invalid_id;
+    video = nullptr;
 }
 
 //=============================================================================

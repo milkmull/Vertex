@@ -663,7 +663,7 @@ public:
     // event data
     //=============================================================================
 
-    event_type type;
+    event_type type = invalid_event;
     time::time_point time;
 
     union

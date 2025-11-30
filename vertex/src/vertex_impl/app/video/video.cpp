@@ -47,7 +47,7 @@ static bool parse_display_usable_bounds_hint(const char* hint, math::recti& rect
 // initialization
 //=============================================================================
 
-static_video_data video_instance::s_data{};
+static_video_data video_instance::s_data = {};
 
 video_instance::video_instance() = default;
 video_instance::~video_instance() { quit(); }
@@ -78,13 +78,6 @@ bool video_instance::init(app_instance* owner)
         goto failed;
     }
 
-    // mouse
-    data.mouse_ptr.reset(new mouse::mouse_instance);
-    if (!data.mouse_ptr || !data.mouse_ptr->init(this))
-    {
-        goto failed;
-    }
-
     // touch
     data.touch_ptr.reset(new touch::touch_manager);
     if (!data.touch_ptr || !data.touch_ptr->init(this))
@@ -95,6 +88,13 @@ bool video_instance::init(app_instance* owner)
     // pen
     data.pen_ptr.reset(new pen::pen_manager);
     if (!data.pen_ptr || !data.pen_ptr->init(this))
+    {
+        goto failed;
+    }
+
+    // mouse
+    data.mouse_ptr.reset(new mouse::mouse_instance);
+    if (!data.mouse_ptr || !data.mouse_ptr->init(this))
     {
         goto failed;
     }
@@ -158,9 +158,9 @@ void video_instance::quit()
     data.is_quitting = true;
 
     // quit input
-    data.pen_ptr.reset();
-    data.touch_ptr.reset();
     data.mouse_ptr.reset();
+    data.touch_ptr.reset();
+    data.pen_ptr.reset();
     data.keyboard_ptr.reset();
     data.clipboard_ptr.reset();
 
@@ -186,8 +186,8 @@ void video_instance::quit()
         );
     }
 
-    app = nullptr;
     data.is_quitting = false;
+    app = nullptr;
 }
 
 //=============================================================================
@@ -209,7 +209,16 @@ VX_API process_dpi_awareness get_dpi_awareness()
 
 process_dpi_awareness video_instance::get_dpi_awareness() const
 {
+#if VX_VIDEO_BACKEND_HAVE_GET_DPI_AWARENESS
+
     return impl_ptr->get_dpi_awareness();
+
+#else
+
+    VX_UNSUPPORTED("get_dpi_awareness()");
+    return process_dpi_awareness::unaware;
+
+#endif // VX_VIDEO_BACKEND_HAVE_GET_DPI_AWARENESS
 }
 
 //=============================================================================
@@ -231,7 +240,7 @@ system_theme video_instance::get_system_theme() const
 #else
 
     VX_UNSUPPORTED("get_system_theme()");
-    return system_theme::UNKNOWN;
+    return system_theme::unknown;
 
 #endif // VX_VIDEO_BACKEND_HAVE_GET_SYSTEM_THEME
 }
@@ -297,6 +306,15 @@ bool video_instance::add_display(display_instance& display, bool send_event)
     }
 
     return true;
+}
+
+//=============================================================================
+
+bool video_instance::add_basic_display(display_mode& desktop_mode)
+{
+    display_instance display;
+    display.data.desktop_mode.data.mode = std::move(desktop_mode);
+    return add_display(display, false);
 }
 
 //=============================================================================
@@ -411,7 +429,7 @@ VX_API display_id get_primary_display()
 
 display_id video_instance::get_primary_display() const
 {
-    return !data.displays.empty() ? invalid_id : data.displays[0].data.id;
+    return data.displays.empty() ? invalid_id : data.displays[0].data.id;
 }
 
 //=============================================================================
@@ -691,7 +709,7 @@ math::recti display_instance::get_bounds() const
     {
         const size_t i = video->get_display_index(data.id);
         VX_ASSERT(i != VX_INVALID_INDEX);
-        bounds = video->data.displays[i].get_bounds();
+        bounds = video->data.displays[i - 1].get_bounds();
         bounds.position.x += bounds.size.x;
     }
 

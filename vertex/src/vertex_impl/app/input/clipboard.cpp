@@ -3,6 +3,7 @@
 #include "vertex/util/memory/memory.hpp"
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_clipboard.hpp"
+#include "vertex_impl/app/video/video_internal.hpp"
 
 namespace vx {
 namespace app {
@@ -129,7 +130,7 @@ bool clipboard_instance::has_data(const char* mime_type) const
 
 #endif // VX_VIDEO_BACKEND_HAVE_CLIPBOARD_HAS_TEXT
 
-    return has_data_internal(mime_type);
+    return has_internal_data(mime_type);
 
 #endif // VX_VIDEO_BACKEND_HAVE_CLIPBOARD_HAS_DATA
 }

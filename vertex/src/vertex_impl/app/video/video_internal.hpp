@@ -144,6 +144,7 @@ public:
     //=============================================================================
 
     bool add_display(display_instance& display, bool send_event);
+    bool add_basic_display(display_mode& desktop_mode);
     void remove_display(display_id id, bool send_event);
 
     std::vector<display_id> list_displays() const;
@@ -316,7 +317,7 @@ struct display_data
     display_mode current_mode;
     display_mode_instance desktop_mode;
 
-    // prevent calls to init_modes when inside init_modes call
+    // prevent recursive calls to init_modes
     mutable bool no_init_modes = false;
     mutable std::vector<display_mode_instance> modes;
     bool setting_display_mode = false;
