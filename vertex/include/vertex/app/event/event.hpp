@@ -655,7 +655,7 @@ struct user_event_type
 // event
 //=============================================================================
 
-class event
+struct event
 {
 public:
 

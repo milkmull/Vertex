@@ -1,5 +1,7 @@
 ﻿#include <iostream>
 
+//#define VX_MAIN_HANDLED
+
 #include "vertex/app/main.hpp"
 #include "vertex/app/app.hpp"
 #include "vertex/app/hints/hints.hpp"
