@@ -741,8 +741,8 @@ bool window_instance::get_size_in_pixels(int32_t* w, int32_t* h) const
     const display_mode& mode = display->get_current_mode();
     const float pixel_density = mode.pixel_density;
 
-    *w = math::ceil(static_cast<float>(*w) * pixel_density);
-    *h = math::ceil(static_cast<float>(*h) * pixel_density);
+    *w = static_cast<int>(math::ceil(static_cast<float>(*w) * pixel_density));
+    *h = static_cast<int>(math::ceil(static_cast<float>(*h) * pixel_density));
 
     return true;
 

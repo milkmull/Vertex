@@ -522,7 +522,7 @@ public:
     
     void check_display_changed();
     bool send_display_changed(display_id d);
-    void on_display_changed(display_id d);
+    void on_display_changed();
     
     bool send_close_requested();
     void on_close_requested();
