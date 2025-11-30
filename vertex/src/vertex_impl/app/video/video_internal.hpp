@@ -261,8 +261,8 @@ public:
     void on_display_moved();
 
     bool send_display_orientation_changed(display_id id, display_orientation orientation);
-    bool send_display_desktop_mode_changed(display_id id, const display_mode& mode);
-    bool send_display_current_mode_changed(display_id id, const display_mode& mode);
+    bool send_display_desktop_mode_changed(display_id id);
+    bool send_display_current_mode_changed(display_id id);
     bool send_display_content_scale_changed(display_id id, const math::vec2& content_scale);
 
     //=============================================================================
@@ -398,7 +398,7 @@ public:
     std::vector<display_mode> list_modes() const;
     bool has_mode(const display_mode& mode) const;
     const display_mode_instance* find_mode(const display_mode& mode) const;
-    const display_mode_instance* find_closest_mode(const display_mode& mode, bool include_high_density_modes, bool match_resolution) const;
+    const display_mode_instance* find_closest_mode(const display_mode& reference_mode, bool include_high_density_modes, bool match_resolution) const;
 
 public:
 

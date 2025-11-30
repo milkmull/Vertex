@@ -314,7 +314,7 @@ std::string clipboard_instance::get_text() const
 
 //=============================================================================
 
-static const void* text_callback(const char* mime_type, size_t& size, void* user_data)
+static const void* text_callback(const char*, size_t& size, void* user_data)
 {
     const char* text = static_cast<const char*>(user_data);
     size = text ? std::strlen(text) : 0;

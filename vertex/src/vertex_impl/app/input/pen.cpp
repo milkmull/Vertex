@@ -270,7 +270,7 @@ void pen_manager::send_touch(time::time_point t, pen_id id, video::window_instan
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_manager* touch = video->data.touch_ptr.get();
-                    touch->send_event(t, touch::pen_touch_id, mouse::button::left, w, touch_event_type, x, y, pressure);
+                    touch->send_event(t, touch::pen_touch_id, mouse::button::left, w, touch_event_type, nx, ny, pressure);
                 }
             }
         }
@@ -363,7 +363,7 @@ void pen_manager::send_motion(time::time_point t, pen_id id, video::window_insta
 
 void pen_manager::send_axis(time::time_point t, pen_id id, video::window_instance* w, axis_type axis, float value)
 {
-    VX_ASSERT(axis >= 0 && axis < axis_count);
+    VX_ASSERT(axis < axis_count);
 
     bool send_event = false;
     input_state state = input_state::none;
@@ -415,7 +415,7 @@ void pen_manager::send_axis(time::time_point t, pen_id id, video::window_instanc
                     const float ny = y / static_cast<float>(w->data.size.y);
 
                     touch::touch_manager* touch = video->data.touch_ptr.get();
-                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, x, y, value);
+                    touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, nx, ny, value);
                 }
             }
         }

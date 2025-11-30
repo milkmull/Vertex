@@ -26,7 +26,7 @@ namespace video {
 // hints
 //=============================================================================
 
-static void sync_window_operations_hint_watcher(const hint::hint_t name, const char* old_value, const char* new_value, void* user_data)
+static void sync_window_operations_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
     video_instance* this_ = static_cast<video_instance*>(user_data);
     this_->s_data.sync_window_operations = hint::parse_boolean(new_value, false);
@@ -880,11 +880,11 @@ void display_instance::set_desktop_mode(display_mode_instance& mode)
 
     if (!compare_display_modes(last_mode, data.desktop_mode.data.mode))
     {
-        video->send_display_desktop_mode_changed(data.id, data.desktop_mode.data.mode);
+        video->send_display_desktop_mode_changed(data.id);
 
         if (!compare_display_modes(data.current_mode, data.desktop_mode.data.mode))
         {
-            video->send_display_current_mode_changed(data.id, data.desktop_mode.data.mode);
+            video->send_display_current_mode_changed(data.id);
         }
     }
 }
@@ -929,7 +929,7 @@ void display_instance::set_current_mode(const display_mode& mode)
 
     if (mode_changed)
     {
-        video->send_display_current_mode_changed(data.id, mode);
+        video->send_display_current_mode_changed(data.id);
     }
 }
 
@@ -1126,14 +1126,14 @@ const display_mode_instance* video_instance::find_closest_display_mode_for_displ
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L1367
 
-const display_mode_instance* display_instance::find_closest_mode(const display_mode& mode, bool include_high_density_modes, bool match_resolution) const
+const display_mode_instance* display_instance::find_closest_mode(const display_mode& reference_mode, bool include_high_density_modes, bool match_resolution) const
 {
-    const int width = mode.resolution.x;
-    const int height = mode.resolution.y;
-    float refresh_rate = mode.refresh_rate;
+    const int width = reference_mode.resolution.x;
+    const int height = reference_mode.resolution.y;
+    float refresh_rate = reference_mode.refresh_rate;
 
     // compute target aspect ratio from width/height (fallback to 1.0f if height is 0 to avoid division by zero)
-    const float aspect_ratio = (height > 0) ? (static_cast<float>(width) / height) : 1.0f;
+    const float aspect_ratio = (height > 0) ? (static_cast<float>(width) / static_cast<float>(height)) : 1.0f;
 
     // if no refresh rate was specified, use the desktop's current refresh rate
     if (refresh_rate <= 0.0f)
@@ -1180,8 +1180,8 @@ const display_mode_instance* display_instance::find_closest_mode(const display_m
         // If we already have a candidate mode, check if this one is a worse match
         if (closest)
         {
-            const float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / mode.resolution.y;
-            const float closest_mode_aspect_ratio = static_cast<float>(closest->data.mode.resolution.x) / closest->data.mode.resolution.y;
+            const float current_mode_aspect_ratio = static_cast<float>(mode.resolution.x) / static_cast<float>(mode.resolution.y);
+            const float closest_mode_aspect_ratio = static_cast<float>(closest->data.mode.resolution.x) / static_cast<float>(closest->data.mode.resolution.y);
 
             // Prefer mode with aspect ratio closer to target
             if (math::abs(aspect_ratio - closest_mode_aspect_ratio) < math::abs(aspect_ratio - current_mode_aspect_ratio))
@@ -1543,7 +1543,7 @@ bool video_instance::should_quit_on_window_close() const
 
     for (const window_instance& w : data.windows)
     {
-        if (!(w.data.flags && window_flags::hidden))
+        if (!(w.data.flags & window_flags::hidden))
         {
             ++top_level_count;
         }
@@ -2016,7 +2016,7 @@ bool video_instance::send_display_orientation_changed(display_id id, display_ori
 
 //=============================================================================
 
-bool video_instance::send_display_desktop_mode_changed(display_id id, const display_mode& mode)
+bool video_instance::send_display_desktop_mode_changed(display_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
@@ -2035,7 +2035,7 @@ bool video_instance::send_display_desktop_mode_changed(display_id id, const disp
 
 //=============================================================================
 
-bool video_instance::send_display_current_mode_changed(display_id id, const display_mode& mode)
+bool video_instance::send_display_current_mode_changed(display_id id)
 {
     VX_ASSERT(is_valid_id(id));
 

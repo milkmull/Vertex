@@ -232,8 +232,8 @@ void touch_manager::send_event(
                 {
                     const auto& size = w->data.size;
 
-                    const float wx = math::clamp(x * size.x, 0.0f, static_cast<float>(size.x));
-                    const float wy = math::clamp(y * size.y, 0.0f, static_cast<float>(size.y));
+                    const float wx = math::clamp(x * static_cast<float>(size.x), 0.0f, static_cast<float>(size.x));
+                    const float wy = math::clamp(y * static_cast<float>(size.y), 0.0f, static_cast<float>(size.y));
 
                     mouse->send_motion(t, w, mouse::touch_mouse_id, false, wx, wy);
                     mouse->send_button(t, w, mouse::touch_mouse_id, mouse::button::left, true);
@@ -335,8 +335,8 @@ void touch_manager::send_motion(
     if (w && mouse->data.touch_mouse_events && (id != mouse_touch_id) && (id != pen_touch_id))
     {
         const auto& size = w->data.size;
-        const float wx = math::clamp(x * size.x, 0.0f, static_cast<float>(size.x));
-        const float wy = math::clamp(y * size.y, 0.0f, static_cast<float>(size.y));
+        const float wx = math::clamp(x * static_cast<float>(size.x), 0.0f, static_cast<float>(size.x));
+        const float wy = math::clamp(y * static_cast<float>(size.y), 0.0f, static_cast<float>(size.y));
 
         mouse->send_motion(t, w, mouse::touch_mouse_id, false, wx, wy);
     }

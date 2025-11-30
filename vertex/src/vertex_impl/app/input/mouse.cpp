@@ -1310,9 +1310,7 @@ void mouse_instance::send_motion(time::time_point t, video::window_instance* w, 
 {
     if (w && !relative)
     {
-        const button button_state = get_button_state(id, true);
         const bool send_motion = (id != touch_mouse_id && id != pen_mouse_id);
-
         if (!update_focus(w, x, y, send_motion))
         {
             return;
