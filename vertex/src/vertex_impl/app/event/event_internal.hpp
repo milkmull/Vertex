@@ -184,9 +184,9 @@ public:
     time::time_point get_polling_interval() const;
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
-    int wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start);
+    int wait_event_timeout_video(video::window_id w, event* e, time::time_point t, time::time_point start);
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
-    bool wait_event_timeout(event& e, time::time_point t);
+    bool wait_event_timeout(event* e, time::time_point t);
 
     bool poll_event(event& e);
 
@@ -206,7 +206,7 @@ public:
 
     void add_event_watch(event_filter callback, void* user_data, event_watch_priority priority);
     void remove_event_watch(event_filter callback, void* user_data, event_watch_priority priority);
-    bool dispatch_event_watch(const event& e);
+    bool dispatch_event_watch(event& e);
 
     //=============================================================================
     // events
@@ -223,13 +223,11 @@ public:
     // drop events
     //=============================================================================
 
-    using window_ptr_type =
-#if defined(VX_APP_VIDEO_ENABLED)
-        video::window_instance*
-#else
-        std::nullptr_t
-#endif // VX_APP_VIDEO_ENABLED
-        ;
+#   if defined(VX_APP_VIDEO_ENABLED)
+        using window_ptr_type = video::window_instance*;
+#   else
+        using window_ptr_type = std::nullptr_t;
+#   endif // VX_APP_VIDEO_ENABLED
 
     bool send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y);
     bool send_drop_file(const window_ptr_type w, const char* source, const char* file);

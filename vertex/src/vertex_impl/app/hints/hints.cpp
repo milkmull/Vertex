@@ -153,6 +153,12 @@ void hints_instance::reset_hint(hint_t name)
 // callbacks
 //=============================================================================
 
+VX_API void add_hint_callback(hint_t name, hint_callback callback, void* user_data)
+{
+    VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
+    s_hints_ptr->add_hint_callback(name, callback, user_data);
+}
+
 void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     if (!callback)

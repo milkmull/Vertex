@@ -5,6 +5,7 @@
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_mouse.hpp"
+#include "vertex_impl/app/message_box_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
@@ -1185,7 +1186,7 @@ bool mouse_instance::update_capture(bool force_release)
         // - user requested capture or auto-capture is enabled, and
         // - relative mouse mode is disabled (absolute movement).
 
-        if ((video->message_box_count() == 0) && (data.capture_desired || (data.auto_capture && get_button_state(global_mouse_id, false) != button::none)))
+        if ((message_box_count() == 0) && (data.capture_desired || (data.auto_capture && get_button_state(global_mouse_id, false) != button::none)))
         {
             if (!data.relative_mode_enabled)
             {

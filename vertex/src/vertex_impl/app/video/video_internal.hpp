@@ -1,7 +1,6 @@
  #pragma once
 
 #include "vertex/app/instance_pair.hpp"
-#include "vertex/app/video/message_box.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
 #include "vertex/system/error.hpp"
@@ -41,12 +40,6 @@ struct static_video_data
     //=======================================
     
     bool sync_window_operations;
-
-    //=======================================
-    // message box
-    //=======================================
-
-    os::atomic<size_t> message_box_count;
 };
 
 struct video_data
@@ -228,18 +221,6 @@ public:
 
     void set_all_focus(window_id w);
     bool has_screen_keyboard_support() const;
-
-    //=============================================================================
-    // message box
-    //=============================================================================
-
-    // https://github.com/libsdl-org/SDL/blob/b2585ac2369c563ce91962b6ac2382bb40e36340/include/SDL3/SDL_messagebox.h#L131
-
-    static size_t message_box_count();
-
-    // these functions can be called before video system is initialized so they are static
-    static bool show_message_box(video_instance* this_, const message_box::config& config, message_box::button_id* button);
-    static bool show_simple_message_box(video_instance* this_, message_box::type type, const std::string& title, const std::string& messag, window_id w);
 
     //=============================================================================
     // events

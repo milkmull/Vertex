@@ -2293,7 +2293,7 @@ void window_instance::send_wakeup_event() const
 
 #define events_ptr video->app->data.events_ptr
 
-static bool filter_duplicate_window_events(const event::event& e, void* user_data)
+static bool filter_duplicate_window_events(event::event& e, void* user_data)
 {
     const event::event* new_event = reinterpret_cast<const event::event*>(user_data);
     return (e.type == new_event->type) && (e.window_event.common.window_id == new_event->window_event.common.window_id);

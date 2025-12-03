@@ -9,6 +9,26 @@ namespace os {
 namespace windows {
 
 ///////////////////////////////////////////////////////////////////////////////
+// Alignment
+///////////////////////////////////////////////////////////////////////////////
+
+// See https://github.com/libsdl-org/SDL/pull/7607
+// force_align_arg_pointer attribute requires gcc >= 4.2.x.
+#if defined(__clang__)
+#   define _HAVE_FORCE_ALIGN_ARG_POINTER
+#elif defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 2))
+#   define _HAVE_FORCE_ALIGN_ARG_POINTER
+#endif
+
+#if defined(__GNUC__) && defined(__i386__) && defined(_HAVE_FORCE_ALIGN_ARG_POINTER)
+#   define VX_MINGW32_FORCE_ALIGN __attribute__((force_align_arg_pointer))
+#else
+#   define VX_MINGW32_FORCE_ALIGN
+#endif
+
+#undef _HAVE_FORCE_ALIGN_ARG_POINTER
+
+///////////////////////////////////////////////////////////////////////////////
 // Error Handling
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -41,7 +61,13 @@ inline constexpr void time_point_to_file_time(time::time_point t, DWORD& low, DW
     high = static_cast<DWORD>(wtime >> 32);
 }
 
-#   undef DELTA_EPOCH_1601_100NS
+#undef DELTA_EPOCH_1601_100NS
+
+///////////////////////////////////////////////////////////////////////////////
+// helpers
+///////////////////////////////////////////////////////////////////////////////
+
+const char* check_default_args(int* pargc, char*** pargv, void** pallocated);
 
 ///////////////////////////////////////////////////////////////////////////////
 // Scoped Manager

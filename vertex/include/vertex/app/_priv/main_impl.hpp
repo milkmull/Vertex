@@ -30,12 +30,13 @@
 
 #else 
     
-    // we are using callbacks and need the normal entry point
+    // we are using callbacks but the user has not
+    // defined an entry point so we define one here
 #   define VX_MAIN_CALLBACK_STANDARD
 
     int vx::app::_priv::main_(int argc, char** argv)
     {
-        return _enter_callbacks(
+        return enter_callbacks(
             argc, argv,
             init_callback,
             quit_callback,
@@ -61,8 +62,6 @@
 
 // normal main required for CRT setup
 extern int main(int argc, char* argv[]);
-
-#include <stdlib.h> // for __argc, __argv
 
 // Basic Win32 declarations needed to define WinMain variations.
 #if !defined(WINAPI)

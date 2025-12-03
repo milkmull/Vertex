@@ -291,7 +291,7 @@ void event_queue::clear()
 
 //=============================================================================
 
-static bool sentinel_filter(const event& e, void*) noexcept
+static bool sentinel_filter(event& e, void*) noexcept
 {
     return (e.type == internal_event_poll_sentinel);
 }
@@ -487,7 +487,7 @@ time::time_point events_instance::get_polling_interval() const
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-int events_instance::wait_event_timeout_video(video::window_id w, event& e, time::time_point t, time::time_point start)
+int events_instance::wait_event_timeout_video(video::window_id w, event* e, time::time_point t, time::time_point start)
 {
     VX_ASSERT(app->is_video_init());
 
@@ -502,9 +502,9 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
         pump_events_internal(true);
 
         // attempt to get the next event
-        const bool res = data.queue.match(nullptr, nullptr, &e, 1, true);
+        const bool res = data.queue.match(nullptr, nullptr, e, 1, true);
 
-        if (res && e.type != internal_event_poll_sentinel)
+        if (res && e->type != internal_event_poll_sentinel)
         {
             // found an event
             return 1;
@@ -566,13 +566,13 @@ int events_instance::wait_event_timeout_video(video::window_id w, event& e, time
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1606
 
-VX_API bool wait_event_timeout(event& e, time::time_point t)
+VX_API bool wait_event_timeout(event* e, time::time_point t)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->wait_event_timeout(e, t);
 }
 
-bool events_instance::wait_event_timeout(event& e, time::time_point t)
+bool events_instance::wait_event_timeout(event* e, time::time_point t)
 {
     const bool zero_timeout = t.is_zero();
 
@@ -592,18 +592,43 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     }
 
     // attempt to get the next event
-    const bool res = data.queue.match(nullptr, nullptr, &e, 1, true);
+    const bool res = data.queue.match(nullptr, nullptr, e, 1, true);
 
     if (zero_timeout)
     {
-        // looking for an event right away, we succeed
-        // as long at the event is not the sentinel
-        return res && (e.type != internal_event_poll_sentinel);
+        if (!res)
+        {
+            // No events available, and not willing to wait
+            return false;
+        }
+
+        if (e)
+        {
+            // looking for an event right away, we succeed
+            // as long at the event is not the sentinel
+            return (e->type != internal_event_poll_sentinel);
+        }
+        else
+        {
+            // Need to peek the next event to check for sentinel
+            event dummy{};
+
+            if (data.queue.match(nullptr, nullptr, &dummy, 1, false) &&
+                dummy.type == internal_event_poll_sentinel)
+            {
+                // Reached the end of a poll cycle, and not willing to wait
+                data.queue.match(nullptr, nullptr, &dummy, 1, true);
+                return false;
+            }
+
+            // Has existing event
+            return true;
+        }
     }
 
     VX_ASSERT(!zero_timeout);
 
-    if (res && e.type != internal_event_poll_sentinel)
+    if (res)
     {
         // found an event right away, no need to wait
         return true;
@@ -639,7 +664,7 @@ bool events_instance::wait_event_timeout(event& e, time::time_point t)
     {
         pump_events_internal(true);
 
-        if (data.queue.match(nullptr, nullptr, &e, 1, true))
+        if (data.queue.match(nullptr, nullptr, e, 1, true))
         {
             // found an event
             return true;
@@ -675,7 +700,7 @@ VX_API bool poll_event(event& e)
 
 bool events_instance::poll_event(event& e)
 {
-    return wait_event_timeout(e, time::zero());
+    return wait_event_timeout(&e, time::zero());
 }
 
 //=============================================================================
@@ -771,7 +796,7 @@ void events_instance::remove_event_watch(event_filter callback, void* user_data,
 
 //=============================================================================
 
-bool events_instance::dispatch_event_watch(const event& e)
+bool events_instance::dispatch_event_watch(event& e)
 {
     return data.watch.dispatch_all(e);
 }

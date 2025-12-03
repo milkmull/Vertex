@@ -1,8 +1,10 @@
 #pragma once
 
 #include "vertex/app/app.hpp"
+#include "vertex/os/thread.hpp"
 #include "vertex/pixel/surface.hpp"
 #include "vertex/system/error.hpp"
+#include "vertex/app/message_box.hpp"
 
 namespace vx {
 namespace app {
@@ -39,6 +41,7 @@ enum subsystem
 
 struct app_data
 {
+    os::thread::id main_thread_id;
     app_metadata metadata;
 
     std::unique_ptr<hint::hints_instance> hints_ptr;
@@ -92,6 +95,12 @@ public:
     bool init_video();
     bool is_video_init() const;
     void quit_video();
+
+    //=============================================================================
+    // thread
+    //=============================================================================
+
+    bool is_main_thread() const;
 
     //=============================================================================
     // metadata

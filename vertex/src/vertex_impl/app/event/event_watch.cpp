@@ -104,7 +104,7 @@ void event_watch_list::prune_removed_watchers(event_watch_priority priority)
 
 ////////////////////////////////////////
 
-bool event_watch_list::dispatch(const event& e, event_watch_priority priority)
+bool event_watch_list::dispatch(event& e, event_watch_priority priority)
 {
     if (e.type == internal_event_poll_sentinel)
     {
@@ -161,7 +161,7 @@ bool event_watch_list::dispatch(const event& e, event_watch_priority priority)
 
 ////////////////////////////////////////
 
-bool event_watch_list::dispatch_all(const event& e)
+bool event_watch_list::dispatch_all(event& e)
 {
     if (!dispatch(e, event_watch_priority_early))
     {

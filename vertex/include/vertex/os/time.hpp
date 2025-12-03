@@ -68,5 +68,17 @@ VX_API int64_t get_performance_frequency();
  */
 VX_API void sleep(const time::time_point& t);
 
+/**
+ * @brief Sleeps with higher timing accuracy than the standard sleep function.
+ *
+ * This function attempts to reach the target time point more precisely by
+ * combining coarse-grained sleeping with short sleeps and final spin-waiting.
+ * It compensates for the typical overshoot of OS sleep calls and avoids
+ * extended busy-waiting when the remaining time is still large.
+ *
+ * @param t Absolute time point at which the thread should resume execution.
+ */
+VX_API void sleep_precise(const time::time_point& t);
+
 } // namespace os
 } // namespace vx

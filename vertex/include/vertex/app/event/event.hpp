@@ -722,13 +722,13 @@ VX_API void pump_events();
 
 //=============================================================================
 
-using event_filter = bool(*)(const event&, void*);
+using event_filter = bool(*)(event&, void*);
 
 //=============================================================================
 
 VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
 
-inline bool type_matcher(const event& e, void* user_data) noexcept
+inline bool type_matcher(event& e, void* user_data) noexcept
 {
     const event_type type = *reinterpret_cast<event_type*>(user_data);
     return e.type == type;
@@ -785,9 +785,9 @@ inline void flush_events(event_type type)
 
 //=============================================================================
 
-VX_API bool wait_event_timeout(event& e, time::time_point t);
+VX_API bool wait_event_timeout(event* e, time::time_point t);
 
-inline bool wait_event(event& e)
+inline bool wait_event(event* e)
 {
     return wait_event_timeout(e, time::max());
 }

@@ -1,0 +1,53 @@
+#pragma once
+
+#define VX_MAIN_NO_IMPL
+
+#include "vertex/app/main.hpp"
+#include "vertex/os/atomic.hpp"
+
+namespace vx {
+namespace app {
+
+struct runner_data
+{
+    quit_callback_t quit_fn = nullptr;
+    iterate_callback_t iterate_fn = nullptr;
+    event_callback_t event_fn = nullptr;
+
+    os::atomic<app_result> result;
+    void* app_state = nullptr;
+};
+
+class runner_instance
+{
+public:
+
+    runner_instance() = default;
+    ~runner_instance() = default;
+
+    runner_instance(const runner_instance&) = delete;
+    runner_instance& operator=(const runner_instance&) = delete;
+
+    runner_instance(runner_instance&&) noexcept = delete;
+    runner_instance& operator=(runner_instance&&) noexcept = delete;
+
+public:
+
+    app_result init(int argc, char* argv[], init_callback_t init_fn, quit_callback_t quit_fn, iterate_callback_t iterate_fn, event_callback_t event_fn);
+    void quit(app_result result);
+    app_result iterate(bool pump_events);
+
+    bool event_watch(event::event& e);
+    void dispatch_events();
+    void dispatch_event(event::event& e);
+
+public:
+
+    runner_data data;
+};
+
+bool using_callbacks();
+int call_main_function(int argc, char* argv[], _priv::main_t main_fn);
+
+} // namespace app
+} // namespace vx

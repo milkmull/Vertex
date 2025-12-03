@@ -65,9 +65,9 @@
 // We need to export vx::app::_priv::main_ so it can be launched from external code
 
 #if defined(VX_MAIN_EXPORTED)
-#   define VX_MAIN_EXPORT VX_API
+#   define VX_MAIN_API VX_API
 #else
-#   define VX_MAIN_EXPORT
+#   define VX_MAIN_API
 #endif // VX_MAIN_EXPORTED
 
 //=============================================================================
@@ -109,7 +109,7 @@ using init_callback_t = app_result(*)(void** app_state, int argc, char* argv[]);
  * @note Avoid performing heavy work in this callback; initialize only necessary components.
  * @note Returning terminate_failure or terminate_success will abort app startup.
  */
-VX_MAIN_EXPORT app_result init_callback(void** app_state, int argc, char* argv[]);
+VX_MAIN_API app_result init_callback(void** app_state, int argc, char* argv[]);
 
 //=============================================================================
 // quit
@@ -126,7 +126,7 @@ using quit_callback_t = void(*)(void* app_state, app_result result);
  * @note This callback should clean up all resources associated with app_state.
  * @note Do not perform any further state changes after this function returns.
  */
-VX_MAIN_EXPORT void quit_callback(void* app_state, app_result result);
+VX_MAIN_API void quit_callback(void* app_state, app_result result);
 
 //=============================================================================
 // iter
@@ -144,7 +144,7 @@ using iterate_callback_t = app_result(*)(void* app_state);
  * @note Avoid blocking operations here; keep iteration fast and responsive.
  * @note Return terminate_success or terminate_failure to exit the main loop.
  */
-VX_MAIN_EXPORT app_result iterate_callback(void* app_state);
+VX_MAIN_API app_result iterate_callback(void* app_state);
 
 //=============================================================================
 // event
@@ -164,7 +164,7 @@ using event_callback_t = app_result(*)(void* app_state, event::event& event);
  * @note Do not modify or invalidate the event reference.
  * @note Avoid long blocking operations inside this callback.
  */
-VX_MAIN_EXPORT app_result event_callback(void* app_state, event::event& event);
+VX_MAIN_API app_result event_callback(void* app_state, event::event& event);
 
 //=============================================================================
 // internal functions
@@ -173,10 +173,9 @@ VX_MAIN_EXPORT app_result event_callback(void* app_state, event::event& event);
 namespace _priv {
 
 using main_t = int(*)(int argc, char* argv[]);
-VX_MAIN_EXPORT int main_(int argc, char* argv[]);
-VX_MAIN_EXPORT int set_main_ready(int argc, char* argv[]);
-VX_MAIN_EXPORT int run(int argc, char* argv[], main_t main_func);
-VX_MAIN_EXPORT int enter_callbacks(int argc, char* argv[], init_callback_t init, quit_callback_t quit, iterate_callback_t iterate, event_callback_t event);
+VX_MAIN_API int main_(int argc, char* argv[]);
+VX_API int run(int argc, char* argv[], main_t main_fn);
+VX_API int enter_callbacks(int argc, char* argv[], init_callback_t init_fn, quit_callback_t quit_fn, iterate_callback_t iterate_fn, event_callback_t event_fn);
 
 } // namespace _priv
 

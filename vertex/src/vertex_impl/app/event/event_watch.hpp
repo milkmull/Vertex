@@ -44,8 +44,8 @@ struct event_watch_list
     void remove_watch(event_filter callback, void* user_data, event_watch_priority priority);
 
     void prune_removed_watchers(event_watch_priority priority);
-    bool dispatch(const event& e, event_watch_priority priority);
-    bool dispatch_all(const event& e);
+    bool dispatch(event& e, event_watch_priority priority);
+    bool dispatch_all(event& e);
 };
 
 } // namespace event

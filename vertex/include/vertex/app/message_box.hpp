@@ -2,16 +2,13 @@
 
 #include "vertex/config/flags.hpp"
 #include "vertex/math/color/types/color8.hpp"
-#include "vertex/app/video/window.hpp"
+
+#if defined(VX_APP_VIDEO_ENABLED)
+#   include "vertex/app/video/window.hpp"
+#endif
 
 namespace vx {
 namespace app {
-namespace video {
-
-//=============================================================================
-// message_box
-//=============================================================================
-
 namespace message_box {
 
 enum class type
@@ -37,7 +34,7 @@ VX_FLAGS_DECLARE_BEGIN(default_button_keys)
 }
 VX_FLAGS_DECLARE_END(default_button_keys)
 
-using button_id = size_t;
+using button_id = id_type;
 
 struct button_config
 {
@@ -71,7 +68,7 @@ struct config
     std::string message;
     std::vector<button_config> buttons;
     math::color8* color_scheme = nullptr;
-    window_id parent_window = invalid_id;
+    id_type parent_window = invalid_id;
 };
 
 } // namespace message_box
@@ -89,9 +86,8 @@ VX_API bool show_simple_message_box(
     message_box::type type,
     const std::string& title,
     const std::string& message,
-    window_id w
+    id_type parent_window = invalid_id
 );
 
-} // namespace video
 } // namespace app
 } // namespace vx

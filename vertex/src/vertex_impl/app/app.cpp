@@ -103,6 +103,8 @@ bool app_instance::init(const app_metadata& metadata)
         return false;
     }
 
+    data.main_thread_id = os::this_thread::get_id();
+
     set_metadata(metadata);
     return true;
 }
@@ -336,6 +338,15 @@ void app_instance::quit_video()
     }
 
 #endif // VX_APP_VIDEO_ENABLED
+}
+
+//=============================================================================
+// thread
+//=============================================================================
+
+bool app_instance::is_main_thread() const
+{
+    return os::this_thread::get_id() == data.main_thread_id;
 }
 
 //=============================================================================
