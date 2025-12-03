@@ -1378,6 +1378,7 @@ void video_instance::destroy_window(window_id id)
         data.grabbed_window = invalid_id;
     }
 
+    // set wakeup window to ivalid_id if it matches the id of the destroyed window
     data.wakeup_window.compare_exchange_strong(id, invalid_id);
 
     for (auto it = data.windows.begin(); it != data.windows.end(); ++it)
@@ -1709,9 +1710,9 @@ bool video_instance::wait_event_timeout(window_id w, time::time_point t)
     
     // Obtain the pointer to the wakeup window so other threads
     // know to wake this window up if an event is added to the queue.
-    data.wakeup_window.exchange(w);
+    data.wakeup_window = w;
     status = impl_ptr->wait_event_timeout(t);
-    data.wakeup_window.exchange(invalid_id);
+    data.wakeup_window = invalid_id;
     
     return status;
 

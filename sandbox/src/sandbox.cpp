@@ -99,6 +99,8 @@ app_result event_callback(void* app_state, event::event& e)
         std::cout << "quit detected" << std::endl;
         return app_result::terminate_success;
     }
+
+    return app_result::continue_;
 }
 
 } // namespace app

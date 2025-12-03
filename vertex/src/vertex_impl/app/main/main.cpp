@@ -54,8 +54,9 @@ app_result runner_instance::init(
     }
 
     app_result result = init_fn(&data.app_state, argc, argv);
+    app_result expected = app_result::continue_;
 
-    if (data.result.compare_exchange_strong(result, app_result::continue_) && result == app_result::continue_)
+    if (data.result.compare_exchange_strong(expected, result) && result == app_result::continue_)
     {
         // make sure we definitely have events initialized, even if the app didn't do it
         if (!app::init_subsystem(app::init_flags::events))
@@ -95,7 +96,9 @@ app_result runner_instance::iterate(bool pump_events)
     if (result == app_result::continue_)
     {
         result = data.iterate_fn(data.app_state);
-        if (!data.result.compare_exchange_strong(result, app_result::continue_))
+        app_result expected = app_result::continue_;
+
+        if (!data.result.compare_exchange_strong(expected, app_result::continue_))
         {
             // something else already set a quit result, keep that.
             result = data.result.load();
@@ -135,8 +138,9 @@ void runner_instance::dispatch_event(event::event& e)
     if (data.result.load() == app_result::continue_)
     {
         // if already quitting, don't send the event to the app.
-        app_result result = data.event_fn(data.app_state, e);
-        data.result.compare_exchange_strong(result, app_result::continue_);
+        const app_result result = data.event_fn(data.app_state, e);
+        app_result expected = app_result::continue_;
+        data.result.compare_exchange_strong(expected, result);
     }
 }
 
@@ -152,8 +156,10 @@ void runner_instance::dispatch_events()
             break;
         }
 
-        for (event::event& e : events)
+        for (size_t i = 0; i < count; ++i)
         {
+            event::event& e = events[i];
+
             if (!should_dispatch_immediately(e.type))
             {
                 dispatch_event(e);
