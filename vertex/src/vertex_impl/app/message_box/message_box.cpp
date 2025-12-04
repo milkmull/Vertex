@@ -5,7 +5,7 @@
 
 #if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 #   include <iostream>
-#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+#endif // !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 
 namespace vx {
 namespace app {
@@ -33,10 +33,10 @@ static bool show_message_box_fallback(const message_box::config& config, message
 
     switch (config.message_type)
     {
-        case type::error:        type_str = "ERROR";    break;
-        case type::warning:      type_str = "WARNING";  break;
-        case type::information:  type_str = "INFO";     break;
-        default:                 type_str = "MESSAGE";  break;
+        case message_box::type::error:          type_str = "ERROR";    break;
+        case message_box::type::warning:        type_str = "WARNING";  break;
+        case message_box::type::information:    type_str = "INFO";     break;
+        default:                                type_str = "MESSAGE";  break;
     }
 
     std::cout << "==== MESSAGE BOX (FALLBACK) ====\n";
@@ -48,7 +48,7 @@ static bool show_message_box_fallback(const message_box::config& config, message
 
     if (!config.buttons.empty())
     {
-        if (config.layout == button_layout::left_to_right)
+        if (config.layout == message_box::button_layout::left_to_right)
         {
             for (const auto& b : config.buttons)
             {
@@ -74,7 +74,7 @@ static bool show_message_box_fallback(const message_box::config& config, message
     {
         if (!config.buttons.empty())
         {
-            if (config.layout == button_layout::left_to_right)
+            if (config.layout == message_box::button_layout::left_to_right)
             {
                 *out_button = config.buttons.front().id;
             }
@@ -85,7 +85,7 @@ static bool show_message_box_fallback(const message_box::config& config, message
         }
         else
         {
-            *out_button = vx::invalid_id;
+            *out_button = invalid_id;
         }
     }
 

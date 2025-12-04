@@ -320,11 +320,6 @@ static bool sentinel_filter(event& e, void*) noexcept
     return (e.type == internal_event_poll_sentinel);
 }
 
-static bool inverse_sentinel_filter(event& e, void*) noexcept
-{
-    return (e.type != internal_event_poll_sentinel);
-}
-
 void event_queue::add_sentinel()
 {
     event e;
