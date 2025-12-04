@@ -15,6 +15,8 @@ todo:
     x handle app callback mode
     x test callbacks will static and shared
     x VX_API does not have to mark function implementations
+    - normalize # indents
+    - clang format?
     - move video features macro outside of video folder
     - maybe make mouse, keyboard, clipboard, touch, pen optional and/or stack allocated, maybe remove submodules from data struct
     - clean up classes (public, private, const api)
