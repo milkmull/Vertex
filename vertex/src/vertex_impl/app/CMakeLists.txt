@@ -8,11 +8,6 @@ file(GLOB VX_APP_SOURCE_FILES
     
     "${CMAKE_CURRENT_SOURCE_DIR}/app_internal.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/app.cpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/message_box_internal.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/message_box.cpp"
-    
-    "${CMAKE_CURRENT_SOURCE_DIR}/hints.cpp"
 )
 
 target_sources(Vertex PRIVATE ${VX_APP_SOURCE_FILES})
@@ -27,9 +22,6 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
     file(GLOB VX_APP_PLATFORM_SOURCE_FILES
 
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_header.cpp"
-        
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_message_box.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_message_box.cpp"
     )
     
     target_sources(Vertex PRIVATE ${VX_APP_PLATFORM_SOURCE_FILES})
@@ -43,6 +35,7 @@ endif()
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/main")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/hints")
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/event")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/message_box")
 
 if(VX_APP_VIDEO_ENABLED)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/input")

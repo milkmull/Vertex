@@ -1,4 +1,4 @@
-#include "vertex_impl/app/_platform/platform_message_box.hpp"
+#include "vertex_impl/app/message_box/_platform/platform_message_box.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex/os/atomic.hpp"
@@ -6,11 +6,17 @@
 namespace vx {
 namespace app {
 
+#if VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 static os::atomic<size_t> s_message_box_count = 0;
+#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 
 size_t message_box_count()
 {
+#if VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
     return s_message_box_count.load();
+#else
+    return 0;
+#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 }
 
 //=============================================================================

@@ -12,9 +12,9 @@ todo:
     x all subsystems should have init data functions
     x dummy impl classes
     x message_box independant of video api
-    - handle app callback mode
-    - test callbacks will static and shared
-    - VX_API does not have to mark function implementations
+    x handle app callback mode
+    x test callbacks will static and shared
+    x VX_API does not have to mark function implementations
     - move video features macro outside of video folder
     - maybe make mouse, keyboard, clipboard, touch, pen optional and/or stack allocated, maybe remove submodules from data struct
     - clean up classes (public, private, const api)

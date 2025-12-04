@@ -1,7 +1,7 @@
 #pragma once
 
 #include "vertex/app/message_box.hpp"
-#include "vertex_impl/app//app_internal.hpp"
+#include "vertex_impl/app/app_internal.hpp"
 
 namespace vx {
 namespace app {
