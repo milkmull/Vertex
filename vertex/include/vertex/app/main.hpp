@@ -9,54 +9,54 @@
 
 #if !defined(VX_MAIN_HANDLED)
 
-//=============================================================================
-// windows
-//=============================================================================
+    //=============================================================================
+    // windows
+    //=============================================================================
 
-#if defined(VX_OS_WINDOWS)
+    #if defined(VX_OS_WINDOWS)
 
-    // Windows:
-    // Vertex supplies a WinMain() implementation that parses the command
-    // line and forwards the arguments to your main() function.
-    // 
-    // If you provide your own WinMain(), define VX_MAIN_HANDLED.
-#   define VX_MAIN_AVAILABLE
+        // Windows:
+        // Vertex supplies a WinMain() implementation that parses the command
+        // line and forwards the arguments to your main() function.
+        // 
+        // If you provide your own WinMain(), define VX_MAIN_HANDLED.
+        #define VX_MAIN_AVAILABLE
 
-//=============================================================================
-// iOS
-//=============================================================================
+    //=============================================================================
+    // iOS
+    //=============================================================================
 
-#elif defined(VX_OS_IOS)
+    #elif defined(VX_OS_IOS)
 
-    // iOS:
-    // Vertex supplies a main() entry point that creates the application
-    // delegate and starts the iOS run loop.
-    // 
-    // Include the Vertex main header in the source file containing main().
-#   define VX_MAIN_NEEDED
+        // iOS:
+        // Vertex supplies a main() entry point that creates the application
+        // delegate and starts the iOS run loop.
+        // 
+        // Include the Vertex main header in the source file containing main().
+        #define VX_MAIN_NEEDED
 
-//=============================================================================
-// Android
-//=============================================================================
+    //=============================================================================
+    // Android
+    //=============================================================================
 
-#elif defined(VX_PLATFORM_ANDROID)
+    #elif defined(VX_PLATFORM_ANDROID)
 
-    // Android:
-    // Vertex provides a Java activity class that serves as the primary
-    // application entry point.
-#   define VX_MAIN_NEEDED
+        // Android:
+        // Vertex provides a Java activity class that serves as the primary
+        // application entry point.
+        #define VX_MAIN_NEEDED
 
-    // Because the application is launched from Java, the native binary does
-    // not provide a standard main().This define ensures that the engine
-    // exports a vx_main() entry point for Java to call, without defining a
-    // native main(int, char**).
-#   define VX_MAIN_EXPORTED
+        // Because the application is launched from Java, the native binary does
+        // not provide a standard main().This define ensures that the engine
+        // exports a vx_main() entry point for Java to call, without defining a
+        // native main(int, char**).
+        #define VX_MAIN_EXPORTED
 
-//=============================================================================
+    //=============================================================================
 
-#endif
+    #endif
 
-#endif // VX_MAIN_HANDLED
+#endif // !defined(VX_MAIN_HANDLED)
 
 //=============================================================================
 // Export Macro
@@ -185,7 +185,7 @@ VX_API int enter_callbacks(int argc, char* argv[], init_callback_t init_fn, quit
 //=============================================================================
 
 #if !defined(VX_MAIN_HANDLED) && !defined(VX_MAIN_NO_IMPL)
-#if defined(VX_MAIN_USE_CALLBACKS) || defined(VXL_MAIN_NEEDED) || defined(VX_MAIN_AVAILABLE)
-#   include "vertex/app/_priv/main_impl.hpp"
-#endif
+    #if defined(VX_MAIN_USE_CALLBACKS) || defined(VXL_MAIN_NEEDED) || defined(VX_MAIN_AVAILABLE)
+        #include "vertex/app/_priv/main_impl.hpp"
+    #endif
 #endif
