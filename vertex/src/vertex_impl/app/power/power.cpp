@@ -8,7 +8,7 @@
 namespace vx {
 namespace os {
 
-VX_API bool get_power_info(power_info& info)
+bool get_power_info(power_info& info)
 {
     return get_power_info_impl(info);
 }

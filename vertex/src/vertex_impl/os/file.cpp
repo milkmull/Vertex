@@ -3,18 +3,18 @@
 namespace vx {
 namespace os {
 
-VX_API file::file() noexcept {}
+file::file() noexcept {}
 
-VX_API file::~file() { close(); }
+file::~file() { close(); }
 
-VX_API file::file(file&& other) noexcept
+file::file(file&& other) noexcept
     : m_mode(other.m_mode)
     , m_handle(std::move(other.m_handle))
 {
     other.m_mode = mode::none;
 }
 
-VX_API file& file::operator=(file&& other) noexcept
+file& file::operator=(file&& other) noexcept
 {
     if (this != &other)
     {
@@ -29,24 +29,24 @@ VX_API file& file::operator=(file&& other) noexcept
     return *this;
 }
 
-VX_API void file::swap(file& other) noexcept
+void file::swap(file& other) noexcept
 {
     std::swap(m_mode, other.m_mode);
     std::swap(m_handle, other.m_handle);
 }
 
-VX_API bool file::exists(const path& p)
+bool file::exists(const path& p)
 {
     return _priv::file_impl::exists(p);
 }
 
-VX_API bool file::create(const path& p)
+bool file::create(const path& p)
 {
     file f;
     return f.open(p, mode::write);
 }
 
-VX_API bool file::open(const path& p, mode file_mode)
+bool file::open(const path& p, mode file_mode)
 {
     if (is_open())
     {
@@ -69,38 +69,38 @@ VX_API bool file::open(const path& p, mode file_mode)
     return true;
 }
 
-VX_API bool file::is_open() const
+bool file::is_open() const
 {
     return (m_mode != mode::none) && m_handle.is_valid();
 }
 
-VX_API void file::close()
+void file::close()
 {
     m_handle.close();
     m_mode = mode::none;
 }
 
-VX_API size_t file::size() const
+size_t file::size() const
 {
     return is_open() ? _priv::file_impl::size(m_handle) : 0;
 }
 
-VX_API bool file::resize(size_t size)
+bool file::resize(size_t size)
 {
     return is_open() ? _priv::file_impl::resize(m_handle, size) : false;
 }
 
-VX_API bool file::seek(int off, stream_position from)
+bool file::seek(int off, stream_position from)
 {
     return is_open() ? _priv::file_impl::seek(m_handle, off, from) : false;
 }
 
-VX_API size_t file::tell() const
+size_t file::tell() const
 {
     return is_open() ? _priv::file_impl::tell(m_handle) : invalid_position;
 }
 
-VX_API bool file::eof() const
+bool file::eof() const
 {
     if (!is_open())
     {
@@ -110,7 +110,7 @@ VX_API bool file::eof() const
     return _priv::file_impl::tell(m_handle) >= _priv::file_impl::size(m_handle);
 }
 
-VX_API bool file::flush()
+bool file::flush()
 {
     return is_open() ? _priv::file_impl::flush(m_handle) : false;
 }
@@ -143,7 +143,7 @@ size_t file::write(const uint8_t* data, size_t size)
     return !write_check(can_write()) ? 0 : _priv::file_impl::write(m_handle, data, size);
 }
 
-VX_API bool file::read_line(std::string& line)
+bool file::read_line(std::string& line)
 {
     if (!read_check(can_read()))
     {
@@ -185,12 +185,12 @@ static bool write_line_internal(handle& h, const char* first, size_t size)
         && (_priv::file_impl::write(h, reinterpret_cast<const uint8_t*>(VX_LINE_END), line_end_size) == line_end_size);
 }
 
-VX_API bool file::write_line(const char* line)
+bool file::write_line(const char* line)
 {
     return write_check(can_write()) && write_line_internal(m_handle, line, std::strlen(line));
 }
 
-VX_API bool file::write_file(const path& p, const char* text)
+bool file::write_file(const path& p, const char* text)
 {
     file f;
     if (!f.open(p, mode::write))

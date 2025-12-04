@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "vertex/os/random.hpp"
+
 namespace vx {
 namespace os {
 

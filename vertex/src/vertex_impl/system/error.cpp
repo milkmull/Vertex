@@ -26,7 +26,7 @@ static thread_local info_impl s_err;
 
 static bool s_print_errors = false;
 
-VX_API void _priv::set_error_printing_enabled(bool enabled) noexcept
+void _priv::set_error_printing_enabled(bool enabled) noexcept
 {
     s_print_errors = enabled;
 }
@@ -37,12 +37,12 @@ VX_API void _priv::set_error_printing_enabled(bool enabled) noexcept
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API info get() noexcept
+info get() noexcept
 {
     return { s_err.err, s_err.message };
 }
 
-VX_API void set(code err, const char* msg) noexcept(VX_ERROR_PRINTING_AVAILABLE)
+void set(code err, const char* msg) noexcept(VX_ERROR_PRINTING_AVAILABLE)
 {
 #if (VX_ERROR_PRINTING_AVAILABLE)
 

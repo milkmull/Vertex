@@ -4,7 +4,7 @@
 namespace vx {
 namespace os {
 
-VX_API bool shared_library::load(const char* lib)
+bool shared_library::load(const char* lib)
 {
     if (is_loaded())
     {
@@ -15,7 +15,7 @@ VX_API bool shared_library::load(const char* lib)
     return _priv::shared_library_impl::load(m_handle, lib);
 }
 
-VX_API void shared_library::free() noexcept
+void shared_library::free() noexcept
 {
     if (is_loaded())
     {

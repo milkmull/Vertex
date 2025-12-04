@@ -8,7 +8,7 @@
 namespace vx {
 namespace os {
 
-VX_API bool shell_open(const std::string& uri)
+bool shell_open(const std::string& uri)
 {
     return shell_open_impl(uri);
 }

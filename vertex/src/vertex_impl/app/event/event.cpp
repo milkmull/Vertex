@@ -406,7 +406,7 @@ void events_instance::stop_loop()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1454
 
-VX_API void pump_events()
+void pump_events()
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
     s_events_ptr->pump_events();
@@ -479,7 +479,7 @@ size_t events_instance::add_events(const event* e, size_t count)
 
 //=============================================================================
 
-VX_API size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
+size_t match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(0);
     return s_events_ptr->match_events(matcher, user_data, events, count, remove);
@@ -594,7 +594,7 @@ int events_instance::wait_event_timeout_video(video::window_id w, event* e, time
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1606
 
-VX_API bool wait_event_timeout(event* e, time::time_point t)
+bool wait_event_timeout(event* e, time::time_point t)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->wait_event_timeout(e, t);
@@ -726,7 +726,7 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
 
 //=============================================================================
 
-VX_API bool poll_event(event& e)
+bool poll_event(event& e)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->poll_event(e);
@@ -741,7 +741,7 @@ bool events_instance::poll_event(event& e)
 // push
 //=============================================================================
 
-VX_API bool push_event(event& e)
+bool push_event(event& e)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->push_event(e);
@@ -776,7 +776,7 @@ bool events_instance::push_event_filtered(event& e, event_filter filter, void* u
 // watch
 //=============================================================================
 
-VX_API void set_event_filter(event_filter filter, void* user_data)
+void set_event_filter(event_filter filter, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
     s_events_ptr->set_event_filter(filter, user_data, event_watch_priority_normal);
@@ -791,7 +791,7 @@ void events_instance::set_event_filter(event_filter filter, void* user_data, eve
 
 //=============================================================================
 
-VX_API void get_event_filter(event_filter& filter, void*& user_data)
+void get_event_filter(event_filter& filter, void*& user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
     s_events_ptr->get_event_filter(filter, user_data, event_watch_priority_normal);
@@ -804,7 +804,7 @@ void events_instance::get_event_filter(event_filter& filter, void*& user_data, e
 
 //=============================================================================
 
-VX_API void add_event_watch(event_filter callback, void* user_data)
+void add_event_watch(event_filter callback, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
     s_events_ptr->add_event_watch(callback, user_data, event_watch_priority_normal);
@@ -817,7 +817,7 @@ void events_instance::add_event_watch(event_filter callback, void* user_data, ev
 
 //=============================================================================
 
-VX_API void remove_event_watch(event_filter callback, void* user_data)
+void remove_event_watch(event_filter callback, void* user_data)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID();
     s_events_ptr->remove_event_watch(callback, user_data, event_watch_priority_normal);

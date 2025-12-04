@@ -40,7 +40,7 @@ static const uint32_t k[64] = {
     0x90BEFFFA, 0xA4506CEB, 0xBEF9A3F7, 0xC67178F2
 };
 
-VX_API SHA256::SHA256()
+SHA256::SHA256()
     : m_state{ 0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A, 
                0x510E527F, 0x9B05688C, 0x1F83D9AB, 0x5BE0CD19 }
     , m_bit_count(0)
@@ -49,7 +49,7 @@ VX_API SHA256::SHA256()
     , m_finalized(false)
     , m_result{} {}
 
-VX_API void SHA256::update(const uint8_t* data, size_t size)
+void SHA256::update(const uint8_t* data, size_t size)
 {
     if (m_finalized)
     {
@@ -69,7 +69,7 @@ VX_API void SHA256::update(const uint8_t* data, size_t size)
     }
 }
 
-VX_API void SHA256::finalize()
+void SHA256::finalize()
 {
     if (m_finalized)
     {
@@ -170,7 +170,7 @@ void SHA256::make_result()
     }
 }
 
-VX_API std::string SHA256::to_string() const
+std::string SHA256::to_string() const
 {
     if (!m_finalized)
     {
@@ -190,7 +190,7 @@ VX_API std::string SHA256::to_string() const
     return oss.str();
 }
 
-VX_API void SHA256::reset()
+void SHA256::reset()
 {
     *this = SHA256();
 }

@@ -40,7 +40,7 @@ namespace crypto {
 #define HH(a, b, c, d, x, s, k) (a) = (ROTATE_LEFT((a) + H((b), (c), (d)) + (x) + (k), (s)) + (b))
 #define II(a, b, c, d, x, s, k) (a) = (ROTATE_LEFT((a) + I((b), (c), (d)) + (x) + (k), (s)) + (b))
 
-VX_API MD5::MD5()
+MD5::MD5()
     : m_state{ 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476 }
     , m_bit_count(0)
     , m_buffer{}
@@ -48,7 +48,7 @@ VX_API MD5::MD5()
     , m_finalized(false)
     , m_result{} {}
 
-VX_API void MD5::update(const uint8_t* data, size_t size)
+void MD5::update(const uint8_t* data, size_t size)
 {
     if (m_finalized)
     {
@@ -68,7 +68,7 @@ VX_API void MD5::update(const uint8_t* data, size_t size)
     }
 }
 
-VX_API void MD5::finalize()
+void MD5::finalize()
 {
     if (m_finalized)
     {
@@ -206,7 +206,7 @@ void MD5::make_result()
     }
 }
 
-VX_API std::string MD5::to_string() const
+std::string MD5::to_string() const
 {
     if (!m_finalized)
     {
@@ -226,7 +226,7 @@ VX_API std::string MD5::to_string() const
     return oss.str();
 }
 
-VX_API void MD5::reset()
+void MD5::reset()
 {
     *this = MD5();
 }

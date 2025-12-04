@@ -5,7 +5,7 @@
 namespace vx {
 namespace app {
 
-VX_API int VX_MINGW32_FORCE_ALIGN _priv::run(int argc, char* argv[], main_t main_fn)
+int VX_MINGW32_FORCE_ALIGN _priv::run(int argc, char* argv[], main_t main_fn)
 {
     int result = -1;
     void* heap_allocated = NULL;

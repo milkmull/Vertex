@@ -34,7 +34,7 @@ namespace base64 {
 
 #define PADDING '='
 
-VX_API bool encode(const uint8_t* data, size_t size, std::string& encoded)
+bool encode(const uint8_t* data, size_t size, std::string& encoded)
 {
     static constexpr char characters[64] = {
         'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
@@ -85,7 +85,7 @@ VX_API bool encode(const uint8_t* data, size_t size, std::string& encoded)
     return true;
 }
 
-VX_API bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate)
+bool decode(const std::string& encoded, std::vector<uint8_t>& data, bool validate)
 {
     // Table to map ascii characters back to the base64 character set
     static constexpr char decode_table[256] = {

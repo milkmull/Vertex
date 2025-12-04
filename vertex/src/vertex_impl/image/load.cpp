@@ -153,7 +153,7 @@ static bool load_internal(const char* filename, image_info& info, std::vector<by
     return true;
 }
 
-VX_API bool load(const std::string& filename, image& img)
+bool load(const std::string& filename, image& img)
 {
     image_info info;
     std::vector<byte_type> data;
@@ -166,7 +166,7 @@ VX_API bool load(const std::string& filename, image& img)
 
 #else
 
-VX_API bool load(const std::string&, image&)
+bool load(const std::string&, image&)
 {
     VX_UNSUPPORTED("img::load()");
     return false;

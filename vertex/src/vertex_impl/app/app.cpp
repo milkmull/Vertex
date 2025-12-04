@@ -18,7 +18,7 @@ std::unique_ptr<app_instance> s_app;
 
 //=============================================================================
 
-VX_API bool init()
+bool init()
 {
     if (is_init())
     {
@@ -44,14 +44,14 @@ VX_API bool init()
 
 //=============================================================================
 
-VX_API bool is_init()
+bool is_init()
 {
     return s_app_ptr != nullptr;
 }
 
 //=============================================================================
 
-VX_API void quit()
+void quit()
 {
     if (is_init())
     {
@@ -62,7 +62,7 @@ VX_API void quit()
 
 //=============================================================================
 
-VX_API init_flags init_subsystem(init_flags flags)
+init_flags init_subsystem(init_flags flags)
 {
     if (!is_init() && !init())
     {
@@ -74,7 +74,7 @@ VX_API init_flags init_subsystem(init_flags flags)
 
 //=============================================================================
 
-VX_API bool is_subsystem_init(init_flags flags)
+bool is_subsystem_init(init_flags flags)
 {
     VX_CHECK_APP_INIT(false);
     return s_app_ptr->is_subsystem_init(flags);
@@ -82,7 +82,7 @@ VX_API bool is_subsystem_init(init_flags flags)
 
 //=============================================================================
 
-VX_API void quit_subsystem(init_flags flags)
+void quit_subsystem(init_flags flags)
 {
     VX_CHECK_APP_INIT_VOID();
     s_app_ptr->quit_subsystem(flags);
@@ -353,7 +353,7 @@ bool app_instance::is_main_thread() const
 // metadata
 //=============================================================================
 
-VX_API bool get_metadata(app_metadata& metadata)
+bool get_metadata(app_metadata& metadata)
 {
     VX_CHECK_APP_INIT(false);
     metadata = s_app_ptr->get_metadata();

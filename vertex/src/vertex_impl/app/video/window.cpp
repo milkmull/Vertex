@@ -315,7 +315,7 @@ void window_instance::apply_flags(window_flags new_flags)
 // sync
 //=============================================================================
 
-VX_API void window::sync()
+void window::sync()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
 
@@ -351,7 +351,7 @@ void window_instance::sync_if_required()
 // title
 //=============================================================================
 
-VX_API std::string window::get_title() const
+std::string window::get_title() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::string{});
     window_instance* w = s_video_ptr->get_window_instance(m_id);
@@ -365,7 +365,7 @@ const std::string& window_instance::get_title() const
 
 //=============================================================================
 
-VX_API bool window::set_title(const std::string& title)
+bool window::set_title(const std::string& title)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     window_instance* w = s_video_ptr->get_window_instance(m_id);
@@ -396,7 +396,7 @@ bool window_instance::set_title(const std::string& title)
 // position and size
 //=============================================================================
 
-VX_API bool window::set_resizable(bool resizable)
+bool window::set_resizable(bool resizable)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     window_instance* w = s_video_ptr->get_window_instance(m_id);
@@ -437,7 +437,7 @@ bool window_instance::set_resizable(bool resizable)
 
 //=============================================================================
 
-VX_API bool window::is_resizable() const
+bool window::is_resizable() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     window_instance* w = s_video_ptr->get_window_instance(m_id);

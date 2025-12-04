@@ -123,31 +123,31 @@ private:
 
 static logger_wrapper s_logger;
 
-VX_API level get_level()
+level get_level()
 {
     return s_logger.get_level();
 }
-VX_API void set_level(level log_level)
+void set_level(level log_level)
 {
     s_logger.set_level(log_level);
 }
 
-VX_API bool start(const char* output_file)
+bool start(const char* output_file)
 {
     return s_logger.start(output_file);
 }
 
-VX_API void stop()
+void stop()
 {
     s_logger.stop();
 }
 
-VX_API bool is_enabled()
+bool is_enabled()
 {
     return s_logger.is_enabled();
 }
 
-VX_API void write(level log_level, const std::string& msg)
+void write(level log_level, const std::string& msg)
 {
     return s_logger.write(log_level, msg);
 }

@@ -201,7 +201,7 @@ bool video_instance::on_video_thread() const
 // dpi
 //=============================================================================
 
-VX_API process_dpi_awareness get_dpi_awareness()
+process_dpi_awareness get_dpi_awareness()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(process_dpi_awareness::unaware);
     return s_video_ptr->get_dpi_awareness();
@@ -225,7 +225,7 @@ process_dpi_awareness video_instance::get_dpi_awareness() const
 // system theme
 //=============================================================================
 
-VX_API system_theme get_system_theme()
+system_theme get_system_theme()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(system_theme::unknown);
     return s_video_ptr->get_system_theme();
@@ -258,7 +258,7 @@ void video_instance::set_system_theme(system_theme theme)
 // display mode
 //=============================================================================
 
-VX_API bool compare_display_modes(const display_mode& mode1, const display_mode& mode2)
+bool compare_display_modes(const display_mode& mode1, const display_mode& mode2)
 {
     return mode1.resolution == mode2.resolution
         && mode1.bpp == mode2.bpp
@@ -343,7 +343,7 @@ void video_instance::remove_display(display_id id, bool send_event)
 
 //=============================================================================
 
-VX_API std::vector<display_id> list_displays()
+std::vector<display_id> list_displays()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<display_id>{});
     return s_video_ptr->list_displays();
@@ -383,7 +383,7 @@ size_t video_instance::get_display_index(display_id id) const
 
 //=============================================================================
 
-VX_API bool display::is_connected() const
+bool display::is_connected() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->is_display_connected(m_id);
@@ -421,7 +421,7 @@ const display_instance* video_instance::get_display_instance(display_id id) cons
 
 //=============================================================================
 
-VX_API display_id get_primary_display()
+display_id get_primary_display()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_id);
     return s_video_ptr->get_primary_display();
@@ -434,7 +434,7 @@ display_id video_instance::get_primary_display() const
 
 //=============================================================================
 
-VX_API display_id get_display_for_point(const math::vec2i& p)
+display_id get_display_for_point(const math::vec2i& p)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_id);
     return s_video_ptr->get_display_for_point(p);
@@ -472,7 +472,7 @@ display_id video_instance::get_display_for_point(const math::vec2i& p) const
 
 //=============================================================================
 
-VX_API display_id get_display_for_rect(const math::recti& rect)
+display_id get_display_for_rect(const math::recti& rect)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_id);
     return s_video_ptr->get_display_for_rect(rect);
@@ -514,7 +514,7 @@ void video_instance::update_desktop_area()
 
 //=============================================================================
 
-VX_API math::recti get_desktop_area()
+math::recti get_desktop_area()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(math::recti{});
     return s_video_ptr->get_desktop_area();
@@ -565,7 +565,7 @@ void display_instance::finalize()
 
 //=============================================================================
 
-VX_API std::string display::get_name() const
+std::string display::get_name() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::string{});
     return s_video_ptr->get_display_name(m_id);
@@ -597,7 +597,7 @@ void display_instance::set_orientation(display_orientation orientation)
 
 //=============================================================================
 
-VX_API display_orientation display::get_orientation() const
+display_orientation display::get_orientation() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(display_orientation::unknown);
     return s_video_ptr->get_display_orientation(m_id);
@@ -616,7 +616,7 @@ display_orientation display_instance::get_orientation() const
 
 //=============================================================================
 
-VX_API display_orientation display::get_natural_orientation() const
+display_orientation display::get_natural_orientation() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(display_orientation::unknown);
     return s_video_ptr->get_display_natural_orientation(m_id);
@@ -636,7 +636,7 @@ display_orientation display_instance::get_natural_orientation() const
 
 //=============================================================================
 
-VX_API math::vec2 display::get_content_scale() const
+math::vec2 display::get_content_scale() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(math::vec2{});
     return s_video_ptr->get_display_content_scale(m_id);
@@ -679,7 +679,7 @@ void display_instance::set_content_scale(const math::vec2& scale)
 
 //=============================================================================
 
-VX_API math::recti display::get_bounds() const
+math::recti display::get_bounds() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(math::recti{});
     return s_video_ptr->get_display_bounds(m_id);
@@ -719,7 +719,7 @@ math::recti display_instance::get_bounds() const
 
 //=============================================================================
 
-VX_API math::recti display::get_work_area() const
+math::recti display::get_work_area() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(math::recti{});
     return s_video_ptr->get_display_work_area(m_id);
@@ -807,7 +807,7 @@ bool display_instance::add_mode(display_mode_instance& mode) const
 
 //=============================================================================
 
-VX_API std::vector<display_mode> display::list_modes() const
+std::vector<display_mode> display::list_modes() const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<display_mode>{});
     return s_video_ptr->list_display_modes_for_display(m_id);
@@ -835,7 +835,7 @@ std::vector<display_mode> display_instance::list_modes() const
 
 //=============================================================================
 
-VX_API bool display::get_desktop_mode(display_mode& mode) const
+bool display::get_desktop_mode(display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
 
@@ -891,7 +891,7 @@ void display_instance::set_desktop_mode(display_mode_instance& mode)
 
 //=============================================================================
 
-VX_API bool display::get_current_mode(display_mode& mode) const
+bool display::get_current_mode(display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
 
@@ -935,7 +935,7 @@ void display_instance::set_current_mode(const display_mode& mode)
 
 //=============================================================================
 
-VX_API bool display::set_display_mode(const display_mode& mode)
+bool display::set_display_mode(const display_mode& mode)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->set_display_mode(m_id, mode);
@@ -1003,7 +1003,7 @@ bool display_instance::set_display_mode(const display_mode& mode)
 
 //=============================================================================
 
-VX_API void display::reset_display_mode()
+void display::reset_display_mode()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
     s_video_ptr->reset_display_mode(m_id, false);
@@ -1065,7 +1065,7 @@ const display_mode_instance* display_instance::find_mode(const display_mode& mod
 
 //=============================================================================
 
-VX_API bool display::has_mode(const display_mode& mode) const
+bool display::has_mode(const display_mode& mode) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->display_has_mode(m_id, mode);
@@ -1084,7 +1084,7 @@ bool display_instance::has_mode(const display_mode& mode) const
 
 //=============================================================================
 
-VX_API bool display::find_closest_mode(const display_mode& mode, display_mode& closest) const
+bool display::find_closest_mode(const display_mode& mode, display_mode& closest) const
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
 
@@ -1241,7 +1241,7 @@ const display_mode_instance* video_instance::find_display_mode_candidate_for_dis
 // screen saver
 //=============================================================================
 
-VX_API bool enable_screen_saver()
+bool enable_screen_saver()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->enable_screen_saver();
@@ -1270,7 +1270,7 @@ bool video_instance::enable_screen_saver()
 
 //=============================================================================
 
-VX_API bool screen_saver_enabled()
+bool screen_saver_enabled()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(true);
     return s_video_ptr->screen_saver_enabled();
@@ -1283,7 +1283,7 @@ bool video_instance::screen_saver_enabled() const
 
 //=============================================================================
 
-VX_API bool disable_screen_saver()
+bool disable_screen_saver()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->disable_screen_saver();
@@ -1314,7 +1314,7 @@ bool video_instance::disable_screen_saver()
 // window
 //=============================================================================
 
-VX_API window_id create_window(const window_config& config)
+window_id create_window(const window_config& config)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(invalid_id);
     return s_video_ptr->create_window(config);
@@ -1335,7 +1335,7 @@ window_id video_instance::create_window(const window_config& config)
 
 //=============================================================================
 
-VX_API void destroy_window(window_id id)
+void destroy_window(window_id id)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID();
     s_video_ptr->destroy_window(id);
@@ -1403,7 +1403,7 @@ void video_instance::destroy_windows()
 
 //=============================================================================
 
-VX_API std::vector<window_id> list_windows()
+std::vector<window_id> list_windows()
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(std::vector<window_id>{});
     return s_video_ptr->list_windows();
@@ -1423,7 +1423,7 @@ std::vector<window_id> video_instance::list_windows() const
 
 //=============================================================================
 
-VX_API bool window_exists(window_id id)
+bool window_exists(window_id id)
 {
     VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
     return s_video_ptr->get_window_index(id) != VX_INVALID_INDEX;

@@ -32,7 +32,7 @@ void hints_instance::quit()
 // checkers
 //=============================================================================
 
-VX_API bool has_hint(hint_t name)
+bool has_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(false);
     return s_hints_ptr->has_hint(name);
@@ -55,7 +55,7 @@ bool hints_instance::has_hint(hint_t name) const
 // getters
 //=============================================================================
 
-VX_API const char* get_hint(hint_t name)
+const char* get_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(nullptr);
     return s_hints_ptr->get_hint(name);
@@ -94,7 +94,7 @@ void hint_entry::update(hint_t name, const char* old_value, const char* new_valu
 
 //=============================================================================
 
-VX_API bool set_hint(hint_t name, const char* value)
+bool set_hint(hint_t name, const char* value)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT(false);
     return s_hints_ptr->set_hint(name, value);
@@ -120,7 +120,7 @@ bool hints_instance::set_hint(hint_t name, const char* value)
 
 //=============================================================================
 
-VX_API void reset_hint(hint_t name)
+void reset_hint(hint_t name)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
     return s_hints_ptr->reset_hint(name);
@@ -153,7 +153,7 @@ void hints_instance::reset_hint(hint_t name)
 // callbacks
 //=============================================================================
 
-VX_API void add_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void add_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
     s_hints_ptr->add_hint_callback(name, callback, user_data);
@@ -195,7 +195,7 @@ void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void
 
 //=============================================================================
 
-VX_API void remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID();
     s_hints_ptr->remove_hint_callback(name, callback, user_data);

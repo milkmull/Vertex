@@ -126,22 +126,22 @@ private:
 
 static profiler_wrapper s_profiler;
 
-VX_API bool start(const char* output_file)
+bool start(const char* output_file)
 {
     return s_profiler.start(output_file);
 }
 
-VX_API void stop()
+void stop()
 {
     s_profiler.stop();
 }
 
-VX_API bool is_enabled()
+bool is_enabled()
 {
     return s_profiler.is_enabled();
 }
 
-VX_API void record(const result& r)
+void record(const result& r)
 {
     s_profiler.record(r);
 }

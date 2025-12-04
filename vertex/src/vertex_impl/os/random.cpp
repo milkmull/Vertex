@@ -4,7 +4,7 @@
 namespace vx {
 namespace os {
 
-VX_API bool get_entropy(uint8_t* bytes, size_t count)
+bool get_entropy(uint8_t* bytes, size_t count)
 {
     return get_entropy_impl(bytes, count);
 }

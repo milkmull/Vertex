@@ -15,7 +15,7 @@ size_t message_box_count()
 
 //=============================================================================
 
-VX_API bool show_message_box(
+bool show_message_box(
     const message_box::config& config,
     message_box::button_id* button
 )
@@ -98,7 +98,7 @@ bool show_message_box_internal(
 
 //=============================================================================
 
-VX_API bool show_simple_message_box(
+bool show_simple_message_box(
     message_box::type type,
     const std::string& title,
     const std::string& message,

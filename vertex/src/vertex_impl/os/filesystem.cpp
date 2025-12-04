@@ -9,7 +9,7 @@ namespace filesystem {
 // File Permissions
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool update_permissions(
+bool update_permissions(
     const path& p,
     file_permissions permissions,
     file_permission_operator op,
@@ -23,22 +23,22 @@ VX_API bool update_permissions(
 // File Info
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API file_info get_file_info(const path& p)
+file_info get_file_info(const path& p)
 {
     return get_file_info_impl(p);
 }
 
-VX_API file_info get_symlink_info(const path& p)
+file_info get_symlink_info(const path& p)
 {
     return get_symlink_info_impl(p);
 }
 
-VX_API size_t hard_link_count(const path& p)
+size_t hard_link_count(const path& p)
 {
     return hard_link_count_impl(p);
 }
 
-VX_API bool set_modify_time(const path& p, time::time_point t)
+bool set_modify_time(const path& p, time::time_point t)
 {
     return set_modify_time_impl(p, t);
 }
@@ -47,7 +47,7 @@ VX_API bool set_modify_time(const path& p, time::time_point t)
 // Read Symlink
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API path read_symlink(const path& p)
+path read_symlink(const path& p)
 {
     return read_symlink_impl(p);
 }
@@ -56,19 +56,19 @@ VX_API path read_symlink(const path& p)
 // Path Operators
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API path get_current_path()
+path get_current_path()
 {
     return get_current_path_impl();
 }
 
-VX_API bool set_current_path(const path& p)
+bool set_current_path(const path& p)
 {
     return set_current_path_impl(p);
 }
 
 // https://github.com/boostorg/filesystem/blob/c7e14488032b98ba81ffaf1aa813ada422dd4da1/src/operations.cpp#L2508
 
-VX_API path absolute(const path& p)
+path absolute(const path& p)
 {
     if (p.is_absolute())
     {
@@ -103,7 +103,7 @@ VX_API path absolute(const path& p)
 
 // https://github.com/boostorg/filesystem/blob/30b312e5c0335831af61ad16802e888f5fb344ea/src/operations.cpp#L2570
 
-VX_API path canonical(const path& p)
+path canonical(const path& p)
 {
     if (!exists(p))
     {
@@ -114,14 +114,14 @@ VX_API path canonical(const path& p)
     return canonical_impl(p);
 }
 
-VX_API path relative(const path& p, const path& base)
+path relative(const path& p, const path& base)
 {
     const path p_abs = absolute(p);
     const path b_abs = absolute(base);
     return p_abs.lexically_relative(b_abs);
 }
 
-VX_API bool equivalent(const path& p1, const path& p2)
+bool equivalent(const path& p1, const path& p2)
 {
     return equivalent_impl(p1, p2);
 }
@@ -130,12 +130,12 @@ VX_API bool equivalent(const path& p1, const path& p2)
 // System Paths
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API path get_temp_path()
+path get_temp_path()
 {
     return get_temp_path_impl();
 }
 
-VX_API path get_user_folder(user_folder folder)
+path get_user_folder(user_folder folder)
 {
     return get_user_folder_impl(folder);
 }
@@ -148,17 +148,17 @@ VX_API path get_user_folder(user_folder folder)
 // Create
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool create_file(const path& p)
+bool create_file(const path& p)
 {
     return create_file_impl(p);
 }
 
-VX_API bool create_directory(const path& p)
+bool create_directory(const path& p)
 {
     return create_directory_impl(p);
 }
 
-VX_API bool create_directories(const path& p)
+bool create_directories(const path& p)
 {
     if (p.empty())
     {
@@ -181,17 +181,17 @@ VX_API bool create_directories(const path& p)
     return true;
 }
 
-VX_API bool create_symlink(const path& target, const path& link)
+bool create_symlink(const path& target, const path& link)
 {
     return create_symlink_impl(target, link);
 }
 
-VX_API bool create_directory_symlink(const path& target, const path& link)
+bool create_directory_symlink(const path& target, const path& link)
 {
     return create_directory_symlink_impl(target, link);
 }
 
-VX_API bool create_hard_link(const path& target, const path& link)
+bool create_hard_link(const path& target, const path& link)
 {
     return create_hard_link_impl(target, link);
 }
@@ -236,7 +236,7 @@ static void throw_copy_error(copy_error e, const path& from)
 
 // https://en.cppreference.com/w/cpp/filesystem/copy_file
 
-VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing)
+bool copy_file(const path& from, const path& to, bool overwrite_existing)
 {
     const file_info from_info = get_file_info(from);
 
@@ -280,7 +280,7 @@ VX_API bool copy_file(const path& from, const path& to, bool overwrite_existing)
     return copy_file_impl(from, to, overwrite_existing);
 }
 
-VX_API bool copy_symlink(const path& from, const path& to)
+bool copy_symlink(const path& from, const path& to)
 {
     const path target = read_symlink(from);
     if (target.empty())
@@ -384,7 +384,7 @@ static bool copy_internal(const path& from, const path& to, copy_options options
     return true;
 }
 
-VX_API bool copy(const path& from, const path& to, copy_options options)
+bool copy(const path& from, const path& to, copy_options options)
 {
     return copy_internal(from, to, options, false);
 }
@@ -393,7 +393,7 @@ VX_API bool copy(const path& from, const path& to, copy_options options)
 // Rename
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool rename(const path& from, const path& to)
+bool rename(const path& from, const path& to)
 {
     return rename_impl(from, to);
 }
@@ -402,7 +402,7 @@ VX_API bool rename(const path& from, const path& to)
 // Remove
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API bool remove(const path& p)
+bool remove(const path& p)
 {
     const auto res = remove_impl(p, false);
     return (res == _priv::remove_error::none);
@@ -433,7 +433,7 @@ static size_t recursive_remove(const path& p)
     return count;
 }
 
-VX_API size_t remove_all(const path& p)
+size_t remove_all(const path& p)
 {
     switch (remove_impl(p, true))
     {
@@ -457,7 +457,7 @@ VX_API size_t remove_all(const path& p)
 // Space
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API space_info space(const path& p)
+space_info space(const path& p)
 {
     os::path dir = canonical(p);
     dir = is_directory(dir) ? dir : dir.parent_path();
@@ -468,25 +468,25 @@ VX_API space_info space(const path& p)
 // Directory Iterator
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API directory_iterator::directory_iterator(const path& p)
+directory_iterator::directory_iterator(const path& p)
     : m_impl(std::make_shared<directory_iterator_impl>(p))
 {
     validate();
 }
 
-VX_API typename directory_iterator::reference directory_iterator::operator*() const
+typename directory_iterator::reference directory_iterator::operator*() const
 {
     VX_ASSERT(m_impl);
     return m_impl->m_entry;
 }
 
-VX_API typename directory_iterator::pointer directory_iterator::operator->() const
+typename directory_iterator::pointer directory_iterator::operator->() const
 {
     VX_ASSERT(m_impl);
     return &**this;
 }
 
-VX_API directory_iterator& directory_iterator::operator++()
+directory_iterator& directory_iterator::operator++()
 {
     VX_ASSERT(m_impl);
     m_impl->advance();
@@ -494,7 +494,7 @@ VX_API directory_iterator& directory_iterator::operator++()
     return *this;
 }
 
-VX_API bool directory_iterator::is_valid() const noexcept
+bool directory_iterator::is_valid() const noexcept
 {
     return m_impl && m_impl->is_valid();
 }
@@ -511,25 +511,25 @@ void directory_iterator::validate() noexcept
 // Recursive Directory Iterator
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_API recursive_directory_iterator::recursive_directory_iterator(const path& p)
+recursive_directory_iterator::recursive_directory_iterator(const path& p)
     : m_impl(std::make_shared<recursive_directory_iterator_impl>(p))
 {
     validate();
 }
 
-VX_API typename recursive_directory_iterator::reference recursive_directory_iterator::operator*() const
+typename recursive_directory_iterator::reference recursive_directory_iterator::operator*() const
 {
     VX_ASSERT(m_impl);
     return m_impl->m_entry;
 }
 
-VX_API typename recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const
+typename recursive_directory_iterator::pointer recursive_directory_iterator::operator->() const
 {
     VX_ASSERT(m_impl);
     return &**this;
 }
 
-VX_API recursive_directory_iterator& recursive_directory_iterator::operator++()
+recursive_directory_iterator& recursive_directory_iterator::operator++()
 {
     VX_ASSERT(m_impl);
     m_impl->advance();
@@ -537,25 +537,25 @@ VX_API recursive_directory_iterator& recursive_directory_iterator::operator++()
     return *this;
 }
 
-VX_API size_t recursive_directory_iterator::depth() const noexcept
+size_t recursive_directory_iterator::depth() const noexcept
 {
     VX_ASSERT(m_impl);
     return m_impl->depth();
 }
 
-VX_API bool recursive_directory_iterator::recursion_pending() const noexcept
+bool recursive_directory_iterator::recursion_pending() const noexcept
 {
     VX_ASSERT(m_impl);
     return m_impl->recursion_pending();
 }
 
-VX_API void recursive_directory_iterator::disable_pending_recursion() noexcept
+void recursive_directory_iterator::disable_pending_recursion() noexcept
 {
     VX_ASSERT(m_impl);
     m_impl->disable_pending_recursion();
 }
 
-VX_API void recursive_directory_iterator::pop()
+void recursive_directory_iterator::pop()
 {
     VX_ASSERT(m_impl);
     if (depth() == 0)
@@ -569,7 +569,7 @@ VX_API void recursive_directory_iterator::pop()
     }
 }
 
-VX_API bool recursive_directory_iterator::is_valid() const noexcept
+bool recursive_directory_iterator::is_valid() const noexcept
 {
     return m_impl && m_impl->is_valid();
 }

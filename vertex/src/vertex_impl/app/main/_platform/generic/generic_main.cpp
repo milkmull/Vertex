@@ -100,7 +100,7 @@ static void rate_hint_watcher(const hint::hint_t, const char*, const char* new_v
     }
 }
 
-VX_API int _priv::enter_callbacks(
+int _priv::enter_callbacks(
     int argc, char* argv[],
     init_callback_t init_fn,
     quit_callback_t quit_fn,

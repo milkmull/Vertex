@@ -47,7 +47,7 @@ static bool check_datetime(const datetime& dt, err::code code) noexcept
     return true;
 }
 
-VX_API bool datetime::is_valid() const noexcept
+bool datetime::is_valid() const noexcept
 {
     return check_datetime(*this, err::none);
 }
@@ -55,7 +55,7 @@ VX_API bool datetime::is_valid() const noexcept
 // https://en.wikipedia.org/wiki/ISO_8601
 // https://dateutil.readthedocs.io/en/stable/parser.html#dateutil.parser.isoparse
 
-VX_API std::string datetime::to_string() const
+std::string datetime::to_string() const
 {
     // YYYY-MM-DDTHH:MM:SS±HH:MM or YYYY-MM-DDTHH:MM:SSZ
     char buffer[26]{};
