@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "vertex/os/random.hpp"
+
 namespace vx {
 namespace os {
 

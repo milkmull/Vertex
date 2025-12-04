@@ -5,7 +5,7 @@
 #include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/hints/hints_internal.hpp"
 #include "vertex_impl/app/input/_platform/platform_mouse.hpp"
-#include "vertex_impl/app/message_box_internal.hpp"
+#include "vertex_impl/app/message_box/message_box_internal.hpp"
 #include "vertex_impl/app/video/_platform/platform_features.hpp"
 #include "vertex_impl/app/video/video_internal.hpp"
 
