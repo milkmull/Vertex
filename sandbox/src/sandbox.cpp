@@ -79,6 +79,8 @@ app_result init_callback(void** app_state, int argc, char* argv[])
     app::hint::set_hint(app::hint::video_allow_screen_saver, "true");
     const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::video_allow_screen_saver, false);
 
+    app::hint::set_hint(app::hint::app_main_callback_rate, "wait_event");
+
     return app_result::continue_;
 }
 
@@ -94,6 +96,8 @@ app_result iterate_callback(void* app_state)
 
 app_result event_callback(void* app_state, event::event& e)
 {
+    std::cout << "event_callback" << std::endl;
+
     if (e.type == app::event::app_quit)
     {
         std::cout << "quit detected" << std::endl;

@@ -2,6 +2,7 @@
 #include "vertex/app/event/event.hpp"
 #include "vertex/util/memory/memory.hpp"
 #include "vertex_impl/app/main/main_internal.hpp"
+#include "vertex/util/io/iostream.hpp"
 
 namespace vx {
 namespace app {
@@ -112,6 +113,8 @@ app_result runner_instance::iterate(bool pump_events)
 
 bool runner_instance::event_watch(event::event& e)
 {
+    io::print("watch");
+
     if (should_dispatch_immediately(e.type))
     {
         // Make sure any currently queued events are processed then dispatch this before continuing

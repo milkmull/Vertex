@@ -89,8 +89,7 @@ struct event_queue
     void stop();
 
     size_t add(const event* e, size_t count);
-    size_t match(event_filter matcher, void* user_data, event* events, size_t count, bool remove);
-    bool poll(event& e);
+    size_t match(event_filter matcher, void* user_data, event* events, size_t count, bool remove, bool include_sentinel);
     void clear();
 
     os::atomic<size_t> sentinel_pending = 0; // incremented every time an event poll ends

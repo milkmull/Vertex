@@ -193,7 +193,6 @@ size_t event_queue::add(const event* events, size_t count)
 
     if (!events || count == 0)
     {
-        VX_ASSERT(false);
         return added;
     }
 
@@ -229,7 +228,14 @@ size_t event_queue::add(const event* events, size_t count)
 
 //=============================================================================
 
-size_t event_queue::match(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
+// If include_sentinel is true, we should loop and collect events until we find
+// the last sentinel, which should be the last matched event. Any sentinels that
+// are not the last one will be overwritten by non-sentinel events and not
+// counted towards the total matches.
+
+// If include_sentinel is false, no sentinels
+
+size_t event_queue::match(event_filter matcher, void* user_data, event* events, size_t count, bool remove, bool include_sentinel)
 {
     const bool copy = (events && count > 0);
     size_t matched = 0;
@@ -241,33 +247,58 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
         return matched;
     }
 
+    size_t sentinel_count = 0;
+
     auto it = queue.begin();
     while (it != queue.end() && (!copy || (matched < count)))
     {
-        if (!matcher || matcher(it->e, user_data))
+        const bool matched_event = (!matcher || matcher(it->e, user_data));
+        if (!matched_event)
         {
-            if (copy)
-            {
-                events[matched] = it->e;
-            }
+            ++it;
+            continue;
+        }
 
-            if (remove)
-            {
-                if (it->e.type == internal_event_poll_sentinel)
-                {
-                    --sentinel_pending;
-                }
+        const bool is_sentinel = (it->e.type == internal_event_poll_sentinel);
 
-                return_event_temporary_memory(*it);
-                it = queue.erase(it);
-            }
+        if (copy)
+        {
+            events[matched] = it->e;
+        }
 
-            ++matched;
+        if (remove)
+        {
+            return_event_temporary_memory(*it);
+            it = queue.erase(it);
         }
         else
         {
             ++it;
         }
+
+        if (is_sentinel)
+        {
+            if (remove)
+            {
+                --sentinel_pending;
+            }
+
+            if (!include_sentinel)
+            {
+                // overwrite it
+                continue;
+            }
+
+            ++sentinel_count;
+
+            if (sentinel_pending > sentinel_count)
+            {
+                // there is still another sentinel
+                continue;
+            }
+        }
+
+        ++matched;
     }
 
     return matched;
@@ -275,16 +306,9 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
 
 //=============================================================================
 
-bool event_queue::poll(event& e)
-{
-    return match(nullptr, nullptr, &e, 1, true);
-}
-
-//=============================================================================
-
 void event_queue::clear()
 {
-    match(nullptr, nullptr, nullptr, queue.size(), true);
+    match(nullptr, nullptr, nullptr, 0, true, false);
     VX_ASSERT(queue.empty());
     VX_ASSERT(sentinel_pending == 0);
 }
@@ -296,6 +320,11 @@ static bool sentinel_filter(event& e, void*) noexcept
     return (e.type == internal_event_poll_sentinel);
 }
 
+static bool inverse_sentinel_filter(event& e, void*) noexcept
+{
+    return (e.type != internal_event_poll_sentinel);
+}
+
 void event_queue::add_sentinel()
 {
     event e;
@@ -303,7 +332,7 @@ void event_queue::add_sentinel()
 
     if (sentinel_pending > 0)
     {
-        match(sentinel_filter, nullptr, nullptr, 0, true);
+        match(sentinel_filter, nullptr, nullptr, 0, true, false);
     }
 
     add(&e, 1);
@@ -458,7 +487,7 @@ VX_API size_t match_events(event_filter matcher, void* user_data, event* events,
 
 size_t events_instance::match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
-    return data.queue.match(matcher, user_data, events, count, remove);
+    return data.queue.match(matcher, user_data, events, count, remove, false);
 }
 
 //=============================================================================
@@ -490,6 +519,7 @@ time::time_point events_instance::get_polling_interval() const
 int events_instance::wait_event_timeout_video(video::window_id w, event* e, time::time_point t, time::time_point start)
 {
     VX_ASSERT(app->is_video_init());
+    const bool remove_event = e != nullptr;
 
     // Get the global polling interval (or time::max if disabled)
     time::time_point poll_interval = get_polling_interval();
@@ -501,10 +531,8 @@ int events_instance::wait_event_timeout_video(video::window_id w, event* e, time
     {
         pump_events_internal(true);
 
-        // attempt to get the next event
-        const bool res = data.queue.match(nullptr, nullptr, e, 1, true);
-
-        if (res && e->type != internal_event_poll_sentinel)
+        // attempt to get the next event, don't include sentinel
+        if (data.queue.match(nullptr, nullptr, e, 1, remove_event, false))
         {
             // found an event
             return 1;
@@ -574,7 +602,8 @@ VX_API bool wait_event_timeout(event* e, time::time_point t)
 
 bool events_instance::wait_event_timeout(event* e, time::time_point t)
 {
-    const bool zero_timeout = t.is_zero();
+    const bool include_sentinel = t.is_zero();
+    const bool remove_event = e != nullptr;
 
     // initialize to zero
     time::time_point start, expiration;
@@ -582,7 +611,20 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
     if (t.is_positive())
     {
         start = os::get_ticks();
-        expiration = start + t;
+
+        // Clamp when t is too large to add to start without overflow
+        if (time::max() - start < t)
+        {
+            expiration = time::max();
+        }
+        else if (time::min() - start > t)
+        {
+            expiration = time::min();
+        }
+        else
+        {
+            expiration = start + t;
+        }
     }
 
     // if no poll sentinel is pending, pump events
@@ -592,9 +634,9 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
     }
 
     // attempt to get the next event
-    const bool res = data.queue.match(nullptr, nullptr, e, 1, true);
+    const bool res = data.queue.match(nullptr, nullptr, e, 1, remove_event, include_sentinel);
 
-    if (zero_timeout)
+    if (include_sentinel)
     {
         if (!res)
         {
@@ -610,23 +652,14 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
         }
         else
         {
-            // Need to peek the next event to check for sentinel
-            event dummy{};
-
-            if (data.queue.match(nullptr, nullptr, &dummy, 1, false) &&
-                dummy.type == internal_event_poll_sentinel)
-            {
-                // Reached the end of a poll cycle, and not willing to wait
-                data.queue.match(nullptr, nullptr, &dummy, 1, true);
-                return false;
-            }
-
-            // Has existing event
-            return true;
+            // We know we found an event, now only match to sentinel and remove 
+            // it if found. If the event is not a sentinel, this will fail, meaning
+            // the event that we confirmed above is not a sentinel (a valid event).
+            return !data.queue.match(sentinel_filter, nullptr, nullptr, 1, true, true);
         }
     }
 
-    VX_ASSERT(!zero_timeout);
+    VX_ASSERT(!include_sentinel);
 
     if (res)
     {
@@ -664,7 +697,8 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
     {
         pump_events_internal(true);
 
-        if (data.queue.match(nullptr, nullptr, e, 1, true))
+        // don't include sentinel here, we want real events only
+        if (data.queue.match(nullptr, nullptr, e, 1, remove_event, false))
         {
             // found an event
             return true;
@@ -752,7 +786,7 @@ void events_instance::set_event_filter(event_filter filter, void* user_data, eve
 {
     data.watch.set_filter(filter, user_data, priority);
     // filter current events
-    data.queue.match(filter, user_data, nullptr, 0, true);
+    data.queue.match(filter, user_data, nullptr, 0, true, false);
 }
 
 //=============================================================================
@@ -1004,13 +1038,58 @@ static void log_event(const event& e)
     switch (e.type)
     {
         // app events
+        case app_quit:
+        {
+            VX_LOG_INFO("app_quit");
+            break;
+        }
         case app_terminating:
         {
             VX_LOG_INFO("app_terminating");
             break;
         }
+        case app_low_memory:
+        {
+            VX_LOG_INFO("app_low_memory");
+            break;
+        }
+        case app_will_enter_background:
+        {
+            VX_LOG_INFO("app_will_enter_background");
+            break;
+        }
+        case app_did_enter_background:
+        {
+            VX_LOG_INFO("app_did_enter_background");
+            break;
+        }
+        case app_will_enter_foreground:
+        {
+            VX_LOG_INFO("app_will_enter_foreground");
+            break;
+        }
+        case app_did_enter_foreground:
+        {
+            VX_LOG_INFO("app_did_enter_foreground");
+            break;
+        }
+        case app_locale_changed:
+        {
+            VX_LOG_INFO("app_locale_changed");
+            break;
+        }
 
 #if defined(VX_APP_VIDEO_ENABLED)
+
+        case app_system_theme_changed:
+        {
+            VX_LOG_INFO(
+                "app_system_theme_changed {",
+                " theme: ", static_cast<int>(e.app_event.system_theme_changed.system_theme),
+                " }"
+            );
+            break;
+        }
 
         // display events
         case display_added:
