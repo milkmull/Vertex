@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
+#include "vertex/app/id.hpp"
 #include "vertex/config/flags.hpp"
 #include "vertex/math/color/types/color8.hpp"
 

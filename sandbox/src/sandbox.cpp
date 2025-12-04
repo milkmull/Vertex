@@ -71,10 +71,10 @@ app_result init_callback(void** app_state, int argc, char* argv[])
         return app_result::terminate_failure;
     }
 
-    if (!app::init_subsystem(app::init_flags::video))
-    {
-        return app_result::terminate_failure;
-    }
+    //if (!app::init_subsystem(app::init_flags::video))
+    //{
+    //    return app_result::terminate_failure;
+    //}
 
     app::hint::set_hint(app::hint::video_allow_screen_saver, "true");
     const bool allow_screen_saver = app::hint::get_hint_boolean(app::hint::video_allow_screen_saver, false);
