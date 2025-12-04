@@ -3,6 +3,10 @@
 #include "vertex_impl/app/video/video_internal.hpp"
 #include "vertex/os/atomic.hpp"
 
+#if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+#   include <iostream>
+#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+
 namespace vx {
 namespace app {
 
@@ -18,6 +22,77 @@ size_t message_box_count()
     return 0;
 #endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 }
+
+//=============================================================================
+
+#if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
+
+static bool show_message_box_fallback(const message_box::config& config, message_box::button_id* out_button)
+{
+    const char* type_str = nullptr;
+
+    switch (config.message_type)
+    {
+        case type::error:        type_str = "ERROR";    break;
+        case type::warning:      type_str = "WARNING";  break;
+        case type::information:  type_str = "INFO";     break;
+        default:                 type_str = "MESSAGE";  break;
+    }
+
+    std::cout << "==== MESSAGE BOX (FALLBACK) ====\n";
+    std::cout << "Type:    " << type_str << "\n";
+    std::cout << "Title:   " << config.title << "\n";
+    std::cout << "Message: " << config.message << "\n";
+
+    std::cout << "Buttons:\n";
+
+    if (!config.buttons.empty())
+    {
+        if (config.layout == button_layout::left_to_right)
+        {
+            for (const auto& b : config.buttons)
+            {
+                std::cout << "  [" << b.id << "] " << b.text << "\n";
+            }
+        }
+        else
+        {
+            for (auto it = config.buttons.rbegin(); it != config.buttons.rend(); ++it)
+            {
+                std::cout << "  [" << it->id << "] " << it->text << "\n";
+            }
+        }
+    }
+    else
+    {
+        std::cout << "  (none)\n";
+    }
+
+    std::cout << "================================" << std::endl;
+
+    if (out_button)
+    {
+        if (!config.buttons.empty())
+        {
+            if (config.layout == button_layout::left_to_right)
+            {
+                *out_button = config.buttons.front().id;
+            }
+            else
+            {
+                *out_button = config.buttons.back().id;
+            }
+        }
+        else
+        {
+            *out_button = vx::invalid_id;
+        }
+    }
+
+    return true;
+}
+
+#endif // !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 
 //=============================================================================
 
@@ -41,7 +116,7 @@ bool show_message_box_internal(
     VX_UNUSED(config);
     VX_UNUSED(button);
     VX_UNSUPPORTED("show_message_box()");
-    return false;
+    return show_message_box_fallback(config, button);
 
 #else
 
@@ -125,18 +200,6 @@ bool show_simple_message_box_internal(
     id_type parent_window
 )
 {
-#if !VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
-
-    VX_UNUSED(this_);
-    VX_UNUSED(type);
-    VX_UNUSED(title);
-    VX_UNUSED(message);
-    VX_UNUSED(parent_window);
-    VX_UNSUPPORTED("show_simple_message_box()");
-    return false;
-
-#else
-
     message_box::config config;
     config.message_type = type;
     config.layout = message_box::button_layout::left_to_right;
@@ -153,8 +216,6 @@ bool show_simple_message_box_internal(
     config.parent_window = parent_window;
 
     return show_message_box_internal(this_, config, nullptr);
-
-#endif // VX_VIDEO_BACKEND_HAVE_SHOW_MESSAGE_BOX
 }
 
 } // namespace app
