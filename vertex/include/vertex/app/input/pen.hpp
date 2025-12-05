@@ -68,9 +68,10 @@ enum : size_t { axis_count = axis_type::_count };
 
 struct pen_state
 {
-    float x, y;
-    input_state state;
-    float axes[axis_count];
+    float x = 0.0f;
+    float y = 0.0f;
+    input_state state = input_state::none;
+    float axes[axis_count]{ 0 };
 };
 
 //=============================================================================
