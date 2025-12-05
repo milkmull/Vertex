@@ -34,10 +34,10 @@ AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: true
 AllowShortBlocksOnASingleLine: true
-AllowShortCaseLabelsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: None
-AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortLambdasOnASingleLine: All
 
@@ -47,10 +47,12 @@ AlwaysBreakBeforeMultilineStrings: true
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeConceptDeclarations: true
 BreakBeforeTernaryOperators: true
-BreakConstructorInitializers: AfterColon
+BreakConstructorInitializers: BeforeComma
 BreakBeforeBinaryOperators: None
 BreakInheritanceList: AfterColon
 BreakStringLiterals: true
+#BreakAfterOpenBracketFunction: true
+
 
 # Initializers & arguments
 BinPackArguments: false
@@ -58,6 +60,7 @@ BinPackParameters: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth: 4
 Cpp11BracedListStyle: false
+PackConstructorInitializers: CurrentLine
 
 # Braces
 BreakBeforeBraces: Custom
@@ -76,7 +79,7 @@ BraceWrapping:
     BeforeLambdaBody: true
     BeforeWhile: false
     IndentBraces: false
-    SplitEmptyFunction: true
+    SplitEmptyFunction: false
     SplitEmptyRecord: true
     SplitEmptyNamespace: true
 
@@ -91,6 +94,7 @@ DerivePointerAlignment: false
 
 # Empty lines
 EmptyLineBeforeAccessModifier: Always
+EmptyLineAfterAccessModifier: Always
 KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 2
 
@@ -150,6 +154,9 @@ UseCRLF: false
 # Qualifiers (const, volatile, static, etc)
 QualifierAlignment: Custom
 QualifierOrder: ['static', 'inline', 'constexpr', 'const', 'volatile', 'type']
+
+# Macros
+#IfMacros [VX_IF_CONSTEXPR]
 
 ---
 Language: ObjC

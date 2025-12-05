@@ -13,8 +13,8 @@ cmake:
     x Link Sandbox to Vertex, test both static and shared
     x Test including Vertex after installation
     x Test library
-    - clang tidy, clang format
-    - editorconfig
-    - update printout of configuration
+    x clang tidy, clang format
+    x editorconfig
+    x update printout of configuration
     - add defines for each os module being used
 }
