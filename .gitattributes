@@ -1,7 +1,7 @@
 # Set all text files to use LF in repo and normalized on checkout
 * text=auto eol=lf
 
-# allow for native formatting for third-party code
+# Allow for native formatting for third-party code
 vertex/third_party/**/* -text -eol linguist-vendored
 
 # Treat common binary asset formats as binary (no line ending conversions)
