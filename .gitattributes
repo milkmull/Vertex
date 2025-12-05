@@ -4,6 +4,10 @@
 # Allow for native formatting for third-party code
 vertex/third_party/**/* -text -eol linguist-vendored
 
+# System specific scripts
+*.bat eol=crlf
+*.sh eol=lf
+
 # Treat common binary asset formats as binary (no line ending conversions)
 *.png -text -eol
 *.jpg -text -eol
