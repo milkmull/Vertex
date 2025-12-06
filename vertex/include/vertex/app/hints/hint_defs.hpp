@@ -19,106 +19,181 @@ using hint_t = uint64_t;
 enum hint : hint_t
 {
     //=============================================================================
-    // app hints
+    // Application Behavior Hints
     //=============================================================================
-    
-    app_main_callback_rate, // Hz
+
+    /**
+     * @brief Main callback rate in Hertz (Hz) for the app's update loop.
+     */
+    app_main_callback_rate,
+
+    /**
+     * @brief Disable installation of default signal handlers (e.g., SIGINT).
+     */
     app_no_signal_handlers,
 
     //=============================================================================
     // video hints
     //=============================================================================
 
-    // Prevents screen saver activation while the video system is active.
+    /**
+     * @brief Prevents the screen saver from activating while the video subsystem is active.
+     */
     video_allow_screen_saver,
 
-    // Ensures window operations are synchronous (can be slower, useful for debugging).
+    /**
+     * @brief Makes window operations synchronous (may reduce performance but useful for debugging).
+     */
     video_sync_window_operations,
 
-    // Specifies default usable display bounds (for headless or debug setups).
+    /**
+     * @brief Specifies default usable display bounds (for headless or debug environments).
+     */
     video_display_usable_bounds,
 
-    // Use raw keyboard input (bypass Windows message translation).
+    /**
+     * @brief Enables raw keyboard input on Windows, bypassing message translation.
+     */
     video_windows_use_raw_keyboard,
 
-    // Whether to create and manage a Windows message loop.
+    /**
+     * @brief Enable or disable the creation and management of the Windows message loop.
+     */
     video_windows_enable_message_loop,
 
-    // Enable Windows-style menu mnemonics (Alt+key shortcuts).
+    /**
+     * @brief Enable Windows-style menu mnemonics (Alt+key shortcuts).
+     */
     video_windows_enable_menu_mnemonics,
 
-    // Enable a specific dpi configuration for windows ("unaware", "system", "permonitor")
-    video_windows_dpi_awareness, // default is no dpi change
+    /**
+     * @brief Windows DPI awareness setting: "unaware", "system", or "permonitor".
+     * Default is no DPI awareness change.
+     */
+    video_windows_dpi_awareness,
 
-    // Allow interacting with window frame even when cursor is hidden (for games, etc.).
+    /**
+     * @brief Allow interaction with the window frame even when the cursor is hidden
+     * (useful for games or immersive applications).
+     */
     video_window_frame_usable_while_cursor_hidden,
 
-    // Minimize window when losing focus (useful for exclusive fullscreen apps).
+    /**
+     * @brief Minimize the window automatically when it loses focus (useful for exclusive fullscreen apps).
+     */
     video_window_minimize_on_focus_loss,
 
-    // Keep exclusive mode consistent when moving the window between monitors.
+    /**
+     * @brief Keep exclusive fullscreen mode consistent when moving the window between monitors.
+     */
     video_window_match_exclusive_mode_on_move,
 
-    // Automatically quit the app when the last window is closed.
+    /**
+     * @brief Automatically quit the application when the last window is closed.
+     */
     video_quit_on_last_window_close,
 
     //=============================================================================
-    // input / mouse / touch / pen hints
+    // Input: Mouse, Touch, Pen Hints
     //=============================================================================
 
-    // Maximum time interval (in milliseconds) between two clicks to register as a double click.
-    mouse_double_click_time,
+    /**
+     * @brief Maximum time (ms) between two clicks to register a double click.
+     */
+    mouse_double_click_time_ms,
 
-    // Maximum distance (in pixels) between two clicks to count as a double click.
+    /**
+     * @brief Maximum distance (pixels) between two clicks to count as a double click.
+     */
     mouse_double_click_radius,
 
-    // Scale factor for normal mouse movement speed.
+    /**
+     * @brief Scale factor applied to normal mouse movement speed.
+     */
     mouse_normal_speed_scale,
 
-    // Scale factor for mouse movement speed in relative mode.
+    /**
+     * @brief Scale factor applied to mouse movement speed in relative mode.
+     */
     mouse_relative_speed_scale,
 
-    // Apply system scaling to relative mode (1 = enabled).
+    /**
+     * @brief Apply system display scaling to relative mouse mode (1 = enabled).
+     */
     mouse_relative_system_scale,
 
-    // Keep cursor centered in relative mode.
+    /**
+     * @brief Keep cursor centered when in relative mouse mode.
+     */
     mouse_relative_mode_center,
 
-    // Emulate warp with relative motion events when warping is unavailable.
+    /**
+     * @brief Emulate mouse warp with relative motion events if warping is unavailable.
+     */
     mouse_emulate_warp_with_relative,
 
-    // Generate mouse events from touch input.
+    /**
+     * @brief Generate mouse events from touch input.
+     */
     touch_mouse_events,
 
-    // Generate touch events from mouse input.
+    /**
+     * @brief Generate touch events from mouse input.
+     */
     mouse_touch_events,
 
-    // Generate mouse events from pen input.
+    /**
+     * @brief Generate mouse events from pen input.
+     */
     pen_mouse_events,
 
-    // Generate touch events from pen input.
+    /**
+     * @brief Generate touch events from pen input.
+     */
     pen_touch_events,
 
-    // Automatically capture mouse when button pressed inside window (Windows).
+    /**
+     * @brief Automatically capture mouse input when a button is pressed inside the window (Windows only).
+     */
     mouse_auto_capture,
 
-    // Generate motion events when cursor is warped in relative mode.
+    /**
+     * @brief Generate motion events when the cursor is warped in relative mode.
+     */
     mouse_relative_warp_motion,
 
-    // Keep cursor visible in relative mode.
+    /**
+     * @brief Keep the cursor visible when in relative mode.
+     */
     mouse_relative_cursor_visible,
 
-    // Integer motion mode (non-standard, experimental).
+    /**
+     * @brief Enable integer motion mode for mouse input.
+     */
     mouse_integer_mode,
 
-    // Default system cursor id to use
+    /**
+     * @brief Default system cursor ID to use.
+     */
     mouse_default_system_cursor,
 
-    // Keycode options
+    //=============================================================================
+    // Input: Keyboard Hints
+    //=============================================================================
+
+    /**
+     * @brief Keyboard keycode options to customize keycode handling.
+     */
     keyboard_keycode_options,
 
+    /**
+     * @brief Allow Alt+Tab while the keyboard is grabbed (focused exclusively).
+     */
     keyboard_allow_alt_tab_while_grabbed,
 
+    /**
+     * @brief Enable on-screen keyboard support.
+     */
     keyboard_enable_screen_keyboard
 };
 
