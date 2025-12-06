@@ -343,12 +343,12 @@ void event_queue::add_sentinel()
 // initialization
 //=============================================================================
 
-static_events_data events_instance::s_data = {};
+static_event_manager_data event_manager::s_data = {};
 
-events_instance::events_instance() = default;
-events_instance::~events_instance() { quit(); }
+event_manager::event_manager() = default;
+event_manager::~event_manager() { quit(); }
 
-bool events_instance::init(app_instance* owner)
+bool event_manager::init(app_instance* owner)
 {
     if (app)
     {
@@ -377,7 +377,7 @@ bool events_instance::init(app_instance* owner)
 
 //=============================================================================
 
-void events_instance::quit()
+void event_manager::quit()
 {
     quit_signal_handler();
     stop_loop();
@@ -391,14 +391,14 @@ void events_instance::quit()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1008
 
-bool events_instance::start_loop()
+bool event_manager::start_loop()
 {
     return data.queue.start();
 }
 
 //=============================================================================
 
-void events_instance::stop_loop()
+void event_manager::stop_loop()
 {
     data.queue.stop();
 }
@@ -413,7 +413,7 @@ event_type_t register_user_events(size_t count)
 
     if (count > 0)
     {
-        event_type_t value = events_instance::s_data.user_events + count;
+        event_type_t value = event_manager::s_data.user_events + count;
         if (value >= 0 && value <= (event_last - user_event))
         {
             base = user_event + value;
@@ -435,7 +435,7 @@ void pump_events()
     s_events_ptr->pump_events();
 }
 
-void events_instance::pump_events()
+void event_manager::pump_events()
 {
     pump_events_internal(false);
 }
@@ -444,14 +444,14 @@ void events_instance::pump_events()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1458
 
-void events_instance::pump_events_maintenance()
+void event_manager::pump_events_maintenance()
 {
     send_pending_signal_events();
 }
 
 //=============================================================================
 
-void events_instance::pump_events_internal(bool push_sentinel)
+void event_manager::pump_events_internal(bool push_sentinel)
 {
     free_temporary_memory();
 
@@ -487,7 +487,7 @@ size_t add_events(const event* e, size_t count)
     return s_events_ptr->add_events(e, count);
 }
 
-size_t events_instance::add_events(const event* e, size_t count)
+size_t event_manager::add_events(const event* e, size_t count)
 {
     const size_t n = data.queue.add(e, count);
 
@@ -514,14 +514,14 @@ size_t match_events(event_filter matcher, void* user_data, event* events, size_t
     return s_events_ptr->match_events(matcher, user_data, events, count, remove);
 }
 
-size_t events_instance::match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
+size_t event_manager::match_events(event_filter matcher, void* user_data, event* events, size_t count, bool remove)
 {
     return data.queue.match(matcher, user_data, events, count, remove, false);
 }
 
 //=============================================================================
 
-size_t events_instance::flush_events(event_type type)
+size_t event_manager::flush_events(event_type type)
 {
     return match_events(type_matcher, &type, nullptr, 0, true);
 }
@@ -532,7 +532,7 @@ size_t events_instance::flush_events(event_type type)
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_events.c#L1506
 
-time::time_point events_instance::get_polling_interval() const
+time::time_point event_manager::get_polling_interval() const
 {
     time::time_point interval = time::max();
 
@@ -545,7 +545,7 @@ time::time_point events_instance::get_polling_interval() const
 
 #if VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
 
-int events_instance::wait_event_timeout_video(video::window_id w, event* e, time::time_point t, time::time_point start)
+int event_manager::wait_event_timeout_video(video::window_id w, event* e, time::time_point t, time::time_point start)
 {
     VX_ASSERT(app->is_video_init());
     const bool remove_event = e != nullptr;
@@ -629,7 +629,7 @@ bool wait_event_timeout(event* e, time::time_point t)
     return s_events_ptr->wait_event_timeout(e, t);
 }
 
-bool events_instance::wait_event_timeout(event* e, time::time_point t)
+bool event_manager::wait_event_timeout(event* e, time::time_point t)
 {
     const bool include_sentinel = t.is_zero();
     const bool remove_event = e != nullptr;
@@ -761,7 +761,7 @@ bool poll_event(event* e)
     return s_events_ptr->poll_event(e);
 }
 
-bool events_instance::poll_event(event* e)
+bool event_manager::poll_event(event* e)
 {
     return wait_event_timeout(e, time::zero());
 }
@@ -776,12 +776,12 @@ bool push_event(event& e)
     return s_events_ptr->push_event(e);
 }
 
-bool events_instance::push_event(event& e)
+bool event_manager::push_event(event& e)
 {
     return push_event_filtered(e, nullptr, nullptr);
 }
 
-bool events_instance::push_event_filtered(event& e, event_filter filter, void* user_data)
+bool event_manager::push_event_filtered(event& e, event_filter filter, void* user_data)
 {
     if (e.time.is_zero())
     {
@@ -811,7 +811,7 @@ void set_event_filter(event_filter filter, void* user_data)
     s_events_ptr->set_event_filter(filter, user_data, event_watch_priority_normal);
 }
 
-void events_instance::set_event_filter(event_filter filter, void* user_data, event_watch_priority priority)
+void event_manager::set_event_filter(event_filter filter, void* user_data, event_watch_priority priority)
 {
     data.watch.set_filter(filter, user_data, priority);
     // filter current events
@@ -826,7 +826,7 @@ void get_event_filter(event_filter& filter, void*& user_data)
     s_events_ptr->get_event_filter(filter, user_data, event_watch_priority_normal);
 }
 
-void events_instance::get_event_filter(event_filter& filter, void*& user_data, event_watch_priority priority)
+void event_manager::get_event_filter(event_filter& filter, void*& user_data, event_watch_priority priority)
 {
     data.watch.get_filter(filter, user_data, priority);
 }
@@ -839,7 +839,7 @@ void add_event_watch(event_filter callback, void* user_data)
     s_events_ptr->add_event_watch(callback, user_data, event_watch_priority_normal);
 }
 
-void events_instance::add_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
+void event_manager::add_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
 {
     data.watch.add_watch(callback, user_data, priority);
 }
@@ -852,14 +852,14 @@ void remove_event_watch(event_filter callback, void* user_data)
     s_events_ptr->remove_event_watch(callback, user_data, event_watch_priority_normal);
 }
 
-void events_instance::remove_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
+void event_manager::remove_event_watch(event_filter callback, void* user_data, event_watch_priority priority)
 {
     data.watch.remove_watch(callback, user_data, priority);
 }
 
 //=============================================================================
 
-bool events_instance::dispatch_event_watch(event& e)
+bool event_manager::dispatch_event_watch(event& e)
 {
     return data.watch.dispatch_all(e);
 }
@@ -868,7 +868,7 @@ bool events_instance::dispatch_event_watch(event& e)
 // events
 //=============================================================================
 
-void events_instance::send_critical_event(event_type type)
+void event_manager::send_critical_event(event_type type)
 {
     event e{};
     e.type = type;
@@ -883,7 +883,7 @@ void events_instance::send_critical_event(event_type type)
 
 //=============================================================================
 
-void events_instance::will_enter_background()
+void event_manager::will_enter_background()
 {
 #if defined(VX_APP_VIDEO_ENABLED)
 
@@ -899,21 +899,21 @@ void events_instance::will_enter_background()
 
 //=============================================================================
 
-void events_instance::did_enter_background()
+void event_manager::did_enter_background()
 {
     send_critical_event(app_did_enter_background);
 }
 
 //=============================================================================
 
-void events_instance::will_enter_foreground()
+void event_manager::will_enter_foreground()
 {
     send_critical_event(app_will_enter_foreground);
 }
 
 //=============================================================================
 
-void events_instance::did_enter_foreground()
+void event_manager::did_enter_foreground()
 {
     send_critical_event(app_did_enter_foreground);
 
@@ -931,7 +931,7 @@ void events_instance::did_enter_foreground()
 // drop events
 //=============================================================================
 
-bool events_instance::send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y)
+bool event_manager::send_drop_event(const window_ptr_type w, const event_type type, const char* source, const char* drop_data, float x, float y)
 {
 #if defined(VX_APP_VIDEO_ENABLED)
 #   define set_drop_event_window_id(w, e) e.drop_event.common.window_id = w ? w->data.id : invalid_id
@@ -1030,28 +1030,28 @@ bool events_instance::send_drop_event(const window_ptr_type w, const event_type 
 
 //=============================================================================
 
-bool events_instance::send_drop_file(const window_ptr_type w, const char* source, const char* file)
+bool event_manager::send_drop_file(const window_ptr_type w, const char* source, const char* file)
 {
     return send_drop_event(w, drop_file, source, file, 0, 0);
 }
 
 //=============================================================================
 
-bool events_instance::send_drop_position(const window_ptr_type w, float x, float y)
+bool event_manager::send_drop_position(const window_ptr_type w, float x, float y)
 {
     return send_drop_event(w, drop_position, nullptr, nullptr, x, y);
 }
 
 //=============================================================================
 
-bool events_instance::send_drop_text(const window_ptr_type w, const char* text)
+bool event_manager::send_drop_text(const window_ptr_type w, const char* text)
 {
     return send_drop_event(w, drop_text, nullptr, text, 0, 0);
 }
 
 //=============================================================================
 
-bool events_instance::send_drop_complete(const window_ptr_type w)
+bool event_manager::send_drop_complete(const window_ptr_type w)
 {
     return send_drop_event(w, drop_complete, nullptr, nullptr, 0, 0);
 }

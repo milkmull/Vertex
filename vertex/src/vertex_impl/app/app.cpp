@@ -186,7 +186,7 @@ bool app_instance::init_hints()
 {
     if (!is_hints_init())
     {
-        hints_ptr = new hint::hints_instance;
+        hints_ptr = new hint::hint_manager;
 
         if (!hints_ptr)
         {
@@ -232,7 +232,7 @@ bool app_instance::init_events()
 {
     if (!is_events_init())
     {
-        events_ptr = new event::events_instance;
+        events_ptr = new event::event_manager;
 
         if (!events_ptr)
         {

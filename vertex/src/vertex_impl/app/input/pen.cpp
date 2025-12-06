@@ -240,7 +240,7 @@ void pen_manager::send_touch(time::time_point t, pen_id id, video::window_instan
 
         if (w)
         {
-            mouse::mouse_instance* mouse = video->mouse_ptr;
+            mouse::mouse_manager* mouse = video->mouse_ptr;
 
             if (mouse->data.pen_mouse_events)
             {
@@ -333,7 +333,7 @@ void pen_manager::send_motion(time::time_point t, pen_id id, video::window_insta
 
         if (w)
         {
-            mouse::mouse_instance* mouse = video->mouse_ptr;
+            mouse::mouse_manager* mouse = video->mouse_ptr;
 
             if (data.pen_touching == id)
             {
@@ -407,7 +407,7 @@ void pen_manager::send_axis(time::time_point t, pen_id id, video::window_instanc
         {
             if (w)
             {
-                mouse::mouse_instance* mouse = video->mouse_ptr;
+                mouse::mouse_manager* mouse = video->mouse_ptr;
 
                 if (mouse->data.pen_touch_events)
                 {
@@ -484,7 +484,7 @@ void pen_manager::send_button(time::time_point t, pen_id id, video::window_insta
         {
             if (w)
             {
-                mouse::mouse_instance* mouse = video->mouse_ptr;
+                mouse::mouse_manager* mouse = video->mouse_ptr;
 
                 if (mouse->data.pen_mouse_events)
                 {

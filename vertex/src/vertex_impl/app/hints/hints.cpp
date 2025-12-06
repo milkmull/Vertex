@@ -10,10 +10,10 @@ namespace hint {
 // initialization
 //=============================================================================
 
-hints_instance::hints_instance() = default;
-hints_instance::~hints_instance() { quit(); }
+hint_manager::hint_manager() = default;
+hint_manager::~hint_manager() { quit(); }
 
-bool hints_instance::init(app_instance* owner)
+bool hint_manager::init(app_instance* owner)
 {
     if (app)
     {
@@ -23,7 +23,7 @@ bool hints_instance::init(app_instance* owner)
     return true;
 }
 
-void hints_instance::quit()
+void hint_manager::quit()
 {
     app = nullptr;
 }
@@ -38,7 +38,7 @@ bool has_hint(hint_t name)
     return s_hints_ptr->has_hint(name);
 }
 
-bool hints_instance::has_hint(hint_t name) const
+bool hint_manager::has_hint(hint_t name) const
 {
     os::lock_guard lock(data.mutex);
 
@@ -61,7 +61,7 @@ const char* get_hint(hint_t name)
     return s_hints_ptr->get_hint(name);
 }
 
-const char* hints_instance::get_hint(hint_t name) const
+const char* hint_manager::get_hint(hint_t name) const
 {
     os::lock_guard lock(data.mutex);
 
@@ -100,7 +100,7 @@ bool set_hint(hint_t name, const char* value)
     return s_hints_ptr->set_hint(name, value);
 }
 
-bool hints_instance::set_hint(hint_t name, const char* value)
+bool hint_manager::set_hint(hint_t name, const char* value)
 {
     if (!value)
     {
@@ -126,7 +126,7 @@ void reset_hint(hint_t name)
     return s_hints_ptr->reset_hint(name);
 }
 
-void hints_instance::reset_hint(hint_t name)
+void hint_manager::reset_hint(hint_t name)
 {
     os::lock_guard lock(data.mutex);
 
@@ -159,7 +159,7 @@ void add_hint_callback(hint_t name, hint_callback callback, void* user_data)
     s_hints_ptr->add_hint_callback(name, callback, user_data);
 }
 
-void hints_instance::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void hint_manager::add_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     if (!callback)
     {
@@ -201,7 +201,7 @@ void remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
     s_hints_ptr->remove_hint_callback(name, callback, user_data);
 }
 
-void hints_instance::remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
+void hint_manager::remove_hint_callback(hint_t name, hint_callback callback, void* user_data)
 {
     if (!callback)
     {

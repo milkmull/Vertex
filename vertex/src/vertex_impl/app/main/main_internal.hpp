@@ -8,7 +8,7 @@
 namespace vx {
 namespace app {
 
-struct runner_data
+struct app_runner_data
 {
     quit_callback_t quit_fn = nullptr;
     iterate_callback_t iterate_fn = nullptr;
@@ -18,18 +18,18 @@ struct runner_data
     void* app_state = nullptr;
 };
 
-class runner_instance
+class app_runner_base
 {
 public:
 
-    runner_instance() = default;
-    ~runner_instance() = default;
+    app_runner_base() = default;
+    ~app_runner_base() = default;
 
-    runner_instance(const runner_instance&) = delete;
-    runner_instance& operator=(const runner_instance&) = delete;
+    app_runner_base(const app_runner_base&) = delete;
+    app_runner_base& operator=(const app_runner_base&) = delete;
 
-    runner_instance(runner_instance&&) noexcept = delete;
-    runner_instance& operator=(runner_instance&&) noexcept = delete;
+    app_runner_base(app_runner_base&&) noexcept = delete;
+    app_runner_base& operator=(app_runner_base&&) noexcept = delete;
 
 public:
 
@@ -49,7 +49,7 @@ public:
 
 public:
 
-    runner_data data;
+    app_runner_data data;
 };
 
 inline constexpr bool using_callbacks() noexcept

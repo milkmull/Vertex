@@ -31,7 +31,7 @@ struct hint_entry
     void update(hint_t name, const char* old_value, const char* new_value);
 };
 
-struct hints_data
+struct hint_manager_data
 {
     std::unordered_map<hint_t, hint_entry> hints;
     mutable os::mutex mutex;
@@ -41,18 +41,18 @@ struct hints_data
 // internal
 //=============================================================================
 
-class hints_instance
+class hint_manager
 {
 public:
 
-    hints_instance();
-    ~hints_instance();
+    hint_manager();
+    ~hint_manager();
 
-    hints_instance(const hints_instance&) = delete;
-    hints_instance& operator=(const hints_instance&) = delete;
+    hint_manager(const hint_manager&) = delete;
+    hint_manager& operator=(const hint_manager&) = delete;
 
-    hints_instance(hints_instance&&) noexcept = delete;
-    hints_instance& operator=(hints_instance&&) noexcept = delete;
+    hint_manager(hint_manager&&) noexcept = delete;
+    hint_manager& operator=(hint_manager&&) noexcept = delete;
 
 public:
 
@@ -124,7 +124,7 @@ public:
     //=============================================================================
 
     app_instance* app = nullptr;
-    hints_data data;
+    hint_manager_data data;
 };
 
 } // namespace hint

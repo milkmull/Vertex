@@ -29,11 +29,11 @@ static bool should_dispatch_immediately(event::event_type_t type)
 
 static bool main_callback_event_watcher(event::event& e, void* user_data)
 {
-    runner_instance* runner = static_cast<runner_instance*>(user_data);
+    app_runner_base* runner = static_cast<app_runner_base*>(user_data);
     return runner->event_watch(e);
 }
 
-app_result runner_instance::init(
+app_result app_runner_base::init(
     int argc,
     char* argv[],
     init_callback_t init_fn,
@@ -73,7 +73,7 @@ app_result runner_instance::init(
 
 //=============================================================================
 
-void runner_instance::quit(app_result result)
+void app_runner_base::quit(app_result result)
 {
     event::remove_event_watch(main_callback_event_watcher, nullptr);
     data.quit_fn(data.app_state, result);
@@ -83,7 +83,7 @@ void runner_instance::quit(app_result result)
 
 //=============================================================================
 
-app_result runner_instance::iterate(bool pump_events)
+app_result app_runner_base::iterate(bool pump_events)
 {
     if (pump_events)
     {
@@ -110,7 +110,7 @@ app_result runner_instance::iterate(bool pump_events)
 
 //=============================================================================
 
-bool runner_instance::event_watch(event::event& e)
+bool app_runner_base::event_watch(event::event& e)
 {
     if (should_dispatch_immediately(e.type))
     {
@@ -133,7 +133,7 @@ bool runner_instance::event_watch(event::event& e)
     return true;
 }
 
-void runner_instance::dispatch_event(event::event& e)
+void app_runner_base::dispatch_event(event::event& e)
 {
     if (data.result.load() == app_result::continue_)
     {
@@ -144,7 +144,7 @@ void runner_instance::dispatch_event(event::event& e)
     }
 }
 
-void runner_instance::dispatch_events()
+void app_runner_base::dispatch_events()
 {
     event::event events[16];
 

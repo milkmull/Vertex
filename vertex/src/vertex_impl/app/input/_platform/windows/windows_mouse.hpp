@@ -28,7 +28,7 @@ public:
     // lifetime
     //=============================================================================
 
-    bool init(mouse_instance* owner) { return true; }
+    bool init(mouse_manager* owner) { return true; }
     void quit() {}
 
     ~mouse_instance_impl() { quit(); }
@@ -58,7 +58,7 @@ public:
     // data
     //=============================================================================
 
-    mouse_instance* mouse;
+    mouse_manager* mouse;
     mouse_impl_data data;
 };
 

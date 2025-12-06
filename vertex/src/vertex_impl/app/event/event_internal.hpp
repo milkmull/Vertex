@@ -111,12 +111,12 @@ struct drop_state
 // event data
 //=============================================================================
 
-struct static_events_data
+struct static_event_manager_data
 {
     os::atomic<event_type_t> user_events;
 };
 
-struct events_data
+struct event_manager_data
 {
     event_queue queue;
     event_watch_list watch;
@@ -127,18 +127,18 @@ struct events_data
 // event_internal
 //=============================================================================
 
-class events_instance
+class event_manager
 {
 public:
 
-    events_instance();
-    ~events_instance();
+    event_manager();
+    ~event_manager();
 
-    events_instance(const events_instance&) = delete;
-    events_instance& operator=(const events_instance&) = delete;
+    event_manager(const event_manager&) = delete;
+    event_manager& operator=(const event_manager&) = delete;
 
-    events_instance(events_instance&&) noexcept = delete;
-    events_instance& operator=(events_instance&&) noexcept = delete;
+    event_manager(event_manager&&) noexcept = delete;
+    event_manager& operator=(event_manager&&) noexcept = delete;
 
 public:
 
@@ -244,8 +244,8 @@ public:
     //=============================================================================
 
     app_instance* app = nullptr;
-    events_data data;
-    static static_events_data s_data;
+    event_manager_data data;
+    static static_event_manager_data s_data;
 };
 
 } // namespace event

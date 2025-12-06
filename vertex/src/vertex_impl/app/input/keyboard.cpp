@@ -20,7 +20,7 @@ namespace keyboard {
 
 static void keycode_options_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    keyboard_instance* keyboard = static_cast<keyboard_instance*>(user_data);
+    keyboard_manager* keyboard = static_cast<keyboard_manager*>(user_data);
 
     if (new_value && *new_value)
     {
@@ -40,12 +40,12 @@ static void keycode_options_hint_watcher(const hint::hint_t, const char*, const 
 // initialization
 //=============================================================================
 
-keyboard_instance::keyboard_instance() = default;
-keyboard_instance::~keyboard_instance() { quit(); }
+keyboard_manager::keyboard_manager() = default;
+keyboard_manager::~keyboard_manager() { quit(); }
 
 //=============================================================================
 
-bool keyboard_instance::init(video::video_instance* owner)
+bool keyboard_manager::init(video::video_instance* owner)
 {
     if (video)
     {
@@ -67,7 +67,7 @@ bool keyboard_instance::init(video::video_instance* owner)
 
 //=============================================================================
 
-void keyboard_instance::quit()
+void keyboard_manager::quit()
 {
     data.keyboards.clear();
     clear_keymap();
@@ -88,7 +88,7 @@ void keyboard_instance::quit()
 // devices
 //=============================================================================
 
-size_t keyboard_instance::get_keyboard_index(keyboard_id id) const
+size_t keyboard_manager::get_keyboard_index(keyboard_id id) const
 {
     if (!is_valid_id(id))
     {
@@ -108,7 +108,7 @@ size_t keyboard_instance::get_keyboard_index(keyboard_id id) const
 
 //=============================================================================
 
-keyboard_info* keyboard_instance::get_keyboard(keyboard_id id)
+keyboard_info* keyboard_manager::get_keyboard(keyboard_id id)
 {
     if (!is_valid_id(id))
     {
@@ -126,14 +126,14 @@ keyboard_info* keyboard_instance::get_keyboard(keyboard_id id)
     return nullptr;
 }
 
-const keyboard_info* keyboard_instance::get_keyboard(keyboard_id id) const
+const keyboard_info* keyboard_manager::get_keyboard(keyboard_id id) const
 {
-    return const_cast<keyboard_instance*>(this)->get_keyboard(id);
+    return const_cast<keyboard_manager*>(this)->get_keyboard(id);
 }
 
 //=============================================================================
 
-void keyboard_instance::add_keyboard(keyboard_id id, const char* name)
+void keyboard_manager::add_keyboard(keyboard_id id, const char* name)
 {
     const size_t i = get_keyboard_index(id);
     if (i == VX_INVALID_INDEX)
@@ -154,7 +154,7 @@ void keyboard_instance::add_keyboard(keyboard_id id, const char* name)
 
 //=============================================================================
 
-void keyboard_instance::remove_keyboard(keyboard_id id)
+void keyboard_manager::remove_keyboard(keyboard_id id)
 {
     for (auto it = data.keyboards.begin(); it != data.keyboards.end(); ++it)
     {
@@ -170,7 +170,7 @@ void keyboard_instance::remove_keyboard(keyboard_id id)
 
 //=============================================================================
 
-bool keyboard_instance::is_keyboard(uint16_t, uint16_t, size_t key_count)
+bool keyboard_manager::is_keyboard(uint16_t, uint16_t, size_t key_count)
 {
     enum { real_keyboard_key_count = 50 };
 
@@ -184,14 +184,14 @@ bool keyboard_instance::is_keyboard(uint16_t, uint16_t, size_t key_count)
 
 //=============================================================================
 
-bool keyboard_instance::any_connected() const
+bool keyboard_manager::any_connected() const
 {
     return !data.keyboards.empty();
 }
 
 //=============================================================================
 
-std::vector<keyboard_id> keyboard_instance::list_keyboards() const
+std::vector<keyboard_id> keyboard_manager::list_keyboards() const
 {
     std::vector<keyboard_id> keyboards(data.keyboards.size());
 
@@ -205,7 +205,7 @@ std::vector<keyboard_id> keyboard_instance::list_keyboards() const
 
 //=============================================================================
 
-const char* keyboard_instance::get_name(keyboard_id id) const
+const char* keyboard_manager::get_name(keyboard_id id) const
 {
     const keyboard_info* kb = get_keyboard(id);
     return kb ? kb->name.c_str() : nullptr;
@@ -215,14 +215,14 @@ const char* keyboard_instance::get_name(keyboard_id id) const
 // focus
 //=============================================================================
 
-video::window_id keyboard_instance::get_focus() const
+video::window_id keyboard_manager::get_focus() const
 {
     return data.focus;
 }
 
 //=============================================================================
 
-video::window_instance* keyboard_instance::get_focus_instance()
+video::window_instance* keyboard_manager::get_focus_instance()
 {
     return video->get_window_instance(data.focus);
 }
@@ -231,7 +231,7 @@ video::window_instance* keyboard_instance::get_focus_instance()
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_keyboard.c#L326
 
-bool keyboard_instance::set_focus(video::window_id wid)
+bool keyboard_manager::set_focus(video::window_id wid)
 {
     if (data.focus == wid)
     {
@@ -262,7 +262,7 @@ bool keyboard_instance::set_focus(video::window_id wid)
 #endif // !VX_PLATFORM_MOBILE
     }
 
-    mouse::mouse_instance* mouse = video->mouse_ptr;
+    mouse::mouse_manager* mouse = video->mouse_ptr;
 
     if (old_focus && !new_focus)
     {
@@ -308,7 +308,7 @@ bool keyboard_instance::set_focus(video::window_id wid)
 // keymap
 //=============================================================================
 
-void keyboard_instance::clear_keymap()
+void keyboard_manager::clear_keymap()
 {
     if (data.keymap_ptr && data.keymap_ptr->data.auto_release)
     {
@@ -320,7 +320,7 @@ void keyboard_instance::clear_keymap()
 
 //=============================================================================
 
-void keyboard_instance::set_keymap(keymap* map, bool send_event)
+void keyboard_manager::set_keymap(keymap* map, bool send_event)
 {
     clear_keymap();
     data.keymap_ptr = map;
@@ -386,7 +386,7 @@ void keyboard_instance::set_keymap(keymap* map, bool send_event)
 
 //=============================================================================
 
-bool keyboard_instance::create_keymap()
+bool keyboard_manager::create_keymap()
 {
     clear_keymap();
 
@@ -402,7 +402,7 @@ bool keyboard_instance::create_keymap()
 
 //=============================================================================
 
-keymap* keyboard_instance::get_current_keymap(bool ignore_options)
+keymap* keyboard_manager::get_current_keymap(bool ignore_options)
 {
     keymap* map = data.keymap_ptr;
 
@@ -424,9 +424,9 @@ keymap* keyboard_instance::get_current_keymap(bool ignore_options)
     return map;
 }
 
-const keymap* keyboard_instance::get_current_keymap(bool ignore_options) const
+const keymap* keyboard_manager::get_current_keymap(bool ignore_options) const
 {
-    return const_cast<keyboard_instance*>(this)->get_current_keymap(ignore_options);
+    return const_cast<keyboard_manager*>(this)->get_current_keymap(ignore_options);
 }
 
 //=============================================================================
@@ -482,7 +482,7 @@ static keycode convert_numpad_keycode(keycode kc, bool numlock) noexcept
 
 //=============================================================================
 
-void keyboard_instance::set_keymap_entry(scancode sc, key_mod mod_state, keycode kc)
+void keyboard_manager::set_keymap_entry(scancode sc, key_mod mod_state, keycode kc)
 {
     if (!data.keymap_ptr)
     {
@@ -497,7 +497,7 @@ void keyboard_instance::set_keymap_entry(scancode sc, key_mod mod_state, keycode
 
 //=============================================================================
 
-keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state, bool key_event) const
+keycode keyboard_manager::get_key_from_scancode(scancode sc, key_mod mod_state, bool key_event) const
 {
     if (key_event)
     {
@@ -539,14 +539,14 @@ keycode keyboard_instance::get_key_from_scancode(scancode sc, key_mod mod_state,
 
 //=============================================================================
 
-scancode keyboard_instance::get_scancode_from_key(keycode key, key_mod* mod_state) const
+scancode keyboard_manager::get_scancode_from_key(keycode key, key_mod* mod_state) const
 {
     return data.keymap_ptr ? data.keymap_ptr->get_scancode(key, mod_state) : scancode_unknown;
 }
 
 //=============================================================================
 
-scancode keyboard_instance::get_next_reserved_scancode()
+scancode keyboard_manager::get_next_reserved_scancode()
 {
     if (!data.keymap_ptr)
     {
@@ -561,35 +561,35 @@ scancode keyboard_instance::get_next_reserved_scancode()
 
 //=============================================================================
 
-bool keyboard_instance::set_scancode_name(scancode sc, const char* name)
+bool keyboard_manager::set_scancode_name(scancode sc, const char* name)
 {
     return set_scancode_name_internal(sc, name);
 }
 
 //=============================================================================
 
-const char* keyboard_instance::get_scancode_name(scancode sc) const
+const char* keyboard_manager::get_scancode_name(scancode sc) const
 {
     return get_scancode_name_internal(sc);
 }
 
 //=============================================================================
 
-scancode keyboard_instance::get_scancode_from_name(const char* name) const
+scancode keyboard_manager::get_scancode_from_name(const char* name) const
 {
     return get_scancode_from_name_internal(name);
 }
 
 //=============================================================================
 
-std::string keyboard_instance::get_key_name(keycode key) const
+std::string keyboard_manager::get_key_name(keycode key) const
 {
     return get_key_name_internal(key, data.keymap_ptr);
 }
 
 //=============================================================================
 
-keycode keyboard_instance::get_key_from_name(const char* name) const
+keycode keyboard_manager::get_key_from_name(const char* name) const
 {
     return get_key_from_name_internal(name, data.keymap_ptr);
 }
@@ -598,14 +598,14 @@ keycode keyboard_instance::get_key_from_name(const char* name) const
 // Key State / Modifiers
 //=============================================================================
 
-const key_state& keyboard_instance::get_key_state() const
+const key_state& keyboard_manager::get_key_state() const
 {
     return data.state;
 }
 
 //=============================================================================
 
-void keyboard_instance::reset()
+void keyboard_manager::reset()
 {
     for (uint32_t sc = scancode_unknown; sc < scancode_count; ++sc)
     {
@@ -618,21 +618,21 @@ void keyboard_instance::reset()
 
 //=============================================================================
 
-key_mod keyboard_instance::get_mod_state() const
+key_mod keyboard_manager::get_mod_state() const
 {
     return data.mod_state;
 }
 
 //=============================================================================
 
-void keyboard_instance::set_mod_state(key_mod mod_state)
+void keyboard_manager::set_mod_state(key_mod mod_state)
 {
     data.mod_state = mod_state;
 }
 
 //=============================================================================
 
-void keyboard_instance::toggle_mod_state(key_mod mod_state, bool toggle)
+void keyboard_manager::toggle_mod_state(key_mod mod_state, bool toggle)
 {
     if (toggle)
     {
@@ -648,7 +648,7 @@ void keyboard_instance::toggle_mod_state(key_mod mod_state, bool toggle)
 // Key Events
 //=============================================================================
 
-void keyboard_instance::send_keymap_changed()
+void keyboard_manager::send_keymap_changed()
 {
     event::event e{};
     e.type = event::keymap_changed;
@@ -657,7 +657,7 @@ void keyboard_instance::send_keymap_changed()
 
 //=============================================================================
 
-void keyboard_instance::send_keyboard_added(keyboard_id id)
+void keyboard_manager::send_keyboard_added(keyboard_id id)
 {
     event::event e{};
     e.type = event::keyboard_added;
@@ -667,7 +667,7 @@ void keyboard_instance::send_keyboard_added(keyboard_id id)
 
 //=============================================================================
 
-void keyboard_instance::send_keyboard_removed(keyboard_id id)
+void keyboard_manager::send_keyboard_removed(keyboard_id id)
 {
     event::event e{};
     e.type = event::keyboard_removed;
@@ -677,21 +677,21 @@ void keyboard_instance::send_keyboard_removed(keyboard_id id)
 
 //=============================================================================
 
-bool keyboard_instance::send_key(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
+bool keyboard_manager::send_key(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
 {
     return send_key_internal(t, key_flags::hardware, id, raw, sc, down);
 }
 
 //=============================================================================
 
-bool keyboard_instance::send_key_no_mods(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
+bool keyboard_manager::send_key_no_mods(time::time_point t, keyboard_id id, int raw, scancode sc, bool down)
 {
     return send_key_internal(t, key_flags::hardware | key_flags::ignore_modifiers, id, raw, sc, down);
 }
 
 //=============================================================================
 
-bool keyboard_instance::send_key_and_keycode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode kc, bool down)
+bool keyboard_manager::send_key_and_keycode(time::time_point t, keyboard_id id, int raw, scancode sc, keycode kc, bool down)
 {
     if (down)
     {
@@ -704,14 +704,14 @@ bool keyboard_instance::send_key_and_keycode(time::time_point t, keyboard_id id,
 
 //=============================================================================
 
-bool keyboard_instance::send_key_auto_release(time::time_point t, scancode sc)
+bool keyboard_manager::send_key_auto_release(time::time_point t, scancode sc)
 {
     return send_key_internal(t, key_flags::auto_release, global_keyboard_id, 0, sc, true);
 }
 
 //=============================================================================
 
-void keyboard_instance::send_unicode_key(time::time_point t, char32_t c)
+void keyboard_manager::send_unicode_key(time::time_point t, char32_t c)
 {
     if (c == '\n')
     {
@@ -748,7 +748,7 @@ void keyboard_instance::send_unicode_key(time::time_point t, char32_t c)
 
 //=============================================================================
 
-bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down)
+bool keyboard_manager::send_key_internal(time::time_point t, key_flags flags, keyboard_id id, int raw, scancode sc, bool down)
 {
     const key_flags source = flags & key_flags::source_mask;
     bool repeat = false;
@@ -873,7 +873,7 @@ bool keyboard_instance::send_key_internal(time::time_point t, key_flags flags, k
 
 //=============================================================================
 
-bool keyboard_instance::hardware_key_pressed() const
+bool keyboard_manager::hardware_key_pressed() const
 {
     for (uint32_t sc = scancode_unknown; sc < scancode_count; ++sc)
     {
@@ -888,7 +888,7 @@ bool keyboard_instance::hardware_key_pressed() const
 
 //=============================================================================
 
-void keyboard_instance::release_auto_release_keys()
+void keyboard_manager::release_auto_release_keys()
 {
     if (data.auto_release_pending)
     {
@@ -917,7 +917,7 @@ void keyboard_instance::release_auto_release_keys()
 // Screen Keyboard
 //=============================================================================
 
-bool keyboard_instance::auto_showing_screen_keyboard() const
+bool keyboard_manager::auto_showing_screen_keyboard() const
 {
     const char* hint = hints_ptr->get_hint(hint::keyboard_enable_screen_keyboard);
 
@@ -931,21 +931,21 @@ bool keyboard_instance::auto_showing_screen_keyboard() const
 
 //=============================================================================
 
-bool keyboard_instance::has_screen_keyboard_support() const
+bool keyboard_manager::has_screen_keyboard_support() const
 {
     return video->has_screen_keyboard_support();
 }
 
 //=============================================================================
 
-bool keyboard_instance::screen_keyboard_shown() const
+bool keyboard_manager::screen_keyboard_shown() const
 {
     return data.screen_keyboard_shown;
 }
 
 //=============================================================================
 
-void keyboard_instance::send_screen_keyboard_shown()
+void keyboard_manager::send_screen_keyboard_shown()
 {
     event::event e{};
     e.type = event::screen_keyboard_shown;
@@ -954,7 +954,7 @@ void keyboard_instance::send_screen_keyboard_shown()
 
 //=============================================================================
 
-void keyboard_instance::send_screen_keyboard_hidden()
+void keyboard_manager::send_screen_keyboard_hidden()
 {
     event::event e{};
     e.type = event::screen_keyboard_hidden;
@@ -965,7 +965,7 @@ void keyboard_instance::send_screen_keyboard_hidden()
 // Text Input / IME
 //=============================================================================
 
-void keyboard_instance::send_text(const char* text)
+void keyboard_manager::send_text(const char* text)
 {
     if (!text || !*text)
     {
@@ -995,7 +995,7 @@ void keyboard_instance::send_text(const char* text)
 
 //=============================================================================
 
-void keyboard_instance::send_editing_text(const char* text, size_t start, size_t length)
+void keyboard_manager::send_editing_text(const char* text, size_t start, size_t length)
 {
     if (!text)
     {
@@ -1027,7 +1027,7 @@ void keyboard_instance::send_editing_text(const char* text, size_t start, size_t
 
 //=============================================================================
 
-void keyboard_instance::send_editing_text_candidates(char** candidates, size_t count, size_t selected, bool horizontal)
+void keyboard_manager::send_editing_text_candidates(char** candidates, size_t count, size_t selected, bool horizontal)
 {
     const video::window_instance* w = get_focus_instance();
     if (!w || !w->text_input_active())

@@ -17,7 +17,7 @@ namespace mouse {
 // forward declares
 //=============================================================================
 
-class mouse_instance;
+class mouse_manager;
 class mouse_instance_impl;
 
 class cursor_instance;
@@ -117,7 +117,7 @@ VX_FLAGS_DECLARE_END(integer_mode)
 
 //=============================================================================
 
-struct mouse_data
+struct mouse_manager_data
 {
     // Window focus
     video::window_id focus = invalid_id;
@@ -201,18 +201,18 @@ struct mouse_data
 // mouse internal
 //=============================================================================
 
-class mouse_instance
+class mouse_manager
 {
 public:
 
-    mouse_instance();
-    ~mouse_instance();
+    mouse_manager();
+    ~mouse_manager();
 
-    mouse_instance(const mouse_instance&) = delete;
-    mouse_instance& operator=(const mouse_instance&) = delete;
+    mouse_manager(const mouse_manager&) = delete;
+    mouse_manager& operator=(const mouse_manager&) = delete;
 
-    mouse_instance(mouse_instance&&) noexcept = delete;
-    mouse_instance& operator=(mouse_instance&&) noexcept = delete;
+    mouse_manager(mouse_manager&&) noexcept = delete;
+    mouse_manager& operator=(mouse_manager&&) noexcept = delete;
 
 public:
 
@@ -341,7 +341,7 @@ public:
     //=============================================================================
 
     video::video_instance* video = nullptr;
-    mouse_data data;
+    mouse_manager_data data;
     std::unique_ptr<mouse_instance_impl> impl_ptr;
 };
 

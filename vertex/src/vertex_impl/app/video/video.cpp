@@ -65,14 +65,14 @@ bool video_instance::init(app_instance* owner)
     app = owner;
 
     // clipboard
-    clipboard_ptr = new clipboard::clipboard_instance;
+    clipboard_ptr = new clipboard::clipboard_manager;
     if (!clipboard_ptr || !clipboard_ptr->init(this))
     {
         goto failed;
     }
 
     // keyboard
-    keyboard_ptr = new keyboard::keyboard_instance;
+    keyboard_ptr = new keyboard::keyboard_manager;
     if (!keyboard_ptr || !keyboard_ptr->init(this))
     {
         goto failed;
@@ -93,7 +93,7 @@ bool video_instance::init(app_instance* owner)
     }
 
     // mouse
-    mouse_ptr = new mouse::mouse_instance;
+    mouse_ptr = new mouse::mouse_manager;
     if (!mouse_ptr || !mouse_ptr->init(this))
     {
         goto failed;

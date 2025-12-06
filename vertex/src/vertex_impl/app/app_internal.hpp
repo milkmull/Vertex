@@ -13,8 +13,8 @@ namespace app {
 // subsystem instances
 //=============================================================================
 
-namespace hint { class hints_instance; }
-namespace event { class events_instance; }
+namespace hint { class hint_manager; }
+namespace event { class event_manager; }
 
 #if defined(VX_APP_VIDEO_ENABLED)
 namespace video { class video_instance; }
@@ -107,8 +107,8 @@ public:
 
     app_data data;
 
-    hint::hints_instance* hints_ptr = nullptr;
-    event::events_instance* events_ptr = nullptr;
+    hint::hint_manager* hints_ptr = nullptr;
+    event::event_manager* events_ptr = nullptr;
 #if defined(VX_APP_VIDEO_ENABLED)
     video::video_instance* video_ptr = nullptr;
 #endif // VX_APP_VIDEO_ENABLED

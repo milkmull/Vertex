@@ -19,7 +19,7 @@ class clipboard_instance_impl;
 // clipboard data
 //=============================================================================
 
-struct clipboard_data
+struct clipboard_manager_data
 {
     // When the clipboard data is set, no data is actually coppied. Instead this
     // callback provides a way to retrieve  pointer to the data only when it is
@@ -46,18 +46,18 @@ inline bool is_text_mime_type(const char* type)
 // clipboard_instance
 //=============================================================================
 
-class clipboard_instance
+class clipboard_manager
 {
 public:
 
-    clipboard_instance();
-    ~clipboard_instance();
+    clipboard_manager();
+    ~clipboard_manager();
 
-    clipboard_instance(const clipboard_instance&) = delete;
-    clipboard_instance& operator=(const clipboard_instance&) = delete;
+    clipboard_manager(const clipboard_manager&) = delete;
+    clipboard_manager& operator=(const clipboard_manager&) = delete;
 
-    clipboard_instance(clipboard_instance&&) noexcept = delete;
-    clipboard_instance& operator=(clipboard_instance&&) noexcept = delete;
+    clipboard_manager(clipboard_manager&&) noexcept = delete;
+    clipboard_manager& operator=(clipboard_manager&&) noexcept = delete;
 
 public:
 
@@ -117,7 +117,7 @@ public:
     //=============================================================================
 
     video::video_instance* video = nullptr;
-    clipboard_data data;
+    clipboard_manager_data data;
     std::unique_ptr<clipboard_instance_impl> impl_ptr;
 };
 

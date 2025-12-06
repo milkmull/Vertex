@@ -31,7 +31,7 @@ namespace mouse {
 
 static void double_click_time_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
 
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_GET_DOUBLE_CLICK_TIME
 
@@ -57,7 +57,7 @@ static void double_click_time_hint_watcher(const hint::hint_t, const char*, cons
 
 static void double_click_radius_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.double_click_radius = static_cast<int>(hint::parse_integer(new_value, DEFAULT_DOUBLE_CLICK_RADIUS));
 }
 
@@ -65,7 +65,7 @@ static void double_click_radius_hint_watcher(const hint::hint_t, const char*, co
 
 static void normal_speed_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
 
     mouse->data.normal_speed_scale = hint::parse_float(new_value, 1.0f);
 
@@ -83,7 +83,7 @@ static void normal_speed_scale_hint_watcher(const hint::hint_t, const char*, con
 
 static void relative_speed_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
 
     mouse->data.relative_speed_scale = hint::parse_float(new_value, 1.0f);
 
@@ -101,7 +101,7 @@ static void relative_speed_scale_hint_watcher(const hint::hint_t, const char*, c
 
 static void relative_system_scale_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.relative_system_scale_enabled = hint::parse_boolean(new_value, false);
 }
 
@@ -109,7 +109,7 @@ static void relative_system_scale_hint_watcher(const hint::hint_t, const char*, 
 
 static void relative_mode_center_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.relative_center = hint::parse_boolean(new_value, true);
 }
 
@@ -117,7 +117,7 @@ static void relative_mode_center_hint_watcher(const hint::hint_t, const char*, c
 
 static void mouse_warp_emulation_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.warp_emulation_hint = hint::parse_boolean(new_value, true);
 
     if (!mouse->data.warp_emulation_hint && mouse->data.warp_emulation_active)
@@ -131,7 +131,7 @@ static void mouse_warp_emulation_hint_watcher(const hint::hint_t, const char*, c
 
 static void touch_mouse_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.touch_mouse_events = hint::parse_boolean(new_value, true);
 }
 
@@ -139,7 +139,7 @@ static void touch_mouse_events_hint_watcher(const hint::hint_t, const char*, con
 
 static void mouse_touch_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
 
 #if defined(VX_PLATFORM_MOBILE)
 #   define default_value true
@@ -173,7 +173,7 @@ static void mouse_touch_events_hint_watcher(const hint::hint_t, const char*, con
 
 static void pen_mouse_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.pen_mouse_events = hint::parse_boolean(new_value, true);
 }
 
@@ -181,7 +181,7 @@ static void pen_mouse_events_hint_watcher(const hint::hint_t, const char*, const
 
 static void pen_touch_events_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.pen_touch_events = hint::parse_boolean(new_value, true);
 
     if (mouse->data.pen_touch_events)
@@ -206,7 +206,7 @@ static void pen_touch_events_hint_watcher(const hint::hint_t, const char*, const
 
 static void auto_capture_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     const bool auto_capture = hint::parse_boolean(new_value, true);
 
     if (auto_capture != mouse->data.auto_capture)
@@ -220,7 +220,7 @@ static void auto_capture_hint_watcher(const hint::hint_t, const char*, const cha
 
 static void relative_warp_motion_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.relative_warp_motion = hint::parse_boolean(new_value, false);
 }
 
@@ -228,7 +228,7 @@ static void relative_warp_motion_hint_watcher(const hint::hint_t, const char*, c
 
 static void relative_cursor_visible_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     mouse->data.relative_hide_cursor = !hint::parse_boolean(new_value, false);
     mouse->redraw_cursor();
 }
@@ -237,7 +237,7 @@ static void relative_cursor_visible_hint_watcher(const hint::hint_t, const char*
 
 static void integer_mode_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    mouse_instance* mouse = static_cast<mouse_instance*>(user_data);
+    mouse_manager* mouse = static_cast<mouse_manager*>(user_data);
     const auto hint = static_cast<typename integer_mode::underlying_type>(
         hint::parse_integer(new_value, integer_mode::none)
     );
@@ -260,14 +260,14 @@ cursor_instance& cursor_instance::operator=(cursor_instance&&) noexcept = defaul
 // mouse internal
 //=============================================================================
 
-mouse_instance::mouse_instance() = default;
-mouse_instance::~mouse_instance() { quit(); }
+mouse_manager::mouse_manager() = default;
+mouse_manager::~mouse_manager() { quit(); }
 
 //=============================================================================
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_mouse.c#L249
 
-bool mouse_instance::init(video::video_instance* owner)
+bool mouse_manager::init(video::video_instance* owner)
 {
     if (video)
     {
@@ -387,7 +387,7 @@ bool mouse_instance::init(video::video_instance* owner)
 
 //=============================================================================
 
-void mouse_instance::quit()
+void mouse_manager::quit()
 {
     if (touch_ptr)
     {
@@ -532,7 +532,7 @@ click_state* input_source::get_click_state(uint8_t button)
 // Device Management
 //=============================================================================
 
-size_t mouse_instance::get_mouse_index(mouse_id id) const
+size_t mouse_manager::get_mouse_index(mouse_id id) const
 {
     if (!is_valid_id(id))
     {
@@ -552,7 +552,7 @@ size_t mouse_instance::get_mouse_index(mouse_id id) const
 
 //=============================================================================
 
-mouse_info* mouse_instance::get_mouse(mouse_id id)
+mouse_info* mouse_manager::get_mouse(mouse_id id)
 {
     if (!is_valid_id(id))
     {
@@ -570,14 +570,14 @@ mouse_info* mouse_instance::get_mouse(mouse_id id)
     return nullptr;
 }
 
-const mouse_info* mouse_instance::get_mouse(mouse_id id) const
+const mouse_info* mouse_manager::get_mouse(mouse_id id) const
 {
-    return const_cast<mouse_instance*>(this)->get_mouse(id);
+    return const_cast<mouse_manager*>(this)->get_mouse(id);
 }
 
 //=============================================================================
 
-void mouse_instance::add_mouse(mouse_id id, const char* name)
+void mouse_manager::add_mouse(mouse_id id, const char* name)
 {
     const size_t i = get_mouse_index(id);
     if (i == VX_INVALID_INDEX)
@@ -598,7 +598,7 @@ void mouse_instance::add_mouse(mouse_id id, const char* name)
 
 //=============================================================================
 
-void mouse_instance::remove_mouse(mouse_id id)
+void mouse_manager::remove_mouse(mouse_id id)
 {
     bool found = false;
 
@@ -631,14 +631,14 @@ void mouse_instance::remove_mouse(mouse_id id)
 
 //=============================================================================
 
-bool mouse_instance::any_connected() const
+bool mouse_manager::any_connected() const
 {
     return !data.mice.empty();
 }
 
 //=============================================================================
 
-std::vector<mouse_id> mouse_instance::list_mice() const
+std::vector<mouse_id> mouse_manager::list_mice() const
 {
     std::vector<mouse_id> mice(data.mice.size());
 
@@ -652,7 +652,7 @@ std::vector<mouse_id> mouse_instance::list_mice() const
 
 //=============================================================================
 
-const char* mouse_instance::get_name(mouse_id id) const
+const char* mouse_manager::get_name(mouse_id id) const
 {
     const mouse_info* m = get_mouse(id);
     return m ? m->name.c_str() : nullptr;
@@ -660,7 +660,7 @@ const char* mouse_instance::get_name(mouse_id id) const
 
 //=============================================================================
 
-input_source* mouse_instance::get_input_source(mouse_id id, bool down, uint8_t button)
+input_source* mouse_manager::get_input_source(mouse_id id, bool down, uint8_t button)
 {
     input_source* source = nullptr;
 
@@ -704,21 +704,21 @@ input_source* mouse_instance::get_input_source(mouse_id id, bool down, uint8_t b
 // Focus (window association)
 //=============================================================================
 
-video::window_id mouse_instance::get_focus() const
+video::window_id mouse_manager::get_focus() const
 {
     return data.focus;
 }
 
 //=============================================================================
 
-video::window_instance* mouse_instance::get_focus_instance()
+video::window_instance* mouse_manager::get_focus_instance()
 {
     return video->get_window_instance(data.focus);
 }
 
 //=============================================================================
 
-void mouse_instance::set_focus(video::window_id wid)
+void mouse_manager::set_focus(video::window_id wid)
 {
     if (data.focus == wid)
     {
@@ -753,7 +753,7 @@ void mouse_instance::set_focus(video::window_id wid)
 
 //=============================================================================
 
-bool mouse_instance::update_focus(video::window_instance* w, float x, float y, bool send_motion)
+bool mouse_manager::update_focus(video::window_instance* w, float x, float y, bool send_motion)
 {
     const bool in_window = is_position_in_window(w, x, y);
     const video::window_id wid = w ? w->data.id : invalid_id;
@@ -792,7 +792,7 @@ bool mouse_instance::update_focus(video::window_instance* w, float x, float y, b
 // State (buttons + position)
 //=============================================================================
 
-button mouse_instance::get_button_state(mouse_id id, bool include_touch) const
+button mouse_manager::get_button_state(mouse_id id, bool include_touch) const
 {
     button state = button::none;
 
@@ -820,7 +820,7 @@ button mouse_instance::get_button_state(mouse_id id, bool include_touch) const
 
 //=============================================================================
 
-button mouse_instance::get_state(float* x, float* y) const
+button mouse_manager::get_state(float* x, float* y) const
 {
     if (x)
     {
@@ -836,7 +836,7 @@ button mouse_instance::get_state(float* x, float* y) const
 
 //=============================================================================
 
-button mouse_instance::get_relative_state(float* x, float* y)
+button mouse_manager::get_relative_state(float* x, float* y)
 {
     if (x)
     {
@@ -855,7 +855,7 @@ button mouse_instance::get_relative_state(float* x, float* y)
 
 //=============================================================================
 
-button mouse_instance::get_global_state(float* x, float* y) const
+button mouse_manager::get_global_state(float* x, float* y) const
 {
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_GET_GLOBAL_MOUSE_STATE
 
@@ -885,7 +885,7 @@ button mouse_instance::get_global_state(float* x, float* y) const
 // Position control
 //=============================================================================
 
-bool mouse_instance::is_position_in_window(const video::window_instance* w, float x, float y)
+bool mouse_manager::is_position_in_window(const video::window_instance* w, float x, float y)
 {
     if (!w)
     {
@@ -908,13 +908,13 @@ bool mouse_instance::is_position_in_window(const video::window_instance* w, floa
 
 //=============================================================================
 
-void mouse_instance::warp_in_window(video::window_instance* w, float x, float y)
+void mouse_manager::warp_in_window(video::window_instance* w, float x, float y)
 {
     maybe_enable_warp_emulation(w, x, y);
     warp_in_window_internal(w, x, y);
 }
 
-void mouse_instance::warp_in_window_internal(video::window_instance* w, float x, float y)
+void mouse_manager::warp_in_window_internal(video::window_instance* w, float x, float y)
 {
     if (!w)
     {
@@ -964,7 +964,7 @@ void mouse_instance::warp_in_window_internal(video::window_instance* w, float x,
 
 //=============================================================================
 
-bool mouse_instance::warp_global(float x, float y)
+bool mouse_manager::warp_global(float x, float y)
 {
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_WARP_GLOBAL
 
@@ -984,7 +984,7 @@ bool mouse_instance::warp_global(float x, float y)
 // Relative Mode
 //=============================================================================
 
-void mouse_instance::maybe_enable_warp_emulation(const video::window_instance* w, float x, float y)
+void mouse_manager::maybe_enable_warp_emulation(const video::window_instance* w, float x, float y)
 {
     if (!data.warp_emulation_prohibited && data.warp_emulation_hint && !data.cursor_visible && !data.warp_emulation_active)
     {
@@ -1025,7 +1025,7 @@ void mouse_instance::maybe_enable_warp_emulation(const video::window_instance* w
 
 //=============================================================================
 
-void mouse_instance::disable_warp_emulation()
+void mouse_manager::disable_warp_emulation()
 {
     if (data.warp_emulation_active)
     {
@@ -1037,7 +1037,7 @@ void mouse_instance::disable_warp_emulation()
 
 //=============================================================================
 
-bool mouse_instance::set_relative_mode(bool enabled)
+bool mouse_manager::set_relative_mode(bool enabled)
 {
     if (!enabled)
     {
@@ -1104,14 +1104,14 @@ bool mouse_instance::set_relative_mode(bool enabled)
 
 //=============================================================================
 
-bool mouse_instance::get_relative_mode() const
+bool mouse_manager::get_relative_mode() const
 {
     return data.relative_mode_enabled;
 }
 
 //=============================================================================
 
-bool mouse_instance::update_relative_mode()
+bool mouse_manager::update_relative_mode()
 {
     video::window_instance* focus_window = keyboard_ptr->get_focus_instance();
     const bool enabled = (focus_window && (focus_window->data.flags & video::window_flags::mouse_relative_mode));
@@ -1128,7 +1128,7 @@ bool mouse_instance::update_relative_mode()
 // Capture
 //=============================================================================
 
-bool mouse_instance::set_capture(bool enabled)
+bool mouse_manager::set_capture(bool enabled)
 {
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
 
@@ -1167,7 +1167,7 @@ bool mouse_instance::set_capture(bool enabled)
 
 //=============================================================================
 
-bool mouse_instance::update_capture(bool force_release)
+bool mouse_manager::update_capture(bool force_release)
 {
 #if !VX_VIDEO_BACKEND_HAVE_MOUSE_CAPTURE_MOUSE
 
@@ -1236,7 +1236,7 @@ bool mouse_instance::update_capture(bool force_release)
 
 //=============================================================================
 
-void mouse_instance::constrain_position(const video::window_instance* w, float* x, float* y) const
+void mouse_manager::constrain_position(const video::window_instance* w, float* x, float* y) const
 {
     if (w && !(w->data.flags & video::window_flags::mouse_capture))
     {
@@ -1281,7 +1281,7 @@ void mouse_instance::constrain_position(const video::window_instance* w, float* 
 // Event dispatch (internal)
 //=============================================================================
 
-void mouse_instance::send_mouse_added(mouse_id id)
+void mouse_manager::send_mouse_added(mouse_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
@@ -1293,7 +1293,7 @@ void mouse_instance::send_mouse_added(mouse_id id)
 
 //=============================================================================
 
-void mouse_instance::send_mouse_removed(mouse_id id)
+void mouse_manager::send_mouse_removed(mouse_id id)
 {
     VX_ASSERT(is_valid_id(id));
 
@@ -1307,7 +1307,7 @@ void mouse_instance::send_mouse_removed(mouse_id id)
 
 // https://github.com/libsdl-org/SDL/blob/main/src/events/SDL_mouse.c#L703
 
-void mouse_instance::send_motion(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
+void mouse_manager::send_motion(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
 {
     if (w && !relative)
     {
@@ -1323,7 +1323,7 @@ void mouse_instance::send_motion(time::time_point t, video::window_instance* w, 
 
 //=============================================================================
 
-void mouse_instance::send_motion_internal(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
+void mouse_manager::send_motion_internal(time::time_point t, video::window_instance* w, mouse_id id, bool relative, float x, float y)
 {
     // Convert mouse motion to touch motion if emulation is active.
     // Triggered only when not already from a synthetic touch/pen source,
@@ -1497,14 +1497,14 @@ void mouse_instance::send_motion_internal(time::time_point t, video::window_inst
 
 //=============================================================================
 
-void mouse_instance::send_button(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down)
+void mouse_manager::send_button(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down)
 {
     send_button_internal(t, w, id, b, down, -1);
 }
 
 //=============================================================================
 
-void mouse_instance::send_button_internal(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
+void mouse_manager::send_button_internal(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
 {
     input_source* source = get_input_source(id, down, b);
     if (!source)
@@ -1641,7 +1641,7 @@ void mouse_instance::send_button_internal(time::time_point t, video::window_inst
 
 //=============================================================================
 
-void mouse_instance::send_button_clicks(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
+void mouse_manager::send_button_clicks(time::time_point t, video::window_instance* w, mouse_id id, uint8_t b, bool down, int clicks)
 {
     clicks = math::max(clicks, 0);
     send_button_internal(t, w, id, b, down, clicks);
@@ -1649,7 +1649,7 @@ void mouse_instance::send_button_clicks(time::time_point t, video::window_instan
 
 //=============================================================================
 
-void mouse_instance::send_wheel(time::time_point t, const video::window_instance* w, mouse_id id, float x, float y, wheel_direction direction)
+void mouse_manager::send_wheel(time::time_point t, const video::window_instance* w, mouse_id id, float x, float y, wheel_direction direction)
 {
     const video::window_id wid = w ? w->data.id : invalid_id;
 
@@ -1707,7 +1707,7 @@ void mouse_instance::send_wheel(time::time_point t, const video::window_instance
 // cursor
 //=============================================================================
 
-cursor_id mouse_instance::add_cursor(cursor_instance& c)
+cursor_id mouse_manager::add_cursor(cursor_instance& c)
 {
     const cursor_id id = data.cursor_id_generator.next();
     c.data.id = id;
@@ -1717,7 +1717,7 @@ cursor_id mouse_instance::add_cursor(cursor_instance& c)
 
 //=============================================================================
 
-void mouse_instance::remove_cursor(cursor_id id)
+void mouse_manager::remove_cursor(cursor_id id)
 {
     if (!is_valid_id(id))
     {
@@ -1736,7 +1736,7 @@ void mouse_instance::remove_cursor(cursor_id id)
 
 //=============================================================================
 
-const cursor_instance* mouse_instance::get_cursor_instance(cursor_id id) const
+const cursor_instance* mouse_manager::get_cursor_instance(cursor_id id) const
 {
     if (!is_valid_id(id))
     {
@@ -1756,7 +1756,7 @@ const cursor_instance* mouse_instance::get_cursor_instance(cursor_id id) const
 
 //=============================================================================
 
-cursor_id mouse_instance::create_cursor(const pixel::mask_pair& mask, int hot_x, int hot_y)
+cursor_id mouse_manager::create_cursor(const pixel::mask_pair& mask, int hot_x, int hot_y)
 {
     enum : uint32_t
     {
@@ -1818,7 +1818,7 @@ cursor_id mouse_instance::create_cursor(const pixel::mask_pair& mask, int hot_x,
 
 //=============================================================================
 
-cursor_id mouse_instance::create_color_cursor(const argb_surface& surf, int hot_x, int hot_y)
+cursor_id mouse_manager::create_color_cursor(const argb_surface& surf, int hot_x, int hot_y)
 {
     if (hot_x < 0 || hot_x >= static_cast<int>(surf.width()))
     {
@@ -1849,7 +1849,7 @@ cursor_id mouse_instance::create_color_cursor(const argb_surface& surf, int hot_
 
 //=============================================================================
 
-cursor_id mouse_instance::create_system_cursor(cursor_shape shape)
+cursor_id mouse_manager::create_system_cursor(cursor_shape shape)
 {
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_CREATE_SYSTEM_CURSOR
 
@@ -1866,14 +1866,14 @@ cursor_id mouse_instance::create_system_cursor(cursor_shape shape)
 
 //=============================================================================
 
-cursor_id mouse_instance::get_cursor() const
+cursor_id mouse_manager::get_cursor() const
 {
     return data.current_cursor;
 }
 
 //=============================================================================
 
-bool mouse_instance::set_cursor(cursor_id cid)
+bool mouse_manager::set_cursor(cursor_id cid)
 {
     if (cid == data.current_cursor)
     {
@@ -1894,7 +1894,7 @@ bool mouse_instance::set_cursor(cursor_id cid)
 
 //=============================================================================
 
-void mouse_instance::set_default_cursor(cursor_id cid)
+void mouse_manager::set_default_cursor(cursor_id cid)
 {
     if (cid == data.default_cursor)
     {
@@ -1911,7 +1911,7 @@ void mouse_instance::set_default_cursor(cursor_id cid)
 
 //=============================================================================
 
-cursor_id mouse_instance::get_default_cursor() const
+cursor_id mouse_manager::get_default_cursor() const
 {
     return data.default_cursor;
 }
@@ -1921,7 +1921,7 @@ cursor_id mouse_instance::get_default_cursor() const
 // Create a dummy mouse cursor for video backends that don't support true cursors,
 // so that mouse grab and focus functionality will work.
 
-void mouse_instance::create_dummy_cursor()
+void mouse_manager::create_dummy_cursor()
 {
     argb_surface surf(1, 1);
     const cursor_id default_cursor = create_color_cursor(surf, 0, 0);
@@ -1930,7 +1930,7 @@ void mouse_instance::create_dummy_cursor()
 
 //=============================================================================
 
-cursor_shape mouse_instance::get_default_system_cursor() const
+cursor_shape mouse_manager::get_default_system_cursor() const
 {
     const auto id = hints_ptr->get_hint_integer(
         hint::mouse_default_system_cursor,
@@ -1946,7 +1946,7 @@ cursor_shape mouse_instance::get_default_system_cursor() const
 
 //=============================================================================
 
-bool mouse_instance::show_cursor()
+bool mouse_manager::show_cursor()
 {
     if (data.warp_emulation_active)
     {
@@ -1965,7 +1965,7 @@ bool mouse_instance::show_cursor()
 
 //=============================================================================
 
-bool mouse_instance::hide_cursor()
+bool mouse_manager::hide_cursor()
 {
     if (data.cursor_visible)
     {
@@ -1978,14 +1978,14 @@ bool mouse_instance::hide_cursor()
 
 //=============================================================================
 
-bool mouse_instance::cursor_visible() const
+bool mouse_manager::cursor_visible() const
 {
     return data.cursor_visible;
 }
 
 //=============================================================================
 
-void mouse_instance::redraw_cursor()
+void mouse_manager::redraw_cursor()
 {
 #if VX_VIDEO_BACKEND_HAVE_MOUSE_SHOW_CURSOR
 

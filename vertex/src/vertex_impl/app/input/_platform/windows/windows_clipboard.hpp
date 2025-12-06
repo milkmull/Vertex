@@ -28,7 +28,7 @@ public:
     // Initialization
     //=============================================================================
 
-    bool init(clipboard_instance* owner) { return true; }
+    bool init(clipboard_manager* owner) { return true; }
     void quit() {}
 
     ~clipboard_instance_impl() { quit(); }
@@ -53,7 +53,7 @@ public:
     // data
     //=============================================================================
 
-    clipboard_instance* clipboard;
+    clipboard_manager* clipboard;
     clipboard_impl_data data;
 };
 

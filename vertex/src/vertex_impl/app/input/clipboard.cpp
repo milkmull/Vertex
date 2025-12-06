@@ -18,12 +18,12 @@ namespace clipboard {
 // initialization
 //=============================================================================
 
-clipboard_instance::clipboard_instance() = default;
-clipboard_instance::~clipboard_instance() { quit(); }
+clipboard_manager::clipboard_manager() = default;
+clipboard_manager::~clipboard_manager() { quit(); }
 
 //=============================================================================
 
-bool clipboard_instance::init(video::video_instance* owner)
+bool clipboard_manager::init(video::video_instance* owner)
 {
     if (video)
     {
@@ -33,7 +33,7 @@ bool clipboard_instance::init(video::video_instance* owner)
     return true;
 }
 
-void clipboard_instance::quit()
+void clipboard_manager::quit()
 {
     cancel_data(0);
     data.primary_selection_text.clear();
@@ -45,12 +45,12 @@ void clipboard_instance::quit()
 // mime types
 //=============================================================================
 
-const std::vector<std::string>& clipboard_instance::get_mime_types() const
+const std::vector<std::string>& clipboard_manager::get_mime_types() const
 {
     return data.mime_types;
 }
 
-const char** clipboard_instance::get_text_mime_types(size_t& count) const
+const char** clipboard_manager::get_text_mime_types(size_t& count) const
 {
 #if VX_VIDEO_BACKEND_HAVE_CLIPBOARD_GET_TEXT_MIME_TYPES
 
@@ -67,7 +67,7 @@ const char** clipboard_instance::get_text_mime_types(size_t& count) const
 
 //=============================================================================
 
-bool clipboard_instance::update_mime_types(const std::vector<std::string>& mime_types)
+bool clipboard_manager::update_mime_types(const std::vector<std::string>& mime_types)
 {
     data.mime_types = mime_types;
     return true;
@@ -77,7 +77,7 @@ bool clipboard_instance::update_mime_types(const std::vector<std::string>& mime_
 // data
 //=============================================================================
 
-void clipboard_instance::cancel_data(uint32_t sequence)
+void clipboard_manager::cancel_data(uint32_t sequence)
 {
     if (sequence && sequence != data.sequence)
     {
@@ -99,14 +99,14 @@ void clipboard_instance::cancel_data(uint32_t sequence)
 
 //=============================================================================
 
-bool clipboard_instance::clear_data()
+bool clipboard_manager::clear_data()
 {
     return set_data(nullptr, nullptr, nullptr, {});
 }
 
 //=============================================================================
 
-bool clipboard_instance::has_data(const char* mime_type) const
+bool clipboard_manager::has_data(const char* mime_type) const
 {
     if (!mime_type)
     {
@@ -135,7 +135,7 @@ bool clipboard_instance::has_data(const char* mime_type) const
 
 //=============================================================================
 
-bool clipboard_instance::has_internal_data(const char* mime_type) const
+bool clipboard_manager::has_internal_data(const char* mime_type) const
 {
     for (const std::string& type : data.mime_types)
     {
@@ -150,7 +150,7 @@ bool clipboard_instance::has_internal_data(const char* mime_type) const
 
 //=============================================================================
 
-std::vector<uint8_t> clipboard_instance::get_internal_data(const char* mime_type) const
+std::vector<uint8_t> clipboard_manager::get_internal_data(const char* mime_type) const
 {
     std::vector<uint8_t> internal_data;
 
@@ -172,7 +172,7 @@ std::vector<uint8_t> clipboard_instance::get_internal_data(const char* mime_type
 
 //=============================================================================
 
-std::vector<uint8_t> clipboard_instance::get_data(const char* mime_type) const
+std::vector<uint8_t> clipboard_manager::get_data(const char* mime_type) const
 {
 #if VX_VIDEO_BACKEND_HAVE_CLIPBOARD_GET_DATA
 
@@ -196,7 +196,7 @@ std::vector<uint8_t> clipboard_instance::get_data(const char* mime_type) const
 
 //=============================================================================
 
-bool clipboard_instance::set_data(
+bool clipboard_manager::set_data(
     data_callback callback, cleanup_callback cleanup, void* user_data,
     const std::vector<std::string>& mime_types
 )
@@ -279,7 +279,7 @@ bool clipboard_instance::set_data(
 // text
 //=============================================================================
 
-bool clipboard_instance::has_text() const
+bool clipboard_manager::has_text() const
 {
     for (const std::string& type : data.mime_types)
     {
@@ -294,7 +294,7 @@ bool clipboard_instance::has_text() const
 
 //=============================================================================
 
-std::string clipboard_instance::get_text() const
+std::string clipboard_manager::get_text() const
 {
     std::vector<uint8_t> raw_data;
     std::string text;
@@ -321,7 +321,7 @@ static const void* text_callback(const char*, size_t& size, void* user_data)
     return text;
 }
 
-bool clipboard_instance::set_text(const std::string& text)
+bool clipboard_manager::set_text(const std::string& text)
 {
     if (!text.empty())
     {
@@ -345,7 +345,7 @@ bool clipboard_instance::set_text(const std::string& text)
 // primary selection
 //=============================================================================
 
-bool clipboard_instance::has_primary_selection_text() const
+bool clipboard_manager::has_primary_selection_text() const
 {
 #if VX_VIDEO_BACKEND_HAVE_CLIPBOARD_HAS_PRIMARY_SELECTION_TEXT
 
@@ -360,7 +360,7 @@ bool clipboard_instance::has_primary_selection_text() const
 
 //=============================================================================
 
-const std::string& clipboard_instance::get_primary_selection_text() const
+const std::string& clipboard_manager::get_primary_selection_text() const
 {
 #if VX_VIDEO_BACKEND_HAVE_CLIPBOARD_GET_PRIMARY_SELECTION_TEXT
 
@@ -375,7 +375,7 @@ const std::string& clipboard_instance::get_primary_selection_text() const
 
 //=============================================================================
 
-bool clipboard_instance::set_primary_selection_text(const std::string& text)
+bool clipboard_manager::set_primary_selection_text(const std::string& text)
 {
 #if VX_VIDEO_BACKEND_HAVE_CLIPBOARD_SET_PRIMARY_SELECTION_TEXT
 
@@ -398,7 +398,7 @@ bool clipboard_instance::set_primary_selection_text(const std::string& text)
 // events
 //=============================================================================
 
-void clipboard_instance::send_update(bool owner, const std::vector<std::string>& mime_types)
+void clipboard_manager::send_update(bool owner, const std::vector<std::string>& mime_types)
 {
     if (!owner)
     {

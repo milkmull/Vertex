@@ -29,7 +29,7 @@ public:
     // initialization
     //=============================================================================
 
-    bool init(mouse_instance* owner)
+    bool init(mouse_manager* owner)
     {
         if (mouse)
         {
@@ -54,7 +54,7 @@ public:
     // data
     //=============================================================================
 
-    mouse_instance* mouse = nullptr;
+    mouse_manager* mouse = nullptr;
 };
 
 } // namespace mouse

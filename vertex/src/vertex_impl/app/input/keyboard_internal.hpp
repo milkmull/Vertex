@@ -40,7 +40,7 @@ struct keyboard_info
 
 //=============================================================================
 
-struct keyboard_data
+struct keyboard_manager_data
 {
     video::window_id focus = invalid_id;
 
@@ -62,18 +62,18 @@ struct keyboard_data
 // keyboard instance
 //=============================================================================
 
-class keyboard_instance
+class keyboard_manager
 {
 public:
 
-    keyboard_instance();
-    ~keyboard_instance();
+    keyboard_manager();
+    ~keyboard_manager();
 
-    keyboard_instance(const keyboard_instance&) = delete;
-    keyboard_instance& operator=(const keyboard_instance&) = delete;
+    keyboard_manager(const keyboard_manager&) = delete;
+    keyboard_manager& operator=(const keyboard_manager&) = delete;
 
-    keyboard_instance(keyboard_instance&&) noexcept = delete;
-    keyboard_instance& operator=(keyboard_instance&&) noexcept = delete;
+    keyboard_manager(keyboard_manager&&) noexcept = delete;
+    keyboard_manager& operator=(keyboard_manager&&) noexcept = delete;
 
 public:
 
@@ -188,7 +188,7 @@ public:
     //=============================================================================
 
     video::video_instance* video = nullptr;
-    keyboard_data data;
+    keyboard_manager_data data;
 };
 
 } // namespace keyboard

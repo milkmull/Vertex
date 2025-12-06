@@ -154,7 +154,7 @@ static void quit_internal()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-bool events_instance::init_signal_handler()
+bool event_manager::init_signal_handler()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 
@@ -168,7 +168,7 @@ bool events_instance::init_signal_handler()
     return true;
 }
 
-void events_instance::quit_signal_handler()
+void event_manager::quit_signal_handler()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 
@@ -180,7 +180,7 @@ void events_instance::quit_signal_handler()
 #endif // HAVE_SIGNAL_SUPPORT
 }
 
-void events_instance::send_pending_signal_events()
+void event_manager::send_pending_signal_events()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 
@@ -215,7 +215,7 @@ void events_instance::send_pending_signal_events()
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void events_instance::send_quit()
+void event_manager::send_quit()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 

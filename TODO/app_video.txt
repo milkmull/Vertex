@@ -4,7 +4,7 @@ todo:
     x clipboard
     x drop events
     x message box api
-    
+
     x make err setting noexcept again
     x consider removing input backend api in favor of having everything under video_impl
     x review add_hint_callback_and_default_value calls
@@ -15,9 +15,9 @@ todo:
     x handle app callback mode
     x test callbacks will static and shared
     x VX_API does not have to mark function implementations
-    - normalize # indents
-    - clang format?
+    x normalize # indents
+    x clang format?
     - move video features macro outside of video folder
-    - maybe make mouse, keyboard, clipboard, touch, pen optional and/or stack allocated, maybe remove submodules from data struct
+    x maybe make mouse, keyboard, clipboard, touch, pen optional and/or stack allocated, maybe remove submodules from data struct
     - clean up classes (public, private, const api)
     - finish front end api

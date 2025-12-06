@@ -6,24 +6,24 @@
 namespace vx {
 namespace app {
 
-struct runner_impl_data
+struct app_runner_impl_data
 {
     time::time_point callback_rate_increment;
     bool iterate_after_wait_event = false;
 };
 
-class runner_instance_impl
+class app_runner_impl
 {
 public:
 
-    runner_instance_impl() = default;
-    ~runner_instance_impl() = default;
+    app_runner_impl() = default;
+    ~app_runner_impl() = default;
 
-    runner_instance_impl(const runner_instance_impl&) = delete;
-    runner_instance_impl& operator=(const runner_instance_impl&) = delete;
+    app_runner_impl(const app_runner_impl&) = delete;
+    app_runner_impl& operator=(const app_runner_impl&) = delete;
 
-    runner_instance_impl(runner_instance_impl&&) noexcept = delete;
-    runner_instance_impl& operator=(runner_instance_impl&&) noexcept = delete;
+    app_runner_impl(app_runner_impl&&) noexcept = delete;
+    app_runner_impl& operator=(app_runner_impl&&) noexcept = delete;
 
 public:
 
@@ -65,8 +65,8 @@ public:
 
 public:
 
-    runner_instance base;
-    runner_impl_data data;
+    app_runner_base base;
+    app_runner_impl_data data;
 };
 
 //=============================================================================
@@ -75,7 +75,7 @@ public:
 
 static void rate_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
 {
-    runner_instance_impl* this_ = static_cast<runner_instance_impl*>(user_data);
+    app_runner_impl* this_ = static_cast<app_runner_impl*>(user_data);
 
     this_->data.iterate_after_wait_event = new_value && (std::strcmp(new_value, "wait_event") == 0);
 
@@ -107,7 +107,7 @@ int _priv::enter_callbacks(
     event_callback_t event_fn,
     quit_callback_t quit_fn)
 {
-    runner_instance_impl runner;
+    app_runner_impl runner;
 
     app_result result = runner.init(argc, argv, init_fn, iterate_fn, event_fn, quit_fn);
     if (result == app_result::continue_)
