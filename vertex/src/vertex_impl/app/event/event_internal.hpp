@@ -121,6 +121,7 @@ struct event_manager_data
     event_queue queue;
     event_watch_list watch;
     drop_state drop;
+    bool poll_sentinel_enabled = false;
 };
 
 //=============================================================================

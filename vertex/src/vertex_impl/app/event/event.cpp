@@ -1,8 +1,9 @@
 #include "vertex/config/util.hpp"
 #include "vertex_impl/app/app_internal.hpp"
-#include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/event/_platform/platform_event.hpp"
+#include "vertex_impl/app/event/event_internal.hpp"
 #include "vertex_impl/app/event/temporary_memory_pool.hpp"
+#include "vertex_impl/app/hints/hints_internal.hpp"
 
 #if defined(VX_APP_VIDEO_ENABLED)
 #   include "vertex_impl/app/input/keyboard_internal.hpp"
@@ -24,6 +25,7 @@
 //=============================================================================
 
 #define video_ptr app->video_ptr 
+#define hints_ptr app->hints_ptr
 
 //=============================================================================
 
@@ -36,6 +38,22 @@ namespace event {
 #if defined(VX_APP_LOG_EVENTS)
 static void log_event(const event&);
 #endif // VX_APP_LOG_EVENTS
+
+//=============================================================================
+// hints
+//=============================================================================
+
+static void enable_poll_sentinel_hint_watcher(const hint::hint_t, const char*, const char* new_value, void* user_data)
+{
+    event_manager* this_ = static_cast<event_manager*>(user_data);
+    this_->data.poll_sentinel_enabled = hint::parse_boolean(new_value, true);
+
+    // flush any existing sentinels if we just disabled them
+    if (!this_->data.poll_sentinel_enabled)
+    {
+        this_->flush_events(internal_event_poll_sentinel);
+    }
+}
 
 //=============================================================================
 // memory
@@ -366,6 +384,15 @@ bool event_manager::init(app_instance* owner)
 
     init_signal_handler();
 
+    // hints
+    {
+        hints_ptr->add_hint_callback(
+            hint::events_enable_poll_sentinel,
+            enable_poll_sentinel_hint_watcher,
+            this
+        );
+    }
+
     return true;
 
     failed:
@@ -382,6 +409,16 @@ void event_manager::quit()
     quit_signal_handler();
     stop_loop();
     data.watch.clear();
+
+    // hints
+    {
+        hints_ptr->remove_hint_callback(
+            hint::events_enable_poll_sentinel,
+            enable_poll_sentinel_hint_watcher,
+            this
+        );
+    }
+
     app = nullptr;
 }
 
@@ -471,7 +508,7 @@ void event_manager::pump_events_internal(bool push_sentinel)
     // pump events for other subsystems
     pump_events_maintenance();
 
-    if (push_sentinel)
+    if (push_sentinel && data.poll_sentinel_enabled)
     {
         data.queue.add_sentinel();
     }

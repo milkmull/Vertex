@@ -32,6 +32,24 @@ enum hint : hint_t
      */
     app_no_signal_handlers,
 
+    /**
+     * @brief Enables the poll-sentinel mechanism to prevent infinite polling loops.
+     *
+     * When polling events, continuous high-frequency input devices (such as a
+     * rapidly moving mouse) may generate new events between pump cycles. This can
+     * cause a polling loop to never terminate because each pump produces more
+     * events before the loop finishes consuming them.
+     *
+     * When this hint is enabled (default), the event pump inserts an internal
+     * sentinel marking the end of the current batch of device events. Poll loops
+     * can detect this sentinel, ensuring they always terminate even under heavy
+     * input.
+     *
+     * Disabling this hint removes the sentinel, placing full responsibility on
+     * the application to avoid infinite poll loops.
+     */
+    events_enable_poll_sentinel,
+
     //=============================================================================
     // video hints
     //=============================================================================
