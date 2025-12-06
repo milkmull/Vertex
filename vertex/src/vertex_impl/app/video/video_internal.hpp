@@ -1,6 +1,5 @@
  #pragma once
 
-#include "vertex/app/instance_pair.hpp"
 #include "vertex/app/video/video.hpp"
 #include "vertex/app/video/window.hpp"
 #include "vertex/system/error.hpp"

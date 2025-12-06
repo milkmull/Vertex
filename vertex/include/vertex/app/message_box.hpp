@@ -8,7 +8,7 @@
 #include "vertex/math/color/types/color8.hpp"
 
 #if defined(VX_APP_VIDEO_ENABLED)
-#   include "vertex/app/video/window.hpp"
+    #include "vertex/app/video/window.hpp"
 #endif
 
 namespace vx {

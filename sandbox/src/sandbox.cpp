@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 
-#define VX_MAIN_USE_CALLBACKS
+#define VX_APP_USE_CALLBACKS
 
 #include "vertex/app/main.hpp"
 #include "vertex/app/app.hpp"
@@ -24,7 +24,7 @@ static void run_app()
         os::sleep(time::milliseconds(100));
     
         app::event::event e;
-        while (app::event::poll_event(e))
+        while (app::event::poll_event(&e))
         {
             if (e.type == app::event::app_quit)
             {
@@ -36,7 +36,7 @@ static void run_app()
     }
 }
 
-#if !defined(VX_MAIN_USE_CALLBACKS)
+#if !defined(VX_APP_USE_CALLBACKS)
 
 int main(int argc, char* argv[])
 {
@@ -110,4 +110,4 @@ app_result event_callback(void* app_state, event::event& e)
 } // namespace app
 } // namespace vx
 
-#endif // VX_MAIN_USE_CALLBACKS
+#endif // VX_APP_USE_CALLBACKS

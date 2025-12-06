@@ -2,7 +2,9 @@
 
 #include "vertex/config/os.hpp"
 
-#if !defined(VX_MAIN_HANDLED) && !defined(VX_MAIN_NO_IMPL)
+// clang-format off
+
+#if !defined(VX_APP_MAIN_HANDLED) && !defined(VX_APP_MAIN_NO_IMPL)
 
     // The implementations below must be able to call the real main() without any
     // macro-based renaming. The user's main() will be renamed to vx::app_main so
@@ -15,11 +17,11 @@
     // callbacks
     //=============================================================================
 
-    #if defined(VX_MAIN_USE_CALLBACKS)
+    #if defined(VX_APP_USE_CALLBACKS)
 
         // If a platform requires a special entry point for callback - driven execution,
         // implement it in the #if 0 section below.None currently do.
-        // 
+        //
         // Otherwise, we use the standard callback entry, and the engine supplies
         // vx::app::_priv::main_() as the app entry point.Applications must * not*
         // define their own vx::app_main() in this mode.
@@ -28,32 +30,26 @@
 
             // Placeholder for platform-specific callback-based entry points.
 
-        #else 
-    
+        #else
+
             // we are using callbacks but the user has not
             // defined an entry point so we define one here
-            #define VX_MAIN_CALLBACK_STANDARD
+            #define VX_APP_CALLBACK_STANDARD
 
             int vx::app::_priv::main_(int argc, char** argv)
             {
-                return enter_callbacks(
-                    argc, argv,
-                    init_callback,
-                    quit_callback,
-                    iterate_callback,
-                    event_callback
-                );
+                return enter_callbacks(argc, argv, init_callback, iterate_callback, event_callback, quit_callback);
             }
 
         #endif // callback platform branch
 
-    #endif // VX_MAIN_USE_CALLBACKS
+    #endif // VX_APP_USE_CALLBACKS
 
     // Set up usual main stuff if we are not using callbacks or if we are but need
     // the normal entry point, unless the real entry point needs to be somewhere
     // else, like Android where it is in Java code
 
-    #if (!defined(VX_MAIN_USE_CALLBACKS) || defined(VX_MAIN_CALLBACK_STANDARD)) && !defined(VX_MAIN_EXPORTED)
+    #if (!defined(VX_APP_USE_CALLBACKS) || defined(VX_APP_CALLBACK_STANDARD)) && !defined(VX_APP_MAIN_EXPORTED)
 
         //=============================================================================
         // Windows entry points
@@ -66,12 +62,12 @@
 
             // Basic Win32 declarations needed to define WinMain variations.
             #if !defined(WINAPI)
-            #   define WINAPI __stdcall
+                #define WINAPI __stdcall
             #endif
 
             typedef struct HINSTANCE__* HINSTANCE;
-            typedef char* LPSTR;
-            typedef wchar_t* PWSTR;
+            typedef char*               LPSTR;
+            typedef wchar_t*            PWSTR;
 
             //=============================================================================
             // C runtime entry points for Visual C++
@@ -133,10 +129,18 @@
 
         #endif // entry-selection branch
 
-    #endif // (!defined(VX_MAIN_USE_CALLBACKS) || defined(VX_MAIN_CALLBACK_STANDARD)) && !defined(VX_MAIN_EXPORTED)
+    #endif // (!defined(VX_APP_USE_CALLBACKS) || defined(VX_APP_CALLBACK_STANDARD)) && !defined(VX_APP_MAIN_EXPORTED)
 
-    // rename users main() function to vx::app::_priv::main_()
-    // so it can be called from the wrappers above
+    /**
+     * @def main
+     * @brief Redirects the user's `main` symbol to Vertex's internal main function.
+     *
+     * When platform logic requires use of the internal `vx::app::_priv::main_`,
+     * this macro redefines `main` so that user code still declares a normal
+     * `int main(int,char**)`.
+     */
     #define main vx::app::_priv::main_
 
-#endif // !VX_MAIN_HANDLED && !VX_MAIN_NO_IMPL
+#endif // !VX_APP_MAIN_HANDLED && !VX_APP_MAIN_NO_IMPL
+
+// clang-format on

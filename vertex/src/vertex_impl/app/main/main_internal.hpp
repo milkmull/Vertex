@@ -1,6 +1,6 @@
 #pragma once
 
-#define VX_MAIN_NO_IMPL
+#define VX_APP_MAIN_NO_IMPL
 
 #include "vertex/app/main.hpp"
 #include "vertex/os/atomic.hpp"
@@ -33,7 +33,13 @@ public:
 
 public:
 
-    app_result init(int argc, char* argv[], init_callback_t init_fn, quit_callback_t quit_fn, iterate_callback_t iterate_fn, event_callback_t event_fn);
+    app_result init(
+        int argc,
+        char* argv[],
+        init_callback_t init_fn,
+        iterate_callback_t iterate_fn,
+        event_callback_t event_fn,
+        quit_callback_t quit_fn);
     void quit(app_result result);
     app_result iterate(bool pump_events);
 
@@ -46,7 +52,15 @@ public:
     runner_data data;
 };
 
-bool using_callbacks();
+inline constexpr bool using_callbacks() noexcept
+{
+#if defined(VX_APP_USE_CALLBACKS)
+    return true;
+#else
+    return false;
+#endif // VX_APP_USE_CALLBACKS
+}
+
 int call_main_function(int argc, char* argv[], _priv::main_t main_fn);
 
 } // namespace app

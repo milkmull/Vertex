@@ -2,13 +2,12 @@
 #include "vertex/app/event/event.hpp"
 #include "vertex/util/memory/memory.hpp"
 #include "vertex_impl/app/main/main_internal.hpp"
-#include "vertex/util/io/iostream.hpp"
 
 namespace vx {
 namespace app {
 
 // Return true if this event needs to be processed before returning from the event watcher
-static bool should_dispatch_immediately(event::event_type type)
+static bool should_dispatch_immediately(event::event_type_t type)
 {
     switch (type)
     {
@@ -35,16 +34,16 @@ static bool main_callback_event_watcher(event::event& e, void* user_data)
 }
 
 app_result runner_instance::init(
-    int argc, char* argv[],
+    int argc,
+    char* argv[],
     init_callback_t init_fn,
-    quit_callback_t quit_fn,
     iterate_callback_t iterate_fn,
-    event_callback_t event_fn
-)
+    event_callback_t event_fn,
+    quit_callback_t quit_fn)
 {
-    data.quit_fn = quit_fn;
     data.iterate_fn = iterate_fn;
     data.event_fn = event_fn;
+    data.quit_fn = quit_fn;
 
     data.result = app_result::continue_;
 
@@ -113,8 +112,6 @@ app_result runner_instance::iterate(bool pump_events)
 
 bool runner_instance::event_watch(event::event& e)
 {
-    io::print("watch");
-
     if (should_dispatch_immediately(e.type))
     {
         // Make sure any currently queued events are processed then dispatch this before continuing
@@ -177,7 +174,7 @@ static void check_default_args(int* argc, char*** argv)
 {
     if (!*argv)
     {
-        static char dummy_rgv_0[] = { 'V', 'e', 'r', 't', 'e', 'x', '_', 'a', 'p', 'p', '\0'};
+        static char dummy_rgv_0[] = { 'V', 'e', 'r', 't', 'e', 'x', '_', 'a', 'p', 'p', '\0' };
         static char* argv_dummy[2] = { dummy_rgv_0, NULL };
         *argc = 1;
         *argv = argv_dummy;

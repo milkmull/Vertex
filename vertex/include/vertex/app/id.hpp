@@ -8,7 +8,7 @@
 namespace vx {
 namespace app {
 
-using id_type = size_t;
+using id_type = uint32_t;
 
 enum : id_type
 {

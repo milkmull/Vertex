@@ -111,6 +111,8 @@ bool event_watch_list::dispatch(event& e, event_watch_priority priority)
         return true;
     }
 
+    os::lock_guard lock(mutex);
+
     const auto& filter = watch_list[priority].filter;
     const auto& watchers = watch_list[priority].watchers;
 
@@ -119,8 +121,6 @@ bool event_watch_list::dispatch(event& e, event_watch_priority priority)
         // nothing to do
         return true;
     }
-
-    os::lock_guard lock(mutex);
 
     if (filter.callback && !filter.callback(e, filter.user_data))
     {

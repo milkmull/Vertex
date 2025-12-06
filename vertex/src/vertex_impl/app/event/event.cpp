@@ -247,10 +247,16 @@ size_t event_queue::match(event_filter matcher, void* user_data, event* events, 
         return matched;
     }
 
+    // if count is 0, we should check all events
+    if (count == 0)
+    {
+        count = queue.size();
+    }
+
     size_t sentinel_count = 0;
 
     auto it = queue.begin();
-    while (it != queue.end() && (!copy || (matched < count)))
+    while (it != queue.end() && (matched < count))
     {
         const bool matched_event = (!matcher || matcher(it->e, user_data));
         if (!matched_event)
@@ -337,6 +343,8 @@ void event_queue::add_sentinel()
 // initialization
 //=============================================================================
 
+static_events_data events_instance::s_data = {};
+
 events_instance::events_instance() = default;
 events_instance::~events_instance() { quit(); }
 
@@ -396,6 +404,26 @@ void events_instance::stop_loop()
 }
 
 //=============================================================================
+// user events
+//=============================================================================
+
+event_type_t register_user_events(size_t count)
+{
+    event_type_t base = invalid_event;
+
+    if (count > 0)
+    {
+        event_type_t value = events_instance::s_data.user_events + count;
+        if (value >= 0 && value <= (event_last - user_event))
+        {
+            base = user_event + value;
+        }
+    }
+
+    return base;
+}
+
+//=============================================================================
 // pump
 //=============================================================================
 
@@ -452,6 +480,12 @@ void events_instance::pump_events_internal(bool push_sentinel)
 //=============================================================================
 // edit
 //=============================================================================
+
+size_t add_events(const event* e, size_t count)
+{
+    VX_CHECK_EVENTS_SUBSYSTEM_INIT(0);
+    return s_events_ptr->add_events(e, count);
+}
 
 size_t events_instance::add_events(const event* e, size_t count)
 {
@@ -721,15 +755,15 @@ bool events_instance::wait_event_timeout(event* e, time::time_point t)
 
 //=============================================================================
 
-bool poll_event(event& e)
+bool poll_event(event* e)
 {
     VX_CHECK_EVENTS_SUBSYSTEM_INIT(false);
     return s_events_ptr->poll_event(e);
 }
 
-bool events_instance::poll_event(event& e)
+bool events_instance::poll_event(event* e)
 {
-    return wait_event_timeout(&e, time::zero());
+    return wait_event_timeout(e, time::zero());
 }
 
 //=============================================================================

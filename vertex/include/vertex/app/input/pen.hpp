@@ -40,7 +40,7 @@ VX_FLAGS_DECLARE_END(input_state)
 
 struct axis_type
 {
-    enum : size_t
+    enum
     {
         pressure,
         xtilt,

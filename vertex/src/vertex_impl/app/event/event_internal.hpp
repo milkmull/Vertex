@@ -111,6 +111,11 @@ struct drop_state
 // event data
 //=============================================================================
 
+struct static_events_data
+{
+    os::atomic<event_type_t> user_events;
+};
+
 struct events_data
 {
     event_queue queue;
@@ -187,7 +192,7 @@ public:
 #endif // VX_EVENT_HAVE_WAIT_VIDEO_SUBSYSTEM
     bool wait_event_timeout(event* e, time::time_point t);
 
-    bool poll_event(event& e);
+    bool poll_event(event* e);
 
     //=============================================================================
     // push
@@ -240,6 +245,7 @@ public:
 
     app_instance* app = nullptr;
     events_data data;
+    static static_events_data s_data;
 };
 
 } // namespace event

@@ -1,9 +1,9 @@
 # https://clang.llvm.org/docs/ClangFormatStyleOptions.html
 
 ---
+
 # Project
-Standard: c++17
-ColumnLimit: 120
+ColumnLimit: 0
 
 # Indentation
 AccessModifierOffset: -4
@@ -11,8 +11,8 @@ BitFieldColonSpacing: Both
 ContinuationIndentWidth: 4
 IndentCaseLabels: true
 IndentCaseBlocks: false
-IndentExternBlock: Indent
-IndentPPDirectives: AfterHash
+IndentExternBlock: NoIndent
+IndentPPDirectives: BeforeHash
 IndentRequires: true
 IndentWidth: 4
 IndentWrappedFunctionNames: true
@@ -21,22 +21,22 @@ UseTab: Never
 
 # Alignment
 AlignAfterOpenBracket: Align
-AlignConsecutiveAssignments: Consecutive
-AlignConsecutiveBitFields: Consecutive
-AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveAssignments: None
+AlignConsecutiveBitFields: None
+AlignConsecutiveDeclarations: None
 AlignConsecutiveMacros: Consecutive
-AlignEscapedNewlines: Left
+AlignEscapedNewlines: DontAlign
 AlignOperands: Align
 AlignTrailingComments: true
 
 # Allow
-AllowAllArgumentsOnNextLine: true
-AllowAllConstructorInitializersOnNextLine: true
-AllowAllParametersOfDeclarationOnNextLine: true
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: true
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortEnumsOnASingleLine: true
-AllowShortFunctionsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortLambdasOnASingleLine: All
@@ -52,7 +52,6 @@ BreakBeforeBinaryOperators: None
 BreakInheritanceList: AfterColon
 BreakStringLiterals: true
 #BreakAfterOpenBracketFunction: true
-
 
 # Initializers & arguments
 BinPackArguments: false
@@ -73,7 +72,7 @@ BraceWrapping:
     AfterNamespace: false
     AfterStruct: true
     AfterUnion: true
-    AfterExternBlock: true
+    AfterExternBlock: false
     BeforeCatch: false
     BeforeElse: true
     BeforeLambdaBody: true
@@ -99,14 +98,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 MaxEmptyLinesToKeep: 2
 
 # Sorting
-IncludeBlocks: Regroup
-IncludeCategories:
-  - Regex: '^<[^"]+>'          # all system/external includes: <vector>, <fmt/...>, <SDL.h>, etc.
-    Priority: 1
-  - Regex: '^"[^"]+"'          # your includes: "myheader.h", "engine/foo.hpp"
-    Priority: 2
-SortIncludes: true
-SortUsingDeclarations: true
+IncludeBlocks: Preserve
 
 # Penalties
 PenaltyBreakAssignment: 1000
@@ -159,14 +151,3 @@ QualifierOrder: ['static', 'inline', 'constexpr', 'const', 'volatile', 'type']
 #IfMacros [VX_IF_CONSTEXPR]
 
 ---
-Language: ObjC
-IndentWidth: 4
-BreakBeforeBraces: Custom
-BraceWrapping:
-    AfterObjCDeclaration: true
-
-ObjCBinPackProtocolList: Never
-ObjCBlockIndentWidth: 4
-ObjCBreakBeforeNestedBlockParam: true
-ObjCSpaceAfterProperty: true
-ObjCSpaceBeforeProtocolList: false

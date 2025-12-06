@@ -28,14 +28,14 @@ public:
 public:
 
     app_result init(
-        int argc, char* argv[],
+        int argc,
+        char* argv[],
         init_callback_t init_fn,
-        quit_callback_t quit_fn,
         iterate_callback_t iterate_fn,
-        event_callback_t event_fn
-    )
+        event_callback_t event_fn,
+        quit_callback_t quit_fn)
     {
-        return base.init(argc, argv, init_fn, quit_fn, iterate_fn, event_fn);
+        return base.init(argc, argv, init_fn, iterate_fn, event_fn, quit_fn);
     }
 
     void quit(app_result result)
@@ -90,8 +90,7 @@ static void rate_hint_watcher(const hint::hint_t, const char*, const char* new_v
         if (callback_rate > 0.0)
         {
             this_->data.callback_rate_increment = time::nanoseconds(static_cast<int64_t>(
-                static_cast<double>(time::nanoseconds_per_second) / callback_rate
-            ));
+                static_cast<double>(time::nanoseconds_per_second) / callback_rate));
         }
         else
         {
@@ -101,16 +100,16 @@ static void rate_hint_watcher(const hint::hint_t, const char*, const char* new_v
 }
 
 int _priv::enter_callbacks(
-    int argc, char* argv[],
+    int argc,
+    char* argv[],
     init_callback_t init_fn,
-    quit_callback_t quit_fn,
     iterate_callback_t iterate_fn,
-    event_callback_t event_fn
-)
+    event_callback_t event_fn,
+    quit_callback_t quit_fn)
 {
     runner_instance_impl runner;
 
-    app_result result = runner.init(argc, argv, init_fn, quit_fn, iterate_fn, event_fn);
+    app_result result = runner.init(argc, argv, init_fn, iterate_fn, event_fn, quit_fn);
     if (result == app_result::continue_)
     {
         hint::add_hint_callback(hint::app_main_callback_rate, rate_hint_watcher, &runner);
