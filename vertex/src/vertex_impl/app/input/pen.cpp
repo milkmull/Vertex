@@ -13,8 +13,8 @@ namespace pen {
 // helper macros
 //=============================================================================
 
-#define hints_ptr video->app->data.hints_ptr
-#define events_ptr video->app->data.events_ptr
+#define hints_ptr video->app->hints_ptr
+#define events_ptr video->app->events_ptr
 
 //=============================================================================
 // initialization
@@ -240,7 +240,7 @@ void pen_manager::send_touch(time::time_point t, pen_id id, video::window_instan
 
         if (w)
         {
-            mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+            mouse::mouse_instance* mouse = video->mouse_ptr;
 
             if (mouse->data.pen_mouse_events)
             {
@@ -269,7 +269,7 @@ void pen_manager::send_touch(time::time_point t, pen_id id, video::window_instan
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_manager* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->touch_ptr;
                     touch->send_event(t, touch::pen_touch_id, mouse::button::left, w, touch_event_type, nx, ny, pressure);
                 }
             }
@@ -333,7 +333,7 @@ void pen_manager::send_motion(time::time_point t, pen_id id, video::window_insta
 
         if (w)
         {
-            mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+            mouse::mouse_instance* mouse = video->mouse_ptr;
 
             if (data.pen_touching == id)
             {
@@ -346,7 +346,7 @@ void pen_manager::send_motion(time::time_point t, pen_id id, video::window_insta
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_manager* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->touch_ptr;
                     touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, nx, ny, pressure);
                 }
             }
@@ -407,14 +407,14 @@ void pen_manager::send_axis(time::time_point t, pen_id id, video::window_instanc
         {
             if (w)
             {
-                mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+                mouse::mouse_instance* mouse = video->mouse_ptr;
 
                 if (mouse->data.pen_touch_events)
                 {
                     const float nx = x / static_cast<float>(w->data.size.x);
                     const float ny = y / static_cast<float>(w->data.size.y);
 
-                    touch::touch_manager* touch = video->data.touch_ptr.get();
+                    touch::touch_manager* touch = video->touch_ptr;
                     touch->send_motion(t, touch::pen_touch_id, mouse::button::left, w, nx, ny, value);
                 }
             }
@@ -484,7 +484,7 @@ void pen_manager::send_button(time::time_point t, pen_id id, video::window_insta
         {
             if (w)
             {
-                mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+                mouse::mouse_instance* mouse = video->mouse_ptr;
 
                 if (mouse->data.pen_mouse_events)
                 {

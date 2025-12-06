@@ -44,16 +44,6 @@ struct static_video_data
 struct video_data
 {
     //=======================================
-    // input
-    //=======================================
-
-    std::unique_ptr<mouse::mouse_instance> mouse_ptr;
-    std::unique_ptr<keyboard::keyboard_instance> keyboard_ptr;
-    std::unique_ptr<touch::touch_manager> touch_ptr;
-    std::unique_ptr<pen::pen_manager> pen_ptr;
-    std::unique_ptr<clipboard::clipboard_instance> clipboard_ptr;
-
-    //=======================================
     // thread
     //=======================================
 
@@ -250,8 +240,16 @@ public:
     //=============================================================================
 
     app_instance* app = nullptr;
+
     video_data data;
     static static_video_data s_data;
+
+    mouse::mouse_instance* mouse_ptr = nullptr;
+    keyboard::keyboard_instance* keyboard_ptr = nullptr;
+    touch::touch_manager* touch_ptr = nullptr;
+    pen::pen_manager* pen_ptr = nullptr;
+    clipboard::clipboard_instance* clipboard_ptr = nullptr;
+
     std::unique_ptr<video_instance_impl> impl_ptr;
 };
 

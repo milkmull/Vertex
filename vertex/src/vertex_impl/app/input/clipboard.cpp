@@ -11,8 +11,8 @@ namespace clipboard {
 // helper macros
 //=============================================================================
 
-#define hints_ptr video->app->data.hints_ptr
-#define events_ptr video->app->data.events_ptr
+#define hints_ptr video->app->hints_ptr
+#define events_ptr video->app->events_ptr
 
 //=============================================================================
 // initialization

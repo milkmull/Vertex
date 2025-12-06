@@ -158,7 +158,7 @@ bool events_instance::init_signal_handler()
 {
 #if defined(HAVE_SIGNAL_SUPPORT)
 
-    if (!app->data.hints_ptr->get_hint_boolean(hint::app_no_signal_handlers, false))
+    if (!app->hints_ptr->get_hint_boolean(hint::app_no_signal_handlers, false))
     {
         return init_internal();
     }

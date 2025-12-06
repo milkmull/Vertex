@@ -23,7 +23,7 @@
 // helper macros
 //=============================================================================
 
-#define video_ptr app->data.video_ptr 
+#define video_ptr app->video_ptr 
 
 //=============================================================================
 
@@ -460,7 +460,7 @@ void events_instance::pump_events_internal(bool push_sentinel)
     if (app->is_video_init())
     {
         // release any keys heald down from last frame
-        video_ptr->data.keyboard_ptr->release_auto_release_keys();
+        video_ptr->keyboard_ptr->release_auto_release_keys();
 
         // pump events from video subsystem
         video_ptr->pump_events();

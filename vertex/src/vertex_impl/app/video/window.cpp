@@ -1929,7 +1929,7 @@ void window_instance::update_grab()
 
     if (data.flags & window_flags::input_focus)
     {
-        if (video->data.mouse_ptr->data.relative_mode_enabled || (data.flags & window_flags::mouse_grabbed))
+        if (video->mouse_ptr->data.relative_mode_enabled || (data.flags & window_flags::mouse_grabbed))
         {
             mouse_grabbed = true;
         }
@@ -2016,12 +2016,12 @@ bool window_instance::set_focusable(bool focusable)
 
 bool window_instance::has_mouse_focus() const
 {
-    return video->data.mouse_ptr->get_focus() == data.id;
+    return video->mouse_ptr->get_focus() == data.id;
 }
 
 bool window_instance::has_keyboard_focus() const
 {
-    return video->data.keyboard_ptr->get_focus() == data.id;
+    return video->keyboard_ptr->get_focus() == data.id;
 }
 
 // https://github.com/libsdl-org/SDL/blob/main/src/video/SDL_video.c#L4370
@@ -2065,7 +2065,7 @@ bool window_instance::should_minimize_on_focus_loss() const
 #endif // VX_PLATFORM_ANDROID
 
     // Real fullscreen windows should minimize on focus loss so the desktop video mode is restored
-    const bool hint = video->app->data.hints_ptr->get_hint_boolean(
+    const bool hint = video->app->hints_ptr->get_hint_boolean(
         hint::video_window_minimize_on_focus_loss,
         false
     );
@@ -2152,7 +2152,7 @@ bool window_instance::start_text_input(const keyboard::text_input_options* optio
 
 #endif // VX_VIDEO_BACKEND_HAVE_TEXT_INPUT_SET_PROPERTIES
 
-    keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
+    keyboard::keyboard_instance* keyboard = video->keyboard_ptr;
 
     // show onscreen keyboard
     if (keyboard->auto_showing_screen_keyboard() && !keyboard->screen_keyboard_shown())
@@ -2205,7 +2205,7 @@ void window_instance::stop_text_input()
         data.text_input_active = false;
     }
 
-    keyboard::keyboard_instance* keyboard = video->data.keyboard_ptr.get();
+    keyboard::keyboard_instance* keyboard = video->keyboard_ptr;
 
     // hide onscreen keyboard
     if (keyboard->auto_showing_screen_keyboard() && keyboard->screen_keyboard_shown())
@@ -2291,7 +2291,7 @@ void window_instance::send_wakeup_event() const
 
 //=============================================================================
 
-#define events_ptr video->app->data.events_ptr
+#define events_ptr video->app->events_ptr
 
 static bool filter_duplicate_window_events(event::event& e, void* user_data)
 {
@@ -2802,9 +2802,9 @@ bool window_instance::send_gained_focus()
 
 void window_instance::on_gained_focus()
 {
-    if (video->data.mouse_ptr->data.relative_mode_enabled)
+    if (video->mouse_ptr->data.relative_mode_enabled)
     {
-        video->data.mouse_ptr->set_focus(data.id);
+        video->mouse_ptr->set_focus(data.id);
     }
 
     update_grab();
@@ -2979,7 +2979,7 @@ void window_instance::on_display_changed()
     // in an event watcher callback in response to a display changed event
     if (data.update_fullscreen_on_display_changed && (data.flags & window_flags::fullscreen))
     {
-        const bool auto_mode_switch = video->app->data.hints_ptr->get_hint_boolean(
+        const bool auto_mode_switch = video->app->hints_ptr->get_hint_boolean(
             hint::video_window_match_exclusive_mode_on_move,
             true
         );

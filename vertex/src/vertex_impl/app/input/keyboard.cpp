@@ -11,8 +11,8 @@ namespace keyboard {
 // helper macros
 //=============================================================================
 
-#define hints_ptr video->app->data.hints_ptr
-#define events_ptr video->app->data.events_ptr
+#define hints_ptr video->app->hints_ptr
+#define events_ptr video->app->events_ptr
 
 //=============================================================================
 // hints
@@ -262,7 +262,7 @@ bool keyboard_instance::set_focus(video::window_id wid)
 #endif // !VX_PLATFORM_MOBILE
     }
 
-    mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+    mouse::mouse_instance* mouse = video->mouse_ptr;
 
     if (old_focus && !new_focus)
     {

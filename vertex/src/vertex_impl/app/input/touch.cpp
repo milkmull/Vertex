@@ -13,8 +13,8 @@ namespace touch {
 // helper macros
 //=============================================================================
 
-#define hints_ptr video->app->data.hints_ptr
-#define events_ptr video->app->data.events_ptr
+#define hints_ptr video->app->hints_ptr
+#define events_ptr video->app->events_ptr
 
 //=============================================================================
 // initialization
@@ -200,7 +200,7 @@ std::vector<finger> touch_manager::get_fingers(touch_id id) const
 // events
 //=============================================================================
 
-#define events_ptr video->app->data.events_ptr
+#define events_ptr video->app->events_ptr
 
 //=============================================================================
 
@@ -218,7 +218,7 @@ void touch_manager::send_event(
     }
 
     const video::window_id wid = w ? w->data.id : invalid_id;
-    mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+    mouse::mouse_instance* mouse = video->mouse_ptr;
     const bool down = (type == event::finger_down);
 
     // generating synthetic mouse events for touch input
@@ -329,7 +329,7 @@ void touch_manager::send_motion(
     }
 
     const video::window_id wid = w ? w->data.id : invalid_id;
-    mouse::mouse_instance* mouse = video->data.mouse_ptr.get();
+    mouse::mouse_instance* mouse = video->mouse_ptr;
 
     // generating synthetic mouse events for touch input
     if (w && mouse->data.touch_mouse_events && (id != mouse_touch_id) && (id != pen_touch_id))

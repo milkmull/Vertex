@@ -124,18 +124,18 @@ bool show_message_box_internal(
 
 #if defined(VX_APP_VIDEO_ENABLED)
 
-    video::video_instance* video = this_ ? this_->data.video_ptr.get() : nullptr;
+    video::video_instance* video = this_ ? this_->video_ptr : nullptr;
     video::window_instance* current_window = nullptr;
     bool show_cursor_prev = false;
 
     if (video)
     {
-        current_window = video->data.keyboard_ptr->get_focus_instance();
-        video->data.mouse_ptr->update_capture(false);
-        video->data.mouse_ptr->set_relative_mode(false);
-        show_cursor_prev = video->data.mouse_ptr->cursor_visible();
-        video->data.mouse_ptr->show_cursor();
-        video->data.keyboard_ptr->reset();
+        current_window = video->keyboard_ptr->get_focus_instance();
+        video->mouse_ptr->update_capture(false);
+        video->mouse_ptr->set_relative_mode(false);
+        show_cursor_prev = video->mouse_ptr->cursor_visible();
+        video->mouse_ptr->show_cursor();
+        video->keyboard_ptr->reset();
     }
 
 #endif // VX_APP_VIDEO_ENABLED
@@ -163,11 +163,11 @@ bool show_message_box_internal(
 
         if (!show_cursor_prev)
         {
-            video->data.mouse_ptr->hide_cursor();
+            video->mouse_ptr->hide_cursor();
         }
 
-        video->data.mouse_ptr->update_relative_mode();
-        video->data.mouse_ptr->update_capture(false);
+        video->mouse_ptr->update_relative_mode();
+        video->mouse_ptr->update_capture(false);
     }
 
 #endif // VX_APP_VIDEO_ENABLED

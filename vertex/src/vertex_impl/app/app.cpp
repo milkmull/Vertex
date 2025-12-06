@@ -186,15 +186,15 @@ bool app_instance::init_hints()
 {
     if (!is_hints_init())
     {
-        data.hints_ptr.reset(new hint::hints_instance);
+        hints_ptr = new hint::hints_instance;
 
-        if (!data.hints_ptr)
+        if (!hints_ptr)
         {
             VX_SET_HINTS_SUBSYSTEM_INIT_FAILED_ERROR();
             return false;
         }
 
-        if (!data.hints_ptr->init(this))
+        if (!hints_ptr->init(this))
         {
             quit_hints();
             return false;
@@ -207,7 +207,7 @@ bool app_instance::init_hints()
 
 bool app_instance::is_hints_init() const
 {
-    return data.hints_ptr != nullptr;
+    return hints_ptr != nullptr;
 }
 
 void app_instance::quit_hints()
@@ -221,8 +221,8 @@ void app_instance::quit_hints()
     --data.ref_counts[hints_index];
     if (data.ref_counts[hints_index] == 0)
     {
-        data.hints_ptr->quit();
-        data.hints_ptr.reset();
+        delete hints_ptr;
+        hints_ptr = nullptr;
     }
 }
 
@@ -232,15 +232,15 @@ bool app_instance::init_events()
 {
     if (!is_events_init())
     {
-        data.events_ptr.reset(new event::events_instance);
+        events_ptr = new event::events_instance;
 
-        if (!data.events_ptr)
+        if (!events_ptr)
         {
             VX_SET_EVENTS_SUBSYSTEM_INIT_FAILED_ERROR();
             return false;
         }
 
-        if (!data.events_ptr->init(this))
+        if (!events_ptr->init(this))
         {
             quit_events();
             return false;
@@ -253,7 +253,7 @@ bool app_instance::init_events()
 
 bool app_instance::is_events_init() const
 {
-    return data.events_ptr != nullptr;
+    return events_ptr != nullptr;
 }
 
 void app_instance::quit_events()
@@ -267,7 +267,8 @@ void app_instance::quit_events()
     --data.ref_counts[events_index];
     if (data.ref_counts[events_index] == 0)
     {
-        data.events_ptr.reset();
+        delete events_ptr;
+        events_ptr = nullptr;
     }
 }
 
@@ -285,15 +286,15 @@ bool app_instance::init_video()
 
     if (!is_video_init())
     {
-        data.video_ptr.reset(new video::video_instance);
+        video_ptr = new video::video_instance;
 
-        if (!data.video_ptr)
+        if (!video_ptr)
         {
             VX_SET_VIDEO_SUBSYSTEM_INIT_FAILED_ERROR();
             return false;
         }
 
-        if (!data.video_ptr->init(this))
+        if (!video_ptr->init(this))
         {
             quit_video();
             return false;
@@ -314,7 +315,7 @@ bool app_instance::init_video()
 bool app_instance::is_video_init() const
 {
 #if defined(VX_APP_VIDEO_ENABLED)
-    return data.video_ptr != nullptr && !data.video_ptr->data.is_quitting;
+    return video_ptr != nullptr && !video_ptr->data.is_quitting;
 #else
     return false;
 #endif // VX_APP_VIDEO_ENABLED
@@ -333,7 +334,8 @@ void app_instance::quit_video()
     --data.ref_counts[video_index];
     if (data.ref_counts[video_index] == 0)
     {
-        data.video_ptr.reset();
+        delete video_ptr;
+        video_ptr = nullptr;
         quit_events();
     }
 

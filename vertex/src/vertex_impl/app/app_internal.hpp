@@ -43,14 +43,6 @@ struct app_data
 {
     os::thread::id main_thread_id;
     app_metadata metadata;
-
-    std::unique_ptr<hint::hints_instance> hints_ptr;
-    std::unique_ptr<event::events_instance> events_ptr;
-
-#if defined(VX_APP_VIDEO_ENABLED)
-    std::unique_ptr<video::video_instance> video_ptr;
-#endif // VX_APP_VIDEO_ENABLED
-
     size_t ref_counts[subsystem_count] = {};
 };
 
@@ -114,6 +106,12 @@ public:
     //=============================================================================
 
     app_data data;
+
+    hint::hints_instance* hints_ptr = nullptr;
+    event::events_instance* events_ptr = nullptr;
+#if defined(VX_APP_VIDEO_ENABLED)
+    video::video_instance* video_ptr = nullptr;
+#endif // VX_APP_VIDEO_ENABLED
 };
 
 extern std::unique_ptr<app_instance> s_app;
@@ -179,7 +177,7 @@ do \
 
 ///////////////////////////////////////
 
-#define s_hints_ptr (s_app_ptr->data.hints_ptr)
+#define s_hints_ptr (s_app_ptr->hints_ptr)
 
 #define VX_CHECK_HINTS_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Hints subsystem, s_hints_ptr, r)
 #define VX_CHECK_HINTS_SUBSYSTEM_INIT_VOID() VX_CHECK_HINTS_SUBSYSTEM_INIT(void())
@@ -192,7 +190,7 @@ do \
 
 ///////////////////////////////////////
 
-#define s_events_ptr (s_app_ptr->data.events_ptr)
+#define s_events_ptr (s_app_ptr->events_ptr)
 
 #define VX_CHECK_EVENTS_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Events subsystem, s_events_ptr, r)
 #define VX_CHECK_EVENTS_SUBSYSTEM_INIT_VOID() VX_CHECK_EVENTS_SUBSYSTEM_INIT(void())
@@ -205,7 +203,7 @@ do \
 
 ///////////////////////////////////////
 
-#define s_video_ptr (s_app_ptr->data.video_ptr)
+#define s_video_ptr (s_app_ptr->video_ptr)
 
 #define VX_CHECK_VIDEO_SUBSYSTEM_INIT(r) VX_CHECK_SUBSYSTEM_INIT(Video subsystem, s_video_ptr, r)
 #define VX_CHECK_VIDEO_SUBSYSTEM_INIT_VOID() VX_CHECK_VIDEO_SUBSYSTEM_INIT(void())

@@ -13,8 +13,8 @@
 // helper macros
 //=============================================================================
 
-#define hints_ptr app->data.hints_ptr
-#define events_ptr app->data.events_ptr
+#define hints_ptr app->hints_ptr
+#define events_ptr app->events_ptr
 
 //=============================================================================
 
@@ -65,36 +65,36 @@ bool video_instance::init(app_instance* owner)
     app = owner;
 
     // clipboard
-    data.clipboard_ptr.reset(new clipboard::clipboard_instance);
-    if (!data.clipboard_ptr || !data.clipboard_ptr->init(this))
+    clipboard_ptr = new clipboard::clipboard_instance;
+    if (!clipboard_ptr || !clipboard_ptr->init(this))
     {
         goto failed;
     }
 
     // keyboard
-    data.keyboard_ptr.reset(new keyboard::keyboard_instance);
-    if (!data.keyboard_ptr || !data.keyboard_ptr->init(this))
+    keyboard_ptr = new keyboard::keyboard_instance;
+    if (!keyboard_ptr || !keyboard_ptr->init(this))
     {
         goto failed;
     }
 
     // pen
-    data.pen_ptr.reset(new pen::pen_manager);
-    if (!data.pen_ptr || !data.pen_ptr->init(this))
+    pen_ptr = new pen::pen_manager;
+    if (!pen_ptr || !pen_ptr->init(this))
     {
         goto failed;
     }
 
     // touch
-    data.touch_ptr.reset(new touch::touch_manager);
-    if (!data.touch_ptr || !data.touch_ptr->init(this))
+    touch_ptr = new touch::touch_manager;
+    if (!touch_ptr || !touch_ptr->init(this))
     {
         goto failed;
     }
 
     // mouse
-    data.mouse_ptr.reset(new mouse::mouse_instance);
-    if (!data.mouse_ptr || !data.mouse_ptr->init(this))
+    mouse_ptr = new mouse::mouse_instance;
+    if (!mouse_ptr || !mouse_ptr->init(this))
     {
         goto failed;
     }
@@ -136,7 +136,7 @@ bool video_instance::init(app_instance* owner)
     }
 
     // create dummy mouse cursor after video backend has been initialized
-    data.mouse_ptr->create_dummy_cursor();
+    mouse_ptr->create_dummy_cursor();
 
     return true;
 
@@ -158,11 +158,22 @@ void video_instance::quit()
     data.is_quitting = true;
 
     // quit input
-    data.mouse_ptr.reset();
-    data.touch_ptr.reset();
-    data.pen_ptr.reset();
-    data.keyboard_ptr.reset();
-    data.clipboard_ptr.reset();
+    {
+        delete mouse_ptr;
+        mouse_ptr = nullptr;
+
+        delete touch_ptr;
+        touch_ptr = nullptr;
+
+        delete pen_ptr;
+        pen_ptr = nullptr;
+
+        delete keyboard_ptr;
+        keyboard_ptr = nullptr;
+
+        delete clipboard_ptr;
+        clipboard_ptr = nullptr;
+    }
 
     // restore screen saver
     enable_screen_saver();
@@ -1357,17 +1368,17 @@ void video_instance::destroy_window(window_id id)
 
     if (!data.is_quitting)
     {
-        if (data.keyboard_ptr->get_focus() == id)
+        if (keyboard_ptr->get_focus() == id)
         {
-            data.keyboard_ptr->set_focus(invalid_id);
+            keyboard_ptr->set_focus(invalid_id);
         }
         if (w->data.flags & window_flags::mouse_capture)
         {
-            data.mouse_ptr->update_capture(true);
+            mouse_ptr->update_capture(true);
         }
-        if (data.mouse_ptr->get_focus() == id)
+        if (mouse_ptr->get_focus() == id)
         {
-            data.mouse_ptr->set_focus(invalid_id);
+            mouse_ptr->set_focus(invalid_id);
         }
     }
 
@@ -1656,8 +1667,8 @@ void video_instance::clear_fullscreen_window_from_all_displays(window_id w)
 
 void video_instance::set_all_focus(window_id w)
 {
-    data.mouse_ptr->set_focus(w);
-    data.keyboard_ptr->set_focus(w);
+    mouse_ptr->set_focus(w);
+    keyboard_ptr->set_focus(w);
 }
 
 //=============================================================================
@@ -1781,7 +1792,7 @@ void video_instance::will_enter_background()
         w.send_minimized();
     }
 
-    data.keyboard_ptr->set_focus(invalid_id);
+    keyboard_ptr->set_focus(invalid_id);
 }
 
 //=============================================================================
@@ -1790,7 +1801,7 @@ void video_instance::did_enter_foreground()
 {
     for (window_instance& w : data.windows)
     {
-        data.keyboard_ptr->set_focus(w.data.id);
+        keyboard_ptr->set_focus(w.data.id);
         w.send_restored();
     }
 }

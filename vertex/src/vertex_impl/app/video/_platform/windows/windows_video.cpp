@@ -116,7 +116,7 @@ process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 
 bool video_instance_impl::set_dpi_awareness()
 {
-    const char* hint = video->app->data.hints_ptr->get_hint_string(hint::video_windows_dpi_awareness, nullptr);
+    const char* hint = video->app->hints_ptr->get_hint_string(hint::video_windows_dpi_awareness, nullptr);
 
     if (!hint || std::strcmp(hint, "permonitor") == 0)
     {
@@ -326,25 +326,25 @@ bool video_instance_impl::init(video_instance* owner)
 
     // hints
     {
-        //video->app->data.hints_ptr->add_hint_callback(
+        //video->app->hints_ptr->add_hint_callback(
         //    hint::video_windows_use_raw_keyboard,
         //    use_raw_keyboard_hint_watcher,
         //    this
         //);
 
-        video->app->data.hints_ptr->add_hint_callback(
+        video->app->hints_ptr->add_hint_callback(
             hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
             this
         );
 
-        video->app->data.hints_ptr->add_hint_callback(
+        video->app->hints_ptr->add_hint_callback(
             hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
             this
         );
 
-        video->app->data.hints_ptr->add_hint_callback(
+        video->app->hints_ptr->add_hint_callback(
             hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
             this
@@ -362,25 +362,25 @@ void video_instance_impl::quit()
     // remove hint callbacks
     if (video)
     {
-        video->app->data.hints_ptr->remove_hint_callback(
+        video->app->hints_ptr->remove_hint_callback(
             hint::video_windows_use_raw_keyboard,
             use_raw_keyboard_hint_watcher,
             this
         );
 
-        video->app->data.hints_ptr->remove_hint_callback(
+        video->app->hints_ptr->remove_hint_callback(
             hint::video_windows_enable_message_loop,
             enable_message_loop_hint_watcher,
             this
         );
 
-        video->app->data.hints_ptr->remove_hint_callback(
+        video->app->hints_ptr->remove_hint_callback(
             hint::video_windows_enable_menu_mnemonics,
             enable_menu_mnemonics_hint_watcher,
             this
         );
 
-        video->app->data.hints_ptr->remove_hint_callback(
+        video->app->hints_ptr->remove_hint_callback(
             hint::video_window_frame_usable_while_cursor_hidden,
             window_frame_usable_while_cursor_hidden_hint_watcher,
             this

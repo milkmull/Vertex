@@ -17,11 +17,11 @@ namespace mouse {
 // helper macros
 //=============================================================================
 
-#define hints_ptr video->app->data.hints_ptr
-#define events_ptr video->app->data.events_ptr
-#define keyboard_ptr video->data.keyboard_ptr
-#define touch_ptr video->data.touch_ptr
-#define pen_ptr video->data.pen_ptr
+#define hints_ptr video->app->hints_ptr
+#define events_ptr video->app->events_ptr
+#define keyboard_ptr video->keyboard_ptr
+#define touch_ptr video->touch_ptr
+#define pen_ptr video->pen_ptr
 
 //=============================================================================
 // hints
@@ -284,7 +284,7 @@ bool mouse_instance::init(video::video_instance* owner)
     // hints
     {
         hints_ptr->add_hint_callback(
-            hint::mouse_double_click_time,
+            hint::mouse_double_click_time_ms,
             double_click_time_hint_watcher,
             this
         );
@@ -421,7 +421,7 @@ void mouse_instance::quit()
     // hints
     {
         hints_ptr->remove_hint_callback(
-            hint::mouse_double_click_time,
+            hint::mouse_double_click_time_ms,
             double_click_time_hint_watcher,
             this
         );
