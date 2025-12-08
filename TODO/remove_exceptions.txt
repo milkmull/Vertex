@@ -1,0 +1,17 @@
+
+- allocation
+- page allocator
+- thread
+- vector
+- string
+- unordered_map
+- unordered_set
+- list
+- bitfield
+- views (string view, ranges)
+- smart pointers
+- stringstream
+
+- array?
+- atomic?
+- mutex?

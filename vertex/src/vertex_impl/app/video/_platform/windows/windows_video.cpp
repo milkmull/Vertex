@@ -116,22 +116,7 @@ process_dpi_awareness video_instance_impl::get_dpi_awareness() const
 
 bool video_instance_impl::set_dpi_awareness()
 {
-    const char* hint = video->app->hints_ptr->get_hint_string(hint::video_windows_dpi_awareness, nullptr);
-
-    if (!hint || std::strcmp(hint, "permonitor") == 0)
-    {
-        return set_dpi_awareness_internal(process_dpi_awareness::per_monitor);
-    }
-    else if (std::strcmp(hint, "system"))
-    {
-        return set_dpi_awareness_internal(process_dpi_awareness::system);
-    }
-    else if (std::strcmp(hint, "unaware"))
-    {
-        return set_dpi_awareness_internal(process_dpi_awareness::unaware);
-    }
-
-    return true;
+    return set_dpi_awareness_internal(process_dpi_awareness::per_monitor);
 }
 
 bool video_instance_impl::set_dpi_awareness_internal(process_dpi_awareness awareness)
@@ -719,7 +704,7 @@ static mode_result get_display_mode(LPCWSTR device_name, display_mode_instance& 
 
     mode.data.mode.resolution.x = dm.dmPelsWidth;
     mode.data.mode.resolution.y = dm.dmPelsHeight;
-    mode.data.mode.bpp = dm.dmBitsPerPel;
+    //mode.data.mode.bpp = dm.dmBitsPerPel;
     mode.data.mode.pixel_format = format;
     mode.data.mode.pixel_density = 1.0f;
     mode.data.mode.refresh_rate = get_refresh_rate(dm.dmDisplayFrequency);

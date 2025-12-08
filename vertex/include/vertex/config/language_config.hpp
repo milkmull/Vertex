@@ -144,7 +144,7 @@
 #   define VX_API_EXPORT
 #   define VX_API_IMPORT
 
-#endif
+#endif // !defined(VX_BUILD_STATIC)
 
 #if defined(VX_BUILD_SHARED)
 #   define VX_API VX_API_EXPORT

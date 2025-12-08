@@ -677,8 +677,8 @@ public:
     // event data
     //=============================================================================
 
-    event_type_t type = invalid_event; // Event type identifier.
-    time::time_point time;           // Event generation time.
+    event_type_t type = invalid_event;  // Event type identifier.
+    time::time_point time;              // Event generation time.
 
     union
     {

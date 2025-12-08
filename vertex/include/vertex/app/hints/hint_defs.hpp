@@ -10,7 +10,7 @@ namespace hint {
 // hint type
 //=============================================================================
 
-using hint_t = uint64_t;
+using hint_t = uint32_t;
 
 //=============================================================================
 // hints
@@ -55,7 +55,18 @@ enum hint : hint_t
     //=============================================================================
 
     /**
-     * @brief Prevents the screen saver from activating while the video subsystem is active.
+     * @brief Allow the operating system screen saver to activate while the video subsystem is active.
+     *
+     * By default, the application suppresses screen saver activation whenever the
+     * video subsystem is initialized or windows are present. This ensures that
+     * rendering, playback, and interactive applications (such as games) are not
+     * interrupted.
+     *
+     * Enabling this hint permits the system screen saver to activate normally.
+     * This may be useful for non-interactive display applications or tools that
+     * should not inhibit system idle behavior.
+     *
+     * This should be set before the video subsystem is initialized.
      */
     video_allow_screen_saver,
 

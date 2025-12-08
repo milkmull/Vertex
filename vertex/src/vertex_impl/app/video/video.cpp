@@ -272,7 +272,6 @@ void video_instance::set_system_theme(system_theme theme)
 bool compare_display_modes(const display_mode& mode1, const display_mode& mode2)
 {
     return mode1.resolution == mode2.resolution
-        && mode1.bpp == mode2.bpp
         && mode1.pixel_format == mode2.pixel_format
         && mode1.pixel_density == mode2.pixel_density
         && mode1.refresh_rate == mode2.refresh_rate;
@@ -1252,12 +1251,6 @@ const display_mode_instance* video_instance::find_display_mode_candidate_for_dis
 // screen saver
 //=============================================================================
 
-bool enable_screen_saver()
-{
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->enable_screen_saver();
-}
-
 bool video_instance::enable_screen_saver()
 {
     if (!data.suspend_screen_saver)
@@ -1280,25 +1273,6 @@ bool video_instance::enable_screen_saver()
 }
 
 //=============================================================================
-
-bool screen_saver_enabled()
-{
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(true);
-    return s_video_ptr->screen_saver_enabled();
-}
-
-bool video_instance::screen_saver_enabled() const
-{
-    return !data.suspend_screen_saver;
-}
-
-//=============================================================================
-
-bool disable_screen_saver()
-{
-    VX_CHECK_VIDEO_SUBSYSTEM_INIT(false);
-    return s_video_ptr->disable_screen_saver();
-}
 
 bool video_instance::disable_screen_saver()
 {
