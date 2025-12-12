@@ -212,6 +212,12 @@ VX_FORCE_INLINE void* setup_aligned_block(void* raw_ptr, size_t alignment, size_
 // memory management (aligned)
 //=========================================================================
 
+enum : size_t
+{
+    max_align = _priv::max_align,
+    ideal_align = _priv::ideal_align
+};
+
 VX_FORCE_INLINE void* allocate_aligned(size_t size, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
