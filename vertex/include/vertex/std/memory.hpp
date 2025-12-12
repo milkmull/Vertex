@@ -1,6 +1,6 @@
 #pragma once
 
-#include <new>
+#include <cstring>
 
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
@@ -218,6 +218,7 @@ enum : size_t
     ideal_align = _priv::ideal_align
 };
 
+template <bool zero = false>
 VX_FORCE_INLINE void* allocate_aligned(size_t size, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
@@ -235,7 +236,17 @@ VX_FORCE_INLINE void* allocate_aligned(size_t size, size_t alignment) noexcept
         return nullptr;
     }
 
-    void* raw_ptr = std::malloc(block_size);
+    void* raw_ptr;
+
+    VX_IF_CONSTEXPR(zero)
+    {
+        raw_ptr = std::calloc(1, block_size);
+    }
+    else
+    {
+        raw_ptr = std::malloc(block_size);
+    }
+
     if (!raw_ptr)
     {
         return nullptr;
@@ -262,7 +273,10 @@ VX_FORCE_INLINE void* reallocate_aligned(void* ptr, size_t size, size_t alignmen
     }
 
     void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
+    VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(6308);
     raw_ptr = std::realloc(raw_ptr, block_size);
+    VX_DISABLE_MSVC_WARNING_POP();
     if (!raw_ptr)
     {
         return nullptr;
@@ -273,6 +287,7 @@ VX_FORCE_INLINE void* reallocate_aligned(void* ptr, size_t size, size_t alignmen
 
 VX_FORCE_INLINE void deallocate_aligned(void* ptr, size_t alignment) noexcept
 {
+    VX_ASSERT(_priv::is_pow_2(alignment));
     void* raw_ptr = _priv::aligned_to_raw(ptr, alignment);
     std::free(raw_ptr);
 }
@@ -282,11 +297,11 @@ VX_FORCE_INLINE void deallocate_aligned(void* ptr, size_t alignment) noexcept
 //=========================================================================
 
 template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct(T* ptr, Args&&... args) noexcept
+VX_FORCE_INLINE T* construct_in_place(T* ptr, Args&&... args) noexcept
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    VX_IF_CONSTEXPR(std::is_trivially_constructible<T>::value)
+    VX_IF_CONSTEXPR(type_traits::is_zero_constructible<T>::value)
     {
         // No user-visible construction needed
         return ptr;
@@ -298,19 +313,18 @@ VX_FORCE_INLINE T* construct(T* ptr, Args&&... args) noexcept
 }
 
 template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct_in_place(T* ptr, Args&&... args) noexcept
+VX_FORCE_INLINE T* construct(Args&&... args) noexcept
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    VX_IF_CONSTEXPR(std::is_trivially_constructible<T>::value)
+    constexpr bool zero = type_traits::is_zero_constructible<T>::value;
+    void* ptr = allocate_aligned<zero>(sizeof(T), alignof(T));
+    if (!ptr)
     {
-        // No user-visible construction needed
-        return ptr;
+        return nullptr;
     }
-    else
-    {
-        return ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
-    }
+
+    return construct_in_place(static_cast<T*>(ptr), std::forward<Args>(args)...);
 }
 
 //=========================================================================
@@ -318,14 +332,19 @@ VX_FORCE_INLINE T* construct_in_place(T* ptr, Args&&... args) noexcept
 //=========================================================================
 
 template <typename T>
-VX_FORCE_INLINE void destroy(T* ptr) noexcept
+VX_FORCE_INLINE void destroy_in_place(T* ptr) noexcept
 {
     VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
     {
         ptr->~T();
     }
+}
 
-    deallocate(ptr);
+template <typename T>
+VX_FORCE_INLINE void destroy(T* ptr) noexcept
+{
+    destroy_in_place(ptr);
+    deallocate_aligned(ptr, alignof(T));
 }
 
 template <typename T>
@@ -339,7 +358,7 @@ VX_FORCE_INLINE void destroy_safe(T* ptr) noexcept
 }
 
 //=========================================================================
-// array
+// array base
 //=========================================================================
 
 template <typename T, size_t N>
@@ -349,40 +368,11 @@ constexpr size_t array_size(const T (&)[N]) noexcept
 }
 
 template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct_array(size_t count, Args&&... args) noexcept
-{
-    VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
-
-    if (count == 0)
-    {
-        return nullptr;
-    }
-
-    const size_t size = sizeof(T) * count;
-    void* ptr = allocate(size);
-    if (!ptr)
-    {
-        return nullptr;
-    }
-
-    VX_IF_CONSTEXPR(!(std::is_trivially_constructible<T>::value && std::is_trivially_default_constructible<T>::value))
-    {
-        T* it = static_cast<T*>(ptr);
-        for (size_t i = 0; i < count; ++i)
-        {
-            ::new (&it[i]) T(std::forward<Args>(args)...);
-        }
-    }
-
-    return static_cast<T*>(ptr);
-}
-
-template <typename T, typename... Args>
-VX_FORCE_INLINE void construct_array_in_place(T* ptr, size_t count, Args&&... args) noexcept
+VX_FORCE_INLINE void construct_array_elements(T* ptr, size_t count, Args&&... args) noexcept
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    VX_IF_CONSTEXPR(type_traits::is_zero_constructible<T>::value)
+    VX_IF_CONSTEXPR(sizeof...(Args) == 0 && type_traits::is_zero_constructible<T>::value)
     {
         // can optimize with memset
         set(ptr, 0, count * sizeof(T));
@@ -392,6 +382,18 @@ VX_FORCE_INLINE void construct_array_in_place(T* ptr, size_t count, Args&&... ar
         for (size_t i = 0; i < count; ++i)
         {
             construct_in_place(ptr + i, std::forward<Args>(args)...);
+        }
+    }
+}
+
+template <typename T>
+VX_FORCE_INLINE void destroy_array_elements(T* ptr, size_t count) noexcept
+{
+    VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            ptr[i].~T();
         }
     }
 }
@@ -412,30 +414,37 @@ VX_FORCE_INLINE void copy_array_elements(T* dst, const T* src, size_t count) noe
     }
 }
 
-template <typename T>
-VX_FORCE_INLINE void destroy_array_elements(T* ptr, size_t count) noexcept
+template <typename T, typename... Args>
+VX_FORCE_INLINE T* construct_array(size_t count, Args&&... args) noexcept
 {
-    VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
+    //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
+
+    if (count == 0)
     {
-        for (size_t i = 0; i < count; ++i)
-        {
-            ptr[i].~T();
-        }
+        return nullptr;
     }
+
+    const size_t size = sizeof(T) * count;
+    constexpr bool zero = type_traits::is_zero_constructible<T>::value;
+    void* ptr = allocate_aligned<zero>(size, alignof(T));
+    if (!ptr)
+    {
+        return nullptr;
+    }
+
+    VX_IF_CONSTEXPR(!zero)
+    {
+        construct_array_elements(static_cast<T*>(ptr), count, std::forward<Args>(args)...);
+    }
+
+    return static_cast<T*>(ptr);
 }
 
 template <typename T>
 VX_FORCE_INLINE void destroy_array(T* ptr, size_t count) noexcept
 {
-    VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
-    {
-        for (size_t i = 0; i < count; ++i)
-        {
-            ptr[i].~T();
-        }
-    }
-
-    deallocate(ptr);
+    destroy_array_elements(ptr, count);
+    deallocate_aligned(ptr, alignof(T));
 }
 
 template <typename T>

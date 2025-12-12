@@ -1,5 +1,5 @@
-#include "vertex_test/test.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex_test/test.hpp"
 
 ///////////////////////////////////////////////////////////////////////////////
 // byteswap
@@ -61,7 +61,22 @@ VX_TEST_CASE(aligned)
         vx::mem::deallocate_aligned(aligned_ptr, alignment);
     }
 
-    VX_SECTION("reallocate_aligned")
+    VX_SECTION("allocate_aligned zero initialized")
+    {
+        constexpr size_t alignment = 64;
+        constexpr size_t size = 128;
+        void* ptr = vx::mem::allocate_aligned<true>(size, alignment);
+        VX_CHECK(ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+        uint8_t* bytes = static_cast<uint8_t*>(ptr);
+        for (size_t i = 0; i < size; ++i)
+        {
+            VX_CHECK(bytes[i] == 0);
+        }
+        vx::mem::deallocate_aligned(ptr, alignment);
+    }
+
+    VX_SECTION("reallocate_aligned (grow)")
     {
         constexpr size_t alignment = 64;
         void* ptr = vx::mem::allocate_aligned(128, alignment);
@@ -73,12 +88,51 @@ VX_TEST_CASE(aligned)
 
         vx::mem::deallocate_aligned(new_ptr, alignment);
     }
+
+    VX_SECTION("reallocate_aligned (shrink)")
+    {
+        constexpr size_t alignment = 64;
+        void* ptr = vx::mem::allocate_aligned(256, alignment);
+        VX_CHECK(ptr != nullptr);
+
+        void* new_ptr = vx::mem::reallocate_aligned(ptr, 128, alignment);
+        VX_CHECK(new_ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(new_ptr) % alignment == 0);
+
+        vx::mem::deallocate_aligned(new_ptr, alignment);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 
 VX_TEST_CASE(construct_destroy)
 {
+    VX_SECTION("construct_in_place and destroy_in_place")
+    {
+        struct test_t
+        {
+            int x = 0;
+            bool constructed = false;
+            test_t() noexcept
+                : x(42), constructed(true)
+            {}
+            ~test_t() noexcept
+            {
+                constructed = false;
+            }
+        };
+
+        alignas(test_t) uint8_t buffer[sizeof(test_t)];
+
+        test_t* obj = vx::mem::construct_in_place(reinterpret_cast<test_t*>(buffer));
+        VX_CHECK(obj->x == 42);
+        VX_CHECK(obj->constructed == true);
+
+        vx::mem::destroy_in_place(obj);
+        // After destruction, 'constructed' should be false
+        VX_CHECK(obj->constructed == false);
+    }
+
     VX_SECTION("construct and destroy single object")
     {
         struct test_t
@@ -94,11 +148,10 @@ VX_TEST_CASE(construct_destroy)
             }
         };
 
-        void* mem_ptr = vx::mem::allocate(sizeof(test_t));
-        VX_CHECK(mem_ptr != nullptr);
-
-        test_t* obj = vx::mem::construct<test_t>(static_cast<test_t*>(mem_ptr));
+        test_t* obj = vx::mem::construct<test_t>();
+        VX_CHECK(obj != nullptr);
         VX_CHECK(obj->x == 42);
+        VX_CHECK(obj->constructed == true);
 
         vx::mem::destroy(obj);
     }
@@ -152,9 +205,14 @@ VX_TEST_CASE(array_management)
 
         vx::mem::destroy_array(arr, count);
         VX_CHECK(instance_counter::instances == 0);
+
+        // Test array_size constexpr function
+        int static_arr[5];
+        constexpr size_t size = vx::mem::array_size(static_arr);
+        VX_CHECK(size == 5);
     }
 
-    VX_SECTION("construct_array with args and construct_array_in_place")
+    VX_SECTION("construct_array with args and construct_array_elements")
     {
         size_t count = 5;
         test_t* arr = vx::mem::construct_array<test_t>(count, 42);
@@ -166,7 +224,7 @@ VX_TEST_CASE(array_management)
         vx::mem::destroy_array(arr, count);
 
         void* raw = vx::mem::allocate(sizeof(test_t) * count);
-        vx::mem::construct_array_in_place(static_cast<test_t*>(raw), count, 24);
+        vx::mem::construct_array_elements(static_cast<test_t*>(raw), count, 24);
         test_t* arr_in_place = static_cast<test_t*>(raw);
         for (size_t i = 0; i < count; ++i)
         {
@@ -192,7 +250,7 @@ VX_TEST_CASE(array_management)
         vx::mem::deallocate(dst);
     }
 
-    VX_SECTION("copy_array_elements (non-trivial")
+    VX_SECTION("copy_array_elements (non-trivial)")
     {
         non_trivial_t source[2] = { non_trivial_t(10), non_trivial_t(20) };
         void* raw_mem = vx::mem::allocate(sizeof(non_trivial_t) * 2);
@@ -216,6 +274,7 @@ VX_TEST_CASE(array_management)
         arr[1] = 2;
         arr[2] = 3;
         vx::mem::destroy_array_elements(arr, 3);
+        // trivial destruction does nothing; values should remain unchanged
         VX_CHECK(arr[0] == 1);
         VX_CHECK(arr[1] == 2);
         VX_CHECK(arr[2] == 3);
@@ -231,6 +290,7 @@ VX_TEST_CASE(array_management)
         VX_CHECK(instance_counter::instances == 2);
         vx::mem::destroy_array_elements(arr, 2);
         VX_CHECK(instance_counter::instances == 0);
+        vx::mem::deallocate(raw_mem);
     }
 
     VX_SECTION("destroy_array_safe")
@@ -241,6 +301,9 @@ VX_TEST_CASE(array_management)
 
         vx::mem::destroy_array_safe(arr, count);
         VX_CHECK(instance_counter::instances == 0);
+
+        // Note: ptr is passed by value, so original pointer won't be null after call;
+        // this test ensures no crash and correct destruction.
     }
 }
 
@@ -288,6 +351,54 @@ VX_TEST_CASE(memory_operations)
     }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(allocator_classes)
+{
+    VX_SECTION("default_allocator")
+    {
+        void* ptr = vx::default_allocator::alloc(64);
+        VX_CHECK(ptr != nullptr);
+        ptr = vx::default_allocator::realloc(ptr, 128);
+        VX_CHECK(ptr != nullptr);
+        vx::default_allocator::free(ptr);
+    }
+
+    VX_SECTION("aligned_allocator")
+    {
+        constexpr size_t alignment = 32;
+        void* ptr = vx::aligned_allocator<alignment>::alloc(128);
+        VX_CHECK(ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+
+        ptr = vx::aligned_allocator<alignment>::realloc(ptr, 256);
+        VX_CHECK(ptr != nullptr);
+        VX_CHECK(reinterpret_cast<uintptr_t>(ptr) % alignment == 0);
+
+        vx::aligned_allocator<alignment>::free(ptr);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+VX_TEST_CASE(boundary_conditions)
+{
+    VX_SECTION("allocate zero size")
+    {
+        void* ptr1 = vx::mem::allocate(0);
+        void* ptr2 = vx::mem::allocate_aligned(0, 64);
+        VX_CHECK(ptr1 == nullptr);
+        VX_CHECK(ptr2 == nullptr);
+    }
+
+    VX_SECTION("allocate_aligned overflow detection")
+    {
+        // size_t max is large, so pass something that causes overflow when padding is added
+        size_t huge_size = std::numeric_limits<size_t>::max() - 16;
+        void* ptr = vx::mem::allocate_aligned(huge_size, 64);
+        VX_CHECK(ptr == nullptr);
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////
 
 int main()

@@ -11,6 +11,11 @@
 namespace vx {
 namespace err {
 
+enum : size_t
+{
+    error_message_max_size = 1024
+};
+
 struct info_impl
 {
     code err;

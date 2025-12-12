@@ -9,7 +9,7 @@
 namespace vx {
 namespace _priv {
 
-template <typename T, typename Allocator = default_allocator, typename Growth = std::ratio<3, 2>>
+template <typename T, typename Allocator, typename Growth = std::ratio<3, 2>>
 class dynamic_array_base
 {
 public:
@@ -43,7 +43,7 @@ public:
         }
 
         m_buffer.capacity = count;
-        mem::construct_array_in_place(m_buffer.data, count, std::forward<Args>(args)...);
+        mem::construct_array_elements(m_buffer.data, count, std::forward<Args>(args)...);
         m_buffer.size = count;
     }
 
@@ -96,7 +96,7 @@ public:
         {
             T* new_data;
 
-            VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value && std::is_trivially_destructible<T>::value)
+            VX_IF_CONSTEXPR(std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
             {
                 // Use realloc optimization for trivial types
                 new_data = static_cast<T*>(allocator::realloc(m_buffer.data, other.m_buffer.size * sizeof(T)));
@@ -178,10 +178,11 @@ public:
         {
             mem::destroy_array_elements(m_buffer.data, m_buffer.size);
             allocator::free(m_buffer.data);
-            m_buffer.capacity = 0;
-            m_buffer.size = 0;
-            m_buffer.data = nullptr;
         }
+
+        m_buffer.capacity = 0;
+        m_buffer.size = 0;
+        m_buffer.data = nullptr;
     }
 
     T* release() noexcept
@@ -206,7 +207,7 @@ public:
 
         T* new_data;
 
-        VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value && std::is_trivially_destructible<T>::value)
+        VX_IF_CONSTEXPR(std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
         {
             // Use realloc optimization for trivial types
             new_data = static_cast<T*>(allocator::realloc(m_buffer.data, new_capacity * sizeof(T)));
