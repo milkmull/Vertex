@@ -26,6 +26,10 @@ endif()
 
 set_target_properties(Vertex PROPERTIES LINKER_LANGUAGE CXX)
 
+# Set the minimum standard requirement
+target_compile_features(Vertex_Headers INTERFACE cxx_std_${CMAKE_CXX_STANDARD})
+target_compile_features(Vertex PUBLIC cxx_std_${CMAKE_CXX_STANDARD})
+
 # Enable AddressSanitizer (this needs to be linked first)
 #if(VX_ENABLE_ASAN)
 #    vx_enable_asan(Vertex)

@@ -24,6 +24,9 @@ message(STATUS "Vertex Version: ${VX_PROJECT_VERSION}")
 
 # Define the project
 project(Vertex VERSION ${VX_PROJECT_VERSION} LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Enable c language in case we need to check for c headers or anything
 enable_language(C)
@@ -108,7 +111,7 @@ if(VX_APP_ENABLED)
     vx_set_option(VX_APP_VIDEO_ENABLED          BOOL TRUE  "Enable building the video backend.")
     #vx_set_option(VX_APP_RENDERER_ENABLED       BOOL TRUE  "Enable building the rendering backend.")
     #vx_set_option(VX_APP_AUDIO_ENABLED          BOOL TRUE  "Enable building the audio backend.")
-    
+
 endif()
 
 #--------------------------------------------------
@@ -188,7 +191,7 @@ print_option(VX_GUI_APP              "GUI Application")
 
 # Library Modules
 print_option(VX_IMAGE_ENABLED        "Image Module")
-# print_option(VX_NETWORK_ENABLED    "Network Module") 
+# print_option(VX_NETWORK_ENABLED    "Network Module")
 
 # App Features
 print_option(VX_APP_ENABLED          "Application Features")
