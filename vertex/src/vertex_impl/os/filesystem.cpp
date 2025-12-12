@@ -107,7 +107,7 @@ path canonical(const path& p)
 {
     if (!exists(p))
     {
-        VX_ERR(err::file_open_failed) << "file not found: " << p;
+        VX_ERR(err::file_open_failed);
         return {};
     }
 

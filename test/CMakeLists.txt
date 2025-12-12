@@ -11,15 +11,15 @@ message(STATUS "Configuring Vertex Tests...")
 function(vx_configure_test_install TARGET)
 
     if(VX_INSTALL_TESTS)
-    
+
         install(TARGETS ${TARGET}
             ARCHIVE DESTINATION "${CMAKE_INSTALL_PREFIX}/test"   # For static libraries
             LIBRARY DESTINATION "${CMAKE_INSTALL_PREFIX}/test"   # For shared libraries
             RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}/test"   # For executables
         )
-        
+
     endif()
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -53,7 +53,7 @@ function(vx_add_test TARGET PATH SOURCES)
 
     # Handle shared library copying for tests
     if(VX_BUILD_SHARED_LIBS)
-    
+
         add_custom_command(
             TARGET ${TARGET}
             POST_BUILD
@@ -63,12 +63,12 @@ function(vx_add_test TARGET PATH SOURCES)
             COMMENT "Ensuring Vertex shared library is up-to-date for ${TARGET}."
             DEPENDS Vertex
         )
-        
+
     endif()
 
     # Configure installation if enabled
     vx_configure_test_install(${TARGET})
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -80,22 +80,28 @@ if(VX_INSTALL_TESTS AND VX_BUILD_SHARED_LIBS)
 endif()
 
 #--------------------------------------------------------------------
+# std Tests
+#--------------------------------------------------------------------
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/std")
+
+#--------------------------------------------------------------------
 # Util Tests
 #--------------------------------------------------------------------
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util")
 
 #--------------------------------------------------------------------
 # OS Tests
 #--------------------------------------------------------------------
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/os")
 
 #--------------------------------------------------------------------
 # Math Tests
 #--------------------------------------------------------------------
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/math")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/math")
 
 #--------------------------------------------------------------------
 # Summary Message

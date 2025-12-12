@@ -1,17 +1,22 @@
 
-- allocation
-- page allocator
-- thread
+x allocation
+- dynamic array base
 - vector
+- span (string view, ranges)
 - string
-- unordered_map
-- unordered_set
+- print io
+- packed string array
 - list
+- hash
+- unordered_set
+- unordered_map
 - bitfield
-- views (string view, ranges)
+
 - smart pointers
-- stringstream
+- thread
 
 - array?
 - atomic?
 - mutex?
+
+- regex (pcre2)

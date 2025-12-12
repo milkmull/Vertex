@@ -520,5 +520,24 @@ struct is_char : is_any_of<typename std::remove_cv<T>::type,
     char32_t
 > {};
 
+///////////////////////////////////////////////////////////////////////////////
+// zero constructable
+///////////////////////////////////////////////////////////////////////////////
+
+// Whether the default value of a type is just all-0 bytes.
+// This can most commonly be exploited by using memset for these types instead of loop-construct.
+// Trivially constructible types are also zero-constructible.
+template <typename T>
+struct is_zero_constructible : std::is_trivially_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<const T> : is_zero_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<volatile T> : is_zero_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<const volatile T> : is_zero_constructible<T> {};
+
 } // namespace type_traits
 } // namespace vx

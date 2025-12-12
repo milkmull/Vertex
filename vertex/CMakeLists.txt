@@ -39,7 +39,7 @@ set_target_properties(Vertex PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY     "${PROJECT_BINARY_DIR}/bin"
-    
+
     PDB_OUTPUT_DIRECTORY         "${PROJECT_BINARY_DIR}/lib"
     COMPILE_PDB_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
 )
@@ -67,13 +67,16 @@ if(VX_BUILD_SHARED_LIBS)
         POSITION_INDEPENDENT_CODE TRUE
         DEFINE_SYMBOL "VX_BUILD_SHARED"
     )
-    
+
 else()
 
     # Define VX_BUILD_STATIC for static libraries
     target_compile_definitions(Vertex PUBLIC "VX_BUILD_STATIC")
-   
+
 endif()
+
+# Mark that the library itself is being built
+target_compile_definitions(Vertex PRIVATE VX_BUILDING_VERTEX)
 
 # Debug macro
 target_compile_definitions(Vertex PRIVATE $<$<CONFIG:Debug>:VX_CMAKE_DEBUG>)
@@ -97,21 +100,21 @@ endif()
 #
 #    include(CheckCXXSourceCompiles)
 #    check_cxx_source_compiles(
-#    
+#
 #        "#include <atomic>
 #        int main()
 #        {
 #            std::atomic_ullong x(1);
 #            return x.fetch_add(1);
 #        }"
-#        
+#
 #    VX_ATOMIC_TEST)
-#    
+#
 #    if(NOT VX_ATOMIC_TEST)
 #        message(WARNING "Linking against libatomic due to lack of support for atomic operations.")
 #        target_link_libraries(Vertex PRIVATE atomic)
 #    endif()
-#    
+#
 #endif()
 
 #--------------------------------------------------------------------
@@ -146,10 +149,10 @@ if(VX_BUILD_SHARED_LIBS AND VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc"
         @ONLY
     )
-    
+
     # Add rc to sources
     target_sources(Vertex PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/vertex.rc")
-    
+
 endif()
 
 #--------------------------------------------------------------------
@@ -195,7 +198,7 @@ if(MSVC)
             endforeach()
         " CONFIGURATIONS Debug)
     endif()
-    
+
 endif()
 
 # Install the cmake config files
@@ -239,7 +242,7 @@ if(VX_BUILD_SHARED_LIBS)
         NAMESPACE Vertex::
         DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
     )
-    
+
 else()
 
     install(EXPORT VertexTargets
@@ -247,5 +250,5 @@ else()
         NAMESPACE Vertex::
         DESTINATION "${CMAKE_INSTALL_PREFIX}/cmake"
     )
-    
+
 endif()

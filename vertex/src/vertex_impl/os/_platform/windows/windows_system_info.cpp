@@ -46,8 +46,8 @@ static bool get_registry_value(const wchar_t* subkey, const wchar_t* name, std::
     // Make sure type is null terminated unicode string
     if (!(type == REG_SZ || type == REG_EXPAND_SZ))
     {
-        VX_ERR(err::system_error)
-            << "unsupported registry value type: " << type;
+        //VX_ERR(err::system_error)
+        //    << "unsupported registry value type: " << type;
         goto cleanup;
     }
 
