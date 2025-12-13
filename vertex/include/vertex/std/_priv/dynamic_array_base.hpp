@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 #include <ratio>
+#include <xutility>
 
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
@@ -9,7 +10,7 @@
 namespace vx {
 namespace _priv {
 
-template <typename T, typename Allocator, typename Growth = std::ratio<3, 2>>
+template <typename T, typename Allocator = default_allocator, typename Growth = std::ratio<3, 2>>
 class dynamic_array_base
 {
 public:
@@ -27,13 +28,13 @@ public:
     {
         if (m_buffer.data)
         {
-            mem::destroy_array_elements(m_buffer.data, m_buffer.size);
-            allocator::free(m_buffer.data);
+            mem::destroy_range(m_buffer.data, m_buffer.size);
+            const size_t size = m_buffer.size * sizeof(T);
+            allocator::free(m_buffer.data, size);
         }
     }
 
-    template <typename... Args>
-    dynamic_array_base(size_t count, Args&&... args) noexcept
+    dynamic_array_base(size_t count) noexcept
     {
         m_buffer.data = static_cast<T*>(allocator::alloc(count * sizeof(T)));
         if (!m_buffer.data)
@@ -43,7 +44,21 @@ public:
         }
 
         m_buffer.capacity = count;
-        mem::construct_array_elements(m_buffer.data, count, std::forward<Args>(args)...);
+        mem::construct_range(m_buffer.data, count);
+        m_buffer.size = count;
+    }
+
+    dynamic_array_base(size_t count, const T& value) noexcept
+    {
+        m_buffer.data = static_cast<T*>(allocator::alloc(count * sizeof(T)));
+        if (!m_buffer.data)
+        {
+            VX_ERR(err::out_of_memory);
+            return;
+        }
+
+        m_buffer.capacity = count;
+        mem::construct_range(m_buffer.data, count, value);
         m_buffer.size = count;
     }
 
@@ -57,25 +72,27 @@ public:
         }
 
         m_buffer.capacity = init.size();
-        mem::copy_array_elements(m_buffer.data, init.begin(), init.size());
+        mem::move_range(m_buffer.data, init.begin(), init.size());
         m_buffer.size = init.size();
     }
 
     dynamic_array_base(const dynamic_array_base& other) noexcept
     {
-        m_buffer.data = static_cast<T*>(allocator::alloc(other.m_buffer.size * sizeof(T)));
-        if (!m_buffer.data)
+        if (other.m_buffer.size != 0)
         {
-            VX_ERR(err::out_of_memory);
-            return;
-        }
+            const size_t size = other.m_buffer.size * sizeof(T);
+            T* data = static_cast<T*>(allocator::alloc(size));
 
-        m_buffer.capacity = other.m_buffer.size;
-        mem::copy_array_elements(m_buffer.data, other.data(), other.m_buffer.size);
-        m_buffer.size = other.m_buffer.size;
+            // vectors should never overlap so it is safe to use memmove (faster than memcpy)
+            //std::_Copy_memmove(other.m_buffer.data, other.m_buffer.data + other.m_buffer.size, data);
+            mem::move_range(data, other.m_buffer.data, other.m_buffer.size);
+            m_buffer.data = static_cast<T*>(data);
+            m_buffer.capacity = other.m_buffer.size;
+            m_buffer.size = other.m_buffer.size;
+        }
     }
 
-    VX_FORCE_INLINE dynamic_array_base(dynamic_array_base&& other) noexcept
+    dynamic_array_base(dynamic_array_base&& other) noexcept
         : m_buffer(std::exchange(other.m_buffer, buffer{}))
     {}
 
@@ -86,50 +103,27 @@ public:
             return *this;
         }
 
-        if (other.m_buffer.size <= m_buffer.capacity)
+        if (m_buffer.data)
         {
-            mem::destroy_array_elements(m_buffer.data, m_buffer.size);
-            mem::copy_array_elements(m_buffer.data, other.m_buffer.data, other.m_buffer.size);
-            m_buffer.size = other.m_buffer.size;
+            mem::destroy_range(m_buffer.data, m_buffer.size);
         }
-        else
+
+        if (other.m_buffer.size > m_buffer.capacity)
         {
-            T* new_data;
-
-            VX_IF_CONSTEXPR(std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
+            T* new_data = static_cast<T*>(allocator::realloc(m_buffer.data, other.m_buffer.size * sizeof(T)));
+            if (!new_data)
             {
-                // Use realloc optimization for trivial types
-                new_data = static_cast<T*>(allocator::realloc(m_buffer.data, other.m_buffer.size * sizeof(T)));
-                if (!new_data)
-                {
-                    VX_ERR(err::out_of_memory);
-                    return *this;
-                }
-
-                mem::copy_array_elements(new_data, other.m_buffer.data, other.m_buffer.size);
-            }
-            else
-            {
-                new_data = static_cast<T*>(allocator::alloc(other.m_buffer.size * sizeof(T)));
-                if (!new_data)
-                {
-                    VX_ERR(err::out_of_memory);
-                    return *this;
-                }
-
-                mem::copy_array_elements(new_data, other.m_buffer.data, other.m_buffer.size);
-
-                if (m_buffer.data)
-                {
-                    mem::destroy_array_elements(m_buffer.data, m_buffer.size);
-                    allocator::free(m_buffer.data);
-                }
+                VX_ERR(err::out_of_memory);
+                return *this;
             }
 
-            m_buffer.data = new_data;
             m_buffer.capacity = other.m_buffer.size;
-            m_buffer.size = other.m_buffer.size;
+            m_buffer.data = new_data;
         }
+
+        // vectors should never overlap so it is safe to use memmove (faster than memcpy)
+        mem::move_range(m_buffer.data, other.m_buffer.data, other.m_buffer.size);
+        m_buffer.size = other.m_buffer.size;
 
         return *this;
     }
@@ -143,8 +137,8 @@ public:
 
         if (m_buffer.data)
         {
-            mem::destroy_array_elements(m_buffer.data, m_buffer.size);
-            allocator::free(m_buffer.data);
+            mem::destroy_range(m_buffer.data, m_buffer.size);
+            allocator::free(m_buffer.data, m_buffer.size * sizeof(T));
         }
 
         m_buffer = std::exchange(other.m_buffer, buffer{});
@@ -162,6 +156,11 @@ public:
         return m_buffer.size;
     }
 
+    static constexpr size_t max_size() noexcept
+    {
+        return std::numeric_limits<size_t>::max();
+    }
+
     const T* data() const noexcept
     {
         return m_buffer.data;
@@ -176,8 +175,8 @@ public:
     {
         if (m_buffer.data)
         {
-            mem::destroy_array_elements(m_buffer.data, m_buffer.size);
-            allocator::free(m_buffer.data);
+            mem::destroy_range(m_buffer.data, m_buffer.size);
+            allocator::free(m_buffer.data, m_buffer.size * sizeof(T));
         }
 
         m_buffer.capacity = 0;
@@ -226,11 +225,12 @@ public:
                 return false;
             }
 
-            mem::copy_array_elements(new_data, m_buffer.data, m_buffer.size);
+            // should never overlap so it is safe to use memmove (faster than memcpy)
+            mem::move_range(new_data, m_buffer.data, m_buffer.size);
 
             if (m_buffer.data)
             {
-                mem::destroy_array_elements(m_buffer.data, m_buffer.size);
+                mem::destroy_range(m_buffer.data, m_buffer.size);
                 allocator::free(m_buffer.data);
             }
         }
@@ -269,11 +269,6 @@ public:
 
 private:
 
-    static void* allocate(size_t size) noexcept
-    {
-        return allocator::alloc(size);
-    }
-
     size_t grow_capacity(size_t required_capacity) const noexcept
     {
         const size_t old_capacity = m_buffer.capacity ? m_buffer.capacity : 1;
@@ -281,11 +276,29 @@ private:
 
         VX_IF_CONSTEXPR(growth_rate::num == 3 && growth_rate::den == 2)
         {
+            if (old_capacity > max_size() - old_capacity / 2)
+            {
+                return max_size();
+            }
+
             new_capacity = old_capacity + old_capacity / 2;
         }
         else
         {
-            new_capacity = (old_capacity * growth_rate::num + growth_rate::den - 1) / growth_rate::den;
+            // Guard against multiplication overflow: old_capacity * num
+            if (old_capacity > max_size() / growth_rate::num)
+            {
+                return max_size();
+            }
+
+            const size_t added_capacity = old_capacity * growth_rate::num / growth_rate::den;
+            // Guard against addition overflow: old_capacity + added_capacity
+            if (old_capacity > max_size() - added_capacity)
+            {
+                return max_size();
+            }
+
+            new_capacity = old_capacity + added_capacity;
         }
 
         if (new_capacity < required_capacity)

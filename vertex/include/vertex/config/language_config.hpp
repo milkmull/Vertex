@@ -306,6 +306,20 @@
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
+// No Discard
+///////////////////////////////////////////////////////////////////////////////
+
+#if (VX_CPP_STANDARD >= 17)
+    #define VX_NODISCARD [[nodiscard]]
+#elif defined(_MSC_VER)
+    #define VX_NODISCARD _Check_return_
+#elif defined(__GNUC__) || defined(__clang__)
+    #define VX_NODISCARD __attribute__((warn_unused_result))
+#else
+    #define VX_NODISCARD
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
 // No Throw
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -376,3 +390,67 @@
 #else
     #define GENERATE_TRAP() ::__builtin_trap()
 #endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Assume
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef VX_ASSUME
+
+    #if defined(__clang__)
+
+        #if VX_HAS_BUILTIN(__builtin_assume)
+            #define VX_ASSUME(cond) __builtin_assume(cond)
+        #else
+            // fallback for older clang: if cond false, unreachable
+            #define VX_ASSUME(cond) ((cond) ? (void)0 : __builtin_unreachable())
+        #endif
+
+    #elif defined(__GNUC__)
+
+        #if (__GNUC__ > 13) || (__GNUC__ == 13 && __GNUC_MINOR__ >= 0)
+            #define VX_ASSUME(cond) __builtin_assume(cond)
+        #else
+            #define VX_ASSUME(cond) ((cond) ? (void)0 : __builtin_unreachable())
+        #endif
+
+    #elif defined(_MSC_VER)
+
+        #define VX_ASSUME(cond) __assume(cond)
+
+    #else
+
+        #define VX_ASSUME(cond) ((void)0)
+
+    #endif
+
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Allocator Annotation
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef VX_ALLOCATOR
+    #if defined(_MSC_VER)
+        #define VX_ALLOCATOR __declspec(allocator)
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define VX_ALLOCATOR __attribute__((malloc))
+    #else
+        #define VX_ALLOCATOR
+    #endif
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// Verify
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_VERIFY(cond) \
+    do \
+    { \
+        if (!(cond)) \
+        { \
+            GENERATE_TRAP(); \
+        } \
+        VX_ASSUME((cond)); \
+    } \
+    while (VX_NULL_WHILE_LOOP_CONDITION)

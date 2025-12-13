@@ -15,9 +15,9 @@ namespace mem {
 //=========================================================================
 
 template <bool zero = false>
-VX_FORCE_INLINE void* allocate(size_t size) noexcept
+VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
 {
-    if (size == 0)
+    if (bytes == 0)
     {
         return nullptr;
     }
@@ -26,54 +26,54 @@ VX_FORCE_INLINE void* allocate(size_t size) noexcept
 
     VX_IF_CONSTEXPR(zero)
     {
-        ptr = std::calloc(1, size);
+        ptr = ::calloc(1, bytes);
     }
     else
     {
-        ptr = std::malloc(size);
+        ptr = ::malloc(bytes);
     }
 
     return ptr;
 }
 
-VX_FORCE_INLINE void* allocate_zero(size_t size) noexcept
+VX_ALLOCATOR inline void* allocate_zero(const size_t bytes) noexcept
 {
-    return allocate<true>(size);
+    return allocate<true>(bytes);
 }
 
-VX_FORCE_INLINE void deallocate(void* mem) noexcept
+inline void deallocate(void* ptr, const size_t bytes) noexcept
 {
-    std::free(mem);
+    ::free(ptr);
 }
 
-VX_FORCE_INLINE void* reallocate(void* ptr, size_t size) noexcept
+inline void* reallocate(void* ptr, const size_t bytes) noexcept
 {
     if (!ptr)
     {
-        return allocate(size);
+        return allocate(bytes);
     }
 
-    return std::realloc(ptr, size);
+    return ::realloc(ptr, bytes);
 }
 
-VX_FORCE_INLINE void* copy(void* dst, const void* src, size_t size) noexcept
+inline void* copy(void* dst, const void* src, const size_t bytes) noexcept
 {
-    return std::memcpy(dst, src, size);
+    return ::memcpy(dst, src, bytes);
 }
 
-VX_FORCE_INLINE void* move(void* dst, const void* src, size_t size) noexcept
+inline void* move(void* dst, const void* src, const size_t bytes) noexcept
 {
-    return std::memmove(dst, src, size);
+    return ::memmove(dst, src, bytes);
 }
 
-VX_FORCE_INLINE void* set(void* dst, uint8_t value, size_t size) noexcept
+inline void* set(void* dst, const uint8_t value, const size_t bytes) noexcept
 {
-    return std::memset(dst, static_cast<int>(value), size);
+    return ::memset(dst, static_cast<int>(value), bytes);
 }
 
-VX_FORCE_INLINE int compare(const void* a, const void* b, size_t size) noexcept
+inline int compare(const void* a, const void* b, const size_t bytes) noexcept
 {
-    return std::memcmp(a, b, size);
+    return ::memcmp(a, b, bytes);
 }
 
 //=========================================================================
@@ -161,21 +161,12 @@ VX_STATIC_ASSERT(ideal_align >= 2 * sizeof(uintptr_t), "ideal_align must be at l
 // Ensure ideal_align is a power of two (required by aligned allocators and hardware alignment rules)
 VX_STATIC_ASSERT(_priv::is_pow_2(ideal_align), "ideal_align must be a power of two");
 
-//=========================================================================
-
-constexpr size_t alignment_padding_size(size_t alignment)
+constexpr size_t alignment_padding_size(const size_t alignment)
 {
     return aligned_header_size + alignment - 1;
 }
 
-VX_FORCE_INLINE void* raw_to_aligned(void* raw_ptr, size_t alignment, size_t padding) noexcept
-{
-    const uintptr_t raw_addr = reinterpret_cast<uintptr_t>(raw_ptr);
-    const uintptr_t aligned_addr = (raw_addr + padding) & ~(alignment - 1);
-    return reinterpret_cast<void*>(aligned_addr);
-}
-
-VX_FORCE_INLINE void* aligned_to_raw(void* aligned_ptr, size_t padding) noexcept
+inline void* aligned_to_raw(void* aligned_ptr, const size_t padding) noexcept
 {
     const uintptr_t aligned_addr = reinterpret_cast<uintptr_t>(aligned_ptr);
 
@@ -191,7 +182,7 @@ VX_FORCE_INLINE void* aligned_to_raw(void* aligned_ptr, size_t padding) noexcept
     return reinterpret_cast<void*>(raw_addr);
 }
 
-VX_FORCE_INLINE void* setup_aligned_block(void* raw_ptr, size_t alignment, size_t padding) noexcept
+inline void* setup_aligned_block(void* raw_ptr, size_t alignment, size_t padding) noexcept
 {
     const uintptr_t raw_addr = reinterpret_cast<uintptr_t>(raw_ptr);
     const uintptr_t aligned_addr = (raw_addr + padding) & ~(alignment - 1);
@@ -218,10 +209,10 @@ enum : size_t
     ideal_align = _priv::ideal_align
 };
 
-template <bool zero = false>
-VX_FORCE_INLINE void* allocate_aligned(size_t size, size_t alignment) noexcept
+VX_ALLOCATOR inline void* allocate_aligned(const size_t size, const size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
+    VX_ASSUME(alignment <= _priv::max_align);
 
     if (size == 0)
     {
@@ -236,26 +227,23 @@ VX_FORCE_INLINE void* allocate_aligned(size_t size, size_t alignment) noexcept
         return nullptr;
     }
 
-    void* raw_ptr;
-
-    VX_IF_CONSTEXPR(zero)
-    {
-        raw_ptr = std::calloc(1, block_size);
-    }
-    else
-    {
-        raw_ptr = std::malloc(block_size);
-    }
-
-    if (!raw_ptr)
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::malloc(block_size));
+    if (block_ptr == 0)
     {
         return nullptr;
     }
 
-    return _priv::setup_aligned_block(raw_ptr, alignment, padding);
+    void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
+    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+
+#if VX_DEBUG
+    static_cast<uintptr_t*>(ptr)[-2] = static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+#endif
+
+    return ptr;
 }
 
-VX_FORCE_INLINE void* reallocate_aligned(void* ptr, size_t size, size_t alignment) noexcept
+inline void* reallocate_aligned(void* ptr, const size_t size, const size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
 
@@ -275,7 +263,7 @@ VX_FORCE_INLINE void* reallocate_aligned(void* ptr, size_t size, size_t alignmen
     void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
-    raw_ptr = std::realloc(raw_ptr, block_size);
+    raw_ptr = ::realloc(raw_ptr, block_size);
     VX_DISABLE_MSVC_WARNING_POP();
     if (!raw_ptr)
     {
@@ -285,11 +273,12 @@ VX_FORCE_INLINE void* reallocate_aligned(void* ptr, size_t size, size_t alignmen
     return _priv::setup_aligned_block(raw_ptr, alignment, padding);
 }
 
-VX_FORCE_INLINE void deallocate_aligned(void* ptr, size_t alignment) noexcept
+inline void deallocate_aligned(void* ptr, size_t size, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
+    const size_t padding = _priv::alignment_padding_size(alignment);
     void* raw_ptr = _priv::aligned_to_raw(ptr, alignment);
-    std::free(raw_ptr);
+    deallocate(raw_ptr, size + padding);
 }
 
 //=========================================================================
@@ -297,32 +286,23 @@ VX_FORCE_INLINE void deallocate_aligned(void* ptr, size_t alignment) noexcept
 //=========================================================================
 
 template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct_in_place(T* ptr, Args&&... args) noexcept
+inline void construct_in_place(T* ptr, Args&&... args) noexcept
 {
-    //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
-
-    VX_IF_CONSTEXPR(type_traits::is_zero_constructible<T>::value)
-    {
-        // No user-visible construction needed
-        return ptr;
-    }
-    else
-    {
-        return ::new (static_cast<void*>(ptr)) T(std::forward<Args>(args)...);
-    }
+    ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
 }
 
 template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct(Args&&... args) noexcept
+VX_ALLOCATOR inline T* construct(Args&&... args) noexcept
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    constexpr bool zero = type_traits::is_zero_constructible<T>::value;
-    void* ptr = allocate_aligned<zero>(sizeof(T), alignof(T));
+    void* ptr = allocate_aligned(sizeof(T), alignof(T));
     if (!ptr)
     {
         return nullptr;
     }
+
+    construct_in_place(static_cast<T*>(ptr), std::forward<Args>(args)...);
 
     return construct_in_place(static_cast<T*>(ptr), std::forward<Args>(args)...);
 }
@@ -332,7 +312,7 @@ VX_FORCE_INLINE T* construct(Args&&... args) noexcept
 //=========================================================================
 
 template <typename T>
-VX_FORCE_INLINE void destroy_in_place(T* ptr) noexcept
+inline void destroy_in_place(T* ptr) noexcept
 {
     VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
     {
@@ -341,14 +321,14 @@ VX_FORCE_INLINE void destroy_in_place(T* ptr) noexcept
 }
 
 template <typename T>
-VX_FORCE_INLINE void destroy(T* ptr) noexcept
+inline void destroy(T* ptr) noexcept
 {
     destroy_in_place(ptr);
     deallocate_aligned(ptr, alignof(T));
 }
 
 template <typename T>
-VX_FORCE_INLINE void destroy_safe(T* ptr) noexcept
+inline void destroy_safe(T* ptr) noexcept
 {
     if (ptr)
     {
@@ -367,12 +347,17 @@ constexpr size_t array_size(const T (&)[N]) noexcept
     return N;
 }
 
-template <typename T, typename... Args>
-VX_FORCE_INLINE void construct_array_elements(T* ptr, size_t count, Args&&... args) noexcept
+template <typename T>
+inline void construct_range(T* ptr, size_t count) noexcept
 {
+    VX_STATIC_ASSERT(std::is_default_constructible<T>::value, "Type must be default constructible");
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    VX_IF_CONSTEXPR(sizeof...(Args) == 0 && type_traits::is_zero_constructible<T>::value)
+    //VX_IF_CONSTEXPR(std::is_trivially_default_constructible<T>::value)
+    {
+        // No user-visible construction needed
+    }
+    VX_IF_CONSTEXPR(type_traits::is_zero_constructible<T>::value)
     {
         // can optimize with memset
         set(ptr, 0, count * sizeof(T));
@@ -381,13 +366,32 @@ VX_FORCE_INLINE void construct_array_elements(T* ptr, size_t count, Args&&... ar
     {
         for (size_t i = 0; i < count; ++i)
         {
-            construct_in_place(ptr + i, std::forward<Args>(args)...);
+            construct_in_place(ptr + i);
         }
     }
 }
 
 template <typename T>
-VX_FORCE_INLINE void destroy_array_elements(T* ptr, size_t count) noexcept
+inline void construct_range(T* ptr, size_t count, const T& value) noexcept
+{
+    //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
+
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, T>::value))
+    {
+        // can optimize with memset
+        set(ptr, value, count * sizeof(T));
+    }
+    else
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            construct_in_place(ptr + i, value);
+        }
+    }
+}
+
+template <typename T>
+inline void destroy_range(T* ptr, size_t count) noexcept
 {
     VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
     {
@@ -399,7 +403,7 @@ VX_FORCE_INLINE void destroy_array_elements(T* ptr, size_t count) noexcept
 }
 
 template <typename T>
-VX_FORCE_INLINE void copy_array_elements(T* dst, const T* src, size_t count) noexcept
+inline void copy_range(T* dst, const T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
     {
@@ -414,8 +418,37 @@ VX_FORCE_INLINE void copy_array_elements(T* dst, const T* src, size_t count) noe
     }
 }
 
-template <typename T, typename... Args>
-VX_FORCE_INLINE T* construct_array(size_t count, Args&&... args) noexcept
+template <typename T>
+inline void move_range(T* const dst, const T* const src, const size_t count) noexcept
+{
+    //const auto first = src;
+    //const auto last = src + count;
+    //VX_ASSUME(first <= last);
+    //const auto first_ptr = first;
+    //const auto last_ptr = last;
+    //const auto obj_count = static_cast<size_t>(last_ptr - first_ptr);
+    //const auto first_ch = const_cast<const char*>(reinterpret_cast<const volatile char*>(first_ptr));
+    //const auto last_ch = const_cast<const char*>(reinterpret_cast<const volatile char*>(last_ptr));
+    //const auto byte_count = static_cast<size_t>(last_ch - first_ch);
+
+    VX_IF_CONSTEXPR(std::is_trivially_copyable<T>::value)
+    {
+        //const auto dst_ptr = dst;
+        //const auto dst_ch = const_cast<char*>(reinterpret_cast<const volatile char*>(dst_ptr));
+        mem::move(dst, src, count * sizeof(T));
+        return;
+    }
+    else
+    {
+        for (size_t i = 0; i < count; ++i)
+        {
+            construct_in_place(dst + i, std::move(src[i]));
+        }
+    }
+}
+
+template <typename T>
+VX_ALLOCATOR inline T* construct_array(size_t count) noexcept
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
@@ -425,30 +458,46 @@ VX_FORCE_INLINE T* construct_array(size_t count, Args&&... args) noexcept
     }
 
     const size_t size = sizeof(T) * count;
-    constexpr bool zero = type_traits::is_zero_constructible<T>::value;
-    void* ptr = allocate_aligned<zero>(size, alignof(T));
+    void* ptr = allocate_aligned(size, alignof(T));
     if (!ptr)
     {
         return nullptr;
     }
 
-    VX_IF_CONSTEXPR(!zero)
-    {
-        construct_array_elements(static_cast<T*>(ptr), count, std::forward<Args>(args)...);
-    }
-
+    construct_range(static_cast<T*>(ptr), count);
     return static_cast<T*>(ptr);
 }
 
 template <typename T>
-VX_FORCE_INLINE void destroy_array(T* ptr, size_t count) noexcept
+VX_ALLOCATOR inline T* construct_array(size_t count, const T& value) noexcept
 {
-    destroy_array_elements(ptr, count);
+    //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
+
+    if (count == 0)
+    {
+        return nullptr;
+    }
+
+    const size_t size = sizeof(T) * count;
+    void* ptr = allocate_aligned(size, alignof(T));
+    if (!ptr)
+    {
+        return nullptr;
+    }
+
+    construct_range(static_cast<T*>(ptr), count, value);
+    return static_cast<T*>(ptr);
+}
+
+template <typename T>
+inline void destroy_array(T* ptr, size_t count) noexcept
+{
+    destroy_range(ptr, count);
     deallocate_aligned(ptr, alignof(T));
 }
 
 template <typename T>
-VX_FORCE_INLINE void destroy_array_safe(T* ptr, size_t count) noexcept
+inline void destroy_array_safe(T* ptr, size_t count) noexcept
 {
     if (ptr && count)
     {
@@ -467,19 +516,19 @@ class default_allocator
 {
 public:
 
-    VX_FORCE_INLINE static void* alloc(size_t size) noexcept
+    VX_ALLOCATOR inline static void* alloc(size_t size) noexcept
     {
         return mem::allocate(size);
     }
 
-    VX_FORCE_INLINE static void* realloc(void* ptr, size_t size) noexcept
+    inline static void* realloc(void* ptr, size_t size) noexcept
     {
         return mem::reallocate(ptr, size);
     }
 
-    VX_FORCE_INLINE static void free(void* ptr) noexcept
+    inline static void free(void* ptr, size_t size) noexcept
     {
-        mem::deallocate(ptr);
+        mem::deallocate(ptr, size);
     }
 };
 
@@ -488,34 +537,34 @@ class aligned_allocator
 {
 public:
 
-    VX_FORCE_INLINE static void* alloc(size_t size) noexcept
+    VX_ALLOCATOR static void* alloc(const size_t bytes) noexcept
     {
-        return mem::allocate_aligned(size, alignment);
+        return mem::allocate_aligned(bytes, alignment);
     }
 
-    VX_FORCE_INLINE static void* realloc(void* ptr, size_t size) noexcept
+    inline static void* realloc(void* ptr, size_t size) noexcept
     {
         return mem::reallocate_aligned(ptr, size, alignment);
     }
 
-    VX_FORCE_INLINE static void free(void* ptr) noexcept
+    inline static void free(void* ptr, size_t size) noexcept
     {
-        mem::deallocate_aligned(ptr, alignment);
+        mem::deallocate_aligned(ptr, size, alignment);
     }
 };
 
 //=========================================================================
 
-template <size_t alignment>
-struct allocator_selector
-{
-    using type = aligned_allocator<alignment>;
-};
-
-template <>
-struct allocator_selector<0>
-{
-    using type = default_allocator;
-};
+//template <size_t alignment>
+//struct allocator_selector
+//{
+//    using type = aligned_allocator<alignment>;
+//};
+//
+//template <>
+//struct allocator_selector<0>
+//{
+//    using type = default_allocator;
+//};
 
 } // namespace vx

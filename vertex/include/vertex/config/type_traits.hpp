@@ -528,7 +528,7 @@ struct is_char : is_any_of<typename std::remove_cv<T>::type,
 // This can most commonly be exploited by using memset for these types instead of loop-construct.
 // Trivially constructible types are also zero-constructible.
 template <typename T>
-struct is_zero_constructible : std::is_trivially_constructible<T> {};
+struct is_zero_constructible : std::is_trivially_default_constructible<T> {};
 
 template <typename T>
 struct is_zero_constructible<const T> : is_zero_constructible<T> {};
@@ -538,6 +538,65 @@ struct is_zero_constructible<volatile T> : is_zero_constructible<T> {};
 
 template <typename T>
 struct is_zero_constructible<const volatile T> : is_zero_constructible<T> {};
+
+///////////////////////////////////////////////////////////////////////////////
+// unwrap enum
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T, bool is_enum = std::is_enum<T>::value>
+struct unwrap_enum
+{
+    using type = typename std::underlying_type<T>::type;
+};
+
+template <typename T>
+struct unwrap_enum<T, false>
+{
+    using type = T;
+};
+
+///////////////////////////////////////////////////////////////////////////////
+// memset safe
+///////////////////////////////////////////////////////////////////////////////
+
+namespace _priv {
+
+template<typename T>
+struct is_char_or_bool : is_char<T> {};
+
+template<>
+struct is_char_or_bool<bool> : std::true_type {};
+
+template<typename T>
+struct is_char_or_byte_or_bool : is_char_or_bool<T> {};
+
+#ifdef __cpp_lib_byte
+template<>
+struct is_char_or_byte_or_bool<std::byte> : std::true_type {};
+#endif
+
+template <typename IT>
+using iter_reference_t = typename std::iterator_traits<IT>::reference;
+
+template <typename IT>
+using iter_value_t = typename std::iterator_traits<IT>::value_type;
+
+} // namespace _priv
+
+template <typename IT, typename T>
+struct is_fill_memset_safe : bool_constant<
+    std::is_scalar<T>::value &&
+    _priv::is_char_or_byte_or_bool<typename unwrap_enum<std::remove_reference_t<_priv::iter_reference_t<IT>>>::type>::value &&
+    !std::is_volatile<std::remove_reference_t<_priv::iter_reference_t<IT>>>::value &&
+    std::is_assignable<_priv::iter_reference_t<IT>, const T&>::value> {};
+
+template <typename IT, typename T>
+struct is_fill_zero_memset_safe : bool_constant<
+    std::is_scalar<T>::value &&
+    std::is_scalar<_priv::iter_value_t<IT>>::value &&
+    !std::is_member_pointer<_priv::iter_value_t<IT>>::value &&
+    !std::is_volatile<std::remove_reference_t<_priv::iter_reference_t<IT>>>::value &&
+    std::is_assignable<_priv::iter_reference_t<IT>, const T&>::value> {};
 
 } // namespace type_traits
 } // namespace vx
