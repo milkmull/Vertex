@@ -185,35 +185,35 @@ int main()
 
     for (int r = 0; r < R; ++r)
     {
-        //profile_constructor<vec1<big_data>>("construction (vec1)", N);
-        //profile_constructor<vec2<big_data>>("construction (vec2)", N);
-
-        //profile_push_back<vec1<big_data>>("push_back (vec1)", N);
-        //profile_push_back<vec2<big_data>>("push_back (vec2)", N);
-        //
-        //profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
-        //profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
-
+        profile_constructor<vec1<big_data>>("construction (vec1)", N);
+        profile_constructor<vec2<big_data>>("construction (vec2)", N);
+        
+        profile_push_back<vec1<big_data>>("push_back (vec1)", N);
+        profile_push_back<vec2<big_data>>("push_back (vec2)", N);
+        
+        profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
+        profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
+        
         profile_copy<vec1<big_data>>("copy (vec1)", N);
         profile_copy<vec2<big_data>>("copy (vec2)", N);
-        //
-        //profile_copy_assignment<vec1<big_data>>("copy assignment (vec1)", N);
-        //profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
+        
+        profile_copy_assignment<vec1<big_data>>("copy assignment (vec1)", N);
+        profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
 
-        //profile_move<vec2<big_data>>("move (vec2)", N);
-        //profile_move<vec1<big_data>>("move (vec1)", N);
-        //
-        //profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
-        //profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
-        //
-        //profile_push_back_non_trivial<vec1<non_trivial>>("push_back non_trivial (vec1)", N);
-        //profile_push_back_non_trivial<vec2<non_trivial>>("push_back non_trivial (vec2)", N);
-        //
-        //profile_reserve_push_back_non_trivial<vec1<non_trivial>>("reserve push_back non_trivial (vec1)", N);
-        //profile_reserve_push_back_non_trivial<vec2<non_trivial>>("reserve push_back non_trivial (vec2)", N);
-        //
-        //profile_copy<vec1<non_trivial>>("copy non_trivial (vec1)", N);
-        //profile_copy<vec2<non_trivial>>("copy non_trivial (vec2)", N);
+        profile_move<vec2<big_data>>("move (vec2)", N);
+        profile_move<vec1<big_data>>("move (vec1)", N);
+        
+        profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
+        profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
+        
+        profile_push_back_non_trivial<vec1<non_trivial>>("push_back non_trivial (vec1)", N);
+        profile_push_back_non_trivial<vec2<non_trivial>>("push_back non_trivial (vec2)", N);
+        
+        profile_reserve_push_back_non_trivial<vec1<non_trivial>>("reserve push_back non_trivial (vec1)", N);
+        profile_reserve_push_back_non_trivial<vec2<non_trivial>>("reserve push_back non_trivial (vec2)", N);
+        
+        profile_copy<vec1<non_trivial>>("copy non_trivial (vec1)", N);
+        profile_copy<vec2<non_trivial>>("copy non_trivial (vec2)", N);
     }
 
     VX_PROFILE_STOP();

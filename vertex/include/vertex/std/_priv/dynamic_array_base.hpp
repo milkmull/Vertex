@@ -98,7 +98,7 @@ public:
 
     dynamic_array_base& operator=(const dynamic_array_base& other) noexcept
     {
-        if (this == &other)
+        if (this == std::addressof(other))
         {
             return *this;
         }
@@ -206,7 +206,7 @@ public:
 
         T* new_data;
 
-        VX_IF_CONSTEXPR(std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
+        VX_IF_CONSTEXPR((std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value))
         {
             // Use realloc optimization for trivial types
             new_data = static_cast<T*>(allocator::realloc(m_buffer.data, new_capacity * sizeof(T)));
@@ -231,7 +231,7 @@ public:
             if (m_buffer.data)
             {
                 mem::destroy_range(m_buffer.data, m_buffer.size);
-                allocator::free(m_buffer.data);
+                allocator::free(m_buffer.data, m_buffer.size * sizeof(T));
             }
         }
 
