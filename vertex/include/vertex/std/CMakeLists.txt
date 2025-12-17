@@ -3,6 +3,7 @@ file(GLOB VX_STD_HEADER_FILES
 
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/ranges.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/dynamic_array_base.hpp"
 )
 

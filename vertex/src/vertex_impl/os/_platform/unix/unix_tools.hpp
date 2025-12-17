@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstring>
+#include <cerrno>
 
 #include "vertex_impl/os/_platform/unix/unix_header.hpp"
 #include "vertex/os/handle.hpp"
@@ -28,10 +29,10 @@ inline void error_message(const char* msg) noexcept
 {
     const size_t msg_size = std::strlen(msg);
 
-    VX_ERR(err::system_error)
-        << msg
-        << ((msg_size == 0) ? "" : ": ")
-        << std::strerror(errno);
+    //VX_ERR(err::system_error)
+    //    << msg
+    //    << ((msg_size == 0) ? "" : ": ")
+    //    << std::strerror(errno);
 }
 
 } // namespace unix_

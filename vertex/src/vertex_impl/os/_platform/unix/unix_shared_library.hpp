@@ -24,7 +24,7 @@ struct shared_library_impl
         h = ::dlopen(lib, RTLD_LAZY);
         if (h == NULL)
         {
-            VX_ERR(err::system_error) << "failed to load library: " << lib << ": " << ::dlerror();
+            //VX_ERR(err::system_error) << "failed to load library: " << lib << ": " << ::dlerror();
             return false;
         }
 

@@ -4,7 +4,7 @@
 
 namespace vx {
 
-using error_t = uint8_t;
+using error_t = int;
 
 namespace err {
 
@@ -62,11 +62,11 @@ enum code : error_t
  * @param err The error code to describe.
  * @return A constant C-string describing the error.
  */
-constexpr const char* code_to_string(code err) noexcept
+constexpr const char* code_to_string(code err)
 {
     switch (err)
     {
-        case code::none: return "none";
+        case code::none: return "";
         case code::failed: return "failed";
 
         case code::runtime_error: return "runtime error";
@@ -112,7 +112,7 @@ struct info
     code err = code::none;
     const char* message;
 
-    constexpr explicit operator bool() const noexcept
+    constexpr explicit operator bool() const
     {
         return (err != code::none);
     }
@@ -122,16 +122,14 @@ struct info
 // error accessors and manipulators
 ///////////////////////////////////////////////////////////////////////////////
 
-/**
- * @brief Retrieves the current thread's error state.
- *
- * @return The current thread-local error info, including the code and message.
- */
-VX_API info get() noexcept;
+VX_API void print(const char* msg);
 
-VX_API void set(code err, const char* msg, const char* function, const char* file, int line) noexcept;
+VX_API code get_code() noexcept;
+VX_API const char* get_message() noexcept;
 
-inline void set(code err, const char* msg) noexcept
+VX_API void set(code err, const char* msg, const char* function, const char* file, int line);
+
+inline void set(code err, const char* msg)
 {
     set(err, msg, nullptr, nullptr, 0);
 }
@@ -142,10 +140,7 @@ inline void set(code err, const char* msg) noexcept
  * Uses the default string description for the given code.
  * @param err The error code.
  */
-inline void set(code err) noexcept
-{
-    set(err, code_to_string(err));
-}
+VX_API VX_NO_INLINE VX_COLD void set(code err) noexcept;
 
 /**
  * @brief Checks if an error is currently set in the current thread.
@@ -154,7 +149,7 @@ inline void set(code err) noexcept
  */
 inline bool is_set() noexcept
 {
-    return get().err != none;
+    return get_code() != none;
 }
 
 /**
@@ -164,7 +159,7 @@ inline bool is_set() noexcept
  */
 inline void clear() noexcept
 {
-    set(code::none, "");
+    set(code::none);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -195,6 +190,21 @@ inline void clear() noexcept
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_RETURN_IF_ERROR_VOID(check) VX_RETURN_IF_ERROR(void())
+
+#define VX_REPORT_ERROR(msg) ::vx::err::print(msg)
+
+#define VX_CRASH_WITH_MESSAGE(msg) \
+    VX_GENERATE_TRAP(); \
+    VX_UNREACHABLE()
+
+#define VX_VERIFY(cond, msg) \
+    do \
+    { \
+        if (!(cond)) \
+        { \
+            VX_CRASH_WITH_MESSAGE(msg); \
+        } \
+    } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 } // namespace err
 } // namespace vx

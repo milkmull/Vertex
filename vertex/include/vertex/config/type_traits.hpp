@@ -5,6 +5,7 @@
 #include <type_traits>
 #include <iterator>
 #include <limits>
+#include <utility>
 
 namespace vx {
 namespace type_traits {
@@ -25,10 +26,10 @@ struct type_identity
 // enable if
 ///////////////////////////////////////////////////////////////////////////////
 
-template <bool Test, class T = void>
+template <bool Test, typename T = void>
 struct enable_if {};
 
-template <class T>
+template <typename T>
 struct enable_if<true, T> { using type = T; };
 
 #define VX_REQUIRES(condition) typename ::vx::type_traits::enable_if<(condition), int>::type = 0
@@ -521,7 +522,7 @@ struct is_char : is_any_of<typename std::remove_cv<T>::type,
 > {};
 
 ///////////////////////////////////////////////////////////////////////////////
-// zero constructable
+// zero constructible
 ///////////////////////////////////////////////////////////////////////////////
 
 // Whether the default value of a type is just all-0 bytes.
@@ -576,7 +577,7 @@ struct is_char_or_byte_or_bool<std::byte> : std::true_type {};
 #endif
 
 template <typename IT>
-using iter_reference_t = typename std::iterator_traits<IT>::reference;
+using iter_ref_t = typename std::iterator_traits<IT>::reference;
 
 template <typename IT>
 using iter_value_t = typename std::iterator_traits<IT>::value_type;
@@ -586,17 +587,219 @@ using iter_value_t = typename std::iterator_traits<IT>::value_type;
 template <typename IT, typename T>
 struct is_fill_memset_safe : bool_constant<
     std::is_scalar<T>::value &&
-    _priv::is_char_or_byte_or_bool<typename unwrap_enum<std::remove_reference_t<_priv::iter_reference_t<IT>>>::type>::value &&
-    !std::is_volatile<std::remove_reference_t<_priv::iter_reference_t<IT>>>::value &&
-    std::is_assignable<_priv::iter_reference_t<IT>, const T&>::value> {};
+    _priv::is_char_or_byte_or_bool<typename unwrap_enum<std::remove_reference_t<_priv::iter_ref_t<IT>>>::type>::value &&
+    !std::is_volatile<std::remove_reference_t<_priv::iter_ref_t<IT>>>::value &&
+    std::is_assignable<_priv::iter_ref_t<IT>, const T&>::value> {};
 
 template <typename IT, typename T>
 struct is_fill_zero_memset_safe : bool_constant<
     std::is_scalar<T>::value &&
     std::is_scalar<_priv::iter_value_t<IT>>::value &&
     !std::is_member_pointer<_priv::iter_value_t<IT>>::value &&
-    !std::is_volatile<std::remove_reference_t<_priv::iter_reference_t<IT>>>::value &&
-    std::is_assignable<_priv::iter_reference_t<IT>, const T&>::value> {};
+    !std::is_volatile<std::remove_reference_t<_priv::iter_ref_t<IT>>>::value &&
+    std::is_assignable<_priv::iter_ref_t<IT>, const T&>::value> {};
+
+///////////////////////////////////////////////////////////////////////////////
+// pointer address conversion
+///////////////////////////////////////////////////////////////////////////////
+
+#if (VX_CPP_STANDARD == 20)
+
+// When concepts are available, we can detect arbitrary contiguous iterators.
+template <typename It>
+struct iterator_is_contiguous : std::contiguous_iterator<It> {};
+
+#else
+
+// When concepts aren't available, we can detect pointers. (Iterators should be unwrapped before using this.)
+template <typename It>
+struct iterator_is_contiguous : std::is_pointer<It> {};
+
+#endif // (VX_CPP_STANDARD == 20)
+
+template <typename It1, typename It2>
+struct iterators_are_continguous : bool_constant<
+    iterator_is_contiguous<It1>::value &&
+    iterator_is_contiguous<It2>::value> {};
+
+template <typename It>
+struct iterator_is_volatile : bool_constant<
+    std::is_volatile<typename std::remove_reference<_priv::iter_ref_t<It>>::type>::value> {};
+
+template <typename Src, typename Dst>
+struct is_pointer_address_convertible : bool_constant<
+    std::is_void<Src>::value || std::is_void<Dst>::value ||
+    // NOTE: std::is_same is required for function pointers to work
+    std::is_same<typename std::remove_cv<Src>::type, typename std::remove_cv<Dst>::type>::value
+
+#if defined(__cpp_lib_is_pointer_interconvertible)
+    || std::is_pointer_interconvertible_base_of<Dst, Src>::value
+#endif // __cpp_lib_is_pointer_interconvertible
+
+> {};
+
+///////////////////////////////////////////////////////////////////////////////
+// trivial cat
+///////////////////////////////////////////////////////////////////////////////
+
+namespace _priv {
+
+template <typename Src, typename Dst, typename SrcRef, typename DstRef>
+struct trivial_cat
+{
+    using src_u = typename unwrap_enum<Src>::type;
+    using dst_u = typename unwrap_enum<Dst>::type;
+
+    static constexpr bool is_same_size_and_comparable =
+        (sizeof(Src) == sizeof(Dst)) &&
+        // If dst_u is bool, src_u also needs to be bool
+        // Conversion from non-bool -> non-bool | bool -> bool | bool -> non-bool is fine.
+        // Conversion from non-bool -> bool is not fine.
+        std::is_same<bool, src_u>::value >= std::is_same<bool, dst_u>::value &&
+        (std::is_same<src_u, dst_u>::value ||
+         (std::is_integral<src_u>::value && std::is_integral<dst_u>::value) ||
+         (std::is_floating_point<src_u>::value && std::is_floating_point<dst_u>::value));
+
+    static constexpr bool is_bitcopy_constructible =
+        is_same_size_and_comparable &&
+        std::is_trivially_constructible<Dst, SrcRef>::value;
+
+    static constexpr bool is_bitcopy_assignable =
+        is_same_size_and_comparable &&
+        std::is_trivially_assignable<DstRef, SrcRef>::value;
+};
+
+template <typename Src, typename Dst, typename SrcRef, typename DstRef>
+struct trivial_cat<Src*, Dst*, SrcRef, DstRef>
+{
+    static constexpr bool is_bitcopy_constructible =
+        is_pointer_address_convertible<Src, Dst>::value &&
+        std::is_trivially_constructible<Dst*, SrcRef>::value;
+
+    static constexpr bool is_bitcopy_assignable =
+        is_pointer_address_convertible<Src, Dst>::value &&
+        std::is_trivially_assignable<DstRef, SrcRef>::value;
+};
+
+struct false_trivial_cat
+{
+    static constexpr bool is_bitcopy_constructible = false;
+    static constexpr bool is_bitcopy_assignable = false;
+};
+
+template <typename SrcIt, typename DstIt, bool are_contiguous =
+    iterators_are_continguous<SrcIt, DstIt>::value &&
+    !iterator_is_volatile<SrcIt>::value &&
+    !iterator_is_volatile<DstIt>::value>
+struct iter_move_cat : trivial_cat<iter_value_t<SrcIt>, iter_value_t<DstIt>, std::remove_reference_t<iter_ref_t<SrcIt>>&&, iter_ref_t<DstIt>> {};
+
+template <typename SrcIt, typename DstIt>
+struct iter_move_cat<SrcIt, DstIt, false> : false_trivial_cat {};
+
+template <typename SrcIt, typename DstIt>
+struct iter_move_cat<std::move_iterator<SrcIt>, DstIt, false> : iter_move_cat<SrcIt, DstIt> {};
+
+template <typename SrcIt, typename DstIt, bool are_contiguous =
+    iterators_are_continguous<SrcIt, DstIt>::value &&
+    !iterator_is_volatile<SrcIt>::value &&
+    !iterator_is_volatile<DstIt>::value>
+struct iter_copy_cat : trivial_cat<iter_value_t<SrcIt>, iter_value_t<DstIt>, iter_ref_t<SrcIt>, iter_ref_t<DstIt>> {};
+
+template <typename SrcIt, typename DstIt>
+struct iter_copy_cat<SrcIt, DstIt, false> : false_trivial_cat {};
+
+template <typename SrcIt, typename DstIt>
+struct iter_copy_cat<std::move_iterator<SrcIt>, DstIt, false> : iter_move_cat<SrcIt, DstIt> {};
+
+} // namespace _priv
+
+///////////////////////////////////////////////////////////////////////////////
+// bitwise comparable
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename T1, typename T2, typename = void>
+struct can_compare_with_operator_equal : std::false_type {};
+
+template <typename T1, typename T2>
+struct can_compare_with_operator_equal<T1, T2, void_t<decltype(std::declval<T1&>() == std::declval<T2&>())>> : std::true_type {};
+
+template <typename T1, typename T2>
+struct is_pointer_address_comparable : bool_constant<
+    can_compare_with_operator_equal<T1, T2>::value &&
+    (is_pointer_address_convertible<T1, T2>::value || is_pointer_address_convertible<T2, T1>::value)> {};
+
+// Integral types are eligible for memcmp in very specific cases.
+// * They must be the same size. (`int == long` is eligible; `int == long long` isn't.)
+// * The usual arithmetic conversions must preserve bit patterns. (This is true for `int == unsigned int`,
+//   but false for `short == unsigned short`.)
+VX_DISABLE_MSVC_WARNING_PUSH()
+VX_DISABLE_MSVC_WARNING(4806) // no value of type 'bool' promoted to type 'char' can equal the given constant
+template <typename T1, typename T2, bool = ((sizeof(T1) == sizeof(T2)) && (std::is_integral<T1>::value && std::is_integral<T2>::value))>
+struct is_bitwise_comparable : bool_constant<
+    (std::is_same<T1, bool>::value || std::is_same<T2, bool>::value ||
+    (static_cast<T1>(-1) == static_cast<T2>(-1)))> {};
+VX_DISABLE_MSVC_WARNING_POP()
+
+// Allow memcmping std::byte.
+#if defined(__cpp_lib_byte)
+template <>
+struct is_bitwise_comparable<std::byte, std::byte, false> : std::true_type {};
+#endif // __cpp_lib_byte
+
+// Pointer elements are eligible for memcmp when they point to the same type, ignoring cv-qualification.
+// This handles pointers to object types, pointers to void, and pointers to function types.
+template <typename T1, typename T2>
+struct is_bitwise_comparable<T1*, T2*, false> : is_pointer_address_comparable<T1, T2> {};
+
+template <typename T1, typename T2>
+struct is_bitwise_comparable<T1, T2, false> : std::false_type {};
+
+namespace _priv {
+
+// is_bitwise_comparable_with_pred<T1, T2, Pred> reports whether the memcmp optimization is applicable,
+// given contiguously stored elements. (This avoids having to repeat the metaprogramming that finds the element types.)
+// T1 and T2 aren't top-level const here.
+template <typename T1, typename T2, typename Pred>
+struct is_bitwise_comparable_with_pred : std::false_type {};
+
+// With std::equal_to<T3> we need to make sure that both T1 and T2 are convertible to T3 without changing
+// object representation (we use _Iter_copy_cat for this task) and T3 can be safely memcmp'ed with itself
+template <typename T1, typename T2, typename T3>
+struct is_bitwise_comparable_with_pred<T1, T2, std::equal_to<T3>> : bool_constant<
+    iter_copy_cat<T1*, T3*>::is_bitcopy_constructible &&
+    iter_copy_cat<T2*, T3*>::is_bitcopy_constructible &&
+    is_bitwise_comparable<std::remove_cv_t<T3>, std::remove_cv_t<T3>>::value> {};
+
+// equal_to<> is transparent.
+template <typename T1, typename T2>
+struct is_bitwise_comparable_with_pred<T1, T2, std::equal_to<>> : is_bitwise_comparable<T1, T2> {};
+
+#if (VX_CPP_STANDARD == 20)
+// std::ranges::equal_to is also transparent.
+template <typename T1, typename T2>
+struct is_bitwise_comparable_with_pred<T1, T2, std::ranges::equal_to> : is_bitwise_comparable<T1, T2> {};
+#endif // #if (VX_CPP_STANDARD == 20)
+
+// equal_memcmp_is_safe<It1, It2, Pred> reports whether we can activate the memcmp optimization
+// for arbitrary iterators and predicates.
+// It ignores top-level constness on the iterators and on the elements.
+template <typename It1, typename It2, typename Pred>
+struct equal_memcmp_is_safe_helper : bool_constant<
+    iterators_are_continguous<It1, It2>::value &&
+    !iterator_is_volatile<It1>::value && !iterator_is_volatile<It2>::value &&
+    is_bitwise_comparable_with_pred<iter_value_t<It1>, iter_value_t<It2>, Pred>::value> {};
+
+template <typename It1, typename It2, typename Pred>
+struct equal_memcmp_is_safe : equal_memcmp_is_safe_helper<std::remove_const_t<It1>, std::remove_const_t<It2>, std::remove_const_t<Pred>> {};
+
+} // namespace _priv
+
+///////////////////////////////////////////////////////////////////////////////
+// memmove is safe
+///////////////////////////////////////////////////////////////////////////////
+
+template <typename It>
+struct memmove_is_safe : bool_constant<_priv::iter_copy_cat<It, It>::is_bitcopy_constructible> {};
 
 } // namespace type_traits
 } // namespace vx

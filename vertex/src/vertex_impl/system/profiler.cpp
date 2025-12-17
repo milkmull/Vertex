@@ -27,6 +27,8 @@ public:
         {
             write_header();
         }
+
+        os::get_ticks();
         
         return m_file.is_open();
     }

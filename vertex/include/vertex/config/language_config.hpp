@@ -1,434 +1,373 @@
 #pragma once
 
-#include "vertex/config/util.hpp"
 #include "vertex/config/language.hpp"
+#include "vertex/config/util.hpp"
 
 // https://www.boost.org/doc/libs/1_55_0/libs/predef/doc/html/predef/reference/boost_comp_compiler_macros.html
 // https://github.com/boostorg/predef/blob/e1211a4ca467bb6512e99025772ca25afa8d6159/include/boost/predef/compiler.h
 
-///////////////////////////////////////////////////////////////////////////////
-// Debug/Release
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Build Configuration
+//=========================================================================
 
 #if defined(VX_CMAKE_DEBUG) || defined(_DEBUG) || defined(DEBUG)
-#   define VX_DEBUG 1
+    #define VX_DEBUG 1
 #else
-#   define VX_DEBUG 0
+    #define VX_DEBUG 0
 #endif
 
 #define VX_RELEASE (!VX_DEBUG)
 
-///////////////////////////////////////////////////////////////////////////////
-// Null Device
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Platform Basics
+//=========================================================================
 
 #if defined(_WIN32)
-#   define VX_NULL_DEVICE L"NUL:"
+    #define VX_NULL_DEVICE L"NUL:"
+    #define VX_LINE_END    "\r\n"
+    #define VX_STDCALL     __stdcall
 #else
-#   define VX_NULL_DEVICE "/dev/null"
+    #define VX_NULL_DEVICE "/dev/null"
+    #define VX_LINE_END    "\n"
+    #define VX_STDCALL
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Text
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Text / Encoding
+//=========================================================================
 
 #if defined(_WIN32)
-#   define _VX_TEXT(x) L##x
+    #define _VX_TEXT(x) L##x
 #else
-#   define _VX_TEXT(x) x
+    #define _VX_TEXT(x) x
 #endif
 
 #define VX_TEXT(x) _VX_TEXT(x)
 
-///////////////////////////////////////////////////////////////////////////////
-// Line End
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(_WIN32)
-#   define VX_LINE_END "\r\n"
-#else
-#   define VX_LINE_END "\n"
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Null While Loop
-///////////////////////////////////////////////////////////////////////////////
-
-#if defined(_MSC_VER)
-#   define VX_NULL_WHILE_LOOP_CONDITION (0,0)
-#else
-#   define VX_NULL_WHILE_LOOP_CONDITION (0)
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// File and Line Information
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Source Location
+//=========================================================================
 
 #define VX_FILE __FILE__
 #define VX_LINE __LINE__
 
-///////////////////////////////////////////////////////////////////////////////
-// Function Info
-///////////////////////////////////////////////////////////////////////////////
-
-#if VX_CPP_STANDARD >= 11 // C++11 and later
-#   define VX_FUNCTION __func__
-#elif ((defined(__GNUC__) && (__GNUC__ >= 2)) || defined(_MSC_VER) || defined (__WATCOMC__))
-#   define VX_FUNCTION __FUNCTION__
+#if VX_CPP_STANDARD >= 11
+    #define VX_FUNCTION __func__
+#elif ((defined(__GNUC__) && (__GNUC__ >= 2)) || defined(_MSC_VER) || defined(__WATCOMC__))
+    #define VX_FUNCTION __FUNCTION__
 #else
-#   define VX_FUNCTION "???"
+    #define VX_FUNCTION "???"
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// builtin
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Feature Detection Helpers
+//=========================================================================
 
 #if defined(__has_builtin)
-#   define VX_HAS_BUILTIN(x) __has_builtin(x)
+    #define VX_HAS_BUILTIN(x) __has_builtin(x)
 #else
-#   define VX_HAS_BUILTIN(x) 0
+    #define VX_HAS_BUILTIN(x) 0
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// include
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(__has_include)
-#   define VX_HAS_INCLUDE(header) __has_include(header)
+    #define VX_HAS_INCLUDE(header) __has_include(header)
 #else
-#   define VX_HAS_INCLUDE(header) 0
+    #define VX_HAS_INCLUDE(header) 0
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// compiler attribute
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(__has_attribute)
-#   define VX_HAS_COMPILER_ATTRIBUTE(x) __has_attribute(x)
+    #define VX_HAS_COMPILER_ATTRIBUTE(x) __has_attribute(x)
 #else
-#   define VX_HAS_COMPILER_ATTRIBUTE(x) 0
+    #define VX_HAS_COMPILER_ATTRIBUTE(x) 0
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// cpp attribute
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(__has_cpp_attribute)
-#   define VX_HAS_ATTRIBUTE(x) __has_cpp_attribute(x)
+    #define VX_HAS_ATTRIBUTE(x) __has_cpp_attribute(x)
 #else
-#   define VX_HAS_ATTRIBUTE(x) 0
+    #define VX_HAS_ATTRIBUTE(x) 0
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// DLL Export/Import
-///////////////////////////////////////////////////////////////////////////////
-
-// https://github.com/libsdl-org/SDL/blob/0e08d15cca61f59341858f7f239d9bce3dc99f54/include/SDL3/SDL_begin_code.h#L57
+//=========================================================================
+// DLL Import / Export
+//=========================================================================
 
 #if !defined(VX_BUILD_STATIC)
 
-#   if defined(_MSC_VER) // Should just be windows
-
-#       define VX_API_EXPORT __declspec(dllexport)
-#       define VX_API_IMPORT __declspec(dllimport)
-
-#   elif defined(__GNUC__) && __GNUC__ >= 4
-
-#       define VX_API_EXPORT __attribute__((__visibility__("default")))
-#       define VX_API_IMPORT __attribute__((__visibility__("default")))
-
-#   endif
+    #if defined(_MSC_VER)
+        #define VX_API_EXPORT __declspec(dllexport)
+        #define VX_API_IMPORT __declspec(dllimport)
+    #elif defined(__GNUC__) && __GNUC__ >= 4
+        #define VX_API_EXPORT __attribute__((visibility("default")))
+        #define VX_API_IMPORT __attribute__((visibility("default")))
+    #else
+        #define VX_API_EXPORT
+        #define VX_API_IMPORT
+    #endif
 
 #else
-
-#   define VX_API_EXPORT
-#   define VX_API_IMPORT
-
-#endif // !defined(VX_BUILD_STATIC)
+    #define VX_API_EXPORT
+    #define VX_API_IMPORT
+#endif
 
 #if defined(VX_BUILD_SHARED)
-#   define VX_API VX_API_EXPORT
+    #define VX_API VX_API_EXPORT
 #else
-#   define VX_API VX_API_IMPORT
+    #define VX_API VX_API_IMPORT
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Pragma Helper
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Pragma Utilities
+//=========================================================================
 
 #if defined(_MSC_VER)
-#   define _VX_PRAGMA(x) __pragma(x)
+    #define _VX_PRAGMA(x) __pragma(x)
 #elif defined(__GNUC__) || defined(__clang__)
-#   define _VX_PRAGMA(x) _Pragma(VX_STRINGIFY(x))
+    #define _VX_PRAGMA(x) _Pragma(VX_STRINGIFY(x))
 #else
-#   define _VX_PRAGMA(x)
+    #define _VX_PRAGMA(x)
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Warning Suppression
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Warning Control
+//=========================================================================
 
 #if defined(_MSC_VER)
 
-#   define VX_DISABLE_WARNING_PUSH()                        __pragma(warning(push, 0))
-#   define VX_DISABLE_WARNING(warning_name, warning_number) __pragma(warning(disable: warning_number))
-#   define VX_DISABLE_WARNING_POP()                         __pragma(warning(pop))
+    #define VX_DISABLE_WARNING_PUSH()                        __pragma(warning(push, 0))
+    #define VX_DISABLE_WARNING(warning_name, warning_number) __pragma(warning(disable : warning_number))
+    #define VX_DISABLE_WARNING_POP()                         __pragma(warning(pop))
 
-#   define VX_DISABLE_MSVC_WARNING_PUSH()                   VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_MSVC_WARNING(warning_number)          VX_DISABLE_WARNING("", warning_number)
-#   define VX_DISABLE_MSVC_WARNING_POP()                    VX_DISABLE_WARNING_POP()
+    #define VX_DISABLE_MSVC_WARNING_PUSH()          VX_DISABLE_WARNING_PUSH()
+    #define VX_DISABLE_MSVC_WARNING(warning_number) VX_DISABLE_WARNING("", warning_number)
+    #define VX_DISABLE_MSVC_WARNING_POP()           VX_DISABLE_WARNING_POP()
 
-#   define VX_DISABLE_CLANG_WARNING_PUSH()
-#   define VX_DISABLE_CLANG_WARNING(warning_name)
-#   define VX_DISABLE_CLANG_WARNING_POP()
+    #define VX_DISABLE_CLANG_WARNING_PUSH()
+    #define VX_DISABLE_CLANG_WARNING(warning_name)
+    #define VX_DISABLE_CLANG_WARNING_POP()
 
-#   define VX_DISABLE_GCC_WARNING_PUSH()
-#   define VX_DISABLE_GCC_WARNING(warning_name)
-#   define VX_DISABLE_GCC_WARNING_POP()
-
-#   define VX_DISABLE_GCC_CLANG_WARNING_PUSH()
-#   define VX_DISABLE_GCC_CLANG_WARNING(warning_name)
-#   define VX_DISABLE_GCC_CLANG_WARNING_POP()
+    #define VX_DISABLE_GCC_WARNING_PUSH()
+    #define VX_DISABLE_GCC_WARNING(warning_name)
+    #define VX_DISABLE_GCC_WARNING_POP()
 
 #elif defined(__clang__)
 
-#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("clang diagnostic push")
-#   define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(clang diagnostic ignored warning_name)
-#   define VX_DISABLE_WARNING_POP()                         _Pragma("clang diagnostic pop")
+    #define VX_DISABLE_WARNING_PUSH()                        _Pragma("clang diagnostic push")
+    #define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(clang diagnostic ignored warning_name)
+    #define VX_DISABLE_WARNING_POP()                         _Pragma("clang diagnostic pop")
 
-#   define VX_DISABLE_MSVC_WARNING(warning_number)
-#   define VX_DISABLE_MSVC_WARNING_PUSH()
-#   define VX_DISABLE_MSVC_WARNING_POP()
+    #define VX_DISABLE_CLANG_WARNING_PUSH()        VX_DISABLE_WARNING_PUSH()
+    #define VX_DISABLE_CLANG_WARNING(warning_name) VX_DISABLE_WARNING(warning_name, 0)
+    #define VX_DISABLE_CLANG_WARNING_POP()         VX_DISABLE_WARNING_POP()
 
-#   define VX_DISABLE_CLANG_WARNING_PUSH()                  VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_CLANG_WARNING(warning_name)           VX_DISABLE_WARNING(warning_name, 0)
-#   define VX_DISABLE_CLANG_WARNING_POP()                   VX_DISABLE_WARNING_POP()
-
-#   define VX_DISABLE_GCC_WARNING(warning_name)
-#   define VX_DISABLE_GCC_WARNING_PUSH()
-#   define VX_DISABLE_GCC_WARNING_POP()
-
-#   define VX_DISABLE_GCC_CLANG_WARNING_PUSH()              VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_GCC_CLANG_WARNING(warning_name)       VX_DISABLE_WARNING(warning_name, 0)
-#   define VX_DISABLE_GCC_CLANG_WARNING_POP()               VX_DISABLE_WARNING_POP()
+    #define VX_DISABLE_GCC_WARNING_PUSH()
+    #define VX_DISABLE_GCC_WARNING(warning_name)
+    #define VX_DISABLE_GCC_WARNING_POP()
 
 #elif defined(__GNUC__)
 
-#   define VX_DISABLE_WARNING_PUSH()                        _Pragma("GCC diagnostic push")
-#   define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(GCC diagnostic ignored warning_name)
-#   define VX_DISABLE_WARNING_POP()                         _Pragma("GCC diagnostic pop")
+    #define VX_DISABLE_WARNING_PUSH()                        _Pragma("GCC diagnostic push")
+    #define VX_DISABLE_WARNING(warning_name, warning_number) _VX_PRAGMA(GCC diagnostic ignored warning_name)
+    #define VX_DISABLE_WARNING_POP()                         _Pragma("GCC diagnostic pop")
 
-#   define VX_DISABLE_MSVC_WARNING_PUSH()
-#   define VX_DISABLE_MSVC_WARNING(warning_number)
-#   define VX_DISABLE_MSVC_WARNING_POP()
-
-#   define VX_DISABLE_CLANG_WARNING_PUSH()
-#   define VX_DISABLE_CLANG_WARNING(warning_name)
-#   define VX_DISABLE_CLANG_WARNING_POP()
-
-#   define VX_DISABLE_GCC_WARNING_PUSH()                    VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_GCC_WARNING(warning_name)             VX_DISABLE_WARNING(warning_name, 0)
-#   define VX_DISABLE_GCC_WARNING_POP()                     VX_DISABLE_WARNING_POP()
-
-#   define VX_DISABLE_GCC_CLANG_WARNING_PUSH()              VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_GCC_CLANG_WARNING(warning_name)       VX_DISABLE_WARNING(warning_name, 0)
-#   define VX_DISABLE_GCC_CLANG_WARNING_POP()               VX_DISABLE_WARNING_POP()
+    #define VX_DISABLE_GCC_WARNING_PUSH()        VX_DISABLE_WARNING_PUSH()
+    #define VX_DISABLE_GCC_WARNING(warning_name) VX_DISABLE_WARNING(warning_name, 0)
+    #define VX_DISABLE_GCC_WARNING_POP()         VX_DISABLE_WARNING_POP()
 
 #else
 
-#   define VX_DISABLE_WARNING_PUSH()
-#   define VX_DISABLE_WARNING(warning_name, warning_number)
-#   define VX_DISABLE_WARNING_POP()
-
-#   define VX_DISABLE_MSVC_WARNING_PUSH()
-#   define VX_DISABLE_MSVC_WARNING(warning_number)
-#   define VX_DISABLE_MSVC_WARNING_POP()
-
-#   define VX_DISABLE_CLANG_WARNING_PUSH()
-#   define VX_DISABLE_CLANG_WARNING(warning_name)
-#   define VX_DISABLE_CLANG_WARNING_POP()
-
-#   define VX_DISABLE_GCC_WARNING_PUSH()
-#   define VX_DISABLE_GCC_WARNING(warning_name)
-#   define VX_DISABLE_GCC_WARNING_POP()
-
-#   define VX_DISABLE_GCC_CLANG_WARNING_PUSH()
-#   define VX_DISABLE_GCC_CLANG_WARNING(warning_name)
-#   define VX_DISABLE_GCC_CLANG_WARNING_POP()
+    #define VX_DISABLE_WARNING_PUSH()
+    #define VX_DISABLE_WARNING(warning_name, warning_number)
+    #define VX_DISABLE_WARNING_POP()
 
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Likely/Unlikely Branching
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Control Flow & Branch Prediction
+//=========================================================================
 
-#if VX_CPP_STANDARD >= 20 // C++20 or later
-
-#   define VX_LIKELY(expr) [[likely]] (expr)
-#   define VX_UNLIKELY(expr) [[unlikely]] (expr)
-
+#if VX_CPP_STANDARD >= 20
+    #define VX_LIKELY(expr)   [[likely]] (expr)
+    #define VX_UNLIKELY(expr) [[unlikely]] (expr)
 #elif defined(__GNUC__) || defined(__clang__)
-
-#   define VX_LIKELY(expr) (__builtin_expect(!!(expr), 1))
-#   define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
-
+    #define VX_LIKELY(expr)   (__builtin_expect(!!(expr), 1))
+    #define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
 #else
-
-#   define VX_LIKELY(expr) (expr)
-#   define VX_UNLIKELY(expr) (expr)
-
+    #define VX_LIKELY(expr)   (expr)
+    #define VX_UNLIKELY(expr) (expr)
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Force Inline
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
-#   define VX_FORCE_INLINE __forceinline
-#elif VX_HAS_ATTRIBUTE(always_inline)
-#   define VX_FORCE_INLINE inline __attribute__((always_inline))
+    #define VX_ASSUME(expr) __assume(expr)
+#elif defined(__clang__) || defined(__GNUC__)
+    #define VX_ASSUME(expr) ((expr) ? static_cast<void>(0) : __builtin_unreachable())
 #else
-#   define VX_FORCE_INLINE inline
+    #define VX_ASSUME(expr)
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Fallthrough
-///////////////////////////////////////////////////////////////////////////////
+#define VX_UNLIKELY_COLD_PATH(cond, action) \
+    do \
+    { \
+        if (!(cond)) \
+        { \
+            break; \
+        } \
+        do \
+        { \
+            action; \
+        } while (0); \
+    } while (0)
 
-#if (VX_CPP_STANDARD >= 17)
-#   define VX_FALLTHROUGH [[fallthrough]]
+//=========================================================================
+// Function Attributes
+//=========================================================================
+
+#if defined(_MSC_VER)
+    #define VX_FORCE_INLINE __forceinline
+    #define VX_NO_INLINE    __declspec(noinline)
+#elif VX_HAS_COMPILER_ATTRIBUTE(always_inline)
+    #define VX_FORCE_INLINE inline __attribute__((always_inline))
+    #define VX_NO_INLINE    __attribute__((noinline))
+#else
+    #define VX_FORCE_INLINE inline
+    #define VX_NO_INLINE
+#endif
+
+#if VX_CPP_STANDARD >= 17
+    #define VX_NO_DISCARD [[nodiscard]]
 #elif defined(_MSC_VER)
-#   define VX_FALLTHROUGH __fallthrough
-#elif defined(__GNUC__) || defined(__clang__)
-#   define VX_FALLTHROUGH [[clang::fallthrough]]
+    #define VX_NO_DISCARD _Check_return_
+#elif VX_HAS_COMPILER_ATTRIBUTE(warn_unused_result)
+    #define VX_NO_DISCARD __attribute__((warn_unused_result))
 #else
-#   define VX_FALLTHROUGH do {} while (0, 0)
+    #define VX_NO_DISCARD
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// No Discard
-///////////////////////////////////////////////////////////////////////////////
-
-#if (VX_CPP_STANDARD >= 17)
-    #define VX_NODISCARD [[nodiscard]]
-#elif defined(_MSC_VER)
-    #define VX_NODISCARD _Check_return_
-#elif defined(__GNUC__) || defined(__clang__)
-    #define VX_NODISCARD __attribute__((warn_unused_result))
-#else
-    #define VX_NODISCARD
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-// No Throw
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
-#   define VX_NOTHROW __declspec(nothrow)
-#elif VX_HAS_ATTRIBUTE(nothrow)
-#   define VX_NOTHROW __attribute__((nothrow))
+    #define VX_NO_THROW __declspec(nothrow)
+#elif VX_HAS_COMPILER_ATTRIBUTE(nothrow)
+    #define VX_NO_THROW __attribute__((nothrow))
 #else
-#   define VX_NOTHROW
+    #define VX_NO_THROW
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Deprecation
-///////////////////////////////////////////////////////////////////////////////
 
 #if defined(_MSC_VER)
-#   define VX_DEPRECATED(msg) __declspec(deprecated(msg))
-#elif VX_HAS_ATTRIBUTE(deprecated)
-#   define VX_DEPRECATED(msg) __attribute__((deprecated(msg)))
+    #define VX_DEPRECATED(msg) __declspec(deprecated(msg))
+#elif VX_HAS_COMPILER_ATTRIBUTE(deprecated)
+    #define VX_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #else
-#   define VX_DEPRECATED(msg)
+    #define VX_DEPRECATED(msg)
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// If Constexpr
-///////////////////////////////////////////////////////////////////////////////
-
-#if (VX_CPP_STANDARD >= 17)
-#   define VX_IF_CONSTEXPR(x) if constexpr (x)
+#if VX_HAS_COMPILER_ATTRIBUTE(noalias)
+    #define VX_NO_ALIAS __attribute__((noalias))
 #else
-#   define VX_IF_CONSTEXPR if
+    #define VX_NO_ALIAS
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// stdcall
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Additional Attributes (Added)
+//=========================================================================
 
-#if defined(_WIN32)
-#   define VX_STDCALL __stdcall
+#if VX_HAS_COMPILER_ATTRIBUTE(pure)
+    #define VX_PURE __attribute__((pure))
 #else
-#   define VX_STDCALL
+    #define VX_PURE
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Static Assert
-///////////////////////////////////////////////////////////////////////////////
-
-#if (VX_CPP_STANDARD >= 11)
-#   define VX_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+#if VX_HAS_COMPILER_ATTRIBUTE(const)
+    #define VX_CONST_FN __attribute__((const))
 #else
-    // Fallback for pre-C++11: generates a compile-time error using typedef
-    // Note: This will not show the message but will still fail the build
-#   define VX_STATIC_ASSERT(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
+    #define VX_CONST_FN
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Unused
-///////////////////////////////////////////////////////////////////////////////
+#if VX_HAS_COMPILER_ATTRIBUTE(hot)
+    #define VX_HOT __attribute__((hot))
+#else
+    #define VX_HOT
+#endif
+
+#if VX_HAS_COMPILER_ATTRIBUTE(cold)
+    #define VX_COLD __attribute__((cold))
+#else
+    #define VX_COLD
+#endif
+
+#if defined(_MSC_VER)
+    #define VX_RESTRICT __restrict
+#elif defined(__GNUC__) || defined(__clang__)
+    #define VX_RESTRICT __restrict__
+#else
+    #define VX_RESTRICT
+#endif
+
+//=========================================================================
+// Parameter Attributes
+//=========================================================================
+
+#if VX_CPP_STANDARD >= 17
+    #define VX_MAYBE_UNUSED [[maybe_unused]]
+#elif VX_HAS_COMPILER_ATTRIBUTE(unused)
+    #define VX_MAYBE_UNUSED __attribute__((unused))
+#else
+    #define VX_MAYBE_UNUSED
+#endif
 
 #define VX_UNUSED(x) ((void)(x))
 
-///////////////////////////////////////////////////////////////////////////////
-// Trap
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
+// Language Utilities
+//=========================================================================
 
-#ifdef _MSC_VER
-    #define GENERATE_TRAP() ::__fastfail(7 /* FAST_FAIL_FATAL_APP_EXIT */)
+#if VX_CPP_STANDARD >= 17
+    #define VX_FALLTHROUGH [[fallthrough]]
+#elif defined(__clang__)
+    #define VX_FALLTHROUGH [[clang::fallthrough]]
+#elif defined(_MSC_VER)
+    #define VX_FALLTHROUGH __fallthrough
 #else
-    #define GENERATE_TRAP() ::__builtin_trap()
+    #define VX_FALLTHROUGH \
+        do \
+        { \
+        } while (0)
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
-// Assume
-///////////////////////////////////////////////////////////////////////////////
-
-#ifndef VX_ASSUME
-
-    #if defined(__clang__)
-
-        #if VX_HAS_BUILTIN(__builtin_assume)
-            #define VX_ASSUME(cond) __builtin_assume(cond)
-        #else
-            // fallback for older clang: if cond false, unreachable
-            #define VX_ASSUME(cond) ((cond) ? (void)0 : __builtin_unreachable())
-        #endif
-
-    #elif defined(__GNUC__)
-
-        #if (__GNUC__ > 13) || (__GNUC__ == 13 && __GNUC_MINOR__ >= 0)
-            #define VX_ASSUME(cond) __builtin_assume(cond)
-        #else
-            #define VX_ASSUME(cond) ((cond) ? (void)0 : __builtin_unreachable())
-        #endif
-
-    #elif defined(_MSC_VER)
-
-        #define VX_ASSUME(cond) __assume(cond)
-
-    #else
-
-        #define VX_ASSUME(cond) ((void)0)
-
-    #endif
-
+#if VX_CPP_STANDARD >= 17
+    #define VX_IF_CONSTEXPR(x) if constexpr (x)
+#else
+    #define VX_IF_CONSTEXPR(x) if (x)
 #endif
 
-///////////////////////////////////////////////////////////////////////////////
+#if defined(_MSC_VER)
+    #define VX_NULL_WHILE_LOOP_CONDITION (0, 0)
+#else
+    #define VX_NULL_WHILE_LOOP_CONDITION (0)
+#endif
+
+//=========================================================================
+// Static Assert
+//=========================================================================
+
+#if VX_CPP_STANDARD >= 11
+    #define VX_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+#else
+    #define VX_STATIC_ASSERT(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
+#endif
+
+//=========================================================================
+// Trap / Unreachable
+//=========================================================================
+
+#if defined(_MSC_VER)
+    #define VX_GENERATE_TRAP() ::__fastfail(7)
+#else
+    #define VX_GENERATE_TRAP() ::__builtin_trap()
+#endif
+
+#define VX_UNREACHABLE() VX_ASSUME(0)
+
+//=========================================================================
 // Allocator Annotation
-///////////////////////////////////////////////////////////////////////////////
+//=========================================================================
 
 #ifndef VX_ALLOCATOR
     #if defined(_MSC_VER)
@@ -439,18 +378,3 @@
         #define VX_ALLOCATOR
     #endif
 #endif
-
-///////////////////////////////////////////////////////////////////////////////
-// Verify
-///////////////////////////////////////////////////////////////////////////////
-
-#define VX_VERIFY(cond) \
-    do \
-    { \
-        if (!(cond)) \
-        { \
-            GENERATE_TRAP(); \
-        } \
-        VX_ASSUME((cond)); \
-    } \
-    while (VX_NULL_WHILE_LOOP_CONDITION)

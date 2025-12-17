@@ -1,3 +1,4 @@
+#include <string>
 #include <locale.h>
 #include <langinfo.h>
 

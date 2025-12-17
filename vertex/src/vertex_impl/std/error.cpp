@@ -28,16 +28,22 @@ static thread_local info_impl s_err;
 // error printing
 ///////////////////////////////////////////////////////////////////////////////
 
-#if VX_ERROR_PRINTING_AVAILABLE
-
 static bool s_print_errors = false;
 
-void _priv::set_error_printing_enabled(bool enabled) noexcept
+#if VX_ERROR_PRINTING_AVAILABLE
+
+void _priv::set_error_printing_enabled(bool enabled)
 {
     s_print_errors = enabled;
 }
 
-static void print_error(const char* msg) noexcept
+#endif // VX_ERROR_PRINTING_AVAILABLE
+
+///////////////////////////////////////////////////////////////////////////////
+// error accessors and manipulators
+///////////////////////////////////////////////////////////////////////////////
+
+void print(const char* msg)
 {
     if (!msg)
     {
@@ -49,18 +55,17 @@ static void print_error(const char* msg) noexcept
     std::fflush(stderr);
 }
 
-#endif // VX_ERROR_PRINTING_AVAILABLE
-
-///////////////////////////////////////////////////////////////////////////////
-// error accessors and manipulators
-///////////////////////////////////////////////////////////////////////////////
-
-info get() noexcept
+code get_code() noexcept
 {
-    return { s_err.err, s_err.message };
+    return s_err.err;
 }
 
-void set(code err, const char* msg, const char* function, const char* file, int line) noexcept
+const char* get_message() noexcept
+{
+    return s_err.message;
+}
+
+void set(code err, const char* msg, const char* function, const char* file, int line)
 {
     char* out = s_err.message;
     constexpr size_t cap = error_message_max_size;
@@ -113,6 +118,11 @@ void set(code err, const char* msg, const char* function, const char* file, int 
 #endif // VX_ERROR_PRINTING_AVAILABLE
 
     s_err.err = err;
+}
+
+void set(code err) noexcept
+{
+    set(err, code_to_string(err));
 }
 
 } // namespace err

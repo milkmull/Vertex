@@ -7,7 +7,7 @@
 
 namespace vx {
 template <typename T>
-using vector = _priv::dynamic_array_base<T, aligned_allocator<mem::ideal_align>>;
+using vector = _priv::dynamic_array_base<T, aligned_allocator<T, mem::ideal_align>>;
 } // namespace vx
 
 template <typename T>
@@ -24,6 +24,11 @@ struct big_data
 {
     uint64_t a, b, c, d;
 };
+
+bool operator==(const big_data& lhs, const big_data& rhs)
+{
+    return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d;
+}
 
 // Non-trivial type to check copy/move/destruct counts
 struct non_trivial
@@ -78,7 +83,7 @@ struct non_trivial
     }
 };
 
-static constexpr int R = 300;       // number of repetitions
+static constexpr int R = 3000;       // number of repetitions
 static constexpr size_t N = 200000; // number of elements
 
 // Helper profiling functions
@@ -88,6 +93,16 @@ void profile_constructor(const char* name, size_t count)
 {
     ::vx::profile::_priv::profile_timer timerVX_LINE(name);
     Vec v(count);
+    timerVX_LINE.stop();
+}
+
+template <typename Vec>
+void profile_destructor(const char* name, size_t count)
+{
+    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    {
+        Vec v(count);
+    }
     timerVX_LINE.stop();
 }
 
@@ -179,6 +194,32 @@ void profile_reserve_push_back_non_trivial(const char* name, size_t count)
         v.push_back(non_trivial{ int(i) });
 }
 
+template <typename Vec>
+void profile_resize(const char* name, size_t count)
+{
+    Vec v(count / 2);
+    VX_PROFILE_SCOPE(name);
+    v.resize(count);
+}
+
+template <typename Vec>
+void profile_compare(const char* name, size_t count)
+{
+    Vec v1;
+
+    for (size_t i = 0; i < count; ++i)
+    {
+        v1.push_back(big_data{ i, i + 1, i + 2, i + 3 });
+    }
+
+    Vec v2 = v1;
+
+    {
+        VX_PROFILE_SCOPE(name);
+        const bool equal = v1 == v2;
+    }
+}
+
 int main()
 {
     VX_PROFILE_START("profile_dynamic_array.csv");
@@ -187,33 +228,42 @@ int main()
     {
         profile_constructor<vec1<big_data>>("construction (vec1)", N);
         profile_constructor<vec2<big_data>>("construction (vec2)", N);
-        
-        profile_push_back<vec1<big_data>>("push_back (vec1)", N);
-        profile_push_back<vec2<big_data>>("push_back (vec2)", N);
-        
-        profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
-        profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
-        
-        profile_copy<vec1<big_data>>("copy (vec1)", N);
-        profile_copy<vec2<big_data>>("copy (vec2)", N);
-        
-        profile_copy_assignment<vec1<big_data>>("copy assignment (vec1)", N);
-        profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
 
-        profile_move<vec2<big_data>>("move (vec2)", N);
-        profile_move<vec1<big_data>>("move (vec1)", N);
-        
-        profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
-        profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
-        
-        profile_push_back_non_trivial<vec1<non_trivial>>("push_back non_trivial (vec1)", N);
-        profile_push_back_non_trivial<vec2<non_trivial>>("push_back non_trivial (vec2)", N);
-        
-        profile_reserve_push_back_non_trivial<vec1<non_trivial>>("reserve push_back non_trivial (vec1)", N);
-        profile_reserve_push_back_non_trivial<vec2<non_trivial>>("reserve push_back non_trivial (vec2)", N);
-        
-        profile_copy<vec1<non_trivial>>("copy non_trivial (vec1)", N);
-        profile_copy<vec2<non_trivial>>("copy non_trivial (vec2)", N);
+        //profile_destructor<vec1<big_data>>("destruction (vec1)", N);
+        //profile_destructor<vec2<big_data>>("destruction (vec2)", N);
+        //
+        //profile_push_back<vec1<big_data>>("push_back (vec1)", N);
+        //profile_push_back<vec2<big_data>>("push_back (vec2)", N);
+        //
+        //profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
+        //profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
+        //
+        //profile_copy<vec1<big_data>>("copy (vec1)", N);
+        //profile_copy<vec2<big_data>>("copy (vec2)", N);
+        //
+        //profile_copy_assignment<vec1<big_data>>("copy assignment (vec1)", N);
+        //profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
+        //
+        //profile_move<vec2<big_data>>("move (vec2)", N);
+        //profile_move<vec1<big_data>>("move (vec1)", N);
+        //
+        //profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
+        //profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
+        //
+        //profile_push_back_non_trivial<vec1<non_trivial>>("push_back non_trivial (vec1)", N);
+        //profile_push_back_non_trivial<vec2<non_trivial>>("push_back non_trivial (vec2)", N);
+        //
+        //profile_reserve_push_back_non_trivial<vec1<non_trivial>>("reserve push_back non_trivial (vec1)", N);
+        //profile_reserve_push_back_non_trivial<vec2<non_trivial>>("reserve push_back non_trivial (vec2)", N);
+        //
+        //profile_copy<vec1<non_trivial>>("copy non_trivial (vec1)", N);
+        //profile_copy<vec2<non_trivial>>("copy non_trivial (vec2)", N);
+        //
+        //profile_resize<vec1<big_data>>("resize (vec1)", N);
+        //profile_resize<vec2<big_data>>("resize (vec2)", N);
+        //
+        //profile_compare<vec1<big_data>>("compare (vec1)", N);
+        //profile_compare<vec2<big_data>>("compare (vec2)", N);
     }
 
     VX_PROFILE_STOP();

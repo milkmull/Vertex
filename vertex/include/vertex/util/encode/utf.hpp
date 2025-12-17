@@ -536,7 +536,7 @@ struct utf_traits<char_t, 2> : utf_base_traits<2>
 
         if (VX_LIKELY(c < 0x0010000))
         {
-            // Codepoint is directly convertable
+            // Codepoint is directly convertible
             *out++ = static_cast<char_type>(c);
         }
         else
