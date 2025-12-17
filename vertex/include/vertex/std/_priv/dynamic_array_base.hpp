@@ -150,7 +150,6 @@ public:
         capacity = count;
 
         mem::construct_range(new_ptr, count);
-        return;
     }
 
     template <typename U>

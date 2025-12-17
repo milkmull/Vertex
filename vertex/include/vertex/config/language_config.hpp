@@ -44,6 +44,8 @@
 
 #define VX_TEXT(x) _VX_TEXT(x)
 
+#define VX_EMPTY_DEFINE(def) defined(def) && ((def) + 0 != -14) && (7 - (def) - 7 == 14)
+
 //=========================================================================
 // Source Location
 //=========================================================================
@@ -186,15 +188,48 @@
 //=========================================================================
 
 #if VX_CPP_STANDARD >= 20
-    #define VX_LIKELY(expr)   [[likely]] (expr)
-    #define VX_UNLIKELY(expr) [[unlikely]] (expr)
+    #define VX_LIKELY(expr)    (expr) [[likely]]
+    #define VX_UNLIKELY(expr)  (expr) [[unlikely]]
+    #define _VX_LIKELY_DEFINED 1
 #elif defined(__GNUC__) || defined(__clang__)
-    #define VX_LIKELY(expr)   (__builtin_expect(!!(expr), 1))
-    #define VX_UNLIKELY(expr) (__builtin_expect(!!(expr), 0))
+    #define VX_LIKELY(expr)    (__builtin_expect(!!(expr), 1))
+    #define VX_UNLIKELY(expr)  (__builtin_expect(!!(expr), 0))
+    #define _VX_LIKELY_DEFINED 1
 #else
-    #define VX_LIKELY(expr)   (expr)
-    #define VX_UNLIKELY(expr) (expr)
+    #define VX_LIKELY(expr)    (expr)
+    #define VX_UNLIKELY(expr)  (expr)
+    #define _VX_LIKELY_DEFINED 0
 #endif
+
+#if _VX_LIKELY_DEFINED && 0
+
+    #define VX_UNLIKELY_COLD_PATH(cond, action) \
+        do \
+        { \
+            if VX_UNLIKELY(cond) \
+            { \
+                action; \
+            } \
+        } while (0)
+
+#else
+
+    #define VX_UNLIKELY_COLD_PATH(cond, action) \
+        do \
+        { \
+            if (!(cond)) \
+            { \
+                break; \
+            } \
+            do \
+            { \
+                action; \
+            } while (0); \
+        } while (0)
+
+#endif
+
+#undef _VX_LIKELY_DEFINED
 
 #if defined(_MSC_VER)
     #define VX_ASSUME(expr) __assume(expr)
@@ -203,19 +238,6 @@
 #else
     #define VX_ASSUME(expr)
 #endif
-
-#define VX_UNLIKELY_COLD_PATH(cond, action) \
-    do \
-    { \
-        if (!(cond)) \
-        { \
-            break; \
-        } \
-        do \
-        { \
-            action; \
-        } while (0); \
-    } while (0)
 
 //=========================================================================
 // Function Attributes

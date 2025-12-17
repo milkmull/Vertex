@@ -12,14 +12,14 @@
 // enable crash when allocation fails
 //=========================================================================
 
-#if defined(VX_ALLOCATE_FAIL_FAST)
-    #define VX_ALLOCATOR_FAILED() VX_CRASH_WITH_MESSAGE("allocation failed")
-#else
-    #define VX_ALLOCATOR_FAILED() VX_ERR(err::out_of_memory)
-#endif
-
 namespace vx {
 namespace mem {
+
+#if defined(VX_ALLOCATE_FAIL_FAST)
+    #define VX_ALLOCATOR_FAILED(ret) VX_CRASH_WITH_MESSAGE("allocation failed");
+#else
+    #define VX_ALLOCATOR_FAILED(ret) return ::vx::err::return_error(err::out_of_memory, ret)
+#endif
 
 //=========================================================================
 // memory management (unaligned)
@@ -192,51 +192,47 @@ VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
     const size_t block_size = bytes + padding;
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
-        VX_ERR(err::size_error);
-        return nullptr;
+        return err::return_error(err::size_error, nullptr);
     });
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::malloc(block_size));
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
-            VX_ALLOCATOR_FAILED();
-            return nullptr;
+        VX_ALLOCATOR_FAILED(nullptr);
     });
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
-    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+    *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
 
 #if VX_DEBUG
-    static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+    *(static_cast<uintptr_t*>(ptr) - 2) = _priv::aligned_allocation_sentinel;
 #endif
 
     return ptr;
 }
 
-VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alignment)
+VX_ALLOCATOR inline VX_NO_INLINE void* allocate_aligned(const size_t bytes, const size_t alignment)
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
 
     const size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
-    if VX_UNLIKELY (block_size <= bytes)
+    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
-        VX_ERR(err::size_error);
-        return nullptr;
-    }
+        return err::return_error(err::size_error, nullptr);
+    });
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::malloc(block_size));
-    if VX_UNLIKELY(block_ptr == 0)
+    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
-        VX_ALLOCATOR_FAILED();
-        return nullptr;
-    }
+        VX_ALLOCATOR_FAILED(nullptr);
+    });
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
-    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+    *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
 
 #if VX_DEBUG
-    static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+    *(static_cast<uintptr_t*>(ptr) - 2) = _priv::aligned_allocation_sentinel;
 #endif
 
     return ptr;
@@ -253,21 +249,20 @@ inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alig
 
     const size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
-    if (block_size <= bytes)
+    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
-        // overflow
-        return nullptr;
-    }
+        //return _priv::allocation_error<nullptr_t>(err::size_error);
+    });
 
     void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(raw_ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
-    if (block_ptr == 0)
+    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
-        return nullptr;
-    }
+        //return _priv::allocation_error<nullptr_t>(err::out_of_memory);
+    });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
@@ -303,10 +298,10 @@ VX_ALLOCATOR inline T* construct(Args&&... args)
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
     void* raw_ptr = allocate_aligned(sizeof(T), alignof(T));
-    if (!raw_ptr)
+    VX_UNLIKELY_COLD_PATH(!raw_ptr,
     {
         return nullptr;
-    }
+    });
 
     T* ptr = static_cast<T*>(raw_ptr);
     construct_in_place(ptr, std::forward<Args>(args)...);
@@ -353,18 +348,6 @@ template <typename T>
 constexpr size_t get_max_count() noexcept
 {
     return SIZE_MAX / sizeof(T);
-}
-
-template <typename T>
-inline size_t count_to_bytes(size_t count)
-{
-    if (count > get_max_count<T>())
-    {
-        VX_ERR(err::size_error);
-        return 0;
-    }
-
-    return count * sizeof(T);
 }
 
 template <typename T>
@@ -579,6 +562,11 @@ public:
 
     VX_ALLOCATOR static T* allocate(const size_t count)
     {
+        VX_UNLIKELY_COLD_PATH(count == 0,
+        {
+            return nullptr;
+        });
+
         const size_t bytes = count * sizeof(T);
         return static_cast<T*>(mem::allocate(bytes));
     }
@@ -605,13 +593,13 @@ public:
 
     VX_ALLOCATOR static T* allocate(const size_t count) noexcept
     {
-        if VX_UNLIKELY(count == 0)
+        VX_UNLIKELY_COLD_PATH(count == 0,
         {
             return nullptr;
-        }
+        });
 
         const size_t bytes = count * sizeof(T);
-        return static_cast<T*>(mem::allocate_aligned<alignment>(bytes));
+        return static_cast<T*>(mem::allocate_aligned(bytes, alignment));
     }
 
     static T* reallocate(T* ptr, const size_t count)

@@ -83,7 +83,7 @@ struct non_trivial
     }
 };
 
-static constexpr int R = 3000;       // number of repetitions
+static constexpr int R = 30000;       // number of repetitions
 static constexpr size_t N = 200000; // number of elements
 
 // Helper profiling functions

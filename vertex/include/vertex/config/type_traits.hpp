@@ -515,7 +515,7 @@ struct is_char : is_any_of<typename std::remove_cv<T>::type,
     char,
     wchar_t,
 #if defined(__cpp_char8_t)
-    char8_t
+    char8_t,
 #endif // __cpp_char8_t
     char16_t,
     char32_t
@@ -607,20 +607,20 @@ struct is_fill_zero_memset_safe : bool_constant<
 
 // When concepts are available, we can detect arbitrary contiguous iterators.
 template <typename It>
-struct iterator_is_contiguous : std::contiguous_iterator<It> {};
+constexpr bool iterator_is_contiguous = std::contiguous_iterator<It>;
 
 #else
 
 // When concepts aren't available, we can detect pointers. (Iterators should be unwrapped before using this.)
 template <typename It>
-struct iterator_is_contiguous : std::is_pointer<It> {};
+constexpr bool iterator_is_contiguous = std::is_pointer<It>::value;
 
 #endif // (VX_CPP_STANDARD == 20)
 
 template <typename It1, typename It2>
 struct iterators_are_continguous : bool_constant<
-    iterator_is_contiguous<It1>::value &&
-    iterator_is_contiguous<It2>::value> {};
+    iterator_is_contiguous<It1> &&
+    iterator_is_contiguous<It2>> {};
 
 template <typename It>
 struct iterator_is_volatile : bool_constant<

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "vertex/config/language_config.hpp"
 
 namespace vx {
@@ -160,6 +162,13 @@ inline bool is_set() noexcept
 inline void clear() noexcept
 {
     set(code::none);
+}
+
+template <typename R>
+auto return_error(err::code e, R&& ret) noexcept
+{
+    set(e);
+    return std::forward<R>(ret);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
