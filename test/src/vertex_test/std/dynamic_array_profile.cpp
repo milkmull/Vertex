@@ -7,7 +7,7 @@
 
 namespace vx {
 template <typename T>
-using vector = _priv::dynamic_array_base<T, aligned_allocator<T, mem::ideal_align>>;
+using vector = _priv::dynamic_array_base<T, default_allocator<T, mem::ideal_align>>;
 } // namespace vx
 
 template <typename T>
@@ -89,7 +89,7 @@ static constexpr size_t N = 200000; // number of elements
 // Helper profiling functions
 
 template <typename Vec>
-void profile_constructor(const char* name, size_t count)
+VX_NO_INLINE void profile_constructor(const char* name, size_t count)
 {
     ::vx::profile::_priv::profile_timer timerVX_LINE(name);
     Vec v(count);

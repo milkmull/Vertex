@@ -211,7 +211,7 @@ VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
     return ptr;
 }
 
-VX_ALLOCATOR inline VX_NO_INLINE void* allocate_aligned(const size_t bytes, const size_t alignment)
+VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
 
@@ -238,20 +238,21 @@ VX_ALLOCATOR inline VX_NO_INLINE void* allocate_aligned(const size_t bytes, cons
     return ptr;
 }
 
-inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alignment)
+template <size_t alignment>
+void* reallocate_aligned(void* ptr, const size_t bytes) noexcept
 {
-    VX_ASSERT(_priv::is_pow_2(alignment));
+    VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
-    if (!ptr)
+    VX_UNLIKELY_COLD_PATH(!ptr,
     {
-        return allocate_aligned(bytes, alignment);
-    }
+        return allocate_aligned<alignment>(bytes);
+    });
 
-    const size_t padding = _priv::alignment_padding_size(alignment);
+    constexpr size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
-        //return _priv::allocation_error<nullptr_t>(err::size_error);
+        return err::return_error(err::size_error, nullptr);
     });
 
     void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
@@ -261,7 +262,7 @@ inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alig
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
-        //return _priv::allocation_error<nullptr_t>(err::out_of_memory);
+        VX_ALLOCATOR_FAILED(nullptr);
     });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
@@ -274,7 +275,52 @@ inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alig
     return ptr;
 }
 
-inline void deallocate_aligned(void* ptr, const size_t size, const size_t alignment)
+inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alignment) noexcept
+{
+    VX_ASSERT(_priv::is_pow_2(alignment));
+
+    VX_UNLIKELY_COLD_PATH(!ptr,
+    {
+        return allocate_aligned(bytes, alignment);
+    });
+
+    const size_t padding = _priv::alignment_padding_size(alignment);
+    const size_t block_size = bytes + padding;
+    VX_UNLIKELY_COLD_PATH(block_size <= bytes,
+    {
+        return err::return_error(err::size_error, nullptr);
+    });
+
+    void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
+    VX_DISABLE_MSVC_WARNING_PUSH();
+    VX_DISABLE_MSVC_WARNING(6308);
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(raw_ptr, block_size));
+    VX_DISABLE_MSVC_WARNING_POP();
+    VX_UNLIKELY_COLD_PATH(block_ptr == 0,
+    {
+        VX_ALLOCATOR_FAILED(nullptr);
+    });
+
+    ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
+    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+
+#if VX_DEBUG
+    static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+#endif
+
+    return ptr;
+}
+
+template <size_t alignment>
+void deallocate_aligned(void* ptr, const size_t size) noexcept
+{
+    VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
+    constexpr size_t padding = _priv::alignment_padding_size(alignment);
+    void* raw_ptr = _priv::aligned_to_raw(ptr, alignment);
+    deallocate(raw_ptr, size + padding);
+}
+
+inline void deallocate_aligned(void* ptr, const size_t size, const size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
     const size_t padding = _priv::alignment_padding_size(alignment);
@@ -553,42 +599,13 @@ inline void destroy_array_safe(const T* ptr, const size_t count)
 // allocator
 //=========================================================================
 
-template <typename T>
+template <typename T, size_t Alignment = alignof(T)>
 class default_allocator
 {
 public:
 
-    static constexpr size_t alignment = 0;
-
-    VX_ALLOCATOR static T* allocate(const size_t count)
-    {
-        VX_UNLIKELY_COLD_PATH(count == 0,
-        {
-            return nullptr;
-        });
-
-        const size_t bytes = count * sizeof(T);
-        return static_cast<T*>(mem::allocate(bytes));
-    }
-
-    static T* reallocate(T* ptr, const size_t count)
-    {
-        const size_t bytes = count * sizeof(T);
-        return static_cast<T*>(mem::reallocate(ptr, bytes));
-    }
-
-    static void deallocate(T* ptr, const size_t count)
-    {
-        const size_t bytes = count * sizeof(T);
-        mem::deallocate(ptr, bytes);
-    }
-};
-
-template <typename T, size_t Alignment = alignof(T)>
-class aligned_allocator
-{
-public:
-
+    VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
+    VX_STATIC_ASSERT(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
     static constexpr size_t alignment = Alignment;
 
     VX_ALLOCATOR static T* allocate(const size_t count) noexcept
@@ -599,34 +616,44 @@ public:
         });
 
         const size_t bytes = count * sizeof(T);
-        return static_cast<T*>(mem::allocate_aligned(bytes, alignment));
+
+        VX_IF_CONSTEXPR(alignment == 1)
+        {
+            return static_cast<T*>(mem::allocate(bytes));
+        }
+        else
+        {
+            return static_cast<T*>(mem::allocate_aligned<alignment>(bytes));
+        }
     }
 
     static T* reallocate(T* ptr, const size_t count)
     {
         const size_t bytes = count * sizeof(T);
-        return static_cast<T*>(mem::reallocate_aligned(ptr, bytes, alignment));
+
+        VX_IF_CONSTEXPR(alignment == 1)
+        {
+            return static_cast<T*>(mem::reallocate(ptr, bytes));
+        }
+        else
+        {
+            return static_cast<T*>(mem::reallocate_aligned<alignment>(ptr, bytes));
+        }
     }
 
     static void deallocate(T* ptr, const size_t count)
     {
         const size_t bytes = count * sizeof(T);
-        mem::deallocate_aligned(ptr, bytes, alignment);
+
+        VX_IF_CONSTEXPR(alignment == 1)
+        {
+            mem::deallocate(ptr, bytes);
+        }
+        else
+        {
+            mem::deallocate_aligned<alignment>(ptr, bytes);
+        }
     }
 };
-
-//=========================================================================
-
-//template <size_t alignment>
-//struct allocator_selector
-//{
-//    using type = aligned_allocator<alignment>;
-//};
-//
-//template <>
-//struct allocator_selector<0>
-//{
-//    using type = default_allocator;
-//};
 
 } // namespace vx
