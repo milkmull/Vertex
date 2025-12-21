@@ -1,5 +1,8 @@
-#include "vertex_impl/os/_platform/platform_time.hpp"
+#include <cstdint>
+
+#include "vertex/config/assert.hpp"
 #include "vertex/os/atomic.hpp"
+#include "vertex_impl/os/_platform/platform_time.hpp"
 
 namespace vx {
 
@@ -27,15 +30,34 @@ time::time_point system_time()
 // Ticks
 ///////////////////////////////////////////////////////////////////////////////
 
+static inline uint32_t calculate_gcd(uint32_t a, uint32_t b)
+{
+    if (b == 0)
+    {
+        return a;
+    }
+
+    return calculate_gcd(b, (a % b));
+}
+
 struct ticks_data
 {
     int64_t start_ticks;
     int64_t ticks_per_second;
+    uint32_t num_ns;
+    uint32_t den_ns;
 
     ticks_data()
     {
         start_ticks = get_performance_counter_impl();
         ticks_per_second = get_performance_frequency_impl();
+
+        const uint32_t gcd = calculate_gcd(
+            static_cast<uint32_t>(time::nanoseconds_per_second),
+            static_cast<uint32_t>(ticks_per_second));
+
+        num_ns = static_cast<uint32_t>(time::nanoseconds_per_second) / gcd;
+        den_ns = static_cast<uint32_t>(ticks_per_second / gcd);
     }
 };
 
@@ -45,8 +67,12 @@ time::time_point get_ticks()
     static const ticks_data s_ticks_data{};
 
     const int64_t elapsed_ticks = get_performance_counter_impl() - s_ticks_data.start_ticks;
-    const int64_t ns = (elapsed_ticks * 1000000000ll) / s_ticks_data.ticks_per_second;
-    return time::nanoseconds(ns);
+
+    int64_t value = (elapsed_ticks * s_ticks_data.num_ns);
+    VX_ASSERT(value >= elapsed_ticks);
+    value /= s_ticks_data.den_ns;
+
+    return time::nanoseconds(value);
 }
 
 int64_t get_performance_counter()
@@ -133,5 +159,4 @@ void sleep_precise(const time::time_point& t)
 }
 
 } // namespace os
-
 } // namespace vx

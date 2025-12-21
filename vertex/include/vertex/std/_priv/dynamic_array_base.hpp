@@ -85,7 +85,7 @@ private:
             return nullptr;
         }
 
-        T* ptr = allocator_type::allocate(count);
+        ptr = allocator_type::allocate(count);
         if (!ptr)
         {
             //VX_ERR(err::out_of_memory);
