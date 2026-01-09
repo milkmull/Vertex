@@ -547,11 +547,9 @@ inline void move_range_back(T* dst, const T* src, size_t count)
 template <typename T, typename IT1, typename IT2>
 inline void construct_from_range(T* dst, IT1 first, IT2 last)
 {
-    const size_t count = static_cast<size_t>(std::distance(first, last));
-
     for (; first != last; ++first)
     {
-        construct_in_place(*dst, *first);
+        construct_in_place(dst, *first);
         ++dst;
     }
 }

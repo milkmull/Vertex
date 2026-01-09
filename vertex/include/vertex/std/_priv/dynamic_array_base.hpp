@@ -41,6 +41,23 @@ public:
 
 private:
 
+    template <typename T>
+    struct is_native_iterator : std::false_type {};
+
+    template <>
+    struct is_native_iterator<iterator> : std::true_type {};
+
+    template <>
+    struct is_native_iterator<const_iterator> : std::true_type {};
+
+    template <>
+    struct is_native_iterator<reverse_iterator> : std::true_type {};
+
+    template <>
+    struct is_native_iterator<const_reverse_iterator> : std::true_type {};
+
+private:
+
     struct buffer
     {
         pointer ptr;
@@ -158,10 +175,10 @@ public:
 
     dynamic_array_base(const dynamic_array_base& other)
     {
-        auto& other_b = other.m_buffer;
-        const auto& other_ptr = other_b.ptr;
-        const auto other_size = other_b.size;
-        construct_n<move_range_tag>(other_size, other_ptr);
+        construct_n<move_range_tag>(
+            other.m_buffer.size,
+            other.m_buffer.ptr
+        );
     }
 
     dynamic_array_base(dynamic_array_base&& other) noexcept
@@ -169,9 +186,19 @@ public:
     {}
 
     template <typename IT1, typename IT2>
-    dynamic_array_base(IT1 first, IT2 last)
+    dynamic_array_base(IT1 first, IT2 last) noexcept
     {
-        construct_n<iterator_range_tag>(std::move(first), std::move(last));
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+
+        VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
+        {
+            const size_type count = static_cast<size_type>(std::distance(first, last));
+            construct_n<move_range_tag>(count, first.ptr());
+        }
+        else
+        {
+            construct_n<iterator_range_tag>(count, std::move(first), std::move(last));
+        }
     }
 
     //=========================================================================
@@ -182,10 +209,9 @@ private:
 
     void destroy_range() noexcept
     {
-        auto& b = m_buffer;
-        auto& ptr = b.ptr;
-        auto& size = b.size;
-        auto& capacity = b.capacity;
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
 
         if (!ptr)
         {
@@ -674,6 +700,22 @@ private:
         return pos;
     }
 
+    pointer erase_n(pointer pos, size_type count)
+    {
+        auto& buffer = m_buffer;
+        auto& ptr = buffer.ptr;
+        auto& size = buffer.size;
+        auto& capacity = buffer.capacity;
+
+        mem::move_range(pos, pos + count, count);
+        mem::destroy_range(ptr + size - count, count);
+
+        capacity += count;
+        size -= count;
+
+        return pos;
+    }
+
 public:
 
     bool reserve(size_type new_capacity)
@@ -836,6 +878,58 @@ public:
 
         // emplace the value
         mem::construct_range(ptr, count, value);
+        return iterator(ptr);
+    }
+
+    iterator insert(const_iterator pos, std::initializer_list<T> init)
+    {
+        auto ptr = const_cast<pointer>(pos.ptr());
+        ptr = insert_n(ptr, init.size());
+        VX_UNLIKELY_COLD_PATH(!ptr,
+        {
+            return iterator(nullptr);
+        });
+
+        mem::move_range(ptr, init.begin(), init.size());
+        return iterator(ptr);
+    }
+
+    template <typename IT1, typename IT2>
+    iterator insert(const_iterator pos, IT1 first, IT2 last)
+    {
+        auto ptr = const_cast<pointer>(pos.ptr());
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+
+        ptr = insert_n(ptr, count);
+        VX_UNLIKELY_COLD_PATH(!ptr,
+        {
+            return iterator(nullptr);
+        });
+
+        VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
+        {
+            mem::move_range(ptr, first.ptr(), count);
+        }
+        else
+        {
+            mem::_priv::construct_from_range(ptr, std::move(first), std::move(last));
+        }
+
+        return iterator(ptr);
+    }
+
+    iterator erase(const_iterator pos)
+    {
+        auto ptr = const_cast<pointer>(pos.ptr());
+        ptr = erase_n(ptr, 1);
+        return iterator(ptr);
+    }
+
+    iterator erase(const_iterator first, const_iterator last)
+    {
+        auto ptr = const_cast<pointer>(first.ptr());
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+        ptr = erase_n(ptr, count);
         return iterator(ptr);
     }
 
