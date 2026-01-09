@@ -15,7 +15,7 @@
 namespace vx {
 namespace mem {
 
-#if defined(VX_ALLOCATE_FAIL_FAST)
+#if defined(VX_ALLOCATE_FAIL_FAST) || 1
     #define VX_ALLOCATOR_FAILED(ret) VX_CRASH_WITH_MESSAGE("allocation failed");
 #else
     #define VX_ALLOCATOR_FAILED(ret) return ::vx::err::return_error(err::out_of_memory, ret)
@@ -35,7 +35,7 @@ VX_ALLOCATOR inline void* allocate_zero(const size_t bytes)
     return ::calloc(1, bytes);
 }
 
-inline void deallocate(void* ptr, const size_t bytes)
+inline void deallocate(void* ptr, const size_t bytes) noexcept
 {
     ::free(ptr);
 }
@@ -155,20 +155,46 @@ constexpr size_t alignment_padding_size(const size_t alignment)
     return aligned_header_size + alignment - 1;
 }
 
-inline void* aligned_to_raw(void* aligned_ptr, const size_t padding)
+template <size_t alignment>
+inline void adjust_aligned_pointer(void*& out_ptr, size_t& bytes) noexcept
 {
-    const uintptr_t aligned_addr = reinterpret_cast<uintptr_t>(aligned_ptr);
+    constexpr size_t padding = _priv::alignment_padding_size(alignment);
+    bytes += padding;
+
+    const uintptr_t* const ptr = static_cast<uintptr_t*>(out_ptr);
+    const uintptr_t block_addr = *(ptr - 1);
 
 #if VX_DEBUG
 
     // check sentinel
-    const uintptr_t sentinel = *(reinterpret_cast<const uintptr_t*>(aligned_addr) - 2);
+    const uintptr_t sentinel = *(ptr - 2);
     VX_ASSERT(sentinel == _priv::aligned_allocation_sentinel);
 
 #endif
 
-    const uintptr_t raw_addr = *(reinterpret_cast<const uintptr_t*>(aligned_addr) - 1);
-    return reinterpret_cast<void*>(raw_addr);
+    const uintptr_t back_shift = reinterpret_cast<uintptr_t>(ptr) - block_addr;
+    VX_VERIFY(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
+    out_ptr = reinterpret_cast<void*>(block_addr);
+}
+
+inline void adjust_aligned_pointer(void*& out_ptr, size_t& bytes, const size_t padding) noexcept
+{
+    bytes += padding;
+
+    const uintptr_t* const ptr = static_cast<uintptr_t*>(out_ptr);
+    const uintptr_t block_addr = *(ptr - 1);
+
+#if VX_DEBUG
+
+    // check sentinel
+    const uintptr_t sentinel = *(ptr - 2);
+    VX_ASSERT(sentinel == _priv::aligned_allocation_sentinel);
+
+#endif
+
+    const uintptr_t back_shift = reinterpret_cast<uintptr_t>(ptr) - block_addr;
+    VX_VERIFY(back_shift >= aligned_header_size && back_shift <= padding, "invalid argument");
+    out_ptr = reinterpret_cast<void*>(block_addr);
 }
 
 } // namespace _priv
@@ -239,26 +265,26 @@ VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alig
 }
 
 template <size_t alignment>
-void* reallocate_aligned(void* ptr, const size_t bytes) noexcept
+void* reallocate_aligned(void* ptr, size_t bytes) noexcept
 {
     VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
-    VX_UNLIKELY_COLD_PATH(!ptr,
+    if (!ptr)
     {
         return allocate_aligned<alignment>(bytes);
-    });
+    }
 
     constexpr size_t padding = _priv::alignment_padding_size(alignment);
-    const size_t block_size = bytes + padding;
+    size_t block_size = bytes;
+    _priv::adjust_aligned_pointer<alignment>(ptr, block_size);
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
         return err::return_error(err::size_error, nullptr);
     });
 
-    void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(raw_ptr, block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
@@ -266,35 +292,35 @@ void* reallocate_aligned(void* ptr, const size_t bytes) noexcept
     });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
-    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+    *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
 
 #if VX_DEBUG
-    static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+    *(static_cast<uintptr_t*>(ptr) - 2) = _priv::aligned_allocation_sentinel;
 #endif
 
     return ptr;
 }
 
-inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alignment) noexcept
+inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
 
-    VX_UNLIKELY_COLD_PATH(!ptr,
+    if (!ptr)
     {
         return allocate_aligned(bytes, alignment);
-    });
+    }
 
     const size_t padding = _priv::alignment_padding_size(alignment);
-    const size_t block_size = bytes + padding;
+    size_t block_size = bytes;
+    _priv::adjust_aligned_pointer(ptr, block_size, padding);
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
     {
         return err::return_error(err::size_error, nullptr);
     });
 
-    void* raw_ptr = _priv::aligned_to_raw(ptr, padding);
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(raw_ptr, block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
@@ -302,30 +328,29 @@ inline void* reallocate_aligned(void* ptr, const size_t bytes, const size_t alig
     });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
-    static_cast<uintptr_t*>(ptr)[-1] = block_ptr;
+    *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
 
 #if VX_DEBUG
-    static_cast<uintptr_t*>(ptr)[-2] = _priv::aligned_allocation_sentinel;
+    *(static_cast<uintptr_t*>(ptr) - 2) = _priv::aligned_allocation_sentinel;
 #endif
 
     return ptr;
 }
 
 template <size_t alignment>
-void deallocate_aligned(void* ptr, const size_t size) noexcept
+inline void deallocate_aligned(void* ptr, size_t bytes) noexcept
 {
     VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
-    constexpr size_t padding = _priv::alignment_padding_size(alignment);
-    void* raw_ptr = _priv::aligned_to_raw(ptr, alignment);
-    deallocate(raw_ptr, size + padding);
+    _priv::adjust_aligned_pointer<alignment>(ptr, bytes);
+    ::free(ptr);
 }
 
-inline void deallocate_aligned(void* ptr, const size_t size, const size_t alignment) noexcept
+inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
     const size_t padding = _priv::alignment_padding_size(alignment);
-    void* raw_ptr = _priv::aligned_to_raw(ptr, alignment);
-    deallocate(raw_ptr, size + padding);
+    _priv::adjust_aligned_pointer(ptr, bytes, padding);
+    ::free(ptr);
 }
 
 //=========================================================================
@@ -436,7 +461,7 @@ inline void construct_range(T* ptr, size_t count, const U& value)
 {
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
 
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, T>::value))
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
         set(ptr, value, count * sizeof(T));
@@ -445,18 +470,18 @@ inline void construct_range(T* ptr, size_t count, const U& value)
     {
         for (; 0 < count; --count)
         {
-            construct_in_place(ptr);
+            construct_in_place(ptr, value);
             ++ptr;
         }
     }
 }
 
 template <typename T>
-inline void destroy_range(T* ptr, size_t count)
+inline void destroy_range(T* ptr, size_t count) noexcept
 {
     for (; 0 < count; --count)
     {
-        ptr->~T();
+        destroy_in_place(ptr);
         ++ptr;
     }
 }
@@ -497,6 +522,41 @@ inline void move_range(T* dst, const T* src, size_t count)
         }
     }
 }
+
+namespace _priv {
+
+template <typename T>
+inline void move_range_back(T* dst, const T* src, size_t count)
+{
+    VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
+    {
+        mem::move(dst - count, src - count, count * sizeof(T));
+        return;
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            *dst = std::move(*src);
+            --src;
+            --dst;
+        }
+    }
+}
+
+template <typename T, typename IT1, typename IT2>
+inline void construct_from_range(T* dst, IT1 first, IT2 last)
+{
+    const size_t count = static_cast<size_t>(std::distance(first, last));
+
+    for (; first != last; ++first)
+    {
+        construct_in_place(*dst, *first);
+        ++dst;
+    }
+}
+
+} // namespace _priv
 
 template <typename T>
 inline bool compare_range(const T* a, const T* b, size_t count)
@@ -604,7 +664,7 @@ class default_allocator
 {
 public:
 
-    VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
+    //VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
     VX_STATIC_ASSERT(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
     static constexpr size_t alignment = Alignment;
 
@@ -627,7 +687,7 @@ public:
         }
     }
 
-    static T* reallocate(T* ptr, const size_t count)
+    static T* reallocate(T* ptr, const size_t count) noexcept
     {
         const size_t bytes = count * sizeof(T);
 
@@ -641,7 +701,7 @@ public:
         }
     }
 
-    static void deallocate(T* ptr, const size_t count)
+    static void deallocate(T* ptr, const size_t count) noexcept
     {
         const size_t bytes = count * sizeof(T);
 

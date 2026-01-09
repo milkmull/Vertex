@@ -329,7 +329,7 @@ inline bool casecmp(const char* s1, const char* s2)
         }
 
         ++s1;
-        ++s2;
+        ++s2;  
     }
 
     // both must end at same time
