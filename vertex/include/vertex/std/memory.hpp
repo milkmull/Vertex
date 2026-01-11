@@ -8,14 +8,16 @@
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/error.hpp"
 
-//=========================================================================
-// enable crash when allocation fails
-//=========================================================================
+//#define VX_ALLOCATE_FAIL_FAST
 
 namespace vx {
 namespace mem {
 
-#if defined(VX_ALLOCATE_FAIL_FAST) || 1
+//=========================================================================
+// enable crash when allocation fails
+//=========================================================================
+
+#if defined(VX_ALLOCATE_FAIL_FAST)
     #define VX_ALLOCATOR_FAILED(ret) VX_CRASH_WITH_MESSAGE("allocation failed");
 #else
     #define VX_ALLOCATOR_FAILED(ret) return ::vx::err::return_error(err::out_of_memory, ret)
@@ -341,16 +343,24 @@ template <size_t alignment>
 inline void deallocate_aligned(void* ptr, size_t bytes) noexcept
 {
     VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
-    _priv::adjust_aligned_pointer<alignment>(ptr, bytes);
-    ::free(ptr);
+
+    if (ptr)
+    {
+        _priv::adjust_aligned_pointer<alignment>(ptr, bytes);
+        ::free(ptr);
+    }
 }
 
 inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexcept
 {
     VX_ASSERT(_priv::is_pow_2(alignment));
-    const size_t padding = _priv::alignment_padding_size(alignment);
-    _priv::adjust_aligned_pointer(ptr, bytes, padding);
-    ::free(ptr);
+
+    if (ptr)
+    {
+        const size_t padding = _priv::alignment_padding_size(alignment);
+        _priv::adjust_aligned_pointer(ptr, bytes, padding);
+        ::free(ptr);
+    }
 }
 
 //=========================================================================
@@ -491,7 +501,7 @@ inline void copy_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
-        copy(dst, src, count * sizeof(T));
+        move(dst, src, count * sizeof(T));
     }
     else
     {
@@ -505,12 +515,11 @@ inline void copy_range(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-inline void move_range(T* dst, const T* src, size_t count)
+inline void move_range(T* dst, const T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
-        mem::move(dst, src, count * sizeof(T));
-        return;
+        move(dst, src, count * sizeof(T));
     }
     else
     {
@@ -523,15 +532,32 @@ inline void move_range(T* dst, const T* src, size_t count)
     }
 }
 
-namespace _priv {
+template <typename T>
+inline void move_range_unchecked(T* dst, const T* src, size_t count)
+{
+    // this version favors memcpy to memmove
+
+    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    {
+        copy(dst, src, count * sizeof(T));
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            construct_in_place(dst, std::move(*src));
+            ++src;
+            ++dst;
+        }
+    }
+}
 
 template <typename T>
 inline void move_range_back(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
     {
-        mem::move(dst - count, src - count, count * sizeof(T));
-        return;
+        move(dst - count, src - count, count * sizeof(T));
     }
     else
     {
@@ -554,14 +580,12 @@ inline void construct_from_range(T* dst, IT1 first, IT2 last)
     }
 }
 
-} // namespace _priv
-
 template <typename T>
 inline bool compare_range(const T* a, const T* b, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::is_bitwise_comparable<T, T>::value))
     {
-        return mem::compare(a, b, count * sizeof(T));
+        return compare(a, b, count * sizeof(T));
     }
     else
     {

@@ -14,6 +14,8 @@
 namespace vx {
 namespace _priv {
 
+//#define VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK
+
 // Testing shows that allocating memory aligned to the element type is often faster than using no explicit alignment.
 // Using an optimal alignment can provide additional speedups by taking advantage of vectorization. Any alignment
 // introduces a small amount of wasted memory at the start of the allocation. In typical use cases the performance
@@ -93,9 +95,10 @@ private:
         return old_buffer;
     }
 
-    struct construct_range_tag {};
-    struct move_range_tag {};
-    struct iterator_range_tag {};
+    struct construct_range_tag {};      // construct from size
+    struct copy_range_tag {};           // copy range (no overlap)
+    struct move_range_tag {};           // move range (no overlap)
+    struct iterator_range_tag {};       // construct from iterator range
 
     template <typename Tag, typename... Args>
     inline void construct_n(size_type count, Args&&... args)
@@ -110,17 +113,26 @@ private:
         auto& size = b.size;
         auto& capacity = b.capacity;
 
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
         VX_UNLIKELY_COLD_PATH(count > max_size(),
         {
             VX_ERR(err::size_error);
             return;
         });
 
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
         auto new_ptr = Allocator::allocate(count);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
         VX_UNLIKELY_COLD_PATH(!new_ptr,
         {
             return;
         });
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
         ptr = new_ptr;
         size = count;
@@ -129,26 +141,31 @@ private:
         VX_IF_CONSTEXPR(sizeof...(Args) == 0)
         {
             VX_STATIC_ASSERT((std::is_same<Tag, construct_range_tag>::value), "Invalid tag");
-            mem::construct_range(new_ptr, count);
+            mem::construct_range(ptr, count);
         }
         else VX_IF_CONSTEXPR(sizeof...(Args) == 1)
         {
             VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
             {
-                mem::construct_range(new_ptr, count, std::forward<Args>(args)...);
+                mem::construct_range(ptr, count, std::forward<Args>(args)...);
+            }
+            else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
+            {
+                // move the range out of the source, ranges will never overlap since we just allocated out memory
+                mem::move_range(ptr, std::forward<Args>(args)..., count);
             }
             else
             {
-                VX_STATIC_ASSERT((std::is_same<Tag, move_range_tag>::value), "Invalid tag");
-                // vectors should never overlap so it is safe to use memmove (faster than memcpy)
-                mem::move_range(ptr, std::forward<Args>(args)..., count);
+                VX_STATIC_ASSERT((std::is_same<Tag, copy_range_tag>::value), "Invalid tag");
+                // copy elements from the source to my vector, memcpy is safe
+                mem::copy_range(ptr, std::forward<Args>(args)..., count);
             }
         }
         else
         {
             VX_STATIC_ASSERT(sizeof...(Args) == 2, "Invalid argument count");
             VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "Invalid tag");
-            mem::_priv::construct_from_range(ptr, std::forward<Args>(args)...);
+            mem::construct_from_range(ptr, std::forward<Args>(args)...);
         }
     }
 
@@ -175,7 +192,7 @@ public:
 
     dynamic_array_base(const dynamic_array_base& other)
     {
-        construct_n<move_range_tag>(
+        construct_n<copy_range_tag>(
             other.m_buffer.size,
             other.m_buffer.ptr
         );
@@ -193,7 +210,8 @@ public:
         VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
         {
             const size_type count = static_cast<size_type>(std::distance(first, last));
-            construct_n<move_range_tag>(count, first.ptr());
+            // use copy range bec
+            construct_n<copy_range_tag>(count, first.ptr());
         }
         else
         {
@@ -213,13 +231,11 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-        if (!ptr)
+        if (ptr)
         {
-            return;
+            mem::destroy_range(ptr, size);
+            allocator_type::deallocate(ptr, capacity);
         }
-
-        mem::destroy_range(ptr, size);
-        allocator_type::deallocate(ptr, capacity);
 
         ptr = nullptr;
         size = 0;
@@ -241,10 +257,11 @@ private:
 
     void assign_from(const T* data, const size_type new_count) noexcept
     {
-        auto& b = m_buffer;
-        auto& ptr = b.ptr;
-        auto& size = b.size;
-        auto& capacity = b.capacity;
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
+
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(new_count > max_size(),
         {
@@ -252,19 +269,32 @@ private:
             return;
         });
 
-        mem::destroy_range(ptr, size);
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         if (new_count > capacity)
         {
-            VX_UNLIKELY_COLD_PATH(!reallocate(new_count),
+            pointer new_ptr = allocator_type::allocate(new_count);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+            VX_UNLIKELY_COLD_PATH(!new_ptr,
             {
                 return;
             });
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+
+            mem::destroy_range(ptr, size);
+            allocator_type::deallocate(ptr, capacity);
+            ptr = new_ptr;
+            capacity = new_count;
+        }
+        else
+        {
+            mem::destroy_range(ptr, size);
         }
 
         size = new_count;
-
-        // vectors should never overlap so it is safe to use memmove (faster than memcpy)
         mem::move_range(ptr, data, new_count);
     }
 
@@ -277,11 +307,7 @@ public:
             return *this;
         }
 
-        const auto& other_buffer = other.m_buffer;
-        const auto other_ptr = other_buffer.ptr;
-        const auto other_size = other_buffer.size;
-
-        assign_from(other_ptr, other_size);
+        assign_from(other.m_buffer.ptr, other.m_buffer.size);
         return *this;
     }
 
@@ -440,7 +466,7 @@ public:
 
     static constexpr size_type max_size()
     {
-        return std::min(std::numeric_limits<size_type>::max(), mem::_priv::get_max_count<T>());
+        return mem::_priv::get_max_count<T>();
     }
 
     size_type capacity() const
@@ -511,10 +537,9 @@ private:
     template <bool shrinking = false>
     bool reallocate(size_type new_capacity) noexcept
     {
-        auto& buffer = m_buffer;
-        auto& ptr = buffer.ptr;
-        auto& size = buffer.size;
-        auto& capacity = buffer.capacity;
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
 
         VX_ASSERT((shrinking && new_capacity < size) || (new_capacity > size));
         pointer new_ptr;
@@ -523,33 +548,41 @@ private:
         {
             // Use realloc optimization for trivial types only when shrinking
             new_ptr = allocator_type::reallocate(ptr, new_capacity);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
             VX_UNLIKELY_COLD_PATH(!new_ptr,
             {
                 return false;
             });
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
         }
         else
         {
             new_ptr = allocator_type::allocate(new_capacity);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
             VX_UNLIKELY_COLD_PATH(!new_ptr,
             {
                 return false;
             });
 
-            if (ptr)
-            {
-                VX_IF_CONSTEXPR(shrinking)
-                {
-                    mem::move_range(new_ptr, ptr, new_capacity);
-                }
-                else
-                {
-                    mem::move_range(new_ptr, ptr, size);
-                }
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-                mem::destroy_range(ptr, size);
-                allocator_type::deallocate(ptr, capacity);
+            VX_IF_CONSTEXPR(shrinking)
+            {
+                VX_ASSERT(size > 0);
+                mem::move_range(new_ptr, ptr, new_capacity);
             }
+            else
+            {
+                mem::move_range(new_ptr, ptr, size);
+            }
+
+            mem::destroy_range(ptr, size);
+            allocator_type::deallocate(ptr, capacity);
         }
 
         ptr = new_ptr;
@@ -563,23 +596,31 @@ private:
     }
 
     // reallocate the vector data, split at pos and shift back by shift
+    // caller should ensure 
     pointer reallocate_grow_shift(pointer pos, size_type shift) noexcept
     {
         pointer ptr = m_buffer.ptr;
         size_type size = m_buffer.size;
         size_type capacity = m_buffer.capacity;
 
+        // check for overflow
+
         const size_type off = pos - ptr;
         const size_type new_capacity = capacity + shift;
         VX_ASSERT(new_capacity > capacity);
 
         pointer new_ptr = allocator_type::allocate(new_capacity);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
         VX_UNLIKELY_COLD_PATH(!new_ptr,
         {
             return nullptr;
         });
 
-        if (ptr)
+#endif // defined(VX_ALLOCATE_FAIL_FAST)
+
+        if (ptr) // think I can remove this check
         {
             pointer dst = new_ptr;
             pointer src = ptr;
@@ -605,17 +646,58 @@ private:
     }
 
     template <typename... Args>
-    bool resize_impl(const size_type new_size, Args&&... args)
+    bool resize_realloc(const size_type new_size, Args&&... args)
     {
         auto& buffer = m_buffer;
         auto& ptr = buffer.ptr;
         auto& size = buffer.size;
+        auto& capacity = buffer.capacity;
+
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(new_size > max_size(),
         {
             VX_ERR(err::size_error);
             return false;
         });
+
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        pointer new_ptr = allocator_type::allocate(new_size);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+        VX_UNLIKELY_COLD_PATH(!new_ptr,
+        {
+            return false;
+        });
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+
+        const size_type grow_count = new_size - size;
+        pointer end_ptr = new_ptr + size;
+
+        // grouping these lines together in this order seems to speed things up quite a bit
+        mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
+        mem::move_range(new_ptr, ptr, size);
+
+        mem::destroy_range(ptr, size);
+        allocator_type::deallocate(ptr, capacity);
+
+        ptr = new_ptr;
+        size = new_size;
+        capacity = new_size;
+
+        return true;
+    }
+
+    template <typename... Args>
+    bool resize_impl(const size_type new_size, Args&&... args)
+    {
+        auto& buffer = m_buffer;
+        auto& ptr = buffer.ptr;
+        auto& size = buffer.size;
+        auto& capacity = buffer.capacity;
 
         // trim
         if (new_size < size)
@@ -627,14 +709,17 @@ private:
 
         if (new_size > size)
         {
-            VX_UNLIKELY_COLD_PATH(!reallocate(new_size),
+            if (new_size > capacity)
             {
-                return false;
-            });
-
-            const size_type grow_count = new_size - size;
-            pointer end_ptr = ptr + size;
-            mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
+                // seems to be slightly faster to call this rather than inlining
+                return resize_realloc(new_size, std::forward<Args>(args)...);
+            }
+            else
+            {
+                const size_type grow_count = new_size - size;
+                pointer end_ptr = ptr + size;
+                mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
+            }
         }
 
         size = new_size;
@@ -647,16 +732,14 @@ private:
         VX_STATIC_ASSERT(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
         VX_STATIC_ASSERT(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
 
-        auto& buffer = m_buffer;
-        const auto capacity = buffer.capacity;
-
+        const size_type capacity = m_buffer.capacity;
         if (new_size <= capacity)
         {
             return true;
         }
 
         const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
-        VX_UNLIKELY_COLD_PATH(!reserve(new_capacity),
+        VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
         {
             return false;
         });
@@ -682,7 +765,7 @@ private:
                 mem::construct_in_place(back, std::move(*last));
                 // move the existing range back until we get to the insertion
                 const size_type end_count = last - pos;
-                mem::_priv::move_range_back(back, last, end_count);
+                mem::move_range_back(back, last, end_count);
             }
         }
         else
@@ -718,23 +801,26 @@ private:
 
 public:
 
-    bool reserve(size_type new_capacity)
+    void reserve(size_type new_capacity) noexcept
     {
-        auto& buffer = m_buffer;
-        const auto capacity = buffer.capacity;
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
 
-        VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
+        if (new_capacity > capacity)
         {
-            VX_ERR(err::size_error);
-            return false;
-        });
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        if (new_capacity <= capacity)
-        {
-            return true;
+            VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
+            {
+                VX_ERR(err::size_error);
+                return;
+            });
+
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+            reallocate(new_capacity);
         }
-
-        return reallocate(new_capacity);
     }
 
     bool shrink_to_fit()
@@ -783,11 +869,15 @@ public:
 
     bool acquire(T* ptr, size_type count)
     {
-        if (count > max_size())
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        VX_UNLIKELY_COLD_PATH(count > max_size(),
         {
             VX_ERR(err::size_error);
             return false;
-        }
+        });
+
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         if (m_buffer.ptr)
         {
@@ -912,7 +1002,7 @@ public:
         }
         else
         {
-            mem::_priv::construct_from_range(ptr, std::move(first), std::move(last));
+            mem::construct_from_range(ptr, std::move(first), std::move(last));
         }
 
         return iterator(ptr);
@@ -936,14 +1026,14 @@ public:
 public:
 
     template <typename U>
-    bool resize(const size_type count, const U& value)
+    void resize(const size_type count, const U& value)
     {
         resize_impl(count, value);
     }
 
-    bool resize(const size_type count)
+    void resize(const size_type count)
     {
-        return resize_impl(count);
+        resize_impl(count);
     }
 
     //=========================================================================

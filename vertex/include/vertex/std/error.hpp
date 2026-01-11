@@ -215,5 +215,11 @@ auto return_error(err::code e, R&& ret) noexcept
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
+///////////////////////////////////////////////////////////////////////////////
+
+#define VX_TRY ::vx::err::clear();
+#define VX_CATCH if (::vx::err::is_set())
+#define VX_CATCH_CODE(code) if (::vx::err::get_code() == code)
+
 } // namespace err
 } // namespace vx

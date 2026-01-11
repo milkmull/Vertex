@@ -84,43 +84,44 @@ struct non_trivial
     }
 };
 
-static constexpr int R = 300;       // number of repetitions
-static constexpr size_t N = 200; // number of elements
+static constexpr int R = 3000;       // number of repetitions
+// this needs to stay small enough to not trigger std::vector alignment optimization
+static constexpr size_t N = 300; // number of elements
 
 // Helper profiling functions
 
 template <typename Vec>
 VX_NO_INLINE void profile_size_constructor(const char* name, size_t count)
 {
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     Vec v(count);
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec, typename T>
 VX_NO_INLINE void profile_fill_constructor(const char* name, size_t count, const T& value)
 {
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     Vec v(count, value);
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
 VX_NO_INLINE void profile_copy_constructor(const char* name, size_t count)
 {
     Vec v1(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     Vec v2(v1);
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
 VX_NO_INLINE void profile_range_constructor(const char* name, size_t count)
 {
     Vec v1(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     Vec v2(v1.begin(), v1.end());
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
@@ -129,9 +130,9 @@ VX_NO_INLINE void profile_destructor(const char* name, size_t count)
     Vec* v = vx::default_allocator<Vec>::allocate(1);
     vx::mem::construct_in_place(v, count);
 
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     vx::mem::destroy_in_place(v);
-    timerVX_LINE.stop();
+    timer.stop();
 
     vx::default_allocator<Vec>::deallocate(v, 1);
 }
@@ -139,20 +140,29 @@ VX_NO_INLINE void profile_destructor(const char* name, size_t count)
 template <typename Vec>
 void profile_push_back(const char* name, size_t count)
 {
-    VX_PROFILE_SCOPE(name);
     Vec v;
+
+    ::vx::profile::_priv::profile_timer timer(name);
     for (size_t i = 0; i < count; ++i)
+    {
         v.push_back(big_data{ i, i + 1, i + 2, i + 3 });
+    }
+    timer.stop();
+
 }
 
 template <typename Vec>
 void profile_reserve_push_back(const char* name, size_t count)
 {
-    VX_PROFILE_SCOPE(name);
     Vec v;
     v.reserve(count);
+
+    ::vx::profile::_priv::profile_timer timer(name);
     for (size_t i = 0; i < count; ++i)
+    {
         v.push_back(big_data{ i, i + 1, i + 2, i + 3 });
+    }
+    timer.stop();
 }
 
 template <typename Vec>
@@ -160,15 +170,6 @@ void profile_allocate(const char* name, size_t count)
 {
     VX_PROFILE_SCOPE(name);
     Vec src(count);
-}
-
-template <typename Vec>
-void profile_copy(const char* name, size_t count)
-{
-    Vec src(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
-    Vec dst = src;
-    timerVX_LINE.stop();
 }
 
 template <typename Vec>
@@ -206,28 +207,34 @@ void profile_move_assignment(const char* name, size_t count)
 template <typename Vec>
 void profile_reserve_grow(const char* name, size_t count)
 {
+    // If the sizes are too big, we will lose here because std::vector
+    // will switch to its big allocation alignment which appeals to
+    // vectorization. We will still win head to head in non vectorization
+    // and vectorization, but we will lose if we are not vectorized when
+    // std::vector is.
+
     Vec v(count / 2);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     v.reserve(count);
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
 void profile_reserve_shrink(const char* name, size_t count)
 {
     Vec v(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     v.reserve(count / 2);
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
 void profile_clear(const char* name, size_t count)
 {
     Vec v(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     v.clear();
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
@@ -235,9 +242,9 @@ void profile_shrink_to_fit(const char* name, size_t count)
 {
     Vec v(count / 2);
     v.reserve(count);
-    ::vx::profile::_priv::profile_timer timerVX_LINE(name);
+    ::vx::profile::_priv::profile_timer timer(name);
     v.shrink_to_fit();
-    timerVX_LINE.stop();
+    timer.stop();
 }
 
 template <typename Vec>
@@ -354,19 +361,19 @@ int main()
         //
         //profile_destructor<vec1<big_data>>("destruction (vec1)", N);
         //profile_destructor<vec2<big_data>>("destruction (vec2)", N);
-        //
-        //profile_copy<vec2<big_data>>("copy (vec2)", N);
-        //profile_copy<vec1<big_data>>("copy (vec1)", N);
-        //
-        //profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
+        // 
         //profile_copy_assignment<vec1<big_data>>("copy assignment (vec1)", N);
+        //profile_copy_assignment<vec2<big_data>>("copy assignment (vec2)", N);
         //
-        //profile_move<vec2<big_data>>("move (vec2)", N);
+        //profile_copy_assignment<vec1<non_trivial>>("copy assignment non trivial (vec1)", N);
+        //profile_copy_assignment<vec2<non_trivial>>("copy assignment non trivial (vec2)", N);
+        //
         //profile_move<vec1<big_data>>("move (vec1)", N);
+        //profile_move<vec2<big_data>>("move (vec2)", N);
         //
         //profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
         //profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
-        // 
+        //
         //profile_reserve_grow<vec1<big_data>>("reserve grow (vec1)", N);
         //profile_reserve_grow<vec2<big_data>>("reserve grow (vec2)", N);
         //profile_reserve_shrink<vec1<big_data>>("reserve shrink (vec1)", N);
@@ -377,10 +384,10 @@ int main()
         //profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
         //profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
         // 
-        //profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
-        //profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
-        //profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
-        //profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
+        profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
+        profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
+        profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
+        profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
 
         //profile_clear<vec1<big_data>>("clear (vec1)", N);
         //profile_clear<vec2<big_data>>("clear (vec2)", N);
