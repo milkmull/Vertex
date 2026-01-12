@@ -589,15 +589,12 @@ inline bool compare_range(const T* a, const T* b, size_t count)
     }
     else
     {
-        for (; 0 < count; --count)
+        for (; 0 < count; --count, ++a, ++b)
         {
             if (!(*a == *b))
             {
                 return false;
             }
-
-            ++a;
-            ++b;
         }
 
         return true;

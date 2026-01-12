@@ -26,7 +26,7 @@ struct big_data
     uint64_t a, b, c, d;
 };
 
-bool operator==(const big_data& lhs, const big_data& rhs)
+bool operator==(const big_data& lhs, const big_data& rhs) noexcept
 {
     return lhs.a == rhs.a && lhs.b == rhs.b && lhs.c == rhs.c && lhs.d == rhs.d;
 }
@@ -296,6 +296,15 @@ void profile_insert_n(const char* name, size_t count)
 }
 
 template <typename Vec>
+void profile_insert_n_back(const char* name, size_t count)
+{
+    Vec v(count);
+    ::vx::profile::_priv::profile_timer timer(name);
+    v.insert(v.end(), count / 2, big_data{ 0, 1, 2, 3 });
+    timer.stop();
+}
+
+template <typename Vec>
 void profile_insert_range(const char* name, size_t count)
 {
     Vec v1(count / 2);
@@ -324,7 +333,7 @@ void profile_erase_range(const char* name, size_t count)
 }
 
 template <typename Vec>
-void profile_compare(const char* name, size_t count)
+bool profile_compare(const char* name, size_t count)
 {
     Vec v1;
 
@@ -334,11 +343,14 @@ void profile_compare(const char* name, size_t count)
     }
 
     Vec v2 = v1;
+    bool equal = false;
 
     {
         VX_PROFILE_SCOPE(name);
-        const bool equal = v1 == v2;
+        equal = v1 == v2;
     }
+
+    return equal;
 }
 
 int main()
@@ -379,15 +391,15 @@ int main()
         //profile_reserve_shrink<vec1<big_data>>("reserve shrink (vec1)", N);
         //profile_reserve_shrink<vec2<big_data>>("reserve shrink (vec2)", N);
         //
-        //profile_push_back<vec1<big_data>>("push_back (vec1)", N);
-        //profile_push_back<vec2<big_data>>("push_back (vec2)", N);
+        profile_push_back<vec1<big_data>>("push_back (vec1)", N);
+        profile_push_back<vec2<big_data>>("push_back (vec2)", N);
         //profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
         //profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
         // 
-        profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
-        profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
-        profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
-        profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
+        //profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
+        //profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
+        //profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
+        //profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
 
         //profile_clear<vec1<big_data>>("clear (vec1)", N);
         //profile_clear<vec2<big_data>>("clear (vec2)", N);
@@ -399,9 +411,11 @@ int main()
         //profile_emplace<vec2<big_data>>("emplace (vec2)", N);
         //profile_emplace_grow<vec1<big_data>>("emplace grow (vec1)", N);
         //profile_emplace_grow<vec2<big_data>>("emplace grow (vec2)", N);
-        
+        //
         //profile_insert_n<vec1<big_data>>("insert n (vec1)", N);
         //profile_insert_n<vec2<big_data>>("insert n (vec2)", N);
+        //profile_insert_n_back<vec1<big_data>>("insert n back (vec1)", N);
+        //profile_insert_n_back<vec2<big_data>>("insert n back (vec2)", N);
         //profile_insert_range<vec1<big_data>>("insert range (vec1)", N);
         //profile_insert_range<vec2<big_data>>("insert range (vec2)", N);
         //
@@ -409,7 +423,7 @@ int main()
         //profile_erase<vec2<big_data>>("erase (vec2)", N);
         //profile_erase_range<vec1<big_data>>("erase range (vec1)", N);
         //profile_erase_range<vec2<big_data>>("erase range (vec2)", N);
-        //
+        
         //profile_compare<vec1<big_data>>("compare (vec1)", N);
         //profile_compare<vec2<big_data>>("compare (vec2)", N);
     }

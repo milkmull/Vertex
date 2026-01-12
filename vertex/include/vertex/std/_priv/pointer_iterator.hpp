@@ -130,6 +130,11 @@ public:
         return m_ptr;
     }
 
+    explicit operator bool() const noexcept
+    {
+        return m_ptr != nullptr;
+    }
+
 private:
 
     pointer m_ptr = nullptr;
@@ -210,6 +215,11 @@ public:
     pointer ptr() const
     {
         return m_it.ptr();
+    }
+
+    explicit operator bool() const noexcept
+    {
+        return static_cast<bool>(m_it);
     }
 
 private:
