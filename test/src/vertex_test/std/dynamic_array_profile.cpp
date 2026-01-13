@@ -386,20 +386,20 @@ int main()
         //profile_move_assignment<vec1<big_data>>("move assignment (vec1)", N);
         //profile_move_assignment<vec2<big_data>>("move assignment (vec2)", N);
         //
-        //profile_reserve_grow<vec1<big_data>>("reserve grow (vec1)", N);
-        //profile_reserve_grow<vec2<big_data>>("reserve grow (vec2)", N);
-        //profile_reserve_shrink<vec1<big_data>>("reserve shrink (vec1)", N);
-        //profile_reserve_shrink<vec2<big_data>>("reserve shrink (vec2)", N);
+        profile_reserve_grow<vec1<big_data>>("reserve grow (vec1)", N);
+        profile_reserve_grow<vec2<big_data>>("reserve grow (vec2)", N);
+        profile_reserve_shrink<vec1<big_data>>("reserve shrink (vec1)", N);
+        profile_reserve_shrink<vec2<big_data>>("reserve shrink (vec2)", N);
         //
         profile_push_back<vec1<big_data>>("push_back (vec1)", N);
         profile_push_back<vec2<big_data>>("push_back (vec2)", N);
-        //profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
-        //profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
+        profile_reserve_push_back<vec1<big_data>>("reserve push_back (vec1)", N);
+        profile_reserve_push_back<vec2<big_data>>("reserve push_back (vec2)", N);
         // 
-        //profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
-        //profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
-        //profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
-        //profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
+        profile_resize_grow<vec1<big_data>>("resize grow (vec1)", N);
+        profile_resize_grow<vec2<big_data>>("resize grow (vec2)", N);
+        profile_resize_shrink<vec1<big_data>>("resize shrink (vec1)", N);
+        profile_resize_shrink<vec2<big_data>>("resize shrink (vec2)", N);
 
         //profile_clear<vec1<big_data>>("clear (vec1)", N);
         //profile_clear<vec2<big_data>>("clear (vec2)", N);
@@ -407,17 +407,17 @@ int main()
         //profile_shrink_to_fit<vec1<big_data>>("shrink to fit (vec1)", N);
         //profile_shrink_to_fit<vec2<big_data>>("shrink to fit (vec2)", N);
         // 
-        //profile_emplace<vec1<big_data>>("emplace (vec1)", N);
-        //profile_emplace<vec2<big_data>>("emplace (vec2)", N);
-        //profile_emplace_grow<vec1<big_data>>("emplace grow (vec1)", N);
-        //profile_emplace_grow<vec2<big_data>>("emplace grow (vec2)", N);
+        profile_emplace<vec1<big_data>>("emplace (vec1)", N);
+        profile_emplace<vec2<big_data>>("emplace (vec2)", N);
+        profile_emplace_grow<vec1<big_data>>("emplace grow (vec1)", N);
+        profile_emplace_grow<vec2<big_data>>("emplace grow (vec2)", N);
         //
-        //profile_insert_n<vec1<big_data>>("insert n (vec1)", N);
-        //profile_insert_n<vec2<big_data>>("insert n (vec2)", N);
-        //profile_insert_n_back<vec1<big_data>>("insert n back (vec1)", N);
-        //profile_insert_n_back<vec2<big_data>>("insert n back (vec2)", N);
-        //profile_insert_range<vec1<big_data>>("insert range (vec1)", N);
-        //profile_insert_range<vec2<big_data>>("insert range (vec2)", N);
+        profile_insert_n<vec1<big_data>>("insert n (vec1)", N);
+        profile_insert_n<vec2<big_data>>("insert n (vec2)", N);
+        profile_insert_n_back<vec1<big_data>>("insert n back (vec1)", N);
+        profile_insert_n_back<vec2<big_data>>("insert n back (vec2)", N);
+        profile_insert_range<vec1<big_data>>("insert range (vec1)", N);
+        profile_insert_range<vec2<big_data>>("insert range (vec2)", N);
         //
         //profile_erase<vec1<big_data>>("erase (vec1)", N);
         //profile_erase<vec2<big_data>>("erase (vec2)", N);

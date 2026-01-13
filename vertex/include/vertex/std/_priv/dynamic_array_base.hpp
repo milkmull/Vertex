@@ -22,7 +22,7 @@ namespace _priv {
 // gains are negligible, but for large vectors aligned memory is beneficial, as it enables more effective SIMD
 // vectorization.
 
-template <typename T, typename Allocator = default_allocator<T, alignof(T)>>
+template <typename T, typename Allocator = default_allocator<T>>
 class dynamic_array_base
 {
 public:
@@ -174,8 +174,7 @@ public:
         construct_n<construct_range_tag>(count);
     }
 
-    template <typename U>
-    dynamic_array_base(const size_type count, const U& value)
+    dynamic_array_base(const size_type count, const T& value)
     {
         construct_n<construct_range_tag>(count, value);
     }
@@ -197,14 +196,13 @@ public:
         : m_buffer(other.release_buffer())
     {}
 
-    template <typename IT1, typename IT2>
-    dynamic_array_base(IT1 first, IT2 last) noexcept
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    dynamic_array_base(IT first, IT last) noexcept
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
+        VX_IF_CONSTEXPR(is_native_iterator<IT>::value)
         {
-            const size_type count = static_cast<size_type>(std::distance(first, last));
             construct_n<copy_range_tag>(count, first.ptr());
         }
         else
@@ -334,10 +332,7 @@ public:
         }
 
         destroy_range();
-
-        auto& buffer = m_buffer;
-        buffer = other.release_buffer();
-
+        m_buffer = other.release_buffer();
         return *this;
     }
 
@@ -355,23 +350,34 @@ public:
         return assign_from<copy_range_tag>(other.m_buffer.size, other.m_buffer.ptr);
     }
 
+    bool assign(dynamic_array_base&& other) noexcept
+    {
+        if (this != std::addressof(other))
+        {
+            destroy_range();
+            m_buffer = other.release_buffer();
+        }
+
+        return true;
+    }
+
     bool assign(std::initializer_list<T> init)
     {
         return assign_from<move_range_tag>(init.size(), init.begin());
     }
 
-    template <typename IT1, typename IT2>
-    bool assign(IT1 first, IT2 last)
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    bool assign(IT first, IT last)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
+        VX_IF_CONSTEXPR(is_native_iterator<IT>::value)
         {
-            assign_from<copy_range_tag>(count, first.ptr());
+            return assign_from<copy_range_tag>(count, first.ptr());
         }
         else
         {
-            assign_from<iterator_range_tag>(count, std::move(first), std::move(last));
+            return assign_from<iterator_range_tag>(count, std::move(first), std::move(last));
         }
     }
 
@@ -391,12 +397,14 @@ public:
 
     T* back()
     {
-        return m_buffer.ptr + m_buffer.size;
+        VX_ASSERT(m_buffer.ptr && m_buffer.size);
+        return m_buffer.ptr + m_buffer.size - 1;
     }
 
     const T* back() const
     {
-        return m_buffer.ptr + m_buffer.size;
+        VX_ASSERT(m_buffer.ptr && m_buffer.size);
+        return m_buffer.ptr + m_buffer.size - 1;
     }
 
     const T* data() const
@@ -457,12 +465,12 @@ public:
 
     reverse_iterator rbegin()
     {
-        return reverse_iterator(end() - 1);
+        return reverse_iterator(end());
     }
 
     const_reverse_iterator rbegin() const
     {
-        return const_reverse_iterator(end() - 1);
+        return const_reverse_iterator(end());
     }
 
     const_reverse_iterator crbegin() const
@@ -472,12 +480,12 @@ public:
 
     reverse_iterator rend()
     {
-        return reverse_iterator(begin() - 1);
+        return reverse_iterator(begin());
     }
 
     const_reverse_iterator rend() const
     {
-        return const_reverse_iterator(begin() - 1);
+        return const_reverse_iterator(begin());
     }
 
     const_reverse_iterator crend() const
@@ -486,7 +494,7 @@ public:
     }
 
     //=========================================================================
-    // modifiers
+    // memory
     //=========================================================================
 
     void clear() noexcept
@@ -504,18 +512,31 @@ public:
         size = 0;
     }
 
-    void clear_and_shrink() noexcept
+    void clear_and_deallocate() noexcept
     {
         destroy_range();
     }
 
-    T* release()
+    bool shrink_to_fit() noexcept
+    {
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
+
+        if (size == capacity)
+        {
+            return true;
+        }
+
+        return reallocate_shrink(size);
+    }
+
+    T* release() noexcept
     {
         const buffer old_buffer = release_buffer();
         return old_buffer.ptr;
     }
 
-    bool acquire(T* ptr, size_type count)
+    bool acquire(T* ptr, size_type count) noexcept
     {
 #if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
@@ -527,10 +548,7 @@ public:
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        if (m_buffer.ptr)
-        {
-            destroy_range();
-        }
+        destroy_range();
 
         m_buffer.ptr = ptr;
         m_buffer.size = count;
@@ -538,13 +556,20 @@ public:
         return true;
     }
 
+    void swap(dynamic_array_base& other) noexcept
+    {
+        std::swap(m_buffer.ptr, other.m_buffer.ptr);
+        std::swap(m_buffer.size, other.m_buffer.size);
+        std::swap(m_buffer.capacity, other.m_buffer.capacity);
+    }
+
     //=========================================================================
-    // capacity
+    // size
     //=========================================================================
 
     bool empty() const
     {
-        return m_buffer.ptr == nullptr;
+        return m_buffer.size == 0;
     }
 
     size_type size() const
@@ -561,6 +586,10 @@ public:
     {
         return mem::_priv::get_max_count<T>();
     }
+
+    //=========================================================================
+    // capacity
+    //=========================================================================
 
     size_type capacity() const
     {
@@ -624,19 +653,6 @@ public:
 
         const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
         return reallocate(new_capacity);
-    }
-
-    bool shrink_to_fit()
-    {
-        auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
-
-        if (size == capacity)
-        {
-            return true;
-        }
-
-        return reallocate_shrink(size);
     }
 
     //=========================================================================
@@ -840,22 +856,6 @@ public:
     }
 
     //=========================================================================
-    // push back
-    //=========================================================================
-
-    template <typename growth_rate = std::ratio<3, 2>>
-    bool push_back(const T& value)
-    {
-        return emplace_back<growth_rate>(value);
-    }
-
-    template <typename growth_rate = std::ratio<3, 2>>
-    bool push_back(T&& value)
-    {
-        return emplace_back<growth_rate>(std::move(value));
-    }
-
-    //=========================================================================
     // insert
     //=========================================================================
 
@@ -864,18 +864,13 @@ public:
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
 
         pointer back = ptr + size;
 
         if (pos != back)
         {
-            // initialize the object past the end
-            pointer last = back - count;
-            mem::construct_in_place(back, std::move(*last));
-            // move the existing range back until we get to the insertion
-            const size_type end_count = last - pos;
-            mem::move_range_back(back, last, end_count);
+            const size_type tail_count = back - pos;
+            mem::move_range_back(pos + count, pos, tail_count);
         }
 
         VX_IF_CONSTEXPR((std::is_same<Tag, construct_single_tag>::value))
@@ -1015,13 +1010,13 @@ public:
         return iterator(ptr);
     }
 
-    template <typename IT1, typename IT2>
-    iterator insert(const_iterator pos, IT1 first, IT2 last)
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    iterator insert(const_iterator pos, IT first, IT last)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR(is_native_iterator<IT1>::value && is_native_iterator<IT2>::value)
+        VX_IF_CONSTEXPR(is_native_iterator<IT>::value)
         {
             ptr = insert_n<copy_range_tag>(ptr, count, first.ptr());
         }
@@ -1063,6 +1058,22 @@ public:
     }
 
     //=========================================================================
+    // push back
+    //=========================================================================
+
+    template <typename growth_rate = std::ratio<3, 2>>
+    void push_back(const T& value)
+    {
+        emplace_back<growth_rate>(value);
+    }
+
+    template <typename growth_rate = std::ratio<3, 2>>
+    void push_back(T&& value) noexcept
+    {
+        emplace_back<growth_rate>(std::move(value));
+    }
+
+    //=========================================================================
     // erase
     //=========================================================================
 
@@ -1073,11 +1084,15 @@ public:
         auto& size = buffer.size;
         auto& capacity = buffer.capacity;
 
-        mem::move_range(pos, pos + count, count);
-        mem::destroy_range(ptr + size - count, count);
+        const size_type off = pos - ptr;
+        const size_type tail_count = size - off - count;
+        const size_type new_size = size - count;
 
+        mem::move_range(pos, pos + count, tail_count);
+        mem::destroy_range(ptr + new_size, count);
+
+        size = new_size;
         capacity += count;
-        size -= count;
 
         return pos;
     }
@@ -1128,8 +1143,6 @@ public:
     {
         return !operator==(lhs, rhs);
     }
-
-private:
 
     buffer m_buffer = {};
 };

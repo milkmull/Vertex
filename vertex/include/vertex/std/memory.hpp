@@ -557,10 +557,19 @@ inline void move_range_back(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
     {
-        move(dst - count, src - count, count * sizeof(T));
+        move(dst, src, count * sizeof(T));
     }
     else
     {
+        dst += count - 1;
+        src += count - 1;
+
+        // initialize the new last object
+        construct_in_place(dst, std::move(*src));
+
+        --src;
+        --dst;
+
         for (; 0 < count; --count)
         {
             *dst = std::move(*src);
@@ -678,7 +687,13 @@ inline void destroy_array_safe(const T* ptr, const size_t count)
 // allocator
 //=========================================================================
 
-template <typename T, size_t Alignment = alignof(T)>
+enum class alignment_policy
+{
+    at_least,
+    exact
+};
+
+template <typename T, size_t Alignment = alignof(T), alignment_policy Policy = alignment_policy::at_least>
 class default_allocator
 {
 public:
@@ -686,6 +701,7 @@ public:
     //VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
     VX_STATIC_ASSERT(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
     static constexpr size_t alignment = Alignment;
+    static constexpr alignment_policy policy = Policy;
 
     VX_ALLOCATOR static T* allocate(const size_t count) noexcept
     {
@@ -696,7 +712,7 @@ public:
 
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(alignment == 1)
+        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
         {
             return static_cast<T*>(mem::allocate(bytes));
         }
@@ -710,7 +726,7 @@ public:
     {
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(alignment == 1)
+        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
         {
             return static_cast<T*>(mem::reallocate(ptr, bytes));
         }
@@ -724,7 +740,7 @@ public:
     {
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(alignment == 1)
+        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
         {
             mem::deallocate(ptr, bytes);
         }

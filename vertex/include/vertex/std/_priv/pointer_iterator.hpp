@@ -95,6 +95,16 @@ public:
         return a.m_ptr - b.m_ptr;
     }
 
+    reference operator[](difference_type n) const
+    {
+        return *(m_ptr + n);
+    }
+
+    friend pointer_iterator operator+(difference_type n, pointer_iterator it)
+    {
+        return pointer_iterator(it.m_ptr + n);
+    }
+
     friend bool operator==(pointer_iterator a, pointer_iterator b)
     {
         return a.m_ptr == b.m_ptr;
@@ -200,6 +210,63 @@ public:
         auto tmp = *this;
         ++m_it;
         return tmp;
+    }
+
+    reverse_pointer_iterator& operator+=(difference_type n)
+    {
+        m_it -= n;
+        return *this;
+    }
+
+    reverse_pointer_iterator& operator-=(difference_type n)
+    {
+        m_it += n;
+        return *this;
+    }
+
+    reverse_pointer_iterator operator+(difference_type n) const
+    {
+        return reverse_pointer_iterator(m_it - n);
+    }
+
+    reverse_pointer_iterator operator-(difference_type n) const
+    {
+        return reverse_pointer_iterator(m_it + n);
+    }
+
+    friend reverse_pointer_iterator operator+(difference_type n, reverse_pointer_iterator it)
+    {
+        return reverse_pointer_iterator(it.m_it - n);
+    }
+
+    friend difference_type operator-(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    {
+        return b.m_it - a.m_it;
+    }
+
+    reference operator[](difference_type n) const
+    {
+        return *(*this + n);
+    }
+
+    friend bool operator<(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    {
+        return b.m_it < a.m_it;
+    }
+
+    friend bool operator>(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    {
+        return b.m_it > a.m_it;
+    }
+
+    friend bool operator<=(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    {
+        return b.m_it <= a.m_it;
+    }
+
+    friend bool operator>=(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    {
+        return b.m_it >= a.m_it;
     }
 
     friend bool operator==(reverse_pointer_iterator a, reverse_pointer_iterator b)

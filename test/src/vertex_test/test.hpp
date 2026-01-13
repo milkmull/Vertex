@@ -108,13 +108,13 @@ inline void fail_test(const char* condition, const char* func, int line)
         VX_CHECK(::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_EXPECT_ERROR_CODE(condition, CODE) \
+#define VX_EXPECT_ERROR_CODE(condition, e) \
     do \
     { \
         ::vx::err::clear(); \
         condition; \
         VX_CHECK(::vx::err::is_set()); \
-        VX_CHECK(::vx::err::get().err == CODE); \
+        VX_CHECK(::vx::err::get_code() == e); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_EXPECT_NO_ERROR(condition) \
