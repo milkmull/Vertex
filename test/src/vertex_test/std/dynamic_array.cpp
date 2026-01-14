@@ -1195,6 +1195,57 @@ VX_TEST_CASE(insert_and_erase_non_trivial)
 }
 
 //=========================================================================
+// compare
+//=========================================================================
+
+template <typename T>
+void test_compare()
+{
+    VX_SECTION("== / !=")
+    {
+        vec<T> v1{ 0, 1, 2, 3, 4 };
+        vec<T> v2{ 0, 1, 2, 3, 4 };
+        vec<T> v3{ 0, 1, 2, 3 };
+        vec<T> v4{ 0, 1, 2, 3, 5 };
+        vec<T> v_empty1;
+        vec<T> v_empty2;
+
+        // Reflexivity
+        VX_CHECK(v1 == v1);
+        VX_CHECK(v_empty1 == v_empty1);
+
+        // Equality of identical contents
+        VX_CHECK(v1 == v2);
+        VX_CHECK(v2 == v1);
+
+        // Inequality with different sizes
+        VX_CHECK(v1 != v3);
+        VX_CHECK(v3 != v1);
+
+        // Inequality with same size, different elements
+        VX_CHECK(v1 != v4);
+        VX_CHECK(v4 != v1);
+
+        // Equality of empty vectors
+        VX_CHECK(v_empty1 == v_empty2);
+
+        // Inequality empty vs non-empty
+        VX_CHECK(v_empty1 != v1);
+        VX_CHECK(v1 != v_empty1);
+    }
+}
+
+VX_TEST_CASE(compare)
+{
+    test_compare<int>();
+}
+
+VX_TEST_CASE(compare_non_trivial)
+{
+    test_compare<non_trivial>();
+}
+
+//=========================================================================
 
 int main()
 {
