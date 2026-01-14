@@ -861,6 +861,158 @@ VX_TEST_CASE(size_and_capacity_non_trivial)
 }
 
 //=========================================================================
+// emplace / push back
+//=========================================================================
+
+template <typename T>
+void test_emplace_and_pushback()
+{
+    constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
+
+    struct emplace_type
+    {
+        int a, b;
+        emplace_type(int x, int y)
+            : a(x), b(y)
+        {}
+    };
+
+    VX_SECTION("emplace")
+    {
+        vec<emplace_type> v;
+
+        // front
+        auto it0 = v.emplace(v.begin(), 0, 0);
+        VX_CHECK(it0);
+        VX_CHECK(it0 == v.begin());
+        VX_CHECK(it0->a == 0 && it0->b == 0);
+
+        // back
+        auto it1 = v.emplace(v.end(), 2, 2);
+        VX_CHECK(it1);
+        VX_CHECK(it1 == v.end() - 1);
+        VX_CHECK(it1->a == 2 && it1->b == 2);
+
+        // middle
+        auto it_mid = v.emplace(v.begin() + 1, 1, 1);
+        VX_CHECK(it_mid);
+        VX_CHECK(it_mid == v.begin() + 1);
+        VX_CHECK(it_mid->a == 1 && it_mid->b == 1);
+
+        VX_CHECK(v.size() == 3);
+
+        // order check: 0,1,2
+        for (int i = 0; i < 3; ++i)
+        {
+            VX_CHECK(v[i].a == i);
+            VX_CHECK(v[i].b == i);
+        }
+    }
+
+    VX_SECTION("emplace_back")
+    {
+        vec<emplace_type> v;
+
+        auto* p0 = v.emplace_back(1, 2);
+        VX_CHECK(p0);
+        VX_CHECK(p0 == v.back());
+        VX_CHECK(p0->a == 1 && p0->b == 2);
+
+        auto* p1 = v.emplace_back(3, 4);
+        VX_CHECK(p1);
+        VX_CHECK(p1 == v.back());
+        VX_CHECK(p1->a == 3 && p1->b == 4);
+
+        VX_CHECK(v.size() == 2);
+    }
+
+    VX_SECTION("push_back")
+    {
+        vec<T> v;
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+
+            T x(1);
+            v.push_back(x); // copy
+            VX_CHECK(non_trivial::copy_count == 1);
+
+            v.push_back(T(2)); // move
+            VX_CHECK(non_trivial::move_count >= 1);
+        }
+        else
+        {
+            v.push_back(T(1));
+            v.push_back(T(2));
+        }
+
+        VX_CHECK(v.size() == 2);
+        VX_CHECK(static_cast<int>(v[0]) == 1);
+        VX_CHECK(static_cast<int>(v[1]) == 2);
+    }
+}
+
+VX_TEST_CASE(emplace_and_push_back)
+{
+    test_emplace_and_pushback<int>();
+}
+
+VX_TEST_CASE(emplace_and_push_back_non_trivial)
+{
+    test_emplace_and_pushback<non_trivial>();
+}
+
+//=========================================================================
+// growth rate
+//=========================================================================
+
+VX_TEST_CASE(growth_rate)
+{
+    VX_SECTION("1x")
+    {
+        using rate_1 = std::ratio<1, 1>;
+        const size_t expected_caps_1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
+
+        vec<int> v;
+
+        for (int i = 0; i < 20; ++i)
+        {
+            v.push_back<rate_1>(0);
+            VX_CHECK(v.capacity() == expected_caps_1[i]);
+        }
+    }
+
+    VX_SECTION("1.5x")
+    {
+        using rate_2 = std::ratio<3, 2>;
+        const size_t expected_caps_2[] = { 1, 2, 3, 4, 6, 6, 9, 9, 9, 13, 13, 13, 13, 19, 19, 19, 19, 19, 19, 28 };
+
+        vec<int> v;
+
+        for (int i = 0; i < 20; ++i)
+        {
+            v.push_back<rate_2>(0);
+            VX_CHECK(v.capacity() == expected_caps_2[i]);
+        }
+    }
+
+    VX_SECTION("2x")
+    {
+        using rate_3 = std::ratio<2, 1>;
+        const size_t expected_caps_3[] = { 2, 2, 4, 4, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32 };
+
+        vec<int> v;
+
+        for (int i = 0; i < 20; ++i)
+        {
+            v.push_back<rate_3>(0);
+            VX_CHECK(v.capacity() == expected_caps_3[i]);
+        }
+    }
+}
+
+//=========================================================================
 // insertion
 //=========================================================================
 

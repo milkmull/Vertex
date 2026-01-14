@@ -600,43 +600,50 @@ public:
     size_type grow_capacity(size_type required_capacity, size_type current_capacity) const
     {
         constexpr size_type max_capacity = max_size();
-        current_capacity = current_capacity ? current_capacity : 1;
-        
-        size_type new_capacity;
-        
-        VX_IF_CONSTEXPR(growth_rate::num == 3 && growth_rate::den == 2)
+
+        VX_IF_CONSTEXPR(growth_rate::num == 1 && growth_rate::den == 1)
         {
-            if (current_capacity > max_capacity - current_capacity / 2)
+            if (required_capacity > max_capacity)
             {
                 return max_capacity;
             }
-        
-            new_capacity = current_capacity + current_capacity / 2;
+
+            return required_capacity;
         }
         else
         {
-            // Guard against multiplication overflow: old_capacity * num
-            if (current_capacity > max_capacity / growth_rate::num)
+            current_capacity = current_capacity ? current_capacity : 1;
+
+            size_type new_capacity;
+
+            VX_IF_CONSTEXPR(growth_rate::num == 3 && growth_rate::den == 2)
             {
-                return max_capacity;
+                // Guard against multiplication overflow: old_capacity * num
+                if (current_capacity > max_capacity - current_capacity / 2)
+                {
+                    return max_capacity;
+                }
+
+                new_capacity = current_capacity + current_capacity / 2;
             }
-        
-            const size_type added_capacity = current_capacity * growth_rate::num / growth_rate::den;
-            // Guard against addition overflow: old_capacity + added_capacity
-            if (current_capacity > max_capacity - added_capacity)
+            else
             {
-                return max_capacity;
+                // Guard against multiplication overflow: old_capacity * num
+                if (current_capacity > max_capacity / growth_rate::num)
+                {
+                    return max_capacity;
+                }
+
+                new_capacity = current_capacity * growth_rate::num / growth_rate::den;
             }
-        
-            new_capacity = current_capacity + added_capacity;
+
+            if (new_capacity < required_capacity)
+            {
+                new_capacity = required_capacity;
+            }
+
+            return new_capacity;
         }
-        
-        if (new_capacity < required_capacity)
-        {
-            new_capacity = required_capacity;
-        }
-        
-        return new_capacity;
     }
 
     template <typename growth_rate>
@@ -776,7 +783,7 @@ public:
         VX_UNLIKELY_COLD_PATH(new_size > max_size(),
         {
             VX_ERR(err::size_error);
-            return false;
+            return false;  
         });
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
@@ -1033,7 +1040,7 @@ public:
     //=========================================================================
 
     template <typename growth_rate = std::ratio<3, 2>, typename... Args>
-    bool emplace_back(Args&&... args)
+    pointer emplace_back(Args&&... args)
     {
         auto& buffer = m_buffer;
         auto& ptr = buffer.ptr;
@@ -1041,12 +1048,14 @@ public:
 
         VX_UNLIKELY_COLD_PATH(!grow_if_needed<growth_rate>(size + 1),
         {
-            return false;
+            return nullptr;
         });
-        
-        mem::construct_in_place(ptr + size, std::forward<Args>(args)...);
+
+        pointer obj = ptr + size;
+        mem::construct_in_place(obj, std::forward<Args>(args)...);
         ++size;
-        return true;
+
+        return obj;
     }
 
     template <typename... Args>

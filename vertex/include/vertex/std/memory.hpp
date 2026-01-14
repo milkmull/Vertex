@@ -698,7 +698,7 @@ class default_allocator
 {
 public:
 
-    //VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
+    VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
     VX_STATIC_ASSERT(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
     static constexpr size_t alignment = Alignment;
     static constexpr alignment_policy policy = Policy;
