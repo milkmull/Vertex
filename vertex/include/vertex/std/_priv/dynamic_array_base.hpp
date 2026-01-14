@@ -181,7 +181,7 @@ public:
 
     dynamic_array_base(std::initializer_list<T> init)
     {
-        construct_n<move_range_tag>(init.size(), init.begin());
+        construct_n<copy_range_tag>(init.size(), init.begin());
     }
 
     dynamic_array_base(const dynamic_array_base& other)
@@ -320,7 +320,7 @@ public:
 
     dynamic_array_base& operator=(std::initializer_list<T> init)
     {
-        assign_from<move_range_tag>(init.size(), init.begin());
+        assign_from<copy_range_tag>(init.size(), init.begin());
         return *this;
     }
 
@@ -363,7 +363,7 @@ public:
 
     bool assign(std::initializer_list<T> init)
     {
-        return assign_from<move_range_tag>(init.size(), init.begin());
+        return assign_from<copy_range_tag>(init.size(), init.begin());
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -991,7 +991,7 @@ public:
         return emplace(pos, value);
     }
 
-    iterator insert(const_iterator pos, T&& value)
+    iterator insert(const_iterator pos, T&& value) noexcept
     {
         return emplace(pos, std::move(value));
     }
@@ -1006,7 +1006,7 @@ public:
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<move_range_tag>(ptr, init.size(), init.begin());
+        ptr = insert_n<copy_range_tag>(ptr, init.size(), init.begin());
         return iterator(ptr);
     }
 
@@ -1053,7 +1053,7 @@ public:
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<construct_range_tag>(ptr, 1, std::forward<Args>(args)...);
+        ptr = insert_n<construct_single_tag>(ptr, 1, std::forward<Args>(args)...);
         return iterator(ptr);
     }
 

@@ -73,6 +73,8 @@ using vec = vx::_priv::dynamic_array_base<T>;
 template <typename T>
 void test_constructors()
 {
+    constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
+
     VX_SECTION("default")
     {
         vec<T> v;
@@ -107,6 +109,11 @@ void test_constructors()
 
     VX_SECTION("list")
     {
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v = { 0, 1, 2, 3, 4 };
 
         VX_CHECK(v.data() != nullptr);
@@ -117,11 +124,23 @@ void test_constructors()
         {
             VX_CHECK(v[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("copy")
     {
         vec<T> v1 = { 0, 1, 2, 3, 4 };
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v2 = v1;
 
         VX_CHECK(v1.data() != nullptr);
@@ -141,11 +160,23 @@ void test_constructors()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("move")
     {
         vec<T> v1 = { 0, 1, 2, 3, 4 };
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v2 = std::move(v1);
 
         VX_CHECK(v1.data() == nullptr);
@@ -160,11 +191,23 @@ void test_constructors()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 0);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("range")
     {
         vec<T> v1 = { 0, 1, 2, 3, 4 };
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v2(v1.begin(), v1.end());
 
         VX_CHECK(v1.data() != nullptr);
@@ -183,6 +226,12 @@ void test_constructors()
         for (int i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
+        }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
         }
     }
 }
@@ -204,11 +253,18 @@ VX_TEST_CASE(constructors_non_trivial)
 template <typename T>
 void test_assignment()
 {
+    constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
+
     VX_SECTION("copy")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        vec<T> v2;
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
+        vec<T> v2;
         v2 = v1;
 
         VX_CHECK(v1.data() != nullptr);
@@ -228,10 +284,21 @@ void test_assignment()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("list")
     {
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v;
         v = { 0, 1, 2, 3, 4 };
 
@@ -243,13 +310,24 @@ void test_assignment()
         {
             VX_CHECK(v[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("move")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        vec<T> v2;
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
+        vec<T> v2;
         v2 = std::move(v1);
 
         VX_CHECK(v1.data() == nullptr);
@@ -264,13 +342,24 @@ void test_assignment()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 0);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("assign copy")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        vec<T> v2;
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
+        vec<T> v2;
         v2.assign(v1);
 
         VX_CHECK(v1.data() != nullptr);
@@ -290,10 +379,21 @@ void test_assignment()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("assign list")
     {
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         vec<T> v;
         v.assign({ 0, 1, 2, 3, 4 });
 
@@ -305,13 +405,24 @@ void test_assignment()
         {
             VX_CHECK(v[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
     VX_SECTION("assign move")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        vec<T> v2;
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
+        vec<T> v2;
         v2.assign(std::move(v1));
 
         VX_CHECK(v1.data() == nullptr);
@@ -326,14 +437,25 @@ void test_assignment()
         {
             VX_CHECK(v2[i] == i);
         }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 0);
+            VX_CHECK(non_trivial::move_count == 0);
+        }
     }
 
 
     VX_SECTION("assign range")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        vec<T> v2;
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
+        vec<T> v2;
         v2.assign(v1.begin(), v1.end());
 
         VX_CHECK(v1.data() != nullptr);
@@ -352,6 +474,12 @@ void test_assignment()
         for (int i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
+        }
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::copy_count == 5);
+            VX_CHECK(non_trivial::move_count == 0);
         }
     }
 }
@@ -525,6 +653,7 @@ VX_TEST_CASE(iterators_non_trivial)
 template <typename T>
 void test_memory()
 {
+    constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
     using allocator = typename vec<T>::allocator_type;
 
     VX_SECTION("clear")
@@ -533,9 +662,19 @@ void test_memory()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         v.clear();
         VX_CHECK(v.size() == 0);
         VX_CHECK(v.capacity() == 5);
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::destruct_count == 5);
+        }
     }
 
     VX_SECTION("clear_and_deallocate")
@@ -544,9 +683,19 @@ void test_memory()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            non_trivial::reset_counters();
+        }
+
         v.clear_and_deallocate();
         VX_CHECK(v.size() == 0);
         VX_CHECK(v.capacity() == 0);
+
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            VX_CHECK(non_trivial::destruct_count == 5);
+        }
     }
 
     VX_SECTION("acquire / release")
@@ -718,80 +867,168 @@ VX_TEST_CASE(size_and_capacity_non_trivial)
 template <typename T>
 void test_insert_and_erase()
 {
+    constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
+
     VX_SECTION("insert / erase")
     {
         vec<T> v{ 0, 1, 2, 3, 4 };
 
-        // front
+        // Insert -x before each x
+        for (auto it = v.begin(); it != v.end(); ++it)
         {
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.insert(v.begin(), -1));
-            VX_CHECK(v.size() == 6);
+            const int x = static_cast<int>(*it);
 
-            VX_CHECK(v[0] == -1);
-            VX_CHECK(v[1] == 0);
-            VX_CHECK(v[2] == 1);
-            VX_CHECK(v[3] == 2);
-            VX_CHECK(v[4] == 3);
-            VX_CHECK(v[5] == 4);
+            auto inserted = v.insert(it, -x);
 
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.erase(v.begin()));
-            VX_CHECK(v.size() == 5);
+            VX_CHECK(*inserted == -x); // inserted value
+            auto next = inserted + 1;
+            VX_CHECK(*next == x); // original element still follows
 
-            VX_CHECK(v[0] == 0);
-            VX_CHECK(v[1] == 1);
-            VX_CHECK(v[2] == 2);
-            VX_CHECK(v[3] == 3);
-            VX_CHECK(v[4] == 4);
+            it = next; // continue from original element
         }
 
-        // back
+        // v should now be: { 0, -0, 1, -1, 2, -2, 3, -3, 4, -4 }
+
+        // Erase all negative values, which should be every other element
+        for (auto it = v.begin(); it != v.end();)
         {
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.insert(v.end(), 5));
-            VX_CHECK(v.size() == 6);
+            // it should point to a negative value
+            VX_CHECK(static_cast<int>(*it) <= 0);
 
-            VX_CHECK(v[0] == 0);
-            VX_CHECK(v[1] == 1);
-            VX_CHECK(v[2] == 2);
-            VX_CHECK(v[3] == 3);
-            VX_CHECK(v[4] == 4);
-            VX_CHECK(v[5] == 5);
+            const int neg = static_cast<int>(*it);
+            auto next = it + 1;
 
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.erase(v.end() - 1));
-            VX_CHECK(v.size() == 5);
+            // next must exist and be the positive counterpart
+            VX_CHECK(next != v.end());
+            VX_CHECK(*next == -neg);
 
-            VX_CHECK(v[0] == 0);
-            VX_CHECK(v[1] == 1);
-            VX_CHECK(v[2] == 2);
-            VX_CHECK(v[3] == 3);
-            VX_CHECK(v[4] == 4);
+            // erase negative, iterator should now point to the positive
+            auto ret = v.erase(it);
+            VX_CHECK(*ret == -neg);
+
+            // continue from the positive value
+            it = ret;
+            ++it;
         }
 
-        // middle
-        {
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.insert(v.begin() + 2, -1));
-            VX_CHECK(v.size() == 6);
+        // Final content check
+        vec<T> expected{ 0, 1, 2, 3, 4 };
+        VX_CHECK(v == expected);
+    }
 
-            for (const auto& i : v)
+    VX_SECTION("insert move")
+    {
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            vec<T> v;
+
+            non_trivial::reset_counters();
+            T x(-1);
+            auto it = v.insert(v.end(), std::move(x));
+
+            VX_CHECK(*it == -1);
+            VX_CHECK(non_trivial::move_count == 1);
+        }
+    }
+
+    VX_SECTION("insert move")
+    {
+        VX_IF_CONSTEXPR(is_non_trivial)
+        {
+            vec<T> v;
+
+            non_trivial::reset_counters();
+            T x(-1);
+            auto it = v.insert(v.end(), std::move(x));
+
+            VX_CHECK(*it == -1);
+            VX_CHECK(non_trivial::move_count == 1);
+        }
+    }
+
+    VX_SECTION("insert count")
+    {
+        vec<T> v{ 0, 2 };
+
+        auto it = v.insert(v.begin() + 1, 5, 1);
+        VX_CHECK(*it == 1);
+
+        for (; it != v.end(); ++it)
+        {
+            if (it == v.end() - 1)
             {
-                std::cout << (int)i << std::endl;
+                VX_CHECK(*it == 2);
             }
-
-            VX_CHECK(v[0] == 0);
-            VX_CHECK(v[1] == 1);
-            VX_CHECK(v[2] == -1);
-            VX_CHECK(v[3] == 2);
-            VX_CHECK(v[4] == 3);
-            VX_CHECK(v[5] == 4);
-
-            VX_CHECK_AND_EXPECT_NO_ERROR(v.erase(v.begin() + 2));
-            VX_CHECK(v.size() == 5);
-
-            VX_CHECK(v[0] == 0);
-            VX_CHECK(v[1] == 1);
-            VX_CHECK(v[2] == 2);
-            VX_CHECK(v[3] == 3);
-            VX_CHECK(v[4] == 4);
+            else
+            {
+                VX_CHECK(*it == 1);
+            }
         }
+    }
+
+    VX_SECTION("insert list")
+    {
+        vec<T> v{ 0, 10 };
+
+        auto it = v.insert(v.begin() + 1, { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+        VX_CHECK(*it == 1);
+
+        for (int i = 0; i < v.size(); ++i)
+        {
+            VX_CHECK(v[i] == i);
+        }
+    }
+
+    VX_SECTION("insert / erase range")
+    {
+        vec<T> v{ 0, 1, 2, 3, 4, 5 };
+
+        // Take a range from the vector itself: [2,3,4]
+        auto first = v.begin() + 2; // points to 2
+        auto last = v.begin() + 5;  // one past 4
+
+        // Insert that range at the front
+        auto it = v.insert(v.begin(), first, last);
+
+        // it should point to first inserted element (2)
+        VX_CHECK(*it == 2);
+
+        // v should now be: 2 3 4 0 1 2 3 4 5
+        {
+            int expected[] = { 2, 3, 4, 0, 1, 2, 3, 4, 5 };
+            for (int i = 0; i < v.size(); ++i)
+            {
+                VX_CHECK(static_cast<int>(v[i]) == expected[i]);
+            }
+        }
+
+        // Erase the inserted range again (the first three elements)
+        auto erase_first = v.begin();
+        auto erase_last = v.begin() + 3;
+
+        auto ret = v.erase(erase_first, erase_last);
+
+        // ret should now point to 0 (the original first element)
+        VX_CHECK(*ret == 0);
+
+        // Back to original content
+        vec<T> expected{ 0, 1, 2, 3, 4, 5 };
+        VX_CHECK(v == expected);
+    }
+
+    VX_SECTION("pop back")
+    {
+        vec<T> v{ 0, 1, 2, 3 };
+
+        for (int i = static_cast<int>(*v.back()); i >= 0; --i)
+        {
+            VX_CHECK(*v.back() == i);
+            const size_t last_size = v.size();
+            v.pop_back();
+            VX_CHECK(v.size() == last_size - 1);
+        }
+
+        VX_CHECK(v.empty());
     }
 }
 

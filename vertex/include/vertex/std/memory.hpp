@@ -515,7 +515,7 @@ inline void copy_range(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-inline void move_range(T* dst, const T* src, size_t count) noexcept
+inline void move_range(T* dst, T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
@@ -533,7 +533,7 @@ inline void move_range(T* dst, const T* src, size_t count) noexcept
 }
 
 template <typename T>
-inline void move_range_unchecked(T* dst, const T* src, size_t count)
+inline void move_range_unchecked(T* dst, T* src, size_t count)
 {
     // this version favors memcpy to memmove
 
@@ -553,7 +553,7 @@ inline void move_range_unchecked(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-inline void move_range_back(T* dst, const T* src, size_t count)
+inline void move_range_back(T* dst, T* src, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
     {
