@@ -18,18 +18,22 @@ public:
 
 public:
 
-    bool start(const char* output_file)
+    bool start(const char* output_file, bool clear_file)
     {
         stop();
 
-        m_file.open(output_file, os::file::mode::write);
-        if (m_file.is_open())
+        const bool exists = os::file::exists(output_file);
+        const auto mode = clear_file ? os::file::mode::write : os::file::mode::append;
+        m_file.open(output_file, mode);
+
+        if (m_file.is_open() && (clear_file || !exists))
         {
             write_header();
         }
 
         os::get_ticks();
-        
+        os::sleep(time::seconds(1));
+
         return m_file.is_open();
     }
 
@@ -96,10 +100,10 @@ public:
 
 public:
 
-    bool start(const char* output_file)
+    bool start(const char* output_file, bool clear_file)
     {
         os::lock_guard lock(m_mutex);
-        return m_profiler->start(output_file);
+        return m_profiler->start(output_file, clear_file);
     }
 
     void stop()
@@ -128,9 +132,9 @@ private:
 
 static profiler_wrapper s_profiler;
 
-bool start(const char* output_file)
+bool start(const char* output_file, bool clear_file)
 {
-    return s_profiler.start(output_file);
+    return s_profiler.start(output_file, clear_file);
 }
 
 void stop()

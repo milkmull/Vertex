@@ -5,4 +5,16 @@
 
 vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp")
 vx_add_test(test_std_dynamic_array          "std" "${CMAKE_CURRENT_SOURCE_DIR}/dynamic_array.cpp")
-vx_add_test(test_std_dynamic_array_profile  "std" "${CMAKE_CURRENT_SOURCE_DIR}/dynamic_array_profile.cpp")
+
+file(GLOB VX_PROFILE_DYNAMIC_ARRAY_BASE_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/vector_profile_tools.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/profile_dynamic_array_base.cpp"
+)
+vx_add_test(test_std_profile_dynamic_array_base     "std" "${VX_PROFILE_DYNAMIC_ARRAY_BASE_FILES}")
+
+
+file(GLOB VX_PROFILE_STD_VECTOR_FILES
+    "${CMAKE_CURRENT_SOURCE_DIR}/vector_profile_tools.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/profile_std_vector.cpp"
+)
+vx_add_test(test_std_profile_std_vector             "std" "${VX_PROFILE_STD_VECTOR_FILES}")

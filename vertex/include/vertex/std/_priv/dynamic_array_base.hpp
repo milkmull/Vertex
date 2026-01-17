@@ -96,10 +96,10 @@ public:
     template <typename Tag, typename... Args>
     inline void construct_n(size_type count, Args&&... args)
     {
-        if (!count)
+        VX_UNLIKELY_COLD_PATH(!count,
         {
             return;
-        }
+        });
 
         auto& b = m_buffer;
         auto& ptr = b.ptr;
@@ -116,7 +116,7 @@ public:
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        auto new_ptr = Allocator::allocate(count);
+        auto new_ptr = allocator_type::allocate(count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -145,13 +145,13 @@ public:
             else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
             {
                 // move the range out of the source, ranges will never overlap since we just allocated out memory
-                mem::move_range(ptr, std::forward<Args>(args)..., count);
+                mem::move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
             }
             else
             {
                 VX_STATIC_ASSERT((std::is_same<Tag, copy_range_tag>::value), "Invalid tag");
                 // copy elements from the source to my vector, memcpy is safe
-                mem::copy_range(ptr, std::forward<Args>(args)..., count);
+                mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
             }
         }
         else
@@ -646,22 +646,6 @@ public:
         }
     }
 
-    template <typename growth_rate>
-    bool grow_if_needed(size_type new_size)
-    {
-        VX_STATIC_ASSERT(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
-        VX_STATIC_ASSERT(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
-
-        const size_type capacity = m_buffer.capacity;
-        if (new_size <= capacity)
-        {
-            return true;
-        }
-
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
-        return reallocate(new_capacity);
-    }
-
     //=========================================================================
     // reallocate
     //=========================================================================
@@ -673,27 +657,25 @@ public:
 
         if (bytes < reallocate_threshold)
         {
-            return reallocate(new_capacity);
+            return reallocate<true, false>(new_capacity);
         }
         else
         {
-            return reallocate<true>(new_capacity);
+            return reallocate<true, true>(new_capacity);
         }
     }
 
-    template <bool shrinking = false>
+    template <bool shrinking = false, bool try_reallocate = false>
     bool reallocate(size_type new_capacity) noexcept
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-        VX_ASSERT((shrinking && new_capacity < size) || (new_capacity > size));
         pointer new_ptr;
 
-        VX_IF_CONSTEXPR(shrinking && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
+        VX_IF_CONSTEXPR(try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
         {
-            // Use realloc optimization for trivial types only when shrinking
             new_ptr = allocator_type::reallocate(ptr, new_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
@@ -721,11 +703,11 @@ public:
             VX_IF_CONSTEXPR(shrinking)
             {
                 VX_ASSERT(size > 0);
-                mem::move_range(new_ptr, ptr, new_capacity);
+                mem::move_uninitialized_range(new_ptr, ptr, new_capacity);
             }
             else
             {
-                mem::move_range(new_ptr, ptr, size);
+                mem::move_uninitialized_range(new_ptr, ptr, size);
             }
 
             mem::destroy_range(ptr, size);
@@ -804,7 +786,7 @@ public:
 
         // grouping these lines together in this order seems to speed things up quite a bit
         mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
-        mem::move_range(new_ptr, ptr, size);
+        mem::move_uninitialized_range(new_ptr, ptr, size);
 
         mem::destroy_range(ptr, size);
         allocator_type::deallocate(ptr, capacity);
@@ -876,17 +858,23 @@ public:
 
         if (pos != back)
         {
-            const size_type tail_count = back - pos;
-            mem::move_range_back(pos + count, pos, tail_count);
+            // move the values that will spill over into uninitialized memory
+            pointer src = back - count;
+            mem::move_uninitialized_range(back, src, count);
+            // move the values that will be moved into already initialized memory
+            const size_type off = static_cast<size_type>(pos - ptr);
+            const size_type tail_count = size - off - count;
+            mem::move_range_back(back - 1, src - 1, tail_count);
         }
 
         VX_IF_CONSTEXPR((std::is_same<Tag, construct_single_tag>::value))
         {
+            mem::destroy_in_place(pos);
             mem::construct_in_place(pos, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
         {
-            mem::construct_range(pos, count, std::forward<Args>(args)...);
+            mem::fill_range(pos, std::forward<Args>(args)..., count);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
         {
@@ -908,18 +896,26 @@ public:
 
     // reallocate the vector data, split at pos and shift back by shift
     // caller should ensure
-    template <typename Tag, typename... Args>
+    template <typename growth_rate, typename Tag, typename... Args>
     pointer insert_reallocate(pointer pos, size_type count, Args&&... args) noexcept
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-        // check for overflow
-
-        const size_type off = pos - ptr;
-        const size_type new_capacity = capacity + count;
+        const size_type off = static_cast<size_type>(pos - ptr);
+        const size_type new_capacity = grow_capacity<growth_rate>(size + count, capacity);
         VX_ASSERT(new_capacity > capacity);
+
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
+        {
+            VX_ERR(err::size_error);
+            return nullptr;  
+        });
+
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         pointer new_ptr = allocator_type::allocate(new_capacity);
 
@@ -932,40 +928,34 @@ public:
 
 #endif // defined(VX_ALLOCATE_FAIL_FAST)
 
-        pos = new_ptr + off;
+        pointer dst = new_ptr + off;
 
         VX_IF_CONSTEXPR((std::is_same<Tag, construct_single_tag>::value))
         {
-            mem::construct_in_place(pos, std::forward<Args>(args)...);
+            mem::construct_in_place(dst, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
         {
-            mem::construct_range(pos, count, std::forward<Args>(args)...);
+            mem::construct_range(dst, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
         {
-            mem::move_range(pos, std::forward<Args>(args)..., count);
+            mem::move_uninitialized_range(dst, std::forward<Args>(args)..., count);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, copy_range_tag>::value))
         {
-            mem::copy_range(pos, std::forward<Args>(args)..., count);
+            mem::copy_uninitialized_range(dst, std::forward<Args>(args)..., count);
         }
         else
         {
             VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
-            mem::construct_from_range(std::forward<Args>(args)...);
+            mem::construct_from_range(dst, std::forward<Args>(args)...);
         }
 
-        pointer dst = new_ptr;
-        pointer src = ptr;
-
         // copy first range
-        mem::move_range(dst, src, off);
-
+        mem::move_uninitialized_range(new_ptr, ptr, off);
         // copy second range
-        dst += off + count;
-        src += off;
-        mem::move_range(dst, src, size - off);
+        mem::move_uninitialized_range(dst + count, pos, size - off);
 
         // destroy original range
         mem::destroy_range(ptr, size);
@@ -975,12 +965,17 @@ public:
         size += count;
         capacity = new_capacity;
 
-        return pos;
+        return dst;
     }
 
-    template <typename Tag, typename... Args>
+    template <typename growth_rate, typename Tag, typename... Args>
     pointer insert_n(pointer pos, size_type count, Args&&... args)
     {
+        VX_UNLIKELY_COLD_PATH(count == 0,
+        {
+            return pos;
+        });
+
         const size_type available = m_buffer.capacity - m_buffer.size;
 
         if (count <= available)
@@ -989,35 +984,39 @@ public:
         }
         else
         {
-            return insert_reallocate<Tag>(pos, count, std::forward<Args>(args)...);
+            return insert_reallocate<growth_rate, Tag>(pos, count, std::forward<Args>(args)...);
         }
     }
 
+    template <typename growth_rate = std::ratio<3, 2>>
     iterator insert(const_iterator pos, const T& value)
     {
-        return emplace(pos, value);
+        return emplace<growth_rate>(pos, value);
     }
 
+    template <typename growth_rate = std::ratio<3, 2>>
     iterator insert(const_iterator pos, T&& value) noexcept
     {
-        return emplace(pos, std::move(value));
+        return emplace<growth_rate>(pos, std::move(value));
     }
 
+    template <typename growth_rate = std::ratio<3, 2>>
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<construct_range_tag>(ptr, count, value);
+        ptr = insert_n<growth_rate, construct_range_tag>(ptr, count, value);
         return iterator(ptr);
     }
 
+    template <typename growth_rate = std::ratio<3, 2>>
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<copy_range_tag>(ptr, init.size(), init.begin());
+        ptr = insert_n<growth_rate, copy_range_tag>(ptr, init.size(), init.begin());
         return iterator(ptr);
     }
 
-    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    template <typename growth_rate = std::ratio<3, 2>, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     iterator insert(const_iterator pos, IT first, IT last)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1025,11 +1024,11 @@ public:
 
         VX_IF_CONSTEXPR(is_native_iterator<IT>::value)
         {
-            ptr = insert_n<copy_range_tag>(ptr, count, first.ptr());
+            ptr = insert_n<growth_rate, copy_range_tag>(ptr, count, first.ptr());
         }
         else
         {
-            ptr = insert_n<iterator_range_tag>(ptr, count, first, last);
+            ptr = insert_n<growth_rate, iterator_range_tag>(ptr, count, first, last);
         }
 
         return iterator(ptr);
@@ -1042,27 +1041,36 @@ public:
     template <typename growth_rate = std::ratio<3, 2>, typename... Args>
     pointer emplace_back(Args&&... args)
     {
+        VX_STATIC_ASSERT(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
+        VX_STATIC_ASSERT(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
+
         auto& buffer = m_buffer;
         auto& ptr = buffer.ptr;
         auto& size = buffer.size;
+        auto& capacity = buffer.capacity;
 
-        VX_UNLIKELY_COLD_PATH(!grow_if_needed<growth_rate>(size + 1),
+        const size_type new_size = size + 1;
+        VX_UNLIKELY_COLD_PATH((new_size > capacity),
         {
-            return nullptr;
+            const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
+            VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
+            {
+                return nullptr;
+            });
         });
 
-        pointer obj = ptr + size;
-        mem::construct_in_place(obj, std::forward<Args>(args)...);
+        pointer dst = ptr + size;
+        mem::construct_in_place(dst, std::forward<Args>(args)...);
         ++size;
 
-        return obj;
+        return dst;
     }
 
-    template <typename... Args>
+    template <typename growth_rate = std::ratio<3, 2>, typename... Args>
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<construct_single_tag>(ptr, 1, std::forward<Args>(args)...);
+        ptr = insert_n<growth_rate, construct_single_tag>(ptr, 1, std::forward<Args>(args)...);
         return iterator(ptr);
     }
 
@@ -1093,7 +1101,7 @@ public:
         auto& size = buffer.size;
         auto& capacity = buffer.capacity;
 
-        const size_type off = pos - ptr;
+        const size_type off = static_cast<size_type>(pos - ptr);
         const size_type tail_count = size - off - count;
         const size_type new_size = size - count;
 

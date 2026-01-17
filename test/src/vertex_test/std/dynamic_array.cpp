@@ -916,12 +916,14 @@ void test_emplace_and_pushback()
         auto* p0 = v.emplace_back(1, 2);
         VX_CHECK(p0);
         VX_CHECK(p0 == v.back());
-        VX_CHECK(p0->a == 1 && p0->b == 2);
+        VX_CHECK(p0->a == 1);
+        VX_CHECK(p0->b == 2);
 
         auto* p1 = v.emplace_back(3, 4);
         VX_CHECK(p1);
         VX_CHECK(p1 == v.back());
-        VX_CHECK(p1->a == 3 && p1->b == 4);
+        VX_CHECK(p1->a == 3);
+        VX_CHECK(p1->b == 4);
 
         VX_CHECK(v.size() == 2);
     }

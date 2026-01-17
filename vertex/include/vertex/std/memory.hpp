@@ -497,7 +497,7 @@ inline void destroy_range(T* ptr, size_t count) noexcept
 }
 
 template <typename T>
-inline void copy_range(T* dst, const T* src, size_t count)
+inline void copy_uninitialized_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
@@ -515,7 +515,25 @@ inline void copy_range(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-inline void move_range(T* dst, T* src, size_t count) noexcept
+inline void copy_range(T* dst, const T* src, size_t count)
+{
+    VX_IF_CONSTEXPR((std::is_trivially_copy_assignable<T>::value))
+    {
+        move(dst, src, count * sizeof(T));
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            *dst = *src;
+            ++src;
+            ++dst;
+        }
+    }
+}
+
+template <typename T>
+inline void move_uninitialized_range(T* dst, T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
@@ -533,19 +551,17 @@ inline void move_range(T* dst, T* src, size_t count) noexcept
 }
 
 template <typename T>
-inline void move_range_unchecked(T* dst, T* src, size_t count)
+inline void move_range(T* dst, T* src, size_t count) noexcept
 {
-    // this version favors memcpy to memmove
-
-    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    VX_IF_CONSTEXPR((std::is_trivially_move_assignable<T>::value))
     {
-        copy(dst, src, count * sizeof(T));
+        move(dst, src, count * sizeof(T));
     }
     else
     {
         for (; 0 < count; --count)
         {
-            construct_in_place(dst, std::move(*src));
+            *dst = std::move(*src);
             ++src;
             ++dst;
         }
@@ -557,24 +573,33 @@ inline void move_range_back(T* dst, T* src, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
     {
-        move(dst, src, count * sizeof(T));
+        move(dst - count, src - count, count * sizeof(T));
     }
     else
     {
-        dst += count - 1;
-        src += count - 1;
-
-        // initialize the new last object
-        construct_in_place(dst, std::move(*src));
-
-        --src;
-        --dst;
-
         for (; 0 < count; --count)
         {
             *dst = std::move(*src);
             --src;
             --dst;
+        }
+    }
+}
+
+template <typename T, typename U>
+inline void fill_range(T* dst, const U& src, size_t count)
+{
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    {
+        // can optimize with memset
+        set(dst, src, count * sizeof(T));
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            *dst = src;
+            ++dst;
         }
     }
 }

@@ -9,9 +9,11 @@ namespace profile {
  * @brief Starts the profiling system and opens the output file for results.
  *
  * @param output_file The path to the file where profiling data will be written.
+ * @param clear_file If true, clears the file and writes a new csv header, otherwise
+ * appends data to the existing file.
  * @return true if the profiler started successfully; false otherwise.
  */
-VX_API bool start(const char* output_file);
+VX_API bool start(const char* output_file, bool clear_file = true);
 
 /**
  * @brief Stops the profiling system and flushes any pending results to file.
@@ -53,7 +55,7 @@ class profile_timer
 {
 public:
 
-    profile_timer(const char* name)
+    profile_timer(const std::string& name)
         : m_name(name)
     {
         m_timer.start();
@@ -75,7 +77,7 @@ public:
 
 private:
 
-    const char* m_name;
+    std::string m_name;
     time::timer m_timer;
 };
 
@@ -84,7 +86,8 @@ private:
 #if defined(VX_ENABLE_PROFILING)
 
 #   define VX_PROFILE_START(file) ::vx::profile::start(file)
-#   define VX_PROFILE_STOP()      ::vx::profile::stop()
+    #define VX_PROFILE_START_APPEND(file) ::vx::profile::start(file, false)
+    #define VX_PROFILE_STOP() ::vx::profile::stop()
 
 #   define VX_PROFILE_SCOPE(name) ::vx::profile::_priv::profile_timer timer##VX_LINE(name)
 #   define VX_PROFILE_FUNCTION()  ::vx::profile::_priv::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
@@ -92,6 +95,7 @@ private:
 #else
 
 #   define VX_PROFILE_START(file)
+#   define VX_PROFILE_START_APPEND(file)
 #   define VX_PROFILE_STOP()
 
 #   define VX_PROFILE_SCOPE(name)
