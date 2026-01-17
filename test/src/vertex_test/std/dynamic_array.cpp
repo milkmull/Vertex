@@ -1041,33 +1041,34 @@ void test_insert_and_erase()
             it = next; // continue from original element
         }
 
-        // v should now be: { 0, -0, 1, -1, 2, -2, 3, -3, 4, -4 }
-
+        vec<T> expected1{ -0, 0, -1, 1, -2, 2, -3, 3, -4, 4 };
+        VX_CHECK(v == expected1);
+        
         // Erase all negative values, which should be every other element
         for (auto it = v.begin(); it != v.end();)
         {
             // it should point to a negative value
             VX_CHECK(static_cast<int>(*it) <= 0);
-
+        
             const int neg = static_cast<int>(*it);
             auto next = it + 1;
-
+        
             // next must exist and be the positive counterpart
             VX_CHECK(next != v.end());
             VX_CHECK(*next == -neg);
-
+        
             // erase negative, iterator should now point to the positive
             auto ret = v.erase(it);
             VX_CHECK(*ret == -neg);
-
+        
             // continue from the positive value
             it = ret;
             ++it;
         }
-
+        
         // Final content check
-        vec<T> expected{ 0, 1, 2, 3, 4 };
-        VX_CHECK(v == expected);
+        vec<T> expected2{ 0, 1, 2, 3, 4 };
+        VX_CHECK(v == expected2);
     }
 
     VX_SECTION("insert move")

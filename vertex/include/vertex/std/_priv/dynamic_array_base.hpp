@@ -62,6 +62,7 @@ public:
 
     struct construct_single_tag {};     // construct a single value
     struct construct_range_tag {};      // construct from size
+    struct fill_range_tag {};           // fill range
     struct copy_range_tag {};           // copy range (no overlap)
     struct move_range_tag {};           // move range (no overlap)
     struct iterator_range_tag {};       // construct from iterator range
@@ -131,34 +132,28 @@ public:
         size = count;
         capacity = count;
 
-        VX_IF_CONSTEXPR(sizeof...(Args) == 0)
+        VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
         {
-            VX_STATIC_ASSERT((std::is_same<Tag, construct_range_tag>::value), "Invalid tag");
             mem::construct_range(ptr, count);
         }
-        else VX_IF_CONSTEXPR(sizeof...(Args) == 1)
+        else VX_IF_CONSTEXPR((std::is_same<Tag, fill_range_tag>::value))
         {
-            VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
-            {
-                mem::construct_range(ptr, count, std::forward<Args>(args)...);
-            }
-            else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
-            {
-                // move the range out of the source, ranges will never overlap since we just allocated out memory
-                mem::move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
-            }
-            else
-            {
-                VX_STATIC_ASSERT((std::is_same<Tag, copy_range_tag>::value), "Invalid tag");
-                // copy elements from the source to my vector, memcpy is safe
-                mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
-            }
+            mem::fill_uninitialized_range(ptr, count, std::forward<Args>(args)...);
         }
-        else
+        else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
         {
-            VX_STATIC_ASSERT(sizeof...(Args) == 2, "Invalid argument count");
-            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "Invalid tag");
-            mem::construct_from_range(ptr, std::forward<Args>(args)...);
+            // move the range out of the source, ranges will never overlap since we just allocated out memory
+            mem::move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
+        }
+        else VX_IF_CONSTEXPR((std::is_same<Tag, copy_range_tag>::value))
+        {
+            // copy elements from the source to my vector, memcpy is safe
+            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
+        }
+        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
+        {
+            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)...);
         }
     }
 
@@ -176,7 +171,7 @@ public:
 
     dynamic_array_base(const size_type count, const T& value)
     {
-        construct_n<construct_range_tag>(count, value);
+        construct_n<fill_range_tag>(count, value);
     }
 
     dynamic_array_base(std::initializer_list<T> init)
@@ -293,10 +288,10 @@ public:
         {
             mem::copy_range(ptr, std::forward<Args>(args)..., count);
         }
-        else
+        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
             VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
-            mem::construct_from_range(ptr, std::forward<Args>(args)...);
+            mem::copy_range(ptr, std::forward<Args>(args)...);
         }
 
         size = count;
@@ -784,8 +779,16 @@ public:
         const size_type grow_count = new_size - size;
         pointer end_ptr = new_ptr + size;
 
-        // grouping these lines together in this order seems to speed things up quite a bit
-        mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
+        VX_IF_CONSTEXPR(sizeof...(Args) == 0)
+        {
+            mem::construct_range(end_ptr, grow_count);
+        }
+        else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
+        {
+            VX_STATIC_ASSERT(sizeof...(Args) == 1, "Invalid arguments");
+            mem::fill_uninitialized_range(end_ptr, grow_count, std::forward<Args>(args)...);
+        }
+
         mem::move_uninitialized_range(new_ptr, ptr, size);
 
         mem::destroy_range(ptr, size);
@@ -825,7 +828,16 @@ public:
             {
                 const size_type grow_count = new_size - size;
                 pointer end_ptr = ptr + size;
-                mem::construct_range(end_ptr, grow_count, std::forward<Args>(args)...);
+
+                VX_IF_CONSTEXPR(sizeof...(Args) == 0)
+                {
+                    mem::construct_range(end_ptr, grow_count);
+                }
+                else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
+                {
+                    VX_STATIC_ASSERT(sizeof...(Args) == 1, "Invalid arguments");
+                    mem::fill_uninitialized_range(end_ptr, grow_count, std::forward<Args>(args)...);
+                }
             }
         }
 
@@ -862,9 +874,27 @@ public:
             pointer src = back - count;
             mem::move_uninitialized_range(back, src, count);
             // move the values that will be moved into already initialized memory
+
             const size_type off = static_cast<size_type>(pos - ptr);
-            const size_type tail_count = size - off - count;
-            mem::move_range_back(back - 1, src - 1, tail_count);
+            size_type tail_count = size - off - count;
+
+            VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+            {
+                // pointer point to the last element in the range, so adjust
+                mem::move(pos + count, pos, tail_count * sizeof(T));
+            }
+            else
+            {
+                --back;
+                --src;
+
+                for (; 0 < tail_count; --tail_count)
+                {
+                    *back = std::move(*src);
+                    --src;
+                    --back;
+                }
+            }
         }
 
         VX_IF_CONSTEXPR((std::is_same<Tag, construct_single_tag>::value))
@@ -872,9 +902,9 @@ public:
             mem::destroy_in_place(pos);
             mem::construct_in_place(pos, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
+        else VX_IF_CONSTEXPR((std::is_same<Tag, fill_range_tag>::value))
         {
-            mem::fill_range(pos, std::forward<Args>(args)..., count);
+            mem::fill_range(pos, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
         {
@@ -884,10 +914,10 @@ public:
         {
             mem::copy_range(pos, std::forward<Args>(args)..., count);
         }
-        else
+        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
             VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
-            mem::construct_from_range(std::forward<Args>(args)...);
+            mem::copy_range(pos, std::forward<Args>(args)...);
         }
 
         size += count;
@@ -903,19 +933,19 @@ public:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-        const size_type off = static_cast<size_type>(pos - ptr);
-        const size_type new_capacity = grow_capacity<growth_rate>(size + count, capacity);
-        VX_ASSERT(new_capacity > capacity);
-
 #if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
+        VX_UNLIKELY_COLD_PATH(count > max_size() - size,
         {
             VX_ERR(err::size_error);
             return nullptr;  
         });
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        const size_type off = static_cast<size_type>(pos - ptr);
+        const size_type new_capacity = grow_capacity<growth_rate>(size + count, capacity);
+        VX_ASSERT(new_capacity > capacity);
 
         pointer new_ptr = allocator_type::allocate(new_capacity);
 
@@ -934,9 +964,9 @@ public:
         {
             mem::construct_in_place(dst, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR((std::is_same<Tag, construct_range_tag>::value))
+        else VX_IF_CONSTEXPR((std::is_same<Tag, fill_range_tag>::value))
         {
-            mem::construct_range(dst, count, std::forward<Args>(args)...);
+            mem::fill_range(dst, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR((std::is_same<Tag, move_range_tag>::value))
         {
@@ -946,10 +976,10 @@ public:
         {
             mem::copy_uninitialized_range(dst, std::forward<Args>(args)..., count);
         }
-        else
+        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
             VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
-            mem::construct_from_range(dst, std::forward<Args>(args)...);
+            mem::copy_range(dst, std::forward<Args>(args)...);
         }
 
         // copy first range
@@ -1004,7 +1034,7 @@ public:
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<growth_rate, construct_range_tag>(ptr, count, value);
+        ptr = insert_n<growth_rate, fill_range_tag>(ptr, count, value);
         return iterator(ptr);
     }
 

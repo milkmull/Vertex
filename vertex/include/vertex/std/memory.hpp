@@ -445,6 +445,23 @@ constexpr bool range_will_overflow(const size_t count)
     }
 }
 
+template <typename T>
+inline bool is_all_bits_zero(const T& x)
+{
+    // checks if scalar type has all bits set to zero
+    VX_STATIC_ASSERT(std::is_scalar<T>::value && !std::is_member_pointer<T>::value, "");
+
+    VX_IF_CONSTEXPR((std::is_same<T, nullptr_t>::value))
+    {
+        return true;
+    }
+    else
+    {
+        constexpr T zero{};
+        return compare(&x, &zero, sizeof(T));
+    }
+}
+
 } // namespace _priv
 
 template <typename T, size_t N>
@@ -453,8 +470,10 @@ constexpr size_t array_size(const T (&)[N])
     return N;
 }
 
+//=========================================================================
+
 template <typename T>
-inline void construct_range(T* ptr, size_t count)
+inline T* construct_range(T* ptr, size_t count)
 {
     VX_STATIC_ASSERT(std::is_default_constructible<T>::value, "Type must be default constructible");
     //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
@@ -464,62 +483,126 @@ inline void construct_range(T* ptr, size_t count)
         construct_in_place(ptr);
         ++ptr;
     }
-}
 
-template <typename T, typename U>
-inline void construct_range(T* ptr, size_t count, const U& value)
-{
-    //VX_STATIC_ASSERT((std::is_nothrow_constructible<T, Args...>::value), "Type must be nothrow constructible");
-
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
-    {
-        // can optimize with memset
-        set(ptr, value, count * sizeof(T));
-    }
-    else
-    {
-        for (; 0 < count; --count)
-        {
-            construct_in_place(ptr, value);
-            ++ptr;
-        }
-    }
+    return ptr;
 }
 
 template <typename T>
-inline void destroy_range(T* ptr, size_t count) noexcept
+inline T* destroy_range(T* ptr, size_t count) noexcept
 {
     for (; 0 < count; --count)
     {
         destroy_in_place(ptr);
         ++ptr;
     }
+
+    return ptr;
 }
 
+//=========================================================================
+
+template <typename T, typename U>
+inline T* fill_range(T* ptr, size_t count, const U& value)
+{
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    {
+        // can optimize with memset
+        set(ptr, value, count * sizeof(T));
+        return ptr + count;
+    }
+    else
+    {
+        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<T*, U>::value))
+        {
+            if (_priv::is_all_bits_zero(value))
+            {
+                set(ptr, 0, count * sizeof(T));
+                return ptr + count;
+            }
+        }
+
+        for (; 0 < count; --count)
+        {
+            *ptr = value;
+            ++ptr;
+        }
+
+        return ptr;
+    }
+}
+
+template <typename T, typename U>
+inline T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
+{
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    {
+        // can optimize with memset
+        set(ptr, value, count * sizeof(T));
+        return ptr + count;
+    }
+    else
+    {
+        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<T*, U>::value))
+        {
+            if (_priv::is_all_bits_zero(value))
+            {
+                set(ptr, 0, count * sizeof(T));
+                return ptr + count;
+            }
+        }
+
+        for (; 0 < count; --count)
+        {
+            construct_in_place(ptr, value);
+            ++ptr;
+        }
+
+        return ptr;
+    }
+}
+
+template <typename IT, typename U, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+inline IT fill_range(IT first, IT last, const U& value)
+{
+    using T = typename type_traits::value_type<IT>::type;
+
+    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<IT, U>::value))
+    {
+        // can optimize with memset
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        set(first, value, count * sizeof(T));
+        return last;
+    }
+    else
+    {
+        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<IT, U>::value))
+        {
+            if (_priv::is_all_bits_zero(value))
+            {
+                const size_t count = static_cast<size_t>(std::distance(first, last));
+                set(first, 0, count * sizeof(T));
+                return last;
+            }
+        }
+
+        for (; first != last; ++first)
+        {
+            *first = value;
+        }
+
+        return last;
+    }
+}
+
+//=========================================================================
+
 template <typename T>
-inline void copy_uninitialized_range(T* dst, const T* src, size_t count)
+inline T* copy_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
-    }
-    else
-    {
-        for (; 0 < count; --count)
-        {
-            construct_in_place(dst, *src);
-            ++src;
-            ++dst;
-        }
-    }
-}
-
-template <typename T>
-inline void copy_range(T* dst, const T* src, size_t count)
-{
-    VX_IF_CONSTEXPR((std::is_trivially_copy_assignable<T>::value))
-    {
-        move(dst, src, count * sizeof(T));
+        return dst + count;
     }
     else
     {
@@ -529,15 +612,114 @@ inline void copy_range(T* dst, const T* src, size_t count)
             ++src;
             ++dst;
         }
+
+        return dst;
     }
 }
 
 template <typename T>
-inline void move_uninitialized_range(T* dst, T* src, size_t count) noexcept
+inline T* copy_uninitialized_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
+        return dst + count;
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            construct_in_place(dst, *src);
+            ++src;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
+{
+    using T = typename type_traits::value_type<IT1>::type;
+    using U = typename type_traits::value_type<IT2>::type;
+
+    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    {
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        move(dst, first, count * sizeof(T));
+        return dst + count;
+    }
+    else
+    {
+        VX_STATIC_ASSERT((std::is_assignable<T, U>::value), "T must be assignable to U");
+
+        for (; first != last; ++first)
+        {
+            *dst = *first;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+{
+    using T = typename type_traits::value_type<IT1>::type;
+    using U = typename type_traits::value_type<IT2>::type;
+
+    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    {
+        const size_t count = static_cast<size_t>(last - first);
+        move(dst, first, count * sizeof(T));
+        return dst + count;
+    }
+    else
+    {
+        VX_STATIC_ASSERT((std::is_assignable<T, U>::value), "T must be assignable to U");
+
+        for (; first != last; ++first)
+        {
+            construct_in_place(std::addressof(*dst), *first);
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+//=========================================================================
+
+template <typename T>
+inline T* move_range(T* dst, T* src, size_t count) noexcept
+{
+    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    {
+        move(dst, src, count * sizeof(T));
+        return dst + count;
+    }
+    else
+    {
+        for (; 0 < count; --count)
+        {
+            *dst = std::move(*src);
+            ++src;
+            ++dst;
+        }
+
+        return dst;
+    }
+}
+
+template <typename T>
+inline T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
+{
+    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    {
+        move(dst, src, count * sizeof(T));
+        return dst + count;
     }
     else
     {
@@ -547,33 +729,19 @@ inline void move_uninitialized_range(T* dst, T* src, size_t count) noexcept
             ++src;
             ++dst;
         }
+
+        return dst;
     }
 }
 
 template <typename T>
-inline void move_range(T* dst, T* src, size_t count) noexcept
+inline T* move_range_back(T* dst, T* src, size_t count)
 {
-    VX_IF_CONSTEXPR((std::is_trivially_move_assignable<T>::value))
+    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
     {
-        move(dst, src, count * sizeof(T));
-    }
-    else
-    {
-        for (; 0 < count; --count)
-        {
-            *dst = std::move(*src);
-            ++src;
-            ++dst;
-        }
-    }
-}
-
-template <typename T>
-inline void move_range_back(T* dst, T* src, size_t count)
-{
-    VX_IF_CONSTEXPR((type_traits::_priv::iter_copy_cat<T*, T*>::is_bitcopy_assignable))
-    {
-        move(dst - count, src - count, count * sizeof(T));
+        // pointer point to the last element in the range, so adjust
+        move(dst - count + 1, src - count + 1, count * sizeof(T));
+        return dst - count + 1;
     }
     else
     {
@@ -583,36 +751,58 @@ inline void move_range_back(T* dst, T* src, size_t count)
             --src;
             --dst;
         }
+
+        return dst;
     }
 }
 
-template <typename T, typename U>
-inline void fill_range(T* dst, const U& src, size_t count)
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+inline IT1 move_range(IT1 dst, IT2 first, IT2 last)
 {
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    using T = typename type_traits::value_type<IT1>::type;
+
+    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        // can optimize with memset
-        set(dst, src, count * sizeof(T));
+        const size_t count = static_cast<size_t>(std::distance(first, last));
+        move(dst, first, count * sizeof(T));
+        return dst + count;
     }
     else
     {
-        for (; 0 < count; --count)
+        for (; first != last; ++first)
         {
-            *dst = src;
+            *dst = std::move(*first);
             ++dst;
         }
+
+        return dst;
     }
 }
 
-template <typename T, typename IT1, typename IT2>
-inline void construct_from_range(T* dst, IT1 first, IT2 last)
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+inline IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
-    for (; first != last; ++first)
+    using T = typename type_traits::value_type<IT1>::type;
+
+    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
-        construct_in_place(dst, *first);
-        ++dst;
+        const size_t count = static_cast<size_t>(last - first);
+        move(dst, first, count * sizeof(T));
+        return dst + count;
+    }
+    else
+    {
+        for (; first != last; ++first)
+        {
+            construct_in_place(std::addressof(*dst), std::move(*first));
+            ++dst;
+        }
+
+        return dst;
     }
 }
+
+//=========================================================================
 
 template <typename T>
 inline bool compare_range(const T* a, const T* b, size_t count)
@@ -634,6 +824,37 @@ inline bool compare_range(const T* a, const T* b, size_t count)
         return true;
     }
 }
+
+template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
+inline bool compare_range(IT1 first1, IT1 last1, IT2 first2)
+{
+    using T1 = typename std::iterator_traits<IT1>::value_type;
+    using T2 = typename std::iterator_traits<IT2>::value_type;
+
+    constexpr bool is_bitwise_comparable =
+        type_traits::is_bitwise_comparable<T1, T2>::value &&
+        type_traits::iterators_are_continguous<IT1, IT2>::value;
+
+    VX_IF_CONSTEXPR(is_bitwise_comparable)
+    {
+        const size_t count = static_cast<size_t>(std::distance(first1, last1));
+        return compare(std::addressof(*first1), std::addressof(*first2), count * sizeof(T1));
+    }
+    else
+    {
+        for (; first1 != last1; ++first1, ++first2)
+        {
+            if (!(*first1 == *first2))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+//=========================================================================
 
 template <typename T>
 VX_ALLOCATOR inline T* construct_array(const size_t count)

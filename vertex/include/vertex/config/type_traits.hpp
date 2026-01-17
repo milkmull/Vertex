@@ -798,8 +798,8 @@ struct equal_memcmp_is_safe : equal_memcmp_is_safe_helper<std::remove_const_t<It
 // memmove is safe
 ///////////////////////////////////////////////////////////////////////////////
 
-template <typename It>
-struct memmove_is_safe : bool_constant<_priv::iter_copy_cat<It, It>::is_bitcopy_constructible> {};
+template <typename It1, typename It2 = It1>
+struct memmove_is_safe : bool_constant<_priv::iter_copy_cat<It1, It2>::is_bitcopy_constructible> {};
 
 } // namespace type_traits
 } // namespace vx
