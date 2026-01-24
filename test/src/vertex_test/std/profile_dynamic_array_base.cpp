@@ -5,7 +5,7 @@
 int main()
 {
     // warmup
-    run<vec2<trivial_type>>(static_cast<size_t>(NN * 0.1f), RR);
+    run<vec2<trivial_type>>(NN, static_cast<size_t>(RR * 0.1f));
 
     VX_PROFILE_START("profile_dynamic_array.csv");
 

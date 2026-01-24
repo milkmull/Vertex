@@ -593,6 +593,7 @@ struct is_fill_memset_safe : bool_constant<
 
 template <typename IT, typename T>
 struct is_fill_zero_memset_safe : bool_constant<
+    std::is_pointer<IT>::value &&
     std::is_scalar<T>::value &&
     std::is_scalar<_priv::iter_value_t<IT>>::value &&
     !std::is_member_pointer<_priv::iter_value_t<IT>>::value &&

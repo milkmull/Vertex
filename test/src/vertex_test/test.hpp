@@ -126,6 +126,7 @@ inline void fail_test(const char* condition, const char* func, int line)
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
 #define VX_CHECK_AND_EXPECT_ERROR(condition) VX_EXPECT_ERROR(VX_CHECK(condition))
+#define VX_CHECK_AND_EXPECT_ERROR_CODE(condition, e) VX_EXPECT_ERROR_CODE(VX_CHECK(condition), e)
 #define VX_CHECK_AND_EXPECT_NO_ERROR(condition) VX_EXPECT_NO_ERROR(VX_CHECK(condition))
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()

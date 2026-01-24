@@ -2,11 +2,12 @@
 
 #include<iostream>
 #include <vector>
+#include <utility>
 
 #include "vertex/std/_priv/dynamic_array_base.hpp"
+#include "vertex/util/random.hpp"
 #define VX_ENABLE_PROFILING
 #include "vertex/system/profiler.hpp"
-#include <utility>
 
 //=========================================================================
 
@@ -86,18 +87,47 @@ struct non_trivial_type
         move_count = 0;
         destruct_count = 0;
     }
-};
 
-bool operator==(const non_trivial_type& lhs, const non_trivial_type& rhs) noexcept
-{
-    return lhs.x == rhs.x;
-}
+    friend bool operator==(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return lhs.x == rhs.x;
+    }
+
+    friend bool operator<(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return lhs.x < rhs.x;
+    }
+
+    friend bool operator>(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return rhs < lhs;
+    }
+
+    friend bool operator<=(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return !(rhs < lhs);
+    }
+
+    friend bool operator>=(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return !(lhs < rhs);
+    }
+};
 
 //=========================================================================
 
-static constexpr size_t RR = 3500; // number of repetitions
+
+static constexpr size_t RR = 2000; // number of repetitions
 // this needs to stay small enough to not trigger std::vector alignment optimization
-static constexpr size_t NN = 150; // number of elements
+static constexpr size_t NN = 100; // number of elements
+
+#if defined(_MSC_VER)
+
+static constexpr size_t mscv_manual_align_byte_count = 4096;
+VX_STATIC_ASSERT(NN * sizeof(trivial_type)      < mscv_manual_align_byte_count, "Element count too large");
+VX_STATIC_ASSERT(NN * sizeof(non_trivial_type)  < mscv_manual_align_byte_count, "Element count too large");
+
+#endif // defined(_MSC_VER)
 
 //=========================================================================
 
@@ -319,20 +349,27 @@ void profile_resize_shrink(size_t N)
 template <typename Vec>
 void profile_emplace(size_t N)
 {
-    Vec v(N);
-    v.reserve(N + 1);
+    Vec v;
+    v.reserve(N);
+
     start_timer("emplace");
-    v.emplace(v.begin() + N / 2);
+    for (size_t i = 0; i < N; ++i)
+    {
+        v.emplace(v.begin() + v.size() / 2);
+    }
     stop_timer();
 }
 
 template <typename Vec>
 void profile_emplace_grow(size_t N)
 {
-    using T = typename Vec::value_type;
-    Vec v(N, T{});
+    Vec v;
+
     start_timer("emplace grow");
-    v.emplace(v.begin() + N / 2);
+    for (size_t i = 0; i < N; ++i)
+    {
+        v.emplace(v.begin() + v.size() / 2);
+    }
     stop_timer();
 }
 
@@ -408,7 +445,7 @@ void profile_erase_range(size_t N)
 //=========================================================================
 
 template <typename Vec>
-bool profile_compare(size_t N)
+void profile_compare(size_t N)
 {
     using T = typename Vec::value_type;
     Vec v1;
@@ -426,8 +463,6 @@ bool profile_compare(size_t N)
         equal = v1 == v2;
         stop_timer();
     }
-
-    return equal;
 }
 
 //=========================================================================
@@ -443,7 +478,7 @@ void profile_push_back(size_t N)
     start_timer("push back");
     for (size_t i = 0; i < N; ++i)
     {
-        v.push_back(T{});
+        v.emplace_back(T{});
     }
     stop_timer();
 }
@@ -468,66 +503,61 @@ void profile_reserve_push_back(size_t N)
 template <typename Vec>
 void run(size_t N, size_t R)
 {
+    using test_fn = void(*)(size_t);
+
+    test_fn tests[] = {
+
+        //profile_size_constructor<Vec>,
+        //profile_fill_constructor<Vec>,
+        //profile_list_constructor<Vec>,
+        //profile_copy_constructor<Vec>,
+        //profile_range_constructor<Vec>,
+        //profile_move_constructor<Vec>,
+        //
+        //profile_destructor<Vec>,
+        //
+        //profile_copy_assignment<Vec>,
+        //profile_list_assignment<Vec>,
+        //profile_move_assignment<Vec>,
+        //
+        //profile_reserve_grow<Vec>,
+        //profile_reserve_shrink<Vec>,
+        //
+        //profile_clear<Vec>,
+        //profile_shrink_to_fit<Vec>,
+        //
+        //profile_resize_grow<Vec>,
+        //profile_resize_shrink<Vec>,
+        //
+        //profile_emplace<Vec>,
+        //profile_emplace_grow<Vec>,
+        //
+        //profile_insert_n<Vec>,
+        //profile_insert_n_unused<Vec>,
+        //profile_insert_n_back<Vec>,
+        //profile_insert_range<Vec>,
+        //
+        //profile_erase<Vec>,
+        //profile_erase_range<Vec>,
+        
+        profile_push_back<Vec>,
+        profile_reserve_push_back<Vec>,
+        
+        //profile_compare<Vec>
+    };
+
+    vx::random::rng rng;
+
     for (size_t r = 0; r < R; ++r)
     {
-        //=========================================================================
+        constexpr size_t count = vx::mem::array_size(tests);
+        test_fn selected_tests[count] = {};
 
-        profile_size_constructor<Vec>(N);
-        profile_fill_constructor<Vec>(N);
-        profile_list_constructor<Vec>(N);
-        profile_copy_constructor<Vec>(N);
-        profile_range_constructor<Vec>(N);
-        profile_move_constructor<Vec>(N);
-        
-        //=========================================================================
-        
-        profile_destructor<Vec>(N);
-        
-        //=========================================================================
-        
-        profile_copy_assignment<Vec>(N);
-        profile_list_assignment<Vec>(N);
-        profile_move_assignment<Vec>(N);
-        
-        //=========================================================================
-        
-        profile_reserve_grow<Vec>(N);
-        profile_reserve_shrink<Vec>(N);
+        vx::random::sample(std::begin(tests), std::end(tests), selected_tests, count, rng);
 
-        //=========================================================================
-
-        profile_clear<Vec>(N);
-        profile_shrink_to_fit<Vec>(N);
-
-        //=========================================================================
-
-        profile_resize_grow<Vec>(N);
-        profile_resize_shrink<Vec>(N);
-
-        //=========================================================================
-
-        profile_emplace<Vec>(N);
-        profile_emplace_grow<Vec>(N);
-
-        //=========================================================================
-
-        profile_insert_n<Vec>(N);
-        profile_insert_n_unused<Vec>(N);
-        profile_insert_n_back<Vec>(N);
-        profile_insert_range<Vec>(N);
-
-        //=========================================================================
-
-        profile_erase<Vec>(N);
-        profile_erase_range<Vec>(N);
-
-        //=========================================================================
-
-        profile_push_back<Vec>(N);
-        profile_reserve_push_back<Vec>(N);
-
-        //=========================================================================
-
-        profile_compare<Vec>(N);
+        for (auto test : selected_tests)
+        {
+            test(N);
+        }
     }
 }
