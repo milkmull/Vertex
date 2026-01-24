@@ -420,9 +420,11 @@
 //=========================================================================
 
 #if VX_CPP_STANDARD >= 11
-    #define VX_STATIC_ASSERT(cond, msg) static_assert(cond, msg)
+    #define VX_STATIC_ASSERT(cond) static_assert(cond)
+    #define VX_STATIC_ASSERT_MSG(cond, msg) static_assert(cond, msg)
 #else
-    #define VX_STATIC_ASSERT(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
+    #define VX_STATIC_ASSERT(cond) typedef char static_assertion[(cond) ? 1 : -1]
+    #define VX_STATIC_ASSERT_MSG(cond, msg) typedef char static_assertion_##msg[(cond) ? 1 : -1]
 #endif
 
 //=========================================================================

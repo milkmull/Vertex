@@ -143,7 +143,7 @@ public:
         }
         else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
-            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
             mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)...);
         }
 
@@ -285,7 +285,7 @@ public:
         }
         else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
-            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
             mem::copy_range(ptr, std::forward<Args>(args)...);
         }
 
@@ -830,7 +830,7 @@ public:
         }
         else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
         {
-            VX_STATIC_ASSERT(sizeof...(Args) == 1, "Invalid arguments");
+            VX_STATIC_ASSERT_MSG(sizeof...(Args) == 1, "Invalid arguments");
             mem::fill_uninitialized_range(end_ptr, grow_count, std::forward<Args>(args)...);
         }
 
@@ -880,7 +880,7 @@ public:
                 }
                 else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
                 {
-                    VX_STATIC_ASSERT(sizeof...(Args) == 1, "Invalid arguments");
+                    VX_STATIC_ASSERT_MSG(sizeof...(Args) == 1, "Invalid arguments");
                     mem::fill_uninitialized_range(end_ptr, grow_count, std::forward<Args>(args)...);
                 }
             }
@@ -960,7 +960,7 @@ public:
         }
         else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
-            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
             mem::copy_range(pos, std::forward<Args>(args)...);
         }
 
@@ -1022,7 +1022,7 @@ public:
         }
         else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
         {
-            VX_STATIC_ASSERT((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
             mem::copy_range(dst, std::forward<Args>(args)...);
         }
 
@@ -1115,8 +1115,8 @@ public:
     template <typename growth_rate = std::ratio<3, 2>, typename... Args>
     pointer emplace_back(Args&&... args)
     {
-        VX_STATIC_ASSERT(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
-        VX_STATIC_ASSERT(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
+        VX_STATIC_ASSERT_MSG(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
+        VX_STATIC_ASSERT_MSG(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
 
         auto& buffer = m_buffer;
         auto& ptr = buffer.ptr;

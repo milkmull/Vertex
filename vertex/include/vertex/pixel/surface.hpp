@@ -21,7 +21,7 @@ public:
     // format details
     ///////////////////////////////////////////////////////////////////////////////
 
-    VX_STATIC_ASSERT(F != pixel_format::unknown, "Unknown format not allowed");
+    VX_STATIC_ASSERT_MSG(F != pixel_format::unknown, "Unknown format not allowed");
     static constexpr pixel_format format = F;
 
     static VX_FORCE_INLINE constexpr size_t channels() noexcept { return get_pixel_channel_count(format); }
@@ -176,7 +176,7 @@ public:
     template <pixel_format F2>
     surface<F2> convert() const
     {
-        VX_STATIC_ASSERT(F2 != pixel_format::unknown, "Unknown format not allowed");
+        VX_STATIC_ASSERT_MSG(F2 != pixel_format::unknown, "Unknown format not allowed");
 
         surface<F2> converted(m_width, m_height);
 

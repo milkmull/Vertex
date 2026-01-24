@@ -9,8 +9,8 @@ namespace vx {
 template <size_t N, typename T = size_t>
 class bit_field
 {
-    VX_STATIC_ASSERT(N > 0, "N must be greater than 0");
-    VX_STATIC_ASSERT(std::is_unsigned<T>::value, "T must be unsigned integer type");
+    VX_STATIC_ASSERT_MSG(N > 0, "N must be greater than 0");
+    VX_STATIC_ASSERT_MSG(std::is_unsigned<T>::value, "T must be unsigned integer type");
 
 public:
 

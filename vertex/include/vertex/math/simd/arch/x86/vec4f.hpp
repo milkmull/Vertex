@@ -96,10 +96,10 @@ struct vec<4, f32>
     template <int x, int y, int z, int w>
     static VX_FORCE_INLINE data_type shuffle(data_type v1) noexcept
     {
-        VX_STATIC_ASSERT(0 <= x && x <= 3, "Shuffle index out of range");
-        VX_STATIC_ASSERT(0 <= y && y <= 3, "Shuffle index out of range");
-        VX_STATIC_ASSERT(0 <= z && z <= 3, "Shuffle index out of range");
-        VX_STATIC_ASSERT(0 <= w && w <= 3, "Shuffle index out of range");
+        VX_STATIC_ASSERT_MSG(0 <= x && x <= 3, "Shuffle index out of range");
+        VX_STATIC_ASSERT_MSG(0 <= y && y <= 3, "Shuffle index out of range");
+        VX_STATIC_ASSERT_MSG(0 <= z && z <= 3, "Shuffle index out of range");
+        VX_STATIC_ASSERT_MSG(0 <= w && w <= 3, "Shuffle index out of range");
 
     #if (VX_SIMD_X86 >= VX_SIMD_X86_AVX2_VERSION)
         return _mm_permute_ps(v1, _MM_SHUFFLE(x, y, z, w)); // AVX order: x = lane 3

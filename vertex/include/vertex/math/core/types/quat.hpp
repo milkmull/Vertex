@@ -17,7 +17,7 @@ namespace math {
 template <typename T>
 struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 {
-    VX_STATIC_ASSERT(is_float<T>::value, "type T must be floating point type");
+    VX_STATIC_ASSERT_MSG(is_float<T>::value, "type T must be floating point type");
 
 #if defined(VX_MATH_SIMD_ENABLED)
 
@@ -330,15 +330,15 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
 
     VX_FORCE_INLINE operator simd_data_type& () noexcept
     {
-        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
-        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(alignof(type) >= alignof(simd_data_type), "invalid conversion");
         return *(simd_data_type*)(this);
     }
 
     VX_FORCE_INLINE operator const simd_data_type& () const noexcept
     {
-        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
-        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(alignof(type) >= alignof(simd_data_type), "invalid conversion");
         return *(const simd_data_type*)(this);
     }
 

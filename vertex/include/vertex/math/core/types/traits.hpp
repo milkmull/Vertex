@@ -333,11 +333,11 @@ struct enable_if<true, T> { using type = T; };
 // static checks
 ///////////////////////////////////////////////////////////////////////////////
 
-#define VX_MATH_STATIC_ASSERT_SIGNED(type) VX_STATIC_ASSERT(is_signed<type>::value, "Operation not supported for unsigned types.")
-#define VX_MATH_STATIC_ASSERT_NUMERIC(type) VX_STATIC_ASSERT(!is_bool<type>::value, "Operation not supported for bool types.")
-#define VX_MATH_STATIC_ASSERT_INT(type) VX_STATIC_ASSERT(is_int<type>::value, "Operation not supported for non-integral types.")
+#define VX_MATH_STATIC_ASSERT_SIGNED(type) VX_STATIC_ASSERT_MSG(is_signed<type>::value, "Operation not supported for unsigned types.")
+#define VX_MATH_STATIC_ASSERT_NUMERIC(type) VX_STATIC_ASSERT_MSG(!is_bool<type>::value, "Operation not supported for bool types.")
+#define VX_MATH_STATIC_ASSERT_INT(type) VX_STATIC_ASSERT_MSG(is_int<type>::value, "Operation not supported for non-integral types.")
 
-#define VX_MATH_STATIC_ASSERT_TRIVIAL(type) VX_STATIC_ASSERT(std::is_trivial<type>::value, #type "should be trivial")
+#define VX_MATH_STATIC_ASSERT_TRIVIAL(type) VX_STATIC_ASSERT_MSG(std::is_trivial<type>::value, #type "should be trivial")
 
 ///////////////////////////////////////////////////////////////////////////////
 // requires

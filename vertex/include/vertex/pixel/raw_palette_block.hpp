@@ -12,8 +12,8 @@ namespace pixel {
 
 template <palette_format f> struct raw_palette_block;
 
-#define _STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT(sizeof(raw_palette_block<F>) == sizeof(typename raw_palette_block<F>::block_type), "invalid block size for format " FS)
-#define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_palette_block<F>) == alignof(typename raw_palette_block<F>::block_type), "invalid block alignment for format " FS)
+#define _STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT_MSG(sizeof(raw_palette_block<F>) == sizeof(typename raw_palette_block<F>::block_type), "invalid block size for format " FS)
+#define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT_MSG(alignof(raw_palette_block<F>) == alignof(typename raw_palette_block<F>::block_type), "invalid block alignment for format " FS)
 #define _STATIC_FORMAT_CHECK(F)           _STATIC_CHECK_SIZE(palette_format::F, #F); _STATIC_CHECK_ALIGNMENT(palette_format::F, #F)
 
 #define _DECODE_BLOCK__lsb(si) (((data) >> ((si) * bpsi)) & ((1u << bpsi) - 1))

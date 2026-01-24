@@ -148,9 +148,9 @@ enum : size_t
 //=========================================================================
 
 // Ensure the ideal alignment is at least twice the pointer size (to match or exceed vector register alignment)
-VX_STATIC_ASSERT(ideal_align >= 2 * sizeof(uintptr_t), "ideal_align must be at least twice the pointer size to ensure vector register alignment");
+VX_STATIC_ASSERT_MSG(ideal_align >= 2 * sizeof(uintptr_t), "ideal_align must be at least twice the pointer size to ensure vector register alignment");
 // Ensure ideal_align is a power of two (required by aligned allocators and hardware alignment rules)
-VX_STATIC_ASSERT(_priv::is_pow_2(ideal_align), "ideal_align must be a power of two");
+VX_STATIC_ASSERT_MSG(_priv::is_pow_2(ideal_align), "ideal_align must be a power of two");
 
 constexpr size_t alignment_padding_size(const size_t alignment)
 {
@@ -216,7 +216,7 @@ enum : size_t
 template <size_t alignment>
 VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
 {
-    VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
     constexpr size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
@@ -273,7 +273,7 @@ VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alig
 template <size_t alignment>
 void* reallocate_aligned(void* ptr, size_t bytes) noexcept
 {
-    VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
     if (!ptr)
     {
@@ -348,7 +348,7 @@ inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexc
 template <size_t alignment>
 inline void deallocate_aligned(void* ptr, size_t bytes) noexcept
 {
-    VX_STATIC_ASSERT(_priv::is_pow_2(alignment), "alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
     if (ptr)
     {
@@ -483,7 +483,7 @@ template <typename T>
 inline bool is_all_bits_zero(const T& x)
 {
     // checks if scalar type has all bits set to zero
-    VX_STATIC_ASSERT(std::is_scalar<T>::value && !std::is_member_pointer<T>::value, "");
+    VX_STATIC_ASSERT_MSG(std::is_scalar<T>::value && !std::is_member_pointer<T>::value, "");
 
     VX_IF_CONSTEXPR((std::is_same<T, nullptr_t>::value))
     {
@@ -503,7 +503,7 @@ inline bool is_all_bits_zero(const T& x)
 template <typename T>
 inline T* construct_range(T* ptr, size_t count)
 {
-    VX_STATIC_ASSERT(std::is_default_constructible<T>::value, "Type must be default constructible");
+    VX_STATIC_ASSERT_MSG(std::is_default_constructible<T>::value, "Type must be default constructible");
 
     const T* last = ptr + count;
     while (ptr != last)
@@ -681,7 +681,7 @@ inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT((std::is_assignable<T, U>::value), "T must be assignable to U");
+        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
 
         for (; first != last; ++first)
         {
@@ -707,7 +707,7 @@ inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     }
     else
     {
-        //VX_STATIC_ASSERT((std::is_assignable<T, U>::value), "T must be assignable to U");
+        //VX_STATIC_ASSERT_MSG((std::is_assignable<T, U>::value), "T must be assignable to U");
 
         for (; first != last; ++first)
         {
@@ -1091,8 +1091,8 @@ class default_allocator
 {
 public:
 
-    VX_STATIC_ASSERT(Alignment >= alignof(T), "Alignment must be at alignof(T)");
-    VX_STATIC_ASSERT(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(Alignment >= alignof(T), "Alignment must be at alignof(T)");
+    VX_STATIC_ASSERT_MSG(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
     static constexpr size_t alignment = Alignment;
     static constexpr alignment_policy policy = Policy;
 

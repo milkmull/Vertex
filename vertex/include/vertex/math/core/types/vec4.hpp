@@ -763,15 +763,15 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
 
     VX_FORCE_INLINE operator simd_data_type& () noexcept
     {
-        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
-        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(alignof(type) >= alignof(simd_data_type), "invalid conversion");
         return *(simd_data_type*)(this);
     }
 
     VX_FORCE_INLINE operator const simd_data_type& () const noexcept
     {
-        VX_STATIC_ASSERT(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
-        VX_STATIC_ASSERT(alignof(type) >= alignof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(sizeof(type) == sizeof(simd_data_type), "invalid conversion");
+        VX_STATIC_ASSERT_MSG(alignof(type) >= alignof(simd_data_type), "invalid conversion");
         return *(const simd_data_type*)(this);
     }
 

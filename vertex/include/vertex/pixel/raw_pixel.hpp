@@ -14,8 +14,8 @@ namespace pixel {
 
 template <pixel_format f> struct raw_pixel;
 
-#define _STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT(sizeof(raw_pixel<F>) == sizeof(typename raw_pixel<F>::pixel_type), "invalid pixel size for format " FS)
-#define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT(alignof(raw_pixel<F>) == alignof(typename raw_pixel<F>::pixel_type), "invalid pixel alignment for format " FS)
+#define _STATIC_CHECK_SIZE(F, FS)         VX_STATIC_ASSERT_MSG(sizeof(raw_pixel<F>) == sizeof(typename raw_pixel<F>::pixel_type), "invalid pixel size for format " FS)
+#define _STATIC_CHECK_ALIGNMENT(F, FS)    VX_STATIC_ASSERT_MSG(alignof(raw_pixel<F>) == alignof(typename raw_pixel<F>::pixel_type), "invalid pixel alignment for format " FS)
 #define _STATIC_FORMAT_CHECK(F)           _STATIC_CHECK_SIZE(pixel_format::F, #F); _STATIC_CHECK_ALIGNMENT(pixel_format::F, #F)
 
 namespace _priv {
@@ -1372,7 +1372,7 @@ _STATIC_FORMAT_CHECK(rgba_16f);
 // 32 bit float
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_STATIC_ASSERT(sizeof(float) == 4, "invalid float size");
+VX_STATIC_ASSERT_MSG(sizeof(float) == 4, "invalid float size");
 
 template <>
 struct alignas(alignof(float[1])) raw_pixel<pixel_format::r_32f>

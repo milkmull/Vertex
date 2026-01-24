@@ -25,7 +25,7 @@ struct default_delete
 
     void operator()(T* ptr) const noexcept
     {
-        VX_STATIC_ASSERT(sizeof(T) > 0, "Cannot delete incomplete type");
+        VX_STATIC_ASSERT_MSG(sizeof(T) > 0, "Cannot delete incomplete type");
         delete ptr;
     }
 };
@@ -40,7 +40,7 @@ struct default_delete<T[]>
 
     void operator()(T* ptr) const noexcept
     {
-        VX_STATIC_ASSERT(sizeof(T) > 0, "Cannot delete incomplete type");
+        VX_STATIC_ASSERT_MSG(sizeof(T) > 0, "Cannot delete incomplete type");
         delete[] ptr;
     }
 };

@@ -51,7 +51,7 @@ namespace simd {
 // scalar types
 ///////////////////////////////////////////////////////////////////////////////
 
-VX_STATIC_ASSERT(sizeof(float) == 4, "float must be 32 bit size");
+VX_STATIC_ASSERT_MSG(sizeof(float) == 4, "float must be 32 bit size");
 using f32 = float;
 
 using i32 = int32_t;
