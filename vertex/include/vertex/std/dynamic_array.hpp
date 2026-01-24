@@ -31,10 +31,10 @@ public:
     using size_type = typename array_type::size_type;
     using difference_type = typename array_type::difference_type;
 
-    using iterator = typename array_type::iterator ;
-    using const_iterator = typename array_type::const_iterator ;
-    using reverse_iterator = typename array_type::reverse_iterator ;
-    using const_reverse_iterator = typename array_type::const_reverse_iterator ;
+    using iterator = typename array_type::iterator;
+    using const_iterator = typename array_type::const_iterator;
+    using reverse_iterator = typename array_type::reverse_iterator;
+    using const_reverse_iterator = typename array_type::const_reverse_iterator;
 
     //=========================================================================
     // constructors
