@@ -20,7 +20,7 @@ public:
 
     pointer_iterator() = default;
 
-    explicit pointer_iterator(pointer p)
+    explicit pointer_iterator(pointer p) noexcept
         : m_ptr(p)
     {}
 
@@ -28,114 +28,114 @@ public:
     friend class pointer_iterator;
 
     template <typename U, VX_REQUIRES((std::is_convertible<U, T>::value))>
-    pointer_iterator(const pointer_iterator<U>& other)
+    pointer_iterator(const pointer_iterator<U>& other) noexcept
         : m_ptr(other.m_ptr)
     {}
 
-    reference operator*() const
+    reference operator*() const noexcept
     {
         return *m_ptr;
     }
 
-    pointer operator->() const
+    pointer operator->() const noexcept
     {
         return m_ptr;
     }
 
-    pointer_iterator& operator++()
+    pointer_iterator& operator++() noexcept
     {
         ++m_ptr;
         return *this;
     }
 
-    pointer_iterator operator++(int)
+    pointer_iterator operator++(int) noexcept
     {
         auto tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    pointer_iterator& operator--()
+    pointer_iterator& operator--() noexcept
     {
         --m_ptr;
         return *this;
     }
 
-    pointer_iterator operator--(int)
+    pointer_iterator operator--(int) noexcept
     {
         auto tmp = *this;
         --(*this);
         return tmp;
     }
 
-    pointer_iterator& operator+=(difference_type n)
+    pointer_iterator& operator+=(difference_type n) noexcept
     {
         m_ptr += n;
         return *this;
     }
 
-    pointer_iterator& operator-=(difference_type n)
+    pointer_iterator& operator-=(difference_type n) noexcept
     {
         m_ptr -= n;
         return *this;
     }
 
-    friend pointer_iterator operator+(pointer_iterator it, difference_type n)
+    friend pointer_iterator operator+(pointer_iterator it, difference_type n) noexcept
     {
         return pointer_iterator(it.m_ptr + n);
     }
 
-    friend pointer_iterator operator-(pointer_iterator it, difference_type n)
+    friend pointer_iterator operator-(pointer_iterator it, difference_type n) noexcept
     {
         return pointer_iterator(it.m_ptr - n);
     }
 
-    friend difference_type operator-(pointer_iterator a, pointer_iterator b)
+    friend difference_type operator-(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr - b.m_ptr;
     }
 
-    reference operator[](difference_type n) const
+    reference operator[](difference_type n) const noexcept
     {
         return *(m_ptr + n);
     }
 
-    friend pointer_iterator operator+(difference_type n, pointer_iterator it)
+    friend pointer_iterator operator+(difference_type n, pointer_iterator it) noexcept
     {
         return pointer_iterator(it.m_ptr + n);
     }
 
-    friend bool operator==(pointer_iterator a, pointer_iterator b)
+    friend bool operator==(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr == b.m_ptr;
     }
 
-    friend bool operator!=(pointer_iterator a, pointer_iterator b)
+    friend bool operator!=(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr != b.m_ptr;
     }
 
-    friend bool operator<(pointer_iterator a, pointer_iterator b)
+    friend bool operator<(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr < b.m_ptr;
     }
 
-    friend bool operator>(pointer_iterator a, pointer_iterator b)
+    friend bool operator>(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr > b.m_ptr;
     }
 
-    friend bool operator<=(pointer_iterator a, pointer_iterator b)
+    friend bool operator<=(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr <= b.m_ptr;
     }
 
-    friend bool operator>=(pointer_iterator a, pointer_iterator b)
+    friend bool operator>=(pointer_iterator a, pointer_iterator b) noexcept
     {
         return a.m_ptr >= b.m_ptr;
     }
 
-    pointer ptr() const
+    pointer ptr() const noexcept
     {
         return m_ptr;
     }
@@ -163,7 +163,7 @@ public:
 
     reverse_pointer_iterator() = default;
 
-    explicit reverse_pointer_iterator(IT it)
+    explicit reverse_pointer_iterator(IT it) noexcept
         : m_it(it)
     {}
 
@@ -171,115 +171,115 @@ public:
     friend class reverse_pointer_iterator;
 
     template <typename IT2, VX_REQUIRES((std::is_convertible<IT2, IT>::value))>
-    reverse_pointer_iterator(const reverse_pointer_iterator<IT2>& other)
+    reverse_pointer_iterator(const reverse_pointer_iterator<IT2>& other) noexcept
         : m_it(other.m_it)
     {}
 
-    reference operator*() const
+    reference operator*() const noexcept
     {
         IT tmp = m_it;
         return *--tmp;
     }
 
-    pointer operator->() const
+    pointer operator->() const noexcept
     {
         return std::addressof(operator*());
     }
 
-    reverse_pointer_iterator& operator++()
+    reverse_pointer_iterator& operator++() noexcept
     {
         --m_it;
         return *this;
     }
 
-    reverse_pointer_iterator operator++(int)
+    reverse_pointer_iterator operator++(int) noexcept
     {
         auto tmp = *this;
         --m_it;
         return tmp;
     }
 
-    reverse_pointer_iterator& operator--()
+    reverse_pointer_iterator& operator--() noexcept
     {
         ++m_it;
         return *this;
     }
 
-    reverse_pointer_iterator operator--(int)
+    reverse_pointer_iterator operator--(int) noexcept
     {
         auto tmp = *this;
         ++m_it;
         return tmp;
     }
 
-    reverse_pointer_iterator& operator+=(difference_type n)
+    reverse_pointer_iterator& operator+=(difference_type n) noexcept
     {
         m_it -= n;
         return *this;
     }
 
-    reverse_pointer_iterator& operator-=(difference_type n)
+    reverse_pointer_iterator& operator-=(difference_type n) noexcept
     {
         m_it += n;
         return *this;
     }
 
-    reverse_pointer_iterator operator+(difference_type n) const
+    reverse_pointer_iterator operator+(difference_type n) const noexcept
     {
         return reverse_pointer_iterator(m_it - n);
     }
 
-    reverse_pointer_iterator operator-(difference_type n) const
+    reverse_pointer_iterator operator-(difference_type n) const noexcept
     {
         return reverse_pointer_iterator(m_it + n);
     }
 
-    friend reverse_pointer_iterator operator+(difference_type n, reverse_pointer_iterator it)
+    friend reverse_pointer_iterator operator+(difference_type n, reverse_pointer_iterator it) noexcept
     {
         return reverse_pointer_iterator(it.m_it - n);
     }
 
-    friend difference_type operator-(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend difference_type operator-(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return b.m_it - a.m_it;
     }
 
-    reference operator[](difference_type n) const
+    reference operator[](difference_type n) const noexcept
     {
         return *(*this + n);
     }
 
-    friend bool operator<(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator<(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return b.m_it < a.m_it;
     }
 
-    friend bool operator>(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator>(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return b.m_it > a.m_it;
     }
 
-    friend bool operator<=(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator<=(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return b.m_it <= a.m_it;
     }
 
-    friend bool operator>=(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator>=(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return b.m_it >= a.m_it;
     }
 
-    friend bool operator==(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator==(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return a.m_it == b.m_it;
     }
 
-    friend bool operator!=(reverse_pointer_iterator a, reverse_pointer_iterator b)
+    friend bool operator!=(reverse_pointer_iterator a, reverse_pointer_iterator b) noexcept
     {
         return a.m_it != b.m_it;
     }
 
-    pointer ptr() const
+    pointer ptr() const noexcept
     {
         return m_it.ptr();
     }

@@ -27,12 +27,12 @@ namespace mem {
 // memory management (unaligned)
 //=========================================================================
 
-VX_ALLOCATOR inline void* allocate(const size_t bytes)
+VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
 {
     return ::malloc(bytes);
 }
 
-VX_ALLOCATOR inline void* allocate_zero(const size_t bytes)
+VX_ALLOCATOR inline void* allocate_zero(const size_t bytes) noexcept
 {
     return ::calloc(1, bytes);
 }
@@ -42,27 +42,27 @@ inline void deallocate(void* ptr, const size_t bytes) noexcept
     ::free(ptr);
 }
 
-inline void* reallocate(void* ptr, const size_t bytes)
+inline void* reallocate(void* ptr, const size_t bytes) noexcept
 {
     return ::realloc(ptr, bytes);
 }
 
-inline void* copy(void* dst, const void* src, const size_t bytes)
+inline void* copy(void* dst, const void* src, const size_t bytes) noexcept
 {
     return ::memcpy(dst, src, bytes);
 }
 
-inline void* move(void* dst, const void* src, const size_t bytes)
+inline void* move(void* dst, const void* src, const size_t bytes) noexcept
 {
     return ::memmove(dst, src, bytes);
 }
 
-inline void* set(void* dst, const uint8_t value, const size_t bytes)
+inline void* set(void* dst, const uint8_t value, const size_t bytes) noexcept
 {
     return ::memset(dst, static_cast<int>(value), bytes);
 }
 
-inline bool compare(const void* a, const void* b, const size_t bytes)
+inline bool compare(const void* a, const void* b, const size_t bytes) noexcept
 {
     return ::memcmp(a, b, bytes) == 0;
 }
@@ -73,7 +73,7 @@ inline bool compare(const void* a, const void* b, const size_t bytes)
 
 namespace _priv {
 
-constexpr bool is_pow_2(const size_t x)
+constexpr bool is_pow_2(const size_t x) noexcept
 {
     return x != 0 && (x & (x - 1)) == 0;
 }
@@ -152,7 +152,7 @@ VX_STATIC_ASSERT_MSG(ideal_align >= 2 * sizeof(uintptr_t), "ideal_align must be 
 // Ensure ideal_align is a power of two (required by aligned allocators and hardware alignment rules)
 VX_STATIC_ASSERT_MSG(_priv::is_pow_2(ideal_align), "ideal_align must be a power of two");
 
-constexpr size_t alignment_padding_size(const size_t alignment)
+constexpr size_t alignment_padding_size(const size_t alignment) noexcept
 {
     return aligned_header_size + alignment - 1;
 }
@@ -466,7 +466,7 @@ constexpr size_t max_array_size() noexcept
 namespace _priv {
 
 template <typename T>
-constexpr bool range_will_overflow(const size_t count)
+constexpr bool range_will_overflow(const size_t count) noexcept
 {
     constexpr bool overflow_possible = sizeof(T) > 1;
     VX_IF_CONSTEXPR(overflow_possible)
@@ -480,10 +480,10 @@ constexpr bool range_will_overflow(const size_t count)
 }
 
 template <typename T>
-inline bool is_all_bits_zero(const T& x)
+inline bool is_all_bits_zero(const T& x) noexcept
 {
     // checks if scalar type has all bits set to zero
-    VX_STATIC_ASSERT_MSG(std::is_scalar<T>::value && !std::is_member_pointer<T>::value, "");
+    VX_STATIC_ASSERT(std::is_scalar<T>::value && !std::is_member_pointer<T>::value);
 
     VX_IF_CONSTEXPR((std::is_same<T, nullptr_t>::value))
     {

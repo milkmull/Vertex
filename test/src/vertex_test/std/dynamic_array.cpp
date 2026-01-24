@@ -1,4 +1,4 @@
-#include "vertex/std/_priv/dynamic_array_base.hpp"
+#include "vertex/std/dynamic_array.hpp"
 #include "vertex_test/test.hpp"
 
 struct non_trivial
@@ -84,7 +84,7 @@ struct non_trivial
 };
 
 template <typename T>
-using vec = vx::_priv::dynamic_array_base<T>;
+using vec = vx::dynamic_array<T>;
 
 //=========================================================================
 // constructors

@@ -1,15 +1,16 @@
 #pragma once
 
-#include <initializer_list>
-#include <ratio>
 #include <algorithm>
+#include <cstdint>
+#include <initializer_list>
 #include <limits>
+#include <ratio>
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/std/_priv/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
-#include "vertex/std/_priv/pointer_iterator.hpp"
 
 namespace vx {
 namespace _priv {
@@ -30,6 +31,10 @@ public:
     //=========================================================================
     // member types
     //=========================================================================
+
+    template <intmax_t N, intmax_t D = 1>
+    using growth_rate_type = std::ratio<N, D>;
+    using default_growth_rate = growth_rate_type<3, 2>;
 
     using value_type      = T;
     using allocator_type  = Allocator;
@@ -78,7 +83,7 @@ public:
     // construction helpers
     //=========================================================================
 
-    buffer release_buffer()
+    buffer release_buffer() noexcept
     {
         auto& b = m_buffer;
         auto& ptr = b.ptr;
@@ -156,10 +161,10 @@ public:
     // constructors
     //=========================================================================
 
-    dynamic_array_base()
+    dynamic_array_base() noexcept
     {}
 
-    dynamic_array_base(size_type count) noexcept
+    dynamic_array_base(size_type count)
     {
         construct_n<construct_range_tag>(count);
     }
@@ -205,7 +210,7 @@ public:
     // destructor helpers
     //=========================================================================
 
-    void destroy_range() noexcept
+    void destroy_range()
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
@@ -226,7 +231,7 @@ public:
     // destructor
     //=========================================================================
 
-    ~dynamic_array_base() noexcept
+    ~dynamic_array_base()
     {
         destroy_range();
     }
@@ -236,7 +241,7 @@ public:
     //=========================================================================
 
     template <typename Tag, typename... Args>
-    bool assign_from(const size_type count, Args&&... args) noexcept
+    bool assign_from(const size_type count, Args&&... args)
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
@@ -297,7 +302,7 @@ public:
     // assignment operators
     //=========================================================================
 
-    dynamic_array_base& operator=(const dynamic_array_base& other) noexcept
+    dynamic_array_base& operator=(const dynamic_array_base& other)
     {
         if (this == std::addressof(other))
         {
@@ -330,7 +335,7 @@ public:
     // assign
     //=========================================================================
 
-    bool assign(const dynamic_array_base& other) noexcept
+    bool assign(const dynamic_array_base& other)
     {
         if (this == std::addressof(other))
         {
@@ -375,45 +380,45 @@ public:
     // element access
     //=========================================================================
 
-    T* front()
+    T* front() noexcept
     {
         return m_buffer.ptr;
     }
 
-    const T* front() const
+    const T* front() const noexcept
     {
         return m_buffer.ptr;
     }
 
-    T* back()
+    T* back() noexcept
     {
         VX_ASSERT(m_buffer.ptr && m_buffer.size);
         return m_buffer.ptr + m_buffer.size - 1;
     }
 
-    const T* back() const
+    const T* back() const noexcept
     {
         VX_ASSERT(m_buffer.ptr && m_buffer.size);
         return m_buffer.ptr + m_buffer.size - 1;
     }
 
-    const T* data() const
+    T* data() noexcept
     {
         return m_buffer.ptr;
     }
 
-    T* data()
+    const T* data() const noexcept
     {
         return m_buffer.ptr;
     }
 
-    T& operator[](size_type i)
+    T& operator[](size_type i) noexcept
     {
         VX_ASSERT(i < m_buffer.size);
         return m_buffer.ptr[i];
     }
 
-    const T& operator[](size_type i) const
+    const T& operator[](size_type i) const noexcept
     {
         VX_ASSERT(i < m_buffer.size);
         return m_buffer.ptr[i];
@@ -423,62 +428,62 @@ public:
     // iterators
     //=========================================================================
 
-    iterator begin()
+    iterator begin() noexcept
     {
         return iterator(m_buffer.ptr);
     }
 
-    const_iterator begin() const
+    const_iterator begin() const noexcept
     {
         return const_iterator(m_buffer.ptr);
     }
 
-    const_iterator cbegin() const
+    const_iterator cbegin() const noexcept
     {
         return begin();
     }
 
-    iterator end()
+    iterator end() noexcept
     {
         return iterator(m_buffer.ptr + m_buffer.size);
     }
 
-    const_iterator end() const
+    const_iterator end() const noexcept
     {
         return const_iterator(m_buffer.ptr + m_buffer.size);
     }
 
-    const_iterator cend() const
+    const_iterator cend() const noexcept
     {
         return end();
     }
 
-    reverse_iterator rbegin()
+    reverse_iterator rbegin() noexcept
     {
         return reverse_iterator(end());
     }
 
-    const_reverse_iterator rbegin() const
+    const_reverse_iterator rbegin() const noexcept
     {
         return const_reverse_iterator(end());
     }
 
-    const_reverse_iterator crbegin() const
+    const_reverse_iterator crbegin() const noexcept
     {
         return rbegin();
     }
 
-    reverse_iterator rend()
+    reverse_iterator rend() noexcept
     {
         return reverse_iterator(begin());
     }
 
-    const_reverse_iterator rend() const
+    const_reverse_iterator rend() const noexcept
     {
         return const_reverse_iterator(begin());
     }
 
-    const_reverse_iterator crend() const
+    const_reverse_iterator crend() const noexcept
     {
         return rend();
     }
@@ -487,18 +492,18 @@ public:
     // memory
     //=========================================================================
 
-    void clear() noexcept
+    void clear()
     {
         mem::destroy_range(m_buffer.ptr, m_buffer.size);
         m_buffer.size = 0;
     }
 
-    void clear_and_deallocate() noexcept
+    void clear_and_deallocate()
     {
         destroy_range();
     }
 
-    bool shrink_to_fit() noexcept
+    bool shrink_to_fit()
     {
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
@@ -548,22 +553,22 @@ public:
     // size
     //=========================================================================
 
-    bool empty() const
+    bool empty() const noexcept
     {
         return m_buffer.size == 0;
     }
 
-    size_type size() const
+    size_type size() const noexcept
     {
         return m_buffer.size;
     }
 
-    size_type data_size() const
+    size_type data_size() const noexcept
     {
         return size() * sizeof(T);
     }
 
-    static constexpr size_type max_size()
+    static constexpr size_type max_size() noexcept
     {
         return mem::max_array_size<T>();
     }
@@ -572,13 +577,13 @@ public:
     // capacity
     //=========================================================================
 
-    size_type capacity() const
+    size_type capacity() const noexcept
     {
         return m_buffer.capacity;
     }
 
     template <typename growth_rate>
-    size_type grow_capacity(size_type required_capacity, size_type current_capacity) const
+    size_type grow_capacity(size_type required_capacity, size_type current_capacity) const noexcept
     {
         constexpr size_type max_capacity = max_size();
 
@@ -647,7 +652,7 @@ public:
     }
 
     template <bool shrinking = false, bool try_reallocate = false>
-    bool reallocate(size_type new_capacity) noexcept
+    bool reallocate(size_type new_capacity)
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
@@ -678,65 +683,6 @@ public:
             {
                 return false;
             }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_IF_CONSTEXPR(shrinking)
-            {
-                VX_ASSERT(size > 0);
-                mem::move_uninitialized_range(new_ptr, ptr, new_capacity);
-            }
-            else
-            {
-                mem::move_uninitialized_range(new_ptr, ptr, size);
-            }
-
-            mem::destroy_range(ptr, size);
-            allocator_type::deallocate(ptr, capacity);
-        }
-
-        ptr = new_ptr;
-        VX_IF_CONSTEXPR(shrinking)
-        {
-            size = new_capacity;
-        }
-        capacity = new_capacity;
-
-        return true;
-    }
-
-    template <bool shrinking = false, bool try_reallocate = false>
-    bool reallocate_2(size_type new_capacity) noexcept
-    {
-        auto& ptr = m_buffer.ptr;
-        auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
-
-        pointer new_ptr;
-
-        VX_IF_CONSTEXPR(try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
-        {
-            new_ptr = allocator_type::reallocate(ptr, new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return false;
-            });
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-        }
-        else
-        {
-            new_ptr = allocator_type::allocate(new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return false;
-            });
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -768,7 +714,7 @@ public:
     // reserve
     //=========================================================================
 
-    bool reserve(size_type new_capacity) noexcept
+    bool reserve(size_type new_capacity)
     {
         if (new_capacity > m_buffer.capacity)
         {
@@ -1062,19 +1008,19 @@ public:
         }
     }
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, const T& value)
     {
         return emplace<growth_rate>(pos, value);
     }
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, T&& value) noexcept
     {
         return emplace<growth_rate>(pos, std::move(value));
     }
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1082,7 +1028,7 @@ public:
         return iterator(ptr);
     }
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1090,7 +1036,7 @@ public:
         return iterator(ptr);
     }
 
-    template <typename growth_rate = std::ratio<3, 2>, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    template <typename growth_rate = default_growth_rate, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     iterator insert(const_iterator pos, IT first, IT last)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1112,7 +1058,7 @@ public:
     // emplace
     //=========================================================================
 
-    template <typename growth_rate = std::ratio<3, 2>, typename... Args>
+    template <typename growth_rate = default_growth_rate, typename... Args>
     pointer emplace_back(Args&&... args)
     {
         VX_STATIC_ASSERT_MSG(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
@@ -1139,7 +1085,7 @@ public:
         return dst;
     }
 
-    template <typename growth_rate = std::ratio<3, 2>, typename... Args>
+    template <typename growth_rate = default_growth_rate, typename... Args>
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1151,13 +1097,13 @@ public:
     // push back
     //=========================================================================
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     void push_back(const T& value)
     {
         emplace_back<growth_rate>(value);
     }
 
-    template <typename growth_rate = std::ratio<3, 2>>
+    template <typename growth_rate = default_growth_rate>
     void push_back(T&& value) noexcept
     {
         emplace_back<growth_rate>(std::move(value));

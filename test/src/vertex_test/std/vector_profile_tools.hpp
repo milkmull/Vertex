@@ -4,23 +4,18 @@
 #include <vector>
 #include <utility>
 
-#include "vertex/std/_priv/dynamic_array_base.hpp"
+#include "vertex/std/dynamic_array.hpp"
 #include "vertex/util/random.hpp"
 #define VX_ENABLE_PROFILING
 #include "vertex/system/profiler.hpp"
 
 //=========================================================================
 
-namespace vx {
-template <typename T>
-using vector = _priv::dynamic_array_base<T>;
-} // namespace vx
-
 template <typename T>
 using vec1 = std::vector<T>;
 
 template <typename T>
-using vec2 = vx::vector<T>;
+using vec2 = vx::dynamic_array<T>;
 
 //=========================================================================
 
@@ -124,8 +119,8 @@ static constexpr size_t NN = 100; // number of elements
 #if defined(_MSC_VER)
 
 static constexpr size_t mscv_manual_align_byte_count = 4096;
-VX_STATIC_ASSERT(NN * sizeof(trivial_type)      < mscv_manual_align_byte_count, "Element count too large");
-VX_STATIC_ASSERT(NN * sizeof(non_trivial_type)  < mscv_manual_align_byte_count, "Element count too large");
+VX_STATIC_ASSERT_MSG(NN * sizeof(trivial_type)      < mscv_manual_align_byte_count, "Element count too large");
+VX_STATIC_ASSERT_MSG(NN * sizeof(non_trivial_type)  < mscv_manual_align_byte_count, "Element count too large");
 
 #endif // defined(_MSC_VER)
 
@@ -148,7 +143,7 @@ std::string function_name(const char* fn)
     }
     else // VX_IF_CONSTEXPR((std::is_same<Vec, vec2<non_trivial_type>>::value))
     {
-        VX_STATIC_ASSERT((std::is_same<Vec, vec2<non_trivial_type>>::value), "invalid type");
+        VX_STATIC_ASSERT_MSG((std::is_same<Vec, vec2<non_trivial_type>>::value), "invalid type");
         return std::string(fn) + " (non trivial vx)";
     }
 }
