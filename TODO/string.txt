@@ -1,0 +1,43 @@
+basic string functions:
+
+x compare
+x compare_n
+x copy
+x copy_n
+x length
+x concat
+x concat_n
+x find (char)
+x find (substr)
+x rfind (char)
+x rfind (substr)
+
+char traits:
+- fallback
+- narrow
+- wide
+
+traits functions:
+- equal
+- compare
+- find (substr)
+- find (char)
+- rfind (substr)
+- rfind (char)
+- find_first_of
+- find_last_of
+- find_first_not_of
+- find_not (char)
+- find_last_not_of
+- rfind_not (char)
+
+iterators:
+- string
+- string view
+
+classes:
+- basic_string
+- basic_string_view
+
+files
+- remake string utilities file

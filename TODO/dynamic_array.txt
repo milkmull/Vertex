@@ -1,7 +1,7 @@
 x re-profile dynamic array
 - custom ratio class
-- improve emplace back, push back, insert, erase code
-- more comparison functions
-- insert to use growth rate
+x improve emplace back, push back, insert, erase code
+x more comparison functions
+x insert to use growth rate
 x finalize profile for non trivial types
-- memory tests
+x memory tests

@@ -49,22 +49,38 @@ inline void* reallocate(void* ptr, const size_t bytes) noexcept
 
 inline void* copy(void* dst, const void* src, const size_t bytes) noexcept
 {
+#if VX_HAS_BUILTIN(__builtin_memcpy)
+    return __builtin_memcpy(dst, src, bytes);
+#else
     return ::memcpy(dst, src, bytes);
+#endif
 }
 
 inline void* move(void* dst, const void* src, const size_t bytes) noexcept
 {
+#if VX_HAS_BUILTIN(__builtin_memmove)
+    return __builtin_memmove(dst, src, bytes);
+#else
     return ::memmove(dst, src, bytes);
+#endif
 }
 
 inline void* set(void* dst, const uint8_t value, const size_t bytes) noexcept
 {
+#if VX_HAS_BUILTIN(__builtin_memset)
+    return __builtin_memset(dst, static_cast<int>(value), bytes);
+#else
     return ::memset(dst, static_cast<int>(value), bytes);
+#endif
 }
 
-inline bool compare(const void* a, const void* b, const size_t bytes) noexcept
+inline int compare(const void* a, const void* b, const size_t bytes) noexcept
 {
-    return ::memcmp(a, b, bytes) == 0;
+#if VX_HAS_BUILTIN(__builtin_memcmp)
+    return __builtin_memcmp(a, b, bytes);
+#else
+    return ::memcmp(a, b, bytes);
+#endif
 }
 
 //=========================================================================
@@ -225,7 +241,7 @@ VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
         return err::return_error(err::size_error, nullptr);
     });
 
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::malloc(block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
         VX_ALLOCATOR_FAILED(nullptr);
@@ -252,7 +268,7 @@ VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alig
         return err::return_error(err::size_error, nullptr);
     });
 
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::malloc(block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
         VX_ALLOCATOR_FAILED(nullptr);
@@ -290,7 +306,7 @@ void* reallocate_aligned(void* ptr, size_t bytes) noexcept
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(ptr, block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
@@ -326,7 +342,7 @@ inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexc
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
-    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(::realloc(ptr, block_size));
+    const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
     {
@@ -353,7 +369,7 @@ inline void deallocate_aligned(void* ptr, size_t bytes) noexcept
     if (ptr)
     {
         _priv::adjust_aligned_pointer<alignment>(ptr, bytes);
-        ::free(ptr);
+        deallocate(ptr, bytes);
     }
 }
 
@@ -365,7 +381,7 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
     {
         const size_t padding = _priv::alignment_padding_size(alignment);
         _priv::adjust_aligned_pointer(ptr, bytes, padding);
-        ::free(ptr);
+        deallocate(ptr, bytes);
     }
 }
 
@@ -492,7 +508,7 @@ inline bool is_all_bits_zero(const T& x) noexcept
     else
     {
         constexpr T zero{};
-        return compare(&x, &zero, sizeof(T));
+        return compare(&x, &zero, sizeof(T)) == 0;
     }
 }
 
@@ -816,7 +832,7 @@ inline bool equal_range(const T* a, const T* b, size_t count)
 {
     VX_IF_CONSTEXPR((type_traits::is_bitwise_comparable<T, T>::value))
     {
-        return compare(a, b, count * sizeof(T));
+        return compare(a, b, count * sizeof(T)) == 0;
     }
     else
     {
@@ -848,7 +864,7 @@ inline bool equal_range(IT1 first1, IT1 last1, IT2 first2)
     VX_IF_CONSTEXPR(is_bitwise_comparable)
     {
         const size_t count = static_cast<size_t>(std::distance(first1, last1));
-        return compare(std::addressof(*first1), std::addressof(*first2), count * sizeof(T1));
+        return compare(std::addressof(*first1), std::addressof(*first2), count * sizeof(T1)) == 0;
     }
     else
     {

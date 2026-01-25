@@ -403,6 +403,52 @@
         } while (0)
 #endif
 
+#if defined(_MSC_VER)
+    #define VX_NULL_WHILE_LOOP_CONDITION (0, 0)
+#else
+    #define VX_NULL_WHILE_LOOP_CONDITION (0)
+#endif
+
+//=========================================================================
+// constexpr
+//=========================================================================
+
+#if VX_CPP_STANDARD >= 11
+    #define VX_CONSTEXPR constexpr
+#else
+    #define VX_CONSTEXPR inline
+#endif
+
+#if VX_CPP_STANDARD >= 11
+    #define VX_CONSTEXPR11 VX_CONSTEXPR
+#else
+    #define VX_CONSTEXPR11 inline
+#endif
+
+#if VX_CPP_STANDARD >= 14
+    #define VX_CONSTEXPR14 VX_CONSTEXPR
+#else
+    #define VX_CONSTEXPR14 inline
+#endif
+
+#if VX_CPP_STANDARD >= 17
+    #define VX_CONSTEXPR17 VX_CONSTEXPR
+#else
+    #define VX_CONSTEXPR17 inline
+#endif
+
+#if VX_CPP_STANDARD >= 20
+    #define VX_CONSTEXPR20 VX_CONSTEXPR
+#else
+    #define VX_CONSTEXPR20 inline
+#endif
+
+#if VX_CPP_STANDARD >= 23
+    #define VX_CONSTEXPR23 VX_CONSTEXPR
+#else
+    #define VX_CONSTEXPR23 inline
+#endif
+
 #if VX_CPP_STANDARD >= 17
     #define VX_IF_CONSTEXPR(x) if constexpr (x)
 #else
@@ -413,6 +459,18 @@
     #define VX_NULL_WHILE_LOOP_CONDITION (0, 0)
 #else
     #define VX_NULL_WHILE_LOOP_CONDITION (0)
+#endif
+
+#if VX_CPP_STANDARD >= 20
+    #define VX_IS_CONSTANT_EVALUATED() std::is_constant_evaluated()
+#elif VX_CPP_STANDARD >= 17
+    #if defined(__GNUC__) || defined(__clang__) || defined(_MSC_VER)
+        #define VX_IS_CONSTANT_EVALUATED() __builtin_is_constant_evaluated()
+    #else
+        #define VX_IS_CONSTANT_EVALUATED() false
+    #endif
+#else
+    #define VX_IS_CONSTANT_EVALUATED() false
 #endif
 
 //=========================================================================

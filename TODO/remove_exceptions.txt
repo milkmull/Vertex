@@ -1,7 +1,8 @@
 
 x allocation
-- dynamic array base
-- vector
+x dynamic array base
+x vector
+- stack vector/string
 - span (string view, ranges)
 - string
 - print io
@@ -15,7 +16,7 @@ x allocation
 - smart pointers
 - thread
 
-- array?
+x array?
 - atomic?
 - mutex?
 

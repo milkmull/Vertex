@@ -18,3 +18,5 @@ file(GLOB VX_PROFILE_STD_VECTOR_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/profile_std_vector.cpp"
 )
 vx_add_test(test_std_profile_std_vector             "std" "${VX_PROFILE_STD_VECTOR_FILES}")
+
+vx_add_test(test_std_char_traits                    "std" "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.cpp")
