@@ -4,18 +4,20 @@ x compare
 x compare_n
 x copy
 x copy_n
+x assign
+x assign_n
 x length
 x concat
 x concat_n
 x find (char)
-x find (substr)
-x rfind (char)
-x rfind (substr)
+x find_n (char)
 
 char traits:
-- fallback
-- narrow
-- wide
+x fallback
+x narrow
+x wide
+
+https://github.com/microsoft/STL/blob/main/stl/src/vector_algorithms.cpp
 
 traits functions:
 - equal

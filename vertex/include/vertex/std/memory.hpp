@@ -65,7 +65,7 @@ inline void* move(void* dst, const void* src, const size_t bytes) noexcept
 #endif
 }
 
-inline void* set(void* dst, const uint8_t value, const size_t bytes) noexcept
+inline void* set(void* dst, const int value, const size_t bytes) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_memset)
     return __builtin_memset(dst, static_cast<int>(value), bytes);
@@ -80,6 +80,15 @@ inline int compare(const void* a, const void* b, const size_t bytes) noexcept
     return __builtin_memcmp(a, b, bytes);
 #else
     return ::memcmp(a, b, bytes);
+#endif
+}
+
+inline const void* find(const void* src, const int value, const size_t bytes) noexcept
+{
+#if VX_HAS_BUILTIN(__builtin_memchr)
+    return __builtin_memchr(src, value, bytes);
+#else
+    return ::memchr(src, value, bytes);
 #endif
 }
 
