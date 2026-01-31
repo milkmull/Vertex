@@ -1,10 +1,9 @@
 #pragma once
 
-#include <mutex>
-
-#include "vertex/config/os.hpp"
 #include "vertex/config/language_config.hpp"
+#include "vertex/config/os.hpp"
 #include "vertex/os/thread.hpp"
+#include "vertex/std/opaque_storage.hpp"
 
 namespace vx {
 namespace os {
@@ -13,65 +12,78 @@ namespace os {
 // Mutex
 //=============================================================================
 
+struct mutex_impl_data;
+
 class mutex
 {
 public:
 
-    mutex() = default;
+    VX_API mutex() noexcept;
+    VX_API ~mutex() noexcept;
 
     mutex(const mutex&) = delete;
     mutex& operator=(const mutex&) = delete;
 
-public:
-
-    bool lock() noexcept { m_mutex.lock(); return true; }
-    bool try_lock() noexcept { return m_mutex.try_lock(); }
-
-    void unlock() noexcept
-    {
-        // avoid windows complaining about unlock without lock
-        VX_DISABLE_MSVC_WARNING_PUSH();
-        VX_DISABLE_MSVC_WARNING(26110);
-        m_mutex.unlock();
-        VX_DISABLE_CLANG_WARNING_POP();
-    }
+    VX_API bool lock() noexcept;
+    VX_API void unlock() noexcept;
+    VX_API bool try_lock() noexcept;
 
 private:
 
-    std::mutex m_mutex;
+#if defined(HAVE_PTHREADS)
+
+    // POSIX pthread_mutex_t is an opaque type whose size varies by platform and libc.
+    // We use a conservative fixed buffer (64 bytes) to safely hold it.
+    // Alignment uses the platform max alignment.
+    static constexpr size_t storage_size = 64;
+    static constexpr size_t storage_alignment = mem::max_align;
+
+#elif defined(VX_OS_WINDOWS)
+
+    // On Windows, a mutex consists of:
+    //   - SRWLOCK: a wrapper around void*
+    //   - DWORD  : a 32-bit unsigned integer holding the owning thread ID
+    using example_storage = type_traits::composite_storage<void*, unsigned long>;
+    static constexpr size_t storage_size = sizeof(example_storage);
+    static constexpr size_t storage_alignment = alignof(example_storage);
+
+#else
+
+    // Unsupported or stub platform: no real storage needed.
+    static constexpr size_t storage_size = 1;
+    static constexpr size_t storage_alignment = 1;
+
+#endif
+
+    using storage_t = opaque_storage<storage_size, storage_alignment>;
+    storage_t m_storage;
 };
 
 //=============================================================================
 // Recursive Mutex
 //=============================================================================
 
-class recursive_mutex
-{
-public:
-
-    recursive_mutex() noexcept = default;
-
-    recursive_mutex(const recursive_mutex&) = delete;
-    recursive_mutex& operator=(const recursive_mutex&) = delete;
-
-public:
-
-    bool lock() noexcept { m_mutex.lock(); return true; }
-    bool try_lock() noexcept { return m_mutex.try_lock(); }
-
-    void unlock() noexcept
-    {
-        // avoid windows complaining about unlock without lock
-        VX_DISABLE_MSVC_WARNING_PUSH();
-        VX_DISABLE_MSVC_WARNING(26110);
-        m_mutex.unlock();
-        VX_DISABLE_CLANG_WARNING_POP();
-    }
-
-private:
-
-    std::recursive_mutex m_mutex;
-};
+//struct recursive_mutex_impl_data;
+//
+//class recursive_mutex
+//{
+//public:
+//
+//    VX_API recursive_mutex();
+//    VX_API ~recursive_mutex();
+//
+//    recursive_mutex(const recursive_mutex&) = delete;
+//    recursive_mutex& operator=(const recursive_mutex&) = delete;
+//
+//    VX_API void lock();
+//    VX_API void unlock();
+//    VX_API bool try_lock();
+//
+//private:
+//
+//    using impl_data_ptr = unique_ptr<recursive_mutex_impl_data>;
+//    impl_data_ptr m_impl_data_ptr;
+//};
 
 //=============================================================================
 // Lock Guard
@@ -84,8 +96,15 @@ public:
 
     using mutex_type = mutex_t;
 
-    explicit lock_guard(mutex_type& mutex) noexcept : m_mutex(mutex) { m_mutex.lock(); }
-    ~lock_guard() noexcept { m_mutex.unlock(); }
+    explicit lock_guard(mutex_type& mutex) noexcept
+        : m_mutex(mutex)
+    {
+        m_mutex.lock();
+    }
+    ~lock_guard() noexcept
+    {
+        m_mutex.unlock();
+    }
 
     lock_guard(const lock_guard&) = delete;
     lock_guard& operator=(const lock_guard&) = delete;

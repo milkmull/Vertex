@@ -9,36 +9,76 @@
 namespace vx {
 namespace os {
 
-using native_handle_t = os::handle;
-using native_id_t = DWORD;
-
-struct thread_impl_data
-{
-    native_handle_t handle;
-    native_id_t id = 0;
-};
-
-// https://github.com/microsoft/STL/blob/0d8f517ae3828284fed594741b847db940167a59/stl/src/cthread.cpp
-
-#define assert_is_running() VX_ASSERT_MESSAGE(is_valid(data), "thread not running")
+#define assert_is_running() VX_ASSERT_MESSAGE(is_valid(), "thread not running")
 
 struct thread_impl
 {
-    static bool is_valid(const thread_impl_data& data) noexcept
+    //=============================================================================
+    // types
+    //=============================================================================
+
+    using native_id_t = DWORD;
+
+    struct data_t
+    {
+        os::handle handle;
+        DWORD id = 0;
+    };
+
+    //=============================================================================
+    // data
+    //=============================================================================
+
+    data_t data;
+
+    //=============================================================================
+    // id helpers
+    //=============================================================================
+
+    static constexpr typename thread::id convert_native_id(native_id_t id) noexcept
+    {
+        return static_cast<typename thread::id>(id);
+    }
+
+    static bool compare_native_id(native_id_t lhs, native_id_t rhs) noexcept
+    {
+        return lhs == rhs;
+    }
+
+    static native_id_t get_current_native_id() noexcept
+    {
+        return ::GetCurrentThreadId();
+    }
+
+    static typename thread::id get_current_id() noexcept
+    {
+        return convert_native_id(get_current_native_id());
+    }
+
+    static constexpr native_id_t get_invalid_native_id() noexcept
+    {
+        return static_cast<native_id_t>(0);
+    }
+
+    //=============================================================================
+    // functions
+    //=============================================================================
+
+    bool is_valid() const noexcept
     {
         return data.handle.is_valid();
     }
 
-    static constexpr thread::id convert_id(native_id_t id) noexcept
-    {
-        return static_cast<thread::id>(id);
-    }
-
     // https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/beginthread-beginthreadex?view=msvc-170
 
-    static bool start(thread_impl_data& data, void* fn, void* arg)
+    bool compare(const thread_impl& other) const noexcept
     {
-        VX_ASSERT_MESSAGE(!is_valid(data), "thread already started");
+        return data.id == other.data.id;
+    }
+
+    bool start(void* fn, void* arg)
+    {
+        VX_ASSERT_MESSAGE(!is_valid(), "thread already started");
 
         unsigned int id = 0;
 
@@ -56,20 +96,20 @@ struct thread_impl
         return data.handle.is_valid();
     }
 
-    static void close(thread_impl_data& data) noexcept
+    void close() noexcept
     {
         data.handle.close();
         data.id = 0;
     }
 
-    static void exit(thread_impl_data& data, unsigned int exit_code = 0) noexcept
+    void exit(unsigned int exit_code = 0) noexcept
     {
         assert_is_running();
         ::_endthreadex(exit_code);
-        close(data);
+        close();
     }
 
-    static bool is_alive(const thread_impl_data& data) noexcept
+    bool is_alive() const noexcept
     {
         assert_is_running();
 
@@ -84,7 +124,7 @@ struct thread_impl
     }
 
     // returns when thread terminates
-    static bool join(thread_impl_data& data) noexcept
+    bool join() noexcept
     {
         assert_is_running();
 
@@ -95,31 +135,27 @@ struct thread_impl
             return false;
         }
 
-        close(data);
+        close();
         return true;
     }
 
-    static bool detach(thread_impl_data& data) noexcept
+    bool detach() noexcept
     {
         assert_is_running();
         // tell OS to release thread's resources when it terminates
-        close(data);
+        close();
         return true;
     }
 
-    static bool compare_ids(native_id_t lhs, native_id_t rhs) noexcept
+    thread::id get_native_id() const noexcept
     {
-        return lhs == rhs;
+        assert_is_running();
+        return convert_native_id(data.id);
     }
 
-    static native_id_t get_this_thread_id() noexcept
+    bool is_current_thread() const noexcept
     {
-        return ::GetCurrentThreadId();
-    }
-
-    static bool is_this_thread(native_id_t id) noexcept
-    {
-        return compare_ids(id, get_this_thread_id());
+        return compare_native_id(data.id, get_current_native_id());
     }
 };
 

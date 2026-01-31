@@ -9,7 +9,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/stack_dynamic_array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/basic_string.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/opaque_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/opaque_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/pointer_iterator.hpp"

@@ -3,8 +3,8 @@
 #include <cstdint>
 
 #include "vertex/std/_priv/invoke.hpp"
-#include "vertex/std/unique_ptr.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/std/opaque_storage.hpp"
 
 namespace vx {
 namespace os {
@@ -13,16 +13,12 @@ namespace os {
 // thread
 //=============================================================================
 
-// platform specific thread interface (internal use only)
-struct thread_impl;
-// platform specific data used by the thread (internal use only)
-struct thread_impl_data;
-
 class thread
 {
 public:
 
     using id = uint64_t;
+    static constexpr id invalid_id = id{ 0 };
 
     VX_API thread() noexcept;
     VX_API ~thread();
@@ -194,10 +190,36 @@ public:
 
 private:
 
-    friend thread_impl;
+#if defined(HAVE_PTHREADS)
 
-    using impl_data_ptr = unique_ptr<thread_impl_data>;
-    impl_data_ptr m_impl_data_ptr;
+    // pthread_t can be an opaque type whose size varies by platform and libc
+    // implementation. It is *not* guaranteed to be an integer or pointer.
+    // We reserve a conservative buffer to hold whatever pthread_t requires.
+    //
+    // If needed, tune this per-platform or add compile-time checks against
+    // sizeof(pthread_t).
+    static constexpr size_t storage_size = 64;
+    static constexpr size_t storage_alignment = mem::max_align;
+
+#elif defined(VX_OS_WINDOWS)
+
+    // On Windows, a thread consists of:
+    //   - HANDLE: a pointer-sized opaque type (void*)
+    //   - DWORD : a 32-bit unsigned integer holding the thread ID
+    using example_storage = type_traits::composite_storage<void*, unsigned long>;
+    static constexpr size_t storage_size = sizeof(example_storage);
+    static constexpr size_t storage_alignment = alignof(example_storage);
+
+#else
+
+    // Unsupported or stub platform: no real storage needed.
+    static constexpr size_t storage_size = 1;
+    static constexpr size_t storage_alignment = 1;
+
+#endif
+
+    using storage_t = opaque_storage<storage_size, storage_alignment>;
+    storage_t m_storage;
 };
 
 //=============================================================================
