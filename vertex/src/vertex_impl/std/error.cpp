@@ -4,10 +4,6 @@
 
 #include "vertex/std/error.hpp"
 
-#if VX_ERROR_PRINTING_AVAILABLE
-#   include <iostream>
-#endif
-
 namespace vx {
 namespace err {
 
@@ -23,37 +19,11 @@ struct info_impl
 };
 
 static thread_local info_impl s_err;
+static error_hook_t s_hook = nullptr;
 
-///////////////////////////////////////////////////////////////////////////////
-// error printing
-///////////////////////////////////////////////////////////////////////////////
-
-static bool s_print_errors = false;
-
-#if VX_ERROR_PRINTING_AVAILABLE
-
-void _priv::set_error_printing_enabled(bool enabled)
-{
-    s_print_errors = enabled;
-}
-
-#endif // VX_ERROR_PRINTING_AVAILABLE
-
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // error accessors and manipulators
-///////////////////////////////////////////////////////////////////////////////
-
-void print(const char* msg)
-{
-    if (!msg)
-    {
-        return;
-    }
-
-    std::fwrite(msg, 1, std::strlen(msg), stderr);
-    std::fputc('\n', stderr);
-    std::fflush(stderr);
-}
+//=============================================================================
 
 code get_code() noexcept
 {
@@ -111,11 +81,10 @@ void set(code err, const char* msg, const char* function, const char* file, int 
         append(" | line: %d", line);
     }
 
-#if (VX_ERROR_PRINTING_AVAILABLE)
-
-    print_error(out);
-
-#endif // VX_ERROR_PRINTING_AVAILABLE
+    if (s_hook && !s_hook(err, out))
+    {
+        return;
+    }
 
     s_err.err = err;
 }
@@ -123,6 +92,20 @@ void set(code err, const char* msg, const char* function, const char* file, int 
 void set(code err) noexcept
 {
     set(err, code_to_string(err));
+}
+
+//=============================================================================
+// error hook
+//=============================================================================
+
+VX_API void set_error_hook(error_hook_t hook) noexcept
+{
+    s_hook = hook;
+}
+
+VX_API error_hook_t get_error_hook() noexcept
+{
+    return s_hook;
 }
 
 } // namespace err

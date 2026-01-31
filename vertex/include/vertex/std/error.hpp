@@ -10,9 +10,9 @@ using error_t = int;
 
 namespace err {
 
-//=========================================================================
+//=============================================================================
 // error code
-//=========================================================================
+//=============================================================================
 
 enum code : error_t
 {
@@ -120,11 +120,9 @@ struct info
     }
 };
 
-//=========================================================================
+//=============================================================================
 // error accessors and manipulators
-//=========================================================================
-
-VX_API void print(const char* msg);
+//=============================================================================
 
 VX_API code get_code() noexcept;
 VX_API const char* get_message() noexcept;
@@ -142,7 +140,7 @@ inline void set(code err, const char* msg)
  * Uses the default string description for the given code.
  * @param err The error code.
  */
-VX_API VX_NO_INLINE VX_COLD void set(code err) noexcept;
+VX_API void set(code err) noexcept;
 
 /**
  * @brief Checks if an error is currently set in the current thread.
@@ -171,9 +169,26 @@ auto return_error(err::code e, R&& ret) noexcept
     return std::forward<R>(ret);
 }
 
-//=========================================================================
+//=============================================================================
+// error hook
+//=============================================================================
+
+using error_hook_t = bool (*)(code err, const char* msg);
+
+/**
+ * @brief Sets a thread-local hook that intercepts errors before they are stored.
+ * The hook returns true to allow the error to be set, or false to suppress it.
+ */
+VX_API void set_error_hook(error_hook_t hook) noexcept;
+
+/**
+ * @brief Retrieves the current error hook.
+ */
+VX_API error_hook_t get_error_hook() noexcept;
+
+//=============================================================================
 // error macros
-//=========================================================================
+//=============================================================================
 
 #if defined(VX_DEBUG) && VX_DEBUG
 
@@ -215,10 +230,10 @@ auto return_error(err::code e, R&& ret) noexcept
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-//=========================================================================
+//=============================================================================
 
-#define VX_TRY ::vx::err::clear();
-#define VX_CATCH if (::vx::err::is_set())
+#define VX_TRY              ::vx::err::clear();
+#define VX_CATCH            if (::vx::err::is_set())
 #define VX_CATCH_CODE(code) if (::vx::err::get_code() == code)
 
 } // namespace err
