@@ -4,7 +4,7 @@
 
 namespace vx {
 
-template <typename T, typename Allocator = default_allocator<T>>
+template <typename T, typename Allocator = mem::default_allocator<T>>
 class dynamic_array
 {
 private:

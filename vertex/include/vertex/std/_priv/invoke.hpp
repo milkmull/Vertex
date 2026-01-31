@@ -6,7 +6,7 @@
 #   include <functional>
 #endif // __cpp_lib_invoke
 
-#include "vertex/util/type_traits.hpp"
+#include "vertex/config/type_traits.hpp"
 
 namespace vx {
 namespace fn {

@@ -105,21 +105,6 @@ VX_TEST_CASE(unaligned)
         vx::mem::deallocate(ptr, size);
     }
 
-    VX_SECTION("allocate_zero")
-    {
-        constexpr size_t size = 128;
-        void* ptr = vx::mem::allocate_zero(size);
-        VX_CHECK(ptr != nullptr);
-
-        uint8_t* bytes = static_cast<uint8_t*>(ptr);
-        for (size_t i = 0; i < size; ++i)
-        {
-            VX_CHECK(bytes[i] == 0);
-        }
-
-        vx::mem::deallocate(ptr, size);
-    }
-
     VX_SECTION("reallocate (grow)")
     {
         constexpr size_t size1 = 32;
@@ -1022,7 +1007,7 @@ VX_TEST_CASE(default_allocator)
 {
     VX_SECTION("allocate / deallocate with default_allocator (at_least policy, alignment <= max_align)")
     {
-        using allocator = vx::default_allocator<trivial_type>;
+        using allocator = vx::mem::default_allocator<trivial_type>;
         constexpr size_t count = 16;
 
         trivial_type* ptr = allocator::allocate(count);
@@ -1033,7 +1018,7 @@ VX_TEST_CASE(default_allocator)
 
     VX_SECTION("allocate_zero with default_allocator (at_least policy, alignment <= max_align)")
     {
-        using allocator = vx::default_allocator<trivial_type>;
+        using allocator = vx::mem::default_allocator<trivial_type>;
         constexpr size_t count = 8;
         trivial_type* ptr = allocator::allocate(count);
         VX_CHECK(ptr != nullptr);
@@ -1050,7 +1035,7 @@ VX_TEST_CASE(default_allocator)
 
     VX_SECTION("reallocate grow / shrink with default_allocator (at_least policy, alignment <= max_align)")
     {
-        using allocator = vx::default_allocator<trivial_type>;
+        using allocator = vx::mem::default_allocator<trivial_type>;
         constexpr size_t count1 = 4;
         constexpr size_t count2 = 10;
 
@@ -1073,7 +1058,7 @@ VX_TEST_CASE(default_allocator)
             uint64_t data[8];
         };
 
-        using allocator = vx::default_allocator<aligned_type, 64, vx::alignment_policy::exact>;
+        using allocator = vx::mem::default_allocator<aligned_type, 64, vx::mem::alignment_policy::exact>;
         constexpr size_t count = 3;
 
         aligned_type* ptr = allocator::allocate(count);
@@ -1092,7 +1077,7 @@ VX_TEST_CASE(default_allocator)
             uint64_t data[8];
         };
 
-        using allocator = vx::default_allocator<aligned_type, 64, vx::alignment_policy::exact>;
+        using allocator = vx::mem::default_allocator<aligned_type, 64, vx::mem::alignment_policy::exact>;
         constexpr size_t count1 = 2;
         constexpr size_t count2 = 5;
 
@@ -1113,7 +1098,7 @@ VX_TEST_CASE(default_allocator)
 
     VX_SECTION("allocate / deallocate with aligned_allocator (exact policy, ideal_align)")
     {
-        using allocator = vx::aligned_allocator<trivial_type>;
+        using allocator = vx::mem::aligned_allocator<trivial_type>;
         constexpr size_t count = 10;
 
         trivial_type* ptr = allocator::allocate(count);
@@ -1127,7 +1112,7 @@ VX_TEST_CASE(default_allocator)
 
     VX_SECTION("allocate with zero count returns nullptr")
     {
-        using allocator = vx::default_allocator<trivial_type>;
+        using allocator = vx::mem::default_allocator<trivial_type>;
         trivial_type* ptr = allocator::allocate(0);
         VX_CHECK(ptr == nullptr);
     }

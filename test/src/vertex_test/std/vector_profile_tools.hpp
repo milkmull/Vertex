@@ -217,14 +217,14 @@ VX_NO_INLINE void profile_move_constructor(size_t N)
 template <typename Vec>
 VX_NO_INLINE void profile_destructor(size_t N)
 {
-    Vec* v = vx::default_allocator<Vec>::allocate(1);
+    Vec* v = vx::mem::default_allocator<Vec>::allocate(1);
     vx::mem::construct_in_place(v, N);
 
     start_timer("destruct");
     vx::mem::destroy_in_place(v);
     stop_timer();
 
-    vx::default_allocator<Vec>::deallocate(v, 1);
+    vx::mem::default_allocator<Vec>::deallocate(v, 1);
 }
 
 //=========================================================================

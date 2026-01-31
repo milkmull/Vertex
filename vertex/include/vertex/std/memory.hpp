@@ -32,11 +32,6 @@ VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
     return ::malloc(bytes);
 }
 
-VX_ALLOCATOR inline void* allocate_zero(const size_t bytes) noexcept
-{
-    return ::calloc(1, bytes);
-}
-
 inline void deallocate(void* ptr, const size_t bytes) noexcept
 {
     ::free(ptr);
@@ -1099,8 +1094,6 @@ inline void destroy_array_safe(T*& ptr, const size_t count)
     }
 }
 
-} // namespace mem
-
 //=========================================================================
 // allocator
 //=========================================================================
@@ -1172,4 +1165,5 @@ public:
 template <typename T>
 using aligned_allocator = default_allocator<T, mem::ideal_align, alignment_policy::exact>;
 
+} // namespace mem
 } // namespace vx
