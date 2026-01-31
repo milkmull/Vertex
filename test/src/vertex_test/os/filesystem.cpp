@@ -20,7 +20,7 @@ struct temp_directory
     {
         err::clear();
         os::filesystem::remove_all(path);
-        if (err::get())
+        if (err::is_set())
         {
             VX_WARNING("failed to clean up ", name, " before test");
         }
@@ -37,7 +37,7 @@ struct temp_directory
     {
         err::clear();
         os::filesystem::remove_all(path);
-        if (err::get())
+        if (err::is_set())
         {
             VX_WARNING("failed to clean up ", path, " after test");
         }

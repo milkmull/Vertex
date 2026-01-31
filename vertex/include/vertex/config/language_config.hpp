@@ -25,12 +25,24 @@
 #if defined(_WIN32)
     #define VX_NULL_DEVICE L"NUL:"
     #define VX_LINE_END    "\r\n"
-    #define VX_STDCALL     __stdcall
+
+    // Calling conventions (mostly relevant on x86)
+    #define VX_STDCALL  __stdcall
+    #define VX_CDECL    __cdecl
+    #define VX_FASTCALL __fastcall
+    #define VX_THISCALL __thiscall
+
 #else
     #define VX_NULL_DEVICE "/dev/null"
     #define VX_LINE_END    "\n"
+
+    // Non-Windows: usually ignore calling conventions
     #define VX_STDCALL
+    #define VX_CDECL
+    #define VX_FASTCALL
+    #define VX_THISCALL
 #endif
+
 
 //=========================================================================
 // Text / Encoding
@@ -330,7 +342,9 @@
     #define VX_DEPRECATED(msg)
 #endif
 
-#if VX_HAS_COMPILER_ATTRIBUTE(noalias)
+#if defined(_MSC_VER)
+    #define VX_NO_ALIAS __declspec(noalias)
+#elif VX_HAS_COMPILER_ATTRIBUTE(noalias)
     #define VX_NO_ALIAS __attribute__((noalias))
 #else
     #define VX_NO_ALIAS

@@ -10,7 +10,7 @@
 
 #define VX_SIMD_ARM_NEON_VERSION VX_VERSION_NUMBER(1, 0, 0)
 
-#if defined(__ARM_NEON__) || defined(__aarch64__) || defined (_M_ARM) || defined (_M_ARM64)
+#if defined(__ARM_NEON__) || defined(__ARM_NEON) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
 
 #   define VX_SIMD_ARM_NEON VX_SIMD_ARM_NEON_VERSION
 

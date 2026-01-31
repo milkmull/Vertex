@@ -7,6 +7,7 @@
 
 #include "vertex/config/platform.hpp"
 #include "vertex/config/language_config.hpp"
+#define VX_ERROR_PRINTING_AVAILABLE 1
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -131,7 +132,7 @@ inline void fail_test(const char* condition, const char* func, int line)
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 
-namespace __detail {
+namespace _priv {
 
     template <typename... Args>
     void message(Args&&... args)
@@ -139,9 +140,9 @@ namespace __detail {
         (std::cout << ... << args) << std::endl;
     }
 
-} // namespace __detail
+} // namespace _priv
 
-#define VX_MESSAGE(...) ::vx::test::__detail::message(__VA_ARGS__)
+#define VX_MESSAGE(...) ::vx::test::_priv::message(__VA_ARGS__)
 
 #define VX_WARNING(...) VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
 

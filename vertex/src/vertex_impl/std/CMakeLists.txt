@@ -4,3 +4,5 @@ file(GLOB VX_STD_SOURCE_FILES
 )
 
 target_sources(Vertex PRIVATE ${VX_STD_SOURCE_FILES})
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/simd_algorithms")

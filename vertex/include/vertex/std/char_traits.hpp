@@ -591,11 +591,14 @@ namespace _priv {
 // character traits
 //=========================================================================
 
-template <typename char_t, typename int_t>
+template <typename char_t, typename int_t, typename pos_t>
 struct char_traits_base
 {
     using char_type = char_t;
     using int_type = int_t;
+    using off_type = std::streamoff;
+    using pos_type = pos_t;
+    using state_type = std::mbstate_t;
 
     static void copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
@@ -680,24 +683,173 @@ struct char_traits_base
 } // namespace _priv
 
 template <typename char_t>
-struct char_traits : _priv::char_traits_base<char_t, long> {};
+struct char_traits : _priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>> {};
 
 template <>
-struct char_traits<char> : _priv::char_traits_base<char, int> {};
+struct char_traits<char> : _priv::char_traits_base<char, int, std::streampos> {};
 
 template <>
-struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, unsigned short> {};
+struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, wint_t, std::wstreampos> {};
 
 #if defined(__cpp_char8_t)
 template <>
-struct char_traits<char8_t> : _priv::char_traits_base<char8_t, unsigned int> {};
+struct char_traits<char8_t> : _priv::char_traits_base<char8_t, unsigned int, std::u8streampos> {};
 #endif // defined(__cpp_char8_t)
 
 template <>
-struct char_traits<char16_t> : _priv::char_traits_base<char16_t, unsigned short> {};
+struct char_traits<char16_t> : _priv::char_traits_base<char16_t, uint_least16_t, std::u16streampos> {};
 
 template <>
-struct char_traits<char32_t> : _priv::char_traits_base<char32_t, unsigned int> {};
+struct char_traits<char32_t> : _priv::char_traits_base<char32_t, uint_least32_t, std::u32streampos> {};
+
+//=========================================================================
+// traits
+//=========================================================================
+
+namespace _priv {
+
+template <typename Traits>
+using traits_char_t = typename Traits::char_type;
+
+template <typename Traits>
+using traits_ptr_t = const typename Traits::char_type*;
+
+#define VX_USE_VECTOR_ALGORITHMS 1
+
+// signed char and other unsigned integral types are supported as an extension.
+// Use of other arithmetic types and nullptr_t should be rejected.
+template <typename T>
+struct is_implementation_handled_char_like_type
+{
+    static constexpr bool value = std::is_arithmetic<T>::value || std::is_null_pointer<T>::value;
+};
+
+template <typename>
+struct is_implementation_handled_char_traits : std::false_type {};
+
+template <typename T>
+struct is_implementation_handled_char_traits<char_traits<T>> : is_implementation_handled_char_like_type<T> {};
+
+//=========================================================================
+
+template <typename Traits>
+constexpr bool traits_equal(
+    const traits_ptr_t<Traits> left, const size_t left_size,
+    const traits_ptr_t<Traits> right, const size_t right_size) noexcept
+{
+    // compare [left, left + left_size) to [right, right + right_size) for equality using Traits
+    if (left_size != right_size)
+    {
+        return false;
+    }
+
+    if (left_size == 0)
+    {
+        return true;
+    }
+
+    return Traits::compare(left, right, left_size) == 0;
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr int traits_compare(
+    const traits_ptr_t<Traits> left, const size_t left_size,
+    const traits_ptr_t<Traits> right, const size_t right_size) noexcept
+{
+    // compare [left, left + left_size) to [right, right + right_size) using Traits
+    const int res = Traits::compare(left, right, std::min(left_size, right_size));
+
+    if (res != 0)
+    {
+        return res;
+    }
+
+    if (left_size < right_size)
+    {
+        return -1;
+    }
+
+    if (left_size > right_size)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find(
+    const traits_ptr_t<Traits> haystack, const size_t hay_size,
+    const size_t start,
+    const traits_ptr_t<Traits> needle, const size_t needle_size) noexcept
+{
+    // search [haystack, haystack + hay_size) for [needle, needle + needle_size), at/after start
+    if (needle_size > hay_size || start > hay_size - needle_size)
+    {
+        // xpos cannot exist, report failure
+        // N4950 [string.view.find]/3 says:
+        // 1. start <= xpos
+        // 2. xpos + needle_size <= hay_size;
+        // therefore:
+        // 3. needle_size <= hay_size (by 2) (checked above)
+        // 4. start + needle_size <= hay_size (substitute 1 into 2)
+        // 5. start <= hay_size - needle_size (4, move needle_size to other side) (also checked above)
+        return static_cast<size_t>(-1);
+    }
+
+    if (needle_size == 0)
+    {
+        // empty string always matches if xpos is possible
+        return start;
+    }
+
+#if VX_USE_VECTOR_ALGORITHMS
+
+    VX_IF_CONSTEXPR(is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto _End = haystack + hay_size;
+            const auto _Ptr = _STD _Search_vectorized(haystack + start, _End, needle, needle_size);
+
+            if (_Ptr != _End)
+            {
+                return static_cast<size_t>(_Ptr - haystack);
+            }
+            else
+            {
+                return static_cast<size_t>(-1);
+            }
+        }
+    }
+
+#endif // VX_USE_VECTOR_ALGORITHMS
+
+    const auto end = haystack + (hay_size - needle_size) + 1;
+
+    for (auto it = haystack + start;; ++it)
+    {
+        it = Traits::find(it, static_cast<size_t>(end - it), *needle);
+
+        if (!it)
+        {
+            // didn't find first character; report failure
+            return static_cast<size_t>(-1);
+        }
+
+        if (Traits::compare(it, needle, needle_size) == 0)
+        {
+            // found match
+            return static_cast<size_t>(it - haystack);
+        }
+    }
+}
+
+} // namespace _priv
 
 } // namespace str
 } // namespace vx
