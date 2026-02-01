@@ -4,7 +4,7 @@
 function(vx_check_dlopen TARGET_NAME)
 
     # Check if the dlopen symbol exists in libc (usually in dlfcn.h)
-    vx_check_symbol_exists(${TARGET_NAME} "dlopen" "dlfcn.h" HAVE_DLOPEN_IN_LIBC)
+    vx_check_symbol_exists(${TARGET_NAME} "dlopen" "dlfcn.h" PRIVATE HAVE_DLOPEN_IN_LIBC)
 
     if(HAVE_DLOPEN_IN_LIBC)
 
