@@ -8,13 +8,9 @@ namespace os {
 
 // https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/src/c%2B%2B11/thread.cc
 
-using traits = opaque_storage_traits<thread_impl>;
-#define m_impl (traits::get(m_storage))
-
 thread::thread() noexcept
-{
-    traits::construct(m_storage);
-}
+    : m_storage(thread_impl{})
+{}
 
 thread::~thread()
 {
@@ -23,13 +19,14 @@ thread::~thread()
         std::terminate();
     }
 
-    traits::destroy(m_storage);
+    m_storage.destroy<thread_impl>();
 }
 
 thread::thread(thread&& other) noexcept
 {
-    traits::construct(m_storage, std::move(traits::get(other.m_storage)));
-    traits::get(other.m_storage).clear();
+    auto& other_ref = m_storage.get<thread_impl>();
+    m_storage.construct<thread_impl>(std::move(other_ref));
+    other_ref.close();
 }
 
 thread& thread::operator=(thread&& other) noexcept
@@ -41,15 +38,20 @@ thread& thread::operator=(thread&& other) noexcept
             std::terminate();
         }
 
-        m_impl = std::move(traits::get(other.m_storage));
-        traits::get(other.m_storage).clear();
+        auto& ref1 = m_storage.get<thread_impl>();
+        auto& ref2 = other.m_storage.get<thread_impl>();
+
+        ref1 = std::move(ref2);
+        ref2.close();
     }
     return *this;
 }
 
 void thread::swap(thread& other) noexcept
 {
-    std::swap(m_storage, other.m_storage);
+    auto& ref1 = m_storage.get<thread_impl>();
+    auto& ref2 = other.m_storage.get<thread_impl>();
+    std::swap(ref1, ref2);
 }
 
 bool thread::operator==(const thread& other) const noexcept
@@ -59,7 +61,9 @@ bool thread::operator==(const thread& other) const noexcept
         return false;
     }
 
-    return m_impl.compare(traits::get(other.m_storage));
+    auto& ref1 = m_storage.get<thread_impl>();
+    auto& ref2 = other.m_storage.get<thread_impl>();
+    return ref1.compare(ref2);
 }
 
 bool thread::start_impl(thread_fn_t fn, void* arg)
@@ -70,11 +74,10 @@ bool thread::start_impl(thread_fn_t fn, void* arg)
         return false;
     }
 
-    traits::construct(m_storage);
-
-    if (!m_impl.start(fn, arg))
+    auto& ref = m_storage.get<thread_impl>();
+    if (!ref.start(fn, arg))
     {
-        traits::destroy(m_storage);
+        ref.close();
         return false;
     }
 
@@ -83,12 +86,14 @@ bool thread::start_impl(thread_fn_t fn, void* arg)
 
 bool thread::is_valid() const noexcept
 {
-    return m_impl.is_valid();
+    auto& ref = m_storage.get<thread_impl>();
+    return ref.is_valid();
 }
 
 thread_id thread::get_id() const noexcept
 {
-    return is_valid() ? m_impl.get_id() : invalid_thread_id;
+    auto& ref = m_storage.get<thread_impl>();
+    return is_valid() ? ref.get_id() : invalid_thread_id;
 }
 
 bool thread::join() noexcept
@@ -98,18 +103,19 @@ bool thread::join() noexcept
         return false;
     }
 
-    if (m_impl.is_current_thread())
+    auto& ref = m_storage.get<thread_impl>();
+    if (ref.is_current_thread())
     {
         err::set(err::system_error, "deadlock would occur");
         return false;
     }
 
-    if (!m_impl.join())
+    if (!ref.join())
     {
         return false;
     }
 
-    m_impl.clear();
+    ref.close();
     return true;
 }
 
@@ -120,12 +126,13 @@ bool thread::detach() noexcept
         return false;
     }
 
-    if (!m_impl.detach())
+    auto& ref = m_storage.get<thread_impl>();
+    if (!ref.detach())
     {
         return false;
     }
 
-    m_impl.clear();
+    ref.close();
     return true;
 }
 

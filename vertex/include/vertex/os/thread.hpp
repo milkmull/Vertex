@@ -77,7 +77,6 @@ private:
     struct callable_wrapper
     {
         using tuple_type = std::tuple<typename std::decay<Callable>::type, typename std::decay<Args>::type...>;
-
         tuple_type data;
 
         callable_wrapper(Callable&& c, Args&&... args)
@@ -145,13 +144,7 @@ private:
     // start
     //=============================================================================
 
-    struct dummy_callable
-    {
-        void operator()()
-        {}
-    };
-
-    using thread_fn_t = decltype(&callable_wrapper<dummy_callable>::thread_entry);
+    using thread_fn_t = decltype(&callable_wrapper<type_traits::callable_t>::thread_entry);
 
     // windows complains if this is not exported even though it is private
     VX_API bool start_impl(thread_fn_t fn, void* arg);

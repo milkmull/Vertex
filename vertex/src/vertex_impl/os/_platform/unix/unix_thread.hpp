@@ -17,9 +17,9 @@ struct thread_impl
     // types
     //=============================================================================
 
-    using native_id_t = pthread_t;
+    using native_thread_id = pthread_t;
 
-    struct data_t
+    struct thread_impl_data
     {
         pthread_t handle = 0;
     };
@@ -28,32 +28,32 @@ struct thread_impl
     // data
     //=============================================================================
 
-    data_t data;
+    thread_impl_data data;
 
     //=============================================================================
     // id helpers
     //=============================================================================
 
-    static constexpr thread_id convert_native_id(native_id_t id) noexcept
+    static constexpr thread_id convert_native_id(native_thread_id id) noexcept
     {
         // pthread_t is usually a pointer or unsigned long, so cast to uintptr_t then to thread_id
         return static_cast<thread_id>(reinterpret_cast<uintptr_t>(id));
     }
 
-    static bool compare_native_id(native_id_t lhs, native_id_t rhs) noexcept
+    static bool compare_native_id(native_thread_id lhs, native_thread_id rhs) noexcept
     {
         return pthread_equal(lhs, rhs) != 0;
     }
 
-    static native_id_t get_current_native_id() noexcept
+    static native_thread_id get_current_native_id() noexcept
     {
         return pthread_self();
     }
 
-    static constexpr native_id_t get_invalid_native_id() noexcept
+    static constexpr native_thread_id get_invalid_native_id() noexcept
     {
         // default initialized pthread_t (usually 0 or null)
-        return native_id_t{};
+        return native_thread_id{};
     }
 
     //=============================================================================
@@ -87,7 +87,7 @@ struct thread_impl
         return true;
     }
 
-    void clear() noexcept
+    void close() noexcept
     {
         data.handle = get_invalid_native_id();
     }
@@ -96,7 +96,7 @@ struct thread_impl
     {
         assert_is_running();
         pthread_exit(reinterpret_cast<void*>(static_cast<uintptr_t>(exit_code)));
-        clear();
+        close();
     }
 
     bool join() noexcept

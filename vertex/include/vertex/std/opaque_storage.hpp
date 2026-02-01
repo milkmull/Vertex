@@ -27,8 +27,21 @@ private:
 public:
 
     opaque_storage() noexcept = default;
+    ~opaque_storage() noexcept = default;
 
-    // Construct an object of type T in the storage
+    opaque_storage(const opaque_storage&) = delete;
+    opaque_storage(opaque_storage&&) noexcept = delete;
+
+    opaque_storage& operator=(const opaque_storage&) = delete;
+    opaque_storage& operator=(opaque_storage&&) noexcept = delete;
+
+    template <typename T>
+    explicit opaque_storage(T&& value) noexcept
+    {
+        _size_check();
+        construct<T>(std::move(value));
+    }
+
     template <typename T, typename... Args>
     void construct(Args&&... args)
     {
@@ -60,58 +73,18 @@ public:
     template <typename T>
     T& get() noexcept
     {
+        _size_check();
         return *ptr<T>();
     }
 
     template <typename T>
     const T& get() const noexcept
     {
+        _size_check();
         return *ptr<T>();
     }
 };
 
 #undef _size_check
-
-template <typename T>
-struct opaque_storage_traits
-{
-    using value_type = T;
-
-    template <size_t Size, size_t alignment, typename... Args>
-    static void construct(opaque_storage<Size, alignment>& storage, Args&&... args)
-    {
-        storage.template construct<T>(std::forward<Args>(args)...);
-    }
-
-    template <size_t Size, size_t alignment, typename... Args>
-    static void destroy(opaque_storage<Size, alignment>& storage) noexcept
-    {
-        storage.template destroy<T>();
-    }
-
-    template <size_t Size, size_t alignment>
-    static T* ptr(opaque_storage<Size, alignment>& storage) noexcept
-    {
-        return storage.template ptr<T>();
-    }
-
-    template <size_t Size, size_t alignment>
-    static const T* ptr(const opaque_storage<Size, alignment>& storage) noexcept
-    {
-        return storage.template ptr<T>();
-    }
-
-    template <size_t Size, size_t alignment>
-    static T& get(opaque_storage<Size, alignment>& storage) noexcept
-    {
-        return storage.template get<T>();
-    }
-
-    template <size_t Size, size_t alignment>
-    static const T& get(const opaque_storage<Size, alignment>& storage) noexcept
-    {
-        return storage.template get<T>();
-    }
-};
 
 } // namespace vx

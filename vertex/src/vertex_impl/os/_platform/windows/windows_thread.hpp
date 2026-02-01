@@ -17,42 +17,42 @@ struct thread_impl
     // types
     //=============================================================================
 
-    using native_id_t = DWORD;
+    using native_thread_id = DWORD;
 
-    struct data_t
+    struct thread_impl_data
     {
         os::handle handle;
-        native_id_t id = 0;
+        native_thread_id id = 0;
     };
 
     //=============================================================================
     // data
     //=============================================================================
 
-    data_t data;
+    thread_impl_data data;
 
     //=============================================================================
     // id helpers
     //=============================================================================
 
-    static constexpr thread_id convert_native_id(native_id_t id) noexcept
+    static constexpr thread_id convert_native_id(native_thread_id id) noexcept
     {
         return static_cast<thread_id>(id);
     }
 
-    static bool compare_native_id(native_id_t lhs, native_id_t rhs) noexcept
+    static bool compare_native_id(native_thread_id lhs, native_thread_id rhs) noexcept
     {
         return lhs == rhs;
     }
 
-    static native_id_t get_current_native_id() noexcept
+    static native_thread_id get_current_native_id() noexcept
     {
         return ::GetCurrentThreadId();
     }
 
-    static constexpr native_id_t get_invalid_native_id() noexcept
+    static constexpr native_thread_id get_invalid_native_id() noexcept
     {
-        return static_cast<native_id_t>(0);
+        return static_cast<native_thread_id>(0);
     }
 
     //=============================================================================
@@ -93,11 +93,11 @@ struct thread_impl
             return false;
         }
 
-        data.id = static_cast<native_id_t>(id);
+        data.id = static_cast<native_thread_id>(id);
         return true;
     }
 
-    void clear() noexcept
+    void close() noexcept
     {
         data.handle.close();
         data.id = get_invalid_native_id();
@@ -107,7 +107,7 @@ struct thread_impl
     {
         assert_is_running();
         ::_endthreadex(exit_code);
-        clear();
+        close();
     }
 
     // returns when thread terminates

@@ -1,4 +1,15 @@
 
+algorithms:
+    - sort
+    - find
+    - min/max
+    - reverse
+    - count
+    - remove
+    - mismatch
+    - replace
+    - rotate
+
 x array
 x allocation
 x dynamic array base
@@ -15,9 +26,10 @@ x vector
 - bitfield
 - type_traits
 
-- smart pointers
-- thread
-- mutex
+x unique_ptr
+- shared_ptr
+x thread
+x mutex
 
 - atomic?
 - regex? (pcre2)

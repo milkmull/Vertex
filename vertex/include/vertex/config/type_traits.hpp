@@ -812,5 +812,22 @@ struct composite_storage
     std::tuple<Types...> members;
 };
 
+//=============================================================================
+// helper types
+//=============================================================================
+
+// tag that selects a type to construct in place
+template <typename>
+struct in_place_type_t
+{
+    explicit in_place_type_t() = default;
+};
+
+struct callable_t
+{
+    void operator()()
+    {}
+};
+
 } // namespace type_traits
 } // namespace vx

@@ -16,7 +16,7 @@ struct mutex_impl
     struct data_t
     {
         SRWLOCK lock = SRWLOCK_INIT;
-        typename thread_impl::native_id_t thread = thread_impl::get_invalid_native_id();
+        typename thread_impl::native_thread_id thread = thread_impl::get_invalid_native_id();
     };
 
     //=============================================================================

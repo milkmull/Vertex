@@ -18,7 +18,7 @@ struct mutex_impl
     struct data_t
     {
         pthread_mutex_t mutex;
-        typename thread_impl::native_id_t thread = thread_impl::get_invalid_native_id();
+        typename thread_impl::native_thread_id thread = thread_impl::get_invalid_native_id();
     };
 
     //=============================================================================
@@ -35,7 +35,6 @@ struct mutex_impl
     {
         pthread_mutexattr_t attr;
         pthread_mutexattr_init(&attr);
-        // Use normal mutex (not recursive or error checking)
         pthread_mutex_init(&data.mutex, &attr);
         pthread_mutexattr_destroy(&attr);
     }
@@ -76,12 +75,12 @@ struct mutex_impl
 
 struct recursive_mutex_impl
 {
-    struct data_t
+    struct recursive_mutex_impl_data
     {
         pthread_mutex_t mutex;
     };
 
-    data_t data;
+    recursive_mutex_impl_data data;
 
     void create() noexcept
     {

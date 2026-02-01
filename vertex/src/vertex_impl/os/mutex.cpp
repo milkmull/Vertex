@@ -7,61 +7,66 @@ namespace os {
 // Mutex
 //=============================================================================
 
-using mutex_traits = opaque_storage_traits<mutex_impl>;
-#define m_mutex_impl (mutex_traits::get(m_storage))
-
 mutex::mutex() noexcept
+    : m_storage(mutex_impl{})
 {
-    mutex_traits::construct(m_storage);
-    m_mutex_impl.create();
+    auto& ref = m_storage.get<mutex_impl>();
+    ref.create();
 }
 
 mutex::~mutex() noexcept
 {
-    m_mutex_impl.destroy();
-    mutex_traits::destroy(m_storage);
+    auto& ref = m_storage.get<mutex_impl>();
+    ref.destroy();
+    m_storage.destroy<mutex_impl>();
 }
 
 bool mutex::lock() noexcept
 {
+    auto& ref = m_storage.get<mutex_impl>();
+
     const auto current_thread = thread_impl::get_current_native_id();
-    if (m_mutex_impl.data.thread == current_thread)
+    if (ref.data.thread == current_thread)
     {
         err::set(err::system_error, "deadlock would occur");
         return false;
     }
 
-    if (!m_mutex_impl.lock())
+    if (!ref.lock())
     {
         return false;
     }
 
-    m_mutex_impl.data.thread = current_thread;
+    ref.data.thread = current_thread;
     return true;
 }
 
 bool mutex::try_lock() noexcept
 {
+    auto& ref = m_storage.get<mutex_impl>();
+
     const auto current_thread = thread_impl::get_current_native_id();
-    if (m_mutex_impl.data.thread == current_thread)
+    if (ref.data.thread == current_thread)
     {
         // deadlock would occur
         return false;
     }
 
-    if (!m_mutex_impl.try_lock())
+    if (!ref.try_lock())
     {
         return false;
     }
 
-    m_mutex_impl.data.thread = current_thread;
+    ref.data.thread = current_thread;
     return true;
 }
 
 void mutex::unlock() noexcept
 {
+    auto& ref = m_storage.get<mutex_impl>();
+
     const auto current_thread = thread_impl::get_current_native_id();
-    if (m_mutex_impl.data.thread != current_thread)
+    if (ref.data.thread != current_thread)
     {
         VX_ASSERT_MESSAGE(false, "mutex not owned by this thread");
         return;
@@ -71,8 +76,8 @@ void mutex::unlock() noexcept
     // First reset the owner so another thread doesn't lock
     // the mutex and set the ownership before we reset it,
     // then release the lock semaphore.
-    m_mutex_impl.data.thread = thread_impl::get_invalid_native_id();
-    m_mutex_impl.unlock();
+    ref.data.thread = thread_impl::get_invalid_native_id();
+    ref.unlock();
 }
 
 //=============================================================================
@@ -163,34 +168,36 @@ struct recursive_mutex_impl
 // Recursive Mutex
 //=============================================================================
 
-using recursive_mutex_traits = opaque_storage_traits<recursive_mutex_impl>;
-#define m_recursive_mutex_impl (recursive_mutex_traits::get(m_storage))
-
 recursive_mutex::recursive_mutex() noexcept
+    : m_storage(recursive_mutex_impl{})
 {
-    recursive_mutex_traits::construct(m_storage);
-    m_recursive_mutex_impl.create();
+    auto& ref = m_storage.get<recursive_mutex_impl>();
+    ref.create();
 }
 
 recursive_mutex::~recursive_mutex() noexcept
 {
-    m_recursive_mutex_impl.destroy();
-    recursive_mutex_traits::destroy(m_storage);
+    auto& ref = m_storage.get<recursive_mutex_impl>();
+    ref.destroy();
+    m_storage.destroy<recursive_mutex_impl>();
 }
 
 bool recursive_mutex::lock() noexcept
 {
-    return m_recursive_mutex_impl.lock();
+    auto& ref = m_storage.get<recursive_mutex_impl>();
+    return ref.lock();
 }
 
 bool recursive_mutex::try_lock() noexcept
 {
-    return m_recursive_mutex_impl.try_lock();
+    auto& ref = m_storage.get<recursive_mutex_impl>();
+    return ref.try_lock();
 }
 
 void recursive_mutex::unlock() noexcept
 {
-    m_recursive_mutex_impl.unlock();
+    auto& ref = m_storage.get<recursive_mutex_impl>();
+    ref.unlock();
 }
 
 } // namespace os
