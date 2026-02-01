@@ -19,6 +19,8 @@ using io_stream = file;
 // process
 ///////////////////////////////////////////////////////////////////////////////
 
+using process_id = uint32_t;
+
 /**
  * @brief Represents a process that can be started, controlled, and monitored.
  *
@@ -31,7 +33,7 @@ class process
 {
 public:
 
-    using id = uint32_t;
+    using id = process_id;
     using environment = std::unordered_map<std::string, std::string>;
 
     enum class io_option

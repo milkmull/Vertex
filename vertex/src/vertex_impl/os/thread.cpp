@@ -80,9 +80,9 @@ bool thread::is_valid() const noexcept
     return m_impl.is_valid();
 }
 
-thread::id thread::get_id() const noexcept
+thread_id thread::get_id() const noexcept
 {
-    return is_valid() ? m_impl.get_id() : invalid_id;
+    return is_valid() ? m_impl.get_id() : invalid_thread_id;
 }
 
 bool thread::join() noexcept
@@ -123,7 +123,7 @@ bool thread::detach() noexcept
     return true;
 }
 
-thread::id this_thread::get_id()
+thread_id this_thread::get_id()
 {
     return thread_impl::convert_native_id(thread_impl::get_current_native_id());
 }

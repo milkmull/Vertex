@@ -3,6 +3,7 @@
 #include <utility>
 
 #include "vertex/config/language_config.hpp"
+#include "vertex/os/thread_id.hpp"
 
 namespace vx {
 
@@ -173,7 +174,7 @@ auto return_error(err::code e, R&& ret) noexcept
 // error hook
 //=============================================================================
 
-using error_hook_t = bool (*)(code err, const char* msg);
+using error_hook_t = bool (*)(code err, const char* msg, os::thread_id thread);
 
 /**
  * @brief Sets a thread-local hook that intercepts errors before they are stored.

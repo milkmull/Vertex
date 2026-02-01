@@ -1,8 +1,9 @@
 #pragma once
 
 #include <cstdint>
+#include <tuple>
 
-#include "vertex/std/_priv/invoke.hpp"
+#include "vertex/os/thread_id.hpp"
 #include "vertex/std/memory.hpp"
 #include "vertex/std/opaque_storage.hpp"
 
@@ -17,8 +18,7 @@ class thread
 {
 public:
 
-    using id = uint64_t;
-    static constexpr id invalid_id = id{ 0 };
+    using id = thread_id;
 
     VX_API thread() noexcept;
     VX_API ~thread();
@@ -178,7 +178,7 @@ public:
     //=============================================================================
 
     VX_API bool is_valid() const noexcept;
-    VX_API id get_id() const noexcept;
+    VX_API thread_id get_id() const noexcept;
 
     bool is_joinable() const noexcept
     {
@@ -228,7 +228,7 @@ private:
 
 namespace this_thread {
 
-VX_API thread::id get_id();
+VX_API thread_id get_id();
 
 } // namespace this_thread
 

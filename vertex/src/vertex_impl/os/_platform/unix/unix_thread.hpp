@@ -36,10 +36,10 @@ struct thread_impl
     // id helpers
     //=============================================================================
 
-    static constexpr typename thread::id convert_native_id(native_id_t id) noexcept
+    static constexpr typename thread_id convert_native_id(native_id_t id) noexcept
     {
-        // pthread_t is usually a pointer or unsigned long, so cast to uintptr_t then to thread::id
-        return static_cast<typename thread::id>(reinterpret_cast<uintptr_t>(id));
+        // pthread_t is usually a pointer or unsigned long, so cast to uintptr_t then to thread_id
+        return static_cast<thread_id>(reinterpret_cast<uintptr_t>(id));
     }
 
     static bool compare_native_id(native_id_t lhs, native_id_t rhs) noexcept
@@ -129,7 +129,7 @@ struct thread_impl
         return true;
     }
 
-    thread::id get_id() const noexcept
+    thread_id get_id() const noexcept
     {
         assert_is_running();
         return convert_native_id(data.handle);

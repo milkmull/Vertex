@@ -3,6 +3,7 @@
 #include <stdarg.h>
 
 #include "vertex/std/error.hpp"
+#include "vertex/os/thread.hpp"
 
 namespace vx {
 namespace err {
@@ -81,7 +82,7 @@ void set(code err, const char* msg, const char* function, const char* file, int 
         append(" | line: %d", line);
     }
 
-    if (s_hook && !s_hook(err, out))
+    if (s_hook && !s_hook(err, out, os::this_thread::get_id()))
     {
         return;
     }
