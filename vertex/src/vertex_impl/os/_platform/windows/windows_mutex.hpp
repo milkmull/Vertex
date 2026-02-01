@@ -16,7 +16,7 @@ struct mutex_impl
     struct data_t
     {
         SRWLOCK lock = SRWLOCK_INIT;
-        DWORD thread = 0;
+        typename thread_impl::native_id_t thread = thread_impl::get_invalid_native_id();
     };
 
     //=============================================================================
@@ -49,7 +49,8 @@ struct mutex_impl
     bool try_lock() noexcept
     {
         // Try to acquire the lock
-        return (::TryAcquireSRWLockExclusive(&data.lock) != 0);
+        const auto result = ::TryAcquireSRWLockExclusive(&data.lock);
+        return (result != 0);
     }
 
     void unlock() noexcept

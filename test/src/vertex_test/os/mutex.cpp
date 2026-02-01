@@ -65,17 +65,17 @@ VX_TEST_CASE(test_mutex_multiple_threads)
 
 ///////////////////////////////////////////////////////////////////////////////
 
-//VX_TEST_CASE(test_recursive_mutex)
-//{
-//    os::recursive_mutex rec_mtx;
-//
-//    VX_CHECK(rec_mtx.lock());
-//    VX_CHECK(rec_mtx.lock());
-//    VX_CHECK(rec_mtx.try_lock());
-//    rec_mtx.unlock();
-//    rec_mtx.unlock();
-//    rec_mtx.unlock();
-//}
+VX_TEST_CASE(test_recursive_mutex)
+{
+    os::recursive_mutex rec_mtx;
+
+    VX_CHECK(rec_mtx.lock());
+    VX_CHECK(rec_mtx.lock());
+    VX_CHECK(rec_mtx.try_lock());
+    rec_mtx.unlock();
+    rec_mtx.unlock();
+    rec_mtx.unlock();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

@@ -7,7 +7,7 @@
 
 namespace vx {
 template <typename T>
-using vector = _priv::dynamic_array_base<T, vx::aligned_allocator<vx::mem::_priv::ideal_align>>;
+using vector = _priv::dynamic_array_base<T, vx::mem::aligned_allocator<vx::mem::ideal_align>>;
 } // namespace vx
 
 template <typename T>

@@ -25,8 +25,8 @@ public:
     mutex& operator=(const mutex&) = delete;
 
     VX_API bool lock() noexcept;
-    VX_API void unlock() noexcept;
     VX_API bool try_lock() noexcept;
+    VX_API void unlock() noexcept;
 
 private:
 
@@ -63,27 +63,42 @@ private:
 // Recursive Mutex
 //=============================================================================
 
-//struct recursive_mutex_impl_data;
-//
-//class recursive_mutex
-//{
-//public:
-//
-//    VX_API recursive_mutex();
-//    VX_API ~recursive_mutex();
-//
-//    recursive_mutex(const recursive_mutex&) = delete;
-//    recursive_mutex& operator=(const recursive_mutex&) = delete;
-//
-//    VX_API void lock();
-//    VX_API void unlock();
-//    VX_API bool try_lock();
-//
-//private:
-//
-//    using impl_data_ptr = unique_ptr<recursive_mutex_impl_data>;
-//    impl_data_ptr m_impl_data_ptr;
-//};
+struct recursive_mutex_impl_data;
+
+class recursive_mutex
+{
+public:
+
+    VX_API recursive_mutex() noexcept;
+    VX_API ~recursive_mutex() noexcept;
+
+    recursive_mutex(const recursive_mutex&) = delete;
+    recursive_mutex& operator=(const recursive_mutex&) = delete;
+
+    VX_API bool lock() noexcept;
+    VX_API bool try_lock() noexcept;
+    VX_API void unlock() noexcept;
+
+private:
+
+#if defined(HAVE_PTHREAD_MUTEX_RECURSIVE)
+
+    // POSIX we want to use the native recursive mutex if available
+    static constexpr size_t storage_size = 64;
+    static constexpr size_t storage_alignment = mem::max_align;
+
+#else
+
+    // Roll our own recursive mutex with size_t for count
+    using example_storage = type_traits::composite_storage<mutex, size_t>;
+    static constexpr size_t storage_size = sizeof(example_storage);
+    static constexpr size_t storage_alignment = alignof(example_storage);
+
+#endif
+
+    using storage_t = opaque_storage<storage_size, storage_alignment>;
+    storage_t m_storage;
+};
 
 //=============================================================================
 // Lock Guard

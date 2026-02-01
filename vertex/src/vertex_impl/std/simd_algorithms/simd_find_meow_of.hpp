@@ -1260,12 +1260,13 @@ const void* VX_STDCALL dispatch_ptr(const void* const first1, const void* const 
             first2,
             byte_length(first2, last2));
     }
+    else
 
 #endif // defined(USE_SSE2)
 
 #if defined(USE_AVX2)
 
-    VX_IF_CONSTEXPR (sizeof(T) > 2)
+        VX_IF_CONSTEXPR (sizeof(T) > 2)
     {
         return impl_4_8<T>(
             first1,
@@ -1273,10 +1274,13 @@ const void* VX_STDCALL dispatch_ptr(const void* const first1, const void* const 
             first2,
             byte_length(first2, last2));
     }
+    else
 
 #endif // defined(USE_AVX2)
 
-    return fallback<T, predicate::any_of>(first1, last1, first2, last2);
+    {
+        return fallback<T, predicate::any_of>(first1, last1, first2, last2);
+    }
 }
 
 template <typename T>
@@ -1406,20 +1410,28 @@ template <typename T, predicate Pred>
 size_t VX_STDCALL dispatch_pos(const void* const first1, const size_t count1, const void* const first2, const size_t count2) noexcept
 {
 #if defined(USE_AVX2)
+
     VX_IF_CONSTEXPR (sizeof(T) > 2)
     {
         return dispatch_pos_avx_4_8<T>(first1, count1, first2, count2);
     }
+    else
+
 #endif // defined(USE_AVX2)
 
 #if defined(USE_SSE2)
+
     VX_IF_CONSTEXPR (sizeof(T) <= 2)
     {
         return dispatch_pos_sse_1_2<T, Pred>(first1, count1, first2, count2);
     }
+    else
+
 #endif // defined(USE_SSE2)
 
-    return dispatch_pos_fallback<T, Pred>(first1, count1, first2, count2);
+    {
+        return dispatch_pos_fallback<T, Pred>(first1, count1, first2, count2);
+    }
 }
 
 } // namespace _first_of

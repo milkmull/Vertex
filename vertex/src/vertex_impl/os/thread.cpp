@@ -48,6 +48,11 @@ void thread::swap(thread& other) noexcept
 
 bool thread::operator==(const thread& other) const noexcept
 {
+    if (!is_valid() || !other.is_valid())
+    {
+        return false;
+    }
+
     return m_impl.compare(traits::get(other.m_storage));
 }
 
@@ -77,7 +82,7 @@ bool thread::is_valid() const noexcept
 
 thread::id thread::get_id() const noexcept
 {
-    return is_valid() ? m_impl.get_native_id() : invalid_id;
+    return is_valid() ? m_impl.get_id() : invalid_id;
 }
 
 bool thread::join() noexcept
@@ -93,17 +98,34 @@ bool thread::join() noexcept
         return false;
     }
 
-    return m_impl.join();
+    if (!m_impl.join())
+    {
+        return false;
+    }
+
+    m_impl.close();
+    return true;
 }
 
 bool thread::detach() noexcept
 {
-    return is_joinable() && m_impl.detach();
+    if (!is_joinable())
+    {
+        return false;
+    }
+
+    if (!m_impl.detach())
+    {
+        return false;
+    }
+
+    m_impl.close();
+    return true;
 }
 
 thread::id this_thread::get_id()
 {
-    return thread_impl::get_current_id();
+    return thread_impl::convert_native_id(thread_impl::get_current_native_id());
 }
 
 } // namespace os

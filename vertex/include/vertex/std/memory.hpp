@@ -241,15 +241,15 @@ VX_ALLOCATOR void* allocate_aligned(const size_t bytes) noexcept
     constexpr size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-    {
-        return err::return_error(err::size_error, nullptr);
-    });
+        {
+            return err::return_error(err::size_error, nullptr);
+        });
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-    {
-        VX_ALLOCATOR_FAILED(nullptr);
-    });
+        {
+            VX_ALLOCATOR_FAILED(nullptr);
+        });
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -268,15 +268,15 @@ VX_ALLOCATOR inline void* allocate_aligned(const size_t bytes, const size_t alig
     const size_t padding = _priv::alignment_padding_size(alignment);
     const size_t block_size = bytes + padding;
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-    {
-        return err::return_error(err::size_error, nullptr);
-    });
+        {
+            return err::return_error(err::size_error, nullptr);
+        });
 
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(allocate(block_size));
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-    {
-        VX_ALLOCATOR_FAILED(nullptr);
-    });
+        {
+            VX_ALLOCATOR_FAILED(nullptr);
+        });
 
     void* const ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -304,18 +304,18 @@ void* reallocate_aligned(void* ptr, size_t bytes) noexcept
     size_t block_size = bytes;
     _priv::adjust_aligned_pointer<alignment>(ptr, block_size);
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-    {
-        return err::return_error(err::size_error, nullptr);
-    });
+        {
+            return err::return_error(err::size_error, nullptr);
+        });
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-    {
-        VX_ALLOCATOR_FAILED(nullptr);
-    });
+        {
+            VX_ALLOCATOR_FAILED(nullptr);
+        });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -340,18 +340,18 @@ inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexc
     size_t block_size = bytes;
     _priv::adjust_aligned_pointer(ptr, block_size, padding);
     VX_UNLIKELY_COLD_PATH(block_size <= bytes,
-    {
-        return err::return_error(err::size_error, nullptr);
-    });
+        {
+            return err::return_error(err::size_error, nullptr);
+        });
 
     VX_DISABLE_MSVC_WARNING_PUSH();
     VX_DISABLE_MSVC_WARNING(6308);
     const uintptr_t block_ptr = reinterpret_cast<uintptr_t>(reallocate(ptr, block_size));
     VX_DISABLE_MSVC_WARNING_POP();
     VX_UNLIKELY_COLD_PATH(block_ptr == 0,
-    {
-        VX_ALLOCATOR_FAILED(nullptr);
-    });
+        {
+            VX_ALLOCATOR_FAILED(nullptr);
+        });
 
     ptr = reinterpret_cast<void*>((block_ptr + padding) & ~(alignment - 1));
     *(static_cast<uintptr_t*>(ptr) - 1) = block_ptr;
@@ -410,7 +410,7 @@ VX_ALLOCATOR inline T* construct(Args&&... args)
 {
     void* raw_ptr = nullptr;
 
-    VX_IF_CONSTEXPR(alignof(T) <= max_align)
+    VX_IF_CONSTEXPR (alignof(T) <= max_align)
     {
         raw_ptr = allocate(sizeof(T));
     }
@@ -436,7 +436,7 @@ VX_ALLOCATOR inline T* construct(Args&&... args)
 template <typename T>
 inline void destroy_in_place(T* ptr)
 {
-    VX_IF_CONSTEXPR(!std::is_trivially_destructible<T>::value)
+    VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
     {
         ptr->~T();
     }
@@ -447,7 +447,7 @@ inline void destroy(T* ptr)
 {
     destroy_in_place(ptr);
 
-    VX_IF_CONSTEXPR(alignof(T) <= max_align)
+    VX_IF_CONSTEXPR (alignof(T) <= max_align)
     {
         deallocate(ptr, sizeof(T));
     }
@@ -489,7 +489,7 @@ template <typename T>
 constexpr bool range_will_overflow(const size_t count) noexcept
 {
     constexpr bool overflow_possible = sizeof(T) > 1;
-    VX_IF_CONSTEXPR(overflow_possible)
+    VX_IF_CONSTEXPR (overflow_possible)
     {
         return count > max_array_size<T>();
     }
@@ -505,7 +505,7 @@ inline bool is_all_bits_zero(const T& x) noexcept
     // checks if scalar type has all bits set to zero
     VX_STATIC_ASSERT(std::is_scalar<T>::value && !std::is_member_pointer<T>::value);
 
-    VX_IF_CONSTEXPR((std::is_same<T, nullptr_t>::value))
+    VX_IF_CONSTEXPR ((std::is_same<T, nullptr_t>::value))
     {
         return true;
     }
@@ -553,7 +553,7 @@ inline T* destroy_range(T* ptr, size_t count) noexcept
 template <typename T, typename U>
 inline T* fill_range(T* ptr, size_t count, const U& value)
 {
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
         set(ptr, value, count * sizeof(T));
@@ -561,7 +561,7 @@ inline T* fill_range(T* ptr, size_t count, const U& value)
     }
     else
     {
-        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<T*, U>::value))
+        VX_IF_CONSTEXPR ((type_traits::is_fill_zero_memset_safe<T*, U>::value))
         {
             if (_priv::is_all_bits_zero(value))
             {
@@ -583,7 +583,7 @@ inline T* fill_range(T* ptr, size_t count, const U& value)
 template <typename T, typename U>
 inline T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
 {
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<T*, U>::value))
+    VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
         set(ptr, value, count * sizeof(T));
@@ -591,7 +591,7 @@ inline T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
     }
     else
     {
-        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<T*, U>::value))
+        VX_IF_CONSTEXPR ((type_traits::is_fill_zero_memset_safe<T*, U>::value))
         {
             if (_priv::is_all_bits_zero(value))
             {
@@ -615,7 +615,7 @@ inline IT fill_range(IT first, IT last, const U& value)
 {
     using T = typename type_traits::value_type<IT>::type;
 
-    VX_IF_CONSTEXPR((type_traits::is_fill_memset_safe<IT, U>::value))
+    VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<IT, U>::value))
     {
         // can optimize with memset
         const size_t count = static_cast<size_t>(std::distance(first, last));
@@ -624,7 +624,7 @@ inline IT fill_range(IT first, IT last, const U& value)
     }
     else
     {
-        VX_IF_CONSTEXPR((type_traits::is_fill_zero_memset_safe<IT, U>::value))
+        VX_IF_CONSTEXPR ((type_traits::is_fill_zero_memset_safe<IT, U>::value))
         {
             if (_priv::is_all_bits_zero(value))
             {
@@ -648,7 +648,7 @@ inline IT fill_range(IT first, IT last, const U& value)
 template <typename T>
 inline T* copy_range(T* dst, const T* src, size_t count)
 {
-    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;
@@ -669,7 +669,7 @@ inline T* copy_range(T* dst, const T* src, size_t count)
 template <typename T>
 inline T* copy_uninitialized_range(T* dst, const T* src, size_t count)
 {
-    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;
@@ -693,7 +693,7 @@ inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
     using T = typename type_traits::value_type<IT1>::type;
     using U = typename type_traits::value_type<IT2>::type;
 
-    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(std::distance(first, last));
         move(dst, first, count * sizeof(T));
@@ -719,7 +719,7 @@ inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
     using T = typename type_traits::value_type<IT1>::type;
     using U = typename type_traits::value_type<IT2>::type;
 
-    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(last - first);
         move(dst, first, count * sizeof(T));
@@ -744,7 +744,7 @@ inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 template <typename T>
 inline T* move_range(T* dst, T* src, size_t count) noexcept
 {
-    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;
@@ -765,7 +765,7 @@ inline T* move_range(T* dst, T* src, size_t count) noexcept
 template <typename T>
 inline T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
 {
-    VX_IF_CONSTEXPR(type_traits::memmove_is_safe<T*>::value)
+    VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
         move(dst, src, count * sizeof(T));
         return dst + count;
@@ -788,7 +788,7 @@ inline IT1 move_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
 
-    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(std::distance(first, last));
         move(dst, first, count * sizeof(T));
@@ -811,7 +811,7 @@ inline IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
 
-    VX_IF_CONSTEXPR((type_traits::memmove_is_safe<IT1, IT2>::value))
+    VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
         const size_t count = static_cast<size_t>(last - first);
         move(dst, first, count * sizeof(T));
@@ -834,7 +834,7 @@ inline IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 template <typename T>
 inline bool equal_range(const T* a, const T* b, size_t count)
 {
-    VX_IF_CONSTEXPR((type_traits::is_bitwise_comparable<T, T>::value))
+    VX_IF_CONSTEXPR ((type_traits::is_bitwise_comparable<T, T>::value))
     {
         return compare(a, b, count * sizeof(T)) == 0;
     }
@@ -865,7 +865,7 @@ inline bool equal_range(IT1 first1, IT1 last1, IT2 first2)
         type_traits::is_bitwise_comparable<T1, T2>::value &&
         type_traits::iterators_are_continguous<IT1, IT2>::value;
 
-    VX_IF_CONSTEXPR(is_bitwise_comparable)
+    VX_IF_CONSTEXPR (is_bitwise_comparable)
     {
         const size_t count = static_cast<size_t>(std::distance(first1, last1));
         return compare(std::addressof(*first1), std::addressof(*first2), count * sizeof(T1)) == 0;
@@ -1013,7 +1013,7 @@ VX_ALLOCATOR inline T* construct_array(const size_t count)
     const size_t size = sizeof(T) * count;
     void* raw_ptr;
 
-    VX_IF_CONSTEXPR(alignof(T) <= mem::max_align)
+    VX_IF_CONSTEXPR (alignof(T) <= mem::max_align)
     {
         raw_ptr = mem::allocate(size);
     }
@@ -1049,7 +1049,7 @@ VX_ALLOCATOR inline T* construct_array(const size_t count, const T& value)
     const size_t size = sizeof(T) * count;
     void* raw_ptr;
 
-    VX_IF_CONSTEXPR(alignof(T) <= mem::max_align)
+    VX_IF_CONSTEXPR (alignof(T) <= mem::max_align)
     {
         raw_ptr = mem::allocate(size);
     }
@@ -1074,7 +1074,7 @@ inline void destroy_array(T* ptr, const size_t count)
     destroy_range(ptr, count);
     const size_t size = sizeof(T) * count;
 
-    VX_IF_CONSTEXPR(alignof(T) <= mem::max_align)
+    VX_IF_CONSTEXPR (alignof(T) <= mem::max_align)
     {
         mem::deallocate(ptr, size);
     }
@@ -1110,26 +1110,27 @@ class default_allocator
 public:
 
     VX_STATIC_ASSERT_MSG(Alignment >= alignof(T), "Alignment must be at alignof(T)");
-    VX_STATIC_ASSERT_MSG(mem::_priv::is_pow_2(Alignment), "Alignment must be power of 2");
+    VX_STATIC_ASSERT_MSG(_priv::is_pow_2(Alignment), "Alignment must be power of 2");
+
     static constexpr size_t alignment = Alignment;
     static constexpr alignment_policy policy = Policy;
 
     VX_ALLOCATOR static T* allocate(const size_t count) noexcept
     {
         VX_UNLIKELY_COLD_PATH(count == 0,
-        {
-            return nullptr;
-        });
+            {
+                return nullptr;
+            });
 
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
+        VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
             return static_cast<T*>(mem::allocate(bytes));
         }
         else
         {
-            return static_cast<T*>(mem::allocate_aligned<alignment>(bytes));
+            return static_cast<T*>(allocate_aligned<alignment>(bytes));
         }
     }
 
@@ -1137,13 +1138,13 @@ public:
     {
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
+        VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
             return static_cast<T*>(mem::reallocate(ptr, bytes));
         }
         else
         {
-            return static_cast<T*>(mem::reallocate_aligned<alignment>(ptr, bytes));
+            return static_cast<T*>(reallocate_aligned<alignment>(ptr, bytes));
         }
     }
 
@@ -1151,19 +1152,19 @@ public:
     {
         const size_t bytes = count * sizeof(T);
 
-        VX_IF_CONSTEXPR(policy == alignment_policy::at_least && alignment <= mem::max_align)
+        VX_IF_CONSTEXPR (policy == alignment_policy::at_least && alignment <= max_align)
         {
             mem::deallocate(ptr, bytes);
         }
         else
         {
-            mem::deallocate_aligned<alignment>(ptr, bytes);
+            deallocate_aligned<alignment>(ptr, bytes);
         }
     }
 };
 
 template <typename T>
-using aligned_allocator = default_allocator<T, mem::ideal_align, alignment_policy::exact>;
+using aligned_allocator = default_allocator<T, ideal_align, alignment_policy::exact>;
 
 } // namespace mem
 } // namespace vx

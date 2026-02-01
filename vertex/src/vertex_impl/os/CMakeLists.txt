@@ -9,31 +9,31 @@ file(GLOB VX_OS_SOURCE_FILES
 
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_file.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/file.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_filesystem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/filesystem.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_locale.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/locale.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_mutex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/mutex.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_process.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/process.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_random.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/random.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_shared_library.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/shared_library.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_system_info.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/system_info.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_thread.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/thread.cpp"
-    
+
     "${CMAKE_CURRENT_SOURCE_DIR}/_platform/platform_time.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/time.cpp"
 )
@@ -67,7 +67,7 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_header.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_tools.cpp"
-        
+
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_file.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_filesystem.cpp"
@@ -86,9 +86,9 @@ if(VX_CMAKE_PLATFORM_WINDOWS)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/windows/windows_time.cpp"
     )
-    
+
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
-    
+
 elseif(VX_CMAKE_PLATFORM_UNIX)
 
     # Source files for linux
@@ -96,7 +96,7 @@ elseif(VX_CMAKE_PLATFORM_UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_header.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_tools.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_tools.cpp"
-        
+
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_file.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_filesystem.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_filesystem.cpp"
@@ -115,7 +115,7 @@ elseif(VX_CMAKE_PLATFORM_UNIX)
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_time.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/_platform/unix/unix_time.cpp"
     )
-    
+
     target_sources(Vertex PRIVATE ${VX_OS_PLATFORM_SOURCE_FILES})
-    
+
 endif()

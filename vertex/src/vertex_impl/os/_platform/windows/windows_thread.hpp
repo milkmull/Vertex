@@ -22,7 +22,7 @@ struct thread_impl
     struct data_t
     {
         os::handle handle;
-        DWORD id = 0;
+        native_id_t id = 0;
     };
 
     //=============================================================================
@@ -50,11 +50,6 @@ struct thread_impl
         return ::GetCurrentThreadId();
     }
 
-    static typename thread::id get_current_id() noexcept
-    {
-        return convert_native_id(get_current_native_id());
-    }
-
     static constexpr native_id_t get_invalid_native_id() noexcept
     {
         return static_cast<native_id_t>(0);
@@ -73,6 +68,7 @@ struct thread_impl
 
     bool compare(const thread_impl& other) const noexcept
     {
+        assert_is_running();
         return data.id == other.data.id;
     }
 
@@ -92,35 +88,26 @@ struct thread_impl
             &id                                                 // Return thread ID (optional)
             ));
 
+        if (!data.handle.is_valid())
+        {
+            return false;
+        }
+
         data.id = static_cast<native_id_t>(id);
-        return data.handle.is_valid();
+        return true;
     }
 
     void close() noexcept
     {
         data.handle.close();
-        data.id = 0;
+        data.id = get_invalid_native_id();
     }
 
-    void exit(unsigned int exit_code = 0) noexcept
+    VX_MAYBE_UNUSED void exit(unsigned int exit_code = 0) noexcept
     {
         assert_is_running();
         ::_endthreadex(exit_code);
         close();
-    }
-
-    bool is_alive() const noexcept
-    {
-        assert_is_running();
-
-        DWORD exit_code = 0;
-        if (!::GetExitCodeThread(data.handle.get(), &exit_code))
-        {
-            windows::error_message("GetExitCodeThread()");
-            return false;
-        }
-
-        return (exit_code == STILL_ACTIVE);
     }
 
     // returns when thread terminates
@@ -135,7 +122,6 @@ struct thread_impl
             return false;
         }
 
-        close();
         return true;
     }
 
@@ -143,11 +129,10 @@ struct thread_impl
     {
         assert_is_running();
         // tell OS to release thread's resources when it terminates
-        close();
         return true;
     }
 
-    thread::id get_native_id() const noexcept
+    thread::id get_id() const noexcept
     {
         assert_is_running();
         return convert_native_id(data.id);
