@@ -893,13 +893,13 @@ inline bool equal_range(IT1 first1, IT1 last1, IT2 first2)
 template <typename T>
 inline bool not_equal_range(const T* a, const T* b, size_t count)
 {
-    return !equal_range(a, b, count);
+    return !mem::equal_range(a, b, count);
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
 inline bool not_equal_range(IT1 first1, IT1 last1, IT2 first2)
 {
-    return !equal_range(first1, last1, first2);
+    return !mem::equal_range(first1, last1, first2);
 }
 
 //=========================================================================

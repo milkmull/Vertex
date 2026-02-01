@@ -3,8 +3,8 @@
 #include <dlfcn.h>
 
 #include "vertex/os/shared_library.hpp"
-#include "vertex_impl/os/_platform/unix/unix_tools.hpp"
 #include "vertex/system/assert.hpp"
+#include "vertex_impl/os/_platform/unix/unix_tools.hpp"
 
 // https://github.com/libsdl-org/SDL/blob/6b13d69105721ac54cd7224b0493065c57776c89/cmake/sdlchecks.cmake#L45
 
@@ -24,7 +24,7 @@ struct shared_library_impl
         h = ::dlopen(lib, RTLD_LAZY);
         if (h == NULL)
         {
-            //VX_ERR(err::system_error) << "failed to load library: " << lib << ": " << ::dlerror();
+            unix_::error_message(lib);
             return false;
         }
 

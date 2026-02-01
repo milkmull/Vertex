@@ -845,7 +845,7 @@ void test_size_and_capacity()
         VX_CHECK(v.size() == 0);
         VX_CHECK(v.capacity() == 0);
 
-        VX_CHECK_AND_EXPECT_NO_ERROR(v.resize(5, 1));
+        VX_CHECK_AND_EXPECT_NO_ERROR(v.resize(5, 1u));
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
@@ -904,19 +904,19 @@ void test_emplace_and_pushback()
         vec<emplace_type> v;
 
         // front
-        auto it0 = v.emplace(v.begin(), 0, 0);
+        auto it0 = v.emplace(v.begin(), 0u, 0u);
         VX_CHECK(it0);
         VX_CHECK(it0 == v.begin());
         VX_CHECK(it0->a == 0 && it0->b == 0);
 
         // back
-        auto it1 = v.emplace(v.end(), 2, 2);
+        auto it1 = v.emplace(v.end(), 2u, 2u);
         VX_CHECK(it1);
         VX_CHECK(it1 == v.end() - 1);
         VX_CHECK(it1->a == 2 && it1->b == 2);
 
         // middle
-        auto it_mid = v.emplace(v.begin() + 1, 1, 1);
+        auto it_mid = v.emplace(v.begin() + 1, 1u, 1u);
         VX_CHECK(it_mid);
         VX_CHECK(it_mid == v.begin() + 1);
         VX_CHECK(it_mid->a == 1 && it_mid->b == 1);
@@ -935,13 +935,13 @@ void test_emplace_and_pushback()
     {
         vec<emplace_type> v;
 
-        auto* p0 = v.emplace_back(1, 2);
+        auto* p0 = v.emplace_back(1u, 2u);
         VX_CHECK(p0);
         VX_CHECK(p0 == v.back());
         VX_CHECK(p0->a == 1);
         VX_CHECK(p0->b == 2);
 
-        auto* p1 = v.emplace_back(3, 4);
+        auto* p1 = v.emplace_back(3u, 4u);
         VX_CHECK(p1);
         VX_CHECK(p1 == v.back());
         VX_CHECK(p1->a == 3);
@@ -1045,7 +1045,7 @@ void test_insert_and_erase()
 {
     constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
 
-VX_SECTION("simple insert / erase")
+    VX_SECTION("simple insert / erase")
     {
         vec<T> v{ T(0), T(1), T(2), T(3), T(4) };
 
@@ -1091,10 +1091,10 @@ VX_SECTION("simple insert / erase")
             vec<T> v;
 
             non_trivial::reset_counters();
-            T x(-1);
+            T x(1);
             auto it = v.insert(v.end(), std::move(x));
 
-            VX_CHECK(*it == -1);
+            VX_CHECK(*it == 1);
             VX_CHECK(non_trivial::move_count == 1);
         }
     }
@@ -1106,10 +1106,10 @@ VX_SECTION("simple insert / erase")
             vec<T> v;
 
             non_trivial::reset_counters();
-            T x(-1);
+            T x(1);
             auto it = v.insert(v.end(), std::move(x));
 
-            VX_CHECK(*it == -1);
+            VX_CHECK(*it == 1);
             VX_CHECK(non_trivial::move_count == 1);
         }
     }
