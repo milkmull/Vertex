@@ -1,7 +1,7 @@
 #pragma once
 
-#include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 #include "vertex/std/_priv/min_max.hpp"
+#include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
 namespace vx {
 namespace _simd {
@@ -220,12 +220,12 @@ struct traits_1_neon : traits_1_base, traits_neon_base
 
     static unsigned long get_first_h_pos(const uint64_t mask) noexcept
     {
-        return _CountTrailingZeros64(mask) >> 2;
+        return static_cast<unsigned long>(bit::countr_zero(mask)) >> 2;
     }
 
     static unsigned long get_last_h_pos(const uint64_t mask) noexcept
     {
-        return 15 - (_CountLeadingZeros64(mask) >> 2);
+        return 15 - (static_cast<unsigned long>(bit::countl_zero(mask)) >> 2);
     }
 
     static vec_t load(const void* const src) noexcept
@@ -627,12 +627,12 @@ struct traits_2_neon : traits_2_base, traits_neon_base
 
     static unsigned long get_first_h_pos(const uint64_t mask) noexcept
     {
-        return _CountTrailingZeros64(mask) >> 2;
+        return static_cast<unsigned long>(bit::countr_zero(mask)) >> 2;
     }
 
     static unsigned long get_last_h_pos(const uint64_t mask) noexcept
     {
-        return 15 - (_CountLeadingZeros64(mask) >> 2);
+        return 15 - (static_cast<unsigned long>(bit::countl_zero(mask)) >> 2);
     }
 
     static vec_t load(const void* const src) noexcept
@@ -1034,12 +1034,12 @@ struct traits_4_neon : traits_4_base, traits_neon_base
 
     static unsigned long get_first_h_pos(const uint64_t mask) noexcept
     {
-        return _CountTrailingZeros64(mask) >> 2;
+        return static_cast<unsigned long>(bit::countr_zero(mask)) >> 2;
     }
 
     static unsigned long get_last_h_pos(const uint64_t mask) noexcept
     {
-        return 15 - (_CountLeadingZeros64(mask) >> 2);
+        return 15 - (static_cast<unsigned long>(bit::countl_zero(mask)) >> 2);
     }
 
     static vec_t load(const void* const src) noexcept
@@ -1411,7 +1411,7 @@ struct traits_8_neon : traits_8_base, traits_neon_base
 
     static unsigned long get_first_h_pos(const uint64_t mask) noexcept
     {
-        return _CountTrailingZeros64(mask) >> 2;
+        return static_cast<unsigned long>(bit::countr_zero(mask)) >> 2;
     }
 
     static vec_t load(const void* const src) noexcept
@@ -2170,7 +2170,7 @@ struct traits_d_neon : traits_d_base, traits_neon_base
 
     static unsigned long get_last_h_pos(const uint64_t mask) noexcept
     {
-        return 15 - (_CountLeadingZeros64(mask) >> 2);
+        return 15 - (static_cast<unsigned long>(bit::countl_zero(mask)) >> 2);
     }
 
     static vec_t load(const void* const src) noexcept
@@ -2663,37 +2663,37 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
 
 #if defined(USE_ARM_NEON)
 
-        const auto cmp_gt_wrap = [](const auto first, const auto second) noexcept
+        const auto cmp_gt_wrap = [](const auto a, const auto b) noexcept
         {
             VX_IF_CONSTEXPR (sign || !Traits::has_unsigned_cmp)
             {
-                return Traits::cmp_gt(first, second);
+                return Traits::cmp_gt(a, b);
             }
             else
             {
-                return Traits::cmp_gt_u(first, second);
+                return Traits::cmp_gt_u(a, b);
             }
         };
-        const auto min_wrap = [](const auto first, const auto second, const auto mask) noexcept
+        const auto min_wrap = [](const auto a, const auto b, const auto mask) noexcept
         {
             VX_IF_CONSTEXPR (sign || !Traits::has_unsigned_cmp)
             {
-                return Traits::min(first, second, mask);
+                return Traits::min(a, b, mask);
             }
             else
             {
-                return Traits::min_u(first, second, mask);
+                return Traits::min_u(a, b, mask);
             }
         };
-        const auto max_wrap = [](const auto first, const auto second, const auto mask) noexcept
+        const auto max_wrap = [](const auto a, const auto b, const auto mask) noexcept
         {
             VX_IF_CONSTEXPR (sign || !Traits::has_unsigned_cmp)
             {
-                return Traits::max(first, second, mask);
+                return Traits::max(a, b, mask);
             }
             else
             {
-                return Traits::max_u(first, second, mask);
+                return Traits::max_u(a, b, mask);
             }
         };
         const auto h_min_wrap = [](const auto vals) noexcept
@@ -2721,17 +2721,17 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
 
 #else
 
-        const auto cmp_gt_wrap = [](const auto first, const auto second) noexcept
+        const auto cmp_gt_wrap = [](const auto a, const auto b) noexcept
         {
-            return Traits::cmp_gt(first, second);
+            return Traits::cmp_gt(a, b);
         };
-        const auto min_wrap = [](const auto first, const auto second, const auto mask) noexcept
+        const auto min_wrap = [](const auto a, const auto b, const auto mask) noexcept
         {
-            return Traits::min(first, second, mask);
+            return Traits::min(a, b, mask);
         };
-        const auto max_wrap = [](const auto first, const auto second, const auto mask) noexcept
+        const auto max_wrap = [](const auto a, const auto b, const auto mask) noexcept
         {
-            return Traits::max(first, second, mask);
+            return Traits::max(a, b, mask);
         };
         const auto h_min_wrap = [](const auto vals) noexcept
         { return Traits::h_min(vals); };
@@ -2740,35 +2740,35 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
 
 #endif
 
-        const auto update_min_max = [&](const auto cur_vals, VX_MAYBE_UNUSED const auto blend_idx_0, const auto blend_idx_1) noexcept
+        const auto update_min_max = [&](const auto vals, VX_MAYBE_UNUSED const auto blend_idx_0, const auto blend_idx_1) noexcept
         {
             VX_IF_CONSTEXPR ((mode & mode_min) != 0)
             {
                 // Looking for the first occurrence of minimum, don't overwrite with newly found occurrences
-                const auto is_less = cmp_gt_wrap(cur_vals_min, cur_vals); // cur_vals < cur_vals_min
+                const auto is_less = cmp_gt_wrap(cur_vals_min, vals); // vals < cur_vals_min
                 // Remember their vertical indices
                 cur_idx_min = blend_idx_1(cur_idx_min, cur_idx, Traits::mask_cast(is_less));
-                cur_vals_min = min_wrap(cur_vals_min, cur_vals, is_less); // Update the current minimum
+                cur_vals_min = min_wrap(cur_vals_min, vals, is_less); // Update the current minimum
             }
 
             VX_IF_CONSTEXPR (mode == mode_max)
             {
                 // Looking for the first occurrence of maximum, don't overwrite with newly found occurrences
-                // cur_vals > cur_vals_max
-                const auto is_greater = cmp_gt_wrap(cur_vals, cur_vals_max);
+                // vals > cur_vals_max
+                const auto is_greater = cmp_gt_wrap(vals, cur_vals_max);
                 // Remember their vertical indices
                 cur_idx_max = blend_idx_1(cur_idx_max, cur_idx, Traits::mask_cast(is_greater));
                 // Update the current maximum
-                cur_vals_max = max_wrap(cur_vals_max, cur_vals, is_greater);
+                cur_vals_max = max_wrap(cur_vals_max, vals, is_greater);
             }
             else VX_IF_CONSTEXPR (mode == mode_both)
             {
                 // Looking for the last occurrence of maximum, do overwrite with newly found occurrences
-                // !(cur_vals >= cur_vals_max)
-                const auto is_less = cmp_gt_wrap(cur_vals_max, cur_vals);
+                // !(vals >= cur_vals_max)
+                const auto is_less = cmp_gt_wrap(cur_vals_max, vals);
                 // Remember their vertical indices
                 cur_idx_max = blend_idx_0(cur_idx_max, cur_idx, Traits::mask_cast(is_less));
-                cur_vals_max = max_wrap(cur_vals, cur_vals_max, is_less); // Update the current maximum
+                cur_vals_max = max_wrap(vals, cur_vals_max, is_less); // Update the current maximum
             }
         };
 
@@ -2880,7 +2880,10 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
                     const auto h_max = h_max_wrap(cur_vals_max);
                     const auto h_max_val = Traits::get_any(h_max); // Get any element of it
 
-                    if (mode == mode_both && cur_max_val <= h_max_val || mode == mode_max && cur_max_val < h_max_val)
+                    VX_DISABLE_WARNING_PUSH()
+                    VX_DISABLE_WARNING("-Wparentheses", 0)
+
+                    if ((mode == mode_both) && (cur_max_val <= h_max_val) || (mode == mode_max) && (cur_max_val < h_max_val))
                     {
                         // max_element: current horizontal max is greater than the old, update max
                         // minmax_element: current horizontal max is not less than the old, update max
@@ -2932,6 +2935,8 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
                         // Finally, compute the pointer
                         res.max = base + v_pos * Traits::vec_size + h_pos;
                     }
+
+                    VX_DISABLE_WARNING_POP()
                 }
                 // Horizontal part done, results are saved, now need to see if there is another portion.
 
@@ -3008,7 +3013,7 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
             }
             else
             {
-                return min_tail(first, last, res.min, static_cast<UT>(cur_min_val + correction));
+                return min_tail(first, last, res.min, static_cast<UT>(cur_min_val) + correction);
             }
         }
         else VX_IF_CONSTEXPR (mode == mode_max)
@@ -3019,7 +3024,7 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
             }
             else
             {
-                return max_tail(first, last, res.max, static_cast<UT>(cur_max_val + correction));
+                return max_tail(first, last, res.max, static_cast<UT>(cur_max_val) + correction);
             }
         }
         else
@@ -3035,7 +3040,7 @@ auto minmax_element_impl(const void* first, const void* const last, const bool s
             }
             else
             {
-                return both_tail(first, last, res, static_cast<UT>(cur_min_val + correction), static_cast<UT>(cur_max_val + correction));
+                return both_tail(first, last, res, static_cast<UT>(cur_min_val) + correction, static_cast<UT>(cur_max_val) + correction);
             }
         }
     }
@@ -3070,29 +3075,33 @@ auto VX_STDCALL minmax_element_disp(
         return minmax_element_impl<mode, typename Traits::scalar, false>(first, last);
     }
 
-#elif defined(USE_X86)
+#else
 
-    #if defined(USE_AVX2)
+    #if defined(USE_X86)
+
+        #if defined(USE_AVX2)
 
     if (byte_length(first, last) >= 32)
     {
         return minmax_element_impl<mode, typename Traits::avx>(first, last, sign);
     }
 
-    #endif
+        #endif
 
-    #if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
     if (byte_length(first, last) >= 16)
     {
         return minmax_element_impl<mode, typename Traits::sse>(first, last, sign);
     }
 
+        #endif
+
     #endif
 
-#endif
-
     return minmax_element_impl<mode, typename Traits::scalar>(first, last, sign);
+
+#endif
 }
 
 template <min_max_mode mode, typename Traits, bool sign, bool unrolled = false>
@@ -3132,19 +3141,19 @@ auto minmax_impl(const void* first, const void* const last) noexcept
             cur_vals_max[lane] = cur_vals[lane];
         }
 
-        const auto update_min_max = [&](const auto cur_vals, size_t lane = 0) noexcept
+        const auto update_min_max = [&](const auto vals, size_t lane = 0) noexcept
         {
             VX_IF_CONSTEXPR ((mode & mode_min) != 0)
             {
                 VX_IF_CONSTEXPR (sign || sign_correction)
                 {
                     cur_vals_min[lane] =
-                        Traits::min(cur_vals_min[lane], cur_vals); // Update the current minimum
+                        Traits::min(cur_vals_min[lane], vals); // Update the current minimum
                 }
                 else
                 {
                     cur_vals_min[lane] =
-                        Traits::min_u(cur_vals_min[lane], cur_vals); // Update the current minimum
+                        Traits::min_u(cur_vals_min[lane], vals); // Update the current minimum
                 }
             }
 
@@ -3153,12 +3162,12 @@ auto minmax_impl(const void* first, const void* const last) noexcept
                 VX_IF_CONSTEXPR (sign || sign_correction)
                 {
                     cur_vals_max[lane] =
-                        Traits::max(cur_vals_max[lane], cur_vals); // Update the current maximum
+                        Traits::max(cur_vals_max[lane], vals); // Update the current maximum
                 }
                 else
                 {
                     cur_vals_max[lane] =
-                        Traits::max_u(cur_vals_max[lane], cur_vals); // Update the current maximum
+                        Traits::max_u(cur_vals_max[lane], vals); // Update the current maximum
                 }
             }
         };
@@ -3260,7 +3269,7 @@ auto minmax_impl(const void* first, const void* const last) noexcept
 
                         // Vector populated by the smallest element
                         const auto h_min = Traits::h_min_u(cur_vals_min[0]);
-                        cur_min_val = Traits::get_any(h_min); // Get any element of it
+                        cur_min_val = static_cast<T>(Traits::get_any(h_min)); // Get any element of it
                     }
                 }
 
@@ -3278,7 +3287,7 @@ auto minmax_impl(const void* first, const void* const last) noexcept
 
                         // Vector populated by the largest element
                         const auto h_max = Traits::h_max(cur_vals_max[0]);
-                        cur_max_val = Traits::get_any(h_max); // Get any element of it
+                        cur_max_val = static_cast<T>(Traits::get_any(h_max)); // Get any element of it
                     }
                     else
                     {
@@ -3292,7 +3301,7 @@ auto minmax_impl(const void* first, const void* const last) noexcept
 
                         // Vector populated by the largest element
                         const auto h_max = Traits::h_max_u(cur_vals_max[0]);
-                        cur_max_val = Traits::get_any(h_max); // Get any element of it
+                        cur_max_val = static_cast<T>(Traits::get_any(h_max)); // Get any element of it
                     }
                 }
 
@@ -3328,12 +3337,12 @@ auto minmax_impl(const void* first, const void* const last) noexcept
 // Avoid auto-vectorization of the scalar tail, as this is not beneficial for performance.
 #if defined(_MSC_VER)
     #pragma loop(no_vector)
-#elif defined(__clang__)
-    _Pragma("clang loop vectorize(disable)")
-#elif defined(__GNUC__)
-    #if __GNUC__ >= 10
-    _Pragma("GCC loop vectorize(disable)")
-    #endif
+//#elif defined(__clang__)
+//    #pragma clang loop vectorize(disable)
+//#elif defined(__GNUC__)
+//    #if __GNUC__ >= 10
+//        #pragma GCC loop vectorize(disable)
+//    #endif
 #endif
 
     for (auto ptr = static_cast<const T*>(first); ptr != last; ++ptr)
@@ -3696,7 +3705,8 @@ const void* VX_STDCALL min_element_4(
     return _sort::minmax_element_disp<_sort::mode_min, _sort::traits_4>(first, last, signed_);
 }
 
-#ifndef _M_ARM64
+#if !defined(USE_ARM_NEON)
+
 const void* VX_STDCALL min_element_8(
     const void* const first,
     const void* const last,
@@ -3704,7 +3714,8 @@ const void* VX_STDCALL min_element_8(
 {
     return _sort::minmax_element_disp<_sort::mode_min, _sort::traits_8>(first, last, signed_);
 }
-#endif // ^^^ !defined(_M_ARM64) ^^^
+
+#endif // !defined(USE_ARM_NEON)
 
 // TRANSITION, ABI: remove unused `bool`
 const void* VX_STDCALL min_element_f(const void* const first, const void* const last, bool) noexcept
@@ -3742,7 +3753,8 @@ const void* VX_STDCALL max_element_4(
     return _sort::minmax_element_disp<_sort::mode_max, _sort::traits_4>(first, last, signed_);
 }
 
-#ifndef _M_ARM64
+#if !defined(USE_ARM_NEON)
+
 const void* VX_STDCALL max_element_8(
     const void* const first,
     const void* const last,
@@ -3750,7 +3762,8 @@ const void* VX_STDCALL max_element_8(
 {
     return _sort::minmax_element_disp<_sort::mode_max, _sort::traits_8>(first, last, signed_);
 }
-#endif // ^^^ !defined(_M_ARM64) ^^^
+
+#endif // !defined(USE_ARM_NEON)
 
 // TRANSITION, ABI: remove unused `bool`
 const void* VX_STDCALL max_element_f(const void* const first, const void* const last, bool) noexcept
@@ -3788,7 +3801,8 @@ _priv::min_max_element_t VX_STDCALL minmax_element_4(
     return _sort::minmax_element_disp<_sort::mode_both, _sort::traits_4>(first, last, signed_);
 }
 
-#ifndef _M_ARM64
+#if !defined(USE_ARM_NEON)
+
 _priv::min_max_element_t VX_STDCALL minmax_element_8(
     const void* const first,
     const void* const last,
@@ -3796,7 +3810,8 @@ _priv::min_max_element_t VX_STDCALL minmax_element_8(
 {
     return _sort::minmax_element_disp<_sort::mode_both, _sort::traits_8>(first, last, signed_);
 }
-#endif // ^^^ !defined(_M_ARM64) ^^^
+
+#endif // !defined(USE_ARM_NEON)
 
 // TRANSITION, ABI: remove unused `bool`
 _priv::min_max_element_t VX_STDCALL minmax_element_f(const void* const first, const void* const last, bool) noexcept
@@ -4046,9 +4061,11 @@ const void* VX_STDCALL is_sorted_until_d(
 // sorted range impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _sorted_range {
 
-#if defined(USE_AVX2)
+    #if defined(USE_AVX2)
 
 struct traits_avx
 {
@@ -4135,11 +4152,11 @@ struct traits_8_avx : traits_avx
 {
     static __m256i broadcast(const uint64_t data) noexcept
     {
-    #if defined(VX_ARCH_WORD_BITS_64)
+        #if defined(VX_ARCH_WORD_BITS_64)
         return _mm256_broadcastq_epi64(_mm_cvtsi64x_si128(data));
-    #else
+        #else
         return _mm256_set1_epi64x(data);
-    #endif
+        #endif
     }
 
     static __m256i cmp_gt(const __m256i first, const __m256i second) noexcept
@@ -4153,16 +4170,16 @@ struct traits_8_avx : traits_avx
     }
 };
 
-#else
+    #else
 
 using traits_1_avx = void;
 using traits_2_avx = void;
 using traits_4_avx = void;
 using traits_8_avx = void;
 
-#endif // defined(USE_AVX2)
+    #endif // defined(USE_AVX2)
 
-#if defined(USE_SSE2)
+    #if defined(USE_SSE2)
 
 struct traits_sse
 {
@@ -4247,11 +4264,11 @@ struct traits_8_sse : traits_sse
 {
     static __m128i broadcast(const uint64_t data) noexcept
     {
-    #if defined(VX_ARCH_WORD_BITS_64)
+        #if defined(VX_ARCH_WORD_BITS_64)
         return _mm_shuffle_epi32(_mm_cvtsi64x_si128(data), _MM_SHUFFLE(1, 0, 1, 0));
-    #else
+        #else
         return _mm_set1_epi64x(data);
-    #endif
+        #endif
     }
 
     static __m128i cmp_gt(const __m128i first, const __m128i second) noexcept
@@ -4265,14 +4282,14 @@ struct traits_8_sse : traits_sse
     }
 };
 
-#else
+    #else
 
 using traits_1_sse = void;
 using traits_2_sse = void;
 using traits_4_sse = void;
 using traits_8_sse = void;
 
-#endif // defined(USE_SSE2)
+    #endif // defined(USE_SSE2)
 
 template <typename Traits, typename T>
 bool includes_impl(
@@ -4371,7 +4388,7 @@ bool includes_impl(
             const size_t tail_bytes_size_1 = size_bytes_1 & Traits::tail_mask;
             if (tail_bytes_size_1 != 0)
             {
-#if defined(USE_AVX2)
+    #if defined(USE_AVX2)
 
                 // Just try to advance past less one more time.
                 // Don't need to repeat the scalar part here - falling to scalar loop anyway.
@@ -4393,7 +4410,7 @@ bool includes_impl(
                     advance_bytes(first1, skip);
                 }
 
-#endif // defined(USE_AVX2)
+    #endif // defined(USE_AVX2)
             }
         }
 
@@ -4450,23 +4467,23 @@ bool VX_STDCALL includes_disp(const void* const first1, const void* const last1,
         return false;
     }
 
-#if defined(USE_AVX2)
+    #if defined(USE_AVX2)
 
     if (size_bytes_1 >= 32)
     {
         return includes_impl<traits_avx, T>(first1, last1, first2, last2);
     }
 
-#endif // defined(USE_AVX2)
+    #endif // defined(USE_AVX2)
 
-#if defined(USE_SSE2)
+    #if defined(USE_SSE2)
 
     if (size_bytes_1 >= 16)
     {
         return includes_impl<traits_sse, T>(first1, last1, first2, last2);
     }
 
-#endif // defined(USE_SSE2)
+    #endif // defined(USE_SSE2)
 
     return includes_impl<void, T>(first1, last1, first2, last2);
 }
@@ -4560,6 +4577,8 @@ VX_NO_ALIAS bool VX_STDCALL includes_less_8u(
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

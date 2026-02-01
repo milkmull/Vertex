@@ -32,7 +32,7 @@ VX_ALLOCATOR inline void* allocate(const size_t bytes) noexcept
     return ::malloc(bytes);
 }
 
-inline void deallocate(void* ptr, const size_t bytes) noexcept
+inline void deallocate(void* ptr, VX_MAYBE_UNUSED const size_t bytes) noexcept
 {
     ::free(ptr);
 }
@@ -691,7 +691,7 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    using U = typename type_traits::value_type<IT2>::type;
+    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {
@@ -717,7 +717,7 @@ template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>
 inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
-    using U = typename type_traits::value_type<IT2>::type;
+    //using U = typename type_traits::value_type<IT2>::type;
 
     VX_IF_CONSTEXPR ((type_traits::memmove_is_safe<IT1, IT2>::value))
     {

@@ -27,7 +27,8 @@ inline void clear_error() noexcept
 
 inline void error_message(const char* msg) noexcept
 {
-    const size_t msg_size = std::strlen(msg);
+    VX_UNUSED(msg);
+    //const size_t msg_size = std::strlen(msg);
 
     //VX_ERR(err::system_error)
     //    << msg

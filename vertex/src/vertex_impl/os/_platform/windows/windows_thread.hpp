@@ -35,9 +35,9 @@ struct thread_impl
     // id helpers
     //=============================================================================
 
-    static constexpr typename thread_id convert_native_id(native_id_t id) noexcept
+    static constexpr thread_id convert_native_id(native_id_t id) noexcept
     {
-        return static_cast<typename thread_id>(id);
+        return static_cast<thread_id>(id);
     }
 
     static bool compare_native_id(native_id_t lhs, native_id_t rhs) noexcept
@@ -72,7 +72,7 @@ struct thread_impl
         return data.id == other.data.id;
     }
 
-    bool start(void* fn, void* arg)
+    bool start(thread::thread_fn_t fn, void* arg)
     {
         VX_ASSERT_MESSAGE(!is_valid(), "thread already started");
 
@@ -80,12 +80,12 @@ struct thread_impl
 
         // Windows specific thread start using _beginthreadex
         data.handle = reinterpret_cast<HANDLE>(::_beginthreadex(
-            NULL,                                               // Security attributes (use default)
-            0,                                                  // Stack size (use default)
-            reinterpret_cast<unsigned(VX_STDCALL*)(void*)>(fn), // Entry point function
-            arg,                                                // Argument to the thread function
-            0,                                                  // Creation flags (0 for default behavior)
-            &id                                                 // Return thread ID (optional)
+            NULL,   // Security attributes (use default)
+            0,      // Stack size (use default)
+            fn,     // Entry point function
+            arg,    // Argument to the thread function
+            0,      // Creation flags (0 for default behavior)
+            &id     // Return thread ID (optional)
             ));
 
         if (!data.handle.is_valid())

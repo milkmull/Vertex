@@ -9,6 +9,8 @@ namespace _simd {
 // mismatch impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _mismatch {
 
 template <typename T>
@@ -145,6 +147,8 @@ VX_NO_ALIAS size_t VX_STDCALL mismatch_8(
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

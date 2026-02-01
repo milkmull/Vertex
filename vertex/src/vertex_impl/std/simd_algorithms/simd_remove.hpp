@@ -9,6 +9,8 @@ namespace _simd {
 // remove impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _remove {
 
 template <typename T>
@@ -949,6 +951,8 @@ void* VX_STDCALL unique_copy_8(const void* first, const void* const last, void* 
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

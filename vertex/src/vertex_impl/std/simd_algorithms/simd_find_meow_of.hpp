@@ -5,6 +5,8 @@
 namespace vx {
 namespace _simd {
 
+#if !defined(USE_ARM_NEON)
+
 //=============================================================================
 // find meow of impl
 //=============================================================================
@@ -58,7 +60,7 @@ __m256i load_avx_256_8(const T* const src) noexcept
     }
     else
     {
-        VX_STATIC_ASSERT_MSG(false, "Unexpected size");
+        VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "unexpected size");
     }
 }
 
@@ -92,7 +94,7 @@ __m256i load_avx_256_8_last(const T* const src, const size_t count) noexcept
     }
     else
     {
-        VX_STATIC_ASSERT_MSG(false, "Unexpected size");
+        VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "unexpected size");
     }
 }
 
@@ -283,7 +285,7 @@ bool use_bitmap_avx(const size_t count1, const size_t count2) noexcept
     }
     else
     {
-        VX_STATIC_ASSERT_MSG(false, "unexpected size");
+        VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "unexpected size");
     }
 }
 
@@ -370,7 +372,7 @@ bool use_bitmap_scalar(const size_t count1, const size_t count2) noexcept
     }
     else
     {
-        VX_STATIC_ASSERT_MSG(false, "unexpected size");
+        VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "unexpected size");
     }
 }
 
@@ -426,7 +428,7 @@ bool can_fit_256_bits_sse(const T* needle_ptr, const size_t needle_length) noexc
         }
         else
         {
-            VX_STATIC_ASSERT_MSG(false, "Unexpected size");
+            VX_STATIC_ASSERT_MSG((!std::is_same<T, T>::value), "unexpected size");
         }
 
         const size_t byte_size = needle_length * sizeof(T);
@@ -1421,7 +1423,7 @@ size_t VX_STDCALL dispatch_pos(const void* const first1, const size_t count1, co
 
 #if defined(USE_SSE2)
 
-    VX_IF_CONSTEXPR (sizeof(T) <= 2)
+        VX_IF_CONSTEXPR (sizeof(T) <= 2)
     {
         return dispatch_pos_sse_1_2<T, Pred>(first1, count1, first2, count2);
     }
@@ -1864,6 +1866,8 @@ VX_NO_ALIAS size_t VX_STDCALL find_last_not_of_trivial_pos_2(const void* const h
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

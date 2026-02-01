@@ -225,12 +225,12 @@ struct find_traits_8
 
 unsigned long get_first_h_pos_q(const uint64_t mask) noexcept
 {
-    return countTrailingZeros64(mask) >> 2;
+    return static_cast<unsigned long>(bit::countr_zero(mask)) >> 2;
 }
 
 unsigned long get_first_h_pos_d(const uint64_t mask) noexcept
 {
-    return countTrailingZeros64(mask) >> 3;
+    return static_cast<unsigned long>(bit::countr_zero(mask)) >> 3;
 }
 
 #elif defined(USE_X86)

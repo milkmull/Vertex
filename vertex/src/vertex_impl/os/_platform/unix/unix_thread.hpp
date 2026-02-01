@@ -1,12 +1,10 @@
 #pragma once
 
-#include <cassert>
-#include <cerrno>
-#include <cstring> // for strerror
 #include <pthread.h>
 
 #include "vertex/os/thread.hpp"
 #include "vertex/system/assert.hpp"
+#include "vertex_impl/os/_platform/unix/unix_tools.hpp"
 
 namespace vx {
 namespace os {
@@ -36,7 +34,7 @@ struct thread_impl
     // id helpers
     //=============================================================================
 
-    static constexpr typename thread_id convert_native_id(native_id_t id) noexcept
+    static constexpr thread_id convert_native_id(native_id_t id) noexcept
     {
         // pthread_t is usually a pointer or unsigned long, so cast to uintptr_t then to thread_id
         return static_cast<thread_id>(reinterpret_cast<uintptr_t>(id));
@@ -73,7 +71,7 @@ struct thread_impl
         return compare_native_id(data.handle, other.data.handle);
     }
 
-    bool start(void* (*fn)(void*), void* arg)
+    bool start(thread::thread_fn_t fn, void* arg)
     {
         VX_ASSERT_MESSAGE(!is_valid(), "thread already started");
 
@@ -81,7 +79,7 @@ struct thread_impl
         const int result = pthread_create(&thread, nullptr, fn, arg);
         if (result != 0)
         {
-            // optional: log strerror(result)
+            unix_::error_message("pthread_create()");
             return false;
         }
 
@@ -108,7 +106,7 @@ struct thread_impl
         const int result = pthread_join(data.handle, nullptr);
         if (result != 0)
         {
-            // optional: log strerror(result)
+            unix_::error_message("pthread_join()");
             return false;
         }
 
@@ -122,7 +120,7 @@ struct thread_impl
         const int result = pthread_detach(data.handle);
         if (result != 0)
         {
-            // optional: log strerror(result)
+            unix_::error_message("pthread_detach()");
             return false;
         }
 

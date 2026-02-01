@@ -9,6 +9,8 @@ namespace _simd {
 // replace impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _replace {
 
 template <typename Traits, typename T>
@@ -229,6 +231,8 @@ VX_NO_ALIAS void VX_STDCALL replace_copy_8(const void* const first, const void* 
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

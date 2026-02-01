@@ -25,26 +25,27 @@ namespace windows {
 
 void error_message(const char* msg)
 {
-    const size_t msg_size = std::strlen(msg);
-
-    DWORD code = ::GetLastError();
-    WCHAR buffer[1024]{};
-
-    ::FormatMessageW(
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL, code, 0,
-        buffer, static_cast<DWORD>(mem::array_size(buffer)), NULL
-    );
-
-    // Kill CR/LF that FormatMessage() sticks at the end
-    for (WCHAR* it = buffer; *it; ++it)
-    {
-        if (*it == L'\r')
-        {
-            *it = 0;
-            break;
-        }
-    }
+    VX_UNUSED(msg);
+    //const size_t msg_size = std::strlen(msg);
+    //
+    //DWORD code = ::GetLastError();
+    //WCHAR buffer[1024]{};
+    //
+    //::FormatMessageW(
+    //    FORMAT_MESSAGE_FROM_SYSTEM,
+    //    NULL, code, 0,
+    //    buffer, static_cast<DWORD>(mem::array_size(buffer)), NULL
+    //);
+    //
+    //// Kill CR/LF that FormatMessage() sticks at the end
+    //for (WCHAR* it = buffer; *it; ++it)
+    //{
+    //    if (*it == L'\r')
+    //    {
+    //        *it = 0;
+    //        break;
+    //    }
+    //}
 
     //VX_ERR(vx::err::system_error)
     //    << msg

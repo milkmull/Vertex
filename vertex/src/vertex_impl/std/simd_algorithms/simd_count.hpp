@@ -9,13 +9,15 @@ namespace _simd {
 // count impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _count {
 
-#if defined(USE_X86)
+    #if defined(USE_X86)
 
 struct count_traits_8 : _find::find_traits_8
 {
-    #if defined(USE_AVX2)
+        #if defined(USE_AVX2)
 
     static __m256i sub_avx(const __m256i lhs, const __m256i rhs) noexcept
     {
@@ -30,9 +32,9 @@ struct count_traits_8 : _find::find_traits_8
         return reduce_sse(rx8);
     }
 
-    #endif // defined(USE_AVX2)
+        #endif // defined(USE_AVX2)
 
-    #if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
     static __m128i sub_sse(const __m128i lhs, const __m128i rhs) noexcept
     {
@@ -41,14 +43,14 @@ struct count_traits_8 : _find::find_traits_8
 
     static size_t reduce_sse(const __m128i val) noexcept
     {
-        #if defined(VX_ARCH_WORD_BITS_32)
+            #if defined(VX_ARCH_WORD_BITS_32)
         return static_cast<uint32_t>(_mm_cvtsi128_si32(val)) + static_cast<uint32_t>(_mm_extract_epi32(val, 2));
-        #else  // // ^^^ 32-bit / 64-bit vvv
+            #else  // // ^^^ 32-bit / 64-bit vvv
         return _mm_cvtsi128_si64(val) + _mm_extract_epi64(val, 1);
-        #endif // ^^^ 64-bit ^^^
+            #endif // ^^^ 64-bit ^^^
     }
 
-    #endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 };
 
 struct count_traits_4 : _find::find_traits_4
@@ -62,7 +64,7 @@ struct count_traits_4 : _find::find_traits_4
 
     static constexpr size_t max_count = 0x1FFF'FFFF;
 
-    #if defined(USE_AVX2)
+        #if defined(USE_AVX2)
 
     static __m256i sub_avx(const __m256i lhs, const __m256i rhs) noexcept
     {
@@ -79,9 +81,9 @@ struct count_traits_4 : _find::find_traits_4
         return static_cast<uint32_t>(_mm_cvtsi128_si32(_mm256_castsi256_si128(rx7)));
     }
 
-    #endif // defined(USE_AVX2)
+        #endif // defined(USE_AVX2)
 
-    #if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
     static __m128i sub_sse(const __m128i lhs, const __m128i rhs) noexcept
     {
@@ -95,7 +97,7 @@ struct count_traits_4 : _find::find_traits_4
         return static_cast<uint32_t>(_mm_cvtsi128_si32(rx5));
     }
 
-    #endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 };
 
 struct count_traits_2 : _find::find_traits_2
@@ -105,7 +107,7 @@ struct count_traits_2 : _find::find_traits_2
 
     static constexpr size_t max_count = 0x7FFF;
 
-    #if defined(USE_AVX2)
+        #if defined(USE_AVX2)
 
     static __m256i sub_avx(const __m256i lhs, const __m256i rhs) noexcept
     {
@@ -119,9 +121,9 @@ struct count_traits_2 : _find::find_traits_2
         return count_traits_4::reduce_avx(rx3);
     }
 
-    #endif // defined(USE_AVX2)
+        #endif // defined(USE_AVX2)
 
-    #if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
     static __m128i sub_sse(const __m128i lhs, const __m128i rhs) noexcept
     {
@@ -135,7 +137,7 @@ struct count_traits_2 : _find::find_traits_2
         return count_traits_4::reduce_sse(rx3);
     }
 
-    #endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 };
 
 struct count_traits_1 : _find::find_traits_1
@@ -151,7 +153,7 @@ struct count_traits_1 : _find::find_traits_1
 
     static constexpr size_t max_count = 0xFF;
 
-    #if defined(VX_USE_AVX2)
+        #if defined(VX_USE_AVX2)
 
     static __m256i sub_avx(const __m256i lhs, const __m256i rhs) noexcept
     {
@@ -164,9 +166,9 @@ struct count_traits_1 : _find::find_traits_1
         return count_traits_8::reduce_avx(rx1);
     }
 
-    #endif // defined(USE_AVX2
+        #endif // defined(USE_AVX2
 
-    #if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
     static __m128i sub_sse(const __m128i lhs, const __m128i rhs) noexcept
     {
@@ -179,10 +181,17 @@ struct count_traits_1 : _find::find_traits_1
         return count_traits_8::reduce_sse(rx1);
     }
 
-    #endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 };
 
-#endif
+    #else
+
+using count_traits_1 = void;
+using count_traits_2 = void;
+using count_traits_4 = void;
+using count_traits_8 = void;
+
+    #endif
 
 template <typename Traits, typename T>
 VX_NO_ALIAS size_t VX_STDCALL count_impl(
@@ -193,7 +202,7 @@ VX_NO_ALIAS size_t VX_STDCALL count_impl(
     size_t result = 0;
     const size_t size_bytes = byte_length(first, last);
 
-#if defined(USE_AVX2)
+    #if defined(USE_AVX2)
 
     if (size_t avx_size = size_bytes & ~size_t{ 0x1F }; avx_size != 0)
     {
@@ -258,7 +267,7 @@ VX_NO_ALIAS size_t VX_STDCALL count_impl(
         }
     }
 
-#elif defined(USE_SSE2)
+    #elif defined(USE_SSE2)
 
     if (size_t sse_size = size_bytes & ~size_t{ 0xF }; sse_size != 0)
     {
@@ -305,7 +314,7 @@ VX_NO_ALIAS size_t VX_STDCALL count_impl(
         }
     }
 
-#endif
+    #endif
 
     for (auto ptr = static_cast<const T*>(first); ptr != last; ++ptr)
     {
@@ -358,6 +367,8 @@ VX_NO_ALIAS size_t VX_STDCALL count_trivial_8(
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

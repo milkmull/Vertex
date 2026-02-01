@@ -14,6 +14,8 @@ namespace os {
 // thread
 //=============================================================================
 
+class thread_impl;
+
 class thread
 {
 public:
@@ -143,8 +145,10 @@ private:
     // start
     //=============================================================================
 
+    using thread_fn_t = decltype(&callable_wrapper<void>::thread_entry);
+
     // windows complains if this is not exported even though it is private
-    VX_API bool start_impl(void* fn, void* arg);
+    VX_API bool start_impl(thread_fn_t fn, void* arg);
 
 public:
 
@@ -189,6 +193,8 @@ public:
     VX_API bool detach() noexcept;
 
 private:
+
+    friend thread_impl;
 
 #if defined(HAVE_PTHREADS)
 

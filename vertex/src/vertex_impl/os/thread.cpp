@@ -56,7 +56,7 @@ bool thread::operator==(const thread& other) const noexcept
     return m_impl.compare(traits::get(other.m_storage));
 }
 
-bool thread::start_impl(void* fn, void* arg)
+bool thread::start_impl(thread_fn_t fn, void* arg)
 {
     if (is_valid())
     {

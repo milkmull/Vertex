@@ -9,6 +9,8 @@ namespace _simd {
 // find seq impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _find_seq {
 
 #if defined(USE_AVX2)
@@ -1186,6 +1188,8 @@ const void* VX_STDCALL find_end_8(
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

@@ -9,6 +9,8 @@ namespace _simd {
 // bitset to string impl
 //=============================================================================
 
+#if !defined(USE_ARM_NEON)
+
 namespace _bitset_to_string {
 
 #if defined(USE_AVX2)
@@ -443,7 +445,7 @@ bool impl(void* dest, const Elem* const src, const size_t size_bytes, const size
     void* dest_end = dest;
     advance_bytes(dest_end, size_bytes);
 
-    auto out = [&dest](const Traits::vec ex1)
+    auto out = [&dest](const typename Traits::vec ex1)
     {
         const auto val = Traits::to_bits(ex1);
         ::memcpy(dest, &val, sizeof(val));
@@ -561,6 +563,8 @@ VX_NO_ALIAS bool VX_STDCALL bitset_from_string_2(void* const dest, const wchar_t
 }
 
 } // extern "C"
+
+#endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx

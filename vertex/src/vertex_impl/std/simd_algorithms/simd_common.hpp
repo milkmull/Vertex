@@ -10,6 +10,7 @@
 #include "vertex/config/architecture.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/simd.hpp"
+#include "vertex/util/bit/bit.hpp"
 
 #if !defined(VX_DEBUG)
 
@@ -109,7 +110,7 @@ inline __m256i avx2_tail_mask_32(const size_t count_in_bytes) noexcept
 
 inline size_t byte_length(const void* const first, const void* const last) noexcept
 {
-    return static_cast<const unsigned char*>(last) - static_cast<const unsigned char*>(first);
+    return static_cast<size_t>(static_cast<const unsigned char*>(last) - static_cast<const unsigned char*>(first));
 }
 
 inline void rewind_bytes(void*& target, const size_t offset) noexcept
