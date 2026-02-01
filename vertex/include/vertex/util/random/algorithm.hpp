@@ -22,10 +22,10 @@ namespace random {
  * @tparam RNG A random number generator type with unsigned integral result_type.
  * @param first Iterator to the beginning of the range.
  * @param last Iterator to the end of the range.
- * @param rng A random number generator instance.
+ * @param gen A random number generator instance.
  */
 template <typename Iterator, typename RNG>
-inline void shuffle(Iterator first, Iterator last, RNG& rng)
+inline void shuffle(Iterator first, Iterator last, RNG& gen)
 {
     using rng_type = typename RNG::result_type;
     static_assert(
@@ -46,7 +46,7 @@ inline void shuffle(Iterator first, Iterator last, RNG& rng)
 
     for (diff_type i = n - 1; i > 0; --i)
     {
-        const diff_type j = dist(rng, param_type(0, i));
+        const diff_type j = dist(gen, param_type(0, i));
         std::iter_swap(first + i, first + j);
     }
 }
@@ -64,14 +64,14 @@ inline void shuffle(Iterator first, Iterator last, RNG& rng)
  * @param last Iterator to the end of the population.
  * @param out Output iterator to store the sampled elements.
  * @param n Number of elements to sample.
- * @param rng A random number generator instance.
+ * @param gen A random number generator instance.
  * @return An iterator to the element past the last written output.
  */
 template <typename PopulationIterator, typename SampleIterator, typename RNG>
 inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,
     SampleIterator out,
-    size_t n, RNG& rng
+    size_t n, RNG& gen
 )
 {
     using rng_type = typename RNG::result_type;
@@ -98,7 +98,7 @@ inline SampleIterator sample(
 
     while (n != 0)
     {
-        *out++ = *(first + dist(rng));
+        *out++ = *(first + dist(gen));
         --n;
     }
 
@@ -120,7 +120,7 @@ inline SampleIterator sample(
  * @param out Output iterator to store the sampled elements.
  * @param n Number of elements to sample.
  * @param weights A discrete distribution defining the sampling weights.
- * @param rng A random number generator instance.
+ * @param gen A random number generator instance.
  * @return An iterator to the element past the last written output.
  */
 template <typename Index, typename PopulationIterator, typename SampleIterator, typename RNG>
@@ -128,7 +128,7 @@ inline SampleIterator sample(
     PopulationIterator first, PopulationIterator last,
     SampleIterator out,
     size_t n, discrete_distribution<Index>& weights,
-    RNG& rng
+    RNG& gen
 )
 {
     using rng_type = typename RNG::result_type;
@@ -158,7 +158,7 @@ inline SampleIterator sample(
 
     while (n != 0)
     {
-        *out++ = *(first + weights(rng));
+        *out++ = *(first + weights(gen));
         --n;
     }
 

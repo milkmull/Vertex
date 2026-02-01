@@ -294,5 +294,23 @@ private:
     IT m_it;
 };
 
+
+// Primary template — default is false
+template <typename>
+struct is_pointer_iterator : std::false_type
+{
+};
+
+// Partial specialization for pointer_iterator with any template argument
+template <typename T>
+struct is_pointer_iterator<pointer_iterator<T>> : std::true_type
+{
+};
+
+template <typename T>
+struct is_pointer_iterator<reverse_pointer_iterator<T>> : std::true_type
+{
+};
+
 } // namespace _priv
 } // namespace vx

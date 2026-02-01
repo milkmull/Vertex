@@ -197,7 +197,7 @@ private:
 /**
  * @brief Alias for a basic RNG using the PCG32 generator.
  */
-using rng = basic_rng<pcg32>;
+using gen = basic_rng<pcg32>;
 
 } // namespace random
 } // namespace vx

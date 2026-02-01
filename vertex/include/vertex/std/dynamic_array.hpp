@@ -60,11 +60,13 @@ public:
     {}
 
     dynamic_array(dynamic_array&& other) noexcept
-        : m_array(std::move(other.m_array)) {}
+        : m_array(std::move(other.m_array))
+    {}
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     dynamic_array(IT first, IT last) noexcept
-        : m_array(first, last) {}
+        : m_array(first, last)
+    {}
 
     //=========================================================================
     // assignment operators
@@ -326,25 +328,25 @@ public:
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, T&& value) noexcept
     {
-        return m_array.insert<growth_rate>(pos, std::move(value));
+        return m_array.template insert<growth_rate>(pos, std::move(value));
     }
 
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
-        return m_array.insert<growth_rate>(pos, count, value);
+        return m_array.template insert<growth_rate>(pos, count, value);
     }
 
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
-        return m_array.insert<growth_rate>(pos, init);
+        return m_array.template insert<growth_rate>(pos, init);
     }
 
     template <typename growth_rate = default_growth_rate, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     iterator insert(const_iterator pos, IT first, IT last)
     {
-        return m_array.insert<growth_rate>(pos, first, last);
+        return m_array.template insert<growth_rate>(pos, first, last);
     }
 
     //=========================================================================
@@ -354,13 +356,13 @@ public:
     template <typename growth_rate = default_growth_rate, typename... Args>
     pointer emplace_back(Args&&... args)
     {
-        return m_array.emplace_back<growth_rate>(std::forward<Args>(args)...);
+        return m_array.template emplace_back<growth_rate>(std::forward<Args>(args)...);
     }
 
     template <typename growth_rate = default_growth_rate, typename... Args>
     iterator emplace(const_iterator pos, Args&&... args)
     {
-        return m_array.emplace<growth_rate>(pos, std::forward<Args>(args)...);
+        return m_array.template emplace<growth_rate>(pos, std::forward<Args>(args)...);
     }
 
     //=========================================================================
@@ -370,13 +372,13 @@ public:
     template <typename growth_rate = default_growth_rate>
     void push_back(const T& value)
     {
-        return m_array.push_back<growth_rate>(value);
+        return m_array.template push_back<growth_rate>(value);
     }
 
     template <typename growth_rate = default_growth_rate>
     void push_back(T&& value)
     {
-        return m_array.push_back<growth_rate>(std::move(value));
+        return m_array.template push_back<growth_rate>(std::move(value));
     }
 
     //=========================================================================

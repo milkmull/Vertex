@@ -156,13 +156,13 @@ public:
      * probability `p` by using a random number generator.
      *
      * @tparam RNG The type of the random number generator.
-     * @param rng The random number generator to use.
+     * @param gen The random number generator to use.
      * @return A random result, either `true` or `false`.
      */
     template <typename RNG>
-    result_type operator()(RNG& rng)
+    result_type operator()(RNG& gen)
     {
-        return operator()(rng, m_param);
+        return operator()(gen, m_param);
     }
 
     /**
@@ -172,12 +172,12 @@ public:
      * parameter `p` by using a random number generator.
      *
      * @tparam RNG The type of the random number generator.
-     * @param rng The random number generator to use.
+     * @param gen The random number generator to use.
      * @param p The parameter object containing the probability `p`.
      * @return A random result, either `true` or `false`.
      */
     template <typename RNG>
-    result_type operator()(RNG& rng, const param_type& p);
+    result_type operator()(RNG& gen, const param_type& p);
 
 private:
 
@@ -185,10 +185,10 @@ private:
 };
 
 template <typename RNG>
-typename bernoulli_distribution::result_type bernoulli_distribution::operator()(RNG& rng, const param_type& p)
+typename bernoulli_distribution::result_type bernoulli_distribution::operator()(RNG& gen, const param_type& p)
 {
 #   define generate_canonical(gen) random::generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
-    return static_cast<result_type>(generate_canonical(rng) < p.p());
+    return static_cast<result_type>(generate_canonical(gen) < p.p());
 #   undef generate_canonical
 }
 

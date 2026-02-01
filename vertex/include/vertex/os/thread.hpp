@@ -145,7 +145,13 @@ private:
     // start
     //=============================================================================
 
-    using thread_fn_t = decltype(&callable_wrapper<void>::thread_entry);
+    struct dummy_callable
+    {
+        void operator()()
+        {}
+    };
+
+    using thread_fn_t = decltype(&callable_wrapper<dummy_callable>::thread_entry);
 
     // windows complains if this is not exported even though it is private
     VX_API bool start_impl(thread_fn_t fn, void* arg);

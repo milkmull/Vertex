@@ -541,7 +541,7 @@ void run(size_t N, size_t R)
         //profile_compare<Vec>
     };
 
-    vx::random::rng rng;
+    vx::random::gen rng;
 
     for (size_t r = 0; r < R; ++r)
     {

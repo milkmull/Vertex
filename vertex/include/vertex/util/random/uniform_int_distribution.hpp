@@ -192,24 +192,24 @@ public:
      * @brief Generates a random number using the distribution and the given RNG.
      *
      * @tparam RNG A uniform random bit generator with unsigned integral result_type.
-     * @param rng A random number generator instance.
+     * @param gen A random number generator instance.
      * @return A random integer in the range [a, b].
      */
     template <typename RNG>
-    result_type operator()(RNG& rng)
+    result_type operator()(RNG& gen)
     {
-        return operator()(rng, m_param);
+        return operator()(gen, m_param);
     }
 
     /**
      * @brief Generates a random number using the given parameters and RNG.
      *
-     * @param rng A random number generator instance.
+     * @param gen A random number generator instance.
      * @param p Parameters defining the [a, b] range.
      * @return A random integer in the range [a, b].
      */
     template <typename RNG>
-    result_type operator()(RNG& rng, const param_type& p);
+    result_type operator()(RNG& gen, const param_type& p);
 
 private:
 
@@ -222,7 +222,7 @@ template <bool upscale>
 struct upscalar;
 
 template <>
-struct upscalar<false> // rng range is greater than or equal to dist max range
+struct upscalar<false> // gen range is greater than or equal to dist max range
 {
     template <typename Dist, typename RNG, typename common_type>
     static inline common_type upscale(Dist&, RNG&, const common_type) noexcept
@@ -232,10 +232,10 @@ struct upscalar<false> // rng range is greater than or equal to dist max range
 };
 
 template <>
-struct upscalar<true> // rng range is smaller than dist max range
+struct upscalar<true> // gen range is smaller than dist max range
 {
     template <typename Dist, typename RNG, typename common_type>
-    static inline common_type upscale(Dist& dist, RNG& rng, const common_type urange)
+    static inline common_type upscale(Dist& dist, RNG& gen, const common_type urange)
     {
         using param_type = typename Dist::param_type;
         using result_type = typename Dist::result_type;
@@ -270,8 +270,8 @@ struct upscalar<true> // rng range is smaller than dist max range
         common_type tmp = 0; // wraparound control
         do
         {
-            tmp = uerng_range * static_cast<common_type>(dist(rng, param_type(0, static_cast<result_type>(urange / uerng_range))));
-            ret = tmp + (static_cast<common_type>(rng()) - urng_min);
+            tmp = uerng_range * static_cast<common_type>(dist(gen, param_type(0, static_cast<result_type>(urange / uerng_range))));
+            ret = tmp + (static_cast<common_type>(gen()) - urng_min);
     
         } while (ret > urange || ret < tmp);
 
@@ -283,7 +283,7 @@ struct upscalar<true> // rng range is smaller than dist max range
 
 template <typename T>
 template <typename RNG>
-typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::operator()(RNG& rng, const param_type& p)
+typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::operator()(RNG& gen, const param_type& p)
 {
     using range_type = T;
     using urange_type = typename std::make_unsigned<T>::type;
@@ -333,7 +333,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         {
             // Generate a random number within the RNG's range and shift it down
             // by urng_min to normalize it into the range [0, urng_range].
-            ret = static_cast<common_type>(rng()) - urng_min;
+            ret = static_cast<common_type>(gen()) - urng_min;
 
             // If the generated value is greater than or equal to end, discard it and
             // try again. This keeps values within the mapped target range.
@@ -347,7 +347,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
     // same range
     else if (urng_range == urange)
     {
-        ret = common_type(rng()) - urng_min;
+        ret = common_type(gen()) - urng_min;
     }
 
     // upscaling
@@ -361,7 +361,7 @@ typename uniform_int_distribution<T>::result_type uniform_int_distribution<T>::o
         // the distribution, this branch is effectively a no-op and never executed.
 
         VX_ASSERT(possible_upscale);
-        ret = _priv::upscalar<possible_upscale>::upscale(*this, rng, urange);
+        ret = _priv::upscalar<possible_upscale>::upscale(*this, gen, urange);
     }
 
     return static_cast<range_type>(ret + static_cast<common_type>(p.a()));

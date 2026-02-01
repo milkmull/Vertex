@@ -683,24 +683,36 @@ struct char_traits_base
 } // namespace _priv
 
 template <typename char_t>
-struct char_traits : _priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>> {};
+struct char_traits : _priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
+{
+};
 
 template <>
-struct char_traits<char> : _priv::char_traits_base<char, int, std::streampos> {};
+struct char_traits<char> : _priv::char_traits_base<char, int, std::streampos>
+{
+};
 
 template <>
-struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, wint_t, std::wstreampos> {};
+struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, wint_t, std::wstreampos>
+{
+};
 
 #if defined(__cpp_char8_t)
 template <>
-struct char_traits<char8_t> : _priv::char_traits_base<char8_t, unsigned int, std::u8streampos> {};
+struct char_traits<char8_t> : _priv::char_traits_base<char8_t, unsigned int, std::u8streampos>
+{
+};
 #endif // defined(__cpp_char8_t)
 
 template <>
-struct char_traits<char16_t> : _priv::char_traits_base<char16_t, uint_least16_t, std::u16streampos> {};
+struct char_traits<char16_t> : _priv::char_traits_base<char16_t, uint_least16_t, std::u16streampos>
+{
+};
 
 template <>
-struct char_traits<char32_t> : _priv::char_traits_base<char32_t, uint_least32_t, std::u32streampos> {};
+struct char_traits<char32_t> : _priv::char_traits_base<char32_t, uint_least32_t, std::u32streampos>
+{
+};
 
 //=========================================================================
 // traits
@@ -725,17 +737,23 @@ struct is_implementation_handled_char_like_type
 };
 
 template <typename>
-struct is_implementation_handled_char_traits : std::false_type {};
+struct is_implementation_handled_char_traits : std::false_type
+{
+};
 
 template <typename T>
-struct is_implementation_handled_char_traits<char_traits<T>> : is_implementation_handled_char_like_type<T> {};
+struct is_implementation_handled_char_traits<char_traits<T>> : is_implementation_handled_char_like_type<T>
+{
+};
 
 //=========================================================================
 
 template <typename Traits>
 constexpr bool traits_equal(
-    const traits_ptr_t<Traits> left, const size_t left_size,
-    const traits_ptr_t<Traits> right, const size_t right_size) noexcept
+    const traits_ptr_t<Traits> left,
+    const size_t left_size,
+    const traits_ptr_t<Traits> right,
+    const size_t right_size) noexcept
 {
     // compare [left, left + left_size) to [right, right + right_size) for equality using Traits
     if (left_size != right_size)
@@ -755,8 +773,10 @@ constexpr bool traits_equal(
 
 template <typename Traits>
 constexpr int traits_compare(
-    const traits_ptr_t<Traits> left, const size_t left_size,
-    const traits_ptr_t<Traits> right, const size_t right_size) noexcept
+    const traits_ptr_t<Traits> left,
+    const size_t left_size,
+    const traits_ptr_t<Traits> right,
+    const size_t right_size) noexcept
 {
     // compare [left, left + left_size) to [right, right + right_size) using Traits
     const int res = Traits::compare(left, right, std::min(left_size, right_size));
@@ -783,9 +803,11 @@ constexpr int traits_compare(
 
 template <typename Traits>
 constexpr size_t traits_find(
-    const traits_ptr_t<Traits> haystack, const size_t hay_size,
+    const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
     const size_t start,
-    const traits_ptr_t<Traits> needle, const size_t needle_size) noexcept
+    const traits_ptr_t<Traits> needle,
+    const size_t needle_size) noexcept
 {
     // search [haystack, haystack + hay_size) for [needle, needle + needle_size), at/after start
     if (needle_size > hay_size || start > hay_size - needle_size)
@@ -809,21 +831,21 @@ constexpr size_t traits_find(
 
 #if VX_USE_VECTOR_ALGORITHMS
 
-    VX_IF_CONSTEXPR(is_implementation_handled_char_traits<Traits>::value)
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
         if (!VX_IS_CONSTANT_EVALUATED())
         {
-            const auto _End = haystack + hay_size;
-            const auto _Ptr = _STD _Search_vectorized(haystack + start, _End, needle, needle_size);
-
-            if (_Ptr != _End)
-            {
-                return static_cast<size_t>(_Ptr - haystack);
-            }
-            else
-            {
-                return static_cast<size_t>(-1);
-            }
+            //const auto _End = haystack + hay_size;
+            //const auto _Ptr = _STD _Search_vectorized(haystack + start, _End, needle, needle_size);
+            //
+            //if (_Ptr != _End)
+            //{
+            //    return static_cast<size_t>(_Ptr - haystack);
+            //}
+            //else
+            //{
+            //    return static_cast<size_t>(-1);
+            //}
         }
     }
 

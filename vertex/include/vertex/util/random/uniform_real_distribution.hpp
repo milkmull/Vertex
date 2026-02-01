@@ -177,13 +177,13 @@ public:
      * This function generates a random floating-point value uniformly distributed in the range [a, b).
      *
      * @tparam RNG The type of the random number generator.
-     * @param rng The random number generator to use.
+     * @param gen The random number generator to use.
      * @return A random floating-point value in the range [a, b).
      */
     template <typename RNG>
-    result_type operator()(RNG& rng)
+    result_type operator()(RNG& gen)
     {
-        return operator()(rng, m_param);
+        return operator()(gen, m_param);
     }
 
     /**
@@ -192,12 +192,12 @@ public:
      * This function generates a random floating-point value uniformly distributed in the range [a, b).
      *
      * @tparam RNG The type of the random number generator.
-     * @param rng The random number generator to use.
+     * @param gen The random number generator to use.
      * @param p The parameter object containing the range [a, b).
      * @return A random floating-point value in the range [a, b).
      */
     template <typename RNG>
-    result_type operator()(RNG& rng, const param_type& p);
+    result_type operator()(RNG& gen, const param_type& p);
 
 private:
 
@@ -206,13 +206,13 @@ private:
 
 template <typename T>
 template <typename RNG>
-typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>::operator()(RNG& rng, const param_type& p)
+typename uniform_real_distribution<T>::result_type uniform_real_distribution<T>::operator()(RNG& gen, const param_type& p)
 {
     // Number of bits used for the fixed-point representation.
     constexpr int precision_bits = std::numeric_limits<T>::digits; // Max precision of T
 
     // Generate an integer from the canonical random number
-    const T x = random::generate_canonical<T, precision_bits, RNG>(rng);
+    const T x = random::generate_canonical<T, precision_bits, RNG>(gen);
 
     using int_type = typename std::conditional<(precision_bits > 32), uint64_t, uint32_t>::type;
     constexpr int_type max_value = static_cast<int_type>(1) << (precision_bits % (sizeof(int_type) * 8)); // mod here for compiler
