@@ -87,9 +87,14 @@ struct thread_impl
         return true;
     }
 
-    void close() noexcept
+    void reset() noexcept
     {
         data.handle = get_invalid_native_id();
+    }
+
+    void close() noexcept
+    {
+        reset();
     }
 
     VX_MAYBE_UNUSED void exit(unsigned int exit_code = 0) noexcept

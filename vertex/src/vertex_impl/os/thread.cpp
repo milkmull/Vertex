@@ -19,14 +19,16 @@ thread::~thread()
         std::terminate();
     }
 
+    auto& ref = m_storage.get<thread_impl>();
+    ref.close();
     m_storage.destroy<thread_impl>();
 }
 
 thread::thread(thread&& other) noexcept
+    : m_storage(std::move(other.m_storage.get<thread_impl>()))
 {
-    auto& other_ref = m_storage.get<thread_impl>();
-    m_storage.construct<thread_impl>(std::move(other_ref));
-    other_ref.close();
+    auto& other_ref = other.m_storage.get<thread_impl>();
+    other_ref.reset();
 }
 
 thread& thread::operator=(thread&& other) noexcept
@@ -38,20 +40,20 @@ thread& thread::operator=(thread&& other) noexcept
             std::terminate();
         }
 
-        auto& ref1 = m_storage.get<thread_impl>();
-        auto& ref2 = other.m_storage.get<thread_impl>();
+        auto& ref = m_storage.get<thread_impl>();
+        auto& other_ref = other.m_storage.get<thread_impl>();
 
-        ref1 = std::move(ref2);
-        ref2.close();
+        ref = std::move(other_ref);
+        other_ref.reset();
     }
     return *this;
 }
 
 void thread::swap(thread& other) noexcept
 {
-    auto& ref1 = m_storage.get<thread_impl>();
-    auto& ref2 = other.m_storage.get<thread_impl>();
-    std::swap(ref1, ref2);
+    auto& ref = m_storage.get<thread_impl>();
+    auto& other_ref = other.m_storage.get<thread_impl>();
+    std::swap(ref, other_ref);
 }
 
 bool thread::operator==(const thread& other) const noexcept
@@ -61,9 +63,9 @@ bool thread::operator==(const thread& other) const noexcept
         return false;
     }
 
-    auto& ref1 = m_storage.get<thread_impl>();
-    auto& ref2 = other.m_storage.get<thread_impl>();
-    return ref1.compare(ref2);
+    auto& ref = m_storage.get<thread_impl>();
+    auto& other_ref = other.m_storage.get<thread_impl>();
+    return ref.compare(other_ref);
 }
 
 bool thread::start_impl(thread_fn_t fn, void* arg)
@@ -132,7 +134,6 @@ bool thread::detach() noexcept
         return false;
     }
 
-    ref.close();
     return true;
 }
 

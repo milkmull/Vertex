@@ -180,12 +180,14 @@ using error_hook_t = bool (*)(code err, const char* msg, os::thread_id thread);
  * @brief Sets a thread-local hook that intercepts errors before they are stored.
  * The hook returns true to allow the error to be set, or false to suppress it.
  */
-VX_API void set_error_hook(error_hook_t hook) noexcept;
+VX_API void set_hook(error_hook_t hook) noexcept;
 
 /**
  * @brief Retrieves the current error hook.
  */
-VX_API error_hook_t get_error_hook() noexcept;
+VX_API error_hook_t get_hook() noexcept;
+
+VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
 
 //=============================================================================
 // error macros

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <vector>
-#include <iostream>
 #include <functional>
+#include <iostream>
 #include <sstream>
+#include <vector>
 
-#include "vertex/config/platform.hpp"
 #include "vertex/config/language_config.hpp"
-#define VX_ERROR_PRINTING_AVAILABLE 1
+#include "vertex/config/platform.hpp"
 #include "vertex/system/error.hpp"
 
 namespace vx {
@@ -46,8 +45,7 @@ public:
                 std::cout << "Running test: " << test.name << "..." << std::endl;
                 test.func();
                 std::cout << "  [PASS] " << test.name << std::endl;
-            }
-            catch (const std::exception& e)
+            } catch (const std::exception& e)
             {
                 ++failed_count;
                 std::cerr << "  [FAIL] " << test.name << " - " << e.what() << std::endl;
@@ -57,9 +55,9 @@ public:
         }
 
         std::cout << "\nTest Summary: "
-            << tests.size() - failed_count << " passed, "
-            << failed_count << " failed, "
-            << tests.size() << " total.\n";
+                  << tests.size() - failed_count << " passed, "
+                  << failed_count << " failed, "
+                  << tests.size() << " total.\n";
     }
 
 private:
@@ -126,19 +124,19 @@ inline void fail_test(const char* condition, const char* func, int line)
         VX_CHECK(!::vx::err::is_set()); \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_CHECK_AND_EXPECT_ERROR(condition) VX_EXPECT_ERROR(VX_CHECK(condition))
+#define VX_CHECK_AND_EXPECT_ERROR(condition)         VX_EXPECT_ERROR(VX_CHECK(condition))
 #define VX_CHECK_AND_EXPECT_ERROR_CODE(condition, e) VX_EXPECT_ERROR_CODE(VX_CHECK(condition), e)
-#define VX_CHECK_AND_EXPECT_NO_ERROR(condition) VX_EXPECT_NO_ERROR(VX_CHECK(condition))
+#define VX_CHECK_AND_EXPECT_NO_ERROR(condition)      VX_EXPECT_NO_ERROR(VX_CHECK(condition))
 
 #define VX_RUN_TESTS() ::vx::test::test_runner::instance().run()
 
 namespace _priv {
 
-    template <typename... Args>
-    void message(Args&&... args)
-    {
-        (std::cout << ... << args) << std::endl;
-    }
+template <typename... Args>
+void message(Args&&... args)
+{
+    (std::cout << ... << args) << std::endl;
+}
 
 } // namespace _priv
 
@@ -146,5 +144,7 @@ namespace _priv {
 
 #define VX_WARNING(...) VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
 
-}
-}
+#define VX_PRINT_ERRORS(x) ::vx::err::set_hook(::vx::err::print_error_hook);
+
+} // namespace test
+} // namespace vx

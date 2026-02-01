@@ -97,6 +97,12 @@ struct thread_impl
         return true;
     }
 
+    void reset() noexcept
+    {
+        data.handle.release();
+        data.id = get_invalid_native_id();
+    }
+
     void close() noexcept
     {
         data.handle.close();
@@ -129,6 +135,7 @@ struct thread_impl
     {
         assert_is_running();
         // tell OS to release thread's resources when it terminates
+        data.handle.release();
         return true;
     }
 

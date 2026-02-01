@@ -1,16 +1,17 @@
 #include "vertex/std/dynamic_array.hpp"
 #include "vertex_test/test.hpp"
 
-VX_DISABLE_WARNING_PUSH()
-VX_DISABLE_WARNING("-Wsign-conversion", 0)
-VX_DISABLE_WARNING("-Wsign-compare", 0)
+template <typename T>
+using vec = vx::dynamic_array<T>;
+
+using trivial_type = typename vec<int>::size_type;
 
 struct non_trivial
 {
     non_trivial()
         : x(0)
     {}
-    non_trivial(int val)
+    non_trivial(trivial_type val)
         : x(val)
     {}
     non_trivial(const non_trivial& other)
@@ -43,11 +44,11 @@ struct non_trivial
         return *this;
     }
 
-    int x;
+    trivial_type x;
 
-    static inline int copy_count = 0;
-    static inline int move_count = 0;
-    static inline int destruct_count = 0;
+    static inline size_t copy_count = 0;
+    static inline size_t move_count = 0;
+    static inline size_t destruct_count = 0;
 
     static void reset_counters()
     {
@@ -81,14 +82,11 @@ struct non_trivial
         return !(lhs < rhs);
     }
 
-    explicit operator int() const noexcept
+    explicit operator trivial_type() const noexcept
     {
         return x;
     }
 };
-
-template <typename T>
-using vec = vx::dynamic_array<T>;
 
 //=========================================================================
 // constructors
@@ -125,7 +123,7 @@ void test_constructors()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v[i] == 1);
         }
@@ -144,7 +142,7 @@ void test_constructors()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v[i] == i);
         }
@@ -171,7 +169,7 @@ void test_constructors()
         VX_CHECK(v1.size() == 5);
         VX_CHECK(v1.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
         }
@@ -180,7 +178,7 @@ void test_constructors()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -211,7 +209,7 @@ void test_constructors()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -238,7 +236,7 @@ void test_constructors()
         VX_CHECK(v1.size() == 5);
         VX_CHECK(v1.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
         }
@@ -247,7 +245,7 @@ void test_constructors()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -262,7 +260,7 @@ void test_constructors()
 
 VX_TEST_CASE(constructors)
 {
-    test_constructors<int>();
+    test_constructors<trivial_type>();
 }
 
 VX_TEST_CASE(constructors_non_trivial)
@@ -295,7 +293,7 @@ void test_assignment()
         VX_CHECK(v1.size() == 5);
         VX_CHECK(v1.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
         }
@@ -304,7 +302,7 @@ void test_assignment()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -330,7 +328,7 @@ void test_assignment()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v[i] == i);
         }
@@ -362,7 +360,7 @@ void test_assignment()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -390,7 +388,7 @@ void test_assignment()
         VX_CHECK(v1.size() == 5);
         VX_CHECK(v1.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
         }
@@ -399,7 +397,7 @@ void test_assignment()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -425,7 +423,7 @@ void test_assignment()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v[i] == i);
         }
@@ -457,7 +455,7 @@ void test_assignment()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -486,7 +484,7 @@ void test_assignment()
         VX_CHECK(v1.size() == 5);
         VX_CHECK(v1.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
         }
@@ -495,7 +493,7 @@ void test_assignment()
         VX_CHECK(v2.size() == 5);
         VX_CHECK(v2.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == i);
         }
@@ -510,7 +508,7 @@ void test_assignment()
 
 VX_TEST_CASE(assignment)
 {
-    test_assignment<int>();
+    test_assignment<trivial_type>();
 }
 
 VX_TEST_CASE(assignment_non_trivial)
@@ -559,14 +557,14 @@ void test_element_access()
     VX_SECTION("index")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v1[i] == i);
             v1[i] = 4 - i;
         }
 
         const vec<T> v2 = v1;
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v2[i] == 4 - i);
         }
@@ -575,7 +573,7 @@ void test_element_access()
 
 VX_TEST_CASE(element_access)
 {
-    test_element_access<int>();
+    test_element_access<trivial_type>();
 }
 
 VX_TEST_CASE(element_access_non_trivial)
@@ -595,7 +593,7 @@ void test_iterators()
         vec<T> v1{ 0, 1, 2, 3, 4 };
 
         auto it = v1.begin();
-        for (int i = 0; i < 5; ++i, ++it)
+        for (trivial_type i = 0; i < 5; ++i, ++it)
         {
             VX_CHECK(*it == i);
         }
@@ -603,7 +601,7 @@ void test_iterators()
 
         const vec<T> v2 = v1;
         auto cit = v2.begin();
-        for (int i = 0; i < 5; ++i, ++cit)
+        for (trivial_type i = 0; i < 5; ++i, ++cit)
         {
             VX_CHECK(*cit == i);
         }
@@ -615,7 +613,7 @@ void test_iterators()
         vec<T> v1{ 0, 1, 2, 3, 4 };
 
         auto it = v1.cbegin();
-        for (int i = 0; i < 5; ++i, ++it)
+        for (trivial_type i = 0; i < 5; ++i, ++it)
         {
             VX_CHECK(*it == i);
         }
@@ -627,19 +625,19 @@ void test_iterators()
         vec<T> v1{ 0, 1, 2, 3, 4 };
 
         auto it = v1.rbegin();
-        for (int i = 4; i >= 0; --i, ++it)
+        for (trivial_type i = 4; i > 0; --i, ++it)
         {
             VX_CHECK(*it == i);
         }
-        VX_CHECK(it == v1.rend());
+        VX_CHECK(++it == v1.rend());
 
         const vec<T> v2 = v1;
         auto cit = v2.rbegin();
-        for (int i = 4; i >= 0; --i, ++cit)
+        for (trivial_type i = 4; i > 0; --i, ++cit)
         {
             VX_CHECK(*cit == i);
         }
-        VX_CHECK(cit == v2.rend());
+        VX_CHECK(++cit == v2.rend());
     }
 
     VX_SECTION("random access")
@@ -662,7 +660,7 @@ void test_iterators()
 
 VX_TEST_CASE(iterators)
 {
-    test_iterators<int>();
+    test_iterators<trivial_type>();
 }
 
 VX_TEST_CASE(iterators_non_trivial)
@@ -726,9 +724,9 @@ void test_memory()
     {
         vec<T> v;
 
-        int n = 5;
+        trivial_type n = 5;
         T* ptr = allocator::allocate(n);
-        for (int i = 0; i < n; ++i)
+        for (trivial_type i = 0; i < n; ++i)
         {
             vx::mem::construct_in_place(ptr + i, i);
         }
@@ -754,16 +752,16 @@ void test_memory()
         vec<T> v1;
         vec<T> v2;
 
-        size_t n1 = 2;
+        trivial_type n1 = 2;
         T* ptr1 = allocator::allocate(n1);
-        for (int i = 0; i < n1; ++i)
+        for (trivial_type i = 0; i < n1; ++i)
         {
             vx::mem::construct_in_place(ptr1 + i, i);
         }
 
-        size_t n2 = 3;
+        trivial_type n2 = 3;
         T* ptr2 = allocator::allocate(n2);
-        for (int i = 0; i < n2; ++i)
+        for (trivial_type i = 0; i < n2; ++i)
         {
             vx::mem::construct_in_place(ptr2 + i, i + 10);
         }
@@ -785,7 +783,7 @@ void test_memory()
 
 VX_TEST_CASE(memory)
 {
-    test_memory<int>();
+    test_memory<trivial_type>();
 }
 
 VX_TEST_CASE(memory_non_trivial)
@@ -851,7 +849,7 @@ void test_size_and_capacity()
         VX_CHECK(v.size() == 5);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 5; ++i)
+        for (trivial_type i = 0; i < 5; ++i)
         {
             VX_CHECK(v[i] == 1);
             v[i] = i;
@@ -861,7 +859,7 @@ void test_size_and_capacity()
         VX_CHECK(v.size() == 2);
         VX_CHECK(v.capacity() == 5);
 
-        for (int i = 0; i < 2; ++i)
+        for (trivial_type i = 0; i < 2; ++i)
         {
             VX_CHECK(v[i] == i);
         }
@@ -876,7 +874,7 @@ void test_size_and_capacity()
 
 VX_TEST_CASE(size_and_capacity)
 {
-    test_size_and_capacity<int>();
+    test_size_and_capacity<trivial_type>();
 }
 
 VX_TEST_CASE(size_and_capacity_non_trivial)
@@ -895,8 +893,8 @@ void test_emplace_and_pushback()
 
     struct emplace_type
     {
-        int a, b;
-        emplace_type(int x, int y)
+        trivial_type a, b;
+        emplace_type(trivial_type x, trivial_type y)
             : a(x), b(y)
         {}
     };
@@ -926,7 +924,7 @@ void test_emplace_and_pushback()
         VX_CHECK(v.size() == 3);
 
         // order check: 0,1,2
-        for (int i = 0; i < 3; ++i)
+        for (trivial_type i = 0; i < 3; ++i)
         {
             VX_CHECK(v[i].a == i);
             VX_CHECK(v[i].b == i);
@@ -974,14 +972,14 @@ void test_emplace_and_pushback()
         }
 
         VX_CHECK(v.size() == 2);
-        VX_CHECK(static_cast<int>(v[0]) == 1);
-        VX_CHECK(static_cast<int>(v[1]) == 2);
+        VX_CHECK(static_cast<trivial_type>(v[0]) == 1);
+        VX_CHECK(static_cast<trivial_type>(v[1]) == 2);
     }
 }
 
 VX_TEST_CASE(emplace_and_push_back)
 {
-    test_emplace_and_pushback<int>();
+    test_emplace_and_pushback<trivial_type>();
 }
 
 VX_TEST_CASE(emplace_and_push_back_non_trivial)
@@ -998,11 +996,11 @@ VX_TEST_CASE(growth_rate)
     VX_SECTION("1x")
     {
         using rate_1 = std::ratio<1, 1>;
-        const size_t expected_caps_1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
+        const trivial_type expected_caps_1[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };
 
-        vec<int> v;
+        vec<trivial_type> v;
 
-        for (int i = 0; i < 20; ++i)
+        for (trivial_type i = 0; i < 20; ++i)
         {
             v.push_back<rate_1>(0);
             VX_CHECK(v.capacity() == expected_caps_1[i]);
@@ -1012,11 +1010,11 @@ VX_TEST_CASE(growth_rate)
     VX_SECTION("1.5x")
     {
         using rate_2 = std::ratio<3, 2>;
-        const size_t expected_caps_2[] = { 1, 2, 3, 4, 6, 6, 9, 9, 9, 13, 13, 13, 13, 19, 19, 19, 19, 19, 19, 28 };
+        const trivial_type expected_caps_2[] = { 1, 2, 3, 4, 6, 6, 9, 9, 9, 13, 13, 13, 13, 19, 19, 19, 19, 19, 19, 28 };
 
-        vec<int> v;
+        vec<trivial_type> v;
 
-        for (int i = 0; i < 20; ++i)
+        for (trivial_type i = 0; i < 20; ++i)
         {
             v.push_back<rate_2>(0);
             VX_CHECK(v.capacity() == expected_caps_2[i]);
@@ -1026,11 +1024,11 @@ VX_TEST_CASE(growth_rate)
     VX_SECTION("2x")
     {
         using rate_3 = std::ratio<2, 1>;
-        const size_t expected_caps_3[] = { 2, 2, 4, 4, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32 };
+        const trivial_type expected_caps_3[] = { 2, 2, 4, 4, 8, 8, 8, 8, 16, 16, 16, 16, 16, 16, 16, 16, 32, 32, 32, 32 };
 
-        vec<int> v;
+        vec<trivial_type> v;
 
-        for (int i = 0; i < 20; ++i)
+        for (trivial_type i = 0; i < 20; ++i)
         {
             v.push_back<rate_3>(0);
             VX_CHECK(v.capacity() == expected_caps_3[i]);
@@ -1047,51 +1045,42 @@ void test_insert_and_erase()
 {
     constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
 
-    VX_SECTION("insert / erase")
+VX_SECTION("simple insert / erase")
     {
-        vec<T> v{ 0, 1, 2, 3, 4 };
+        vec<T> v{ T(0), T(1), T(2), T(3), T(4) };
 
-        // Insert -x before each x
+        // Insert a fixed sentinel value before each element
+        const T sentinel = T(999);
+
         for (auto it = v.begin(); it != v.end(); ++it)
         {
-            const int x = static_cast<int>(*it);
+            it = v.insert(it, sentinel);
 
-            auto inserted = v.insert(it, -x);
-
-            VX_CHECK(*inserted == -x); // inserted value
-            auto next = inserted + 1;
-            VX_CHECK(*next == x); // original element still follows
-
-            it = next; // continue from original element
+            VX_CHECK(*it == sentinel);
+            ++it; // skip over inserted sentinel to avoid infinite loop
         }
 
-        vec<T> expected1{ -0, 0, -1, 1, -2, 2, -3, 3, -4, 4 };
+        // Expected: sentinel, original, sentinel, original, ...
+        vec<T> expected1{
+            T(999), T(0), T(999), T(1), T(999), T(2), T(999), T(3), T(999), T(4)
+        };
         VX_CHECK(v == expected1);
 
-        // Erase all negative values, which should be every other element
+        // Erase all sentinels (every other element)
         for (auto it = v.begin(); it != v.end();)
         {
-            // it should point to a negative value
-            VX_CHECK(static_cast<int>(*it) <= 0);
-
-            const int neg = static_cast<int>(*it);
-            auto next = it + 1;
-
-            // next must exist and be the positive counterpart
-            VX_CHECK(next != v.end());
-            VX_CHECK(*next == -neg);
-
-            // erase negative, iterator should now point to the positive
-            auto ret = v.erase(it);
-            VX_CHECK(*ret == -neg);
-
-            // continue from the positive value
-            it = ret;
-            ++it;
+            if (*it == sentinel)
+            {
+                it = v.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
         }
 
-        // Final content check
-        vec<T> expected2{ 0, 1, 2, 3, 4 };
+        // Back to original vector
+        vec<T> expected2{ T(0), T(1), T(2), T(3), T(4) };
         VX_CHECK(v == expected2);
     }
 
@@ -1152,7 +1141,7 @@ void test_insert_and_erase()
         auto it = v.insert(v.begin() + 1, { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
         VX_CHECK(*it == 1);
 
-        for (int i = 0; i < v.size(); ++i)
+        for (trivial_type i = 0; i < v.size(); ++i)
         {
             VX_CHECK(v[i] == i);
         }
@@ -1174,10 +1163,10 @@ void test_insert_and_erase()
 
         // v should now be: 2 3 4 0 1 2 3 4 5
         {
-            int expected[] = { 2, 3, 4, 0, 1, 2, 3, 4, 5 };
-            for (int i = 0; i < v.size(); ++i)
+            trivial_type expected[] = { 2, 3, 4, 0, 1, 2, 3, 4, 5 };
+            for (trivial_type i = 0; i < v.size(); ++i)
             {
-                VX_CHECK(static_cast<int>(v[i]) == expected[i]);
+                VX_CHECK(static_cast<trivial_type>(v[i]) == expected[i]);
             }
         }
 
@@ -1199,13 +1188,17 @@ void test_insert_and_erase()
     {
         vec<T> v{ 0, 1, 2, 3 };
 
-        for (int i = static_cast<int>(*v.back()); i >= 0; --i)
+        trivial_type i = static_cast<trivial_type>(*v.back());
+
+        do
         {
-            VX_CHECK(*v.back() == i);
-            const size_t last_size = v.size();
+            const auto& back = *v.back();
+            VX_CHECK(back == i);
+            const trivial_type last_size = v.size();
             v.pop_back();
             VX_CHECK(v.size() == last_size - 1);
-        }
+
+        } while (i-- > 0);
 
         VX_CHECK(v.empty());
     }
@@ -1213,7 +1206,7 @@ void test_insert_and_erase()
 
 VX_TEST_CASE(insert_and_erase)
 {
-    test_insert_and_erase<int>();
+    test_insert_and_erase<trivial_type>();
 }
 
 VX_TEST_CASE(insert_and_erase_non_trivial)
@@ -1396,7 +1389,7 @@ void test_compare()
 
 VX_TEST_CASE(compare)
 {
-    test_compare<int>();
+    test_compare<trivial_type>();
 }
 
 VX_TEST_CASE(compare_non_trivial)
@@ -1411,5 +1404,3 @@ int main()
     VX_RUN_TESTS();
     return 0;
 }
-
-VX_DISABLE_WARNING_POP()

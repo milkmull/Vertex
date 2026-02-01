@@ -38,6 +38,13 @@ const char* get_message() noexcept
 
 void set(code err, const char* msg, const char* function, const char* file, int line)
 {
+    if (err == none)
+    {
+        s_err.err = err;
+        s_err.message[0] = 0;
+        return;
+    }
+
     char* out = s_err.message;
     constexpr size_t cap = error_message_max_size;
     size_t used = 0;
@@ -99,14 +106,27 @@ void set(code err) noexcept
 // error hook
 //=============================================================================
 
-VX_API void set_error_hook(error_hook_t hook) noexcept
+VX_API void set_hook(error_hook_t hook) noexcept
 {
     s_hook = hook;
 }
 
-VX_API error_hook_t get_error_hook() noexcept
+VX_API error_hook_t get_hook() noexcept
 {
     return s_hook;
+}
+
+VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread)
+{
+    const char* safe_msg = msg ? msg : "(null)";
+
+    std::fprintf(stderr,
+        "error: code=%u thread=%llu msg=%s\n",
+        static_cast<unsigned>(err),
+        static_cast<unsigned long long>(thread),
+        safe_msg);
+
+    return true;
 }
 
 } // namespace err

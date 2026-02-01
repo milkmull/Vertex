@@ -25,7 +25,8 @@ namespace windows {
 
 void error_message(const char* msg)
 {
-    VX_UNUSED(msg);
+    err::set(err::system_error, msg);
+
     //const size_t msg_size = std::strlen(msg);
     //
     //DWORD code = ::GetLastError();
