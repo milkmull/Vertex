@@ -107,7 +107,7 @@ private:
 
     public:
 
-#if defined(HAVE_PTHREADS)
+#if defined(VX_HAVE_PTHREADS)
 
         static void* thread_entry(void* arg)
         {
@@ -202,7 +202,7 @@ private:
 
     friend thread_impl;
 
-#if defined(HAVE_PTHREADS)
+#if defined(VX_HAVE_PTHREADS)
 
     // pthread_t can be an opaque type whose size varies by platform and libc
     // implementation. It is *not* guaranteed to be an integer or pointer.

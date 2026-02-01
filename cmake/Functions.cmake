@@ -13,7 +13,7 @@ function(vx_parse_version_from_header FILE_PATH MAJOR_VAR MINOR_VAR PATCH_VAR)
 
     string(REGEX MATCH "#define[ \t]+VX_VERSION_PATCH[ \t]+([0-9]+)" _ ${VERSION_HEADER_CONTENT})
     set(${PATCH_VAR} ${CMAKE_MATCH_1} PARENT_SCOPE)
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -25,7 +25,7 @@ function(print_option name description)
     else()
         message(STATUS "  ${description}: <undefined>")
     endif()
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -42,7 +42,7 @@ function(vx_hide_public_symbols TARGET_NAME)
         CXX_VISIBILITY_PRESET hidden        # Hide all symbols by default
         VISIBILITY_INLINES_HIDDEN YES       # Hide inline functions unless explicitly marked
     )
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -57,7 +57,7 @@ function(vx_add_common_compiler_flags TARGET_NAME)
     option(VX_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" FALSE)
 
     if(VX_CMAKE_COMPILER_MSVC)
-    
+
         target_compile_options(${TARGET_NAME} PRIVATE
             $<$<BOOL:${VX_WARNINGS_AS_ERRORS}>:/WX>
             /W4                         # Enable all Level 4 warnings (high level of warning verbosity)
@@ -83,7 +83,7 @@ function(vx_add_common_compiler_flags TARGET_NAME)
             /wd4100                     # The formal parameter is not referenced in the body of the function.
             /permissive-                # Disable permissive mode; makes MSVC more standards-compliant (strict mode)
         )
-        
+
     endif()
 
     if(VX_CMAKE_COMPILER_GCC OR VX_CMAKE_COMPILER_CLANG)
@@ -107,7 +107,7 @@ function(vx_add_common_compiler_flags TARGET_NAME)
             -Wpedantic                  # Enforce strict compliance with the language standard, emitting all the warnings demanded by the standard
         )
     endif()
-    
+
     if(VX_CMAKE_COMPILER_GCC)
         # Don't enable -Wduplicated-branches for GCC < 8.1 since it will lead to false positives
         # https://github.com/gcc-mirror/gcc/commit/6bebae75035889a4844eb4d32a695bebf412bcd7
@@ -118,14 +118,14 @@ function(vx_add_common_compiler_flags TARGET_NAME)
             -Wno-trigraphs              # Disable warnings for trigraphs
         )
     endif()
-    
+
     # Disable certain deprecation warnings
     if(MSVC)
         target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_SECURE_NO_DEPRECATE)
         target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_NONSTDC_NO_DEPRECATE)
         target_compile_definitions(${TARGET_NAME} PRIVATE -D_CRT_SECURE_NO_WARNINGS)
     endif()
-  
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -142,18 +142,18 @@ function(vx_create_source_groups TARGET_NAME ROOT_DIR)
     foreach(SOURCE_FILE IN LISTS SRC_FILES)
         # Get the relative path of the source file from the root directory
         file(RELATIVE_PATH RELATIVE_FILE "${ROOT_DIR}" "${SOURCE_FILE}")
-        
+
         # Get the directory of the relative file
         get_filename_component(RELATIVE_DIR "${RELATIVE_FILE}" DIRECTORY)
-        
+
         # Add the relative path as a source group
         if(RELATIVE_DIR)
             string(REPLACE "/" "\\" GROUP_NAME "${RELATIVE_DIR}")
             source_group("${GROUP_NAME}" FILES "${SOURCE_FILE}")
         endif()
-        
+
     endforeach()
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
@@ -162,7 +162,7 @@ endfunction()
 function(vx_enable_asan TARGET_NAME)
 
     message(STATUS "AddressSanitizer enabled for target: ${TARGET_NAME}")
-    
+
     if(MSVC)
         #target_compile_options(${TARGET_NAME} PUBLIC "/fsanitize=address")
         #target_link_options(${TARGET_NAME} PUBLIC "/INCREMENTAL:NO")
@@ -172,14 +172,14 @@ function(vx_enable_asan TARGET_NAME)
     else()
         message(WARNING "AddressSanitizer is not supported for this compiler.")
     endif()
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
 
 # Function to check if a function exists on the platform
 # and define a preprocessor directive if it does
-function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
+function(vx_check_function_exists TARGET_NAME FUNCTION_NAME VISIBILITY MACRO_NAME)
 
     include(CheckFunctionExists)
     # Check if the function exists
@@ -187,16 +187,16 @@ function(vx_check_function_exists TARGET_NAME FUNCTION_NAME MACRO_NAME)
 
     # If the function exists, add the definition to the target
     if(${MACRO_NAME})
-        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} ${VISIBILITY} ${MACRO_NAME})
     endif()
-    
+
 endfunction()
 
 #--------------------------------------------------------------------
 
 # Function to check if a symbol exists on the platform
 # and define a preprocessor directive if it does
-function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
+function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER VISIBILITY MACRO_NAME)
 
     include(CheckSymbolExists)
     # Check if the symbol exists in the given header
@@ -204,7 +204,7 @@ function(vx_check_symbol_exists TARGET_NAME SYMBOL_NAME HEADER MACRO_NAME)
 
     # If the symbol exists, add the definition to the target
     if(${MACRO_NAME})
-        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} ${VISIBILITY} ${MACRO_NAME})
     endif()
 
 endfunction()
@@ -213,7 +213,7 @@ endfunction()
 
 # Function to check if an include file exists on the platform
 # and define a preprocessor directive if it does
-function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
+function(vx_check_include_exists TARGET_NAME INCLUDE_NAME VISIBILITY MACRO_NAME)
 
     include(CheckIncludeFile)
     # Check if the header exists
@@ -221,7 +221,7 @@ function(vx_check_include_exists TARGET_NAME INCLUDE_NAME MACRO_NAME)
 
     # If the header exists, add the definition to the target
     if(${MACRO_NAME})
-        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} ${VISIBILITY} ${MACRO_NAME})
     endif()
 
 endfunction()
@@ -229,7 +229,7 @@ endfunction()
 #--------------------------------------------------------------------
 # Function to check if a struct has a specific member
 # and define a preprocessor directive if it does
-function(vx_check_struct_member TARGET_NAME STRUCT_NAME MEMBER_NAME HEADER MACRO_NAME)
+function(vx_check_struct_member TARGET_NAME STRUCT_NAME MEMBER_NAME HEADER VISIBILITY MACRO_NAME)
 
     include(CheckStructHasMember)
     # Check if the struct has the specified member
@@ -237,7 +237,7 @@ function(vx_check_struct_member TARGET_NAME STRUCT_NAME MEMBER_NAME HEADER MACRO
 
     # If the member exists, add the definition to the target
     if(${MACRO_NAME})
-        target_compile_definitions(${TARGET_NAME} PRIVATE ${MACRO_NAME})
+        target_compile_definitions(${TARGET_NAME} ${VISIBILITY} ${MACRO_NAME})
     endif()
 
 endfunction()

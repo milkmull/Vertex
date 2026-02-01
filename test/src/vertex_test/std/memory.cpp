@@ -244,8 +244,6 @@ VX_TEST_CASE(aligned_runtime)
 
 VX_TEST_CASE(construct_and_destroy)
 {
-    using trivial_type = int;
-
     VX_SECTION("construct and destroy (trivial_type)")
     {
         trivial_type* ptr = vx::mem::construct<trivial_type>(123);
@@ -313,8 +311,6 @@ VX_TEST_CASE(static_array_size)
 
 VX_TEST_CASE(construct_and_destroy_range)
 {
-    using trivial_type = int;
-
     VX_SECTION("construct_range and destroy_range (trivial_type)")
     {
         constexpr size_t count = 10;
@@ -744,8 +740,6 @@ VX_TEST_CASE(move_range_and_move_uninitialized_range)
 
 VX_TEST_CASE(range_comparison_functions)
 {
-    using trivial_type = int;
-
     // Helper: create vectors with incremental values starting at base
     auto make_vector = [](size_t count, int base = 0)
     {

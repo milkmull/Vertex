@@ -79,7 +79,7 @@ void mutex::unlock() noexcept
 // Recursive Mutex Impl
 //=============================================================================
 
-#if !defined(HAVE_PTHREAD_MUTEX_RECURSIVE)
+#if !defined(VX_HAVE_PTHREAD_MUTEX_RECURSIVE)
 
 struct recursive_mutex_impl
 {
@@ -157,7 +157,7 @@ struct recursive_mutex_impl
     }
 };
 
-#endif // !defined(HAVE_PTHREAD_MUTEX_RECURSIVE)
+#endif // !defined(VX_HAVE_PTHREAD_MUTEX_RECURSIVE)
 
 //=============================================================================
 // Recursive Mutex

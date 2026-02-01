@@ -30,7 +30,7 @@ public:
 
 private:
 
-#if defined(HAVE_PTHREADS)
+#if defined(VX_HAVE_PTHREADS)
 
     // POSIX pthread_mutex_t is an opaque type whose size varies by platform and libc.
     // We use a conservative fixed buffer (64 bytes) to safely hold it.
@@ -81,7 +81,7 @@ public:
 
 private:
 
-#if defined(HAVE_PTHREAD_MUTEX_RECURSIVE)
+#if defined(VX_HAVE_PTHREAD_MUTEX_RECURSIVE)
 
     // POSIX we want to use the native recursive mutex if available
     static constexpr size_t storage_size = 64;
