@@ -59,14 +59,14 @@ inline constexpr size_t generate_canonical_iterations(size_t bits, uint64_t rng_
  * @tparam bits The minimum number of bits of entropy to accumulate (typically `std::numeric_limits<T>::digits`).
  * @tparam RNG A uniform random bit generator with unsigned integral `result_type`.
  *
- * @param gen A uniform random number generator.
+ * @param rng A uniform random number generator.
  * @return A floating-point value in [0, 1) with at least `bits` bits of entropy.
  *
  * @note Uses multiple RNG calls (with rejection-free accumulation) to preserve uniformity.
  * @note Uses double internally for better cross-platform precision consistency.
  */
 template <typename T, size_t bits, typename RNG>
-inline constexpr T generate_canonical(RNG& gen) noexcept(noexcept((RNG::min)()) && noexcept((RNG::max)()))
+inline constexpr T generate_canonical(RNG& rng) noexcept(noexcept((RNG::min)()) && noexcept((RNG::max)()))
 {
     using result_type = T;
     static_assert(std::is_floating_point<result_type>::value, "T must be an floating point type");
@@ -93,7 +93,7 @@ inline constexpr T generate_canonical(RNG& gen) noexcept(noexcept((RNG::min)()) 
 
     for (size_t i = 0; i < k; ++i)
     {
-        ret += (static_cast<common_type>(gen()) - frng_min) * factor;
+        ret += (static_cast<common_type>(rng()) - frng_min) * factor;
         factor *= r;
     }
 

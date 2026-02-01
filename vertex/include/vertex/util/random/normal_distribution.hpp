@@ -176,13 +176,13 @@ public:
      * using the Box-Muller transform.
      *
      * @tparam RNG The type of the random number generator.
-     * @param gen The random number generator to use.
+     * @param rng The random number generator to use.
      * @return A random floating-point value following the normal distribution.
      */
     template <typename RNG>
-    result_type operator()(RNG& gen)
+    result_type operator()(RNG& rng)
     {
-        return operator()(gen, m_param);
+        return operator()(rng, m_param);
     }
 
     /**
@@ -192,12 +192,12 @@ public:
      * using the Box-Muller transform.
      *
      * @tparam RNG The type of the random number generator.
-     * @param gen The random number generator to use.
+     * @param rng The random number generator to use.
      * @param p The parameter object containing the mean and standard deviation.
      * @return A random floating-point value following the normal distribution.
      */
     template <typename RNG>
-    result_type operator()(RNG& gen, const param_type& p);
+    result_type operator()(RNG& rng, const param_type& p);
 
 private:
 
@@ -212,7 +212,7 @@ private:
 
 template <typename T>
 template <typename RNG>
-typename normal_distribution<T>::result_type normal_distribution<T>::operator()(RNG& gen, const param_type& p)
+typename normal_distribution<T>::result_type normal_distribution<T>::operator()(RNG& rng, const param_type& p)
 {
     using rng_type = typename RNG::result_type;
 
@@ -221,7 +221,7 @@ typename normal_distribution<T>::result_type normal_distribution<T>::operator()(
         "RNG::result_type must be an unsigned integral type"
     );
 
-#   define generate_canonical(gen) random::generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(gen)
+#   define generate_canonical(rng) random::generate_canonical<result_type, std::numeric_limits<result_type>::digits, RNG>(rng)
 
     result_type ret;
 
@@ -236,8 +236,8 @@ typename normal_distribution<T>::result_type normal_distribution<T>::operator()(
 
         do
         {
-            x = static_cast<result_type>(2) * generate_canonical(gen) - static_cast<result_type>(1);
-            y = static_cast<result_type>(2) * generate_canonical(gen) - static_cast<result_type>(1);
+            x = static_cast<result_type>(2) * generate_canonical(rng) - static_cast<result_type>(1);
+            y = static_cast<result_type>(2) * generate_canonical(rng) - static_cast<result_type>(1);
             r2 = x * x + y * y;
 
         } while (r2 > static_cast<result_type>(1) || r2 == static_cast<result_type>(0));

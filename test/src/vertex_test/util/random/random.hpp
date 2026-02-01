@@ -15,14 +15,14 @@ namespace vx {
 namespace test {
 
 template <typename RNG, typename Dist, VX_REQUIRES(std::is_integral<typename Dist::result_type>::value)>
-inline void print_dist_values(RNG& gen, Dist& dist, size_t count, const char* sep = ", ")
+inline void print_dist_values(RNG& rng, Dist& dist, size_t count, const char* sep = ", ")
 {
     std::ostringstream oss;
     oss << '\n';
 
     for (size_t i = 0; i < count; ++i)
     {
-        const auto x = dist(gen);
+        const auto x = dist(rng);
         oss << x << sep;
     }
 
@@ -31,14 +31,14 @@ inline void print_dist_values(RNG& gen, Dist& dist, size_t count, const char* se
 }
 
 template <typename RNG, typename Dist, VX_REQUIRES(std::is_floating_point<typename Dist::result_type>::value)>
-inline void print_dist_values(RNG& gen, Dist& dist, size_t count, const char* sep = ", ")
+inline void print_dist_values(RNG& rng, Dist& dist, size_t count, const char* sep = ", ")
 {
     std::ostringstream oss;
     oss << '\n';
 
     for (size_t i = 0; i < count; ++i)
     {
-        const auto x = dist(gen);
+        const auto x = dist(rng);
         oss << std::hexfloat << x << sep;
     }
 
@@ -60,7 +60,7 @@ constexpr double chi_squared_critical_values[] = {
 // https://github.com/microsoft/STL/blob/9b38fb9ccca90fd8b31fd37d4512b190aeef4fe7/tests/std/tests/GH_000178_uniform_int/test.cpp
 
 template <typename RNG, typename Dist, size_t BINS, size_t SAMPLES>
-inline bool test_uniform_int_distribution(RNG& gen, Dist& dist)
+inline bool test_uniform_int_distribution(RNG& rng, Dist& dist)
 {
     // Degrees of freedom (df) for the chi-squared test:
     // In this case, df = (number of bins - 1).
@@ -83,7 +83,7 @@ inline bool test_uniform_int_distribution(RNG& gen, Dist& dist)
     size_t freq[BINS]{};
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        const result_type x = dist(gen);
+        const result_type x = dist(rng);
         if (x < dist.a() || x > dist.b())
         {
             return false;
@@ -117,7 +117,7 @@ inline bool test_uniform_int_distribution(RNG& gen, Dist& dist)
 }
 
 template <typename RNG, typename Dist, size_t BINS, size_t SAMPLES>
-inline bool test_uniform_real_distribution(RNG& gen, Dist& dist)
+inline bool test_uniform_real_distribution(RNG& rng, Dist& dist)
 {
     // Degrees of freedom (df) for the chi-squared test:
     // In this case, df = (number of bins - 1).
@@ -139,7 +139,7 @@ inline bool test_uniform_real_distribution(RNG& gen, Dist& dist)
     size_t freq[BINS]{};
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        const result_type x = dist(gen);
+        const result_type x = dist(rng);
         if (x < dist.a() || x > dist.b())
         {
             return false;
@@ -170,7 +170,7 @@ inline bool test_uniform_real_distribution(RNG& gen, Dist& dist)
 }
 
 template <typename RNG, typename Dist, size_t SAMPLES>
-inline bool test_bernoulli_distribution(RNG& gen, Dist& dist)
+inline bool test_bernoulli_distribution(RNG& rng, Dist& dist)
 {
     // Bernoulli distribution has 1 degree of freedom because the outcome probabilities
     // (success and failure) are determined by a single parameter p.
@@ -181,7 +181,7 @@ inline bool test_bernoulli_distribution(RNG& gen, Dist& dist)
     size_t freq[2]{};
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        const result_type x = dist(gen);
+        const result_type x = dist(rng);
         ++freq[static_cast<size_t>(x)];
     }
 
@@ -201,7 +201,7 @@ inline bool test_bernoulli_distribution(RNG& gen, Dist& dist)
 }
 
 template <typename RNG, typename Dist, size_t SAMPLES>
-inline bool test_normal_distribution(RNG& gen, Dist& dist)
+inline bool test_normal_distribution(RNG& rng, Dist& dist)
 {
     using result_type = typename Dist::result_type;
 
@@ -212,7 +212,7 @@ inline bool test_normal_distribution(RNG& gen, Dist& dist)
 
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        const result_type x = dist(gen);
+        const result_type x = dist(rng);
         sum += x;
         sq_sum += (x * x);
     }
@@ -239,7 +239,7 @@ inline bool test_normal_distribution(RNG& gen, Dist& dist)
 }
 
 template <typename RNG, typename Dist, size_t N, size_t SAMPLES>
-inline bool test_discrete_distribution(RNG& gen, Dist& dist)
+inline bool test_discrete_distribution(RNG& rng, Dist& dist)
 {
     static_assert(N <= mem::array_size(chi_squared_critical_values));
     constexpr double threshold = chi_squared_critical_values[N - 1];
@@ -251,7 +251,7 @@ inline bool test_discrete_distribution(RNG& gen, Dist& dist)
     size_t freq[N]{};
     for (size_t i = 0; i < SAMPLES; ++i)
     {
-        const result_type x = dist(gen);
+        const result_type x = dist(rng);
         ++freq[static_cast<size_t>(x)];
     }
 
@@ -280,7 +280,7 @@ inline bool test_discrete_distribution(RNG& gen, Dist& dist)
 }
 
 template <typename RNG, size_t N, size_t SAMPLES>
-inline bool test_shuffle(RNG& gen, const int* data)
+inline bool test_shuffle(RNG& rng, const int* data)
 {
     // Degrees of freedom (df) for the chi-squared test:
     // For a shuffle test, we analyze the distribution of N values across N
@@ -305,7 +305,7 @@ inline bool test_shuffle(RNG& gen, const int* data)
     {
         // Reset the data and shuffle
         std::memcpy(shuffled, data, N * sizeof(int));
-        random::shuffle(std::begin(shuffled), std::end(shuffled), gen);
+        random::shuffle(std::begin(shuffled), std::end(shuffled), rng);
 
         // Track where each value ends up
         for (size_t j = 0; j < N; ++j)
@@ -333,7 +333,7 @@ inline bool test_shuffle(RNG& gen, const int* data)
 }
 
 template <typename RNG, size_t N, size_t SAMPLES>
-inline bool test_sample(RNG& gen, const int* data)
+inline bool test_sample(RNG& rng, const int* data)
 {
     constexpr size_t df = N - 1;
     static_assert(df <= mem::array_size(chi_squared_critical_values));
@@ -343,7 +343,7 @@ inline bool test_sample(RNG& gen, const int* data)
     for (size_t i = 0; i < SAMPLES; ++i)
     {
         int x;
-        random::sample(data, data + N, &x, 1, gen);
+        random::sample(data, data + N, &x, 1, rng);
         ++freq[x];
     }
 
@@ -362,7 +362,7 @@ inline bool test_sample(RNG& gen, const int* data)
 }
 
 template <typename RNG, typename Dist, size_t N, size_t SAMPLES>
-inline bool test_discrete_sample(RNG& gen, Dist& dist, const int* data)
+inline bool test_discrete_sample(RNG& rng, Dist& dist, const int* data)
 {
     constexpr size_t df = N - 1;
     static_assert(df <= mem::array_size(chi_squared_critical_values));
@@ -375,7 +375,7 @@ inline bool test_discrete_sample(RNG& gen, Dist& dist, const int* data)
     for (size_t i = 0; i < SAMPLES; ++i)
     {
         int x{};
-        random::sample(data, data + N, &x, 1, dist, gen);
+        random::sample(data, data + N, &x, 1, dist, rng);
         ++freq[x];
     }
 

@@ -14,7 +14,7 @@ namespace os {
 // thread
 //=============================================================================
 
-class thread_impl;
+struct thread_impl;
 
 class thread
 {
@@ -173,7 +173,7 @@ public:
             return false;
         }
 
-        if (!start_impl(reinterpret_cast<void*>(wrapper::thread_entry), w))
+        if (!start_impl(wrapper::thread_entry, w))
         {
             mem::destroy(w);
             return false;

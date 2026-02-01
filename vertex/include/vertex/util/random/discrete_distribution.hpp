@@ -259,13 +259,13 @@ public:
      * where N is the size of the probabilities vector.
      *
      * @tparam RNG The type of the random number generator.
-     * @param gen The random number generator to use.
+     * @param rng The random number generator to use.
      * @return A random integer in the range [0, N-1).
      */
     template <typename RNG>
-    result_type operator()(RNG& gen)
+    result_type operator()(RNG& rng)
     {
-        return operator()(gen, m_param);
+        return operator()(rng, m_param);
     }
 
     /**
@@ -275,12 +275,12 @@ public:
      * where N is the size of the probabilities vector.
      *
      * @tparam RNG The type of the random number generator.
-     * @param gen The random number generator to use.
+     * @param rng The random number generator to use.
      * @param p The parameter object containing the probabilities (weights).
      * @return A random integer in the range [0, N-1).
      */
     template <typename RNG>
-    result_type operator()(RNG& gen, const param_type& p);
+    result_type operator()(RNG& rng, const param_type& p);
 
 private:
 
@@ -291,16 +291,16 @@ private:
 
 template <typename T>
 template <typename RNG>
-typename discrete_distribution<T>::result_type discrete_distribution<T>::operator()(RNG& gen, const param_type& p)
+typename discrete_distribution<T>::result_type discrete_distribution<T>::operator()(RNG& rng, const param_type& p)
 {
     if (p.m_cp.empty())
     {
         return static_cast<result_type>(0.0);
     }
 
-#   define generate_canonical(gen) random::generate_canonical<double, std::numeric_limits<double>::digits, RNG>(gen)
+#   define generate_canonical(rng) random::generate_canonical<double, std::numeric_limits<double>::digits, RNG>(rng)
 
-    const double x = generate_canonical(gen);
+    const double x = generate_canonical(rng);
     // Find the position in cumulative probabilities where x would fit
     const auto it = std::lower_bound(p.m_cp.begin(), p.m_cp.end(), x);
     return static_cast<result_type>(std::distance(p.m_cp.begin(), it));

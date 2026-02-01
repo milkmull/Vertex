@@ -3,6 +3,7 @@
 #include <pthread.h>
 
 #include "vertex/os/mutex.hpp"
+#include "vertex_impl/os/_platform/unix/unix_thread.hpp"
 #include "vertex/system/assert.hpp"
 
 namespace vx {
