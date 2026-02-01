@@ -1,8 +1,8 @@
 #pragma once
 
-#include<iostream>
-#include <vector>
+#include <iostream>
 #include <utility>
+#include <vector>
 
 #include "vertex/std/dynamic_array.hpp"
 #include "vertex/util/random.hpp"
@@ -119,8 +119,8 @@ static constexpr size_t NN = 100; // number of elements
 #if defined(_MSC_VER)
 
 static constexpr size_t mscv_manual_align_byte_count = 4096;
-VX_STATIC_ASSERT_MSG(NN * sizeof(trivial_type)      < mscv_manual_align_byte_count, "Element count too large");
-VX_STATIC_ASSERT_MSG(NN * sizeof(non_trivial_type)  < mscv_manual_align_byte_count, "Element count too large");
+VX_STATIC_ASSERT_MSG(NN * sizeof(trivial_type) < mscv_manual_align_byte_count, "Element count too large");
+VX_STATIC_ASSERT_MSG(NN * sizeof(non_trivial_type) < mscv_manual_align_byte_count, "Element count too large");
 
 #endif // defined(_MSC_VER)
 
@@ -129,15 +129,15 @@ VX_STATIC_ASSERT_MSG(NN * sizeof(non_trivial_type)  < mscv_manual_align_byte_cou
 template <typename Vec>
 std::string function_name(const char* fn)
 {
-    VX_IF_CONSTEXPR((std::is_same<Vec, vec1<trivial_type>>::value))
+    VX_IF_CONSTEXPR ((std::is_same<Vec, vec1<trivial_type>>::value))
     {
         return std::string(fn) + " (trivial std)";
     }
-    else VX_IF_CONSTEXPR((std::is_same<Vec, vec1<non_trivial_type>>::value))
+    else VX_IF_CONSTEXPR ((std::is_same<Vec, vec1<non_trivial_type>>::value))
     {
         return std::string(fn) + " (non trivial std)";
     }
-    else VX_IF_CONSTEXPR((std::is_same<Vec, vec2<trivial_type>>::value))
+    else VX_IF_CONSTEXPR ((std::is_same<Vec, vec2<trivial_type>>::value))
     {
         return std::string(fn) + " (trivial vx)";
     }
@@ -148,9 +148,9 @@ std::string function_name(const char* fn)
     }
 }
 
-#define function_str(str)   (function_name<Vec>(str))
-#define start_timer(str)    ::vx::profile::_priv::profile_timer timer(function_str(str))
-#define stop_timer()        timer.stop()
+#define function_str(str) (function_name<Vec>(str))
+#define start_timer(str)  ::vx::profile::_priv::profile_timer timer(function_str(str))
+#define stop_timer()      timer.stop()
 
 //=========================================================================
 // constructors
@@ -174,10 +174,10 @@ VX_NO_INLINE void profile_fill_constructor(size_t N)
 }
 
 template <typename Vec>
-VX_NO_INLINE void profile_list_constructor(size_t N)
+VX_NO_INLINE void profile_list_constructor(size_t)
 {
     using T = typename Vec::value_type;
-    Vec v1{ T{ 1 }, T{ 2 }, T{ 3 }, T{ 4 } };
+    Vec v1{ T{}, T{}, T{}, T{} };
     start_timer("list construct");
     Vec v2(v1);
     stop_timer();
@@ -249,7 +249,7 @@ void profile_list_assignment(size_t N)
     Vec dst(N);
 
     start_timer("list assign");
-    dst = { T{ 0 }, T{ 1 }, T{ 2 }, T{ 3 }, T{ 4 } };
+    dst = { T{}, T{}, T{}, T{}, T{} };
     stop_timer();
 }
 
@@ -350,7 +350,7 @@ void profile_emplace(size_t N)
     start_timer("emplace");
     for (size_t i = 0; i < N; ++i)
     {
-        v.emplace(v.begin() + v.size() / 2);
+        v.emplace(v.begin() + static_cast<typename Vec::difference_type>(v.size() / 2));
     }
     stop_timer();
 }
@@ -363,7 +363,7 @@ void profile_emplace_grow(size_t N)
     start_timer("emplace grow");
     for (size_t i = 0; i < N; ++i)
     {
-        v.emplace(v.begin() + v.size() / 2);
+        v.emplace(v.begin() + static_cast<typename Vec::difference_type>(v.size() / 2));
     }
     stop_timer();
 }
@@ -378,7 +378,7 @@ void profile_insert_n(size_t N)
     using T = typename Vec::value_type;
     Vec v(N);
     start_timer("insert n");
-    v.insert(v.begin() + N / 2, N / 2, T{});
+    v.insert(v.begin() + static_cast<typename Vec::difference_type>(N / 2), N / 2, T{});
     stop_timer();
 }
 
@@ -389,7 +389,7 @@ void profile_insert_n_unused(size_t N)
     Vec v(N);
     v.reserve(N + N / 2);
     start_timer("insert n unused");
-    v.insert(v.begin() + N / 2, N / 2, T{});
+    v.insert(v.begin() + static_cast<typename Vec::difference_type>(N / 2), N / 2, T{});
     stop_timer();
 }
 
@@ -409,7 +409,7 @@ void profile_insert_range(size_t N)
     Vec v1(N / 2);
     Vec v2(N);
     start_timer("insert range");
-    v2.insert(v2.begin() + N / 2, v1.begin(), v1.end());
+    v2.insert(v2.begin() + static_cast<typename Vec::difference_type>(N / 2), v1.begin(), v1.end());
     stop_timer();
 }
 
@@ -422,7 +422,7 @@ void profile_erase(size_t N)
 {
     Vec v(N);
     start_timer("erase");
-    v.erase(v.begin() + N / 2);
+    v.erase(v.begin() + static_cast<typename Vec::difference_type>(N / 2));
     stop_timer();
 }
 
@@ -431,7 +431,7 @@ void profile_erase_range(size_t N)
 {
     Vec v(N);
     start_timer("erase range");
-    v.erase(v.begin(), v.begin() + N / 2);
+    v.erase(v.begin(), v.begin() + static_cast<typename Vec::difference_type>(N / 2));
     stop_timer();
 }
 
@@ -451,12 +451,16 @@ void profile_compare(size_t N)
     }
 
     Vec v2 = v1;
-    bool equal = false;
+    volatile bool equal = false;
 
     {
         start_timer("compare");
         equal = v1 == v2;
         stop_timer();
+    }
+
+    if (v1.empty() != equal)
+    {
     }
 }
 
@@ -498,47 +502,47 @@ void profile_reserve_push_back(size_t N)
 template <typename Vec>
 void run(size_t N, size_t R)
 {
-    using test_fn = void(*)(size_t);
+    using test_fn = void (*)(size_t);
 
     test_fn tests[] = {
 
-        //profile_size_constructor<Vec>,
-        //profile_fill_constructor<Vec>,
-        //profile_list_constructor<Vec>,
-        //profile_copy_constructor<Vec>,
-        //profile_range_constructor<Vec>,
-        //profile_move_constructor<Vec>,
-        //
-        //profile_destructor<Vec>,
-        //
-        //profile_copy_assignment<Vec>,
-        //profile_list_assignment<Vec>,
-        //profile_move_assignment<Vec>,
-        //
-        //profile_reserve_grow<Vec>,
-        //profile_reserve_shrink<Vec>,
-        //
-        //profile_clear<Vec>,
-        //profile_shrink_to_fit<Vec>,
-        //
-        //profile_resize_grow<Vec>,
-        //profile_resize_shrink<Vec>,
-        //
-        //profile_emplace<Vec>,
-        //profile_emplace_grow<Vec>,
-        //
-        //profile_insert_n<Vec>,
-        //profile_insert_n_unused<Vec>,
-        //profile_insert_n_back<Vec>,
-        //profile_insert_range<Vec>,
-        //
-        //profile_erase<Vec>,
-        //profile_erase_range<Vec>,
-        
+        profile_size_constructor<Vec>,
+        profile_fill_constructor<Vec>,
+        profile_list_constructor<Vec>,
+        profile_copy_constructor<Vec>,
+        profile_range_constructor<Vec>,
+        profile_move_constructor<Vec>,
+
+        profile_destructor<Vec>,
+
+        profile_copy_assignment<Vec>,
+        profile_list_assignment<Vec>,
+        profile_move_assignment<Vec>,
+
+        profile_reserve_grow<Vec>,
+        profile_reserve_shrink<Vec>,
+
+        profile_clear<Vec>,
+        profile_shrink_to_fit<Vec>,
+
+        profile_resize_grow<Vec>,
+        profile_resize_shrink<Vec>,
+
+        profile_emplace<Vec>,
+        profile_emplace_grow<Vec>,
+
+        profile_insert_n<Vec>,
+        profile_insert_n_unused<Vec>,
+        profile_insert_n_back<Vec>,
+        profile_insert_range<Vec>,
+
+        profile_erase<Vec>,
+        profile_erase_range<Vec>,
+
         profile_push_back<Vec>,
         profile_reserve_push_back<Vec>,
-        
-        //profile_compare<Vec>
+
+        profile_compare<Vec>
     };
 
     vx::random::gen rng;
