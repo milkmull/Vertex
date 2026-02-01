@@ -97,7 +97,7 @@ struct thread_impl
         return true;
     }
 
-    void close() noexcept
+    void clear() noexcept
     {
         data.handle.close();
         data.id = get_invalid_native_id();
@@ -107,7 +107,7 @@ struct thread_impl
     {
         assert_is_running();
         ::_endthreadex(exit_code);
-        close();
+        clear();
     }
 
     // returns when thread terminates

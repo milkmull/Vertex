@@ -1,4 +1,5 @@
 #include <exception>
+#include <thread>
 
 #include "vertex_impl/os/_platform/platform_thread.hpp"
 
@@ -27,17 +28,22 @@ thread::~thread()
 
 thread::thread(thread&& other) noexcept
 {
-    swap(other);
+    traits::construct(m_storage, std::move(traits::get(other.m_storage)));
+    traits::get(other.m_storage).clear();
 }
 
 thread& thread::operator=(thread&& other) noexcept
 {
-    if (is_joinable())
+    if (*this != other)
     {
-        std::terminate();
-    }
+        if (is_joinable())
+        {
+            std::terminate();
+        }
 
-    swap(other);
+        m_impl = std::move(traits::get(other.m_storage));
+        traits::get(other.m_storage).clear();
+    }
     return *this;
 }
 
@@ -103,7 +109,7 @@ bool thread::join() noexcept
         return false;
     }
 
-    m_impl.close();
+    m_impl.clear();
     return true;
 }
 
@@ -119,7 +125,7 @@ bool thread::detach() noexcept
         return false;
     }
 
-    m_impl.close();
+    m_impl.clear();
     return true;
 }
 

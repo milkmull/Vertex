@@ -61,7 +61,6 @@ function(vx_add_test TARGET PATH SOURCES)
                 "$<TARGET_FILE:Vertex>"
                 "$<TARGET_FILE_DIR:${TARGET}>"
             COMMENT "Ensuring Vertex shared library is up-to-date for ${TARGET}."
-            DEPENDS Vertex
         )
 
     endif()

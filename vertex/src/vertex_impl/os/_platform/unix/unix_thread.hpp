@@ -87,7 +87,7 @@ struct thread_impl
         return true;
     }
 
-    void close() noexcept
+    void clear() noexcept
     {
         data.handle = get_invalid_native_id();
     }
@@ -96,7 +96,7 @@ struct thread_impl
     {
         assert_is_running();
         pthread_exit(reinterpret_cast<void*>(static_cast<uintptr_t>(exit_code)));
-        close();
+        clear();
     }
 
     bool join() noexcept
