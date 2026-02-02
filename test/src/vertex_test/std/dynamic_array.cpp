@@ -526,18 +526,22 @@ void test_element_access()
     VX_SECTION("front")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
+        VX_CHECK(v1.front());
         VX_CHECK(*v1.front() == 0);
 
         const vec<T> v2 = v1;
+        VX_CHECK(v2.front());
         VX_CHECK(*v2.front() == 0);
     }
 
     VX_SECTION("back")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
+        VX_CHECK(v1.back());
         VX_CHECK(*v1.back() == 4);
 
         const vec<T> v2 = v1;
+        VX_CHECK(v2.back());
         VX_CHECK(*v2.back() == 4);
     }
 
@@ -645,6 +649,7 @@ void test_iterators()
         vec<T> v1{ 0, 1, 2, 3, 4 };
 
         auto it = v1.begin();
+        VX_CHECK(it);
         VX_CHECK(it[0] == 0);
         VX_CHECK(it[2] == 2);
         VX_CHECK(*(it + 4) == 4);
@@ -652,6 +657,7 @@ void test_iterators()
 
         const vec<T> v2 = v1;
         auto cit = v2.begin();
+        VX_CHECK(cit);
         VX_CHECK(cit[1] == 1);
         VX_CHECK(*(cit + 3) == 3);
         VX_CHECK((v2.end() - v2.begin()) == 5);
@@ -1056,6 +1062,7 @@ void test_insert_and_erase()
         {
             it = v.insert(it, sentinel);
 
+            VX_CHECK(it);
             VX_CHECK(*it == sentinel);
             ++it; // skip over inserted sentinel to avoid infinite loop
         }
@@ -1094,6 +1101,7 @@ void test_insert_and_erase()
             T x(1);
             auto it = v.insert(v.end(), std::move(x));
 
+            VX_CHECK(it);
             VX_CHECK(*it == 1);
             VX_CHECK(non_trivial::move_count == 1);
         }
@@ -1109,6 +1117,7 @@ void test_insert_and_erase()
             T x(1);
             auto it = v.insert(v.end(), std::move(x));
 
+            VX_CHECK(it);
             VX_CHECK(*it == 1);
             VX_CHECK(non_trivial::move_count == 1);
         }
@@ -1119,6 +1128,7 @@ void test_insert_and_erase()
         vec<T> v{ 0, 2 };
 
         auto it = v.insert(v.begin() + 1, 5, 1);
+        VX_CHECK(it);
         VX_CHECK(*it == 1);
 
         for (; it != v.end(); ++it)
@@ -1139,6 +1149,7 @@ void test_insert_and_erase()
         vec<T> v{ 0, 10 };
 
         auto it = v.insert(v.begin() + 1, { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+        VX_CHECK(it);
         VX_CHECK(*it == 1);
 
         for (trivial_type i = 0; i < v.size(); ++i)
@@ -1159,6 +1170,7 @@ void test_insert_and_erase()
         auto it = v.insert(v.begin(), first, last);
 
         // it should point to first inserted element (2)
+        VX_CHECK(it);
         VX_CHECK(*it == 2);
 
         // v should now be: 2 3 4 0 1 2 3 4 5

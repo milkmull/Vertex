@@ -985,10 +985,10 @@ public:
     template <typename growth_rate, typename Tag, typename... Args>
     pointer insert_n(pointer pos, size_type count, Args&&... args)
     {
-        VX_UNLIKELY_COLD_PATH(count == 0,
-            {
-                return pos;
-            });
+        if (count == 0 || !pos)
+        {
+            return pos;
+        }
 
         const size_type available = m_buffer.capacity - m_buffer.size;
 

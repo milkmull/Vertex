@@ -206,22 +206,21 @@ constexpr char* copy_n(char* dst, const char* src, size_t n) noexcept
     }
     else
     {
-#if VX_HAS_BUILTIN(__builtin_strncpy)
-        return __builtin_strncpy(dst, src, n);
-#else
-        return ::strncpy(dst, src, n);
-#endif
+        return static_cast<char*>(mem::copy(dst, src, n));
     }
 }
 
 #if defined(__cpp_char8_t)
 constexpr char8_t* copy_n(char8_t* dst, const char8_t* src, size_t n) noexcept
 {
-    #if VX_HAS_BUILTIN(__builtin_u8strncpy)
-    return __builtin_u8strncpy(dst, src, n);
-    #else
-    return copy_n<char8_t>(dst, src, n);
-    #endif
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return copy_n<char8_t>(dst, src, n);
+    }
+    else
+    {
+        return static_cast<char8_t*>(mem::copy(dst, src, n));
+    }
 }
 #endif
 
@@ -233,10 +232,10 @@ constexpr wchar_t* copy_n(wchar_t* dst, const wchar_t* src, size_t n) noexcept
     }
     else
     {
-#if VX_HAS_BUILTIN(__builtin_wcsncpy)
-        return __builtin_wcsncpy(dst, src, n);
+#if VX_HAS_BUILTIN(__builtin_wmemcpy)
+        return __builtin_wmemcpy(dst, src, n);
 #else
-        return ::wcsncpy(dst, src, n);
+        return ::wmemcpy(dst, src, n);
 #endif
     }
 }
@@ -367,139 +366,6 @@ constexpr size_t length(const wchar_t* s) noexcept
         return __builtin_wcslen(s);
 #else
         return ::wcslen(s);
-#endif
-    }
-}
-
-//=========================================================================
-// concat
-//=========================================================================
-
-template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
-constexpr char_t* concat(char_t* dst, const char_t* src) noexcept
-{
-    char_t* out = dst;
-
-    // advance dst to end of existing string
-    while (*dst != char_t())
-    {
-        ++dst;
-    }
-
-    // copy src including terminating null
-    while ((*dst++ = *src++) != char_t())
-    {
-    }
-
-    return out;
-}
-
-constexpr char* concat(char* dst, const char* src) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return concat<char>(dst, src);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_strcat)
-        return __builtin_strcat(dst, src);
-#else
-        return ::strcat(dst, src);
-#endif
-    }
-}
-
-#if defined(__cpp_char8_t)
-constexpr char8_t* concat(char8_t* dst, const char8_t* src) noexcept
-{
-    #if VX_HAS_BUILTIN(__builtin_u8strcat)
-    return __builtin_u8strcat(dst, src);
-    #else
-    return concat<char8_t>(dst, src);
-    #endif
-}
-#endif
-
-constexpr wchar_t* concat(wchar_t* dst, const wchar_t* src) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return concat<wchar_t>(dst, src);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_wcscat)
-        return __builtin_wcscat(dst, src);
-#else
-        return ::wcscat(dst, src);
-#endif
-    }
-}
-
-//=========================================================================
-// concat_n (concatenate up to n characters)
-//=========================================================================
-
-template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
-constexpr char_t* concat_n(char_t* dst, const char_t* src, size_t n) noexcept
-{
-    char_t* out = dst;
-
-    while (*dst != char_t())
-    {
-        ++dst;
-    }
-
-    size_t i = 0;
-    for (; i < n && src[i] != char_t(); ++i)
-    {
-        dst[i] = src[i];
-    }
-    dst[i] = char_t(); // null-terminate
-
-    return out;
-}
-
-constexpr char* concat_n(char* dst, const char* src, size_t n) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return concat_n<char>(dst, src, n);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_strncat)
-        return __builtin_strncat(dst, src, n);
-#else
-        return ::strncat(dst, src, n);
-#endif
-    }
-}
-
-#if defined(__cpp_char8_t)
-constexpr char8_t* concat_n(char8_t* dst, const char8_t* src, size_t n) noexcept
-{
-    #if VX_HAS_BUILTIN(__builtin_u8strncat)
-    return __builtin_u8strncat(dst, src, n);
-    #else
-    return concat_n<char8_t>(dst, src, n);
-    #endif
-}
-#endif
-
-constexpr wchar_t* concat_n(wchar_t* dst, const wchar_t* src, size_t n) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return concat_n<wchar_t>(dst, src, n);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_wcsncat)
-        return __builtin_wcsncat(dst, src, n);
-#else
-        return ::wcsncat(dst, src, n);
 #endif
     }
 }
