@@ -1,25 +1,16 @@
 
-algorithms:
-    - sort
-    - find
-    - min/max
-    - reverse
-    - count
-    - remove
-    - mismatch
-    - replace
-    - rotate
-
 x array
 x allocation
 x dynamic array base
 x vector
-- stack vector/string
-- span (string view, ranges)
+- stack vector
+- string view
+- stack string
 - string
 - print io
 - packed string array
-- list
+- single link list
+- double link list
 - hash
 - unordered_set
 - unordered_map
@@ -30,6 +21,3 @@ x unique_ptr
 - shared_ptr
 x thread
 x mutex
-
-- atomic?
-- regex? (pcre2)

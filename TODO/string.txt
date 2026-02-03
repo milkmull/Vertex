@@ -7,8 +7,6 @@ x copy_n
 x assign
 x assign_n
 x length
-x concat
-x concat_n
 x find (char)
 x find_n (char)
 

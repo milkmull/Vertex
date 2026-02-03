@@ -5,7 +5,7 @@
 
 #include "vertex/os/thread_id.hpp"
 #include "vertex/std/memory.hpp"
-#include "vertex/std/opaque_storage.hpp"
+#include "vertex/std/aligned_storage.hpp"
 
 namespace vx {
 namespace os {
@@ -223,7 +223,7 @@ private:
 
 #endif
 
-    using storage_t = opaque_storage<storage_size, storage_alignment>;
+    using storage_t = aligned_storage<storage_size, storage_alignment>;
     storage_t m_storage;
 };
 

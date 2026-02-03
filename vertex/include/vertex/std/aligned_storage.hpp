@@ -10,9 +10,10 @@ namespace vx {
     VX_STATIC_ASSERT_MSG(alignof(T) <= alignment, "alignment too small")
 
 template <size_t Size, size_t Alignment>
-class opaque_storage
+class aligned_storage
 {
     VX_STATIC_ASSERT_MSG(Size > 0, "size too small");
+    VX_STATIC_ASSERT_MSG(mem::_priv::is_pow_2(Alignment), "alignment must be power of 2");
     VX_STATIC_ASSERT_MSG(Alignment > 0, "alignment size too small");
 
 public:
@@ -26,17 +27,17 @@ private:
 
 public:
 
-    opaque_storage() noexcept = default;
-    ~opaque_storage() noexcept = default;
+    aligned_storage() noexcept = default;
+    ~aligned_storage() noexcept = default;
 
-    opaque_storage(const opaque_storage&) = delete;
-    opaque_storage(opaque_storage&&) noexcept = delete;
+    aligned_storage(const aligned_storage&) = delete;
+    aligned_storage(aligned_storage&&) noexcept = delete;
 
-    opaque_storage& operator=(const opaque_storage&) = delete;
-    opaque_storage& operator=(opaque_storage&&) noexcept = delete;
+    aligned_storage& operator=(const aligned_storage&) = delete;
+    aligned_storage& operator=(aligned_storage&&) noexcept = delete;
 
     template <typename T>
-    explicit opaque_storage(T&& value) noexcept
+    explicit aligned_storage(T&& value) noexcept
     {
         _size_check();
         construct<T>(std::move(value));

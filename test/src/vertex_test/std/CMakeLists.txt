@@ -4,6 +4,7 @@
 #--------------------------------------------------------------------
 
 vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp")
+vx_add_test(test_std_aligned_storage        "std" "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.cpp")
 vx_add_test(test_std_dynamic_array          "std" "${CMAKE_CURRENT_SOURCE_DIR}/dynamic_array.cpp")
 
 file(GLOB VX_PROFILE_DYNAMIC_ARRAY_FILES
