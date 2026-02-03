@@ -94,12 +94,12 @@ public:
 
     iterator end() noexcept
     {
-        return iterator(m_array + m_buffer.size);
+        return iterator(m_array + N);
     }
 
     const_iterator end() const noexcept
     {
-        return const_iterator(m_array + m_buffer.size);
+        return const_iterator(m_array + N);
     }
 
     const_iterator cend() const noexcept
@@ -143,7 +143,7 @@ public:
 
     void fill(const T& value)
     {
-        mem::fill_range(m_array, N);
+        mem::fill_range(m_array, N, value);
     }
 
     void swap(array& other) noexcept
