@@ -2,6 +2,8 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
+#if defined(_VX_USE_SIMD_ALGORITHMS)
+
 namespace vx {
 namespace _simd {
 
@@ -9,11 +11,11 @@ namespace _simd {
 // bitset to string impl
 //=============================================================================
 
-#if !defined(USE_ARM_NEON)
+    #if !defined(USE_ARM_NEON)
 
 namespace _bitset_to_string {
 
-#if defined(USE_AVX2)
+        #if defined(USE_AVX2)
 
 struct traits_avx
 {
@@ -75,14 +77,14 @@ struct traits_2_avx : traits_avx
     }
 };
 
-#else
+        #else
 
 using traits_1_avx = void;
 using traits_2_avx = void;
 
-#endif // defined(USE_AVX2)
+        #endif // defined(USE_AVX2)
 
-#if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
 struct traits_sse
 {
@@ -135,12 +137,12 @@ struct traits_2_sse : traits_sse
     }
 };
 
-#else
+        #else
 
 using traits_1_sse = void;
 using traits_2_sse = void;
 
-#endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 
 template <typename Traits, typename Elem>
 void VX_STDCALL impl(
@@ -187,9 +189,9 @@ void VX_STDCALL impl(
 template <typename AVX, typename SSE, typename Elem>
 void VX_STDCALL dispatch(Elem* const dest, const void* const src, const size_t size_bits, const Elem elem0, const Elem elem1) noexcept
 {
-#if defined(USE_X86)
+        #if defined(USE_X86)
 
-    #if defined(USE_AVX2)
+            #if defined(USE_AVX2)
 
     if (size_bits >= 256)
     {
@@ -197,17 +199,17 @@ void VX_STDCALL dispatch(Elem* const dest, const void* const src, const size_t s
     }
     else
 
-    #endif // defined(USE_AVX2)
+            #endif // defined(USE_AVX2)
 
-    #if defined(USE_SSE2)
+            #if defined(USE_SSE2)
 
     {
         impl<SSE>(dest, src, size_bits, elem0, elem1);
     }
 
-    #endif // defined(USE_SSE2)
+            #endif // defined(USE_SSE2)
 
-#else
+        #else
 
     const auto arr = reinterpret_cast<const uint8_t*>(src);
     for (size_t ix = 0; ix < size_bits; ++ix)
@@ -215,7 +217,7 @@ void VX_STDCALL dispatch(Elem* const dest, const void* const src, const size_t s
         dest[size_bits - 1 - ix] = ((arr[ix >> 3] >> (ix & 7)) & 1) != 0 ? elem1 : elem0;
     }
 
-#endif // defined(USE_X86)
+        #endif // defined(USE_X86)
 }
 
 } // namespace _bitset_to_string
@@ -251,7 +253,7 @@ VX_NO_ALIAS void VX_STDCALL bitset_to_string_2(wchar_t* const dest, const void* 
 
 namespace _bitset_from_string {
 
-#if defined(USE_AVX2)
+        #if defined(USE_AVX2)
 
 struct traits_avx
 {
@@ -320,14 +322,14 @@ struct traits_2_avx : traits_avx
     }
 };
 
-#else
+        #else
 
 using traits_1_avx = void;
 using traits_2_avx = void;
 
-#endif // defined(USE_AVX2)
+        #endif // defined(USE_AVX2)
 
-#if defined(USE_SSE2)
+        #if defined(USE_SSE2)
 
 struct traits_sse
 {
@@ -390,12 +392,12 @@ struct traits_2_sse : traits_sse
     }
 };
 
-#else
+        #else
 
 using traits_1_sse = void;
 using traits_2_sse = void;
 
-#endif // defined(USE_SSE2)
+        #endif // defined(USE_SSE2)
 
 template <typename Traits, typename Elem, typename Out_Fn>
 bool loop(const Elem* const src, const Elem* src_end, const typename Traits::vec dx0, const typename Traits::vec dx1, Out_Fn out) noexcept
@@ -514,9 +516,9 @@ bool fallback(void* const dest, const Elem* const src, const size_t size_bytes, 
 template <typename AVX, typename SSE, typename Elem>
 bool dispatch(void* dest, const Elem* src, size_t size_bytes, size_t size_bits, size_t size_chars, Elem elem0, Elem elem1) noexcept
 {
-#if defined(USE_X86)
+        #if defined(USE_X86)
 
-    #if defined(USE_AVX2)
+            #if defined(USE_AVX2)
 
     if (size_bits >= 256)
     {
@@ -524,21 +526,21 @@ bool dispatch(void* dest, const Elem* src, size_t size_bytes, size_t size_bits, 
     }
     else
 
-    #endif // defined(USE_AVX2)
+            #endif // defined(USE_AVX2)
 
-    #if defined(USE_SSE2)
+            #if defined(USE_SSE2)
 
     {
         return impl<SSE>(dest, src, size_bytes, size_bits, size_chars, elem0, elem1);
     }
 
-    #endif // defined(USE_SSE2)
+            #endif // defined(USE_SSE2)
 
-#else
+        #else
 
     return fallback(dest, src, size_bytes, size_bits, size_chars, elem0, elem1);
 
-#endif // defined(USE_X86)
+        #endif // defined(USE_X86)
 }
 } // namespace _bitset_from_string
 
@@ -564,7 +566,9 @@ VX_NO_ALIAS bool VX_STDCALL bitset_from_string_2(void* const dest, const wchar_t
 
 } // extern "C"
 
-#endif // !defined(USE_ARM_NEON)
+    #endif // !defined(USE_ARM_NEON)
+
+#endif // defined(_VX_USE_SIMD_ALGORITHMS)
 
 } // namespace _simd
 } // namespace vx

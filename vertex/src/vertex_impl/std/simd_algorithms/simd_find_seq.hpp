@@ -2,6 +2,8 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_find.hpp"
 
+#if defined(_VX_USE_SIMD_ALGORITHMS)
+
 namespace vx {
 namespace _simd {
 
@@ -1193,3 +1195,5 @@ const void* VX_STDCALL find_end_8(
 
 } // namespace _simd
 } // namespace vx
+
+#endif // _VX_USE_SIMD_ALGORITHMS

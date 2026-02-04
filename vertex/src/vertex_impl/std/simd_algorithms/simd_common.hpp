@@ -4,8 +4,12 @@
 // https://github.com/microsoft/STL/blob/main/stl/src/vector_algorithms.cpp
 
 #if defined(_M_CEE_PURE)
-    #error _M_CEE_PURE should not be defined when compiling vector_algorithms.cpp.
+    #error _M_CEE_PURE should not be defined when compiling simd_algorithms.cpp.
 #endif
+
+#include "vertex/std/_priv/simd_algorithms.hpp"
+
+#if defined(_VX_USE_SIMD_ALGORITHMS)
 
 #include "vertex/config/architecture.hpp"
 #include "vertex/config/language_config.hpp"
@@ -137,3 +141,5 @@ inline void advance_bytes(const void*& target, const Int offset) noexcept
 
 } // namespace _simd
 } // namespace vx
+
+#endif // defined(_VX_USE_SIMD_ALGORITHMS)

@@ -2,6 +2,8 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
+#if defined(_VX_USE_SIMD_ALGORITHMS)
+
 namespace vx {
 namespace _simd {
 
@@ -1775,6 +1777,8 @@ const void* VX_STDCALL find_first_of_trivial_8(
     return _find_meow_of::_first_of::dispatch_ptr<uint64_t>(first1, last1, first2, last2);
 }
 
+//=============================================================================
+
 VX_NO_ALIAS size_t VX_STDCALL find_first_of_trivial_pos_1(const void* const haystack,
     const size_t haystack_length,
     const void* const needle,
@@ -1811,6 +1815,8 @@ VX_NO_ALIAS size_t VX_STDCALL find_first_of_trivial_pos_8(const void* const hays
         haystack, haystack_length, needle, needle_length);
 }
 
+//=============================================================================
+
 VX_NO_ALIAS size_t VX_STDCALL find_last_of_trivial_pos_1(const void* const haystack,
     const size_t haystack_length,
     const void* const needle,
@@ -1828,6 +1834,8 @@ VX_NO_ALIAS size_t VX_STDCALL find_last_of_trivial_pos_2(const void* const hayst
     return _find_meow_of::_last_of::dispatch_pos<uint16_t, _find_meow_of::predicate::any_of>(
         haystack, haystack_length, needle, needle_length);
 }
+
+//=============================================================================
 
 VX_NO_ALIAS size_t VX_STDCALL find_first_not_of_trivial_pos_1(const void* const haystack,
     const size_t haystack_length,
@@ -1847,6 +1855,8 @@ VX_NO_ALIAS size_t VX_STDCALL find_first_not_of_trivial_pos_2(const void* const 
         haystack, haystack_length, needle, needle_length);
 }
 
+//=============================================================================
+
 VX_NO_ALIAS size_t VX_STDCALL find_last_not_of_trivial_pos_1(const void* const haystack,
     const size_t haystack_length,
     const void* const needle,
@@ -1865,9 +1875,13 @@ VX_NO_ALIAS size_t VX_STDCALL find_last_not_of_trivial_pos_2(const void* const h
         haystack, haystack_length, needle, needle_length);
 }
 
+//=============================================================================
+
 } // extern "C"
 
 #endif // !defined(USE_ARM_NEON)
 
 } // namespace _simd
 } // namespace vx
+
+#endif // _VX_USE_SIMD_ALGORITHMS

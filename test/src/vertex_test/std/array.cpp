@@ -11,9 +11,9 @@ using vx::array;
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_element_access)
+VX_TEST_CASE(test_element_access)
 {
-    array<int, 4> arr;
+    array<size_t, 4> arr;
     arr[0] = 10;
     arr[1] = 20;
     arr[2] = 30;
@@ -22,20 +22,20 @@ VX_TEST_CASE(test_array_element_access)
     VX_CHECK(arr.front() == 10);
     VX_CHECK(arr.back() == 40);
 
-    int* p = arr.data();
+    size_t* p = arr.data();
     VX_CHECK(p[2] == 30);
 }
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_const_access)
+VX_TEST_CASE(test_const_access)
 {
-    array<int, 3> arr;
+    array<size_t, 3> arr;
     arr[0] = 1;
     arr[1] = 2;
     arr[2] = 3;
 
-    const array<int, 3>& c = arr;
+    const array<size_t, 3>& c = arr;
 
     VX_CHECK(c.front() == 1);
     VX_CHECK(c.back() == 3);
@@ -45,13 +45,15 @@ VX_TEST_CASE(test_array_const_access)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_iterator_basic)
+VX_TEST_CASE(test_iterator_basic)
 {
-    array<int, 5> arr;
-    for (int i = 0; i < 5; ++i)
+    array<size_t, 5> arr;
+    for (size_t i = 0; i < 5; ++i)
+    {
         arr[i] = i * 2;
+    }
 
-    int sum = 0;
+    size_t sum = 0;
     for (auto it = arr.begin(); it != arr.end(); ++it)
     {
         sum += *it;
@@ -62,17 +64,17 @@ VX_TEST_CASE(test_array_iterator_basic)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_iterator_const)
+VX_TEST_CASE(test_iterator_const)
 {
-    array<int, 4> arr;
+    array<size_t, 4> arr;
     arr[0] = 3;
     arr[1] = 6;
     arr[2] = 9;
     arr[3] = 12;
 
-    const array<int, 4>& c = arr;
+    const array<size_t, 4>& c = arr;
 
-    int sum = 0;
+    size_t sum = 0;
     for (auto it = c.begin(); it != c.end(); ++it)
     {
         sum += *it;
@@ -83,15 +85,15 @@ VX_TEST_CASE(test_array_iterator_const)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_reverse_iterator)
+VX_TEST_CASE(test_reverse_iterator)
 {
-    array<int, 4> arr;
+    array<size_t, 4> arr;
     arr[0] = 10;
     arr[1] = 20;
     arr[2] = 30;
     arr[3] = 40;
 
-    int sum = 0;
+    size_t sum = 0;
     for (auto it = arr.rbegin(); it != arr.rend(); ++it)
     {
         sum += *it;
@@ -102,10 +104,10 @@ VX_TEST_CASE(test_array_reverse_iterator)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_fill)
+VX_TEST_CASE(test_fill)
 {
     VX_SECTION("fill")
-    array<int, 6> arr;
+    array<size_t, 6> arr;
     arr.fill(55);
 
     for (size_t i = 0; i < arr.size(); ++i)
@@ -116,10 +118,10 @@ VX_TEST_CASE(test_array_fill)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_swap)
+VX_TEST_CASE(test_swap)
 {
-    array<int, 3> a;
-    array<int, 3> b;
+    array<size_t, 3> a;
+    array<size_t, 3> b;
 
     a[0] = 1;
     a[1] = 2;
@@ -136,22 +138,22 @@ VX_TEST_CASE(test_array_swap)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_size)
+VX_TEST_CASE(test_size)
 {
-    using A = array<int, 5>;
+    using A = array<size_t, 5>;
 
     VX_CHECK(A::size() == 5);
     VX_CHECK(!A::empty());
-    VX_CHECK(A::data_size() == sizeof(int) * 5);
+    VX_CHECK(A::data_size() == sizeof(size_t) * 5);
     VX_CHECK(A::max_size() >= 5); // depends on mem::max_array_size
 }
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_comparisons_equal)
+VX_TEST_CASE(test_comparisons_equal)
 {
-    array<int, 3> a;
-    array<int, 3> b;
+    array<size_t, 3> a;
+    array<size_t, 3> b;
 
     a[0] = 1;
     a[1] = 2;
@@ -170,10 +172,10 @@ VX_TEST_CASE(test_array_comparisons_equal)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_comparisons_order)
+VX_TEST_CASE(test_comparisons_order)
 {
-    array<int, 3> a;
-    array<int, 3> b;
+    array<size_t, 3> a;
+    array<size_t, 3> b;
 
     a[0] = 1;
     a[1] = 2;
@@ -190,17 +192,17 @@ VX_TEST_CASE(test_array_comparisons_order)
 
 //==============================================================================
 
-VX_TEST_CASE(test_array_reverse_const_iterator)
+VX_TEST_CASE(test_reverse_const_iterator)
 {
-    array<int, 4> arr;
+    array<size_t, 4> arr;
     arr[0] = 4;
     arr[1] = 8;
     arr[2] = 12;
     arr[3] = 16;
 
-    const array<int, 4>& c = arr;
+    const array<size_t, 4>& c = arr;
 
-    int product = 1;
+    size_t product = 1;
     for (auto it = c.rbegin(); it != c.rend(); ++it)
     {
         product *= *it;

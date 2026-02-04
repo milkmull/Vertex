@@ -2,6 +2,8 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_common.hpp"
 
+#if defined(_VX_USE_SIMD_ALGORITHMS)
+
 namespace vx {
 namespace _simd {
 
@@ -546,3 +548,5 @@ VX_NO_ALIAS void VX_CDECL reverse_copy_trivially_copyable_8(
 
 } // namespace _simd
 } // namespace vx
+
+#endif // _VX_USE_SIMD_ALGORITHMS

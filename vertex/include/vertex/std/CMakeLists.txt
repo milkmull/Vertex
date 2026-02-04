@@ -16,7 +16,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/dynamic_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/stack_dynamic_array_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/min_max.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/vector_algorithms.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/_priv/simd_algorithms.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/invoke.hpp"
 )
 

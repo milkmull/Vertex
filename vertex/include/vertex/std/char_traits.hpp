@@ -5,6 +5,7 @@
 #include <wchar.h>
 
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/_priv/simd_algorithms.hpp"
 #include "vertex/std/memory.hpp"
 
 namespace vx {
@@ -592,8 +593,6 @@ using traits_char_t = typename Traits::char_type;
 template <typename Traits>
 using traits_ptr_t = const typename Traits::char_type*;
 
-#define VX_USE_VECTOR_ALGORITHMS 1
-
 // signed char and other unsigned integral types are supported as an extension.
 // Use of other arithmetic types and nullptr_t should be rejected.
 template <typename T>
@@ -695,27 +694,27 @@ constexpr size_t traits_find(
         return start;
     }
 
-#if VX_USE_VECTOR_ALGORITHMS
+#if _VX_USE_SIMD_ALGORITHMS
 
     VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
     {
         if (!VX_IS_CONSTANT_EVALUATED())
         {
-            //const auto _End = haystack + hay_size;
-            //const auto _Ptr = _STD _Search_vectorized(haystack + start, _End, needle, needle_size);
-            //
-            //if (_Ptr != _End)
-            //{
-            //    return static_cast<size_t>(_Ptr - haystack);
-            //}
-            //else
-            //{
-            //    return static_cast<size_t>(-1);
-            //}
+            const auto end = haystack + hay_size;
+            const auto ptr = _simd::search_simd(haystack + start, end, needle, needle_size);
+
+            if (ptr != end)
+            {
+                return static_cast<size_t>(ptr - haystack);
+            }
+            else
+            {
+                return static_cast<size_t>(-1);
+            }
         }
     }
 
-#endif // VX_USE_VECTOR_ALGORITHMS
+#endif // _VX_USE_SIMD_ALGORITHMS
 
     const auto end = haystack + (hay_size - needle_size) + 1;
 
@@ -733,6 +732,638 @@ constexpr size_t traits_find(
         {
             // found match
             return static_cast<size_t>(it - haystack);
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_ch(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
+{
+    // search [haystack, haystack + hay_size) for c, at/after start_at
+    if (start_at >= hay_size)
+    {
+        // (npos) no room for match
+        return static_cast<size_t>(-1);
+    }
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto end = haystack + hay_size;
+            const auto ptr = _simd::find_simd(haystack + start_at, end, c);
+
+            if (ptr != end)
+            {
+                return static_cast<size_t>(ptr - haystack);
+            }
+            else
+            {
+                // (npos) no match
+                return static_cast<size_t>(-1);
+            }
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    const auto found_at = Traits::find(haystack + start_at, hay_size - start_at, c);
+    if (found_at)
+    {
+        return static_cast<size_t>(found_at - haystack);
+    }
+
+    // (npos) no match
+    return static_cast<size_t>(-1);
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_rfind(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_ptr_t<Traits> needle, const size_t needle_size) noexcept
+{
+    // search [haystack, haystack + hay_size) for [needle, needle + needle_size) beginning before start_at
+    if (needle_size == 0)
+    {
+        // empty string always matches
+        return std::min(start_at, hay_size);
+    }
+
+    if (needle_size > hay_size)
+    {
+        // no room for match
+        return static_cast<size_t>(-1);
+    }
+
+    const size_t actual_start_at = std::min(start_at, hay_size - needle_size);
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            // find_end_simd takes into account the needle length when locating the search start.
+            // As a potentially earlier start position can be specified, we need to take it into account,
+            // and pick between the maximum possible start position and the specified one,
+            // and then add needle_size, so that it is subtracted back in find_end_simd.
+            const auto end = haystack + actual_start_at + needle_size;
+            const auto ptr = _simd::find_end_simd(haystack, end, needle, needle_size);
+
+            if (ptr != end)
+            {
+                return static_cast<size_t>(ptr - haystack);
+            }
+            else
+            {
+                return static_cast<size_t>(-1);
+            }
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    for (auto match_try = haystack + actual_start_at;; --match_try)
+    {
+        if (Traits::eq(*match_try, *needle) && Traits::compare(match_try, needle, needle_size) == 0)
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+
+        if (match_try == haystack)
+        {
+            // at beginning, no more chance for match
+            return static_cast<size_t>(-1);
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_rfind_ch(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
+{
+    // search [haystack, haystack + hay_size) for c before start_at
+
+    if (hay_size == 0)
+    {
+        // no room for match
+        return static_cast<size_t>(-1);
+    }
+
+    const size_t actual_start_at = std::min(start_at, hay_size - 1);
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto end = haystack + actual_start_at + 1;
+            const auto ptr = _simd::find_last_simd(haystack, end, c);
+
+            if (ptr != end)
+            {
+                return static_cast<size_t>(ptr - haystack);
+            }
+            else
+            {
+                return static_cast<size_t>(-1);
+            }
+        }
+    }
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    for (auto match_try = haystack + actual_start_at;; --match_try)
+    {
+        if (Traits::eq(*match_try, c))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+
+        if (match_try == haystack)
+        {
+            // at beginning, no more chance for match
+            return static_cast<size_t>(-1);
+        }
+    }
+}
+
+//=========================================================================
+
+// string_bitmap for character types
+template <typename char_t, bool = type_traits::is_char<char_t>::value>
+class string_bitmap
+{
+public:
+
+    constexpr bool mark(const char_t* first, const char_t* const last) noexcept
+    {
+        // mark this bitmap such that the characters in [first, last) are intended to match
+        // returns whether all inputs can be placed in the bitmap
+        for (; first != last; ++first)
+        {
+            m_matches[static_cast<unsigned char>(*first)] = true;
+        }
+
+        return true;
+    }
+
+    constexpr bool match(const char_t c) const noexcept
+    { // test if c is in the bitmap
+        // CodeQL [SM01954] This index is valid: we cast to unsigned char and the array has 256 elements.
+        return m_matches[static_cast<unsigned char>(c)];
+    }
+
+private:
+
+    bool m_matches[256] = {};
+};
+
+// string_bitmap for wchar_t/unsigned short/char16_t/char32_t/etc. types
+template <typename char_t>
+class string_bitmap<char_t, false>
+{
+public:
+
+    VX_STATIC_ASSERT_MSG(std::is_unsigned<char_t>::value,
+        "Standard char_traits is only provided for char, wchar_t, char8_t, char16_t, "
+        "and char32_t. See N4988 [char.Traits].");
+
+    constexpr bool mark(const char_t* first, const char_t* const last) noexcept
+    {
+        // mark this bitmap such that the characters in [first, last) are intended to match
+        // returns whether all inputs can be placed in the bitmap
+        for (; first != last; ++first)
+        {
+            const auto c = *first;
+            if (c >= 256U)
+            {
+                return false;
+            }
+
+            m_matches[static_cast<unsigned char>(c)] = true;
+        }
+
+        return true;
+    }
+
+    constexpr bool match(const char_t c) const noexcept
+    {
+        // test if c is in the bitmap
+        return c < 256U && m_matches[c];
+    }
+
+private:
+
+    bool m_matches[256] = {};
+};
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_first_of(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_ptr_t<Traits> needle,
+    const size_t needle_size) noexcept
+{
+    // in [haystack, haystack + hay_size), look for one of [needle, needle + needle_size), at/after start_at
+
+    if (needle_size == 0 || start_at >= hay_size)
+    {
+        // no match possible
+        return static_cast<size_t>(-1);
+    }
+
+    const auto hay_start = haystack + start_at;
+    const auto hay_end = haystack + hay_size;
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+#if _VX_USE_SIMD_ALGORITHMS
+
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const size_t remaining_size = hay_size - start_at;
+            if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+            {
+                size_t pos = _simd::find_first_of_pos_simd(hay_start, remaining_size, needle, needle_size);
+                if (pos != static_cast<size_t>(-1))
+                {
+                    pos += start_at;
+                }
+                return pos;
+            }
+        }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+        string_bitmap<typename Traits::char_type> matches;
+
+        if (matches.mark(needle, needle + needle_size))
+        {
+            for (auto match_try = hay_start; match_try < hay_end; ++match_try)
+            {
+                if (matches.match(*match_try))
+                {
+                    // found a match
+                    return static_cast<size_t>(match_try - haystack);
+                }
+            }
+
+            // no match
+            return static_cast<size_t>(-1);
+        }
+
+        // couldn't put one of the characters into the bitmap, fall back to serial algorithm
+    }
+
+    for (auto match_try = hay_start; match_try < hay_end; ++match_try)
+    {
+        if (Traits::find(needle, needle_size, *match_try))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+    }
+
+    // no match
+    return static_cast<size_t>(-1);
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_last_of(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_ptr_t<Traits> needle,
+    const size_t needle_size) noexcept
+{
+    // in [haystack, haystack + hay_size), look for last of [needle, needle + needle_size), before start_at
+
+    if (needle_size == 0 || hay_size == 0)
+    {
+        // not worth searching
+        return static_cast<size_t>(-1);
+    }
+
+    const auto hay_start = std::min(start_at, hay_size - 1);
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        using char_t = typename Traits::char_type;
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+        VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
+        {
+            if (!VX_IS_CONSTANT_EVALUATED())
+            {
+                const size_t remaining_size = hay_start + 1;
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                {
+                    // same threshold for first/last
+                    return _simd::find_last_of_pos_simd(haystack, remaining_size, needle, needle_size);
+                }
+            }
+        }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+        string_bitmap<char_t> matches;
+        if (matches.mark(needle, needle + needle_size))
+        {
+            for (auto match_try = haystack + hay_start;; --match_try)
+            {
+                if (matches.match(*match_try))
+                {
+                    // found a match
+                    return static_cast<size_t>(match_try - haystack);
+                }
+
+                if (match_try == haystack)
+                {
+                    // at beginning, no more chance for match
+                    return static_cast<size_t>(-1);
+                }
+            }
+        }
+
+        // couldn't put one of the characters into the bitmap, fall back to serial algorithm
+    }
+
+    for (auto match_try = haystack + hay_start;; --match_try)
+    {
+        if (Traits::find(needle, needle_size, *match_try))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+
+        if (match_try == haystack)
+        {
+            // at beginning, no more chance for match
+            return static_cast<size_t>(-1);
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_first_not_of(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_ptr_t<Traits> needle,
+    const size_t needle_size) noexcept
+{
+    // in [haystack, haystack + hay_size), look for none of [needle, needle + needle_size), at/after start_at
+
+    if (start_at >= hay_size)
+    {
+        // no room for match
+        return static_cast<size_t>(-1);
+    }
+
+    const auto hay_start = haystack + start_at;
+    const auto hay_end = haystack + hay_size;
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        using char_t = typename Traits::char_type;
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+        VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
+        {
+            if (!VX_IS_CONSTANT_EVALUATED())
+            {
+                const size_t remaining_size = hay_size - start_at;
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                {
+                    size_t pos = _simd::find_first_not_of_pos_simd(hay_start, remaining_size, needle, needle_size);
+                    if (pos != static_cast<size_t>(-1))
+                    {
+                        pos += start_at;
+                    }
+                    return pos;
+                }
+            }
+        }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+        string_bitmap<char_t> matches;
+        if (matches.mark(needle, needle + needle_size))
+        {
+            for (auto match_try = hay_start; match_try < hay_end; ++match_try)
+            {
+                if (!matches.match(*match_try))
+                {
+                    // found a match
+                    return static_cast<size_t>(match_try - haystack);
+                }
+            }
+            // no match
+            return static_cast<size_t>(-1);
+        }
+
+        // couldn't put one of the characters into the bitmap, fall back to the serial algorithm
+    }
+
+    for (auto match_try = hay_start; match_try < hay_end; ++match_try)
+    {
+        if (!Traits::find(needle, needle_size, *match_try))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+    }
+
+    // no match
+    return static_cast<size_t>(-1);
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_not_ch(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_char_t<Traits> c) noexcept
+{
+    // search [haystack, haystack + hay_size) for any value other than c, at/after start_at
+
+    if (start_at >= hay_size)
+    {
+        // no room for match
+        return static_cast<size_t>(-1);
+    }
+
+    const auto end = haystack + hay_size;
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto result = _simd::find_not_ch_simd(haystack + start_at, end, c);
+            if (result != end)
+            {
+                return static_cast<size_t>(result - haystack);
+            }
+            else
+            {
+                // no match
+                return static_cast<size_t>(-1);
+            }
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    for (auto match_try = haystack + start_at; match_try < end; ++match_try)
+    {
+        if (!Traits::eq(*match_try, c))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+    }
+
+    // no match
+    return static_cast<size_t>(-1);
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_find_last_not_of(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_ptr_t<Traits> needle,
+    const size_t needle_size) noexcept
+{
+    // in [haystack, haystack + hay_size), look for none of [needle, needle + needle_size), before start_at
+
+    if (hay_size == 0)
+    {
+        // no match possible
+        return static_cast<size_t>(-1);
+    }
+
+    const auto hay_start = std::min(start_at, hay_size - 1);
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        using char_t = typename Traits::char_type;
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+        VX_IF_CONSTEXPR (sizeof(char_t) <= 2)
+        {
+            if (!VX_IS_CONSTANT_EVALUATED())
+            {
+                const size_t remaining_size = hay_start + 1;
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                {
+                    // same threshold for first/last
+                    return _simd::find_last_not_of_pos_simd(haystack, remaining_size, needle, needle_size);
+                }
+            }
+        }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+        string_bitmap<char_t> m_matches;
+        if (m_matches.mark(needle, needle + needle_size))
+        {
+            for (auto match_try = haystack + hay_start;; --match_try)
+            {
+                if (!m_matches.match(*match_try))
+                {
+                    // found a match
+                    return static_cast<size_t>(match_try - haystack);
+                }
+
+                if (match_try == haystack)
+                {
+                    // at beginning, no more chance for match
+                    return static_cast<size_t>(-1);
+                }
+            }
+        }
+
+        // couldn't put one of the characters into the bitmap, fall back to the serial algorithm
+    }
+
+    for (auto match_try = haystack + hay_start;; --match_try)
+    {
+        if (!Traits::find(needle, needle_size, *match_try))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+
+        if (match_try == haystack)
+        {
+            // at beginning, no more chance for match
+            return static_cast<size_t>(-1);
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
+    const size_t hay_size,
+    const size_t start_at,
+    const traits_char_t<Traits> c) noexcept
+{
+    // search [haystack, haystack + hay_size) for any value other than c before start_at
+
+    if (hay_size == 0)
+    {
+        // no room for match
+        return static_cast<size_t>(-1);
+    }
+
+    const size_t actual_start_at = std::min(start_at, hay_size - 1);
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            return _simd::find_last_not_ch_pos_simd(haystack, haystack + actual_start_at + 1, c);
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    for (auto match_try = haystack + actual_start_at;; --match_try)
+    {
+        if (!Traits::eq(*match_try, c))
+        {
+            // found a match
+            return static_cast<size_t>(match_try - haystack);
+        }
+
+        if (match_try == haystack)
+        {
+            // at beginning, no more chance for match
+            return static_cast<size_t>(-1);
         }
     }
 }

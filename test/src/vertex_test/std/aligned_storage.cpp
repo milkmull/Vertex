@@ -20,8 +20,8 @@ struct simple_type
 
 struct complex_type
 {
-    complex_type(int a, int b)
-        : a(a), b(b)
+    complex_type(int ax, int bx)
+        : a(ax), b(bx)
     {}
     int a;
     int b;

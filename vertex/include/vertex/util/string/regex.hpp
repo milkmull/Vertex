@@ -184,17 +184,17 @@ public:
     template <typename IT>
     inline std::vector<regex_match_results<IT>> search_all(IT first, IT last) const
     {
-        std::vector<regex_match_results<IT>> matches;
+        std::vector<regex_match_results<IT>> m_matches;
         regex_match_results<IT> m;
 
         IT it = first;
         while (search(it, last, m))
         {
-            matches.push_back(m);
+            m_matches.push_back(m);
             it = m[0].second;
         }
 
-        return matches;
+        return m_matches;
     }
 
     /// @brief Overload for null-terminated string.

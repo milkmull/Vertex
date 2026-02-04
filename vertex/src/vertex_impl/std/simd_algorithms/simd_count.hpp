@@ -2,6 +2,8 @@
 
 #include "vertex_impl/std/simd_algorithms/simd_find.hpp"
 
+#if defined(_VX_USE_SIMD_ALGORITHMS)
+
 namespace vx {
 namespace _simd {
 
@@ -372,3 +374,5 @@ VX_NO_ALIAS size_t VX_STDCALL count_trivial_8(
 
 } // namespace _simd
 } // namespace vx
+
+#endif // _VX_USE_SIMD_ALGORITHMS
