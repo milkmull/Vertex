@@ -120,22 +120,22 @@ public:
     // element access
     //=========================================================================
 
-    T* front() noexcept
+    T& front() noexcept
     {
         return m_array.front();
     }
 
-    const T* front() const noexcept
+    const T& front() const noexcept
     {
         return m_array.front();
     }
 
-    T* back() noexcept
+    T& back() noexcept
     {
         return m_array.back();
     }
 
-    const T* back() const noexcept
+    const T& back() const noexcept
     {
         return m_array.back();
     }

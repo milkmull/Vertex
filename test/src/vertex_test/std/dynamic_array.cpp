@@ -526,23 +526,19 @@ void test_element_access()
     VX_SECTION("front")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        VX_CHECK(v1.front());
-        VX_CHECK(*v1.front() == 0);
+        VX_CHECK(v1.front() == 0);
 
         const vec<T> v2 = v1;
-        VX_CHECK(v2.front());
-        VX_CHECK(*v2.front() == 0);
+        VX_CHECK(v2.front() == 0);
     }
 
     VX_SECTION("back")
     {
         vec<T> v1{ 0, 1, 2, 3, 4 };
-        VX_CHECK(v1.back());
-        VX_CHECK(*v1.back() == 4);
+        VX_CHECK(v1.back() == 4);
 
         const vec<T> v2 = v1;
-        VX_CHECK(v2.back());
-        VX_CHECK(*v2.back() == 4);
+        VX_CHECK(v2.back() == 4);
     }
 
     VX_SECTION("data")
@@ -892,18 +888,23 @@ VX_TEST_CASE(size_and_capacity_non_trivial)
 // emplace / push back
 //=========================================================================
 
+struct emplace_type
+{
+    trivial_type a, b;
+    emplace_type(trivial_type x, trivial_type y)
+        : a(x), b(y)
+    {}
+
+    friend bool operator==(const emplace_type& lhs, const emplace_type& rhs)
+    {
+        return lhs.a == rhs.a && lhs.b == rhs.b;
+    }
+};
+
 template <typename T>
 void test_emplace_and_pushback()
 {
     constexpr bool is_non_trivial = std::is_same<T, non_trivial>::value;
-
-    struct emplace_type
-    {
-        trivial_type a, b;
-        emplace_type(trivial_type x, trivial_type y)
-            : a(x), b(y)
-        {}
-    };
 
     VX_SECTION("emplace")
     {
@@ -943,13 +944,13 @@ void test_emplace_and_pushback()
 
         auto* p0 = v.emplace_back(1u, 2u);
         VX_CHECK(p0);
-        VX_CHECK(p0 == v.back());
+        VX_CHECK(*p0 == v.back());
         VX_CHECK(p0->a == 1);
         VX_CHECK(p0->b == 2);
 
         auto* p1 = v.emplace_back(3u, 4u);
         VX_CHECK(p1);
-        VX_CHECK(p1 == v.back());
+        VX_CHECK(*p1 == v.back());
         VX_CHECK(p1->a == 3);
         VX_CHECK(p1->b == 4);
 
@@ -1200,11 +1201,11 @@ void test_insert_and_erase()
     {
         vec<T> v{ 0, 1, 2, 3 };
 
-        trivial_type i = static_cast<trivial_type>(*v.back());
+        trivial_type i = static_cast<trivial_type>(v.back());
 
         do
         {
-            const auto& back = *v.back();
+            const auto& back = v.back();
             VX_CHECK(back == i);
             const trivial_type last_size = v.size();
             v.pop_back();

@@ -45,29 +45,29 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = pointer_iterator<T*>;
-    using const_iterator = pointer_iterator<const T*>;
+    using iterator = pointer_iterator<dynamic_array_base, T*>;
+    using const_iterator = pointer_iterator<dynamic_array_base, const T*>;
     using reverse_iterator = reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = reverse_pointer_iterator<const_iterator>;
 
+    // construct a single value
     struct construct_single_tag
-    {
-    }; // construct a single value
+    {};
+    // construct from size
     struct construct_range_tag
-    {
-    }; // construct from size
+    {};
+    // fill range
     struct fill_range_tag
-    {
-    }; // fill range
+    {};
+    // copy range (no overlap)
     struct copy_range_tag
-    {
-    }; // copy range (no overlap)
+    {};
+    // move range (no overlap)
     struct move_range_tag
-    {
-    }; // move range (no overlap)
+    {};
+    // construct from iterator range
     struct iterator_range_tag
-    {
-    }; // construct from iterator range
+    {};
 
     struct buffer
     {
@@ -376,26 +376,28 @@ public:
     // element access
     //=========================================================================
 
-    T* front() noexcept
-    {
-        return m_buffer.ptr;
-    }
-
-    const T* front() const noexcept
-    {
-        return m_buffer.ptr;
-    }
-
-    T* back() noexcept
+    T& front() noexcept
     {
         VX_ASSERT(m_buffer.ptr && m_buffer.size);
-        return m_buffer.ptr + m_buffer.size - 1;
+        return *m_buffer.ptr;
     }
 
-    const T* back() const noexcept
+    const T& front() const noexcept
     {
         VX_ASSERT(m_buffer.ptr && m_buffer.size);
-        return m_buffer.ptr + m_buffer.size - 1;
+        return *m_buffer.ptr;
+    }
+
+    T& back() noexcept
+    {
+        VX_ASSERT(m_buffer.ptr && m_buffer.size);
+        return m_buffer.ptr[m_buffer.size - 1];
+    }
+
+    const T& back() const noexcept
+    {
+        VX_ASSERT(m_buffer.ptr && m_buffer.size);
+        return m_buffer.ptr[m_buffer.size - 1];
     }
 
     T* data() noexcept
@@ -985,11 +987,6 @@ public:
     template <typename growth_rate, typename Tag, typename... Args>
     pointer insert_n(pointer pos, size_type count, Args&&... args)
     {
-        if (count == 0 || !pos)
-        {
-            return pos;
-        }
-
         const size_type available = m_buffer.capacity - m_buffer.size;
 
         if (count <= available)

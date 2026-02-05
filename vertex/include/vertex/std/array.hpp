@@ -24,8 +24,8 @@ public:
     using size_type       = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator               = _priv::pointer_iterator<T*>;
-    using const_iterator         = _priv::pointer_iterator<const T*>;
+    using iterator               = _priv::pointer_iterator<array, T*>;
+    using const_iterator         = _priv::pointer_iterator<array, const T*>;
     using reverse_iterator       = _priv::reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
 

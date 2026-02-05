@@ -7,7 +7,7 @@
 namespace vx {
 namespace _priv {
 
-template <typename T>
+template <typename Owner, typename T>
 class pointer_iterator
 {
 public:
@@ -24,11 +24,11 @@ public:
         : m_ptr(p)
     {}
 
-    template <typename>
+    template <typename, typename>
     friend class pointer_iterator;
 
     template <typename U, VX_REQUIRES((std::is_convertible<U, T>::value))>
-    pointer_iterator(const pointer_iterator<U>& other) noexcept
+    pointer_iterator(const pointer_iterator<Owner, U>& other) noexcept
         : m_ptr(other.m_ptr)
     {}
 
@@ -294,21 +294,18 @@ private:
     IT m_it;
 };
 
-
-// Primary template — default is false
 template <typename>
 struct is_pointer_iterator : std::false_type
 {
 };
 
-// Partial specialization for pointer_iterator with any template argument
-template <typename T>
-struct is_pointer_iterator<pointer_iterator<T>> : std::true_type
+template <typename Owner, typename T>
+struct is_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
 {
 };
 
-template <typename T>
-struct is_pointer_iterator<reverse_pointer_iterator<T>> : std::true_type
+template <typename IT>
+struct is_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
 {
 };
 
