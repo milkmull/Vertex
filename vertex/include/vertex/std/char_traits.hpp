@@ -455,7 +455,7 @@ constexpr const char_t* find_n(const char_t* s, size_t n, char_t c) noexcept
 namespace _priv {
 
 //=========================================================================
-// character traits
+// character Traits
 //=========================================================================
 
 template <typename char_t, typename int_t, typename pos_t>
@@ -582,7 +582,7 @@ struct char_traits<char32_t> : _priv::char_traits_base<char32_t, uint_least32_t,
 };
 
 //=========================================================================
-// traits
+// Traits
 //=========================================================================
 
 namespace _priv {
@@ -992,7 +992,7 @@ constexpr size_t traits_find_first_of(const traits_ptr_t<Traits> haystack,
         if (!VX_IS_CONSTANT_EVALUATED())
         {
             const size_t remaining_size = hay_size - start_at;
-            if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+            if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
             {
                 size_t pos = _simd::find_first_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                 if (pos != static_cast<size_t>(-1))
@@ -1068,7 +1068,7 @@ constexpr size_t traits_find_last_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1147,7 +1147,7 @@ constexpr size_t traits_find_first_not_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_size - start_at;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
                 {
                     size_t pos = _simd::find_first_not_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                     if (pos != static_cast<size_t>(-1))
@@ -1274,7 +1274,7 @@ constexpr size_t traits_find_last_not_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_not_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1365,6 +1365,59 @@ constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
             // at beginning, no more chance for match
             return static_cast<size_t>(-1);
         }
+    }
+}
+
+template <typename Traits, typename char_t>
+void traits_copy_batch(traits_char_t<Traits>* const first1, const char_t* const first2, const size_t count) noexcept
+{
+    VX_IF_CONSTEXPR (std::is_volatile<char_t>::value)
+    {
+        for (size_t i = 0; i != count; ++i)
+        {
+            Traits::assign(first1[i], traits_char_t<Traits>{ first2[i] });
+        }
+    }
+    else
+    {
+        Traits::copy(first1, first2, count);
+    }
+}
+
+template <typename Traits, typename char_t>
+void traits_move_batch(traits_char_t<Traits>* const first1, const char_t* const first2, const size_t count) noexcept
+{
+    VX_IF_CONSTEXPR (std::is_volatile<char_t>::value)
+    {
+        bool loop_forward = true;
+
+        for (const char_t* src = first2; src != first2 + count; ++src)
+        {
+            if (first1 == src)
+            {
+                loop_forward = false;
+                break;
+            }
+        }
+
+        if (loop_forward)
+        {
+            for (size_t i = 0; i != count; ++i)
+            {
+                Traits::assign(first1[i], traits_char_t<Traits>{ first2[i] });
+            }
+        }
+        else
+        {
+            for (size_t i = count; i != 0; --i)
+            {
+                Traits::assign(first1[i - 1], traits_char_t<Traits>{ first2[i - 1] });
+            }
+        }
+    }
+    else
+    {
+        Traits::move(first1, first2, count);
     }
 }
 

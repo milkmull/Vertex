@@ -304,10 +304,5 @@ struct is_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
 {
 };
 
-template <typename IT>
-struct is_pointer_iterator<reverse_pointer_iterator<IT>> : std::true_type
-{
-};
-
 } // namespace _priv
 } // namespace vx

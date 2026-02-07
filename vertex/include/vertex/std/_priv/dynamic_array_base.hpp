@@ -1,9 +1,7 @@
 #pragma once
 
-#include <algorithm>
 #include <cstdint>
 #include <initializer_list>
-#include <limits>
 #include <ratio>
 #include <utility>
 
@@ -50,24 +48,15 @@ public:
     using reverse_iterator = reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = reverse_pointer_iterator<const_iterator>;
 
-    // construct a single value
-    struct construct_single_tag
-    {};
-    // construct from size
-    struct construct_range_tag
-    {};
-    // fill range
-    struct fill_range_tag
-    {};
-    // copy range (no overlap)
-    struct copy_range_tag
-    {};
-    // move range (no overlap)
-    struct move_range_tag
-    {};
-    // construct from iterator range
-    struct iterator_range_tag
-    {};
+    enum class construct_method
+    {
+        single,             // construct a single value
+        default_range,      // construct from size
+        fill_range,         // fill range
+        copy_range,         // copy range (no overlap)
+        move_range,         // move range (no overlap)
+        iterator_range      // construct from iterator range
+    };
 
     struct buffer
     {
@@ -96,7 +85,7 @@ public:
         return old_buffer;
     }
 
-    template <typename Tag, typename... Args>
+    template <construct_method M, typename... Args>
     inline void construct_n(size_type count, Args&&... args)
     {
         VX_UNLIKELY_COLD_PATH(!count,
@@ -108,7 +97,7 @@ public:
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
-                VX_ERR(err::size_error);
+                err::set(err::size_error);
                 return;
             });
 
@@ -125,27 +114,27 @@ public:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-        VX_IF_CONSTEXPR ((std::is_same<Tag, construct_range_tag>::value))
+        VX_IF_CONSTEXPR (M == construct_method::default_range)
         {
             mem::construct_range(new_ptr, count);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, fill_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
             mem::fill_uninitialized_range(new_ptr, count, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, move_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
             // move the range out of the source, ranges will never overlap since we just allocated out memory
             mem::move_uninitialized_range(new_ptr, std::forward<Args>(args)..., count);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, copy_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             // copy elements from the source to my vector, memcpy is safe
             mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)..., count);
         }
-        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
+        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
-            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
             mem::copy_uninitialized_range(new_ptr, std::forward<Args>(args)...);
         }
 
@@ -163,22 +152,22 @@ public:
 
     dynamic_array_base(size_type count)
     {
-        construct_n<construct_range_tag>(count);
+        construct_n<construct_method::default_range>(count);
     }
 
     dynamic_array_base(const size_type count, const T& value)
     {
-        construct_n<fill_range_tag>(count, value);
+        construct_n<construct_method::fill_range>(count, value);
     }
 
     dynamic_array_base(std::initializer_list<T> init)
     {
-        construct_n<copy_range_tag>(init.size(), init.begin());
+        construct_n<construct_method::copy_range>(init.size(), init.begin());
     }
 
     dynamic_array_base(const dynamic_array_base& other)
     {
-        construct_n<copy_range_tag>(
+        construct_n<construct_method::copy_range>(
             other.m_buffer.size,
             other.m_buffer.ptr);
     }
@@ -194,11 +183,11 @@ public:
 
         VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
         {
-            construct_n<copy_range_tag>(count, first.ptr());
+            construct_n<construct_method::copy_range>(count, first.ptr());
         }
         else
         {
-            construct_n<iterator_range_tag>(count, std::move(first), std::move(last));
+            construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
     }
 
@@ -236,7 +225,7 @@ public:
     // assignment helpers
     //=========================================================================
 
-    template <typename Tag, typename... Args>
+    template <construct_method M, typename... Args>
     bool assign_from(const size_type count, Args&&... args)
     {
         auto& ptr = m_buffer.ptr;
@@ -247,7 +236,7 @@ public:
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
-                VX_ERR(err::size_error);
+                err::set(err::size_error);
                 return false;
             });
 
@@ -276,17 +265,21 @@ public:
             mem::destroy_range(ptr, size);
         }
 
-        VX_IF_CONSTEXPR ((std::is_same<Tag, move_range_tag>::value))
+        VX_IF_CONSTEXPR (M == construct_method::fill_range)
+        {
+            mem::fill_range(new_ptr, count, std::forward<Args>(args)...);
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
             mem::move_range(ptr, std::forward<Args>(args)..., count);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, copy_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             mem::copy_range(ptr, std::forward<Args>(args)..., count);
         }
-        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
+        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
-            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
             mem::copy_range(ptr, std::forward<Args>(args)...);
         }
 
@@ -300,30 +293,28 @@ public:
 
     dynamic_array_base& operator=(const dynamic_array_base& other)
     {
-        if (this == std::addressof(other))
+        if (this != std::addressof(other))
         {
-            return *this;
+            assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
         }
 
-        assign_from<copy_range_tag>(other.m_buffer.size, other.m_buffer.ptr);
-        return *this;
-    }
-
-    dynamic_array_base& operator=(std::initializer_list<T> init)
-    {
-        assign_from<copy_range_tag>(init.size(), init.begin());
         return *this;
     }
 
     dynamic_array_base& operator=(dynamic_array_base&& other) noexcept
     {
-        if (this == std::addressof(other))
+        if (this != std::addressof(other))
         {
-            return *this;
+            destroy_range();
+            m_buffer = other.release_buffer();
         }
 
-        destroy_range();
-        m_buffer = other.release_buffer();
+        return *this;
+    }
+
+    dynamic_array_base& operator=(std::initializer_list<T> init)
+    {
+        assign_from<construct_method::copy_range>(init.size(), init.begin());
         return *this;
     }
 
@@ -338,7 +329,7 @@ public:
             return true;
         }
 
-        return assign_from<copy_range_tag>(other.m_buffer.size, other.m_buffer.ptr);
+        return assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
     }
 
     bool assign(dynamic_array_base&& other) noexcept
@@ -354,7 +345,17 @@ public:
 
     bool assign(std::initializer_list<T> init)
     {
-        return assign_from<copy_range_tag>(init.size(), init.begin());
+        return assign_from<construct_method::copy_range>(init.size(), init.begin());
+    }
+
+    bool assign(const T* ptr, size_type count)
+    {
+        return assign_from<construct_method::copy_range>(count, ptr);
+    }
+
+    bool assign(size_type count, const T& value)
+    {
+        return assign_from<construct_method::fill_range>(count, value);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -364,11 +365,11 @@ public:
 
         VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
         {
-            return assign_from<copy_range_tag>(count, first.ptr());
+            return assign_from<construct_method::copy_range>(count, first.ptr());
         }
         else
         {
-            return assign_from<iterator_range_tag>(count, std::move(first), std::move(last));
+            return assign_from<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
     }
 
@@ -526,7 +527,7 @@ public:
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
-                VX_ERR(err::size_error);
+                err::set(err::size_error);
                 return false;
             });
 
@@ -720,7 +721,7 @@ public:
 
             VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
                 {
-                    VX_ERR(err::size_error);
+                    err::set(err::size_error);
                     return false;
                 });
 
@@ -747,7 +748,7 @@ public:
 
         VX_UNLIKELY_COLD_PATH(new_size > max_size(),
             {
-                VX_ERR(err::size_error);
+                err::set(err::size_error);
                 return false;
             });
 
@@ -847,7 +848,7 @@ public:
     // insert
     //=========================================================================
 
-    template <typename Tag, typename... Args>
+    template <construct_method M, typename... Args>
     pointer insert_capacity(pointer pos, size_type count, Args&&... args)
     {
         auto& ptr = m_buffer.ptr;
@@ -884,25 +885,25 @@ public:
             }
         }
 
-        VX_IF_CONSTEXPR ((std::is_same<Tag, construct_single_tag>::value))
+        VX_IF_CONSTEXPR (M == construct_method::single)
         {
             *pos = T(std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, fill_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
             mem::fill_range(pos, count, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, move_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
             mem::move_range(pos, std::forward<Args>(args)..., count);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, copy_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             mem::copy_range(pos, std::forward<Args>(args)..., count);
         }
-        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
+        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
-            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
             mem::copy_range(pos, std::forward<Args>(args)...);
         }
 
@@ -912,7 +913,7 @@ public:
 
     // reallocate the vector data, split at pos and shift back by shift
     // caller should ensure
-    template <typename growth_rate, typename Tag, typename... Args>
+    template <typename growth_rate, construct_method M, typename... Args>
     pointer insert_reallocate(pointer pos, size_type count, Args&&... args) noexcept
     {
         auto& ptr = m_buffer.ptr;
@@ -923,7 +924,7 @@ public:
 
         VX_UNLIKELY_COLD_PATH(count > max_size() - size,
             {
-                VX_ERR(err::size_error);
+                err::set(err::size_error);
                 return nullptr;
             });
 
@@ -946,25 +947,25 @@ public:
 
         pointer dst = new_ptr + off;
 
-        VX_IF_CONSTEXPR ((std::is_same<Tag, construct_single_tag>::value))
+        VX_IF_CONSTEXPR (M == construct_method::single)
         {
             mem::construct_in_place(dst, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, fill_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
             mem::fill_range(dst, count, std::forward<Args>(args)...);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, move_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
             mem::move_uninitialized_range(dst, std::forward<Args>(args)..., count);
         }
-        else VX_IF_CONSTEXPR ((std::is_same<Tag, copy_range_tag>::value))
+        else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
             mem::copy_uninitialized_range(dst, std::forward<Args>(args)..., count);
         }
-        else // VX_IF_CONSTEXPR((std::is_same<Tag, iterator_range_tag>::value))
+        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
-            VX_STATIC_ASSERT_MSG((std::is_same<Tag, iterator_range_tag>::value), "invalid tag");
+            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
             mem::copy_range(dst, std::forward<Args>(args)...);
         }
 
@@ -984,7 +985,7 @@ public:
         return dst;
     }
 
-    template <typename growth_rate, typename Tag, typename... Args>
+    template <typename growth_rate, construct_method M, typename... Args>
     pointer insert_n(pointer pos, size_type count, Args&&... args)
     {
         const size_type available = m_buffer.capacity - m_buffer.size;
@@ -1015,7 +1016,7 @@ public:
     iterator insert(const_iterator pos, size_type count, const T& value)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<growth_rate, fill_range_tag>(ptr, count, value);
+        ptr = insert_n<growth_rate, construct_method::fill_range>(ptr, count, value);
         return iterator(ptr);
     }
 
@@ -1023,7 +1024,7 @@ public:
     iterator insert(const_iterator pos, std::initializer_list<T> init)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<growth_rate, copy_range_tag>(ptr, init.size(), init.begin());
+        ptr = insert_n<growth_rate, construct_method::copy_range>(ptr, init.size(), init.begin());
         return iterator(ptr);
     }
 
@@ -1035,11 +1036,11 @@ public:
 
         VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
         {
-            ptr = insert_n<growth_rate, copy_range_tag>(ptr, count, first.ptr());
+            ptr = insert_n<growth_rate, construct_method::copy_range>(ptr, count, first.ptr());
         }
         else
         {
-            ptr = insert_n<growth_rate, iterator_range_tag>(ptr, count, first, last);
+            ptr = insert_n<growth_rate, construct_method::iterator_range>(ptr, count, first, last);
         }
 
         return iterator(ptr);
@@ -1079,7 +1080,7 @@ public:
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
-        ptr = insert_n<growth_rate, construct_single_tag>(ptr, 1, std::forward<Args>(args)...);
+        ptr = insert_n<growth_rate, construct_method::single>(ptr, 1, std::forward<Args>(args)...);
         return iterator(ptr);
     }
 

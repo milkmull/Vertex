@@ -205,7 +205,7 @@ VX_NO_ALIAS size_t VX_STDCALL find_last_not_of_trivial_pos_2(
 //=============================================================================
 
 template <typename T, typename V>
-inline T* find_simd(T* const first, T* const last, const V val) noexcept
+T* find_simd(T* const first, T* const last, const V val) noexcept
 {
     VX_IF_CONSTEXPR (std::is_pointer<V>::value || std::is_null_pointer<V>::value)
     {
@@ -244,7 +244,7 @@ inline T* find_simd(T* const first, T* const last, const V val) noexcept
 }
 
 template <typename T, typename V>
-inline T* find_last_simd(T* const first, T* const last, const V val) noexcept
+T* find_last_simd(T* const first, T* const last, const V val) noexcept
 {
     VX_IF_CONSTEXPR (std::is_pointer<V>::value || std::is_null_pointer<V>::value)
     {
@@ -283,7 +283,7 @@ inline T* find_last_simd(T* const first, T* const last, const V val) noexcept
 }
 
 template <typename T>
-inline T* adjacent_find_simd(T* const first, T* const last) noexcept
+T* adjacent_find_simd(T* const first, T* const last) noexcept
 {
     VX_IF_CONSTEXPR (sizeof(T) == 1)
     {
@@ -310,7 +310,7 @@ inline T* adjacent_find_simd(T* const first, T* const last) noexcept
     #define _VX_SIMD_THRESHOLD_FIND_FIRST_OF ptrdiff_t{ 16 }
 
 template <typename T1, typename T2>
-inline T1* search_simd(T1* const first1, T1* const last1, T2* const first2, const size_t count2) noexcept
+T1* search_simd(T1* const first1, T1* const last1, T2* const first2, const size_t count2) noexcept
 {
     VX_STATIC_ASSERT(sizeof(T1) == sizeof(T2));
 
@@ -337,7 +337,7 @@ inline T1* search_simd(T1* const first1, T1* const last1, T2* const first2, cons
 }
 
 template <typename T1, typename T2>
-inline T1* find_end_simd(
+T1* find_end_simd(
     T1* const first1,
     T1* const last1,
     T2* const first2,
@@ -372,7 +372,7 @@ inline T1* find_end_simd(
 //=============================================================================
 
 template <typename T1, typename T2>
-inline size_t find_first_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
+size_t find_first_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
 {
     VX_STATIC_ASSERT(sizeof(T1) == sizeof(T2));
 
@@ -399,7 +399,7 @@ inline size_t find_first_of_pos_simd(const T1* const haystack, const size_t hays
 }
 
 template <typename T1, typename T2>
-inline size_t find_last_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
+size_t find_last_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
 {
     VX_STATIC_ASSERT(sizeof(T1) == sizeof(T2));
 
@@ -418,7 +418,7 @@ inline size_t find_last_of_pos_simd(const T1* const haystack, const size_t hayst
 }
 
 template <typename T>
-inline const T* find_not_ch_simd(const T* const first, const T* const last, const T ch) noexcept
+const T* find_not_ch_simd(const T* const first, const T* const last, const T ch) noexcept
 {
     VX_IF_CONSTEXPR (sizeof(T) == 1)
     {
@@ -443,7 +443,7 @@ inline const T* find_not_ch_simd(const T* const first, const T* const last, cons
 }
 
 template <typename T>
-inline size_t find_last_not_ch_pos_simd(const T* const first, const T* const last, const T ch) noexcept
+size_t find_last_not_ch_pos_simd(const T* const first, const T* const last, const T ch) noexcept
 {
     VX_IF_CONSTEXPR (sizeof(T) == 1)
     {
@@ -467,7 +467,7 @@ inline size_t find_last_not_ch_pos_simd(const T* const first, const T* const las
     }
 }
 template <typename T1, typename T2>
-inline size_t find_first_not_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
+size_t find_first_not_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
 {
     VX_STATIC_ASSERT(sizeof(T1) == sizeof(T2));
 
@@ -486,7 +486,7 @@ inline size_t find_first_not_of_pos_simd(const T1* const haystack, const size_t 
 }
 
 template <typename T1, typename T2>
-inline size_t find_last_not_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
+size_t find_last_not_of_pos_simd(const T1* const haystack, const size_t haystack_length, const T2* const needle, const size_t needle_length) noexcept
 {
     VX_STATIC_ASSERT(sizeof(T1) == sizeof(T2));
 
