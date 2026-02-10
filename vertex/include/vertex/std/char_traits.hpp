@@ -473,6 +473,16 @@ struct char_traits_base
         str::copy_n(dst, src, count);
     }
 
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    static void copy_range(char_type* const dst, IT first, IT last) noexcept
+    {
+        for (; first != last; ++first)
+        {
+            assign(*dst, *first);
+            ++dst;
+        }
+    }
+
     static void move(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...), allowing overlap
@@ -1365,59 +1375,6 @@ constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
             // at beginning, no more chance for match
             return static_cast<size_t>(-1);
         }
-    }
-}
-
-template <typename Traits, typename char_t>
-void traits_copy_batch(traits_char_t<Traits>* const first1, const char_t* const first2, const size_t count) noexcept
-{
-    VX_IF_CONSTEXPR (std::is_volatile<char_t>::value)
-    {
-        for (size_t i = 0; i != count; ++i)
-        {
-            Traits::assign(first1[i], traits_char_t<Traits>{ first2[i] });
-        }
-    }
-    else
-    {
-        Traits::copy(first1, first2, count);
-    }
-}
-
-template <typename Traits, typename char_t>
-void traits_move_batch(traits_char_t<Traits>* const first1, const char_t* const first2, const size_t count) noexcept
-{
-    VX_IF_CONSTEXPR (std::is_volatile<char_t>::value)
-    {
-        bool loop_forward = true;
-
-        for (const char_t* src = first2; src != first2 + count; ++src)
-        {
-            if (first1 == src)
-            {
-                loop_forward = false;
-                break;
-            }
-        }
-
-        if (loop_forward)
-        {
-            for (size_t i = 0; i != count; ++i)
-            {
-                Traits::assign(first1[i], traits_char_t<Traits>{ first2[i] });
-            }
-        }
-        else
-        {
-            for (size_t i = count; i != 0; --i)
-            {
-                Traits::assign(first1[i - 1], traits_char_t<Traits>{ first2[i - 1] });
-            }
-        }
-    }
-    else
-    {
-        Traits::move(first1, first2, count);
     }
 }
 

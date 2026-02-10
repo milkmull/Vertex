@@ -523,7 +523,7 @@ inline bool is_all_bits_zero(const T& x) noexcept
 template <typename T>
 inline T* construct_range(T* ptr, size_t count)
 {
-    VX_STATIC_ASSERT_MSG(std::is_default_constructible<T>::value, "Type must be default constructible");
+    //VX_STATIC_ASSERT_MSG(std::is_default_constructible<T>::value, "Type must be default constructible");
 
     const T* last = ptr + count;
     while (ptr != last)

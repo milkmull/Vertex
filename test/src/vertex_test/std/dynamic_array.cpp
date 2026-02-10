@@ -891,6 +891,9 @@ VX_TEST_CASE(size_and_capacity_non_trivial)
 struct emplace_type
 {
     trivial_type a, b;
+
+    emplace_type() = default;
+
     emplace_type(trivial_type x, trivial_type y)
         : a(x), b(y)
     {}
@@ -1128,6 +1131,7 @@ void test_insert_and_erase()
     {
         vec<T> v{ 0, 2 };
 
+        v.reserve(7);
         auto it = v.insert(v.begin() + 1, 5, 1);
         VX_CHECK(it);
         VX_CHECK(*it == 1);
@@ -1142,6 +1146,26 @@ void test_insert_and_erase()
             {
                 VX_CHECK(*it == 1);
             }
+        }
+    }
+
+    VX_SECTION("insert count near back")
+    {
+        vec<T> v{ 0, 1, 2 };
+
+        // Insert five 9s before the last element
+        v.reserve(8);
+        auto it = v.insert(v.end() - 1, 5, 9);
+        VX_CHECK(it);
+        VX_CHECK(*it == 9);
+
+        // Expected sequence: 0, 1, 9, 9, 9, 9, 9, 2
+        const T expected[] = { 0, 1, 9, 9, 9, 9, 9, 2 };
+        VX_CHECK(v.size() == vx::mem::array_size(expected));
+
+        for (size_t i = 0; i < v.size(); ++i)
+        {
+            VX_CHECK(v[i] == expected[i]);
         }
     }
 

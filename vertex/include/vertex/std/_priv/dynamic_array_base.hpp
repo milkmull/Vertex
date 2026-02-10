@@ -267,7 +267,7 @@ public:
 
         VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
-            mem::fill_range(new_ptr, count, std::forward<Args>(args)...);
+            mem::fill_range(ptr, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
@@ -855,9 +855,22 @@ public:
         auto& size = m_buffer.size;
 
         pointer back = ptr + size;
+        const size_type affected = static_cast<size_type>(back - pos);
 
-        if (pos != back)
+        if (count > affected)
         {
+            // new stuff spills over
+            // 
+            // initialize the new elements that will spill over into uninitialized memory
+            pointer last = mem::construct_range(back, count - affected);
+            // move the existing elements that will be moved into uninitialized memory
+            mem::move_uninitialized_range(last, pos, affected);
+        }
+        else
+        {
+            // there is no spill over of inserted elements so we can move the existing
+            // elements first
+
             // move the values that will spill over into uninitialized memory
             pointer src = back - count;
             mem::move_uninitialized_range(back, src, count);
@@ -930,8 +943,8 @@ public:
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        const size_type off = static_cast<size_type>(pos - ptr);
-        const size_type new_capacity = grow_capacity<growth_rate>(size + count, capacity);
+        const size_type new_size = size + count;
+        const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
         VX_ASSERT(new_capacity > capacity);
 
         pointer new_ptr = allocator_type::allocate(new_capacity);
@@ -945,7 +958,11 @@ public:
 
 #endif // defined(VX_ALLOCATE_FAIL_FAST)
 
+        const size_type off = static_cast<size_type>(pos - ptr);
         pointer dst = new_ptr + off;
+
+        // copy first range
+        mem::move_uninitialized_range(new_ptr, ptr, off);
 
         VX_IF_CONSTEXPR (M == construct_method::single)
         {
@@ -969,8 +986,6 @@ public:
             mem::copy_range(dst, std::forward<Args>(args)...);
         }
 
-        // copy first range
-        mem::move_uninitialized_range(new_ptr, ptr, off);
         // copy second range
         mem::move_uninitialized_range(dst + count, pos, size - off);
 
@@ -979,7 +994,7 @@ public:
         allocator_type::deallocate(ptr, capacity);
 
         ptr = new_ptr;
-        size += count;
+        size = new_size;
         capacity = new_capacity;
 
         return dst;
@@ -992,11 +1007,11 @@ public:
 
         if (count <= available)
         {
-            return insert_capacity<Tag>(pos, count, std::forward<Args>(args)...);
+            return insert_capacity<M>(pos, count, std::forward<Args>(args)...);
         }
         else
         {
-            return insert_reallocate<growth_rate, Tag>(pos, count, std::forward<Args>(args)...);
+            return insert_reallocate<growth_rate, M>(pos, count, std::forward<Args>(args)...);
         }
     }
 
@@ -1108,7 +1123,6 @@ public:
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
 
         const size_type off = static_cast<size_type>(pos - ptr);
         const size_type tail_count = size - off - count;
@@ -1118,8 +1132,6 @@ public:
         mem::destroy_range(ptr + new_size, count);
 
         size = new_size;
-        capacity += count;
-
         return pos;
     }
 
