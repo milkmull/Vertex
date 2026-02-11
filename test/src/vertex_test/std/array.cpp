@@ -213,6 +213,20 @@ VX_TEST_CASE(test_reverse_const_iterator)
 
 //==============================================================================
 
+VX_TEST_CASE(test_aggregate_initialization)
+{
+    // Runtime check: aggregate initialization must assign correctly
+    array<char, 5> arr = { 'h', 'e', 'l', 'l', 'o' };
+
+    VX_CHECK(arr[0] == 'h');
+    VX_CHECK(arr[1] == 'e');
+    VX_CHECK(arr[2] == 'l');
+    VX_CHECK(arr[3] == 'l');
+    VX_CHECK(arr[4] == 'o');
+}
+
+//==============================================================================
+
 int main()
 {
     VX_RUN_TESTS();

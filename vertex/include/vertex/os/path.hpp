@@ -1660,7 +1660,7 @@ struct hash<vx::os::path>
 {
     size_t operator()(const vx::os::path& p) const noexcept
     {
-        vx::crypto::FNV1a fnv1a;
+        vx::crypto::fnv1a fnv1a;
 
         const auto& text = p.native();
         const size_t size = text.size();

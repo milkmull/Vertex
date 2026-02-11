@@ -7,6 +7,7 @@
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/_priv/simd_algorithms.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/util/crypto/FNV1a.hpp"
 
 namespace vx {
 namespace str {
@@ -474,7 +475,7 @@ struct char_traits_base
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    static void copy_range(char_type* const dst, IT first, IT last) noexcept
+    static void copy_range(char_type* dst, IT first, IT last) noexcept
     {
         for (; first != last; ++first)
         {
@@ -554,6 +555,23 @@ struct char_traits_base
     static constexpr int_type eof() noexcept
     {
         return static_cast<int_type>(EOF);
+    }
+
+    static constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
+    {
+        return std::min(count, size - off);
+    }
+
+    static constexpr bool check_offset(const size_t size, const size_t off) noexcept
+    {
+        return (off <= size);
+    }
+
+    static constexpr size_t hash(const char_type* const s, const size_t count) noexcept
+    {
+        crypto::fnv1a fnv;
+        fnv.update(reinterpret_cast<const unsigned char*>(s), count * sizeof(char_type));
+        return fnv.result();
     }
 };
 
@@ -1002,7 +1020,7 @@ constexpr size_t traits_find_first_of(const traits_ptr_t<Traits> haystack,
         if (!VX_IS_CONSTANT_EVALUATED())
         {
             const size_t remaining_size = hay_size - start_at;
-            if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
+            if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
             {
                 size_t pos = _simd::find_first_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                 if (pos != static_cast<size_t>(-1))
@@ -1078,7 +1096,7 @@ constexpr size_t traits_find_last_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_of_pos_simd(haystack, remaining_size, needle, needle_size);
@@ -1157,7 +1175,7 @@ constexpr size_t traits_find_first_not_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_size - start_at;
-                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
                 {
                     size_t pos = _simd::find_first_not_of_pos_simd(hay_start, remaining_size, needle, needle_size);
                     if (pos != static_cast<size_t>(-1))
@@ -1284,7 +1302,7 @@ constexpr size_t traits_find_last_not_of(const traits_ptr_t<Traits> haystack,
             if (!VX_IS_CONSTANT_EVALUATED())
             {
                 const size_t remaining_size = hay_start + 1;
-                if (remaining_size + needle_size >= _VX_SIMDtHRESHOLD_FIND_FIRST_OF)
+                if (remaining_size + needle_size >= _VX_SIMD_THRESHOLD_FIND_FIRST_OF)
                 {
                     // same threshold for first/last
                     return _simd::find_last_not_of_pos_simd(haystack, remaining_size, needle, needle_size);

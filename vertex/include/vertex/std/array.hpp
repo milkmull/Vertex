@@ -24,8 +24,8 @@ public:
     using size_type       = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator               = _priv::pointer_iterator<array, T*>;
-    using const_iterator         = _priv::pointer_iterator<array, const T*>;
+    using iterator               = _priv::pointer_iterator<array, T>;
+    using const_iterator         = _priv::pointer_iterator<array, const T>;
     using reverse_iterator       = _priv::reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
 
@@ -35,42 +35,42 @@ public:
 
     T& front() noexcept
     {
-        return m_array[0];
+        return _m_array[0];
     }
 
     const T& front() const noexcept
     {
-        return m_array[0];
+        return _m_array[0];
     }
 
     T& back() noexcept
     {
-        return m_array[N - 1];
+        return _m_array[N - 1];
     }
 
     const T& back() const noexcept
     {
-        return m_array[N - 1];
+        return _m_array[N - 1];
     }
 
     T* data() noexcept
     {
-        return m_array;
+        return _m_array;
     }
 
     const T* data() const noexcept
     {
-        return m_array;
+        return _m_array;
     }
 
     T& operator[](size_type i) noexcept
     {
-        return m_array[i];
+        return _m_array[i];
     }
 
     const T& operator[](size_type i) const noexcept
     {
-        return m_array[i];
+        return _m_array[i];
     }
 
     //=========================================================================
@@ -79,12 +79,12 @@ public:
 
     iterator begin() noexcept
     {
-        return iterator(m_array);
+        return iterator(_m_array);
     }
 
     const_iterator begin() const noexcept
     {
-        return const_iterator(m_array);
+        return const_iterator(_m_array);
     }
 
     const_iterator cbegin() const noexcept
@@ -94,12 +94,12 @@ public:
 
     iterator end() noexcept
     {
-        return iterator(m_array + N);
+        return iterator(_m_array + N);
     }
 
     const_iterator end() const noexcept
     {
-        return const_iterator(m_array + N);
+        return const_iterator(_m_array + N);
     }
 
     const_iterator cend() const noexcept
@@ -143,12 +143,12 @@ public:
 
     void fill(const T& value)
     {
-        mem::fill_range(m_array, N, value);
+        mem::fill_range(_m_array, N, value);
     }
 
     void swap(array& other) noexcept
     {
-        std::swap(m_array, other.m_array);
+        std::swap(_m_array, other._m_array);
     }
 
     //=========================================================================
@@ -181,7 +181,7 @@ public:
 
     friend bool operator==(const array& lhs, const array& rhs)
     {
-        return mem::equal_range(lhs.m_array, rhs.m_array, size());
+        return mem::equal_range(lhs._m_array, rhs._m_array, size());
     }
 
     friend bool operator!=(const array& lhs, const array& rhs)
@@ -191,7 +191,7 @@ public:
 
     friend bool operator<(const array& lhs, const array& rhs)
     {
-        return mem::less_range(lhs.m_array, rhs.m_array, size());
+        return mem::less_range(lhs._m_array, rhs._m_array, size());
     }
 
     friend bool operator>(const array& lhs, const array& rhs)
@@ -209,9 +209,9 @@ public:
         return !(lhs < rhs);
     }
 
-private:
-
-    T m_array[N];
+    // this must be public to support aggregate initialization
+    // https://en.cppreference.com/w/cpp/language/aggregate_initialization.html
+    T _m_array[N];
 };
 
 } // namespace vx

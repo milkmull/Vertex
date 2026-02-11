@@ -27,8 +27,8 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = _priv::pointer_iterator<basic_string_view, pointer>;
-    using const_iterator = _priv::pointer_iterator<basic_string_view, const_pointer>;
+    using iterator = _priv::pointer_iterator<basic_string_view, value_type>;
+    using const_iterator = _priv::pointer_iterator<basic_string_view, const value_type>;
     using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
 
@@ -204,40 +204,28 @@ public:
     // string ops
     //=========================================================================
 
-private:
-
-    constexpr size_type clamp_suffix_size(const size_type off, const size_type size) const noexcept
-    {
-        return std::min(size, m_size - off);
-    }
-
-    bool check_offset(const size_type off) const
-    {
-        return (off <= m_size);
-    }
-
 public:
 
     constexpr size_type copy(T* const ptr, size_type count, const size_type off = 0) const
     {
-        if (!check_offset(off))
+        if (!traits_type::check_offset(m_size, off))
         {
             return 0;
         }
 
-        count = clamp_suffix_size(off, count);
+        count = traits_type::clamp_suffix_size(m_size, off, count);
         traits_type::copy(ptr, m_data + off, count);
         return count;
     }
 
     constexpr basic_string_view substr(const size_type off = 0, size_type count = npos) const
     {
-        if (!check_offset(off))
+        if (!traits_type::check_offset(m_size, off))
         {
             return basic_string_view();
         }
 
-        count = clamp_suffix_size(off, count);
+        count = traits_type::clamp_suffix_size(m_size, off, count);
         return basic_string_view(m_data + off, count);
     }
 
@@ -451,6 +439,17 @@ private:
 
 //=========================================================================
 
+//template <typename T>
+//struct hash<vx::basic_string_view<T>>
+//{
+//    size_t operator()(const vx::basic_string_view<T> sv) const noexcept
+//    {
+//        using traits_type = vx::basic_string_view return vx::str::_priv::traits_hash<typename vx::basic_string_view<T>::traits_type>(sv.data(), sv.size());
+//    }
+//};
+
+//=========================================================================
+
 using string_view = basic_string_view<char>;
 using wstring_view = basic_string_view<wchar_t>;
 #if defined(__cpp_lib_char8_t)
@@ -460,3 +459,17 @@ using u16string_view = basic_string_view<char16_t>;
 using u32string_view = basic_string_view<char32_t>;
 
 } // namespace vx
+
+//namespace std {
+//
+//template <typename T>
+//struct hash<vx::basic_string_view<T>>
+//{
+//    size_t operator()(const vx::basic_string_view<T> sv) const noexcept
+//    {
+//        using traits_type = vx::basic_string_view
+//        return vx::str::_priv::traits_hash<typename vx::basic_string_view<T>::traits_type>(sv.data(), sv.size());
+//    }
+//};
+//
+//} // namespace std

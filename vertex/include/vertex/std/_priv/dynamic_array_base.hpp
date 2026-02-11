@@ -43,8 +43,8 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = pointer_iterator<dynamic_array_base, T*>;
-    using const_iterator = pointer_iterator<dynamic_array_base, const T*>;
+    using iterator = pointer_iterator<dynamic_array_base, T>;
+    using const_iterator = pointer_iterator<dynamic_array_base, const T>;
     using reverse_iterator = reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = reverse_pointer_iterator<const_iterator>;
 

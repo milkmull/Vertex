@@ -13,10 +13,10 @@ class pointer_iterator
 public:
 
     using iterator_category = std::random_access_iterator_tag;
-    using value_type = typename std::remove_pointer<T>::type;
+    using value_type = T;
     using difference_type = ptrdiff_t;
-    using pointer = T;
-    using reference = typename std::add_lvalue_reference<value_type>::type;
+    using pointer = value_type*;
+    using reference = value_type&;
 
     pointer_iterator() = default;
 
