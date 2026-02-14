@@ -705,13 +705,13 @@ public:
     T& back() noexcept
     {
         VX_ASSERT(m_buffer.size > 0);
-        return m_buffer.ptr[m_buffer.size];
+        return m_buffer.ptr[m_buffer.size - 1];
     }
 
     const T& back() const noexcept
     {
         VX_ASSERT(m_buffer.size > 0);
-        return m_buffer.ptr[m_buffer.size];
+        return m_buffer.ptr[m_buffer.size - 1];
     }
 
     T* data() noexcept
@@ -1455,24 +1455,23 @@ public:
         construct_empty();
     }
 
-private:
-
-    //=========================================================================
-    // shrink
-    //=========================================================================
-
-    bool reallocate_shrink(size_type new_capacity)
+    bool shrink_to_fit()
     {
-        const size_type bytes = m_buffer.size * sizeof(T);
-        constexpr size_type reallocate_threshold = 96000;
-        const bool try_reallocate = (bytes < reallocate_threshold);
-
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
+        if (size == capacity)
+        {
+            return true;
+        }
+
+        const size_type bytes = m_buffer.size * sizeof(T);
+        constexpr size_type reallocate_threshold = 96000;
+        const bool try_reallocate = (bytes < reallocate_threshold);
+
         pointer new_ptr;
-        const size_type alloc_capacity = new_capacity + 1;
+        const size_type alloc_capacity = size + 1;
 
         if (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
         {
@@ -1507,26 +1506,9 @@ private:
         }
 
         ptr = new_ptr;
-        size = new_capacity;
-        capacity = new_capacity;
+        capacity = size;
 
         return true;
-    }
-
-public:
-
-
-    bool shrink_to_fit()
-    {
-        auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
-
-        if (size == capacity)
-        {
-            return true;
-        }
-
-        return reallocate_shrink(size);
     }
 
     T* release() noexcept
@@ -1624,7 +1606,8 @@ private:
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
-        pointer new_ptr = allocator_type::allocate(new_capacity + 1);
+        const size_type alloc_capacity = new_capacity + 1;
+        pointer new_ptr = allocator_type::allocate(alloc_capacity);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -1635,8 +1618,8 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-        mem::construct_range(new_ptr, size);
-        traits_type::copy(new_ptr, ptr, size);
+        mem::construct_range(new_ptr, alloc_capacity);
+        traits_type::copy(new_ptr, ptr, size + 1);
         destroy_and_deallocate(ptr, size, capacity);
 
         ptr = new_ptr;

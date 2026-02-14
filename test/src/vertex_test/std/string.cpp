@@ -466,6 +466,154 @@ VX_TEST_CASE(test_assign)
 
 //=============================================================================
 
+VX_TEST_CASE(test_element_access)
+{
+    VX_SECTION("front / front const")
+    {
+        vx::string s = "hello";
+        VX_CHECK(s.front() == 'h');
+
+        const vx::string& cs = s;
+        VX_CHECK(cs.front() == 'h');
+    }
+
+    VX_SECTION("back / back const")
+    {
+        vx::string s = "hello";
+        VX_CHECK(s.back() == 'o');
+
+        const vx::string& cs = s;
+        VX_CHECK(cs.back() == 'o');
+    }
+
+    VX_SECTION("data / data const")
+    {
+        const char* cstr = "hello";
+
+        vx::string s = cstr;
+        VX_CHECK(s.data() != nullptr);
+        VX_CHECK(std::memcmp(s.data(), cstr, s.size()) == 0);
+
+        const vx::string& cs = s;
+        VX_CHECK(cs.data() != nullptr);
+        VX_CHECK(std::memcmp(cs.data(), cstr, cs.size()) == 0);
+    }
+
+    VX_SECTION("operator[] / operator[] const")
+    {
+        const char* cstr = "hello";
+
+        vx::string s = cstr;
+        for (size_t i = 0; i < s.size(); ++i)
+        {
+            VX_CHECK(s[i] == cstr[i]);
+        }
+
+        const vx::string& cs = s;
+        for (size_t i = 0; i < cs.size(); ++i)
+        {
+            VX_CHECK(cs[i] == cstr[i]);
+        }
+    }
+
+    VX_SECTION("c_str")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+        VX_CHECK(s.c_str() != nullptr);
+        VX_CHECK(vx::str::compare(s.c_str(), cstr) == 0);
+    }
+}
+
+VX_TEST_CASE(test_iterators)
+{
+    VX_SECTION("begin / end")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        size_t idx = 0;
+        for (auto it = s.begin(); it != s.end(); ++it, ++idx)
+        {
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == s.size());
+    }
+
+    VX_SECTION("begin const / end const")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        const vx::string& cs = s;
+        size_t idx = 0;
+        for (auto it = cs.begin(); it != cs.end(); ++it, ++idx)
+        {
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == cs.size());
+    }
+
+    VX_SECTION("cbegin / cend")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        size_t idx = 0;
+        for (auto it = s.cbegin(); it != s.cend(); ++it, ++idx)
+        {
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == s.size());
+    }
+
+    VX_SECTION("rbegin / rend")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        size_t idx = s.size();
+        for (auto it = s.rbegin(); it != s.rend(); ++it)
+        {
+            --idx;
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == 0);
+    }
+
+    VX_SECTION("rbegin const / rend const")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        const vx::string& cs = s;
+
+        size_t idx = cs.size();
+        for (auto it = cs.rbegin(); it != cs.rend(); ++it)
+        {
+            --idx;
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == 0);
+    }
+
+    VX_SECTION("crbegin / crend")
+    {
+        const char* cstr = "hello";
+        vx::string s = cstr;
+
+        size_t idx = s.size();
+        for (auto it = s.crbegin(); it != s.crend(); ++it)
+        {
+            --idx;
+            VX_CHECK(*it == cstr[idx]);
+        }
+        VX_CHECK(idx == 0);
+    }
+}
+
+//=============================================================================
+
 int main()
 {
     VX_RUN_TESTS();
