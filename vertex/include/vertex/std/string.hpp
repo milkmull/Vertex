@@ -167,48 +167,6 @@ private:
         }
     }
 
-    template <typename growth_rate, typename Fn, typename... Args>
-    basic_string& reallocate_grow_by(const size_type size_increase, Fn fn, Args&&... args)
-    {
-        auto& b = m_buffer;
-        const size_type old_size = b.size;
-
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
-
-        if (max_size() - size_increase < old_size)
-        {
-            err::set(err::size_error);
-            return *this;
-        }
-
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
-
-        const size_type new_size = old_size + size_increase;
-        const size_type old_capacity = b.capacity;
-        const size_type new_capacity = grow_capacity<growth_rate>(new_size, old_capacity);
-
-        pointer new_ptr = allocator_type::allocate(new_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-        VX_UNLIKELY_COLD_PATH(!new_ptr,
-            {
-                return *this;
-            });
-
-#endif // defined(VX_ALLOCATE_FAIL_FAST)
-
-        pointer old_ptr = b.ptr;
-        fn(new_ptr, old_ptr, old_size, std::forward<Args>(args)...);
-        destroy_and_deallocate(old_ptr, old_size, old_capacity);
-
-        b.ptr = new_ptr;
-        b.size = new_size;
-        b.capacity = new_capacity;
-
-        return *this;
-    }
-
     static void destroy_size(T* ptr, size_type size)
     {
         mem::destroy_range(ptr, size + 1);
@@ -248,6 +206,7 @@ private:
     enum class construct_method
     {
         from_char,
+        from_char_count,
         from_pointer,
         from_string,
         from_iterator_range
@@ -327,7 +286,7 @@ private:
 
         mem::construct_range(ptr, alloc_count);
 
-        VX_IF_CONSTEXPR (M == construct_method::from_char)
+        VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
             traits_type::assign(ptr, count, std::forward<Args>(args)...);
             traits_type::assign(ptr[count], T());
@@ -401,7 +360,7 @@ public:
 
     basic_string(size_type count, const T value)
     {
-        construct_n<construct_method::from_char>(count, value);
+        construct_n<construct_method::from_char_count>(count, value);
     }
 
     //=========================================================================
@@ -531,6 +490,7 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
+            mem::construct_range(new_ptr, count + 1);
             destroy_and_deallocate(ptr, size, capacity);
 
             ptr = new_ptr;
@@ -542,6 +502,11 @@ private:
         }
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
+        {
+            traits_type::assign(*ptr, std::forward<Args>(args)...);
+            traits_type::assign(ptr[count], T());
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
             traits_type::assign(ptr, count, std::forward<Args>(args)...);
             traits_type::assign(ptr[count], T());
@@ -656,7 +621,7 @@ public:
 
     basic_string& assign(const size_type count, const T c)
     {
-        assign_from<construct_method::from_char>(count, c);
+        assign_from<construct_method::from_char_count>(count, c);
         return *this;
     }
 
@@ -843,88 +808,6 @@ public:
 private:
 
     //=========================================================================
-    // reallocate
-    //=========================================================================
-
-    bool reallocate_shrink(size_type new_capacity)
-    {
-        const size_type bytes = m_buffer.size * sizeof(T);
-        constexpr size_type reallocate_threshold = 96000;
-
-        if (bytes < reallocate_threshold)
-        {
-            return reallocate<true, false>(new_capacity);
-        }
-        else
-        {
-            return reallocate<true, true>(new_capacity);
-        }
-    }
-
-    template <bool shrinking = false, bool try_reallocate = false>
-    bool reallocate(size_type new_capacity)
-    {
-        auto& ptr = m_buffer.ptr;
-        auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
-
-        const size_type alloc_capacity = new_capacity + 1;
-        pointer new_ptr;
-
-        VX_IF_CONSTEXPR (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
-        {
-            new_ptr = allocator_type::reallocate(ptr, alloc_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            if (!new_ptr)
-            {
-                return false;
-            }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-        }
-        else
-        {
-            new_ptr = allocator_type::allocate(alloc_capacity);
-
-#if !defined(VX_ALLOCATE_FAIL_FAST)
-
-            if (!new_ptr)
-            {
-                return false;
-            }
-
-#endif // !defined(VX_ALLOCATE_FAIL_FAST)
-
-            VX_IF_CONSTEXPR (shrinking)
-            {
-                VX_ASSERT(size > 0);
-                mem::construct_range(new_ptr, ptr, alloc_capacity);
-                traits_type::copy(new_ptr, ptr, alloc_capacity);
-            }
-            else
-            {
-                mem::construct_range(new_ptr, ptr, size);
-                traits_type::copy(new_ptr, ptr, size);
-            }
-
-            destroy_and_deallocate(ptr, size, capacity);
-        }
-
-        ptr = new_ptr;
-        VX_IF_CONSTEXPR (shrinking)
-        {
-            size = new_capacity;
-        }
-        capacity = new_capacity;
-
-        return true;
-    }
-
-private:
-
-    //=========================================================================
     // append helpers
     //=========================================================================
 
@@ -936,7 +819,15 @@ private:
 
         T* const dst = ptr + size;
 
+        // we increase the size early so we can easily assign the null terminator at the end
+        size += count;
+        mem::construct_range(dst + 1, count);
+
         VX_IF_CONSTEXPR (M == construct_method::from_char)
+        {
+            traits_type::assign(*ptr, std::forward<Args>(args)...);
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
             traits_type::assign(dst, count, std::forward<Args>(args)...);
         }
@@ -950,8 +841,7 @@ private:
             traits_type::assign_range(dst, std::forward<Args>(args)...);
         }
 
-        size += count;
-        traits_type::assign(ptr[size], T());
+        traits_type::assign(ptr[count], T());
 
         return true;
     }
@@ -988,21 +878,27 @@ private:
 
 #endif // defined(VX_ALLOCATE_FAIL_FAST)
 
+        mem::construct_range(new_ptr, new_size + 1);
+
         // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
         traits_type::copy(new_ptr, ptr, size);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
-            traits_type::assign(ptr + size, count, std::forward<Args>(args)...);
+            traits_type::assign(new_ptr[size], std::forward<Args>(args)...);
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::from_char_count)
+        {
+            traits_type::assign(new_ptr + size, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
         {
-            copy_batch(ptr + size, std::forward<Args>(args)..., count);
+            copy_batch(new_ptr + size, std::forward<Args>(args)..., count);
         }
         else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
-            traits_type::assign_range(ptr + size, std::forward<Args>(args)...);
+            traits_type::assign_range(new_ptr + size, std::forward<Args>(args)...);
         }
 
         traits_type::assign(new_ptr[new_size], T());
@@ -1044,7 +940,7 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& append(size_type count, T c)
     {
-        append_n<growth_rate, construct_method::from_char>(count, c);
+        append_n<growth_rate, construct_method::from_char_count>(count, c);
         return *this;
     }
 
@@ -1260,6 +1156,10 @@ private:
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
+            traits_type::assign(*pos, std::forward<Args>(args)...);
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::from_char_count)
+        {
             traits_type::assign(pos, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
@@ -1309,27 +1209,31 @@ private:
 #endif // defined(VX_ALLOCATE_FAIL_FAST)
 
         const size_type off = static_cast<size_type>(pos - ptr);
-        pointer dst = new_ptr + off;
 
-        // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
         mem::construct_range(new_ptr, new_ptr + new_size + 1);
-        traits_type::copy(new_ptr, ptr, size);
+        traits_type::copy(new_ptr, ptr, off);
+
+        pointer dst = new_ptr + off;
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
-            traits_type::assign(ptr + size, count, std::forward<Args>(args)...);
+            traits_type::assign(*dst, std::forward<Args>(args)...);
+        }
+        else VX_IF_CONSTEXPR (M == construct_method::from_char_count)
+        {
+            traits_type::assign(dst, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
         {
-            copy_batch(ptr + size, std::forward<Args>(args)..., count);
+            copy_batch(dst, std::forward<Args>(args)..., count);
         }
         else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
-            traits_type::assign_range(ptr + size, std::forward<Args>(args)...);
+            traits_type::assign_range(dst, std::forward<Args>(args)...);
         }
 
-        // copy second range
+        // copy second range (includes null terminator)
         traits_type::copy(dst + count, pos, size - off);
 
         // destroy original range
@@ -1369,7 +1273,7 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& insert(size_type off, size_type count, const T c)
     {
-        insert_n<growth_rate, construct_method::from_char>(m_buffer.ptr + off, count, c);
+        insert_n<growth_rate, construct_method::from_char_count>(m_buffer.ptr + off, count, c);
         return *this;
     }
 
@@ -1551,6 +1455,67 @@ public:
         construct_empty();
     }
 
+private:
+
+    //=========================================================================
+    // shrink
+    //=========================================================================
+
+    bool reallocate_shrink(size_type new_capacity)
+    {
+        const size_type bytes = m_buffer.size * sizeof(T);
+        constexpr size_type reallocate_threshold = 96000;
+        const bool try_reallocate = (bytes < reallocate_threshold);
+
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
+
+        pointer new_ptr;
+        const size_type alloc_capacity = new_capacity + 1;
+
+        if (try_reallocate && std::is_trivially_destructible<T>::value && std::is_trivially_copyable<T>::value)
+        {
+            new_ptr = allocator_type::reallocate(ptr, alloc_capacity);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+            if (!new_ptr)
+            {
+                return false;
+            }
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+        }
+        else
+        {
+            new_ptr = allocator_type::allocate(alloc_capacity);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+            if (!new_ptr)
+            {
+                return false;
+            }
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+
+            VX_ASSERT(size > 0);
+            mem::construct_range(new_ptr, alloc_capacity);
+            traits_type::copy(new_ptr, ptr, alloc_capacity);
+            destroy_and_deallocate(ptr, size, capacity);
+        }
+
+        ptr = new_ptr;
+        size = new_capacity;
+        capacity = new_capacity;
+
+        return true;
+    }
+
+public:
+
+
     bool shrink_to_fit()
     {
         auto& size = m_buffer.size;
@@ -1641,21 +1606,52 @@ public:
     // reserve
     //=========================================================================
 
+private:
+
+    bool reallocate_grow(size_type new_capacity)
+    {
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+        auto& capacity = m_buffer.capacity;
+
+#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
+            {
+                err::set(err::size_error);
+                return false;
+            });
+
+#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+
+        pointer new_ptr = allocator_type::allocate(new_capacity + 1);
+
+#if !defined(VX_ALLOCATE_FAIL_FAST)
+
+        if (!new_ptr)
+        {
+            return false;
+        }
+
+#endif // !defined(VX_ALLOCATE_FAIL_FAST)
+
+        mem::construct_range(new_ptr, size);
+        traits_type::copy(new_ptr, ptr, size);
+        destroy_and_deallocate(ptr, size, capacity);
+
+        ptr = new_ptr;
+        capacity = new_capacity;
+
+        return true;
+    }
+
+public:
+
     bool reserve(size_type new_capacity)
     {
         if (new_capacity > m_buffer.capacity)
         {
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
-
-            VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
-                {
-                    err::set(err::size_error);
-                    return false;
-                });
-
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
-
-            return reallocate(new_capacity);
+            return reallocate_grow(new_capacity);
         }
 
         return true;
@@ -1681,7 +1677,7 @@ public:
         }
 
         const size_type count = new_size - size;
-        return append_n<growth_rate_type<1, 1>, construct_method::from_char>(count, c);
+        return append_n<growth_rate_type<1, 1>, construct_method::from_char_count>(count, c);
     }
 
     //=========================================================================
@@ -1693,25 +1689,7 @@ public:
     {
         VX_STATIC_ASSERT_MSG(growth_rate::num >= 0 && growth_rate::den > 0, "Growth rate must be positive");
         VX_STATIC_ASSERT_MSG(growth_rate::num >= growth_rate::den, "Growth rate must be greater or equal to 1");
-
-        auto& ptr = m_buffer.ptr;
-        auto& size = m_buffer.size;
-        auto& capacity = m_buffer.capacity;
-
-        if (size == capacity)
-        {
-            const size_type new_capacity = grow_capacity<growth_rate>(size + 1, capacity);
-            VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
-                {
-                    return false;
-                });
-        }
-
-        traits_type::assign(ptr[size], c);
-        traits_type::assign(ptr[size + 1], T());
-
-        ++size;
-        return true;
+        return append_n<growth_rate, construct_method::from_char>(1, c);
     }
 
     //=========================================================================
@@ -1839,7 +1817,7 @@ private:
             capacity += diff;
         }
 
-        VX_IF_CONSTEXPR (M == construct_method::from_char)
+        VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
             traits_type::assign(pos, out_count, std::forward<Args>(args)...);
         }
@@ -1885,7 +1863,7 @@ private:
         mem::construct_range(new_ptr, new_ptr + new_size + 1);
         traits_type::copy(new_ptr, ptr, off);
 
-        VX_IF_CONSTEXPR (M == construct_method::from_char)
+        VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
             traits_type::assign(ptr + size, out_count, std::forward<Args>(args)...);
         }
@@ -1938,7 +1916,7 @@ public:
         if (str::_priv::check_offset(size(), off))
         {
             count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
-            return replace_n<growth_rate, construct_method::from_char>(m_buffer.ptr + off, count2, count, c);
+            return replace_n<growth_rate, construct_method::from_char_count>(m_buffer.ptr + off, count2, count, c);
         }
         return *this;
     }
@@ -2036,7 +2014,7 @@ public:
     basic_string& replace(const_iterator first, const_iterator last, size_type count2, const T c)
     {
         const size_type in_count = static_cast<size_type>(std::distance(first, last));
-        return replace_n<growth_rate, construct_method::from_char>(first.ptr(), in_count, count2, c);
+        return replace_n<growth_rate, construct_method::from_char_count>(first.ptr(), in_count, count2, c);
     }
 
     template <typename growth_rate = default_growth_rate>
