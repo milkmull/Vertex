@@ -57,22 +57,6 @@ private:
 private:
 
     //=========================================================================
-    // bounds checkers
-    //=========================================================================
-
-    constexpr size_type clamp_suffix_size(const size_type off, const size_type count) const noexcept
-    {
-        return traits_type::clamp_suffix_size(m_buffer.size, off, count);
-    }
-
-    constexpr bool check_offset(const size_type off) const noexcept
-    {
-        return traits_type::check_offset(m_buffer.size, off);
-    }
-
-private:
-
-    //=========================================================================
     // move/copy helpers
     //=========================================================================
 
@@ -390,7 +374,7 @@ public:
 
     basic_string(const basic_string& other, size_t off)
     {
-        if (other.check_offset(off))
+        if (str::_priv::check_offset(other.size(), off))
         {
             construct_n<construct_method::from_pointer>(other.size() - off, other.data() + off);
         }
@@ -402,9 +386,9 @@ public:
 
     basic_string(const basic_string& other, size_t off, size_t count)
     {
-        if (other.check_offset(off))
+        if (str::_priv::check_offset(other.size(), off))
         {
-            count = other.clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), off, count));
             construct_n<construct_method::from_pointer>(count, other.data() + off);
         }
         else
@@ -466,6 +450,21 @@ public:
         construct_n<construct_method::from_pointer>(count, view.data());
     }
 
+    basic_string(const basic_string_view<T> view, size_t off, size_t count)
+    {
+        if (str::_priv::check_offset(view.size(), off))
+        {
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), off, count));
+            construct_n<construct_method::from_pointer>(count, view.data() + off);
+        }
+        else
+        {
+            construct_empty();
+        }
+    }
+
+    //=========================================================================
+
     bool is_valid() const noexcept
     {
         return m_buffer.ptr != nullptr;
@@ -514,15 +513,14 @@ private:
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
                 err::set(err::size_error);
-                return;
+                return false;
             });
 
 #endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
 
         if (count > capacity)
         {
-            const size_type alloc_count = count + 1;
-            pointer new_ptr = allocator_type::allocate(alloc_count);
+            pointer new_ptr = allocator_type::allocate(count + 1);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
 
@@ -536,7 +534,7 @@ private:
             destroy_and_deallocate(ptr, size, capacity);
 
             ptr = new_ptr;
-            capacity = alloc_count;
+            capacity = count;
         }
         else
         {
@@ -550,16 +548,16 @@ private:
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_pointer)
         {
-            traits_type::assign(ptr, std::forward<Args>(args)..., count);
+            copy_batch(ptr, std::forward<Args>(args)..., count);
             traits_type::assign(ptr[count], T());
         }
         else VX_IF_CONSTEXPR (M == construct_method::from_string)
         {
             traits_type::copy(ptr, std::forward<Args>(args)..., count + 1);
         }
-        else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
+        else // VX_IF_CONSTEXPR (M == construct_method::from_iterator_range)
         {
-            VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
+            VX_STATIC_ASSERT_MSG(M == construct_method::from_iterator_range, "invalid tag");
 
             traits_type::copy_range(ptr, std::forward<Args>(args)...);
             traits_type::assign(ptr[count], T());
@@ -608,6 +606,7 @@ public:
     {
         const size_type count = static_cast<size_type>(init.size());
         assign_from<construct_method::from_pointer>(count, init.begin());
+        return *this;
     }
 
     basic_string& operator=(const basic_string_view<T> view)
@@ -628,17 +627,21 @@ public:
 
     basic_string& assign(basic_string&& other) noexcept
     {
-        return operator=(other);
+        return operator=(std::move(other));
     }
 
     //=========================================================================
 
     basic_string& assign(const basic_string& other, size_type off, size_type count = npos)
     {
-        if (other.check_offset(off))
+        if (str::_priv::check_offset(other.size(), off))
         {
-            count = other.clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), off, count));
             assign_from<construct_method::from_pointer>(count, other.data() + off);
+        }
+        else
+        {
+            clear();
         }
 
         return *this;
@@ -649,6 +652,12 @@ public:
     basic_string& assign(const T c)
     {
         return operator=(c);
+    }
+
+    basic_string& assign(const size_type count, const T c)
+    {
+        assign_from<construct_method::from_char>(count, c);
+        return *this;
     }
 
     //=========================================================================
@@ -680,12 +689,14 @@ public:
 
         VX_IF_CONSTEXPR (_priv::is_pointer_iterator<IT>::value)
         {
-            assign_from<construct_method::from_pointer>(first.ptr(), count);
+            assign_from<construct_method::from_pointer>(count, first.ptr());
         }
         else
         {
-            assign_from<construct_method::from_iterator_range>(first, last, count);
+            assign_from<construct_method::from_iterator_range>(count, first, last);
         }
+
+        return *this;
     }
 
     //=========================================================================
@@ -697,10 +708,14 @@ public:
 
     basic_string& assign(const basic_string_view<T> view, size_type off, size_type count = npos)
     {
-        if (view.check_offset(off))
+        if (str::_priv::check_offset(view.size(), off))
         {
-            count = static_cast<size_type>(view.clamp_suffix_size(off, count));
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), off, count));
             assign_from<construct_method::from_pointer>(count, view.data() + off);
+        }
+        else
+        {
+            clear();
         }
 
         return *this;
@@ -1059,9 +1074,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& append(const basic_string_view<T> view, size_type off, size_type count = npos)
     {
-        if (view.check_offset(off))
+        if (str::_priv::check_offset(view.size(), off))
         {
-            count = static_cast<size_type>(view.clamp_suffix_size(off, count));
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), off, count));
             append_n<growth_rate, construct_method::from_pointer>(count, view.data() + off);
         }
         return *this;
@@ -1077,9 +1092,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& append(const basic_string& other, size_type off, size_type count = npos)
     {
-        if (other.check_offset(off))
+        if (str::_priv::check_offset(other.size(), off))
         {
-            count = static_cast<size_type>(other.clamp_suffix_size(off, count));
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), off, count));
             append_n<growth_rate, construct_method::from_pointer>(count, other.data() + off);
         }
         return *this;
@@ -1384,11 +1399,11 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& insert(size_type off, const basic_string_view<T> view, size_type view_off, size_type count = npos)
     {
-        if (!view.check_offset(view_off))
+        if (!str::_priv::check_offset(view.size(), view_off))
         {
             return *this;
         }
-        count = static_cast<size_type>(view.clamp_suffix_size(view_off, count));
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), view_off, count));
         insert_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count, view.data() + view_off);
         return *this;
     }
@@ -1402,11 +1417,11 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& insert(size_type off, const basic_string& other, size_type other_off, size_type count = npos)
     {
-        if (!other.check_offset(other_off))
+        if (!str::_priv::check_offset(other.size(), off))
         {
             return *this;
         }
-        count = static_cast<size_type>(other.clamp_suffix_size(other_off, count));
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), other_off, count));
         return insert(off, other.data() + other_off, count);
     }
 
@@ -1466,11 +1481,11 @@ public:
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, const basic_string_view<T> view, size_type view_off, size_type count = npos)
     {
-        if (!view.check_offset(view_off))
+        if (!str::_priv::check_offset(view.size(), view_off))
         {
             return iterator(pos);
         }
-        count = static_cast<size_type>(view.clamp_suffix_size(view_off, count));
+        count = static_cast<size_type>(clamp_suffix_size(view.size(), view_off, count));
         pointer new_pos = insert_n<growth_rate, construct_method::from_pointer>(pos.ptr(), count, view.data() + view_off);
         return iterator(new_pos);
     }
@@ -1484,11 +1499,11 @@ public:
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, const basic_string& other, size_type other_off, size_type count = npos)
     {
-        if (!other.check_offset(other_off))
+        if (!str::_priv::check_offset(other.size(), other_off))
         {
             return iterator(pos);
         }
-        count = static_cast<size_type>(other.clamp_suffix_size(other_off, count));
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), other_off, count));
         pointer new_pos = insert_n<growth_rate, construct_method::from_pointer>(pos.ptr(), count, other.data() + other_off);
         return iterator(new_pos);
     }
@@ -1590,7 +1605,7 @@ public:
 
     bool empty() const noexcept
     {
-        return m_buffer.size > 0;
+        return m_buffer.size == 0;
     }
 
     size_type size() const noexcept
@@ -1652,14 +1667,21 @@ public:
 
     bool resize(size_type new_size, const T c = T())
     {
+        auto& ptr = m_buffer.ptr;
+        auto& size = m_buffer.size;
+
         if (new_size <= m_buffer.size)
         {
-            traits_type::assign(m_buffer.ptr + new_size, T());
+            const size_type shrink_count = size - new_size;
+            pointer end_ptr = ptr + new_size;
+            mem::destroy_range(end_ptr + 1, shrink_count);
+            traits_type::assign(*end_ptr, T());
             m_buffer.size = new_size;
             return true;
         }
 
-        return append_n<growth_rate_type<1, 1>, construct_method::from_char>(new_size - m_buffer.size, c);
+        const size_type count = new_size - size;
+        return append_n<growth_rate_type<1, 1>, construct_method::from_char>(count, c);
     }
 
     //=========================================================================
@@ -1698,7 +1720,7 @@ public:
 
 private:
 
-    pointer erase_n(pointer pos, size_type count)
+    pointer erase_n(const pointer pos, size_type count)
     {
         auto& ptr = m_buffer.ptr;
         auto& size = m_buffer.size;
@@ -1724,9 +1746,9 @@ public:
 
     basic_string& erase(size_type off = 0, size_type count = npos)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             erase_n(m_buffer.ptr + off, count);
         }
 
@@ -1759,22 +1781,22 @@ public:
 
     size_type copy(T* dest, size_type count, size_type off = 0) const
     {
-        if (!check_offset(off))
+        if (!str::_priv::check_offset(size(), off))
         {
             return 0;
         }
-        count = clamp_suffix_size(off, count);
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
         traits_type::copy(dest, m_buffer.ptr + off, count);
         return count;
     }
 
     basic_string substr(size_type off = 0, size_type count = npos) const
     {
-        if (!check_offset(off))
+        if (!str::_priv::check_offset(size(), off))
         {
             return basic_string();
         }
-        count = clamp_suffix_size(off, count);
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
         return basic_string(m_buffer.ptr + off, count);
     }
 
@@ -1913,9 +1935,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, size_type count2, const T c)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             return replace_n<growth_rate, construct_method::from_char>(m_buffer.ptr + off, count2, count, c);
         }
         return *this;
@@ -1924,9 +1946,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const T* const s, size_type count2)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, s);
         }
         return *this;
@@ -1935,9 +1957,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const T* const s)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             const size_type count2 = static_cast<size_type>(traits_type::length(s));
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, s);
         }
@@ -1947,9 +1969,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const basic_string_view<T> view)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             const size_type count2 = static_cast<size_type>(view.size());
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, view.data());
         }
@@ -1959,10 +1981,10 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const basic_string_view<T> view, size_type view_off, size_type count2 = npos)
     {
-        if (check_offset(off) && view.check_offset(view_off))
+        if (str::_priv::check_offset(size(), off) && str::_priv::check_offset(view.size(), view_off))
         {
-            count = clamp_suffix_size(off, count);
-            count2 = static_cast<size_type>(view.clamp_suffix_size(view_off, count2));
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
+            count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), view_off, count2));
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, view.data() + view_off);
         }
         return *this;
@@ -1971,9 +1993,9 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const basic_string& other)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, other.size(), count, other.data());
         }
         return *this;
@@ -1982,10 +2004,10 @@ public:
     template <typename growth_rate = default_growth_rate>
     basic_string& replace(size_type off, size_type count, const basic_string& other, size_type other_off, size_type count2 = npos)
     {
-        if (check_offset(off) && other.check_offset(other_off))
+        if (str::_priv::check_offset(size(), off) && str::_priv::check_offset(other.size(), off))
         {
-            count = clamp_suffix_size(off, count);
-            count2 = static_cast<size_type>(other.clamp_suffix_size(other_off, count2));
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
+            count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), other_off, count2));
             return replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, other.data() + other_off);
         }
         return *this;
@@ -1994,9 +2016,9 @@ public:
     template <typename growth_rate = default_growth_rate, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     basic_string& replace(size_type off, size_type count, IT first, IT last)
     {
-        if (check_offset(off))
+        if (str::_priv::check_offset(size(), off))
         {
-            count = clamp_suffix_size(off, count);
+            count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
             const size_type count2 = static_cast<size_type>(std::distance(first, last));
             VX_IF_CONSTEXPR (_priv::is_pointer_iterator<IT>::value)
             {
@@ -2044,11 +2066,11 @@ public:
     basic_string& replace(const_iterator first, const_iterator last, const basic_string_view<T> view, size_type view_off, size_type count2 = npos)
     {
         const size_type in_count = static_cast<size_type>(std::distance(first, last));
-        if (!view.check_offset(view_off))
+        if (!str::_priv::check_offset(view.size(), view_off))
         {
             return *this;
         }
-        count2 = static_cast<size_type>(view.clamp_suffix_size(view_off, count2));
+        count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), view_off, count2));
         return replace_n<growth_rate, construct_method::from_pointer>(first.ptr(), in_count, count2, view.data() + view_off);
     }
 
@@ -2063,11 +2085,11 @@ public:
     basic_string& replace(const_iterator first, const_iterator last, const basic_string& other, size_type other_off, size_type count2 = npos)
     {
         const size_type in_count = static_cast<size_type>(std::distance(first, last));
-        if (!other.check_offset(other_off))
+        if (!str::_priv::check_offset(other.size(), other_off))
         {
             return *this;
         }
-        count2 = static_cast<size_type>(other.clamp_suffix_size(other_off, count2));
+        count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), other_off, count2));
         return replace_n<growth_rate, construct_method::from_pointer>(first.ptr(), in_count, count2, other.data() + other_off);
     }
 
@@ -2339,11 +2361,11 @@ public:
 
     int compare(size_type off, size_type count, const T* const s) const noexcept
     {
-        if (!check_offset(off))
+        if (!str::_priv::check_offset(size(), off))
         {
             return 1;
         }
-        count = clamp_suffix_size(off, count);
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
         const size_type s_len = static_cast<size_type>(traits_type::length(s));
         return compare(off, count, s, s_len);
     }
@@ -2358,12 +2380,12 @@ public:
 
     int compare(size_type off1, size_type count1, const basic_string_view<T> view, size_type off2, size_type count2 = npos) const noexcept
     {
-        if (!check_offset(off1) || !view.check_offset(off2))
+        if (!str::_priv::check_offset(size(), off1) || !str::_priv::check_offset(view.size(), off2))
         {
             return 1;
         }
-        count1 = clamp_suffix_size(off1, count1);
-        count2 = static_cast<size_type>(view.clamp_suffix_size(off2, count2));
+        count1 = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off1, count1));
+        count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(view.size(), off2, count2));
         return str::_priv::traits_compare<traits_type>(
             m_buffer.ptr + off1, count1,
             view.data() + off2, count2);
@@ -2371,11 +2393,11 @@ public:
 
     int compare(size_type off, size_type count, const basic_string& other) const noexcept
     {
-        if (!check_offset(off))
+        if (!str::_priv::check_offset(size(), off))
         {
             return 1;
         }
-        count = clamp_suffix_size(off, count);
+        count = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count));
         return str::_priv::traits_compare<traits_type>(
             m_buffer.ptr + off, count,
             other.data(), other.size());
@@ -2383,12 +2405,12 @@ public:
 
     int compare(size_type off1, size_type count1, const basic_string& other, size_type off2, size_type count2 = npos) const noexcept
     {
-        if (!check_offset(off1) || !other.check_offset(off2))
+        if (!str::_priv::check_offset(size(), off1) || !str::_priv::check_offset(other.size(), off2))
         {
             return 1;
         }
-        count1 = clamp_suffix_size(off1, count1);
-        count2 = other.clamp_suffix_size(off2, count2);
+        count1 = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off1, count1));
+        count2 = static_cast<size_type>(str::_priv::clamp_suffix_size(other.size(), off2, count2));
         return str::_priv::traits_compare<traits_type>(
             m_buffer.ptr + off1, count1,
             other.data() + off2, count2);
@@ -2396,11 +2418,11 @@ public:
 
     int compare(size_type off, size_type count1, const T* const s, size_type count2) const noexcept
     {
-        if (!check_offset(off))
+        if (!str::_priv::check_offset(size(), off))
         {
             return 1;
         }
-        count1 = clamp_suffix_size(off, count1);
+        count1 = static_cast<size_type>(str::_priv::clamp_suffix_size(size(), off, count1));
         return str::_priv::traits_compare<traits_type>(
             m_buffer.ptr + off, count1,
             s, count2);

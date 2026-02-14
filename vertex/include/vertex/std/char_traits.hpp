@@ -557,16 +557,6 @@ struct char_traits_base
         return static_cast<int_type>(EOF);
     }
 
-    static constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
-    {
-        return std::min(count, size - off);
-    }
-
-    static constexpr bool check_offset(const size_t size, const size_t off) noexcept
-    {
-        return (off <= size);
-    }
-
     static constexpr size_t hash(const char_type* const s, const size_t count) noexcept
     {
         crypto::fnv1a fnv;
@@ -1394,6 +1384,16 @@ constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
             return static_cast<size_t>(-1);
         }
     }
+}
+
+constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
+{
+    return std::min(count, size - off);
+}
+
+constexpr bool check_offset(const size_t size, const size_t off) noexcept
+{
+    return (off <= size);
 }
 
 } // namespace _priv

@@ -208,24 +208,24 @@ public:
 
     constexpr size_type copy(T* const ptr, size_type count, const size_type off = 0) const
     {
-        if (!traits_type::check_offset(m_size, off))
+        if (!str::_priv::check_offset(m_size, off))
         {
             return 0;
         }
 
-        count = traits_type::clamp_suffix_size(m_size, off, count);
+        count = str::_priv::clamp_suffix_size(m_size, off, count);
         traits_type::copy(ptr, m_data + off, count);
         return count;
     }
 
     constexpr basic_string_view substr(const size_type off = 0, size_type count = npos) const
     {
-        if (!traits_type::check_offset(m_size, off))
+        if (!str::_priv::check_offset(m_size, off))
         {
             return basic_string_view();
         }
 
-        count = traits_type::clamp_suffix_size(m_size, off, count);
+        count = str::_priv::clamp_suffix_size(m_size, off, count);
         return basic_string_view(m_data + off, count);
     }
 
