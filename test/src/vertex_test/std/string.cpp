@@ -614,6 +614,559 @@ VX_TEST_CASE(test_iterators)
 
 //=============================================================================
 
+VX_TEST_CASE(test_append)
+{
+    VX_SECTION("append string")
+    {
+        vx::string a("hello");
+        vx::string b(" world");
+
+        a.append(b);
+
+        VX_CHECK(a.compare("hello world") == 0);
+        VX_CHECK(a.size() == 11);
+    }
+
+    VX_SECTION("append string with offset")
+    {
+        vx::string a("abc");
+        vx::string b("012345");
+
+        a.append(b, 2); // "2345"
+        VX_CHECK(a.compare("abc2345") == 0);
+
+        a.assign("abc");
+        a.append(b, 1, 3); // "123"
+        VX_CHECK(a.compare("abc123") == 0);
+
+        a.assign("abc");
+        a.append(b, 99); // invalid offset => no-op
+        VX_CHECK(a.compare("abc") == 0);
+    }
+
+    VX_SECTION("append char")
+    {
+        vx::string s("hi");
+        s.append('!');
+        VX_CHECK(s.compare("hi!") == 0);
+        VX_CHECK(s.size() == 3);
+    }
+
+    VX_SECTION("append char repeated")
+    {
+        vx::string s("x");
+        s.append(4, 'a'); // "xaaaa"
+        VX_CHECK(s.compare("xaaaa") == 0);
+        VX_CHECK(s.size() == 5);
+    }
+
+    VX_SECTION("append pointer")
+    {
+        vx::string s("foo");
+        const char* p = "bar";
+        s.append(p);
+        VX_CHECK(s.compare("foobar") == 0);
+        VX_CHECK(s.size() == 6);
+    }
+
+    VX_SECTION("append pointer with count")
+    {
+        vx::string s("foo");
+        const char* p = "barbaz";
+        s.append(p, 3); // "bar"
+        VX_CHECK(s.compare("foobar") == 0);
+        VX_CHECK(s.size() == 6);
+    }
+
+    VX_SECTION("append initializer_list")
+    {
+        vx::string s("test");
+        s.append({ '1', '2', '3' });
+        VX_CHECK(s.compare("test123") == 0);
+        VX_CHECK(s.size() == 7);
+    }
+
+    VX_SECTION("append iterator range (pointer iter path)")
+    {
+        vx::string s("A");
+        const char* p = "xyz";
+        s.append(p, p + 3);
+        VX_CHECK(s.compare("Axyz") == 0);
+    }
+
+    VX_SECTION("append iterator range (non-pointer iter path)")
+    {
+        vx::string s("A");
+        const char arr[] = { 'x', 'y', 'z' };
+        s.append(std::begin(arr), std::end(arr));
+        VX_CHECK(s.compare("Axyz") == 0);
+    }
+
+    VX_SECTION("append view")
+    {
+        vx::string s("num:");
+        vx::string_view v("12345");
+
+        s.append(v);
+        VX_CHECK(s.compare("num:12345") == 0);
+    }
+
+    VX_SECTION("append view with offset")
+    {
+        vx::string s("num:");
+        vx::string_view v("ABCDE");
+
+        s.append(v, 1, 3); // "BCD"
+        VX_CHECK(s.compare("num:BCD") == 0);
+
+        s.assign("num:");
+        s.append(v, 99); // invalid offset => no-op
+        VX_CHECK(s.compare("num:") == 0);
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_operator_plus_equal)
+{
+    VX_SECTION("+= string")
+    {
+        vx::string a("hello");
+        vx::string b(" world");
+
+        a += b;
+
+        VX_CHECK(a.compare("hello world") == 0);
+        VX_CHECK(a.size() == 11);
+    }
+
+    VX_SECTION("+= char")
+    {
+        vx::string s("abc");
+        s += 'd';
+
+        VX_CHECK(s.compare("abcd") == 0);
+        VX_CHECK(s.size() == 4);
+    }
+
+    VX_SECTION("+= pointer")
+    {
+        vx::string s("foo");
+        const char* p = "bar";
+
+        s += p;
+
+        VX_CHECK(s.compare("foobar") == 0);
+        VX_CHECK(s.size() == 6);
+    }
+
+    VX_SECTION("+= initializer_list")
+    {
+        vx::string s("hello");
+        s += { ' ', 'X', 'Y' };
+
+        VX_CHECK(s.compare("hello XY") == 0);
+        VX_CHECK(s.size() == 8);
+    }
+
+    VX_SECTION("+= view")
+    {
+        vx::string s("start:");
+        vx::string_view v("END");
+
+        s += v;
+
+        VX_CHECK(s.compare("start:END") == 0);
+        VX_CHECK(s.size() == 9);
+    }
+}
+
+VX_TEST_CASE(test_operator_plus)
+{
+    //=========================================================================
+    // basic_string + basic_string
+    //=========================================================================
+
+    VX_SECTION("string + string")
+    {
+        const vx::string a("hello");
+        const vx::string b(" world");
+
+        vx::string r = a + b;
+        VX_CHECK(r.compare("hello world") == 0);
+    }
+
+    VX_SECTION("string&& + string&&")
+    {
+        vx::string a("foo");
+        vx::string b("bar");
+
+        vx::string r = std::move(a) + std::move(b);
+        VX_CHECK(r.compare("foobar") == 0);
+    }
+
+    //=========================================================================
+    // basic_string + char
+    //=========================================================================
+
+    VX_SECTION("string + char")
+    {
+        const vx::string a("abc");
+
+        vx::string r = a + 'd';
+        VX_CHECK(r.compare("abcd") == 0);
+    }
+
+    VX_SECTION("char + string")
+    {
+        const vx::string s("abc");
+
+        vx::string r = 'x' + s;
+        VX_CHECK(r.compare("xabc") == 0);
+    }
+
+    //=========================================================================
+    // basic_string + pointer
+    //=========================================================================
+
+    VX_SECTION("string + pointer")
+    {
+        const vx::string a("foo");
+        const char* p = "bar";
+
+        vx::string r = a + p;
+        VX_CHECK(r.compare("foobar") == 0);
+    }
+
+    VX_SECTION("pointer + string")
+    {
+        const char* p = "foo";
+        const vx::string s("bar");
+
+        vx::string r = p + s;
+        VX_CHECK(r.compare("foobar") == 0);
+    }
+
+    //=========================================================================
+    // basic_string + view
+    //=========================================================================
+
+    VX_SECTION("string + view")
+    {
+        const vx::string a("pre-");
+        vx::string_view v("post");
+
+        vx::string r = a + v;
+        VX_CHECK(r.compare("pre-post") == 0);
+    }
+
+    VX_SECTION("view + string")
+    {
+        vx::string_view v("123");
+        const vx::string s("abc");
+
+        vx::string r = v + s;
+        VX_CHECK(r.compare("123abc") == 0);
+    }
+
+    //=========================================================================
+    // string&& + string
+    //=========================================================================
+
+    VX_SECTION("string&& + string")
+    {
+        vx::string a("hi ");
+        const vx::string b("there");
+
+        vx::string r = std::move(a) + b;
+        VX_CHECK(r.compare("hi there") == 0);
+    }
+
+    // string + string&&
+    VX_SECTION("string + string&&")
+    {
+        const vx::string a("hi ");
+        vx::string b("there");
+
+        vx::string r = a + std::move(b);
+        VX_CHECK(r.compare("therehi ") == 0);
+    }
+
+    //=========================================================================
+    // string&& + char
+    //=========================================================================
+
+    VX_SECTION("string&& + char")
+    {
+        vx::string a("abc");
+        vx::string r = std::move(a) + 'Z';
+        VX_CHECK(r.compare("abcZ") == 0);
+    }
+
+    // char + string&&
+    VX_SECTION("char + string&&")
+    {
+        vx::string b("abc");
+
+        vx::string r = 'Z' + std::move(b);
+        VX_CHECK(r.compare("abcZ") == 0);
+    }
+
+    //=========================================================================
+    // string&& + pointer
+    //=========================================================================
+
+    VX_SECTION("string&& + pointer")
+    {
+        vx::string a("foo");
+        const char* p = "BAR";
+
+        vx::string r = std::move(a) + p;
+        VX_CHECK(r.compare("fooBAR") == 0);
+    }
+
+    // pointer + string&&
+    VX_SECTION("pointer + string&&")
+    {
+        const char* p = "foo";
+        vx::string b("BAR");
+
+        vx::string r = p + std::move(b);
+        VX_CHECK(r.compare("fooBAR") == 0);
+    }
+
+    //=========================================================================
+    // string&& + view
+    //=========================================================================
+
+    VX_SECTION("string&& + view")
+    {
+        vx::string a("begin:");
+        vx::string_view v("end");
+
+        vx::string r = std::move(a) + v;
+        VX_CHECK(r.compare("begin:end") == 0);
+    }
+
+    // view + string&&
+    VX_SECTION("view + string&&")
+    {
+        vx::string_view v("123");
+        vx::string s("abc");
+
+        vx::string r = v + std::move(s);
+        VX_CHECK(r.compare("123abc") == 0);
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_insert)
+{
+    //=========================================================================
+    // insert(off, string)
+    //=========================================================================
+
+    VX_SECTION("insert index: string")
+    {
+        vx::string s("hello");
+        vx::string other("XX");
+
+        s.insert(2, other);
+
+        VX_CHECK(s.compare("heXXllo") == 0);
+    }
+
+    VX_SECTION("insert index: string with offset")
+    {
+        vx::string s("hello");
+        vx::string other("ABCDE");
+
+        s.insert(1, other, 2, 2); // insert "CD"
+
+        VX_CHECK(s.compare("hCDello") == 0);
+
+        // invalid other offset => no-op
+        s.assign("hello");
+        s.insert(1, other, 99);
+        VX_CHECK(s.compare("hello") == 0);
+    }
+
+    //=========================================================================
+    // insert(off, char)
+    //=========================================================================
+
+    VX_SECTION("insert index: char")
+    {
+        vx::string s("abcd");
+        s.insert(2, 'X'); // a b X c d
+
+        VX_CHECK(s.compare("abXcd") == 0);
+    }
+
+    VX_SECTION("insert index: repeated char")
+    {
+        vx::string s("abcd");
+        s.insert(1, 3, 'Z'); // a ZZZ b c d
+
+        VX_CHECK(s.compare("aZZZbcd") == 0);
+    }
+
+    //=========================================================================
+    // insert(off, pointer)
+    //=========================================================================
+
+    VX_SECTION("insert index: pointer")
+    {
+        vx::string s("hello");
+        const char* p = "XYZ";
+
+        s.insert(3, p);
+
+        VX_CHECK(s.compare("helXYZlo") == 0);
+    }
+
+    VX_SECTION("insert index: pointer with count")
+    {
+        vx::string s("hello");
+        const char* p = "ABCDE";
+
+        s.insert(3, p, 2); // "AB"
+
+        VX_CHECK(s.compare("helABlo") == 0);
+    }
+
+    //=========================================================================
+    // insert(off, initializer_list)
+    //=========================================================================
+
+    VX_SECTION("insert index: initializer_list")
+    {
+        vx::string s("hello");
+        s.insert(1, { 'X', 'Y' });
+
+        VX_CHECK(s.compare("hXYello") == 0);
+    }
+
+    //=========================================================================
+    // insert(off, iterators)
+    //=========================================================================
+
+    VX_SECTION("insert index: iterator range (pointer iter path)")
+    {
+        vx::string s("hello");
+        const char* p = "xyz";
+
+        s.insert(2, p, p + 3);
+
+        VX_CHECK(s.compare("hexyzllo") == 0);
+    }
+
+    VX_SECTION("insert index: iterator range (non-pointer iter path)")
+    {
+        vx::string s("hello");
+        const char arr[] = { '1', '2', '3' };
+
+        s.insert(4, std::begin(arr), std::end(arr));
+
+        VX_CHECK(s.compare("hell123o") == 0);
+    }
+
+    //=========================================================================
+    // insert(off, view)
+    //=========================================================================
+
+    VX_SECTION("insert index: view")
+    {
+        vx::string s("hello");
+        vx::string_view v("XYZ");
+
+        s.insert(1, v);
+
+        VX_CHECK(s.compare("hXYZello") == 0);
+    }
+
+    VX_SECTION("insert index: view with offset")
+    {
+        vx::string s("hello");
+        vx::string_view v("ABCDE");
+
+        s.insert(2, v, 1, 3); // "BCD"
+
+        VX_CHECK(s.compare("heBCDllo") == 0);
+
+        // invalid view offset => no-op
+        s.assign("hello");
+        s.insert(2, v, 99);
+        VX_CHECK(s.compare("hello") == 0);
+    }
+
+    //=========================================================================
+    // ITERATOR-BASED INSERT VERSIONS
+    // Same functionality, but off is replaced with an iterator
+    //=========================================================================
+
+    VX_SECTION("insert iterator: string")
+    {
+        vx::string s("hello");
+        vx::string other("XX");
+
+        s.insert(s.begin() + 2, other.begin(), other.end());
+
+        VX_CHECK(s.compare("heXXllo") == 0);
+    }
+
+    VX_SECTION("insert iterator: char")
+    {
+        vx::string s("abcd");
+
+        // single char insertion via iterator+char form
+        s.insert(s.begin() + 2, 'X');
+
+        VX_CHECK(s.compare("abXcd") == 0);
+    }
+
+    VX_SECTION("insert iterator: repeated char")
+    {
+        vx::string s("abcd");
+        s.insert(s.begin() + 1, 3, 'Z'); // a ZZZ b c d
+
+        VX_CHECK(s.compare("aZZZbcd") == 0);
+    }
+
+    VX_SECTION("insert iterator: pointer")
+    {
+        vx::string s("hello");
+        const char* p = "XYZ";
+
+        s.insert(s.begin() + 3, p, p + 3);
+
+        VX_CHECK(s.compare("helXYZlo") == 0);
+    }
+
+    VX_SECTION("insert iterator: initializer_list")
+    {
+        vx::string s("hello");
+
+        s.insert(s.begin() + 1, { 'X', 'Y' });
+
+        VX_CHECK(s.compare("hXYello") == 0);
+    }
+
+    VX_SECTION("insert iterator: view")
+    {
+        vx::string s("hello");
+        vx::string_view v("XYZ");
+
+        // iterator version handles same logic through the template path
+        s.insert(s.begin() + 1, v.begin(), v.end());
+
+        VX_CHECK(s.compare("hXYZello") == 0);
+    }
+}
+
+//=============================================================================
+
 int main()
 {
     VX_RUN_TESTS();

@@ -27,7 +27,7 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = _priv::pointer_iterator<basic_string_view, value_type>;
+    using iterator = _priv::pointer_iterator<basic_string_view, const value_type>;
     using const_iterator = _priv::pointer_iterator<basic_string_view, const value_type>;
     using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
