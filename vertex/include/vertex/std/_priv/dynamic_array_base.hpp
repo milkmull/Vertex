@@ -1157,8 +1157,8 @@ public:
 
         if (size)
         {
-            mem::destroy_in_place(ptr + size - 1);
             --size;
+            mem::destroy_in_place(ptr + size);
         }
     }
 

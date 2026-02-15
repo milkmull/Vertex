@@ -1167,6 +1167,566 @@ VX_TEST_CASE(test_insert)
 
 //=============================================================================
 
+VX_TEST_CASE(test_clear)
+{
+    vx::string s("abcdef");
+    VX_CHECK(s.size() == 6);
+
+    s.clear();
+
+    VX_CHECK(s.size() == 0);
+    VX_CHECK(s.capacity() >= 1);
+    VX_CHECK(s.data()[0] == '\0');
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_clear_and_deallocate)
+{
+    vx::string s("abcdef");
+    s.clear_and_deallocate();
+
+    VX_CHECK(s.size() == 0);
+    VX_CHECK(s.capacity() == 0);
+    VX_CHECK(s.data()[0] == '\0');
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_shrink_to_fit)
+{
+    VX_SECTION("already exact")
+    {
+        vx::string s("abcdef");
+        s.reserve(s.size());
+
+        const auto old_cap = s.capacity();
+        const bool result = s.shrink_to_fit();
+
+        VX_CHECK(result);
+        VX_CHECK(s.capacity() == old_cap);
+        VX_CHECK(s.size() == 6);
+    }
+
+    VX_SECTION("shrink")
+    {
+        vx::string s("abcdef");
+        s.reserve(100);
+
+        VX_CHECK(s.capacity() >= 100);
+
+        const bool result = s.shrink_to_fit();
+
+        VX_CHECK(result);
+        VX_CHECK(s.capacity() == s.size()); // exact fit
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_release)
+{
+    vx::string s("hello");
+
+    const size_t size = s.size();
+    char* raw = s.release();
+
+    VX_CHECK(raw != nullptr);
+    VX_CHECK(vx::str::compare(raw, "hello") == 0);
+    vx::mem::deallocate(raw, size);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_acquire)
+{
+    using allocator = typename vx::string::allocator_type;
+
+    // manually allocated C-string
+    char* raw = allocator{}.allocate(6);
+    vx::mem::copy(raw, "abcde", 6);
+
+    vx::string s;
+
+    const bool ok = s.acquire(raw);
+
+    VX_CHECK(ok);
+    VX_CHECK(s.size() == 5);
+    VX_CHECK(s.capacity() == 5);
+    VX_CHECK(vx::str::compare(s.data(), "abcde") == 0);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_swap)
+{
+    vx::string a("abc");
+    vx::string b("xyz");
+
+    a.swap(b);
+
+    VX_CHECK(a == "xyz");
+    VX_CHECK(b == "abc");
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_empty)
+{
+    vx::string s;
+    VX_CHECK(s.empty());
+
+    s = "x";
+    VX_CHECK(!s.empty());
+
+    s.clear();
+    VX_CHECK(s.empty());
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_size)
+{
+    vx::string s("abcd");
+    VX_CHECK(s.size() == 4);
+
+    s.push_back('e');
+    VX_CHECK(s.size() == 5);
+
+    s.clear();
+    VX_CHECK(s.size() == 0);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_length)
+{
+    vx::string s("hello");
+    VX_CHECK(s.length() == 5);
+
+    s.pop_back();
+    VX_CHECK(s.length() == 4);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_data_size)
+{
+    vx::string s("abcd");
+
+    VX_CHECK(s.data_size() == 4 * sizeof(char));
+
+    s.push_back('x');
+    VX_CHECK(s.data_size() == 5 * sizeof(char));
+
+    s.clear();
+    VX_CHECK(s.data_size() == 0);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_max_size)
+{
+    vx::string s;
+
+    const auto max = s.max_size();
+    VX_CHECK(max > 0);
+
+    VX_CHECK(max == vx::mem::max_array_size<char>() - 1);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_capacity)
+{
+    vx::string s("abc");
+    const auto initial_cap = s.capacity();
+
+    s.reserve(100);
+    VX_CHECK(s.capacity() >= 100);
+    VX_CHECK(s.capacity() >= initial_cap);
+
+    s.clear();
+    VX_CHECK(s.capacity() >= 1);
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_reserve)
+{
+    VX_SECTION("shrink")
+    {
+        vx::string s("abcd");
+        const auto cap_before = s.capacity();
+
+        const bool ok1 = s.reserve(cap_before - 1);
+        VX_CHECK(ok1);
+        VX_CHECK(s.capacity() == cap_before);
+
+        const bool ok2 = s.reserve(cap_before);
+        VX_CHECK(ok2);
+        VX_CHECK(s.capacity() == cap_before);
+    }
+
+    VX_SECTION("grow")
+    {
+        vx::string s("hello");
+        const auto old_ptr = s.data();
+        const auto old_cap = s.capacity();
+        const auto old_size = s.size();
+
+        const bool ok = s.reserve(old_cap + 50);
+        VX_CHECK(ok);
+
+        VX_CHECK(s.capacity() >= old_cap + 50);
+        VX_CHECK(s.size() == old_size);
+        VX_CHECK(s == "hello");
+
+        VX_CHECK(s.data() != old_ptr);
+    }
+
+    VX_SECTION("max_size")
+    {
+        vx::wstring s(L"abc");
+        VX_CHECK_AND_EXPECT_ERROR_CODE(
+            !s.reserve(s.max_size() + 1),
+            vx::err::size_error
+        );
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_resize)
+{
+    VX_SECTION("shrink")
+    {
+        vx::string s("hello");
+
+        const bool ok = s.resize(2);
+        VX_CHECK(ok);
+
+        VX_CHECK(s.size() == 2);
+        VX_CHECK(s == "he");
+    }
+
+    VX_SECTION("grow")
+    {
+        vx::string s("a");
+
+        const bool ok = s.resize(4, 'x');
+        VX_CHECK(ok);
+
+        VX_CHECK(s.size() == 4);
+        VX_CHECK(s == "axxx");
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_push_back)
+{
+    VX_SECTION("within capacity")
+    {
+        vx::string s("ab");
+        VX_CHECK(s.reserve(3));
+        const auto old_cap = s.capacity();
+        const auto old_size = s.size();
+
+        const bool ok = s.push_back('X');
+        VX_CHECK(ok);
+        VX_CHECK(s.size() == old_size + 1);
+        VX_CHECK(s == "abX");
+        VX_CHECK(s.capacity() == old_cap);
+    }
+
+    VX_SECTION("growth")
+    {
+        vx::string s;
+        s.reserve(1); // small capacity to force growth quickly
+
+        s.push_back('a');
+        s.push_back('b'); // should trigger growth
+
+        VX_CHECK(s.size() == 2);
+        VX_CHECK(s == "ab");
+        VX_CHECK(s.capacity() >= s.size());
+    }
+
+    VX_SECTION("push_back multiple chars")
+    {
+        vx::string s("x");
+
+        s.push_back('y');
+        s.push_back('z');
+
+        VX_CHECK(s.size() == 3);
+        VX_CHECK(s == "xyz");
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_erase)
+{
+    VX_SECTION("offset and count")
+    {
+        vx::string s("abcdef");
+
+        s.erase(2, 2); // remove 'c','d'
+        VX_CHECK(s.size() == 4);
+        VX_CHECK(s.compare("abef") == 0);
+    }
+
+    VX_SECTION("offset only")
+    {
+        vx::string s("abcdef");
+
+        s.erase(3); // remove 'd','e','f'
+        VX_CHECK(s.size() == 3);
+        VX_CHECK(s.compare("abc") == 0);
+    }
+
+    VX_SECTION("invalid offset")
+    {
+        vx::string s("abc");
+
+        s.erase(99, 5); // invalid offset
+        VX_CHECK(s.size() == 3);
+        VX_CHECK(s.compare("abc") == 0);
+    }
+
+    VX_SECTION("full string")
+    {
+        vx::string s("xyz");
+
+        s.erase();
+        VX_CHECK(s.size() == 0);
+        VX_CHECK(s.empty());
+    }
+
+    VX_SECTION("iterator")
+    {
+        vx::string s("abc");
+
+        auto it = s.erase(s.begin() + 1); // remove 'b'
+        VX_CHECK(s.size() == 2);
+        VX_CHECK(s.compare("ac") == 0);
+        VX_CHECK(*it == 'c'); // iterator points to next element
+    }
+
+    VX_SECTION("iterator range")
+    {
+        vx::string s("abcdef");
+
+        auto it = s.erase(s.begin() + 1, s.begin() + 4); // remove 'b','c','d'
+        VX_CHECK(s.size() == 3);
+        VX_CHECK(s.compare("aef") == 0);
+        VX_CHECK(*it == 'e'); // iterator points to next element
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_pop_back)
+{
+    vx::string s("abc");
+
+    s.pop_back();
+    VX_CHECK(s.size() == 2);
+    VX_CHECK(s.compare("ab") == 0);
+
+    s.pop_back();
+    VX_CHECK(s.size() == 1);
+    VX_CHECK(s.compare("a") == 0);
+
+    s.pop_back();
+    VX_CHECK(s.size() == 0);
+    VX_CHECK(s.empty());
+
+    s.pop_back(); // should be no-op
+    VX_CHECK(s.size() == 0);
+    VX_CHECK(s.empty());
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_copy)
+{
+    VX_SECTION("full")
+    {
+        vx::string s("hello");
+        char buffer[10] = {};
+
+        const auto n = s.copy(buffer, 5);
+        VX_CHECK(n == 5);
+        VX_CHECK(std::strncmp(buffer, "hello", 5) == 0);
+    }
+
+    VX_SECTION("partial")
+    {
+        vx::string s("abcdef");
+        char buffer[10] = {};
+
+        const auto n = s.copy(buffer, 3, 2); // copy 'c','d','e'
+        VX_CHECK(n == 3);
+        VX_CHECK(std::strncmp(buffer, "cde", 3) == 0);
+    }
+
+    VX_SECTION("offset beyond size")
+    {
+        vx::string s("abc");
+        char buffer[10] = {};
+
+        const auto n = s.copy(buffer, 5, 99);
+        VX_CHECK(n == 0);
+        VX_CHECK(buffer[0] == '\0');
+    }
+}
+
+VX_TEST_CASE(test_substr)
+{
+    VX_SECTION("full")
+    {
+        vx::string s("hello");
+        vx::string sub = s.substr();
+
+        VX_CHECK(sub == "hello");
+        VX_CHECK(sub.size() == s.size());
+    }
+
+    VX_SECTION("partial")
+    {
+        vx::string s("abcdef");
+        vx::string sub = s.substr(2, 3); // "cde"
+
+        VX_CHECK(sub == "cde");
+        VX_CHECK(sub.size() == 3);
+    }
+
+    VX_SECTION("offset beyond size")
+    {
+        vx::string s("abc");
+        vx::string sub = s.substr(99, 5);
+
+        VX_CHECK(sub.empty());
+        VX_CHECK(sub.size() == 0);
+    }
+
+    VX_SECTION("count beyond end")
+    {
+        vx::string s("abcde");
+        vx::string sub = s.substr(3, 99); // from 'd' to end
+
+        VX_CHECK(sub == "de");
+        VX_CHECK(sub.size() == 2);
+    }
+}
+
+//=============================================================================
+
+VX_TEST_CASE(test_replace)
+{
+    VX_SECTION("string")
+    {
+        vx::string s("abcdef");
+        vx::string r("XYZ");
+
+        s.replace(2, 3, r); // replace 'c','d','e' with 'XYZ'
+        VX_CHECK(s.compare("abXYZf") == 0);
+    }
+
+    VX_SECTION("string and offsets")
+    {
+        vx::string s("abcdef");
+        vx::string r("12345");
+
+        s.replace(1, 3, r, 1, 2); // replace 'b','c','d' with '23'
+        VX_CHECK(s.compare("a23ef") == 0);
+    }
+
+    VX_SECTION("single char count")
+    {
+        vx::string s("abcdef");
+
+        s.replace(1, 3, 2, 'X'); // replace 'b','c','d' with 'XX'
+        VX_CHECK(s.compare("aXXef") == 0);
+    }
+
+    VX_SECTION("pointer C-string")
+    {
+        vx::string s("abcdef");
+        const char* p = "123";
+
+        s.replace(2, 3, p); // replace 'c','d','e' with '123'
+        VX_CHECK(s.compare("ab123f") == 0);
+    }
+
+    VX_SECTION("pointer + count")
+    {
+        vx::string s("abcdef");
+        const char* p = "98765";
+
+        s.replace(1, 3, p, 2); // replace 'b','c','d' with '98'
+        VX_CHECK(s.compare("a98ef") == 0);
+    }
+
+    VX_SECTION("initializer_list")
+    {
+        vx::string s("abcdef");
+
+        s.replace(1, 3, { 'X', 'Y', 'Z' });
+        VX_CHECK(s.compare("aXYZef") == 0);
+    }
+
+    VX_SECTION("iterator range (pointer path)")
+    {
+        vx::string s1("abcdef");
+        vx::string s2("123");
+
+        s1.replace(2, 3, s2.begin(), s2.end());
+        VX_CHECK(s1.compare("ab123f") == 0);
+    }
+
+    VX_SECTION("iterator range (non-pointer path)")
+    {
+        vx::string s("abcdef");
+        char arr[] { 'x', 'y' };
+
+        s.replace(1, 3, std::begin(arr), std::end(arr));
+        VX_CHECK(s.compare("axyef") == 0);
+    }
+
+    VX_SECTION("string_view")
+    {
+        vx::string s("abcdef");
+        vx::string_view v("XYZ");
+
+        s.replace(2, 3, v);
+        VX_CHECK(s.compare("abXYZf") == 0);
+    }
+
+    VX_SECTION("string_view and offsets")
+    {
+        vx::string s("abcdef");
+        vx::string_view v("12345");
+
+        s.replace(1, 3, v, 1, 2); // replace 'b','c','d' with '23'
+        VX_CHECK(s.compare("a23ef") == 0);
+    }
+
+    VX_SECTION("offset beyond size")
+    {
+        vx::string s("abc");
+        vx::string r("XYZ");
+
+        s.replace(99, 2, r);
+        VX_CHECK(s.compare("abc") == 0);
+    }
+}
+
+//=============================================================================
+
 int main()
 {
     VX_RUN_TESTS();
