@@ -267,7 +267,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
@@ -275,7 +275,7 @@ private:
                 return;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type alloc_count = count + 1;
         auto new_ptr = allocator_type::allocate(alloc_count);
@@ -494,7 +494,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
@@ -502,7 +502,7 @@ private:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         if (count > capacity)
         {
@@ -914,7 +914,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size() - size,
             {
@@ -922,7 +922,7 @@ private:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
         const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
@@ -1280,7 +1280,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size() - size,
             {
@@ -1288,7 +1288,7 @@ private:
                 return nullptr;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
         const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
@@ -1657,7 +1657,7 @@ public:
     {
         const size_type count = static_cast<size_type>(traits_type::length(ptr));
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
@@ -1665,7 +1665,7 @@ public:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         destroy_range();
 
@@ -1731,7 +1731,7 @@ public:
             return true;
         }
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
             {
@@ -1739,7 +1739,7 @@ public:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_STRING_DISABLE_MAX_SIZE_CHECK)
 
         const size_type alloc_capacity = new_capacity + 1;
         pointer new_ptr = allocator_type::allocate(alloc_capacity);

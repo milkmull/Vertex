@@ -57,6 +57,11 @@ public:
         VX_ASSERT(count == 0 || ptr);
     }
 
+    template <typename Traits2>
+    constexpr basic_string_view(const std::basic_string_view<T, Traits2> sv) noexcept
+        : m_data(sv.data()), m_size(sv.size())
+    {}
+
     //=========================================================================
     // element access
     //=========================================================================
@@ -160,6 +165,11 @@ public:
     size_type size() const noexcept
     {
         return m_size;
+    }
+
+    size_type length() const noexcept
+    {
+        return size();
     }
 
     size_type data_size() const noexcept
@@ -291,7 +301,6 @@ public:
         return lhs.compare(rhs) > 0;
     }
 
-    template <typename T, typename traits_type>
     friend constexpr bool operator<=(
         const basic_string_view lhs,
         const basic_string_view rhs) noexcept
@@ -299,7 +308,6 @@ public:
         return lhs.compare(rhs) <= 0;
     }
 
-    template <typename T, typename traits_type>
     friend constexpr bool operator>=(
         const basic_string_view lhs,
         const basic_string_view rhs) noexcept
@@ -431,22 +439,23 @@ public:
         return str::_priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
+    //=========================================================================
+
+    template <typename Traits2, typename Alloc>
+    friend std::basic_ostream<T, Traits2>& operator<<(
+        std::basic_ostream<T, Traits2>& oss,
+        const basic_string_view s)
+    {
+        std::string os(s.data(), s.size());
+        oss << os;
+        return oss;
+    }
+
 private:
 
     const_pointer m_data;
     size_type m_size;
 };
-
-//=========================================================================
-
-//template <typename T>
-//struct hash<vx::basic_string_view<T>>
-//{
-//    size_t operator()(const vx::basic_string_view<T> sv) const noexcept
-//    {
-//        using traits_type = vx::basic_string_view return vx::str::_priv::traits_hash<typename vx::basic_string_view<T>::traits_type>(sv.data(), sv.size());
-//    }
-//};
 
 //=========================================================================
 
@@ -460,16 +469,36 @@ using u32string_view = basic_string_view<char32_t>;
 
 } // namespace vx
 
-//namespace std {
-//
-//template <typename T>
-//struct hash<vx::basic_string_view<T>>
-//{
-//    size_t operator()(const vx::basic_string_view<T> sv) const noexcept
-//    {
-//        using traits_type = vx::basic_string_view
-//        return vx::str::_priv::traits_hash<typename vx::basic_string_view<T>::traits_type>(sv.data(), sv.size());
-//    }
-//};
-//
-//} // namespace std
+//=========================================================================
+// hashing
+//=========================================================================
+
+namespace vx {
+
+template <typename T>
+struct hash;
+
+template <typename T>
+struct hash<basic_string_view<T>>
+{
+    size_t operator()(const vx::basic_string_view<T> s) const noexcept
+    {
+        using traits = typename vx::basic_string_view<T>::traits_type;
+        return traits::hash(s.data(), s.size());
+    }
+};
+
+} // namespace vx
+
+namespace std {
+
+template <typename T>
+struct hash<vx::basic_string_view<T>>
+{
+    size_t operator()(const vx::basic_string_view<T> s) const noexcept
+    {
+        return vx::hash<vx::basic_string_view<T>>{}(s);
+    }
+};
+
+} // namespace std

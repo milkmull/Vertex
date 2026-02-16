@@ -148,21 +148,89 @@ void message(Args&&... args)
 
 //=============================================================================
 
-template <typename T>
-constexpr const T* make_lit(const char* s, T* buffer)
+template <typename char_t>
+constexpr const char_t* get_string_literal(
+    const char*,
+    const wchar_t*,
+#if defined(__cpp_lib_char8_t)
+    const char8_t*,
+#endif
+    const char16_t*,
+    const char32_t*
+);
+
+template <>
+constexpr const char* get_string_literal<char>(
+    const char* c,
+    const wchar_t*,
+#if defined(__cpp_lib_char8_t)
+    const char8_t*,
+#endif
+    const char16_t*,
+    const char32_t*)
 {
-    size_t i = 0;
-
-    for (; s[i] != T(); ++i)
-    {
-        buffer[i] = static_cast<T>(s[i]);
-    }
-
-    buffer[i] = T();
-    return buffer;
+    return c;
 }
 
-#define VX_LIT(T, s, b) ::vx::test::make_lit<T>(s, b)
+template <>
+constexpr const wchar_t* get_string_literal<wchar_t>(
+    const char*,
+    const wchar_t* w,
+#if defined(__cpp_lib_char8_t)
+    const char8_t*,
+#endif
+    const char16_t*,
+    const char32_t*)
+{
+    return w;
+}
+
+#if defined(__cpp_lib_char8_t)
+
+template <>
+constexpr const char8_t* get_string_literal<char8_t>(
+    const char*,
+    const wchar_t*,
+    const char8_t* c8,
+    const char16_t*,
+    const char32_t*)
+{
+    return c8;
+}
+
+#endif
+
+template <>
+constexpr const char16_t* get_string_literal<char16_t>(
+    const char*,
+    const wchar_t*,
+#if defined(__cpp_lib_char8_t)
+    const char8_t*,
+#endif
+    const char16_t* c16,
+    const char32_t*)
+{
+    return c16;
+}
+
+template <>
+constexpr const char32_t* get_string_literal<char32_t>(
+    const char*,
+    const wchar_t*,
+#if defined(__cpp_lib_char8_t)
+    const char8_t*,
+#endif
+    const char16_t*,
+    const char32_t* c32)
+{
+    return c32;
+}
+
+#if defined(__cpp_lib_char8_t)
+    #define VX_LIT(T, s) ::vx::test::get_string_literal<T>(s, L##s, u8##s, u##s, U##s)
+#else
+    #define VX_LIT(T, s) ::vx::test::get_string_literal<T>(s, L##s, u##s, U##s)
+#endif
 
 } // namespace test
 } // namespace vx
