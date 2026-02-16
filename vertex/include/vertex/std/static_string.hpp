@@ -2062,18 +2062,18 @@ template <size_t N>
 using static_string = str::basic_static_string<N, char>;
 
 template <size_t N>
-using wstatic_string = str::basic_static_string<N, wchar_t>;
+using static_wstring = str::basic_static_string<N, wchar_t>;
 
 #if defined(__cpp_lib_char8_t)
 template <size_t N>
-using u8static_string = str::basic_static_string<N, char8_t>;
+using static_u8string = str::basic_static_string<N, char8_t>;
 #endif // defined(__cpp_lib_char8_t)
 
 template <size_t N>
-using u16static_string = str::basic_static_string<N, char16_t>;
+using static_u16string = str::basic_static_string<N, char16_t>;
 
 template <size_t N>
-using u32static_string = str::basic_static_string<N, char32_t>;
+using static_u32string = str::basic_static_string<N, char32_t>;
 
 } // namespace vx
 

@@ -14,16 +14,16 @@ template <typename T>
 static void test_container()
 {
     using string = vx::str::basic_static_string<20, T>;
-    T carr[] = { T('a'), T('b'), T('c'), '\0' };
+    T carr[] = { T('a'), T('b'), T('c'), T() };
 
     string v0;
     VX_CHECK(v0.empty());
     VX_CHECK(v0.size() == 0);
 
-    string v1(5, '\0');
+    string v1(5, T());
     string v1a(6, T('x'));
     VX_CHECK(v1.size() == 5);
-    VX_CHECK(v1.end()[-1] == '\0');
+    VX_CHECK(v1.end()[-1] == T());
     VX_CHECK(v1a.size() == 6);
     VX_CHECK(v1a.end()[-1] == T('x'));
 
@@ -47,7 +47,7 @@ static void test_container()
     VX_CHECK(12 <= v0.capacity());
     v0.resize(8);
     VX_CHECK(v0.size() == 8);
-    VX_CHECK(v0.end()[-1] == '\0');
+    VX_CHECK(v0.end()[-1] == T());
     v0.resize(10, T('z'));
     VX_CHECK(v0.size() == 10);
     VX_CHECK(v0.end()[-1] == T('z'));
@@ -197,8 +197,8 @@ static void test_basics()
 {
     using string = vx::str::basic_static_string<20, T>;
 
-    string s1, s2(30, '\0');
-    string s3(4, '\0');
+    string s1, s2(30, T());
+    string s3(4, T());
     string s4(LIT("s4")), s5(LIT("s5xxx"), 2), s6(3, T('a'));
     string s7(5, T('b')), s8(1, T('c'));
     string s9(s7);

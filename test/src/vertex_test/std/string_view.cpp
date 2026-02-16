@@ -14,7 +14,7 @@ template <typename T>
 static void test_container()
 {
     using string_view = vx::str::basic_string_view<T>;
-    T carr[] = { 'a', 'b', 'c', '\0' };
+    T carr[] = { T('a'), T('b'), T('c'), T() };
 
     string_view v0;
     VX_CHECK(v0.empty());
@@ -22,23 +22,23 @@ static void test_container()
 
     string_view v1(carr, 3);
     VX_CHECK(v1.size() == 3);
-    VX_CHECK(v1.end()[-1] == 'c');
+    VX_CHECK(v1.end()[-1] == T('c'));
 
     string_view v2(v1);
     VX_CHECK(v2.size() == 3);
-    VX_CHECK(*v2.begin() == 'a');
+    VX_CHECK(*v2.begin() == T('a'));
 
     string_view v3(v1.data(), v1.size());
     VX_CHECK(v3.size() == 3);
-    VX_CHECK(*v3.begin() == 'a');
+    VX_CHECK(*v3.begin() == T('a'));
 
     const string_view v4(v1.data(), v1.size());
     VX_CHECK(v4.size() == 3);
-    VX_CHECK(*v4.begin() == 'a');
+    VX_CHECK(*v4.begin() == T('a'));
 
     v0 = v4;
     VX_CHECK(v0.size() == 3);
-    VX_CHECK(v0[0] == 'a');
+    VX_CHECK(v0[0] == T('a'));
 
     VX_SECTION("iterators")
     {
@@ -47,17 +47,17 @@ static void test_container()
         typename string_view::reverse_iterator rit(v0.rbegin());
         typename string_view::const_reverse_iterator crit(v4.rbegin());
 
-        VX_CHECK(*it == 'a');
-        VX_CHECK(*--(it = v0.end()) == 'c');
+        VX_CHECK(*it == T('a'));
+        VX_CHECK(*--(it = v0.end()) == T('c'));
 
-        VX_CHECK(*cit == 'a');
-        VX_CHECK(*--(cit = v4.end()) == 'c');
+        VX_CHECK(*cit == T('a'));
+        VX_CHECK(*--(cit = v4.end()) == T('c'));
 
-        VX_CHECK(*rit == 'c');
-        VX_CHECK(*--(rit = v0.rend()) == 'a');
+        VX_CHECK(*rit == T('c'));
+        VX_CHECK(*--(rit = v0.rend()) == T('a'));
 
-        VX_CHECK(*crit == 'c');
-        VX_CHECK(*--(crit = v4.rend()) == 'a');
+        VX_CHECK(*crit == T('c'));
+        VX_CHECK(*--(crit = v4.rend()) == T('a'));
     }
 
     VX_SECTION("const iterators")
@@ -67,46 +67,46 @@ static void test_container()
         typename string_view::const_reverse_iterator rit(v0.crbegin());
         typename string_view::const_reverse_iterator crit(v4.crbegin());
 
-        VX_CHECK(*it == 'a');
-        VX_CHECK(*--(it = v0.cend()) == 'c');
+        VX_CHECK(*it == T('a'));
+        VX_CHECK(*--(it = v0.cend()) == T('c'));
 
-        VX_CHECK(*cit == 'a');
-        VX_CHECK(*--(cit = v4.cend()) == 'c');
+        VX_CHECK(*cit == T('a'));
+        VX_CHECK(*--(cit = v4.cend()) == T('c'));
 
-        VX_CHECK(*rit == 'c');
-        VX_CHECK(*--(rit = v0.crend()) == 'a');
+        VX_CHECK(*rit == T('c'));
+        VX_CHECK(*--(rit = v0.crend()) == T('a'));
 
-        VX_CHECK(*crit == 'c');
-        VX_CHECK(*--(crit = v4.crend()) == 'a');
+        VX_CHECK(*crit == T('c'));
+        VX_CHECK(*--(crit = v4.crend()) == T('a'));
     }
 
-    VX_CHECK(v0.front() == 'a');
-    VX_CHECK(v0.back() == 'c');
+    VX_CHECK(v0.front() == T('a'));
+    VX_CHECK(v0.back() == T('c'));
 
     VX_SECTION("swap")
     {
-        T carr1[] = { 'h', 'i', '\0' };
-        T carr2[] = { 'b', 'y', 'e', '\0' };
+        T carr1[] = { T('h'), T('i'), T() };
+        T carr2[] = { T('b'), T('y'), T('e'), T() };
 
         string_view a(carr1, 2);
         string_view b(carr2, 3);
 
         VX_CHECK(a.size() == 2);
         VX_CHECK(b.size() == 3);
-        VX_CHECK(a.front() == 'h');
-        VX_CHECK(b.front() == 'b');
+        VX_CHECK(a.front() == T('h'));
+        VX_CHECK(b.front() == T('b'));
 
         a.swap(b);
         VX_CHECK(a.size() == 3);
         VX_CHECK(b.size() == 2);
-        VX_CHECK(a.front() == 'b');
-        VX_CHECK(b.front() == 'h');
+        VX_CHECK(a.front() == T('b'));
+        VX_CHECK(b.front() == T('h'));
 
         std::swap(a, b);
         VX_CHECK(a.size() == 2);
         VX_CHECK(b.size() == 3);
-        VX_CHECK(a.front() == 'h');
-        VX_CHECK(b.front() == 'b');
+        VX_CHECK(a.front() == T('h'));
+        VX_CHECK(b.front() == T('b'));
     }
 }
 
@@ -226,9 +226,9 @@ static void test_basics()
             VX_CHECK(s1.find(LIT("s4")) == 0);
             VX_CHECK(s1.find(LIT("s4"), 3) == string_view::npos);
             VX_CHECK(s1.find(LIT("s4XX"), 1, 2) == 2);
-            VX_CHECK(s1.find('s') == 0);
-            VX_CHECK(s1.find('s', 1) == 2);
-            VX_CHECK(s1.find('x') == string_view::npos);
+            VX_CHECK(s1.find(T('s')) == 0);
+            VX_CHECK(s1.find(T('s'), 1) == 2);
+            VX_CHECK(s1.find(T('x')) == string_view::npos);
         }
 
         VX_SECTION("rfind")
@@ -239,9 +239,9 @@ static void test_basics()
             VX_CHECK(s1.rfind(LIT("s4")) == 2);
             VX_CHECK(s1.rfind(LIT("s4"), 3) == 2);
             VX_CHECK(s1.rfind(LIT("s4XX"), 1, 3) == string_view::npos);
-            VX_CHECK(s1.rfind('s') == 2);
-            VX_CHECK(s1.rfind('s', 2) == 2);
-            VX_CHECK(s1.rfind('x') == string_view::npos);
+            VX_CHECK(s1.rfind(T('s')) == 2);
+            VX_CHECK(s1.rfind(T('s'), 2) == 2);
+            VX_CHECK(s1.rfind(T('x')) == string_view::npos);
         }
 
         VX_SECTION("find_first_of")
@@ -252,9 +252,9 @@ static void test_basics()
             VX_CHECK(s1.find_first_of(LIT("s4")) == 0);
             VX_CHECK(s1.find_first_of(LIT("s4"), 3) == 3);
             VX_CHECK(s1.find_first_of(LIT("abs"), 1, 2) == string_view::npos);
-            VX_CHECK(s1.find_first_of('s') == 0);
-            VX_CHECK(s1.find_first_of('s', 1) == 2);
-            VX_CHECK(s1.find_first_of('x') == string_view::npos);
+            VX_CHECK(s1.find_first_of(T('s')) == 0);
+            VX_CHECK(s1.find_first_of(T('s'), 1) == 2);
+            VX_CHECK(s1.find_first_of(T('x')) == string_view::npos);
         }
 
         VX_SECTION("find_last_of")
@@ -265,9 +265,9 @@ static void test_basics()
             VX_CHECK(s1.find_last_of(LIT("s4")) == 3);
             VX_CHECK(s1.find_last_of(LIT("s4"), 2) == 2);
             VX_CHECK(s1.find_last_of(LIT("abs"), 1, 2) == string_view::npos);
-            VX_CHECK(s1.find_last_of('s') == 2);
-            VX_CHECK(s1.find_last_of('s', 1) == 0);
-            VX_CHECK(s1.find_last_of('x') == string_view::npos);
+            VX_CHECK(s1.find_last_of(T('s')) == 2);
+            VX_CHECK(s1.find_last_of(T('s'), 1) == 0);
+            VX_CHECK(s1.find_last_of(T('x')) == string_view::npos);
         }
 
         VX_SECTION("find_first_not_of")
@@ -278,9 +278,9 @@ static void test_basics()
             VX_CHECK(s1.find_first_not_of(LIT("s5")) == 1);
             VX_CHECK(s1.find_first_not_of(LIT("s5"), 2) == 3);
             VX_CHECK(s1.find_first_not_of(LIT("s4a"), 1, 2) == string_view::npos);
-            VX_CHECK(s1.find_first_not_of('s') == 1);
-            VX_CHECK(s1.find_first_not_of('s', 2) == 3);
-            VX_CHECK(s1.find_first_not_of('s', 4) == string_view::npos);
+            VX_CHECK(s1.find_first_not_of(T('s')) == 1);
+            VX_CHECK(s1.find_first_not_of(T('s'), 2) == 3);
+            VX_CHECK(s1.find_first_not_of(T('s'), 4) == string_view::npos);
         }
 
         VX_SECTION("find_last_not_of")
@@ -291,9 +291,9 @@ static void test_basics()
             VX_CHECK(s1.find_last_not_of(LIT("s5")) == 3);
             VX_CHECK(s1.find_last_not_of(LIT("s5"), 2) == 1);
             VX_CHECK(s1.find_last_not_of(LIT("s4a"), 1, 2) == string_view::npos);
-            VX_CHECK(s1.find_last_not_of('s') == 3);
-            VX_CHECK(s1.find_last_not_of('s', 2) == 1);
-            VX_CHECK(s1.find_last_not_of('s', 0) == string_view::npos);
+            VX_CHECK(s1.find_last_not_of(T('s')) == 3);
+            VX_CHECK(s1.find_last_not_of(T('s'), 2) == 1);
+            VX_CHECK(s1.find_last_not_of(T('s'), 0) == string_view::npos);
         }
     }
 

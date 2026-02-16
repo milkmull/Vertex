@@ -64,6 +64,26 @@ public:
     {}
 
     //=========================================================================
+    // operators
+    //=========================================================================
+
+    template <typename Traits2, typename Allocator2>
+    operator std::basic_string<T, Traits2, Allocator2>() const
+    {
+        return std::basic_string<T, Traits2, Allocator2>(data(), size());
+    }
+
+#if defined(__cpp_lib_string_view)
+
+    template <typename Traits2>
+    operator std::basic_string_view<T, Traits2>() const noexcept
+    {
+        return std::basic_string_view<T, Traits2>(data(), size());
+    }
+
+#endif // defined(__cpp_lib_string_view)
+
+    //=========================================================================
     // element access
     //=========================================================================
 
@@ -245,6 +265,11 @@ public:
         return basic_string_view(m_data + off, count);
     }
 
+    constexpr basic_string_view view(const size_type off = 0, size_type count = npos) const noexcept
+    {
+        return substr(off, count);
+    }
+
     //=========================================================================
     // compare
     //=========================================================================
@@ -277,48 +302,6 @@ public:
     constexpr int compare(const size_type off, const size_type nx, const T* const ptr, const size_type count) const
     {
         return substr(off, nx).compare(basic_string_view(ptr, count));
-    }
-
-    friend constexpr bool operator==(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return _priv::traits_equal<traits_type>(lhs.m_data, lhs.m_size, rhs.m_data, rhs.m_size);
-    }
-
-    friend constexpr bool operator!=(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return !(lhs == rhs);
-    }
-
-    friend constexpr bool operator<(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return lhs.compare(rhs) < 0;
-    }
-
-    friend constexpr bool operator>(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return lhs.compare(rhs) > 0;
-    }
-
-    friend constexpr bool operator<=(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return lhs.compare(rhs) <= 0;
-    }
-
-    friend constexpr bool operator>=(
-        const basic_string_view lhs,
-        const basic_string_view rhs) noexcept
-    {
-        return lhs.compare(rhs) >= 0;
     }
 
     //=========================================================================
@@ -445,23 +428,187 @@ public:
         return _priv::traits_find_last_not_of<traits_type>(m_data, m_size, off, ptr, traits_type::length(ptr));
     }
 
-    //=========================================================================
-
-    template <typename Traits2, typename Alloc>
-    friend std::basic_ostream<T, Traits2>& operator<<(
-        std::basic_ostream<T, Traits2>& oss,
-        const basic_string_view s)
-    {
-        std::string os(s.data(), s.size());
-        oss << os;
-        return oss;
-    }
-
 private:
 
     const_pointer m_data;
     size_type m_size;
 };
+
+//=========================================================================
+// comparison operators
+//=========================================================================
+
+template <typename T>
+constexpr bool operator==(
+    const basic_string_view<T> lhs,
+    const basic_string_view<T> rhs) noexcept
+{
+    using traits_type = typename basic_string_view<T>::traits_type;
+    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+}
+
+template <typename T>
+constexpr bool operator==(
+    const basic_string_view<T> lhs,
+    const type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    using traits_type = typename basic_string_view<T>::traits_type;
+    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+}
+
+template <typename T>
+constexpr bool operator==(
+    const type_traits::identity_t<basic_string_view<T>> lhs,
+    const basic_string_view<T> rhs) noexcept
+{
+    using traits_type = typename basic_string_view<T>::traits_type;
+    return _priv::traits_equal<traits_type>(lhs.data(), lhs.size(), rhs.data(), rhs.size());
+}
+
+//=========================================================================
+
+template <typename T>
+constexpr bool operator!=(
+    basic_string_view<T> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+template <typename T, int = 1>
+constexpr bool operator!=(
+    basic_string_view<T> lhs,
+    type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+template <typename T, int = 2>
+constexpr bool operator!=(
+    type_traits::identity_t<basic_string_view<T>> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(lhs == rhs);
+}
+
+//=========================================================================
+
+
+template <typename T>
+constexpr bool operator<(
+    basic_string_view<T> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <typename T, int = 1>
+constexpr bool operator<(
+    basic_string_view<T> lhs,
+    type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <typename T, int = 2>
+constexpr bool operator<(
+    type_traits::identity_t<basic_string_view<T>> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return lhs.compare(rhs) > 0;
+}
+
+//=========================================================================
+
+template <typename T>
+constexpr bool operator>(
+    basic_string_view<T> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+template <typename T, int = 1>
+constexpr bool operator>(
+    basic_string_view<T> lhs,
+    type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+template <typename T, int = 2>
+constexpr bool operator>(
+    type_traits::identity_t<basic_string_view<T>> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return rhs < lhs;
+}
+
+//=========================================================================
+
+template <typename T>
+constexpr bool operator<=(
+    basic_string_view<T> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(rhs < lhs);
+}
+
+template <typename T, int = 1>
+constexpr bool operator<=(
+    basic_string_view<T> lhs,
+    type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    return !(rhs < lhs);
+}
+
+template <typename T, int = 2>
+constexpr bool operator<=(
+    type_traits::identity_t<basic_string_view<T>> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(rhs < lhs);
+}
+
+//=========================================================================
+
+template <typename T>
+constexpr bool operator>=(
+    basic_string_view<T> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(lhs < rhs);
+}
+
+template <typename T, int = 1>
+constexpr bool operator>=(
+    basic_string_view<T> lhs,
+    type_traits::identity_t<basic_string_view<T>> rhs) noexcept
+{
+    return !(lhs < rhs);
+}
+
+template <typename T, int = 2>
+constexpr bool operator>=(
+    type_traits::identity_t<basic_string_view<T>> lhs,
+    basic_string_view<T> rhs) noexcept
+{
+    return !(lhs < rhs);
+}
+
+//=========================================================================
+// stream operators
+//=========================================================================
+
+template <typename T, typename Traits2>
+std::basic_ostream<T, Traits2>& operator<<(
+    std::basic_ostream<T, Traits2>& oss,
+    const basic_string_view<T> s)
+{
+    std::string os(s.data(), s.size());
+    oss << os;
+    return oss;
+}
 
 } // namespace str
 

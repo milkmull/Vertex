@@ -22,6 +22,9 @@ struct type_identity
     using type = T;
 };
 
+template <typename T>
+using identity_t = typename type_identity<T>::type;
+
 //=============================================================================
 // enable if
 //=============================================================================
