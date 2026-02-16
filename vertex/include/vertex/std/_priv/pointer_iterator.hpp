@@ -295,12 +295,12 @@ private:
 };
 
 template <typename>
-struct is_pointer_iterator : std::false_type
+struct is_forward_pointer_iterator : std::false_type
 {
 };
 
 template <typename Owner, typename T>
-struct is_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
+struct is_forward_pointer_iterator<pointer_iterator<Owner, T>> : std::true_type
 {
 };
 

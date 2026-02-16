@@ -1,4 +1,3 @@
-#include "vertex/std/dynamic_array.hpp"
 #include "vertex_test/test.hpp"
 
 #include "vertex/std/array.hpp"

@@ -332,7 +332,7 @@ public:
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             construct_n<construct_method::from_pointer>(count, first.ptr());
         }
@@ -615,7 +615,7 @@ public:
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             assign_from<construct_method::from_pointer>(count, first.ptr());
         }
@@ -971,7 +971,7 @@ public:
     template <typename growth_rate = default_growth_rate, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
     basic_string& append(IT first, IT last)
     {
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             const size_type count = static_cast<size_type>(std::distance(first, last));
             append_n<growth_rate, construct_method::from_pointer>(count, first.ptr());
@@ -1237,7 +1237,7 @@ public:
     basic_string& insert(size_type off, IT first, IT last)
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             insert_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count, first.ptr());
         }
@@ -1341,7 +1341,7 @@ public:
     {
         pointer new_pos;
         const size_type count = static_cast<size_type>(std::distance(first, last));
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             new_pos = insert_n<growth_rate, construct_method::from_pointer>(pos.ptr(), count, first.ptr());
         }
@@ -1940,7 +1940,7 @@ public:
         {
             count = static_cast<size_type>(_priv::clamp_suffix_size(size(), off, count));
             const size_type count2 = static_cast<size_type>(std::distance(first, last));
-            VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+            VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
             {
                 replace_n<growth_rate, construct_method::from_pointer>(m_buffer.ptr + off, count2, count, first.ptr());
             }
@@ -2049,7 +2049,7 @@ public:
         const size_type out_count = static_cast<size_type>(std::distance(first, last));
         const size_type count2 = static_cast<size_type>(std::distance(first2, last2));
 
-        VX_IF_CONSTEXPR (vx::_priv::is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (vx::_priv::is_forward_pointer_iterator<IT>::value)
         {
             replace_n<growth_rate, construct_method::from_pointer>(first.ptr(), count2, out_count, first2.ptr());
         }

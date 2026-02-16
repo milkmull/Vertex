@@ -11,18 +11,9 @@
 #include "vertex/std/memory.hpp"
 
 namespace vx {
-namespace _priv {
-
-//#define VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK
-
-// Testing shows that allocating memory aligned to the element type is often faster than using no explicit alignment.
-// Using an optimal alignment can provide additional speedups by taking advantage of vectorization. Any alignment
-// introduces a small amount of wasted memory at the start of the allocation. In typical use cases the performance
-// gains are negligible, but for large vectors aligned memory is beneficial, as it enables more effective SIMD
-// vectorization.
 
 template <typename T, typename Allocator = mem::default_allocator<T>>
-class dynamic_array_base
+class vector
 {
 public:
 
@@ -43,19 +34,21 @@ public:
     using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator = pointer_iterator<dynamic_array_base, T>;
-    using const_iterator = pointer_iterator<dynamic_array_base, const T>;
-    using reverse_iterator = reverse_pointer_iterator<iterator>;
-    using const_reverse_iterator = reverse_pointer_iterator<const_iterator>;
+    using iterator = _priv::pointer_iterator<vector, T>;
+    using const_iterator = _priv::pointer_iterator<vector, const T>;
+    using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
+    using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
+
+private:
 
     enum class construct_method
     {
-        single,             // construct a single value
-        default_range,      // construct from size
-        fill_range,         // fill range
-        copy_range,         // copy range (no overlap)
-        move_range,         // move range (no overlap)
-        iterator_range      // construct from iterator range
+        single,        // construct a single value
+        default_range, // construct from size
+        fill_range,    // fill range
+        copy_range,    // copy range (no overlap)
+        move_range,    // move range (no overlap)
+        iterator_range // construct from iterator range
     };
 
     struct buffer
@@ -64,6 +57,8 @@ public:
         size_type size;
         size_type capacity;
     };
+
+    buffer m_buffer = {};
 
     //=========================================================================
     // construction helpers
@@ -143,45 +138,47 @@ public:
         m_buffer.capacity = count;
     }
 
+public:
+
     //=========================================================================
     // constructors
     //=========================================================================
 
-    dynamic_array_base() noexcept
+    vector() noexcept
     {}
 
-    dynamic_array_base(size_type count)
+    vector(size_type count)
     {
         construct_n<construct_method::default_range>(count);
     }
 
-    dynamic_array_base(const size_type count, const T& value)
+    vector(const size_type count, const T& value)
     {
         construct_n<construct_method::fill_range>(count, value);
     }
 
-    dynamic_array_base(std::initializer_list<T> init)
+    vector(std::initializer_list<T> init)
     {
         construct_n<construct_method::copy_range>(init.size(), init.begin());
     }
 
-    dynamic_array_base(const dynamic_array_base& other)
+    vector(const vector& other)
     {
         construct_n<construct_method::copy_range>(
             other.m_buffer.size,
             other.m_buffer.ptr);
     }
 
-    dynamic_array_base(dynamic_array_base&& other) noexcept
+    vector(vector&& other) noexcept
         : m_buffer(other.release_buffer())
     {}
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    dynamic_array_base(IT first, IT last) noexcept
+    vector(IT first, IT last) noexcept
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             construct_n<construct_method::copy_range>(count, first.ptr());
         }
@@ -190,6 +187,8 @@ public:
             construct_n<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
     }
+
+private:
 
     //=========================================================================
     // destructor helpers
@@ -212,14 +211,18 @@ public:
         capacity = 0;
     }
 
+public:
+
     //=========================================================================
     // destructor
     //=========================================================================
 
-    ~dynamic_array_base()
+    ~vector()
     {
         destroy_range();
     }
+
+private:
 
     //=========================================================================
     // assignment helpers
@@ -287,11 +290,13 @@ public:
         return true;
     }
 
+public:
+
     //=========================================================================
     // assignment operators
     //=========================================================================
 
-    dynamic_array_base& operator=(const dynamic_array_base& other)
+    vector& operator=(const vector& other)
     {
         if (this != std::addressof(other))
         {
@@ -301,7 +306,7 @@ public:
         return *this;
     }
 
-    dynamic_array_base& operator=(dynamic_array_base&& other) noexcept
+    vector& operator=(vector&& other) noexcept
     {
         if (this != std::addressof(other))
         {
@@ -312,7 +317,7 @@ public:
         return *this;
     }
 
-    dynamic_array_base& operator=(std::initializer_list<T> init)
+    vector& operator=(std::initializer_list<T> init)
     {
         assign_from<construct_method::copy_range>(init.size(), init.begin());
         return *this;
@@ -322,7 +327,7 @@ public:
     // assign
     //=========================================================================
 
-    bool assign(const dynamic_array_base& other)
+    bool assign(const vector& other)
     {
         if (this == std::addressof(other))
         {
@@ -332,7 +337,7 @@ public:
         return assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
     }
 
-    bool assign(dynamic_array_base&& other) noexcept
+    bool assign(vector&& other) noexcept
     {
         if (this != std::addressof(other))
         {
@@ -363,7 +368,7 @@ public:
     {
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             return assign_from<construct_method::copy_range>(count, first.ptr());
         }
@@ -541,7 +546,7 @@ public:
         return true;
     }
 
-    void swap(dynamic_array_base& other) noexcept
+    void swap(vector& other) noexcept
     {
         std::swap(m_buffer.ptr, other.m_buffer.ptr);
         std::swap(m_buffer.size, other.m_buffer.size);
@@ -555,6 +560,11 @@ public:
     bool empty() const noexcept
     {
         return m_buffer.size == 0;
+    }
+
+    bool full() const noexcept
+    {
+        return m_buffer.size == max_size();
     }
 
     size_type size() const noexcept
@@ -580,6 +590,8 @@ public:
     {
         return m_buffer.capacity;
     }
+
+private:
 
     template <typename growth_rate>
     size_type grow_capacity(size_type required_capacity, size_type current_capacity) const noexcept
@@ -709,6 +721,8 @@ public:
         return true;
     }
 
+public:
+
     //=========================================================================
     // reserve
     //=========================================================================
@@ -732,6 +746,8 @@ public:
 
         return true;
     }
+
+private:
 
     //=========================================================================
     // resize
@@ -833,6 +849,8 @@ public:
         return true;
     }
 
+public:
+
     template <typename U>
     bool resize(const size_type count, const U& value)
     {
@@ -843,6 +861,8 @@ public:
     {
         return resize_impl(count);
     }
+
+private:
 
     //=========================================================================
     // insert
@@ -860,7 +880,7 @@ public:
         if (count > affected)
         {
             // new stuff spills over
-            // 
+            //
             // initialize the new elements that will spill over into uninitialized memory
             pointer last = mem::construct_range(back, count - affected);
             // move the existing elements that will be moved into uninitialized memory
@@ -1015,6 +1035,8 @@ public:
         }
     }
 
+public:
+
     template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, const T& value)
     {
@@ -1049,7 +1071,7 @@ public:
         auto ptr = const_cast<pointer>(pos.ptr());
         const size_type count = static_cast<size_type>(std::distance(first, last));
 
-        VX_IF_CONSTEXPR (is_pointer_iterator<IT>::value)
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
         {
             ptr = insert_n<growth_rate, construct_method::copy_range>(ptr, count, first.ptr());
         }
@@ -1119,6 +1141,8 @@ public:
     // erase
     //=========================================================================
 
+private:
+
     pointer erase_n(pointer pos, size_type count)
     {
         auto& ptr = m_buffer.ptr;
@@ -1134,6 +1158,8 @@ public:
         size = new_size;
         return pos;
     }
+
+public:
 
     iterator erase(const_iterator pos)
     {
@@ -1161,55 +1187,56 @@ public:
             mem::destroy_in_place(ptr + size);
         }
     }
-
-    //=========================================================================
-    // comparison
-    //=========================================================================
-
-    friend bool operator==(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        if (lhs.m_buffer.size != rhs.m_buffer.size)
-        {
-            return false;
-        }
-
-        return mem::equal_range(lhs.m_buffer.ptr, rhs.m_buffer.ptr, lhs.m_buffer.size);
-    }
-
-    friend bool operator!=(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        return !operator==(lhs, rhs);
-    }
-
-    friend bool operator<(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        const size_type min_size = lhs.m_buffer.size < rhs.m_buffer.size ? lhs.m_buffer.size : rhs.m_buffer.size;
-
-        if (!mem::equal_range(lhs.m_buffer.ptr, rhs.m_buffer.ptr, min_size))
-        {
-            return mem::less_range(lhs.m_buffer.ptr, rhs.m_buffer.ptr, min_size);
-        }
-
-        return lhs.m_buffer.size < rhs.m_buffer.size;
-    }
-
-    friend bool operator>(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        return rhs < lhs;
-    }
-
-    friend bool operator<=(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        return !(rhs < lhs);
-    }
-
-    friend bool operator>=(const dynamic_array_base& lhs, const dynamic_array_base& rhs)
-    {
-        return !(lhs < rhs);
-    }
-
-    buffer m_buffer = {};
 };
 
-} // namespace _priv
+//=========================================================================
+// comparison
+//=========================================================================
+
+template <typename T, typename Allocator>
+bool operator==(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    if (lhs.size() != rhs.size())
+    {
+        return false;
+    }
+
+    return mem::equal_range(lhs.data(), rhs.data(), lhs.size());
+}
+
+template <typename T, typename Allocator>
+bool operator!=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    return !operator==(lhs, rhs);
+}
+
+template <typename T, typename Allocator>
+bool operator<(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    const auto min_size = lhs.size() < rhs.size() ? lhs.size() : rhs.size();
+    if (!mem::equal_range(lhs.data(), rhs.data(), min_size))
+    {
+        return mem::less_range(lhs.data(), rhs.data(), min_size);
+    }
+    return lhs.size() < rhs.size();
+}
+
+template <typename T, typename Allocator>
+bool operator>(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    return rhs < lhs;
+}
+
+template <typename T, typename Allocator>
+bool operator<=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    return !(rhs < lhs);
+}
+
+template <typename T, typename Allocator>
+bool operator>=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
+{
+    return !(lhs < rhs);
+}
+
 } // namespace vx

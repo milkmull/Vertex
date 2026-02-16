@@ -1,8 +1,8 @@
-#include "vertex/std/dynamic_array.hpp"
+#include "vertex/std/vector.hpp"
 #include "vertex_test/test.hpp"
 
 template <typename T>
-using vec = vx::dynamic_array<T>;
+using vec = vx::vector<T>;
 
 using trivial_type = typename vec<int>::size_type;
 

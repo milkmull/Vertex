@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 
-#include "vertex/std/dynamic_array.hpp"
+#include "vertex/std/vector.hpp"
 #include "vertex/util/random.hpp"
 #define VX_ENABLE_PROFILING
 #include "vertex/system/profiler.hpp"
@@ -15,7 +15,7 @@ template <typename T>
 using vec1 = std::vector<T>;
 
 template <typename T>
-using vec2 = vx::dynamic_array<T>;
+using vec2 = vx::vector<T>;
 
 //=========================================================================
 
