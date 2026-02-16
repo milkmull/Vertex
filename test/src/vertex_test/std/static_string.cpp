@@ -14,43 +14,43 @@ template <typename T>
 static void test_container()
 {
     using string = vx::str::basic_static_string<20, T>;
-    T carr[] = { 'a', 'b', 'c', '\0' };
+    T carr[] = { T('a'), T('b'), T('c'), '\0' };
 
     string v0;
     VX_CHECK(v0.empty());
     VX_CHECK(v0.size() == 0);
 
     string v1(5, '\0');
-    string v1a(6, 'x');
+    string v1a(6, T('x'));
     VX_CHECK(v1.size() == 5);
     VX_CHECK(v1.end()[-1] == '\0');
     VX_CHECK(v1a.size() == 6);
-    VX_CHECK(v1a.end()[-1] == 'x');
+    VX_CHECK(v1a.end()[-1] == T('x'));
 
     string v2(v1a);
     VX_CHECK(v2.size() == 6);
-    VX_CHECK(*v2.begin() == 'x');
+    VX_CHECK(*v2.begin() == T('x'));
 
     string v3(v1a.begin(), v1a.end());
     VX_CHECK(v3.size() == 6);
-    VX_CHECK(*v3.begin() == 'x');
+    VX_CHECK(*v3.begin() == T('x'));
 
     const string v4(v1a.begin(), v1a.end());
     VX_CHECK(v4.size() == 6);
-    VX_CHECK(*v4.begin() == 'x');
+    VX_CHECK(*v4.begin() == T('x'));
     v0 = v4;
     VX_CHECK(v0.size() == 6);
-    VX_CHECK(*v0.begin() == 'x');
-    VX_CHECK(v0[0] == 'x');
+    VX_CHECK(*v0.begin() == T('x'));
+    VX_CHECK(v0[0] == T('x'));
 
     v0.reserve(12);
     VX_CHECK(12 <= v0.capacity());
     v0.resize(8);
     VX_CHECK(v0.size() == 8);
     VX_CHECK(v0.end()[-1] == '\0');
-    v0.resize(10, 'z');
+    v0.resize(10, T('z'));
     VX_CHECK(v0.size() == 10);
-    VX_CHECK(v0.end()[-1] == 'z');
+    VX_CHECK(v0.end()[-1] == T('z'));
     VX_CHECK(v0.size() <= v0.max_size());
 
     VX_SECTION("iterators")
@@ -60,14 +60,14 @@ static void test_container()
         typename string::const_iterator p_cit(v4.begin());
         typename string::reverse_iterator p_rit(v0.rbegin());
         typename string::const_reverse_iterator p_crit(v4.rbegin());
-        VX_CHECK(*p_it == 'x');
-        VX_CHECK(*--(p_it = v0.end()) == 'z');
-        VX_CHECK(*p_cit == 'x');
-        VX_CHECK(*--(p_cit = v4.end()) == 'x');
-        VX_CHECK(*p_rit == 'z');
-        VX_CHECK(*--(p_rit = v0.rend()) == 'x');
-        VX_CHECK(*p_crit == 'x');
-        VX_CHECK(*--(p_crit = v4.rend()) == 'x');
+        VX_CHECK(*p_it == T('x'));
+        VX_CHECK(*--(p_it = v0.end()) == T('z'));
+        VX_CHECK(*p_cit == T('x'));
+        VX_CHECK(*--(p_cit = v4.end()) == T('x'));
+        VX_CHECK(*p_rit == T('z'));
+        VX_CHECK(*--(p_rit = v0.rend()) == T('x'));
+        VX_CHECK(*p_crit == T('x'));
+        VX_CHECK(*--(p_crit = v4.rend()) == T('x'));
     }
 
     VX_SECTION("const iterators")
@@ -77,32 +77,32 @@ static void test_container()
         typename string::const_iterator p_cit(v4.cbegin());
         typename string::const_reverse_iterator p_rit(v0.crbegin());
         typename string::const_reverse_iterator p_crit(v4.crbegin());
-        VX_CHECK(*p_it == 'x');
-        VX_CHECK(*--(p_it = v0.cend()) == 'z');
-        VX_CHECK(*p_cit == 'x');
-        VX_CHECK(*--(p_cit = v4.cend()) == 'x');
-        VX_CHECK(*p_rit == 'z');
-        VX_CHECK(*--(p_rit = v0.crend()) == 'x');
-        VX_CHECK(*p_crit == 'x');
-        VX_CHECK(*--(p_crit = v4.crend()) == 'x');
+        VX_CHECK(*p_it == T('x'));
+        VX_CHECK(*--(p_it = v0.cend()) == T('z'));
+        VX_CHECK(*p_cit == T('x'));
+        VX_CHECK(*--(p_cit = v4.cend()) == T('x'));
+        VX_CHECK(*p_rit == T('z'));
+        VX_CHECK(*--(p_rit = v0.crend()) == T('x'));
+        VX_CHECK(*p_crit == T('x'));
+        VX_CHECK(*--(p_crit = v4.crend()) == T('x'));
     }
 
-    VX_CHECK(*v0.begin() == 'x');
-    VX_CHECK(*v4.begin() == 'x');
+    VX_CHECK(*v0.begin() == T('x'));
+    VX_CHECK(*v4.begin() == T('x'));
 
-    v0.push_back('a');
-    VX_CHECK(v0.end()[-1] == 'a');
+    v0.push_back(T('a'));
+    VX_CHECK(v0.end()[-1] == T('a'));
 
     v0.pop_back();
-    VX_CHECK(v0.front() == 'x');
-    VX_CHECK(v0.back() == 'z');
+    VX_CHECK(v0.front() == T('x'));
+    VX_CHECK(v0.back() == T('z'));
 
     v0.shrink_to_fit();
-    VX_CHECK(v0.front() == 'x');
+    VX_CHECK(v0.front() == T('x'));
 
     VX_SECTION("move")
     {
-        string v5(20, 'x');
+        string v5(20, T('x'));
         string v6(std::move(v5));
         VX_CHECK(v6.size() == 20);
 
@@ -123,33 +123,33 @@ static void test_container()
         VX_CHECK(v0.size() == v4.size());
         VX_CHECK(*v0.begin() == *v4.begin());
 
-        v0.assign(4, 'w');
+        v0.assign(4, T('w'));
         VX_CHECK(v0.size() == 4);
-        VX_CHECK(*v0.begin() == 'w');
+        VX_CHECK(*v0.begin() == T('w'));
 
-        VX_CHECK(*v0.insert(v0.begin(), 'a') == 'a');
+        VX_CHECK(*v0.insert(v0.begin(), T('a')) == T('a'));
         VX_CHECK(v0.size() == 5);
-        VX_CHECK(*v0.begin() == 'a');
-        VX_CHECK(v0.begin()[1] == 'w');
+        VX_CHECK(*v0.begin() == T('a'));
+        VX_CHECK(v0.begin()[1] == T('w'));
 
-        VX_CHECK(*v0.insert(v0.begin(), 2, 'b') == 'b');
+        VX_CHECK(*v0.insert(v0.begin(), 2, T('b')) == T('b'));
         VX_CHECK(v0.size() == 7);
-        VX_CHECK(*v0.begin() == 'b');
-        VX_CHECK(v0.begin()[1] == 'b');
-        VX_CHECK(v0.begin()[2] == 'a');
+        VX_CHECK(*v0.begin() == T('b'));
+        VX_CHECK(v0.begin()[1] == T('b'));
+        VX_CHECK(v0.begin()[2] == T('a'));
 
         VX_CHECK(*v0.insert(v0.end(), v4.begin(), v4.end()) == *v4.begin());
         VX_CHECK(v0.end()[-1] == v4.end()[-1]);
 
         VX_CHECK(*v0.insert(v0.end(), carr, carr + 3) == *carr);
-        VX_CHECK(v0.end()[-1] == 'c');
+        VX_CHECK(v0.end()[-1] == T('c'));
 
         v0.erase(v0.begin());
-        VX_CHECK(*v0.begin() == 'b');
-        VX_CHECK(v0.begin()[1] == 'a');
+        VX_CHECK(*v0.begin() == T('b'));
+        VX_CHECK(v0.begin()[1] == T('a'));
 
         v0.erase(v0.begin(), v0.begin() + 1);
-        VX_CHECK(*v0.begin() == 'a');
+        VX_CHECK(*v0.begin() == T('a'));
     }
 
     {
@@ -199,8 +199,8 @@ static void test_basics()
 
     string s1, s2(30, '\0');
     string s3(4, '\0');
-    string s4(LIT("s4")), s5(LIT("s5xxx"), 2), s6(3, 'a');
-    string s7(5, 'b'), s8(1, 'c');
+    string s4(LIT("s4")), s5(LIT("s5xxx"), 2), s6(3, T('a'));
+    string s7(5, T('b')), s8(1, T('c'));
     string s9(s7);
     string s10(LIT("s5xxx"), 1, 4);
 
@@ -223,13 +223,13 @@ static void test_basics()
     {
         s1 = LIT("hello");
         CHECK_STR(s1.c_str(), LIT("hello"));
-        s1 = 'x';
+        s1 = T('x');
         CHECK_STR(s1.c_str(), LIT("x"));
         s1 = s4;
         CHECK_STR(s1.c_str(), LIT("s4"));
         s1.assign(LIT("AB"));
         CHECK_STR(s1.c_str(), LIT("AB"));
-        s1.assign(1, 'C');
+        s1.assign(1, T('C'));
         CHECK_STR(s1.c_str(), LIT("C"));
         s1.assign(s4);
         CHECK_STR(s1.c_str(), LIT("s4"));
@@ -239,27 +239,27 @@ static void test_basics()
     {
         s1 += LIT("abc");
         CHECK_STR(s1.c_str(), LIT("s4abc"));
-        s1 += 'd';
+        s1 += T('d');
         CHECK_STR(s1.c_str(), LIT("s4abcd"));
         s1 += s4;
         CHECK_STR(s1.c_str(), LIT("s4abcds4"));
         s1 = LIT("A");
         s1.append(LIT("BC"));
         CHECK_STR(s1.c_str(), LIT("ABC"));
-        s1.append(1, 'D');
+        s1.append(1, T('D'));
         CHECK_STR(s1.c_str(), LIT("ABCD"));
         s1.append(s4);
         CHECK_STR(s1.c_str(), LIT("ABCDs4"));
         CHECK_STR((s4 + s5).c_str(), LIT("s4s5"));
         CHECK_STR((s4 + LIT("s5")).c_str(), LIT("s4s5"));
         CHECK_STR((LIT("s4") + s5).c_str(), LIT("s4s5"));
-        CHECK_STR((s4 + '5').c_str(), LIT("s45"));
-        CHECK_STR(('4' + s5).c_str(), LIT("4s5"));
+        CHECK_STR((s4 + T('5')).c_str(), LIT("s45"));
+        CHECK_STR((T('4') + s5).c_str(), LIT("4s5"));
 
         VX_CHECK(s4 + LIT("more") == string(LIT("s4more")));
         VX_CHECK(LIT("more") + s4 == string(LIT("mores4")));
-        VX_CHECK(s4 + '+' == string(LIT("s4+")));
-        VX_CHECK('+' + s4 == string(LIT("+s4")));
+        VX_CHECK(s4 + T('+') == string(LIT("s4+")));
+        VX_CHECK(T('+') + s4 == string(LIT("+s4")));
 
         {
             string s11(LIT("abc"));
@@ -270,9 +270,9 @@ static void test_basics()
             CHECK_STR((string(LIT("abc")) + string(LIT("def"))).c_str(), LIT("abcdef"));
 
             CHECK_STR((string(LIT("abc")) + LIT("def")).c_str(), LIT("abcdef"));
-            CHECK_STR((string(LIT("abc")) + 'd').c_str(), LIT("abcd"));
+            CHECK_STR((string(LIT("abc")) + T('d')).c_str(), LIT("abcd"));
             CHECK_STR((LIT("abc") + string(LIT("def"))).c_str(), LIT("abcdef"));
-            CHECK_STR(('a' + string(LIT("def"))).c_str(), LIT("adef"));
+            CHECK_STR((T('a') + string(LIT("def"))).c_str(), LIT("adef"));
 
             string s13(std::move(s12));
             CHECK_STR(s13.c_str(), LIT("def"));
@@ -286,8 +286,8 @@ static void test_basics()
         s1.insert(1, LIT("BC"), 1);
         s1.insert(0, LIT("A"));
         CHECK_STR(s1.c_str(), LIT("AaBbcDd"));
-        s1.insert(7, 2, 'E');
-        s1.insert(4, 1, 'C');
+        s1.insert(7, 2, T('E'));
+        s1.insert(4, 1, T('C'));
         CHECK_STR(s1.c_str(), LIT("AaBbCcDdEE"));
         s1.insert(10, s4);
         s1.insert(0, s4, 0, 1);
@@ -330,9 +330,9 @@ static void test_basics()
             VX_CHECK(s1.find(LIT("s4")) == 0);
             VX_CHECK(s1.find(LIT("s4"), 3) == string::npos);
             VX_CHECK(s1.find(LIT("s4XX"), 1, 2) == 2);
-            VX_CHECK(s1.find('s') == 0);
-            VX_CHECK(s1.find('s', 1) == 2);
-            VX_CHECK(s1.find('x') == string::npos);
+            VX_CHECK(s1.find(T('s')) == 0);
+            VX_CHECK(s1.find(T('s'), 1) == 2);
+            VX_CHECK(s1.find(T('x')) == string::npos);
         }
 
         VX_SECTION("rfind")
@@ -343,9 +343,9 @@ static void test_basics()
             VX_CHECK(s1.rfind(LIT("s4")) == 2);
             VX_CHECK(s1.rfind(LIT("s4"), 3) == 2);
             VX_CHECK(s1.rfind(LIT("s4XX"), 1, 3) == string::npos);
-            VX_CHECK(s1.rfind('s') == 2);
-            VX_CHECK(s1.rfind('s', 2) == 2);
-            VX_CHECK(s1.rfind('x') == string::npos);
+            VX_CHECK(s1.rfind(T('s')) == 2);
+            VX_CHECK(s1.rfind(T('s'), 2) == 2);
+            VX_CHECK(s1.rfind(T('x')) == string::npos);
         }
 
         VX_SECTION("find_first_of")
@@ -356,9 +356,9 @@ static void test_basics()
             VX_CHECK(s1.find_first_of(LIT("s4")) == 0);
             VX_CHECK(s1.find_first_of(LIT("s4"), 3) == 3);
             VX_CHECK(s1.find_first_of(LIT("abs"), 1, 2) == string::npos);
-            VX_CHECK(s1.find_first_of('s') == 0);
-            VX_CHECK(s1.find_first_of('s', 1) == 2);
-            VX_CHECK(s1.find_first_of('x') == string::npos);
+            VX_CHECK(s1.find_first_of(T('s')) == 0);
+            VX_CHECK(s1.find_first_of(T('s'), 1) == 2);
+            VX_CHECK(s1.find_first_of(T('x')) == string::npos);
         }
 
         VX_SECTION("find_last_of")
@@ -369,9 +369,9 @@ static void test_basics()
             VX_CHECK(s1.find_last_of(LIT("s4")) == 3);
             VX_CHECK(s1.find_last_of(LIT("s4"), 2) == 2);
             VX_CHECK(s1.find_last_of(LIT("abs"), 1, 2) == string::npos);
-            VX_CHECK(s1.find_last_of('s') == 2);
-            VX_CHECK(s1.find_last_of('s', 1) == 0);
-            VX_CHECK(s1.find_last_of('x') == string::npos);
+            VX_CHECK(s1.find_last_of(T('s')) == 2);
+            VX_CHECK(s1.find_last_of(T('s'), 1) == 0);
+            VX_CHECK(s1.find_last_of(T('x')) == string::npos);
         }
 
         VX_SECTION("find_first_not_of")
@@ -382,9 +382,9 @@ static void test_basics()
             VX_CHECK(s1.find_first_not_of(LIT("s5")) == 1);
             VX_CHECK(s1.find_first_not_of(LIT("s5"), 2) == 3);
             VX_CHECK(s1.find_first_not_of(LIT("s4a"), 1, 2) == string::npos);
-            VX_CHECK(s1.find_first_not_of('s') == 1);
-            VX_CHECK(s1.find_first_not_of('s', 2) == 3);
-            VX_CHECK(s1.find_first_not_of('s', 4) == string::npos);
+            VX_CHECK(s1.find_first_not_of(T('s')) == 1);
+            VX_CHECK(s1.find_first_not_of(T('s'), 2) == 3);
+            VX_CHECK(s1.find_first_not_of(T('s'), 4) == string::npos);
         }
 
         VX_SECTION("find_last_not_of")
@@ -395,9 +395,9 @@ static void test_basics()
             VX_CHECK(s1.find_last_not_of(LIT("s5")) == 3);
             VX_CHECK(s1.find_last_not_of(LIT("s5"), 2) == 1);
             VX_CHECK(s1.find_last_not_of(LIT("s4a"), 1, 2) == string::npos);
-            VX_CHECK(s1.find_last_not_of('s') == 3);
-            VX_CHECK(s1.find_last_not_of('s', 2) == 1);
-            VX_CHECK(s1.find_last_not_of('s', 0) == string::npos);
+            VX_CHECK(s1.find_last_not_of(T('s')) == 3);
+            VX_CHECK(s1.find_last_not_of(T('s'), 2) == 1);
+            VX_CHECK(s1.find_last_not_of(T('s'), 0) == string::npos);
         }
     }
 
@@ -448,34 +448,34 @@ static void test_basics()
 
     VX_SECTION("initlializer_list")
     {
-        std::initializer_list<T> init{ 'a', 'b', 'c' };
+        std::initializer_list<T> init{ T('a'), T('b'), T('c') };
         string s11(init);
         VX_CHECK(s11.size() == 3);
-        VX_CHECK(s11[2] == 'c');
+        VX_CHECK(s11[2] == T('c'));
 
         s11 += init;
         VX_CHECK(s11.size() == 6);
-        VX_CHECK(s11[5] == 'c');
+        VX_CHECK(s11[5] == T('c'));
 
         s11 = init;
         VX_CHECK(s11.size() == 3);
-        VX_CHECK(s11[2] == 'c');
+        VX_CHECK(s11[2] == T('c'));
 
         s11.append(init);
         VX_CHECK(s11.size() == 6);
-        VX_CHECK(s11[5] == 'c');
+        VX_CHECK(s11[5] == T('c'));
 
         s11.assign(init);
         VX_CHECK(s11.size() == 3);
-        VX_CHECK(s11[2] == 'c');
+        VX_CHECK(s11[2] == T('c'));
 
         VX_CHECK(*s11.insert(s11.begin() + 1, init) == *init.begin());
         VX_CHECK(s11.size() == 6);
-        VX_CHECK(s11[2] == 'b');
+        VX_CHECK(s11[2] == T('b'));
 
         s11.replace(s11.begin(), s11.begin() + 2, init);
         VX_CHECK(s11.size() == 7);
-        VX_CHECK(s11[2] == 'c');
+        VX_CHECK(s11[2] == T('c'));
     }
 }
 
@@ -497,6 +497,84 @@ VX_TEST_CASE(basics)
 
     VX_MESSAGE("  char32_t");
     test_basics<char32_t>();
+}
+
+//=============================================================================
+
+template <typename T>
+static void test_failure()
+{
+    using string = vx::str::basic_static_string<5, T>;
+    auto big_str = LIT("123456");
+    auto small_str = LIT("1234");
+
+    {
+        VX_EXPECT_ERROR_CODE(string a(6, T('x')), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(string b(big_str), vx::err::size_error);
+    }
+
+    string s;
+    VX_EXPECT_ERROR_CODE(s = big_str, vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.assign(big_str), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.append(big_str), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s += big_str, vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s = (s + big_str), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.insert(0, big_str), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.replace(0, s.size(), big_str), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.replace(s.begin(), s.end(), big_str), vx::err::size_error);
+
+    {
+        using big_string = vx::str::basic_static_string<string::capacity() + 1, T>;
+        using small_string = vx::str::basic_static_string<string::capacity() - 1, T>;
+
+        big_string big(big_str);
+        small_string small(small_str);
+
+        VX_EXPECT_ERROR_CODE(s = big, vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s.assign(big), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s.append(big), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s += big, vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s = (s + big), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s.insert(0, big), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s.replace(0, s.size(), big), vx::err::size_error);
+        VX_EXPECT_ERROR_CODE(s.replace(s.begin(), s.end(), big), vx::err::size_error);
+
+        VX_EXPECT_NO_ERROR(s = small);
+        s.clear();
+        VX_EXPECT_NO_ERROR(s.assign(small));
+        s.clear();
+        VX_EXPECT_NO_ERROR(s.append(small));
+        s.clear();
+        VX_EXPECT_NO_ERROR(s += small);
+        s.clear();
+        VX_EXPECT_NO_ERROR(s = (s + small));
+        s.clear();
+        VX_EXPECT_NO_ERROR(s.insert(0, small));
+        s.clear();
+        VX_EXPECT_NO_ERROR(s.replace(0, s.size(), small));
+        s.clear();
+        VX_EXPECT_NO_ERROR(s.replace(s.begin(), s.end(), small));
+    }
+}
+
+VX_TEST_CASE(failure)
+{
+    VX_MESSAGE("  char");
+    test_failure<char>();
+
+    VX_MESSAGE("  wchar_t");
+    test_failure<wchar_t>();
+
+#if defined(__cpp_lib_char8_t)
+    VX_MESSAGE("  char8_t");
+    test_failure<char8_t>();
+#endif
+
+    VX_MESSAGE("  char16_t");
+    test_failure<char16_t>();
+
+    VX_MESSAGE("  char32_t");
+    test_failure<char32_t>();
 }
 
 //=============================================================================

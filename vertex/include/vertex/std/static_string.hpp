@@ -286,11 +286,26 @@ public:
     // operators
     //=========================================================================
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    operator S() const
+    operator basic_string_view<T>() const noexcept
     {
-        return S(data(), size());
+        return basic_string_view<T>(data(), size());
     }
+
+    template <typename Traits2, typename Allocator2>
+    operator std::basic_string<T, Traits2, Allocator2>() const
+    {
+        return std::basic_string<T, Traits2, Allocator2>(data(), size());
+    }
+
+#if defined(__cpp_lib_string_view)
+
+    template <typename Traits2>
+    operator std::basic_string_view<T, Traits2>() const noexcept
+    {
+        return std::basic_string_view<T, Traits2>(data(), size());
+    }
+
+#endif // defined(__cpp_lib_string_view)
 
 private:
 
@@ -461,41 +476,24 @@ public:
 
     //=========================================================================
 
-    basic_static_string& assign(const basic_string_view<T> view)
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    basic_static_string& assign(const S& t)
     {
-        return operator=(view);
+        return operator=(t);
     }
 
-    basic_static_string& assign(const basic_string_view<T> view, size_type off, size_type count = npos)
+    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
+    basic_static_string& assign(const S& t, size_type off, size_type count = npos)
     {
-        if (_priv::check_offset(view.size(), off))
+        if (_priv::check_offset(t.size(), off))
         {
-            count = static_cast<size_type>(_priv::clamp_suffix_size(view.size(), off, count));
-            assign_from<construct_method::from_pointer>(count, view.data() + off);
+            count = static_cast<size_type>(_priv::clamp_suffix_size(t.size(), off, count));
+            assign_from<construct_method::from_pointer>(count, t.data() + off);
         }
         else
         {
             clear();
         }
-
-        return *this;
-    }
-
-    //=========================================================================
-
-    template <typename Traits2, typename Allocator2>
-    basic_static_string& assign(const std::basic_string<T, Traits2, Allocator2>& str)
-    {
-        const size_type count = static_cast<size_type>(str.size());
-        assign_from<construct_method::from_pointer>(count, str.data());
-        return *this;
-    }
-
-    template <typename Traits2, typename Allocator2>
-    basic_static_string& assign(const std::basic_string_view<T, Traits2>& str)
-    {
-        const size_type count = static_cast<size_type>(str.size());
-        assign_from<construct_method::from_pointer>(count, str.data());
         return *this;
     }
 
@@ -794,58 +792,6 @@ public:
         return append(t);
     }
 
-    //=========================================================================
-
-    friend basic_static_string operator+(const basic_static_string& lhs, const basic_static_string& rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    friend basic_static_string operator+(const basic_static_string& lhs, const T rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
-    friend basic_static_string operator+(const T lhs, const basic_static_string& rhs)
-    {
-        basic_static_string result(1, lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    friend basic_static_string operator+(const basic_static_string& lhs, const T* const rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
-    friend basic_static_string operator+(const T* const lhs, const basic_static_string& rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_static_string operator+(const basic_static_string& lhs, const S& rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_static_string operator+(const S& lhs, const basic_static_string& rhs)
-    {
-        basic_static_string result(lhs);
-        return result.append(rhs);
-    }
-
 private:
 
     //=========================================================================
@@ -1128,6 +1074,11 @@ public:
     bool empty() const noexcept
     {
         return m_buffer.size == 0;
+    }
+
+    bool full() const noexcept
+    {
+        return m_buffer.size == N;
     }
 
     size_type size() const noexcept
@@ -1921,122 +1872,187 @@ public:
             m_buffer.ptr + off1, count1,
             t.data() + off2, count2);
     }
-
-    //=========================================================================
-
-    friend bool operator==(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) == 0;
-    }
-
-    friend bool operator==(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) == 0;
-    }
-
-    friend bool operator==(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) == 0;
-    }
-
-    friend bool operator!=(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) != 0;
-    }
-
-    friend bool operator!=(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) != 0;
-    }
-
-    friend bool operator!=(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) != 0;
-    }
-
-    friend bool operator<(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) < 0;
-    }
-
-    friend bool operator<(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) < 0;
-    }
-
-    friend bool operator<(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) > 0;
-    }
-
-    friend bool operator>(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) > 0;
-    }
-
-    friend bool operator>(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) > 0;
-    }
-
-    friend bool operator>(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) < 0;
-    }
-
-    friend bool operator<=(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) <= 0;
-    }
-
-    friend bool operator<=(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) <= 0;
-    }
-
-    friend bool operator<=(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) >= 0;
-    }
-
-    friend bool operator>=(const basic_static_string& lhs, const basic_static_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) >= 0;
-    }
-
-    friend bool operator>=(const basic_static_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) >= 0;
-    }
-
-    friend bool operator>=(const T* const lhs, const basic_static_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) <= 0;
-    }
-
-    //=========================================================================
-
-    template <typename Traits2>
-    friend std::basic_istream<T, Traits2>& operator>>(
-        std::basic_istream<T, Traits2>& iss,
-        basic_static_string& s)
-    {
-        std::string is;
-        iss >> is;
-        s = std::move(is);
-        return iss;
-    }
-
-    template <typename Traits2, typename Alloc>
-    friend std::basic_ostream<T, Traits2>& operator<<(
-        std::basic_ostream<T, Traits2>& oss,
-        const basic_static_string& s)
-    {
-        std::string os(s.data(), s.size());
-        oss << os;
-        return oss;
-    }
 };
+
+//=========================================================================
+// binary + operators
+//=========================================================================
+
+template <size_t N, typename T>
+basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs)
+{
+    basic_static_string<N, T> result(lhs);
+    return result.append(rhs);
+}
+
+//=========================================================================
+
+template <size_t N, typename T>
+basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T rhs)
+{
+    basic_static_string<N, T> result(lhs);
+    return result.append(rhs);
+}
+
+template <size_t N, typename T>
+basic_static_string<N, T> operator+(const T lhs, const basic_static_string<N, T>& rhs)
+{
+    basic_static_string<N, T> result(1, lhs);
+    return result.append(rhs);
+}
+
+//=========================================================================
+
+template <size_t N, typename T>
+basic_static_string<N, T> operator+(const basic_static_string<N, T>& lhs, const T* const rhs)
+{
+    basic_static_string<N, T> result(lhs);
+    return result.append(rhs);
+}
+
+template <size_t N, typename T>
+basic_static_string<N, T> operator+(const T* const lhs, const basic_static_string<N, T>& rhs)
+{
+    basic_static_string<N, T> result(lhs);
+    return result.append(rhs);
+}
+
+//=========================================================================
+// comparison operators
+//=========================================================================
+
+template <size_t N, typename T>
+bool operator==(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) == 0;
+}
+
+template <size_t N, typename T>
+bool operator==(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) == 0;
+}
+
+template <size_t N, typename T>
+bool operator==(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) == 0;
+}
+
+template <size_t N, typename T>
+bool operator!=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) != 0;
+}
+
+template <size_t N, typename T>
+bool operator!=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) != 0;
+}
+
+template <size_t N, typename T>
+bool operator!=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) != 0;
+}
+
+template <size_t N, typename T>
+bool operator<(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <size_t N, typename T>
+bool operator<(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <size_t N, typename T>
+bool operator<(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) > 0;
+}
+
+template <size_t N, typename T>
+bool operator>(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) > 0;
+}
+
+template <size_t N, typename T>
+bool operator>(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) > 0;
+}
+
+template <size_t N, typename T>
+bool operator>(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) < 0;
+}
+
+template <size_t N, typename T>
+bool operator<=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) <= 0;
+}
+
+template <size_t N, typename T>
+bool operator<=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) <= 0;
+}
+
+template <size_t N, typename T>
+bool operator<=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) >= 0;
+}
+
+template <size_t N, typename T>
+bool operator>=(const basic_static_string<N, T>& lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return lhs.compare(rhs) >= 0;
+}
+
+template <size_t N, typename T>
+bool operator>=(const basic_static_string<N, T>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) >= 0;
+}
+
+template <size_t N, typename T>
+bool operator>=(const T* const lhs, const basic_static_string<N, T>& rhs) noexcept
+{
+    return rhs.compare(lhs) <= 0;
+}
+
+//=========================================================================
+// stream operators
+//=========================================================================
+
+template <size_t N, typename T, typename Traits2>
+std::basic_istream<T, Traits2>& operator>>(
+    std::basic_istream<T, Traits2>& iss,
+    basic_static_string<N, T>& s)
+{
+    std::string is;
+    iss >> is;
+    s = std::move(is);
+    return iss;
+}
+
+template <size_t N, typename T, typename Traits2>
+std::basic_ostream<T, Traits2>& operator<<(
+    std::basic_ostream<T, Traits2>& oss,
+    const basic_static_string<N, T>& s)
+{
+    std::string os(s.data(), s.size());
+    oss << os;
+    return oss;
+}
 
 } // namespace str
 

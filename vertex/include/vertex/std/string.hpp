@@ -395,11 +395,26 @@ public:
     // operators
     //=========================================================================
 
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    operator S() const
+    operator basic_string_view<T>() const noexcept
     {
-        return S(data(), size());
+        return basic_string_view<T>(data(), size());
     }
+
+    template <typename Traits2, typename Allocator2>
+    operator std::basic_string<T, Traits2, Allocator2>() const
+    {
+        return std::basic_string<T, Traits2, Allocator2>(data(), size());
+    }
+
+#if defined(__cpp_lib_string_view)
+
+    template <typename Traits2>
+    operator std::basic_string_view<T, Traits2>() const noexcept
+    {
+        return std::basic_string_view<T, Traits2>(data(), size());
+    }
+
+#endif // defined(__cpp_lib_string_view)
 
 private:
 
@@ -1018,114 +1033,6 @@ public:
         return append(t);
     }
 
-    //=========================================================================
-
-    friend basic_string operator+(const basic_string& lhs, const basic_string& rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    friend basic_string operator+(basic_string&& lhs, basic_string&& rhs)
-    {
-        return std::move(lhs).append(rhs);
-    }
-
-    //=========================================================================
-
-    friend basic_string operator+(const basic_string& lhs, const T rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    friend basic_string operator+(const T lhs, const basic_string& rhs)
-    {
-        basic_string result(1, lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    friend basic_string operator+(const basic_string& lhs, const T* const rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    friend basic_string operator+(const T* const lhs, const basic_string& rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_string operator+(const basic_string& lhs, const S& rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_string operator+(const S& lhs, const basic_string& rhs)
-    {
-        basic_string result(lhs);
-        return result.append(rhs);
-    }
-
-    //=========================================================================
-
-    friend basic_string operator+(basic_string&& lhs, const basic_string& rhs)
-    {
-        return std::move(lhs.append(rhs));
-    }
-
-    friend basic_string operator+(const basic_string& lhs, basic_string&& rhs)
-    {
-        return basic_string(lhs).append(std::move(rhs));
-    }
-
-    //=========================================================================
-
-    friend basic_string operator+(basic_string&& lhs, const T rhs)
-    {
-        lhs.push_back(rhs);
-        return std::move(lhs);
-    }
-
-    friend basic_string operator+(const T lhs, basic_string&& rhs)
-    {
-        return basic_string(1, lhs).append(std::move(rhs));
-    }
-
-    //=========================================================================
-
-    friend basic_string operator+(basic_string&& lhs, const T* const rhs)
-    {
-        return std::move(lhs.append(rhs));
-    }
-
-    friend basic_string operator+(const T* const lhs, basic_string&& rhs)
-    {
-        return basic_string(lhs).append(std::move(rhs));
-    }
-
-    //=========================================================================
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_string operator+(basic_string&& lhs, const S& rhs)
-    {
-        return std::move(lhs).append(rhs);
-    }
-
-    template <typename S, VX_REQUIRES(is_compatible_string<S>::value)>
-    friend basic_string operator+(const S& lhs, basic_string&& rhs)
-    {
-        return basic_string(lhs).append(std::move(rhs));
-    }
-
 private:
 
     //=========================================================================
@@ -1584,6 +1491,11 @@ public:
     bool empty() const noexcept
     {
         return m_buffer.size == 0;
+    }
+
+    bool full() const noexcept
+    {
+        return m_buffer.size == max_size();
     }
 
     size_type size() const noexcept
@@ -2493,122 +2405,236 @@ public:
             m_buffer.ptr + off1, count1,
             t.data() + off2, count2);
     }
-
-    //=========================================================================
-
-    friend bool operator==(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) == 0;
-    }
-
-    friend bool operator==(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) == 0;
-    }
-
-    friend bool operator==(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) == 0;
-    }
-
-    friend bool operator!=(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) != 0;
-    }
-
-    friend bool operator!=(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) != 0;
-    }
-
-    friend bool operator!=(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) != 0;
-    }
-
-    friend bool operator<(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) < 0;
-    }
-
-    friend bool operator<(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) < 0;
-    }
-
-    friend bool operator<(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) > 0;
-    }
-
-    friend bool operator>(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) > 0;
-    }
-
-    friend bool operator>(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) > 0;
-    }
-
-    friend bool operator>(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) < 0;
-    }
-
-    friend bool operator<=(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) <= 0;
-    }
-
-    friend bool operator<=(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) <= 0;
-    }
-
-    friend bool operator<=(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) >= 0;
-    }
-
-    friend bool operator>=(const basic_string& lhs, const basic_string& rhs) noexcept
-    {
-        return lhs.compare(rhs) >= 0;
-    }
-
-    friend bool operator>=(const basic_string& lhs, const T* const rhs) noexcept
-    {
-        return lhs.compare(rhs) >= 0;
-    }
-
-    friend bool operator>=(const T* const lhs, const basic_string& rhs) noexcept
-    {
-        return rhs.compare(lhs) <= 0;
-    }
-
-    //=========================================================================
-
-    template <typename Traits2>
-    friend std::basic_istream<T, Traits2>& operator>>(
-        std::basic_istream<T, Traits2>& iss,
-        basic_string& s)
-    {
-        std::string is;
-        iss >> is;
-        s = std::move(is);
-        return iss;
-    }
-
-    template <typename Traits2, typename Alloc>
-    friend std::basic_ostream<T, Traits2>& operator<<(
-        std::basic_ostream<T, Traits2>& oss,
-        const basic_string& s)
-    {
-        std::string os(s.data(), s.size());
-        oss << os;
-        return oss;
-    }
 };
+
+//=========================================================================
+// binary + operators
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs)
+{
+    basic_string<T, Allocator> result(lhs);
+    return result.append(rhs);
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(basic_string<T, Allocator>&& lhs, basic_string<T, Allocator>&& rhs)
+{
+    return std::move(lhs).append(rhs);
+}
+
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const basic_string<T, Allocator>& lhs, const T rhs)
+{
+    basic_string<T, Allocator> result(lhs);
+    return result.append(rhs);
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const T lhs, const basic_string<T, Allocator>& rhs)
+{
+    basic_string<T, Allocator> result(1, lhs);
+    return result.append(rhs);
+}
+
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const basic_string<T, Allocator>& lhs, const T* const rhs)
+{
+    basic_string<T, Allocator> result(lhs);
+    return result.append(rhs);
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const T* const lhs, const basic_string<T, Allocator>& rhs)
+{
+    basic_string<T, Allocator> result(lhs);
+    return result.append(rhs);
+}
+
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(basic_string<T, Allocator>&& lhs, const basic_string<T, Allocator>& rhs)
+{
+    return std::move(lhs.append(rhs));
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const basic_string<T, Allocator>& lhs, basic_string<T, Allocator>&& rhs)
+{
+    return basic_string<T, Allocator>(lhs).append(std::move(rhs));
+}
+
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(basic_string<T, Allocator>&& lhs, const T rhs)
+{
+    lhs.push_back(rhs);
+    return std::move(lhs);
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const T lhs, basic_string<T, Allocator>&& rhs)
+{
+    return basic_string<T, Allocator>(1, lhs).append(std::move(rhs));
+}
+
+//=========================================================================
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(basic_string<T, Allocator>&& lhs, const T* const rhs)
+{
+    return std::move(lhs.append(rhs));
+}
+
+template <typename T, typename Allocator>
+basic_string<T, Allocator> operator+(const T* const lhs, basic_string<T, Allocator>&& rhs)
+{
+    return basic_string<T, Allocator>(lhs).append(std::move(rhs));
+}
+
+//=========================================================================
+// comparison operators
+//=========================================================================
+
+template <typename T, typename Allocator>
+bool operator==(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) == 0;
+}
+
+template <typename T, typename Allocator>
+bool operator==(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) == 0;
+}
+
+template <typename T, typename Allocator>
+bool operator==(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) == 0;
+}
+
+template <typename T, typename Allocator>
+bool operator!=(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) != 0;
+}
+
+template <typename T, typename Allocator>
+bool operator!=(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) != 0;
+}
+
+template <typename T, typename Allocator>
+bool operator!=(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) != 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) < 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) > 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) > 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) > 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) < 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<=(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) <= 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<=(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) <= 0;
+}
+
+template <typename T, typename Allocator>
+bool operator<=(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) >= 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>=(const basic_string<T, Allocator>& lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return lhs.compare(rhs) >= 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>=(const basic_string<T, Allocator>& lhs, const T* const rhs) noexcept
+{
+    return lhs.compare(rhs) >= 0;
+}
+
+template <typename T, typename Allocator>
+bool operator>=(const T* const lhs, const basic_string<T, Allocator>& rhs) noexcept
+{
+    return rhs.compare(lhs) <= 0;
+}
+
+//=========================================================================
+// stream operators
+//=========================================================================
+
+template <typename T, typename Allocator, typename Traits2>
+std::basic_istream<T, Traits2>& operator>>(
+    std::basic_istream<T, Traits2>& iss,
+    basic_string<T, Allocator>& s)
+{
+    std::string is;
+    iss >> is;
+    s = std::move(is);
+    return iss;
+}
+
+template <typename T, typename Allocator, typename Traits2>
+std::basic_ostream<T, Traits2>& operator<<(
+    std::basic_ostream<T, Traits2>& oss,
+    const basic_string<T, Allocator>& s)
+{
+    std::string os(s.data(), s.size());
+    oss << os;
+    return oss;
+}
 
 } // namespace str
 

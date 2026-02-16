@@ -163,6 +163,11 @@ public:
         return m_size == 0;
     }
 
+    bool full() const noexcept
+    {
+        return m_size == max_size();
+    }
+
     size_type size() const noexcept
     {
         return m_size;

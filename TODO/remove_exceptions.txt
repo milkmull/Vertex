@@ -3,10 +3,10 @@ x array
 x allocation
 x dynamic array base
 x vector
-- stack vector
-- string view
-- stack string
-- string
+- static vector
+x string view
+x static string
+x string
 - print io
 - packed string array
 - single link list

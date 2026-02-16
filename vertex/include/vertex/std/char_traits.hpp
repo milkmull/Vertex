@@ -1512,5 +1512,24 @@ template <typename S, typename T>
 struct is_string_of<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
 {};
 
+template <typename S1, typename S2, typename = void>
+struct is_string_compatible : std::false_type
+{};
+
+template <typename S1, typename S2>
+struct is_string_compatible<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<
+    is_string_like<S1>::value &&
+    is_string_like<S2>::value &&
+    std::is_same<typename S1::value_type, typename S2::value_type>::value>
+{};
+
+//=========================================================================
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+S1 operator+(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().append(rhs)))
+{
+    return S1(lhs).append(rhs);
+}
+
 } // namespace str
 } // namespace vx
