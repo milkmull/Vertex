@@ -3,7 +3,7 @@
 #include "vertex/config/os.hpp"
 #include "vertex/util/string/string.hpp"
 #include "vertex/util/io/quoted.hpp"
-#include "vertex/util/crypto/FNV1a.hpp"
+#include "vertex/std/crypto/fnv1a.hpp"
 #include "vertex/os/native_string.hpp"
 
 #if defined(_VX_TESTING_PATH)
@@ -1660,7 +1660,7 @@ struct hash<vx::os::path>
 {
     size_t operator()(const vx::os::path& p) const noexcept
     {
-        vx::crypto::fnv1a fnv1a;
+        vx::fnv1a fnv1a;
 
         const auto& text = p.native();
         const size_t size = text.size();

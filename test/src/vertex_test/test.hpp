@@ -146,5 +146,23 @@ void message(Args&&... args)
 
 #define VX_PRINT_ERRORS(x) ::vx::err::set_hook(::vx::err::print_error_hook);
 
+//=============================================================================
+
+template <typename T>
+constexpr const T* make_lit(const char* s, T* buffer)
+{
+    size_t i = 0;
+
+    for (; s[i] != T(); ++i)
+    {
+        buffer[i] = static_cast<T>(s[i]);
+    }
+
+    buffer[i] = T();
+    return buffer;
+}
+
+#define VX_LIT(T, s, b) ::vx::test::make_lit<T>(s, b)
+
 } // namespace test
 } // namespace vx

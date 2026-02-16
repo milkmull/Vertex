@@ -1,12 +1,9 @@
 #pragma once
 
-#include <cstdint>
-
 #include "vertex/config/architecture.hpp"
 #include "vertex/config/type_traits.hpp"
 
 namespace vx {
-namespace crypto {
 
 // https://github.com/microsoft/STL/blob/7643c270e5bfb1cfad62f8b5ff4045c662bdaf81/stl/inc/type_traits#L2282
 
@@ -49,7 +46,10 @@ public:
         return update(first_byte, static_cast<size_t>(last_byte - first_byte));
     }
 
-    size_t result() const noexcept { return m_buffer; }
+    size_t result() const noexcept
+    {
+        return m_buffer;
+    }
 
 private:
 
@@ -57,4 +57,3 @@ private:
 };
 
 } // namespace vx
-} // namespace crypto

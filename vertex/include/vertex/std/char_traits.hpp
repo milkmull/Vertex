@@ -1,13 +1,14 @@
 #pragma once
 
 #include <cstdio>
+#include <sstream>
 #include <string.h>
 #include <wchar.h>
 
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/_priv/simd_algorithms.hpp"
 #include "vertex/std/memory.hpp"
-#include "vertex/util/crypto/FNV1a.hpp"
+#include "vertex/std/crypto/fnv1a.hpp"
 
 namespace vx {
 namespace str {
@@ -468,26 +469,29 @@ struct char_traits_base
     using pos_type = pos_t;
     using state_type = std::mbstate_t;
 
-    static void copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
+    static char_type* copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...)
-        str::copy_n(dst, src, count);
+        return str::copy_n(dst, src, count);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-    static void copy_range(char_type* dst, IT first, IT last) noexcept
+    static char_type* copy_range(char_type* dst, IT first, IT last) noexcept
     {
         for (; first != last; ++first)
         {
             assign(*dst, *first);
             ++dst;
         }
+
+        return dst;
     }
 
-    static void move(char_type* const dst, const char_type* const src, const size_t count) noexcept
+    static char_type* move(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...), allowing overlap
         mem::move(dst, src, count * sizeof(char_type));
+        return dst;
     }
 
     // For compare/length/find/assign, we can't uniformly call CRT functions (or their builtin versions).
@@ -559,7 +563,7 @@ struct char_traits_base
 
     static constexpr size_t hash(const char_type* const s, const size_t count) noexcept
     {
-        crypto::fnv1a fnv;
+        fnv1a fnv;
         fnv.update(reinterpret_cast<const unsigned char*>(s), count * sizeof(char_type));
         return fnv.result();
     }
@@ -578,24 +582,24 @@ struct char_traits<char> : _priv::char_traits_base<char, int, std::streampos>
 };
 
 template <>
-struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, wint_t, std::wstreampos>
+struct char_traits<wchar_t> : _priv::char_traits_base<wchar_t, short, std::wstreampos>
 {
 };
 
 #if defined(__cpp_char8_t)
 template <>
-struct char_traits<char8_t> : _priv::char_traits_base<char8_t, unsigned int, std::u8streampos>
+struct char_traits<char8_t> : _priv::char_traits_base<char8_t, int, std::u8streampos>
 {
 };
 #endif // defined(__cpp_char8_t)
 
 template <>
-struct char_traits<char16_t> : _priv::char_traits_base<char16_t, uint_least16_t, std::u16streampos>
+struct char_traits<char16_t> : _priv::char_traits_base<char16_t, int_least16_t, std::u16streampos>
 {
 };
 
 template <>
-struct char_traits<char32_t> : _priv::char_traits_base<char32_t, uint_least32_t, std::u32streampos>
+struct char_traits<char32_t> : _priv::char_traits_base<char32_t, int_least32_t, std::u32streampos>
 {
 };
 
