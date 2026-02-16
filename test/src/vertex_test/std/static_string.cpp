@@ -1,4 +1,4 @@
-#include "vertex/std/string.hpp"
+#include "vertex/std/static_string.hpp"
 #include "vertex_test/test.hpp"
 
 // https://github.com/microsoft/STL/blob/e2ef398685f7e470dbaeaf65ff919de72bda7489/tests/tr1/tests/string1/test.cpp
@@ -8,78 +8,12 @@
 #define LIT(x)          VX_LIT(T, x)
 #define CHECK_STR(a, b) VX_CHECK(::vx::str::compare(a, b) == 0)
 
-template <typename T>
-static void test_traits()
-{
-    using string = vx::str::basic_string<T>;
-    using traits = typename string::traits_type;
-
-    T ch[] = { 'x', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\0' };
-
-    traits::assign(ch[0], '0');
-    VX_CHECK(ch[0] == '0');
-    VX_CHECK(traits::eq(ch[0], ch[0]));
-    VX_CHECK(!traits::eq(ch[0], '4'));
-    VX_CHECK(traits::lt(ch[0], '4'));
-    VX_CHECK(!traits::lt(ch[0], ch[0]));
-
-    VX_CHECK(traits::compare(LIT("abc"), LIT("abcd"), 3) == 0);
-    VX_CHECK(traits::compare(LIT("abc"), LIT("abcd"), 4) < 0);
-
-    VX_CHECK(traits::length(LIT("")) == 0);
-    VX_CHECK(traits::length(ch) == 10);
-
-    VX_CHECK(traits::find(ch, 3, '3') == nullptr);
-    VX_CHECK(*traits::find(LIT("abcd"), 4, 'd') == 'd');
-
-    CHECK_STR(traits::move(ch, LIT("abc"), 0), LIT("0123456789"));
-    CHECK_STR(traits::move(&ch[2], ch, 4), LIT("01236789"));
-    CHECK_STR(traits::move(ch, &ch[2], 4), LIT("0123236789"));
-
-    CHECK_STR(traits::copy(ch, LIT("abc"), 0), LIT("0123236789"));
-    CHECK_STR(traits::copy(&ch[2], ch, 2), LIT("01236789"));
-
-    CHECK_STR(traits::assign(ch, 2, '3'), LIT("3301236789"));
-
-    VX_CHECK(traits::not_eof('e') == 'e');
-    VX_CHECK(traits::not_eof(EOF) != EOF);
-
-    VX_CHECK(traits::to_char_type('x') == 'x');
-    VX_CHECK(traits::to_int_type('x') == 'x');
-
-    VX_CHECK(traits::eq_int_type('x', 'x'));
-    VX_CHECK(traits::eq_int_type(EOF, EOF));
-    VX_CHECK(!traits::eq_int_type('x', EOF));
-
-    VX_CHECK(traits::eof() == EOF);
-}
-
-VX_TEST_CASE(traits)
-{
-    VX_MESSAGE("  char");
-    test_traits<char>();
-
-    VX_MESSAGE("  wchar_t");
-    test_traits<wchar_t>();
-
-#if defined(__cpp_lib_char8_t)
-    VX_MESSAGE("  char8_t");
-    test_traits<char8_t>();
-#endif
-
-    VX_MESSAGE("  char16_t");
-    test_traits<char16_t>();
-
-    VX_MESSAGE("  char32_t");
-    test_traits<char32_t>();
-}
-
 //=============================================================================
 
 template <typename T>
 static void test_container()
 {
-    using string = vx::str::basic_string<T>;
+    using string = vx::str::basic_static_string<20, T>;
     T carr[] = { 'a', 'b', 'c', '\0' };
 
     string v0;
@@ -170,21 +104,17 @@ static void test_container()
     {
         string v5(20, 'x');
         string v6(std::move(v5));
-        VX_CHECK(!v5.is_valid());
         VX_CHECK(v6.size() == 20);
 
         string v7;
         v7.assign(std::move(v6));
-        VX_CHECK(!v5.is_valid());
         VX_CHECK(v7.size() == 20);
 
         string v8;
         v8 = std::move(v7);
-        VX_CHECK(!v5.is_valid());
         VX_CHECK(v8.size() == 20);
 
         string v8a(std::move(v8));
-        VX_CHECK(!v5.is_valid());
         VX_CHECK(v8a.size() == 20);
     }
 
@@ -265,7 +195,7 @@ VX_TEST_CASE(container)
 template <typename T>
 static void test_basics()
 {
-    using string = vx::str::basic_string<T>;
+    using string = vx::str::basic_static_string<20, T>;
 
     string s1, s2(30, '\0');
     string s3(4, '\0');

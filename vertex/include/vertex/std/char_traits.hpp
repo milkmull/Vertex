@@ -7,8 +7,8 @@
 
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/_priv/simd_algorithms.hpp"
-#include "vertex/std/memory.hpp"
 #include "vertex/std/crypto/fnv1a.hpp"
+#include "vertex/std/memory.hpp"
 
 namespace vx {
 namespace str {
@@ -1390,6 +1390,67 @@ constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
     }
 }
 
+//=========================================================================
+
+template <typename T, typename U>
+constexpr void copy_batch(T* const first1, const U* const first2, const size_t count) noexcept
+{
+    using traits_type = char_traits<T>;
+
+    VX_IF_CONSTEXPR (std::is_volatile<U>::value)
+    {
+        for (size_t i = 0; i != count; ++i)
+        {
+            traits_type::assign(first1[i], T{ first2[i] });
+        }
+    }
+    else
+    {
+        traits_type::copy(first1, first2, count);
+    }
+}
+
+template <typename T, typename U>
+constexpr void move_batch(T* const first1, const U* const first2, const size_t count) noexcept
+{
+    using traits_type = char_traits<T>;
+
+    VX_IF_CONSTEXPR (std::is_volatile<U>::value)
+    {
+        bool loop_forward = true;
+
+        for (const U* src = first2; src != first2 + count; ++src)
+        {
+            if (first1 == src)
+            {
+                loop_forward = false;
+                break;
+            }
+        }
+
+        if (loop_forward)
+        {
+            for (size_t i = 0; i != count; ++i)
+            {
+                traits_type::assign(first1[i], T{ first2[i] });
+            }
+        }
+        else
+        {
+            for (size_t i = count; i != 0; --i)
+            {
+                traits_type::assign(first1[i - 1], T{ first2[i - 1] });
+            }
+        }
+    }
+    else
+    {
+        traits_type::move(first1, first2, count);
+    }
+}
+
+//=========================================================================
+
 constexpr size_t clamp_suffix_size(const size_t size, const size_t off, const size_t count) noexcept
 {
     return std::min(count, size - off);
@@ -1401,6 +1462,55 @@ constexpr bool check_offset(const size_t size, const size_t off) noexcept
 }
 
 } // namespace _priv
+
+//=========================================================================
+
+template <typename T>
+class basic_string_view;
+
+template <typename T, typename Allocator>
+class basic_string;
+
+template <size_t N, typename T>
+class basic_static_string;
+
+//=========================================================================
+
+template <typename T>
+struct is_string_like : std::false_type
+{};
+
+template <typename T>
+struct is_string_like<basic_string_view<T>> : std::true_type
+{};
+
+template <typename T, typename Allocator>
+struct is_string_like<basic_string<T, Allocator>> : std::true_type
+{};
+
+template <size_t N, typename T>
+struct is_string_like<basic_static_string<N, T>> : std::true_type
+{};
+
+#if defined(__cpp_lib_string_view)
+
+template <typename T, typename Traits>
+struct is_string_like<std::basic_string_view<T, Traits>> : std::true_type
+{};
+
+#endif // defined(__cpp_lib_string_view)
+
+template <typename T, typename Traits, typename Alloc>
+struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
+{};
+
+template <typename S, typename T, typename = void>
+struct is_string_of : std::false_type
+{};
+
+template <typename S, typename T>
+struct is_string_of<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
+{};
 
 } // namespace str
 } // namespace vx

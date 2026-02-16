@@ -13,7 +13,7 @@
 template <typename T>
 static void test_container()
 {
-    using string_view = vx::basic_string_view<T>;
+    using string_view = vx::str::basic_string_view<T>;
     T carr[] = { 'a', 'b', 'c', '\0' };
 
     string_view v0;
@@ -135,7 +135,7 @@ VX_TEST_CASE(container)
 template <typename T>
 static void test_basics()
 {
-    using string_view = vx::basic_string_view<T>;
+    using string_view = vx::str::basic_string_view<T>;
 
     string_view s1;
     string_view s2(LIT(""), 0);

@@ -24,3 +24,4 @@ vx_add_test(test_std_profile_std_vector             "std" "${VX_PROFILE_STD_VECT
 vx_add_test(test_std_char_traits                    "std" "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.cpp")
 vx_add_test(test_std_string                         "std" "${CMAKE_CURRENT_SOURCE_DIR}/string.cpp")
 vx_add_test(test_std_string_view                    "std" "${CMAKE_CURRENT_SOURCE_DIR}/string_view.cpp")
+vx_add_test(test_std_static_string                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/static_string.cpp")
