@@ -464,9 +464,9 @@
 #endif
 
 #if VX_CPP_STANDARD >= 17
-    #define VX_IF_CONSTEXPR(x) if constexpr (x)
+    #define VX_IF_CONSTEXPR(...) if constexpr (__VA_ARGS__)
 #else
-    #define VX_IF_CONSTEXPR(x) if (x)
+    #define VX_IF_CONSTEXPR(...) if (__VA_ARGS__)
 #endif
 
 #if defined(_MSC_VER)

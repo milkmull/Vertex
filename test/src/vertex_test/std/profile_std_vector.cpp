@@ -10,7 +10,7 @@ int main()
     VX_PROFILE_START_APPEND("profile_vector.csv");
 
     run<vec1<trivial_type>>(NN, RR);
-    run<vec1<non_trivial_type>>(NN, RR);
+    //run<vec1<non_trivial_type>>(NN, RR);
 
     VX_PROFILE_STOP();
     return 0;

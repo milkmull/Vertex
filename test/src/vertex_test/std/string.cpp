@@ -121,7 +121,6 @@ static void test_container()
 
     VX_SECTION("iterators")
     {
-        // check iterators generators
         typename string::iterator p_it(v0.begin());
         typename string::const_iterator p_cit(v4.begin());
         typename string::reverse_iterator p_rit(v0.rbegin());
@@ -138,7 +137,6 @@ static void test_container()
 
     VX_SECTION("const iterators")
     {
-        // check const iterators generators
         typename string::const_iterator p_it(v0.cbegin());
         typename string::const_iterator p_cit(v4.cbegin());
         typename string::const_reverse_iterator p_rit(v0.crbegin());
@@ -168,10 +166,14 @@ static void test_container()
 
     VX_SECTION("move")
     {
+        VX_DISABLE_USE_AFTER_MOVE_WARNING();
+
         string v5(20, T('x'));
         string v6(std::move(v5));
         VX_CHECK(!v5.is_valid());
         VX_CHECK(v6.size() == 20);
+
+        VX_DISABLE_WARNING_POP();
 
         string v7;
         v7.assign(std::move(v6));

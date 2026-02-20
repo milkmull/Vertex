@@ -178,7 +178,7 @@ constexpr size_t alignment_padding_size(const size_t alignment) noexcept
 }
 
 template <size_t alignment>
-inline void adjust_aligned_pointer(void*& out_ptr, size_t& bytes) noexcept
+void adjust_aligned_pointer(void*& out_ptr, size_t& bytes) noexcept
 {
     constexpr size_t padding = _priv::alignment_padding_size(alignment);
     bytes += padding;
@@ -366,7 +366,7 @@ inline void* reallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexc
 //=========================================================================
 
 template <size_t alignment>
-inline void deallocate_aligned(void* ptr, size_t bytes) noexcept
+void deallocate_aligned(void* ptr, size_t bytes) noexcept
 {
     VX_STATIC_ASSERT_MSG(_priv::is_pow_2(alignment), "alignment must be power of 2");
 
@@ -394,19 +394,59 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 //=========================================================================
 
 template <typename T, typename... Args>
-inline void construct_in_place(T& obj, Args&&... args)
+void construct_in_place(T& obj, Args&&... args)
 {
-    ::new (static_cast<void*>(std::addressof(obj))) T(std::forward<Args>(args)...);
+    VX_IF_CONSTEXPR(sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    {
+        ::new (static_cast<void*>(std::addressof(obj))) T;
+    }
+    else
+    {
+        ::new (static_cast<void*>(std::addressof(obj))) T(std::forward<Args>(args)...);
+    }
 }
 
 template <typename T, typename... Args>
-inline void construct_in_place(T* ptr, Args&&... args)
+void construct_in_place(T* ptr, Args&&... args)
 {
-    ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    {
+        ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
+    }
+    else
+    {
+        ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T(std::forward<Args>(args)...);
+    }
 }
 
 template <typename T, typename... Args>
-VX_ALLOCATOR inline T* construct(Args&&... args)
+void construct_in_place_maybe_trivial(T& obj, Args&&... args)
+{
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    {
+        ::new (static_cast<void*>(std::addressof(obj))) T;
+    }
+    else
+    {
+        construct_in_place(obj, std::forward<Args>(args)...);
+    }
+}
+
+template <typename T, typename... Args>
+void construct_in_place_maybe_trivial(T* ptr, Args&&... args)
+{
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    {
+        ::new (const_cast<void*>(static_cast<const volatile void*>(ptr))) T;
+    }
+    else
+    {
+        construct_in_place(ptr, std::forward<Args>(args)...);
+    }
+}
+
+template <typename T, typename... Args>
+VX_ALLOCATOR T* construct(Args&&... args)
 {
     void* raw_ptr = nullptr;
 
@@ -434,7 +474,7 @@ VX_ALLOCATOR inline T* construct(Args&&... args)
 //=========================================================================
 
 template <typename T>
-inline void destroy_in_place(T* ptr)
+void destroy_in_place(T* ptr)
 {
     VX_IF_CONSTEXPR (!std::is_trivially_destructible<T>::value)
     {
@@ -443,7 +483,7 @@ inline void destroy_in_place(T* ptr)
 }
 
 template <typename T>
-inline void destroy(T* ptr)
+void destroy(T* ptr)
 {
     destroy_in_place(ptr);
 
@@ -458,7 +498,7 @@ inline void destroy(T* ptr)
 }
 
 template <typename T>
-inline void destroy_safe(T*& ptr)
+void destroy_safe(T*& ptr)
 {
     if (ptr)
     {
@@ -500,7 +540,7 @@ constexpr bool range_will_overflow(const size_t count) noexcept
 }
 
 template <typename T>
-inline bool is_all_bits_zero(const T& x) noexcept
+bool is_all_bits_zero(const T& x) noexcept
 {
     // checks if scalar type has all bits set to zero
     VX_STATIC_ASSERT(std::is_scalar<T>::value && !std::is_member_pointer<T>::value);
@@ -521,7 +561,7 @@ inline bool is_all_bits_zero(const T& x) noexcept
 //=========================================================================
 
 template <typename T>
-inline T* construct_range(T* ptr, size_t count)
+T* construct_range(T* ptr, size_t count)
 {
     //VX_STATIC_ASSERT_MSG(std::is_default_constructible<T>::value, "Type must be default constructible");
 
@@ -536,7 +576,20 @@ inline T* construct_range(T* ptr, size_t count)
 }
 
 template <typename T>
-inline T* destroy_range(T* ptr, size_t count) noexcept
+T* construct_range_maybe_trivial(T* ptr, size_t count)
+{
+    const T* last = ptr + count;
+    while (ptr != last)
+    {
+        construct_in_place_maybe_trivial(*ptr);
+        ++ptr;
+    }
+
+    return ptr;
+}
+
+template <typename T>
+T* destroy_range(T* ptr, size_t count) noexcept
 {
     const T* last = ptr + count;
     while (ptr != last)
@@ -551,7 +604,7 @@ inline T* destroy_range(T* ptr, size_t count) noexcept
 //=========================================================================
 
 template <typename T, typename U>
-inline T* fill_range(T* ptr, size_t count, const U& value)
+T* fill_range(T* ptr, size_t count, const U& value)
 {
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
@@ -581,7 +634,7 @@ inline T* fill_range(T* ptr, size_t count, const U& value)
 }
 
 template <typename T, typename U>
-inline T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
+T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
 {
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
@@ -611,7 +664,7 @@ inline T* fill_uninitialized_range(T* ptr, size_t count, const U& value)
 }
 
 template <typename IT, typename U, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
-inline IT fill_range(IT first, IT last, const U& value)
+IT fill_range(IT first, IT last, const U& value)
 {
     using T = typename type_traits::value_type<IT>::type;
 
@@ -646,7 +699,7 @@ inline IT fill_range(IT first, IT last, const U& value)
 //=========================================================================
 
 template <typename T>
-inline T* copy_range(T* dst, const T* src, size_t count)
+T* copy_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
@@ -667,7 +720,7 @@ inline T* copy_range(T* dst, const T* src, size_t count)
 }
 
 template <typename T>
-inline T* copy_uninitialized_range(T* dst, const T* src, size_t count)
+T* copy_uninitialized_range(T* dst, const T* src, size_t count)
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
@@ -688,7 +741,7 @@ inline T* copy_uninitialized_range(T* dst, const T* src, size_t count)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
+IT1 copy_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
     //using U = typename type_traits::value_type<IT2>::type;
@@ -714,7 +767,7 @@ inline IT1 copy_range(IT1 dst, IT2 first, IT2 last)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
     //using U = typename type_traits::value_type<IT2>::type;
@@ -742,7 +795,7 @@ inline IT1 copy_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 //=========================================================================
 
 template <typename T>
-inline T* move_range(T* dst, T* src, size_t count) noexcept
+T* move_range(T* dst, T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
@@ -763,7 +816,7 @@ inline T* move_range(T* dst, T* src, size_t count) noexcept
 }
 
 template <typename T>
-inline T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
+T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
 {
     VX_IF_CONSTEXPR (type_traits::memmove_is_safe<T*>::value)
     {
@@ -784,7 +837,7 @@ inline T* move_uninitialized_range(T* dst, T* src, size_t count) noexcept
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline IT1 move_range(IT1 dst, IT2 first, IT2 last)
+IT1 move_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
 
@@ -807,7 +860,7 @@ inline IT1 move_range(IT1 dst, IT2 first, IT2 last)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
+IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 {
     using T = typename type_traits::value_type<IT1>::type;
 
@@ -832,7 +885,7 @@ inline IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 //=========================================================================
 
 template <typename T>
-inline bool equal_range(const T* a, const T* b, size_t count)
+bool equal_range(const T* a, const T* b, size_t count)
 {
     VX_IF_CONSTEXPR ((type_traits::is_bitwise_comparable<T, T>::value))
     {
@@ -856,7 +909,7 @@ inline bool equal_range(const T* a, const T* b, size_t count)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool equal_range(IT1 first1, IT1 last1, IT2 first2)
+bool equal_range(IT1 first1, IT1 last1, IT2 first2)
 {
     using T1 = typename std::iterator_traits<IT1>::value_type;
     using T2 = typename std::iterator_traits<IT2>::value_type;
@@ -891,13 +944,13 @@ inline bool equal_range(IT1 first1, IT1 last1, IT2 first2)
 // Inequality
 
 template <typename T>
-inline bool not_equal_range(const T* a, const T* b, size_t count)
+bool not_equal_range(const T* a, const T* b, size_t count)
 {
     return !mem::equal_range(a, b, count);
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool not_equal_range(IT1 first1, IT1 last1, IT2 first2)
+bool not_equal_range(IT1 first1, IT1 last1, IT2 first2)
 {
     return !mem::equal_range(first1, last1, first2);
 }
@@ -905,7 +958,7 @@ inline bool not_equal_range(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-inline bool less_range(const T* a, const T* b, size_t count)
+bool less_range(const T* a, const T* b, size_t count)
 {
     for (; count > 0; --count, ++a, ++b)
     {
@@ -923,7 +976,7 @@ inline bool less_range(const T* a, const T* b, size_t count)
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool less_range(IT1 first1, IT1 last1, IT2 first2)
+bool less_range(IT1 first1, IT1 last1, IT2 first2)
 {
     for (; first1 != last1; ++first1, ++first2)
     {
@@ -943,13 +996,13 @@ inline bool less_range(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-inline bool greater_range(const T* a, const T* b, size_t count)
+bool greater_range(const T* a, const T* b, size_t count)
 {
     return less_range(b, a, count);
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool greater_range(IT1 first1, IT1 last1, IT2 first2)
+bool greater_range(IT1 first1, IT1 last1, IT2 first2)
 {
     for (; first1 != last1; ++first1, ++first2)
     {
@@ -969,13 +1022,13 @@ inline bool greater_range(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-inline bool less_equal_range(const T* a, const T* b, size_t count)
+bool less_equal_range(const T* a, const T* b, size_t count)
 {
     return !greater_range(a, b, count);
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool less_equal_range(IT1 first1, IT1 last1, IT2 first2)
+bool less_equal_range(IT1 first1, IT1 last1, IT2 first2)
 {
     return !greater_range(first1, last1, first2);
 }
@@ -983,13 +1036,13 @@ inline bool less_equal_range(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-inline bool greater_equal_range(const T* a, const T* b, size_t count)
+bool greater_equal_range(const T* a, const T* b, size_t count)
 {
     return !less_range(a, b, count);
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-inline bool greater_equal_range(IT1 first1, IT1 last1, IT2 first2)
+bool greater_equal_range(IT1 first1, IT1 last1, IT2 first2)
 {
     return !less_range(first1, last1, first2);
 }
@@ -997,7 +1050,7 @@ inline bool greater_equal_range(IT1 first1, IT1 last1, IT2 first2)
 //=========================================================================
 
 template <typename T>
-VX_ALLOCATOR inline T* construct_array(const size_t count)
+VX_ALLOCATOR T* construct_array(const size_t count)
 {
     if (count == 0)
     {
@@ -1033,7 +1086,7 @@ VX_ALLOCATOR inline T* construct_array(const size_t count)
 }
 
 template <typename T>
-VX_ALLOCATOR inline T* construct_array(const size_t count, const T& value)
+VX_ALLOCATOR T* construct_array(const size_t count, const T& value)
 {
     if (count == 0)
     {
@@ -1069,7 +1122,7 @@ VX_ALLOCATOR inline T* construct_array(const size_t count, const T& value)
 }
 
 template <typename T>
-inline void destroy_array(T* ptr, const size_t count)
+void destroy_array(T* ptr, const size_t count)
 {
     destroy_range(ptr, count);
     const size_t size = sizeof(T) * count;
@@ -1085,7 +1138,7 @@ inline void destroy_array(T* ptr, const size_t count)
 }
 
 template <typename T>
-inline void destroy_array_safe(T*& ptr, const size_t count)
+void destroy_array_safe(T*& ptr, const size_t count)
 {
     if (ptr && count)
     {

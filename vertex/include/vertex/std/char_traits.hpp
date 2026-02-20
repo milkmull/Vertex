@@ -1517,18 +1517,51 @@ struct is_string_compatible : std::false_type
 {};
 
 template <typename S1, typename S2>
-struct is_string_compatible<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<
-    is_string_like<S1>::value &&
-    is_string_like<S2>::value &&
-    std::is_same<typename S1::value_type, typename S2::value_type>::value>
+struct is_string_compatible<S1, S2, type_traits::void_t<typename S1::value_type, typename S2::value_type>> : std::bool_constant<is_string_like<S1>::value && is_string_like<S2>::value && std::is_same<typename S1::value_type, typename S2::value_type>::value>
 {};
 
 //=========================================================================
 
 template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
-S1 operator+(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().append(rhs)))
+S1 operator+(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().append(rhs.c_str())))
 {
-    return S1(lhs).append(rhs);
+    return S1(lhs).append(rhs.c_str());
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator==(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) == 0;
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator!=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) != 0;
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator<(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) < 0;
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator>(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) > 0;
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator<=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) <= 0;
+}
+
+template <typename S1, typename S2, VX_REQUIRES((is_string_compatible<S1, S2>::value))>
+bool operator>=(const S1& lhs, const S2& rhs) noexcept(noexcept(S1().compare(rhs.c_str())))
+{
+    return lhs.compare(rhs.c_str()) >= 0;
 }
 
 } // namespace str

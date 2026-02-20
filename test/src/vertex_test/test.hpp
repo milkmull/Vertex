@@ -8,6 +8,7 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/platform.hpp"
 #include "vertex/system/error.hpp"
+#include "vertex_test/test_util.hpp"
 
 namespace vx {
 namespace test {
@@ -45,7 +46,8 @@ public:
                 std::cout << "Running test: " << test.name << "..." << std::endl;
                 test.func();
                 std::cout << "  [PASS] " << test.name << std::endl;
-            } catch (const std::exception& e)
+            }
+            catch (const std::exception& e)
             {
                 ++failed_count;
                 std::cerr << "  [FAIL] " << test.name << " - " << e.what() << std::endl;
@@ -140,97 +142,13 @@ void message(Args&&... args)
 
 } // namespace _priv
 
-#define VX_MESSAGE(...) ::vx::test::_priv::message(__VA_ARGS__)
-
-#define VX_WARNING(...) VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
-
+#define VX_MESSAGE(...)    ::vx::test::_priv::message(__VA_ARGS__)
+#define VX_WARNING(...)    VX_MESSAGE("  [WARNING]: ", __VA_ARGS__)
 #define VX_PRINT_ERRORS(x) ::vx::err::set_hook(::vx::err::print_error_hook);
 
-//=============================================================================
-
-template <typename char_t>
-constexpr const char_t* get_string_literal(
-    const char*,
-    const wchar_t*,
-#if defined(__cpp_lib_char8_t)
-    const char8_t*,
-#endif
-    const char16_t*,
-    const char32_t*
-);
-
-template <>
-constexpr const char* get_string_literal<char>(
-    const char* c,
-    const wchar_t*,
-#if defined(__cpp_lib_char8_t)
-    const char8_t*,
-#endif
-    const char16_t*,
-    const char32_t*)
-{
-    return c;
-}
-
-template <>
-constexpr const wchar_t* get_string_literal<wchar_t>(
-    const char*,
-    const wchar_t* w,
-#if defined(__cpp_lib_char8_t)
-    const char8_t*,
-#endif
-    const char16_t*,
-    const char32_t*)
-{
-    return w;
-}
-
-#if defined(__cpp_lib_char8_t)
-
-template <>
-constexpr const char8_t* get_string_literal<char8_t>(
-    const char*,
-    const wchar_t*,
-    const char8_t* c8,
-    const char16_t*,
-    const char32_t*)
-{
-    return c8;
-}
-
-#endif
-
-template <>
-constexpr const char16_t* get_string_literal<char16_t>(
-    const char*,
-    const wchar_t*,
-#if defined(__cpp_lib_char8_t)
-    const char8_t*,
-#endif
-    const char16_t* c16,
-    const char32_t*)
-{
-    return c16;
-}
-
-template <>
-constexpr const char32_t* get_string_literal<char32_t>(
-    const char*,
-    const wchar_t*,
-#if defined(__cpp_lib_char8_t)
-    const char8_t*,
-#endif
-    const char16_t*,
-    const char32_t* c32)
-{
-    return c32;
-}
-
-#if defined(__cpp_lib_char8_t)
-    #define VX_LIT(T, s) ::vx::test::get_string_literal<T>(s, L##s, u8##s, u##s, U##s)
-#else
-    #define VX_LIT(T, s) ::vx::test::get_string_literal<T>(s, L##s, u##s, U##s)
-#endif
+#define VX_DISABLE_USE_AFTER_MOVE_WARNING() \
+    VX_DISABLE_WARNING_PUSH(); \
+    VX_DISABLE_WARNING("-Wuse-after-move", 26800)
 
 } // namespace test
 } // namespace vx

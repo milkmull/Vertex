@@ -2,11 +2,15 @@
 x array
 x allocation
 x dynamic array base
+
+- span
 x vector
 - static vector
+
 x string view
 x static string
 x string
+
 - print io
 - packed string array
 - single link list

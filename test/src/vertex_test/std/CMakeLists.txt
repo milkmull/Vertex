@@ -7,6 +7,7 @@ vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/m
 vx_add_test(test_std_aligned_storage        "std" "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.cpp")
 vx_add_test(test_std_array                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/array.cpp")
 vx_add_test(test_std_vector                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/vector.cpp")
+vx_add_test(test_std_static_vector          "std" "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.cpp")
 
 file(GLOB VX_PROFILE_VX_VECTOR_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/vector_profile_tools.hpp"

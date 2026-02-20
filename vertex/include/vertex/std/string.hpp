@@ -233,7 +233,7 @@ private:
         size = count;
         capacity = count;
 
-        mem::construct_range(ptr, alloc_count);
+        mem::construct_range_maybe_trivial(ptr, alloc_count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
@@ -452,15 +452,19 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-            mem::construct_range(new_ptr, count + 1);
+            mem::construct_range_maybe_trivial(new_ptr, count + 1);
             destroy_and_deallocate(ptr, size, capacity);
 
             ptr = new_ptr;
             capacity = count;
         }
-        else
+        else if (count > size)
         {
-            destroy_size(ptr, size);
+            mem::construct_range_maybe_trivial(ptr + size + 1, count - size);
+        }
+        else if (count < size)
+        {
+            mem::destroy_range(ptr + count + 1, size - count);
         }
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
@@ -787,7 +791,7 @@ private:
 
         // we increase the size early so we can easily assign the null terminator at the end
         size += count;
-        mem::construct_range(dst + 1, count);
+        mem::construct_range_maybe_trivial(dst + 1, count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
@@ -844,7 +848,7 @@ private:
 
 #endif // defined(VX_ALLOCATE_FAIL_FAST)
 
-        mem::construct_range(new_ptr, new_size + 1);
+        mem::construct_range_maybe_trivial(new_ptr, new_size + 1);
 
         // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
         traits_type::copy(new_ptr, ptr, size);
@@ -1047,7 +1051,7 @@ private:
 
         // initialize the new elements that will be moved into uninitialized memory
         const pointer back = ptr + size;
-        mem::construct_range(back + 1, count);
+        mem::construct_range_maybe_trivial(back + 1, count);
 
         // move the tail backward to make room for the new elements
         const size_type tail_count = static_cast<size_type>(back - pos) + 1;
@@ -1109,7 +1113,7 @@ private:
 
         const size_type off = static_cast<size_type>(pos - ptr);
 
-        mem::construct_range(new_ptr, new_size + 1);
+        mem::construct_range_maybe_trivial(new_ptr, new_size + 1);
         // copy first range
         traits_type::copy(new_ptr, ptr, off);
 
@@ -1134,7 +1138,7 @@ private:
         }
 
         // copy second range (includes null terminator)
-        traits_type::copy(dst + count, pos, size - off);
+        traits_type::copy(dst + count, pos, (size - off) + 1);
 
         // destroy original range
         destroy_and_deallocate(ptr, size, capacity);
@@ -1438,7 +1442,7 @@ public:
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
             VX_ASSERT(size > 0);
-            mem::construct_range(new_ptr, alloc_capacity);
+            mem::construct_range_maybe_trivial(new_ptr, alloc_capacity);
             traits_type::copy(new_ptr, ptr, alloc_capacity);
             destroy_and_deallocate(ptr, size, capacity);
         }
@@ -1560,7 +1564,7 @@ public:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-        mem::construct_range(new_ptr, alloc_capacity);
+        mem::construct_range_maybe_trivial(new_ptr, alloc_capacity);
         traits_type::copy(new_ptr, ptr, size + 1);
         destroy_and_deallocate(ptr, size, capacity);
 
@@ -1741,7 +1745,7 @@ private:
         {
             const size_type diff = in_count - out_count;
             const pointer back = ptr + size + 1;
-            mem::construct_range(back, diff);
+            mem::construct_range_maybe_trivial(back, diff);
 
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _priv::move_batch(pos + in_count, pos + out_count, tail_count);
@@ -1804,7 +1808,7 @@ private:
         pointer dst = new_ptr + off;
 
         // copy prefix [ptr, ptr + size) to [new_ptr, ...), then construct suffix [ptr + size, ...)
-        mem::construct_range(new_ptr, new_size + 1);
+        mem::construct_range_maybe_trivial(new_ptr, new_size + 1);
         traits_type::copy(new_ptr, ptr, off);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)

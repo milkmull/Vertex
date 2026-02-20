@@ -1,4 +1,4 @@
-#include "vertex/std/vector.hpp"
+#include "vertex/std/static_vector.hpp"
 #include "vertex_test/test.hpp"
 
 // https://github.com/microsoft/STL/blob/e2ef398685f7e470dbaeaf65ff919de72bda7489/tests/tr1/tests/vector/test.cpp
@@ -9,7 +9,7 @@
 
 static void test_container()
 {
-    using vec = vx::vector<char>;
+    using vec = vx::static_vector<20, char>;
 
     vec v0;
     VX_CHECK(v0.empty());
@@ -103,12 +103,10 @@ static void test_container()
 
         vec v6(20, 'x');
         vec v7(std::move(v6));
-        VX_CHECK(v6.size() == 0);
         VX_CHECK(v7.size() == 20);
 
         vec v8;
         v8 = std::move(v7);
-        VX_CHECK(v7.size() == 0);
         VX_CHECK(v8.size() == 20);
 
         VX_DISABLE_WARNING_POP();
@@ -119,7 +117,7 @@ static void test_container()
         VX_CHECK(v9[9] == 0);
 
         using movable_int = vx::test::movable_int;
-        vx::vector<movable_int> v10;
+        vx::static_vector<20, movable_int> v10;
         movable_int mi1(1);
         v10.push_back(std::move(mi1));
         VX_CHECK(mi1.val == -1);
@@ -161,7 +159,7 @@ static void test_container()
     VX_SECTION("lvalue stealing")
     {
         using copyable_int = vx::test::copyable_int;
-        vx::vector<copyable_int> v11;
+        vx::static_vector<20, copyable_int> v11;
         copyable_int ci1(1);
         v11.push_back(ci1);
         VX_CHECK(ci1.val == 1);
@@ -173,7 +171,7 @@ static void test_container()
         VX_CHECK(v11[0].val == 3);
         VX_CHECK(v11[1].val == 1);
 
-        vx::vector<copyable_int> v12(v11);
+        vx::static_vector<20, copyable_int> v12(v11);
         VX_CHECK(v11 == v12);
         v11 = v12;
         VX_CHECK(v11 == v12);
@@ -211,8 +209,6 @@ static void test_container()
     {
         vec v0x;
 
-        char* pd = v0x.data();
-        VX_CHECK(pd == nullptr);
         v0x.push_back('a');
         VX_CHECK(*v0x.data() == 'a');
 

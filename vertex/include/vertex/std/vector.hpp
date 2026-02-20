@@ -4,11 +4,14 @@
 #include <initializer_list>
 #include <ratio>
 #include <utility>
+#include <vector>
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_priv/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
+
+//#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
 
 namespace vx {
 
@@ -88,7 +91,7 @@ private:
                 return;
             });
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
@@ -96,7 +99,7 @@ private:
                 return;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         auto new_ptr = allocator_type::allocate(count);
 
@@ -111,7 +114,7 @@ private:
 
         VX_IF_CONSTEXPR (M == construct_method::default_range)
         {
-            mem::construct_range(new_ptr, count);
+            mem::construct_range_maybe_trivial(new_ptr, count);
         }
         else VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
@@ -222,6 +225,16 @@ public:
         destroy_range();
     }
 
+    //=========================================================================
+    // operators
+    //=========================================================================
+
+    template <typename Allocator2>
+    operator std::vector<T, Allocator2>() const
+    {
+        return std::vector<T, Allocator2>(begin(), end());
+    }
+
 private:
 
     //=========================================================================
@@ -235,18 +248,20 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
-
-        VX_UNLIKELY_COLD_PATH(count > max_size(),
-            {
-                err::set(err::size_error);
-                return false;
-            });
-
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+        mem::destroy_range(ptr, size);
 
         if (count > capacity)
         {
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
+            VX_UNLIKELY_COLD_PATH(count > max_size(),
+                {
+                    err::set(err::size_error);
+                    return false;
+                });
+
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
             pointer new_ptr = allocator_type::allocate(count);
 
 #if !defined(VX_ALLOCATE_FAIL_FAST)
@@ -258,32 +273,28 @@ private:
 
 #endif // !defined(VX_ALLOCATE_FAIL_FAST)
 
-            mem::destroy_range(ptr, size);
             allocator_type::deallocate(ptr, capacity);
+
             ptr = new_ptr;
             capacity = count;
-        }
-        else
-        {
-            mem::destroy_range(ptr, size);
         }
 
         VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
-            mem::fill_range(ptr, count, std::forward<Args>(args)...);
+            mem::fill_uninitialized_range(ptr, count, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::move_range)
         {
-            mem::move_range(ptr, std::forward<Args>(args)..., count);
+            mem::move_uninitialized_range(ptr, std::forward<Args>(args)..., count);
         }
         else VX_IF_CONSTEXPR (M == construct_method::copy_range)
         {
-            mem::copy_range(ptr, std::forward<Args>(args)..., count);
+            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)..., count);
         }
         else // VX_IF_CONSTEXPR(M == construct_method::iterator_range)
         {
             VX_STATIC_ASSERT_MSG(M == construct_method::iterator_range, "invalid tag");
-            mem::copy_range(ptr, std::forward<Args>(args)...);
+            mem::copy_uninitialized_range(ptr, std::forward<Args>(args)...);
         }
 
         size = count;
@@ -298,11 +309,12 @@ public:
 
     vector& operator=(const vector& other)
     {
-        if (this != std::addressof(other))
+        if (this == std::addressof(other))
         {
-            assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
+            return *this;
         }
 
+        assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
         return *this;
     }
 
@@ -528,7 +540,7 @@ public:
 
     bool acquire(T* ptr, size_type count) noexcept
     {
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size(),
             {
@@ -536,7 +548,7 @@ public:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         destroy_range();
 
@@ -731,7 +743,7 @@ public:
     {
         if (new_capacity > m_buffer.capacity)
         {
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
             VX_UNLIKELY_COLD_PATH(new_capacity > max_size(),
                 {
@@ -739,7 +751,7 @@ public:
                     return false;
                 });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
             return reallocate(new_capacity);
         }
@@ -760,7 +772,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(new_size > max_size(),
             {
@@ -768,7 +780,7 @@ private:
                 return false;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         pointer new_ptr = allocator_type::allocate(new_size);
 
@@ -786,7 +798,7 @@ private:
 
         VX_IF_CONSTEXPR (sizeof...(Args) == 0)
         {
-            mem::construct_range(end_ptr, grow_count);
+            mem::construct_range_maybe_trivial(end_ptr, grow_count);
         }
         else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
         {
@@ -835,7 +847,7 @@ private:
 
                 VX_IF_CONSTEXPR (sizeof...(Args) == 0)
                 {
-                    mem::construct_range(end_ptr, grow_count);
+                    mem::construct_range_maybe_trivial(end_ptr, grow_count);
                 }
                 else // VX_IF_CONSTEXPR(sizeof...(Args) == 1)
                 {
@@ -882,7 +894,7 @@ private:
             // new stuff spills over
             //
             // initialize the new elements that will spill over into uninitialized memory
-            pointer last = mem::construct_range(back, count - affected);
+            pointer last = mem::construct_range_maybe_trivial(back, count - affected);
             // move the existing elements that will be moved into uninitialized memory
             mem::move_uninitialized_range(last, pos, affected);
         }
@@ -953,7 +965,7 @@ private:
         auto& size = m_buffer.size;
         auto& capacity = m_buffer.capacity;
 
-#if !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         VX_UNLIKELY_COLD_PATH(count > max_size() - size,
             {
@@ -961,7 +973,7 @@ private:
                 return nullptr;
             });
 
-#endif // !defined(VX_DYNAMIC_ARRAY_DISABLE_MAX_SIZE_CHECK)
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
 
         const size_type new_size = size + count;
         const size_type new_capacity = grow_capacity<growth_rate>(new_size, capacity);
@@ -986,7 +998,7 @@ private:
 
         VX_IF_CONSTEXPR (M == construct_method::single)
         {
-            mem::construct_in_place(dst, std::forward<Args>(args)...);
+            mem::construct_in_place_maybe_trivial(dst, std::forward<Args>(args)...);
         }
         else VX_IF_CONSTEXPR (M == construct_method::fill_range)
         {
@@ -1107,7 +1119,7 @@ public:
         }
 
         pointer dst = ptr + size;
-        mem::construct_in_place(dst, std::forward<Args>(args)...);
+        mem::construct_in_place_maybe_trivial(dst, std::forward<Args>(args)...);
         ++size;
 
         return dst;

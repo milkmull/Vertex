@@ -47,7 +47,7 @@ public:
     void construct(Args&&... args)
     {
         _size_check();
-        mem::construct_in_place<T>(ptr<T>(), std::forward<Args>(args)...);
+        mem::construct_in_place_maybe_trivial<T>(ptr<T>(), std::forward<Args>(args)...);
     }
 
     template <typename T>

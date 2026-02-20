@@ -7,9 +7,11 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/invoke.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ranges.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/span.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/char_traits.hpp"

@@ -16,7 +16,7 @@ int main()
     VX_PROFILE_START("profile_vector.csv");
 
     run<vec2<trivial_type>>(NN, RR);
-    run<vec2<non_trivial_type>>(NN, RR);
+    //run<vec2<non_trivial_type>>(NN, RR);
 
     VX_PROFILE_STOP();
     return 0;

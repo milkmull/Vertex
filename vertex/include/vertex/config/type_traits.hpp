@@ -6,6 +6,7 @@
 #include <iterator>
 #include <limits>
 #include <utility>
+#include <tuple>
 
 namespace vx {
 namespace type_traits {
@@ -35,7 +36,8 @@ struct enable_if {};
 template <typename T>
 struct enable_if<true, T> { using type = T; };
 
-#define VX_REQUIRES(condition) typename ::vx::type_traits::enable_if<(condition), int>::type = 0
+#define VX_REQUIRES(...)          typename ::vx::type_traits::enable_if<(__VA_ARGS__), int>::type = 0
+#define VX_FN_REQUIRES(...) template <typename _dummy = void, VX_REQUIRES(__VA_ARGS__)>
 
 //=============================================================================
 // conjunction disjunction
@@ -831,6 +833,12 @@ struct callable_t
     void operator()()
     {}
 };
+
+template <typename T, typename... Args>
+constexpr auto extract_first(T&& first, Args&&... args) noexcept
+{
+    return std::forward<T>(first);
+}
 
 } // namespace type_traits
 } // namespace vx

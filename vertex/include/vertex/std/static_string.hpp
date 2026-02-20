@@ -85,7 +85,7 @@ private:
     bool construct_empty()
     {
         m_buffer.size = 0;
-        mem::construct_in_place(m_buffer.ptr);
+        mem::construct_in_place_maybe_trivial(m_buffer.ptr);
         traits_type::assign(*m_buffer.ptr, T());
         return true;
     }
@@ -114,7 +114,7 @@ private:
         const size_type alloc_count = count + 1;
         size = count;
 
-        mem::construct_range(ptr, alloc_count);
+        mem::construct_range_maybe_trivial(ptr, alloc_count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char_count)
         {
@@ -145,8 +145,10 @@ public:
     // constructors
     //=========================================================================
 
-    basic_static_string() = default;
-    basic_static_string(basic_static_string&&) noexcept = default;
+    basic_static_string()
+    {
+        construct_empty();
+    }
 
     basic_static_string(const basic_static_string& other)
     {
@@ -325,7 +327,14 @@ private:
             return false;
         }
 
-        destroy_size(ptr, size);
+        if (count > size)
+        {
+            mem::construct_range_maybe_trivial(ptr + size + 1, count - size);
+        }
+        if (count < size)
+        {
+            mem::destroy_range(ptr + count + 1, size - count);
+        }
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
@@ -367,16 +376,6 @@ public:
     basic_static_string& operator=(const basic_static_string& other)
     {
         assign_from<construct_method::from_string>(other.size(), other.data());
-        return *this;
-    }
-
-    basic_static_string& operator=(basic_static_string&& other) noexcept
-    {
-        if (this != std::addressof(other))
-        {
-            destroy_range();
-            m_buffer = std::move(other.m_buffer);
-        }
         return *this;
     }
 
@@ -639,7 +638,7 @@ private:
 
         // we increase the size early so we can easily assign the null terminator at the end
         size += count;
-        mem::construct_range(dst + 1, count);
+        mem::construct_range_maybe_trivial(dst + 1, count);
 
         VX_IF_CONSTEXPR (M == construct_method::from_char)
         {
@@ -815,7 +814,7 @@ private:
 
         // initialize the new elements that will be moved into uninitialized memory
         const pointer back = ptr + size;
-        mem::construct_range(back + 1, count);
+        mem::construct_range_maybe_trivial(back + 1, count);
 
         // move the tail backward to make room for the new elements
         const size_type tail_count = static_cast<size_type>(back - pos) + 1;
@@ -1160,7 +1159,7 @@ public:
         }
 
         T* const dst = ptr + size;
-        mem::construct_in_place(dst);
+        mem::construct_in_place_maybe_trivial(dst);
         traits_type::assign(dst[0], c);
         traits_type::assign(dst[1], T());
         ++size;
@@ -1297,7 +1296,7 @@ private:
             }
 
             const pointer back = ptr + size + 1;
-            mem::construct_range(back, diff);
+            mem::construct_range_maybe_trivial(back, diff);
 
             const size_type tail_count = static_cast<size_type>(back - (pos + out_count));
             _priv::move_batch(pos + in_count, pos + out_count, tail_count);
