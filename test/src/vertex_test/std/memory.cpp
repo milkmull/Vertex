@@ -70,6 +70,11 @@ struct non_trivial_type
         return lhs.x == rhs.x;
     }
 
+    friend bool operator!=(const non_trivial_type& lhs, const non_trivial_type& rhs)
+    {
+        return !(lhs == rhs);
+    }
+
     friend bool operator<(const non_trivial_type& lhs, const non_trivial_type& rhs)
     {
         return lhs.x < rhs.x;
@@ -751,132 +756,89 @@ VX_TEST_CASE(range_comparison_functions)
         return vec;
     };
 
-    VX_SECTION("equal_range and not_equal_range with trivial pointers")
+        VX_SECTION("trivial pointer ranges")
     {
-        constexpr size_t count = 5;
-        trivial_type a[count] = { 1, 2, 3, 4, 5 };
-        trivial_type b[count] = { 1, 2, 3, 4, 5 };
-        trivial_type c[count] = { 1, 2, 9, 4, 5 };
+        trivial_type a[5] = { 1, 2, 3, 4, 5 };
+        trivial_type b[5] = { 1, 2, 3, 4, 5 };
+        trivial_type c[5] = { 1, 2, 9, 4, 5 };
 
-        VX_CHECK(vx::mem::equal_range(a, b, count));
-        VX_CHECK(!vx::mem::not_equal_range(a, b, count));
-        VX_CHECK(!vx::mem::equal_range(a, c, count));
-        VX_CHECK(vx::mem::not_equal_range(a, c, count));
+        // equality
+        VX_CHECK(vx::mem::compare_range(a, 5, b, 5) == 0);
+        VX_CHECK(vx::mem::compare_range(a, 5, c, 5) != 0);
+
+        // lexicographical order
+        VX_CHECK(vx::mem::compare_range(a, 5, c, 5) < 0);
+        VX_CHECK(vx::mem::compare_range(c, 5, a, 5) > 0);
+
+        // unequal length
+        trivial_type s[3] = { 1, 2, 3 };
+        trivial_type l[7] = { 1, 2, 3, 4, 5, 6, 7 };
+
+        VX_CHECK(vx::mem::compare_range(s, 3, l, 7) < 0);
+        VX_CHECK(vx::mem::compare_range(l, 7, s, 3) > 0);
+
+        // identical prefix, shorter wins
+        trivial_type p1[4] = { 9, 9, 9, 9 };
+        trivial_type p2[6] = { 9, 9, 9, 9, 9, 9 };
+        VX_CHECK(vx::mem::compare_range(p1, 4, p2, 6) < 0);
+        VX_CHECK(vx::mem::compare_range(p2, 6, p1, 4) > 0);
     }
 
-    VX_SECTION("equal_range and not_equal_range with iterators")
+    VX_SECTION("iterator ranges")
     {
-        auto v1 = make_vector(7, 10);
-        auto v2 = make_vector(7, 10);
-        auto v3 = make_vector(7, 20);
+        auto v1 = make_vector(5, 10); // 10 11 12 13 14
+        auto v2 = make_vector(5, 10);
+        auto v3 = make_vector(5, 20); // larger values
+        auto short_v = make_vector(3, 10);
+        auto long_v = make_vector(8, 10);
 
-        VX_CHECK(vx::mem::equal_range(v1.begin(), v1.end(), v2.begin()));
-        VX_CHECK(!vx::mem::not_equal_range(v1.begin(), v1.end(), v2.begin()));
-        VX_CHECK(!vx::mem::equal_range(v1.begin(), v1.end(), v3.begin()));
-        VX_CHECK(vx::mem::not_equal_range(v1.begin(), v1.end(), v3.begin()));
+        // equality
+        VX_CHECK(vx::mem::compare_range(v1.begin(), v1.end(),
+                     v2.begin(), v2.end()) == 0);
+
+        // inequality
+        VX_CHECK(vx::mem::compare_range(v1.begin(), v1.end(),
+                     v3.begin(), v3.end()) != 0);
+
+        // lexicographical
+        VX_CHECK(vx::mem::compare_range(v1.begin(), v1.end(),
+                     v3.begin(), v3.end()) < 0);
+        VX_CHECK(vx::mem::compare_range(v3.begin(), v3.end(),
+                     v1.begin(), v1.end()) > 0);
+
+        // length-based ordering
+        VX_CHECK(vx::mem::compare_range(short_v.begin(), short_v.end(),
+                     long_v.begin(), long_v.end()) < 0);
+        VX_CHECK(vx::mem::compare_range(long_v.begin(), long_v.end(),
+                     short_v.begin(), short_v.end()) > 0);
     }
 
-    VX_SECTION("less_range and greater_range with trivial pointers")
-    {
-        constexpr size_t count = 4;
-        trivial_type a[count] = { 1, 3, 5, 7 };
-        trivial_type b[count] = { 2, 3, 5, 7 };
-        trivial_type c[count] = { 1, 3, 4, 7 };
-        trivial_type d[count] = { 1, 3, 5, 7 };
-
-        VX_CHECK(vx::mem::less_range(a, b, count));  // 1 < 2 at first element
-        VX_CHECK(!vx::mem::less_range(b, a, count)); // b not less than a
-        VX_CHECK(vx::mem::less_range(c, d, count));  // 4 < 5 at third element
-        VX_CHECK(!vx::mem::less_range(d, c, count)); // d not less than c
-
-        VX_CHECK(vx::mem::greater_range(b, a, count)); // greater reversed
-        VX_CHECK(!vx::mem::greater_range(a, b, count));
-    }
-
-    VX_SECTION("less_range and greater_range with iterators")
-    {
-        auto v1 = make_vector(5, 1); // 1,2,3,4,5
-        auto v2 = make_vector(5, 2); // 2,3,4,5,6
-        auto v3 = make_vector(5, 1); // same as v1
-
-        VX_CHECK(vx::mem::less_range(v1.begin(), v1.end(), v2.begin()));
-        VX_CHECK(!vx::mem::less_range(v2.begin(), v2.end(), v1.begin()));
-
-        VX_CHECK(vx::mem::greater_range(v2.begin(), v2.end(), v1.begin()));
-        VX_CHECK(!vx::mem::greater_range(v1.begin(), v1.end(), v2.begin()));
-
-        VX_CHECK(!vx::mem::less_range(v1.begin(), v1.end(), v3.begin())); // equal sequences
-        VX_CHECK(!vx::mem::greater_range(v1.begin(), v1.end(), v3.begin()));
-    }
-
-    VX_SECTION("less_equal_range and greater_equal_range with trivial pointers")
-    {
-        constexpr size_t count = 3;
-        trivial_type a[count] = { 1, 2, 3 };
-        trivial_type b[count] = { 1, 2, 4 };
-        trivial_type c[count] = { 1, 2, 3 };
-
-        VX_CHECK(vx::mem::less_equal_range(a, b, count));  // a < b
-        VX_CHECK(vx::mem::less_equal_range(a, c, count));  // a == c
-        VX_CHECK(!vx::mem::less_equal_range(b, a, count)); // b !< a
-
-        VX_CHECK(vx::mem::greater_equal_range(b, a, count));  // b > a
-        VX_CHECK(vx::mem::greater_equal_range(a, c, count));  // a == c
-        VX_CHECK(!vx::mem::greater_equal_range(a, b, count)); // a !> b
-    }
-
-    VX_SECTION("less_equal_range and greater_equal_range with iterators")
-    {
-        auto v1 = make_vector(4, 10);
-        auto v2 = make_vector(4, 11);
-        auto v3 = make_vector(4, 10);
-
-        VX_CHECK(vx::mem::less_equal_range(v1.begin(), v1.end(), v2.begin()));
-        VX_CHECK(vx::mem::less_equal_range(v1.begin(), v1.end(), v3.begin()));
-        VX_CHECK(!vx::mem::less_equal_range(v2.begin(), v2.end(), v1.begin()));
-
-        VX_CHECK(vx::mem::greater_equal_range(v2.begin(), v2.end(), v1.begin()));
-        VX_CHECK(vx::mem::greater_equal_range(v1.begin(), v1.end(), v3.begin()));
-        VX_CHECK(!vx::mem::greater_equal_range(v1.begin(), v1.end(), v2.begin()));
-    }
-
-    VX_SECTION("equal_range and related functions with non_trivial_type pointers")
+    VX_SECTION("non-trivial types")
     {
         non_trivial_type::reset_counters();
 
         constexpr size_t count = 3;
-        alignas(alignof(non_trivial_type)) std::byte buffer_a[sizeof(non_trivial_type) * count];
-        alignas(alignof(non_trivial_type)) std::byte buffer_b[sizeof(non_trivial_type) * count];
-        non_trivial_type* a = reinterpret_cast<non_trivial_type*>(buffer_a);
-        non_trivial_type* b = reinterpret_cast<non_trivial_type*>(buffer_b);
+        non_trivial_type bufA[count];
+        non_trivial_type bufB[count];
 
-        vx::mem::construct_range(a, count);
-        vx::mem::construct_range(b, count);
+        vx::mem::construct_range(bufA, count);
+        vx::mem::construct_range(bufB, count);
 
-        // set same values
         for (size_t i = 0; i < count; ++i)
         {
-            a[i].x = b[i].x = static_cast<int>(i * 7);
+            bufA[i].x = bufB[i].x = static_cast<int>(i * 10);
         }
 
-        VX_CHECK(vx::mem::equal_range(a, b, count));
-        VX_CHECK(!vx::mem::not_equal_range(a, b, count));
-        VX_CHECK(!vx::mem::less_range(a, b, count));
-        VX_CHECK(!vx::mem::greater_range(a, b, count));
-        VX_CHECK(vx::mem::less_equal_range(a, b, count));
-        VX_CHECK(vx::mem::greater_equal_range(a, b, count));
+        VX_CHECK(vx::mem::compare_range(bufA, count, bufB, count) == 0);
 
-        // change one element
-        b[1].x += 1;
-        VX_CHECK(!vx::mem::equal_range(a, b, count));
-        VX_CHECK(vx::mem::not_equal_range(a, b, count));
-        VX_CHECK(vx::mem::less_range(a, b, count)); // a < b since b[1] > a[1]
-        VX_CHECK(!vx::mem::greater_range(a, b, count));
-        VX_CHECK(vx::mem::less_equal_range(a, b, count));
-        VX_CHECK(!vx::mem::greater_equal_range(a, b, count));
+        // mutate
+        bufB[1].x += 5;
 
-        vx::mem::destroy_range(a, count);
-        vx::mem::destroy_range(b, count);
+        VX_CHECK(vx::mem::compare_range(bufA, count, bufB, count) < 0);
+        VX_CHECK(vx::mem::compare_range(bufB, count, bufA, count) > 0);
+
+        vx::mem::destroy_range(bufA, count);
+        vx::mem::destroy_range(bufB, count);
     }
 }
 

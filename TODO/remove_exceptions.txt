@@ -5,7 +5,7 @@ x dynamic array base
 
 - span
 x vector
-- static vector
+x static vector
 
 x string view
 x static string

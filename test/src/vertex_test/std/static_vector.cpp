@@ -257,6 +257,37 @@ VX_TEST_CASE(container)
     test_container();
 }
 
+//=============================================================================
+
+static void test_failure()
+{
+    using vec = vx::static_vector<5, char>;
+    using big_vec = vx::static_vector<vec::capacity() + 1, char>;
+    using small_vec = vx::static_vector<vec::capacity() - 1, char>;
+
+    VX_EXPECT_ERROR_CODE(vec a(6, 'x'), vx::err::size_error);
+
+    vec s;
+    const big_vec big = { '1', '2', '3', '4', '5', '6' };
+    const big_vec small = { '1', '2', '3', '4' };
+
+    VX_EXPECT_ERROR_CODE(s = big, vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.assign(big), vx::err::size_error);
+    VX_EXPECT_ERROR_CODE(s.insert(s.begin(), big.begin(), big.end()), vx::err::size_error);
+
+    VX_EXPECT_NO_ERROR(s = small);
+    s.clear();
+    VX_EXPECT_NO_ERROR(s.assign(small));
+    s.clear();
+    VX_EXPECT_NO_ERROR(s.insert(s.begin(), small.begin(), small.end()));
+    s.clear();
+}
+
+VX_TEST_CASE(failure)
+{
+    test_failure();
+}
+
 //=========================================================================
 
 int main()

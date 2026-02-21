@@ -1504,6 +1504,8 @@ template <typename T, typename Traits, typename Alloc>
 struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
 {};
 
+//=========================================================================
+
 template <typename S, typename T, typename = void>
 struct is_string_of : std::false_type
 {};
@@ -1511,6 +1513,8 @@ struct is_string_of : std::false_type
 template <typename S, typename T>
 struct is_string_of<S, T, type_traits::void_t<typename S::value_type>> : std::bool_constant<is_string_like<S>::value && std::is_same<typename S::value_type, T>::value>
 {};
+
+//=========================================================================
 
 template <typename S1, typename S2, typename = void>
 struct is_string_compatible : std::false_type

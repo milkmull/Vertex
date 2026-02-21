@@ -10,6 +10,7 @@
 #include "vertex/std/_priv/pointer_iterator.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
+#include "vertex/std/vector_traits.hpp"
 
 //#define VX_VECTOR_DISABLE_MAX_SIZE_CHECK 1
 
@@ -18,6 +19,12 @@ namespace vx {
 template <typename T, typename Allocator = mem::default_allocator<T>>
 class vector
 {
+private:
+
+    template <typename V>
+    struct is_compatible_vector : is_vector_of<V, T>
+    {};
+
 public:
 
     //=========================================================================
@@ -191,6 +198,12 @@ public:
         }
     }
 
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    vector(const V& v)
+    {
+        construct_n<construct_method::copy_range>(v.size(), v.data());
+    }
+
 private:
 
     //=========================================================================
@@ -335,6 +348,13 @@ public:
         return *this;
     }
 
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    vector& operator=(const V& v)
+    {
+        assign_from<construct_method::copy_range>(v.size(), v.data());
+        return *this;
+    }
+
     //=========================================================================
     // assign
     //=========================================================================
@@ -388,6 +408,13 @@ public:
         {
             return assign_from<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
+    }
+
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    bool assign(const V& v)
+    {
+        assign_from<construct_method::copy_range>(v.size(), v.data());
+        return *this;
     }
 
     //=========================================================================
@@ -1050,6 +1077,58 @@ private:
 public:
 
     template <typename growth_rate = default_growth_rate>
+    vector& insert(size_type off, const T& value)
+    {
+        return emplace<growth_rate>(off, value);
+    }
+
+    template <typename growth_rate = default_growth_rate>
+    vector& insert(size_type off, T&& value) noexcept
+    {
+        return emplace<growth_rate>(off, std::move(value));
+    }
+
+    template <typename growth_rate = default_growth_rate>
+    vector& insert(size_type off, size_type count, const T& value)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<growth_rate, construct_method::fill_range>(ptr, count, value);
+        return *this;
+    }
+
+    template <typename growth_rate = default_growth_rate>
+    vector& insert(size_type off, std::initializer_list<T> init)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<growth_rate, construct_method::copy_range>(ptr, init.size(), init.begin());
+        return *this;
+    }
+
+    template <typename growth_rate = default_growth_rate, typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    vector& insert(size_type off, IT first, IT last)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        {
+            insert_n<growth_rate, construct_method::copy_range>(ptr, count, first.ptr());
+        }
+        else
+        {
+            insert_n<growth_rate, construct_method::iterator_range>(ptr, count, first, last);
+        }
+
+        return *this;
+    }
+
+    //=========================================================================
+    //=========================================================================
+
+    template <typename growth_rate = default_growth_rate>
     iterator insert(const_iterator pos, const T& value)
     {
         return emplace<growth_rate>(pos, value);
@@ -1126,6 +1205,15 @@ public:
     }
 
     template <typename growth_rate = default_growth_rate, typename... Args>
+    vector& emplace(size_type off, Args&&... args)
+    {
+        VX_ASSERT(off < size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<growth_rate, construct_method::single>(ptr, 1, std::forward<Args>(args)...);
+        return *this;
+    }
+
+    template <typename growth_rate = default_growth_rate, typename... Args>
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1173,6 +1261,14 @@ private:
 
 public:
 
+    vector& erase(size_type off)
+    {
+        VX_ASSERT(off < size());
+        auto ptr = m_buffer.ptr + off;
+        erase_n(ptr, 1);
+        return *this;
+    }
+
     iterator erase(const_iterator pos)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -1187,6 +1283,8 @@ public:
         ptr = erase_n(ptr, count);
         return iterator(ptr);
     }
+
+    //=========================================================================
 
     void pop_back()
     {
@@ -1208,35 +1306,25 @@ public:
 template <typename T, typename Allocator>
 bool operator==(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    if (lhs.size() != rhs.size())
-    {
-        return false;
-    }
-
-    return mem::equal_range(lhs.data(), rhs.data(), lhs.size());
+    return mem::compare_range(lhs.data(), lhs.size(), rhs.data(), rhs.size()) == 0;
 }
 
 template <typename T, typename Allocator>
 bool operator!=(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    return !operator==(lhs, rhs);
+    return !(lhs == rhs);
 }
 
 template <typename T, typename Allocator>
 bool operator<(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    const auto min_size = lhs.size() < rhs.size() ? lhs.size() : rhs.size();
-    if (!mem::equal_range(lhs.data(), rhs.data(), min_size))
-    {
-        return mem::less_range(lhs.data(), rhs.data(), min_size);
-    }
-    return lhs.size() < rhs.size();
+    return mem::compare_range(lhs.data(), lhs.size(), rhs.data(), rhs.size()) < 0;
 }
 
 template <typename T, typename Allocator>
 bool operator>(const vector<T, Allocator>& lhs, const vector<T, Allocator>& rhs)
 {
-    return rhs < lhs;
+    return (rhs < lhs);
 }
 
 template <typename T, typename Allocator>

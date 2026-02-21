@@ -8,6 +8,7 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/_priv/pointer_iterator.hpp"
+#include "vertex/std/vector_traits.hpp"
 #include "vertex/std/error.hpp"
 #include "vertex/std/memory.hpp"
 
@@ -16,6 +17,14 @@ namespace vx {
 template <size_t N, typename T>
 class static_vector
 {
+private:
+
+    VX_STATIC_ASSERT_MSG(N > 0, "N must be greater than 0");
+
+    template <typename V>
+    struct is_compatible_vector : is_vector_of<V, T>
+    {};
+
 public:
 
     //=========================================================================
@@ -149,6 +158,12 @@ public:
         }
     }
 
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    static_vector(const V& v)
+    {
+        construct_n<construct_method::copy_range>(v.size(), v.data());
+    }
+
 private:
 
     //=========================================================================
@@ -259,6 +274,13 @@ public:
         return *this;
     }
 
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    static_vector& operator=(const V& v)
+    {
+        assign_from<construct_method::copy_range>(v.size(), v.data());
+        return *this;
+    }
+
     //=========================================================================
     // assign
     //=========================================================================
@@ -271,17 +293,6 @@ public:
         }
 
         return assign_from<construct_method::copy_range>(other.m_buffer.size, other.m_buffer.ptr);
-    }
-
-    bool assign(static_vector&& other) noexcept
-    {
-        if (this != std::addressof(other))
-        {
-            destroy_range();
-            m_buffer = other.release_buffer();
-        }
-
-        return true;
     }
 
     bool assign(std::initializer_list<T> init)
@@ -312,6 +323,13 @@ public:
         {
             return assign_from<construct_method::iterator_range>(count, std::move(first), std::move(last));
         }
+    }
+
+    template <typename V, VX_REQUIRES(is_compatible_vector<V>::value)>
+    static_vector& asssign(const V& v)
+    {
+        assign_from<construct_method::copy_range>(v.size(), v.data());
+        return *this;
     }
 
     //=========================================================================
@@ -480,14 +498,14 @@ public:
 
     static constexpr size_type max_size() noexcept
     {
-        return mem::max_array_size<T>();
+        return N;
     }
 
     //=========================================================================
     // capacity
     //=========================================================================
 
-    static size_type capacity() noexcept
+    static constexpr size_type capacity() noexcept
     {
         return N;
     }
@@ -657,6 +675,54 @@ private:
 
 public:
 
+    static_vector& insert(size_type off, const T& value)
+    {
+        return emplace(off, value);
+    }
+
+    static_vector& insert(size_type off, T&& value) noexcept
+    {
+        return emplace(off, std::move(value));
+    }
+
+    static_vector& insert(size_type off, size_type count, const T& value)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<construct_method::fill_range>(ptr, count, value);
+        return *this;
+    }
+
+    static_vector& insert(size_type off, std::initializer_list<T> init)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<construct_method::copy_range>(ptr, init.size(), init.begin());
+        return *this;
+    }
+
+    template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
+    static_vector& insert(size_type off, IT first, IT last)
+    {
+        VX_ASSERT(off <= size());
+        auto ptr = m_buffer.ptr + off;
+        const size_type count = static_cast<size_type>(std::distance(first, last));
+
+        VX_IF_CONSTEXPR (_priv::is_forward_pointer_iterator<IT>::value)
+        {
+            insert_n<construct_method::copy_range>(ptr, count, first.ptr());
+        }
+        else
+        {
+            insert_n<construct_method::iterator_range>(ptr, count, first, last);
+        }
+
+        return *this;
+    }
+
+    //=========================================================================
+    //=========================================================================
+
     iterator insert(const_iterator pos, const T& value)
     {
         return emplace(pos, value);
@@ -723,6 +789,15 @@ public:
     }
 
     template <typename... Args>
+    static_vector& emplace(size_type off, Args&&... args)
+    {
+        VX_ASSERT(off < size());
+        auto ptr = m_buffer.ptr + off;
+        insert_n<construct_method::single>(ptr, 1, std::forward<Args>(args)...);
+        return *this;
+    }
+
+    template <typename... Args>
     iterator emplace(const_iterator pos, Args&&... args)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -768,6 +843,14 @@ private:
 
 public:
 
+    static_vector& erase(size_type off)
+    {
+        VX_ASSERT(off < size());
+        auto ptr = m_buffer.ptr + off;
+        erase_n(ptr, 1);
+        return *this;
+    }
+
     iterator erase(const_iterator pos)
     {
         auto ptr = const_cast<pointer>(pos.ptr());
@@ -803,35 +886,25 @@ public:
 template <size_t N, typename T>
 bool operator==(const static_vector<N, T>& lhs, const static_vector<N, T>& rhs)
 {
-    if (lhs.size() != rhs.size())
-    {
-        return false;
-    }
-
-    return mem::equal_range(lhs.data(), rhs.data(), lhs.size());
+    return mem::compare_range(lhs.data(), lhs.size(), rhs.data(), rhs.size()) == 0;
 }
 
 template <size_t N, typename T>
 bool operator!=(const static_vector<N, T>& lhs, const static_vector<N, T>& rhs)
 {
-    return !operator==(lhs, rhs);
+    return !(lhs == rhs);
 }
 
 template <size_t N, typename T>
 bool operator<(const static_vector<N, T>& lhs, const static_vector<N, T>& rhs)
 {
-    const auto min_size = lhs.size() < rhs.size() ? lhs.size() : rhs.size();
-    if (!mem::equal_range(lhs.data(), rhs.data(), min_size))
-    {
-        return mem::less_range(lhs.data(), rhs.data(), min_size);
-    }
-    return lhs.size() < rhs.size();
+    return mem::compare_range(lhs.data(), lhs.size(), rhs.data(), rhs.size()) < 0;
 }
 
 template <size_t N, typename T>
 bool operator>(const static_vector<N, T>& lhs, const static_vector<N, T>& rhs)
 {
-    return rhs < lhs;
+    return (rhs < lhs);
 }
 
 template <size_t N, typename T>

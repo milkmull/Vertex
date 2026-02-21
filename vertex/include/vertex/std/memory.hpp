@@ -396,7 +396,7 @@ inline void deallocate_aligned(void* ptr, size_t bytes, size_t alignment) noexce
 template <typename T, typename... Args>
 void construct_in_place(T& obj, Args&&... args)
 {
-    VX_IF_CONSTEXPR(sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
+    VX_IF_CONSTEXPR (sizeof...(Args) == 0 && std::is_trivially_default_constructible<T>::value)
     {
         ::new (static_cast<void*>(std::addressof(obj))) T;
     }
@@ -885,166 +885,80 @@ IT1 move_uninitialized_range(IT1 dst, IT2 first, IT2 last)
 //=========================================================================
 
 template <typename T>
-bool equal_range(const T* a, const T* b, size_t count)
+int compare_range(const T* a, const T* b, size_t count)
 {
+    return compare(a, b, count * sizeof(T));
+}
+
+template <typename T>
+int compare_range(const T* a, size_t count_a, const T* b, size_t count_b)
+{
+    size_t min_count = std::min(count_a, count_b);
+
     VX_IF_CONSTEXPR ((type_traits::is_bitwise_comparable<T, T>::value))
     {
-        return compare(a, b, count * sizeof(T)) == 0;
+        const int res = compare_range(a, b, min_count);
+        if (res != 0)
+        {
+            return res;
+        }
     }
     else
     {
-        for (; 0 < count; --count)
+        for (; 0 < min_count; --min_count)
         {
-            if (!(*a == *b))
+            if (*a != *b)
             {
-                return false;
+                return (*a < *b) ? -1 : 1;
             }
 
             ++a;
             ++b;
         }
-
-        return true;
     }
-}
 
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool equal_range(IT1 first1, IT1 last1, IT2 first2)
-{
-    using T1 = typename std::iterator_traits<IT1>::value_type;
-    using T2 = typename std::iterator_traits<IT2>::value_type;
-
-    constexpr bool is_bitwise_comparable =
-        type_traits::is_bitwise_comparable<T1, T2>::value &&
-        type_traits::iterators_are_continguous<IT1, IT2>::value;
-
-    VX_IF_CONSTEXPR (is_bitwise_comparable)
+    if (count_a < count_b)
     {
-        const size_t count = static_cast<size_t>(std::distance(first1, last1));
-        return compare(std::addressof(*first1), std::addressof(*first2), count * sizeof(T1)) == 0;
+        return -1;
     }
-    else
+
+    if (count_a > count_b)
     {
-        while (first1 != last1)
-        {
-            if (!(*first1 == *first2))
-            {
-                return false;
-            }
-
-            ++first1;
-            ++first2;
-        }
-
-        return true;
+        return 1;
     }
-}
 
-//=========================================================================
-// Inequality
-
-template <typename T>
-bool not_equal_range(const T* a, const T* b, size_t count)
-{
-    return !mem::equal_range(a, b, count);
+    return 0;
 }
 
 template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool not_equal_range(IT1 first1, IT1 last1, IT2 first2)
+int compare_range(IT1 first1, IT1 last1, IT2 first2, IT2 last2)
 {
-    return !mem::equal_range(first1, last1, first2);
-}
+    const size_t count1 = static_cast<size_t>(std::distance(first1, last1));
+    const size_t count2 = static_cast<size_t>(std::distance(first2, last2));
+    size_t min_count = std::min(count1, count2);
 
-//=========================================================================
-
-template <typename T>
-bool less_range(const T* a, const T* b, size_t count)
-{
-    for (; count > 0; --count, ++a, ++b)
+    for (; 0 < min_count; --min_count)
     {
-        if (*a < *b)
+        if (*first1 != *first2)
         {
-            return true;
+            return (*first1 < *first2) ? -1 : 1;
         }
-        if (*b < *a)
-        {
-            return false;
-        }
+
+        ++first1;
+        ++first2;
     }
 
-    return false;
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool less_range(IT1 first1, IT1 last1, IT2 first2)
-{
-    for (; first1 != last1; ++first1, ++first2)
+    if (count1 < count2)
     {
-        if (*first1 < *first2)
-        {
-            return true;
-        }
-        if (*first2 < *first1)
-        {
-            return false;
-        }
+        return -1;
     }
 
-    return false;
-}
-
-//=========================================================================
-
-template <typename T>
-bool greater_range(const T* a, const T* b, size_t count)
-{
-    return less_range(b, a, count);
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool greater_range(IT1 first1, IT1 last1, IT2 first2)
-{
-    for (; first1 != last1; ++first1, ++first2)
+    if (count1 > count2)
     {
-        if (*first1 > *first2)
-        {
-            return true;
-        }
-        if (*first2 > *first1)
-        {
-            return false;
-        }
+        return 1;
     }
 
-    return false;
-}
-
-//=========================================================================
-
-template <typename T>
-bool less_equal_range(const T* a, const T* b, size_t count)
-{
-    return !greater_range(a, b, count);
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool less_equal_range(IT1 first1, IT1 last1, IT2 first2)
-{
-    return !greater_range(first1, last1, first2);
-}
-
-//=========================================================================
-
-template <typename T>
-bool greater_equal_range(const T* a, const T* b, size_t count)
-{
-    return !less_range(a, b, count);
-}
-
-template <typename IT1, typename IT2, VX_REQUIRES((type_traits::is_iterator<IT1>::value && type_traits::is_iterator<IT2>::value))>
-bool greater_equal_range(IT1 first1, IT1 last1, IT2 first2)
-{
-    return !less_range(first1, last1, first2);
+    return 0;
 }
 
 //=========================================================================

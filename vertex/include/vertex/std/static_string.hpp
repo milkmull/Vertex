@@ -416,11 +416,6 @@ public:
         return operator=(other);
     }
 
-    basic_static_string& assign(basic_static_string&& other) noexcept
-    {
-        return operator=(std::move(other));
-    }
-
     //=========================================================================
 
     basic_static_string& assign(const T c)
