@@ -165,7 +165,7 @@ public:
         return N;
     }
 
-    static constexpr size_type data_size() noexcept
+    static constexpr size_type size_bytes() noexcept
     {
         return size() * sizeof(T);
     }
@@ -181,7 +181,7 @@ public:
 
     friend bool operator==(const array& lhs, const array& rhs)
     {
-        return mem::equal_range(lhs._m_array, rhs._m_array, size());
+        return mem::compare_range(lhs._m_array, rhs._m_array, size()) == 0;
     }
 
     friend bool operator!=(const array& lhs, const array& rhs)
@@ -191,7 +191,7 @@ public:
 
     friend bool operator<(const array& lhs, const array& rhs)
     {
-        return mem::less_range(lhs._m_array, rhs._m_array, size());
+        return mem::compare_range(lhs._m_array, rhs._m_array, size()) < 0;
     }
 
     friend bool operator>(const array& lhs, const array& rhs)

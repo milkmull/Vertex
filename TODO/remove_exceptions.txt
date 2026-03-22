@@ -3,7 +3,7 @@ x array
 x allocation
 x dynamic array base
 
-- span
+x span
 x vector
 x static vector
 

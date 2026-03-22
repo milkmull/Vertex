@@ -54,17 +54,12 @@ private:
 
     template <typename F, typename Tuple, size_t... I>
     static auto apply_impl(F&& f, Tuple&& t, type_traits::index_sequence<I...>)
-        -> decltype(f(std::get<I>(std::forward<Tuple>(t))...))
     {
         return f(std::get<I>(std::forward<Tuple>(t))...);
     }
 
     template <typename F, typename Tuple>
     static auto apply(F&& f, Tuple&& t)
-        -> decltype(apply_impl(
-            std::forward<F>(f),
-            std::forward<Tuple>(t),
-            type_traits::make_index_sequence<std::tuple_size<typename std::decay<Tuple>::type>::value>{}))
     {
         return apply_impl(
             std::forward<F>(f),

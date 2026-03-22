@@ -491,7 +491,7 @@ public:
         return m_buffer.size;
     }
 
-    size_type data_size() const noexcept
+    size_type size_bytes() const noexcept
     {
         return size() * sizeof(T);
     }

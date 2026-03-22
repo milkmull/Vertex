@@ -315,7 +315,7 @@ bool process::process_impl::start(process* p, const config& config)
                 if ((stream.proc_file_mode() == file::mode::read && !stream.redirect->can_read()) ||
                     (stream.proc_file_mode() == file::mode::write && !stream.redirect->can_write()))
                 {
-                    err::set(err::invalid_argument, "process::start(): redirect stream mode is incompatable with expected file mode");
+                    err::set(err::invalid_argument, "process::start(): redirect stream mode is incompatible with expected file mode");
                     goto posix_spawn_fail_all;
                 }
 

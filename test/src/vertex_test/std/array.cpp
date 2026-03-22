@@ -143,7 +143,7 @@ VX_TEST_CASE(test_size)
 
     VX_CHECK(A::size() == 5);
     VX_CHECK(!A::empty());
-    VX_CHECK(A::data_size() == sizeof(size_t) * 5);
+    VX_CHECK(A::size_bytes() == sizeof(size_t) * 5);
     VX_CHECK(A::max_size() >= 5); // depends on mem::max_array_size
 }
 

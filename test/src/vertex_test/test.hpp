@@ -90,16 +90,16 @@ inline void fail_test(const char* condition, const char* func, int line)
 
 #define VX_SECTION(name) std::cout << "  [SECTION] " << name << std::endl;
 
-#define VX_CHECK(condition) \
+#define VX_CHECK(...) \
     do \
     { \
-        if (!(condition)) \
+        if (!(__VA_ARGS__)) \
         { \
-            ::vx::test::fail_test(#condition, VX_FUNCTION, VX_LINE); \
+            ::vx::test::fail_test(#__VA_ARGS__, VX_FUNCTION, VX_LINE); \
         } \
     } while (VX_NULL_WHILE_LOOP_CONDITION)
 
-#define VX_STATIC_CHECK(condition) static_assert((condition), "Static check failed: " #condition)
+#define VX_STATIC_CHECK(...) static_assert((__VA_ARGS__), "Static check failed: " #__VA_ARGS__)
 
 #define VX_EXPECT_ERROR(condition) \
     do \

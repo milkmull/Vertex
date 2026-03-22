@@ -9,3 +9,5 @@
 #define VX_FALLTHROUGH
 #define VX_IF_CONSTEXPR
 #define VX_TEST
+#define VX_REQUIRES
+#define VX_FN_REQUIRES

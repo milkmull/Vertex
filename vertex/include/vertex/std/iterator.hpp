@@ -5,7 +5,6 @@
 #include "vertex/config/type_traits.hpp"
 
 namespace vx {
-namespace _priv {
 
 //==============================================================================
 
@@ -363,5 +362,63 @@ constexpr bool operator>=(IT1 a, IT2 b) noexcept
     return a.ptr() >= b.ptr();
 }
 
-} // namespace _priv
+//==============================================================================
+// back inserter
+//==============================================================================
+
+template <typename T>
+class back_insert_iterator
+{
+public:
+
+    using iterator_category = std::output_iterator_tag;
+    using value_type = void;
+    using pointer = void;
+    using reference = void;
+
+    using m_container_type = T;
+    using difference_type = ptrdiff_t;
+
+    constexpr explicit back_insert_iterator(T& c) noexcept
+        : m_container(std::addressof(c))
+    {}
+
+    constexpr back_insert_iterator& operator=(const typename T::value_type& v)
+    {
+        m_container->push_back(v);
+        return *this;
+    }
+
+    constexpr back_insert_iterator& operator=(typename T::value_type&& v)
+    {
+        m_container->push_back(std::move(v));
+        return *this;
+    }
+
+    _NODISCARD constexpr back_insert_iterator& operator*() noexcept
+    {
+        return *this;
+    }
+
+    constexpr back_insert_iterator& operator++() noexcept
+    {
+        return *this;
+    }
+
+    constexpr back_insert_iterator operator++(int) noexcept
+    {
+        return *this;
+    }
+
+protected:
+
+    T* m_container;
+};
+
+template <typename T>
+VX_NO_DISCARD constexpr back_insert_iterator<T> back_inserter(T& c) noexcept
+{
+    return back_insert_iterator<T>(c);
+}
+
 } // namespace vx

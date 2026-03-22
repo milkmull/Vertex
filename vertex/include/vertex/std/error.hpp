@@ -239,5 +239,35 @@ VX_API bool print_error_hook(code err, const char* msg, os::thread_id thread);
 #define VX_CATCH            if (::vx::err::is_set())
 #define VX_CATCH_CODE(code) if (::vx::err::get_code() == code)
 
+namespace _priv {
+
+template <typename F>
+class defer
+{
+public:
+
+    explicit defer(F&& f)
+        : m_f(std::forward<F>(f))
+    {}
+
+    ~defer()
+    {
+        m_f();
+    }
+
+    defer(const defer&) = delete;
+    defer& operator=(const defer&) = delete;
+    defer(defer&&) = delete;
+    defer& operator=(defer&&) = delete;
+
+private:
+
+    F m_f;
+};
+
+} // namespace _priv
+
+#define VX_DEFER auto VX_CONCAT(_vx_defer_, __COUNTER__) = ::vx::err::_priv::defer([&]() noexcept
+
 } // namespace err
 } // namespace vx

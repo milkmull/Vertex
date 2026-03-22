@@ -611,7 +611,7 @@ public:
         return m_buffer.size;
     }
 
-    size_type data_size() const noexcept
+    size_type size_bytes() const noexcept
     {
         return size() * sizeof(T);
     }
@@ -1190,7 +1190,19 @@ public:
 
         if (size == capacity)
         {
-            const size_type new_capacity = grow_capacity<growth_rate>(size + 1, capacity);
+            const size_type count = size + 1;
+
+#if !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
+            VX_UNLIKELY_COLD_PATH(count > max_size() - size,
+                {
+                    err::set(err::size_error);
+                    return nullptr;
+                });
+
+#endif // !defined(VX_VECTOR_DISABLE_MAX_SIZE_CHECK)
+
+            const size_type new_capacity = grow_capacity<growth_rate>(count, capacity);
             VX_UNLIKELY_COLD_PATH(!reallocate(new_capacity),
                 {
                     return nullptr;

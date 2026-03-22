@@ -10,6 +10,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/ranges.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/iterator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/array.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/span.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/vector_traits.hpp"
@@ -21,6 +22,10 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/static_string.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/unique_ptr.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/utf.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/string_cast.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/string_convert.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/fnv1a.hpp"
 )

@@ -8,6 +8,7 @@ vx_add_test(test_std_aligned_storage        "std" "${CMAKE_CURRENT_SOURCE_DIR}/a
 vx_add_test(test_std_array                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/array.cpp")
 vx_add_test(test_std_vector                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/vector.cpp")
 vx_add_test(test_std_static_vector          "std" "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.cpp")
+vx_add_test(test_std_span                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/span.cpp")
 
 file(GLOB VX_PROFILE_VX_VECTOR_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/vector_profile_tools.hpp"
@@ -26,3 +27,5 @@ vx_add_test(test_std_char_traits                    "std" "${CMAKE_CURRENT_SOURC
 vx_add_test(test_std_string                         "std" "${CMAKE_CURRENT_SOURCE_DIR}/string.cpp")
 vx_add_test(test_std_string_view                    "std" "${CMAKE_CURRENT_SOURCE_DIR}/string_view.cpp")
 vx_add_test(test_std_static_string                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/static_string.cpp")
+vx_add_test(test_std_string_utils                   "std" "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.cpp")
+vx_add_test(test_std_string_convert                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/string_convert.cpp")

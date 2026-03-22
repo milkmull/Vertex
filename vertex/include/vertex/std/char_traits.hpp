@@ -13,6 +13,8 @@
 namespace vx {
 namespace str {
 
+namespace _priv {
+
 //=========================================================================
 // compare
 //=========================================================================
@@ -72,7 +74,7 @@ constexpr int compare(const wchar_t* a, const wchar_t* b) noexcept
 }
 
 //=========================================================================
-// compare
+// compare_n
 //=========================================================================
 
 template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
@@ -187,7 +189,7 @@ constexpr wchar_t* copy(wchar_t* dst, const wchar_t* src) noexcept
 }
 
 //=========================================================================
-// copy_n (copy up to n characters)
+// copy_n
 //=========================================================================
 
 template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
@@ -259,7 +261,7 @@ constexpr char_t* assign(char_t* s, char_t c) noexcept
 }
 
 //=========================================================================
-// assign_n (assign a character to up to n characters)
+// assign_n
 //=========================================================================
 
 template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
@@ -374,70 +376,7 @@ constexpr size_t length(const wchar_t* s) noexcept
 }
 
 //=========================================================================
-// find (first character)
-//=========================================================================
-
-template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
-constexpr const char_t* find(const char_t* s, char_t c) noexcept
-{
-    while (*s)
-    {
-        if (*s == c)
-        {
-            return s;
-        }
-
-        ++s;
-    }
-
-    return (c == char_t()) ? s : nullptr;
-}
-
-constexpr const char* find(const char* s, char c) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return find<char>(s, c);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_strchr)
-        return __builtin_strchr(s, c);
-#else
-        return ::strchr(s, c);
-#endif
-    }
-}
-
-#if defined(__cpp_char8_t)
-constexpr const char8_t* find(const char8_t* s, char8_t c) noexcept
-{
-    #if VX_HAS_BUILTIN(__builtin_u8strchr)
-    return __builtin_u8strchr(s, c);
-    #else
-    return find<char8_t>(s, c);
-    #endif
-}
-#endif
-
-constexpr const wchar_t* find(const wchar_t* s, wchar_t c) noexcept
-{
-    if (VX_IS_CONSTANT_EVALUATED())
-    {
-        return find<wchar_t>(s, c);
-    }
-    else
-    {
-#if VX_HAS_BUILTIN(__builtin_wcschr)
-        return __builtin_wcschr(s, c);
-#else
-        return ::wcschr(s, c);
-#endif
-    }
-}
-
-//=========================================================================
-// find_n (first character within first n characters)
+// find_n
 //=========================================================================
 
 template <typename char_t, VX_REQUIRES(type_traits::is_char<char_t>::value)>
@@ -453,8 +392,6 @@ constexpr const char_t* find_n(const char_t* s, size_t n, char_t c) noexcept
 
     return nullptr;
 }
-
-namespace _priv {
 
 //=========================================================================
 // character Traits
@@ -472,7 +409,7 @@ struct char_traits_base
     static char_type* copy(char_type* const dst, const char_type* const src, const size_t count) noexcept
     {
         // copy [src, src + count) to [dst, ...)
-        return str::copy_n(dst, src, count);
+        return _priv::copy_n(dst, src, count);
     }
 
     template <typename IT, VX_REQUIRES(type_traits::is_iterator<IT>::value)>
@@ -480,7 +417,7 @@ struct char_traits_base
     {
         for (; first != last; ++first)
         {
-            assign(*dst, *first);
+            _priv::assign(*dst, *first);
             ++dst;
         }
 
@@ -500,25 +437,25 @@ struct char_traits_base
     static constexpr int compare(const char_type* a, const char_type* b, size_t count) noexcept
     {
         // compare [a, a + count) with [b, ...)
-        return str::compare_n(a, b, count);
+        return _priv::compare_n(a, b, count);
     }
 
     static constexpr size_t length(const char_type* s) noexcept
     {
         // find length of null-terminated sequence
-        return str::length(s);
+        return _priv::length(s);
     }
 
     static constexpr const char_type* find(const char_type* s, size_t count, const char_type& c) noexcept
     {
         // look for c in [s, s + count)
-        return str::find_n(s, count, c);
+        return _priv::find_n(s, count, c);
     }
 
     static char_type* assign(char_type* const s, size_t count, const char_type c) noexcept
     {
         // assign count * c to [s, ...)
-        return str::assign_n(s, count, c);
+        return _priv::assign_n(s, count, c);
     }
 
     static void assign(char_type& lhs, const char_type& rhs) noexcept
@@ -571,6 +508,10 @@ struct char_traits_base
 
 } // namespace _priv
 
+//=========================================================================
+// Traits
+//=========================================================================
+
 template <typename char_t>
 struct char_traits : _priv::char_traits_base<char_t, long, std::fpos<std::mbstate_t>>
 {
@@ -604,8 +545,6 @@ struct char_traits<char32_t> : _priv::char_traits_base<char32_t, int_least32_t, 
 };
 
 //=========================================================================
-// Traits
-//=========================================================================
 
 namespace _priv {
 
@@ -637,9 +576,9 @@ struct is_implementation_handled_char_traits<char_traits<T>> : is_implementation
 
 template <typename Traits>
 constexpr bool traits_equal(
-    const traits_ptr_t<Traits> left,
+    traits_ptr_t<Traits> left,
     const size_t left_size,
-    const traits_ptr_t<Traits> right,
+    traits_ptr_t<Traits> right,
     const size_t right_size) noexcept
 {
     // compare [left, left + left_size) to [right, right + right_size) for equality using Traits
@@ -660,9 +599,9 @@ constexpr bool traits_equal(
 
 template <typename Traits>
 constexpr int traits_compare(
-    const traits_ptr_t<Traits> left,
+    traits_ptr_t<Traits> left,
     const size_t left_size,
-    const traits_ptr_t<Traits> right,
+    traits_ptr_t<Traits> right,
     const size_t right_size) noexcept
 {
     // compare [left, left + left_size) to [right, right + right_size) using Traits
@@ -689,11 +628,150 @@ constexpr int traits_compare(
 //=========================================================================
 
 template <typename Traits>
+constexpr traits_char_t<Traits>* traits_remove(traits_char_t<Traits>* s, const size_t size, const traits_char_t<Traits> c) noexcept
+{
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto end = s + size;
+            return _simd::remove_simd(s, end, c);
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    const auto end = s + size;
+    auto next = s;
+
+    while (++s != end)
+    {
+        if (!Traits::eq(*s, c))
+        {
+            Traits::assign(*next, *s);
+            ++next;
+        }
+    }
+
+    return next;
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr void traits_reverse(traits_char_t<Traits>* s, const size_t size) noexcept
+{
+    if (size == 0)
+    {
+        return;
+    }
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            _simd::reverse_simd<sizeof(traits_char_t<Traits>)>(s, s + size);
+            return;
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    auto last = s + size;
+
+    for (; s != last && s != --last; ++s)
+    {
+        std::swap(*s, *last);
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr void traits_replace(
+    traits_char_t<Traits>* s,
+    const size_t size,
+    const traits_char_t<Traits> old_val,
+    const traits_char_t<Traits> new_val) noexcept
+{
+    if (size == 0)
+    {
+        return;
+    }
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value && _simd::replace_is_safe<traits_char_t<Traits>>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto end = s + size;
+            _simd::replace_simd(s, end, old_val, new_val);
+            return;
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    const auto last = s + size;
+
+    for (; s != last; ++s)
+    {
+        if (*s == old_val)
+        {
+            *s = new_val;
+        }
+    }
+}
+
+//=========================================================================
+
+template <typename Traits>
+constexpr size_t traits_count(traits_ptr_t<Traits> s, const size_t size, const traits_char_t<Traits> c) noexcept
+{
+    if (size == 0)
+    {
+        return 0;
+    }
+
+#if _VX_USE_SIMD_ALGORITHMS
+
+    VX_IF_CONSTEXPR (is_implementation_handled_char_traits<Traits>::value)
+    {
+        if (!VX_IS_CONSTANT_EVALUATED())
+        {
+            const auto end = s + size;
+            return _simd::count_simd(s, end, c);
+        }
+    }
+
+#endif // _VX_USE_SIMD_ALGORITHMS
+
+    size_t n = 0;
+
+    for (size_t i = 0; i < size; ++i, ++s)
+    {
+        if (Traits::eq(*s, c))
+        {
+            ++n;
+        }
+    }
+
+    return n;
+}
+
+//=========================================================================
+
+template <typename Traits>
 constexpr size_t traits_find(
-    const traits_ptr_t<Traits> haystack,
+    traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start,
-    const traits_ptr_t<Traits> needle,
+    traits_ptr_t<Traits> needle,
     const size_t needle_size) noexcept
 {
     // search [haystack, haystack + hay_size) for [needle, needle + needle_size), at/after start
@@ -761,7 +839,7 @@ constexpr size_t traits_find(
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_ch(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
+constexpr size_t traits_find_ch(traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
 {
     // search [haystack, haystack + hay_size) for c, at/after start_at
     if (start_at >= hay_size)
@@ -806,7 +884,7 @@ constexpr size_t traits_find_ch(const traits_ptr_t<Traits> haystack, const size_
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_rfind(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_ptr_t<Traits> needle, const size_t needle_size) noexcept
+constexpr size_t traits_rfind(traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, traits_ptr_t<Traits> needle, const size_t needle_size) noexcept
 {
     // search [haystack, haystack + hay_size) for [needle, needle + needle_size) beginning before start_at
     if (needle_size == 0)
@@ -868,7 +946,7 @@ constexpr size_t traits_rfind(const traits_ptr_t<Traits> haystack, const size_t 
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_rfind_ch(const traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
+constexpr size_t traits_rfind_ch(traits_ptr_t<Traits> haystack, const size_t hay_size, const size_t start_at, const traits_char_t<Traits> c) noexcept
 {
     // search [haystack, haystack + hay_size) for c before start_at
 
@@ -899,6 +977,7 @@ constexpr size_t traits_rfind_ch(const traits_ptr_t<Traits> haystack, const size
             }
         }
     }
+
 #endif // _VX_USE_SIMD_ALGORITHMS
 
     for (auto match_try = haystack + actual_start_at;; --match_try)
@@ -990,10 +1069,11 @@ private:
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_first_of(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_find_first_of(
+    traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
-    const traits_ptr_t<Traits> needle,
+    traits_ptr_t<Traits> needle,
     const size_t needle_size) noexcept
 {
     // in [haystack, haystack + hay_size), look for one of [needle, needle + needle_size), at/after start_at
@@ -1063,10 +1143,11 @@ constexpr size_t traits_find_first_of(const traits_ptr_t<Traits> haystack,
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_last_of(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_find_last_of(
+    traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
-    const traits_ptr_t<Traits> needle,
+    traits_ptr_t<Traits> needle,
     const size_t needle_size) noexcept
 {
     // in [haystack, haystack + hay_size), look for last of [needle, needle + needle_size), before start_at
@@ -1141,10 +1222,11 @@ constexpr size_t traits_find_last_of(const traits_ptr_t<Traits> haystack,
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_first_not_of(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_find_first_not_of(
+    traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
-    const traits_ptr_t<Traits> needle,
+    traits_ptr_t<Traits> needle,
     const size_t needle_size) noexcept
 {
     // in [haystack, haystack + hay_size), look for none of [needle, needle + needle_size), at/after start_at
@@ -1217,7 +1299,7 @@ constexpr size_t traits_find_first_not_of(const traits_ptr_t<Traits> haystack,
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_not_ch(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_find_not_ch(traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
     const traits_char_t<Traits> c) noexcept
@@ -1269,10 +1351,10 @@ constexpr size_t traits_find_not_ch(const traits_ptr_t<Traits> haystack,
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_find_last_not_of(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_find_last_not_of(traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
-    const traits_ptr_t<Traits> needle,
+    traits_ptr_t<Traits> needle,
     const size_t needle_size) noexcept
 {
     // in [haystack, haystack + hay_size), look for none of [needle, needle + needle_size), before start_at
@@ -1347,7 +1429,7 @@ constexpr size_t traits_find_last_not_of(const traits_ptr_t<Traits> haystack,
 //=========================================================================
 
 template <typename Traits>
-constexpr size_t traits_rfind_not_ch(const traits_ptr_t<Traits> haystack,
+constexpr size_t traits_rfind_not_ch(traits_ptr_t<Traits> haystack,
     const size_t hay_size,
     const size_t start_at,
     const traits_char_t<Traits> c) noexcept
@@ -1502,6 +1584,24 @@ struct is_string_like<std::basic_string_view<T, Traits>> : std::true_type
 
 template <typename T, typename Traits, typename Alloc>
 struct is_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
+{};
+
+//=========================================================================
+
+template <typename T>
+struct is_mutable_string_like : std::false_type
+{};
+
+template <typename T, typename Allocator>
+struct is_mutable_string_like<basic_string<T, Allocator>> : std::true_type
+{};
+
+template <size_t N, typename T>
+struct is_mutable_string_like<basic_static_string<N, T>> : std::true_type
+{};
+
+template <typename T, typename Traits, typename Alloc>
+struct is_mutable_string_like<std::basic_string<T, Traits, Alloc>> : std::true_type
 {};
 
 //=========================================================================
