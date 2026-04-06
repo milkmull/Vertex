@@ -7,16 +7,17 @@ using namespace vx;
 
 VX_TEST_CASE(int_to_string)
 {
-    str::basic_string s(65, '.');
-    long double value = 1234.5678;
+    string s(65, '.');
+    uint64_t value = UINT64_MAX;
 
-    str::float_formatter fmt{};
-    fmt.force_sign = true;
-    fmt.format = str::float_format::hex;
-    fmt.precision = 4;
-
-    s = str::to_string(value, fmt);
+    str::to_string(value, s.data(), s.size());
     VX_MESSAGE(s);
+
+    s = "18446744073709551615";
+
+    value = 0;
+    str::from_string(s.data(), s.size(), value, true);
+    VX_MESSAGE(value);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

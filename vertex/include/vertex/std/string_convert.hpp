@@ -4,8 +4,8 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
 #include "vertex/std/string.hpp"
-#include "vertex/std/string_utils.hpp"
 #include "vertex/std/string_cast.hpp"
+#include "vertex/std/string_utils.hpp"
 
 namespace vx {
 namespace str {
@@ -19,40 +19,16 @@ constexpr int char_to_digit(const C c, int base = 10) noexcept
     {
         digit = static_cast<int>(c - C('0'));
     }
-    else if (c >= C('a') && c <= C('z'))
+    else
     {
-        digit = static_cast<int>(c - C('a')) + 10;
-    }
-    else if (c >= C('A') && c <= C('Z'))
-    {
-        digit = static_cast<int>(c - C('A')) + 10;
+        const C lc = to_lower(c);
+        if (lc >= C('a') && lc <= C('z'))
+        {
+            digit = static_cast<int>(lc - C('a')) + 10;
+        }
     }
 
     return (digit < base) ? digit : -1;
-}
-
-//==============================================================================
-
-template <typename IT, typename T, VX_REQUIRES(type_traits::is_iterator<IT>::value&& std::is_integral<T>::value)>
-IT parse_digits(IT first, IT last, T& value, size_t* count)
-{
-    VX_ASSERT(first <= last);
-
-    const IT start = first;
-    value = static_cast<T>(0);
-
-    while (first != last && is_digit(*first))
-    {
-        value = static_cast<T>(value * 10) + static_cast<T>(*first - '0');
-        ++first;
-    }
-
-    if (count)
-    {
-        *count = static_cast<size_t>(std::distance(start, first));
-    }
-
-    return first;
 }
 
 //==============================================================================
@@ -73,8 +49,8 @@ size_t to_hex_string(const void* data, const size_t size, C* buf, const size_t b
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
     for (size_t i = 0; i < size; ++i)
     {
-        buf[i * 2 + 0] = hex[(bytes[i] >> 4) & 0xF]; // High nibble
-        buf[i * 2 + 1] = hex[(bytes[i] >> 0) & 0xF]; // Low nibble
+        *buf++ = hex[(bytes[i] >> 4) & 0xF]; // High nibble
+        *buf++ = hex[(bytes[i] >> 0) & 0xF]; // Low nibble
     }
 
     return required;
@@ -109,10 +85,10 @@ struct integer_formatter
 
 enum class float_format : char
 {
-    general     = 'g',
-    fixed       = 'f',
-    scientific  = 'e',
-    hex         = 'a'
+    general = 'g',
+    fixed = 'f',
+    scientific = 'e',
+    hex = 'a'
 };
 
 struct float_formatter
@@ -125,10 +101,30 @@ struct float_formatter
 
 //==============================================================================
 
-namespace _to_string_priv {
+namespace _string_convert_priv {
 
-template <typename U, typename C, VX_REQUIRES(type_traits::is_unsigned_integral<U>::value&& type_traits::is_char<C>::value)>
-size_t write_unsigned(U v, C* buf, const size_t buf_size, const integer_formatter& fmt)
+enum : size_t
+{
+    max_int_char_count = 65,
+    max_float_char_count = 325
+};
+
+static size_t char_count(size_t value, int base) noexcept
+{
+    size_t n = 0;
+
+    do
+    {
+        value /= base;
+        ++n;
+
+    } while (value != 0);
+
+    return n;
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+size_t write_unsigned(uint64_t v, C* buf, const integer_formatter& fmt)
 {
     static constexpr const C digits[] = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -137,44 +133,24 @@ size_t write_unsigned(U v, C* buf, const size_t buf_size, const integer_formatte
         'u', 'v', 'w', 'x', 'y', 'z'
     };
 
-    if (v == 0)
-    {
-        buf[0] = '0';
-        return 1;
-    }
+    const size_t count = char_count(v, fmt.base);
+    size_t i = count;
 
-    size_t i = 0;
-
-    while (v && i < buf_size)
+    do
     {
-        const char c = digits[v % fmt.base];
-        buf[i++] = fmt.uppercase ? to_upper(c) : c;
+        const C c = digits[v % fmt.base];
+        buf[--i] = fmt.uppercase ? to_upper(c) : c;
         v /= fmt.base;
-    }
 
-    if (v != 0)
-    {
-        err::set(err::size_error);
-    }
+    } while (v);
 
-    str::reverse(buf, i);
-    return i;
+    return count;
 }
 
-template <typename F>
-constexpr size_t max_formatted_float_size()
+template <typename T, VX_REQUIRES(std::is_floating_point<T>::value)>
+inline size_t write_float(double v, char* buf, const float_formatter& fmt) noexcept
 {
-    return std::numeric_limits<F>::max_exponent10 // worst case integer part (fixed)
-        + std::numeric_limits<F>::max_digits10    // significant digits
-        + 6                                       // sign, dot, e+, exp sign
-        + 4                                       // max exponent digits (e+4932)
-        + 1;                                      // null terminator
-}
-
-template <typename F, VX_REQUIRES(std::is_floating_point<F>::value)>
-size_t write_float(F v, char* buf, const size_t buf_size, const float_formatter& fmt) noexcept
-{
-    // Build format string: %[+][.*][format_char]
+    // Build format string: %[+][.*][L][format_char]
     // Max length: '%' + '+' + '.*' + 'L' + 'g' + '\0' = 7 chars
 
     char fmt_str[7];
@@ -190,9 +166,7 @@ size_t write_float(F v, char* buf, const size_t buf_size, const float_formatter&
         *p++ = '.';
         *p++ = '*';
     }
-
-    constexpr bool is_long = sizeof(F) > sizeof(double);
-    VX_IF_CONSTEXPR (is_long)
+    VX_IF_CONSTEXPR (std::is_same<T, long double>::value)
     {
         *p++ = 'L';
     }
@@ -202,102 +176,70 @@ size_t write_float(F v, char* buf, const size_t buf_size, const float_formatter&
 
     *p = '\0';
 
-    int n = 0;
-    VX_IF_CONSTEXPR (!is_long)
-    {
-        n = (fmt.precision < 0)
-            ? std::snprintf(buf, buf_size, fmt_str, static_cast<double>(v))
-            : std::snprintf(buf, buf_size, fmt_str, fmt.precision, static_cast<double>(v));
-    }
-    else
-    {
-        n = (fmt.precision < 0)
-            ? std::snprintf(buf, buf_size, fmt_str, v)
-            : std::snprintf(buf, buf_size, fmt_str, fmt.precision, v);
-    }
-
-    if (n < 0)
-    {
-        err::set(err::out_of_range);
-        return 0;
-    }
-    if (static_cast<size_t>(n) >= buf_size)
-    {
-        err::set(err::size_error);
-        return buf_size;
-    }
+    const int n = (fmt.precision < 0)
+        ? std::snprintf(buf, max_float_char_count, fmt_str, v)
+        : std::snprintf(buf, max_float_char_count, fmt_str, fmt.precision, v);
 
     return static_cast<size_t>(n);
 }
 
-} // namespace _to_string_priv
+} // namespace _string_convert_priv
 
 //==============================================================================
 
 template <typename I, typename C = char, VX_REQUIRES(type_traits::is_signed_integral<I>::value&& type_traits::is_char<C>::value)>
 size_t to_string(I v, C* buf, size_t buf_size, const integer_formatter& fmt = {}) noexcept
 {
-    if (!buf)
-    {
-        return 0;
-    }
+    VX_ASSERT(buf);
+    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
 
-    if (fmt.base < 2 || fmt.base > 36)
-    {
-        err::set(err::invalid_argument);
-        return 0;
-    }
+    C tmp[_string_convert_priv::max_int_char_count];
 
-    using U = typename std::make_unsigned<I>::type;
     const bool negative = (v < 0);
     size_t count = 0;
 
-    U uv;
+    uint64_t uv;
 
     if (negative || fmt.force_sign)
     {
-        buf[0] = negative ? '-' : '+';
-        ++buf;
-        --buf_size;
+        tmp[0] = negative ? '-' : '+';
         ++count;
 
         // cast through unsigned to avoid UB on INT_MIN (-v would overflow)
-        uv = static_cast<U>(~static_cast<U>(v) + 1);
+        uv = static_cast<uint64_t>(~static_cast<uint64_t>(v) + 1);
     }
     else
     {
-        uv = static_cast<U>(v);
+        uv = static_cast<uint64_t>(v);
     }
 
-    count += _to_string_priv::write_unsigned(static_cast<U>(v), buf, buf_size, fmt);
+    count += _string_convert_priv::write_unsigned(uv, tmp + count, fmt);
+    count = std::min(count, buf_size);
+    mem::copy(buf, tmp, count);
+
     return count;
 }
 
 template <typename U, typename C = char, VX_REQUIRES(type_traits::is_unsigned_integral<U>::value&& type_traits::is_char<C>::value)>
 size_t to_string(U v, C* buf, size_t buf_size, const integer_formatter& fmt = {}) noexcept
 {
-    if (!buf)
-    {
-        return 0;
-    }
+    VX_ASSERT(buf);
+    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
 
-    if (fmt.base < 2 || fmt.base > 36)
-    {
-        err::set(err::invalid_argument);
-        return 0;
-    }
+    C tmp[_string_convert_priv::max_int_char_count];
 
     size_t count = 0;
 
     if (fmt.force_sign)
     {
-        buf[0] = '+';
-        ++buf;
-        --buf_size;
+        tmp[0] = '+';
         ++count;
     }
 
-    count += _to_string_priv::write_unsigned(v, buf, buf_size, fmt);
+    count += _string_convert_priv::write_unsigned(static_cast<uint64_t>(v), tmp + count, fmt);
+    count = std::min(count, buf_size);
+    mem::copy(buf, tmp, count);
+
     return count;
 }
 
@@ -313,22 +255,22 @@ size_t to_string(F v, C* buf, const size_t buf_size, const float_formatter& fmt 
 
     VX_IF_CONSTEXPR (std::is_same<C, char>::value)
     {
-        return _to_string_priv::write_float(v, buf, buf_size, fmt);
+        return _string_convert_priv::write_float(v, buf, buf_size, fmt);
     }
     else
     {
-        constexpr size_t tmp_size = _to_string_priv::max_formatted_float_size<F>();
-        char tmp[tmp_size];
-        const size_t n = _to_string_priv::write_float(v, tmp, tmp_size, fmt);
+        char tmp[_string_convert_priv::max_float_char_count];
+        size_t count = _string_convert_priv::write_float(v, tmp, fmt);
+        count = std::min(count, buf_size);
 
-        string_cast<C>(tmp, std::min(n, buf_size), buf);
-        return n;
+        string_cast<C>(tmp, count, buf);
+        return count;
     }
 }
 
 //==============================================================================
 
-template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value && type_traits::is_char<C>::value)>
+template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
 auto to_string(I v, const integer_formatter& fmt = {}) noexcept
 {
     constexpr size_t buf_size = 65;
@@ -342,7 +284,7 @@ auto to_string(I v, const integer_formatter& fmt = {}) noexcept
 template <typename F, typename C = char, VX_REQUIRES(std::is_arithmetic<F>::value&& type_traits::is_char<C>::value)>
 auto to_string(F v, const float_formatter& fmt = {}) noexcept
 {
-    constexpr size_t buf_size = _to_string_priv::max_formatted_float_size<F>();
+    constexpr size_t buf_size = _string_convert_priv::max_float_char_count;
     C buf[buf_size];
     const size_t n = to_string<F, C>(v, buf, buf_size, fmt);
 
@@ -354,197 +296,160 @@ auto to_string(F v, const float_formatter& fmt = {}) noexcept
 // from string
 //==============================================================================
 
-//template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-//size_t from_string(const C* s, const size_t count, I& out, const int base = 10) noexcept
-//{
-//    if (!s || count == 0)
-//    {
-//        err::set(err::invalid_argument);
-//        return 0;
-//    }
-//
-//#if VX_CPP_STANDARD >= 17 && 0
-//
-//    const char* first = reinterpret_cast<const char*>(s);
-//    const char* last = first + count;
-//
-//    const std::from_chars_result res = std::from_chars(first, last, out, base);
-//
-//    if (res.ec == std::errc::invalid_argument)
-//    {
-//        err::set(err::invalid_argument);
-//        return 0;
-//    }
-//    if (res.ec == std::errc::result_out_of_range)
-//    {
-//        err::set(err::out_of_range);
-//        return static_cast<size_t>(res.ptr - first);
-//    }
-//
-//    return static_cast<size_t>(res.ptr - first);
-//
-//#elif VX_CPP_STANDARD >= 14
-//
-//    // C++14: use strtoll/strtoull for full 64-bit coverage
-//    const char* end = s + count;
-//
-//    VX_IF_CONSTEXPR (std::is_signed<I>::value)
-//    {
-//        const long long val = std::strtoll(buf, &end, base);
-//        if (end == buf)
-//        {
-//            err::set(err::invalid_argument);
-//            return 0;
-//        }
-//        if (errno == ERANGE || val < static_cast<long long>(std::numeric_limits<I>::min()) || val > static_cast<long long>(std::numeric_limits<I>::max()))
-//        {
-//            err::set(err::out_of_range);
-//            return static_cast<size_t>(end - buf);
-//        }
-//        out = static_cast<I>(val);
-//    }
-//    else
-//    {
-//        const unsigned long long val = std::strtoull(buf, &end, base);
-//        if (end == buf)
-//        {
-//            err::set(err::invalid_argument);
-//            return 0;
-//        }
-//        if (errno == ERANGE || val > static_cast<unsigned long long>(std::numeric_limits<I>::max()))
-//        {
-//            err::set(err::out_of_range);
-//            return static_cast<size_t>(end - buf);
-//        }
-//        out = static_cast<I>(val);
-//    }
-//
-//#endif
-//
-//
-//    bool negative = false;
-//    size_t i = 0;
-//
-//    switch (s[i])
-//    {
-//        case '-':
-//        {
-//            negative = true;
-//            VX_FALLTHROUGH;
-//        }
-//        case '+':
-//        {
-//            ++i;
-//            break;
-//        }
-//    }
-//
-//    if (i == count)
-//
-//
-//        C* endptr = nullptr;
-//    errno = 0;
-//
-//    constexpr size_t buf_size = _to_string_priv::buffer_size<N>::value;
-//    C buf[buf_size] = {};
-//    mem::copy_range(buf, s, std::max(count, buf_size));
-//
-//    if (str::is)
-//
-//        I result = 0;
-//
-//    VX_IF_CONSTEXPR (std::is_signed<I>::value)
-//    {
-//        VX_IF_CONSTEXPR (sizeof(I) <= sizeof(long))
-//        {
-//            result = static_cast<I>(std::strtol(s, &endptr, base));
-//        }
-//        else
-//        {
-//            result = static_cast<I>(std::strtoll(s, &endptr, base));
-//        }
-//    }
-//    else
-//    {
-//        VX_IF_CONSTEXPR (sizeof(I) <= sizeof(unsigned long))
-//        {
-//            result = static_cast<I>(std::strtoul(s, &endptr, base));
-//        }
-//        else
-//        {
-//            result = static_cast<I>(std::strtoull(s, &endptr, base));
-//        }
-//    }
-//
-//    if (endptr == s)
-//    {
-//        err::set(err::invalid_argument);
-//    }
-//
-//    if (errno == ERANGE)
-//    {
-//        err::set(err::out_of_range);
-//    }
-//
-//    out = result;
-//    return static_cast<size_t>(endptr - s);
-//}
-//
-//template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-//size_t from_string(const C* s, const size_t count, F& out) noexcept
-//{
-//    if (!s || count == 0)
-//    {
-//        err::set(err::invalid_argument);
-//        return 0;
-//    }
-//
-//    C* endptr = nullptr;
-//    errno = 0;
-//
-//    F result = 0;
-//
-//    VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
-//    {
-//        result = static_cast<F>(std::strtof(s, &endptr));
-//    }
-//    else VX_IF_CONSTEXPR (sizeof(F) <= sizeof(double))
-//    {
-//        result = static_cast<F>(std::strtod(s, &endptr));
-//    }
-//    else
-//    {
-//        result = static_cast<F>(std::strtold(s, &endptr));
-//    }
-//
-//    if (endptr == s)
-//    {
-//        err::set(err::invalid_argument);
-//    }
-//
-//    if (errno == ERANGE)
-//    {
-//        err::set(err::out_of_range);
-//    }
-//
-//    out = result;
-//    return static_cast<size_t>(endptr - s);
-//}
+template <typename I, typename C = char, VX_REQUIRES(type_traits::is_signed_integral<I>::value&& type_traits::is_char<C>::value)>
+size_t from_string(const C* s, const size_t count, I& out, const bool clamp = false, const int base = 10) noexcept
+{
+    VX_ASSERT(s);
+
+    if (count == 0)
+    {
+        return 0;
+    }
+
+    bool negative = false;
+    size_t i = 0;
+
+    switch (s[i])
+    {
+        case '-':
+        {
+            negative = true;
+            VX_FALLTHROUGH;
+        }
+        case '+':
+        {
+            ++i;
+            break;
+        }
+    }
+
+    using U = typename std::make_unsigned<I>::type;
+    U value = 0;
+    bool overflow = false;
+
+    while (i < count)
+    {
+        const int digit = char_to_digit(s[i], base);
+        if (digit < 0)
+        {
+            break;
+        }
+
+        if (value > (std::numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(base))
+        {
+            overflow = true;
+        }
+
+        out = out * static_cast<I>(base) + static_cast<I>(digit);
+        ++i;
+    }
+
+    if (overflow && clamp)
+    {
+        out = negative ? std::numeric_limits<I>::min() : std::numeric_limits<I>::max();
+    }
+    else
+    {
+        out = negative ? static_cast<I>(-static_cast<U>(value)) : static_cast<I>(value);
+    }
+
+    return i;
+}
+
+template <typename U, typename C = char, VX_REQUIRES(type_traits::is_unsigned_integral<U>::value&& type_traits::is_char<C>::value)>
+size_t from_string(const C* s, const size_t count, U& out, const int base = 10) noexcept
+{
+    VX_ASSERT(s);
+
+    out = 0;
+
+    if (count == 0)
+    {
+        return 0;
+    }
+
+    size_t i = 0;
+
+    if (s[i] == '+')
+    {
+        ++i;
+    }
+
+    bool overflow = false;
+
+    while (i < count)
+    {
+        const int digit = char_to_digit(s[i], base);
+        if (digit < 0)
+        {
+            break;
+        }
+
+        if (!overflow)
+        {
+            if (out > (std::numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(base))
+            {
+                overflow = true;
+                err::set(err::out_of_range);
+            }
+        }
+
+        out = out * static_cast<U>(base) + static_cast<U>(digit);
+        ++i;
+    }
+
+    return i;
+}
+
+template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+size_t from_string(const C* s, const size_t count, F& out) noexcept
+{
+    if (!s)
+    {
+        err::set(err::invalid_argument);
+        return 0;
+    }
+
+    C* endptr = nullptr;
+    errno = 0;
+    F result = 0;
+
+    VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
+    {
+        result = static_cast<F>(std::strtof(s, &endptr));
+    }
+    else VX_IF_CONSTEXPR (sizeof(F) <= sizeof(double))
+    {
+        result = static_cast<F>(std::strtod(s, &endptr));
+    }
+    else
+    {
+        result = static_cast<F>(std::strtold(s, &endptr));
+    }
+
+    if (endptr == s)
+    {
+        err::set(err::invalid_argument);
+        return 0;
+    }
+
+    if (errno == ERANGE)
+    {
+        err::set(err::out_of_range);
+        return static_cast<size_t>(endptr - s);
+    }
+
+    out = result;
+    return static_cast<size_t>(endptr - s);
+}
 
 //==============================================================================
 
-template <typename I, typename C, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-size_t from_string(const C* s, I& out, const int base = 10) noexcept
-{
-    const size_t count = str::length(s);
-    return from_string<I, C>(s, count, out, base);
-}
-
-template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_string_like<S>::value)>
+template <typename I, typename S, bool allow_overflow = false, VX_REQUIRES(std::is_integral<I>::value&& is_string_like<S>::value)>
 size_t from_string(const S& s, I& out, const int base = 10) noexcept
 {
     using C = typename S::value_type;
-    return from_string<I, C>(s.data(), s.size(), out, base);
+    return from_string<I, C, allow_overflow>(s.data(), s.size(), out, base);
 }
 
 //==============================================================================
