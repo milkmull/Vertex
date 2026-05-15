@@ -567,27 +567,6 @@ template <typename T>
 struct is_char_iter : is_char<typename value_type<T>::type> {};
 
 //==============================================================================
-// numeric helpers
-//==============================================================================
-
-template <typename T>
-struct is_signed_integral : bool_constant<std::is_integral<T>::value && std::is_signed<T>::value>
-{};
-
-template <typename T>
-struct is_unsigned_integral : bool_constant<std::is_integral<T>::value && std::is_unsigned<T>::value>
-{};
-
-//==============================================================================
-
-template <typename F>
-struct float_to_unsigned;
-
-template <> struct float_to_unsigned<float>         { using type = uint32_t; };
-template <> struct float_to_unsigned<double>        { using type = uint64_t; };
-//template <> struct float_to_unsigned<long double>   { using type = uint64_t; };
-
-//==============================================================================
 // zero constructible
 //==============================================================================
 

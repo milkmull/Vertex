@@ -137,24 +137,23 @@ struct color_t<u8>
     // hex conversion
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE constexpr type from_hex(uint32_t hex) noexcept
+static VX_FORCE_INLINE constexpr type from_hex(uint32_t hex) noexcept
     {
         return type(
-            (hex >>  0) & 0xFF,
-            (hex >>  8) & 0xFF,
-            (hex >> 16) & 0xFF,
-            (hex >> 24) & 0xFF
+            (hex >> 24) & 0xFF, // r
+            (hex >> 16) & 0xFF, // g
+            (hex >> 8) & 0xFF,  // b
+            (hex >> 0) & 0xFF   // a
         );
     }
 
     VX_FORCE_INLINE constexpr uint32_t to_hex() const noexcept
     {
         return (
-            (static_cast<uint32_t>(r) <<  0) |
-            (static_cast<uint32_t>(g) <<  8) |
-            (static_cast<uint32_t>(b) << 16) |
-            (static_cast<uint32_t>(a) << 24)
-        );
+            (static_cast<uint32_t>(r) << 24) |
+            (static_cast<uint32_t>(g) << 16) |
+            (static_cast<uint32_t>(b) << 8) |
+            (static_cast<uint32_t>(a) << 0));
     }
 
     ///////////////////////////////////////////////////////////////////////////////

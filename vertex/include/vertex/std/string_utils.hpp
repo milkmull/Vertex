@@ -55,7 +55,7 @@ constexpr int compare(const C* a, const S& b) noexcept
 template <typename S, typename C, VX_REQUIRES(is_string_of<S, C>::value)>
 constexpr int compare(const S& a, const C* b) noexcept
 {
-    return compare(a, length(a), b.data(), b.size());
+    return compare(a.data(), a.size(), b, length(b));
 }
 
 template <typename S1, typename S2, VX_REQUIRES(is_string_compatible<S1, S2>::value)>

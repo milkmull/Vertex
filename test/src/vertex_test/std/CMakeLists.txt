@@ -5,6 +5,9 @@
 
 vx_add_test(test_std_memory                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/memory.cpp")
 vx_add_test(test_std_aligned_storage        "std" "${CMAKE_CURRENT_SOURCE_DIR}/aligned_storage.cpp")
+
+vx_add_test(test_std_math_uint_n            "std" "${CMAKE_CURRENT_SOURCE_DIR}/uint_n.cpp")
+
 vx_add_test(test_std_array                  "std" "${CMAKE_CURRENT_SOURCE_DIR}/array.cpp")
 vx_add_test(test_std_vector                 "std" "${CMAKE_CURRENT_SOURCE_DIR}/vector.cpp")
 vx_add_test(test_std_static_vector          "std" "${CMAKE_CURRENT_SOURCE_DIR}/static_vector.cpp")

@@ -33,42 +33,42 @@ public:
     // element access
     //=========================================================================
 
-    T& front() noexcept
+    constexpr T& front() noexcept
     {
         return _m_array[0];
     }
 
-    const T& front() const noexcept
+    constexpr const T& front() const noexcept
     {
         return _m_array[0];
     }
 
-    T& back() noexcept
+    constexpr T& back() noexcept
     {
         return _m_array[N - 1];
     }
 
-    const T& back() const noexcept
+    constexpr const T& back() const noexcept
     {
         return _m_array[N - 1];
     }
 
-    T* data() noexcept
+    constexpr T* data() noexcept
     {
         return _m_array;
     }
 
-    const T* data() const noexcept
+    constexpr const T* data() const noexcept
     {
         return _m_array;
     }
 
-    T& operator[](size_type i) noexcept
+    constexpr T& operator[](size_type i) noexcept
     {
         return _m_array[i];
     }
 
-    const T& operator[](size_type i) const noexcept
+    constexpr const T& operator[](size_type i) const noexcept
     {
         return _m_array[i];
     }
@@ -77,62 +77,62 @@ public:
     // iterators
     //=========================================================================
 
-    iterator begin() noexcept
+    constexpr iterator begin() noexcept
     {
         return iterator(_m_array);
     }
 
-    const_iterator begin() const noexcept
+    constexpr const_iterator begin() const noexcept
     {
         return const_iterator(_m_array);
     }
 
-    const_iterator cbegin() const noexcept
+    constexpr const_iterator cbegin() const noexcept
     {
         return begin();
     }
 
-    iterator end() noexcept
+    constexpr iterator end() noexcept
     {
         return iterator(_m_array + N);
     }
 
-    const_iterator end() const noexcept
+    constexpr const_iterator end() const noexcept
     {
         return const_iterator(_m_array + N);
     }
 
-    const_iterator cend() const noexcept
+    constexpr const_iterator cend() const noexcept
     {
         return end();
     }
 
-    reverse_iterator rbegin() noexcept
+    constexpr reverse_iterator rbegin() noexcept
     {
         return reverse_iterator(end());
     }
 
-    const_reverse_iterator rbegin() const noexcept
+    constexpr const_reverse_iterator rbegin() const noexcept
     {
         return const_reverse_iterator(end());
     }
 
-    const_reverse_iterator crbegin() const noexcept
+    constexpr const_reverse_iterator crbegin() const noexcept
     {
         return rbegin();
     }
 
-    reverse_iterator rend() noexcept
+    constexpr reverse_iterator rend() noexcept
     {
         return reverse_iterator(begin());
     }
 
-    const_reverse_iterator rend() const noexcept
+    constexpr const_reverse_iterator rend() const noexcept
     {
         return const_reverse_iterator(begin());
     }
 
-    const_reverse_iterator crend() const noexcept
+    constexpr const_reverse_iterator crend() const noexcept
     {
         return rend();
     }
@@ -141,12 +141,21 @@ public:
     // operations
     //=========================================================================
 
-    void fill(const T& value)
+    constexpr void fill(const T& value)
     {
+        if (VX_IS_CONSTANT_EVALUATED())
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                _m_array[i] = value;
+            }
+            return;
+        }
+
         mem::fill_range(_m_array, N, value);
     }
 
-    void swap(array& other) noexcept
+    constexpr void swap(array& other) noexcept
     {
         std::swap(_m_array, other._m_array);
     }
@@ -179,32 +188,56 @@ public:
     // comparison
     //=========================================================================
 
-    friend bool operator==(const array& lhs, const array& rhs)
+    constexpr friend bool operator==(const array& lhs, const array& rhs)
     {
+        if (VX_IS_CONSTANT_EVALUATED())
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                if (lhs._m_array[i] != rhs._m_array[i])
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         return mem::compare_range(lhs._m_array, rhs._m_array, size()) == 0;
     }
 
-    friend bool operator!=(const array& lhs, const array& rhs)
+    constexpr friend bool operator!=(const array& lhs, const array& rhs)
     {
         return !operator==(lhs, rhs);
     }
 
-    friend bool operator<(const array& lhs, const array& rhs)
+    constexpr friend bool operator<(const array& lhs, const array& rhs)
     {
+        if (VX_IS_CONSTANT_EVALUATED())
+        {
+            for (size_type i = 0; i < N; ++i)
+            {
+                if (lhs._m_array[i] != rhs._m_array[i])
+                {
+                    return lhs._m_array[i] < rhs._m_array[i];
+                }
+            }
+            return false;
+        }
+
         return mem::compare_range(lhs._m_array, rhs._m_array, size()) < 0;
     }
 
-    friend bool operator>(const array& lhs, const array& rhs)
+    constexpr friend bool operator>(const array& lhs, const array& rhs)
     {
         return rhs < lhs;
     }
 
-    friend bool operator<=(const array& lhs, const array& rhs)
+    constexpr friend bool operator<=(const array& lhs, const array& rhs)
     {
         return !(rhs < lhs);
     }
 
-    friend bool operator>=(const array& lhs, const array& rhs)
+    constexpr friend bool operator>=(const array& lhs, const array& rhs)
     {
         return !(lhs < rhs);
     }
