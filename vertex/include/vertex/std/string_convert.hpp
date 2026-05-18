@@ -74,9 +74,9 @@ enum class numeric_format : char
 
 enum : size_t
 {
-    default_float_precision = std::numeric_limits<size_t>::max(),
+    default_float_precision = numeric_limits<size_t>::max(),
     general_float_precision = 6, // matches default precision for %g
-    max_float_precision = 32
+    max_float_precision = numeric_limits<double>::max_digits10
 };
 
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
@@ -120,32 +120,37 @@ constexpr int char_to_digit(const C c, int base = 10) noexcept
     return (digit < base) ? digit : -1;
 }
 
-namespace _string_convert_priv {
-
-enum : size_t
-{
-    // 1 (sign) + 309 (max double integer digits) + 1 (decimal point)
-    // + max_digits10 (17) for full round-trip precision
-    max_float_char_count = 311 + max_float_precision
-};
-
-}; // namespace _string_convert_priv
-
 //==============================================================================
 // to string
 //==============================================================================
 
-template <typename I, VX_REQUIRES(std::is_integral<I>::value)>
+template <typename I>
 constexpr size_t char_count(I value, int base) noexcept
 {
     size_t n = 0;
 
     do
     {
-        value /= base;
+        value /= static_cast<I>(base);
         ++n;
 
-    } while (value != 0);
+    } while (value != static_cast<I>(0));
+
+    return n;
+}
+
+template <size_t N, typename Limb, typename Traits>
+constexpr size_t char_count(uint_n<N, Limb, Traits> value, int base) noexcept
+{
+    const uint_n<N, Limb, Traits> n_base(base);
+    size_t n = 0;
+
+    do
+    {
+        value /= n_base;
+        ++n;
+
+    } while (!value.is_zero());
 
     return n;
 }
@@ -226,7 +231,7 @@ size_t write_integer(I value, C* buf, const size_t buf_size, const numeric_forma
 }
 
 template <typename F, VX_REQUIRES(std::is_floating_point<F>::value)>
-void write_float_fixed(F value) noexcept
+void print_float_fixed(F value) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -286,18 +291,234 @@ void write_float_fixed(F value) noexcept
         const int denom_bits = -shift;
         BI numerator(static_cast<uint64_t>(mant));
 
-        std::cout << "0.";
+        // split into integer and fractional parts
+        const BI int_part = numerator >> static_cast<size_t>(denom_bits);
+        numerator &= (BI::one() << static_cast<size_t>(denom_bits)) - BI::one();
 
+        // print integer part
+        if (int_part.is_zero())
+        {
+            std::cout << '0';
+        }
+        else
+        {
+            std::string s;
+            BI val = int_part;
+            while (!val.is_zero())
+            {
+                const auto res = divmod(val, BI(uint64_t(10)));
+                s += static_cast<char>('0' + res.remainder.low64());
+                val = res.quotient;
+            }
+            std::reverse(s.begin(), s.end());
+            std::cout << s;
+        }
+
+        std::cout << '.';
+
+        // print fractional part
         std::string frac;
         while (!numerator.is_zero())
         {
             numerator = (numerator << 3) + (numerator << 1); // mul10
-            BI digit = numerator >> static_cast<size_t>(denom_bits);
-            numerator &= (BI::one() << static_cast<size_t>(denom_bits)) - BI::one(); // remainder
+            const BI digit = numerator >> static_cast<size_t>(denom_bits);
+            numerator &= (BI::one() << static_cast<size_t>(denom_bits)) - BI::one();
             frac += static_cast<char>('0' + digit.low64());
         }
-
         std::cout << frac << '\n';
+    }
+}
+
+// https://github.com/microsoft/STL/blob/f3ae96af460b8fcb7d77c46fc1ad7d312900d1e7/stl/inc/xcharconv_ryu.h#L2390
+
+namespace _float_to_string_impl {
+
+template <typename T>
+constexpr int constexpr_log10(T value) noexcept
+{
+    return value < 10 ? 0 : 1 + constexpr_log10(value / 10);
+}
+
+} // namespace _float_to_string_impl
+
+template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    static constexpr int max_denominator_bits = traits::exponent_bias - 1 + traits::mantissa_bits;
+    static constexpr size_t max_bigint_bits = ((max_denominator_bits + 4 + 31) / 32) * 32;
+    using BI = uint_n<max_bigint_bits>;
+
+    if (!buf || buf_size == 0)
+    {
+        return 0;
+    }
+
+    const size_t precision = fmt.precision;
+    const bool upper = fmt.uppercase;
+    const float_bits<F> fb(value);
+
+    // offset in the buffer of the fractional part
+    size_t integer_digit_count = 0;
+
+    const uint_type mantissa = fb.mantissa_with_integer_bit();
+    const int shift = fb.shift();
+    const bool write_decimal_point = (precision > 0);
+    const char sign = fb.is_negative() ? '-' : (fmt.force_sign ? '+' : '\0');
+
+    BI numerator(mantissa);
+    BI denominator_mask;
+    BI denominator;
+
+    if (fb.is_nan())
+    {
+        if (buf_size < 3)
+        {
+            return 0;
+        }
+
+        buf[0] = upper ? 'N' : 'n';
+        buf[1] = upper ? 'A' : 'a';
+        buf[2] = buf[0];
+        return 3;
+    }
+
+    size_t n = 0;
+
+    if (fb.is_inf())
+    {
+        if (sign)
+        {
+            buf[n++] = sign;
+        }
+
+        if (buf_size - n < 3)
+        {
+            return 0;
+        }
+
+        buf[n++] = upper ? 'I' : 'i';
+        buf[n++] = upper ? 'N' : 'n';
+        buf[n++] = upper ? 'F' : 'f';
+        return n;
+    }
+
+    if (buf_size < precision)
+    {
+        return 0;
+    }
+
+    if (shift >= 0)
+    {
+        // integer: mant * 2^shift
+        numerator <<= shift;
+
+        // pad with 0s
+        for (size_t i = 0; i < precision; ++i)
+        {
+            buf[n++] = C('0');
+        }
+    }
+    else
+    {
+        // fraction: mant / 2^(-shift)
+        const int denominator_bits = -shift;
+        denominator_mask = (BI::one() << static_cast<size_t>(denominator_bits)) - BI::one();
+        denominator = numerator & denominator_mask;
+        numerator >>= denominator_bits;
+
+        const size_t limb_idx = denominator_bits / BI::limb_bits;
+        const size_t bit_off = denominator_bits % BI::limb_bits;
+
+        for (size_t i = 0; i < precision; ++i)
+        {
+            denominator.mul10();
+            const auto digit = (denominator.limbs[limb_idx] >> bit_off) & 0xF;
+            const char c = static_cast<char>('0' + digit);
+            buf[n++] = static_cast<C>(c);
+            denominator &= denominator_mask;
+        }
+
+        // rounding: peek at the next half-digit
+        // multiply remainder by 2 and check if >= denominator_mask + 1
+        // i.e. check if the next digit would be >= 5
+        denominator.mul10();
+        const auto rounding_digit = (denominator.limbs[limb_idx] >> bit_off) & 0xF;
+
+        if (rounding_digit >= 5)
+        {
+            // carry forward through fractional_buf
+            size_t i = n;
+            while (i--)
+            {
+                if (++buf[i] <= C('9'))
+                {
+                    // carry absorbed
+                    goto write_decimal;
+                }
+
+                buf[i] = C('0');
+            }
+
+            // carry escaped into integer part
+            ++numerator;
+        }
+    }
+
+write_decimal:
+{
+    if (precision > 0)
+    {
+        if (n == buf_size)
+        {
+            return 0;
+        }
+
+        buf[n++] = upper ? fmt.decimal_point : to_upper(fmt.decimal_point);
+    }
+}
+
+write_integer:
+{
+    do
+    {
+        if (n == buf_size)
+        {
+            return 0;
+        }
+
+        // this is safe because our divmod implementation will return 0 for 0 values
+        const auto digit = divmod_limb(numerator, 10);
+        const C c = static_cast<C>('0' + digit);
+        buf[n++] = c;
+
+    } while (!numerator.is_zero());
+
+    integer_digit_count = n - precision;
+}
+
+write_sign:
+{
+    if (sign)
+    {
+        if (n == buf_size)
+        {
+            return 0;
+        }
+
+        buf[n++] = static_cast<C>(sign);
+    }
+}
+
+    // format
+    {
+        // step 1: reverse fractional part if it exists
+        str::reverse(buf, precision);
+        // step 2: reverse the entire string to get the final order
+        str::reverse(buf, n);
+        return n;
     }
 }
 
@@ -307,7 +528,7 @@ size_t write_float(F value, C* buf, const size_t buf_size, const numeric_format_
     // https://github.com/godotengine/godot/blob/master/core/string/ustring.cpp#L1458
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double support not implemented");
 
-    constexpr size_t max_chars = _string_convert_priv::max_float_char_count;
+    constexpr size_t max_chars = 1000;
     char tmp[max_chars];
 
     const size_t precision = fmt.get_used_precision();
@@ -382,7 +603,7 @@ auto to_string(I v, const numeric_format_options<C>& fmt = {}) noexcept
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 auto to_string(F v, const numeric_format_options<C>& fmt = {}) noexcept
 {
-    constexpr size_t buf_size = _string_convert_priv::max_float_char_count;
+    constexpr size_t buf_size = 1000;
     C buf[buf_size];
     const size_t n = write_float<F, C>(v, buf, buf_size, fmt);
 
@@ -440,7 +661,7 @@ size_t from_string(const C* s, const size_t count, I& out, const numeric_format_
             break;
         }
 
-        if (!overflow && uout > (std::numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
+        if (!overflow && uout > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
         {
             overflow = true;
             err::set(err::out_of_range);
@@ -484,7 +705,7 @@ size_t from_string(const C* s, const size_t count, U& out, const numeric_format_
             break;
         }
 
-        if (!overflow && out > (std::numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
+        if (!overflow && out > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
         {
             overflow = true;
             err::set(err::out_of_range);

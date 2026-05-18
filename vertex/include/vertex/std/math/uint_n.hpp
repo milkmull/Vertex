@@ -494,7 +494,7 @@ struct uint_n
 
     constexpr uint_n() noexcept = default;
 
-    template <typename T, VX_REQUIRES(std::is_unsigned<T>::value)>
+    template <typename T, VX_REQUIRES(type_traits::is_unsigned_integral<T>::value)>
     explicit constexpr uint_n(T v) noexcept
     {
         for (size_t i = 0; i < limb_count; ++i)
@@ -512,6 +512,14 @@ struct uint_n
                     : Limb{};
             }
         }
+    }
+
+    template <typename T, VX_REQUIRES(type_traits::is_signed_integral<T>::value)>
+    explicit constexpr uint_n(T v) noexcept
+    {
+        using U = typename std::make_unsigned<T>::type;
+        VX_ASSERT(v >= 0);
+        *this = uint_n(static_cast<U>(v)); // calls the unsigned overload
     }
 
 #if defined(_HAS_INT128)
@@ -849,6 +857,37 @@ struct uint_n
         return { q, r };
     }
 
+    friend constexpr Limb divmod_limb(uint_n& a, Limb b) noexcept
+    {
+        Limb rem{};
+
+        for (size_t i = limb_count - 1; i < limb_count; --i)
+        {
+            Limb cur = a.limbs[i];
+            Limb q{};
+
+            for (int bit = static_cast<int>(limb_bits) - 1; bit >= 0; --bit)
+            {
+                const Limb new_rem = (rem << 1) | (cur >> (limb_bits - 1));
+                cur <<= 1;
+
+                if (new_rem >= b)
+                {
+                    rem = new_rem - b;
+                    q |= Limb{ 1 } << bit;
+                }
+                else
+                {
+                    rem = new_rem;
+                }
+            }
+
+            a.limbs[i] = q;
+        }
+
+        return rem;
+    }
+
     friend constexpr uint_n operator/(const uint_n& a, const uint_n& b) noexcept
     {
         return divmod(a, b).quotient;
@@ -857,6 +896,18 @@ struct uint_n
     friend constexpr uint_n operator%(const uint_n& a, const uint_n& b) noexcept
     {
         return divmod(a, b).remainder;
+    }
+
+    constexpr uint_n& operator/=(const uint_n& rhs) noexcept
+    {
+        *this = divmod(*this, rhs).quotient;
+        return *this;
+    }
+
+    constexpr uint_n& operator%=(const uint_n& rhs) noexcept
+    {
+        *this = divmod(*this, rhs).remainder;
+        return *this;
     }
 
     //=====================================
@@ -922,7 +973,7 @@ struct uint_n
     // shifts
     //=====================================
 
-    constexpr uint_n& operator<<=(size_t k) noexcept
+    constexpr uint_n& operator<<=(int k) noexcept
     {
         if (k == 0)
         {
@@ -953,7 +1004,7 @@ struct uint_n
         return *this;
     }
 
-    constexpr uint_n& operator>>=(size_t k) noexcept
+    constexpr uint_n& operator>>=(int k) noexcept
     {
         if (k == 0)
         {
@@ -979,12 +1030,12 @@ struct uint_n
         return *this;
     }
 
-    friend constexpr uint_n operator<<(uint_n a, size_t k) noexcept
+    friend constexpr uint_n operator<<(uint_n a, int k) noexcept
     {
         return a <<= k;
     }
 
-    friend constexpr uint_n operator>>(uint_n a, size_t k) noexcept
+    friend constexpr uint_n operator>>(uint_n a, int k) noexcept
     {
         return a >>= k;
     }
@@ -1084,6 +1135,17 @@ struct uint_n
     {
         *this = (*this << 3) + (*this << 1);
         return *this;
+    }
+
+    friend constexpr Limb mul10_extract(uint_n& a, size_t denom_bits) noexcept
+    {
+        a.mul10();
+        const size_t limb_idx = denom_bits / limb_bits;
+        const size_t bit_off = denom_bits % limb_bits;
+        const Limb digit = (a.limbs[limb_idx] >> bit_off) & Limb(0xF);
+        // clear the digit bits back out
+        a.limbs[limb_idx] &= ~(Limb(0xF) << bit_off);
+        return digit;
     }
 
     constexpr uint_n shr_mod(size_t n) noexcept

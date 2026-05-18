@@ -215,6 +215,8 @@ void test_to_string_impl()
         VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::max()), fmt, LIT("340282346638528859811704183484516925440.000000") }));
         VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::lowest()), fmt, LIT("-340282346638528859811704183484516925440.000000") }));
 
+        // 340282346638528859811704183484516925440
+
         // max precision (should cap to 32)
         fmt.precision = 1000;
         VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::denorm_min()), fmt, LIT("0.00000000000000000000000000000000") }));
@@ -412,7 +414,16 @@ VX_TEST_CASE(to_string)
     //test_to_string_impl<char>();
     //test_to_string_impl<wchar_t>();
 
-    str::write_float_fixed(std::numeric_limits<float>::max());
+    constexpr size_t buf_size = 1000;
+    char buf[buf_size];
+    str::numeric_format_options fmt;
+    fmt.precision = 100;
+    fmt.force_sign = true;
+    constexpr float value = 0;
+
+    const size_t n = str::write_float_fixed(value, buf, buf_size, fmt);
+    const str::basic_string_view<char> s(buf, n);
+    std::cout << "Value: " << value << ", String: " << s << std::endl;
 }
 
 //==============================================================================

@@ -18,7 +18,7 @@ template <>
 struct float_traits<float>
 {
     using uint_type = uint32_t;
-    using lim = std::numeric_limits<float>;
+    using lim = numeric_limits<float>;
 
     static constexpr size_t sign_bits = 1;
     static constexpr size_t storage_bits = sizeof(float) * CHAR_BIT;
@@ -42,7 +42,7 @@ template <>
 struct float_traits<double>
 {
     using uint_type = uint64_t;
-    using lim = std::numeric_limits<double>;
+    using lim = numeric_limits<double>;
 
     static constexpr size_t sign_bits = 1;
     static constexpr size_t storage_bits = sizeof(double) * CHAR_BIT;

@@ -590,6 +590,18 @@ struct is_zero_constructible<const volatile T> : is_zero_constructible<T>
 {};
 
 //==============================================================================
+// numeric helpers
+//==============================================================================
+
+template <typename T>
+struct is_signed_integral : bool_constant<std::is_integral<T>::value && std::is_signed<T>::value>
+{};
+
+template <typename T>
+struct is_unsigned_integral : bool_constant<std::is_integral<T>::value && std::is_unsigned<T>::value>
+{};
+
+//==============================================================================
 // unwrap enum
 //==============================================================================
 
