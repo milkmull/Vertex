@@ -1,50 +1,43 @@
 ﻿
-#include "vertex/image/load.hpp"
-#include "vertex/image/write.hpp"
-#include "vertex/pixel/surface.hpp"
-#include "vertex/pixel/surface_manip.hpp"
-#include "vertex/std/error.hpp"
+#define VX_ENABLE_PROFILING
+#include "vertex/std/string_convert.hpp"
+#include "vertex/system/profiler.hpp"
+
+static void std_print_fixed_float(const float f)
+{
+    char buf[200] = {};
+    {
+        VX_PROFILE_SCOPE("std");
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.100f", f);
+        //std::cout << "std: " << std::string_view(buf, n) << std::endl;
+    }
+}
+
+static void vx_print_fixed_float(const float f)
+{
+    vx::str::numeric_format_options fmt;
+    fmt.format = vx::str::numeric_format::fixed;
+    fmt.precision = 100;
+
+    char buf[200] = {};
+    {
+        VX_PROFILE_SCOPE("vx");
+        const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
+        //std::cout << "vx:  " << std::string_view(buf, n) << std::endl;
+    }
+}
 
 int main()
 {
-    vx::err::set_hook(vx::err::print_error_hook);
+    VX_PROFILE_START("fixed_float.csv");
 
-    const char* in_path = R"(C:\Users\Owner\Desktop\Milk_Stuff\2026\mmj\cards\me.png)";
-    const char* out_path = R"(C:\Users\Owner\Desktop\Milk_Stuff\2026\mmj\cards\me_hollow.png)";
-
-    vx::img::image img;
-    if (!vx::img::load(in_path, img))
+    for (int i = 0; i < 1000; ++i)
     {
-        return 1;
+        const float f = static_cast<float>(i) / 1000.0;
+        std_print_fixed_float(f);
+        vx_print_fixed_float(f);
     }
 
-    vx::pixel::surface_rgba8 surf = img.to_surface<vx::pixel::pixel_format::rgba_8>();
-
-    constexpr float threshold = 0.2f;
-    constexpr float boosted_threshold = 0;
-    constexpr vx::math::color color1 = vx::math::color8::red();
-    constexpr vx::math::color black = vx::math::color::black();
-    constexpr vx::math::color clear = vx::math::color::clear();
-
-    constexpr int drange = 1;
-
-    for (auto it = surf.begin(); it != surf.end(); ++it)
-    {
-        const size_t x = it.x();
-        const size_t y = it.y();
-
-        if (vx::math::equal_approx(it.color(), color1, threshold))
-        {
-            it.set_pixel(clear);
-            continue;
-        }
-    }
-
-    img = vx::img::image::from_surface(surf);
-    if (!vx::img::write_png(out_path, img))
-    {
-        return 1;
-    }
-
+    VX_PROFILE_STOP();
     return 0;
 }

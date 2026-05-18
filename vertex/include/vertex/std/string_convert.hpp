@@ -370,7 +370,7 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
 
     BI numerator(mantissa);
     BI denominator_mask;
-    BI denominator;
+    BI remainder;
 
     if (fb.is_nan())
     {
@@ -426,7 +426,7 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
         // fraction: mant / 2^(-shift)
         const int denominator_bits = -shift;
         denominator_mask = (BI::one() << static_cast<size_t>(denominator_bits)) - BI::one();
-        denominator = numerator & denominator_mask;
+        remainder = numerator & denominator_mask;
         numerator >>= denominator_bits;
 
         const size_t limb_idx = denominator_bits / BI::limb_bits;
@@ -434,18 +434,16 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
 
         for (size_t i = 0; i < precision; ++i)
         {
-            denominator.mul10();
-            const auto digit = (denominator.limbs[limb_idx] >> bit_off) & 0xF;
-            const char c = static_cast<char>('0' + digit);
-            buf[n++] = static_cast<C>(c);
-            denominator &= denominator_mask;
+            remainder.mul10();
+            const auto digit = remainder.shr_mod(denominator_bits).limbs[0];
+            buf[n++] = static_cast<C>('0' + digit);
         }
 
         // rounding: peek at the next half-digit
         // multiply remainder by 2 and check if >= denominator_mask + 1
         // i.e. check if the next digit would be >= 5
-        denominator.mul10();
-        const auto rounding_digit = (denominator.limbs[limb_idx] >> bit_off) & 0xF;
+        remainder.mul10();
+        const auto rounding_digit = remainder.shr_mod(denominator_bits).limbs[0];
 
         if (rounding_digit >= 5)
         {
@@ -480,37 +478,37 @@ write_decimal:
     }
 }
 
-write_integer:
-{
-    do
+    // write_integer
     {
-        if (n == buf_size)
+        do
         {
-            return 0;
-        }
+            if (n == buf_size)
+            {
+                return 0;
+            }
 
-        // this is safe because our divmod implementation will return 0 for 0 values
-        const auto digit = divmod_limb(numerator, 10);
-        const C c = static_cast<C>('0' + digit);
-        buf[n++] = c;
+            // this is safe because our divmod implementation will return 0 for 0 values
+            const auto digit = divmod_limb(numerator, 10);
+            const C c = static_cast<C>('0' + digit);
+            buf[n++] = c;
 
-    } while (!numerator.is_zero());
+        } while (!numerator.is_zero());
 
-    integer_digit_count = n - precision;
-}
-
-write_sign:
-{
-    if (sign)
-    {
-        if (n == buf_size)
-        {
-            return 0;
-        }
-
-        buf[n++] = static_cast<C>(sign);
+        integer_digit_count = n - precision;
     }
-}
+
+    // write_sign
+    {
+        if (sign)
+        {
+            if (n == buf_size)
+            {
+                return 0;
+            }
+
+            buf[n++] = static_cast<C>(sign);
+        }
+    }
 
     // format
     {
