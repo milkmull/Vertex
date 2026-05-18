@@ -604,8 +604,20 @@ T* destroy_range(T* ptr, size_t count) noexcept
 //=========================================================================
 
 template <typename T, typename U>
-T* fill_range(T* ptr, size_t count, const U& value)
+constexpr T* fill_range(T* ptr, size_t count, const U& value)
 {
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        // in a constant expression, just do the simple loop
+        for (; 0 < count; --count)
+        {
+            *ptr = value;
+            ++ptr;
+        }
+        return ptr;
+    
+    }
+
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset

@@ -156,7 +156,10 @@ constexpr char* copy(char* dst, const char* src) noexcept
 #if VX_HAS_BUILTIN(__builtin_strcpy)
         return __builtin_strcpy(dst, src);
 #else
+        VX_DISABLE_WARNING_PUSH();
+        VX_DISABLE_WARNING("-Wdeprecated-declarations", 4996); // for strcpy
         return ::strcpy(dst, src);
+        VX_DISABLE_WARNING_POP();
 #endif
     }
 }
@@ -183,7 +186,10 @@ constexpr wchar_t* copy(wchar_t* dst, const wchar_t* src) noexcept
 #if VX_HAS_BUILTIN(__builtin_wcscpy)
         return __builtin_wcscpy(dst, src);
 #else
+        VX_DISABLE_WARNING_PUSH();
+        VX_DISABLE_WARNING("-Wdeprecated-declarations", 4996); // for strcpy
         return ::wcscpy(dst, src);
+        VX_DISABLE_WARNING_POP();
 #endif
     }
 }

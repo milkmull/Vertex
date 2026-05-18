@@ -23,7 +23,7 @@ namespace str {
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
 size_t to_hex_string(const void* data, const size_t size, C* buf, const size_t buf_size, const bool upper = false) noexcept
 {
-    static constexpr C hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    constexpr C hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
     const size_t required = 2 * size;
     if (!buf || buf_size < required)
@@ -160,7 +160,7 @@ size_t write_integer(I value, C* buf, const size_t buf_size, const numeric_forma
 {
     VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
 
-    static constexpr const char digits[] = {
+    constexpr const char digits[] = {
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
         'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
         'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
@@ -238,8 +238,8 @@ void print_float_fixed(F value) noexcept
 
     // min shift = (1 - exponent_bias) - mantissa_bits  (negative)
     // denom_bits = -shift = exponent_bias - 1 + mantissa_bits
-    static constexpr int max_denom_bits = traits::exponent_bias - 1 + traits::mantissa_bits;
-    static constexpr size_t max_bigint_bits = ((max_denom_bits + 4 + 31) / 32) * 32;
+    constexpr int max_denom_bits = traits::exponent_bias - 1 + traits::mantissa_bits;
+    constexpr size_t max_bigint_bits = ((max_denom_bits + 4 + 31) / 32) * 32;
     using BI = uint_n<max_bigint_bits>;
 
     const float_bits<F> fb(value);
@@ -331,25 +331,101 @@ void print_float_fixed(F value) noexcept
 
 // https://github.com/microsoft/STL/blob/f3ae96af460b8fcb7d77c46fc1ad7d312900d1e7/stl/inc/xcharconv_ryu.h#L2390
 
-namespace _float_to_string_impl {
+namespace _string_convert_priv {
 
-template <typename T>
-constexpr int constexpr_log10(T value) noexcept
+template <size_t N, typename Limb, typename Traits>
+constexpr void mul10(uint_n<N, Limb, Traits>& a) noexcept
 {
-    return value < 10 ? 0 : 1 + constexpr_log10(value / 10);
+    // x * 10 = x * 8 + x * 2. Single pass, one carry value.
+    // We use the fact that l*10 always fits in ceil(log2(10)) = 4 extra bits,
+    // so the carry from limb i into limb i+1 is at most 9 (fits in 4 bits),
+    // well within a Limb regardless of limb width.
+
+    Limb carry = {};
+
+    for (size_t i = 0; i < a.limb_count; ++i)
+    {
+        const Limb l = a.limbs[i];
+
+        // Full product: l * 10 + carry_in.
+        // Top bits become carry_out, bottom limb_bits become the new limb.
+        // Since carry < 10 always, and l <= max_val, we need l*10 + 9 to fit
+        // in 2*limb_bits, which it always does — use mul_wide for correctness.
+        Limb lo{}, hi{};
+        Traits::mul_wide(l, static_cast<Limb>(10), lo, hi);
+        Limb c{};
+        Traits::add_carry(lo, carry, Limb{}, a.limbs[i]);
+        carry = hi + c;
+    }
 }
 
-} // namespace _float_to_string_impl
+template <size_t N, typename Limb, typename Traits>
+constexpr Limb divmod_limb(uint_n<N, Limb, Traits>& a, Limb b, size_t& top) noexcept
+{
+    Limb rem{};
+
+    for (size_t i = top + 1; i-- > 0;)
+    {
+#if defined(__HAS_INT128)
+
+        using u128 = unsigned __int128;
+        const u128 cur = (static_cast<u128>(rem) << limb_bits) | a.limbs[i];
+        a.limbs[i] = static_cast<Limb>(cur / b);
+        rem = static_cast<Limb>(cur % b);
+
+#else
+
+        constexpr size_t half = a.limb_bits / 2;
+        constexpr Limb half_mask = (Limb{ 1 } << half) - Limb{ 1 };
+
+        const Limb cur_hi = a.limbs[i] >> half;
+        const Limb cur_lo = a.limbs[i] & half_mask;
+
+        const Limb d1 = (rem << half) | cur_hi;
+        const Limb q1 = d1 / b;
+        const Limb r1 = d1 % b;
+
+        const Limb d2 = (r1 << half) | cur_lo;
+        const Limb q2 = d2 / b;
+        rem = d2 % b;
+
+        a.limbs[i] = (q1 << half) | q2;
+
+#endif
+    }
+
+    // shrink top down to the highest remaining non-zero limb
+    while (top > 0 && a.limbs[top] == Limb{})
+    {
+        --top;
+    }
+
+    return rem;
+}
+
+} // namespace _string_convert_priv
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
 
-    static constexpr int max_denominator_bits = traits::exponent_bias - 1 + traits::mantissa_bits;
-    static constexpr size_t max_bigint_bits = ((max_denominator_bits + 4 + 31) / 32) * 32;
+    // The denominator is 2^(-shift) where shift = true_exponent - mantissa_bits.
+    // The most negative shift occurs at the smallest true_exponent = -(exponent_bias - 1),
+    // giving a maximum denominator of 2^((exponent_bias - 1) + mantissa_bits), which
+    // requires (exponent_bias - 1) + mantissa_bits bits to represent.
+    //
+    // During digit extraction we repeatedly mul10(remainder) before masking back down.
+    // Multiplying by 10 (0b1010) requires 4 bits to represent, so a mul10 on an N-bit
+    // value can temporarily produce up to N+4 bits before the mask is applied.
+    // We therefore need (exponent_bias - 1) + mantissa_bits + 4 bits in total.
+    constexpr int max_bits_needed = (traits::exponent_bias - 1) + traits::mantissa_bits + 4;
+    // Round up to the next 64-bit boundary so uint_n gets a whole number of 64-bit limbs
+    // (the platform will use 64-bit limbs when __int128 or _umul128 is available).
+    constexpr size_t max_bigint_bits = ((max_bits_needed + 63) / 64) * 64;
     using BI = uint_n<max_bigint_bits>;
+    using limb_type = typename BI::limb_type;
 
     if (!buf || buf_size == 0)
     {
@@ -360,12 +436,8 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
     const bool upper = fmt.uppercase;
     const float_bits<F> fb(value);
 
-    // offset in the buffer of the fractional part
-    size_t integer_digit_count = 0;
-
     const uint_type mantissa = fb.mantissa_with_integer_bit();
     const int shift = fb.shift();
-    const bool write_decimal_point = (precision > 0);
     const char sign = fb.is_negative() ? '-' : (fmt.force_sign ? '+' : '\0');
 
     BI numerator(mantissa);
@@ -416,34 +488,38 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
         numerator <<= shift;
 
         // pad with 0s
-        for (size_t i = 0; i < precision; ++i)
+        if (VX_IS_CONSTANT_EVALUATED())
         {
-            buf[n++] = C('0');
+            for (size_t i = 0; i < precision; ++i)
+            {
+                buf[n++] = C('0');
+            }
+        }
+        else
+        {
+            mem::fill_range(buf, precision, C('0'));
         }
     }
     else
     {
         // fraction: mant / 2^(-shift)
         const int denominator_bits = -shift;
-        denominator_mask = (BI::one() << static_cast<size_t>(denominator_bits)) - BI::one();
+        denominator_mask.set_low_bits(denominator_bits);
         remainder = numerator & denominator_mask;
         numerator >>= denominator_bits;
 
-        const size_t limb_idx = denominator_bits / BI::limb_bits;
-        const size_t bit_off = denominator_bits % BI::limb_bits;
-
         for (size_t i = 0; i < precision; ++i)
         {
-            remainder.mul10();
-            const auto digit = remainder.shr_mod(denominator_bits).limbs[0];
+            _string_convert_priv::mul10(remainder);
+            const auto digit = remainder.extract_bits_at(denominator_bits);
             buf[n++] = static_cast<C>('0' + digit);
+            remainder &= denominator_mask;
         }
 
         // rounding: peek at the next half-digit
-        // multiply remainder by 2 and check if >= denominator_mask + 1
-        // i.e. check if the next digit would be >= 5
-        remainder.mul10();
-        const auto rounding_digit = remainder.shr_mod(denominator_bits).limbs[0];
+        // multiply remainder by 10 and check if >= denominator_mask + 1
+        _string_convert_priv::mul10(remainder);
+        const auto rounding_digit = remainder.extract_bits_at(denominator_bits);
 
         if (rounding_digit >= 5)
         {
@@ -454,7 +530,7 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
                 if (++buf[i] <= C('9'))
                 {
                     // carry absorbed
-                    goto write_decimal;
+                    goto finished_rounding;
                 }
 
                 buf[i] = C('0');
@@ -463,23 +539,28 @@ size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_f
             // carry escaped into integer part
             ++numerator;
         }
+
     }
 
-write_decimal:
-{
-    if (precision > 0)
+    finished_rounding:
+
+    //write_decimal
     {
-        if (n == buf_size)
+        if (precision > 0)
         {
-            return 0;
-        }
+            if (n == buf_size)
+            {
+                return 0;
+            }
 
-        buf[n++] = upper ? fmt.decimal_point : to_upper(fmt.decimal_point);
+            buf[n++] = upper ? fmt.decimal_point : to_upper(fmt.decimal_point);
+        }
     }
-}
 
     // write_integer
     {
+        size_t top = BI::limb_count - 1;
+
         do
         {
             if (n == buf_size)
@@ -487,14 +568,11 @@ write_decimal:
                 return 0;
             }
 
-            // this is safe because our divmod implementation will return 0 for 0 values
-            const auto digit = divmod_limb(numerator, 10);
-            const C c = static_cast<C>('0' + digit);
-            buf[n++] = c;
+            const auto digit = _string_convert_priv::divmod_limb(numerator, limb_type{ 10 }, top);
+            const char c = static_cast<char>('0' + digit);
+            buf[n++] = static_cast<C>(c);
 
-        } while (!numerator.is_zero());
-
-        integer_digit_count = n - precision;
+        } while (numerator.limbs[top] || top > 0);
     }
 
     // write_sign

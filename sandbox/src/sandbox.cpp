@@ -1,25 +1,37 @@
 ﻿
 #define VX_ENABLE_PROFILING
-#include "vertex/std/string_convert.hpp"
 #include "vertex/system/profiler.hpp"
 
-static void std_print_fixed_float(const float f)
+#include "vertex/std/string_convert.hpp"
+#include "vertex/util/random/rng.hpp"
+
+constexpr size_t make_float_string(const float f, char* buf, const size_t buf_size)
 {
-    char buf[200] = {};
+    vx::str::numeric_format_options fmt;
+    fmt.format = vx::str::numeric_format::fixed;
+    fmt.precision = 10;
+    return vx::str::write_float_fixed(f, buf, buf_size, fmt);
+}
+
+template <typename F>
+static void std_print_fixed_float(const F f)
+{
+    char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("std");
-        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.100f", f);
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.6f", f);
         //std::cout << "std: " << std::string_view(buf, n) << std::endl;
     }
 }
 
-static void vx_print_fixed_float(const float f)
+template <typename F>
+static void vx_print_fixed_float(const F f)
 {
     vx::str::numeric_format_options fmt;
     fmt.format = vx::str::numeric_format::fixed;
-    fmt.precision = 100;
+    fmt.precision = 6;
 
-    char buf[200] = {};
+    char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("vx");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
@@ -31,9 +43,18 @@ int main()
 {
     VX_PROFILE_START("fixed_float.csv");
 
-    for (int i = 0; i < 1000; ++i)
+    vx::random::gen rng;
+
+    //constexpr float f = FLT_MAX;
+    //constexpr char buf[100] = {};
+    //constexpr size_t n = make_float_string(f, const_cast<char*>(buf), sizeof(buf));
+
+
+
+    for (int i = 0; i < 2000; ++i)
     {
-        const float f = static_cast<float>(i) / 1000.0;
+        const double f = rng.randf_range<double>(0.0, 1.0);
+        //std::cout << bits << std::endl;
         std_print_fixed_float(f);
         vx_print_fixed_float(f);
     }

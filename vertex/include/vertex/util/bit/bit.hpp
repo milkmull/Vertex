@@ -1,17 +1,46 @@
 #pragma once
 
 #include <climits> // CHAR_BIT
-#include <limits> // numeric_limits
+#include <limits>  // numeric_limits
+#include <intrin.h>
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/memory.hpp"
 
 namespace vx {
 namespace bit {
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // byteswap
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
+
+namespace _bit_priv {
+
+constexpr uint8_t byteswap_8_generic(uint8_t x) noexcept
+{
+    return x;
+}
+
+constexpr uint16_t byteswap_16_generic(uint16_t x) noexcept
+{
+    return (x << 8) | (x >> 8);
+}
+
+constexpr uint32_t byteswap_32_generic(uint32_t x) noexcept
+{
+    return ((x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24));
+}
+
+constexpr uint64_t byteswap_64_generic(uint64_t x) noexcept
+{
+    x = (x & 0x00000000FFFFFFFF) << 32 | (x & 0xFFFFFFFF00000000) >> 32;
+    x = (x & 0x0000FFFF0000FFFF) << 16 | (x & 0xFFFF0000FFFF0000) >> 16;
+    x = (x & 0x00FF00FF00FF00FF) << 8 | (x & 0xFF00FF00FF00FF00) >> 8;
+    return x;
+}
+
+} // namespace _bit_priv
 
 /**
  * @brief Byte-swaps a 1-byte (8-bit) unsigned integer.
@@ -21,9 +50,9 @@ namespace bit {
  * @param x The 8-bit unsigned integer to convert.
  * @return The input value, unchanged.
  */
-VX_FORCE_INLINE uint8_t byteswap(uint8_t x) noexcept
+constexpr uint8_t byteswap(uint8_t x) noexcept
 {
-    return x;
+    return _bit_priv::byteswap_8_generic(x);
 }
 
 /**
@@ -35,7 +64,7 @@ VX_FORCE_INLINE uint8_t byteswap(uint8_t x) noexcept
  * @param x The 16-bit unsigned integer to convert.
  * @return The byte-swapped result.
  */
-VX_FORCE_INLINE uint16_t byteswap(uint16_t x) noexcept
+constexpr uint16_t byteswap(uint16_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap16)
 
@@ -43,11 +72,15 @@ VX_FORCE_INLINE uint16_t byteswap(uint16_t x) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return _bit_priv::byteswap_16_generic(x);
+    }
     return _byteswap_ushort(x);
 
 #else
 
-    return (x << 8) | (x >> 8);
+    return _bit_priv::byteswap_16_generic(x);
 
 #endif
 }
@@ -61,7 +94,7 @@ VX_FORCE_INLINE uint16_t byteswap(uint16_t x) noexcept
  * @param x The 32-bit unsigned integer to convert.
  * @return The byte-swapped result.
  */
-VX_FORCE_INLINE uint32_t byteswap(uint32_t x) noexcept
+constexpr uint32_t byteswap(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap32)
 
@@ -69,11 +102,15 @@ VX_FORCE_INLINE uint32_t byteswap(uint32_t x) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return _bit_priv::byteswap_32_generic(x);
+    }
     return _byteswap_ulong(x);
 
 #else
 
-    return ((x << 24) | ((x << 8) & 0x00FF0000) | ((x >> 8) & 0x0000FF00) | (x >> 24));
+    return _bit_priv::byteswap_32_generic(x);
 
 #endif
 }
@@ -87,7 +124,7 @@ VX_FORCE_INLINE uint32_t byteswap(uint32_t x) noexcept
  * @param x The 64-bit unsigned integer to convert.
  * @return The byte-swapped result.
  */
-VX_FORCE_INLINE uint64_t byteswap(uint64_t x) noexcept
+constexpr uint64_t byteswap(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_bswap64)
 
@@ -95,21 +132,22 @@ VX_FORCE_INLINE uint64_t byteswap(uint64_t x) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return _bit_priv::byteswap_64_generic(x);
+    }
     return _byteswap_uint64(x);
 
 #else
 
-    x = (x & 0x00000000FFFFFFFF) << 32 | (x & 0xFFFFFFFF00000000) >> 32;
-    x = (x & 0x0000FFFF0000FFFF) << 16 | (x & 0xFFFF0000FFFF0000) >> 16;
-    x = (x & 0x00FF00FF00FF00FF) <<  8 | (x & 0xFF00FF00FF00FF00) >>  8;
-    return x;
+    return _bit_priv::byteswap_64_generic(x);
 
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // rotl
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Performs a left bitwise rotation on an unsigned integral value.
@@ -123,11 +161,11 @@ VX_FORCE_INLINE uint64_t byteswap(uint64_t x) noexcept
  * @return The result of left-rotating `x` by `shift` bits.
  */
 template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
-VX_FORCE_INLINE T rotl(T x, unsigned int shift) noexcept
+constexpr T rotl(T x, unsigned int shift) noexcept
 {
     constexpr auto mask = (CHAR_BIT * sizeof(T) - 1);
     shift &= mask;
-    return static_cast<T>((x << shift) | (x >> ((-shift) & mask)));
+    return static_cast<T>((x << shift) | (x >> ((mask + 1 - shift) & mask)));
 }
 
 /**
@@ -139,10 +177,14 @@ VX_FORCE_INLINE T rotl(T x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate left by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift) noexcept
+constexpr uint8_t rotl(uint8_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotl<uint8_t>(x, shift);
+    }
     return _rotl8(x, static_cast<unsigned char>(shift));
 
 #else
@@ -161,10 +203,14 @@ VX_FORCE_INLINE uint8_t rotl(uint8_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate left by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint16_t rotl(uint16_t x, unsigned int shift) noexcept
+constexpr uint16_t rotl(uint16_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotl<uint16_t>(x, shift);
+    }
     return _rotl16(x, static_cast<unsigned char>(shift));
 
 #else
@@ -184,7 +230,7 @@ VX_FORCE_INLINE uint16_t rotl(uint16_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate left by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift) noexcept
+constexpr uint32_t rotl(uint32_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft32)
 
@@ -192,6 +238,10 @@ VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotl<uint32_t>(x, shift);
+    }
     return _rotl(x, static_cast<int>(shift));
 
 #else
@@ -211,7 +261,7 @@ VX_FORCE_INLINE uint32_t rotl(uint32_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate left by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift) noexcept
+constexpr uint64_t rotl(uint64_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateleft64)
 
@@ -219,6 +269,10 @@ VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotl<uint64_t>(x, shift);
+    }
     return _rotl64(x, static_cast<int>(shift));
 
 #else
@@ -228,9 +282,9 @@ VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift) noexcept
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // rotr
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Performs a right bitwise rotation on an unsigned integral value.
@@ -242,12 +296,12 @@ VX_FORCE_INLINE uint64_t rotl(uint64_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate right by.
  * @return The result of right-rotating `x` by `shift` bits.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE T rotr(T x, unsigned int shift) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr T rotr(T x, unsigned int shift) noexcept
 {
     constexpr auto mask = std::numeric_limits<T>::digits - 1;
     shift &= mask;
-    return static_cast<T>((x >> shift) | (x << ((-shift) & mask)));
+    return static_cast<T>((x >> shift) | (x << ((mask + 1 - shift) & mask)));
 }
 
 /**
@@ -259,10 +313,14 @@ VX_FORCE_INLINE T rotr(T x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate right by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift) noexcept
+constexpr uint8_t rotr(uint8_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotr<uint8_t>(x, shift);
+    }
     return _rotr8(x, static_cast<unsigned char>(shift));
 
 #else
@@ -281,10 +339,14 @@ VX_FORCE_INLINE uint8_t rotr(uint8_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate right by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint16_t rotr(uint16_t x, unsigned int shift) noexcept
+constexpr uint16_t rotr(uint16_t x, unsigned int shift) noexcept
 {
 #if defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotr<uint16_t>(x, shift);
+    }
     return _rotr16(x, static_cast<unsigned char>(shift));
 
 #else
@@ -303,7 +365,7 @@ VX_FORCE_INLINE uint16_t rotr(uint16_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate right by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift) noexcept
+constexpr uint32_t rotr(uint32_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright32)
 
@@ -311,6 +373,10 @@ VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotr<uint32_t>(x, shift);
+    }
     return _rotr(x, static_cast<int>(shift));
 
 #else
@@ -329,7 +395,7 @@ VX_FORCE_INLINE uint32_t rotr(uint32_t x, unsigned int shift) noexcept
  * @param shift Number of bits to rotate right by.
  * @return The rotated result.
  */
-VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift) noexcept
+constexpr uint64_t rotr(uint64_t x, unsigned int shift) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_rotateright64)
 
@@ -337,6 +403,10 @@ VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return rotr<uint64_t>(x, shift);
+    }
     return _rotr64(x, static_cast<int>(shift));
 
 #else
@@ -346,9 +416,9 @@ VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift) noexcept
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // countl_zero
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Counts the number of leading zero bits in an unsigned integer.
@@ -364,8 +434,8 @@ VX_FORCE_INLINE uint64_t rotr(uint64_t x, unsigned int shift) noexcept
  * @note This version is selected if no platform-specific intrinsic is available.
  * @note Requires T to be an unsigned integral type.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int countl_zero(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int countl_zero(T x) noexcept
 {
     constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
 
@@ -397,13 +467,18 @@ VX_FORCE_INLINE int countl_zero(T x) noexcept
  * @param x 32-bit unsigned integer.
  * @return The number of leading zeros. Returns 32 if `x == 0`.
  */
-VX_FORCE_INLINE int countl_zero(uint32_t x) noexcept
+constexpr int countl_zero(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clz)
 
     return __builtin_clz(x);
 
 #elif defined(_MSC_VER)
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countl_zero<uint32_t>(x);
+    }
 
     unsigned long index{};
     if (_BitScanReverse(&index, x))
@@ -431,13 +506,18 @@ VX_FORCE_INLINE int countl_zero(uint32_t x) noexcept
  * @param x 64-bit unsigned integer.
  * @return The number of leading zeros. Returns 64 if `x == 0`.
  */
-VX_FORCE_INLINE int countl_zero(uint64_t x) noexcept
+constexpr int countl_zero(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_clzll)
 
     return __builtin_clzll(x);
 
 #elif defined(_MSC_VER)
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countl_zero<uint64_t>(x);
+    }
 
     unsigned long index{};
     if (_BitScanReverse64(&index, x))
@@ -454,9 +534,9 @@ VX_FORCE_INLINE int countl_zero(uint64_t x) noexcept
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // countl_one
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Counts the number of consecutive 1-bits starting from the most significant bit (MSB).
@@ -470,15 +550,15 @@ VX_FORCE_INLINE int countl_zero(uint64_t x) noexcept
  *
  * @note Requires T to be an unsigned integral type.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int countl_one(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int countl_one(T x) noexcept
 {
     return countl_zero(static_cast<T>(~x));
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // countr_zero
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Counts the number of consecutive 0-bits starting from the least significant bit (LSB).
@@ -492,8 +572,8 @@ VX_FORCE_INLINE int countl_one(T x) noexcept
  *
  * @note Requires T to be an unsigned integral type.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int countr_zero(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int countr_zero(T x) noexcept
 {
     constexpr int bits = static_cast<int>(std::numeric_limits<T>::digits);
 
@@ -524,13 +604,18 @@ VX_FORCE_INLINE int countr_zero(T x) noexcept
  * @return The number of trailing zeros in the binary representation of `x`.
  *         Returns 32 if `x == 0`.
  */
-VX_FORCE_INLINE int countr_zero(uint32_t x) noexcept
+constexpr int countr_zero(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctz)
 
     return __builtin_ctz(x);
 
 #elif defined(_MSC_VER)
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countr_zero<uint32_t>(x);
+    }
 
     unsigned long index{};
     if (_BitScanForward(&index, x))
@@ -559,13 +644,18 @@ VX_FORCE_INLINE int countr_zero(uint32_t x) noexcept
  * @return The number of trailing zeros in the binary representation of `x`.
  *         Returns 64 if `x == 0`.
  */
-VX_FORCE_INLINE int countr_zero(uint64_t x) noexcept
+constexpr int countr_zero(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_ctzll)
 
     return __builtin_ctzll(x);
 
 #elif defined(_MSC_VER)
+
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return countr_zero<uint64_t>(x);
+    }
 
     unsigned long index{};
     if (_BitScanForward64(&index, x))
@@ -582,9 +672,9 @@ VX_FORCE_INLINE int countr_zero(uint64_t x) noexcept
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // countr_one
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Counts the number of consecutive 1-bits starting from the least significant bit (LSB).
@@ -596,15 +686,15 @@ VX_FORCE_INLINE int countr_zero(uint64_t x) noexcept
  * @param x The value to analyze.
  * @return The number of trailing 1s in the binary representation of `x`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int countr_one(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int countr_one(T x) noexcept
 {
     return countr_zero(static_cast<T>(~x));
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // popcount
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Counts the number of 1-bits (population count) in the binary representation of a value.
@@ -616,8 +706,8 @@ VX_FORCE_INLINE int countr_one(T x) noexcept
  * @param x The value to analyze.
  * @return The number of 1s in the binary representation of `x`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int popcount(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int popcount(T x) noexcept
 {
     int n = 0;
 
@@ -641,7 +731,7 @@ VX_FORCE_INLINE int popcount(T x) noexcept
  * @param x The 32-bit unsigned integer.
  * @return The number of set bits in `x`.
  */
-VX_FORCE_INLINE int popcount(uint32_t x) noexcept
+constexpr int popcount(uint32_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcount)
 
@@ -649,6 +739,10 @@ VX_FORCE_INLINE int popcount(uint32_t x) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return popcount<uint32_t>(x);
+    }
     return __popcnt(x);
 
 #else
@@ -669,7 +763,7 @@ VX_FORCE_INLINE int popcount(uint32_t x) noexcept
  * @param x The 64-bit unsigned integer.
  * @return The number of set bits in `x`.
  */
-VX_FORCE_INLINE int popcount(uint64_t x) noexcept
+constexpr int popcount(uint64_t x) noexcept
 {
 #if VX_HAS_BUILTIN(__builtin_popcountll)
 
@@ -677,6 +771,10 @@ VX_FORCE_INLINE int popcount(uint64_t x) noexcept
 
 #elif defined(_MSC_VER)
 
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return popcount<uint64_t>(x);
+    }
     return static_cast<int>(__popcnt64(x));
 
 #else
@@ -686,9 +784,9 @@ VX_FORCE_INLINE int popcount(uint64_t x) noexcept
 #endif
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // has_single_bit
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Checks whether the value has exactly one bit set (i.e., is a power of two).
@@ -700,15 +798,15 @@ VX_FORCE_INLINE int popcount(uint64_t x) noexcept
  * @param x The value to check.
  * @return True if `x` has a single bit set; otherwise false.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE bool has_single_bit(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr bool has_single_bit(T x) noexcept
 {
     return (popcount(x) == 1);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // bit_width
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Computes the number of bits needed to represent a non-zero value in binary.
@@ -724,15 +822,15 @@ VX_FORCE_INLINE bool has_single_bit(T x) noexcept
  * @param x The value whose bit width is to be computed.
  * @return The minimum number of bits required to represent `x`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE int bit_width(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr int bit_width(T x) noexcept
 {
     return static_cast<int>(std::numeric_limits<T>::digits - countl_zero(x));
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // bit_ceil
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Returns the smallest power of two that is greater than or equal to the given value.
@@ -745,8 +843,8 @@ VX_FORCE_INLINE int bit_width(T x) noexcept
  * @param x The input value.
  * @return The smallest power of two >= `x`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE T bit_ceil(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr T bit_ceil(T x) noexcept
 {
     if (x <= static_cast<T>(1))
     {
@@ -761,9 +859,9 @@ VX_FORCE_INLINE T bit_ceil(T x) noexcept
     return static_cast<T>(1) << bit_width(static_cast<T>(x - 1));
 }
 
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 // bit_floor
-///////////////////////////////////////////////////////////////////////////////
+//=============================================================================
 
 /**
  * @brief Returns the largest power of two less than or equal to the given value.
@@ -775,8 +873,8 @@ VX_FORCE_INLINE T bit_ceil(T x) noexcept
  * @param x The input value.
  * @return The largest power of two <= `x`.
  */
-template <typename T, VX_REQUIRES(std::is_integral<T>::value && std::is_unsigned<T>::value)>
-VX_FORCE_INLINE T bit_floor(T x) noexcept
+template <typename T, VX_REQUIRES(std::is_integral<T>::value&& std::is_unsigned<T>::value)>
+constexpr T bit_floor(T x) noexcept
 {
     if (x == static_cast<T>(0))
     {
@@ -784,6 +882,22 @@ VX_FORCE_INLINE T bit_floor(T x) noexcept
     }
 
     return static_cast<T>(1) << bit_width(static_cast<T>(x >> 1));
+}
+
+//=============================================================================
+// bit_cast
+//=============================================================================
+
+template <typename To, typename From, VX_REQUIRES(sizeof(To) == sizeof(From) && std::is_trivially_copyable<From>::value && std::is_trivially_copyable<To>::value)>
+To bit_cast(const From& src) noexcept
+{
+    VX_STATIC_ASSERT_MSG(std::is_trivially_constructible<To>::value,
+        "This implementation additionally requires "
+        "destination type to be trivially constructible");
+
+    To dst;
+    mem::copy(&dst, &src, sizeof(To));
+    return dst;
 }
 
 } // namespace bit

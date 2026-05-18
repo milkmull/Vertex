@@ -619,6 +619,84 @@ struct uint_n
         l = v ? (l | mk) : (l & ~mk);
     }
 
+    template <typename T = Limb, VX_REQUIRES(std::is_unsigned<T>::value)>
+    constexpr T extract_bits_at(size_t offset) const noexcept
+    {
+        constexpr size_t count = sizeof(T) * 8;
+
+        const size_t i = offset / limb_bits;
+        const size_t lo = offset % limb_bits;
+
+        // fast path: aligned and T fits exactly in one limb
+        VX_IF_CONSTEXPR (count == limb_bits)
+        {
+            if (lo == 0)
+            {
+                return static_cast<T>(limbs[i]);
+            }
+
+            // straddles two limbs
+            const T low_part = static_cast<T>(limbs[i] >> lo);
+            const T high_part = static_cast<T>(limbs[i + 1] << (limb_bits - lo));
+            return low_part | high_part;
+        }
+        else
+        {
+            // fast path: T smaller than a limb, bits fit within one limb
+            VX_IF_CONSTEXPR (count < limb_bits)
+            {
+                if (lo + count <= limb_bits)
+                {
+                    constexpr Limb mask = (Limb{ 1 } << count) - Limb{ 1 };
+                    return static_cast<T>((limbs[i] >> lo) & mask);
+                }
+            }
+
+            // general case: T wider than a limb or crosses boundary
+            T result{};
+            size_t bits_written = 0;
+            size_t cur_i = i;
+            size_t cur_lo = lo;
+
+            while (bits_written < count)
+            {
+                const size_t slice = std::min(limb_bits - cur_lo, count - bits_written);
+
+                const Limb mask = (slice == limb_bits)
+                    ? Traits::max_val
+                    : static_cast<Limb>((Limb{ 1 } << slice) - Limb{ 1 });
+
+                result |= static_cast<T>((limbs[cur_i] >> cur_lo) & mask) << bits_written;
+
+                bits_written += slice;
+                cur_lo = 0;
+                ++cur_i;
+            }
+
+            return result;
+        }
+    }
+
+    constexpr uint_n& set_low_bits(size_t count) noexcept
+    {
+        const size_t full_limbs = count / limb_bits;
+        const size_t remainder = count % limb_bits;
+
+        for (size_t i = 0; i < full_limbs; ++i)
+        {
+            limbs[i] = Traits::max_val;
+        }
+
+        limbs[full_limbs] = static_cast<Limb>((Limb{ 1 } << remainder) - Limb{ 1 });
+
+        for (size_t i = full_limbs + 1; i < limb_count; ++i)
+        {
+            limbs[i] = Limb{};
+        }
+
+        return *this;
+    }
+
     //=====================================
     // checks
     //=====================================
@@ -857,37 +935,6 @@ struct uint_n
         return { q, r };
     }
 
-    friend constexpr Limb divmod_limb(uint_n& a, Limb b) noexcept
-    {
-        Limb rem{};
-
-        for (size_t i = limb_count - 1; i < limb_count; --i)
-        {
-            Limb cur = a.limbs[i];
-            Limb q{};
-
-            for (int bit = static_cast<int>(limb_bits) - 1; bit >= 0; --bit)
-            {
-                const Limb new_rem = (rem << 1) | (cur >> (limb_bits - 1));
-                cur <<= 1;
-
-                if (new_rem >= b)
-                {
-                    rem = new_rem - b;
-                    q |= Limb{ 1 } << bit;
-                }
-                else
-                {
-                    rem = new_rem;
-                }
-            }
-
-            a.limbs[i] = q;
-        }
-
-        return rem;
-    }
-
     friend constexpr uint_n operator/(const uint_n& a, const uint_n& b) noexcept
     {
         return divmod(a, b).quotient;
@@ -956,17 +1003,29 @@ struct uint_n
 
     constexpr uint_n& operator&=(const uint_n& rhs) noexcept
     {
-        return *this = *this & rhs;
+        for (size_t i = 0; i < limb_count; ++i)
+        {
+            limbs[i] &= rhs.limbs[i];
+        }
+        return *this;
     }
 
     constexpr uint_n& operator|=(const uint_n& rhs) noexcept
     {
-        return *this = *this | rhs;
+        for (size_t i = 0; i < limb_count; ++i)
+        {
+            limbs[i] |= rhs.limbs[i];
+        }
+        return *this;
     }
 
     constexpr uint_n& operator^=(const uint_n& rhs) noexcept
     {
-        return *this = *this ^ rhs;
+        for (size_t i = 0; i < limb_count; ++i)
+        {
+            limbs[i] ^= rhs.limbs[i];
+        }
+        return *this;
     }
 
     //=====================================
@@ -1125,34 +1184,6 @@ struct uint_n
     constexpr int bit_length() const noexcept
     {
         return static_cast<int>(N) - clz();
-    }
-
-    //=====================================
-    // special helpers
-    //=====================================
-
-    constexpr uint_n& mul10() noexcept
-    {
-        *this = (*this << 3) + (*this << 1);
-        return *this;
-    }
-
-    friend constexpr Limb mul10_extract(uint_n& a, size_t denom_bits) noexcept
-    {
-        a.mul10();
-        const size_t limb_idx = denom_bits / limb_bits;
-        const size_t bit_off = denom_bits % limb_bits;
-        const Limb digit = (a.limbs[limb_idx] >> bit_off) & Limb(0xF);
-        // clear the digit bits back out
-        a.limbs[limb_idx] &= ~(Limb(0xF) << bit_off);
-        return digit;
-    }
-
-    constexpr uint_n shr_mod(size_t n) noexcept
-    {
-        uint_n quotient = *this >> n;
-        *this &= (uint_n::one() << n) - uint_n::one();
-        return quotient;
     }
 };
 
