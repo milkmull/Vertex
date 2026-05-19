@@ -19,8 +19,8 @@ static void std_print_fixed_float(const F f)
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("std");
-        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.6f", f);
-        //std::cout << "std: " << std::string_view(buf, n) << std::endl;
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.100f", f);
+        std::cout << "std: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -29,13 +29,13 @@ static void vx_print_fixed_float(const F f)
 {
     vx::str::numeric_format_options fmt;
     fmt.format = vx::str::numeric_format::fixed;
-    fmt.precision = 6;
+    fmt.precision = 100;
 
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("vx");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
-        //std::cout << "vx:  " << std::string_view(buf, n) << std::endl;
+        std::cout << "vx:  " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -51,10 +51,11 @@ int main()
 
 
 
-    for (int i = 0; i < 2000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
-        const double f = rng.randf_range<double>(0.0, 1.0);
-        //std::cout << bits << std::endl;
+        const uint32_t bits = rng();
+        const float f = vx::bit::bit_cast<float>(bits);
+        std::cout << bits << std::endl;
         std_print_fixed_float(f);
         vx_print_fixed_float(f);
     }

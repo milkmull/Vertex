@@ -415,7 +415,7 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
     // The most negative shift occurs at the smallest true_exponent = -(exponent_bias - 1),
     // giving a maximum denominator of 2^((exponent_bias - 1) + mantissa_bits), which
     // requires (exponent_bias - 1) + mantissa_bits bits to represent.
-    //
+    // -------------------------------------------------------------------------
     // During digit extraction we repeatedly mul10(remainder) before masking back down.
     // Multiplying by 10 (0b1010) requires 4 bits to represent, so a mul10 on an N-bit
     // value can temporarily produce up to N+4 bits before the mask is applied.
@@ -440,9 +440,10 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
     const int shift = fb.shift();
     const char sign = fb.is_negative() ? '-' : (fmt.force_sign ? '+' : '\0');
 
-    BI numerator(mantissa);
-    BI denominator_mask;
-    BI remainder;
+    // -------------------------------------------------------------------------
+    // Special values: NaN and Inf
+    // These are written directly and returned early.
+    // -------------------------------------------------------------------------
 
     if (fb.is_nan())
     {
@@ -453,7 +454,7 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
 
         buf[0] = upper ? 'N' : 'n';
         buf[1] = upper ? 'A' : 'a';
-        buf[2] = buf[0];
+        buf[2] = buf[0]; // 'N' or 'n'
         return 3;
     }
 
@@ -461,14 +462,15 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
 
     if (fb.is_inf())
     {
+        const size_t needed = (sign ? 1 : 0) + 3; // optional sign + "inf"
+        if (buf_size - n < needed)
+        {
+            return 0;
+        }
+
         if (sign)
         {
             buf[n++] = sign;
-        }
-
-        if (buf_size - n < 3)
-        {
-            return 0;
         }
 
         buf[n++] = upper ? 'I' : 'i';
@@ -477,17 +479,40 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
         return n;
     }
 
-    if (buf_size < precision)
+    // -------------------------------------------------------------------------
+    // Normal path: buf layout while building (before the final reversal):
+    //
+    //   [0 .. precision-1]  fractional digits (most-significant first)
+    //   [precision]         decimal point (if precision > 0)
+    //   [precision+1 ..]    integer digits (least-significant first, reversed later)
+    //   [n-1]               sign character (if any, reversed last)
+    //
+    // A single str::reverse(buf, n) at the end puts everything in order.
+    // -------------------------------------------------------------------------
+
+    BI numerator(mantissa);
+    BI denominator_mask;
+    BI remainder;
+
+    // Minimum space needed: precision digits + decimal point + at least one
+    // integer digit + optional sign.  We can't know the exact integer width yet,
+    // but we can at least guard against obviously-too-small buffers.
+    const size_t min_needed = precision + (precision > 0 ? 1 : 0) + 1 + (sign ? 1 : 0);
+    if (buf_size < min_needed)
     {
         return 0;
     }
 
     if (shift >= 0)
     {
-        // integer: mant * 2^shift
+        // ----------------------------------------------------------------
+        // Integer: value = mantissa * 2^shift — no fractional digits.
+        // Shift the numerator left and write `precision` zero digits as
+        // placeholders (they will all be "0.000..." after the final
+        // reversal since the integer part dominates).
+        // ----------------------------------------------------------------
         numerator <<= shift;
 
-        // pad with 0s
         if (VX_IS_CONSTANT_EVALUATED())
         {
             for (size_t i = 0; i < precision; ++i)
@@ -498,11 +523,21 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
         else
         {
             mem::fill_range(buf, precision, C('0'));
+            n = precision;
         }
     }
     else
     {
-        // fraction: mant / 2^(-shift)
+        // ----------------------------------------------------------------
+        // Fraction: value = mantissa / 2^(-shift).
+        //
+        // denominator_mask = 2^(-shift) - 1  (low -shift bits set).
+        // remainder        = mantissa mod denominator (the fractional part).
+        // numerator        = mantissa >> (-shift)     (the integer part).
+        //
+        // To extract each fractional digit we multiply the remainder by 10
+        // and read the digit that overflows the denominator's bit range.
+        // ----------------------------------------------------------------
         const int denominator_bits = -shift;
         denominator_mask.set_low_bits(denominator_bits);
         remainder = numerator & denominator_mask;
@@ -511,91 +546,116 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
         for (size_t i = 0; i < precision; ++i)
         {
             _string_convert_priv::mul10(remainder);
+            // Extract the digit that overflowed past the denominator's range.
             const auto digit = remainder.extract_bits_at(denominator_bits);
             buf[n++] = static_cast<C>('0' + digit);
-            remainder &= denominator_mask;
+            remainder &= denominator_mask; // keep only the sub-denominator remainder
         }
 
-        // rounding: peek at the next half-digit
-        // multiply remainder by 10 and check if >= denominator_mask + 1
+        // ----------------------------------------------------------------
+        // Rounding: peek at what the (precision+1)-th digit would be.
+        // If it is >= 5 we round up by propagating a carry through the
+        // fractional digits we just wrote (buf[0..precision-1]).
+        // If the carry escapes the fractional part it rolls into the
+        // integer portion via ++numerator.
+        // ----------------------------------------------------------------
         _string_convert_priv::mul10(remainder);
         const auto rounding_digit = remainder.extract_bits_at(denominator_bits);
 
         if (rounding_digit >= 5)
         {
-            // carry forward through fractional_buf
             size_t i = n;
             while (i--)
             {
                 if (++buf[i] <= C('9'))
                 {
-                    // carry absorbed
-                    goto finished_rounding;
+                    goto finished_rounding; // carry absorbed
                 }
-
-                buf[i] = C('0');
+                buf[i] = C('0'); // digit wrapped: continue carry
             }
 
-            // carry escaped into integer part
+            // Carry escaped every fractional digit; adjust the integer part.
             ++numerator;
         }
-
     }
 
-    finished_rounding:
+finished_rounding:
 
-    //write_decimal
+    // -------------------------------------------------------------------------
+    // Decimal point (written after fractional digits, before integer digits).
+    // In the pre-reversal layout the decimal point sits at position `n` and
+    // separates the fractional block from the (reversed) integer block above it.
+    // -------------------------------------------------------------------------
+    if (precision > 0)
     {
-        if (precision > 0)
-        {
-            if (n == buf_size)
-            {
-                return 0;
-            }
-
-            buf[n++] = upper ? fmt.decimal_point : to_upper(fmt.decimal_point);
-        }
+        if (n == buf_size)
+            return 0;
+        // NOTE: fmt.decimal_point is the desired character; to_upper() is
+        // applied when uppercase mode is OFF so that a lower-case '.' stays
+        // as-is and any locale-specific separator is handled correctly.
+        // For the standard '.' case both branches yield the same character.
+        buf[n++] = upper ? fmt.decimal_point : to_upper(fmt.decimal_point);
     }
 
-    // write_integer
+    // -------------------------------------------------------------------------
+    // Integer digits — extracted least-significant-first via repeated divmod.
+    // divmod_limb() divides `numerator` in-place by 10 and returns the
+    // remainder (the next digit). We iterate from the most-significant
+    // non-zero limb downward; `top` tracks that boundary so we skip
+    // leading-zero limbs quickly.
+    // -------------------------------------------------------------------------
     {
         size_t top = BI::limb_count - 1;
+
+        // Advance `top` down to the most-significant non-zero limb.
+        while (top > 0 && numerator.limbs[top] == 0)
+        {
+            --top;
+        }
 
         do
         {
             if (n == buf_size)
-            {
                 return 0;
-            }
 
             const auto digit = _string_convert_priv::divmod_limb(numerator, limb_type{ 10 }, top);
-            const char c = static_cast<char>('0' + digit);
-            buf[n++] = static_cast<C>(c);
+            buf[n++] = static_cast<C>('0' + digit);
 
-        } while (numerator.limbs[top] || top > 0);
-    }
-
-    // write_sign
-    {
-        if (sign)
-        {
-            if (n == buf_size)
+            // Shrink `top` if the leading limb became zero.
+            while (top > 0 && numerator.limbs[top] == 0)
             {
-                return 0;
+                --top;
             }
 
-            buf[n++] = static_cast<C>(sign);
-        }
+        } while (numerator.limbs[0] || top > 0);
     }
 
-    // format
+    // -------------------------------------------------------------------------
+    // Sign character (appended last; will be at index 0 after reversal).
+    // -------------------------------------------------------------------------
+    if (sign)
     {
-        // step 1: reverse fractional part if it exists
-        str::reverse(buf, precision);
-        // step 2: reverse the entire string to get the final order
-        str::reverse(buf, n);
-        return n;
+        if (n == buf_size)
+            return 0;
+        buf[n++] = static_cast<C>(sign);
     }
+
+    // -------------------------------------------------------------------------
+    // Final layout fixup via two-pass reversal.
+    //
+    // After the loop above the buffer looks like:
+    //   [frac_d0 frac_d1 ... frac_dn | '.' | int_dLSB ... int_dMSB | sign]
+    //
+    // Step 1: reverse the fractional block in place so digits are MSB-first.
+    // Step 2: reverse the entire buffer to bring sign and integer to the front.
+    //
+    // Result:
+    //   [sign | int_dMSB ... int_dLSB | '.' | frac_d0 ... frac_dn]
+    // -------------------------------------------------------------------------
+    str::reverse(buf, precision); // Step 1: fix up fractional digit order
+    str::reverse(buf, n);         // Step 2: bring sign+integer to the front
+
+    return n;
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
