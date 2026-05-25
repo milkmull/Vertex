@@ -9,44 +9,45 @@ namespace endian {
 // endianness
 ///////////////////////////////////////////////////////////////////////////////
 
+#define VX_ORDER_BIG_ENDIAN    0
+#define VX_ORDER_LITTLE_ENDIAN 1
+
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
+    #define VX_ORDER_NATIVE_ENDIAN VX_ORDER_LITTLE_ENDIAN
 
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER big
+    #define VX_ORDER_NATIVE_ENDIAN VX_ORDER_BIG_ENDIAN
 
 #elif defined(__BYTE_ORDER__) && defined(__ORDER_PDP_ENDIAN__) && __BYTE_ORDER__ == __ORDER_PDP_ENDIAN__
 
-#   error Vertex does not support platforms with PDP endianness
+    #error Vertex does not support platforms with PDP endianness
 
 #elif defined(__LITTLE_ENDIAN__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
+    #define VX_ORDER_NATIVE_ENDIAN VX_ORDER_LITTLE_ENDIAN
 
 #elif defined(__BIG_ENDIAN__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER big
+    #define VX_ORDER_NATIVE_ENDIAN VX_ORDER_BIG_ENDIAN
 
 #elif defined(_MSC_VER) || defined(__i386__) || defined(__x86_64__)
 
-#   define VX_ENDIAN_NATIVE_ORDER_INITIALIZER little
+    #define VX_ORDER_NATIVE_ENDIAN VX_ORDER_LITTLE_ENDIAN
 
 #else
 
-#   error Vertex could not determine the endianness of this platform.
+    #error Vertex could not determine the endianness of this platform.
 
 #endif
 
 enum class order
 {
-    big,
-    little,
-    native = VX_ENDIAN_NATIVE_ORDER_INITIALIZER
+    big = VX_ORDER_BIG_ENDIAN,
+    little = VX_ORDER_LITTLE_ENDIAN,
+    native = VX_ORDER_NATIVE_ENDIAN
 };
-
-#undef VX_ENDIAN_NATIVE_ORDER_INITIALIZER
 
 /**
  * @brief Converts a value from one byte order to another.
@@ -60,8 +61,8 @@ enum class order
  * @param to The byte order to convert to.
  * @return The converted value.
  */
-template<typename T>
-VX_FORCE_INLINE constexpr T convert(T x, order from, order to) noexcept
+template <typename T>
+constexpr T convert(T x, order from, order to) noexcept
 {
     return (from == to) ? x : bit::byteswap(x);
 }
@@ -73,8 +74,8 @@ VX_FORCE_INLINE constexpr T convert(T x, order from, order to) noexcept
  * @param value The value in big-endian format.
  * @return The value in native byte order.
  */
-template<typename T>
-VX_FORCE_INLINE constexpr T big_to_native(T value) noexcept
+template <typename T>
+constexpr T big_to_native(T value) noexcept
 {
     return convert(value, order::big, order::native);
 }
@@ -86,8 +87,8 @@ VX_FORCE_INLINE constexpr T big_to_native(T value) noexcept
  * @param value The value in native byte order.
  * @return The value in big-endian format.
  */
-template<typename T>
-VX_FORCE_INLINE constexpr T native_to_big(T value) noexcept
+template <typename T>
+constexpr T native_to_big(T value) noexcept
 {
     return convert(value, order::native, order::big);
 }
@@ -99,8 +100,8 @@ VX_FORCE_INLINE constexpr T native_to_big(T value) noexcept
  * @param value The value in little-endian format.
  * @return The value in native byte order.
  */
-template<typename T>
-VX_FORCE_INLINE constexpr T little_to_native(T value) noexcept
+template <typename T>
+constexpr T little_to_native(T value) noexcept
 {
     return convert(value, order::little, order::native);
 }
@@ -112,8 +113,8 @@ VX_FORCE_INLINE constexpr T little_to_native(T value) noexcept
  * @param value The value in native byte order.
  * @return The value in little-endian format.
  */
-template<typename T>
-VX_FORCE_INLINE constexpr T native_to_little(T value) noexcept
+template <typename T>
+constexpr T native_to_little(T value) noexcept
 {
     return convert(value, order::native, order::little);
 }

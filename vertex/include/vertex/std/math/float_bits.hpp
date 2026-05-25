@@ -7,6 +7,30 @@
 
 namespace vx {
 
+namespace _float_bits_priv {
+
+// Returns floor(log_10(2^e)). Requires 0 <= e <= 1650.
+// The first value this approximation fails for is 2^1651 > 10^297.
+inline constexpr uint32_t log10_pow2(int e) noexcept
+{
+    // The first value this approximation fails for is 2^1651 which is just greater than 10^297.
+    VX_ASSERT(e >= 0);
+    VX_ASSERT(e <= 1650);
+    return (static_cast<uint32_t>(e) * 78913u) >> 18;
+}
+
+// Returns floor(log_10(5^e)). Requires 0 <= e <= 2620.
+// The first value this approximation fails for is 5^2621 > 10^1832.
+inline constexpr int log10_pow5(int e) noexcept
+{
+    // The first value this approximation fails for is 5^2621 which is just greater than 10^1832.
+    assert(e >= 0);
+    assert(e <= 2620);
+    return (static_cast<uint32_t>(e) * 732923u) >> 20;
+}
+
+} // namespace _float_bits_priv
+
 //==============================================================================
 // float traits
 //==============================================================================
@@ -15,26 +39,22 @@ template <typename F>
 struct float_traits;
 
 template <>
-struct float_traits<float>
+struct float_traits<float> : numeric_limits<float>
 {
     using uint_type = uint32_t;
-    using lim = numeric_limits<float>;
 
-    static constexpr size_t sign_bits = 1;
-    static constexpr size_t storage_bits = sizeof(float) * CHAR_BIT;
-
-    static constexpr size_t mantissa_bits = lim::digits - 1;
-    static constexpr size_t exponent_bits = storage_bits - sign_bits - mantissa_bits;
+    static constexpr int sign_bits = 1;
+    static constexpr int storage_bits = sizeof(float) * CHAR_BIT;
+    static constexpr int mantissa_bits = digits - 1;
+    static constexpr int exponent_bits = storage_bits - sign_bits - mantissa_bits;
     static constexpr bool explicit_integer_bit = false;
 
-    static constexpr int exponent_bias = lim::max_exponent - 1;
-    static constexpr int true_min_exponent10 = lim::min_exponent10 - (static_cast<int>(mantissa_bits) - 1);
-    static constexpr int true_max_exponent10 = lim::max_exponent10;
-    static constexpr int exponent_max = (1 << exponent_bits) - 1;
+    static constexpr int exponent_bias = max_exponent - 1;
+    static constexpr int filled_exponent = (1 << exponent_bits) - 1;
 
     // masks
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
-    static constexpr uint_type exponent_mask = uint_type(exponent_max) << mantissa_bits;
+    static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
 };
 
@@ -54,11 +74,11 @@ struct float_traits<double>
     static constexpr int exponent_bias = lim::max_exponent - 1;
     static constexpr int true_min_exponent10 = lim::min_exponent10 - (static_cast<int>(mantissa_bits) - 1);
     static constexpr int true_max_exponent10 = lim::max_exponent10;
-    static constexpr int exponent_max = (1 << exponent_bits) - 1;
+    static constexpr int filled_exponent = (1 << exponent_bits) - 1;
 
     // masks
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
-    static constexpr uint_type exponent_mask = uint_type(exponent_max) << mantissa_bits;
+    static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
 };
 
@@ -127,6 +147,26 @@ struct float_bits
         return unbiased_exponent();
     }
 
+    constexpr int exponent10() const noexcept
+    {
+        if (is_subnormal())
+        {
+            const int leading = bit::countl_zero(mantissa()) - (sizeof(uint_type) * CHAR_BIT - traits::mantissa_bits);
+            const int e2 = 1 - traits::exponent_bias - leading;
+            return _float_bits_priv::log10_pow5(-e2) + e2;
+        }
+
+        const int e2 = true_exponent();
+        if (e2 >= 0)
+        {
+            return _float_bits_priv::log10_pow2(e2) - (e2 > 3);
+        }
+        else
+        {
+            return _float_bits_priv::log10_pow5(-e2) + e2;
+        }
+    }
+
     constexpr uint_type mantissa() const noexcept
     {
         return (bits & traits::mantissa_mask);
@@ -170,7 +210,7 @@ struct float_bits
 
     constexpr bool is_normal() const noexcept
     {
-        return exponent() != 0 && exponent() != traits::exponent_max;
+        return exponent() != 0 && exponent() != traits::filled_exponent;
     }
 
     constexpr bool is_subnormal() const noexcept
@@ -180,17 +220,17 @@ struct float_bits
 
     constexpr bool is_finite() const noexcept
     {
-        return exponent() != traits::exponent_max;
+        return exponent() != traits::filled_exponent;
     }
 
     constexpr bool is_inf() const noexcept
     {
-        return exponent() == traits::exponent_max && mantissa() == 0;
+        return exponent() == traits::filled_exponent && mantissa() == 0;
     }
 
     constexpr bool is_nan() const noexcept
     {
-        return exponent() == traits::exponent_max && mantissa() != 0;
+        return exponent() == traits::filled_exponent && mantissa() != 0;
     }
 };
 
