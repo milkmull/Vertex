@@ -30,7 +30,7 @@ static void std_print_fixed_float(const F f)
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("std");
-        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.500f", f);
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.1f", f);
         std::cout << "std: " << std::string_view(buf, n) << std::endl;
     }
 }
@@ -55,7 +55,7 @@ static void vx_print_fixed_float_2(const F f)
 {
     vx::str::numeric_format_options fmt;
     fmt.format = vx::str::numeric_format::fixed;
-    fmt.precision = 500;
+    fmt.precision = 1;
 
     char buf[5000] = {};
     {
@@ -96,7 +96,7 @@ int main()
     {
         //const uint32_t bits = rng();
         //const float f = vx::bit::bit_cast<float>(bits);
-        const float f = FLT_MIN;
+        const float f = 9.99f;
         std::cout << f << std::endl;
         std_print_fixed_float(f);
         vx_print_fixed_float_2(f);
