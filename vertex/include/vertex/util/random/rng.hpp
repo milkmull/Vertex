@@ -125,9 +125,10 @@ public:
      *
      * @return A random 32-bit unsigned integer.
      */
-    uint32_t randi()
+    template <typename T = uint32_t, VX_REQUIRES(std::is_integral<T>::value)>
+    T randi()
     {
-        return operator()();
+        return randi_range(std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
     }
 
     /**
@@ -135,9 +136,10 @@ public:
      *
      * @return A random floating-point number between 0.0 and 1.0.
      */
-    float randf()
+    template <typename T = float, VX_REQUIRES(std::is_floating_point<T>::value)>
+    T randf()
     {
-        return random::uniform_real_distribution<float>()(m_rng);
+        return random::uniform_real_distribution<T>()(m_rng);
     }
 
     /**

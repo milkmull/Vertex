@@ -460,7 +460,7 @@ struct has_native : std::bool_constant<!std::is_void<native_uint_t<N>>::value>
 
 template <
     size_t N,
-    typename Limb = best_limb_t<N>,
+    typename Limb = uint32_t,//best_limb_t<N>,
     typename Traits = limb_traits<Limb>>
 struct uint_n
 {

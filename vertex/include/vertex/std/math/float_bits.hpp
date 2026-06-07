@@ -16,7 +16,7 @@ inline constexpr uint32_t log10_pow2(int e) noexcept
     // The first value this approximation fails for is 2^1651 which is just greater than 10^297.
     VX_ASSERT(e >= 0);
     VX_ASSERT(e <= 1650);
-    return (static_cast<uint32_t>(e) * 78913u) >> 18;
+    return static_cast<uint32_t>((static_cast<uint64_t>(e) * 0x13441350fbdll) >> 42);
 }
 
 // Returns floor(log_10(5^e)). Requires 0 <= e <= 2620.
