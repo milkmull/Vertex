@@ -5,17 +5,6 @@
 #include "vertex/std/string_convert.hpp"
 #include "vertex/util/random/rng.hpp"
 
-static int get_float_base10_exponent_integer_true(float f)
-{
-    return std::floor(std::log10(std::abs(f)));
-}
-
-static int get_float_base10_exponent_integer(float f)
-{
-    vx::float_bits<float> fb(f);
-    return fb.exponent10();
-}
-
 //static int get_double_base10_exponent_integer(double d)
 //{
 //    uint64_t bits = vx::bit::bit_cast<uint64_t>(d) & 0x7FFFFFFFFFFFFFFFull;
@@ -79,7 +68,7 @@ static void std_print_scientific_float(const F f)
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("std");
-        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.0e", f);
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%e", f);
         std::cout << "std: " << std::string_view(buf, n) << std::endl;
     }
 }
@@ -130,7 +119,7 @@ static void vx_print_scientific_float(const F f)
 {
     vx::str::numeric_format_options fmt;
     fmt.format = vx::str::numeric_format::scientific;
-    fmt.precision = 0;
+    fmt.precision = 6;
 
     char buf[5000] = {};
     {
