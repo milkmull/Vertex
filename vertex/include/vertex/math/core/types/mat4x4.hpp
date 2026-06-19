@@ -642,7 +642,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) mat<4, 4, T>
     friend VX_FORCE_INLINE constexpr type operator/(const type& m, scalar_type scalar) noexcept
     {
         type out;
-        simd_type::div(m, scalar, out);
+        simd_type::div_wide(m, scalar, out);
         return out;
     }
 
@@ -650,7 +650,7 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) mat<4, 4, T>
     friend VX_FORCE_INLINE constexpr type operator/(scalar_type scalar, const type& m) noexcept
     {
         type out;
-        simd_type::div(scalar, m, out);
+        simd_type::div_wide(scalar, m, out);
         return out;
     }
 

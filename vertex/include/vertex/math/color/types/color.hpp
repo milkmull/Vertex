@@ -611,19 +611,19 @@ struct alignas(simd::vec<4, f32>::calulate_alignment()) color_t<f32>
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v, scalar_type scalar) noexcept
     {
-        return simd::vec<4, _T>::div(v, scalar);
+        return simd::vec<4, _T>::div_wide(v, scalar);
     }
 
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(scalar_type scalar, const type& v) noexcept
     {
-        return simd::vec<4, _T>::div(scalar, v);
+        return simd::vec<4, _T>::div_wide(scalar, v);
     }
 
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v1, const type& v2) noexcept
     {
-        return simd::vec<4, _T>::div(v1, v2);
+        return simd::vec<4, _T>::div_wide(v1, v2);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

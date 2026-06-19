@@ -844,19 +844,19 @@ struct alignas(simd::vec<4, T>::calulate_alignment()) vec<4, T>
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v, scalar_type scalar) noexcept
     {
-        return simd_type::div(v, scalar);
+        return simd_type::div_wide(v, scalar);
     }
 
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(scalar_type scalar, const type& v) noexcept
     {
-        return simd_type::div(scalar, v);
+        return simd_type::div_wide(scalar, v);
     }
 
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& v1, const type& v2) noexcept
     {
-        return simd_type::div(v1, v2);
+        return simd_type::div_wide(v1, v2);
     }
 
     ///////////////////////////////////////////////////////////////////////////////

@@ -59,21 +59,17 @@ struct float_traits<float> : numeric_limits<float>
 };
 
 template <>
-struct float_traits<double>
+struct float_traits<double> : numeric_limits<double>
 {
     using uint_type = uint64_t;
-    using lim = numeric_limits<double>;
 
     static constexpr size_t sign_bits = 1;
     static constexpr size_t storage_bits = sizeof(double) * CHAR_BIT;
-
-    static constexpr size_t mantissa_bits = lim::digits - 1;
+    static constexpr size_t mantissa_bits = digits - 1;
     static constexpr size_t exponent_bits = storage_bits - sign_bits - mantissa_bits;
     static constexpr bool explicit_integer_bit = false;
 
-    static constexpr int exponent_bias = lim::max_exponent - 1;
-    static constexpr int true_min_exponent10 = lim::min_exponent10 - (static_cast<int>(mantissa_bits) - 1);
-    static constexpr int true_max_exponent10 = lim::max_exponent10;
+    static constexpr int exponent_bias = max_exponent - 1;
     static constexpr int filled_exponent = (1 << exponent_bits) - 1;
 
     // masks

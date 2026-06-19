@@ -38,7 +38,7 @@ struct quat_t<f32>
     static VX_FORCE_INLINE data_type mul(data_type v1, data_type v2) noexcept { return _mm_mul_ps(v1, v2); }
     static VX_FORCE_INLINE data_type mul(data_type v, scalar_type scalar) noexcept { return _mm_mul_ps(v, _mm_set1_ps(scalar)); }
 
-    static VX_FORCE_INLINE data_type div(data_type v, scalar_type scalar) noexcept { return _mm_div_ps(v, _mm_set1_ps(scalar)); }
+    static VX_FORCE_INLINE data_type div_wide(data_type v, scalar_type scalar) noexcept { return _mm_div_ps(v, _mm_set1_ps(scalar)); }
     static VX_FORCE_INLINE data_type div_lowp(data_type v, scalar_type scalar) noexcept { return _mm_mul_ps(v, _mm_rcp_ps(_mm_set1_ps(scalar))); }
 
     static constexpr int HAVE_ADD = 1;

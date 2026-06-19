@@ -321,7 +321,7 @@ struct mat<4, 4, f32>
     // div
     ///////////////////////////////////////////////////////////////////////////////
 
-    static VX_FORCE_INLINE void div(const data_type in1, scalar_type in2, data_type out) noexcept
+    static VX_FORCE_INLINE void div_wide(const data_type in1, scalar_type in2, data_type out) noexcept
     {
         const vec_type scalar = _mm_set1_ps(in2);
 
@@ -331,7 +331,7 @@ struct mat<4, 4, f32>
         out[3] = _mm_div_ps(in1[3], scalar);
     }
 
-    static VX_FORCE_INLINE void div(scalar_type in1, const data_type in2, data_type out) noexcept
+    static VX_FORCE_INLINE void div_wide(scalar_type in1, const data_type in2, data_type out) noexcept
     {
         const vec_type scalar = _mm_set1_ps(in1);
 

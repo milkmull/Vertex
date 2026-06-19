@@ -381,7 +381,7 @@ struct alignas(simd::quat_t<T>::calulate_alignment()) quat_t
     _SIMD_OVERLOAD(HAVE_DIV)
     friend VX_FORCE_INLINE type operator/(const type& q, scalar_type scalar) noexcept
     {
-        return simd_type::div(q, scalar);
+        return simd_type::div_wide(q, scalar);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
