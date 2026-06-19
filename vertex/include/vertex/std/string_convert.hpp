@@ -262,85 +262,16 @@ constexpr size_t digit_count_max3(I value) noexcept
     return 3;
 }
 
-template <size_t N, typename Limb, typename Traits>
-constexpr void mul10(uint_n<N, Limb, Traits>& a) noexcept
+static constexpr uint32_t pow10_table[] = {
+    1u, 10u, 100u, 1000u, 10000u, 100000u, 1000000u, 10000000u, 100000000u
+};
+
+inline constexpr uint32_t pow10_u32(size_t n) noexcept
 {
-    // x * 10 = x * 8 + x * 2. Single pass, one carry value.
-    // We use the fact that l*10 always fits in ceil(log2(10)) = 4 extra bits,
-    // so the carry from limb i into limb i+1 is at most 9 (fits in 4 bits),
-    // well within a Limb regardless of limb width.
-
-    Limb carry = {};
-
-    for (size_t i = 0; i < a.limb_count; ++i)
-    {
-        const Limb l = a.limbs[i];
-
-        // Full product: l * 10 + carry_in.
-        // Top bits become carry_out, bottom limb_bits become the new limb.
-        // Since carry < 10 always, and l <= max_val, we need l*10 + 9 to fit
-        // in 2*limb_bits, which it always does — use mul_wide for correctness.
-        Limb lo{}, hi{};
-        Traits::mul_wide(l, static_cast<Limb>(10), lo, hi);
-        Limb c{};
-        Traits::add_carry(lo, carry, Limb{}, a.limbs[i]);
-        carry = hi + c;
-    }
+    VX_ASSERT(n <= 9);
+    VX_ASSERT(n > 0);
+    return pow10_table[n - 1];
 }
-
-template <size_t N, typename Limb, typename Traits>
-constexpr Limb divmod_limb(uint_n<N, Limb, Traits>& a, Limb b, size_t start = N - 1) noexcept
-{
-    Limb rem{};
-
-    for (size_t i = start + 1; i-- > 0;)
-    {
-#if defined(__HAS_INT128)
-
-        using u128 = unsigned __int128;
-        const u128 cur = (static_cast<u128>(rem) << limb_bits) | a.limbs[i];
-        a.limbs[i] = static_cast<Limb>(cur / b);
-        rem = static_cast<Limb>(cur % b);
-
-#else
-
-        constexpr size_t half = a.limb_bits / 2;
-        constexpr Limb half_mask = (Limb{ 1 } << half) - Limb{ 1 };
-
-        const Limb cur_hi = a.limbs[i] >> half;
-        const Limb cur_lo = a.limbs[i] & half_mask;
-
-        const Limb d1 = (rem << half) | cur_hi;
-        const Limb q1 = d1 / b;
-        const Limb r1 = d1 % b;
-
-        const Limb d2 = (r1 << half) | cur_lo;
-        const Limb q2 = d2 / b;
-        rem = d2 % b;
-
-        a.limbs[i] = (q1 << half) | q2;
-
-#endif
-    }
-
-    return rem;
-}
-
-template <size_t N, typename Limb, typename Traits>
-constexpr Limb divmod_limb_top(uint_n<N, Limb, Traits>& a, Limb b, size_t& top) noexcept
-{
-    const Limb rem = divmod_limb(a, b, top);
-
-    // shrink top down to the highest remaining non-zero limb
-    while (top > 0 && a.limbs[top] == Limb{})
-    {
-        --top;
-    }
-
-    return rem;
-}
-
-//==============================================================================
 
 template <typename C>
 inline constexpr void fill_n_zeros(C* buf, size_t n) noexcept
@@ -396,99 +327,189 @@ inline constexpr uint32_t decimal_length(uint64_t v) noexcept
     return n;
 }
 
-template <typename limb_type, size_t limb_count, typename wide_type>
-inline constexpr limb_type mul_wide(limb_type (&bits)[limb_count], limb_type x) noexcept
+template <typename limb_type_, uint32_t limb_count_, typename wide_type_>
+struct big_int
 {
-    constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
+    using limb_type = limb_type_;
+    using wide_type = wide_type_;
+    static constexpr uint32_t limb_count = limb_count_;
+    static constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    limb_type carry = 0;
-    for (size_t j = 0; j < limb_count; ++j)
+    limb_type bits[limb_count];
+
+    inline constexpr big_int() noexcept
+        : bits{}
+    {}
+
+    inline constexpr big_int(const limb_type x) noexcept
+        : bits{ x }
     {
-        const wide_type r = static_cast<wide_type>(bits[j]) * static_cast<wide_type>(x);
-        const limb_type lo = static_cast<limb_type>(r);
-        const limb_type hi = static_cast<limb_type>(r >> limb_bits);
-
-        const wide_type r2 = static_cast<wide_type>(lo) + static_cast<wide_type>(carry);
-        bits[j] = static_cast<limb_type>(r2);
-        carry = hi + static_cast<limb_type>(r2 >> limb_bits);
     }
 
-    return carry;
-}
+    inline constexpr big_int(const wide_type x) noexcept
+        : bits{ static_cast<limb_type>(x), static_cast<limb_type>(x >> limb_bits) }
+    {
+    }
 
-template <typename limb_type, size_t limb_count, typename wide_type>
-inline constexpr limb_type div_wide(limb_type (&bits)[limb_count], limb_type x, size_t& max_index) noexcept
-{
-    constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
+    inline constexpr big_int(limb_type m, int shift) noexcept
+        : bits{}
+    {
+        const uint32_t base_limb = shift / limb_bits;
+        const uint32_t bit_offset = shift % limb_bits;
 
-    limb_type remainder = 0;
+        // 1. Store into the first limb
+        bits[base_limb] |= static_cast<limb_type>(m << bit_offset);
 
-    size_t new_max_index = max_index;
-    bool checking_zero = true;
+        // 2. Overflow into the second limb
+        if (base_limb + 1 < limb_count)
+        {
+            bits[base_limb + 1] |= static_cast<limb_type>(m >> (limb_bits - bit_offset));
+        }
+    }
 
-    for (size_t i = max_index + 1; i-- > 0;)
+    inline constexpr big_int(wide_type m, int shift) noexcept
+        : bits{}
+    {
+        const uint32_t base_limb = shift / limb_bits;
+        const uint32_t bit_offset = shift % limb_bits;
+
+        // 1. Store into the first limb
+        bits[base_limb] |= static_cast<limb_type>(m << bit_offset);
+
+        // 2. Overflow into the second limb
+        if (base_limb + 1 < limb_count)
+        {
+            bits[base_limb + 1] |= static_cast<limb_type>(m >> (limb_bits - bit_offset));
+        }
+
+        // Total bits available in the first two limbs starting from our current bit_offset
+        constexpr uint32_t two_limbs_bits = limb_bits * 2;
+        constexpr uint32_t wide_bits = sizeof(wide_type) * CHAR_BIT;
+
+        // 3. Overflow into the third limb (Optimized away at compile-time for 32-bit floats)
+        if ((bit_offset + wide_bits > two_limbs_bits) && (base_limb + 2 < limb_count))
+        {
+            bits[base_limb + 2] |= static_cast<limb_type>(m >> (two_limbs_bits - bit_offset));
+        }
+    }
+
+    inline constexpr limb_type mul(limb_type x) noexcept
+    {
+        limb_type carry = 0;
+
+        for (size_t j = 0; j < limb_count; ++j)
+        {
+            // Fold multiplication and carry into a single wide operation
+            const wide_type product = (static_cast<wide_type>(bits[j]) * static_cast<wide_type>(x)) + static_cast<wide_type>(carry);
+
+            bits[j] = static_cast<limb_type>(product);
+            carry = static_cast<limb_type>(product >> limb_bits);
+        }
+
+        return carry;
+    }
+
+    inline constexpr limb_type extract_digit(uint32_t limb, uint32_t partial_bits) noexcept
+    {
+        const limb_type lo = bits[limb] >> partial_bits;
+        const limb_type hi = bits[limb + 1] << (limb_bits - partial_bits);
+        return lo | hi;
+    }
+
+    inline constexpr limb_type mul_extract(limb_type x, uint32_t limb, uint32_t partial_bits) noexcept
+    {
+        mul(x);
+        return extract_digit(limb, partial_bits);
+    }
+
+    inline constexpr void mul_clear(limb_type x, uint32_t limb, limb_type digit_mask) noexcept
+    {
+        mul(x);
+        bits[limb] &= digit_mask;
+        bits[limb + 1] = 0;
+    }
+
+    inline constexpr limb_type mul_extract_clear(limb_type x, uint32_t limb, uint32_t partial_bits, limb_type digit_mask) noexcept
+    {
+        const limb_type digit = mul_extract(x, limb, partial_bits);
+        bits[limb] &= digit_mask;
+        bits[limb + 1] = 0;
+        return digit;
+    }
+
+    inline constexpr limb_type extract_digit_lower(uint32_t limb, uint32_t partial_bits) noexcept
+    {
+        return bits[limb] >> partial_bits;
+    }
+
+    inline constexpr limb_type mul_extract_lower(limb_type x, uint32_t limb, uint32_t partial_bits) noexcept
+    {
+        mul(x);
+        return extract_digit_lower(limb, partial_bits);
+    }
+
+    inline constexpr void mul_clear_lower(limb_type x, uint32_t limb, limb_type digit_mask) noexcept
+    {
+        mul(x);
+        bits[limb] &= digit_mask;
+    }
+
+    inline constexpr limb_type mul_extract_clear_lower(limb_type x, uint32_t limb, uint32_t partial_bits, limb_type digit_mask) noexcept
+    {
+        const limb_type digit = mul_extract_lower(x, limb, partial_bits);
+        bits[limb] &= digit_mask;
+        return digit;
+    }
+
+    inline constexpr limb_type div_extract(limb_type x, size_t start_index) noexcept
     {
         constexpr uint32_t half = limb_bits / 2;
         constexpr limb_type half_mask = (limb_type{ 1 } << half) - limb_type{ 1 };
 
-        const limb_type cur_hi = bits[i] >> half;
-        const limb_type cur_lo = bits[i] & half_mask;
+        limb_type remainder = 0;
 
-        // Cast remainder to 64-bit before shifting to preserve the upper bits
-        const wide_type d1 = (static_cast<wide_type>(remainder) << half) | cur_hi;
-        const limb_type q1 = static_cast<limb_type>(d1 / x);
-        const limb_type r1 = static_cast<limb_type>(d1 % x);
-
-        const wide_type d2 = (static_cast<wide_type>(r1) << half) | cur_lo;
-        const limb_type q2 = static_cast<limb_type>(d2 / x);
-        remainder = static_cast<limb_type>(d2 % x);
-
-        const limb_type quotient = (q1 << half) | q2;
-        bits[i] = quotient;
-
-        if (checking_zero)
+        for (size_t i = start_index + 1; i-- > 0;)
         {
-            if (quotient == 0 && new_max_index > 0)
-            {
-                --new_max_index;
-            }
-            else
-            {
-                checking_zero = false;
-            }
+            const limb_type cur_hi = bits[i] >> half;
+            const limb_type cur_lo = bits[i] & half_mask;
+
+            const wide_type d1 = (static_cast<wide_type>(remainder) << half) | cur_hi;
+            const limb_type q1 = static_cast<limb_type>(d1 / x);
+            const limb_type r1 = static_cast<limb_type>(d1 % x);
+
+            const wide_type d2 = (static_cast<wide_type>(r1) << half) | cur_lo;
+            const limb_type q2 = static_cast<limb_type>(d2 / x);
+            remainder = static_cast<limb_type>(d2 % x);
+
+            bits[i] = (q1 << half) | q2;
+        }
+
+        return remainder;
+    }
+
+    inline constexpr void div_shrink(limb_type x, size_t& max_index) noexcept
+    {
+        div_extract(x, max_index);
+
+        while (bits[max_index] == 0)
+        {
+            --max_index;
         }
     }
 
-    max_index = new_max_index;
-    return remainder;
-}
+    inline constexpr limb_type div_shrink_extract(limb_type x, size_t& max_index) noexcept
+    {
+        const limb_type remainder = div_extract(x, max_index);
 
-// Centralized helper to extract a digit that might straddle across two limbs
-template <typename limb_type, size_t limb_count>
-constexpr limb_type extract_straddled_digit(limb_type (&frac_bits)[limb_count], uint32_t keep_limbs, uint32_t partial_bits) noexcept
-{
-    constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
-    const limb_type lo = frac_bits[keep_limbs] >> partial_bits;
-    const limb_type hi = frac_bits[keep_limbs + 1] << (limb_bits - partial_bits);
-    return lo | hi;
-}
+        // Post-loop scan to update max_index cleanly
+        while (max_index > 0 && bits[max_index] == 0)
+        {
+            --max_index;
+        }
 
-template <typename limb_type, size_t limb_count, typename wide_type>
-constexpr limb_type mul_extract_straddled_digit(limb_type (&frac_bits)[limb_count], uint32_t keep_limbs, uint32_t partial_bits) noexcept
-{
-    mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-    const limb_type digit = extract_straddled_digit(frac_bits, keep_limbs, partial_bits);
-    return digit;
-}
-
-template <typename limb_type, size_t limb_count, typename wide_type>
-constexpr limb_type extract_and_clear(limb_type (&frac_bits)[limb_count], uint32_t keep_limbs, uint32_t partial_bits, limb_type digit_mask) noexcept
-{
-    const limb_type digit = mul_extract_straddled_digit<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits);
-    frac_bits[keep_limbs] &= digit_mask;
-    frac_bits[keep_limbs + 1] = 0;
-    return digit;
-}
+        return remainder;
+    }
+};
 
 } // namespace _string_convert_priv
 
@@ -522,12 +543,12 @@ constexpr void write_positive_exponent_block(int e10, C* buf, size_t exp_char_co
         buf[1] = static_cast<C>('+');
     }
 
-    C* back = buf + exp_char_count;
+    size_t i = exp_char_count;
 
     do
     {
         const int digit = e10 % 10;
-        *(--back) = static_cast<C>('0' + digit);
+        buf[--i] = static_cast<C>('0' + digit);
         e10 /= 10;
 
     } while (e10 > 0);
@@ -539,26 +560,26 @@ constexpr void write_negative_exponent_block(int e10, C* buf, size_t exp_char_co
     buf[0] = static_cast<C>(upper ? 'E' : 'e');
     buf[1] = static_cast<C>('-');
 
-    C* back = buf + exp_char_count;
+    size_t i = exp_char_count;
 
     do
     {
         const int digit = e10 % 10;
-        *(--back) = static_cast<C>('0' + digit);
+        buf[--i] = static_cast<C>('0' + digit);
         e10 /= 10;
 
     } while (e10 > 0);
 }
 
-// Standardized look-back carry mechanism for standard round-to-nearest algorithms
 template <typename C>
-constexpr bool perform_string_scientific_carry_round(C* ptr, size_t leading_char_count) noexcept
+constexpr bool scientific_carry_round(C* ptr, size_t leading_char_count) noexcept
 {
-    // 0 precision case
+    // precision == 0
     if (leading_char_count == 1)
     {
-        if (++(ptr[0]) <= static_cast<C>('9'))
+        if (ptr[0] != static_cast<C>('9'))
         {
+            ++ptr[0];
             return false;
         }
 
@@ -566,36 +587,32 @@ constexpr bool perform_string_scientific_carry_round(C* ptr, size_t leading_char
         return true;
     }
 
-    // Start at the very last character
-    C* end = ptr + leading_char_count - 1;
-    // Loop only down to index 2 (skipping the decimal point at 1 and leading digit at 0)
-    C* loop_limit = ptr + 1;
+    // should have at lease digit + decimal + digit
+    VX_ASSERT(leading_char_count >= 3);
 
-    while (end > loop_limit)
+    // fractional digits only
+    for (size_t i = leading_char_count - 1; i > 1; --i)
     {
-        if (++(*end) <= static_cast<C>('9'))
+        if (ptr[i] != static_cast<C>('9'))
         {
+            ++ptr[i];
             return false;
         }
 
-        *end = static_cast<C>('0');
-        --end;
+        ptr[i] = static_cast<C>('0');
     }
 
-    // If we get here, the carry reached the leading digit at ptr[0]
-    if (++(ptr[0]) <= static_cast<C>('9'))
+    // leading digit
+    if (ptr[0] != static_cast<C>('9'))
     {
+        ++ptr[0];
         return false;
     }
 
-    ptr[0] = static_cast<C>('0');
-
     // If we reach here, a number like "9.99" is now "0.00"
-    // We need it to become "1.00" without changing the string length.
-
     // Move ONLY the fractional zeros right by 1 (skipping the decimal point)
     // The very last character gets safely dropped off the end.
-    mem::move_range(ptr + 3, ptr + 2, leading_char_count - 2);
+    mem::move_range(ptr + 3, ptr + 2, leading_char_count - 3);
 
     // Fix the prefix directly
     ptr[0] = static_cast<C>('1');
@@ -607,8 +624,8 @@ constexpr bool perform_string_scientific_carry_round(C* ptr, size_t leading_char
 template <typename C>
 constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
 {
-    const size_t precison_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    const size_t leading_char_count = 1 + precison_char_count;
+    const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    const size_t leading_char_count = 1 + precision_char_count;
     const size_t exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + 1;
     const size_t needed = leading_char_count + exp_char_count;
     if (buf_size < needed)
@@ -616,20 +633,22 @@ constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const nume
         return 0;
     }
 
-    *buf++ = static_cast<C>('0');
+    buf[0] = static_cast<C>('0');
+
     if (fmt.precision > 0)
     {
-        *buf++ = fmt.decimal_point;
-        fill_n_zeros(buf, fmt.precision);
-        buf += fmt.precision;
+        buf[1] = fmt.decimal_point;
+        fill_n_zeros(buf + 2, fmt.precision);
     }
 
-    *buf++ = static_cast<C>(fmt.uppercase ? 'E' : 'e');
-    if (fmt.force_sign)
+    C* const exp_ptr = buf + leading_char_count;
+
+    exp_ptr[0] = static_cast<C>(fmt.uppercase ? 'E' : 'e');
+    if (fmt.force_exp_sign)
     {
-        *buf++ = static_cast<C>('+');
+        exp_ptr[1] = static_cast<C>('+');
     }
-    *buf++ = static_cast<C>('0');
+    exp_ptr[exp_char_count - 1] = static_cast<C>('0');
 
     return needed;
 }
@@ -648,12 +667,10 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
     const int e2 = 1 - traits::exponent_bias - leading;
     int e10 = -(log10_pow5(-e2) + e2);
 
-    // digit + decimal + precision digits
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    // e + sign + digits
     size_t exp_char_count = 1 + 1 + digit_count_max3(e10);
 
-    const size_t needed = leading_char_count + exp_char_count;
+    size_t needed = leading_char_count + exp_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -672,42 +689,30 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
     constexpr limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
 
     // our large integer type
-    limb_type frac_bits[limb_count] = {};
-    frac_bits[0] = static_cast<limb_type>(m_bits);
-    VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-    {
-        frac_bits[1] = static_cast<limb_type>(m_bits >> limb_bits);
-    }
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+    big_int_type frac_bits{ m_bits };
 
     // first find the first non 0 digit
     {
-        size_t shave = e10;
+        size_t shave = static_cast<size_t>(e10);
 
         while (shave > 9)
         {
-            mul_wide<limb_type, limb_count, wide_type>(frac_bits, 1000000000u);
-            frac_bits[keep_limbs] &= digit_mask;
+            frac_bits.mul_clear_lower(1000000000u, keep_limbs, digit_mask);
             shave -= 9;
         }
 
-        while (shave > 1)
+        if (shave > 1)
         {
-            mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-            frac_bits[keep_limbs] &= digit_mask;
-            --shave;
+            frac_bits.mul_clear_lower(pow10_u32(shave), keep_limbs, digit_mask);
         }
 
-        mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-        limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-        frac_bits[keep_limbs] &= digit_mask;
+        limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
 
         // we may be short by 1 digit
         if (digit == 0)
         {
-            mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-            digit = frac_bits[keep_limbs] >> partial_bits;
-            frac_bits[keep_limbs] &= digit_mask;
-
+            digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
             ++e10;
             exp_changed = true;
         }
@@ -720,24 +725,21 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
     {
         buf[1] = fmt.decimal_point;
 
+        C* ptr = buf + 2;
         for (size_t i = 0; i < fmt.precision; ++i)
         {
-            mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-            // extract digit from the bits above
-            const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-            frac_bits[keep_limbs] &= digit_mask;
-            buf[2 + i] = static_cast<C>('0' + digit);
+            const limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
+            ptr[i] = static_cast<C>('0' + digit);
         }
     }
 
     if (fmt.round)
     {
-        mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-        const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
+        const limb_type round_digit = frac_bits.mul_extract_lower(10, keep_limbs, partial_bits);
 
-        if (digit >= 5)
+        if (round_digit >= 5)
         {
-            const bool overflow = perform_string_carry_round(buf, leading_char_count);
+            const bool overflow = scientific_carry_round(buf, leading_char_count);
             if (overflow)
             {
                 ++e10;
@@ -748,16 +750,16 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
 
     if (exp_changed)
     {
-        // If the exponent changed due to rounding, we may need an extra digit to represent it.
         exp_char_count = 1 + 1 + digit_count_max3(e10);
-        if (buf_size - leading_char_count < exp_char_count)
+        needed = leading_char_count + exp_char_count;
+        if (buf_size < needed)
         {
             return 0;
         }
     }
 
     write_negative_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase);
-    return leading_char_count + exp_char_count;
+    return needed;
 }
 
 template <typename F, typename C>
@@ -772,7 +774,7 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
 
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     size_t exp_char_count = 1 + 1 + _string_convert_priv::digit_count_max3(e10);
-    const size_t needed = leading_char_count + exp_char_count;
+    size_t needed = leading_char_count + exp_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -790,41 +792,32 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
     const limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
 
     // our large integer type
-    limb_type frac_bits[limb_count] = {};
-    frac_bits[0] = static_cast<limb_type>(m2);
-    VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-    {
-        frac_bits[1] = static_cast<limb_type>(m2 >> limb_bits);
-    }
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+    big_int_type frac_bits{ m2 };
 
     // first find the first non 0 digit
     {
-#define extract_and_clear() extract_and_clear<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits, digit_mask)
-
         limb_type digit = 0;
 
         if (e10 == 1)
         {
             // Our estimate should be accurate when e10 is 1, and this is the most common case.
-            digit = extract_and_clear();
+            digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
             VX_ASSERT(digit != 0);
         }
         else
         {
-            size_t shave = e10;
+            size_t shave = static_cast<size_t>(e10);
 
             while (shave > 10)
             {
-                mul_wide<limb_type, limb_count, wide_type>(frac_bits, 1000000000u);
-                frac_bits[keep_limbs] &= digit_mask;
-                frac_bits[keep_limbs + 1] = 0;
+                frac_bits.mul_clear(1000000000u, keep_limbs, digit_mask);
                 shave -= 9;
             }
 
-            while (shave > 1)
+            if (shave > 1)
             {
-                digit = extract_and_clear();
-                --shave;
+                frac_bits.mul_clear_lower(pow10_u32(shave), keep_limbs, digit_mask);
             }
 
             if (digit != 0)
@@ -834,7 +827,7 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
             }
             else
             {
-                digit = extract_and_clear();
+                digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
                 VX_ASSERT(digit != 0);
             }
         }
@@ -848,38 +841,36 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
 
         for (size_t i = 0; i < fmt.precision; ++i)
         {
-            const limb_type digit = extract_and_clear();
+            const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
             buf[2 + i] = static_cast<C>('0' + digit);
         }
     }
 
     if (fmt.round)
     {
-        const limb_type round_digit = mul_extract_straddled_digit<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits);
+        const limb_type round_digit = frac_bits.mul_extract(10, keep_limbs, partial_bits);
         if (round_digit >= 5)
         {
-            if (perform_string_carry_round(buf, leading_char_count))
+            if (scientific_carry_round(buf, leading_char_count))
             {
                 ++e10;
-                exp_changed = true;
+                exp_changed = !exp_changed;
             }
         }
     }
 
-#undef extract_and_clear
-
     if (exp_changed)
     {
-        // If the exponent changed due to rounding, we may need an extra digit to represent it.
         exp_char_count = 1 + 1 + digit_count_max3(e10);
-        if (buf_size - leading_char_count < exp_char_count)
+        needed = leading_char_count + exp_char_count;
+        if (buf_size < needed)
         {
             return 0;
         }
     }
 
     write_negative_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase);
-    return leading_char_count + exp_char_count;
+    return needed;
 }
 
 template <typename F, typename C>
@@ -894,7 +885,7 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
 
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     size_t exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + digit_count_max3(e10);
-    const size_t needed = leading_char_count + exp_char_count;
+    size_t needed = leading_char_count + exp_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -906,33 +897,11 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
     constexpr uint32_t total_bits = max_shift + traits::digits;
     constexpr uint32_t limb_count = (total_bits + (limb_bits - 1)) / limb_bits;
 
-    limb_type int_bits[limb_count] = {};
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+
+    const uint_type mantissa = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
+    big_int_type int_bits(mantissa, shift);
     size_t max_index = (shift + traits::digits - 1) / limb_bits;
-
-    // load up the mantissa into data
-    {
-        const uint32_t base_limb = shift / limb_bits;
-        const uint32_t bit_offset = shift % limb_bits;
-        const uint_type mantissa = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
-
-        // Store into the first limb
-        int_bits[base_limb] |= static_cast<limb_type>(mantissa << bit_offset);
-
-        // Overflow into the second limb
-        if (base_limb + 1 < limb_count)
-        {
-            int_bits[base_limb + 1] |= static_cast<limb_type>(mantissa >> (limb_bits - bit_offset));
-        }
-
-        // Overflow into the third limb (Compile-time evaluated out for 32-bit float types)
-        VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-        {
-            if (bit_offset + traits::digits > (limb_bits * 2) && (base_limb + 2 < limb_count))
-            {
-                int_bits[base_limb + 2] |= static_cast<limb_type>(mantissa >> ((limb_bits * 2) - bit_offset));
-            }
-        }
-    }
 
     limb_type round_digit = 0;
     C* back_ptr = buf + leading_char_count;
@@ -949,17 +918,16 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
         // Batch divide by 10^9 (or 10^18 if using wide_type) to wipe out chunks of digits instantly
         while (shave > 9)
         {
-            div_wide<limb_type, limb_count, wide_type>(int_bits, 1000000000u, max_index);
+            int_bits.div_shrink(1000000000u, max_index);
             shave -= 9;
         }
 
-        while (shave > 1)
+        if (shave > 1)
         {
-            div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-            --shave;
+            int_bits.div_shrink(pow10_u32(shave), max_index);
         }
 
-        round_digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+        round_digit = int_bits.div_extract(10, max_index);
     }
     else if (digits_needed > int_digit_count)
     {
@@ -972,7 +940,7 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
     const size_t digits_left = digits_needed - zero_fill;
     for (size_t i = 1; i < digits_left; ++i)
     {
-        const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+        const limb_type digit = int_bits.div_shrink_extract(10, max_index);
         *(--back_ptr) = static_cast<C>('0' + digit);
     }
 
@@ -982,15 +950,15 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
         {
             *(--back_ptr) = fmt.decimal_point;
         }
-        const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+        const limb_type digit = int_bits.div_shrink_extract(10, max_index);
         *(--back_ptr) = static_cast<C>('0' + digit);
     }
 
     // There may be 1 digit left over in rare cases
-    if (int_bits[0] != 0)
+    if (int_bits.bits[0] != 0)
     {
-        const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-        VX_ASSERT(int_bits[0] == 0);
+        const limb_type digit = int_bits.div_extract(10, 0);
+        VX_ASSERT(int_bits.bits[0] == 0);
 
         round_digit = static_cast<limb_type>(buf[leading_char_count - 1] - '0');
 
@@ -1010,9 +978,8 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
 
     if (fmt.round && round_digit >= 5)
     {
-        if (perform_string_carry_round(buf, leading_char_count))
+        if (scientific_carry_round(buf, leading_char_count))
         {
-            // If we had a carry that overflowed the most significant digit, we need to adjust the exponent.
             ++e10;
             exp_changed = true;
         }
@@ -1020,16 +987,16 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
 
     if (exp_changed)
     {
-        // If the exponent changed due to rounding, we may need an extra digit to represent it.
-        exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + digit_count_max3(e10);
-        if (buf_size - leading_char_count < exp_char_count)
+        exp_char_count = 1 + 1 + digit_count_max3(e10);
+        needed = leading_char_count + exp_char_count;
+        if (buf_size < needed)
         {
             return 0;
         }
     }
 
     write_positive_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase, fmt.force_exp_sign);
-    return leading_char_count + exp_char_count;
+    return needed;
 }
 
 template <typename F, typename C>
@@ -1044,16 +1011,15 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
 
     const uint_type m2 = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
     const int frac_bit_count = -shift;
-    const uint_type raw_int_bits = m2 >> frac_bit_count;
+    uint_type int_bits = m2 >> frac_bit_count;
 
     // should be exact
-    int e10 = decimal_length(raw_int_bits);
-    const size_t int_digit_count = static_cast<size_t>(e10) + 1;
+    const size_t int_digit_count = decimal_length(int_bits);
+    int e10 = static_cast<int>(int_digit_count - 1);
 
-    // min space needed: digits + decimal + e + sign + exp digits
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     size_t exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + digit_count_max3(e10);
-    const size_t needed = leading_char_count + fmt.force_exp_sign + exp_char_count;
+    size_t needed = leading_char_count + fmt.force_exp_sign + exp_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -1069,17 +1035,6 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
 
     // int digits
     {
-        constexpr uint32_t limb_count = (traits::digits + (limb_bits - 1)) / limb_bits;
-        limb_type int_bits[limb_count] = {};
-
-        int_bits[0] = static_cast<limb_type>(raw_int_bits);
-        VX_IF_CONSTEXPR (limb_count > 1)
-        {
-            int_bits[1] = static_cast<limb_type>(raw_int_bits >> limb_bits);
-        }
-
-        size_t max_index = (int_bits[1] != 0) ? 1 : 0;
-
         // first we shave off the digits we don't care about
         if (int_digits_needed < int_digit_count)
         {
@@ -1088,17 +1043,17 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
             // Batch divide by 10^9 (or 10^18 if using wide_type) to wipe out chunks of digits instantly
             while (shave > 9)
             {
-                div_wide<limb_type, limb_count, wide_type>(int_bits, 1000000000u, max_index);
+                int_bits /= 1000000000u;
                 shave -= 9;
             }
 
-            while (shave > 1)
+            if (shave > 1)
             {
-                div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-                --shave;
+                int_bits /= pow10_u32(shave);
             }
 
-            round_digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+            round_digit = int_bits % 10;
+            int_bits /= 10;
         }
 
         C* ptr = buf + int_digits_needed + static_cast<size_t>(fmt.precision > 0);
@@ -1106,7 +1061,8 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
         // populate integer part
         for (size_t i = 1; i < int_digits_needed; ++i)
         {
-            const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+            const limb_type digit = int_bits % 10;
+            int_bits /= 10;
             *(--ptr) = static_cast<C>('0' + digit);
         }
 
@@ -1115,51 +1071,49 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
         {
             *(--ptr) = fmt.decimal_point;
         }
-        const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
+        const limb_type digit = int_bits % 10;
         *(--ptr) = static_cast<C>('0' + digit);
     }
 
     // frac part + rounding
     if (frac_digits_needed || (int_digits_needed == int_digit_count && fmt.round))
     {
-        constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
-        constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
-
-        // extract digit from the bits above
-        const uint32_t keep_limbs = -shift / limb_bits;
-        const uint32_t partial_bits = -shift % limb_bits;
-        const limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
-
-        limb_type frac_bits[limb_count] = {};
-
         const uint_type raw_frac_bits = m2 & ((uint_type{ 1 } << frac_bit_count) - 1);
-        frac_bits[0] = static_cast<limb_type>(raw_frac_bits);
-        VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-        {
-            frac_bits[1] = static_cast<limb_type>(raw_frac_bits >> limb_bits);
-        }
-
-        // move to the start of the fractional part
         C* ptr = buf + int_digits_needed + 1;
-#define extract_and_clear() extract_and_clear<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits, digit_mask)
 
-        for (size_t i = 0; i < frac_digits_needed; ++i)
+        if (!raw_frac_bits)
         {
-            const limb_type digit = extract_and_clear();
-            *ptr++ = static_cast<C>('0' + digit);
+            fill_n_zeros(ptr, frac_digits_needed);
         }
-
-#undef extract_and_clear
-
-        if (fmt.round)
+        else
         {
-            round_digit = mul_extract_straddled_digit<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits);
+            constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
+            constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
+            using big_int_type = big_int<limb_type, limb_count, wide_type>;
+
+            // extract digit from the bits above
+            const uint32_t keep_limbs = -shift / limb_bits;
+            const uint32_t partial_bits = -shift % limb_bits;
+            const limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
+
+            big_int_type frac_bits = { raw_frac_bits };
+
+            for (size_t i = 0; i < frac_digits_needed; ++i)
+            {
+                const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+                *ptr++ = static_cast<C>('0' + digit);
+            }
+
+            if (fmt.round)
+            {
+                round_digit = frac_bits.mul_extract(10, keep_limbs, partial_bits);
+            }
         }
     }
 
     if (fmt.round && round_digit >= 5)
     {
-        if (perform_string_carry_round(buf, leading_char_count))
+        if (scientific_carry_round(buf, leading_char_count))
         {
             ++e10;
             exp_changed = true;
@@ -1168,16 +1122,16 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
 
     if (exp_changed)
     {
-        // If the exponent changed due to rounding, we may need an extra digit to represent it.
-        exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + digit_count_max3(e10);
-        if (buf_size - leading_char_count < exp_char_count)
+        exp_char_count = 1 + 1 + digit_count_max3(e10);
+        needed = leading_char_count + exp_char_count;
+        if (buf_size < needed)
         {
             return 0;
         }
     }
 
     write_positive_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase, fmt.force_exp_sign);
-    return leading_char_count + exp_char_count;
+    return needed;
 }
 
 } // namespace _string_convert_priv
@@ -1287,627 +1241,6 @@ constexpr size_t write_float_scientific(F value, C* buf, const size_t buf_size, 
 // fixed format
 //==============================================================================
 
-template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
-{
-    using traits = typename float_bits<F>::traits;
-    using uint_type = typename traits::uint_type;
-
-    // The denominator is 2^(-shift) where shift = true_exponent - mantissa_bits.
-    // The most negative shift occurs at the smallest true_exponent = -(exponent_bias - 1),
-    // giving a maximum denominator of 2^((exponent_bias - 1) + mantissa_bits), which
-    // requires (exponent_bias - 1) + mantissa_bits bits to represent.
-    // -------------------------------------------------------------------------
-    // During digit extraction we repeatedly mul10(remainder) before masking back down.
-    // Multiplying by 10 (0b1010) requires 4 bits to represent, so a mul10 on an N-bit
-    // value can temporarily produce up to N+4 bits before the mask is applied.
-    // We therefore need (exponent_bias - 1) + mantissa_bits + 4 bits in total.
-    constexpr int max_bits_needed = (traits::exponent_bias - 1) + traits::mantissa_bits + 4;
-    // Round up to the next 64-bit boundary so uint_n gets a whole number of 64-bit limbs
-    // (the platform will use 64-bit limbs when __int128 or _umul128 is available).
-    constexpr size_t max_bigint_bits = ((max_bits_needed + 63) / 64) * 64;
-    using BI = uint_n<max_bigint_bits>;
-    using limb_type = typename BI::limb_type;
-
-    if (!buf || buf_size == 0)
-    {
-        return 0;
-    }
-
-    const int32_t precision = fmt.get_used_precision();
-    const bool upper = fmt.uppercase;
-    const bool round = fmt.round;
-    const float_bits<F> fb(value);
-
-    const uint_type mantissa = fb.mantissa_with_integer_bit();
-    const int shift = fb.shift();
-    const char sign = fb.is_negative() ? '-' : (fmt.force_sign ? '+' : '\0');
-
-    // -------------------------------------------------------------------------
-    // Special values: NaN and Inf
-    // These are written directly and returned early.
-    // -------------------------------------------------------------------------
-
-    if (fb.is_nan())
-    {
-        if (buf_size < 3)
-        {
-            return 0;
-        }
-
-        buf[0] = upper ? 'N' : 'n';
-        buf[1] = upper ? 'A' : 'a';
-        buf[2] = buf[0]; // 'N' or 'n'
-        return 3;
-    }
-
-    size_t n = 0;
-
-    if (fb.is_inf())
-    {
-        const size_t needed = (sign ? 1 : 0) + 3; // optional sign + "inf"
-        if (buf_size - n < needed)
-        {
-            return 0;
-        }
-
-        if (sign)
-        {
-            buf[n++] = sign;
-        }
-
-        buf[n++] = upper ? 'I' : 'i';
-        buf[n++] = upper ? 'N' : 'n';
-        buf[n++] = upper ? 'F' : 'f';
-        return needed;
-    }
-
-    // -------------------------------------------------------------------------
-    // Normal path: buf layout while building (before the final reversal):
-    //
-    //   [0 .. precision-1]  fractional digits (most-significant first)
-    //   [precision]         decimal point (if precision > 0)
-    //   [precision+1 ..]    integer digits (least-significant first, reversed later)
-    //   [n-1]               sign character (if any, reversed last)
-    //
-    // A single str::reverse(buf, n) at the end puts everything in order.
-    // -------------------------------------------------------------------------
-
-    BI numerator(mantissa);
-    BI denominator_mask;
-    BI remainder;
-
-    // Minimum space needed: precision digits + decimal point + at least one
-    // integer digit + optional sign.  We can't know the exact integer width yet,
-    // but we can at least guard against obviously-too-small buffers.
-    const size_t min_needed = precision + (precision > 0 ? 1 : 0) + 1 + (sign ? 1 : 0);
-    if (buf_size < min_needed)
-    {
-        return 0;
-    }
-
-    if (shift >= 0)
-    {
-        // ----------------------------------------------------------------
-        // Integer: value = mantissa * 2^shift — no fractional digits.
-        // Shift the numerator left and write `precision` zero digits as
-        // placeholders (they will all be "0.000..." after the final
-        // reversal since the integer part dominates).
-        // ----------------------------------------------------------------
-        numerator <<= shift;
-
-        if (VX_IS_CONSTANT_EVALUATED())
-        {
-            for (size_t i = 0; i < precision; ++i)
-            {
-                buf[n++] = C('0');
-            }
-        }
-        else
-        {
-            mem::fill_range(buf, precision, C('0'));
-            n = precision;
-        }
-    }
-    else
-    {
-        // ----------------------------------------------------------------
-        // Fraction: value = mantissa / 2^(-shift).
-        //
-        // denominator_mask = 2^(-shift) - 1  (low -shift bits set).
-        // remainder        = mantissa mod denominator (the fractional part).
-        // numerator        = mantissa >> (-shift)     (the integer part).
-        //
-        // To extract each fractional digit we multiply the remainder by 10
-        // and read the digit that overflows the denominator's bit range.
-        // ----------------------------------------------------------------
-        const int denominator_bits = -shift;
-        denominator_mask.set_low_bits(denominator_bits);
-        remainder = numerator & denominator_mask;
-        numerator >>= denominator_bits;
-
-        for (size_t i = 0; i < precision; ++i)
-        {
-            _string_convert_priv::mul10(remainder);
-            // Extract the digit that overflowed past the denominator's range.
-            const auto digit = remainder.extract_bits_at(denominator_bits);
-            buf[n++] = static_cast<C>('0' + digit);
-            remainder &= denominator_mask; // keep only the sub-denominator remainder
-        }
-
-        // ----------------------------------------------------------------
-        // Rounding: peek at what the (precision+1)-th digit would be.
-        // If it is >= 5 we round up by propagating a carry through the
-        // fractional digits we just wrote (buf[0..precision-1]).
-        // If the carry escapes the fractional part it rolls into the
-        // integer portion via ++numerator.
-        // ----------------------------------------------------------------
-        if (round)
-        {
-            _string_convert_priv::mul10(remainder);
-            const auto rounding_digit = remainder.extract_bits_at(denominator_bits);
-
-            if (rounding_digit >= 5)
-            {
-                size_t i = n;
-                while (i--)
-                {
-                    if (++buf[i] <= C('9'))
-                    {
-                        goto finished_rounding; // carry absorbed
-                    }
-                    buf[i] = C('0'); // digit wrapped: continue carry
-                }
-
-                // Carry escaped every fractional digit; adjust the integer part.
-                ++numerator;
-            }
-        }
-    }
-
-finished_rounding:
-
-    // -------------------------------------------------------------------------
-    // Decimal point (written after fractional digits, before integer digits).
-    // In the pre-reversal layout the decimal point sits at position `n` and
-    // separates the fractional block from the (reversed) integer block above it.
-    // -------------------------------------------------------------------------
-    if (precision > 0)
-    {
-        if (n == buf_size)
-        {
-            return 0;
-        }
-
-        buf[n++] = fmt.decimal_point;
-    }
-
-    // -------------------------------------------------------------------------
-    // Integer digits — extracted least-significant-first via repeated divmod.
-    // divmod_limb() divides `numerator` in-place by 10 and returns the
-    // remainder (the next digit). We iterate from the most-significant
-    // non-zero limb downward; `top` tracks that boundary so we skip
-    // leading-zero limbs quickly.
-    // -------------------------------------------------------------------------
-    {
-        size_t top = BI::limb_count - 1;
-
-        do
-        {
-            if (n == buf_size)
-            {
-                return 0;
-            }
-
-            const auto digit = _string_convert_priv::divmod_limb_top(numerator, limb_type{ 10 }, top);
-            buf[n++] = static_cast<C>('0' + digit);
-
-        } while (numerator.limbs[0] || top > 0);
-    }
-
-    // -------------------------------------------------------------------------
-    // Sign character (appended last; will be at index 0 after reversal).
-    // -------------------------------------------------------------------------
-    if (sign)
-    {
-        if (n == buf_size)
-        {
-            return 0;
-        }
-
-        buf[n++] = static_cast<C>(sign);
-    }
-
-    // -------------------------------------------------------------------------
-    // Final layout fixup via two-pass reversal.
-    //
-    // After the loop above the buffer looks like:
-    //   [frac_d0 frac_d1 ... frac_dn | '.' | int_dLSB ... int_dMSB | sign]
-    //
-    // Step 1: reverse the fractional block in place so digits are MSB-first.
-    // Step 2: reverse the entire buffer to bring sign and integer to the front.
-    //
-    // Result:
-    //   [sign | int_dMSB ... int_dLSB | '.' | frac_d0 ... frac_dn]
-    // -------------------------------------------------------------------------
-    str::reverse(buf, precision); // Step 1: fix up fractional digit order
-    str::reverse(buf, n);         // Step 2: bring sign+integer to the front
-
-    return n;
-}
-
-template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_fixed_3(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
-{
-    using traits = typename float_bits<float>::traits;
-    using uint_type = typename traits::uint_type;
-
-    using limb_type = uint32_t;
-    using wide_type = uint64_t;
-    constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
-
-    if (!buf || buf_size == 0)
-    {
-        return 0;
-    }
-
-    const int32_t precision = fmt.get_used_precision();
-    const bool upper = fmt.uppercase;
-    const bool round = fmt.round;
-    const float_bits<F> fb(value);
-
-    const auto e_bits = fb.exponent();
-    const auto m_bits = fb.mantissa();
-    const bool sign_bit = fb.sign();
-    const char sign = sign_bit ? '-' : (fmt.force_sign ? '+' : 0);
-
-    // nan
-    if (e_bits == traits::filled_exponent && m_bits != 0)
-    {
-        if (buf_size < 3)
-        {
-            return 0;
-        }
-
-        buf[0] = upper ? 'N' : 'n';
-        buf[1] = upper ? 'A' : 'a';
-        buf[2] = buf[0]; // 'N' or 'n'
-        return 3;
-    }
-
-    size_t n = 0;
-
-    if (sign)
-    {
-        if (buf_size < 2)
-        {
-            return 0;
-        }
-
-        buf[n++] = sign;
-    }
-
-    // inf
-    if (e_bits == traits::filled_exponent && m_bits == 0)
-    {
-        if (buf_size - n < 3)
-        {
-            return 0;
-        }
-
-        buf[n++] = upper ? 'I' : 'i';
-        buf[n++] = upper ? 'N' : 'n';
-        buf[n++] = upper ? 'F' : 'f';
-        return n;
-    }
-
-    const size_t precision_digit_count = (precision > 0) + precision;
-
-    // zero
-    if (e_bits == 0 && m_bits == 0)
-    {
-        const size_t needed = 1 + precision_digit_count;
-        if (buf_size - n < needed)
-        {
-            return 0;
-        }
-
-        buf[n++] = '0';
-        if (precision > 0)
-        {
-            buf[n++] = fmt.decimal_point;
-            _string_convert_priv::fill_n_zeros(buf + n, precision);
-            n += precision;
-        }
-
-        return n;
-    }
-
-    // subnormal
-    if (e_bits == 0 && m_bits != 0)
-    {
-        // For a subnormal, the value is: mantissa * 2^(1 - bias - digits)
-        // The LSB is at bit position (bias + digits - 2) below the binary point,
-        // so we need (bias + digits - 2) fractional bits.
-        constexpr uint32_t max_shift = traits::exponent_bias + traits::digits - 2;
-        constexpr uint32_t limb_count = (max_shift + (limb_bits - 1)) / limb_bits;
-
-        const size_t needed = 1 + precision_digit_count;
-        if (buf_size - n < needed)
-        {
-            return 0;
-        }
-
-        buf[n++] = '0';
-        if (precision == 0)
-        {
-            return n;
-        }
-
-        buf[n++] = fmt.decimal_point;
-
-        constexpr uint32_t keep_limbs = max_shift / limb_bits;
-        constexpr uint32_t partial_bits = max_shift % limb_bits;
-        constexpr uint32_t digit_mask = (limb_type{ 1 } << partial_bits) - 1;
-
-        // our large integer type
-        limb_type frac_bits[limb_count] = {};
-        frac_bits[0] = m_bits;
-
-        for (size_t i = 0; i < precision; ++i)
-        {
-            _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-
-            // extract digit from the bits above
-            const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-            frac_bits[keep_limbs] &= digit_mask;
-
-            buf[n++] = static_cast<C>('0' + digit);
-        }
-
-        if (fmt.round)
-        {
-            _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-            const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-
-            if (digit >= 5)
-            {
-                size_t i = n;
-                while (true)
-                {
-                    // for subnormals there will always be 0s before the decimal, no need for a loop condition
-                    if (++buf[--i] <= C('9'))
-                    {
-                        break;
-                    }
-
-                    buf[i] = C('0');
-                }
-            }
-        }
-
-        return n;
-    }
-
-    const int e2 = static_cast<int>(e_bits) - traits::exponent_bias;
-    const int shift = e2 - traits::mantissa_bits;
-
-    // large integer
-    if (shift >= 0)
-    {
-        // For large integers, it is tough to calulate how
-        // many integer digits there will be. Instead, we
-        // will check while we write.
-
-        constexpr int max_shift = traits::filled_exponent - traits::exponent_bias - traits::digits;
-        constexpr uint32_t total_bits = max_shift + traits::digits;
-        constexpr uint32_t limb_count = (total_bits + (limb_bits - 1)) / limb_bits;
-
-        limb_type int_bits[limb_count] = {};
-        size_t max_index = (shift + traits::digits - 1) / limb_bits;
-
-        // load up the mantissa into data
-        {
-            const uint32_t lo_offset = shift % limb_bits;
-            const uint32_t bits_in_lo = limb_bits - lo_offset;
-            const uint32_t mantissa = m_bits | (1 << traits::mantissa_bits);
-
-            if (bits_in_lo >= traits::digits)
-            {
-                // fast path: fits entirely in one limb
-                int_bits[max_index] |= mantissa << lo_offset;
-            }
-            else
-            {
-                // slow path: split across two limbs
-                int_bits[max_index - 1] |= mantissa << lo_offset;
-                int_bits[max_index] |= mantissa >> bits_in_lo;
-            }
-        }
-
-        const size_t integer_start = n;
-
-        while (true)
-        {
-            if (n == buf_size)
-            {
-                return 0;
-            }
-
-            const limb_type remainder = _string_convert_priv::div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-            buf[n++] = static_cast<C>('0' + remainder);
-
-            if (int_bits[max_index] == 0)
-            {
-                if (max_index == 0)
-                {
-                    break;
-                }
-
-                --max_index;
-            }
-        }
-
-        // The integer digits are currently least-significant first
-        str::reverse(buf + integer_start, n - integer_start);
-
-        if (precision > 0)
-        {
-            if (buf_size - n < precision_digit_count)
-            {
-                return 0;
-            }
-
-            buf[n++] = fmt.decimal_point;
-            _string_convert_priv::fill_n_zeros(buf + n, precision);
-            n += precision;
-        }
-
-        return n;
-    }
-    // int and float part
-    else
-    {
-        const uint32_t m2 = m_bits | (1u << traits::mantissa_bits);
-        limb_type int_bits, float_bits;
-
-        if (-shift >= traits::digits)
-        {
-            // entirely fractional, int_part = 0
-            int_bits = 0;
-            float_bits = m2;
-        }
-        else
-        {
-            // mixed
-            int frac_bits = -shift;
-            int_bits = m2 >> frac_bits;
-            float_bits = m2 & ((1u << frac_bits) - 1);
-        }
-
-        // 2^23 = 8388608 (7 digits)
-        const uint32_t int_digit_count = _string_convert_priv::decimal_length(int_bits);
-
-        const size_t needed = int_digit_count + precision_digit_count;
-        if (buf_size - n < needed)
-        {
-            return 0;
-        }
-
-        const size_t integer_start = n; // Save where integer starts for rounding references
-
-        // convert the int part
-        if (int_bits)
-        {
-            C* end = buf + n + int_digit_count;
-
-            do
-            {
-                const auto digit = int_bits % 10;
-                *--end = static_cast<C>('0' + digit);
-                int_bits /= 10;
-
-            } while (int_bits);
-
-            n += int_digit_count;
-        }
-        else
-        {
-            buf[n++] = '0';
-        }
-
-        if (precision == 0)
-        {
-            return n;
-        }
-
-        buf[n++] = fmt.decimal_point;
-
-        // convert the float part
-        {
-            constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1; // 149
-            constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
-
-            // extract digit from the bits above
-            const uint32_t keep_limbs = -shift / limb_bits;
-            const uint32_t partial_bits = -shift % limb_bits;
-            const uint32_t digit_mask = (limb_type{ 1 } << partial_bits) - 1;
-
-            limb_type frac_bits[limb_count] = {};
-            frac_bits[0] = float_bits;
-
-            for (size_t i = 0; i < precision; ++i)
-            {
-                _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-
-                if (partial_bits == 0)
-                {
-                    const limb_type digit = frac_bits[keep_limbs];
-                    buf[n++] = static_cast<C>('0' + digit);
-
-                    frac_bits[keep_limbs] = 0;
-                }
-                else
-                {
-                    // straddles two limbs
-                    const limb_type lo = frac_bits[keep_limbs] >> partial_bits;
-                    const limb_type hi = frac_bits[keep_limbs + 1] << (limb_bits - partial_bits);
-                    const limb_type digit = lo | hi;
-                    buf[n++] = static_cast<C>('0' + digit);
-
-                    frac_bits[keep_limbs] &= digit_mask;
-                    if (keep_limbs + 1 < limb_count)
-                    {
-                        frac_bits[keep_limbs + 1] = 0;
-                    }
-                }
-            }
-
-            // round
-            if (round)
-            {
-                _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-                const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-
-                if (digit >= 5)
-                {
-                    // Fixed index scanning: look back to where the integer string safely begins
-                    for (size_t i = n - 1; i >= integer_start; --i)
-                    {
-                        if (buf[i] == fmt.decimal_point)
-                        {
-                            continue;
-                        }
-
-                        if (++buf[i] <= C('9'))
-                        {
-                            break;
-                        }
-
-                        buf[i] = C('0');
-
-                        // Carry spilled beyond the highest integer digit (e.g., 9.99 -> 10.00)
-                        if (i == integer_start)
-                        {
-                            if (n == buf_size)
-                            {
-                                return 0;
-                            }
-
-                            mem::move_range(buf + integer_start + 1, buf + integer_start, n - integer_start);
-                            buf[integer_start] = C('1');
-                            ++n;
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return n;
-}
-
 namespace _string_convert_priv {
 
 template <typename C>
@@ -1916,7 +1249,7 @@ constexpr void round_fixed_normal(C* ptr, size_t precision_char_count) noexcept
     // 0 precision case
     if (precision_char_count == 0)
     {
-        if (++(ptr[0]) >= static_cast<C>('9'))
+        if (++(ptr[0]) > static_cast<C>('9'))
         {
             ptr[0] = static_cast<C>('1');
         }
@@ -1924,68 +1257,60 @@ constexpr void round_fixed_normal(C* ptr, size_t precision_char_count) noexcept
         return;
     }
 
-    // Start at the very last character
-    C* end = ptr + precision_char_count;
-    // Loop only down to index 2 (skipping the decimal point at 1 and leading digit at 0)
-    C* loop_limit = ptr + 1;
-
-    while (end > loop_limit)
+    for (size_t i = precision_char_count; i > 1; --i)
     {
-        if (++(*end) <= static_cast<C>('9'))
+        if (ptr[i] != static_cast<C>('9'))
         {
+            ++ptr[i];
             return;
         }
 
-        *end = static_cast<C>('0');
-        --end;
+        ptr[i] = static_cast<C>('0');
     }
 
-    // If we get here, the carry reached the leading digit at ptr[0]
-    if (++(ptr[0]) > static_cast<C>('9'))
+    if (++ptr[0] > static_cast<C>('9'))
     {
         ptr[0] = static_cast<C>('1');
     }
 }
 
 template <typename C>
-constexpr bool round_fixed_mixed(C* ptr, size_t int_digit_count, size_t precision, C decimal_point) noexcept
+constexpr bool round_fixed_mixed(C* ptr, size_t int_digit_count, size_t precision) noexcept
 {
-    C* decimal = ptr + int_digit_count;
-    C* end = decimal + precision;
+    const size_t decimal_index = int_digit_count;
 
-    while (end > decimal)
+    // Fractional digits
+    for (size_t i = decimal_index + precision; i > decimal_index; --i)
     {
-        if (++(*end) <= static_cast<C>('9'))
+        if (ptr[i] != static_cast<C>('9'))
         {
+            ++ptr[i];
             return false;
         }
 
-        *end = static_cast<C>('0');
-        --end;
+        ptr[i] = static_cast<C>('0');
     }
 
-    ++end;
-
-    while (end > ptr)
+    // Integer digits
+    for (size_t i = decimal_index; i-- > 0;)
     {
-        if (++(*end) <= static_cast<C>('9'))
+        if (ptr[i] != static_cast<C>('9'))
         {
+            ++ptr[i];
             return false;
         }
 
-        *end = static_cast<C>('0');
-        --end;
+        ptr[i] = static_cast<C>('0');
     }
 
-    // overflow
     return true;
 }
 
 template <typename C>
 constexpr size_t write_fixed_zero(C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
 {
-    const size_t precison_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    const size_t needed = 1 + precison_char_count;
+    const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    const size_t needed = 1 + precision_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -2016,8 +1341,8 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
     const int e2 = 1 - traits::exponent_bias - leading;
     const int e10 = -(log10_pow5(-e2) + e2);
 
-    const size_t precison_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    const size_t needed = 1 + precison_char_count;
+    const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    const size_t needed = 1 + precision_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -2048,12 +1373,8 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
     fill_n_zeros(buf + 2, leading_zero_count);
 
     // our large integer type
-    limb_type frac_bits[limb_count] = {};
-    frac_bits[0] = static_cast<limb_type>(m_bits);
-    VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-    {
-        frac_bits[1] = static_cast<limb_type>(m_bits >> limb_bits);
-    }
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+    big_int_type frac_bits = { m_bits };
 
     C* ptr = buf + 2 + leading_zero_count;
 
@@ -2063,37 +1384,31 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
 
         while (shave > 9)
         {
-            mul_wide<limb_type, limb_count, wide_type>(frac_bits, 1000000000u);
-            frac_bits[keep_limbs] &= digit_mask;
+            frac_bits.mul_clear_lower(1000000000u, keep_limbs, digit_mask);
             shave -= 9;
         }
     }
 
-    size_t remaining = fmt.precision - leading_zero_count;
-    while (remaining)
+    for (size_t i = leading_zero_count; i < fmt.precision; ++i)
     {
-        _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-
-        // extract digit from the bits above
-        const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-        frac_bits[keep_limbs] &= digit_mask;
-
-        *ptr++ = static_cast<C>('0' + digit);
-        --remaining;
+        const limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
+        *ptr = static_cast<C>('0' + digit);
+        ++ptr;
     }
 
     if (fmt.round)
     {
-        _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-        const limb_type round_digit = frac_bits[keep_limbs] >> partial_bits;
+        const limb_type round_digit = frac_bits.mul_extract_lower(10, keep_limbs, partial_bits);
 
         if (round_digit >= 5)
         {
+            --ptr;
+
             while (true)
             {
-                // for subnormals there will always be 0s before the decimal, no need for a loop condition
-                if (++(*ptr) <= C('9'))
+                if (*ptr != C('9'))
                 {
+                    ++(*ptr);
                     break;
                 }
 
@@ -2128,52 +1443,30 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
         return 0;
     }
 
-    limb_type int_bits[limb_count] = {};
+    const uint_type mantissa = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
     size_t max_index = (shift + traits::digits - 1) / limb_bits;
 
-    // load up the mantissa into data
-    {
-        const uint32_t base_limb = shift / limb_bits;
-        const uint32_t bit_offset = shift % limb_bits;
-        const uint_type mantissa = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
-
-        // Store into the first limb
-        int_bits[base_limb] |= static_cast<limb_type>(mantissa << bit_offset);
-
-        // Overflow into the second limb
-        if (base_limb + 1 < limb_count)
-        {
-            int_bits[base_limb + 1] |= static_cast<limb_type>(mantissa >> (limb_bits - bit_offset));
-        }
-
-        // Overflow into the third limb (Compile-time evaluated out for 32-bit float types)
-        VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-        {
-            if (bit_offset + traits::digits > (limb_bits * 2) && (base_limb + 2 < limb_count))
-            {
-                int_bits[base_limb + 2] |= static_cast<limb_type>(mantissa >> ((limb_bits * 2) - bit_offset));
-            }
-        }
-    }
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+    big_int_type int_bits(mantissa, shift);
 
     C* ptr = buf + int_digit_count;
 
     for (size_t i = 0; i < int_digit_count; ++i)
     {
-        const limb_type remainder = _string_convert_priv::div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-        *(--ptr) = static_cast<C>('0' + remainder);
+        const limb_type digit = int_bits.div_shrink_extract(10, max_index);
+        *(--ptr) = static_cast<C>('0' + digit);
     }
 
     // There may be 1 digit left over in rare cases
-    if (int_bits[0] != 0)
+    if (int_bits.bits[0] != 0)
     {
         if (buf_size < (needed + 1))
         {
             return 0;
         }
 
-        const limb_type digit = div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-        VX_ASSERT(int_bits[0] == 0);
+        const limb_type digit = int_bits.div_extract(10, 0);
+        VX_ASSERT(int_bits.bits[0] == 0);
 
         mem::move_range(buf + 1, buf, int_digit_count);
         buf[0] = static_cast<C>('0' + digit);
@@ -2199,8 +1492,8 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
     using wide_type = uint64_t;
     constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    const size_t precison_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    const size_t needed = 1 + precison_char_count;
+    const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    const size_t needed = 1 + precision_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -2226,18 +1519,12 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
     const limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
 
     // our large integer type
-    limb_type frac_bits[limb_count] = {};
-    frac_bits[0] = static_cast<limb_type>(m2);
-    VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-    {
-        frac_bits[1] = static_cast<limb_type>(m2 >> limb_bits);
-    }
+    using big_int_type = big_int<limb_type, limb_count, wide_type>;
+    big_int_type frac_bits = { m2 };
 
     for (size_t i = 0; i < fmt.precision; ++i)
     {
-#define extract_and_clear() extract_and_clear<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits, digit_mask)
-
-        const limb_type digit = extract_and_clear();
+        const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
         *ptr++ = static_cast<C>('0' + digit);
 
 #undef extract_and_clear
@@ -2245,11 +1532,10 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
 
     if (fmt.round)
     {
-        const limb_type round_digit = mul_extract_straddled_digit<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits);
-
+        const limb_type round_digit = frac_bits.mul_extract(10, keep_limbs, partial_bits);
         if (round_digit >= 5)
         {
-            round_fixed_normal<C>(buf, precison_char_count);
+            round_fixed_normal<C>(buf, precision_char_count);
         }
     }
 
@@ -2271,11 +1557,11 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
     uint_type int_bits = m2 >> frac_bit_count;
 
     // should be exact
-    const int e10 = decimal_length(int_bits);
-    const size_t int_digit_count = static_cast<size_t>(e10);
+    const size_t int_digit_count = decimal_length(int_bits);
+    const int e10 = static_cast<int>(int_digit_count) - 1;
 
-    const size_t precison_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
-    size_t needed = int_digit_count + precison_char_count;
+    const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    size_t needed = int_digit_count + precision_char_count;
     if (buf_size < needed)
     {
         return 0;
@@ -2290,7 +1576,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
             const auto digit = int_bits % 10;
             *--ptr = static_cast<C>('0' + digit);
             int_bits /= 10;
-        
+
         } while (int_bits);
     }
 
@@ -2304,6 +1590,13 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
         ptr += int_digit_count;
         *ptr++ = fmt.decimal_point;
 
+        const uint_type raw_frac_bits = m2 & ((uint_type{ 1 } << frac_bit_count) - 1);
+        if (!raw_frac_bits)
+        {
+            fill_n_zeros(ptr, fmt.precision);
+            return needed;
+        }
+
         constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1; // 149
         constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
 
@@ -2312,29 +1605,19 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
         const uint32_t partial_bits = -shift % limb_bits;
         const limb_type digit_mask = (limb_type{ 1 } << partial_bits) - 1;
 
-        limb_type frac_bits[limb_count] = {};
-        const uint_type raw_frac_bits = m2 & ((uint_type{ 1 } << frac_bit_count) - 1);
-        frac_bits[0] = static_cast<limb_type>(raw_frac_bits);
-        VX_IF_CONSTEXPR (sizeof(uint_type) > sizeof(limb_type))
-        {
-            frac_bits[1] = static_cast<limb_type>(raw_frac_bits >> limb_bits);
-        }
+        using big_int_type = big_int<limb_type, limb_count, wide_type>;
+        big_int_type frac_bits = { raw_frac_bits };
 
         for (size_t i = 0; i < fmt.precision; ++i)
         {
-#define extract_and_clear() extract_and_clear<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits, digit_mask)
-
-            const limb_type digit = extract_and_clear();
+            const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
             *ptr++ = static_cast<C>('0' + digit);
-
-#undef extract_and_clear
         }
 
         // round
         if (fmt.round)
         {
-            const limb_type round_digit = mul_extract_straddled_digit<limb_type, limb_count, wide_type>(frac_bits, keep_limbs, partial_bits);
-
+            const limb_type round_digit = frac_bits.mul_extract(10, keep_limbs, partial_bits);
             if (round_digit >= 5)
             {
                 if (round_fixed_mixed<C>(ptr, int_digit_count, fmt.precision, fmt.decimal_point))
@@ -2358,7 +1641,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
 } // namespace _string_convert_priv
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_fixed_4(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<float>::traits;
     using uint_type = typename traits::uint_type;
@@ -2453,292 +1736,6 @@ constexpr size_t write_float_fixed_4(F value, C* buf, const size_t buf_size, con
         // int and float part
         return n + _string_convert_priv::write_fixed_mixed<F, C>(m_bits, shift, buf + n, buf_size - n, fmt);
     }
-
-    // ===============================================================================================================================
-
-    // subnormal
-    //if (e_bits == 0 && m_bits != 0)
-    //{
-    //    // For a subnormal, the value is: mantissa * 2^(1 - bias - digits)
-    //    // The LSB is at bit position (bias + digits - 2) below the binary point,
-    //    // so we need (bias + digits - 2) fractional bits.
-    //    constexpr uint32_t max_shift = traits::exponent_bias + traits::digits - 2;
-    //    constexpr uint32_t limb_count = (max_shift + (limb_bits - 1)) / limb_bits;
-    //
-    //    const size_t needed = 1 + precision_digit_count;
-    //    if (buf_size - n < needed)
-    //    {
-    //        return 0;
-    //    }
-    //
-    //    buf[n++] = '0';
-    //    if (precision == 0)
-    //    {
-    //        return n;
-    //    }
-    //
-    //    buf[n++] = fmt.decimal_point;
-    //
-    //    constexpr uint32_t keep_limbs = max_shift / limb_bits;
-    //    constexpr uint32_t partial_bits = max_shift % limb_bits;
-    //    constexpr uint32_t digit_mask = (limb_type{ 1 } << partial_bits) - 1;
-    //
-    //    // our large integer type
-    //    limb_type frac_bits[limb_count] = {};
-    //    frac_bits[0] = m_bits;
-    //
-    //    for (size_t i = 0; i < precision; ++i)
-    //    {
-    //        _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-    //
-    //        // extract digit from the bits above
-    //        const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-    //        frac_bits[keep_limbs] &= digit_mask;
-    //
-    //        buf[n++] = static_cast<C>('0' + digit);
-    //    }
-    //
-    //    if (fmt.round)
-    //    {
-    //        _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-    //        const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-    //
-    //        if (digit >= 5)
-    //        {
-    //            size_t i = n;
-    //            while (true)
-    //            {
-    //                // for subnormals there will always be 0s before the decimal, no need for a loop condition
-    //                if (++buf[--i] <= C('9'))
-    //                {
-    //                    break;
-    //                }
-    //
-    //                buf[i] = C('0');
-    //            }
-    //        }
-    //    }
-    //
-    //    return n;
-    //}
-    //
-    //const int e2 = static_cast<int>(e_bits) - traits::exponent_bias;
-    //const int shift = e2 - traits::mantissa_bits;
-    //
-    //// large integer
-    //if (shift >= 0)
-    //{
-    //    // For large integers, it is tough to calulate how
-    //    // many integer digits there will be. Instead, we
-    //    // will check while we write.
-    //
-    //    constexpr int max_shift = traits::filled_exponent - traits::exponent_bias - traits::digits;
-    //    constexpr uint32_t total_bits = max_shift + traits::digits;
-    //    constexpr uint32_t limb_count = (total_bits + (limb_bits - 1)) / limb_bits;
-    //
-    //    limb_type int_bits[limb_count] = {};
-    //    size_t max_index = (shift + traits::digits - 1) / limb_bits;
-    //
-    //    // load up the mantissa into data
-    //    {
-    //        const uint32_t lo_offset = shift % limb_bits;
-    //        const uint32_t bits_in_lo = limb_bits - lo_offset;
-    //        const uint32_t mantissa = m_bits | (1 << traits::mantissa_bits);
-    //
-    //        if (bits_in_lo >= traits::digits)
-    //        {
-    //            // fast path: fits entirely in one limb
-    //            int_bits[max_index] |= mantissa << lo_offset;
-    //        }
-    //        else
-    //        {
-    //            // slow path: split across two limbs
-    //            int_bits[max_index - 1] |= mantissa << lo_offset;
-    //            int_bits[max_index] |= mantissa >> bits_in_lo;
-    //        }
-    //    }
-    //
-    //    const size_t integer_start = n;
-    //
-    //    while (true)
-    //    {
-    //        if (n == buf_size)
-    //        {
-    //            return 0;
-    //        }
-    //
-    //        const limb_type remainder = _string_convert_priv::div_wide<limb_type, limb_count, wide_type>(int_bits, 10, max_index);
-    //        buf[n++] = static_cast<C>('0' + remainder);
-    //
-    //        if (int_bits[max_index] == 0)
-    //        {
-    //            if (max_index == 0)
-    //            {
-    //                break;
-    //            }
-    //
-    //            --max_index;
-    //        }
-    //    }
-    //
-    //    // The integer digits are currently least-significant first
-    //    str::reverse(buf + integer_start, n - integer_start);
-    //
-    //    if (precision > 0)
-    //    {
-    //        if (buf_size - n < precision_digit_count)
-    //        {
-    //            return 0;
-    //        }
-    //
-    //        buf[n++] = fmt.decimal_point;
-    //        _string_convert_priv::fill_n_zeros(buf + n, precision);
-    //        n += precision;
-    //    }
-    //
-    //    return n;
-    //}
-    //// int and float part
-    //else
-    //{
-    //    const uint32_t m2 = m_bits | (1u << traits::mantissa_bits);
-    //    limb_type int_bits, float_bits;
-    //
-    //    if (-shift >= traits::digits)
-    //    {
-    //        // entirely fractional, int_part = 0
-    //        int_bits = 0;
-    //        float_bits = m2;
-    //    }
-    //    else
-    //    {
-    //        // mixed
-    //        int frac_bits = -shift;
-    //        int_bits = m2 >> frac_bits;
-    //        float_bits = m2 & ((1u << frac_bits) - 1);
-    //    }
-    //
-    //    // 2^23 = 8388608 (7 digits)
-    //    const uint32_t int_digit_count = _string_convert_priv::decimal_length(int_bits);
-    //
-    //    const size_t needed = int_digit_count + precision_digit_count;
-    //    if (buf_size - n < needed)
-    //    {
-    //        return 0;
-    //    }
-    //
-    //    const size_t integer_start = n; // Save where integer starts for rounding references
-    //
-    //    // convert the int part
-    //    if (int_bits)
-    //    {
-    //        C* end = buf + n + int_digit_count;
-    //
-    //        do
-    //        {
-    //            const auto digit = int_bits % 10;
-    //            *--end = static_cast<C>('0' + digit);
-    //            int_bits /= 10;
-    //
-    //        } while (int_bits);
-    //
-    //        n += int_digit_count;
-    //    }
-    //    else
-    //    {
-    //        buf[n++] = '0';
-    //    }
-    //
-    //    if (precision == 0)
-    //    {
-    //        return n;
-    //    }
-    //
-    //    buf[n++] = fmt.decimal_point;
-    //
-    //    // convert the float part
-    //    {
-    //        constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1; // 149
-    //        constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
-    //
-    //        // extract digit from the bits above
-    //        const uint32_t keep_limbs = -shift / limb_bits;
-    //        const uint32_t partial_bits = -shift % limb_bits;
-    //        const uint32_t digit_mask = (limb_type{ 1 } << partial_bits) - 1;
-    //
-    //        limb_type frac_bits[limb_count] = {};
-    //        frac_bits[0] = float_bits;
-    //
-    //        for (size_t i = 0; i < precision; ++i)
-    //        {
-    //            _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-    //
-    //            if (partial_bits == 0)
-    //            {
-    //                const limb_type digit = frac_bits[keep_limbs];
-    //                buf[n++] = static_cast<C>('0' + digit);
-    //
-    //                frac_bits[keep_limbs] = 0;
-    //            }
-    //            else
-    //            {
-    //                // straddles two limbs
-    //                const limb_type lo = frac_bits[keep_limbs] >> partial_bits;
-    //                const limb_type hi = frac_bits[keep_limbs + 1] << (limb_bits - partial_bits);
-    //                const limb_type digit = lo | hi;
-    //                buf[n++] = static_cast<C>('0' + digit);
-    //
-    //                frac_bits[keep_limbs] &= digit_mask;
-    //                if (keep_limbs + 1 < limb_count)
-    //                {
-    //                    frac_bits[keep_limbs + 1] = 0;
-    //                }
-    //            }
-    //        }
-    //
-    //        // round
-    //        if (round)
-    //        {
-    //            _string_convert_priv::mul_wide<limb_type, limb_count, wide_type>(frac_bits, 10);
-    //            const limb_type digit = frac_bits[keep_limbs] >> partial_bits;
-    //
-    //            if (digit >= 5)
-    //            {
-    //                // Fixed index scanning: look back to where the integer string safely begins
-    //                for (size_t i = n - 1; i >= integer_start; --i)
-    //                {
-    //                    if (buf[i] == fmt.decimal_point)
-    //                    {
-    //                        continue;
-    //                    }
-    //
-    //                    if (++buf[i] <= C('9'))
-    //                    {
-    //                        break;
-    //                    }
-    //
-    //                    buf[i] = C('0');
-    //
-    //                    // Carry spilled beyond the highest integer digit (e.g., 9.99 -> 10.00)
-    //                    if (i == integer_start)
-    //                    {
-    //                        if (n == buf_size)
-    //                        {
-    //                            return 0;
-    //                        }
-    //
-    //                        mem::move_range(buf + integer_start + 1, buf + integer_start, n - integer_start);
-    //                        buf[integer_start] = C('1');
-    //                        ++n;
-    //                        break;
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
-    //}
-
-    return n;
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
