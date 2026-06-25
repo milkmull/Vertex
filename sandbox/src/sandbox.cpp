@@ -13,9 +13,41 @@ static void std_print_integer(const I v)
     char buf[5000] = {};
 
     {
+        int n = 0;
         VX_PROFILE_SCOPE("std i");
-        const int n = std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(v));
-        std::cout << "std i: " << std::string_view(buf, n) << std::endl;
+
+        VX_IF_CONSTEXPR (std::is_signed<I>::value)
+        {
+            VX_IF_CONSTEXPR (sizeof(I) <= sizeof(int))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%d", static_cast<int>(v));
+            }
+            else VX_IF_CONSTEXPR (sizeof(I) <= sizeof(long))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%ld", static_cast<long>(v));
+            }
+            else VX_IF_CONSTEXPR (sizeof(I) <= sizeof(long long))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%lld", static_cast<long long>(v));
+            }
+        }
+        else
+        {
+            VX_IF_CONSTEXPR (sizeof(I) <= sizeof(unsigned int))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%u", static_cast<unsigned int>(v));
+            }
+            else VX_IF_CONSTEXPR (sizeof(I) <= sizeof(unsigned long))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%lu", static_cast<unsigned long>(v));
+            }
+            else VX_IF_CONSTEXPR (sizeof(I) <= sizeof(unsigned long long))
+            {
+                n = std::snprintf(buf, sizeof(buf), "%llu", static_cast<unsigned long long>(v));
+            }
+        }
+
+        //std::cout << "std i: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -28,7 +60,7 @@ static void std_print_integer_2(const I v)
         VX_PROFILE_SCOPE("std i2");
         auto r = std::to_chars(buf, buf + sizeof(buf), v);
         const size_t n = static_cast<size_t>(r.ptr - buf);
-        std::cout << "std i2: " << std::string_view(buf, n) << std::endl;
+        //std::cout << "std i2: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -45,7 +77,7 @@ static void vx_print_integer(const I v)
     {
         VX_PROFILE_SCOPE("vx i");
         const size_t n = vx::str::write_integer(v, buf, sizeof(buf), fmt);
-        std::cout << "vx i : " << std::string_view(buf, n) << std::endl;
+        //std::cout << "vx i : " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -138,7 +170,7 @@ static void std_print_hex_float(const F f)
 
     {
         VX_PROFILE_SCOPE("std a");
-        const size_t n = std::snprintf(buf, sizeof(buf), "%a", f);
+        const size_t n = std::snprintf(buf, sizeof(buf), "%.60a", f);
         std::cout << "std a: " << std::string_view(buf, n) << std::endl;
     }
 }
@@ -150,7 +182,7 @@ static void std_print_hex_float_2(const F f)
 
     {
         VX_PROFILE_SCOPE("std a2");
-        std::to_chars_result r = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::hex);
+        std::to_chars_result r = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::hex, 60);
         const size_t n = static_cast<size_t>(r.ptr - buf);
         std::cout << "std a: " << std::string_view(buf, n) << std::endl;
     }
@@ -161,7 +193,7 @@ static void vx_print_hex_float(const F f)
 {
     vx::str::float_format_options fmt;
     fmt.format = vx::str::float_format::hex;
-    fmt.precision = 13;
+    fmt.precision = 60;
     fmt.uppercase = false;
 
     char buf[5000] = {};
@@ -186,9 +218,13 @@ int main()
 
     for (int i = 0; i < 10000; ++i)
     {
-        const uint64_t bits = rng.randi<uint64_t>();
-        const auto f = vx::bit::bit_cast<double>(bits);
-        std::cout << f << ' ' << std::hexfloat << f << std::endl;
+        const char bits = rng.randi<char>();
+        //const auto f = vx::bit::bit_cast<double>(bits);
+        //std::cout << f << ' ' << std::hexfloat << f << std::endl;
+
+        std_print_integer(bits);
+        std_print_integer_2(bits);
+        vx_print_integer(bits);
 
         //std_print_fixed_float(f);
         //std_print_fixed_float_2(f);
@@ -198,9 +234,9 @@ int main()
         //std_print_scientific_float_2(f);
         //vx_print_scientific_float(f);
         //
-        std_print_hex_float(f);
-        std_print_hex_float_2(f);
-        vx_print_hex_float(f);
+        //std_print_hex_float(f);
+        //std_print_hex_float_2(f);
+        //vx_print_hex_float(f);
     }
 
     VX_PROFILE_STOP();

@@ -2,7 +2,6 @@
 
 #include "vertex/std/string_convert.hpp"
 #include "vertex_test/test.hpp"
-#include "vertex_test/test.hpp"
 
 using namespace vx;
 
