@@ -7,6 +7,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/_priv/invoke.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/error.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/hex.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/math.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/io.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/memory.hpp"

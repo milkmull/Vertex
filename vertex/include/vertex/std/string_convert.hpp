@@ -1,14 +1,10 @@
 #pragma once
 
-#include <algorithm>
-#include <vector>
-
 #include "vertex/config/assert.hpp"
-#include "vertex/config/flags.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/hex.hpp"
 #include "vertex/std/math/float_bits.hpp"
-#include "vertex/std/math/uint_n.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_cast.hpp"
 #include "vertex/std/string_utils.hpp"
@@ -23,10 +19,8 @@ namespace str {
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
 size_t to_hex_string(const void* data, const size_t size, C* buf, const size_t buf_size, const bool upper = false) noexcept
 {
-    constexpr C hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-    const size_t required = 2 * size;
-    if (!buf || buf_size < required)
+    const size_t needed = 2 * size;
+    if (!buf || buf_size < needed)
     {
         return 0;
     }
@@ -34,14 +28,14 @@ size_t to_hex_string(const void* data, const size_t size, C* buf, const size_t b
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
     for (size_t i = 0; i < size; ++i)
     {
-        const C c1 = hex[(bytes[i] >> 4) & 0xF]; // High nibble
-        const C c2 = hex[(bytes[i] >> 0) & 0xF]; // Low nibble
+        const C c1 = hex::digits[(bytes[i] >> 4) & 0xF]; // High nibble
+        const C c2 = hex::digits[(bytes[i] >> 0) & 0xF]; // Low nibble
 
         *buf++ = upper ? to_upper(c1) : c1;
         *buf++ = upper ? to_upper(c2) : c2;
     }
 
-    return required;
+    return needed;
 }
 
 template <typename S, VX_REQUIRES(is_mutable_string_like<S>::value)>
@@ -61,69 +55,36 @@ str::basic_string<C> to_hex_string(const void* data, const size_t size) noexcept
 }
 
 //==============================================================================
-// format specifiers
+// integer format specifiers
 //==============================================================================
 
-enum class numeric_format : char
+struct integer_format_options
 {
-    fixed = 'f',
-    scientific = 'e',
-    general = 'g',
-    hex = 'a',
-};
-
-enum : int32_t
-{
-    default_fixed_precision = 6,
-    default_hex_precision = 13,
-    default_scientific_precision = 6,
-    max_precision = 1'000'000
-};
-
-template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
-struct numeric_format_options
-{
-    numeric_format format = numeric_format::general;
-    C decimal_point = C('.');
-    int32_t base = 10;
-    int32_t precision = 0;
+    uint32_t base = 10;
     bool uppercase = false;
     bool force_sign = false;
-    bool force_exp_sign = false;
-    bool round = true;
-
-    int32_t get_used_precision() const noexcept
-    {
-        //if (precision)
-        {
-            return (precision <= max_precision) ? precision : max_precision;
-        }
-
-        //switch (format)
-        //{
-        //    case numeric_format::fixed: return default_fixed_precision;
-        //    case numeric_format::scientific: return default_scientific_precision;
-        //    case numeric_format::hex: return default_hex_precision;
-        //}
-    }
 };
+
+//==============================================================================
+// integer printing
+//==============================================================================
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr int char_to_digit(const C c, int base = 10) noexcept
 {
     int digit = -1;
 
-    if (c >= C('0') && c <= C('9'))
+    if (c >= static_cast<C>('0') && c <= static_cast<C>('9'))
     {
-        digit = static_cast<int>(c - C('0'));
+        digit = static_cast<int>(c - static_cast<C>('0'));
     }
-    else
+    else if (c >= static_cast<C>('A') && c <= static_cast<C>('Z'))
     {
-        const C lc = to_lower(c);
-        if (lc >= C('a') && lc <= C('z'))
-        {
-            digit = static_cast<int>(lc - C('a')) + 10;
-        }
+        digit = static_cast<int>(c - static_cast<C>('A')) + 10;
+    }
+    else if (c >= static_cast<C>('a') && c <= static_cast<C>('z'))
+    {
+        digit = static_cast<int>(c - static_cast<C>('a')) + 10;
     }
 
     return (digit < base) ? digit : -1;
@@ -132,6 +93,77 @@ constexpr int char_to_digit(const C c, int base = 10) noexcept
 //==============================================================================
 // to string
 //==============================================================================
+
+namespace _string_convert_priv {
+
+inline constexpr size_t digit_count_unsigned(uint8_t v) noexcept
+{
+    // clang-format off
+    if (v >= 100) return 3;
+    if (v >= 10)  return 2;
+    return 1;
+    // clang-format on
+}
+
+inline constexpr size_t digit_count_unsigned(uint16_t v) noexcept
+{
+    // clang-format off
+    if (v >= 10000) return 5;
+    if (v >= 1000)  return 4;
+    if (v >= 100)   return 3;
+    if (v >= 10)    return 2;
+    return 1;
+    // clang-format on
+}
+
+inline constexpr size_t digit_count_unsigned(const uint32_t v) noexcept
+{
+    // clang-format off
+    if (v >= 100000000UL) return 9;
+    if (v >= 10000000UL)  return 8;
+    if (v >= 1000000UL)   return 7;
+    if (v >= 100000UL)    return 6;
+    if (v >= 10000UL)     return 5;
+    if (v >= 1000UL)      return 4;
+    if (v >= 100UL)       return 3;
+    if (v >= 10UL)        return 2;
+    return 1;
+    // clang-format on
+}
+
+inline constexpr size_t digit_count_unsigned(uint64_t v) noexcept
+{
+    // Fast path: reuse the uint32_t implementation.
+    if (v < 1000000000ULL)
+    {
+        return digit_count_unsigned(static_cast<uint32_t>(v));
+    }
+
+    // clang-format off
+    if (v >= 10000000000000000000ULL) return 20;
+    if (v >= 1000000000000000000ULL)  return 19;
+    if (v >= 100000000000000000ULL)   return 18;
+    if (v >= 10000000000000000ULL)    return 17;
+    if (v >= 1000000000000000ULL)     return 16;
+    if (v >= 100000000000000ULL)      return 15;
+    if (v >= 10000000000000ULL)       return 14;
+    if (v >= 1000000000000ULL)        return 13;
+    if (v >= 100000000000ULL)         return 12;
+    if (v >= 10000000000ULL)          return 11;
+    return 10;
+    // clang-format on
+}
+
+static constexpr uint32_t pow10_table[] = {
+    10u, 100u, 1000u, 10000u, 100000u, 1000000u, 10000000u, 100000000u
+};
+
+inline constexpr uint32_t pow10_u32(size_t n) noexcept
+{
+    VX_ASSERT(n > 0);
+    VX_ASSERT(n <= 9);
+    return pow10_table[n - 1];
+}
 
 template <typename I>
 constexpr size_t digit_count(I value, int base) noexcept
@@ -148,24 +180,56 @@ constexpr size_t digit_count(I value, int base) noexcept
     return n;
 }
 
-template <size_t N, typename Limb, typename Traits>
-constexpr size_t digit_count(uint_n<N, Limb, Traits> value, int base) noexcept
+} // namespace _string_convert_priv
+
+template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
+size_t write_integer(I value, C* buf, const size_t buf_size)
 {
-    const uint_n<N, Limb, Traits> n_base(base);
-    size_t n = 0;
+    if (!buf)
+    {
+        return 0;
+    }
+
+    using U = typename std::make_unsigned<I>::type;
+    U uvalue = static_cast<U>(value);
+    bool negative = false;
+
+    VX_IF_CONSTEXPR (std::is_signed<I>::value)
+    {
+        negative = (value < 0);
+        if (negative)
+        {
+            uvalue = ~uvalue + 1;
+        }
+    }
+
+    const size_t digit_count = _string_convert_priv::digit_count_unsigned(uvalue);
+    const size_t needed = digit_count + static_cast<size_t>(negative);
+    if (buf_size < needed)
+    {
+        return 0;
+    }
+
+    size_t i = needed;
 
     do
     {
-        value /= n_base;
-        ++n;
+        const auto digit = uvalue % 10;
+        buf[--i] = static_cast<C>('0' + digit);
+        uvalue /= 10;
 
-    } while (!value.is_zero());
+    } while (uvalue);
 
-    return n;
+    if (negative)
+    {
+        buf[0] = static_cast<C>('-');
+    }
+
+    return needed;
 }
 
 template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-size_t write_integer(I value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt, bool null_terminate = false) noexcept
+size_t write_integer(I value, C* buf, const size_t buf_size, const integer_format_options& fmt)
 {
     VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
 
@@ -176,68 +240,124 @@ size_t write_integer(I value, C* buf, const size_t buf_size, const numeric_forma
         'u', 'v', 'w', 'x', 'y', 'z'
     };
 
-    constexpr size_t max_chars = sizeof(I) * CHAR_BIT + 1;
-    C tmp[max_chars];
-
-    size_t n = 0;
+    if (!buf)
+    {
+        return 0;
+    }
 
     using U = typename std::make_unsigned<I>::type;
-    U uvalue;
+    U uvalue = static_cast<U>(value);
     const U ubase = static_cast<U>(fmt.base);
+    char sign = fmt.force_sign ? '+' : 0;
 
     VX_IF_CONSTEXPR (std::is_signed<I>::value)
     {
-        const bool negative = (value < 0);
-
-        if (negative || fmt.force_sign)
-        {
-            tmp[0] = negative ? '-' : '+';
-            ++n;
-        }
-
-        if (negative)
+        if (value < 0)
         {
             // cast through unsigned to avoid UB on min value (-value would overflow)
-            uvalue = static_cast<U>(~static_cast<U>(value) + 1);
-        }
-        else
-        {
-            uvalue = static_cast<U>(value);
+            uvalue = ~uvalue + 1;
+            sign = '-';
         }
     }
-    else // unsigned
+
+    const size_t digit_count = _string_convert_priv::digit_count(uvalue, ubase);
+    const size_t needed = digit_count + static_cast<size_t>(sign != 0);
+    if (buf_size < needed)
     {
-        if (fmt.force_sign)
-        {
-            tmp[0] = '+';
-            ++n;
-        }
-
-        uvalue = value;
+        return 0;
     }
 
-    n += digit_count(uvalue, ubase);
-
-    if (!buf || !buf_size)
-    {
-        return n;
-    }
-
-    size_t i = n;
+    size_t i = needed;
 
     do
     {
         const char c = digits[uvalue % ubase];
-        tmp[--i] = fmt.uppercase ? to_upper(c) : c;
+        buf[--i] = fmt.uppercase ? to_upper(c) : c;
         uvalue /= ubase;
 
     } while (uvalue);
 
-    const size_t copy_count = std::min(n, buf_size);
-    mem::copy(buf, tmp, copy_count * sizeof(C));
+    if (sign)
+    {
+        buf[0] = static_cast<C>(sign);
+    }
 
-    return copy_count;
+    return needed;
 }
+
+//==============================================================================
+// float format specifiers
+//==============================================================================
+
+enum class float_format : char
+{
+    fixed = 'f',
+    scientific = 'e',
+    general = 'g',
+    hex = 'a',
+};
+
+namespace _string_convert_priv {
+
+enum : uint32_t
+{
+    precision_unspecified = std::numeric_limits<uint32_t>::max(),
+
+    float_fixed_default = 6,
+    float_scientific_default = 6,
+    float_general_default = 6,
+
+    float_hex_default = 6,
+    double_hex_default = 13,
+
+    max_float_precision = 1'000'000
+};
+
+template <typename F>
+constexpr uint32_t resolve_precision(uint32_t format, uint32_t precision) noexcept
+{
+    if (precision == precision_unspecified)
+    {
+        switch (format)
+        {
+            case float_format::fixed: return float_fixed_default;
+            case float_format::scientific: return float_scientific_default;
+            case float_format::general: return float_general_default;
+            case float_format::hex:
+            {
+                VX_IF_CONSTEXPR (std::is_same<F, float>::value)
+                {
+                    return float_hex_default;
+                }
+                VX_IF_CONSTEXPR (std::is_same<F, double>::value)
+                {
+                    return double_hex_default;
+                }
+            }
+        }
+    }
+
+    return (precision > max_float_precision)
+        ? max_float_precision
+        : precision;
+}
+
+} // namespace _string_convert_priv
+
+template <typename C = char>
+struct float_format_options
+{
+    float_format format = float_format::general;
+    uint32_t precision = _string_convert_priv::precision_unspecified;
+
+    VX_STATIC_ASSERT_MSG(type_traits::is_char<C>::value, "C must be a character type");
+    C decimal_point = static_cast<C>('.');
+
+    bool uppercase = false;
+    bool force_sign = false;
+    bool force_exp_sign = false;
+    bool round = true;
+};
 
 //==============================================================================
 // general helpers
@@ -262,17 +382,6 @@ constexpr size_t digit_count_max3(I value) noexcept
     return 3;
 }
 
-static constexpr uint32_t pow10_table[] = {
-    1u, 10u, 100u, 1000u, 10000u, 100000u, 1000000u, 10000000u, 100000000u
-};
-
-inline constexpr uint32_t pow10_u32(size_t n) noexcept
-{
-    VX_ASSERT(n <= 9);
-    VX_ASSERT(n > 0);
-    return pow10_table[n - 1];
-}
-
 template <typename C>
 inline constexpr void fill_n_zeros(C* buf, size_t n) noexcept
 {
@@ -289,44 +398,6 @@ inline constexpr void fill_n_zeros(C* buf, size_t n) noexcept
     }
 }
 
-inline constexpr uint32_t decimal_length(const uint32_t v) noexcept
-{
-    // Max value allowed by this overload is 999,999,999 (9 digits)
-    VX_ASSERT(v < 1000000000);
-    // clang-format off
-
-    if (v >= 100000000) return 9;
-    if (v >= 10000000)  return 8;
-    if (v >= 1000000)   return 7;
-    if (v >= 100000)    return 6;
-    if (v >= 10000)     return 5;
-    if (v >= 1000)      return 4;
-    if (v >= 100)       return 3;
-    if (v >= 10)        return 2;
-    return 1;
-
-    // clang-format on
-}
-
-inline constexpr uint32_t decimal_length(uint64_t v) noexcept
-{
-    if (v < 1000000000)
-    {
-        return decimal_length(static_cast<uint32_t>(v));
-    }
-
-    uint32_t n = 0;
-
-    do
-    {
-        v /= 10;
-        ++n;
-
-    } while (v);
-
-    return n;
-}
-
 template <typename limb_type_, uint32_t limb_count_, typename wide_type_>
 struct big_int
 {
@@ -335,7 +406,7 @@ struct big_int
     static constexpr uint32_t limb_count = limb_count_;
     static constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    limb_type bits[limb_count];
+    limb_type bits[limb_count_];
 
     inline constexpr big_int() noexcept
         : bits{}
@@ -437,6 +508,20 @@ struct big_int
         return digit;
     }
 
+    inline constexpr void mul_shave_digits(size_t count, uint32_t limb, limb_type digit_mask) noexcept
+    {
+        while (count >= 9)
+        {
+            mul_clear(1000000000u, limb, digit_mask);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            mul_clear(pow10_u32(count), limb, digit_mask);
+        }
+    }
+
     inline constexpr limb_type extract_digit_lower(uint32_t limb, uint32_t partial_bits) noexcept
     {
         return bits[limb] >> partial_bits;
@@ -459,6 +544,20 @@ struct big_int
         const limb_type digit = mul_extract_lower(x, limb, partial_bits);
         bits[limb] &= digit_mask;
         return digit;
+    }
+
+    inline constexpr void mul_shave_digits_lower(size_t count, uint32_t limb, limb_type digit_mask) noexcept
+    {
+        while (count >= 9)
+        {
+            mul_clear_lower(1000000000u, limb, digit_mask);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            mul_clear_lower(pow10_u32(count), limb, digit_mask);
+        }
     }
 
     inline constexpr limb_type div_extract(limb_type x, size_t start_index) noexcept
@@ -501,23 +600,32 @@ struct big_int
     {
         const limb_type remainder = div_extract(x, max_index);
 
-        // Post-loop scan to update max_index cleanly
-        while (max_index > 0 && bits[max_index] == 0)
+        while (bits[max_index] == 0)
         {
             --max_index;
         }
 
         return remainder;
     }
-};
 
-} // namespace _string_convert_priv
+    inline constexpr void div_shave_digits(size_t count, size_t& max_index) noexcept
+    {
+        while (count >= 9)
+        {
+            div_shrink(1000000000u, max_index);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            div_shrink(pow10_u32(count), max_index);
+        }
+    }
+};
 
 //==============================================================================
 // scientific helpers
 //==============================================================================
-
-namespace _string_convert_priv {
 
 inline constexpr uint32_t log10_pow2(int e) noexcept
 {
@@ -531,6 +639,36 @@ inline constexpr int log10_pow5(int e) noexcept
     VX_ASSERT(e >= 0);
     VX_ASSERT(e <= 2620);
     return (static_cast<uint32_t>(e) * 732923u) >> 20;
+}
+
+template <typename F>
+constexpr uint32_t subnormal_pow10(const typename vx::float_bits<F>::uint_type m_bits) noexcept
+{
+    // this estimate may be 1 less than the actual power of 10
+    using traits = typename vx::float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+    constexpr size_t uint_bits = sizeof(uint_type) * CHAR_BIT;
+
+    const int leading = bit::countl_zero(m_bits) - (uint_bits - traits::mantissa_bits);
+    const int e2 = 1 - traits::exponent_bias - leading;
+    const int e10 = -(log10_pow5(-e2) + e2);
+    return e10;
+}
+
+template <typename F>
+constexpr int normal_pow10(const int e2) noexcept
+{
+    // this estimate may be 1 greater than the actual power of 10
+    const int e10 = -(vx::str::_string_convert_priv::log10_pow5(-e2) + e2) - (e2 > 3);
+    return e10;
+}
+
+template <typename F>
+constexpr int large_integer_pow10(const int e2) noexcept
+{
+    // this estimate may be 1 less than the actual power of 10
+    const int e10 = vx::str::_string_convert_priv::log10_pow2(e2);
+    return e10;
 }
 
 template <typename C>
@@ -622,7 +760,7 @@ constexpr bool scientific_carry_round(C* ptr, size_t leading_char_count) noexcep
 }
 
 template <typename C>
-constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     const size_t leading_char_count = 1 + precision_char_count;
@@ -654,7 +792,7 @@ constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const nume
 }
 
 template <typename F, typename C>
-constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_bits, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_bits, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -663,9 +801,7 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
     using wide_type = uint64_t;
     constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    const int leading = bit::countl_zero(m_bits) - (sizeof(uint_type) * CHAR_BIT - traits::mantissa_bits);
-    const int e2 = 1 - traits::exponent_bias - leading;
-    int e10 = -(log10_pow5(-e2) + e2);
+    int e10 = subnormal_pow10<F>(m_bits);
 
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     size_t exp_char_count = 1 + 1 + digit_count_max3(e10);
@@ -694,25 +830,16 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
 
     // first find the first non 0 digit
     {
-        size_t shave = static_cast<size_t>(e10);
-
-        while (shave > 9)
-        {
-            frac_bits.mul_clear_lower(1000000000u, keep_limbs, digit_mask);
-            shave -= 9;
-        }
-
-        if (shave > 1)
-        {
-            frac_bits.mul_clear_lower(pow10_u32(shave), keep_limbs, digit_mask);
-        }
-
+        const size_t leading_zero_count = static_cast<size_t>(e10) - 1;
+        frac_bits.mul_shave_digits_lower(leading_zero_count, keep_limbs, digit_mask);
         limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
 
-        // we may be short by 1 digit
+        // we may be short by 1 digit, meaning 1 unaccounted for leading 0
         if (digit == 0)
         {
             digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
+
+            // out e10 estimate was off by 1
             ++e10;
             exp_changed = true;
         }
@@ -763,7 +890,7 @@ constexpr size_t write_scientific_subnormal(typename float_bits<F>::uint_type m_
 }
 
 template <typename F, typename C>
-constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -780,6 +907,7 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
         return 0;
     }
 
+    // we are either at, or 1 more than the actual exponent
     bool exp_changed = false;
 
     constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
@@ -797,31 +925,39 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
 
     // first find the first non 0 digit
     {
-        limb_type digit = 0;
-
         if (e10 == 1)
         {
             // Our estimate should be accurate when e10 is 1, and this is the most common case.
-            digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+            const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
             VX_ASSERT(digit != 0);
+            buf[0] = static_cast<C>('0' + digit);
         }
         else
         {
-            size_t shave = static_cast<size_t>(e10);
+            // The estimated decimal exponent can be at most 1 too large. Rather than
+            // removing all estimated leading zeros, we leave one digit in place so we
+            // can verify the estimate.
+            //
+            // After shaving off (leading_zero_count - 1) digits, we inspect the next digit:
+            //
+            //   digit != 0  -> the estimate was 1 too large, so decrement e10.
+            //   digit == 0  -> the estimate was correct; consume one more digit to
+            //                  reach the first non-zero digit.
+            //
+            // Example:
+            //   Estimated 4 leading zeros, actual 5.
+            //   Remove 3 zeros and inspect the 4th digit. If it is non-zero, the
+            //   estimate was too large by 1. Otherwise, consume one more digit to
+            //   reach the leading non-zero digit.
+            const size_t leading_zero_count = static_cast<size_t>(e10) - 1;
+            const size_t shave = leading_zero_count - 1;
+            frac_bits.mul_shave_digits(shave, keep_limbs, digit_mask);
 
-            while (shave > 10)
-            {
-                frac_bits.mul_clear(1000000000u, keep_limbs, digit_mask);
-                shave -= 9;
-            }
-
-            if (shave > 1)
-            {
-                frac_bits.mul_clear_lower(pow10_u32(shave), keep_limbs, digit_mask);
-            }
+            limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
 
             if (digit != 0)
             {
+                // we over estimated e10 by 1
                 --e10;
                 exp_changed = true;
             }
@@ -830,9 +966,9 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
                 digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
                 VX_ASSERT(digit != 0);
             }
-        }
 
-        buf[0] = static_cast<C>('0' + digit);
+            buf[0] = static_cast<C>('0' + digit);
+        }
     }
 
     if (fmt.precision > 0)
@@ -854,6 +990,8 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
             if (scientific_carry_round(buf, leading_char_count))
             {
                 ++e10;
+                // It is possible to flip flop, so if we decrememnted e10,
+                // than incremented, it should go back to the same value.
                 exp_changed = !exp_changed;
             }
         }
@@ -874,7 +1012,7 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
 }
 
 template <typename F, typename C>
-constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -913,20 +1051,8 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
     // first we shave off the digits we don't care about
     if (digits_needed < int_digit_count)
     {
-        size_t shave = int_digit_count - digits_needed;
-
-        // Batch divide by 10^9 (or 10^18 if using wide_type) to wipe out chunks of digits instantly
-        while (shave > 9)
-        {
-            int_bits.div_shrink(1000000000u, max_index);
-            shave -= 9;
-        }
-
-        if (shave > 1)
-        {
-            int_bits.div_shrink(pow10_u32(shave), max_index);
-        }
-
+        const size_t trailing_digit_count = int_digit_count - digits_needed;
+        int_bits.div_shave_digits(trailing_digit_count - 1, max_index);
         round_digit = int_bits.div_extract(10, max_index);
     }
     else if (digits_needed > int_digit_count)
@@ -1000,7 +1126,7 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m_bits
 }
 
 template <typename F, typename C>
-constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1014,7 +1140,7 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
     uint_type int_bits = m2 >> frac_bit_count;
 
     // should be exact
-    const size_t int_digit_count = decimal_length(int_bits);
+    const size_t int_digit_count = digit_count_unsigned(int_bits);
     int e10 = static_cast<int>(int_digit_count - 1);
 
     const size_t leading_char_count = 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
@@ -1141,15 +1267,13 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m_bits
 //==============================================================================
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_scientific(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_float_scientific(F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
+    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+
     using traits = typename float_bits<F>::traits;
-    using uint_type = typename traits::uint_type;
 
-    using limb_type = uint32_t;
-    constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
-
-    if (!buf || buf_size == 0)
+    if (!buf)
     {
         return 0;
     }
@@ -1184,7 +1308,7 @@ constexpr size_t write_float_scientific(F value, C* buf, const size_t buf_size, 
         buf[0] = sign;
     }
 
-    size_t n = sign ? 1 : 0;
+    size_t n = static_cast<size_t>(sign != 0);
 
     // inf
     if (e_bits == traits::filled_exponent && m_bits == 0)
@@ -1220,14 +1344,14 @@ constexpr size_t write_float_scientific(F value, C* buf, const size_t buf_size, 
     if (e2 < 0)
     {
         // normal
-        const int e10 = -(_string_convert_priv::log10_pow5(-e2) + e2);
+        const int e10 = _string_convert_priv::normal_pow10<F>(e2);
         return n + _string_convert_priv::write_scientific_normal<F, C>(m_bits, e10, -shift, buf + n, buf_size - n, fmt);
     }
 
     if (shift >= 0)
     {
         // large integer
-        const int e10 = _string_convert_priv::log10_pow2(e2);
+        const int e10 = _string_convert_priv::large_integer_pow10<F>(e2);
         return n + _string_convert_priv::write_scientific_large<F, C>(m_bits, e10, shift, buf + n, buf_size - n, fmt);
     }
     else
@@ -1307,7 +1431,7 @@ constexpr bool round_fixed_mixed(C* ptr, size_t int_digit_count, size_t precisio
 }
 
 template <typename C>
-constexpr size_t write_fixed_zero(C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_fixed_zero(C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     const size_t needed = 1 + precision_char_count;
@@ -1328,7 +1452,7 @@ constexpr size_t write_fixed_zero(C* buf, const size_t buf_size, const numeric_f
 }
 
 template <typename F, typename C>
-constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1337,9 +1461,7 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
     using wide_type = uint64_t;
     constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    const int leading = bit::countl_zero(m_bits) - (sizeof(uint_type) * CHAR_BIT - traits::mantissa_bits);
-    const int e2 = 1 - traits::exponent_bias - leading;
-    const int e10 = -(log10_pow5(-e2) + e2);
+    const int e10 = subnormal_pow10<F>(m_bits);
 
     const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
     const size_t needed = 1 + precision_char_count;
@@ -1362,31 +1484,34 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
     }
 
     buf[1] = fmt.decimal_point;
-    size_t leading_zero_count = e10;
+    size_t leading_zero_count = static_cast<size_t>(e10) - 1;
 
-    if (fmt.precision <= leading_zero_count)
+    if (fmt.precision < leading_zero_count || (fmt.precision == leading_zero_count && !fmt.round))
     {
         fill_n_zeros(buf + 2, fmt.precision);
         return needed;
     }
 
     fill_n_zeros(buf + 2, leading_zero_count);
+    C* ptr = buf + 2 + leading_zero_count;
 
     // our large integer type
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
     big_int_type frac_bits = { m_bits };
 
-    C* ptr = buf + 2 + leading_zero_count;
-
-    // shave off some 0s, we may be short in our estimate by 1 but the final loop will catch it
+    // shave off some 0s
     {
-        size_t shave = leading_zero_count;
+        frac_bits.mul_shave_digits_lower(leading_zero_count, keep_limbs, digit_mask);
+        const limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
 
-        while (shave > 9)
+        // we may be short by 1 digit
+        if (digit == 0)
         {
-            frac_bits.mul_clear_lower(1000000000u, keep_limbs, digit_mask);
-            shave -= 9;
+            ++leading_zero_count;
         }
+
+        *ptr = static_cast<C>('0' + digit);
+        ++ptr;
     }
 
     for (size_t i = leading_zero_count; i < fmt.precision; ++i)
@@ -1422,7 +1547,7 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
 }
 
 template <typename F, typename C>
-constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1483,7 +1608,7 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
 }
 
 template <typename F, typename C>
-constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1499,15 +1624,13 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
         return 0;
     }
 
-    C* ptr = buf;
-
-    *ptr++ = static_cast<C>('0');
+    buf[0] = static_cast<C>('0');
     if (fmt.precision == 0 && !fmt.round)
     {
         return 1;
     }
 
-    *ptr++ = fmt.decimal_point;
+    buf[1] = fmt.decimal_point;
 
     constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
     constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
@@ -1522,12 +1645,43 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
     big_int_type frac_bits = { m2 };
 
-    for (size_t i = 0; i < fmt.precision; ++i)
+    // default for most common case
+    size_t leading_zero_count = 0;
+
+    C* ptr = buf + 2;
+
+    // first find the first non 0 digit
+    if (e10 > 1)
+    {
+        // The estimated decimal exponent can either be exact, or 1 too large
+        // We subtract 2 here to move the estimate to either exact or 1 too small
+        leading_zero_count = static_cast<size_t>(e10) - 2;
+        if (fmt.precision < leading_zero_count || (fmt.precision == leading_zero_count && !fmt.round))
+        {
+            fill_n_zeros(ptr, fmt.precision);
+            return needed;
+        }
+
+        fill_n_zeros(ptr, leading_zero_count);
+        ptr += leading_zero_count;
+
+        frac_bits.mul_shave_digits(leading_zero_count, keep_limbs, digit_mask);
+        limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+
+        if (digit == 0)
+        {
+            ++leading_zero_count;
+        }
+
+        *ptr = static_cast<C>('0' + digit);
+        ++ptr;
+    }
+
+    for (size_t i = leading_zero_count; i < fmt.precision; ++i)
     {
         const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
-        *ptr++ = static_cast<C>('0' + digit);
-
-#undef extract_and_clear
+        *ptr = static_cast<C>('0' + digit);
+        ++ptr;
     }
 
     if (fmt.round)
@@ -1543,7 +1697,7 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
 }
 
 template <typename F, typename C>
-constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int shift, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1557,7 +1711,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
     uint_type int_bits = m2 >> frac_bit_count;
 
     // should be exact
-    const size_t int_digit_count = decimal_length(int_bits);
+    const size_t int_digit_count = digit_count_unsigned(int_bits);
     const int e10 = static_cast<int>(int_digit_count) - 1;
 
     const size_t precision_char_count = static_cast<size_t>(fmt.precision > 0) + fmt.precision;
@@ -1620,7 +1774,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
             const limb_type round_digit = frac_bits.mul_extract(10, keep_limbs, partial_bits);
             if (round_digit >= 5)
             {
-                if (round_fixed_mixed<C>(ptr, int_digit_count, fmt.precision, fmt.decimal_point))
+                if (round_fixed_mixed<C>(buf, int_digit_count, fmt.precision))
                 {
                     ++needed;
                     if (buf_size < needed)
@@ -1641,16 +1795,13 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
 } // namespace _string_convert_priv
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
-    using traits = typename float_bits<float>::traits;
-    using uint_type = typename traits::uint_type;
+    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 
-    using limb_type = uint32_t;
-    using wide_type = uint64_t;
-    constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
+    using traits = typename float_bits<F>::traits;
 
-    if (!buf || buf_size == 0)
+    if (!buf)
     {
         return 0;
     }
@@ -1685,7 +1836,7 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
         buf[0] = sign;
     }
 
-    size_t n = sign ? 1 : 0;
+    size_t n = static_cast<size_t>(sign != 0);
 
     // inf
     if (e_bits == traits::filled_exponent && m_bits == 0)
@@ -1706,12 +1857,12 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
         if (m_bits == 0)
         {
             // zero
-            return n + _string_convert_priv::write_fixed_zero<C>(buf, buf_size, fmt);
+            return n + _string_convert_priv::write_fixed_zero<C>(buf + n, buf_size - n, fmt);
         }
         else
         {
             // subnormal
-            return n + _string_convert_priv::write_fixed_subnormal<F, C>(m_bits, buf, buf_size, fmt);
+            return n + _string_convert_priv::write_fixed_subnormal<F, C>(m_bits, buf + n, buf_size - n, fmt);
         }
     }
 
@@ -1721,14 +1872,14 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
     if (e2 < 0)
     {
         // normal
-        const int e10 = -(_string_convert_priv::log10_pow5(-e2) + e2);
+        const int e10 = _string_convert_priv::normal_pow10<F>(e2);
         return n + _string_convert_priv::write_fixed_normal<F, C>(m_bits, e10, -shift, buf + n, buf_size - n, fmt);
     }
 
     if (shift >= 0)
     {
         // large integer
-        const int e10 = _string_convert_priv::log10_pow2(e2);
+        const int e10 = _string_convert_priv::large_integer_pow10<F>(e2);
         return n + _string_convert_priv::write_fixed_large<F, C>(m_bits, e10, shift, buf + n, buf_size - n, fmt);
     }
     else
@@ -1738,192 +1889,141 @@ constexpr size_t write_float_fixed(F value, C* buf, const size_t buf_size, const
     }
 }
 
+//==============================================================================
+// hex format
+//==============================================================================
+
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_hex(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+constexpr size_t write_float_hex(F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
 
-    if (!buf || buf_size == 0)
+    if (!buf)
     {
         return 0;
     }
 
-    const size_t precision = fmt.precision;
-    const bool upper = fmt.uppercase;
     const float_bits<F> fb(value);
-    const char sign = fb.is_negative() ? '-' : (fmt.force_sign ? '+' : '\0');
+    const auto e_bits = fb.exponent();
+    const auto m_bits = fb.mantissa();
+    const bool sign_bit = fb.sign();
+    const char sign = sign_bit ? '-' : (fmt.force_sign ? '+' : 0);
 
-    // -------------------------------------------------------------------------
-    // Special values
-    // -------------------------------------------------------------------------
-
-    if (fb.is_nan())
+    // nan
+    if (e_bits == traits::filled_exponent && m_bits != 0)
     {
         if (buf_size < 3)
         {
             return 0;
         }
 
-        buf[0] = upper ? 'N' : 'n';
-        buf[1] = upper ? 'A' : 'a';
-        buf[2] = buf[0];
+        buf[0] = static_cast<C>(fmt.uppercase ? 'N' : 'n');
+        buf[1] = static_cast<C>(fmt.uppercase ? 'A' : 'a');
+        buf[2] = buf[0]; // 'N' or 'n'
         return 3;
     }
 
-    size_t n = 0;
-
-    if (fb.is_inf())
+    if (sign)
     {
-        const size_t needed = (sign ? 1 : 0) + 3; // optional sign + "inf"
-        if (buf_size - n < needed)
+        if (buf_size < 2)
         {
             return 0;
         }
 
-        if (sign)
-        {
-            buf[n++] = sign;
-        }
-
-        buf[n++] = upper ? 'I' : 'i';
-        buf[n++] = upper ? 'N' : 'n';
-        buf[n++] = upper ? 'F' : 'f';
-        return needed;
+        buf[0] = sign;
     }
 
-    // -------------------------------------------------------------------------
-    // Hex float format: [sign] 0x h.hhhh p [exp_sign] exp
-    //
-    // Following printf %a convention:
-    //   - Normal values:    1.mantissa_hex * 2^true_exponent  (integer bit explicit)
-    //   - Subnormal values: 0.mantissa_hex * 2^-(exponent_bias-1)  (raw, no renormalization)
-    //   - Zero:             0x0[.000...]p0
-    //
-    // The binary exponent is the true (unbiased) exponent for normals, or
-    // -(exponent_bias - 1) for subnormals (same as printf %a).
-    //
-    // fmt.precision controls the number of hex digits after the point.
-    // Each hex digit represents exactly 4 mantissa bits.
-    // -------------------------------------------------------------------------
+    size_t n = static_cast<size_t>(sign != 0);
 
-    const bool is_subnormal = fb.is_subnormal();
-    const bool is_zero = fb.is_zero();
+    // inf
+    if (e_bits == traits::filled_exponent && m_bits == 0)
+    {
+        if (buf_size - n < 3)
+        {
+            return 0;
+        }
 
-    // True exponent: for normals this is the stored exponent - bias.
-    // For subnormals, printf convention uses -(exponent_bias - 1).
-    const int true_exp = fb.true_exponent();
+        buf[n++] = static_cast<C>(fmt.uppercase ? 'I' : 'i');
+        buf[n++] = static_cast<C>(fmt.uppercase ? 'N' : 'n');
+        buf[n++] = static_cast<C>(fmt.uppercase ? 'F' : 'f');
+        return n;
+    }
 
-    // Mantissa to print: for normals, the stored mantissa bits (integer bit
-    // is implied and printed as the leading hex digit '1').
-    // For subnormals, the stored mantissa bits (leading hex digit is '0').
-    const uint_type mantissa = fb.mantissa();       // without integer bit
-    const uint_type leading = is_subnormal ? 0 : 1; // the digit before the point
+    const bool subnormal = (e_bits == 0 && m_bits != 0);
 
-    // -------------------------------------------------------------------------
-    // Compute exponent sign and absolute value.
-    // -------------------------------------------------------------------------
-    const char exp_sign = true_exp < 0 ? '-' : (fmt.force_sign ? '+' : '\0');
-    const int exp_abs = true_exp < 0 ? -true_exp : true_exp;
-    const size_t exp_digit_count = digit_count(exp_abs, 10);
+    // First calulate the exponent
+    const int exp = subnormal ? (1 - traits::exponent_bias) : (e_bits - traits::exponent_bias);
+    const char exp_sign = (exp < 0) ? '-' : (fmt.force_exp_sign ? '+' : 0);
 
-    // -------------------------------------------------------------------------
-    // Size check.
-    // [sign] 0x [leading] [. precision_digits] p [exp_sign] [exp_digits]
-    // -------------------------------------------------------------------------
-    const size_t needed = (sign ? 1 : 0) + 2  // "0x" or "0X"
-        + 1                                   // leading hex digit
-        + (precision > 0 ? 1 + precision : 0) // '.' + hex digits
-        + 1                                   // 'p' or 'P'
-        + (exp_sign ? 1 : 0) + exp_digit_count;
+    const unsigned int abs_exp = static_cast<unsigned int>(exp < 0 ? -exp : exp);
+    const size_t exp_digit_count = _string_convert_priv::digit_count_max3(abs_exp);
 
-    if (buf_size < needed)
+    const size_t leading_char_count = 2 + 1 + static_cast<size_t>(fmt.precision > 0) + fmt.precision;
+    const size_t exp_char_count = 1 + static_cast<size_t>(exp_sign != 0) + exp_digit_count;
+    const size_t needed = leading_char_count + exp_char_count;
+    if (buf_size - n < needed)
     {
         return 0;
     }
 
-    // -------------------------------------------------------------------------
-    // Write prefix: [sign] 0x
-    // -------------------------------------------------------------------------
-    if (sign)
-    {
-        buf[n++] = sign;
-    }
+    buf[n++] = static_cast<C>('0');
+    buf[n++] = static_cast<C>(fmt.uppercase ? 'X' : 'x');
+    buf[n++] = static_cast<C>('0' + subnormal);
 
-    buf[n++] = C('0');
-    buf[n++] = upper ? C('X') : C('x');
-
-    // -------------------------------------------------------------------------
-    // Write leading digit (1 for normals, 0 for subnormals/zero).
-    // -------------------------------------------------------------------------
-    buf[n++] = static_cast<C>('0' + leading);
-
-    // -------------------------------------------------------------------------
-    // Write fractional hex digits.
-    //
-    // The mantissa is stored left-aligned within uint_type for extraction:
-    // we shift left so the most significant nibble is always in the top 4 bits
-    // of a working value, then extract nibble by nibble.
-    //
-    // mantissa_bits may not be a multiple of 4, so we align to a nibble
-    // boundary by shifting left (padding with zeros on the right).
-    // -------------------------------------------------------------------------
-    if (precision > 0)
+    if (fmt.precision > 0)
     {
         buf[n++] = fmt.decimal_point;
 
-        // Left-align the stored mantissa to the top of uint_type.
-        // The mantissa occupies the low mantissa_bits bits of uint_type, so shifting
-        // left by (total_bits - mantissa_bits) places the most significant mantissa
-        // bit at the top of the integer. Each subsequent m <<= 4 then rolls the
-        // next nibble into the top 4 bits for extraction, giving digits MSB-first
-        // without any separate nibble-boundary alignment step.
-        const int top_align = static_cast<int>(sizeof(uint_type) * CHAR_BIT) - static_cast<int>(traits::mantissa_bits);
-        uint_type m = mantissa << top_align;
+        constexpr uint32_t mbits = traits::mantissa_bits;
+        constexpr uint32_t hex_digits = (mbits + 3) / 4;
+        constexpr uint32_t shift = hex_digits * 4 - mbits;
+        constexpr uint32_t top_shift = (hex_digits - 1) * 4;
 
-        constexpr char hex[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+        size_t digits_remaining = fmt.precision;
+        uint_type frac = m_bits << shift;
 
-        // How many full nibbles are available from the stored mantissa.
-        // Beyond full_hex_digits the value is zero (no more mantissa bits).
-        for (size_t i = 0; i < precision; ++i)
+        while (frac && digits_remaining)
         {
-            // Extract the top nibble.
-            const int nibble_shift = static_cast<int>(sizeof(uint_type) * CHAR_BIT) - 4;
-            const uint_type nibble = (m >> nibble_shift) & 0xF;
-            const char hex_digit = hex[nibble];
-            buf[n++] = static_cast<C>(hex_digit);
-            m <<= 4;
+            const uint32_t digit = static_cast<uint32_t>((frac >> top_shift) & 0xF);
+            const char c = hex::digits[digit];
+            buf[n++] = static_cast<C>(fmt.uppercase ? to_upper(c) : c);
+
+            frac <<= 4;
+            --digits_remaining;
+        }
+
+        if (digits_remaining)
+        {
+            _string_convert_priv::fill_n_zeros(buf + n, digits_remaining);
+            n += digits_remaining;
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Write exponent: p [exp_sign] exp_digits
-    // -------------------------------------------------------------------------
-    buf[n++] = upper ? C('P') : C('p');
-    if (exp_sign)
+    buf[n++] = static_cast<C>(fmt.uppercase ? 'P' : 'p');
+    if (exp_sign != 0)
     {
-        buf[n++] = exp_sign;
+        buf[n++] = static_cast<C>(exp_sign);
     }
 
-    // Write exponent digits LSB-first then reverse, same as scientific.
-    const size_t exp_start = n;
-    {
-        int e = exp_abs;
-        do
-        {
-            buf[n++] = static_cast<C>('0' + e % 10);
-            e /= 10;
-        } while (e);
-    }
+    size_t pos = n + exp_digit_count;
 
-    // reverse exponent digits to MSB-first
-    str::reverse(buf + exp_start, n - exp_start);
+    do
+    {
+        const int digit = exp % 10;
+        buf[--pos] = static_cast<C>('0' + digit);
+        exp /= 10;
+
+    } while (exp);
+
+    VX_ASSERT(!exp);
+    n += exp_digit_count;
 
     return n;
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-size_t write_float(F value, C* buf, const size_t buf_size, const numeric_format_options<C>& fmt) noexcept
+size_t write_float(F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
     // https://github.com/godotengine/godot/blob/master/core/string/ustring.cpp#L1458
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double support not implemented");
@@ -1966,7 +2066,7 @@ size_t write_float(F value, C* buf, const size_t buf_size, const numeric_format_
     const int n = std::snprintf(tmp, max_chars, fmt_str, value);
     assert(n >= 0);
 
-    if (!buf || !buf_size)
+    if (!buf)
     {
         return static_cast<size_t>(n);
     }
@@ -1990,7 +2090,7 @@ size_t write_float(F value, C* buf, const size_t buf_size, const numeric_format_
 //==============================================================================
 
 template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-auto to_string(I v, const numeric_format_options<C>& fmt = {}) noexcept
+auto to_string(I v, const integer_format_options& fmt = {}) noexcept
 {
     constexpr size_t buf_size = 65;
     C buf[buf_size];
@@ -2001,7 +2101,7 @@ auto to_string(I v, const numeric_format_options<C>& fmt = {}) noexcept
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-auto to_string(F v, const numeric_format_options<C>& fmt = {}) noexcept
+auto to_string(F v, const integer_format_options& fmt = {}) noexcept
 {
     constexpr size_t buf_size = 1000;
     C buf[buf_size];
@@ -2015,168 +2115,168 @@ auto to_string(F v, const numeric_format_options<C>& fmt = {}) noexcept
 // from string
 //==============================================================================
 
-template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& std::is_signed<I>::value&& type_traits::is_char<C>::value)>
-size_t from_string(const C* s, const size_t count, I& out, const numeric_format_options<C>& fmt = {}) noexcept
-{
-    VX_ASSERT(s);
-    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
-
-    out = 0;
-
-    if (count == 0)
-    {
-        return 0;
-    }
-
-    bool negative = false;
-    size_t i = 0;
-
-    switch (s[i])
-    {
-        case C('-'):
-        {
-            negative = true;
-            VX_FALLTHROUGH;
-        }
-        case C('+'):
-        {
-            ++i;
-            VX_FALLTHROUGH;
-        }
-        default:
-        {
-            break;
-        }
-    }
-
-    using U = typename std::make_unsigned<I>::type;
-    U uout = 0;
-    bool overflow = false;
-
-    while (i < count)
-    {
-        const int digit = char_to_digit(s[i], fmt.base);
-        if (digit < 0)
-        {
-            break;
-        }
-
-        if (!overflow && uout > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
-        {
-            overflow = true;
-            err::set(err::out_of_range);
-        }
-
-        uout = uout * static_cast<U>(fmt.base) + static_cast<U>(digit);
-        ++i;
-    }
-
-    out = static_cast<I>(negative ? (U(0) - uout) : uout);
-    return i;
-}
-
-template <typename U, typename C = char, VX_REQUIRES(std::is_integral<U>::value&& std::is_unsigned<U>::value&& type_traits::is_char<C>::value)>
-size_t from_string(const C* s, const size_t count, U& out, const numeric_format_options<C>& fmt = {}) noexcept
-{
-    VX_ASSERT(s);
-    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
-
-    out = 0;
-
-    if (count == 0)
-    {
-        return 0;
-    }
-
-    size_t i = 0;
-
-    if (s[i] == C('+'))
-    {
-        ++i;
-    }
-
-    bool overflow = false;
-
-    while (i < count)
-    {
-        const int digit = char_to_digit(s[i], fmt.base);
-        if (digit < 0)
-        {
-            break;
-        }
-
-        if (!overflow && out > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
-        {
-            overflow = true;
-            err::set(err::out_of_range);
-        }
-
-        out = out * static_cast<U>(fmt.base) + static_cast<U>(digit);
-        ++i;
-    }
-
-    return i;
-}
-
-template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-size_t from_string(const C* s, const size_t count, F& out, const numeric_format_options<C>& fmt = {}) noexcept
-{
-    VX_ASSERT(s);
-    out = 0;
-
-    if (count == 0)
-    {
-        return 0;
-    }
-
-    C* endptr = nullptr;
-    errno = 0;
-
-    VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
-    {
-        out = static_cast<F>(std::strtof(s, &endptr));
-    }
-    else VX_IF_CONSTEXPR (sizeof(F) <= sizeof(double))
-    {
-        out = static_cast<F>(std::strtod(s, &endptr));
-    }
-    else
-    {
-        out = static_cast<F>(std::strtold(s, &endptr));
-    }
-
-    if (errno == ERANGE)
-    {
-        err::set(err::out_of_range);
-    }
-
-    return static_cast<size_t>(endptr - s);
-}
-
-//==============================================================================
-
-template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_string_like<S>::value)>
-size_t from_string(const S& s, I& out, const int base = 10) noexcept
-{
-    using C = typename S::value_type;
-    return from_string<I, C>(s.data(), s.size(), out, base);
-}
-
-//==============================================================================
-
-template <typename F, typename C, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-size_t from_string(const C* s, F& out) noexcept
-{
-    const size_t count = str::length(s);
-    return from_string<F, C>(s, count, out);
-}
-
-template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& is_string_like<S>::value)>
-size_t from_string(const S& s, F& out) noexcept
-{
-    using C = typename S::value_type;
-    return from_string<F, C>(s.data(), s.size(), out);
-}
+//template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& std::is_signed<I>::value&& type_traits::is_char<C>::value)>
+//size_t from_string(const C* s, const size_t count, I& out, const numeric_format_options<C>& fmt = {}) noexcept
+//{
+//    VX_ASSERT(s);
+//    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
+//
+//    out = 0;
+//
+//    if (count == 0)
+//    {
+//        return 0;
+//    }
+//
+//    bool negative = false;
+//    size_t i = 0;
+//
+//    switch (s[i])
+//    {
+//        case C('-'):
+//        {
+//            negative = true;
+//            VX_FALLTHROUGH;
+//        }
+//        case C('+'):
+//        {
+//            ++i;
+//            VX_FALLTHROUGH;
+//        }
+//        default:
+//        {
+//            break;
+//        }
+//    }
+//
+//    using U = typename std::make_unsigned<I>::type;
+//    U uout = 0;
+//    bool overflow = false;
+//
+//    while (i < count)
+//    {
+//        const int digit = char_to_digit(s[i], fmt.base);
+//        if (digit < 0)
+//        {
+//            break;
+//        }
+//
+//        if (!overflow && uout > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
+//        {
+//            overflow = true;
+//            err::set(err::out_of_range);
+//        }
+//
+//        uout = uout * static_cast<U>(fmt.base) + static_cast<U>(digit);
+//        ++i;
+//    }
+//
+//    out = static_cast<I>(negative ? (U(0) - uout) : uout);
+//    return i;
+//}
+//
+//template <typename U, typename C = char, VX_REQUIRES(std::is_integral<U>::value&& std::is_unsigned<U>::value&& type_traits::is_char<C>::value)>
+//size_t from_string(const C* s, const size_t count, U& out, const numeric_format_options<C>& fmt = {}) noexcept
+//{
+//    VX_ASSERT(s);
+//    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
+//
+//    out = 0;
+//
+//    if (count == 0)
+//    {
+//        return 0;
+//    }
+//
+//    size_t i = 0;
+//
+//    if (s[i] == C('+'))
+//    {
+//        ++i;
+//    }
+//
+//    bool overflow = false;
+//
+//    while (i < count)
+//    {
+//        const int digit = char_to_digit(s[i], fmt.base);
+//        if (digit < 0)
+//        {
+//            break;
+//        }
+//
+//        if (!overflow && out > (numeric_limits<U>::max() - static_cast<U>(digit)) / static_cast<U>(fmt.base))
+//        {
+//            overflow = true;
+//            err::set(err::out_of_range);
+//        }
+//
+//        out = out * static_cast<U>(fmt.base) + static_cast<U>(digit);
+//        ++i;
+//    }
+//
+//    return i;
+//}
+//
+//template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+//size_t from_string(const C* s, const size_t count, F& out, const numeric_format_options<C>& fmt = {}) noexcept
+//{
+//    VX_ASSERT(s);
+//    out = 0;
+//
+//    if (count == 0)
+//    {
+//        return 0;
+//    }
+//
+//    C* endptr = nullptr;
+//    errno = 0;
+//
+//    VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
+//    {
+//        out = static_cast<F>(std::strtof(s, &endptr));
+//    }
+//    else VX_IF_CONSTEXPR (sizeof(F) <= sizeof(double))
+//    {
+//        out = static_cast<F>(std::strtod(s, &endptr));
+//    }
+//    else
+//    {
+//        out = static_cast<F>(std::strtold(s, &endptr));
+//    }
+//
+//    if (errno == ERANGE)
+//    {
+//        err::set(err::out_of_range);
+//    }
+//
+//    return static_cast<size_t>(endptr - s);
+//}
+//
+////==============================================================================
+//
+//template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_string_like<S>::value)>
+//size_t from_string(const S& s, I& out, const int base = 10) noexcept
+//{
+//    using C = typename S::value_type;
+//    return from_string<I, C>(s.data(), s.size(), out, base);
+//}
+//
+////==============================================================================
+//
+//template <typename F, typename C, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+//size_t from_string(const C* s, F& out) noexcept
+//{
+//    const size_t count = str::length(s);
+//    return from_string<F, C>(s, count, out);
+//}
+//
+//template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& is_string_like<S>::value)>
+//size_t from_string(const S& s, F& out) noexcept
+//{
+//    using C = typename S::value_type;
+//    return from_string<F, C>(s.data(), s.size(), out);
+//}
 
 } // namespace str
 } // namespace vx
