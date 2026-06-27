@@ -163,7 +163,7 @@ static void vx_print_fixed_float(const F f)
     {
         VX_PROFILE_SCOPE("vx f");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
-        std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
+        //std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -221,7 +221,7 @@ static void std_print_general_float(const F f)
     {
         VX_PROFILE_SCOPE("std g");
         const size_t n = std::snprintf(buf, sizeof(buf), "%g", f);
-        std::cout << "std g: " << std::string_view(buf, n) << std::endl;
+        //std::cout << "std g: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -234,7 +234,7 @@ static void std_print_general_float_2(const F f)
         VX_PROFILE_SCOPE("std g2");
         std::to_chars_result r = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::general);
         const size_t n = static_cast<size_t>(r.ptr - buf);
-        std::cout << "std g: " << std::string_view(buf, n) << std::endl;
+        //std::cout << "std g: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -250,9 +250,34 @@ static void vx_print_general_float(const F f)
     {
         VX_PROFILE_SCOPE("vx g");
         const size_t n = vx::str::write_float(f, buf, sizeof(buf), fmt);
-        std::cout << "vx g : " << std::string_view(buf, n) << std::endl;
+        //std::cout << "vx g : " << std::string_view(buf, n) << std::endl;
     }
 }
+
+//==============================================================================
+
+template <typename I>
+static void vx_print_integer_string(const I i)
+{
+    vx::str::integer_format_options fmt;
+    fmt.base = 5;
+
+    const vx::string s = vx::str::to_string(i, fmt);
+    std::cout << s << std::endl;
+}
+
+template <typename F>
+static void vx_print_float_string(const F f)
+{
+    vx::str::float_format_options fmt;
+    fmt.format = vx::str::float_format::general;
+    fmt.uppercase = false;
+
+    const vx::string s = vx::str::to_string(f, fmt);
+    std::cout << s << std::endl;
+}
+
+//==============================================================================
 
 int main()
 {
@@ -265,11 +290,12 @@ int main()
     //constexpr size_t n = make_float_string(f, const_cast<char*>(buf), sizeof(buf));
 
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 20000; ++i)
     {
-        const auto bits = rng.randi<uint32_t>();
-        const auto f = vx::bit::bit_cast<float>(bits);
-        //std::cout << f << ' ' << std::hexfloat << f << std::endl;
+        const auto bits = rng.randi<uint64_t>();
+        const auto f = vx::bit::bit_cast<double>(bits);
+        //std::cout << f << ' ' << std::endl;
+        //const float f = FLT_TRUE_MIN;
 
         //std_print_integer(bits);
         //std_print_integer_2(bits);
@@ -277,7 +303,8 @@ int main()
 
         //std_print_fixed_float(f);
         //std_print_fixed_float_2(f);
-        //vx_print_fixed_float(f);
+        vx_print_fixed_float(f);
+
         //
         //std_print_scientific_float(f);
         //std_print_scientific_float_2(f);
@@ -286,10 +313,13 @@ int main()
         //std_print_hex_float(f);
         //std_print_hex_float_2(f);
         //vx_print_hex_float(f);
-        // 
-        std_print_general_float(f);
-        std_print_general_float_2(f);
-        vx_print_general_float(f);
+        //
+        //std_print_general_float(f);
+        //std_print_general_float_2(f);
+        //vx_print_general_float(f);
+
+        //vx_print_integer_string(static_cast<int64_t>(bits));
+        //vx_print_float_string(f);
     }
 
     VX_PROFILE_STOP();
