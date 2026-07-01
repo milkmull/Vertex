@@ -717,7 +717,7 @@ struct big_int
 
         limb_type remainder = 0;
 
-        for (size_t i = limb_count - 1; i != 0; --i)
+        for (size_t i = limb_count; i-- > 0;)
         {
             const limb_type limb = bits[i];
             const limb_type hi = limb >> half;
@@ -734,10 +734,7 @@ struct big_int
             bits[i] = (q1 << half) | q2;
         }
 
-        // Final limb
-        const limb_type r = bits[0] % x;
-        bits[0] /= x;
-        return r;
+        return remainder;
     }
 
     inline constexpr limb_type div_extract_last(limb_type x) noexcept
@@ -1112,6 +1109,7 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
     big_int_type int_bits(mantissa, shift);
 
     C* ptr = buf + int_digit_count;
+    size_t max_index = (shift + traits::digits - 1) / limb_bits;
 
     VX_IF_CONSTEXPR (sizeof(F) <= 4)
     {
@@ -1127,7 +1125,6 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
         uint32_t chunks[max_chunks];
         size_t chunk_count = 0;
 
-        size_t max_index = (shift + traits::digits - 1) / limb_bits;
         size_t digits = int_digit_count;
 
         while (digits >= 9)
@@ -1138,7 +1135,7 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
 
         for (size_t i = 0; i < chunk_count; ++i)
         {
-            uint32_t chunk = chunks[chunk_count];
+            uint32_t chunk = chunks[i];
             for (size_t i = 0; i < 9; ++i)
             {
                 const limb_type digit = chunk % 10;
@@ -2115,28 +2112,6 @@ constexpr size_t write_float_fixed(const F value, C* buf, const size_t buf_size,
     }
 
     return n + _string_convert_priv::write_float_fixed_impl<F, C>(bits, buf + n, buf_size - n, fmt);
-}
-
-template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_fixed_2(const F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
-{
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
-
-    const _string_convert_priv::float_bits<F> bits{ value };
-    size_t n = 0;
-
-    using float_write_status = _string_convert_priv::float_write_status;
-    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt, n);
-    if (status == float_write_status::failed)
-    {
-        return 0;
-    }
-    if (status == float_write_status::finished)
-    {
-        return n;
-    }
-
-    return n + _string_convert_priv::write_float_fixed_impl_2<F, C>(bits, buf + n, buf_size - n, fmt);
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>

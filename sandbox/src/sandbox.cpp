@@ -278,9 +278,9 @@ static VX_NO_INLINE void std_print_fixed_float_2(const F f)
         std::to_chars_result result;
 
         VX_PROFILE_SCOPE("std f2");
-        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 500);
+        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 100);
         const size_t n = static_cast<size_t>(result.ptr - buf);
-        //std::cout << "std f: " << std::string_view(buf, n) << std::endl;
+        std::cout << "std f: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -289,28 +289,13 @@ static VX_NO_INLINE void vx_print_fixed_float(const F f)
 {
     vx::str::float_format_options fmt;
     fmt.format = vx::str::float_format::fixed;
-    fmt.precision = 500;
+    fmt.precision = 100;
 
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("vx f");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
-        //std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
-    }
-}
-
-template <typename F>
-static VX_NO_INLINE void vx_print_fixed_float_2(const F f)
-{
-    vx::str::float_format_options fmt;
-    fmt.format = vx::str::float_format::fixed;
-    fmt.precision = 500;
-
-    char buf[5000] = {};
-    {
-        VX_PROFILE_SCOPE("vx f2");
-        const size_t n = vx::str::write_float_fixed_2(f, buf, sizeof(buf), fmt);
-        //std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
+        std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -454,14 +439,13 @@ int main()
     //constexpr size_t n = make_float_string(f, const_cast<char*>(buf), sizeof(buf));
 
 
-    for (int i = 0; i < 25000; ++i)
+    for (int i = 0; i < 100; ++i)
     {
         //const auto f = vx::random::bench::random_normal_small<double>(rng);
 
         const auto bits = rng.randi<uint64_t>();
         const auto f = vx::bit::bit_cast<double>(bits);
-        //std::cout << f << ' ' << std::endl;
-        //const double f = 8.52163e-187;
+        std::cout << f << ' ' << std::endl;
         //const float f = 8.52163e20f;
 
         //vx_parse_fixed_float(f);
@@ -493,7 +477,7 @@ int main()
         //    }
         //}
 
-        std_print_fixed_float(f);
+        //std_print_fixed_float(f);
         std_print_fixed_float_2(f);
         vx_print_fixed_float(f);
         //vx_print_fixed_float_2(f);
