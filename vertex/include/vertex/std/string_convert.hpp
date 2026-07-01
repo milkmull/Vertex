@@ -337,6 +337,14 @@ inline constexpr int log10_pow5(int e) noexcept
     return (static_cast<uint32_t>(e) * 732923u) >> 20;
 }
 
+// Returns ceil(bits * log10(2)) using the approximation
+// log10(2) ≈ 30103 / 100000. This is a slight overestimate
+// (~0.0034% from the approximation, plus rounding up).
+inline constexpr size_t ceil_log10_pow2(size_t bits) noexcept
+{
+    return (bits * 30103 + 99999) / 100000;
+}
+
 template <typename F>
 constexpr uint32_t subnormal_pow10(const typename vx::float_bits<F>::uint_type m_bits) noexcept
 {
@@ -481,7 +489,66 @@ struct big_int
         }
     }
 
-    inline constexpr limb_type mul(limb_type x) noexcept
+    inline constexpr void mul(limb_type x) noexcept
+    {
+        limb_type carry = 0;
+        for (size_t j = 0; j < limb_count; ++j)
+        {
+            const wide_type product = (static_cast<wide_type>(bits[j]) * static_cast<wide_type>(x)) + static_cast<wide_type>(carry);
+            bits[j] = static_cast<limb_type>(product);
+            carry = static_cast<limb_type>(product >> limb_bits);
+        }
+    }
+
+    inline constexpr limb_type extract_digit_lower(size_t top_limb, limb_type partial_bits) const noexcept
+    {
+        return bits[top_limb] >> partial_bits;
+    }
+
+    inline constexpr limb_type extract_digit_upper(size_t top_limb, limb_type partial_bits) const noexcept
+    {
+        return bits[top_limb + 1] << (limb_bits - partial_bits);
+    }
+
+    inline constexpr limb_type extract_digit(size_t top_limb, limb_type partial_bits) const noexcept
+    {
+        const limb_type lo = extract_digit_lower(top_limb, partial_bits);
+        const limb_type hi = extract_digit_upper(top_limb, partial_bits);
+        return lo | hi;
+    }
+
+    inline constexpr limb_type mul_extract(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    {
+        mul(x);
+        return extract_digit(top_limb, partial_bits);
+    }
+
+    inline constexpr limb_type mul_extract_clear(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
+    {
+        const limb_type digit = mul_extract(x, top_limb, partial_bits);
+        bits[top_limb] &= mask;
+        bits[top_limb + 1] = 0;
+        return digit;
+    }
+
+    //=========================================================================
+
+    inline constexpr limb_type mul_extract_lower(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    {
+        mul(x);
+        return extract_digit_lower(top_limb, partial_bits);
+    }
+
+    inline constexpr limb_type mul_extract_clear_lower(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
+    {
+        const limb_type digit = mul_extract_lower(x, top_limb, partial_bits);
+        bits[top_limb] &= mask;
+        return digit;
+    }
+
+    //=========================================================================
+
+    inline constexpr limb_type mul_bounded(limb_type x, size_t top_limb) noexcept
     {
         limb_type carry = 0;
 
@@ -495,43 +562,71 @@ struct big_int
         return carry;
     }
 
-    inline constexpr limb_type extract_digit_lower(size_t top_limb, limb_type partial_bits) const noexcept
-    {
-        return bits[top_limb] >> partial_bits;
-    }
-
-    inline constexpr limb_type extract_digit(limb_type carry, size_t top_limb, limb_type partial_bits) const noexcept
+    inline constexpr limb_type extract_digit_bounded(limb_type carry, size_t top_limb, limb_type partial_bits) const noexcept
     {
         const limb_type lo = extract_digit_lower(top_limb, partial_bits);
-        const limb_type hi = carry << (limb_bits - partial_bits);
+        const limb_type hi = extract_digit_upper(top_limb, partial_bits);
         return lo | hi;
     }
 
-    inline constexpr limb_type mul_extract_lower(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    inline constexpr limb_type mul_extract_bounded(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
     {
-        mul(x);
+        const limb_type carry = mul_bounded(x, top_limb);
+        return extract_digit_bounded(carry, top_limb, partial_bits);
+    }
+
+    inline constexpr limb_type mul_extract_clear_bounded(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
+    {
+        const limb_type digit = mul_extract_bounded(x, top_limb, partial_bits);
+        bits[top_limb] &= mask;
+        bits[top_limb + 1] = 0;
+        return digit;
+    }
+
+    //=========================================================================
+
+    inline constexpr limb_type mul_extract_lower_bounded(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    {
+        mul_bounded(x, top_limb);
         return extract_digit_lower(top_limb, partial_bits);
     }
 
-    inline constexpr limb_type mul_extract(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    inline constexpr limb_type mul_extract_clear_lower_bounded(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
     {
-        const limb_type carry = mul(x);
-        return extract_digit(carry, top_limb, partial_bits);
-    }
-
-    inline constexpr limb_type mul_extract_clear_lower(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
-    {
-        const limb_type digit = mul_extract_lower(x, top_limb, partial_bits);
+        const limb_type digit = mul_extract_lower_bounded(x, top_limb, partial_bits);
         bits[top_limb] &= mask;
         return digit;
     }
 
-    inline constexpr limb_type mul_extract_clear(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
+    //=========================================================================
+
+    template <typename F>
+    inline constexpr limb_type mul_extract_clear_auto(limb_type x, size_t top_limb, limb_type partial_bits, limb_type mask) noexcept
     {
-        const limb_type digit = mul_extract(x, top_limb, partial_bits);
-        bits[top_limb] &= mask;
-        return digit;
+        VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
+        {
+            return mul_extract_clear(x, top_limb, partial_bits, mask);
+        }
+        else
+        {
+            return mul_extract_clear_bounded(x, top_limb, partial_bits, mask);
+        }
     }
+
+    template <typename F>
+    inline constexpr limb_type mul_extract_auto(limb_type x, size_t top_limb, limb_type partial_bits) noexcept
+    {
+        VX_IF_CONSTEXPR (sizeof(F) <= sizeof(float))
+        {
+            return mul_extract(x, top_limb, partial_bits);
+        }
+        else
+        {
+            return mul_extract_bounded(x, top_limb, partial_bits);
+        }
+    }
+
+    //=========================================================================
 
     inline constexpr void mul_shave_digits(size_t count) noexcept
     {
@@ -547,23 +642,26 @@ struct big_int
         }
     }
 
+    //=========================================================================
+
     inline constexpr limb_type div_extract(limb_type x, size_t start_index) noexcept
     {
         constexpr uint32_t half = limb_bits / 2;
-        constexpr limb_type half_mask = (limb_type{ 1 } << half) - limb_type{ 1 };
+        constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
 
         limb_type remainder = 0;
 
         for (size_t i = start_index + 1; i-- > 0;)
         {
-            const limb_type hi = bits[i] >> half;
-            const limb_type lo = bits[i] & half_mask;
+            const limb_type limb = bits[i];
+            const limb_type hi = limb >> half;
+            const limb_type lo = limb & half_mask;
 
             const wide_type d1 = (static_cast<wide_type>(remainder) << half) | hi;
             const limb_type q1 = static_cast<limb_type>(d1 / x);
-            const limb_type r1 = static_cast<limb_type>(d1 % x);
+            remainder = static_cast<limb_type>(d1 % x);
 
-            const wide_type d2 = (static_cast<wide_type>(r1) << half) | lo;
+            const wide_type d2 = (static_cast<wide_type>(remainder) << half) | lo;
             const limb_type q2 = static_cast<limb_type>(d2 / x);
             remainder = static_cast<limb_type>(d2 % x);
 
@@ -577,7 +675,7 @@ struct big_int
     {
         div_extract(x, max_index);
 
-        while (bits[max_index] == 0)
+        while (max_index && bits[max_index] == 0)
         {
             --max_index;
         }
@@ -587,7 +685,7 @@ struct big_int
     {
         const limb_type remainder = div_extract(x, max_index);
 
-        while (bits[max_index] == 0)
+        while (max_index && bits[max_index] == 0)
         {
             --max_index;
         }
@@ -607,6 +705,75 @@ struct big_int
         {
             div_shrink(pow10_u32(count), max_index);
         }
+    }
+
+    //=========================================================================
+
+    // don't track top limb to allow loop unrolling
+    inline constexpr limb_type div_extract_2(limb_type x) noexcept
+    {
+        constexpr uint32_t half = limb_bits / 2;
+        constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
+
+        limb_type remainder = 0;
+
+        for (size_t i = limb_count - 1; i != 0; --i)
+        {
+            const limb_type limb = bits[i];
+            const limb_type hi = limb >> half;
+            const limb_type lo = limb & half_mask;
+
+            const wide_type d1 = (static_cast<wide_type>(remainder) << half) | hi;
+            const limb_type q1 = static_cast<limb_type>(d1 / x);
+            remainder = static_cast<limb_type>(d1 % x);
+
+            const wide_type d2 = (static_cast<wide_type>(remainder) << half) | lo;
+            const limb_type q2 = static_cast<limb_type>(d2 / x);
+            remainder = static_cast<limb_type>(d2 % x);
+
+            bits[i] = (q1 << half) | q2;
+        }
+
+        // Final limb
+        const limb_type r = bits[0] % x;
+        bits[0] /= x;
+        return r;
+    }
+
+    inline constexpr limb_type div_extract_last(limb_type x) noexcept
+    {
+        const limb_type remainder = bits[0] % x;
+        return remainder;
+    }
+
+    inline constexpr void div_shave_digits_2(size_t count) noexcept
+    {
+        while (count >= 9)
+        {
+            div_extract_2(1000000000u);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            div_extract_2(pow10_u32(count));
+        }
+    }
+
+    //=========================================================================
+
+    inline constexpr limb_type insert_digit(limb_type x) noexcept
+    {
+        limb_type carry = x;
+
+        for (size_t j = 0; j < limb_count; ++j)
+        {
+            const wide_type product = (static_cast<wide_type>(bits[j]) * static_cast<wide_type>(10)) + static_cast<wide_type>(carry);
+            bits[j] = static_cast<limb_type>(product);
+            carry = static_cast<limb_type>(product >> limb_bits);
+        }
+
+        return carry;
     }
 };
 
@@ -802,21 +969,10 @@ constexpr size_t write_fixed_subnormal(typename float_bits<F>::uint_type m_bits,
     big_int_type frac_bits = { m_bits };
 
     // shave off some 0s
-    {
-        frac_bits.mul_shave_digits(leading_zero_count);
-        const limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
+    frac_bits.mul_shave_digits(leading_zero_count);
+    const size_t remaining = precision - leading_zero_count;
 
-        // we may be short by 1 digit
-        if (digit == 0)
-        {
-            ++leading_zero_count;
-        }
-
-        *ptr = static_cast<C>(hex::digits[digit]);
-        ++ptr;
-    }
-
-    for (size_t i = leading_zero_count; i < precision; ++i)
+    for (size_t i = 0; i < remaining; ++i)
     {
         const limb_type digit = frac_bits.mul_extract_clear_lower(10, keep_limbs, partial_bits, digit_mask);
         *ptr = static_cast<C>(hex::digits[digit]);
@@ -905,20 +1061,11 @@ constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m_bits, in
 
         fill_n_zeros(ptr, leading_zero_count);
         ptr += leading_zero_count;
-
         frac_bits.mul_shave_digits(leading_zero_count);
-        const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
-
-        if (digit == 0)
-        {
-            ++leading_zero_count;
-        }
-
-        *ptr = static_cast<C>(hex::digits[digit]);
-        ++ptr;
     }
 
-    for (size_t i = leading_zero_count; i < precision; ++i)
+    const size_t remaining = precision - leading_zero_count;
+    for (size_t i = 0; i < remaining; ++i)
     {
         const limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
         *ptr = static_cast<C>(hex::digits[digit]);
@@ -960,17 +1107,56 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
     }
 
     const uint_type mantissa = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
-    size_t max_index = (shift + traits::digits - 1) / limb_bits;
 
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
     big_int_type int_bits(mantissa, shift);
 
     C* ptr = buf + int_digit_count;
 
-    for (size_t i = 0; i < int_digit_count; ++i)
+    VX_IF_CONSTEXPR (sizeof(F) <= 4)
     {
-        const limb_type digit = int_bits.div_extract_shrink(10, max_index);
-        *(--ptr) = static_cast<C>(hex::digits[digit]);
+        for (size_t i = 0; i < int_digit_count; ++i)
+        {
+            const limb_type digit = int_bits.div_extract_2(10);
+            *(--ptr) = static_cast<C>(hex::digits[digit]);
+        }
+    }
+    else
+    {
+        constexpr size_t max_chunks = ceil_log10_pow2(total_bits) / 9;
+        uint32_t chunks[max_chunks];
+        size_t chunk_count = 0;
+
+        size_t max_index = (shift + traits::digits - 1) / limb_bits;
+        size_t digits = int_digit_count;
+
+        while (digits >= 9)
+        {
+            chunks[chunk_count++] = int_bits.div_extract_shrink(1000000000u, max_index);
+            digits -= 9;
+        }
+
+        for (size_t i = 0; i < chunk_count; ++i)
+        {
+            uint32_t chunk = chunks[chunk_count];
+            for (size_t i = 0; i < 9; ++i)
+            {
+                const limb_type digit = chunk % 10;
+                *(--ptr) = static_cast<C>(hex::digits[digit]);
+                chunk /= 10;
+            }
+        }
+
+        if (digits)
+        {
+            uint32_t chunk = int_bits.div_extract_shrink(pow10_u32(digits), max_index);
+            for (size_t i = 0; i < digits; ++i)
+            {
+                const limb_type digit = chunk % 10;
+                *(--ptr) = static_cast<C>(hex::digits[digit]);
+                chunk /= 10;
+            }
+        }
     }
 
     // There may be 1 digit left over in rare cases
@@ -981,8 +1167,8 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m_bits, int
             return 0;
         }
 
-        const limb_type digit = int_bits.div_extract(10, 0);
-        VX_ASSERT(int_bits.bits[0] == 0);
+        VX_ASSERT(int_bits.bits[0] <= 9);
+        const limb_type digit = int_bits.bits[0];
 
         mem::move_range(buf + 1, buf, int_digit_count);
         buf[0] = static_cast<C>(hex::digits[digit]);
@@ -1027,13 +1213,12 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
 
     // int digits
     {
-        do
+        while (int_bits)
         {
             const auto digit = int_bits % 10;
             *--ptr = static_cast<C>(hex::digits[digit]);
             int_bits /= 10;
-
-        } while (int_bits);
+        }
     }
 
     if (precision == 0)
@@ -1054,7 +1239,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m_bits, int
         }
 
         constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
-        constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
+        constexpr uint32_t limb_count = (max_shift + (limb_bits - 1)) / limb_bits;
 
         // extract digit from the bits above
         const uint32_t keep_limbs = -shift / limb_bits;
@@ -1381,7 +1566,7 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
     bool exp_changed = false;
 
     constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
-    constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
+    constexpr uint32_t limb_count = (max_shift + (limb_bits - 1)) / limb_bits;
 
     const uint_type m2 = m_bits | (uint_type{ 1 } << traits::mantissa_bits);
 
@@ -1419,22 +1604,29 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m_bit
             //   Remove 3 zeros and inspect the 4th digit. If it is non-zero, the
             //   estimate was too large by 1. Otherwise, consume one more digit to
             //   reach the leading non-zero digit.
-            const size_t leading_zero_count = static_cast<size_t>(e10) - 1;
-            const size_t shave = leading_zero_count - 1;
-            frac_bits.mul_shave_digits(shave);
+            //const size_t leading_zero_count = static_cast<size_t>(e10) - 1;
+            //const size_t shave = leading_zero_count - 1;
+            //frac_bits.mul_shave_digits(shave);
+            //
+            //limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+            //
+            //if (digit != 0)
+            //{
+            //    // we over estimated e10 by 1
+            //    --e10;
+            //    exp_changed = true;
+            //}
+            //else
+            //{
+            //    digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+            //    //auto digit2 = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
+            //    //VX_ASSERT(digit != 0);
+            //}
 
-            limb_type digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
-
-            if (digit != 0)
-            {
-                // we over estimated e10 by 1
-                --e10;
-                exp_changed = true;
-            }
-            else
+            limb_type digit = 0;
+            while (digit == 0)
             {
                 digit = frac_bits.mul_extract_clear(10, keep_limbs, partial_bits, digit_mask);
-                VX_ASSERT(digit != 0);
             }
 
             buf[0] = static_cast<C>(hex::digits[digit]);
@@ -1922,7 +2114,29 @@ constexpr size_t write_float_fixed(const F value, C* buf, const size_t buf_size,
         return n;
     }
 
-    return _string_convert_priv::write_float_fixed_impl<F, C>(bits, buf + n, buf_size - n, fmt);
+    return n + _string_convert_priv::write_float_fixed_impl<F, C>(bits, buf + n, buf_size - n, fmt);
+}
+
+template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
+constexpr size_t write_float_fixed_2(const F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
+{
+    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+
+    const _string_convert_priv::float_bits<F> bits{ value };
+    size_t n = 0;
+
+    using float_write_status = _string_convert_priv::float_write_status;
+    const float_write_status status = _string_convert_priv::write_float_start<F, C>(bits, buf, buf_size, fmt, n);
+    if (status == float_write_status::failed)
+    {
+        return 0;
+    }
+    if (status == float_write_status::finished)
+    {
+        return n;
+    }
+
+    return n + _string_convert_priv::write_float_fixed_impl_2<F, C>(bits, buf + n, buf_size - n, fmt);
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
@@ -2329,6 +2543,8 @@ constexpr parse_result parse_fixed_float(const C* str, size_t str_size, F& value
             }
         }
     }
+
+    return res;
 }
 
 } // namespace str
