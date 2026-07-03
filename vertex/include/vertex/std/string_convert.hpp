@@ -442,54 +442,49 @@ struct big_int
     {
     }
 
-    inline constexpr big_int(const wide_type x) noexcept
+    constexpr big_int(const wide_type x) noexcept
         : bits{ static_cast<limb_type>(x), static_cast<limb_type>(x >> limb_bits) }
     {
     }
 
-    inline constexpr big_int(limb_type m, int shift) noexcept
+    constexpr big_int(limb_type m, int shift) noexcept
         : bits{}
     {
         const uint32_t base_limb = shift / limb_bits;
         const uint32_t bit_offset = shift % limb_bits;
 
         // 1. Store into the first limb
-        bits[base_limb] |= static_cast<limb_type>(m << bit_offset);
+        bits[base_limb] = static_cast<limb_type>(m << bit_offset);
 
         // 2. Overflow into the second limb
-        if (base_limb + 1 < limb_count)
+        if (bit_offset)
         {
-            bits[base_limb + 1] |= static_cast<limb_type>(m >> (limb_bits - bit_offset));
+            bits[base_limb + 1] = static_cast<limb_type>(m >> (limb_bits - bit_offset));
         }
     }
 
-    inline constexpr big_int(wide_type m, int shift) noexcept
+    constexpr big_int(wide_type m, int shift) noexcept
         : bits{}
     {
         const uint32_t base_limb = shift / limb_bits;
         const uint32_t bit_offset = shift % limb_bits;
 
         // 1. Store into the first limb
-        bits[base_limb] |= static_cast<limb_type>(m << bit_offset);
-
+        bits[base_limb] = static_cast<limb_type>(m << bit_offset);
         // 2. Overflow into the second limb
-        if (base_limb + 1 < limb_count)
-        {
-            bits[base_limb + 1] |= static_cast<limb_type>(m >> (limb_bits - bit_offset));
-        }
+        bits[base_limb + 1] = static_cast<limb_type>(m >> (limb_bits - bit_offset));
 
         // Total bits available in the first two limbs starting from our current bit_offset
         constexpr uint32_t two_limbs_bits = limb_bits * 2;
-        constexpr uint32_t wide_bits = sizeof(wide_type) * CHAR_BIT;
 
         // 3. Overflow into the third limb (Optimized away at compile-time for 32-bit floats)
-        if ((bit_offset + wide_bits > two_limbs_bits) && (base_limb + 2 < limb_count))
+        if (bit_offset)
         {
-            bits[base_limb + 2] |= static_cast<limb_type>(m >> (two_limbs_bits - bit_offset));
+            bits[base_limb + 2] = static_cast<limb_type>(m >> (two_limbs_bits - bit_offset));
         }
     }
 
-    inline constexpr void mul(limb_type x) noexcept
+    constexpr void mul(limb_type x) noexcept
     {
         limb_type carry = 0;
         for (size_t j = 0; j < limb_count; ++j)
@@ -523,7 +518,7 @@ struct big_int
 
     //=========================================================================
 
-    inline constexpr void mul_shave_digits(size_t count) noexcept
+    constexpr void mul_shave_digits(size_t count) noexcept
     {
         while (count >= 9)
         {
@@ -539,7 +534,7 @@ struct big_int
 
     //=========================================================================
 
-    inline constexpr limb_type div_extract(limb_type x, size_t start_index) noexcept
+    constexpr limb_type div_extract(limb_type x, size_t start_index) noexcept
     {
         constexpr uint32_t half = limb_bits / 2;
         constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
@@ -569,7 +564,7 @@ struct big_int
     //=========================================================================
 
     // don't track top limb to allow loop unrolling
-    inline constexpr limb_type div_extract(limb_type x) noexcept
+    constexpr limb_type div_extract(limb_type x) noexcept
     {
         constexpr uint32_t half = limb_bits / 2;
         constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
@@ -775,29 +770,29 @@ public:
     {
         while (count >= 9)
         {
-            bits.div_extract_2(1000000000u);
+            bits.div_extract(1000000000u);
             count -= 9;
         }
 
         if (count)
         {
-            bits.div_extract_2(pow10_u32(count));
+            bits.div_extract(pow10_u32(count));
         }
     }
 
     constexpr limb_type extract_digit() noexcept
     {
-        return bits.div_extract_2(10);
+        return bits.div_extract(10);
     }
 
     constexpr limb_type extract_chunk() noexcept
     {
-        return bits.div_extract_2(1000000000u);
+        return bits.div_extract(1000000000u);
     }
 
     constexpr limb_type extract_small_chunk(size_t digits) noexcept
     {
-        return bits.div_extract_2(pow10_u32(digits));
+        return bits.div_extract(pow10_u32(digits));
     }
 
     constexpr bool has_last_digit() noexcept
@@ -830,19 +825,19 @@ struct chunk_buffer
     static constexpr uint32_t total_bits = max_shift + traits::digits;
     static constexpr size_t max_chunks = ceil_log10_pow2(total_bits) / 9;
 
-    int_writer_context& ctx;
+    int_writer_context& ext;
     limb_type chunks[max_chunks];
     size_t chunk_count;
 
     constexpr chunk_buffer(int_writer_context& ctx_) noexcept
-        : ctx(ctx_)
+        : ext(ctx_)
         , chunks{}
         , chunk_count(0)
     {}
 
     constexpr void extract_chunk() noexcept
     {
-        chunks[chunk_count++] = ctx.extract_chunk();
+        chunks[chunk_count++] = ext.extract_chunk();
     }
 
     constexpr auto get(size_t index) const noexcept
@@ -858,17 +853,17 @@ struct chunk_buffer
 
     constexpr auto get_last_chunk(size_t digits) const noexcept
     {
-        return ctx.extract_small_chunk(digits);
+        return ext.extract_small_chunk(digits);
     }
 
     constexpr auto has_last_digit() const noexcept
     {
-        return ctx.has_last_digit();
+        return ext.has_last_digit();
     }
 
     constexpr auto get_last_digit() const noexcept
     {
-        return ctx.extract_last_digit();
+        return ext.extract_last_digit();
     }
 };
 
@@ -987,8 +982,8 @@ constexpr size_t write_fixed_normalized(typename float_bits<F>::uint_type m2, in
 
     buf[1] = fmt.decimal_point;
 
-    using context = float_frac_digit_extractor<F>;
-    context ctx(m2, shift);
+    using extractor = float_frac_digit_extractor<F>;
+    extractor ext(m2, shift);
 
     // default for most common case
     size_t leading_zero_count = 0;
@@ -1009,19 +1004,19 @@ constexpr size_t write_fixed_normalized(typename float_bits<F>::uint_type m2, in
 
         fill_n_zeros(ptr, leading_zero_count);
         ptr += leading_zero_count;
-        ctx.shave_digits(leading_zero_count);
+        ext.shave_digits(leading_zero_count);
     }
 
     const size_t remaining = precision - leading_zero_count;
     for (size_t i = 0; i < remaining; ++i)
     {
-        const auto digit = ctx.extract_digit();
+        const auto digit = ext.extract_digit();
         *ptr++ = static_cast<C>(hex::digits[digit]);
     }
 
     if (fmt.round)
     {
-        const auto round_digit = ctx.extract_last_digit();
+        const auto round_digit = ext.extract_last_digit();
         if (round_digit >= 5)
         {
             round_fixed<C>(buf, 1, precision_char_count);
@@ -1042,8 +1037,8 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m2, int e10
         return 0;
     }
 
-    using context = float_int_digit_extractor_selector<F>;
-    context ctx(m2, shift);
+    using extractor = float_int_digit_extractor<F, false>;
+    extractor ext(m2, shift);
 
     C* ptr = buf + int_digit_count;
 
@@ -1051,14 +1046,14 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m2, int e10
     {
         for (size_t i = 0; i < int_digit_count; ++i)
         {
-            const auto digit = ctx.extract_digit();
+            const auto digit = ext.extract_digit();
             *(--ptr) = static_cast<C>(hex::digits[digit]);
         }
     }
     else
     {
         using chunk_tracker = chunk_buffer<F>;
-        chunk_tracker chunks(ctx);
+        chunk_tracker chunks(ext);
 
         size_t digits = int_digit_count;
 
@@ -1092,14 +1087,14 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m2, int e10
     }
 
     // There may be 1 digit left over in rare cases
-    if (ctx.has_last_digit())
+    if (ext.has_last_digit())
     {
         if (buf_size < (needed + 1))
         {
             return 0;
         }
 
-        const auto digit = ctx.extract_last_digit();
+        const auto digit = ext.extract_last_digit();
         mem::move_range(buf + 1, buf, int_digit_count);
         buf[0] = static_cast<C>(hex::digits[digit]);
         ++int_digit_count;
@@ -1161,19 +1156,19 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m2, int shi
         *ptr++ = fmt.decimal_point;
 
         const uint_type raw_frac_bits = m2 & ((uint_type{ 1 } << frac_bit_count) - 1);
-        using context = float_frac_digit_extractor<F>;
-        context ctx(raw_frac_bits, -shift);
+        using extractor = float_frac_digit_extractor<F>;
+        extractor ext(raw_frac_bits, -shift);
 
         for (size_t i = 0; i < precision; ++i)
         {
-            const limb_type digit = ctx.extract_digit();
+            const limb_type digit = ext.extract_digit();
             *ptr++ = static_cast<C>(hex::digits[digit]);
         }
 
         // round
         if (fmt.round)
         {
-            const auto round_digit = ctx.extract_last_digit();
+            const auto round_digit = ext.extract_last_digit();
             if (round_digit >= 5)
             {
                 if (round_fixed<C>(buf, int_digit_count, precision))
@@ -1337,8 +1332,8 @@ constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m
         return 0;
     }
 
-    using context = float_frac_digit_extractor<F>;
-    context ctx(m2, shift);
+    using extractor = float_frac_digit_extractor<F>;
+    extractor ext(m2, shift);
 
     bool exp_changed = false;
 
@@ -1346,7 +1341,7 @@ constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m
     if (e10 <= 1)
     {
         // Our estimate should be accurate when e10 is 1, and this is the most common case.
-        const auto digit = ctx.extract_digit();
+        const auto digit = ext.extract_digit();
         buf[0] = static_cast<C>(hex::digits[digit]);
     }
     else
@@ -1368,9 +1363,9 @@ constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m
         //   reach the leading non-zero digit.
         const size_t leading_zero_count = static_cast<size_t>(e10) - 1;
         const size_t shave = leading_zero_count - 1;
-        ctx.shave_digits(shave);
+        ext.shave_digits(shave);
 
-        auto digit = ctx.extract_digit();
+        auto digit = ext.extract_digit();
         if (digit != 0)
         {
             // we over estimated e10 by 1
@@ -1379,7 +1374,7 @@ constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m
         }
         else
         {
-            digit = ctx.extract_digit();
+            digit = ext.extract_digit();
         }
 
         buf[0] = static_cast<C>(hex::digits[digit]);
@@ -1391,14 +1386,14 @@ constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m
 
         for (size_t i = 0; i < precision; ++i)
         {
-            const auto digit = ctx.extract_digit();
+            const auto digit = ext.extract_digit();
             buf[2 + i] = static_cast<C>(hex::digits[digit]);
         }
     }
 
     if (fmt.round)
     {
-        const auto round_digit = ctx.extract_last_digit();
+        const auto round_digit = ext.extract_last_digit();
         if (round_digit >= 5)
         {
             if (scientific_carry_round(buf, leading_char_count))
@@ -1435,12 +1430,12 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m2, in
         return 0;
     }
 
-    using context = float_int_digit_extractor_selector<F>;
-    context ctx(m2, shift);
+    using extractor = float_int_digit_extractor_selector<F>;
+    extractor ext(m2, shift);
 
     bool exp_changed = false;
 
-    using limb_type = typename context::limb_type;
+    using limb_type = typename extractor::limb_type;
     limb_type round_digit = 0;
     C* back_ptr = buf + leading_char_count;
 
@@ -1452,8 +1447,8 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m2, in
     if (digits_needed < int_digit_count)
     {
         const size_t trailing_digit_count = int_digit_count - digits_needed;
-        ctx.shave_digits(trailing_digit_count - 1);
-        round_digit = ctx.extract_digit();
+        ext.shave_digits(trailing_digit_count - 1);
+        round_digit = ext.extract_digit();
     }
     else if (digits_needed > int_digit_count)
     {
@@ -1466,7 +1461,7 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m2, in
     const size_t remaining = digits_needed - zero_fill;
     for (size_t i = 1; i < remaining; ++i)
     {
-        const auto digit = ctx.extract_digit();
+        const auto digit = ext.extract_digit();
         *(--back_ptr) = static_cast<C>(hex::digits[digit]);
     }
 
@@ -1476,14 +1471,14 @@ constexpr size_t write_scientific_large(typename float_bits<F>::uint_type m2, in
         {
             *(--back_ptr) = fmt.decimal_point;
         }
-        const auto digit = ctx.extract_digit();
+        const auto digit = ext.extract_digit();
         *(--back_ptr) = static_cast<C>(hex::digits[digit]);
     }
 
     // There may be 1 digit left over in rare cases
-    if (ctx.has_last_digit())
+    if (ext.has_last_digit())
     {
-        const auto digit = ctx.extract_last_digit();
+        const auto digit = ext.extract_last_digit();
         round_digit = static_cast<decltype(round_digit)>(buf[leading_char_count - 1] - '0');
 
         if (precision > 0)
@@ -1549,8 +1544,8 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m2, in
     const size_t int_digits_needed = (int_digit_count >= digits_needed) ? digits_needed : int_digit_count;
     const size_t frac_digits_needed = digits_needed - int_digits_needed;
 
-    using context = float_frac_digit_extractor<F>;
-    using limb_type = typename context::limb_type;
+    using extractor = float_frac_digit_extractor<F>;
+    using limb_type = typename extractor::limb_type;
     limb_type round_digit = 0;
 
     // int digits
@@ -1602,17 +1597,17 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m2, in
         const uint_type raw_frac_bits = m2 & ((uint_type{ 1 } << frac_bit_count) - 1);
         C* ptr = buf + int_digits_needed + 1;
 
-        context ctx(raw_frac_bits, -shift);
+        extractor ext(raw_frac_bits, -shift);
 
         for (size_t i = 0; i < frac_digits_needed; ++i)
         {
-            const auto digit = ctx.extract_digit();
+            const auto digit = ext.extract_digit();
             *ptr++ = static_cast<C>(hex::digits[digit]);
         }
 
         if (fmt.round)
         {
-            round_digit = ctx.extract_last_digit();
+            round_digit = ext.extract_last_digit();
         }
     }
 

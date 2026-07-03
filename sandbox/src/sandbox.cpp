@@ -263,7 +263,7 @@ static void std_print_fixed_float(const F f)
     char buf[5000] = {};
     {
         VX_PROFILE_SCOPE("std f1");
-        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.500f", f);
+        const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.6f", f);
         //std::cout << "std f: " << std::string_view(buf, n) << std::endl;
     }
 }
@@ -277,7 +277,7 @@ static VX_NO_INLINE void std_print_fixed_float_2(const F f)
         std::to_chars_result result;
 
         VX_PROFILE_SCOPE("std f2");
-        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 100);
+        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 6);
         const size_t n = static_cast<size_t>(result.ptr - buf);
         std::cout << "std f: " << std::string_view(buf, n) << std::endl;
     }
@@ -288,7 +288,7 @@ static VX_NO_INLINE void vx_print_fixed_float(const F f)
 {
     vx::str::float_format_options fmt;
     fmt.format = vx::str::float_format::fixed;
-    fmt.precision = 100;
+    fmt.precision = 6;
 
     char buf[5000] = {};
     {
@@ -438,14 +438,14 @@ int main()
     //constexpr size_t n = make_float_string(f, const_cast<char*>(buf), sizeof(buf));
 
 
-    for (int i = 0; i < 100; ++i)
+    for (int i = 0; i < 10; ++i)
     {
         //const auto f = vx::random::bench::random_normal_small<double>(rng);
 
-        const auto bits = rng.randi<uint64_t>();
-        const auto f = vx::bit::bit_cast<double>(bits);
-        std::cout << f << ' ' << std::hexfloat << f << std::endl;
-        //const double f = 0x1.13db2b1be20b5p-61;
+        //const auto bits = rng.randi<uint32_t>();
+        //const auto f = vx::bit::bit_cast<float>(bits);
+        //std::cout << f << ' ' << std::hexfloat << f << std::endl;
+        const float f = -0x1.f678500000000p+55f;
 
         //vx_parse_fixed_float(f);
 
@@ -461,12 +461,12 @@ int main()
         //{
         //    case 1:
         //    {
-        //        std_print_fixed_float_2(f);
+        //        std_print_fixed_float(f);
         //        break;
         //    }
         //    case 2:
         //    {
-        //        vx_print_fixed_float_2(f);
+        //        std_print_fixed_float_2(f);
         //        break;
         //    }
         //    case 3:
@@ -482,8 +482,8 @@ int main()
 
         //
         //std_print_scientific_float(f);
-        std_print_scientific_float_2(f);
-        vx_print_scientific_float(f);
+        //std_print_scientific_float_2(f);
+        //vx_print_scientific_float(f);
         //
         //std_print_hex_float(f);
         //std_print_hex_float_2(f);
