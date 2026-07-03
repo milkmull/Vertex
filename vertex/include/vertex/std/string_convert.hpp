@@ -961,8 +961,28 @@ constexpr bool round_fixed(C* ptr, size_t int_digit_count, size_t precision) noe
     return true;
 }
 
+template <typename C>
+constexpr size_t write_fixed_zero(C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
+{
+    const size_t precision_char_count = static_cast<size_t>(precision > 0) + precision;
+    const size_t needed = 1 + precision_char_count;
+    if (buf_size < needed)
+    {
+        return 0;
+    }
+
+    *buf++ = static_cast<C>('0');
+    if (precision > 0)
+    {
+        *buf++ = fmt.decimal_point;
+        fill_n_zeros(buf, precision);
+    }
+
+    return needed;
+}
+
 template <typename F, typename C>
-constexpr size_t write_fixed_normalized(typename float_bits<F>::uint_type m2, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
+constexpr size_t write_fixed_normal(typename float_bits<F>::uint_type m2, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1197,12 +1217,20 @@ constexpr size_t write_float_fixed_impl(const float_bits<F>& fb, C* buf, const s
 
     const size_t precision = fmt.precision == precision_unspecified ? float_fixed_default_precision : fmt.precision;
 
-    if (fb.is_subnormal())
+    if (fb.e_bits == 0)
     {
-        // subnormal
-        const int e10 = subnormal_pow10<F>(fb.m_bits);
-        const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
-        return _string_convert_priv::write_fixed_normalized<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
+        if (fb.m_bits == 0)
+        {
+            // zero
+            return write_fixed_zero<C>(buf, buf_size, fmt, precision);
+        }
+        else
+        {
+            // subnormal
+            const int e10 = subnormal_pow10<F>(fb.m_bits);
+            const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
+            return _string_convert_priv::write_fixed_normal<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
+        }
     }
 
     const uint_type m2 = fb.m_bits | (uint_type{ 1 } << traits::mantissa_bits);
@@ -1213,7 +1241,7 @@ constexpr size_t write_float_fixed_impl(const float_bits<F>& fb, C* buf, const s
     {
         // normal
         const int e10 = _string_convert_priv::normal_pow10<F>(e2);
-        return _string_convert_priv::write_fixed_normalized<F, C>(m2, e10, -shift, buf, buf_size, fmt, precision);
+        return _string_convert_priv::write_fixed_normal<F, C>(m2, e10, -shift, buf, buf_size, fmt, precision);
     }
 
     if (shift >= 0)
@@ -1321,8 +1349,40 @@ constexpr bool scientific_carry_round(C* ptr, size_t leading_char_count) noexcep
     return true;
 }
 
+template <typename C>
+constexpr size_t write_scientific_zero(C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
+{
+    const size_t precision_char_count = static_cast<size_t>(precision > 0) + precision;
+    const size_t leading_char_count = 1 + precision_char_count;
+    const size_t exp_char_count = 1 + static_cast<size_t>(fmt.force_exp_sign) + 1;
+    const size_t needed = leading_char_count + exp_char_count;
+    if (buf_size < needed)
+    {
+        return 0;
+    }
+
+    buf[0] = static_cast<C>('0');
+
+    if (precision > 0)
+    {
+        buf[1] = fmt.decimal_point;
+        fill_n_zeros(buf + 2, precision);
+    }
+
+    C* exp_ptr = buf + leading_char_count;
+
+    exp_ptr[0] = static_cast<C>(fmt.uppercase ? 'E' : 'e');
+    if (fmt.force_exp_sign)
+    {
+        exp_ptr[1] = static_cast<C>('+');
+    }
+    exp_ptr[exp_char_count - 1] = static_cast<C>('0');
+
+    return needed;
+}
+
 template <typename F, typename C>
-constexpr size_t write_scientific_normalized(typename float_bits<F>::uint_type m2, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
+constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m2, int e10, int shift, C* buf, const size_t buf_size, const float_format_options<C>& fmt, const size_t precision) noexcept
 {
     const size_t leading_char_count = 1 + static_cast<size_t>(precision > 0) + precision;
     size_t exp_char_count = 1 + 1 + digit_count_max3(e10);
@@ -1648,23 +1708,31 @@ constexpr size_t write_float_scientific_impl(const float_bits<F>& fb, C* buf, co
 
     const size_t precision = fmt.precision == precision_unspecified ? float_scientific_default_precision : fmt.precision;
 
-    if (fb.is_subnormal())
+    if (fb.e_bits == 0)
     {
-        // subnormal
-        const int e10 = subnormal_pow10<F>(fb.m_bits);
-        const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
-        return _string_convert_priv::write_scientific_normalized<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
+        if (fb.m_bits == 0)
+        {
+            // zero
+            return write_scientific_zero<C>(buf, buf_size, fmt, precision);
+        }
+        else
+        {
+            // subnormal
+            const int e10 = subnormal_pow10<F>(fb.m_bits);
+            const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
+            return _string_convert_priv::write_scientific_normal<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
+        }
     }
 
     const uint_type m2 = fb.m_bits | (uint_type{ 1 } << traits::mantissa_bits);
     const int e2 = static_cast<int>(fb.e_bits) - traits::exponent_bias;
     const int shift = e2 - traits::mantissa_bits;
 
-    if (e2 <= 0)
+    if (e2 < 0)
     {
         // normal
         const int e10 = _string_convert_priv::normal_pow10<F>(e2);
-        return _string_convert_priv::write_scientific_normalized<F, C>(m2, e10, -shift, buf, buf_size, fmt, precision);
+        return _string_convert_priv::write_scientific_normal<F, C>(m2, e10, -shift, buf, buf_size, fmt, precision);
     }
 
     if (shift >= 0)
@@ -1705,11 +1773,16 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         }
     }
 
-    size_t n = 0;
     const bool subnormal = fb.is_subnormal();
+    size_t n = 0;
 
     // First calulate the exponent
-    const int exp = static_cast<int>(subnormal ? (1 - traits::exponent_bias) : (fb.e_bits - traits::exponent_bias));
+    const int exp = subnormal
+        ? 1 - static_cast<int>(traits::exponent_bias)
+        : fb.e_bits
+        ? static_cast<int>(fb.e_bits - traits::exponent_bias)
+        : 0;
+
     const char exp_sign = (exp < 0) ? '-' : (fmt.force_exp_sign ? '+' : 0);
 
     int abs_exp = (exp < 0) ? -exp : exp;
@@ -1723,7 +1796,8 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         return 0;
     }
 
-    buf[n++] = static_cast<C>(hex::digits[!subnormal]);
+    const bool leading_one = (fb.e_bits != 0);
+    buf[n++] = static_cast<C>(hex::digits[leading_one]);
 
     if (precision > 0)
     {
@@ -1850,7 +1924,7 @@ constexpr size_t write_float_scientific(const F value, C* buf, const size_t buf_
 }
 
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-constexpr size_t write_float_hex(const F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
+constexpr size_t write_float_hex(const F value, C* buf, size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
 {
     VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
 

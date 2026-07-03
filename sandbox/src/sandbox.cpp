@@ -1,16 +1,16 @@
 ﻿
-#include <charconv>
+//#include <charconv>
 
-#define VX_ENABLE_PROFILING
+//#define VX_ENABLE_PROFILING
 #include "vertex/system/profiler.hpp"
 
 #include "vertex/std/string_convert.hpp"
 #include "vertex/util/random/rng.hpp"
 
-#include <cstdint>
-#include <cstring>
-#include <limits>
-#include <type_traits>
+//#include <cstdint>
+//#include <cstring>
+//#include <limits>
+//#include <type_traits>
 
 namespace vx {
 namespace random {
@@ -294,7 +294,7 @@ static VX_NO_INLINE void vx_print_fixed_float(const F f)
     {
         VX_PROFILE_SCOPE("vx f");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
-        std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
+        //std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -308,7 +308,7 @@ static void std_print_hex_float(const F f)
     {
         VX_PROFILE_SCOPE("std a");
         const size_t n = std::snprintf(buf, sizeof(buf), "%.60a", f);
-        std::cout << "std a: " << std::string_view(buf, n) << std::endl;
+        //std::cout << "std a: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -332,6 +332,7 @@ static void vx_print_hex_float(const F f)
     fmt.format = vx::str::float_format::hex;
     fmt.precision = 60;
     fmt.uppercase = false;
+    fmt.force_exp_sign = true;
 
     char buf[5000] = {};
 
@@ -438,14 +439,14 @@ int main()
     //constexpr size_t n = make_float_string(f, const_cast<char*>(buf), sizeof(buf));
 
 
-    for (int i = 0; i < 10; ++i)
+    for (int i = 0; i < 1; ++i)
     {
         //const auto f = vx::random::bench::random_normal_small<double>(rng);
 
         //const auto bits = rng.randi<uint32_t>();
         //const auto f = vx::bit::bit_cast<float>(bits);
         //std::cout << f << ' ' << std::hexfloat << f << std::endl;
-        const float f = -0x1.f678500000000p+55f;
+        const double f = DBL_MAX;
 
         //vx_parse_fixed_float(f);
 
@@ -461,23 +462,23 @@ int main()
         //{
         //    case 1:
         //    {
-        //        std_print_fixed_float(f);
+        //        std_print_hex_float(f);
         //        break;
         //    }
         //    case 2:
         //    {
-        //        std_print_fixed_float_2(f);
+        //        std_print_hex_float_2(f);
         //        break;
         //    }
         //    case 3:
         //    {
-        //        vx_print_fixed_float(f);
+        //        vx_print_hex_float(f);
         //        break;
         //    }
         //}
 
         //std_print_fixed_float(f);
-        std_print_fixed_float_2(f);
+        //std_print_fixed_float_2(f);
         vx_print_fixed_float(f);
 
         //
