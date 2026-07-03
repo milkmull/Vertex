@@ -568,7 +568,7 @@ VX_NO_ALIAS bool VX_STDCALL bitset_from_string_2(void* const dest, const wchar_t
 
     #endif // !defined(USE_ARM_NEON)
 
-#endif // defined(_VX_USE_SIMD_ALGORITHMS)
-
 } // namespace _simd
 } // namespace vx
+
+#endif // defined(_VX_USE_SIMD_ALGORITHMS)

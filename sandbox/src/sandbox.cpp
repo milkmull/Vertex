@@ -7,8 +7,6 @@
 #include "vertex/std/string_convert.hpp"
 #include "vertex/util/random/rng.hpp"
 
-#pragma once
-
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -222,7 +220,7 @@ static void std_print_scientific_float(const F f)
     {
         VX_PROFILE_SCOPE("std e");
         const size_t n = std::snprintf(const_cast<char*>(buf), sizeof(buf), "%.6e", f);
-        std::cout << "std e: " << std::string_view(buf, n) << std::endl;
+        //std::cout << "std e: " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -232,6 +230,7 @@ static void vx_print_scientific_float(const F f)
     vx::str::float_format_options fmt;
     fmt.format = vx::str::float_format::scientific;
     fmt.precision = 6;
+    fmt.force_exp_sign = true;
 
     char buf[5000] = {};
     {
@@ -445,8 +444,8 @@ int main()
 
         const auto bits = rng.randi<uint64_t>();
         const auto f = vx::bit::bit_cast<double>(bits);
-        std::cout << f << ' ' << std::endl;
-        //const float f = 8.52163e20f;
+        std::cout << f << ' ' << std::hexfloat << f << std::endl;
+        //const double f = 0x1.13db2b1be20b5p-61;
 
         //vx_parse_fixed_float(f);
 
@@ -480,12 +479,11 @@ int main()
         //std_print_fixed_float(f);
         std_print_fixed_float_2(f);
         vx_print_fixed_float(f);
-        //vx_print_fixed_float_2(f);
 
         //
         //std_print_scientific_float(f);
-        //std_print_scientific_float_2(f);
-        //vx_print_scientific_float(f);
+        std_print_scientific_float_2(f);
+        vx_print_scientific_float(f);
         //
         //std_print_hex_float(f);
         //std_print_hex_float_2(f);
