@@ -60,7 +60,6 @@ struct utf_base_traits<1> // utf8
 {
     using utype = uint8_t;
 
-
     /**
      * @brief Determines the number of trailing bytes for a given lead byte.
      *

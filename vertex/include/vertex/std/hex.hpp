@@ -10,6 +10,7 @@ inline constexpr char digits[] = "0123456789abcdef";
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
 VX_NO_DISCARD constexpr C digit(const size_t value) noexcept
 {
+    VX_ASSERT(value < 16);
     return static_cast<C>(digits[value & 0x0F]);
 }
 
@@ -21,16 +22,14 @@ VX_NO_DISCARD constexpr C digit_c() noexcept
 }
 
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
-VX_NO_DISCARD constexpr int value(const C c) noexcept
+VX_NO_DISCARD constexpr int value(C c) noexcept
 {
     if (c >= static_cast<C>('0') && c <= static_cast<C>('9'))
     {
         return c - static_cast<C>('0');
     }
-    if (c >= static_cast<C>('A') && c <= static_cast<C>('F'))
-    {
-        return c - static_cast<C>('A') + 10;
-    }
+
+    c = str::to_lower_ascii_unchecked(c);
     if (c >= static_cast<C>('a') && c <= static_cast<C>('f'))
     {
         return c - static_cast<C>('a') + 10;

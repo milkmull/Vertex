@@ -456,6 +456,12 @@ constexpr void to_lower(S& s) noexcept
     to_lower(s.data(), s.size());
 }
 
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr C to_lower_ascii_unchecked(C c) noexcept
+{
+    return static_cast<C>(c | 0x20);
+}
+
 //==============================================================================
 // to_lower_copy
 //==============================================================================
@@ -520,6 +526,12 @@ constexpr void to_upper(S& s) noexcept
     to_upper(s.data(), s.size());
 }
 
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr C to_upper_ascii_unchecked(C c) noexcept
+{
+    return static_cast<C>(c & ~0x20);
+}
+
 //==============================================================================
 // to_upper_copy
 //==============================================================================
@@ -559,6 +571,12 @@ template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr int case_compare(const C c1, const C c2) noexcept
 {
     return compare(to_lower(c1), to_lower(c2));
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+constexpr int case_compare_ascii_unchecked(const C c1, const C c2) noexcept
+{
+    return compare(to_lower_ascii_unchecked(c1), to_lower_ascii_unchecked(c2));
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>

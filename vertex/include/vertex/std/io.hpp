@@ -2,69 +2,142 @@
 
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/string_cast.hpp"
+#include "vertex/std/string_convert.hpp"
+#include "vertex/std/utf.hpp"
 
 namespace vx {
 
-//==============================================================================
-// stringify traits
-//==============================================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-enum stream
+enum class stream
 {
-    stdin,
-    stderr,
-    stdout
+    in,
+    out,
+    err
 };
 
-namespace _priv {
+namespace _io_priv {
 
-VX_API void write_raw(stream s, const char* data, size_t size);
-
-} // namespace _priv
-
-template <typename T, VX_REQUIRES(std::is_arithmetic<T>::value)>
-void print_one(stream s, const T& v)
+VX_API void write_raw(stream s, const char* data, size_t size)
 {
-    char buffer[64];
-    auto n = std::snprintf(buffer, sizeof buffer, "%g", static_cast<double>(v));
-    write_raw(s, buffer, static_cast<std::size_t>(n));
+    // for now this is fine
+    FILE* file = nullptr;
+
+    switch (s)
+    {
+        case stream::out:
+            file = stdout;
+            break;
+
+        case stream::err:
+            file = stderr;
+            break;
+
+        case stream::in:
+            return; // cannot write to input
+    }
+
+    if (file)
+    {
+        std::fwrite(data, 1, size, file);
+        std::fflush(file);
+    }
 }
 
-inline void print_one(stream s, const char* v)
+VX_API size_t read_raw(stream s, char* data, size_t size);
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+inline void print_one(stream s, const C* v, size_t size)
 {
-    vx::write_raw(s, v, std::strlen(v));
+    VX_IF_CONSTEXPR (std::is_same<C, char>::value)
+    {
+        _io_priv::write_raw(s, v, size);
+    }
+    else
+    {
+        // convert to char and write
+        const auto tmp = str::string_cast<char>(v, v + size);
+        _io_priv::write_raw(s, tmp.data(), tmp.size());
+    }
 }
 
-inline void print_one(stream s, char v)
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+inline void print_one(stream s, const C* v)
 {
-    vx::write_raw(s, &v, 1);
+    using traits = str::char_traits<C>;
+    const size_t size = traits::length(v);
+    print_one(s, v, size);
 }
 
-template <class T>
-    requires HasAsString<T>
-void print_one(stream s, const T& v)
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+inline void print_one(stream s, C v)
 {
-    auto str = as_string(v); // must return std::string or something convertible
-    vx::write_raw(s, str.data(), str.size());
+    VX_IF_CONSTEXPR (std::is_same<C, char>::value)
+    {
+        _io_priv::write_raw(s, v, 1);
+    }
+    else
+    {
+        using traits = utf::utf_traits<C>;
+        constexpr size_t max_width = traits::max_width();
+
+        char buf[max_width];
+        const auto last = str::string_cast<char>(&v, 1, buf);
+
+        _io_priv::write_raw(s, buf, last - buf);
+    }
 }
 
-// fallback: fail at compile time
-template <class T>
-    requires(!is_trivial_printable<T> && !HasAsString<T>)
-void print_one(stream, const T&) = delete;
+template <typename S, VX_REQUIRES(str::is_string_like<S>::value)>
+inline void print_one(stream s, const S& v)
+{
+    _io_priv::print_one(s, v.data(), v.size());
+}
 
+template <typename T, typename = void>
+struct has_to_string : std::false_type
+{};
+
+template <typename T>
+struct has_to_string<
+    T,
+    typename std::enable_if<
+        str::is_string_like<
+            decltype(to_string(std::declval<const T&>()))>::value>::type> : std::true_type
+{};
+
+template <typename T, VX_REQUIRES(has_to_string<T>::value)>
+inline void print_one(stream s, const T& v)
+{
+    const auto str = to_string(v);
+    _io_priv::print_one(s, str.data(), str.size());
+}
+
+} // namespace _io_priv
+
+template <typename... Args>
+inline void print(stream s, const Args&... args)
+{
+    (_io_priv::print_one(s, args), ...);
+}
+
+template <typename... Args>
+inline void print(const Args&... args)
+{
+    print(stream::out, args...);
+}
+
+template <typename... Args>
+inline void println(stream s, const Args&... args)
+{
+    print(s, args...);
+    const char c = '\n';
+    _io_priv::write_raw(s, &c, 1);
+}
+
+template <typename... Args>
+inline void println(const Args&... args)
+{
+    println(stream::out, args...);
+}
 
 } // namespace vx

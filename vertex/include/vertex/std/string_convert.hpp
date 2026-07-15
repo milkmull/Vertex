@@ -31,8 +31,8 @@ size_t to_hex_string(const void* data, const size_t size, C* buf, const size_t b
         const C c1 = hex::digits[(bytes[i] >> 4) & 0xF]; // High nibble
         const C c2 = hex::digits[(bytes[i] >> 0) & 0xF]; // Low nibble
 
-        *buf++ = upper ? to_upper(c1) : c1;
-        *buf++ = upper ? to_upper(c2) : c2;
+        *buf++ = upper ? to_upper_ascii_unchecked(c1) : c1;
+        *buf++ = upper ? to_upper_ascii_unchecked(c2) : c2;
     }
 
     return needed;
@@ -70,7 +70,7 @@ struct integer_format_options
 //==============================================================================
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
-constexpr int char_to_digit(const C c, int base = 10) noexcept
+constexpr int char_to_digit(C c, int base = 10) noexcept
 {
     int digit = -1;
 
@@ -78,13 +78,13 @@ constexpr int char_to_digit(const C c, int base = 10) noexcept
     {
         digit = static_cast<int>(c - static_cast<C>('0'));
     }
-    else if (c >= static_cast<C>('A') && c <= static_cast<C>('Z'))
+    else
     {
-        digit = static_cast<int>(c - static_cast<C>('A')) + 10;
-    }
-    else if (c >= static_cast<C>('a') && c <= static_cast<C>('z'))
-    {
-        digit = static_cast<int>(c - static_cast<C>('a')) + 10;
+        c = to_lower_ascii_unchecked(c);
+        if (c >= static_cast<C>('a') && c <= static_cast<C>('z'))
+        {
+            digit = static_cast<int>(c - static_cast<C>('a')) + base;
+        }
     }
 
     return (digit < base) ? digit : -1;
@@ -274,7 +274,7 @@ struct float_format_options
     float_format format = float_format::general;
     uint32_t precision = _string_convert_priv::precision_unspecified;
 
-    VX_STATIC_ASSERT_MSG(type_traits::is_char<C>::value, "C must be a character type");
+    VX_STATIC_ASSERTmSG(type_traits::is_char<C>::value, "C must be a character type");
     C decimal_point = static_cast<C>('.');
 
     bool uppercase = false;
@@ -343,6 +343,16 @@ inline constexpr int log10_pow5(int e) noexcept
 inline constexpr size_t ceil_log10_pow2(size_t bits) noexcept
 {
     return (bits * 30103 + 99999) / 100000;
+}
+
+// ceil(log2(10^digit_count)) == ceil(digit_count * log2(10)).
+// Uses the integer approximation log2(10) <= 1233/371 (as used by the
+// Ryu float-parsing algorithm), which slightly overestimates log2(10)
+// (3.32345... vs the true 3.32193...), giving a safe upper bound on
+// the number of bits required.
+constexpr size_t ceil_log2_pow10(size_t digits) noexcept
+{
+    return (digits * 1233 + 370) / 371;
 }
 
 template <typename F>
@@ -484,6 +494,20 @@ struct big_int
         }
     }
 
+    static constexpr big_int pow10(size_t n) noexcept
+    {
+        const size_t rem = n % 9;
+        big_int out{ _string_convert_priv::pow10_u32(rem) };
+
+        size_t count = n / 9;
+        while (count--)
+        {
+            out.mul(1000000000u);
+        }
+
+        return out;
+    }
+
     constexpr void mul(limb_type x) noexcept
     {
         limb_type carry = 0;
@@ -561,8 +585,6 @@ struct big_int
         return remainder;
     }
 
-    //=========================================================================
-
     // don't track top limb to allow loop unrolling
     constexpr limb_type div_extract(limb_type x) noexcept
     {
@@ -570,6 +592,33 @@ struct big_int
         constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
 
         limb_type remainder = 0;
+
+        for (size_t i = limb_count; i-- > 0;)
+        {
+            const limb_type limb = bits[i];
+            const limb_type hi = limb >> half;
+            const limb_type lo = limb & half_mask;
+
+            const wide_type d1 = (static_cast<wide_type>(remainder) << half) | hi;
+            const limb_type q1 = static_cast<limb_type>(d1 / x);
+            remainder = static_cast<limb_type>(d1 % x);
+
+            const wide_type d2 = (static_cast<wide_type>(remainder) << half) | lo;
+            const limb_type q2 = static_cast<limb_type>(d2 / x);
+            remainder = static_cast<limb_type>(d2 % x);
+
+            bits[i] = (q1 << half) | q2;
+        }
+
+        return remainder;
+    }
+
+    constexpr limb_type div_extract(limb_type x, limb_type r) noexcept
+    {
+        constexpr uint32_t half = limb_bits / 2;
+        constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
+
+        limb_type remainder = r;
 
         for (size_t i = limb_count; i-- > 0;)
         {
@@ -606,6 +655,99 @@ struct big_int
 
         return carry;
     }
+
+    constexpr void shl(uint32_t shift) noexcept
+    {
+        const uint32_t limbshift = shift / limb_bits;
+        const uint32_t bitshift = shift % limb_bits;
+
+        for (size_t i = limb_count; i-- > limbshift + 1;)
+        {
+            bits[i] =
+                (bits[i - limbshift] << bitshift) |
+                (bits[i - limbshift - 1] >> (limb_bits - bitshift));
+        }
+
+        bits[limbshift] = bits[0] << bitshift;
+
+        for (size_t i = 0; i < limbshift; ++i)
+        {
+            bits[i] = 0;
+        }
+    }
+
+    constexpr void shr(uint32_t shift) noexcept
+    {
+        const uint32_t limbshift = shift / limb_bits;
+        const uint32_t bitshift = shift % limb_bits;
+
+        for (size_t i = 0; i + limbshift + 1 < limb_count; ++i)
+        {
+            bits[i] =
+                (bits[i + limbshift] >> bitshift) |
+                (bits[i + limbshift + 1] << (limb_bits - bitshift));
+        }
+
+        bits[limb_count - limbshift - 1] =
+            bits[limb_count - 1] >> bitshift;
+
+        for (size_t i = limb_count - limbshift; i < limb_count; ++i)
+        {
+            bits[i] = 0;
+        }
+    }
+
+    constexpr uint32_t countr_zero() const noexcept
+    {
+        uint32_t count = 0;
+
+        for (size_t i = 0; i < limb_count; ++i)
+        {
+            if (bits[i])
+            {
+                return count + bit::countr_zero(bits[i]);
+            }
+
+            count += limb_bits;
+        }
+
+        return count;
+    }
+
+    constexpr uint32_t countl_zero() const noexcept
+    {
+        uint32_t count = 0;
+
+        for (size_t i = limb_count; i-- > 0;)
+        {
+            if (bits[i])
+            {
+                return count + bit::countl_zero(bits[i]);
+            }
+
+            count += limb_bits;
+        }
+
+        return count;
+    }
+
+    constexpr limb_type div_shave_digits(size_t count) noexcept
+    {
+        limb_type remainder = 0;
+
+        while (count >= 9)
+        {
+            remainder = div_extract(1000000000u, remainder);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            remainder = div_extract(pow10_u32(count), remainder);
+        }
+
+        return remainder;
+    }
 };
 
 //==============================================================================
@@ -619,8 +761,8 @@ struct float_writing_traits
     using wide_type = uint64_t;
 
     static constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
-    static constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
-    static constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
+    static constexpr uint32_t maxshift = traits::exponent_bias + traits::mantissa_bits - 1;
+    static constexpr uint32_t limb_count = ((maxshift + (limb_bits - 1)) / limb_bits) + 1;
 
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
 };
@@ -821,8 +963,8 @@ struct chunk_buffer
     using limb_type = typename base::limb_type;
     using int_writer_context = float_int_digit_extractor_selector<F>;
 
-    static constexpr uint32_t max_shift = base::max_shift;
-    static constexpr uint32_t total_bits = max_shift + traits::digits;
+    static constexpr uint32_t maxshift = base::maxshift;
+    static constexpr uint32_t total_bits = maxshift + traits::digits;
     static constexpr size_t max_chunks = ceil_log10_pow2(total_bits) / 9;
 
     int_writer_context& ext;
@@ -1755,7 +1897,7 @@ constexpr size_t write_float_scientific_impl(const float_bits<F>& fb, C* buf, co
 template <typename F, typename C>
 constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const size_t buf_size, const float_format_options<C>& fmt) noexcept
 {
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+    VX_STATIC_ASSERTmSG((!std::is_same<F, long double>::value), "long double not supported");
 
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -1806,14 +1948,14 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         constexpr uint32_t mbits = traits::mantissa_bits;
         constexpr uint32_t hex_digits = (mbits + 3) / 4;
         constexpr uint32_t shift = hex_digits * 4 - mbits;
-        constexpr uint32_t top_shift = (hex_digits - 1) * 4;
+        constexpr uint32_t topshift = (hex_digits - 1) * 4;
 
         size_t digits_remaining = precision;
         uint_type frac = fb.m_bits << shift;
 
         while (frac && digits_remaining)
         {
-            const uint32_t digit = static_cast<uint32_t>((frac >> top_shift) & 0xF);
+            const uint32_t digit = static_cast<uint32_t>((frac >> topshift) & 0xF);
             const char c = hex::digits[digit];
             buf[n++] = static_cast<C>(fmt.uppercase ? to_upper(c) : c);
 
@@ -1882,7 +2024,7 @@ constexpr float_format resolve_general_format(const float_bits<F>& fb) noexcept
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 constexpr size_t write_float_fixed(const F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
 {
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+    VX_STATIC_ASSERTmSG((!std::is_same<F, long double>::value), "long double not supported");
 
     const _string_convert_priv::float_bits<F> bits{ value };
     size_t n = 0;
@@ -1904,7 +2046,7 @@ constexpr size_t write_float_fixed(const F value, C* buf, const size_t buf_size,
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 constexpr size_t write_float_scientific(const F value, C* buf, const size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
 {
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+    VX_STATIC_ASSERTmSG((!std::is_same<F, long double>::value), "long double not supported");
 
     const _string_convert_priv::float_bits<F> bits{ value };
     size_t n = 0;
@@ -1926,7 +2068,7 @@ constexpr size_t write_float_scientific(const F value, C* buf, const size_t buf_
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 constexpr size_t write_float_hex(const F value, C* buf, size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
 {
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+    VX_STATIC_ASSERTmSG((!std::is_same<F, long double>::value), "long double not supported");
 
     const _string_convert_priv::float_bits<F> bits{ value };
     size_t n = 0;
@@ -1951,7 +2093,7 @@ constexpr size_t write_float_hex(const F value, C* buf, size_t buf_size, const f
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 size_t write_float(const F value, C* buf, size_t buf_size, const float_format_options<C>& fmt = {}) noexcept
 {
-    VX_STATIC_ASSERT_MSG((!std::is_same<F, long double>::value), "long double not supported");
+    VX_STATIC_ASSERTmSG((!std::is_same<F, long double>::value), "long double not supported");
 
     if (fmt.precision != _string_convert_priv::precision_unspecified && fmt.precision > _string_convert_priv::max_float_precision)
     {
@@ -2126,7 +2268,7 @@ enum class parse_error
     none,
     null_pointer,
     invalid_argument,
-    overflow,
+    out_of_range,
 };
 
 struct parse_result
@@ -2153,7 +2295,7 @@ constexpr parse_result parse_integer(const C* str, size_t str_size, I& value, co
     }
 
     using U = typename std::make_unsigned<I>::type;
-    bool negative = false;
+    bool is_negative = false;
 
     if (str[0] == C('+'))
     {
@@ -2167,7 +2309,7 @@ constexpr parse_result parse_integer(const C* str, size_t str_size, I& value, co
             return res;
         }
 
-        negative = true;
+        is_negative = true;
         ++res.count;
     }
 
@@ -2192,7 +2334,7 @@ constexpr parse_result parse_integer(const C* str, size_t str_size, I& value, co
         ++res.count;
     }
 
-    VX_IF_CONSTEXPR (std::is_signed<I>::value && negative)
+    VX_IF_CONSTEXPR (std::is_signed<I>::value && is_negative)
     {
         // Convert back to two's complement representation.
         value = static_cast<I>(~uvalue + 1);
@@ -2209,6 +2351,283 @@ constexpr parse_result parse_integer(const C* str, size_t str_size, I& value, co
 // fixed float parsing
 //==============================================================================
 
+namespace _string_convert_priv {
+
+template <typename F>
+constexpr uint32_t max_decimal_mantissa_digits() noexcept
+{
+    using traits = typename float_bits<F>::traits;
+
+    constexpr uint32_t P = traits::digits;
+    constexpr int32_t Emin = traits::min_exponent - 1;
+
+    constexpr int64_t N = static_cast<int64_t>(P) - Emin; // P - Emin
+    constexpr int64_t K = N - P - 1;                      // == -Emin - 1
+
+    return static_cast<uint32_t>(N) - log10_pow2(static_cast<int>(K));
+}
+
+// Computes _Value / 2^shift, then rounds the result according to round_to_nearest.
+// By the time we call this function, we will already have discarded most digits.
+// The caller must pass true for _Has_zero_tail if all discarded bits were zeroes.
+template <typename M>
+constexpr M shr_round(const M value, const uint32_t shift, const bool has_zero_tail) noexcept
+{
+    constexpr size_t bit_count = sizeof(M) * CHAR_BIT;
+
+    if (shift >= bit_count)
+    {
+        if (shift == bit_count)
+        {
+            constexpr M shave_bits_mask = (1ULL << (bit_count - 1)) - 1;
+            constexpr M round_bits_mask = (1ULL << (bit_count - 1));
+
+            const bool round_bit = (value & round_bits_mask) != 0;
+            const bool tail_bits = !has_zero_tail || (value & shave_bits_mask) != 0;
+
+            // We round up the answer to 1 if the answer is greater than 0.5. Otherwise, we round down the answer to 0
+            // if either [1] the answer is less than 0.5 or [2] the answer is exactly 0.5.
+            return static_cast<M>(round_bit && tail_bits);
+        }
+        else
+        {
+            // If we'd need to shift 65 or more bits, the answer is less than 0.5 and is always rounded to zero:
+            return 0;
+        }
+    }
+
+    const M lsb_bit = value;
+    const M round_bit = value << 1;
+    const M has_tail_bits = round_bit - static_cast<M>(has_zero_tail);
+    const M should_round = ((round_bit & (has_tail_bits | lsb_bit)) >> shift) & M{ 1 };
+    return (value >> shift) + should_round;
+}
+
+template <typename F>
+constexpr void assemble_float_zero(const bool is_negative, F& value) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    uint_type sign_component = is_negative;
+    sign_component <<= traits::sign_shift;
+    value = bit::bit_cast<F>(sign_component);
+}
+
+template <typename F>
+constexpr void assemble_float_infinity(const bool is_negative, F& value) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    uint_type sign_component = is_negative;
+    sign_component <<= traits::sign_shift;
+
+    constexpr uint_type exponent_component = (traits::exponent_mask >> traits::exponent_shift);
+    value = bit::bit_cast<F>(sign_component | exponent_component);
+}
+
+template <typename F>
+constexpr void assemble_float(const bool is_negative, const typename float_bits<F>::uint_type mantissa, const int exponent, F& value) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    uint_type sign_component = static_cast<uint_type>(is_negative);
+    sign_component <<= traits::sign_shift;
+
+    uint_type exponent_component = static_cast<uint_type>(exponent + (traits::exponent_bias - 1));
+    exponent_component <<= traits::exponent_shift;
+
+    value = bit::bit_cast<F>(sign_component | (exponent_component + mantissa));
+}
+
+template <typename F>
+constexpr parse_error assemble_float_shifted(
+    typename float_bits<F>::uint_type mantissa,
+    int exponent,
+    bool is_negative,
+    bool has_zero_tail,
+    F& value) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    constexpr int min_binary_exponent = traits::min_exponent - 1;
+    constexpr int max_binary_exponent = traits::max_exponent - 1;
+
+    // position of the highest set bit (0-based from LSB)
+    const uint32_t mantissa_bits = bit::bit_log2(mantissa);
+    const int shift = static_cast<int>(traits::mantissa_bits) - static_cast<int>(mantissa_bits);
+    const int normal_exponent = exponent - shift;
+
+    if (normal_exponent > max_binary_exponent)
+    {
+        // Overflow to infinity
+        assemble_float_infinity<F>(is_negative, value);
+        return parse_error::out_of_range;
+    }
+
+    parse_error err = parse_error::none;
+
+    if (normal_exponent < min_binary_exponent)
+    {
+        // maybe representable as a subnormal, or underflow to zero
+        const int subnormal_shift = exponent - min_binary_exponent;
+        if (subnormal_shift < 0)
+        {
+            mantissa = shr_round(mantissa, static_cast<uint32_t>(-subnormal_shift), has_zero_tail);
+            if (mantissa == 0)
+            {
+                // underflow to 0 (still valid)
+                err = parse_error::out_of_range;
+            }
+        }
+        else
+        {
+            mantissa <<= subnormal_shift;
+        }
+    }
+    else
+    {
+        if (shift < 0)
+        {
+            mantissa = shr_round(mantissa, static_cast<uint32_t>(-shift), has_zero_tail);
+            if (mantissa > traits::mantissa_mask && normal_exponent == max_binary_exponent)
+            {
+                // overflow to infinity (still valid)
+                err = parse_error::out_of_range;
+            }
+        }
+        else
+        {
+            mantissa <<= shift;
+        }
+    }
+
+    exponent = normal_exponent;
+    assemble_float<F>(is_negative, mantissa, exponent, value);
+    return err;
+}
+
+template <typename F, typename I>
+constexpr parse_error assemble_float_large(
+    const I& integer_value,
+    uint32_t precision_bits,
+    bool is_negative,
+    bool has_nonzero_fractional_part,
+    F& value) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    constexpr int base_exponent = traits::exponent_bias - 1;
+    constexpr size_t mantissa_bits = sizeof(uint_type) * CHAR_BIT;
+    constexpr size_t limb_bits = I::limb_bits;
+
+    // Extract the top bits to fill the uint type
+    uint_type mantissa;
+    int exponent = base_exponent;
+    bool has_zero_tail = !has_nonzero_fractional_part;
+
+    if (precision_bits <= limb_bits)
+    {
+        VX_IF_CONSTEXPR (mantissa_bits <= limb_bits)
+        {
+            mantissa = static_cast<uint_type>(integer_value.bits[0]);
+        }
+        else
+        {
+            const auto lo = integer_value.bits[0];
+            const auto hi = integer_value.bits[1];
+            mantissa = static_cast<uint_type>(lo) + (static_cast<uint_type>(hi) << limb_bits);
+        }
+    }
+    else
+    {
+        const uint32_t top_element_bits = precision_bits % limb_bits;
+        const uint32_t top_element_index = precision_bits / limb_bits;
+
+        const uint32_t top_mask = (1u << top_element_bits) - 1;
+        const uint32_t top_shift = static_cast<uint32_t>(mantissa_bits) - top_element_bits; // Left
+
+        const uint32_t bottom_bits = static_cast<uint32_t>(limb_bits) - top_element_bits;
+        const uint32_t bottom_mask = ~top_mask;
+        const uint32_t bottom_shift = static_cast<uint32_t>(limb_bits) - bottom_bits; // Right
+
+        constexpr size_t bottom_index_offset = mantissa_bits / limb_bits;
+        const uint32_t bottom_element_index = top_element_index - bottom_index_offset;
+
+        VX_IF_CONSTEXPR (mantissa_bits <= limb_bits)
+        {
+            // occupies either 1 full limb in the middle, or 2 partial limbs
+            mantissa =
+                (static_cast<uint_type>(integer_value.bits[top_element_index] & top_mask) << top_shift) +
+                (static_cast<uint_type>(integer_value.bits[bottom_element_index] & bottom_mask) >> bottom_shift);
+        }
+        else
+        {
+            // occupies either 2 full limbs, or 1 full middle limb and 2 partial limbs
+            const uint32_t middle_element_index = top_element_index - 1;
+            const uint32_t middle_shift = top_shift - static_cast<uint32_t>(limb_bits); // Left
+
+            mantissa =
+                (static_cast<uint_type>(integer_value.bits[top_element_index] & top_mask) << top_shift) +
+                (static_cast<uint_type>(integer_value.bits[middle_element_index]) << middle_shift) +
+                (static_cast<uint_type>(integer_value.bits[bottom_element_index] & bottom_mask) >> bottom_shift);
+        }
+
+        exponent += static_cast<int>(bottom_element_index * limb_bits + top_element_bits);
+
+        has_zero_tail = has_zero_tail && (integer_value.bits[bottom_element_index] & top_mask) == 0;
+        for (uint32_t i = 0; has_zero_tail && i != bottom_element_index; ++i)
+        {
+            has_zero_tail = integer_value.bits[i] == 0;
+        }
+    }
+
+    return assemble_float_shifted(mantissa, exponent, is_negative, has_zero_tail, value);
+}
+
+struct float_string_info
+{
+    bool is_negative;
+    int exponent;
+
+    size_t int_digit_start;
+    size_t int_digit_count;
+
+    size_t frac_digit_start;
+    size_t frac_digit_count;
+};
+
+template <typename F, typename C>
+constexpr parse_result string_to_float(const C* str, size_t str_size, F& value, const float_string_info& info, bool has_zero_tail) noexcept
+{
+    using traits = typename float_bits<F>::traits;
+    using uint_type = typename traits::uint_type;
+
+    // To generate an N bit mantissa we require N + 1 bits of precision. The extra bit is used to correctly round
+    // the mantissa (if there are fewer bits than this available, then that's totally okay;
+    // in that case we use what we have and we don't need to round).
+    constexpr uint32_t required_bits_of_precision = static_cast<uint32_t>(traits::mantissa_bits + 1);
+
+    // The input is of the form 0.mantissa * 10^exponent, where 'mantissa' are the decimal digits of the mantissa
+    // and 'exponent' is the decimal exponent. We decompose the mantissa into two parts: an integer part and a
+    // fractional part. If the exponent is positive, then the integer part consists of the first 'exponent' digits,
+    // or all present digits if there are fewer digits. If the exponent is zero or negative, then the integer part
+    // is empty. In either case, the remaining digits form the fractional part of the mantissa.
+    const uint32_t positive_exponent = static_cast<uint32_t>(std::max(0, info.exponent));
+    const uint32_t int_digits_present = std::min(positive_exponent, info.int_digit_count);
+    const uint32_t int_digits_missing = positive_exponent - int_digits_present;
+    const C* const int_first = str + info.int_digit_start;
+
+    const C* const frac_first = str + info.frac_digit_start;
+    const uint32_t fractional_digits_present = info.frac_digit_count;
+}
+
+} // namespace _string_convert_priv
+
 template <typename F, typename C = char, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
 constexpr parse_result parse_fixed_float(const C* str, size_t str_size, F& value, const float_format_options<C>& fmt = {}) noexcept
 {
@@ -2218,95 +2637,344 @@ constexpr parse_result parse_fixed_float(const C* str, size_t str_size, F& value
     using limb_type = uint32_t;
     using wide_type = uint64_t;
     constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
+    constexpr uint32_t max_mantissa_digits = _string_convert_priv::max_decimal_mantissa_digits<F>();
 
-    constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
-    constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
-
-    parse_result res;
-
-    if (!str)
+    if (str_size == 0)
     {
-        res.err = parse_error::null_pointer;
-        return res;
+        return { 0, parse_error::invalid_argument };
     }
 
-    bool negative = false;
+    const bool is_hex = (fmt.format == float_format::hex);
+    const int base{ is_hex ? 16 : 10 };
 
-    if (str[0] == C('+'))
-    {
-        ++res.count;
-    }
-    else if (str[0] == C('-'))
-    {
-        negative = true;
-        ++res.count;
-    }
+    size_t i = 0;
+    bool is_negative = false;
 
-    if (res.count == str_size)
+    if (str[0] == C('-') || str[0] == C('+'))
     {
-        res.err = parse_error::invalid_argument;
-        return res;
+        is_negative = str[0] == C('-');
+        ++i;
     }
 
-    size_t int_digit_count = 0;
+    if (i == str_size)
+    {
+        return { i, parse_error::invalid_argument };
+    }
+
+    size_t digit_count = 0;
+    bool has_zero_tail = true;
 
     // int part
+    //===========================================
+
+    while (i < str_size && str[i] == C('0'))
     {
-        while (true)
+        ++i;
+    }
+
+    const size_t int_digit_start = i;
+    while (i < str_size)
+    {
+        const auto digit = hex::value(str[i]);
+        if (digit >= base)
         {
-            const C c = str[++res.count];
+            break;
+        }
 
-            if (c == fmt.decimal_point)
+        if (digit_count < max_mantissa_digits)
+        {
+            ++digit_count;
+        }
+        else
+        {
+            has_zero_tail = has_zero_tail && (str[i] == C('0'));
+        }
+
+        ++i;
+    }
+
+    // Raw span length -- deliberately NOT trimmed yet. This is what the
+    // position exponent below is measured against, and trailing-zero
+    // trimming must not affect that (e.g. "100" still has its leading digit
+    // at position 2, same as untrimmed).
+    const size_t int_digit_count = i - int_digit_start;
+
+    // fractional part
+    //===========================================
+
+    size_t frac_digit_start = i;
+    size_t frac_digit_count = 0;
+    size_t frac_leading_zeros = 0;
+    bool has_decimal_point = false;
+
+    if (i < str_size && str[i] == fmt.decimal_point)
+    {
+        ++i;
+        has_decimal_point = true;
+
+        // Only trim fractional leading zeros if the integer part had
+        // no significant digits (e.g. "0.000123" or ".000123").
+        if (int_digit_count == 0)
+        {
+            while (i < str_size && str[i] == C('0'))
             {
-                if (res.count == str_size)
-                {
-                    return res;
-                }
+                ++i;
+            }
+        }
 
+        frac_leading_zeros = i - frac_digit_start;
+        frac_digit_start = i;
+
+        while (i < str_size)
+        {
+            const auto digit = hex::value(str[i]);
+            if (digit >= base)
+            {
                 break;
             }
 
-            if (!(static_cast<C>('0') <= c && c <= static_cast<C>('9')))
+            if (digit_count < max_mantissa_digits)
             {
-                res.err = parse_error::invalid_argument;
-                return res;
+                ++digit_count;
+            }
+            else
+            {
+                has_zero_tail = has_zero_tail && (str[i] == C('0'));
             }
 
-            ++int_digit_count;
-            if (res.count == str_size)
-            {
-                return res;
-            }
+            ++i;
         }
+
+        frac_digit_count = i - frac_digit_start;
     }
 
-    // frac part
+    // Total characters consumed so far, minus the decimal point itself
+    // (if present), tells us whether any digit was actually seen —
+    // independent of whether trimming later reduced the significant
+    // digit counts to zero (e.g. "0", "0.0", "00.000").
+    const size_t chars_consumed = i - int_digit_start;
+    const bool saw_any_digit = chars_consumed > (has_decimal_point ? 1 : 0);
+
+    if (!saw_any_digit)
     {
-        // our large integer type
-        using big_int_type = _string_convert_priv::big_int<limb_type, limb_count, wide_type>;
-        big_int_type bits;
+        return { i, parse_error::invalid_argument };
+    }
 
-        while (true)
+    // Position of the most significant digit, in units of the mantissa's
+    // own base (digit position -- not yet scaled to whatever base the
+    // exponent suffix uses). Uses the RAW int_digit_count, not the trimmed
+    // one -- trailing-zero trimming must not shift where the first digit
+    // sits. Examples (decimal):
+    //   "03333.111" -> 3   (3.333111e3)
+    //   "00000.111" -> -1  (1.11e-1)
+    //   "00000.001" -> -3  (1e-3)
+    //===========================================
+    int exponent_adjustment;
+    if (int_digit_count > 0)
+    {
+        exponent_adjustment = static_cast<int>(int_digit_count) - 1;
+    }
+    else
+    {
+        // int_digit_count == 0 here implies frac_leading_zeros > 0, since
+        // saw_any_digit already ruled out "no digits at all".
+        exponent_adjustment = -static_cast<int>(frac_leading_zeros) - 1;
+    }
+
+    const char exponent_prefix{ is_hex ? 'p' : 'e' };
+    int exponent = 0;
+    bool exponent_is_negative = false;
+    bool exp_overflow = false;
+
+    const size_t exponent_scan_start = i;
+
+    if (fmt.format != float_format::fixed && i < str_size && str::to_lower_ascii_unchecked(str[i]) == exponent_prefix)
+    {
+        // Lookahead index: only committed to `i` once each digit is actually
+        // confirmed, so "1.5e" or "1.5e+" with nothing after leaves the
+        // prefix/sign unconsumed (matches from_chars semantics).
+        size_t j = i + 1;
+
+        if (j < str_size && (str[j] == C('-') || str[j] == C('+')))
         {
-            const C c = str[++res.count];
+            exponent_is_negative = (str[j] == C('-'));
+            ++j;
+        }
 
-            if (!(static_cast<C>('0') <= c && c <= static_cast<C>('9')))
-            {
-                res.err = parse_error::invalid_argument;
-                return res;
-            }
+        int explicit_exponent = 0;
 
-            const limb_type digit = static_cast<limb_type>(c - static_cast<C>('0'));
-            bits.insert_digit(digit);
-
-            if (res.count == str_size)
+        while (j < str_size)
+        {
+            const auto digit = (str[j] - C('0'));
+            if (digit >= 10)
             {
                 break;
             }
+
+            if (explicit_exponent < INT_MAX / 10 || (explicit_exponent == INT_MAX / 10 && digit <= INT_MAX % 10))
+            {
+                explicit_exponent = explicit_exponent * 10 + digit;
+            }
+            else
+            {
+                exp_overflow = true;
+            }
+
+            ++j;
+            i = j;
+        }
+
+        if (exponent_is_negative)
+        {
+            explicit_exponent = -explicit_exponent;
         }
     }
 
-    return res;
+    // chars_format::scientific requires the exponent part to actually be
+    // present (chars_format::hex has no such requirement here).
+    if (fmt.format == float_format::scientific && i == exponent_scan_start)
+    {
+        return { i, parse_error::invalid_argument };
+    }
+
+    // Trim trailing zeros
+    {
+        // Trim trailing zeros from the fractional span first...
+        while (frac_digit_count > 0 && str[frac_digit_start + frac_digit_count - 1] == C('0'))
+        {
+            --frac_digit_count;
+        }
+
+        // ...then, only if the fractional part vanished entirely (absent, or
+        // turned out to be all zeros), cascade the trim into the tail of the
+        // integer span too -- "100" and "100.00" both need to end up with a
+        // single significant digit. "100.5" must NOT hit this branch, since
+        // frac_digit_count is 1 there (the "00" in "100" stays untouched --
+        // those are internal digits, not trailing ones).
+        size_t int_trimmed_count = int_digit_count;
+        if (frac_digit_count == 0)
+        {
+            while (int_trimmed_count > 0 && str[int_digit_start + int_trimmed_count - 1] == C('0'))
+            {
+                --int_trimmed_count;
+            }
+        }
+
+        const size_t total_digit_count = int_trimmed_count + frac_digit_count;
+
+        // Zero fast-path, deferred until after exponent scanning so the reported
+        // position is correct for inputs like "0e999" or "0.0e-5".
+        if (total_digit_count == 0)
+        {
+            _string_convert_priv::assemble_float_zero(is_negative, value);
+            return { i, parse_error::none };
+        }
+    }
+
+    if (exp_overflow)
+    {
+        if (exponent_is_negative)
+        {
+            _string_convert_priv::assemble_float_zero(is_negative, value);
+        }
+        else
+        {
+            _string_convert_priv::assemble_float_infinity(is_negative, value);
+        }
+
+        return { i, parse_error::out_of_range };
+    }
+
+    // Adjust exponent and exponent_adjustment when they have different signedness to avoid overflow.
+    if (exponent > 0 && exponent_adjustment < 0)
+    {
+        if (is_hex)
+        {
+            const int further_adjustment = std::max(-((exponent - 1) / 4 + 1), exponent_adjustment);
+            exponent += further_adjustment * 4;
+            exponent_adjustment -= further_adjustment;
+        }
+        else
+        {
+            const int further_adjustment = std::max(-exponent, exponent_adjustment);
+            exponent += further_adjustment;
+            exponent_adjustment -= further_adjustment;
+        }
+    }
+    else if (exponent < 0 && exponent_adjustment > 0)
+    {
+        if (is_hex)
+        {
+            const int further_adjustment = std::min((-exponent - 1) / 4 + 1, exponent_adjustment);
+            exponent += further_adjustment * 4;
+            exponent_adjustment -= further_adjustment;
+        }
+        else
+        {
+            const int further_adjustment = std::min(-exponent, exponent_adjustment);
+            exponent += further_adjustment;
+            exponent_adjustment -= further_adjustment;
+        }
+    }
+
+    constexpr int maximum_temporary_decimal_exponent = 5200;
+    constexpr int minimum_temporary_decimal_exponent = -5200;
+
+    // In hex floating constants the exponent suffix ('p'/'P') is a base-2
+    // exponent, while `position_exponent` is in units of hex digits
+    // (base 16). Scale by log2(16) == 4 so the two are combinable.
+    const int exponent_adjustment_multiplier = is_hex ? 4 : 1;
+
+    // And then exponent and exponent_adjustment are either both non-negative or both non-positive.
+    // So we can detect out-of-range cases directly.
+    {
+        if (exponent > maximum_temporary_decimal_exponent ||
+            exponent_adjustment > maximum_temporary_decimal_exponent / exponent_adjustment_multiplier)
+        {
+            _string_convert_priv::assemble_float_infinity(is_negative, value);
+            return { i, parse_error::out_of_range }; // Overflow example: "1e+9999"
+        }
+
+        if (exponent < minimum_temporary_decimal_exponent ||
+            exponent_adjustment < minimum_temporary_decimal_exponent / exponent_adjustment_multiplier)
+        {
+            _string_convert_priv::assemble_float_zero(is_negative, value);
+            return { i, parse_error::out_of_range }; // Underflow example: "1e-9999"
+        }
+    }
+
+    exponent += exponent_adjustment * exponent_adjustment_multiplier;
+    {
+        if (exponent > maximum_temporary_decimal_exponent)
+        {
+            _string_convert_priv::assemble_float_infinity(is_negative, value);
+            return { i, parse_error::out_of_range };
+        }
+
+        if (exponent < minimum_temporary_decimal_exponent)
+        {
+            _string_convert_priv::assemble_float_zero(is_negative, value);
+            return { i, parse_error::out_of_range };
+        }
+    }
+
+    const _string_convert_priv::float_string_info info{
+        is_negative,
+        exponent,
+        int_digit_start,
+        int_digit_count,
+        frac_digit_start,
+        frac_digit_count
+    };
+
+    if (is_hex)
+    {
+    }
+    else
+    {
+        const auto err = _string_convert_priv::string_to_float(str, str_size, value, info, has_zero_tail);
+        return { i, err };
+    }
 }
 
 } // namespace str

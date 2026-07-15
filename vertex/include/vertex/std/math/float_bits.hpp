@@ -52,6 +52,11 @@ struct float_traits<float> : numeric_limits<float>
     static constexpr int exponent_bias = max_exponent - 1;
     static constexpr int filled_exponent = (1 << exponent_bits) - 1;
 
+    // shifts
+    static constexpr int sign_shift = storage_bits - sign_bits;
+    static constexpr int exponent_shift = mantissa_bits;
+    static constexpr int mantissa_shift = 0;
+
     // masks
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
     static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
@@ -71,6 +76,11 @@ struct float_traits<double> : numeric_limits<double>
 
     static constexpr int exponent_bias = max_exponent - 1;
     static constexpr int filled_exponent = (1 << exponent_bits) - 1;
+
+    // shifts
+    static constexpr size_t sign_shift = storage_bits - sign_bits;
+    static constexpr size_t exponent_shift = mantissa_bits;
+    static constexpr size_t mantissa_shift = 0;
 
     // masks
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);

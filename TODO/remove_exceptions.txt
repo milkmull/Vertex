@@ -11,6 +11,7 @@ x string view
 x static string
 x string
 
+- numeric printing
 - print io
 - packed string array
 - single link list

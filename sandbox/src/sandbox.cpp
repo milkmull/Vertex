@@ -1,16 +1,17 @@
 ﻿
-//#include <charconv>
+#include <charconv>
 
-//#define VX_ENABLE_PROFILING
+#define VX_ENABLE_PROFILING
 #include "vertex/system/profiler.hpp"
 
+#include "vertex/std/io.hpp"
 #include "vertex/std/string_convert.hpp"
 #include "vertex/util/random/rng.hpp"
 
-//#include <cstdint>
-//#include <cstring>
-//#include <limits>
-//#include <type_traits>
+#include <cstdint>
+#include <cstring>
+#include <limits>
+#include <type_traits>
 
 namespace vx {
 namespace random {
@@ -294,7 +295,7 @@ static VX_NO_INLINE void vx_print_fixed_float(const F f)
     {
         VX_PROFILE_SCOPE("vx f");
         const size_t n = vx::str::write_float_fixed(f, buf, sizeof(buf), fmt);
-        //std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
+        std::cout << "vx f : " << std::string_view(buf, n) << std::endl;
     }
 }
 
@@ -395,7 +396,7 @@ static void vx_print_integer_string(const I i)
     fmt.base = 5;
 
     const vx::string s = vx::str::to_string(i, fmt);
-    std::cout << s << std::endl;
+    vx::println(s);
 }
 
 template <typename F>
@@ -406,7 +407,7 @@ static void vx_print_float_string(const F f)
     fmt.uppercase = false;
 
     const vx::string s = vx::str::to_string(f, fmt);
-    std::cout << s << std::endl;
+    vx::println(s);
 }
 
 //==============================================================================
@@ -419,11 +420,24 @@ static void vx_parse_fixed_float(const F in_value)
     vx::str::float_format_options fmt;
     fmt.format = vx::str::float_format::general;
     fmt.uppercase = false;
+    fmt.precision = 0;
 
     const size_t n = vx::str::write_float_fixed(in_value, buf, 5000, fmt);
 
     F v;
     const auto res = vx::str::parse_fixed_float(buf, n, v, fmt);
+}
+
+template <typename F>
+static void std_parse_fixed_float_2(const F in_value)
+{
+    char buf[5000] = {};
+
+    const auto r1 = std::to_chars(buf, buf + sizeof(buf), in_value, std::chars_format::fixed);
+    const size_t n = static_cast<size_t>(r1.ptr - buf);
+
+    F v;
+    const auto r2 = std::from_chars(buf, buf + n, v, std::chars_format::fixed);
 }
 
 //==============================================================================
@@ -446,9 +460,10 @@ int main()
         //const auto bits = rng.randi<uint32_t>();
         //const auto f = vx::bit::bit_cast<float>(bits);
         //std::cout << f << ' ' << std::hexfloat << f << std::endl;
-        const double f = DBL_MAX;
+        const float f = FLT_MAX;
 
         //vx_parse_fixed_float(f);
+        std_parse_fixed_float_2(f);
 
         //std_print_integer(bits);
         //std_print_integer_2(bits);
@@ -456,30 +471,9 @@ int main()
 
         //std_print_fixed_float(f);
 
-        //const auto z = rng.randi_range<int>(1, 3);
-        //
-        //switch (z)
-        //{
-        //    case 1:
-        //    {
-        //        std_print_hex_float(f);
-        //        break;
-        //    }
-        //    case 2:
-        //    {
-        //        std_print_hex_float_2(f);
-        //        break;
-        //    }
-        //    case 3:
-        //    {
-        //        vx_print_hex_float(f);
-        //        break;
-        //    }
-        //}
-
         //std_print_fixed_float(f);
         //std_print_fixed_float_2(f);
-        vx_print_fixed_float(f);
+        //vx_print_fixed_float(f);
 
         //
         //std_print_scientific_float(f);
