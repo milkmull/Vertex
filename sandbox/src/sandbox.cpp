@@ -228,7 +228,7 @@ static void std_print_scientific_float(const F f)
 template <typename F>
 static void vx_print_scientific_float(const F f)
 {
-    vx::str::float_format_options fmt;
+    vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::scientific;
     fmt.precision = 6;
     fmt.force_exp_sign = true;
@@ -287,7 +287,7 @@ static VX_NO_INLINE void std_print_fixed_float_2(const F f)
 template <typename F>
 static VX_NO_INLINE void vx_print_fixed_float(const F f)
 {
-    vx::str::float_format_options fmt;
+    vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::fixed;
     fmt.precision = 6;
 
@@ -329,7 +329,7 @@ static void std_print_hex_float_2(const F f)
 template <typename F>
 static void vx_print_hex_float(const F f)
 {
-    vx::str::float_format_options fmt;
+    vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::hex;
     fmt.precision = 60;
     fmt.uppercase = false;
@@ -374,7 +374,7 @@ static void std_print_general_float_2(const F f)
 template <typename F>
 static void vx_print_general_float(const F f)
 {
-    vx::str::float_format_options fmt;
+    vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::general;
     fmt.uppercase = false;
 
@@ -402,7 +402,7 @@ static void vx_print_integer_string(const I i)
 template <typename F>
 static void vx_print_float_string(const F f)
 {
-    vx::str::float_format_options fmt;
+    vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::general;
     fmt.uppercase = false;
 
@@ -417,15 +417,14 @@ static void vx_parse_fixed_float(const F in_value)
 {
     char buf[5000] = {};
 
-    vx::str::float_format_options fmt;
-    fmt.format = vx::str::float_format::general;
-    fmt.uppercase = false;
-    fmt.precision = 0;
+    vx::str::float_parse_format_options fmt;
+    fmt.format = vx::str::float_format::fixed;
 
     const size_t n = vx::str::write_float_fixed(in_value, buf, 5000, fmt);
 
     F v;
-    const auto res = vx::str::parse_fixed_float(buf, n, v, fmt);
+    const auto res = vx::str::parse_float(buf, n, v, fmt);
+    std::cout << "vx : " << v << std::endl;
 }
 
 template <typename F>
@@ -433,11 +432,12 @@ static void std_parse_fixed_float_2(const F in_value)
 {
     char buf[5000] = {};
 
-    const auto r1 = std::to_chars(buf, buf + sizeof(buf), in_value, std::chars_format::fixed);
+    const auto r1 = std::to_chars(buf, buf + sizeof(buf), in_value, std::chars_format::fixed, 6);
     const size_t n = static_cast<size_t>(r1.ptr - buf);
 
     F v;
     const auto r2 = std::from_chars(buf, buf + n, v, std::chars_format::fixed);
+    std::cout << "std: " << v << std::endl;
 }
 
 //==============================================================================
@@ -460,10 +460,10 @@ int main()
         //const auto bits = rng.randi<uint32_t>();
         //const auto f = vx::bit::bit_cast<float>(bits);
         //std::cout << f << ' ' << std::hexfloat << f << std::endl;
-        const float f = FLT_MAX;
-
+        //const float f = 123.456f;
+        //
         //vx_parse_fixed_float(f);
-        std_parse_fixed_float_2(f);
+        //std_parse_fixed_float_2(f);
 
         //std_print_integer(bits);
         //std_print_integer_2(bits);
@@ -491,6 +491,16 @@ int main()
         //vx_print_integer_string(static_cast<int64_t>(bits));
         //vx_print_float_string(f);
     }
+
+    const char* c = "1.23000";
+    const size_t size = vx::str::length(c);
+    float v;
+
+    v = 0;
+    const auto r1 = std::from_chars(c, c + size, v);
+
+    v = 0;
+    const auto r2 = vx::str::parse_float(c, size, v);
 
     VX_PROFILE_STOP();
     return 0;

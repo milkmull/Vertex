@@ -29,7 +29,7 @@ VX_NO_DISCARD constexpr int value(C c) noexcept
         return c - static_cast<C>('0');
     }
 
-    c = str::to_lower_ascii_unchecked(c);
+    c = static_cast<C>(c | 0x20);
     if (c >= static_cast<C>('a') && c <= static_cast<C>('f'))
     {
         return c - static_cast<C>('a') + 10;

@@ -28,6 +28,7 @@ file(GLOB VX_STD_HEADER_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/string_cast.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_utils.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/single_linked_list.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/crypto/fnv1a.hpp"
 )

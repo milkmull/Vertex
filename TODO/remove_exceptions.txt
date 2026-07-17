@@ -12,7 +12,8 @@ x static string
 x string
 
 - numeric printing
-- print io
+- io
+- string format
 - packed string array
 - single link list
 - double link list

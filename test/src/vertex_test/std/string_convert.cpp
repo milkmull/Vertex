@@ -1,428 +1,173 @@
-#include <cstring>
+#include <cstdint>
 
 #include "vertex/std/string_convert.hpp"
+#include "vertex/std/string_utils.hpp"
 #include "vertex_test/test.hpp"
+#include "vertex_test/integer_to_string_test_data.hpp"
 
 using namespace vx;
 
 #define LIT(x)          VX_LIT(C, x)
-#define NUM(x)          static_cast<T>(x)
+#define NUM(x)          static_cast<I>(x)
 #define CHECK_STR(a, b) VX_CHECK(::vx::str::compare(a, b) == 0)
 
 #define PRINT_RESULT 1
 
-template <typename T, typename C>
-struct test_case
-{
-    T value;
-    str::numeric_format_options<C> fmt;
-    const C* expected;
-};
-
-//==============================================================================
-
-template <typename T, typename C>
-bool run_test_case(const test_case<T, C>& tc)
-{
-    const str::basic_string<C> s = str::to_string<T, C>(tc.value, tc.fmt);
-
-#if PRINT_RESULT
-
-    VX_IF_CONSTEXPR (std::is_same<C, char>::value)
-    {
-        std::cout << "Value: " << tc.value << ", String: " << s << ", Expected: " << tc.expected << std::endl;
-    }
-#endif
-
-    return (str::compare(s, tc.expected) == 0);
-}
+// https://github.com/microsoft/STL/blob/020513e211529e7be30cb3e0ca310869701286da/tests/std/tests/P0067R5_charconv/test.cpp#L1012
 
 //==============================================================================
 
 template <typename C>
-void test_to_string_impl()
+bool all_of(const C* ptr, size_t count, C c)
 {
-    VX_SECTION("int")
+    for (size_t i = 0; i < count; ++i)
     {
-        using T = int;
-        str::numeric_format_options<C> fmt;
-
-        // base 10 and default options
-        VX_CHECK(run_test_case<T, C>({ NUM(0), fmt, LIT("0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(123), fmt, LIT("123") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-456), fmt, LIT("-456") }));
-
-        // max and min
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::max(), fmt, LIT("2147483647") }));
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::min(), fmt, LIT("-2147483648") }));
-
-        // hexadecimal
-        fmt.base = 16;
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("ff") }));
-
-        // uppercase hex
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("FF") }));
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(-255), fmt, LIT("-FF") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("+FF") }));
-        fmt.force_sign = false;
-
-        // max output size
-        fmt.base = 2;
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::max(), fmt, LIT("1111111111111111111111111111111") }));
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::min(), fmt, LIT("-10000000000000000000000000000000") }));
-
-        // Check null buffer outputs correct size
+        if (ptr[i] != c)
         {
-            fmt = {};
-            const size_t n = str::write_integer<T, C>(NUM(12345), nullptr, 0, fmt);
-            VX_CHECK(n == 5);
-        }
-
-        // Check partial buffer handling and null termination
-        {
-            fmt = {};
-            constexpr size_t buf_size = 4;
-            C buf[buf_size + 1];
-
-            const size_t n = str::write_integer<T, C>(NUM(12345), buf, buf_size, fmt, true);
-            VX_CHECK(n == buf_size);
-            buf[buf_size] = C('\0');
-            VX_CHECK(str::compare(buf, LIT("1234")) == 0);
+            return false;
         }
     }
 
-    VX_SECTION("unsigned int")
+    return true;
+}
+
+template <typename I, typename C, typename FMT>
+void test_common_to_string(const I value, const FMT& fmt, const C* correct)
+{
+    // Important: Test every effective buffer size from 0 through correct.size() and slightly beyond. For the sizes
+    // less than correct.size(), this verifies that the too-small buffer is correctly detected, and that we don't
+    // attempt to write outside of it, even by a single char. (This exhaustive validation is necessary because the
+    // implementation must check whenever it attempts to write. Sometimes we can calculate the total size and perform
+    // a single check, but sometimes we need to check when writing each part of the res.) Testing correct.size()
+    // verifies that we can succeed without overrunning, and testing slightly larger sizes verifies that we can succeed
+    // without attempting to write to extra chars even when they're available. Finally, we also verify that we aren't
+    // underrunning the buffer. This is a concern because sometimes we walk backwards when rounding.
+
+    // detect buffer underruns (specific value isn't important)
+    constexpr size_t buf_prefix = 20;
+    // detect buffer overruns (specific value isn't important)
+    constexpr size_t buf_suffix = 30;
+
+    constexpr size_t space = std::is_integral<I>::value
+        ? 1 + 64 // worst case: -2^63 in binary
+        : std::is_same<I, float>::value
+        ? 1 + 151   // worst case: negative min subnormal float, fixed notation
+        : 1 + 1076; // worst case: negative min subnormal double, fixed notation
+
+    constexpr size_t buf_size = buf_prefix + space + buf_suffix;
+    vx::array<C, buf_size> buf;
+
+    C* const buf_begin = buf.data();
+    C* const buf_end = buf_begin + buf_size;
+
+    constexpr size_t extra_chars = 3;
+    VX_STATIC_ASSERT_MSG(extra_chars + 10 < buf_suffix, "The specific values aren't important, but there should be plenty of room to detect buffer overruns.");
+
+    constexpr C fill_char = '@';
+
+    const size_t correct_size = str::length(correct);
+    for (size_t n = 0; n <= correct_size + extra_chars; ++n)
     {
-        using T = unsigned int;
-        str::numeric_format_options<C> fmt;
+        VX_CHECK(n <= static_cast<size_t>(buf_end - first));
+        buf.fill('@');
 
-        // base 10 and default options
-        VX_CHECK(run_test_case<T, C>({ NUM(0), fmt, LIT("0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(123), fmt, LIT("123") }));
+        str::to_string_result res = str::to_string(value, buf.data(), buf.size(), fmt);
 
-        // max and min
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::max(), fmt, LIT("4294967295") }));
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::min(), fmt, LIT("0") }));
-
-        // hexadecimal
-        fmt.base = 16;
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("ff") }));
-
-        // uppercase hex
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("FF") }));
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(255), fmt, LIT("+FF") }));
-        fmt.force_sign = false;
-
-        // max output size
-        fmt.base = 2;
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::max(), fmt, LIT("11111111111111111111111111111111") }));
-        VX_CHECK(run_test_case<T, C>({ std::numeric_limits<T>::min(), fmt, LIT("0") }));
-
-        // Check null buffer outputs correct size
+        if (n < correct_size)
         {
-            fmt = {};
-            const size_t n = str::write_integer<T, C>(NUM(12345), nullptr, 0, fmt);
-            VX_CHECK(n == 5);
+            VX_CHECK(res.count == 0);
+            VX_CHECK(res.err == str::to_string_error::buffer_too_small);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
+            // [first, last) is unspecified
+            VX_CHECK(all_of(buf_end, buf_suffix, fill_char));
         }
-
-        // Check partial buffer handling
+        else
         {
-            fmt = {};
-            constexpr size_t buf_size = 4;
-            C buf[buf_size + 1];
-
-            const size_t n = str::write_integer<T, C>(NUM(12345), buf, buf_size, fmt);
-            VX_CHECK(n == buf_size);
-            buf[buf_size] = C('\0');
-            VX_CHECK(str::compare(buf, LIT("1234")) == 0);
-        }
-    }
-
-    VX_SECTION("float")
-    {
-        using T = float;
-        str::numeric_format_options<C> fmt;
-
-        // -------------------------------------------------------------------------
-        // fixed format
-        // -------------------------------------------------------------------------
-
-        fmt.format = str::numeric_format::fixed;
-
-        // basic values
-        VX_CHECK(run_test_case<T, C>({ NUM(0.0f), fmt, LIT("0.000000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1.000000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-1.000000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3.140000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(123.456f), fmt, LIT("123.456001") })); // float precision artifact
-
-        // precision
-        fmt.precision = 0;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.7f), fmt, LIT("4") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-3.7f), fmt, LIT("-4") }));
-        fmt.precision = 2;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14159f), fmt, LIT("3.14") }));
-        fmt.precision = 10;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1.0000000000") }));
-        fmt.precision = str::default_float_precision;
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("+1.000000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-1.000000") }));
-        fmt.force_sign = false;
-
-        // uppercase (no effect on fixed, but should not break)
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1.000000") }));
-        fmt.uppercase = false;
-
-        // special values
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("INF") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("NAN") }));
-        fmt.uppercase = false;
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("+inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        // if we do our own implementation, nan should not have a sign even when forcing a sign
-        //VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("+nan") }));
-        fmt.force_sign = false;
-
-        // negative zero
-        VX_CHECK(run_test_case<T, C>({ NUM(-0.0f), fmt, LIT("-0.000000") }));
-
-        // max and min
-        fmt.precision = 0; // full integer part only, no decimal noise at this magnitude
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::max()), fmt, LIT("340282346638528859811704183484516925440") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::lowest()), fmt, LIT("-340282346638528859811704183484516925440") }));
-
-        // max and min with decimals — buffer must be large enough
-        fmt.precision = str::default_float_precision;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::max()), fmt, LIT("340282346638528859811704183484516925440.000000") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::lowest()), fmt, LIT("-340282346638528859811704183484516925440.000000") }));
-
-        // 340282346638528859811704183484516925440
-
-        // max precision (should cap to 32)
-        fmt.precision = 1000;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::denorm_min()), fmt, LIT("0.00000000000000000000000000000000") }));
-        fmt.precision = str::default_float_precision;
-
-        // -------------------------------------------------------------------------
-        // scientific format
-        // -------------------------------------------------------------------------
-
-        fmt.format = str::numeric_format::scientific;
-        fmt.precision = str::default_float_precision;
-
-        // basic values
-        VX_CHECK(run_test_case<T, C>({ NUM(0.0f), fmt, LIT("0.000000e+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1.000000e+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-1.000000e+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3.140000e+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(0.001f), fmt, LIT("1.000000e-03") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(123456.0f), fmt, LIT("1.234560e+05") }));
-
-        // precision
-        fmt.precision = 0;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3e+00") }));
-        fmt.precision = 2;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3.14e+00") }));
-        fmt.precision = str::default_float_precision;
-
-        // uppercase
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3.140000E+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(0.001f), fmt, LIT("1.000000E-03") }));
-        fmt.uppercase = false;
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("+1.000000e+00") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-1.000000e+00") }));
-        fmt.force_sign = false;
-
-        // special values
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("INF") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("NAN") }));
-        fmt.uppercase = false;
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("+inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        // if we do our own implementation, nan should not have a sign even when forcing a sign
-        //VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("+nan") }));
-        fmt.force_sign = false;
-
-        // negative zero
-        VX_CHECK(run_test_case<T, C>({ NUM(-0.0f), fmt, LIT("-0.000000e+00") }));
-
-        // special magnitudes
-        fmt.precision = str::default_float_precision;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::max()), fmt, LIT("3.402823e+38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::lowest()), fmt, LIT("-3.402823e+38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::min()), fmt, LIT("1.175494e-38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::denorm_min()), fmt, LIT("1.401298e-45") }));
-
-        // -------------------------------------------------------------------------
-        // general format
-        // -------------------------------------------------------------------------
-
-        fmt.format = str::numeric_format::general;
-        fmt.precision = str::default_float_precision;
-
-        // uses fixed or scientific depending on magnitude (matches %g)
-        VX_CHECK(run_test_case<T, C>({ NUM(0.0f), fmt, LIT("0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-1") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3.14") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(0.0001f), fmt, LIT("0.0001") }));         // boundary: still fixed
-        VX_CHECK(run_test_case<T, C>({ NUM(0.00001f), fmt, LIT("1e-05") }));         // boundary: switches to sci
-        VX_CHECK(run_test_case<T, C>({ NUM(123456.0f), fmt, LIT("123456") }));       // still fixed
-        VX_CHECK(run_test_case<T, C>({ NUM(1234567.0f), fmt, LIT("1.23457e+06") })); // switches to sci
-
-        // precision (controls significant digits in general, not decimal places)
-        fmt.precision = 3;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14159f), fmt, LIT("3.14") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(12345.0f), fmt, LIT("1.23e+04") }));
-        fmt.precision = 1;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("3") }));
-        fmt.precision = str::default_float_precision;
-
-        // trailing zeros stripped (matches %g behaviour)
-        VX_CHECK(run_test_case<T, C>({ NUM(1.5f), fmt, LIT("1.5") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("1") }));
-
-        // uppercase
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(0.00001f), fmt, LIT("1E-05") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1234567.0f), fmt, LIT("1.23457E+06") }));
-        fmt.uppercase = false;
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("+3.14") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-3.14f), fmt, LIT("-3.14") }));
-        fmt.force_sign = false;
-
-        // special values
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("INF") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("NAN") }));
-        fmt.uppercase = false;
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("+inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        // if we do our own implementation, nan should not have a sign even when forcing a sign
-        //VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("+nan") }));
-        fmt.force_sign = false;
-
-        // negative zero
-        VX_CHECK(run_test_case<T, C>({ NUM(-0.0f), fmt, LIT("-0") }));
-
-        // special magnitudes
-        fmt.precision = str::default_float_precision;
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::max()), fmt, LIT("3.40282e+38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::lowest()), fmt, LIT("-3.40282e+38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::min()), fmt, LIT("1.17549e-38") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::denorm_min()), fmt, LIT("1.4013e-45") }));
-
-        // -------------------------------------------------------------------------
-        // hex format
-        // -------------------------------------------------------------------------
-
-        fmt.format = str::numeric_format::hex;
-        fmt.precision = str::default_float_precision;
-
-        // basic values (matches %a — platform exact values may vary slightly)
-        VX_CHECK(run_test_case<T, C>({ NUM(0.0f), fmt, LIT("0x0.000000p+0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("0x1.000000p+0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-0x1.000000p+0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(0.5f), fmt, LIT("0x1.000000p-1") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("0x1.91eb86p+1") }));
-
-        // precision
-        fmt.precision = 0;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("0x1p+0") }));
-        fmt.precision = 2;
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("0x1.92p+1") }));
-        fmt.precision = str::default_float_precision;
-
-        // uppercase
-        fmt.uppercase = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("0X1.000000P+0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(3.14f), fmt, LIT("0X1.91EB86P+1") }));
-        fmt.uppercase = false;
-
-        // force sign
-        fmt.force_sign = true;
-        VX_CHECK(run_test_case<T, C>({ NUM(1.0f), fmt, LIT("+0x1.000000p+0") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-1.0f), fmt, LIT("-0x1.000000p+0") }));
-        fmt.force_sign = false;
-
-        // special values
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::infinity()), fmt, LIT("inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(-std::numeric_limits<T>::infinity()), fmt, LIT("-inf") }));
-        VX_CHECK(run_test_case<T, C>({ NUM(std::numeric_limits<T>::quiet_NaN()), fmt, LIT("nan") }));
-
-        // -------------------------------------------------------------------------
-        // null buffer / partial buffer
-        // -------------------------------------------------------------------------
-        {
-            fmt = {};
-            const size_t n = str::write_float<T, C>(NUM(3.14f), nullptr, 0, fmt);
-            VX_CHECK(n == 4); // "3.14" in general format
-        }
-        {
-            fmt = {};
-            constexpr size_t buf_size = 3;
-            C buf[buf_size + 1];
-            const size_t n = str::write_float<T, C>(NUM(3.14f), buf, buf_size, fmt);
-            VX_CHECK(n == buf_size);
-            buf[buf_size] = C('\0');
-            VX_CHECK(str::compare(buf, LIT("3.1")) == 0);
+            VX_CHECK(res.count == correct_size);
+            VX_CHECK(res.err == str::to_string_error::none);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
+            VX_CHECK(str::compare(first, res.count, correct, correct_size) == 0);
+            VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
         }
     }
 }
 
 //==============================================================================
 
-VX_TEST_CASE(to_string)
+template <typename I, typename C>
+void test_integer_to_string(const I value, str::integer_format_options& fmt, const C* correct)
 {
-    //test_to_string_impl<char>();
-    //test_to_string_impl<wchar_t>();
+    test_common_to_string(value, fmt, correct);
 
-    constexpr size_t buf_size = 1000;
-    char buf[buf_size];
-    str::numeric_format_options fmt;
-    fmt.precision = 100;
-    fmt.force_sign = true;
-    constexpr float value = 0;
+    // Also test successful from_chars() scenarios.
+    {
+        const size_t correct_size = str::length(correct);
 
-    const size_t n = str::write_float_fixed(value, buf, buf_size, fmt);
-    const str::basic_string_view<char> s(buf, n);
-    std::cout << "Value: " << value << ", String: " << s << std::endl;
+        I out = 0;
+        const str::from_string_result res = str::from_string(correct, correct_size, out, fmt);
+
+        VX_CHECK(res.count == correct_size);
+        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(out == value);
+    }
+}
+
+template <typename I, typename C>
+bool test_integer_to_string()
+{
+    for (int base = 2; base <= 36; ++base)
+    {
+        test_integer_to_string(static_cast<I>(0), base, "0");
+        test_integer_to_string(static_cast<I>(1), base, "1");
+
+        // tests [3, 71]
+        test_integer_to_string(static_cast<I>(base * 2 - 1), base, output_max_digit[base]);
+
+        for (const auto& p : output_positive)
+        {
+            if (p.first <= static_cast<uint64_t>(std::numeric_limits<I>::max()))
+            {
+                test_integer_to_string(static_cast<I>(p.first), base, p.second[static_cast<size_t>(base)]);
+            }
+        }
+
+        VX_IF_CONSTEXPR (std::is_signed<I>::value)
+        {
+            test_integer_to_string(static_cast<I>(-1), base, "-1");
+
+            for (const auto& p : output_negative)
+            {
+                if (p.first >= static_cast<int64_t>(std::numeric_limits<I>::min()))
+                {
+                    test_integer_to_string(static_cast<I>(p.first), base, p.second[static_cast<size_t>(base)]);
+                }
+            }
+        }
+    }
+
+    test_integer_to_string(static_cast<I>(42), {}, "42");
+    return true;
+}
+
+template <typename I>
+void test_integer()
+{
+    test_integer_to_string<I>();
+}
+
+void all_integer_tests()
+{
+    test_integer<char>();
+    test_integer<signed char>();
+    test_integer<unsigned char>();
+    test_integer<short>();
+    test_integer<unsigned short>();
+    test_integer<int>();
+    test_integer<unsigned int>();
+    test_integer<long>();
+    test_integer<unsigned long>();
+    test_integer<long long>();
+    test_integer<unsigned long long>();
 }
 
 //==============================================================================

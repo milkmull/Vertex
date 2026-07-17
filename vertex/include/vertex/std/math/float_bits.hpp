@@ -61,6 +61,7 @@ struct float_traits<float> : numeric_limits<float>
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
     static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
+    static constexpr uint_type quiet_nan_mask = uint_type(1) << (mantissa_bits - 1);
 };
 
 template <>
@@ -86,6 +87,7 @@ struct float_traits<double> : numeric_limits<double>
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
     static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
+    static constexpr uint_type quiet_nan_mask = uint_type(1) << (mantissa_bits - 1);
 };
 
 //==============================================================================
@@ -94,24 +96,6 @@ struct float_traits<double> : numeric_limits<double>
 
 template <typename F>
 struct float_bits;
-
-template <typename F, VX_REQUIRES(std::is_floating_point<F>::value)>
-inline constexpr float_bits<F> make_float_bits(F value) noexcept
-{
-    using uint_type = typename float_traits<F>::uint_type;
-
-#if __cpp_lib_bit_cast >= 201806L
-
-    return float_bits<F>(std::bit_cast<uint_type>(value));
-
-#else
-
-    uint_type bits;
-    mem::copy(&bits, &value, sizeof(F));
-    return float_bits<F>(bits);
-
-#endif
-}
 
 template <typename F>
 struct float_bits
@@ -127,7 +111,7 @@ struct float_bits
     {}
 
     constexpr explicit float_bits(F f) noexcept
-        : bits(make_float_bits(f).bits)
+        : bits(bit::bit_cast<uint_type>(f))
     {}
 
     constexpr explicit float_bits(uint_type bits) noexcept
@@ -153,55 +137,14 @@ struct float_bits
         return unbiased_exponent();
     }
 
-    constexpr int exponent10() const noexcept
-    {
-        if (is_subnormal())
-        {
-            const int leading = bit::countl_zero(mantissa()) - (sizeof(uint_type) * CHAR_BIT - traits::mantissa_bits);
-            const int e2 = 1 - traits::exponent_bias - leading;
-            return _float_bits_priv::log10_pow5(-e2) + e2;
-        }
-
-        const int e2 = true_exponent();
-        if (e2 >= 0)
-        {
-            return _float_bits_priv::log10_pow2(e2) - (e2 > 3);
-        }
-        else
-        {
-            return _float_bits_priv::log10_pow5(-e2) + e2;
-        }
-    }
-
     constexpr uint_type mantissa() const noexcept
     {
         return (bits & traits::mantissa_mask);
     }
 
-    constexpr uint_type mantissa_with_integer_bit() const noexcept
-    {
-        if (is_normal())
-        {
-            VX_IF_CONSTEXPR (traits::explicit_integer_bit)
-            {
-                return mantissa();
-            }
-            else
-            {
-                return mantissa() | (uint_type(1) << traits::mantissa_bits);
-            }
-        }
-        return mantissa();
-    }
-
     constexpr int unbiased_exponent() const noexcept
     {
         return static_cast<int>(exponent()) - traits::exponent_bias;
-    }
-
-    constexpr int shift() const noexcept
-    {
-        return true_exponent() - traits::mantissa_bits;
     }
 
     constexpr bool is_zero() const noexcept
@@ -237,6 +180,16 @@ struct float_bits
     constexpr bool is_nan() const noexcept
     {
         return exponent() == traits::filled_exponent && mantissa() != 0;
+    }
+
+    constexpr bool is_quiet_nan() const noexcept
+    {
+        return is_nan() && ((mantissa() & traits::quiet_nan_mask) != 0);
+    }
+
+    constexpr bool is_signaling_nan() const noexcept
+    {
+        return is_nan() && ((mantissa() & traits::quiet_nan_mask) == 0);
     }
 };
 
