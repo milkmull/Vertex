@@ -624,7 +624,7 @@ struct unwrap_enum<T, false>
 namespace _priv {
 
 template <typename T>
-struct is_char_or_bool : is_char<T>
+struct is_char_or_bool : std::is_same<T, char>
 {};
 
 template <>

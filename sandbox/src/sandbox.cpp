@@ -492,15 +492,15 @@ int main()
         //vx_print_float_string(f);
     }
 
-    const char* c = "1.23000";
-    const size_t size = vx::str::length(c);
-    float v;
+    const vx::string s = "12.13";
+
+    double v;
 
     v = 0;
-    const auto r1 = std::from_chars(c, c + size, v);
+    const auto r1 = std::from_chars(s.data(), s.data() + s.size(), v);
 
     v = 0;
-    const auto r2 = vx::str::parse_float(c, size, v);
+    const auto r2 = vx::str::from_string(s, v);
 
     VX_PROFILE_STOP();
     return 0;

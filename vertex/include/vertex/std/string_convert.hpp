@@ -142,7 +142,7 @@ constexpr int char_to_digit(C c, int base = 10) noexcept
         c = to_lower_ascii_unchecked(c);
         if (c >= static_cast<C>('a') && c <= static_cast<C>('z'))
         {
-            digit = static_cast<int>(c - static_cast<C>('a')) + base;
+            digit = static_cast<int>(c - static_cast<C>('a')) + 10;
         }
     }
 
@@ -250,7 +250,7 @@ static constexpr const char int_digits[] = {
 
 struct integer_format_options
 {
-    uint32_t base = 10;
+    int base = 10;
     bool uppercase = false;
     bool force_sign = false;
 };
@@ -323,31 +323,62 @@ constexpr from_string_result parse_integer(const C* s, size_t size, I& value, co
         {
             return { 0, from_string_error::invalid_argument };
         }
-
-        is_negative = true;
-        ++i;
+        else
+        {
+            is_negative = true;
+            ++i;
+        }
     }
 
-    if (i == size)
+    U limit;
+    VX_IF_CONSTEXPR (std::is_signed<I>::value)
     {
-        return { 0, from_string_error::invalid_argument };
+        limit = is_negative
+            ? static_cast<U>(std::numeric_limits<I>::max()) + 1
+            : static_cast<U>(std::numeric_limits<I>::max());
+    }
+    else
+    {
+        limit = std::numeric_limits<U>::max();
     }
 
+    const size_t start = i;
+    bool overflow = false;
+
+    const U ubase = static_cast<U>(fmt.base);
     U uvalue = 0;
 
     while (i < size)
     {
-        const int digit = char_to_digit(s[i]);
+        const int digit = char_to_digit(s[i], fmt.base);
         if (digit < 0 || digit >= fmt.base)
         {
-            return { 0, from_string_error::invalid_argument };
+            break;
         }
 
-        uvalue = uvalue * static_cast<U>(fmt.base) + static_cast<U>(digit);
+        const U udigit = static_cast<U>(digit);
+        if (uvalue > (limit - udigit) / ubase)
+        {
+            overflow = true;
+        }
+        else
+        {
+            uvalue = uvalue * ubase + udigit;
+        }
+
         ++i;
     }
 
-    VX_IF_CONSTEXPR (std::is_signed<I>::value && is_negative)
+    if (i == start)
+    {
+        return { 0, from_string_error::invalid_argument };
+    }
+    if (overflow)
+    {
+        return { i, from_string_error::out_of_range };
+    }
+
+    if (std::is_signed<I>::value && is_negative)
     {
         // Convert back to two's complement representation.
         value = static_cast<I>(~uvalue + 1);
@@ -2489,7 +2520,7 @@ constexpr void assemble_float(const bool is_negative, const typename float_bits<
 template <typename F>
 constexpr from_string_error assemble_float_shifted(
     typename float_bits<F>::uint_type mantissa,
-    int exponent,
+    int initial_exponent,
     bool is_negative,
     bool has_zero_tail,
     F& value) noexcept
@@ -2503,9 +2534,9 @@ constexpr from_string_error assemble_float_shifted(
     // position of the highest set bit (0-based from LSB)
     const uint32_t mantissa_bit_count = bit::bit_width(mantissa);
     const int shift = static_cast<int>(traits::digits) - static_cast<int>(mantissa_bit_count);
-    const int normal_exponent = exponent - shift;
+    int exponent = initial_exponent - shift;
 
-    if (normal_exponent > max_binary_exponent)
+    if (exponent > max_binary_exponent)
     {
         // Overflow to infinity
         assemble_float_infinity<F>(is_negative, value);
@@ -2514,10 +2545,12 @@ constexpr from_string_error assemble_float_shifted(
 
     from_string_error err = from_string_error::none;
 
-    if (normal_exponent < min_binary_exponent)
+    if (exponent < min_binary_exponent)
     {
         // maybe representable as a subnormal, or underflow to zero
-        const int subnormal_shift = exponent - min_binary_exponent;
+        exponent = min_binary_exponent;
+        const int subnormal_shift = initial_exponent - min_binary_exponent;
+
         if (subnormal_shift < 0)
         {
             mantissa = shr_round(mantissa, static_cast<uint32_t>(-subnormal_shift), has_zero_tail);
@@ -2537,7 +2570,7 @@ constexpr from_string_error assemble_float_shifted(
         if (shift < 0)
         {
             mantissa = shr_round(mantissa, static_cast<uint32_t>(-shift), has_zero_tail);
-            if (mantissa > traits::mantissa_mask && normal_exponent == max_binary_exponent)
+            if (mantissa > traits::mantissa_mask && exponent == max_binary_exponent)
             {
                 // overflow to infinity (still valid)
                 err = from_string_error::out_of_range;
@@ -2549,7 +2582,6 @@ constexpr from_string_error assemble_float_shifted(
         }
     }
 
-    exponent = normal_exponent;
     assemble_float<F>(is_negative, mantissa, exponent, value);
     return err;
 }
@@ -2646,6 +2678,18 @@ struct float_string_info
 
     const C* frac_first;
     uint32_t frac_digit_count;
+};
+
+template <typename C>
+struct float_digit_stream
+{
+    const C* int_first;
+    uint32_t int_digit_count;
+
+    const C* frac_first;
+    uint32_t frac_digit_count;
+
+    size_t n = 0;
 
     constexpr uint32_t total_digits() const noexcept
     {
@@ -2662,10 +2706,15 @@ struct float_string_info
         const auto c = get_char(i);
         return hex::value(c);
     }
+
+    constexpr auto next_digit() noexcept
+    {
+        return get_digit(n++);
+    }
 };
 
 template <typename F, typename C>
-constexpr from_string_error string_to_float(const C* str, size_t str_size, F& value, const float_string_info<C>& info, bool has_zero_tail) noexcept
+constexpr from_string_error string_to_float_decimal(const C* str, size_t str_size, F& value, const float_string_info<C>& info, bool has_zero_tail) noexcept
 {
     using read_traits = float_reading_traits<F>;
     using traits = typename read_traits::traits;
@@ -2676,12 +2725,19 @@ constexpr from_string_error string_to_float(const C* str, size_t str_size, F& va
     using big_int_type = typename read_traits::big_int_type;
     constexpr size_t required_precision_bits = read_traits::required_precision_bits;
 
+    float_digit_stream<C> stream{
+        info.int_first,
+        info.int_digit_count,
+        info.frac_first,
+        info.frac_digit_count
+    };
+
     // The input is of the form 0.mantissa * 10^exponent, where 'mantissa' are the decimal digits of the mantissa
     // and 'exponent' is the decimal exponent. We decompose the mantissa into two parts: an integer part and a
     // fractional part. If the exponent is positive, then the integer part consists of the first 'exponent' digits,
     // or all present digits if there are fewer digits. If the exponent is zero or negative, then the integer part
     // is empty. In either case, the remaining digits form the fractional part of the mantissa.
-    const uint32_t total_digits = info.total_digits();
+    const uint32_t total_digits = stream.total_digits();
     const uint32_t positive_exponent = static_cast<uint32_t>(std::max(0, info.exponent));
     const uint32_t int_digit_count = std::min(positive_exponent, total_digits);
     const uint32_t int_digits_missing = positive_exponent - int_digit_count;
@@ -2693,12 +2749,10 @@ constexpr from_string_error string_to_float(const C* str, size_t str_size, F& va
     // the precise overflow/underflow check happens later once the
     // mantissa is assembled.
 
-    size_t digit_counter = 0;
-
     big_int_type int_value{};
     for (size_t i = 0; i < int_digit_count; ++i)
     {
-        const auto digit = static_cast<limb_type>(info.get_digit(digit_counter++) - '0');
+        const auto digit = stream.next_digit();
         int_value.insert_digit(digit);
     }
 
@@ -2733,7 +2787,7 @@ constexpr from_string_error string_to_float(const C* str, size_t str_size, F& va
     big_int_type frac_numerator{};
     for (size_t i = 0; i < frac_digit_count; ++i)
     {
-        const auto digit = static_cast<limb_type>(info.get_digit(digit_counter++) - '0');
+        const auto digit = static_cast<limb_type>(stream.next_digit());
         frac_numerator.insert_digit(digit);
     }
 
@@ -2796,7 +2850,9 @@ constexpr from_string_error string_to_float(const C* str, size_t str_size, F& va
     frac_numerator.shl(remaining_precision_bits_needed);
 
     frac_numerator.div_pow10(frac_denominator_exponent);
-    auto frac_mantissa = frac_numerator.bits[0];
+    const auto frac_mantissa_low = frac_numerator.bits[0];
+    const auto frac_mantissa_high = frac_numerator.bits[1];
+    uint64_t frac_mantissa = frac_mantissa_low + (static_cast<uint64_t>(frac_mantissa_high) << 32);
 
     has_zero_tail = has_zero_tail && frac_numerator.is_zero();
 
@@ -2830,6 +2886,40 @@ constexpr from_string_error string_to_float(const C* str, size_t str_size, F& va
     return assemble_float_shifted(static_cast<uint_type>(complete_mantissa), final_exponent, info.is_negative, has_zero_tail, value);
 }
 
+template <typename F, typename C>
+constexpr from_string_error string_to_float_hex(const C* str, size_t str_size, F& value, const float_string_info<C>& info, bool has_zero_tail) noexcept
+{
+    using read_traits = float_reading_traits<F>;
+    using traits = typename read_traits::traits;
+    using uint_type = typename traits::uint_type;
+
+    float_digit_stream<C> stream{
+        info.int_first,
+        info.int_digit_count,
+        info.frac_first,
+        info.frac_digit_count
+    };
+
+    uint_type mantissa = 0;
+    int exponent = info.exponent + traits::mantissa_bits;
+
+    // Accumulate bits into the mantissa buffer
+    size_t total_digits = stream.total_digits() + 1;
+    while (--total_digits && mantissa <= traits::mantissa_mask)
+    {
+        mantissa *= 16;
+        mantissa += stream.next_digit();
+        exponent -= 4; // The exponent is in binary; log2(16) == 4
+    }
+
+    while (has_zero_tail && total_digits)
+    {
+        has_zero_tail = stream.next_digit() == 0;
+    }
+
+    return assemble_float_shifted(mantissa, exponent, info.is_negative, has_zero_tail, value);
+}
+
 template <typename C>
 constexpr int to_digit(C c) noexcept
 {
@@ -2850,7 +2940,7 @@ constexpr int to_digit(C c) noexcept
 template <typename F, typename C>
 constexpr from_string_result parse_infinity(const C* const str, size_t str_size, F& value, const bool is_negative, size_t i) noexcept
 {
-    constexpr C nfinity[] = "nfinity";
+    constexpr C nfinity[] = { 'n', 'f', 'i', 'n', 'i', 't', 'y' };
 
     // pre: _Next points at 'i' (case-insensitively)
     if (!starts_with_case_insensitive(str + i + 1, str_size - i - 1, nfinity, 2))
@@ -2875,7 +2965,7 @@ constexpr from_string_result parse_infinity(const C* const str, size_t str_size,
 template <typename F, typename C>
 constexpr from_string_result parse_nan(const C* const str, size_t str_size, F& value, bool is_negative, size_t i) noexcept
 {
-    constexpr C snan[] = "snan";
+    constexpr C snan[] = { 's', 'n', 'a', 'n' };
 
     // pre: str + i points at 'n' (case-insensitively)
     if (!starts_with_case_insensitive(str + i + 1, str_size - i - 1, snan + 2, 2))
@@ -2891,7 +2981,7 @@ constexpr from_string_result parse_nan(const C* const str, size_t str_size, F& v
     if (i != str_size && str[i] == static_cast<C>('('))
     {
         // possibly nan(n-char-sequence[opt])
-        constexpr C ind[] = "ind";
+        constexpr C ind[] = { 'i', 'n', 'd' };
 
         const size_t seq_begin = i + 1;
         size_t j = seq_begin;
@@ -2989,7 +3079,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     // position exponent below is measured against, and trailing-zero
     // trimming must not affect that (e.g. "100" still has its leading digit
     // at position 2, same as untrimmed).
-    const size_t int_digit_count = i - int_digit_start;
+    size_t int_digit_count = i - int_digit_start;
 
     // fractional part
     //===========================================
@@ -3070,7 +3160,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         exponent_adjustment = -static_cast<int>(frac_leading_zeros);
     }
 
-    const char exponent_prefix{ is_hex ? 'p' : 'e' };
+    const C exponent_prefix = is_hex ? 'p' : 'e';
     int exponent = 0;
     bool exponent_is_negative = false;
     bool exp_overflow = false;
@@ -3138,16 +3228,15 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         // single significant digit. "100.5" must NOT hit this branch, since
         // frac_digit_count is 1 there (the "00" in "100" stays untouched --
         // those are internal digits, not trailing ones).
-        size_t int_trimmed_count = int_digit_count;
         if (frac_digit_count == 0)
         {
-            while (int_trimmed_count > 0 && str[int_digit_start + int_trimmed_count - 1] == C('0'))
+            while (int_digit_count > 0 && str[int_digit_start + int_digit_count - 1] == C('0'))
             {
-                --int_trimmed_count;
+                --int_digit_count;
             }
         }
 
-        const size_t total_digit_count = int_trimmed_count + frac_digit_count;
+        const size_t total_digit_count = int_digit_count + frac_digit_count;
 
         // Zero fast-path, deferred until after exponent scanning so the reported
         // position is correct for inputs like "0e999" or "0.0e-5".
@@ -3255,8 +3344,16 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         static_cast<uint32_t>(frac_digit_count)
     };
 
-    const auto err = _string_convert_priv::string_to_float(str, str_size, value, info, has_zero_tail);
-    return { i, err };
+    if (is_hex)
+    {
+        const auto err = string_to_float_hex(str, str_size, value, info, has_zero_tail);
+        return { i, err };
+    }
+    else
+    {
+        const auto err = _string_convert_priv::string_to_float_decimal(str, str_size, value, info, has_zero_tail);
+        return { i, err };
+    }
 }
 
 } // namespace _string_convert_priv
@@ -3421,20 +3518,20 @@ from_string_result from_string(const S& s, I& out, const integer_format_options&
 //==============================================================================
 
 template <typename F, typename C, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-from_string_result from_string(const C* s, size_t size, F& out, const integer_format_options& fmt = {}) noexcept
+from_string_result from_string(const C* s, size_t size, F& out, const float_from_string_format_options<C>& fmt = {}) noexcept
 {
     return parse_float(s, size, out, fmt);
 }
 
 template <typename F, typename C, VX_REQUIRES(std::is_floating_point<F>::value&& type_traits::is_char<C>::value)>
-from_string_result from_string(const C* s, F& out, const integer_format_options& fmt = {}) noexcept
+from_string_result from_string(const C* s, F& out, const float_from_string_format_options<C>& fmt = {}) noexcept
 {
     const size_t size = str::length(s);
     return parse_float(s, size, out, fmt);
 }
 
 template <typename F, typename S, VX_REQUIRES(std::is_floating_point<F>::value&& is_string_like<S>::value)>
-from_string_result from_string(const S& s, F& out, const integer_format_options& fmt = {}) noexcept
+from_string_result from_string(const S& s, F& out, const float_from_string_format_options<typename S::value_type>& fmt = {}) noexcept
 {
     return parse_float(s.data(), s.size(), out, fmt);
 }

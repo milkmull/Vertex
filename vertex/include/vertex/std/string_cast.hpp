@@ -122,7 +122,7 @@ auto string_cast(IT first, to_char_t replacement = to_char_t('?'))
     }
     const size_t size = static_cast<size_t>(std::distance(first, last));
 
-    std::basic_string<to_char_t> res;
+    basic_string<to_char_t> res;
     res.reserve(size);
     string_cast<to_char_t>(first, last, back_inserter(res), replacement);
     return res;
