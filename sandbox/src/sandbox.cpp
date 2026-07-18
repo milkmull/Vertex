@@ -492,15 +492,15 @@ int main()
         //vx_print_float_string(f);
     }
 
-    const vx::string s = "12.13";
+    const vx::string s = "2.7923236592830528266962495740723380649230754633916493372624425609233151344967804874386274605058133602142333984375e-39";
 
-    double v;
-
-    v = 0;
-    const auto r1 = std::from_chars(s.data(), s.data() + s.size(), v);
+    float v;
 
     v = 0;
-    const auto r2 = vx::str::from_string(s, v);
+    const auto r1 = std::from_chars(s.data(), s.data() + s.size(), v, std::chars_format::general);
+
+    v = 0;
+    const auto r2 = vx::str::from_string(s, v, { vx::str::float_format::general });
 
     VX_PROFILE_STOP();
     return 0;

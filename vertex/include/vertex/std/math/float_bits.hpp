@@ -61,6 +61,7 @@ struct float_traits<float> : numeric_limits<float>
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
     static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
+    static constexpr uint_type normal_mantissa_mask = (uint_type(1) << digits) - 1;
     static constexpr uint_type quiet_nan_mask = uint_type(1) << (mantissa_bits - 1);
 };
 
@@ -87,6 +88,7 @@ struct float_traits<double> : numeric_limits<double>
     static constexpr uint_type sign_mask = uint_type(1) << (storage_bits - 1);
     static constexpr uint_type exponent_mask = uint_type(filled_exponent) << mantissa_bits;
     static constexpr uint_type mantissa_mask = (uint_type(1) << mantissa_bits) - 1;
+    static constexpr uint_type normal_mantissa_mask = (uint_type(1) << digits) - 1;
     static constexpr uint_type quiet_nan_mask = uint_type(1) << (mantissa_bits - 1);
 };
 

@@ -128,10 +128,15 @@ constexpr from_string_result from_hex_string(const C* hex, size_t hex_size, void
 // integer helpers
 //==============================================================================
 
+enum : int
+{
+    invalid_digit = 255
+};
+
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
 constexpr int char_to_digit(C c, int base = 10) noexcept
 {
-    int digit = -1;
+    int digit = invalid_digit;
 
     if (c >= static_cast<C>('0') && c <= static_cast<C>('9'))
     {
@@ -146,7 +151,7 @@ constexpr int char_to_digit(C c, int base = 10) noexcept
         }
     }
 
-    return (digit < base) ? digit : -1;
+    return (digit < base) ? digit : invalid_digit;
 }
 
 namespace _string_convert_priv {
@@ -241,6 +246,23 @@ static constexpr const char int_digits[] = {
     'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
     'u', 'v', 'w', 'x', 'y', 'z'
 };
+
+template <typename C>
+constexpr int to_digit(C c) noexcept
+{
+    if (c >= static_cast<C>('0') && c <= static_cast<C>('9'))
+    {
+        return c - static_cast<C>('0');
+    }
+
+    c = str::to_lower_ascii_unchecked(c);
+    if (c >= static_cast<C>('a') && c <= static_cast<C>('f'))
+    {
+        return c - static_cast<C>('a') + 10;
+    }
+
+    return invalid_digit;
+}
 
 } // namespace _string_convert_priv
 
@@ -498,22 +520,24 @@ inline constexpr int log10_pow5(int e) noexcept
     return (static_cast<uint32_t>(e) * 732923u) >> 20;
 }
 
-// Returns ceil(bits * log10(2)) using the approximation
-// log10(2) ≈ 30103 / 100000. This is a slight overestimate
-// (~0.0034% from the approximation, plus rounding up).
 inline constexpr size_t ceil_log10_pow2(size_t bits) noexcept
 {
     return (bits * 30103 + 99999) / 100000;
 }
 
-// ceil(log2(10^digit_count)) == ceil(digit_count * log2(10)).
-// Uses the integer approximation log2(10) <= 1233/371 (as used by the
-// Ryu float-parsing algorithm), which slightly overestimates log2(10)
-// (3.32345... vs the true 3.32193...), giving a safe upper bound on
-// the number of bits required.
+constexpr std::uint32_t log2_pow5(int e) noexcept
+{
+    return static_cast<uint32_t>((static_cast<uint64_t>(e) * 1217359ull) >> 19);
+}
+
 constexpr size_t ceil_log2_pow10(size_t digits) noexcept
 {
-    return (digits * 1233 + 370) / 371;
+    return (digits * 160533 + 48329) / 48330;
+}
+
+constexpr uint32_t bit_width_pow10(int e) noexcept
+{
+    return e == 0 ? 1u : e + log2_pow5(e) + 1u;
 }
 
 template <typename F>
@@ -790,33 +814,6 @@ struct big_int
         return remainder;
     }
 
-    constexpr limb_type div_extract(limb_type x, limb_type r) noexcept
-    {
-        constexpr uint32_t half = limb_bits / 2;
-        constexpr limb_type half_mask = (limb_type{ 1 } << half) - 1;
-
-        limb_type remainder = r;
-
-        for (size_t i = limb_count; i-- > 0;)
-        {
-            const limb_type limb = bits[i];
-            const limb_type hi = limb >> half;
-            const limb_type lo = limb & half_mask;
-
-            const wide_type d1 = (static_cast<wide_type>(remainder) << half) | hi;
-            const limb_type q1 = static_cast<limb_type>(d1 / x);
-            remainder = static_cast<limb_type>(d1 % x);
-
-            const wide_type d2 = (static_cast<wide_type>(remainder) << half) | lo;
-            const limb_type q2 = static_cast<limb_type>(d2 / x);
-            remainder = static_cast<limb_type>(d2 % x);
-
-            bits[i] = (q1 << half) | q2;
-        }
-
-        return remainder;
-    }
-
     //=========================================================================
 
     constexpr limb_type insert_digit(limb_type x) noexcept
@@ -838,37 +835,23 @@ struct big_int
         const uint32_t limbshift = shift / limb_bits;
         const uint32_t bitshift = shift % limb_bits;
 
-        for (size_t i = limb_count; i-- > limbshift + 1;)
+        if (bitshift == 0)
         {
-            bits[i] =
-                (bits[i - limbshift] << bitshift) |
-                (bits[i - limbshift - 1] >> (limb_bits - bitshift));
+            for (size_t i = limb_count; i-- > limbshift;)
+            {
+                bits[i] = bits[i - limbshift];
+            }
         }
-
-        bits[limbshift] = bits[0] << bitshift;
+        else
+        {
+            for (size_t i = limb_count; i-- > limbshift + 1;)
+            {
+                bits[i] = (bits[i - limbshift] << bitshift) | (bits[i - limbshift - 1] >> (limb_bits - bitshift));
+            }
+            bits[limbshift] = bits[0] << bitshift;
+        }
 
         for (size_t i = 0; i < limbshift; ++i)
-        {
-            bits[i] = 0;
-        }
-    }
-
-    constexpr void shr(uint32_t shift) noexcept
-    {
-        const uint32_t limbshift = shift / limb_bits;
-        const uint32_t bitshift = shift % limb_bits;
-
-        for (size_t i = 0; i + limbshift + 1 < limb_count; ++i)
-        {
-            bits[i] =
-                (bits[i + limbshift] >> bitshift) |
-                (bits[i + limbshift + 1] << (limb_bits - bitshift));
-        }
-
-        bits[limb_count - limbshift - 1] =
-            bits[limb_count - 1] >> bitshift;
-
-        for (size_t i = limb_count - limbshift; i < limb_count; ++i)
         {
             bits[i] = 0;
         }
@@ -885,24 +868,6 @@ struct big_int
         }
 
         return 0;
-    }
-
-    constexpr limb_type div_pow10(size_t count) noexcept
-    {
-        limb_type remainder = 0;
-
-        while (count >= 9)
-        {
-            remainder = div_extract(1000000000u, remainder);
-            count -= 9;
-        }
-
-        if (count)
-        {
-            remainder = div_extract(pow10_u32(count), remainder);
-        }
-
-        return remainder;
     }
 
     constexpr bool operator<(const big_int& rhs) const noexcept
@@ -2364,8 +2329,28 @@ constexpr to_string_result write_float(const F value, C* buf, size_t buf_size, c
 
 namespace _string_convert_priv {
 
+struct float_reading_traits_base
+{
+    // Upper bound on the number of significant decimal digits that can ever
+    // affect the correctly-rounded binary result for any supported float
+    // format. Digits beyond this point are too small to change which way
+    // the final mantissa rounds, so the parser never needs to look at more
+    // than this many digits of the input.
+    static constexpr size_t max_decimal_digits = 768;
+
+    // Number of *bits* needed to exactly hold a 768-digit decimal integer
+    // in binary. A decimal integer with D digits is < 10^D, so it takes
+    // ceil(log2(10^D)) = ceil(D * log2(10)) bits to represent exactly.
+    //   768 * log2(10) = 768 * 3.321928094887... = 2551.24...
+    //   ceil(2551.24...) = 2552
+    // This is the size (in bits) of the big integer that results from
+    // treating the up-to-768 significant decimal digits as a plain integer
+    // mantissa (before scaling by the decimal exponent).
+    static constexpr size_t max_decimal_precision_bits = 2552; // ceil(log2(10^768))
+};
+
 template <typename F>
-struct float_reading_traits
+struct float_reading_traits : float_reading_traits_base
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
@@ -2373,19 +2358,116 @@ struct float_reading_traits
     using wide_type = uint64_t;
     static constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
-    // To generate an N bit mantissa we require N + 1 bits of precision. The extra bit is used to correctly round
-    // the mantissa (if there are fewer bits than this available, then that's totally okay;
-    // in that case we use what we have and we don't need to round).
+    // traits::mantissa_bits is the number of *stored* fraction bits (e.g. 52
+    // for double). The true precision of the significand is one bit wider
+    // than that because of the implicit leading 1 bit that normal floats
+    // don't store: full_significand_bits = mantissa_bits + 1.
+    //
+    // To correctly round an arbitrary-precision value down to that
+    // full_significand_bits-wide significand (round-to-nearest-even), you
+    // need one additional guard bit beyond the target width to know which
+    // way to round:
+    //   required_precision_bits = full_significand_bits + 1
+    //                            = (mantissa_bits + 1) + 1
+    //                            = mantissa_bits + 2
+    // If fewer bits than this are available (value is exactly representable
+    // with room to spare), that's fine — this is just the amount reserved
+    // for the worst case.
     static constexpr size_t required_precision_bits = traits::mantissa_bits + 2;
 
-    static constexpr int max_decimal_exponent = static_cast<int>(traits::max_exponent10) + 2;
-    static constexpr int min_decimal_exponent = static_cast<int>(traits::min_exponent10) - static_cast<int>(traits::max_digits10) - 2;
+    // Smallest exponent of a *normal* float. IEEE-754-style biased exponent
+    // field's minimum nonzero value is 1, so the real exponent is 1 - bias.
+    static constexpr int min_normal_exponent = 1 - traits::exponent_bias;
 
-    static constexpr size_t max_significant_digits = static_cast<size_t>(max_decimal_exponent - min_decimal_exponent) + 1;
-    static constexpr size_t max_bits = ceil_log2_pow10(max_significant_digits) + required_precision_bits;
+    // Smallest exponent representable at all (smallest subnormal). Subnormals
+    // trade mantissa bits for exponent range one at a time: as the value
+    // shrinks below min_normal_exponent, the implicit leading bit disappears
+    // and the significand effectively shifts right, one bit per exponent
+    // step, until all mantissa_bits of precision are exhausted. So the
+    // smallest representable (nonzero) value sits mantissa_bits exponent
+    // steps below min_normal_exponent.
+    static constexpr int min_subnormal_exponent = min_normal_exponent - static_cast<int>(traits::mantissa_bits);
+
+    // Total number of bits the working big integer must hold to correctly
+    // parse *any* decimal string into *any* representable value of F,
+    // including the smallest subnormal.
+    //
+    // During parsing, the up-to-768-digit decimal significand (which needs
+    // max_decimal_precision_bits bits to hold exactly) has to be aligned
+    // against the target binary exponent. The worst case for how far that
+    // alignment shift can go is when the result is the smallest subnormal:
+    // the value's bits must be shifted down across the entire span from
+    // "no shift" to min_subnormal_exponent, i.e. up to
+    // abs(min_subnormal_exponent) bits of shift/precision.
+    //
+    // So the total working precision needed is:
+    //   (bits absorbed by shifting all the way down to the smallest
+    //    subnormal exponent)      -> abs(min_subnormal_exponent)
+    // + (bits needed to hold the full decimal significand exactly)
+    //                              -> max_decimal_precision_bits
+    // + (extra guard bits needed to correctly round the final mantissa)
+    //                              -> required_precision_bits
+    static constexpr size_t max_bits = static_cast<size_t>(-min_subnormal_exponent) + max_decimal_precision_bits + required_precision_bits;
     static constexpr size_t limb_count = (max_bits + limb_bits - 1) / limb_bits;
-
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
+};
+
+template <typename F>
+struct float_divider
+{
+    using base = float_reading_traits<F>;
+    using uint_type = typename base::uint_type;
+    using limb_type = typename base::limb_type;
+    using big_int_type = typename base::big_int_type;
+
+    big_int_type& bits;
+
+    constexpr float_divider(big_int_type& bits_) noexcept
+        : bits(bits_)
+    {}
+
+private:
+
+    constexpr void shrink(size_t& top_limb) noexcept
+    {
+        while (top_limb && bits.bits[top_limb] == 0)
+        {
+            --top_limb;
+        }
+    }
+
+    constexpr limb_type div_extract_shrink(limb_type x, size_t& top_limb) noexcept
+    {
+        const limb_type remainder = bits.div_extract(x, top_limb);
+        shrink(top_limb);
+        return remainder;
+    }
+
+public:
+
+    constexpr bool div_pow10(size_t count) noexcept
+    {
+        limb_type remainder = 0;
+        bool zero_tail = true;
+
+        size_t top_limb = big_int_type::limb_count - 1;
+        shrink(top_limb);
+
+        while (count >= 9)
+        {
+            remainder = div_extract_shrink(1000000000u, top_limb);
+            zero_tail = zero_tail && (remainder == 0);
+            count -= 9;
+        }
+
+        if (count)
+        {
+            remainder = div_extract_shrink(pow10_u32(count), top_limb);
+            zero_tail = zero_tail && (remainder == 0);
+        }
+
+        return zero_tail;
+    }
 };
 
 template <typename F>
@@ -2570,7 +2652,7 @@ constexpr from_string_error assemble_float_shifted(
         if (shift < 0)
         {
             mantissa = shr_round(mantissa, static_cast<uint32_t>(-shift), has_zero_tail);
-            if (mantissa > traits::mantissa_mask && exponent == max_binary_exponent)
+            if (mantissa > traits::normal_mantissa_mask && exponent == max_binary_exponent)
             {
                 // overflow to infinity (still valid)
                 err = from_string_error::out_of_range;
@@ -2689,7 +2771,7 @@ struct float_digit_stream
     const C* frac_first;
     uint32_t frac_digit_count;
 
-    size_t n = 0;
+    size_t n;
 
     constexpr uint32_t total_digits() const noexcept
     {
@@ -2729,7 +2811,8 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
         info.int_first,
         info.int_digit_count,
         info.frac_first,
-        info.frac_digit_count
+        info.frac_digit_count,
+        0
     };
 
     // The input is of the form 0.mantissa * 10^exponent, where 'mantissa' are the decimal digits of the mantissa
@@ -2849,12 +2932,14 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
 
     frac_numerator.shl(remaining_precision_bits_needed);
 
-    frac_numerator.div_pow10(frac_denominator_exponent);
+    float_divider<F> div{ frac_numerator };
+    const bool zero_remainder = div.div_pow10(frac_denominator_exponent);
+
     const auto frac_mantissa_low = frac_numerator.bits[0];
     const auto frac_mantissa_high = frac_numerator.bits[1];
     uint64_t frac_mantissa = frac_mantissa_low + (static_cast<uint64_t>(frac_mantissa_high) << 32);
 
-    has_zero_tail = has_zero_tail && frac_numerator.is_zero();
+    has_zero_tail = has_zero_tail && zero_remainder;
 
     // We may have produced more bits of precision than were required. Check, and remove any "extra" bits:
     const uint32_t frac_mantissa_bit_count = bit::bit_width(frac_mantissa);
@@ -2905,7 +2990,7 @@ constexpr from_string_error string_to_float_hex(const C* str, size_t str_size, F
 
     // Accumulate bits into the mantissa buffer
     size_t total_digits = stream.total_digits() + 1;
-    while (--total_digits && mantissa <= traits::mantissa_mask)
+    while (--total_digits && mantissa <= traits::normal_mantissa_mask)
     {
         mantissa *= 16;
         mantissa += stream.next_digit();
@@ -2918,23 +3003,6 @@ constexpr from_string_error string_to_float_hex(const C* str, size_t str_size, F
     }
 
     return assemble_float_shifted(mantissa, exponent, info.is_negative, has_zero_tail, value);
-}
-
-template <typename C>
-constexpr int to_digit(C c) noexcept
-{
-    if (c >= static_cast<C>('0') && c <= static_cast<C>('9'))
-    {
-        return c - static_cast<C>('0');
-    }
-
-    c = str::to_lower_ascii_unchecked(c);
-    if (c >= static_cast<C>('a') && c <= static_cast<C>('f'))
-    {
-        return c - static_cast<C>('a') + 10;
-    }
-
-    return 255;
 }
 
 template <typename F, typename C>
@@ -3037,7 +3105,7 @@ template <typename F, typename C>
 constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& value, const float_from_string_format_options<C>& fmt, bool is_negative, size_t i) noexcept
 {
     using traits = typename float_bits<F>::traits;
-    constexpr uint32_t max_mantissa_digits = _string_convert_priv::max_decimal_mantissa_digits<F>();
+    constexpr size_t max_mantissa_digits = float_reading_traits_base::max_decimal_digits;
 
     const bool is_hex = fmt.format == float_format::hex;
     const int base{ is_hex ? 16 : 10 };
@@ -3057,7 +3125,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     const size_t int_digit_start = i;
     while (i < str_size)
     {
-        const auto digit = _string_convert_priv::to_digit(str[i]);
+        const auto digit = to_digit(str[i]);
         if (digit >= base)
         {
             break;
@@ -3075,10 +3143,6 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         ++i;
     }
 
-    // Raw span length -- deliberately NOT trimmed yet. This is what the
-    // position exponent below is measured against, and trailing-zero
-    // trimming must not affect that (e.g. "100" still has its leading digit
-    // at position 2, same as untrimmed).
     size_t int_digit_count = i - int_digit_start;
 
     // fractional part
@@ -3086,7 +3150,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
 
     size_t frac_digit_start = i;
     size_t frac_digit_count = 0;
-    size_t frac_leading_zeros = 0;
+    size_t frac_leading_zero_count = 0;
     bool has_decimal_point = false;
 
     if (i < str_size && str[i] == fmt.decimal_point)
@@ -3105,12 +3169,12 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
             }
         }
 
-        frac_leading_zeros = i - frac_digit_start;
+        frac_leading_zero_count = i - frac_digit_start;
         frac_digit_start = i;
 
         while (i < str_size)
         {
-            const auto digit = _string_convert_priv::to_digit(str[i]);
+            const auto digit = to_digit(str[i]);
             if (digit >= base)
             {
                 break;
@@ -3128,42 +3192,38 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
             ++i;
         }
 
-        frac_digit_count = i - frac_digit_start;
+        frac_digit_count = digit_count - int_digit_count;
     }
+
+    //===========================================
 
     // Total characters consumed so far, minus the decimal point itself
     // (if present), tells us whether any digit was actually seen —
     // independent of whether trimming later reduced the significant
     // digit counts to zero (e.g. "0", "0.0", "00.000").
     const size_t chars_consumed = i - digit_parse_start;
-    const bool saw_any_digit = chars_consumed > (has_decimal_point ? 1 : 0);
-
+    const bool saw_any_digit = chars_consumed > static_cast<size_t>(has_decimal_point);
     if (!saw_any_digit)
     {
         return { 0, from_string_error::invalid_argument };
     }
+
+    // exponent
+    //===========================================
 
     // The exponent adjustment holds the number of digits in the mantissa buffer that appeared before the radix point.
     // It can be negative, and leading zeroes in the integer part are ignored. Examples:
     // For "03333.111", it is 4.
     // For "00000.111", it is 0.
     // For "00000.001", it is -2.
-    int exponent_adjustment;
-    if (int_digit_count > 0)
-    {
-        exponent_adjustment = static_cast<int>(int_digit_count);
-    }
-    else
-    {
-        // int_digit_count == 0 here implies frac_leading_zeros > 0, since
-        // saw_any_digit already ruled out "no digits at all".
-        exponent_adjustment = -static_cast<int>(frac_leading_zeros);
-    }
+    int exponent_adjustment = (int_digit_count > 0)
+        ? static_cast<int>(int_digit_count)
+        : -static_cast<int>(frac_leading_zero_count);
 
-    const C exponent_prefix = is_hex ? 'p' : 'e';
+    const C exponent_prefix = static_cast<C>(is_hex ? 'p' : 'e');
     int exponent = 0;
     bool exponent_is_negative = false;
-    bool exp_overflow = false;
+    bool exponent_overflow = false;
 
     const size_t exponent_scan_start = i;
 
@@ -3194,12 +3254,13 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
             }
             else
             {
-                exp_overflow = true;
+                exponent_overflow = true;
             }
 
             ++j;
-            i = j;
         }
+
+        i = j;
 
         if (exponent_is_negative)
         {
@@ -3207,12 +3268,13 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         }
     }
 
-    // chars_format::scientific requires the exponent part to actually be
-    // present (chars_format::hex has no such requirement here).
+    // scientific format requires an exponent to be present
     if (fmt.format == float_format::scientific && i == exponent_scan_start)
     {
         return { 0, from_string_error::invalid_argument };
     }
+
+    //===========================================
 
     // Trim trailing zeros
     {
@@ -3247,7 +3309,9 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         }
     }
 
-    if (exp_overflow)
+    //===========================================
+
+    if (exponent_overflow)
     {
         if (exponent_is_negative)
         {
@@ -3293,6 +3357,8 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         }
     }
 
+    //===========================================
+
     constexpr int maximum_temporary_decimal_exponent = 5200;
     constexpr int minimum_temporary_decimal_exponent = -5200;
 
@@ -3334,6 +3400,8 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
         }
     }
 
+    //===========================================
+
     const _string_convert_priv::float_string_info<C> info{
         is_negative,
         exponent,
@@ -3351,7 +3419,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
     }
     else
     {
-        const auto err = _string_convert_priv::string_to_float_decimal(str, str_size, value, info, has_zero_tail);
+        const auto err = string_to_float_decimal(str, str_size, value, info, has_zero_tail);
         return { i, err };
     }
 }

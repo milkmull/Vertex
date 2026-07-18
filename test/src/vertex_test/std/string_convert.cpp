@@ -1,15 +1,30 @@
 #include <cstdint>
 
-#include "vertex/std/static_vector.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_convert.hpp"
-#include "vertex/std/string_utils.hpp"
 #include "vertex/std/string_view.hpp"
 #include "vertex_test/test.hpp"
 
-#include "integer_to_string_test_data.hpp"
+#include "string_convert/integer_to_string_test_data.hpp"
 
-using namespace vx;
+#include "string_convert/float_fixed_to_string_test_cases.hpp"
+#include "string_convert/float_from_string_test_cases.hpp"
+#include "string_convert/float_general_to_string_test_cases.hpp"
+#include "string_convert/float_hex_to_string_test_cases.hpp"
+#include "string_convert/float_scientific_to_string_test_cases.hpp"
+
+#include "string_convert/double_fixed_to_string_test_cases_1.hpp"
+#include "string_convert/double_fixed_to_string_test_cases_2.hpp"
+#include "string_convert/double_fixed_to_string_test_cases_3.hpp"
+#include "string_convert/double_fixed_to_string_test_cases_4.hpp"
+#include "string_convert/double_from_string_test_cases.hpp"
+#include "string_convert/double_general_to_string_test_cases.hpp"
+#include "string_convert/double_hex_to_string_test_cases.hpp"
+#include "string_convert/double_scientific_to_string_test_cases_1.hpp"
+#include "string_convert/double_scientific_to_string_test_cases_2.hpp"
+#include "string_convert/double_scientific_to_string_test_cases_3.hpp"
+#include "string_convert/double_scientific_to_string_test_cases_4.hpp"
+#include "string_convert/double_to_string_test_cases.hpp"
 
 #define LIT(x)          VX_LIT(C, x)
 #define NUM(x)          static_cast<I>(x)
@@ -718,16 +733,40 @@ void test_float_from_string(const str::float_format format)
 template <typename F, typename C>
 void test_float_type()
 {
-    const str::float_format formats[] = {
-        str::float_format::general,
-        str::float_format::scientific,
-        str::float_format::fixed,
-        str::float_format::hex
-    };
+    //const str::float_format formats[] = {
+    //    str::float_format::general,
+    //    str::float_format::scientific,
+    //    str::float_format::fixed,
+    //    str::float_format::hex
+    //};
+    //
+    //for (const auto& fmt : formats)
+    //{
+    //    test_float_from_string<F, C>(fmt);
+    //}
 
-    for (const auto& fmt : formats)
+    VX_SECTION("rounding")
     {
-        test_float_from_string<F, C>(fmt);
+        VX_IF_CONSTEXPR (std::is_same<F, float>::value)
+        {
+            // See float_from_chars_test_cases.hpp in this directory.
+            for (const auto& t : float_from_string_test_cases)
+            {
+                const auto tmp = str::string_cast<C>(t.input);
+                const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
+                test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
+            }
+        }
+        else
+        {
+            // See double_from_chars_test_cases.hpp in this directory.
+            for (const auto& t : double_from_string_test_cases)
+            {
+                const auto tmp = str::string_cast<C>(t.input);
+                const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
+                test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
+            }
+        }
     }
 }
 
@@ -735,12 +774,12 @@ template <typename F>
 void test_float()
 {
     test_float_type<F, char>();
-//    test_float_type<F, wchar_t>();
-//#if defined(__cpp_lib_char8_t)
-//    test_float_type<F, char8_t>();
-//#endif
-//    test_float_type<F, char16_t>();
-//    test_float_type<F, char32_t>();
+    test_float_type<F, wchar_t>();
+#if defined(__cpp_lib_char8_t)
+    test_float_type<F, char8_t>();
+#endif
+    test_float_type<F, char16_t>();
+    test_float_type<F, char32_t>();
 }
 
 VX_TEST_CASE(test_all_float)
