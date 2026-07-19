@@ -12,6 +12,7 @@
 #include "string_convert/float_general_to_string_test_cases.hpp"
 #include "string_convert/float_hex_to_string_test_cases.hpp"
 #include "string_convert/float_scientific_to_string_test_cases.hpp"
+#include "string_convert/float_to_string_test_cases.hpp"
 
 #include "string_convert/double_fixed_to_string_test_cases_1.hpp"
 #include "string_convert/double_fixed_to_string_test_cases_2.hpp"
@@ -57,8 +58,8 @@ bool all_of(const C* ptr, size_t count, C c)
     return true;
 }
 
-template <typename I, typename C, typename FMT>
-void test_common_to_string(const I value, const FMT& fmt, const str::basic_string_view<C> correct)
+template <typename T, typename C, typename FMT>
+void test_common_to_string(const T value, const FMT& fmt, const str::basic_string_view<C> correct)
 {
     // Important: Test every effective buffer size from 0 through correct.size() and slightly beyond. For the sizes
     // less than correct.size(), this verifies that the too-small buffer is correctly detected, and that we don't
@@ -74,11 +75,20 @@ void test_common_to_string(const I value, const FMT& fmt, const str::basic_strin
     // detect buffer overruns (specific value isn't important)
     constexpr size_t buf_suffix = 30;
 
-    constexpr size_t space = std::is_integral<I>::value
+    constexpr size_t space = std::is_integral<T>::value
         ? 1 + 64 // worst case: -2^63 in binary
-        : std::is_same<I, float>::value
+        : std::is_same<T, float>::value
         ? 1 + 151   // worst case: negative min subnormal float, fixed notation
         : 1 + 1076; // worst case: negative min subnormal double, fixed notation
+
+#if PRINT_CASE
+
+    VX_IF_CONSTEXPR (std::is_same<C, char>::value)
+    {
+        std::cout << "to string: " << value << std::endl;
+    }
+
+#endif
 
     constexpr size_t buf_size = buf_prefix + space + buf_suffix;
     vx::array<C, buf_size> buf;
@@ -733,17 +743,17 @@ void test_float_from_string(const str::float_format format)
 template <typename F, typename C>
 void test_float_type()
 {
-    //const str::float_format formats[] = {
-    //    str::float_format::general,
-    //    str::float_format::scientific,
-    //    str::float_format::fixed,
-    //    str::float_format::hex
-    //};
-    //
-    //for (const auto& fmt : formats)
-    //{
-    //    test_float_from_string<F, C>(fmt);
-    //}
+    const str::float_format formats[] = {
+        str::float_format::general,
+        str::float_format::scientific,
+        str::float_format::fixed,
+        str::float_format::hex
+    };
+
+    for (const auto& fmt : formats)
+    {
+        test_float_from_string<F, C>(fmt);
+    }
 
     const str::float_from_string_format_options<C> general_fmt{ str::float_format::general };
 
@@ -771,6 +781,13 @@ void test_float_type()
             {
                 const auto tmp = str::string_cast<C>(p.first);
                 test_from_string<F, C>(tmp, general_fmt, tmp.size(), fse_none, bit::bit_cast<float>(p.second));
+            }
+
+            for (const auto& t : float_to_string_test_cases)
+            {
+                const auto tmp = str::string_cast<C>(t.correct);
+                const str::float_to_string_format_options<C> fmt{ t.fmt };
+                test_common_to_string<F, C>(t.value, fmt, tmp);
             }
         }
         else

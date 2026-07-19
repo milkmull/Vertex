@@ -419,9 +419,9 @@ constexpr from_string_result parse_integer(const C* s, size_t size, I& value, co
 
 enum class float_format : char
 {
+    general = 'g',
     fixed = 'f',
     scientific = 'e',
-    general = 'g',
     hex = 'a',
 };
 
@@ -862,30 +862,19 @@ struct big_int
         return 0;
     }
 
-    constexpr bool operator<(const big_int& rhs) const noexcept
+    template <typename U>
+    constexpr auto extract_low_bits() const noexcept
     {
-        for (size_t i = limb_count; i-- > 0;)
+        constexpr size_t limbs_needed = (sizeof(U) + sizeof(limb_type) - 1) / sizeof(limb_type);
+
+        U result = 0;
+        for (size_t i = limbs_needed; i-- > 0;)
         {
-            if (bits[i] != rhs.bits[i])
-            {
-                return bits[i] < rhs.bits[i];
-            }
+            result <<= limb_bits;
+            result |= static_cast<U>(bits[i]);
         }
 
-        return false;
-    }
-
-    constexpr bool is_zero() const noexcept
-    {
-        for (const auto limb : bits)
-        {
-            if (limb)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return result;
     }
 };
 
@@ -1160,22 +1149,6 @@ constexpr float_write_status write_float_start(const float_bits<F>& fb, C* buf, 
         return float_write_status::finished;
     }
 
-    // nan
-    if (fb.e_bits == traits::inf_nan_exponent && fb.m_bits != 0)
-    {
-        if (buf_size < 3)
-        {
-            return float_write_status::failed;
-        }
-
-        buf[0] = static_cast<C>(fmt.uppercase ? 'N' : 'n');
-        buf[1] = static_cast<C>(fmt.uppercase ? 'A' : 'a');
-        buf[2] = buf[0]; // 'N' or 'n'
-
-        n = 3;
-        return float_write_status::finished;
-    }
-
     const char sign = fb.sign_bit ? '-' : (fmt.force_sign ? '+' : 0);
     if (sign)
     {
@@ -1187,17 +1160,46 @@ constexpr float_write_status write_float_start(const float_bits<F>& fb, C* buf, 
         buf[n++] = static_cast<C>(sign);
     }
 
-    // inf
-    if (fb.e_bits == traits::inf_nan_exponent && fb.m_bits == 0)
+    if (fb.e_bits == traits::inf_nan_exponent)
     {
-        if (buf_size - n < 3)
-        {
-            return float_write_status::failed;
-        }
+        const C n_val = static_cast<C>(fmt.uppercase ? 'N' : 'n');
 
-        buf[n++] = static_cast<C>(fmt.uppercase ? 'I' : 'i');
-        buf[n++] = static_cast<C>(fmt.uppercase ? 'N' : 'n');
-        buf[n++] = static_cast<C>(fmt.uppercase ? 'F' : 'f');
+        // inf
+        if (fb.m_bits == 0)
+        {
+            if (buf_size - n < 3)
+            {
+                return float_write_status::failed;
+            }
+
+            buf[n++] = static_cast<C>(fmt.uppercase ? 'I' : 'i');
+            buf[n++] = n_val;
+            buf[n++] = static_cast<C>(fmt.uppercase ? 'F' : 'f');
+        }
+        // nan
+        else
+        {
+            const bool indefinite = fb.m_bits == traits::quiet_nan_bit_mask;
+
+            const size_t needed = indefinite ? 8 : 3;
+            if (buf_size - n < needed)
+            {
+                return float_write_status::failed;
+            }
+
+            buf[n++] = n_val;
+            buf[n++] = static_cast<C>(fmt.uppercase ? 'A' : 'a');
+            buf[n++] = n_val;
+
+            if (indefinite)
+            {
+                buf[n++] = static_cast<C>('(');
+                buf[n++] = static_cast<C>(fmt.uppercase ? 'I' : 'i');
+                buf[n++] = n_val;
+                buf[n++] = static_cast<C>(fmt.uppercase ? 'D' : 'd');
+                buf[n++] = static_cast<C>(')');
+            }
+        }
 
         return float_write_status::finished;
     }
@@ -1415,17 +1417,13 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m2, int shi
 {
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
-
     using limb_type = uint32_t;
-    using wide_type = uint64_t;
-    constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
 
     const int frac_bit_count = -shift;
     uint_type int_bits = m2 >> frac_bit_count;
 
     // should be exact
     const size_t int_digit_count = digit_count_unsigned(int_bits);
-    const int e10 = static_cast<int>(int_digit_count) - 1;
 
     const size_t precision_char_count = static_cast<size_t>(precision > 0) + precision;
     size_t needed = int_digit_count + precision_char_count;
@@ -2440,7 +2438,7 @@ public:
     constexpr bool div_pow10(size_t count) noexcept
     {
         limb_type remainder = 0;
-        bool zero_tail = true;
+        bool zero_remainder = true;
 
         size_t top_limb = big_int_type::limb_count - 1;
         shrink(top_limb);
@@ -2448,17 +2446,17 @@ public:
         while (count >= 9)
         {
             remainder = div_extract_shrink(1000000000u, top_limb);
-            zero_tail = zero_tail && (remainder == 0);
+            zero_remainder = zero_remainder && (remainder == 0);
             count -= 9;
         }
 
         if (count)
         {
             remainder = div_extract_shrink(pow10_u32(count), top_limb);
-            zero_tail = zero_tail && (remainder == 0);
+            zero_remainder = zero_remainder && (remainder == 0);
         }
 
-        return zero_tail;
+        return zero_remainder;
     }
 };
 
@@ -2890,14 +2888,10 @@ constexpr from_string_error string_to_float_decimal(float_digit_stream<C>& strea
 
     float_divider<F> div{ frac_numerator };
     const bool zero_remainder = div.div_pow10(frac_denominator_exponent);
-
-    const auto frac_mantissa_low = frac_numerator.bits[0];
-    const auto frac_mantissa_high = frac_numerator.bits[1];
-    uint64_t frac_mantissa = frac_mantissa_low + (static_cast<uint64_t>(frac_mantissa_high) << 32);
-
     has_zero_tail = has_zero_tail && zero_remainder;
 
     // We may have produced more bits of precision than were required. Check, and remove any "extra" bits:
+    uint_type frac_mantissa = frac_numerator.extract_low_bits<uint_type>();
     const uint32_t frac_mantissa_bit_count = bit::bit_width(frac_mantissa);
 
     // The fractional exponent is the power of two by which we must multiply the fractional part to move it into the
@@ -2916,11 +2910,8 @@ constexpr from_string_error string_to_float_decimal(float_digit_stream<C>& strea
     }
 
     // Compose the mantissa from the integer and fractional parts:
-    const auto int_mantissa_low = int_value.bits[0];
-    const auto int_mantissa_high = int_value.bits[1];
-    const uint64_t int_mantissa = int_mantissa_low + (static_cast<uint64_t>(int_mantissa_high) << 32);
-
-    const uint64_t complete_mantissa = (int_mantissa << required_frac_precision_bits) + frac_mantissa;
+    const uint_type int_mantissa = int_value.extract_low_bits<uint_type>();
+    const uint_type complete_mantissa = (int_mantissa << required_frac_precision_bits) + frac_mantissa;
 
     // Compute the final exponent:
     // * If the mantissa had an integer part, then the exponent is one less than the number of bits we obtained
