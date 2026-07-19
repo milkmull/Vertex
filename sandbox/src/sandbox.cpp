@@ -37,7 +37,7 @@ struct ieee754_layout
     static constexpr int exponent_bits = total_bits - mantissa_bits - 1;     // 8 / 11
     static constexpr int exponent_bias = (1 << (exponent_bits - 1)) - 1;     // 127 / 1023
 
-    static constexpr bits_type mantissa_mask = (bits_type(1) << mantissa_bits) - 1;
+    static constexpr bits_type mantissa_field_mask = (bits_type(1) << mantissa_bits) - 1;
     static constexpr bits_type exponent_max = (bits_type(1) << exponent_bits) - 1; // 255 / 2047 (all-ones, reserved for inf/nan)
 };
 
@@ -61,7 +61,7 @@ static F make_float(typename ieee754_layout<F>::bits_type sign,
     const bits_type bits =
         (sign << (layout::total_bits - 1)) |
         (e_bits << layout::mantissa_bits) |
-        (m_bits & layout::mantissa_mask);
+        (m_bits & layout::mantissa_field_mask);
 
     return bits_to_float<F>(bits);
 }
@@ -80,7 +80,7 @@ static F random_zero_or_subnormal(RNG& rng)
     using bits_type = typename layout::bits_type;
 
     const bits_type sign = rng.template randi_range<bits_type>(0, 1);
-    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_mask);
+    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_field_mask);
 
     return make_float<F>(sign, bits_type(0), m);
 }
@@ -95,7 +95,7 @@ static F random_normal_small(RNG& rng)
 
     const bits_type sign = rng.template randi_range<bits_type>(0, 1);
     const bits_type e_bits = rng.template randi_range<bits_type>(1, bits_type(layout::exponent_bias - 1));
-    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_mask);
+    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_field_mask);
 
     return make_float<F>(sign, e_bits, m);
 }
@@ -112,7 +112,7 @@ static F random_mixed_int_and_frac(RNG& rng)
     const bits_type e_lo = bits_type(layout::exponent_bias);
     const bits_type e_hi = bits_type(layout::exponent_bias + layout::mantissa_bits - 1);
     const bits_type e_bits = rng.template randi_range<bits_type>(e_lo, e_hi);
-    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_mask);
+    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_field_mask);
 
     return make_float<F>(sign, e_bits, m);
 }
@@ -129,7 +129,7 @@ static F random_large_integer(RNG& rng)
     const bits_type e_lo = bits_type(layout::exponent_bias + layout::mantissa_bits);
     const bits_type e_hi = bits_type(layout::exponent_max - 1);
     const bits_type e_bits = rng.template randi_range<bits_type>(e_lo, e_hi);
-    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_mask);
+    const bits_type m = rng.template randi_range<bits_type>(0, layout::mantissa_field_mask);
 
     return make_float<F>(sign, e_bits, m);
 }
@@ -492,13 +492,13 @@ int main()
         //vx_print_float_string(f);
     }
 
-    const vx::string s = "2.7923236592830528266962495740723380649230754633916493372624425609233151344967804874386274605058133602142333984375e-39";
-
-    float v;
-
+    const vx::string s = "9007199254740984";
+    
+    double v;
+    
     v = 0;
     const auto r1 = std::from_chars(s.data(), s.data() + s.size(), v, std::chars_format::general);
-
+    
     v = 0;
     const auto r2 = vx::str::from_string(s, v, { vx::str::float_format::general });
 

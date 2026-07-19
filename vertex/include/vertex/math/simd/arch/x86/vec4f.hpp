@@ -179,8 +179,8 @@ struct vec<4, f32>
         const data_type rnd0 = round(x);                            // round to nearest
         const data_type zero = _mm_setzero_ps();
         const data_type cmp0 = _mm_cmpneq_ps(x, rnd0);              // where x != round(x)
-        const data_type sign_mask = _mm_cmplt_ps(x, zero);          // x < 0 ? 1 : 0
-        const data_type and0 = _mm_and_ps(cmp0, sign_mask);         // needs correction where x < 0 and has frac
+        const data_type sign_bit_mask = _mm_cmplt_ps(x, zero);          // x < 0 ? 1 : 0
+        const data_type and0 = _mm_and_ps(cmp0, sign_bit_mask);         // needs correction where x < 0 and has frac
         const data_type fix = _mm_and_ps(and0, _mm_set1_ps(1.0f));  // subtract 1.0 where needed
         const data_type sub0 = _mm_sub_ps(rnd0, fix);
         return sub0;

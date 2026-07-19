@@ -525,19 +525,10 @@ inline constexpr size_t ceil_log10_pow2(size_t bits) noexcept
     return (bits * 30103 + 99999) / 100000;
 }
 
-constexpr std::uint32_t log2_pow5(int e) noexcept
+inline constexpr uint32_t pow10_bit_width(uint32_t e)
 {
-    return static_cast<uint32_t>((static_cast<uint64_t>(e) * 1217359ull) >> 19);
-}
-
-constexpr size_t ceil_log2_pow10(size_t digits) noexcept
-{
-    return (digits * 160533 + 48329) / 48330;
-}
-
-constexpr uint32_t bit_width_pow10(int e) noexcept
-{
-    return e == 0 ? 1u : e + log2_pow5(e) + 1u;
+    // should be exact for all pow 10 through 5000
+    return static_cast<uint32_t>((static_cast<uint64_t>(e) * 14267572527ULL) >> 32) + 1;
 }
 
 template <typename F>
@@ -558,7 +549,7 @@ template <typename F>
 constexpr int normal_pow10(const int e2) noexcept
 {
     // this estimate may be 1 greater than the actual power of 10
-    const int e10 = -(vx::str::_string_convert_priv::log10_pow5(-e2) + e2) - (e2 > 3);
+    const int e10 = -(log10_pow5(-e2) + e2) - (e2 > 3);
     return e10;
 }
 
@@ -566,7 +557,7 @@ template <typename F>
 constexpr int large_integer_pow10(const int e2) noexcept
 {
     // this estimate may be 1 less than the actual power of 10
-    const int e10 = vx::str::_string_convert_priv::log10_pow2(e2);
+    const int e10 = log10_pow2(e2);
     return e10;
 }
 
@@ -595,9 +586,9 @@ struct float_bits
     constexpr float_bits(const F value) noexcept
     {
         const auto bits = bit::bit_cast<uint_type>(value);
-        m_bits = (bits & traits::mantissa_mask);
-        e_bits = (bits & traits::exponent_mask) >> traits::mantissa_bits;
-        sign_bit = (bits & traits::sign_mask) != 0;
+        m_bits = (bits & traits::mantissa_field_mask);
+        e_bits = (bits & traits::exponent_field_mask) >> traits::mantissa_bits;
+        sign_bit = (bits & traits::sign_bit_mask) != 0;
     }
 
     uint_type m_bits;
@@ -624,6 +615,7 @@ struct big_int
     using wide_type = wide_type_;
     static constexpr uint32_t limb_count = limb_count_;
     static constexpr size_t limb_bits = sizeof(limb_type) * CHAR_BIT;
+    static constexpr size_t bit_count = limb_count * limb_bits;
 
     limb_type bits[limb_count_];
 
@@ -747,14 +739,14 @@ struct big_int
     {
         while (count >= 9)
         {
-            if (mul(1000000000u))
+            if (mul(1000000000u) != 0)
             {
                 return false;
             }
             count -= 9;
         }
 
-        return count ? !mul(pow10_u32(count)) : true;
+        return count ? (mul(pow10_u32(count)) == 0) : true;
     }
 
     //=========================================================================
@@ -908,7 +900,7 @@ struct float_writing_traits
     using wide_type = uint64_t;
 
     static constexpr uint32_t limb_bits = sizeof(limb_type) * CHAR_BIT;
-    static constexpr uint32_t max_shift = traits::exponent_bias + traits::mantissa_bits - 1;
+    static constexpr uint32_t max_shift = traits::exponent_bias + traits::full_mantissa_bits;
     static constexpr uint32_t limb_count = ((max_shift + (limb_bits - 1)) / limb_bits) + 1;
 
     using big_int_type = big_int<limb_type, limb_count, wide_type>;
@@ -1169,7 +1161,7 @@ constexpr float_write_status write_float_start(const float_bits<F>& fb, C* buf, 
     }
 
     // nan
-    if (fb.e_bits == traits::filled_exponent && fb.m_bits != 0)
+    if (fb.e_bits == traits::inf_nan_exponent && fb.m_bits != 0)
     {
         if (buf_size < 3)
         {
@@ -1196,7 +1188,7 @@ constexpr float_write_status write_float_start(const float_bits<F>& fb, C* buf, 
     }
 
     // inf
-    if (fb.e_bits == traits::filled_exponent && fb.m_bits == 0)
+    if (fb.e_bits == traits::inf_nan_exponent && fb.m_bits == 0)
     {
         if (buf_size - n < 3)
         {
@@ -1517,7 +1509,7 @@ constexpr size_t write_float_fixed_impl(const float_bits<F>& fb, C* buf, const s
         {
             // subnormal
             const int e10 = subnormal_pow10<F>(fb.m_bits);
-            const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
+            const int shift = static_cast<int>(traits::exponent_bias + traits::full_mantissa_bits);
             return _string_convert_priv::write_fixed_normal<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
         }
     }
@@ -2008,7 +2000,7 @@ constexpr size_t write_float_scientific_impl(const float_bits<F>& fb, C* buf, co
         {
             // subnormal
             const int e10 = subnormal_pow10<F>(fb.m_bits);
-            const int shift = static_cast<int>(traits::exponent_bias + traits::mantissa_bits - 1);
+            const int shift = static_cast<int>(traits::exponent_bias + traits::full_mantissa_bits);
             return _string_convert_priv::write_scientific_normal<F, C>(fb.m_bits, e10, shift, buf, buf_size, fmt, precision);
         }
     }
@@ -2373,7 +2365,7 @@ struct float_reading_traits : float_reading_traits_base
     // If fewer bits than this are available (value is exactly representable
     // with room to spare), that's fine — this is just the amount reserved
     // for the worst case.
-    static constexpr size_t required_precision_bits = traits::mantissa_bits + 2;
+    static constexpr size_t required_precision_bits = traits::full_mantissa_bits + 1;
 
     // Smallest exponent of a *normal* float. IEEE-754-style biased exponent
     // field's minimum nonzero value is 1, so the real exponent is 1 - bias.
@@ -2550,7 +2542,7 @@ constexpr void assemble_float_zero(const bool is_negative, F& value) noexcept
     using uint_type = typename traits::uint_type;
 
     uint_type sign_component = is_negative;
-    sign_component <<= traits::sign_shift;
+    sign_component <<= traits::sign_bit_shift;
     value = bit::bit_cast<F>(sign_component);
 }
 
@@ -2561,9 +2553,9 @@ constexpr void assemble_float_infinity(const bool is_negative, F& value) noexcep
     using uint_type = typename traits::uint_type;
 
     uint_type sign_component = is_negative;
-    sign_component <<= traits::sign_shift;
+    sign_component <<= traits::sign_bit_shift;
 
-    constexpr uint_type exponent_component = traits::exponent_mask;
+    constexpr uint_type exponent_component = traits::exponent_field_mask;
     value = bit::bit_cast<F>(sign_component | exponent_component);
 }
 
@@ -2574,13 +2566,13 @@ constexpr void assemble_float_nan(const bool is_negative, const bool is_quiet, F
     using uint_type = typename traits::uint_type;
 
     uint_type sign_component = is_negative;
-    sign_component <<= traits::sign_shift;
+    sign_component <<= traits::sign_bit_shift;
 
     // Quiet NaN: MSB of the mantissa set, all other payload bits clear.
     // Signaling NaN: MSB of the mantissa clear, low payload bit set (must be nonzero payload).
-    const uint_type mantissa_component = is_quiet ? traits::quiet_nan_mask : uint_type{ 1 };
+    const uint_type mantissa_component = is_quiet ? traits::quiet_nan_bit_mask : uint_type{ 1 };
 
-    constexpr uint_type exponent_component = traits::exponent_mask;
+    constexpr uint_type exponent_component = traits::exponent_field_mask;
     value = bit::bit_cast<F>(sign_component | exponent_component | mantissa_component);
 }
 
@@ -2591,10 +2583,10 @@ constexpr void assemble_float(const bool is_negative, const typename float_bits<
     using uint_type = typename traits::uint_type;
 
     uint_type sign_component = static_cast<uint_type>(is_negative);
-    sign_component <<= traits::sign_shift;
+    sign_component <<= traits::sign_bit_shift;
 
     uint_type exponent_component = static_cast<uint_type>(exponent + (traits::exponent_bias - 1));
-    exponent_component <<= traits::exponent_shift;
+    exponent_component <<= traits::exponent_field_shift;
 
     value = bit::bit_cast<F>(sign_component | (exponent_component + mantissa));
 }
@@ -2652,7 +2644,7 @@ constexpr from_string_error assemble_float_shifted(
         if (shift < 0)
         {
             mantissa = shr_round(mantissa, static_cast<uint32_t>(-shift), has_zero_tail);
-            if (mantissa > traits::normal_mantissa_mask && exponent == max_binary_exponent)
+            if (mantissa > traits::mantissa_with_implicit_bit_mask && exponent == max_binary_exponent)
             {
                 // overflow to infinity (still valid)
                 err = from_string_error::out_of_range;
@@ -2679,16 +2671,15 @@ constexpr from_string_error assemble_float_integer(
     using traits = typename float_bits<F>::traits;
     using uint_type = typename traits::uint_type;
 
-    constexpr int base_exponent = traits::mantissa_bits;
     constexpr size_t mantissa_bits = sizeof(uint_type) * CHAR_BIT;
     constexpr size_t limb_bits = I::limb_bits;
 
     // Extract the top bits to fill the uint type
     uint_type mantissa;
-    int exponent = base_exponent;
+    int exponent = traits::mantissa_bits;
     bool has_zero_tail = !has_nonzero_fractional_part;
 
-    if (precision_bits <= limb_bits)
+    if (precision_bits <= mantissa_bits)
     {
         VX_IF_CONSTEXPR (mantissa_bits <= limb_bits)
         {
@@ -2748,21 +2739,6 @@ constexpr from_string_error assemble_float_integer(
 }
 
 template <typename C>
-struct float_string_info
-{
-    bool is_negative;
-    int exponent;
-
-    bool is_hex;
-
-    const C* int_first;
-    uint32_t int_digit_count;
-
-    const C* frac_first;
-    uint32_t frac_digit_count;
-};
-
-template <typename C>
 struct float_digit_stream
 {
     const C* int_first;
@@ -2796,24 +2772,15 @@ struct float_digit_stream
 };
 
 template <typename F, typename C>
-constexpr from_string_error string_to_float_decimal(const C* str, size_t str_size, F& value, const float_string_info<C>& info, bool has_zero_tail) noexcept
+constexpr from_string_error string_to_float_decimal(float_digit_stream<C>& stream, F& value, bool is_negative, int exponent, bool has_zero_tail) noexcept
 {
     using read_traits = float_reading_traits<F>;
     using traits = typename read_traits::traits;
-
     using uint_type = typename traits::uint_type;
+
     using limb_type = typename read_traits::limb_type;
-
     using big_int_type = typename read_traits::big_int_type;
-    constexpr size_t required_precision_bits = read_traits::required_precision_bits;
-
-    float_digit_stream<C> stream{
-        info.int_first,
-        info.int_digit_count,
-        info.frac_first,
-        info.frac_digit_count,
-        0
-    };
+    constexpr uint32_t required_precision_bits = static_cast<uint32_t>(read_traits::required_precision_bits);
 
     // The input is of the form 0.mantissa * 10^exponent, where 'mantissa' are the decimal digits of the mantissa
     // and 'exponent' is the decimal exponent. We decompose the mantissa into two parts: an integer part and a
@@ -2821,7 +2788,7 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
     // or all present digits if there are fewer digits. If the exponent is zero or negative, then the integer part
     // is empty. In either case, the remaining digits form the fractional part of the mantissa.
     const uint32_t total_digits = stream.total_digits();
-    const uint32_t positive_exponent = static_cast<uint32_t>(std::max(0, info.exponent));
+    const uint32_t positive_exponent = static_cast<uint32_t>(std::max(0, exponent));
     const uint32_t int_digit_count = std::min(positive_exponent, total_digits);
     const uint32_t int_digits_missing = positive_exponent - int_digit_count;
     const uint32_t frac_digit_count = total_digits - int_digit_count;
@@ -2833,9 +2800,9 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
     // mantissa is assembled.
 
     big_int_type int_value{};
-    for (size_t i = 0; i < int_digit_count; ++i)
+    for (uint32_t i = 0; i < int_digit_count; ++i)
     {
-        const auto digit = stream.next_digit();
+        const auto digit = static_cast<limb_type>(stream.next_digit());
         int_value.insert_digit(digit);
     }
 
@@ -2843,7 +2810,7 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
     {
         if (!int_value.mul_pow10_safe(int_digits_missing))
         {
-            assemble_float_infinity(info.is_negative, value);
+            assemble_float_infinity(is_negative, value);
             return from_string_error::out_of_range;
         }
     }
@@ -2858,7 +2825,7 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
         const bool has_zero_fractional_part = frac_digit_count == 0 && has_zero_tail;
         if (int_precision_bits >= required_precision_bits || has_zero_fractional_part)
         {
-            return assemble_float_integer(int_value, int_precision_bits, info.is_negative, !has_zero_fractional_part, value);
+            return assemble_float_integer(int_value, int_precision_bits, is_negative, !has_zero_fractional_part, value);
         }
     }
 
@@ -2868,22 +2835,22 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
     // fractional part, and the denominator M is computed as the power of 10 such that N/M is equal to the value
     // of the fractional part of the mantissa.
     big_int_type frac_numerator{};
-    for (size_t i = 0; i < frac_digit_count; ++i)
+    for (uint32_t i = 0; i < frac_digit_count; ++i)
     {
         const auto digit = static_cast<limb_type>(stream.next_digit());
         frac_numerator.insert_digit(digit);
     }
 
-    const uint32_t frac_denominator_exponent = (info.exponent < 0)
-        ? frac_digit_count + static_cast<uint32_t>(-info.exponent)
+    const uint32_t frac_denominator_exponent = (exponent < 0)
+        ? frac_digit_count + static_cast<uint32_t>(-exponent)
         : frac_digit_count;
 
-    big_int_type frac_denominator{ static_cast<limb_type>(1) };
-    if (!frac_denominator.mul_pow10_safe(frac_denominator_exponent))
+    const uint32_t frac_denominator_bit_count = pow10_bit_width(frac_denominator_exponent);
+    if (frac_denominator_bit_count > big_int_type::bit_count)
     {
         // If there were any digits in the integer part, it is impossible to underflow (because the exponent
         // cannot possibly be small enough), so if we underflow here it is a true underflow and we return zero.
-        assemble_float_zero(info.is_negative, value);
+        assemble_float_zero(is_negative, value);
         return from_string_error::out_of_range; // Underflow example: "1e-2000"
     }
 
@@ -2892,16 +2859,10 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
     // same position as the most significant bit in the denominator. This ensures that when we later shift the
     // numerator N bits to the left, we will produce N bits of precision.
     const uint32_t frac_numerator_bit_count = frac_numerator.bit_width();
-    const uint32_t frac_denominator_bit_count = frac_denominator.bit_width();
 
     const uint32_t fractional_shift = (frac_denominator_bit_count > frac_numerator_bit_count)
         ? frac_denominator_bit_count - frac_numerator_bit_count
         : 0;
-
-    if (fractional_shift > 0)
-    {
-        frac_numerator.shl(fractional_shift);
-    }
 
     const uint32_t required_frac_precision_bits = required_precision_bits - int_precision_bits;
 
@@ -2919,18 +2880,13 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
         // Thus, we need to do the division to correctly round the result.
         if (fractional_shift > remaining_precision_bits_needed)
         {
-            return assemble_float_integer(int_value, int_precision_bits, info.is_negative, frac_digit_count != 0 || !has_zero_tail, value);
+            return assemble_float_integer(int_value, int_precision_bits, is_negative, frac_digit_count != 0 || !has_zero_tail, value);
         }
 
         remaining_precision_bits_needed -= fractional_shift;
     }
 
-    // If there was no integer part of the mantissa, we will need to compute the exponent from the fractional part.
-    // The fractional exponent is the power of two by which we must multiply the fractional part to move it into the
-    // range [1.0, 2.0). This will either be the same as the shift we computed earlier, or one greater than that shift:
-    const uint32_t fractional_exponent = frac_numerator < frac_denominator ? fractional_shift + 1 : fractional_shift;
-
-    frac_numerator.shl(remaining_precision_bits_needed);
+    frac_numerator.shl(fractional_shift + remaining_precision_bits_needed);
 
     float_divider<F> div{ frac_numerator };
     const bool zero_remainder = div.div_pow10(frac_denominator_exponent);
@@ -2943,6 +2899,15 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
 
     // We may have produced more bits of precision than were required. Check, and remove any "extra" bits:
     const uint32_t frac_mantissa_bit_count = bit::bit_width(frac_mantissa);
+
+    // The fractional exponent is the power of two by which we must multiply the fractional part to move it into the
+    // range [1.0, 2.0). If the post-division quotient needed more bits than we asked for, the normalized fraction
+    // was in [1.0, 2.0) already (fractional_shift); otherwise it was in [0.5, 1.0) (fractional_shift + 1).
+    // This is equivalent to the discarded frac_numerator < frac_denominator comparison, read off the quotient instead.
+    const uint32_t fractional_exponent = (frac_mantissa_bit_count > remaining_precision_bits_needed)
+        ? fractional_shift
+        : fractional_shift + 1;
+
     if (frac_mantissa_bit_count > required_frac_precision_bits)
     {
         const uint32_t shift = frac_mantissa_bit_count - required_frac_precision_bits;
@@ -2968,29 +2933,22 @@ constexpr from_string_error string_to_float_decimal(const C* str, size_t str_siz
         ? static_cast<int>(int_precision_bits - 2)
         : -static_cast<int>(fractional_exponent) - 1;
 
-    return assemble_float_shifted(static_cast<uint_type>(complete_mantissa), final_exponent, info.is_negative, has_zero_tail, value);
+    return assemble_float_shifted(static_cast<uint_type>(complete_mantissa), final_exponent, is_negative, has_zero_tail, value);
 }
 
 template <typename F, typename C>
-constexpr from_string_error string_to_float_hex(const C* str, size_t str_size, F& value, const float_string_info<C>& info, bool has_zero_tail) noexcept
+constexpr from_string_error string_to_float_hex(float_digit_stream<C>& stream, F& value, bool is_negative, int initial_exponent, bool has_zero_tail) noexcept
 {
     using read_traits = float_reading_traits<F>;
     using traits = typename read_traits::traits;
     using uint_type = typename traits::uint_type;
 
-    float_digit_stream<C> stream{
-        info.int_first,
-        info.int_digit_count,
-        info.frac_first,
-        info.frac_digit_count
-    };
-
     uint_type mantissa = 0;
-    int exponent = info.exponent + traits::mantissa_bits;
+    int exponent = initial_exponent + traits::mantissa_bits;
 
     // Accumulate bits into the mantissa buffer
     size_t total_digits = stream.total_digits() + 1;
-    while (--total_digits && mantissa <= traits::normal_mantissa_mask)
+    while (--total_digits && mantissa <= traits::mantissa_with_implicit_bit_mask)
     {
         mantissa *= 16;
         mantissa += stream.next_digit();
@@ -3002,7 +2960,7 @@ constexpr from_string_error string_to_float_hex(const C* str, size_t str_size, F
         has_zero_tail = stream.next_digit() == 0;
     }
 
-    return assemble_float_shifted(mantissa, exponent, info.is_negative, has_zero_tail, value);
+    return assemble_float_shifted(mantissa, exponent, is_negative, has_zero_tail, value);
 }
 
 template <typename F, typename C>
@@ -3298,10 +3256,9 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
             }
         }
 
-        const size_t total_digit_count = int_digit_count + frac_digit_count;
-
         // Zero fast-path, deferred until after exponent scanning so the reported
         // position is correct for inputs like "0e999" or "0.0e-5".
+        const size_t total_digit_count = int_digit_count + frac_digit_count;
         if (total_digit_count == 0)
         {
             _string_convert_priv::assemble_float_zero(is_negative, value);
@@ -3402,26 +3359,25 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
 
     //===========================================
 
-    const _string_convert_priv::float_string_info<C> info{
-        is_negative,
-        exponent,
-        is_hex,
+    float_digit_stream<C> stream{
         str + int_digit_start,
         static_cast<uint32_t>(int_digit_count),
         str + frac_digit_start,
-        static_cast<uint32_t>(frac_digit_count)
+        static_cast<uint32_t>(frac_digit_count),
+        0
     };
 
+    from_string_error err;
     if (is_hex)
     {
-        const auto err = string_to_float_hex(str, str_size, value, info, has_zero_tail);
-        return { i, err };
+        err = string_to_float_hex(stream, value, is_negative, exponent, has_zero_tail);
     }
     else
     {
-        const auto err = string_to_float_decimal(str, str_size, value, info, has_zero_tail);
-        return { i, err };
+        err = string_to_float_decimal(stream, value, is_negative, exponent, has_zero_tail);
     }
+
+    return { i, err };
 }
 
 } // namespace _string_convert_priv

@@ -776,4 +776,77 @@ inline constexpr float_from_string_test_case<float, char> float_from_string_test
         0x1.f0b0b4p+127f},
 };
 
+inline constexpr std::pair<const char*, uint32_t> floating_point_test_cases_float[] = {
+    // Verify small exactly-representable integers:
+    {"1", 0x3F800000U},
+    {"2", 0x40000000U},
+    {"3", 0x40400000U},
+    {"4", 0x40800000U},
+    {"5", 0x40A00000U},
+    {"6", 0x40C00000U},
+    {"7", 0x40E00000U},
+    {"8", 0x41000000U},
+
+    // Verify large exactly-representable integers:
+    {"16777208", 0x4B7FFFF8U},
+    {"16777209", 0x4B7FFFF9U},
+    {"16777210", 0x4B7FFFFAU},
+    {"16777211", 0x4B7FFFFBU},
+    {"16777212", 0x4B7FFFFCU},
+    {"16777213", 0x4B7FFFFDU},
+    {"16777214", 0x4B7FFFFEU},
+    {"16777215", 0x4B7FFFFFU}, // 2^24 - 1
+
+    // Verify the smallest denormal values:
+    {"1.4012984643248170e-45", 0x00000001U},
+    {"2.8025969286496340e-45", 0x00000002U},
+    {"4.2038953929744510e-45", 0x00000003U},
+    {"5.6051938572992680e-45", 0x00000004U},
+    {"7.0064923216240850e-45", 0x00000005U},
+    {"8.4077907859489020e-45", 0x00000006U},
+    {"9.8090892502737200e-45", 0x00000007U},
+    {"1.1210387714598537e-44", 0x00000008U},
+    {"1.2611686178923354e-44", 0x00000009U},
+    {"1.4012984643248170e-44", 0x0000000AU},
+    {"1.5414283107572988e-44", 0x0000000BU},
+    {"1.6815581571897805e-44", 0x0000000CU},
+    {"1.8216880036222622e-44", 0x0000000DU},
+    {"1.9618178500547440e-44", 0x0000000EU},
+    {"2.1019476964872256e-44", 0x0000000FU},
+
+    // Verify the largest denormal values:
+    {"1.1754921087447446e-38", 0x007FFFF0U},
+    {"1.1754922488745910e-38", 0x007FFFF1U},
+    {"1.1754923890044375e-38", 0x007FFFF2U},
+    {"1.1754925291342839e-38", 0x007FFFF3U},
+    {"1.1754926692641303e-38", 0x007FFFF4U},
+    {"1.1754928093939768e-38", 0x007FFFF5U},
+    {"1.1754929495238232e-38", 0x007FFFF6U},
+    {"1.1754930896536696e-38", 0x007FFFF7U},
+    {"1.1754932297835160e-38", 0x007FFFF8U},
+    {"1.1754933699133625e-38", 0x007FFFF9U},
+    {"1.1754935100432089e-38", 0x007FFFFAU},
+    {"1.1754936501730553e-38", 0x007FFFFBU},
+    {"1.1754937903029018e-38", 0x007FFFFCU},
+    {"1.1754939304327482e-38", 0x007FFFFDU},
+    {"1.1754940705625946e-38", 0x007FFFFEU},
+    {"1.1754942106924411e-38", 0x007FFFFFU},
+
+    // DevDiv-576315 "I/O library incorrect rounds floating point numbers on input"
+    // DevDiv-616647 "Visual C++ 11: iostream bug: incorrect input streaming of the smallest normal double and some
+    // denormals"
+    // DevDiv-730414 "iostreams is still misparsing floating-point"
+    // DevDiv-938627 "parsing float values using std::istream gives results inconsistent with sscanf() and with C++
+    // compiler"
+    // DevDiv-961116 "floating point string conversion accuracy"
+    {"1.175494351e-38", 0x00800000U}, // FLT_MIN
+    {"3.402823466e+38", 0x7F7FFFFFU}, // FLT_MAX
+    {"179.9999999999999855", 0x43340000U},
+    {"4.1", 0x40833333U},
+    {"0.2288884", 0x3E6A61B9U},
+    {"0.168", 0x3E2C0831U},
+    {"1.68", 0x3FD70A3DU},
+    {"16.80000001", 0x41866666U},
+};
+
 // clang-format on
