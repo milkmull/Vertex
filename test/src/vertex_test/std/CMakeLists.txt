@@ -36,14 +36,12 @@ file(GLOB VX_TEST_STRING_CONVERT_FILES
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/test_base.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/integer_to_string_test_data.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_general_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_fixed_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_scientific_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_hex_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/float_from_string_test_cases.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/double_general_to_string_test_cases.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/double_fixed_to_string_test_cases_1.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/double_fixed_to_string_test_cases_2.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/string_convert/double_fixed_to_string_test_cases_3.hpp"

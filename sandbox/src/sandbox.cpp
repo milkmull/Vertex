@@ -228,15 +228,15 @@ static void std_print_scientific_float(const F f)
 template <typename F>
 static void vx_print_scientific_float(const F f)
 {
-    vx::str::float_to_string_format_options fmt;
+    vx::str::float_to_string_format_options<wchar_t> fmt;
     fmt.format = vx::str::float_format::scientific;
-    fmt.precision = 1;
+    fmt.precision = 3;
 
-    char buf[5000] = {};
+    wchar_t buf[5000] = {};
     {
         VX_PROFILE_SCOPE("vx1 e");
         const auto res = vx::str::write_float_scientific(f, buf, sizeof(buf), fmt);
-        std::cout << "vx e:  " << std::string_view(buf, res.count) << std::endl;
+        //std::cout << "vx e :  " << std::string_view(buf, res.count) << std::endl;
     }
 }
 
@@ -249,7 +249,7 @@ static void std_print_scientific_float_2(const F f)
         std::to_chars_result result;
 
         VX_PROFILE_SCOPE("std e2");
-        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::scientific, 1);
+        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::scientific, 104);
         const size_t n = static_cast<size_t>(result.ptr - buf);
         std::cout << "std e2: " << std::string_view(buf, n) << std::endl;
     }
@@ -277,7 +277,7 @@ static VX_NO_INLINE void std_print_fixed_float_2(const F f)
         std::to_chars_result result;
 
         VX_PROFILE_SCOPE("std f2");
-        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 0);
+        result = std::to_chars(buf, buf + sizeof(buf), f, std::chars_format::fixed, 3);
         const size_t n = static_cast<size_t>(result.ptr - buf);
         std::cout << "std f: " << std::string_view(buf, n) << std::endl;
     }
@@ -288,7 +288,7 @@ static VX_NO_INLINE void vx_print_fixed_float(const F f)
 {
     vx::str::float_to_string_format_options fmt;
     fmt.format = vx::str::float_format::fixed;
-    fmt.precision = 0;
+    fmt.precision = 3;
 
     char buf[5000] = {};
     {
@@ -457,7 +457,7 @@ int main()
         //const auto bits = rng.randi<uint32_t>();
         //const auto f = vx::bit::bit_cast<float>(bits);
         //std::cout << f << ' ' << std::hexfloat << f << std::endl;
-        const float f = 9.99e-10f;
+        const float f = 9.9999f;
         //
         //vx_parse_fixed_float(f);
         //std_parse_fixed_float_2(f);
@@ -467,13 +467,13 @@ int main()
         //vx_print_integer(bits);
 
         //std_print_fixed_float(f);
-        //std_print_fixed_float_2(f);
-        //vx_print_fixed_float(f);
+        std_print_fixed_float_2(f);
+        vx_print_fixed_float(f);
 
         //
         //std_print_scientific_float(f);
-        std_print_scientific_float_2(f);
-        vx_print_scientific_float(f);
+        //std_print_scientific_float_2(f);
+        //vx_print_scientific_float(f);
         //
         //std_print_hex_float(f);
         //std_print_hex_float_2(f);

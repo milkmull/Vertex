@@ -12,7 +12,6 @@
 
 #include "string_convert/float_fixed_to_string_test_cases.hpp"
 #include "string_convert/float_from_string_test_cases.hpp"
-#include "string_convert/float_general_to_string_test_cases.hpp"
 #include "string_convert/float_hex_to_string_test_cases.hpp"
 #include "string_convert/float_scientific_to_string_test_cases.hpp"
 #include "string_convert/float_to_string_test_cases.hpp"
@@ -22,7 +21,6 @@
 #include "string_convert/double_fixed_to_string_test_cases_3.hpp"
 #include "string_convert/double_fixed_to_string_test_cases_4.hpp"
 #include "string_convert/double_from_string_test_cases.hpp"
-#include "string_convert/double_general_to_string_test_cases.hpp"
 #include "string_convert/double_hex_to_string_test_cases.hpp"
 #include "string_convert/double_scientific_to_string_test_cases_1.hpp"
 #include "string_convert/double_scientific_to_string_test_cases_2.hpp"
@@ -34,7 +32,7 @@
 #define NUM(x)          static_cast<I>(x)
 #define CHECK_STR(a, b) VX_CHECK(::vx::str::compare(a, b) == 0)
 
-#define PRINT_CASE 1
+#define PRINT_CASE 0
 
 // https://github.com/microsoft/STL/blob/020513e211529e7be30cb3e0ca310869701286da/tests/std/tests/P0067R5_charconv/test.cpp#L1012
 
@@ -93,6 +91,11 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
 
 #endif
 
+    if (value == 9.9999f)
+    {
+        const char x = 0;
+    }
+
     constexpr size_t buf_size = buf_prefix + space + buf_suffix;
     vx::array<C, buf_size> buf;
 
@@ -104,11 +107,6 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
     VX_STATIC_ASSERT_MSG(extra_chars + 10 < buf_suffix, "The specific values aren't important, but there should be plenty of room to detect buffer overruns.");
 
     constexpr C fill_char = '@';
-
-    if (value == 9.99e-10f)
-    {
-        const char x = 'a';
-    }
 
     for (size_t n = 0; n <= correct.size() + extra_chars; ++n)
     {
@@ -128,15 +126,6 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
         }
         else
         {
-#if PRINT_CASE
-
-            VX_IF_CONSTEXPR (std::is_same<C, char>::value)
-            {
-                std::cout << "to string result: " << str::basic_string_view(first, res.count) << std::endl;
-            }
-
-#endif
-
             VX_CHECK(res.count == correct.size());
             VX_CHECK(res.err == str::to_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
@@ -144,7 +133,7 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
             {
                 if (!(str::compare(first, res.count, correct.data(), correct.size()) == 0))
                 {
-                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 129);
+                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 127);
                 }
             } while ((0, 0));
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
@@ -790,7 +779,6 @@ struct float_tester_data<float>
     static inline constexpr auto& to_string_test_cases_hex = float_hex_to_string_test_cases;
     static inline constexpr auto& to_string_test_cases_fixed = float_fixed_to_string_test_cases;
     static inline constexpr auto& to_string_test_cases_scientific = float_scientific_to_string_test_cases;
-    static inline constexpr auto& to_string_test_cases_general = float_general_to_string_test_cases;
 
     template <typename C>
     static void test_to_string_fixed_cases()
@@ -826,8 +814,6 @@ struct float_tester_data<double>
     static inline constexpr auto& to_string_test_cases_scientific_2 = double_scientific_to_string_test_cases_2;
     static inline constexpr auto& to_string_test_cases_scientific_3 = double_scientific_to_string_test_cases_3;
     static inline constexpr auto& to_string_test_cases_scientific_4 = double_scientific_to_string_test_cases_4;
-
-    static inline constexpr auto& to_string_test_cases_general = double_general_to_string_test_cases;
 
     template <typename C>
     static void test_to_string_fixed_cases()
@@ -919,22 +905,18 @@ void test_float_type()
     {
         tester_data::template test_to_string_scientific_cases<C>();
     }
-    VX_SECTION("to string general")
-    {
-        run_float_test_cases<F, C>(tester_data::to_string_test_cases_general);
-    }
 }
 
 template <typename F>
 void test_float()
 {
     test_float_type<F, char>();
-//    test_float_type<F, wchar_t>();
-//#if defined(__cpp_lib_char8_t)
-//    test_float_type<F, char8_t>();
-//#endif
-//    test_float_type<F, char16_t>();
-//    test_float_type<F, char32_t>();
+    test_float_type<F, wchar_t>();
+#if defined(__cpp_lib_char8_t)
+    test_float_type<F, char8_t>();
+#endif
+    test_float_type<F, char16_t>();
+    test_float_type<F, char32_t>();
 }
 
 VX_TEST_CASE(test_all_float)

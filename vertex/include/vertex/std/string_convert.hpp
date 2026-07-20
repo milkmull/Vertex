@@ -1461,7 +1461,7 @@ constexpr size_t write_fixed_large(typename float_bits<F>::uint_type m2, int e10
         for (size_t i = 0; i < chunks.count(); ++i)
         {
             uint32_t chunk = chunks.get(i);
-            for (size_t j = 0; j < 9; ++i)
+            for (size_t j = 0; j < 9; ++j)
             {
                 const auto digit = chunk % 10;
                 *(--ptr) = static_cast<C>(hex::digits[digit]);
@@ -1567,7 +1567,7 @@ constexpr size_t write_fixed_mixed(typename float_bits<F>::uint_type m2, int shi
                 return 0;
             }
 
-            mem::move(buf + 1, buf, needed - 1);
+            mem::move_range(buf + 1, buf, needed - 1);
             buf[0] = static_cast<C>('1');
         }
     }
@@ -1753,24 +1753,24 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m2, i
     using extractor = float_frac_digit_extractor<F>;
     using digit_type = typename extractor::limb_type;
 
+    // The number of digits in the exponent could possibly shrink due to rounding or
+    // off by 1 estimate for the e10. The best we can do here is to exit early if we
+    // can't fit all of the leading digits. We will check the exponent space at the end.
     const size_t leading_char_count = 1 + static_cast<size_t>(precision > 0) + precision;
-    size_t exp_char_count = 1 + 1 + digit_count_max3(e10);
-    size_t needed = leading_char_count + exp_char_count;
+    size_t needed = leading_char_count;
     if (buf_size < needed)
     {
         return 0;
     }
 
     extractor ext(m2, shift);
-    digit_type last_digit = 0;
-    bool exp_changed = false;
+    digit_type last_digit;
 
     // first find the first non 0 digit
     if (e10 <= 1)
     {
         // Our estimate should be accurate when e10 is 1, and this is the most common case.
         last_digit = ext.extract_digit();
-        buf[0] = static_cast<C>(hex::digits[last_digit]);
     }
     else
     {
@@ -1798,15 +1798,14 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m2, i
         {
             // we over estimated e10 by 1
             --e10;
-            exp_changed = true;
         }
         else
         {
             last_digit = ext.extract_digit();
         }
-
-        buf[0] = static_cast<C>(hex::digits[last_digit]);
     }
+
+    buf[0] = static_cast<C>(hex::digits[last_digit]);
 
     if (precision > 0)
     {
@@ -1825,21 +1824,27 @@ constexpr size_t write_scientific_normal(typename float_bits<F>::uint_type m2, i
             scientific_carry_round(buf, leading_char_count))
         {
             --e10;
-            exp_changed = !exp_changed;
         }
     }
 
-    if (exp_changed)
+    const bool exp_is_zero = (e10 == 0);
+    const bool exp_sign = (!exp_is_zero || fmt.force_exp_sign);
+    const size_t exp_char_count = 1 + static_cast<size_t>(exp_sign) + digit_count_max3(e10);
+    needed += exp_char_count;
+    if (buf_size < needed)
     {
-        exp_char_count = 1 + 1 + digit_count_max3(e10);
-        needed = leading_char_count + exp_char_count;
-        if (buf_size < needed)
-        {
-            return 0;
-        }
+        return 0;
     }
 
-    write_negative_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase);
+    if (exp_is_zero)
+    {
+        write_positive_exponent_block(0, buf + leading_char_count, exp_char_count, fmt.uppercase, fmt.force_exp_sign);
+    }
+    else
+    {
+        write_negative_exponent_block(e10, buf + leading_char_count, exp_char_count, fmt.uppercase);
+    }
+
     return needed;
 }
 
@@ -2015,7 +2020,7 @@ constexpr size_t write_scientific_mixed(typename float_bits<F>::uint_type m2, in
             size_t shave = int_digit_count - int_digits_needed;
 
             // Batch divide by 10^9 (or 10^18 if using wide_type) to wipe out chunks of digits instantly
-            while (shave > 10)
+            while (shave >= 10)
             {
                 has_zero_tail = has_zero_tail && (int_bits % 1000000000u == 0);
                 int_bits /= 1000000000u;

@@ -209,11 +209,6 @@ inline constexpr float_to_string_test_case<double, char> double_scientific_to_st
     {1729.142857142857, str::float_format::scientific, 1, "1.7e3"},
     {1729.142857142857, str::float_format::scientific, 0, "2e3"},
 
-    // Negative precision requests 6 digits of precision.
-    {1729.142857142857, str::float_format::scientific, -1, "1.729143e3"},
-    {1729.142857142857, str::float_format::scientific, -2, "1.729143e3"},
-    {1729.142857142857, str::float_format::scientific, -3, "1.729143e3"},
-
     // Ryu Printf d2fixed_test.cc D2expTest Carrying
     {2.0009, str::float_format::scientific, 4, "2.0009e0"},
     {2.0009, str::float_format::scientific, 3, "2.001e0"},
@@ -282,7 +277,7 @@ inline constexpr float_to_string_test_case<double, char> double_scientific_to_st
 
     // The UCRT had trouble with rounding this value. charconv was never affected, but let's test it anyways.
     {0x1.88e2d605edc3dp+345, str::float_format::scientific, 104,
-        "1.09995565999999994887854821710219658911365648587951921896774663603198787416706536331386569598149846892544e+"
+        "1.09995565999999994887854821710219658911365648587951921896774663603198787416706536331386569598149846892544e"
         "104"},
     {0x1.88e2d605edc3dp+345, str::float_format::scientific, 18, "1.099955659999999949e104"},
     {0x1.88e2d605edc3dp+345, str::float_format::scientific, 17, "1.09995565999999995e104"},

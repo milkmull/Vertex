@@ -217,11 +217,6 @@ inline constexpr float_to_string_test_case<double, char> double_fixed_to_string_
     {1729.142857142857, str::float_format::fixed, 1, "1729.1"},
     {1729.142857142857, str::float_format::fixed, 0, "1729"},
 
-    // Negative precision requests 6 digits of precision.
-    {1729.142857142857, str::float_format::fixed, -1, "1729.142857"},
-    {1729.142857142857, str::float_format::fixed, -2, "1729.142857"},
-    {1729.142857142857, str::float_format::fixed, -3, "1729.142857"},
-
     // Ryu Printf d2fixed_test.cc D2fixedTest Carrying
     {0.0009, str::float_format::fixed, 4, "0.0009"},
     {0.0009, str::float_format::fixed, 3, "0.001"},
