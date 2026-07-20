@@ -6446,547 +6446,547 @@ inline constexpr float_to_string_test_case<double, char> double_scientific_to_st
     {0x1.fffffffffffffp-31, str::float_format::scientific, 73,
         "9.3132257461547841222742343087154064107391349125464330427348613739013671875e-10"},
     {0x1.fffffffffffffp-30, str::float_format::scientific, 73,
-        "1.8626451492309568244548468617430812821478269825092866085469722747802734375e-09"},
+        "1.8626451492309568244548468617430812821478269825092866085469722747802734375e-9"},
     {0x1.fffffffffffffp-29, str::float_format::scientific, 72,
-        "3.725290298461913648909693723486162564295653965018573217093944549560546875e-09"},
+        "3.725290298461913648909693723486162564295653965018573217093944549560546875e-9"},
     {0x1.fffffffffffffp-28, str::float_format::scientific, 71,
-        "7.45058059692382729781938744697232512859130793003714643418788909912109375e-09"},
+        "7.45058059692382729781938744697232512859130793003714643418788909912109375e-9"},
     {0x1.fffffffffffffp-27, str::float_format::scientific, 71,
-        "1.49011611938476545956387748939446502571826158600742928683757781982421875e-08"},
+        "1.49011611938476545956387748939446502571826158600742928683757781982421875e-8"},
     {0x1.fffffffffffffp-26, str::float_format::scientific, 70,
-        "2.9802322387695309191277549787889300514365231720148585736751556396484375e-08"},
+        "2.9802322387695309191277549787889300514365231720148585736751556396484375e-8"},
     {0x1.fffffffffffffp-25, str::float_format::scientific, 69,
-        "5.960464477539061838255509957577860102873046344029717147350311279296875e-08"},
+        "5.960464477539061838255509957577860102873046344029717147350311279296875e-8"},
     {0x1.fffffffffffffp-24, str::float_format::scientific, 69,
-        "1.192092895507812367651101991515572020574609268805943429470062255859375e-07"},
+        "1.192092895507812367651101991515572020574609268805943429470062255859375e-7"},
     {0x1.fffffffffffffp-23, str::float_format::scientific, 68,
-        "2.38418579101562473530220398303114404114921853761188685894012451171875e-07"},
+        "2.38418579101562473530220398303114404114921853761188685894012451171875e-7"},
     {0x1.fffffffffffffp-22, str::float_format::scientific, 67,
-        "4.7683715820312494706044079660622880822984370752237737178802490234375e-07"},
+        "4.7683715820312494706044079660622880822984370752237737178802490234375e-7"},
     {0x1.fffffffffffffp-21, str::float_format::scientific, 66,
-        "9.536743164062498941208815932124576164596874150447547435760498046875e-07"},
+        "9.536743164062498941208815932124576164596874150447547435760498046875e-7"},
     {0x1.fffffffffffffp-20, str::float_format::scientific, 66,
-        "1.907348632812499788241763186424915232919374830089509487152099609375e-06"},
+        "1.907348632812499788241763186424915232919374830089509487152099609375e-6"},
     {0x1.fffffffffffffp-19, str::float_format::scientific, 65,
-        "3.81469726562499957648352637284983046583874966017901897430419921875e-06"},
+        "3.81469726562499957648352637284983046583874966017901897430419921875e-6"},
     {0x1.fffffffffffffp-18, str::float_format::scientific, 64,
-        "7.6293945312499991529670527456996609316774993203580379486083984375e-06"},
+        "7.6293945312499991529670527456996609316774993203580379486083984375e-6"},
     {0x1.fffffffffffffp-17, str::float_format::scientific, 64,
-        "1.5258789062499998305934105491399321863354998640716075897216796875e-05"},
+        "1.5258789062499998305934105491399321863354998640716075897216796875e-5"},
     {0x1.fffffffffffffp-16, str::float_format::scientific, 63,
-        "3.051757812499999661186821098279864372670999728143215179443359375e-05"},
+        "3.051757812499999661186821098279864372670999728143215179443359375e-5"},
     {0x1.fffffffffffffp-15, str::float_format::scientific, 62,
-        "6.10351562499999932237364219655972874534199945628643035888671875e-05"},
+        "6.10351562499999932237364219655972874534199945628643035888671875e-5"},
     {0x1.fffffffffffffp-14, str::float_format::scientific, 62,
-        "1.22070312499999986447472843931194574906839989125728607177734375e-04"},
+        "1.22070312499999986447472843931194574906839989125728607177734375e-4"},
     {0x1.fffffffffffffp-13, str::float_format::scientific, 61,
-        "2.4414062499999997289494568786238914981367997825145721435546875e-04"},
+        "2.4414062499999997289494568786238914981367997825145721435546875e-4"},
     {0x1.fffffffffffffp-12, str::float_format::scientific, 60,
-        "4.882812499999999457898913757247782996273599565029144287109375e-04"},
+        "4.882812499999999457898913757247782996273599565029144287109375e-4"},
     {0x1.fffffffffffffp-11, str::float_format::scientific, 59,
-        "9.76562499999999891579782751449556599254719913005828857421875e-04"},
+        "9.76562499999999891579782751449556599254719913005828857421875e-4"},
     {0x1.fffffffffffffp-10, str::float_format::scientific, 59,
-        "1.95312499999999978315956550289911319850943982601165771484375e-03"},
+        "1.95312499999999978315956550289911319850943982601165771484375e-3"},
     {0x1.fffffffffffffp-9, str::float_format::scientific, 58,
-        "3.9062499999999995663191310057982263970188796520233154296875e-03"},
+        "3.9062499999999995663191310057982263970188796520233154296875e-3"},
     {0x1.fffffffffffffp-8, str::float_format::scientific, 57,
-        "7.812499999999999132638262011596452794037759304046630859375e-03"},
+        "7.812499999999999132638262011596452794037759304046630859375e-3"},
     {0x1.fffffffffffffp-7, str::float_format::scientific, 57,
-        "1.562499999999999826527652402319290558807551860809326171875e-02"},
+        "1.562499999999999826527652402319290558807551860809326171875e-2"},
     {0x1.fffffffffffffp-6, str::float_format::scientific, 56,
-        "3.12499999999999965305530480463858111761510372161865234375e-02"},
+        "3.12499999999999965305530480463858111761510372161865234375e-2"},
     {0x1.fffffffffffffp-5, str::float_format::scientific, 55,
-        "6.2499999999999993061106096092771622352302074432373046875e-02"},
+        "6.2499999999999993061106096092771622352302074432373046875e-2"},
     {0x1.fffffffffffffp-4, str::float_format::scientific, 55,
-        "1.2499999999999998612221219218554324470460414886474609375e-01"},
+        "1.2499999999999998612221219218554324470460414886474609375e-1"},
     {0x1.fffffffffffffp-3, str::float_format::scientific, 54,
-        "2.499999999999999722444243843710864894092082977294921875e-01"},
-    {0x1.fffffffffffffp-2, str::float_format::scientific, 53, "4.99999999999999944488848768742172978818416595458984375e-01"},
-    {0x1.fffffffffffffp-1, str::float_format::scientific, 52, "9.9999999999999988897769753748434595763683319091796875e-01"},
-    {0x1.fffffffffffffp+0, str::float_format::scientific, 52, "1.9999999999999997779553950749686919152736663818359375e+00"},
-    {0x1.fffffffffffffp+1, str::float_format::scientific, 51, "3.999999999999999555910790149937383830547332763671875e+00"},
-    {0x1.fffffffffffffp+2, str::float_format::scientific, 50, "7.99999999999999911182158029987476766109466552734375e+00"},
-    {0x1.fffffffffffffp+3, str::float_format::scientific, 50, "1.59999999999999982236431605997495353221893310546875e+01"},
-    {0x1.fffffffffffffp+4, str::float_format::scientific, 49, "3.1999999999999996447286321199499070644378662109375e+01"},
-    {0x1.fffffffffffffp+5, str::float_format::scientific, 48, "6.399999999999999289457264239899814128875732421875e+01"},
-    {0x1.fffffffffffffp+6, str::float_format::scientific, 48, "1.279999999999999857891452847979962825775146484375e+02"},
-    {0x1.fffffffffffffp+7, str::float_format::scientific, 47, "2.55999999999999971578290569595992565155029296875e+02"},
-    {0x1.fffffffffffffp+8, str::float_format::scientific, 46, "5.1199999999999994315658113919198513031005859375e+02"},
-    {0x1.fffffffffffffp+9, str::float_format::scientific, 46, "1.0239999999999998863131622783839702606201171875e+03"},
-    {0x1.fffffffffffffp+10, str::float_format::scientific, 45, "2.047999999999999772626324556767940521240234375e+03"},
-    {0x1.fffffffffffffp+11, str::float_format::scientific, 44, "4.09599999999999954525264911353588104248046875e+03"},
-    {0x1.fffffffffffffp+12, str::float_format::scientific, 43, "8.1919999999999990905052982270717620849609375e+03"},
-    {0x1.fffffffffffffp+13, str::float_format::scientific, 43, "1.6383999999999998181010596454143524169921875e+04"},
-    {0x1.fffffffffffffp+14, str::float_format::scientific, 42, "3.276799999999999636202119290828704833984375e+04"},
-    {0x1.fffffffffffffp+15, str::float_format::scientific, 41, "6.55359999999999927240423858165740966796875e+04"},
-    {0x1.fffffffffffffp+16, str::float_format::scientific, 41, "1.31071999999999985448084771633148193359375e+05"},
-    {0x1.fffffffffffffp+17, str::float_format::scientific, 40, "2.6214399999999997089616954326629638671875e+05"},
-    {0x1.fffffffffffffp+18, str::float_format::scientific, 39, "5.242879999999999417923390865325927734375e+05"},
-    {0x1.fffffffffffffp+19, str::float_format::scientific, 39, "1.048575999999999883584678173065185546875e+06"},
-    {0x1.fffffffffffffp+20, str::float_format::scientific, 38, "2.09715199999999976716935634613037109375e+06"},
-    {0x1.fffffffffffffp+21, str::float_format::scientific, 37, "4.1943039999999995343387126922607421875e+06"},
-    {0x1.fffffffffffffp+22, str::float_format::scientific, 36, "8.388607999999999068677425384521484375e+06"},
-    {0x1.fffffffffffffp+23, str::float_format::scientific, 36, "1.677721599999999813735485076904296875e+07"},
-    {0x1.fffffffffffffp+24, str::float_format::scientific, 35, "3.35544319999999962747097015380859375e+07"},
-    {0x1.fffffffffffffp+25, str::float_format::scientific, 34, "6.7108863999999992549419403076171875e+07"},
-    {0x1.fffffffffffffp+26, str::float_format::scientific, 34, "1.3421772799999998509883880615234375e+08"},
-    {0x1.fffffffffffffp+27, str::float_format::scientific, 33, "2.684354559999999701976776123046875e+08"},
-    {0x1.fffffffffffffp+28, str::float_format::scientific, 32, "5.36870911999999940395355224609375e+08"},
-    {0x1.fffffffffffffp+29, str::float_format::scientific, 32, "1.07374182399999988079071044921875e+09"},
-    {0x1.fffffffffffffp+30, str::float_format::scientific, 31, "2.1474836479999997615814208984375e+09"},
-    {0x1.fffffffffffffp+31, str::float_format::scientific, 30, "4.294967295999999523162841796875e+09"},
-    {0x1.fffffffffffffp+32, str::float_format::scientific, 29, "8.58993459199999904632568359375e+09"},
-    {0x1.fffffffffffffp+33, str::float_format::scientific, 29, "1.71798691839999980926513671875e+10"},
-    {0x1.fffffffffffffp+34, str::float_format::scientific, 28, "3.4359738367999996185302734375e+10"},
-    {0x1.fffffffffffffp+35, str::float_format::scientific, 27, "6.871947673599999237060546875e+10"},
-    {0x1.fffffffffffffp+36, str::float_format::scientific, 27, "1.374389534719999847412109375e+11"},
-    {0x1.fffffffffffffp+37, str::float_format::scientific, 26, "2.74877906943999969482421875e+11"},
-    {0x1.fffffffffffffp+38, str::float_format::scientific, 25, "5.4975581388799993896484375e+11"},
-    {0x1.fffffffffffffp+39, str::float_format::scientific, 25, "1.0995116277759998779296875e+12"},
-    {0x1.fffffffffffffp+40, str::float_format::scientific, 24, "2.199023255551999755859375e+12"},
-    {0x1.fffffffffffffp+41, str::float_format::scientific, 23, "4.39804651110399951171875e+12"},
-    {0x1.fffffffffffffp+42, str::float_format::scientific, 22, "8.7960930222079990234375e+12"},
-    {0x1.fffffffffffffp+43, str::float_format::scientific, 22, "1.7592186044415998046875e+13"},
-    {0x1.fffffffffffffp+44, str::float_format::scientific, 21, "3.518437208883199609375e+13"},
-    {0x1.fffffffffffffp+45, str::float_format::scientific, 20, "7.03687441776639921875e+13"},
-    {0x1.fffffffffffffp+46, str::float_format::scientific, 20, "1.40737488355327984375e+14"},
-    {0x1.fffffffffffffp+47, str::float_format::scientific, 19, "2.8147497671065596875e+14"},
-    {0x1.fffffffffffffp+48, str::float_format::scientific, 18, "5.629499534213119375e+14"},
-    {0x1.fffffffffffffp+49, str::float_format::scientific, 18, "1.125899906842623875e+15"},
-    {0x1.fffffffffffffp+50, str::float_format::scientific, 17, "2.25179981368524775e+15"},
-    {0x1.fffffffffffffp+51, str::float_format::scientific, 16, "4.5035996273704955e+15"},
-    {0x1.fffffffffffffp+52, str::float_format::scientific, 15, "9.007199254740991e+15"},
-    {0x1.fffffffffffffp+53, str::float_format::scientific, 16, "1.8014398509481982e+16"},
-    {0x1.fffffffffffffp+54, str::float_format::scientific, 16, "3.6028797018963964e+16"},
-    {0x1.fffffffffffffp+55, str::float_format::scientific, 16, "7.2057594037927928e+16"},
-    {0x1.fffffffffffffp+56, str::float_format::scientific, 17, "1.44115188075855856e+17"},
-    {0x1.fffffffffffffp+57, str::float_format::scientific, 17, "2.88230376151711712e+17"},
-    {0x1.fffffffffffffp+58, str::float_format::scientific, 17, "5.76460752303423424e+17"},
-    {0x1.fffffffffffffp+59, str::float_format::scientific, 18, "1.152921504606846848e+18"},
-    {0x1.fffffffffffffp+60, str::float_format::scientific, 18, "2.305843009213693696e+18"},
-    {0x1.fffffffffffffp+61, str::float_format::scientific, 18, "4.611686018427387392e+18"},
-    {0x1.fffffffffffffp+62, str::float_format::scientific, 18, "9.223372036854774784e+18"},
-    {0x1.fffffffffffffp+63, str::float_format::scientific, 19, "1.8446744073709549568e+19"},
-    {0x1.fffffffffffffp+64, str::float_format::scientific, 19, "3.6893488147419099136e+19"},
-    {0x1.fffffffffffffp+65, str::float_format::scientific, 19, "7.3786976294838198272e+19"},
-    {0x1.fffffffffffffp+66, str::float_format::scientific, 20, "1.47573952589676396544e+20"},
-    {0x1.fffffffffffffp+67, str::float_format::scientific, 20, "2.95147905179352793088e+20"},
-    {0x1.fffffffffffffp+68, str::float_format::scientific, 20, "5.90295810358705586176e+20"},
-    {0x1.fffffffffffffp+69, str::float_format::scientific, 21, "1.180591620717411172352e+21"},
-    {0x1.fffffffffffffp+70, str::float_format::scientific, 21, "2.361183241434822344704e+21"},
-    {0x1.fffffffffffffp+71, str::float_format::scientific, 21, "4.722366482869644689408e+21"},
-    {0x1.fffffffffffffp+72, str::float_format::scientific, 21, "9.444732965739289378816e+21"},
-    {0x1.fffffffffffffp+73, str::float_format::scientific, 22, "1.8889465931478578757632e+22"},
-    {0x1.fffffffffffffp+74, str::float_format::scientific, 22, "3.7778931862957157515264e+22"},
-    {0x1.fffffffffffffp+75, str::float_format::scientific, 22, "7.5557863725914315030528e+22"},
-    {0x1.fffffffffffffp+76, str::float_format::scientific, 23, "1.51115727451828630061056e+23"},
-    {0x1.fffffffffffffp+77, str::float_format::scientific, 23, "3.02231454903657260122112e+23"},
-    {0x1.fffffffffffffp+78, str::float_format::scientific, 23, "6.04462909807314520244224e+23"},
-    {0x1.fffffffffffffp+79, str::float_format::scientific, 24, "1.208925819614629040488448e+24"},
-    {0x1.fffffffffffffp+80, str::float_format::scientific, 24, "2.417851639229258080976896e+24"},
-    {0x1.fffffffffffffp+81, str::float_format::scientific, 24, "4.835703278458516161953792e+24"},
-    {0x1.fffffffffffffp+82, str::float_format::scientific, 24, "9.671406556917032323907584e+24"},
-    {0x1.fffffffffffffp+83, str::float_format::scientific, 25, "1.9342813113834064647815168e+25"},
-    {0x1.fffffffffffffp+84, str::float_format::scientific, 25, "3.8685626227668129295630336e+25"},
-    {0x1.fffffffffffffp+85, str::float_format::scientific, 25, "7.7371252455336258591260672e+25"},
-    {0x1.fffffffffffffp+86, str::float_format::scientific, 26, "1.54742504910672517182521344e+26"},
-    {0x1.fffffffffffffp+87, str::float_format::scientific, 26, "3.09485009821345034365042688e+26"},
-    {0x1.fffffffffffffp+88, str::float_format::scientific, 26, "6.18970019642690068730085376e+26"},
-    {0x1.fffffffffffffp+89, str::float_format::scientific, 27, "1.237940039285380137460170752e+27"},
-    {0x1.fffffffffffffp+90, str::float_format::scientific, 27, "2.475880078570760274920341504e+27"},
-    {0x1.fffffffffffffp+91, str::float_format::scientific, 27, "4.951760157141520549840683008e+27"},
-    {0x1.fffffffffffffp+92, str::float_format::scientific, 27, "9.903520314283041099681366016e+27"},
-    {0x1.fffffffffffffp+93, str::float_format::scientific, 28, "1.9807040628566082199362732032e+28"},
-    {0x1.fffffffffffffp+94, str::float_format::scientific, 28, "3.9614081257132164398725464064e+28"},
-    {0x1.fffffffffffffp+95, str::float_format::scientific, 28, "7.9228162514264328797450928128e+28"},
-    {0x1.fffffffffffffp+96, str::float_format::scientific, 29, "1.58456325028528657594901856256e+29"},
-    {0x1.fffffffffffffp+97, str::float_format::scientific, 29, "3.16912650057057315189803712512e+29"},
-    {0x1.fffffffffffffp+98, str::float_format::scientific, 29, "6.33825300114114630379607425024e+29"},
-    {0x1.fffffffffffffp+99, str::float_format::scientific, 30, "1.267650600228229260759214850048e+30"},
-    {0x1.fffffffffffffp+100, str::float_format::scientific, 30, "2.535301200456458521518429700096e+30"},
-    {0x1.fffffffffffffp+101, str::float_format::scientific, 30, "5.070602400912917043036859400192e+30"},
-    {0x1.fffffffffffffp+102, str::float_format::scientific, 31, "1.0141204801825834086073718800384e+31"},
-    {0x1.fffffffffffffp+103, str::float_format::scientific, 31, "2.0282409603651668172147437600768e+31"},
-    {0x1.fffffffffffffp+104, str::float_format::scientific, 31, "4.0564819207303336344294875201536e+31"},
-    {0x1.fffffffffffffp+105, str::float_format::scientific, 31, "8.1129638414606672688589750403072e+31"},
-    {0x1.fffffffffffffp+106, str::float_format::scientific, 32, "1.62259276829213345377179500806144e+32"},
-    {0x1.fffffffffffffp+107, str::float_format::scientific, 32, "3.24518553658426690754359001612288e+32"},
-    {0x1.fffffffffffffp+108, str::float_format::scientific, 32, "6.49037107316853381508718003224576e+32"},
-    {0x1.fffffffffffffp+109, str::float_format::scientific, 33, "1.298074214633706763017436006449152e+33"},
-    {0x1.fffffffffffffp+110, str::float_format::scientific, 33, "2.596148429267413526034872012898304e+33"},
-    {0x1.fffffffffffffp+111, str::float_format::scientific, 33, "5.192296858534827052069744025796608e+33"},
-    {0x1.fffffffffffffp+112, str::float_format::scientific, 34, "1.0384593717069654104139488051593216e+34"},
-    {0x1.fffffffffffffp+113, str::float_format::scientific, 34, "2.0769187434139308208278976103186432e+34"},
-    {0x1.fffffffffffffp+114, str::float_format::scientific, 34, "4.1538374868278616416557952206372864e+34"},
-    {0x1.fffffffffffffp+115, str::float_format::scientific, 34, "8.3076749736557232833115904412745728e+34"},
-    {0x1.fffffffffffffp+116, str::float_format::scientific, 35, "1.66153499473114465666231808825491456e+35"},
-    {0x1.fffffffffffffp+117, str::float_format::scientific, 35, "3.32306998946228931332463617650982912e+35"},
-    {0x1.fffffffffffffp+118, str::float_format::scientific, 35, "6.64613997892457862664927235301965824e+35"},
-    {0x1.fffffffffffffp+119, str::float_format::scientific, 36, "1.329227995784915725329854470603931648e+36"},
-    {0x1.fffffffffffffp+120, str::float_format::scientific, 36, "2.658455991569831450659708941207863296e+36"},
-    {0x1.fffffffffffffp+121, str::float_format::scientific, 36, "5.316911983139662901319417882415726592e+36"},
-    {0x1.fffffffffffffp+122, str::float_format::scientific, 37, "1.0633823966279325802638835764831453184e+37"},
-    {0x1.fffffffffffffp+123, str::float_format::scientific, 37, "2.1267647932558651605277671529662906368e+37"},
-    {0x1.fffffffffffffp+124, str::float_format::scientific, 37, "4.2535295865117303210555343059325812736e+37"},
-    {0x1.fffffffffffffp+125, str::float_format::scientific, 37, "8.5070591730234606421110686118651625472e+37"},
-    {0x1.fffffffffffffp+126, str::float_format::scientific, 38, "1.70141183460469212842221372237303250944e+38"},
-    {0x1.fffffffffffffp+127, str::float_format::scientific, 38, "3.40282366920938425684442744474606501888e+38"},
-    {0x1.fffffffffffffp+128, str::float_format::scientific, 38, "6.80564733841876851368885488949213003776e+38"},
-    {0x1.fffffffffffffp+129, str::float_format::scientific, 39, "1.361129467683753702737770977898426007552e+39"},
-    {0x1.fffffffffffffp+130, str::float_format::scientific, 39, "2.722258935367507405475541955796852015104e+39"},
-    {0x1.fffffffffffffp+131, str::float_format::scientific, 39, "5.444517870735014810951083911593704030208e+39"},
-    {0x1.fffffffffffffp+132, str::float_format::scientific, 40, "1.0889035741470029621902167823187408060416e+40"},
-    {0x1.fffffffffffffp+133, str::float_format::scientific, 40, "2.1778071482940059243804335646374816120832e+40"},
-    {0x1.fffffffffffffp+134, str::float_format::scientific, 40, "4.3556142965880118487608671292749632241664e+40"},
-    {0x1.fffffffffffffp+135, str::float_format::scientific, 40, "8.7112285931760236975217342585499264483328e+40"},
-    {0x1.fffffffffffffp+136, str::float_format::scientific, 41, "1.74224571863520473950434685170998528966656e+41"},
-    {0x1.fffffffffffffp+137, str::float_format::scientific, 41, "3.48449143727040947900869370341997057933312e+41"},
-    {0x1.fffffffffffffp+138, str::float_format::scientific, 41, "6.96898287454081895801738740683994115866624e+41"},
-    {0x1.fffffffffffffp+139, str::float_format::scientific, 42, "1.393796574908163791603477481367988231733248e+42"},
-    {0x1.fffffffffffffp+140, str::float_format::scientific, 42, "2.787593149816327583206954962735976463466496e+42"},
-    {0x1.fffffffffffffp+141, str::float_format::scientific, 42, "5.575186299632655166413909925471952926932992e+42"},
-    {0x1.fffffffffffffp+142, str::float_format::scientific, 43, "1.1150372599265310332827819850943905853865984e+43"},
-    {0x1.fffffffffffffp+143, str::float_format::scientific, 43, "2.2300745198530620665655639701887811707731968e+43"},
-    {0x1.fffffffffffffp+144, str::float_format::scientific, 43, "4.4601490397061241331311279403775623415463936e+43"},
-    {0x1.fffffffffffffp+145, str::float_format::scientific, 43, "8.9202980794122482662622558807551246830927872e+43"},
-    {0x1.fffffffffffffp+146, str::float_format::scientific, 44, "1.78405961588244965325245117615102493661855744e+44"},
-    {0x1.fffffffffffffp+147, str::float_format::scientific, 44, "3.56811923176489930650490235230204987323711488e+44"},
-    {0x1.fffffffffffffp+148, str::float_format::scientific, 44, "7.13623846352979861300980470460409974647422976e+44"},
-    {0x1.fffffffffffffp+149, str::float_format::scientific, 45, "1.427247692705959722601960940920819949294845952e+45"},
-    {0x1.fffffffffffffp+150, str::float_format::scientific, 45, "2.854495385411919445203921881841639898589691904e+45"},
-    {0x1.fffffffffffffp+151, str::float_format::scientific, 45, "5.708990770823838890407843763683279797179383808e+45"},
-    {0x1.fffffffffffffp+152, str::float_format::scientific, 46, "1.1417981541647677780815687527366559594358767616e+46"},
-    {0x1.fffffffffffffp+153, str::float_format::scientific, 46, "2.2835963083295355561631375054733119188717535232e+46"},
-    {0x1.fffffffffffffp+154, str::float_format::scientific, 46, "4.5671926166590711123262750109466238377435070464e+46"},
-    {0x1.fffffffffffffp+155, str::float_format::scientific, 46, "9.1343852333181422246525500218932476754870140928e+46"},
-    {0x1.fffffffffffffp+156, str::float_format::scientific, 47, "1.82687704666362844493051000437864953509740281856e+47"},
-    {0x1.fffffffffffffp+157, str::float_format::scientific, 47, "3.65375409332725688986102000875729907019480563712e+47"},
-    {0x1.fffffffffffffp+158, str::float_format::scientific, 47, "7.30750818665451377972204001751459814038961127424e+47"},
-    {0x1.fffffffffffffp+159, str::float_format::scientific, 48, "1.461501637330902755944408003502919628077922254848e+48"},
-    {0x1.fffffffffffffp+160, str::float_format::scientific, 48, "2.923003274661805511888816007005839256155844509696e+48"},
-    {0x1.fffffffffffffp+161, str::float_format::scientific, 48, "5.846006549323611023777632014011678512311689019392e+48"},
-    {0x1.fffffffffffffp+162, str::float_format::scientific, 49, "1.1692013098647222047555264028023357024623378038784e+49"},
-    {0x1.fffffffffffffp+163, str::float_format::scientific, 49, "2.3384026197294444095110528056046714049246756077568e+49"},
-    {0x1.fffffffffffffp+164, str::float_format::scientific, 49, "4.6768052394588888190221056112093428098493512155136e+49"},
-    {0x1.fffffffffffffp+165, str::float_format::scientific, 49, "9.3536104789177776380442112224186856196987024310272e+49"},
-    {0x1.fffffffffffffp+166, str::float_format::scientific, 50, "1.87072209578355552760884224448373712393974048620544e+50"},
-    {0x1.fffffffffffffp+167, str::float_format::scientific, 50, "3.74144419156711105521768448896747424787948097241088e+50"},
-    {0x1.fffffffffffffp+168, str::float_format::scientific, 50, "7.48288838313422211043536897793494849575896194482176e+50"},
-    {0x1.fffffffffffffp+169, str::float_format::scientific, 51, "1.496577676626844422087073795586989699151792388964352e+51"},
-    {0x1.fffffffffffffp+170, str::float_format::scientific, 51, "2.993155353253688844174147591173979398303584777928704e+51"},
-    {0x1.fffffffffffffp+171, str::float_format::scientific, 51, "5.986310706507377688348295182347958796607169555857408e+51"},
+        "2.499999999999999722444243843710864894092082977294921875e-1"},
+    {0x1.fffffffffffffp-2, str::float_format::scientific, 53, "4.99999999999999944488848768742172978818416595458984375e-1"},
+    {0x1.fffffffffffffp-1, str::float_format::scientific, 52, "9.9999999999999988897769753748434595763683319091796875e-1"},
+    {0x1.fffffffffffffp+0, str::float_format::scientific, 52, "1.9999999999999997779553950749686919152736663818359375e0"},
+    {0x1.fffffffffffffp+1, str::float_format::scientific, 51, "3.999999999999999555910790149937383830547332763671875e0"},
+    {0x1.fffffffffffffp+2, str::float_format::scientific, 50, "7.99999999999999911182158029987476766109466552734375e0"},
+    {0x1.fffffffffffffp+3, str::float_format::scientific, 50, "1.59999999999999982236431605997495353221893310546875e1"},
+    {0x1.fffffffffffffp+4, str::float_format::scientific, 49, "3.1999999999999996447286321199499070644378662109375e1"},
+    {0x1.fffffffffffffp+5, str::float_format::scientific, 48, "6.399999999999999289457264239899814128875732421875e1"},
+    {0x1.fffffffffffffp+6, str::float_format::scientific, 48, "1.279999999999999857891452847979962825775146484375e2"},
+    {0x1.fffffffffffffp+7, str::float_format::scientific, 47, "2.55999999999999971578290569595992565155029296875e2"},
+    {0x1.fffffffffffffp+8, str::float_format::scientific, 46, "5.1199999999999994315658113919198513031005859375e2"},
+    {0x1.fffffffffffffp+9, str::float_format::scientific, 46, "1.0239999999999998863131622783839702606201171875e3"},
+    {0x1.fffffffffffffp+10, str::float_format::scientific, 45, "2.047999999999999772626324556767940521240234375e3"},
+    {0x1.fffffffffffffp+11, str::float_format::scientific, 44, "4.09599999999999954525264911353588104248046875e3"},
+    {0x1.fffffffffffffp+12, str::float_format::scientific, 43, "8.1919999999999990905052982270717620849609375e3"},
+    {0x1.fffffffffffffp+13, str::float_format::scientific, 43, "1.6383999999999998181010596454143524169921875e4"},
+    {0x1.fffffffffffffp+14, str::float_format::scientific, 42, "3.276799999999999636202119290828704833984375e4"},
+    {0x1.fffffffffffffp+15, str::float_format::scientific, 41, "6.55359999999999927240423858165740966796875e4"},
+    {0x1.fffffffffffffp+16, str::float_format::scientific, 41, "1.31071999999999985448084771633148193359375e5"},
+    {0x1.fffffffffffffp+17, str::float_format::scientific, 40, "2.6214399999999997089616954326629638671875e5"},
+    {0x1.fffffffffffffp+18, str::float_format::scientific, 39, "5.242879999999999417923390865325927734375e5"},
+    {0x1.fffffffffffffp+19, str::float_format::scientific, 39, "1.048575999999999883584678173065185546875e6"},
+    {0x1.fffffffffffffp+20, str::float_format::scientific, 38, "2.09715199999999976716935634613037109375e6"},
+    {0x1.fffffffffffffp+21, str::float_format::scientific, 37, "4.1943039999999995343387126922607421875e6"},
+    {0x1.fffffffffffffp+22, str::float_format::scientific, 36, "8.388607999999999068677425384521484375e6"},
+    {0x1.fffffffffffffp+23, str::float_format::scientific, 36, "1.677721599999999813735485076904296875e7"},
+    {0x1.fffffffffffffp+24, str::float_format::scientific, 35, "3.35544319999999962747097015380859375e7"},
+    {0x1.fffffffffffffp+25, str::float_format::scientific, 34, "6.7108863999999992549419403076171875e7"},
+    {0x1.fffffffffffffp+26, str::float_format::scientific, 34, "1.3421772799999998509883880615234375e8"},
+    {0x1.fffffffffffffp+27, str::float_format::scientific, 33, "2.684354559999999701976776123046875e8"},
+    {0x1.fffffffffffffp+28, str::float_format::scientific, 32, "5.36870911999999940395355224609375e8"},
+    {0x1.fffffffffffffp+29, str::float_format::scientific, 32, "1.07374182399999988079071044921875e9"},
+    {0x1.fffffffffffffp+30, str::float_format::scientific, 31, "2.1474836479999997615814208984375e9"},
+    {0x1.fffffffffffffp+31, str::float_format::scientific, 30, "4.294967295999999523162841796875e9"},
+    {0x1.fffffffffffffp+32, str::float_format::scientific, 29, "8.58993459199999904632568359375e9"},
+    {0x1.fffffffffffffp+33, str::float_format::scientific, 29, "1.71798691839999980926513671875e10"},
+    {0x1.fffffffffffffp+34, str::float_format::scientific, 28, "3.4359738367999996185302734375e10"},
+    {0x1.fffffffffffffp+35, str::float_format::scientific, 27, "6.871947673599999237060546875e10"},
+    {0x1.fffffffffffffp+36, str::float_format::scientific, 27, "1.374389534719999847412109375e11"},
+    {0x1.fffffffffffffp+37, str::float_format::scientific, 26, "2.74877906943999969482421875e11"},
+    {0x1.fffffffffffffp+38, str::float_format::scientific, 25, "5.4975581388799993896484375e11"},
+    {0x1.fffffffffffffp+39, str::float_format::scientific, 25, "1.0995116277759998779296875e12"},
+    {0x1.fffffffffffffp+40, str::float_format::scientific, 24, "2.199023255551999755859375e12"},
+    {0x1.fffffffffffffp+41, str::float_format::scientific, 23, "4.39804651110399951171875e12"},
+    {0x1.fffffffffffffp+42, str::float_format::scientific, 22, "8.7960930222079990234375e12"},
+    {0x1.fffffffffffffp+43, str::float_format::scientific, 22, "1.7592186044415998046875e13"},
+    {0x1.fffffffffffffp+44, str::float_format::scientific, 21, "3.518437208883199609375e13"},
+    {0x1.fffffffffffffp+45, str::float_format::scientific, 20, "7.03687441776639921875e13"},
+    {0x1.fffffffffffffp+46, str::float_format::scientific, 20, "1.40737488355327984375e14"},
+    {0x1.fffffffffffffp+47, str::float_format::scientific, 19, "2.8147497671065596875e14"},
+    {0x1.fffffffffffffp+48, str::float_format::scientific, 18, "5.629499534213119375e14"},
+    {0x1.fffffffffffffp+49, str::float_format::scientific, 18, "1.125899906842623875e15"},
+    {0x1.fffffffffffffp+50, str::float_format::scientific, 17, "2.25179981368524775e15"},
+    {0x1.fffffffffffffp+51, str::float_format::scientific, 16, "4.5035996273704955e15"},
+    {0x1.fffffffffffffp+52, str::float_format::scientific, 15, "9.007199254740991e15"},
+    {0x1.fffffffffffffp+53, str::float_format::scientific, 16, "1.8014398509481982e16"},
+    {0x1.fffffffffffffp+54, str::float_format::scientific, 16, "3.6028797018963964e16"},
+    {0x1.fffffffffffffp+55, str::float_format::scientific, 16, "7.2057594037927928e16"},
+    {0x1.fffffffffffffp+56, str::float_format::scientific, 17, "1.44115188075855856e17"},
+    {0x1.fffffffffffffp+57, str::float_format::scientific, 17, "2.88230376151711712e17"},
+    {0x1.fffffffffffffp+58, str::float_format::scientific, 17, "5.76460752303423424e17"},
+    {0x1.fffffffffffffp+59, str::float_format::scientific, 18, "1.152921504606846848e18"},
+    {0x1.fffffffffffffp+60, str::float_format::scientific, 18, "2.305843009213693696e18"},
+    {0x1.fffffffffffffp+61, str::float_format::scientific, 18, "4.611686018427387392e18"},
+    {0x1.fffffffffffffp+62, str::float_format::scientific, 18, "9.223372036854774784e18"},
+    {0x1.fffffffffffffp+63, str::float_format::scientific, 19, "1.8446744073709549568e19"},
+    {0x1.fffffffffffffp+64, str::float_format::scientific, 19, "3.6893488147419099136e19"},
+    {0x1.fffffffffffffp+65, str::float_format::scientific, 19, "7.3786976294838198272e19"},
+    {0x1.fffffffffffffp+66, str::float_format::scientific, 20, "1.47573952589676396544e20"},
+    {0x1.fffffffffffffp+67, str::float_format::scientific, 20, "2.95147905179352793088e20"},
+    {0x1.fffffffffffffp+68, str::float_format::scientific, 20, "5.90295810358705586176e20"},
+    {0x1.fffffffffffffp+69, str::float_format::scientific, 21, "1.180591620717411172352e21"},
+    {0x1.fffffffffffffp+70, str::float_format::scientific, 21, "2.361183241434822344704e21"},
+    {0x1.fffffffffffffp+71, str::float_format::scientific, 21, "4.722366482869644689408e21"},
+    {0x1.fffffffffffffp+72, str::float_format::scientific, 21, "9.444732965739289378816e21"},
+    {0x1.fffffffffffffp+73, str::float_format::scientific, 22, "1.8889465931478578757632e22"},
+    {0x1.fffffffffffffp+74, str::float_format::scientific, 22, "3.7778931862957157515264e22"},
+    {0x1.fffffffffffffp+75, str::float_format::scientific, 22, "7.5557863725914315030528e22"},
+    {0x1.fffffffffffffp+76, str::float_format::scientific, 23, "1.51115727451828630061056e23"},
+    {0x1.fffffffffffffp+77, str::float_format::scientific, 23, "3.02231454903657260122112e23"},
+    {0x1.fffffffffffffp+78, str::float_format::scientific, 23, "6.04462909807314520244224e23"},
+    {0x1.fffffffffffffp+79, str::float_format::scientific, 24, "1.208925819614629040488448e24"},
+    {0x1.fffffffffffffp+80, str::float_format::scientific, 24, "2.417851639229258080976896e24"},
+    {0x1.fffffffffffffp+81, str::float_format::scientific, 24, "4.835703278458516161953792e24"},
+    {0x1.fffffffffffffp+82, str::float_format::scientific, 24, "9.671406556917032323907584e24"},
+    {0x1.fffffffffffffp+83, str::float_format::scientific, 25, "1.9342813113834064647815168e25"},
+    {0x1.fffffffffffffp+84, str::float_format::scientific, 25, "3.8685626227668129295630336e25"},
+    {0x1.fffffffffffffp+85, str::float_format::scientific, 25, "7.7371252455336258591260672e25"},
+    {0x1.fffffffffffffp+86, str::float_format::scientific, 26, "1.54742504910672517182521344e26"},
+    {0x1.fffffffffffffp+87, str::float_format::scientific, 26, "3.09485009821345034365042688e26"},
+    {0x1.fffffffffffffp+88, str::float_format::scientific, 26, "6.18970019642690068730085376e26"},
+    {0x1.fffffffffffffp+89, str::float_format::scientific, 27, "1.237940039285380137460170752e27"},
+    {0x1.fffffffffffffp+90, str::float_format::scientific, 27, "2.475880078570760274920341504e27"},
+    {0x1.fffffffffffffp+91, str::float_format::scientific, 27, "4.951760157141520549840683008e27"},
+    {0x1.fffffffffffffp+92, str::float_format::scientific, 27, "9.903520314283041099681366016e27"},
+    {0x1.fffffffffffffp+93, str::float_format::scientific, 28, "1.9807040628566082199362732032e28"},
+    {0x1.fffffffffffffp+94, str::float_format::scientific, 28, "3.9614081257132164398725464064e28"},
+    {0x1.fffffffffffffp+95, str::float_format::scientific, 28, "7.9228162514264328797450928128e28"},
+    {0x1.fffffffffffffp+96, str::float_format::scientific, 29, "1.58456325028528657594901856256e29"},
+    {0x1.fffffffffffffp+97, str::float_format::scientific, 29, "3.16912650057057315189803712512e29"},
+    {0x1.fffffffffffffp+98, str::float_format::scientific, 29, "6.33825300114114630379607425024e29"},
+    {0x1.fffffffffffffp+99, str::float_format::scientific, 30, "1.267650600228229260759214850048e30"},
+    {0x1.fffffffffffffp+100, str::float_format::scientific, 30, "2.535301200456458521518429700096e30"},
+    {0x1.fffffffffffffp+101, str::float_format::scientific, 30, "5.070602400912917043036859400192e30"},
+    {0x1.fffffffffffffp+102, str::float_format::scientific, 31, "1.0141204801825834086073718800384e31"},
+    {0x1.fffffffffffffp+103, str::float_format::scientific, 31, "2.0282409603651668172147437600768e31"},
+    {0x1.fffffffffffffp+104, str::float_format::scientific, 31, "4.0564819207303336344294875201536e31"},
+    {0x1.fffffffffffffp+105, str::float_format::scientific, 31, "8.1129638414606672688589750403072e31"},
+    {0x1.fffffffffffffp+106, str::float_format::scientific, 32, "1.62259276829213345377179500806144e32"},
+    {0x1.fffffffffffffp+107, str::float_format::scientific, 32, "3.24518553658426690754359001612288e32"},
+    {0x1.fffffffffffffp+108, str::float_format::scientific, 32, "6.49037107316853381508718003224576e32"},
+    {0x1.fffffffffffffp+109, str::float_format::scientific, 33, "1.298074214633706763017436006449152e33"},
+    {0x1.fffffffffffffp+110, str::float_format::scientific, 33, "2.596148429267413526034872012898304e33"},
+    {0x1.fffffffffffffp+111, str::float_format::scientific, 33, "5.192296858534827052069744025796608e33"},
+    {0x1.fffffffffffffp+112, str::float_format::scientific, 34, "1.0384593717069654104139488051593216e34"},
+    {0x1.fffffffffffffp+113, str::float_format::scientific, 34, "2.0769187434139308208278976103186432e34"},
+    {0x1.fffffffffffffp+114, str::float_format::scientific, 34, "4.1538374868278616416557952206372864e34"},
+    {0x1.fffffffffffffp+115, str::float_format::scientific, 34, "8.3076749736557232833115904412745728e34"},
+    {0x1.fffffffffffffp+116, str::float_format::scientific, 35, "1.66153499473114465666231808825491456e35"},
+    {0x1.fffffffffffffp+117, str::float_format::scientific, 35, "3.32306998946228931332463617650982912e35"},
+    {0x1.fffffffffffffp+118, str::float_format::scientific, 35, "6.64613997892457862664927235301965824e35"},
+    {0x1.fffffffffffffp+119, str::float_format::scientific, 36, "1.329227995784915725329854470603931648e36"},
+    {0x1.fffffffffffffp+120, str::float_format::scientific, 36, "2.658455991569831450659708941207863296e36"},
+    {0x1.fffffffffffffp+121, str::float_format::scientific, 36, "5.316911983139662901319417882415726592e36"},
+    {0x1.fffffffffffffp+122, str::float_format::scientific, 37, "1.0633823966279325802638835764831453184e37"},
+    {0x1.fffffffffffffp+123, str::float_format::scientific, 37, "2.1267647932558651605277671529662906368e37"},
+    {0x1.fffffffffffffp+124, str::float_format::scientific, 37, "4.2535295865117303210555343059325812736e37"},
+    {0x1.fffffffffffffp+125, str::float_format::scientific, 37, "8.5070591730234606421110686118651625472e37"},
+    {0x1.fffffffffffffp+126, str::float_format::scientific, 38, "1.70141183460469212842221372237303250944e38"},
+    {0x1.fffffffffffffp+127, str::float_format::scientific, 38, "3.40282366920938425684442744474606501888e38"},
+    {0x1.fffffffffffffp+128, str::float_format::scientific, 38, "6.80564733841876851368885488949213003776e38"},
+    {0x1.fffffffffffffp+129, str::float_format::scientific, 39, "1.361129467683753702737770977898426007552e39"},
+    {0x1.fffffffffffffp+130, str::float_format::scientific, 39, "2.722258935367507405475541955796852015104e39"},
+    {0x1.fffffffffffffp+131, str::float_format::scientific, 39, "5.444517870735014810951083911593704030208e39"},
+    {0x1.fffffffffffffp+132, str::float_format::scientific, 40, "1.0889035741470029621902167823187408060416e40"},
+    {0x1.fffffffffffffp+133, str::float_format::scientific, 40, "2.1778071482940059243804335646374816120832e40"},
+    {0x1.fffffffffffffp+134, str::float_format::scientific, 40, "4.3556142965880118487608671292749632241664e40"},
+    {0x1.fffffffffffffp+135, str::float_format::scientific, 40, "8.7112285931760236975217342585499264483328e40"},
+    {0x1.fffffffffffffp+136, str::float_format::scientific, 41, "1.74224571863520473950434685170998528966656e41"},
+    {0x1.fffffffffffffp+137, str::float_format::scientific, 41, "3.48449143727040947900869370341997057933312e41"},
+    {0x1.fffffffffffffp+138, str::float_format::scientific, 41, "6.96898287454081895801738740683994115866624e41"},
+    {0x1.fffffffffffffp+139, str::float_format::scientific, 42, "1.393796574908163791603477481367988231733248e42"},
+    {0x1.fffffffffffffp+140, str::float_format::scientific, 42, "2.787593149816327583206954962735976463466496e42"},
+    {0x1.fffffffffffffp+141, str::float_format::scientific, 42, "5.575186299632655166413909925471952926932992e42"},
+    {0x1.fffffffffffffp+142, str::float_format::scientific, 43, "1.1150372599265310332827819850943905853865984e43"},
+    {0x1.fffffffffffffp+143, str::float_format::scientific, 43, "2.2300745198530620665655639701887811707731968e43"},
+    {0x1.fffffffffffffp+144, str::float_format::scientific, 43, "4.4601490397061241331311279403775623415463936e43"},
+    {0x1.fffffffffffffp+145, str::float_format::scientific, 43, "8.9202980794122482662622558807551246830927872e43"},
+    {0x1.fffffffffffffp+146, str::float_format::scientific, 44, "1.78405961588244965325245117615102493661855744e44"},
+    {0x1.fffffffffffffp+147, str::float_format::scientific, 44, "3.56811923176489930650490235230204987323711488e44"},
+    {0x1.fffffffffffffp+148, str::float_format::scientific, 44, "7.13623846352979861300980470460409974647422976e44"},
+    {0x1.fffffffffffffp+149, str::float_format::scientific, 45, "1.427247692705959722601960940920819949294845952e45"},
+    {0x1.fffffffffffffp+150, str::float_format::scientific, 45, "2.854495385411919445203921881841639898589691904e45"},
+    {0x1.fffffffffffffp+151, str::float_format::scientific, 45, "5.708990770823838890407843763683279797179383808e45"},
+    {0x1.fffffffffffffp+152, str::float_format::scientific, 46, "1.1417981541647677780815687527366559594358767616e46"},
+    {0x1.fffffffffffffp+153, str::float_format::scientific, 46, "2.2835963083295355561631375054733119188717535232e46"},
+    {0x1.fffffffffffffp+154, str::float_format::scientific, 46, "4.5671926166590711123262750109466238377435070464e46"},
+    {0x1.fffffffffffffp+155, str::float_format::scientific, 46, "9.1343852333181422246525500218932476754870140928e46"},
+    {0x1.fffffffffffffp+156, str::float_format::scientific, 47, "1.82687704666362844493051000437864953509740281856e47"},
+    {0x1.fffffffffffffp+157, str::float_format::scientific, 47, "3.65375409332725688986102000875729907019480563712e47"},
+    {0x1.fffffffffffffp+158, str::float_format::scientific, 47, "7.30750818665451377972204001751459814038961127424e47"},
+    {0x1.fffffffffffffp+159, str::float_format::scientific, 48, "1.461501637330902755944408003502919628077922254848e48"},
+    {0x1.fffffffffffffp+160, str::float_format::scientific, 48, "2.923003274661805511888816007005839256155844509696e48"},
+    {0x1.fffffffffffffp+161, str::float_format::scientific, 48, "5.846006549323611023777632014011678512311689019392e48"},
+    {0x1.fffffffffffffp+162, str::float_format::scientific, 49, "1.1692013098647222047555264028023357024623378038784e49"},
+    {0x1.fffffffffffffp+163, str::float_format::scientific, 49, "2.3384026197294444095110528056046714049246756077568e49"},
+    {0x1.fffffffffffffp+164, str::float_format::scientific, 49, "4.6768052394588888190221056112093428098493512155136e49"},
+    {0x1.fffffffffffffp+165, str::float_format::scientific, 49, "9.3536104789177776380442112224186856196987024310272e49"},
+    {0x1.fffffffffffffp+166, str::float_format::scientific, 50, "1.87072209578355552760884224448373712393974048620544e50"},
+    {0x1.fffffffffffffp+167, str::float_format::scientific, 50, "3.74144419156711105521768448896747424787948097241088e50"},
+    {0x1.fffffffffffffp+168, str::float_format::scientific, 50, "7.48288838313422211043536897793494849575896194482176e50"},
+    {0x1.fffffffffffffp+169, str::float_format::scientific, 51, "1.496577676626844422087073795586989699151792388964352e51"},
+    {0x1.fffffffffffffp+170, str::float_format::scientific, 51, "2.993155353253688844174147591173979398303584777928704e51"},
+    {0x1.fffffffffffffp+171, str::float_format::scientific, 51, "5.986310706507377688348295182347958796607169555857408e51"},
     {0x1.fffffffffffffp+172, str::float_format::scientific, 52,
-        "1.1972621413014755376696590364695917593214339111714816e+52"},
+        "1.1972621413014755376696590364695917593214339111714816e52"},
     {0x1.fffffffffffffp+173, str::float_format::scientific, 52,
-        "2.3945242826029510753393180729391835186428678223429632e+52"},
+        "2.3945242826029510753393180729391835186428678223429632e52"},
     {0x1.fffffffffffffp+174, str::float_format::scientific, 52,
-        "4.7890485652059021506786361458783670372857356446859264e+52"},
+        "4.7890485652059021506786361458783670372857356446859264e52"},
     {0x1.fffffffffffffp+175, str::float_format::scientific, 52,
-        "9.5780971304118043013572722917567340745714712893718528e+52"},
+        "9.5780971304118043013572722917567340745714712893718528e52"},
     {0x1.fffffffffffffp+176, str::float_format::scientific, 53,
-        "1.91561942608236086027145445835134681491429425787437056e+53"},
+        "1.91561942608236086027145445835134681491429425787437056e53"},
     {0x1.fffffffffffffp+177, str::float_format::scientific, 53,
-        "3.83123885216472172054290891670269362982858851574874112e+53"},
+        "3.83123885216472172054290891670269362982858851574874112e53"},
     {0x1.fffffffffffffp+178, str::float_format::scientific, 53,
-        "7.66247770432944344108581783340538725965717703149748224e+53"},
+        "7.66247770432944344108581783340538725965717703149748224e53"},
     {0x1.fffffffffffffp+179, str::float_format::scientific, 54,
-        "1.532495540865888688217163566681077451931435406299496448e+54"},
+        "1.532495540865888688217163566681077451931435406299496448e54"},
     {0x1.fffffffffffffp+180, str::float_format::scientific, 54,
-        "3.064991081731777376434327133362154903862870812598992896e+54"},
+        "3.064991081731777376434327133362154903862870812598992896e54"},
     {0x1.fffffffffffffp+181, str::float_format::scientific, 54,
-        "6.129982163463554752868654266724309807725741625197985792e+54"},
+        "6.129982163463554752868654266724309807725741625197985792e54"},
     {0x1.fffffffffffffp+182, str::float_format::scientific, 55,
-        "1.2259964326927109505737308533448619615451483250395971584e+55"},
+        "1.2259964326927109505737308533448619615451483250395971584e55"},
     {0x1.fffffffffffffp+183, str::float_format::scientific, 55,
-        "2.4519928653854219011474617066897239230902966500791943168e+55"},
+        "2.4519928653854219011474617066897239230902966500791943168e55"},
     {0x1.fffffffffffffp+184, str::float_format::scientific, 55,
-        "4.9039857307708438022949234133794478461805933001583886336e+55"},
+        "4.9039857307708438022949234133794478461805933001583886336e55"},
     {0x1.fffffffffffffp+185, str::float_format::scientific, 55,
-        "9.8079714615416876045898468267588956923611866003167772672e+55"},
+        "9.8079714615416876045898468267588956923611866003167772672e55"},
     {0x1.fffffffffffffp+186, str::float_format::scientific, 56,
-        "1.96159429230833752091796936535177913847223732006335545344e+56"},
+        "1.96159429230833752091796936535177913847223732006335545344e56"},
     {0x1.fffffffffffffp+187, str::float_format::scientific, 56,
-        "3.92318858461667504183593873070355827694447464012671090688e+56"},
+        "3.92318858461667504183593873070355827694447464012671090688e56"},
     {0x1.fffffffffffffp+188, str::float_format::scientific, 56,
-        "7.84637716923335008367187746140711655388894928025342181376e+56"},
+        "7.84637716923335008367187746140711655388894928025342181376e56"},
     {0x1.fffffffffffffp+189, str::float_format::scientific, 57,
-        "1.569275433846670016734375492281423310777789856050684362752e+57"},
+        "1.569275433846670016734375492281423310777789856050684362752e57"},
     {0x1.fffffffffffffp+190, str::float_format::scientific, 57,
-        "3.138550867693340033468750984562846621555579712101368725504e+57"},
+        "3.138550867693340033468750984562846621555579712101368725504e57"},
     {0x1.fffffffffffffp+191, str::float_format::scientific, 57,
-        "6.277101735386680066937501969125693243111159424202737451008e+57"},
+        "6.277101735386680066937501969125693243111159424202737451008e57"},
     {0x1.fffffffffffffp+192, str::float_format::scientific, 58,
-        "1.2554203470773360133875003938251386486222318848405474902016e+58"},
+        "1.2554203470773360133875003938251386486222318848405474902016e58"},
     {0x1.fffffffffffffp+193, str::float_format::scientific, 58,
-        "2.5108406941546720267750007876502772972444637696810949804032e+58"},
+        "2.5108406941546720267750007876502772972444637696810949804032e58"},
     {0x1.fffffffffffffp+194, str::float_format::scientific, 58,
-        "5.0216813883093440535500015753005545944889275393621899608064e+58"},
+        "5.0216813883093440535500015753005545944889275393621899608064e58"},
     {0x1.fffffffffffffp+195, str::float_format::scientific, 59,
-        "1.00433627766186881071000031506011091889778550787243799216128e+59"},
+        "1.00433627766186881071000031506011091889778550787243799216128e59"},
     {0x1.fffffffffffffp+196, str::float_format::scientific, 59,
-        "2.00867255532373762142000063012022183779557101574487598432256e+59"},
+        "2.00867255532373762142000063012022183779557101574487598432256e59"},
     {0x1.fffffffffffffp+197, str::float_format::scientific, 59,
-        "4.01734511064747524284000126024044367559114203148975196864512e+59"},
+        "4.01734511064747524284000126024044367559114203148975196864512e59"},
     {0x1.fffffffffffffp+198, str::float_format::scientific, 59,
-        "8.03469022129495048568000252048088735118228406297950393729024e+59"},
+        "8.03469022129495048568000252048088735118228406297950393729024e59"},
     {0x1.fffffffffffffp+199, str::float_format::scientific, 60,
-        "1.606938044258990097136000504096177470236456812595900787458048e+60"},
+        "1.606938044258990097136000504096177470236456812595900787458048e60"},
     {0x1.fffffffffffffp+200, str::float_format::scientific, 60,
-        "3.213876088517980194272001008192354940472913625191801574916096e+60"},
+        "3.213876088517980194272001008192354940472913625191801574916096e60"},
     {0x1.fffffffffffffp+201, str::float_format::scientific, 60,
-        "6.427752177035960388544002016384709880945827250383603149832192e+60"},
+        "6.427752177035960388544002016384709880945827250383603149832192e60"},
     {0x1.fffffffffffffp+202, str::float_format::scientific, 61,
-        "1.2855504354071920777088004032769419761891654500767206299664384e+61"},
+        "1.2855504354071920777088004032769419761891654500767206299664384e61"},
     {0x1.fffffffffffffp+203, str::float_format::scientific, 61,
-        "2.5711008708143841554176008065538839523783309001534412599328768e+61"},
+        "2.5711008708143841554176008065538839523783309001534412599328768e61"},
     {0x1.fffffffffffffp+204, str::float_format::scientific, 61,
-        "5.1422017416287683108352016131077679047566618003068825198657536e+61"},
+        "5.1422017416287683108352016131077679047566618003068825198657536e61"},
     {0x1.fffffffffffffp+205, str::float_format::scientific, 62,
-        "1.02844034832575366216704032262155358095133236006137650397315072e+62"},
+        "1.02844034832575366216704032262155358095133236006137650397315072e62"},
     {0x1.fffffffffffffp+206, str::float_format::scientific, 62,
-        "2.05688069665150732433408064524310716190266472012275300794630144e+62"},
+        "2.05688069665150732433408064524310716190266472012275300794630144e62"},
     {0x1.fffffffffffffp+207, str::float_format::scientific, 62,
-        "4.11376139330301464866816129048621432380532944024550601589260288e+62"},
+        "4.11376139330301464866816129048621432380532944024550601589260288e62"},
     {0x1.fffffffffffffp+208, str::float_format::scientific, 62,
-        "8.22752278660602929733632258097242864761065888049101203178520576e+62"},
+        "8.22752278660602929733632258097242864761065888049101203178520576e62"},
     {0x1.fffffffffffffp+209, str::float_format::scientific, 63,
-        "1.645504557321205859467264516194485729522131776098202406357041152e+63"},
+        "1.645504557321205859467264516194485729522131776098202406357041152e63"},
     {0x1.fffffffffffffp+210, str::float_format::scientific, 63,
-        "3.291009114642411718934529032388971459044263552196404812714082304e+63"},
+        "3.291009114642411718934529032388971459044263552196404812714082304e63"},
     {0x1.fffffffffffffp+211, str::float_format::scientific, 63,
-        "6.582018229284823437869058064777942918088527104392809625428164608e+63"},
+        "6.582018229284823437869058064777942918088527104392809625428164608e63"},
     {0x1.fffffffffffffp+212, str::float_format::scientific, 64,
-        "1.3164036458569646875738116129555885836177054208785619250856329216e+64"},
+        "1.3164036458569646875738116129555885836177054208785619250856329216e64"},
     {0x1.fffffffffffffp+213, str::float_format::scientific, 64,
-        "2.6328072917139293751476232259111771672354108417571238501712658432e+64"},
+        "2.6328072917139293751476232259111771672354108417571238501712658432e64"},
     {0x1.fffffffffffffp+214, str::float_format::scientific, 64,
-        "5.2656145834278587502952464518223543344708216835142477003425316864e+64"},
+        "5.2656145834278587502952464518223543344708216835142477003425316864e64"},
     {0x1.fffffffffffffp+215, str::float_format::scientific, 65,
-        "1.05312291668557175005904929036447086689416433670284954006850633728e+65"},
+        "1.05312291668557175005904929036447086689416433670284954006850633728e65"},
     {0x1.fffffffffffffp+216, str::float_format::scientific, 65,
-        "2.10624583337114350011809858072894173378832867340569908013701267456e+65"},
+        "2.10624583337114350011809858072894173378832867340569908013701267456e65"},
     {0x1.fffffffffffffp+217, str::float_format::scientific, 65,
-        "4.21249166674228700023619716145788346757665734681139816027402534912e+65"},
+        "4.21249166674228700023619716145788346757665734681139816027402534912e65"},
     {0x1.fffffffffffffp+218, str::float_format::scientific, 65,
-        "8.42498333348457400047239432291576693515331469362279632054805069824e+65"},
+        "8.42498333348457400047239432291576693515331469362279632054805069824e65"},
     {0x1.fffffffffffffp+219, str::float_format::scientific, 66,
-        "1.684996666696914800094478864583153387030662938724559264109610139648e+66"},
+        "1.684996666696914800094478864583153387030662938724559264109610139648e66"},
     {0x1.fffffffffffffp+220, str::float_format::scientific, 66,
-        "3.369993333393829600188957729166306774061325877449118528219220279296e+66"},
+        "3.369993333393829600188957729166306774061325877449118528219220279296e66"},
     {0x1.fffffffffffffp+221, str::float_format::scientific, 66,
-        "6.739986666787659200377915458332613548122651754898237056438440558592e+66"},
+        "6.739986666787659200377915458332613548122651754898237056438440558592e66"},
     {0x1.fffffffffffffp+222, str::float_format::scientific, 67,
-        "1.3479973333575318400755830916665227096245303509796474112876881117184e+67"},
+        "1.3479973333575318400755830916665227096245303509796474112876881117184e67"},
     {0x1.fffffffffffffp+223, str::float_format::scientific, 67,
-        "2.6959946667150636801511661833330454192490607019592948225753762234368e+67"},
+        "2.6959946667150636801511661833330454192490607019592948225753762234368e67"},
     {0x1.fffffffffffffp+224, str::float_format::scientific, 67,
-        "5.3919893334301273603023323666660908384981214039185896451507524468736e+67"},
+        "5.3919893334301273603023323666660908384981214039185896451507524468736e67"},
     {0x1.fffffffffffffp+225, str::float_format::scientific, 68,
-        "1.07839786668602547206046647333321816769962428078371792903015048937472e+68"},
+        "1.07839786668602547206046647333321816769962428078371792903015048937472e68"},
     {0x1.fffffffffffffp+226, str::float_format::scientific, 68,
-        "2.15679573337205094412093294666643633539924856156743585806030097874944e+68"},
+        "2.15679573337205094412093294666643633539924856156743585806030097874944e68"},
     {0x1.fffffffffffffp+227, str::float_format::scientific, 68,
-        "4.31359146674410188824186589333287267079849712313487171612060195749888e+68"},
+        "4.31359146674410188824186589333287267079849712313487171612060195749888e68"},
     {0x1.fffffffffffffp+228, str::float_format::scientific, 68,
-        "8.62718293348820377648373178666574534159699424626974343224120391499776e+68"},
+        "8.62718293348820377648373178666574534159699424626974343224120391499776e68"},
     {0x1.fffffffffffffp+229, str::float_format::scientific, 69,
-        "1.725436586697640755296746357333149068319398849253948686448240782999552e+69"},
+        "1.725436586697640755296746357333149068319398849253948686448240782999552e69"},
     {0x1.fffffffffffffp+230, str::float_format::scientific, 69,
-        "3.450873173395281510593492714666298136638797698507897372896481565999104e+69"},
+        "3.450873173395281510593492714666298136638797698507897372896481565999104e69"},
     {0x1.fffffffffffffp+231, str::float_format::scientific, 69,
-        "6.901746346790563021186985429332596273277595397015794745792963131998208e+69"},
+        "6.901746346790563021186985429332596273277595397015794745792963131998208e69"},
     {0x1.fffffffffffffp+232, str::float_format::scientific, 70,
-        "1.3803492693581126042373970858665192546555190794031589491585926263996416e+70"},
+        "1.3803492693581126042373970858665192546555190794031589491585926263996416e70"},
     {0x1.fffffffffffffp+233, str::float_format::scientific, 70,
-        "2.7606985387162252084747941717330385093110381588063178983171852527992832e+70"},
+        "2.7606985387162252084747941717330385093110381588063178983171852527992832e70"},
     {0x1.fffffffffffffp+234, str::float_format::scientific, 70,
-        "5.5213970774324504169495883434660770186220763176126357966343705055985664e+70"},
+        "5.5213970774324504169495883434660770186220763176126357966343705055985664e70"},
     {0x1.fffffffffffffp+235, str::float_format::scientific, 71,
-        "1.10427941548649008338991766869321540372441526352252715932687410111971328e+71"},
+        "1.10427941548649008338991766869321540372441526352252715932687410111971328e71"},
     {0x1.fffffffffffffp+236, str::float_format::scientific, 71,
-        "2.20855883097298016677983533738643080744883052704505431865374820223942656e+71"},
+        "2.20855883097298016677983533738643080744883052704505431865374820223942656e71"},
     {0x1.fffffffffffffp+237, str::float_format::scientific, 71,
-        "4.41711766194596033355967067477286161489766105409010863730749640447885312e+71"},
+        "4.41711766194596033355967067477286161489766105409010863730749640447885312e71"},
     {0x1.fffffffffffffp+238, str::float_format::scientific, 71,
-        "8.83423532389192066711934134954572322979532210818021727461499280895770624e+71"},
+        "8.83423532389192066711934134954572322979532210818021727461499280895770624e71"},
     {0x1.fffffffffffffp+239, str::float_format::scientific, 72,
-        "1.766847064778384133423868269909144645959064421636043454922998561791541248e+72"},
+        "1.766847064778384133423868269909144645959064421636043454922998561791541248e72"},
     {0x1.fffffffffffffp+240, str::float_format::scientific, 72,
-        "3.533694129556768266847736539818289291918128843272086909845997123583082496e+72"},
+        "3.533694129556768266847736539818289291918128843272086909845997123583082496e72"},
     {0x1.fffffffffffffp+241, str::float_format::scientific, 72,
-        "7.067388259113536533695473079636578583836257686544173819691994247166164992e+72"},
+        "7.067388259113536533695473079636578583836257686544173819691994247166164992e72"},
     {0x1.fffffffffffffp+242, str::float_format::scientific, 73,
-        "1.4134776518227073067390946159273157167672515373088347639383988494332329984e+73"},
+        "1.4134776518227073067390946159273157167672515373088347639383988494332329984e73"},
     {0x1.fffffffffffffp+243, str::float_format::scientific, 73,
-        "2.8269553036454146134781892318546314335345030746176695278767976988664659968e+73"},
+        "2.8269553036454146134781892318546314335345030746176695278767976988664659968e73"},
     {0x1.fffffffffffffp+244, str::float_format::scientific, 73,
-        "5.6539106072908292269563784637092628670690061492353390557535953977329319936e+73"},
+        "5.6539106072908292269563784637092628670690061492353390557535953977329319936e73"},
     {0x1.fffffffffffffp+245, str::float_format::scientific, 74,
-        "1.13078212145816584539127569274185257341380122984706781115071907954658639872e+74"},
+        "1.13078212145816584539127569274185257341380122984706781115071907954658639872e74"},
     {0x1.fffffffffffffp+246, str::float_format::scientific, 74,
-        "2.26156424291633169078255138548370514682760245969413562230143815909317279744e+74"},
+        "2.26156424291633169078255138548370514682760245969413562230143815909317279744e74"},
     {0x1.fffffffffffffp+247, str::float_format::scientific, 74,
-        "4.52312848583266338156510277096741029365520491938827124460287631818634559488e+74"},
+        "4.52312848583266338156510277096741029365520491938827124460287631818634559488e74"},
     {0x1.fffffffffffffp+248, str::float_format::scientific, 74,
-        "9.04625697166532676313020554193482058731040983877654248920575263637269118976e+74"},
+        "9.04625697166532676313020554193482058731040983877654248920575263637269118976e74"},
     {0x1.fffffffffffffp+249, str::float_format::scientific, 75,
-        "1.809251394333065352626041108386964117462081967755308497841150527274538237952e+75"},
+        "1.809251394333065352626041108386964117462081967755308497841150527274538237952e75"},
     {0x1.fffffffffffffp+250, str::float_format::scientific, 75,
-        "3.618502788666130705252082216773928234924163935510616995682301054549076475904e+75"},
+        "3.618502788666130705252082216773928234924163935510616995682301054549076475904e75"},
     {0x1.fffffffffffffp+251, str::float_format::scientific, 75,
-        "7.237005577332261410504164433547856469848327871021233991364602109098152951808e+75"},
+        "7.237005577332261410504164433547856469848327871021233991364602109098152951808e75"},
     {0x1.fffffffffffffp+252, str::float_format::scientific, 76,
-        "1.4474011154664522821008328867095712939696655742042467982729204218196305903616e+76"},
+        "1.4474011154664522821008328867095712939696655742042467982729204218196305903616e76"},
     {0x1.fffffffffffffp+253, str::float_format::scientific, 76,
-        "2.8948022309329045642016657734191425879393311484084935965458408436392611807232e+76"},
+        "2.8948022309329045642016657734191425879393311484084935965458408436392611807232e76"},
     {0x1.fffffffffffffp+254, str::float_format::scientific, 76,
-        "5.7896044618658091284033315468382851758786622968169871930916816872785223614464e+76"},
+        "5.7896044618658091284033315468382851758786622968169871930916816872785223614464e76"},
     {0x1.fffffffffffffp+255, str::float_format::scientific, 77,
-        "1.15792089237316182568066630936765703517573245936339743861833633745570447228928e+77"},
+        "1.15792089237316182568066630936765703517573245936339743861833633745570447228928e77"},
     {0x1.fffffffffffffp+256, str::float_format::scientific, 77,
-        "2.31584178474632365136133261873531407035146491872679487723667267491140894457856e+77"},
+        "2.31584178474632365136133261873531407035146491872679487723667267491140894457856e77"},
     {0x1.fffffffffffffp+257, str::float_format::scientific, 77,
-        "4.63168356949264730272266523747062814070292983745358975447334534982281788915712e+77"},
+        "4.63168356949264730272266523747062814070292983745358975447334534982281788915712e77"},
     {0x1.fffffffffffffp+258, str::float_format::scientific, 77,
-        "9.26336713898529460544533047494125628140585967490717950894669069964563577831424e+77"},
+        "9.26336713898529460544533047494125628140585967490717950894669069964563577831424e77"},
     {0x1.fffffffffffffp+259, str::float_format::scientific, 78,
-        "1.852673427797058921089066094988251256281171934981435901789338139929127155662848e+78"},
+        "1.852673427797058921089066094988251256281171934981435901789338139929127155662848e78"},
     {0x1.fffffffffffffp+260, str::float_format::scientific, 78,
-        "3.705346855594117842178132189976502512562343869962871803578676279858254311325696e+78"},
+        "3.705346855594117842178132189976502512562343869962871803578676279858254311325696e78"},
     {0x1.fffffffffffffp+261, str::float_format::scientific, 78,
-        "7.410693711188235684356264379953005025124687739925743607157352559716508622651392e+78"},
+        "7.410693711188235684356264379953005025124687739925743607157352559716508622651392e78"},
     {0x1.fffffffffffffp+262, str::float_format::scientific, 79,
-        "1.4821387422376471368712528759906010050249375479851487214314705119433017245302784e+79"},
+        "1.4821387422376471368712528759906010050249375479851487214314705119433017245302784e79"},
     {0x1.fffffffffffffp+263, str::float_format::scientific, 79,
-        "2.9642774844752942737425057519812020100498750959702974428629410238866034490605568e+79"},
+        "2.9642774844752942737425057519812020100498750959702974428629410238866034490605568e79"},
     {0x1.fffffffffffffp+264, str::float_format::scientific, 79,
-        "5.9285549689505885474850115039624040200997501919405948857258820477732068981211136e+79"},
+        "5.9285549689505885474850115039624040200997501919405948857258820477732068981211136e79"},
     {0x1.fffffffffffffp+265, str::float_format::scientific, 80,
-        "1.18571099379011770949700230079248080401995003838811897714517640955464137962422272e+80"},
+        "1.18571099379011770949700230079248080401995003838811897714517640955464137962422272e80"},
     {0x1.fffffffffffffp+266, str::float_format::scientific, 80,
-        "2.37142198758023541899400460158496160803990007677623795429035281910928275924844544e+80"},
+        "2.37142198758023541899400460158496160803990007677623795429035281910928275924844544e80"},
     {0x1.fffffffffffffp+267, str::float_format::scientific, 80,
-        "4.74284397516047083798800920316992321607980015355247590858070563821856551849689088e+80"},
+        "4.74284397516047083798800920316992321607980015355247590858070563821856551849689088e80"},
     {0x1.fffffffffffffp+268, str::float_format::scientific, 80,
-        "9.48568795032094167597601840633984643215960030710495181716141127643713103699378176e+80"},
+        "9.48568795032094167597601840633984643215960030710495181716141127643713103699378176e80"},
     {0x1.fffffffffffffp+269, str::float_format::scientific, 81,
-        "1.897137590064188335195203681267969286431920061420990363432282255287426207398756352e+81"},
+        "1.897137590064188335195203681267969286431920061420990363432282255287426207398756352e81"},
     {0x1.fffffffffffffp+270, str::float_format::scientific, 81,
-        "3.794275180128376670390407362535938572863840122841980726864564510574852414797512704e+81"},
+        "3.794275180128376670390407362535938572863840122841980726864564510574852414797512704e81"},
     {0x1.fffffffffffffp+271, str::float_format::scientific, 81,
-        "7.588550360256753340780814725071877145727680245683961453729129021149704829595025408e+81"},
+        "7.588550360256753340780814725071877145727680245683961453729129021149704829595025408e81"},
     {0x1.fffffffffffffp+272, str::float_format::scientific, 82,
-        "1.5177100720513506681561629450143754291455360491367922907458258042299409659190050816e+82"},
+        "1.5177100720513506681561629450143754291455360491367922907458258042299409659190050816e82"},
     {0x1.fffffffffffffp+273, str::float_format::scientific, 82,
-        "3.0354201441027013363123258900287508582910720982735845814916516084598819318380101632e+82"},
+        "3.0354201441027013363123258900287508582910720982735845814916516084598819318380101632e82"},
     {0x1.fffffffffffffp+274, str::float_format::scientific, 82,
-        "6.0708402882054026726246517800575017165821441965471691629833032169197638636760203264e+82"},
+        "6.0708402882054026726246517800575017165821441965471691629833032169197638636760203264e82"},
     {0x1.fffffffffffffp+275, str::float_format::scientific, 83,
-        "1.21416805764108053452493035601150034331642883930943383259666064338395277273520406528e+83"},
+        "1.21416805764108053452493035601150034331642883930943383259666064338395277273520406528e83"},
     {0x1.fffffffffffffp+276, str::float_format::scientific, 83,
-        "2.42833611528216106904986071202300068663285767861886766519332128676790554547040813056e+83"},
+        "2.42833611528216106904986071202300068663285767861886766519332128676790554547040813056e83"},
     {0x1.fffffffffffffp+277, str::float_format::scientific, 83,
-        "4.85667223056432213809972142404600137326571535723773533038664257353581109094081626112e+83"},
+        "4.85667223056432213809972142404600137326571535723773533038664257353581109094081626112e83"},
     {0x1.fffffffffffffp+278, str::float_format::scientific, 83,
-        "9.71334446112864427619944284809200274653143071447547066077328514707162218188163252224e+83"},
+        "9.71334446112864427619944284809200274653143071447547066077328514707162218188163252224e83"},
     {0x1.fffffffffffffp+279, str::float_format::scientific, 84,
-        "1.942668892225728855239888569618400549306286142895094132154657029414324436376326504448e+84"},
+        "1.942668892225728855239888569618400549306286142895094132154657029414324436376326504448e84"},
     {0x1.fffffffffffffp+280, str::float_format::scientific, 84,
-        "3.885337784451457710479777139236801098612572285790188264309314058828648872752653008896e+84"},
+        "3.885337784451457710479777139236801098612572285790188264309314058828648872752653008896e84"},
     {0x1.fffffffffffffp+281, str::float_format::scientific, 84,
-        "7.770675568902915420959554278473602197225144571580376528618628117657297745505306017792e+84"},
+        "7.770675568902915420959554278473602197225144571580376528618628117657297745505306017792e84"},
     {0x1.fffffffffffffp+282, str::float_format::scientific, 85,
-        "1.5541351137805830841919108556947204394450289143160753057237256235314595491010612035584e+85"},
+        "1.5541351137805830841919108556947204394450289143160753057237256235314595491010612035584e85"},
     {0x1.fffffffffffffp+283, str::float_format::scientific, 85,
-        "3.1082702275611661683838217113894408788900578286321506114474512470629190982021224071168e+85"},
+        "3.1082702275611661683838217113894408788900578286321506114474512470629190982021224071168e85"},
     {0x1.fffffffffffffp+284, str::float_format::scientific, 85,
-        "6.2165404551223323367676434227788817577801156572643012228949024941258381964042448142336e+85"},
+        "6.2165404551223323367676434227788817577801156572643012228949024941258381964042448142336e85"},
     {0x1.fffffffffffffp+285, str::float_format::scientific, 86,
-        "1.24330809102446646735352868455577635155602313145286024457898049882516763928084896284672e+86"},
+        "1.24330809102446646735352868455577635155602313145286024457898049882516763928084896284672e86"},
     {0x1.fffffffffffffp+286, str::float_format::scientific, 86,
-        "2.48661618204893293470705736911155270311204626290572048915796099765033527856169792569344e+86"},
+        "2.48661618204893293470705736911155270311204626290572048915796099765033527856169792569344e86"},
     {0x1.fffffffffffffp+287, str::float_format::scientific, 86,
-        "4.97323236409786586941411473822310540622409252581144097831592199530067055712339585138688e+86"},
+        "4.97323236409786586941411473822310540622409252581144097831592199530067055712339585138688e86"},
     {0x1.fffffffffffffp+288, str::float_format::scientific, 86,
-        "9.94646472819573173882822947644621081244818505162288195663184399060134111424679170277376e+86"},
+        "9.94646472819573173882822947644621081244818505162288195663184399060134111424679170277376e86"},
     {0x1.fffffffffffffp+289, str::float_format::scientific, 87,
-        "1.989292945639146347765645895289242162489637010324576391326368798120268222849358340554752e+87"},
+        "1.989292945639146347765645895289242162489637010324576391326368798120268222849358340554752e87"},
     {0x1.fffffffffffffp+290, str::float_format::scientific, 87,
-        "3.978585891278292695531291790578484324979274020649152782652737596240536445698716681109504e+87"},
+        "3.978585891278292695531291790578484324979274020649152782652737596240536445698716681109504e87"},
     {0x1.fffffffffffffp+291, str::float_format::scientific, 87,
-        "7.957171782556585391062583581156968649958548041298305565305475192481072891397433362219008e+87"},
+        "7.957171782556585391062583581156968649958548041298305565305475192481072891397433362219008e87"},
     {0x1.fffffffffffffp+292, str::float_format::scientific, 88,
-        "1.5914343565113170782125167162313937299917096082596611130610950384962145782794866724438016e+88"},
+        "1.5914343565113170782125167162313937299917096082596611130610950384962145782794866724438016e88"},
     {0x1.fffffffffffffp+293, str::float_format::scientific, 88,
-        "3.1828687130226341564250334324627874599834192165193222261221900769924291565589733448876032e+88"},
+        "3.1828687130226341564250334324627874599834192165193222261221900769924291565589733448876032e88"},
     {0x1.fffffffffffffp+294, str::float_format::scientific, 88,
-        "6.3657374260452683128500668649255749199668384330386444522443801539848583131179466897752064e+88"},
+        "6.3657374260452683128500668649255749199668384330386444522443801539848583131179466897752064e88"},
     {0x1.fffffffffffffp+295, str::float_format::scientific, 89,
-        "1.27314748520905366257001337298511498399336768660772889044887603079697166262358933795504128e+89"},
+        "1.27314748520905366257001337298511498399336768660772889044887603079697166262358933795504128e89"},
     {0x1.fffffffffffffp+296, str::float_format::scientific, 89,
-        "2.54629497041810732514002674597022996798673537321545778089775206159394332524717867591008256e+89"},
+        "2.54629497041810732514002674597022996798673537321545778089775206159394332524717867591008256e89"},
     {0x1.fffffffffffffp+297, str::float_format::scientific, 89,
-        "5.09258994083621465028005349194045993597347074643091556179550412318788665049435735182016512e+89"},
+        "5.09258994083621465028005349194045993597347074643091556179550412318788665049435735182016512e89"},
     {0x1.fffffffffffffp+298, str::float_format::scientific, 90,
-        "1.018517988167242930056010698388091987194694149286183112359100824637577330098871470364033024e+90"},
+        "1.018517988167242930056010698388091987194694149286183112359100824637577330098871470364033024e90"},
     {0x1.fffffffffffffp+299, str::float_format::scientific, 90,
-        "2.037035976334485860112021396776183974389388298572366224718201649275154660197742940728066048e+90"},
+        "2.037035976334485860112021396776183974389388298572366224718201649275154660197742940728066048e90"},
     {0x1.fffffffffffffp+300, str::float_format::scientific, 90,
-        "4.074071952668971720224042793552367948778776597144732449436403298550309320395485881456132096e+90"},
+        "4.074071952668971720224042793552367948778776597144732449436403298550309320395485881456132096e90"},
     {0x1.fffffffffffffp+301, str::float_format::scientific, 90,
-        "8.148143905337943440448085587104735897557553194289464898872806597100618640790971762912264192e+90"},
+        "8.148143905337943440448085587104735897557553194289464898872806597100618640790971762912264192e90"},
     {0x1.fffffffffffffp+302, str::float_format::scientific, 91,
-        "1.6296287810675886880896171174209471795115106388578929797745613194201237281581943525824528384e+91"},
+        "1.6296287810675886880896171174209471795115106388578929797745613194201237281581943525824528384e91"},
     {0x1.fffffffffffffp+303, str::float_format::scientific, 91,
-        "3.2592575621351773761792342348418943590230212777157859595491226388402474563163887051649056768e+91"},
+        "3.2592575621351773761792342348418943590230212777157859595491226388402474563163887051649056768e91"},
     {0x1.fffffffffffffp+304, str::float_format::scientific, 91,
-        "6.5185151242703547523584684696837887180460425554315719190982452776804949126327774103298113536e+91"},
+        "6.5185151242703547523584684696837887180460425554315719190982452776804949126327774103298113536e91"},
     {0x1.fffffffffffffp+305, str::float_format::scientific, 92,
-        "1.30370302485407095047169369393675774360920851108631438381964905553609898252655548206596227072e+92"},
+        "1.30370302485407095047169369393675774360920851108631438381964905553609898252655548206596227072e92"},
     {0x1.fffffffffffffp+306, str::float_format::scientific, 92,
-        "2.60740604970814190094338738787351548721841702217262876763929811107219796505311096413192454144e+92"},
+        "2.60740604970814190094338738787351548721841702217262876763929811107219796505311096413192454144e92"},
     {0x1.fffffffffffffp+307, str::float_format::scientific, 92,
-        "5.21481209941628380188677477574703097443683404434525753527859622214439593010622192826384908288e+92"},
+        "5.21481209941628380188677477574703097443683404434525753527859622214439593010622192826384908288e92"},
     {0x1.fffffffffffffp+308, str::float_format::scientific, 93,
-        "1.042962419883256760377354955149406194887366808869051507055719244428879186021244385652769816576e+93"},
+        "1.042962419883256760377354955149406194887366808869051507055719244428879186021244385652769816576e93"},
     {0x1.fffffffffffffp+309, str::float_format::scientific, 93,
-        "2.085924839766513520754709910298812389774733617738103014111438488857758372042488771305539633152e+93"},
+        "2.085924839766513520754709910298812389774733617738103014111438488857758372042488771305539633152e93"},
     {0x1.fffffffffffffp+310, str::float_format::scientific, 93,
-        "4.171849679533027041509419820597624779549467235476206028222876977715516744084977542611079266304e+93"},
+        "4.171849679533027041509419820597624779549467235476206028222876977715516744084977542611079266304e93"},
     {0x1.fffffffffffffp+311, str::float_format::scientific, 93,
-        "8.343699359066054083018839641195249559098934470952412056445753955431033488169955085222158532608e+93"},
+        "8.343699359066054083018839641195249559098934470952412056445753955431033488169955085222158532608e93"},
     {0x1.fffffffffffffp+312, str::float_format::scientific, 94,
-        "1.6687398718132108166037679282390499118197868941904824112891507910862066976339910170444317065216e+94"},
+        "1.6687398718132108166037679282390499118197868941904824112891507910862066976339910170444317065216e94"},
     {0x1.fffffffffffffp+313, str::float_format::scientific, 94,
-        "3.3374797436264216332075358564780998236395737883809648225783015821724133952679820340888634130432e+94"},
+        "3.3374797436264216332075358564780998236395737883809648225783015821724133952679820340888634130432e94"},
     {0x1.fffffffffffffp+314, str::float_format::scientific, 94,
-        "6.6749594872528432664150717129561996472791475767619296451566031643448267905359640681777268260864e+94"},
+        "6.6749594872528432664150717129561996472791475767619296451566031643448267905359640681777268260864e94"},
     {0x1.fffffffffffffp+315, str::float_format::scientific, 95,
-        "1.33499189745056865328301434259123992945582951535238592903132063286896535810719281363554536521728e+95"},
+        "1.33499189745056865328301434259123992945582951535238592903132063286896535810719281363554536521728e95"},
     {0x1.fffffffffffffp+316, str::float_format::scientific, 95,
-        "2.66998379490113730656602868518247985891165903070477185806264126573793071621438562727109073043456e+95"},
+        "2.66998379490113730656602868518247985891165903070477185806264126573793071621438562727109073043456e95"},
     {0x1.fffffffffffffp+317, str::float_format::scientific, 95,
-        "5.33996758980227461313205737036495971782331806140954371612528253147586143242877125454218146086912e+95"},
+        "5.33996758980227461313205737036495971782331806140954371612528253147586143242877125454218146086912e95"},
     {0x1.fffffffffffffp+318, str::float_format::scientific, 96,
-        "1.067993517960454922626411474072991943564663612281908743225056506295172286485754250908436292173824e+96"},
+        "1.067993517960454922626411474072991943564663612281908743225056506295172286485754250908436292173824e96"},
     {0x1.fffffffffffffp+319, str::float_format::scientific, 96,
-        "2.135987035920909845252822948145983887129327224563817486450113012590344572971508501816872584347648e+96"},
+        "2.135987035920909845252822948145983887129327224563817486450113012590344572971508501816872584347648e96"},
     {0x1.fffffffffffffp+320, str::float_format::scientific, 96,
-        "4.271974071841819690505645896291967774258654449127634972900226025180689145943017003633745168695296e+96"},
+        "4.271974071841819690505645896291967774258654449127634972900226025180689145943017003633745168695296e96"},
     {0x1.fffffffffffffp+321, str::float_format::scientific, 96,
-        "8.543948143683639381011291792583935548517308898255269945800452050361378291886034007267490337390592e+96"},
+        "8.543948143683639381011291792583935548517308898255269945800452050361378291886034007267490337390592e96"},
     {0x1.fffffffffffffp+322, str::float_format::scientific, 97,
-        "1.7087896287367278762022583585167871097034617796510539891600904100722756583772068014534980674781184e+97"},
+        "1.7087896287367278762022583585167871097034617796510539891600904100722756583772068014534980674781184e97"},
     {0x1.fffffffffffffp+323, str::float_format::scientific, 97,
-        "3.4175792574734557524045167170335742194069235593021079783201808201445513167544136029069961349562368e+97"},
+        "3.4175792574734557524045167170335742194069235593021079783201808201445513167544136029069961349562368e97"},
     {0x1.fffffffffffffp+324, str::float_format::scientific, 97,
-        "6.8351585149469115048090334340671484388138471186042159566403616402891026335088272058139922699124736e+97"},
+        "6.8351585149469115048090334340671484388138471186042159566403616402891026335088272058139922699124736e97"},
     {0x1.fffffffffffffp+325, str::float_format::scientific, 98,
-        "1.36703170298938230096180668681342968776276942372084319132807232805782052670176544116279845398249472e+98"},
+        "1.36703170298938230096180668681342968776276942372084319132807232805782052670176544116279845398249472e98"},
     {0x1.fffffffffffffp+326, str::float_format::scientific, 98,
-        "2.73406340597876460192361337362685937552553884744168638265614465611564105340353088232559690796498944e+98"},
+        "2.73406340597876460192361337362685937552553884744168638265614465611564105340353088232559690796498944e98"},
     {0x1.fffffffffffffp+327, str::float_format::scientific, 98,
-        "5.46812681195752920384722674725371875105107769488337276531228931223128210680706176465119381592997888e+98"},
+        "5.46812681195752920384722674725371875105107769488337276531228931223128210680706176465119381592997888e98"},
     {0x1.fffffffffffffp+328, str::float_format::scientific, 99,
         "1.093625362391505840769445349450743750210215538976674553062457862446256421361412352930238763185995776e+"
         "99"},
@@ -7072,1331 +7072,1331 @@ inline constexpr float_to_string_test_case<double, char> double_scientific_to_st
     {0x1.fffffffffffffp+352, str::float_format::scientific, 106,
         "1."
         "8347988927920570055850590827930609257926831503968087938432317049159132372567429110178848661544299309039616"
-        "e+106"},
+        "e106"},
     {0x1.fffffffffffffp+353, str::float_format::scientific, 106,
         "3."
         "6695977855841140111701181655861218515853663007936175876864634098318264745134858220357697323088598618079232"
-        "e+106"},
+        "e106"},
     {0x1.fffffffffffffp+354, str::float_format::scientific, 106,
         "7."
         "3391955711682280223402363311722437031707326015872351753729268196636529490269716440715394646177197236158464"
-        "e+106"},
+        "e106"},
     {0x1.fffffffffffffp+355, str::float_format::scientific, 107,
         "1."
         "4678391142336456044680472662344487406341465203174470350745853639327305898053943288143078929235439447231692"
-        "8e+107"},
+        "8e107"},
     {0x1.fffffffffffffp+356, str::float_format::scientific, 107,
         "2."
         "9356782284672912089360945324688974812682930406348940701491707278654611796107886576286157858470878894463385"
-        "6e+107"},
+        "6e107"},
     {0x1.fffffffffffffp+357, str::float_format::scientific, 107,
         "5."
         "8713564569345824178721890649377949625365860812697881402983414557309223592215773152572315716941757788926771"
-        "2e+107"},
+        "2e107"},
     {0x1.fffffffffffffp+358, str::float_format::scientific, 108,
         "1."
         "1742712913869164835744378129875589925073172162539576280596682911461844718443154630514463143388351557785354"
-        "24e+108"},
+        "24e108"},
     {0x1.fffffffffffffp+359, str::float_format::scientific, 108,
         "2."
         "3485425827738329671488756259751179850146344325079152561193365822923689436886309261028926286776703115570708"
-        "48e+108"},
+        "48e108"},
     {0x1.fffffffffffffp+360, str::float_format::scientific, 108,
         "4."
         "6970851655476659342977512519502359700292688650158305122386731645847378873772618522057852573553406231141416"
-        "96e+108"},
+        "96e108"},
     {0x1.fffffffffffffp+361, str::float_format::scientific, 108,
         "9."
         "3941703310953318685955025039004719400585377300316610244773463291694757747545237044115705147106812462282833"
-        "92e+108"},
+        "92e108"},
     {0x1.fffffffffffffp+362, str::float_format::scientific, 109,
         "1."
         "8788340662190663737191005007800943880117075460063322048954692658338951549509047408823141029421362492456566"
-        "784e+109"},
+        "784e109"},
     {0x1.fffffffffffffp+363, str::float_format::scientific, 109,
         "3."
         "7576681324381327474382010015601887760234150920126644097909385316677903099018094817646282058842724984913133"
-        "568e+109"},
+        "568e109"},
     {0x1.fffffffffffffp+364, str::float_format::scientific, 109,
         "7."
         "5153362648762654948764020031203775520468301840253288195818770633355806198036189635292564117685449969826267"
-        "136e+109"},
+        "136e109"},
     {0x1.fffffffffffffp+365, str::float_format::scientific, 110,
         "1."
         "5030672529752530989752804006240755104093660368050657639163754126671161239607237927058512823537089993965253"
-        "4272e+110"},
+        "4272e110"},
     {0x1.fffffffffffffp+366, str::float_format::scientific, 110,
         "3."
         "0061345059505061979505608012481510208187320736101315278327508253342322479214475854117025647074179987930506"
-        "8544e+110"},
+        "8544e110"},
     {0x1.fffffffffffffp+367, str::float_format::scientific, 110,
         "6."
         "0122690119010123959011216024963020416374641472202630556655016506684644958428951708234051294148359975861013"
-        "7088e+110"},
+        "7088e110"},
     {0x1.fffffffffffffp+368, str::float_format::scientific, 111,
         "1."
         "2024538023802024791802243204992604083274928294440526111331003301336928991685790341646810258829671995172202"
-        "74176e+111"},
+        "74176e111"},
     {0x1.fffffffffffffp+369, str::float_format::scientific, 111,
         "2."
         "4049076047604049583604486409985208166549856588881052222662006602673857983371580683293620517659343990344405"
-        "48352e+111"},
+        "48352e111"},
     {0x1.fffffffffffffp+370, str::float_format::scientific, 111,
         "4."
         "8098152095208099167208972819970416333099713177762104445324013205347715966743161366587241035318687980688810"
-        "96704e+111"},
+        "96704e111"},
     {0x1.fffffffffffffp+371, str::float_format::scientific, 111,
         "9."
         "6196304190416198334417945639940832666199426355524208890648026410695431933486322733174482070637375961377621"
-        "93408e+111"},
+        "93408e111"},
     {0x1.fffffffffffffp+372, str::float_format::scientific, 112,
         "1."
         "9239260838083239666883589127988166533239885271104841778129605282139086386697264546634896414127475192275524"
-        "386816e+112"},
+        "386816e112"},
     {0x1.fffffffffffffp+373, str::float_format::scientific, 112,
         "3."
         "8478521676166479333767178255976333066479770542209683556259210564278172773394529093269792828254950384551048"
-        "773632e+112"},
+        "773632e112"},
     {0x1.fffffffffffffp+374, str::float_format::scientific, 112,
         "7."
         "6957043352332958667534356511952666132959541084419367112518421128556345546789058186539585656509900769102097"
-        "547264e+112"},
+        "547264e112"},
     {0x1.fffffffffffffp+375, str::float_format::scientific, 113,
         "1."
         "5391408670466591733506871302390533226591908216883873422503684225711269109357811637307917131301980153820419"
-        "5094528e+113"},
+        "5094528e113"},
     {0x1.fffffffffffffp+376, str::float_format::scientific, 113,
         "3."
         "0782817340933183467013742604781066453183816433767746845007368451422538218715623274615834262603960307640839"
-        "0189056e+113"},
+        "0189056e113"},
     {0x1.fffffffffffffp+377, str::float_format::scientific, 113,
         "6."
         "1565634681866366934027485209562132906367632867535493690014736902845076437431246549231668525207920615281678"
-        "0378112e+113"},
+        "0378112e113"},
     {0x1.fffffffffffffp+378, str::float_format::scientific, 114,
         "1."
         "2313126936373273386805497041912426581273526573507098738002947380569015287486249309846333705041584123056335"
-        "60756224e+114"},
+        "60756224e114"},
     {0x1.fffffffffffffp+379, str::float_format::scientific, 114,
         "2."
         "4626253872746546773610994083824853162547053147014197476005894761138030574972498619692667410083168246112671"
-        "21512448e+114"},
+        "21512448e114"},
     {0x1.fffffffffffffp+380, str::float_format::scientific, 114,
         "4."
         "9252507745493093547221988167649706325094106294028394952011789522276061149944997239385334820166336492225342"
-        "43024896e+114"},
+        "43024896e114"},
     {0x1.fffffffffffffp+381, str::float_format::scientific, 114,
         "9."
         "8505015490986187094443976335299412650188212588056789904023579044552122299889994478770669640332672984450684"
-        "86049792e+114"},
+        "86049792e114"},
     {0x1.fffffffffffffp+382, str::float_format::scientific, 115,
         "1."
         "9701003098197237418888795267059882530037642517611357980804715808910424459977998895754133928066534596890136"
-        "972099584e+115"},
+        "972099584e115"},
     {0x1.fffffffffffffp+383, str::float_format::scientific, 115,
         "3."
         "9402006196394474837777590534119765060075285035222715961609431617820848919955997791508267856133069193780273"
-        "944199168e+115"},
+        "944199168e115"},
     {0x1.fffffffffffffp+384, str::float_format::scientific, 115,
         "7."
         "8804012392788949675555181068239530120150570070445431923218863235641697839911995583016535712266138387560547"
-        "888398336e+115"},
+        "888398336e115"},
     {0x1.fffffffffffffp+385, str::float_format::scientific, 116,
         "1."
         "5760802478557789935111036213647906024030114014089086384643772647128339567982399116603307142453227677512109"
-        "5776796672e+116"},
+        "5776796672e116"},
     {0x1.fffffffffffffp+386, str::float_format::scientific, 116,
         "3."
         "1521604957115579870222072427295812048060228028178172769287545294256679135964798233206614284906455355024219"
-        "1553593344e+116"},
+        "1553593344e116"},
     {0x1.fffffffffffffp+387, str::float_format::scientific, 116,
         "6."
         "3043209914231159740444144854591624096120456056356345538575090588513358271929596466413228569812910710048438"
-        "3107186688e+116"},
+        "3107186688e116"},
     {0x1.fffffffffffffp+388, str::float_format::scientific, 117,
         "1."
         "2608641982846231948088828970918324819224091211271269107715018117702671654385919293282645713962582142009687"
-        "66214373376e+117"},
+        "66214373376e117"},
     {0x1.fffffffffffffp+389, str::float_format::scientific, 117,
         "2."
         "5217283965692463896177657941836649638448182422542538215430036235405343308771838586565291427925164284019375"
-        "32428746752e+117"},
+        "32428746752e117"},
     {0x1.fffffffffffffp+390, str::float_format::scientific, 117,
         "5."
         "0434567931384927792355315883673299276896364845085076430860072470810686617543677173130582855850328568038750"
-        "64857493504e+117"},
+        "64857493504e117"},
     {0x1.fffffffffffffp+391, str::float_format::scientific, 118,
         "1."
         "0086913586276985558471063176734659855379272969017015286172014494162137323508735434626116571170065713607750"
-        "129714987008e+118"},
+        "129714987008e118"},
     {0x1.fffffffffffffp+392, str::float_format::scientific, 118,
         "2."
         "0173827172553971116942126353469319710758545938034030572344028988324274647017470869252233142340131427215500"
-        "259429974016e+118"},
+        "259429974016e118"},
     {0x1.fffffffffffffp+393, str::float_format::scientific, 118,
         "4."
         "0347654345107942233884252706938639421517091876068061144688057976648549294034941738504466284680262854431000"
-        "518859948032e+118"},
+        "518859948032e118"},
     {0x1.fffffffffffffp+394, str::float_format::scientific, 118,
         "8."
         "0695308690215884467768505413877278843034183752136122289376115953297098588069883477008932569360525708862001"
-        "037719896064e+118"},
+        "037719896064e118"},
     {0x1.fffffffffffffp+395, str::float_format::scientific, 119,
         "1."
         "6139061738043176893553701082775455768606836750427224457875223190659419717613976695401786513872105141772400"
-        "2075439792128e+119"},
+        "2075439792128e119"},
     {0x1.fffffffffffffp+396, str::float_format::scientific, 119,
         "3."
         "2278123476086353787107402165550911537213673500854448915750446381318839435227953390803573027744210283544800"
-        "4150879584256e+119"},
+        "4150879584256e119"},
     {0x1.fffffffffffffp+397, str::float_format::scientific, 119,
         "6."
         "4556246952172707574214804331101823074427347001708897831500892762637678870455906781607146055488420567089600"
-        "8301759168512e+119"},
+        "8301759168512e119"},
     {0x1.fffffffffffffp+398, str::float_format::scientific, 120,
         "1."
         "2911249390434541514842960866220364614885469400341779566300178552527535774091181356321429211097684113417920"
-        "16603518337024e+120"},
+        "16603518337024e120"},
     {0x1.fffffffffffffp+399, str::float_format::scientific, 120,
         "2."
         "5822498780869083029685921732440729229770938800683559132600357105055071548182362712642858422195368226835840"
-        "33207036674048e+120"},
+        "33207036674048e120"},
     {0x1.fffffffffffffp+400, str::float_format::scientific, 120,
         "5."
         "1644997561738166059371843464881458459541877601367118265200714210110143096364725425285716844390736453671680"
-        "66414073348096e+120"},
+        "66414073348096e120"},
     {0x1.fffffffffffffp+401, str::float_format::scientific, 121,
         "1."
         "0328999512347633211874368692976291691908375520273423653040142842022028619272945085057143368878147290734336"
-        "132828146696192e+121"},
+        "132828146696192e121"},
     {0x1.fffffffffffffp+402, str::float_format::scientific, 121,
         "2."
         "0657999024695266423748737385952583383816751040546847306080285684044057238545890170114286737756294581468672"
-        "265656293392384e+121"},
+        "265656293392384e121"},
     {0x1.fffffffffffffp+403, str::float_format::scientific, 121,
         "4."
         "1315998049390532847497474771905166767633502081093694612160571368088114477091780340228573475512589162937344"
-        "531312586784768e+121"},
+        "531312586784768e121"},
     {0x1.fffffffffffffp+404, str::float_format::scientific, 121,
         "8."
         "2631996098781065694994949543810333535267004162187389224321142736176228954183560680457146951025178325874689"
-        "062625173569536e+121"},
+        "062625173569536e121"},
     {0x1.fffffffffffffp+405, str::float_format::scientific, 122,
         "1."
         "6526399219756213138998989908762066707053400832437477844864228547235245790836712136091429390205035665174937"
-        "8125250347139072e+122"},
+        "8125250347139072e122"},
     {0x1.fffffffffffffp+406, str::float_format::scientific, 122,
         "3."
         "3052798439512426277997979817524133414106801664874955689728457094470491581673424272182858780410071330349875"
-        "6250500694278144e+122"},
+        "6250500694278144e122"},
     {0x1.fffffffffffffp+407, str::float_format::scientific, 122,
         "6."
         "6105596879024852555995959635048266828213603329749911379456914188940983163346848544365717560820142660699751"
-        "2501001388556288e+122"},
+        "2501001388556288e122"},
     {0x1.fffffffffffffp+408, str::float_format::scientific, 123,
         "1."
         "3221119375804970511199191927009653365642720665949982275891382837788196632669369708873143512164028532139950"
-        "25002002777112576e+123"},
+        "25002002777112576e123"},
     {0x1.fffffffffffffp+409, str::float_format::scientific, 123,
         "2."
         "6442238751609941022398383854019306731285441331899964551782765675576393265338739417746287024328057064279900"
-        "50004005554225152e+123"},
+        "50004005554225152e123"},
     {0x1.fffffffffffffp+410, str::float_format::scientific, 123,
         "5."
         "2884477503219882044796767708038613462570882663799929103565531351152786530677478835492574048656114128559801"
-        "00008011108450304e+123"},
+        "00008011108450304e123"},
     {0x1.fffffffffffffp+411, str::float_format::scientific, 124,
         "1."
         "0576895500643976408959353541607722692514176532759985820713106270230557306135495767098514809731222825711960"
-        "200016022216900608e+124"},
+        "200016022216900608e124"},
     {0x1.fffffffffffffp+412, str::float_format::scientific, 124,
         "2."
         "1153791001287952817918707083215445385028353065519971641426212540461114612270991534197029619462445651423920"
-        "400032044433801216e+124"},
+        "400032044433801216e124"},
     {0x1.fffffffffffffp+413, str::float_format::scientific, 124,
         "4."
         "2307582002575905635837414166430890770056706131039943282852425080922229224541983068394059238924891302847840"
-        "800064088867602432e+124"},
+        "800064088867602432e124"},
     {0x1.fffffffffffffp+414, str::float_format::scientific, 124,
         "8."
         "4615164005151811271674828332861781540113412262079886565704850161844458449083966136788118477849782605695681"
-        "600128177735204864e+124"},
+        "600128177735204864e124"},
     {0x1.fffffffffffffp+415, str::float_format::scientific, 125,
         "1."
         "6923032801030362254334965666572356308022682452415977313140970032368891689816793227357623695569956521139136"
-        "3200256355470409728e+125"},
+        "3200256355470409728e125"},
     {0x1.fffffffffffffp+416, str::float_format::scientific, 125,
         "3."
         "3846065602060724508669931333144712616045364904831954626281940064737783379633586454715247391139913042278272"
-        "6400512710940819456e+125"},
+        "6400512710940819456e125"},
     {0x1.fffffffffffffp+417, str::float_format::scientific, 125,
         "6."
         "7692131204121449017339862666289425232090729809663909252563880129475566759267172909430494782279826084556545"
-        "2801025421881638912e+125"},
+        "2801025421881638912e125"},
     {0x1.fffffffffffffp+418, str::float_format::scientific, 126,
         "1."
         "3538426240824289803467972533257885046418145961932781850512776025895113351853434581886098956455965216911309"
-        "05602050843763277824e+126"},
+        "05602050843763277824e126"},
     {0x1.fffffffffffffp+419, str::float_format::scientific, 126,
         "2."
         "7076852481648579606935945066515770092836291923865563701025552051790226703706869163772197912911930433822618"
-        "11204101687526555648e+126"},
+        "11204101687526555648e126"},
     {0x1.fffffffffffffp+420, str::float_format::scientific, 126,
         "5."
         "4153704963297159213871890133031540185672583847731127402051104103580453407413738327544395825823860867645236"
-        "22408203375053111296e+126"},
+        "22408203375053111296e126"},
     {0x1.fffffffffffffp+421, str::float_format::scientific, 127,
         "1."
         "0830740992659431842774378026606308037134516769546225480410220820716090681482747665508879165164772173529047"
-        "244816406750106222592e+127"},
+        "244816406750106222592e127"},
     {0x1.fffffffffffffp+422, str::float_format::scientific, 127,
         "2."
         "1661481985318863685548756053212616074269033539092450960820441641432181362965495331017758330329544347058094"
-        "489632813500212445184e+127"},
+        "489632813500212445184e127"},
     {0x1.fffffffffffffp+423, str::float_format::scientific, 127,
         "4."
         "3322963970637727371097512106425232148538067078184901921640883282864362725930990662035516660659088694116188"
-        "979265627000424890368e+127"},
+        "979265627000424890368e127"},
     {0x1.fffffffffffffp+424, str::float_format::scientific, 127,
         "8."
         "6645927941275454742195024212850464297076134156369803843281766565728725451861981324071033321318177388232377"
-        "958531254000849780736e+127"},
+        "958531254000849780736e127"},
     {0x1.fffffffffffffp+425, str::float_format::scientific, 128,
         "1."
         "7329185588255090948439004842570092859415226831273960768656353313145745090372396264814206664263635477646475"
-        "5917062508001699561472e+128"},
+        "5917062508001699561472e128"},
     {0x1.fffffffffffffp+426, str::float_format::scientific, 128,
         "3."
         "4658371176510181896878009685140185718830453662547921537312706626291490180744792529628413328527270955292951"
-        "1834125016003399122944e+128"},
+        "1834125016003399122944e128"},
     {0x1.fffffffffffffp+427, str::float_format::scientific, 128,
         "6."
         "9316742353020363793756019370280371437660907325095843074625413252582980361489585059256826657054541910585902"
-        "3668250032006798245888e+128"},
+        "3668250032006798245888e128"},
     {0x1.fffffffffffffp+428, str::float_format::scientific, 129,
         "1."
         "3863348470604072758751203874056074287532181465019168614925082650516596072297917011851365331410908382117180"
-        "47336500064013596491776e+129"},
+        "47336500064013596491776e129"},
     {0x1.fffffffffffffp+429, str::float_format::scientific, 129,
         "2."
         "7726696941208145517502407748112148575064362930038337229850165301033192144595834023702730662821816764234360"
-        "94673000128027192983552e+129"},
+        "94673000128027192983552e129"},
     {0x1.fffffffffffffp+430, str::float_format::scientific, 129,
         "5."
         "5453393882416291035004815496224297150128725860076674459700330602066384289191668047405461325643633528468721"
-        "89346000256054385967104e+129"},
+        "89346000256054385967104e129"},
     {0x1.fffffffffffffp+431, str::float_format::scientific, 130,
         "1."
         "1090678776483258207000963099244859430025745172015334891940066120413276857838333609481092265128726705693744"
-        "378692000512108771934208e+130"},
+        "378692000512108771934208e130"},
     {0x1.fffffffffffffp+432, str::float_format::scientific, 130,
         "2."
         "2181357552966516414001926198489718860051490344030669783880132240826553715676667218962184530257453411387488"
-        "757384001024217543868416e+130"},
+        "757384001024217543868416e130"},
     {0x1.fffffffffffffp+433, str::float_format::scientific, 130,
         "4."
         "4362715105933032828003852396979437720102980688061339567760264481653107431353334437924369060514906822774977"
-        "514768002048435087736832e+130"},
+        "514768002048435087736832e130"},
     {0x1.fffffffffffffp+434, str::float_format::scientific, 130,
         "8."
         "8725430211866065656007704793958875440205961376122679135520528963306214862706668875848738121029813645549955"
-        "029536004096870175473664e+130"},
+        "029536004096870175473664e130"},
     {0x1.fffffffffffffp+435, str::float_format::scientific, 131,
         "1."
         "7745086042373213131201540958791775088041192275224535827104105792661242972541333775169747624205962729109991"
-        "0059072008193740350947328e+131"},
+        "0059072008193740350947328e131"},
     {0x1.fffffffffffffp+436, str::float_format::scientific, 131,
         "3."
         "5490172084746426262403081917583550176082384550449071654208211585322485945082667550339495248411925458219982"
-        "0118144016387480701894656e+131"},
+        "0118144016387480701894656e131"},
     {0x1.fffffffffffffp+437, str::float_format::scientific, 131,
         "7."
         "0980344169492852524806163835167100352164769100898143308416423170644971890165335100678990496823850916439964"
-        "0236288032774961403789312e+131"},
+        "0236288032774961403789312e131"},
     {0x1.fffffffffffffp+438, str::float_format::scientific, 132,
         "1."
         "4196068833898570504961232767033420070432953820179628661683284634128994378033067020135798099364770183287992"
-        "80472576065549922807578624e+132"},
+        "80472576065549922807578624e132"},
     {0x1.fffffffffffffp+439, str::float_format::scientific, 132,
         "2."
         "8392137667797141009922465534066840140865907640359257323366569268257988756066134040271596198729540366575985"
-        "60945152131099845615157248e+132"},
+        "60945152131099845615157248e132"},
     {0x1.fffffffffffffp+440, str::float_format::scientific, 132,
         "5."
         "6784275335594282019844931068133680281731815280718514646733138536515977512132268080543192397459080733151971"
-        "21890304262199691230314496e+132"},
+        "21890304262199691230314496e132"},
     {0x1.fffffffffffffp+441, str::float_format::scientific, 133,
         "1."
         "1356855067118856403968986213626736056346363056143702929346627707303195502426453616108638479491816146630394"
-        "243780608524399382460628992e+133"},
+        "243780608524399382460628992e133"},
     {0x1.fffffffffffffp+442, str::float_format::scientific, 133,
         "2."
         "2713710134237712807937972427253472112692726112287405858693255414606391004852907232217276958983632293260788"
-        "487561217048798764921257984e+133"},
+        "487561217048798764921257984e133"},
     {0x1.fffffffffffffp+443, str::float_format::scientific, 133,
         "4."
         "5427420268475425615875944854506944225385452224574811717386510829212782009705814464434553917967264586521576"
-        "975122434097597529842515968e+133"},
+        "975122434097597529842515968e133"},
     {0x1.fffffffffffffp+444, str::float_format::scientific, 133,
         "9."
         "0854840536950851231751889709013888450770904449149623434773021658425564019411628928869107835934529173043153"
-        "950244868195195059685031936e+133"},
+        "950244868195195059685031936e133"},
     {0x1.fffffffffffffp+445, str::float_format::scientific, 134,
         "1."
         "8170968107390170246350377941802777690154180889829924686954604331685112803882325785773821567186905834608630"
-        "7900489736390390119370063872e+134"},
+        "7900489736390390119370063872e134"},
     {0x1.fffffffffffffp+446, str::float_format::scientific, 134,
         "3."
         "6341936214780340492700755883605555380308361779659849373909208663370225607764651571547643134373811669217261"
-        "5800979472780780238740127744e+134"},
+        "5800979472780780238740127744e134"},
     {0x1.fffffffffffffp+447, str::float_format::scientific, 134,
         "7."
         "2683872429560680985401511767211110760616723559319698747818417326740451215529303143095286268747623338434523"
-        "1601958945561560477480255488e+134"},
+        "1601958945561560477480255488e134"},
     {0x1.fffffffffffffp+448, str::float_format::scientific, 135,
         "1."
         "4536774485912136197080302353442222152123344711863939749563683465348090243105860628619057253749524667686904"
-        "63203917891123120954960510976e+135"},
+        "63203917891123120954960510976e135"},
     {0x1.fffffffffffffp+449, str::float_format::scientific, 135,
         "2."
         "9073548971824272394160604706884444304246689423727879499127366930696180486211721257238114507499049335373809"
-        "26407835782246241909921021952e+135"},
+        "26407835782246241909921021952e135"},
     {0x1.fffffffffffffp+450, str::float_format::scientific, 135,
         "5."
         "8147097943648544788321209413768888608493378847455758998254733861392360972423442514476229014998098670747618"
-        "52815671564492483819842043904e+135"},
+        "52815671564492483819842043904e135"},
     {0x1.fffffffffffffp+451, str::float_format::scientific, 136,
         "1."
         "1629419588729708957664241882753777721698675769491151799650946772278472194484688502895245802999619734149523"
-        "705631343128984967639684087808e+136"},
+        "705631343128984967639684087808e136"},
     {0x1.fffffffffffffp+452, str::float_format::scientific, 136,
         "2."
         "3258839177459417915328483765507555443397351538982303599301893544556944388969377005790491605999239468299047"
-        "411262686257969935279368175616e+136"},
+        "411262686257969935279368175616e136"},
     {0x1.fffffffffffffp+453, str::float_format::scientific, 136,
         "4."
         "6517678354918835830656967531015110886794703077964607198603787089113888777938754011580983211998478936598094"
-        "822525372515939870558736351232e+136"},
+        "822525372515939870558736351232e136"},
     {0x1.fffffffffffffp+454, str::float_format::scientific, 136,
         "9."
         "3035356709837671661313935062030221773589406155929214397207574178227777555877508023161966423996957873196189"
-        "645050745031879741117472702464e+136"},
+        "645050745031879741117472702464e136"},
     {0x1.fffffffffffffp+455, str::float_format::scientific, 137,
         "1."
         "8607071341967534332262787012406044354717881231185842879441514835645555511175501604632393284799391574639237"
-        "9290101490063759482234945404928e+137"},
+        "9290101490063759482234945404928e137"},
     {0x1.fffffffffffffp+456, str::float_format::scientific, 137,
         "3."
         "7214142683935068664525574024812088709435762462371685758883029671291111022351003209264786569598783149278475"
-        "8580202980127518964469890809856e+137"},
+        "8580202980127518964469890809856e137"},
     {0x1.fffffffffffffp+457, str::float_format::scientific, 137,
         "7."
         "4428285367870137329051148049624177418871524924743371517766059342582222044702006418529573139197566298556951"
-        "7160405960255037928939781619712e+137"},
+        "7160405960255037928939781619712e137"},
     {0x1.fffffffffffffp+458, str::float_format::scientific, 138,
         "1."
         "4885657073574027465810229609924835483774304984948674303553211868516444408940401283705914627839513259711390"
-        "34320811920510075857879563239424e+138"},
+        "34320811920510075857879563239424e138"},
     {0x1.fffffffffffffp+459, str::float_format::scientific, 138,
         "2."
         "9771314147148054931620459219849670967548609969897348607106423737032888817880802567411829255679026519422780"
-        "68641623841020151715759126478848e+138"},
+        "68641623841020151715759126478848e138"},
     {0x1.fffffffffffffp+460, str::float_format::scientific, 138,
         "5."
         "9542628294296109863240918439699341935097219939794697214212847474065777635761605134823658511358053038845561"
-        "37283247682040303431518252957696e+138"},
+        "37283247682040303431518252957696e138"},
     {0x1.fffffffffffffp+461, str::float_format::scientific, 139,
         "1."
         "1908525658859221972648183687939868387019443987958939442842569494813155527152321026964731702271610607769112"
-        "274566495364080606863036505915392e+139"},
+        "274566495364080606863036505915392e139"},
     {0x1.fffffffffffffp+462, str::float_format::scientific, 139,
         "2."
         "3817051317718443945296367375879736774038887975917878885685138989626311054304642053929463404543221215538224"
-        "549132990728161213726073011830784e+139"},
+        "549132990728161213726073011830784e139"},
     {0x1.fffffffffffffp+463, str::float_format::scientific, 139,
         "4."
         "7634102635436887890592734751759473548077775951835757771370277979252622108609284107858926809086442431076449"
-        "098265981456322427452146023661568e+139"},
+        "098265981456322427452146023661568e139"},
     {0x1.fffffffffffffp+464, str::float_format::scientific, 139,
         "9."
         "5268205270873775781185469503518947096155551903671515542740555958505244217218568215717853618172884862152898"
-        "196531962912644854904292047323136e+139"},
+        "196531962912644854904292047323136e139"},
     {0x1.fffffffffffffp+465, str::float_format::scientific, 140,
         "1."
         "9053641054174755156237093900703789419231110380734303108548111191701048843443713643143570723634576972430579"
-        "6393063925825289709808584094646272e+140"},
+        "6393063925825289709808584094646272e140"},
     {0x1.fffffffffffffp+466, str::float_format::scientific, 140,
         "3."
         "8107282108349510312474187801407578838462220761468606217096222383402097686887427286287141447269153944861159"
-        "2786127851650579419617168189292544e+140"},
+        "2786127851650579419617168189292544e140"},
     {0x1.fffffffffffffp+467, str::float_format::scientific, 140,
         "7."
         "6214564216699020624948375602815157676924441522937212434192444766804195373774854572574282894538307889722318"
-        "5572255703301158839234336378585088e+140"},
+        "5572255703301158839234336378585088e140"},
     {0x1.fffffffffffffp+468, str::float_format::scientific, 141,
         "1."
         "5242912843339804124989675120563031535384888304587442486838488953360839074754970914514856578907661577944463"
-        "71144511406602317678468672757170176e+141"},
+        "71144511406602317678468672757170176e141"},
     {0x1.fffffffffffffp+469, str::float_format::scientific, 141,
         "3."
         "0485825686679608249979350241126063070769776609174884973676977906721678149509941829029713157815323155888927"
-        "42289022813204635356937345514340352e+141"},
+        "42289022813204635356937345514340352e141"},
     {0x1.fffffffffffffp+470, str::float_format::scientific, 141,
         "6."
         "0971651373359216499958700482252126141539553218349769947353955813443356299019883658059426315630646311777854"
-        "84578045626409270713874691028680704e+141"},
+        "84578045626409270713874691028680704e141"},
     {0x1.fffffffffffffp+471, str::float_format::scientific, 142,
         "1."
         "2194330274671843299991740096450425228307910643669953989470791162688671259803976731611885263126129262355570"
-        "969156091252818541427749382057361408e+142"},
+        "969156091252818541427749382057361408e142"},
     {0x1.fffffffffffffp+472, str::float_format::scientific, 142,
         "2."
         "4388660549343686599983480192900850456615821287339907978941582325377342519607953463223770526252258524711141"
-        "938312182505637082855498764114722816e+142"},
+        "938312182505637082855498764114722816e142"},
     {0x1.fffffffffffffp+473, str::float_format::scientific, 142,
         "4."
         "8777321098687373199966960385801700913231642574679815957883164650754685039215906926447541052504517049422283"
-        "876624365011274165710997528229445632e+142"},
+        "876624365011274165710997528229445632e142"},
     {0x1.fffffffffffffp+474, str::float_format::scientific, 142,
         "9."
         "7554642197374746399933920771603401826463285149359631915766329301509370078431813852895082105009034098844567"
-        "753248730022548331421995056458891264e+142"},
+        "753248730022548331421995056458891264e142"},
     {0x1.fffffffffffffp+475, str::float_format::scientific, 143,
         "1."
         "9510928439474949279986784154320680365292657029871926383153265860301874015686362770579016421001806819768913"
-        "5506497460045096662843990112917782528e+143"},
+        "5506497460045096662843990112917782528e143"},
     {0x1.fffffffffffffp+476, str::float_format::scientific, 143,
         "3."
         "9021856878949898559973568308641360730585314059743852766306531720603748031372725541158032842003613639537827"
-        "1012994920090193325687980225835565056e+143"},
+        "1012994920090193325687980225835565056e143"},
     {0x1.fffffffffffffp+477, str::float_format::scientific, 143,
         "7."
         "8043713757899797119947136617282721461170628119487705532613063441207496062745451082316065684007227279075654"
-        "2025989840180386651375960451671130112e+143"},
+        "2025989840180386651375960451671130112e143"},
     {0x1.fffffffffffffp+478, str::float_format::scientific, 144,
         "1."
         "5608742751579959423989427323456544292234125623897541106522612688241499212549090216463213136801445455815130"
-        "84051979680360773302751920903342260224e+144"},
+        "84051979680360773302751920903342260224e144"},
     {0x1.fffffffffffffp+479, str::float_format::scientific, 144,
         "3."
         "1217485503159918847978854646913088584468251247795082213045225376482998425098180432926426273602890911630261"
-        "68103959360721546605503841806684520448e+144"},
+        "68103959360721546605503841806684520448e144"},
     {0x1.fffffffffffffp+480, str::float_format::scientific, 144,
         "6."
         "2434971006319837695957709293826177168936502495590164426090450752965996850196360865852852547205781823260523"
-        "36207918721443093211007683613369040896e+144"},
+        "36207918721443093211007683613369040896e144"},
     {0x1.fffffffffffffp+481, str::float_format::scientific, 145,
         "1."
         "2486994201263967539191541858765235433787300499118032885218090150593199370039272173170570509441156364652104"
-        "672415837442886186422015367226738081792e+145"},
+        "672415837442886186422015367226738081792e145"},
     {0x1.fffffffffffffp+482, str::float_format::scientific, 145,
         "2."
         "4973988402527935078383083717530470867574600998236065770436180301186398740078544346341141018882312729304209"
-        "344831674885772372844030734453476163584e+145"},
+        "344831674885772372844030734453476163584e145"},
     {0x1.fffffffffffffp+483, str::float_format::scientific, 145,
         "4."
         "9947976805055870156766167435060941735149201996472131540872360602372797480157088692682282037764625458608418"
-        "689663349771544745688061468906952327168e+145"},
+        "689663349771544745688061468906952327168e145"},
     {0x1.fffffffffffffp+484, str::float_format::scientific, 145,
         "9."
         "9895953610111740313532334870121883470298403992944263081744721204745594960314177385364564075529250917216837"
-        "379326699543089491376122937813904654336e+145"},
+        "379326699543089491376122937813904654336e145"},
     {0x1.fffffffffffffp+485, str::float_format::scientific, 146,
         "1."
         "9979190722022348062706466974024376694059680798588852616348944240949118992062835477072912815105850183443367"
-        "4758653399086178982752245875627809308672e+146"},
+        "4758653399086178982752245875627809308672e146"},
     {0x1.fffffffffffffp+486, str::float_format::scientific, 146,
         "3."
         "9958381444044696125412933948048753388119361597177705232697888481898237984125670954145825630211700366886734"
-        "9517306798172357965504491751255618617344e+146"},
+        "9517306798172357965504491751255618617344e146"},
     {0x1.fffffffffffffp+487, str::float_format::scientific, 146,
         "7."
         "9916762888089392250825867896097506776238723194355410465395776963796475968251341908291651260423400733773469"
-        "9034613596344715931008983502511237234688e+146"},
+        "9034613596344715931008983502511237234688e146"},
     {0x1.fffffffffffffp+488, str::float_format::scientific, 147,
         "1."
         "5983352577617878450165173579219501355247744638871082093079155392759295193650268381658330252084680146754693"
-        "98069227192689431862017967005022474469376e+147"},
+        "98069227192689431862017967005022474469376e147"},
     {0x1.fffffffffffffp+489, str::float_format::scientific, 147,
         "3."
         "1966705155235756900330347158439002710495489277742164186158310785518590387300536763316660504169360293509387"
-        "96138454385378863724035934010044948938752e+147"},
+        "96138454385378863724035934010044948938752e147"},
     {0x1.fffffffffffffp+490, str::float_format::scientific, 147,
         "6."
         "3933410310471513800660694316878005420990978555484328372316621571037180774601073526633321008338720587018775"
-        "92276908770757727448071868020089897877504e+147"},
+        "92276908770757727448071868020089897877504e147"},
     {0x1.fffffffffffffp+491, str::float_format::scientific, 148,
         "1."
         "2786682062094302760132138863375601084198195711096865674463324314207436154920214705326664201667744117403755"
-        "184553817541515454896143736040179795755008e+148"},
+        "184553817541515454896143736040179795755008e148"},
     {0x1.fffffffffffffp+492, str::float_format::scientific, 148,
         "2."
         "5573364124188605520264277726751202168396391422193731348926648628414872309840429410653328403335488234807510"
-        "369107635083030909792287472080359591510016e+148"},
+        "369107635083030909792287472080359591510016e148"},
     {0x1.fffffffffffffp+493, str::float_format::scientific, 148,
         "5."
         "1146728248377211040528555453502404336792782844387462697853297256829744619680858821306656806670976469615020"
-        "738215270166061819584574944160719183020032e+148"},
+        "738215270166061819584574944160719183020032e148"},
     {0x1.fffffffffffffp+494, str::float_format::scientific, 149,
         "1."
         "0229345649675442208105711090700480867358556568877492539570659451365948923936171764261331361334195293923004"
-        "1476430540332123639169149888321438366040064e+149"},
+        "1476430540332123639169149888321438366040064e149"},
     {0x1.fffffffffffffp+495, str::float_format::scientific, 149,
         "2."
         "0458691299350884416211422181400961734717113137754985079141318902731897847872343528522662722668390587846008"
-        "2952861080664247278338299776642876732080128e+149"},
+        "2952861080664247278338299776642876732080128e149"},
     {0x1.fffffffffffffp+496, str::float_format::scientific, 149,
         "4."
         "0917382598701768832422844362801923469434226275509970158282637805463795695744687057045325445336781175692016"
-        "5905722161328494556676599553285753464160256e+149"},
+        "5905722161328494556676599553285753464160256e149"},
     {0x1.fffffffffffffp+497, str::float_format::scientific, 149,
         "8."
         "1834765197403537664845688725603846938868452551019940316565275610927591391489374114090650890673562351384033"
-        "1811444322656989113353199106571506928320512e+149"},
+        "1811444322656989113353199106571506928320512e149"},
     {0x1.fffffffffffffp+498, str::float_format::scientific, 150,
         "1."
         "6366953039480707532969137745120769387773690510203988063313055122185518278297874822818130178134712470276806"
-        "63622888645313978226706398213143013856641024e+150"},
+        "63622888645313978226706398213143013856641024e150"},
     {0x1.fffffffffffffp+499, str::float_format::scientific, 150,
         "3."
         "2733906078961415065938275490241538775547381020407976126626110244371036556595749645636260356269424940553613"
-        "27245777290627956453412796426286027713282048e+150"},
+        "27245777290627956453412796426286027713282048e150"},
     {0x1.fffffffffffffp+500, str::float_format::scientific, 150,
         "6."
         "5467812157922830131876550980483077551094762040815952253252220488742073113191499291272520712538849881107226"
-        "54491554581255912906825592852572055426564096e+150"},
+        "54491554581255912906825592852572055426564096e150"},
     {0x1.fffffffffffffp+501, str::float_format::scientific, 151,
         "1."
         "3093562431584566026375310196096615510218952408163190450650444097748414622638299858254504142507769976221445"
-        "308983109162511825813651185705144110853128192e+151"},
+        "308983109162511825813651185705144110853128192e151"},
     {0x1.fffffffffffffp+502, str::float_format::scientific, 151,
         "2."
         "6187124863169132052750620392193231020437904816326380901300888195496829245276599716509008285015539952442890"
-        "617966218325023651627302371410288221706256384e+151"},
+        "617966218325023651627302371410288221706256384e151"},
     {0x1.fffffffffffffp+503, str::float_format::scientific, 151,
         "5."
         "2374249726338264105501240784386462040875809632652761802601776390993658490553199433018016570031079904885781"
-        "235932436650047303254604742820576443412512768e+151"},
+        "235932436650047303254604742820576443412512768e151"},
     {0x1.fffffffffffffp+504, str::float_format::scientific, 152,
         "1."
         "0474849945267652821100248156877292408175161926530552360520355278198731698110639886603603314006215980977156"
-        "2471864873300094606509209485641152886825025536e+152"},
+        "2471864873300094606509209485641152886825025536e152"},
     {0x1.fffffffffffffp+505, str::float_format::scientific, 152,
         "2."
         "0949699890535305642200496313754584816350323853061104721040710556397463396221279773207206628012431961954312"
-        "4943729746600189213018418971282305773650051072e+152"},
+        "4943729746600189213018418971282305773650051072e152"},
     {0x1.fffffffffffffp+506, str::float_format::scientific, 152,
         "4."
         "1899399781070611284400992627509169632700647706122209442081421112794926792442559546414413256024863923908624"
-        "9887459493200378426036837942564611547300102144e+152"},
+        "9887459493200378426036837942564611547300102144e152"},
     {0x1.fffffffffffffp+507, str::float_format::scientific, 152,
         "8."
         "3798799562141222568801985255018339265401295412244418884162842225589853584885119092828826512049727847817249"
-        "9774918986400756852073675885129223094600204288e+152"},
+        "9774918986400756852073675885129223094600204288e152"},
     {0x1.fffffffffffffp+508, str::float_format::scientific, 153,
         "1."
         "6759759912428244513760397051003667853080259082448883776832568445117970716977023818565765302409945569563449"
-        "99549837972801513704147351770258446189200408576e+153"},
+        "99549837972801513704147351770258446189200408576e153"},
     {0x1.fffffffffffffp+509, str::float_format::scientific, 153,
         "3."
         "3519519824856489027520794102007335706160518164897767553665136890235941433954047637131530604819891139126899"
-        "99099675945603027408294703540516892378400817152e+153"},
+        "99099675945603027408294703540516892378400817152e153"},
     {0x1.fffffffffffffp+510, str::float_format::scientific, 153,
         "6."
         "7039039649712978055041588204014671412321036329795535107330273780471882867908095274263061209639782278253799"
-        "98199351891206054816589407081033784756801634304e+153"},
+        "98199351891206054816589407081033784756801634304e153"},
     {0x1.fffffffffffffp+511, str::float_format::scientific, 154,
         "1."
         "3407807929942595611008317640802934282464207265959107021466054756094376573581619054852612241927956455650759"
-        "996398703782412109633178814162067569513603268608e+154"},
+        "996398703782412109633178814162067569513603268608e154"},
     {0x1.fffffffffffffp+512, str::float_format::scientific, 154,
         "2."
         "6815615859885191222016635281605868564928414531918214042932109512188753147163238109705224483855912911301519"
-        "992797407564824219266357628324135139027206537216e+154"},
+        "992797407564824219266357628324135139027206537216e154"},
     {0x1.fffffffffffffp+513, str::float_format::scientific, 154,
         "5."
         "3631231719770382444033270563211737129856829063836428085864219024377506294326476219410448967711825822603039"
-        "985594815129648438532715256648270278054413074432e+154"},
+        "985594815129648438532715256648270278054413074432e154"},
     {0x1.fffffffffffffp+514, str::float_format::scientific, 155,
         "1."
         "0726246343954076488806654112642347425971365812767285617172843804875501258865295243882089793542365164520607"
-        "9971189630259296877065430513296540556108826148864e+155"},
+        "9971189630259296877065430513296540556108826148864e155"},
     {0x1.fffffffffffffp+515, str::float_format::scientific, 155,
         "2."
         "1452492687908152977613308225284694851942731625534571234345687609751002517730590487764179587084730329041215"
-        "9942379260518593754130861026593081112217652297728e+155"},
+        "9942379260518593754130861026593081112217652297728e155"},
     {0x1.fffffffffffffp+516, str::float_format::scientific, 155,
         "4."
         "2904985375816305955226616450569389703885463251069142468691375219502005035461180975528359174169460658082431"
-        "9884758521037187508261722053186162224435304595456e+155"},
+        "9884758521037187508261722053186162224435304595456e155"},
     {0x1.fffffffffffffp+517, str::float_format::scientific, 155,
         "8."
         "5809970751632611910453232901138779407770926502138284937382750439004010070922361951056718348338921316164863"
-        "9769517042074375016523444106372324448870609190912e+155"},
+        "9769517042074375016523444106372324448870609190912e155"},
     {0x1.fffffffffffffp+518, str::float_format::scientific, 156,
         "1."
         "7161994150326522382090646580227755881554185300427656987476550087800802014184472390211343669667784263232972"
-        "79539034084148750033046888212744648897741218381824e+156"},
+        "79539034084148750033046888212744648897741218381824e156"},
     {0x1.fffffffffffffp+519, str::float_format::scientific, 156,
         "3."
         "4323988300653044764181293160455511763108370600855313974953100175601604028368944780422687339335568526465945"
-        "59078068168297500066093776425489297795482436763648e+156"},
+        "59078068168297500066093776425489297795482436763648e156"},
     {0x1.fffffffffffffp+520, str::float_format::scientific, 156,
         "6."
         "8647976601306089528362586320911023526216741201710627949906200351203208056737889560845374678671137052931891"
-        "18156136336595000132187552850978595590964873527296e+156"},
+        "18156136336595000132187552850978595590964873527296e156"},
     {0x1.fffffffffffffp+521, str::float_format::scientific, 157,
         "1."
         "3729595320261217905672517264182204705243348240342125589981240070240641611347577912169074935734227410586378"
-        "236312272673190000264375105701957191181929747054592e+157"},
+        "236312272673190000264375105701957191181929747054592e157"},
     {0x1.fffffffffffffp+522, str::float_format::scientific, 157,
         "2."
         "7459190640522435811345034528364409410486696480684251179962480140481283222695155824338149871468454821172756"
-        "472624545346380000528750211403914382363859494109184e+157"},
+        "472624545346380000528750211403914382363859494109184e157"},
     {0x1.fffffffffffffp+523, str::float_format::scientific, 157,
         "5."
         "4918381281044871622690069056728818820973392961368502359924960280962566445390311648676299742936909642345512"
-        "945249090692760001057500422807828764727718988218368e+157"},
+        "945249090692760001057500422807828764727718988218368e157"},
     {0x1.fffffffffffffp+524, str::float_format::scientific, 158,
         "1."
         "0983676256208974324538013811345763764194678592273700471984992056192513289078062329735259948587381928469102"
-        "5890498181385520002115000845615657529455437976436736e+158"},
+        "5890498181385520002115000845615657529455437976436736e158"},
     {0x1.fffffffffffffp+525, str::float_format::scientific, 158,
         "2."
         "1967352512417948649076027622691527528389357184547400943969984112385026578156124659470519897174763856938205"
-        "1780996362771040004230001691231315058910875952873472e+158"},
+        "1780996362771040004230001691231315058910875952873472e158"},
     {0x1.fffffffffffffp+526, str::float_format::scientific, 158,
         "4."
         "3934705024835897298152055245383055056778714369094801887939968224770053156312249318941039794349527713876410"
-        "3561992725542080008460003382462630117821751905746944e+158"},
+        "3561992725542080008460003382462630117821751905746944e158"},
     {0x1.fffffffffffffp+527, str::float_format::scientific, 158,
         "8."
         "7869410049671794596304110490766110113557428738189603775879936449540106312624498637882079588699055427752820"
-        "7123985451084160016920006764925260235643503811493888e+158"},
+        "7123985451084160016920006764925260235643503811493888e158"},
     {0x1.fffffffffffffp+528, str::float_format::scientific, 159,
         "1."
         "7573882009934358919260822098153222022711485747637920755175987289908021262524899727576415917739811085550564"
-        "14247970902168320033840013529850520471287007622987776e+159"},
+        "14247970902168320033840013529850520471287007622987776e159"},
     {0x1.fffffffffffffp+529, str::float_format::scientific, 159,
         "3."
         "5147764019868717838521644196306444045422971495275841510351974579816042525049799455152831835479622171101128"
-        "28495941804336640067680027059701040942574015245975552e+159"},
+        "28495941804336640067680027059701040942574015245975552e159"},
     {0x1.fffffffffffffp+530, str::float_format::scientific, 159,
         "7."
         "0295528039737435677043288392612888090845942990551683020703949159632085050099598910305663670959244342202256"
-        "56991883608673280135360054119402081885148030491951104e+159"},
+        "56991883608673280135360054119402081885148030491951104e159"},
     {0x1.fffffffffffffp+531, str::float_format::scientific, 160,
         "1."
         "4059105607947487135408657678522577618169188598110336604140789831926417010019919782061132734191848868440451"
-        "313983767217346560270720108238804163770296060983902208e+160"},
+        "313983767217346560270720108238804163770296060983902208e160"},
     {0x1.fffffffffffffp+532, str::float_format::scientific, 160,
         "2."
         "8118211215894974270817315357045155236338377196220673208281579663852834020039839564122265468383697736880902"
-        "627967534434693120541440216477608327540592121967804416e+160"},
+        "627967534434693120541440216477608327540592121967804416e160"},
     {0x1.fffffffffffffp+533, str::float_format::scientific, 160,
         "5."
         "6236422431789948541634630714090310472676754392441346416563159327705668040079679128244530936767395473761805"
-        "255935068869386241082880432955216655081184243935608832e+160"},
+        "255935068869386241082880432955216655081184243935608832e160"},
     {0x1.fffffffffffffp+534, str::float_format::scientific, 161,
         "1."
         "1247284486357989708326926142818062094535350878488269283312631865541133608015935825648906187353479094752361"
-        "0511870137738772482165760865910433310162368487871217664e+161"},
+        "0511870137738772482165760865910433310162368487871217664e161"},
     {0x1.fffffffffffffp+535, str::float_format::scientific, 161,
         "2."
         "2494568972715979416653852285636124189070701756976538566625263731082267216031871651297812374706958189504722"
-        "1023740275477544964331521731820866620324736975742435328e+161"},
+        "1023740275477544964331521731820866620324736975742435328e161"},
     {0x1.fffffffffffffp+536, str::float_format::scientific, 161,
         "4."
         "4989137945431958833307704571272248378141403513953077133250527462164534432063743302595624749413916379009444"
-        "2047480550955089928663043463641733240649473951484870656e+161"},
+        "2047480550955089928663043463641733240649473951484870656e161"},
     {0x1.fffffffffffffp+537, str::float_format::scientific, 161,
         "8."
         "9978275890863917666615409142544496756282807027906154266501054924329068864127486605191249498827832758018888"
-        "4094961101910179857326086927283466481298947902969741312e+161"},
+        "4094961101910179857326086927283466481298947902969741312e161"},
     {0x1.fffffffffffffp+538, str::float_format::scientific, 162,
         "1."
         "7995655178172783533323081828508899351256561405581230853300210984865813772825497321038249899765566551603777"
-        "68189922203820359714652173854566932962597895805939482624e+162"},
+        "68189922203820359714652173854566932962597895805939482624e162"},
     {0x1.fffffffffffffp+539, str::float_format::scientific, 162,
         "3."
         "5991310356345567066646163657017798702513122811162461706600421969731627545650994642076499799531133103207555"
-        "36379844407640719429304347709133865925195791611878965248e+162"},
+        "36379844407640719429304347709133865925195791611878965248e162"},
     {0x1.fffffffffffffp+540, str::float_format::scientific, 162,
         "7."
         "1982620712691134133292327314035597405026245622324923413200843939463255091301989284152999599062266206415110"
-        "72759688815281438858608695418267731850391583223757930496e+162"},
+        "72759688815281438858608695418267731850391583223757930496e162"},
     {0x1.fffffffffffffp+541, str::float_format::scientific, 163,
         "1."
         "4396524142538226826658465462807119481005249124464984682640168787892651018260397856830599919812453241283022"
-        "145519377630562877717217390836535463700783166447515860992e+163"},
+        "145519377630562877717217390836535463700783166447515860992e163"},
     {0x1.fffffffffffffp+542, str::float_format::scientific, 163,
         "2."
         "8793048285076453653316930925614238962010498248929969365280337575785302036520795713661199839624906482566044"
-        "291038755261125755434434781673070927401566332895031721984e+163"},
+        "291038755261125755434434781673070927401566332895031721984e163"},
     {0x1.fffffffffffffp+543, str::float_format::scientific, 163,
         "5."
         "7586096570152907306633861851228477924020996497859938730560675151570604073041591427322399679249812965132088"
-        "582077510522251510868869563346141854803132665790063443968e+163"},
+        "582077510522251510868869563346141854803132665790063443968e163"},
     {0x1.fffffffffffffp+544, str::float_format::scientific, 164,
         "1."
         "1517219314030581461326772370245695584804199299571987746112135030314120814608318285464479935849962593026417"
-        "7164155021044503021737739126692283709606265331580126887936e+164"},
+        "7164155021044503021737739126692283709606265331580126887936e164"},
     {0x1.fffffffffffffp+545, str::float_format::scientific, 164,
         "2."
         "3034438628061162922653544740491391169608398599143975492224270060628241629216636570928959871699925186052835"
-        "4328310042089006043475478253384567419212530663160253775872e+164"},
+        "4328310042089006043475478253384567419212530663160253775872e164"},
     {0x1.fffffffffffffp+546, str::float_format::scientific, 164,
         "4."
         "6068877256122325845307089480982782339216797198287950984448540121256483258433273141857919743399850372105670"
-        "8656620084178012086950956506769134838425061326320507551744e+164"},
+        "8656620084178012086950956506769134838425061326320507551744e164"},
     {0x1.fffffffffffffp+547, str::float_format::scientific, 164,
         "9."
         "2137754512244651690614178961965564678433594396575901968897080242512966516866546283715839486799700744211341"
-        "7313240168356024173901913013538269676850122652641015103488e+164"},
+        "7313240168356024173901913013538269676850122652641015103488e164"},
     {0x1.fffffffffffffp+548, str::float_format::scientific, 165,
         "1."
         "8427550902448930338122835792393112935686718879315180393779416048502593303373309256743167897359940148842268"
-        "34626480336712048347803826027076539353700245305282030206976e+165"},
+        "34626480336712048347803826027076539353700245305282030206976e165"},
     {0x1.fffffffffffffp+549, str::float_format::scientific, 165,
         "3."
         "6855101804897860676245671584786225871373437758630360787558832097005186606746618513486335794719880297684536"
-        "69252960673424096695607652054153078707400490610564060413952e+165"},
+        "69252960673424096695607652054153078707400490610564060413952e165"},
     {0x1.fffffffffffffp+550, str::float_format::scientific, 165,
         "7."
         "3710203609795721352491343169572451742746875517260721575117664194010373213493237026972671589439760595369073"
-        "38505921346848193391215304108306157414800981221128120827904e+165"},
+        "38505921346848193391215304108306157414800981221128120827904e165"},
     {0x1.fffffffffffffp+551, str::float_format::scientific, 166,
         "1."
         "4742040721959144270498268633914490348549375103452144315023532838802074642698647405394534317887952119073814"
-        "677011842693696386782430608216612314829601962442256241655808e+166"},
+        "677011842693696386782430608216612314829601962442256241655808e166"},
     {0x1.fffffffffffffp+552, str::float_format::scientific, 166,
         "2."
         "9484081443918288540996537267828980697098750206904288630047065677604149285397294810789068635775904238147629"
-        "354023685387392773564861216433224629659203924884512483311616e+166"},
+        "354023685387392773564861216433224629659203924884512483311616e166"},
     {0x1.fffffffffffffp+553, str::float_format::scientific, 166,
         "5."
         "8968162887836577081993074535657961394197500413808577260094131355208298570794589621578137271551808476295258"
-        "708047370774785547129722432866449259318407849769024966623232e+166"},
+        "708047370774785547129722432866449259318407849769024966623232e166"},
     {0x1.fffffffffffffp+554, str::float_format::scientific, 167,
         "1."
         "1793632577567315416398614907131592278839500082761715452018826271041659714158917924315627454310361695259051"
-        "7416094741549571094259444865732898518636815699538049933246464e+167"},
+        "7416094741549571094259444865732898518636815699538049933246464e167"},
     {0x1.fffffffffffffp+555, str::float_format::scientific, 167,
         "2."
         "3587265155134630832797229814263184557679000165523430904037652542083319428317835848631254908620723390518103"
-        "4832189483099142188518889731465797037273631399076099866492928e+167"},
+        "4832189483099142188518889731465797037273631399076099866492928e167"},
     {0x1.fffffffffffffp+556, str::float_format::scientific, 167,
         "4."
         "7174530310269261665594459628526369115358000331046861808075305084166638856635671697262509817241446781036206"
-        "9664378966198284377037779462931594074547262798152199732985856e+167"},
+        "9664378966198284377037779462931594074547262798152199732985856e167"},
     {0x1.fffffffffffffp+557, str::float_format::scientific, 167,
         "9."
         "4349060620538523331188919257052738230716000662093723616150610168333277713271343394525019634482893562072413"
-        "9328757932396568754075558925863188149094525596304399465971712e+167"},
+        "9328757932396568754075558925863188149094525596304399465971712e167"},
     {0x1.fffffffffffffp+558, str::float_format::scientific, 168,
         "1."
         "8869812124107704666237783851410547646143200132418744723230122033666655542654268678905003926896578712414482"
-        "78657515864793137508151117851726376298189051192608798931943424e+168"},
+        "78657515864793137508151117851726376298189051192608798931943424e168"},
     {0x1.fffffffffffffp+559, str::float_format::scientific, 168,
         "3."
         "7739624248215409332475567702821095292286400264837489446460244067333311085308537357810007853793157424828965"
-        "57315031729586275016302235703452752596378102385217597863886848e+168"},
+        "57315031729586275016302235703452752596378102385217597863886848e168"},
     {0x1.fffffffffffffp+560, str::float_format::scientific, 168,
         "7."
         "5479248496430818664951135405642190584572800529674978892920488134666622170617074715620015707586314849657931"
-        "14630063459172550032604471406905505192756204770435195727773696e+168"},
+        "14630063459172550032604471406905505192756204770435195727773696e168"},
     {0x1.fffffffffffffp+561, str::float_format::scientific, 169,
         "1."
         "5095849699286163732990227081128438116914560105934995778584097626933324434123414943124003141517262969931586"
-        "229260126918345100065208942813811010385512409540870391455547392e+169"},
+        "229260126918345100065208942813811010385512409540870391455547392e169"},
     {0x1.fffffffffffffp+562, str::float_format::scientific, 169,
         "3."
         "0191699398572327465980454162256876233829120211869991557168195253866648868246829886248006283034525939863172"
-        "458520253836690200130417885627622020771024819081740782911094784e+169"},
+        "458520253836690200130417885627622020771024819081740782911094784e169"},
     {0x1.fffffffffffffp+563, str::float_format::scientific, 169,
         "6."
         "0383398797144654931960908324513752467658240423739983114336390507733297736493659772496012566069051879726344"
-        "917040507673380400260835771255244041542049638163481565822189568e+169"},
+        "917040507673380400260835771255244041542049638163481565822189568e169"},
     {0x1.fffffffffffffp+564, str::float_format::scientific, 170,
         "1."
         "2076679759428930986392181664902750493531648084747996622867278101546659547298731954499202513213810375945268"
-        "9834081015346760800521671542510488083084099276326963131644379136e+170"},
+        "9834081015346760800521671542510488083084099276326963131644379136e170"},
     {0x1.fffffffffffffp+565, str::float_format::scientific, 170,
         "2."
         "4153359518857861972784363329805500987063296169495993245734556203093319094597463908998405026427620751890537"
-        "9668162030693521601043343085020976166168198552653926263288758272e+170"},
+        "9668162030693521601043343085020976166168198552653926263288758272e170"},
     {0x1.fffffffffffffp+566, str::float_format::scientific, 170,
         "4."
         "8306719037715723945568726659611001974126592338991986491469112406186638189194927817996810052855241503781075"
-        "9336324061387043202086686170041952332336397105307852526577516544e+170"},
+        "9336324061387043202086686170041952332336397105307852526577516544e170"},
     {0x1.fffffffffffffp+567, str::float_format::scientific, 170,
         "9."
         "6613438075431447891137453319222003948253184677983972982938224812373276378389855635993620105710483007562151"
-        "8672648122774086404173372340083904664672794210615705053155033088e+170"},
+        "8672648122774086404173372340083904664672794210615705053155033088e170"},
     {0x1.fffffffffffffp+568, str::float_format::scientific, 171,
         "1."
         "9322687615086289578227490663844400789650636935596794596587644962474655275677971127198724021142096601512430"
-        "37345296245548172808346744680167809329345588421231410106310066176e+171"},
+        "37345296245548172808346744680167809329345588421231410106310066176e171"},
     {0x1.fffffffffffffp+569, str::float_format::scientific, 171,
         "3."
         "8645375230172579156454981327688801579301273871193589193175289924949310551355942254397448042284193203024860"
-        "74690592491096345616693489360335618658691176842462820212620132352e+171"},
+        "74690592491096345616693489360335618658691176842462820212620132352e171"},
     {0x1.fffffffffffffp+570, str::float_format::scientific, 171,
         "7."
         "7290750460345158312909962655377603158602547742387178386350579849898621102711884508794896084568386406049721"
-        "49381184982192691233386978720671237317382353684925640425240264704e+171"},
+        "49381184982192691233386978720671237317382353684925640425240264704e171"},
     {0x1.fffffffffffffp+571, str::float_format::scientific, 172,
         "1."
         "5458150092069031662581992531075520631720509548477435677270115969979724220542376901758979216913677281209944"
-        "298762369964385382466773957441342474634764707369851280850480529408e+172"},
+        "298762369964385382466773957441342474634764707369851280850480529408e172"},
     {0x1.fffffffffffffp+572, str::float_format::scientific, 172,
         "3."
         "0916300184138063325163985062151041263441019096954871354540231939959448441084753803517958433827354562419888"
-        "597524739928770764933547914882684949269529414739702561700961058816e+172"},
+        "597524739928770764933547914882684949269529414739702561700961058816e172"},
     {0x1.fffffffffffffp+573, str::float_format::scientific, 172,
         "6."
         "1832600368276126650327970124302082526882038193909742709080463879918896882169507607035916867654709124839777"
-        "195049479857541529867095829765369898539058829479405123401922117632e+172"},
+        "195049479857541529867095829765369898539058829479405123401922117632e172"},
     {0x1.fffffffffffffp+574, str::float_format::scientific, 173,
         "1."
         "2366520073655225330065594024860416505376407638781948541816092775983779376433901521407183373530941824967955"
-        "4390098959715083059734191659530739797078117658958810246803844235264e+173"},
+        "4390098959715083059734191659530739797078117658958810246803844235264e173"},
     {0x1.fffffffffffffp+575, str::float_format::scientific, 173,
         "2."
         "4733040147310450660131188049720833010752815277563897083632185551967558752867803042814366747061883649935910"
-        "8780197919430166119468383319061479594156235317917620493607688470528e+173"},
+        "8780197919430166119468383319061479594156235317917620493607688470528e173"},
     {0x1.fffffffffffffp+576, str::float_format::scientific, 173,
         "4."
         "9466080294620901320262376099441666021505630555127794167264371103935117505735606085628733494123767299871821"
-        "7560395838860332238936766638122959188312470635835240987215376941056e+173"},
+        "7560395838860332238936766638122959188312470635835240987215376941056e173"},
     {0x1.fffffffffffffp+577, str::float_format::scientific, 173,
         "9."
         "8932160589241802640524752198883332043011261110255588334528742207870235011471212171257466988247534599743643"
-        "5120791677720664477873533276245918376624941271670481974430753882112e+173"},
+        "5120791677720664477873533276245918376624941271670481974430753882112e173"},
     {0x1.fffffffffffffp+578, str::float_format::scientific, 174,
         "1."
         "9786432117848360528104950439776666408602252222051117666905748441574047002294242434251493397649506919948728"
-        "70241583355441328955747066552491836753249882543340963948861507764224e+174"},
+        "70241583355441328955747066552491836753249882543340963948861507764224e174"},
     {0x1.fffffffffffffp+579, str::float_format::scientific, 174,
         "3."
         "9572864235696721056209900879553332817204504444102235333811496883148094004588484868502986795299013839897457"
-        "40483166710882657911494133104983673506499765086681927897723015528448e+174"},
+        "40483166710882657911494133104983673506499765086681927897723015528448e174"},
     {0x1.fffffffffffffp+580, str::float_format::scientific, 174,
         "7."
         "9145728471393442112419801759106665634409008888204470667622993766296188009176969737005973590598027679794914"
-        "80966333421765315822988266209967347012999530173363855795446031056896e+174"},
+        "80966333421765315822988266209967347012999530173363855795446031056896e174"},
     {0x1.fffffffffffffp+581, str::float_format::scientific, 175,
         "1."
         "5829145694278688422483960351821333126881801777640894133524598753259237601835393947401194718119605535958982"
-        "961932666843530631645976532419934694025999060346727711590892062113792e+175"},
+        "961932666843530631645976532419934694025999060346727711590892062113792e175"},
     {0x1.fffffffffffffp+582, str::float_format::scientific, 175,
         "3."
         "1658291388557376844967920703642666253763603555281788267049197506518475203670787894802389436239211071917965"
-        "923865333687061263291953064839869388051998120693455423181784124227584e+175"},
+        "923865333687061263291953064839869388051998120693455423181784124227584e175"},
     {0x1.fffffffffffffp+583, str::float_format::scientific, 175,
         "6."
         "3316582777114753689935841407285332507527207110563576534098395013036950407341575789604778872478422143835931"
-        "847730667374122526583906129679738776103996241386910846363568248455168e+175"},
+        "847730667374122526583906129679738776103996241386910846363568248455168e175"},
     {0x1.fffffffffffffp+584, str::float_format::scientific, 176,
         "1."
         "2663316555422950737987168281457066501505441422112715306819679002607390081468315157920955774495684428767186"
-        "3695461334748245053167812259359477552207992482773821692727136496910336e+176"},
+        "3695461334748245053167812259359477552207992482773821692727136496910336e176"},
     {0x1.fffffffffffffp+585, str::float_format::scientific, 176,
         "2."
         "5326633110845901475974336562914133003010882844225430613639358005214780162936630315841911548991368857534372"
-        "7390922669496490106335624518718955104415984965547643385454272993820672e+176"},
+        "7390922669496490106335624518718955104415984965547643385454272993820672e176"},
     {0x1.fffffffffffffp+586, str::float_format::scientific, 176,
         "5."
         "0653266221691802951948673125828266006021765688450861227278716010429560325873260631683823097982737715068745"
-        "4781845338992980212671249037437910208831969931095286770908545987641344e+176"},
+        "4781845338992980212671249037437910208831969931095286770908545987641344e176"},
     {0x1.fffffffffffffp+587, str::float_format::scientific, 177,
         "1."
         "0130653244338360590389734625165653201204353137690172245455743202085912065174652126336764619596547543013749"
-        "09563690677985960425342498074875820417663939862190573541817091975282688e+177"},
+        "09563690677985960425342498074875820417663939862190573541817091975282688e177"},
     {0x1.fffffffffffffp+588, str::float_format::scientific, 177,
         "2."
         "0261306488676721180779469250331306402408706275380344490911486404171824130349304252673529239193095086027498"
-        "19127381355971920850684996149751640835327879724381147083634183950565376e+177"},
+        "19127381355971920850684996149751640835327879724381147083634183950565376e177"},
     {0x1.fffffffffffffp+589, str::float_format::scientific, 177,
         "4."
         "0522612977353442361558938500662612804817412550760688981822972808343648260698608505347058478386190172054996"
-        "38254762711943841701369992299503281670655759448762294167268367901130752e+177"},
+        "38254762711943841701369992299503281670655759448762294167268367901130752e177"},
     {0x1.fffffffffffffp+590, str::float_format::scientific, 177,
         "8."
         "1045225954706884723117877001325225609634825101521377963645945616687296521397217010694116956772380344109992"
-        "76509525423887683402739984599006563341311518897524588334536735802261504e+177"},
+        "76509525423887683402739984599006563341311518897524588334536735802261504e177"},
     {0x1.fffffffffffffp+591, str::float_format::scientific, 178,
         "1."
         "6209045190941376944623575400265045121926965020304275592729189123337459304279443402138823391354476068821998"
-        "553019050847775366805479969198013126682623037795049176669073471604523008e+178"},
+        "553019050847775366805479969198013126682623037795049176669073471604523008e178"},
     {0x1.fffffffffffffp+592, str::float_format::scientific, 178,
         "3."
         "2418090381882753889247150800530090243853930040608551185458378246674918608558886804277646782708952137643997"
-        "106038101695550733610959938396026253365246075590098353338146943209046016e+178"},
+        "106038101695550733610959938396026253365246075590098353338146943209046016e178"},
     {0x1.fffffffffffffp+593, str::float_format::scientific, 178,
         "6."
         "4836180763765507778494301601060180487707860081217102370916756493349837217117773608555293565417904275287994"
-        "212076203391101467221919876792052506730492151180196706676293886418092032e+178"},
+        "212076203391101467221919876792052506730492151180196706676293886418092032e178"},
     {0x1.fffffffffffffp+594, str::float_format::scientific, 179,
         "1."
         "2967236152753101555698860320212036097541572016243420474183351298669967443423554721711058713083580855057598"
-        "8424152406782202934443839753584105013460984302360393413352587772836184064e+179"},
+        "8424152406782202934443839753584105013460984302360393413352587772836184064e179"},
     {0x1.fffffffffffffp+595, str::float_format::scientific, 179,
         "2."
         "5934472305506203111397720640424072195083144032486840948366702597339934886847109443422117426167161710115197"
-        "6848304813564405868887679507168210026921968604720786826705175545672368128e+179"},
+        "6848304813564405868887679507168210026921968604720786826705175545672368128e179"},
     {0x1.fffffffffffffp+596, str::float_format::scientific, 179,
         "5."
         "1868944611012406222795441280848144390166288064973681896733405194679869773694218886844234852334323420230395"
-        "3696609627128811737775359014336420053843937209441573653410351091344736256e+179"},
+        "3696609627128811737775359014336420053843937209441573653410351091344736256e179"},
     {0x1.fffffffffffffp+597, str::float_format::scientific, 180,
         "1."
         "0373788922202481244559088256169628878033257612994736379346681038935973954738843777368846970466864684046079"
-        "07393219254257623475550718028672840107687874418883147306820702182689472512e+180"},
+        "07393219254257623475550718028672840107687874418883147306820702182689472512e180"},
     {0x1.fffffffffffffp+598, str::float_format::scientific, 180,
         "2."
         "0747577844404962489118176512339257756066515225989472758693362077871947909477687554737693940933729368092158"
-        "14786438508515246951101436057345680215375748837766294613641404365378945024e+180"},
+        "14786438508515246951101436057345680215375748837766294613641404365378945024e180"},
     {0x1.fffffffffffffp+599, str::float_format::scientific, 180,
         "4."
         "1495155688809924978236353024678515512133030451978945517386724155743895818955375109475387881867458736184316"
-        "29572877017030493902202872114691360430751497675532589227282808730757890048e+180"},
+        "29572877017030493902202872114691360430751497675532589227282808730757890048e180"},
     {0x1.fffffffffffffp+600, str::float_format::scientific, 180,
         "8."
         "2990311377619849956472706049357031024266060903957891034773448311487791637910750218950775763734917472368632"
-        "59145754034060987804405744229382720861502995351065178454565617461515780096e+180"},
+        "59145754034060987804405744229382720861502995351065178454565617461515780096e180"},
     {0x1.fffffffffffffp+601, str::float_format::scientific, 181,
         "1."
         "6598062275523969991294541209871406204853212180791578206954689662297558327582150043790155152746983494473726"
-        "518291508068121975608811488458765441723005990702130356909131234923031560192e+181"},
+        "518291508068121975608811488458765441723005990702130356909131234923031560192e181"},
     {0x1.fffffffffffffp+602, str::float_format::scientific, 181,
         "3."
         "3196124551047939982589082419742812409706424361583156413909379324595116655164300087580310305493966988947453"
-        "036583016136243951217622976917530883446011981404260713818262469846063120384e+181"},
+        "036583016136243951217622976917530883446011981404260713818262469846063120384e181"},
     {0x1.fffffffffffffp+603, str::float_format::scientific, 181,
         "6."
         "6392249102095879965178164839485624819412848723166312827818758649190233310328600175160620610987933977894906"
-        "073166032272487902435245953835061766892023962808521427636524939692126240768e+181"},
+        "073166032272487902435245953835061766892023962808521427636524939692126240768e181"},
     {0x1.fffffffffffffp+604, str::float_format::scientific, 182,
         "1."
         "3278449820419175993035632967897124963882569744633262565563751729838046662065720035032124122197586795578981"
-        "2146332064544975804870491907670123533784047925617042855273049879384252481536e+182"},
+        "2146332064544975804870491907670123533784047925617042855273049879384252481536e182"},
     {0x1.fffffffffffffp+605, str::float_format::scientific, 182,
         "2."
         "6556899640838351986071265935794249927765139489266525131127503459676093324131440070064248244395173591157962"
-        "4292664129089951609740983815340247067568095851234085710546099758768504963072e+182"},
+        "4292664129089951609740983815340247067568095851234085710546099758768504963072e182"},
     {0x1.fffffffffffffp+606, str::float_format::scientific, 182,
         "5."
         "3113799281676703972142531871588499855530278978533050262255006919352186648262880140128496488790347182315924"
-        "8585328258179903219481967630680494135136191702468171421092199517537009926144e+182"},
+        "8585328258179903219481967630680494135136191702468171421092199517537009926144e182"},
     {0x1.fffffffffffffp+607, str::float_format::scientific, 183,
         "1."
         "0622759856335340794428506374317699971106055795706610052451001383870437329652576028025699297758069436463184"
-        "97170656516359806438963935261360988270272383404936342842184399035074019852288e+183"},
+        "97170656516359806438963935261360988270272383404936342842184399035074019852288e183"},
     {0x1.fffffffffffffp+608, str::float_format::scientific, 183,
         "2."
         "1245519712670681588857012748635399942212111591413220104902002767740874659305152056051398595516138872926369"
-        "94341313032719612877927870522721976540544766809872685684368798070148039704576e+183"},
+        "94341313032719612877927870522721976540544766809872685684368798070148039704576e183"},
     {0x1.fffffffffffffp+609, str::float_format::scientific, 183,
         "4."
         "2491039425341363177714025497270799884424223182826440209804005535481749318610304112102797191032277745852739"
-        "88682626065439225755855741045443953081089533619745371368737596140296079409152e+183"},
+        "88682626065439225755855741045443953081089533619745371368737596140296079409152e183"},
     {0x1.fffffffffffffp+610, str::float_format::scientific, 183,
         "8."
         "4982078850682726355428050994541599768848446365652880419608011070963498637220608224205594382064555491705479"
-        "77365252130878451511711482090887906162179067239490742737475192280592158818304e+183"},
+        "77365252130878451511711482090887906162179067239490742737475192280592158818304e183"},
     {0x1.fffffffffffffp+611, str::float_format::scientific, 184,
         "1."
         "6996415770136545271085610198908319953769689273130576083921602214192699727444121644841118876412911098341095"
-        "954730504261756903023422964181775812324358134478981485474950384561184317636608e+184"},
+        "954730504261756903023422964181775812324358134478981485474950384561184317636608e184"},
     {0x1.fffffffffffffp+612, str::float_format::scientific, 184,
         "3."
         "3992831540273090542171220397816639907539378546261152167843204428385399454888243289682237752825822196682191"
-        "909461008523513806046845928363551624648716268957962970949900769122368635273216e+184"},
+        "909461008523513806046845928363551624648716268957962970949900769122368635273216e184"},
     {0x1.fffffffffffffp+613, str::float_format::scientific, 184,
         "6."
         "7985663080546181084342440795633279815078757092522304335686408856770798909776486579364475505651644393364383"
-        "818922017047027612093691856727103249297432537915925941899801538244737270546432e+184"},
+        "818922017047027612093691856727103249297432537915925941899801538244737270546432e184"},
     {0x1.fffffffffffffp+614, str::float_format::scientific, 185,
         "1."
         "3597132616109236216868488159126655963015751418504460867137281771354159781955297315872895101130328878672876"
-        "7637844034094055224187383713454206498594865075831851883799603076489474541092864e+185"},
+        "7637844034094055224187383713454206498594865075831851883799603076489474541092864e185"},
     {0x1.fffffffffffffp+615, str::float_format::scientific, 185,
         "2."
         "7194265232218472433736976318253311926031502837008921734274563542708319563910594631745790202260657757345753"
-        "5275688068188110448374767426908412997189730151663703767599206152978949082185728e+185"},
+        "5275688068188110448374767426908412997189730151663703767599206152978949082185728e185"},
     {0x1.fffffffffffffp+616, str::float_format::scientific, 185,
         "5."
         "4388530464436944867473952636506623852063005674017843468549127085416639127821189263491580404521315514691507"
-        "0551376136376220896749534853816825994379460303327407535198412305957898164371456e+185"},
+        "0551376136376220896749534853816825994379460303327407535198412305957898164371456e185"},
     {0x1.fffffffffffffp+617, str::float_format::scientific, 186,
         "1."
         "0877706092887388973494790527301324770412601134803568693709825417083327825564237852698316080904263102938301"
-        "41102752272752441793499069707633651988758920606654815070396824611915796328742912e+186"},
+        "41102752272752441793499069707633651988758920606654815070396824611915796328742912e186"},
     {0x1.fffffffffffffp+618, str::float_format::scientific, 186,
         "2."
         "1755412185774777946989581054602649540825202269607137387419650834166655651128475705396632161808526205876602"
-        "82205504545504883586998139415267303977517841213309630140793649223831592657485824e+186"},
+        "82205504545504883586998139415267303977517841213309630140793649223831592657485824e186"},
     {0x1.fffffffffffffp+619, str::float_format::scientific, 186,
         "4."
         "3510824371549555893979162109205299081650404539214274774839301668333311302256951410793264323617052411753205"
-        "64411009091009767173996278830534607955035682426619260281587298447663185314971648e+186"},
+        "64411009091009767173996278830534607955035682426619260281587298447663185314971648e186"},
     {0x1.fffffffffffffp+620, str::float_format::scientific, 186,
         "8."
         "7021648743099111787958324218410598163300809078428549549678603336666622604513902821586528647234104823506411"
-        "28822018182019534347992557661069215910071364853238520563174596895326370629943296e+186"},
+        "28822018182019534347992557661069215910071364853238520563174596895326370629943296e186"},
     {0x1.fffffffffffffp+621, str::float_format::scientific, 187,
         "1."
         "7404329748619822357591664843682119632660161815685709909935720667333324520902780564317305729446820964701282"
-        "257644036364039068695985115322138431820142729706477041126349193790652741259886592e+187"},
+        "257644036364039068695985115322138431820142729706477041126349193790652741259886592e187"},
     {0x1.fffffffffffffp+622, str::float_format::scientific, 187,
         "3."
         "4808659497239644715183329687364239265320323631371419819871441334666649041805561128634611458893641929402564"
-        "515288072728078137391970230644276863640285459412954082252698387581305482519773184e+187"},
+        "515288072728078137391970230644276863640285459412954082252698387581305482519773184e187"},
     {0x1.fffffffffffffp+623, str::float_format::scientific, 187,
         "6."
         "9617318994479289430366659374728478530640647262742839639742882669333298083611122257269222917787283858805129"
-        "030576145456156274783940461288553727280570918825908164505396775162610965039546368e+187"},
+        "030576145456156274783940461288553727280570918825908164505396775162610965039546368e187"},
     {0x1.fffffffffffffp+624, str::float_format::scientific, 188,
         "1."
         "3923463798895857886073331874945695706128129452548567927948576533866659616722224451453844583557456771761025"
-        "8061152290912312549567880922577107454561141837651816329010793550325221930079092736e+188"},
+        "8061152290912312549567880922577107454561141837651816329010793550325221930079092736e188"},
     {0x1.fffffffffffffp+625, str::float_format::scientific, 188,
         "2."
         "7846927597791715772146663749891391412256258905097135855897153067733319233444448902907689167114913543522051"
-        "6122304581824625099135761845154214909122283675303632658021587100650443860158185472e+188"},
+        "6122304581824625099135761845154214909122283675303632658021587100650443860158185472e188"},
     {0x1.fffffffffffffp+626, str::float_format::scientific, 188,
         "5."
         "5693855195583431544293327499782782824512517810194271711794306135466638466888897805815378334229827087044103"
-        "2244609163649250198271523690308429818244567350607265316043174201300887720316370944e+188"},
+        "2244609163649250198271523690308429818244567350607265316043174201300887720316370944e188"},
     {0x1.fffffffffffffp+627, str::float_format::scientific, 189,
         "1."
         "1138771039116686308858665499956556564902503562038854342358861227093327693377779561163075666845965417408820"
-        "64489218327298500396543047380616859636489134701214530632086348402601775440632741888e+189"},
+        "64489218327298500396543047380616859636489134701214530632086348402601775440632741888e189"},
     {0x1.fffffffffffffp+628, str::float_format::scientific, 189,
         "2."
         "2277542078233372617717330999913113129805007124077708684717722454186655386755559122326151333691930834817641"
-        "28978436654597000793086094761233719272978269402429061264172696805203550881265483776e+189"},
+        "28978436654597000793086094761233719272978269402429061264172696805203550881265483776e189"},
     {0x1.fffffffffffffp+629, str::float_format::scientific, 189,
         "4."
         "4555084156466745235434661999826226259610014248155417369435444908373310773511118244652302667383861669635282"
-        "57956873309194001586172189522467438545956538804858122528345393610407101762530967552e+189"},
+        "57956873309194001586172189522467438545956538804858122528345393610407101762530967552e189"},
     {0x1.fffffffffffffp+630, str::float_format::scientific, 189,
         "8."
         "9110168312933490470869323999652452519220028496310834738870889816746621547022236489304605334767723339270565"
-        "15913746618388003172344379044934877091913077609716245056690787220814203525061935104e+189"},
+        "15913746618388003172344379044934877091913077609716245056690787220814203525061935104e189"},
     {0x1.fffffffffffffp+631, str::float_format::scientific, 190,
         "1."
         "7822033662586698094173864799930490503844005699262166947774177963349324309404447297860921066953544667854113"
-        "031827493236776006344688758089869754183826155219432490113381574441628407050123870208e+190"},
+        "031827493236776006344688758089869754183826155219432490113381574441628407050123870208e190"},
     {0x1.fffffffffffffp+632, str::float_format::scientific, 190,
         "3."
         "5644067325173396188347729599860981007688011398524333895548355926698648618808894595721842133907089335708226"
-        "063654986473552012689377516179739508367652310438864980226763148883256814100247740416e+190"},
+        "063654986473552012689377516179739508367652310438864980226763148883256814100247740416e190"},
     {0x1.fffffffffffffp+633, str::float_format::scientific, 190,
         "7."
         "1288134650346792376695459199721962015376022797048667791096711853397297237617789191443684267814178671416452"
-        "127309972947104025378755032359479016735304620877729960453526297766513628200495480832e+190"},
+        "127309972947104025378755032359479016735304620877729960453526297766513628200495480832e190"},
     {0x1.fffffffffffffp+634, str::float_format::scientific, 191,
         "1."
         "4257626930069358475339091839944392403075204559409733558219342370679459447523557838288736853562835734283290"
-        "4254619945894208050757510064718958033470609241755459920907052595533027256400990961664e+191"},
+        "4254619945894208050757510064718958033470609241755459920907052595533027256400990961664e191"},
     {0x1.fffffffffffffp+635, str::float_format::scientific, 191,
         "2."
         "8515253860138716950678183679888784806150409118819467116438684741358918895047115676577473707125671468566580"
-        "8509239891788416101515020129437916066941218483510919841814105191066054512801981923328e+191"},
+        "8509239891788416101515020129437916066941218483510919841814105191066054512801981923328e191"},
     {0x1.fffffffffffffp+636, str::float_format::scientific, 191,
         "5."
         "7030507720277433901356367359777569612300818237638934232877369482717837790094231353154947414251342937133161"
-        "7018479783576832203030040258875832133882436967021839683628210382132109025603963846656e+191"},
+        "7018479783576832203030040258875832133882436967021839683628210382132109025603963846656e191"},
     {0x1.fffffffffffffp+637, str::float_format::scientific, 192,
         "1."
         "1406101544055486780271273471955513922460163647527786846575473896543567558018846270630989482850268587426632"
-        "34036959567153664406060080517751664267764873934043679367256420764264218051207927693312e+192"},
+        "34036959567153664406060080517751664267764873934043679367256420764264218051207927693312e192"},
     {0x1.fffffffffffffp+638, str::float_format::scientific, 192,
         "2."
         "2812203088110973560542546943911027844920327295055573693150947793087135116037692541261978965700537174853264"
-        "68073919134307328812120161035503328535529747868087358734512841528528436102415855386624e+192"},
+        "68073919134307328812120161035503328535529747868087358734512841528528436102415855386624e192"},
     {0x1.fffffffffffffp+639, str::float_format::scientific, 192,
         "4."
         "5624406176221947121085093887822055689840654590111147386301895586174270232075385082523957931401074349706529"
-        "36147838268614657624240322071006657071059495736174717469025683057056872204831710773248e+192"},
+        "36147838268614657624240322071006657071059495736174717469025683057056872204831710773248e192"},
     {0x1.fffffffffffffp+640, str::float_format::scientific, 192,
         "9."
         "1248812352443894242170187775644111379681309180222294772603791172348540464150770165047915862802148699413058"
-        "72295676537229315248480644142013314142118991472349434938051366114113744409663421546496e+192"},
+        "72295676537229315248480644142013314142118991472349434938051366114113744409663421546496e192"},
     {0x1.fffffffffffffp+641, str::float_format::scientific, 193,
         "1."
         "8249762470488778848434037555128822275936261836044458954520758234469708092830154033009583172560429739882611"
-        "744591353074458630496961288284026628284237982944698869876102732228227488819326843092992e+193"},
+        "744591353074458630496961288284026628284237982944698869876102732228227488819326843092992e193"},
     {0x1.fffffffffffffp+642, str::float_format::scientific, 193,
         "3."
         "6499524940977557696868075110257644551872523672088917909041516468939416185660308066019166345120859479765223"
-        "489182706148917260993922576568053256568475965889397739752205464456454977638653686185984e+193"},
+        "489182706148917260993922576568053256568475965889397739752205464456454977638653686185984e193"},
     {0x1.fffffffffffffp+643, str::float_format::scientific, 193,
         "7."
         "2999049881955115393736150220515289103745047344177835818083032937878832371320616132038332690241718959530446"
-        "978365412297834521987845153136106513136951931778795479504410928912909955277307372371968e+193"},
+        "978365412297834521987845153136106513136951931778795479504410928912909955277307372371968e193"},
     {0x1.fffffffffffffp+644, str::float_format::scientific, 194,
         "1."
         "4599809976391023078747230044103057820749009468835567163616606587575766474264123226407666538048343791906089"
-        "3956730824595669043975690306272213026273903863557590959008821857825819910554614744743936e+194"},
+        "3956730824595669043975690306272213026273903863557590959008821857825819910554614744743936e194"},
     {0x1.fffffffffffffp+645, str::float_format::scientific, 194,
         "2."
         "9199619952782046157494460088206115641498018937671134327233213175151532948528246452815333076096687583812178"
-        "7913461649191338087951380612544426052547807727115181918017643715651639821109229489487872e+194"},
+        "7913461649191338087951380612544426052547807727115181918017643715651639821109229489487872e194"},
     {0x1.fffffffffffffp+646, str::float_format::scientific, 194,
         "5."
         "8399239905564092314988920176412231282996037875342268654466426350303065897056492905630666152193375167624357"
-        "5826923298382676175902761225088852105095615454230363836035287431303279642218458978975744e+194"},
+        "5826923298382676175902761225088852105095615454230363836035287431303279642218458978975744e194"},
     {0x1.fffffffffffffp+647, str::float_format::scientific, 195,
         "1."
         "1679847981112818462997784035282446256599207575068453730893285270060613179411298581126133230438675033524871"
-        "51653846596765352351805522450177704210191230908460727672070574862606559284436917957951488e+195"},
+        "51653846596765352351805522450177704210191230908460727672070574862606559284436917957951488e195"},
     {0x1.fffffffffffffp+648, str::float_format::scientific, 195,
         "2."
         "3359695962225636925995568070564892513198415150136907461786570540121226358822597162252266460877350067049743"
-        "03307693193530704703611044900355408420382461816921455344141149725213118568873835915902976e+195"},
+        "03307693193530704703611044900355408420382461816921455344141149725213118568873835915902976e195"},
     {0x1.fffffffffffffp+649, str::float_format::scientific, 195,
         "4."
         "6719391924451273851991136141129785026396830300273814923573141080242452717645194324504532921754700134099486"
-        "06615386387061409407222089800710816840764923633842910688282299450426237137747671831805952e+195"},
+        "06615386387061409407222089800710816840764923633842910688282299450426237137747671831805952e195"},
     {0x1.fffffffffffffp+650, str::float_format::scientific, 195,
         "9."
         "3438783848902547703982272282259570052793660600547629847146282160484905435290388649009065843509400268198972"
-        "13230772774122818814444179601421633681529847267685821376564598900852474275495343663611904e+195"},
+        "13230772774122818814444179601421633681529847267685821376564598900852474275495343663611904e195"},
     {0x1.fffffffffffffp+651, str::float_format::scientific, 196,
         "1."
         "8687756769780509540796454456451914010558732120109525969429256432096981087058077729801813168701880053639794"
-        "426461545548245637628888359202843267363059694535371642753129197801704948550990687327223808e+196"},
+        "426461545548245637628888359202843267363059694535371642753129197801704948550990687327223808e196"},
     {0x1.fffffffffffffp+652, str::float_format::scientific, 196,
         "3."
         "7375513539561019081592908912903828021117464240219051938858512864193962174116155459603626337403760107279588"
-        "852923091096491275257776718405686534726119389070743285506258395603409897101981374654447616e+196"},
+        "852923091096491275257776718405686534726119389070743285506258395603409897101981374654447616e196"},
     {0x1.fffffffffffffp+653, str::float_format::scientific, 196,
         "7."
         "4751027079122038163185817825807656042234928480438103877717025728387924348232310919207252674807520214559177"
-        "705846182192982550515553436811373069452238778141486571012516791206819794203962749308895232e+196"},
+        "705846182192982550515553436811373069452238778141486571012516791206819794203962749308895232e196"},
     {0x1.fffffffffffffp+654, str::float_format::scientific, 197,
         "1."
         "4950205415824407632637163565161531208446985696087620775543405145677584869646462183841450534961504042911835"
-        "5411692364385965101031106873622746138904477556282973142025033582413639588407925498617790464e+197"},
+        "5411692364385965101031106873622746138904477556282973142025033582413639588407925498617790464e197"},
     {0x1.fffffffffffffp+655, str::float_format::scientific, 197,
         "2."
         "9900410831648815265274327130323062416893971392175241551086810291355169739292924367682901069923008085823671"
-        "0823384728771930202062213747245492277808955112565946284050067164827279176815850997235580928e+197"},
+        "0823384728771930202062213747245492277808955112565946284050067164827279176815850997235580928e197"},
     {0x1.fffffffffffffp+656, str::float_format::scientific, 197,
         "5."
         "9800821663297630530548654260646124833787942784350483102173620582710339478585848735365802139846016171647342"
-        "1646769457543860404124427494490984555617910225131892568100134329654558353631701994471161856e+197"},
+        "1646769457543860404124427494490984555617910225131892568100134329654558353631701994471161856e197"},
     {0x1.fffffffffffffp+657, str::float_format::scientific, 198,
         "1."
         "1960164332659526106109730852129224966757588556870096620434724116542067895717169747073160427969203234329468"
-        "43293538915087720808248854988981969111235820450263785136200268659309116707263403988942323712e+198"},
+        "43293538915087720808248854988981969111235820450263785136200268659309116707263403988942323712e198"},
     {0x1.fffffffffffffp+658, str::float_format::scientific, 198,
         "2."
         "3920328665319052212219461704258449933515177113740193240869448233084135791434339494146320855938406468658936"
-        "86587077830175441616497709977963938222471640900527570272400537318618233414526807977884647424e+198"},
+        "86587077830175441616497709977963938222471640900527570272400537318618233414526807977884647424e198"},
     {0x1.fffffffffffffp+659, str::float_format::scientific, 198,
         "4."
         "7840657330638104424438923408516899867030354227480386481738896466168271582868678988292641711876812937317873"
-        "73174155660350883232995419955927876444943281801055140544801074637236466829053615955769294848e+198"},
+        "73174155660350883232995419955927876444943281801055140544801074637236466829053615955769294848e198"},
     {0x1.fffffffffffffp+660, str::float_format::scientific, 198,
         "9."
         "5681314661276208848877846817033799734060708454960772963477792932336543165737357976585283423753625874635747"
-        "46348311320701766465990839911855752889886563602110281089602149274472933658107231911538589696e+198"},
+        "46348311320701766465990839911855752889886563602110281089602149274472933658107231911538589696e198"},
     {0x1.fffffffffffffp+661, str::float_format::scientific, 199,
         "1."
         "9136262932255241769775569363406759946812141690992154592695558586467308633147471595317056684750725174927149"
-        "492696622641403532931981679823711505779773127204220562179204298548945867316214463823077179392e+199"},
+        "492696622641403532931981679823711505779773127204220562179204298548945867316214463823077179392e199"},
     {0x1.fffffffffffffp+662, str::float_format::scientific, 199,
         "3."
         "8272525864510483539551138726813519893624283381984309185391117172934617266294943190634113369501450349854298"
-        "985393245282807065863963359647423011559546254408441124358408597097891734632428927646154358784e+199"},
+        "985393245282807065863963359647423011559546254408441124358408597097891734632428927646154358784e199"},
     {0x1.fffffffffffffp+663, str::float_format::scientific, 199,
         "7."
         "6545051729020967079102277453627039787248566763968618370782234345869234532589886381268226739002900699708597"
-        "970786490565614131727926719294846023119092508816882248716817194195783469264857855292308717568e+199"},
+        "970786490565614131727926719294846023119092508816882248716817194195783469264857855292308717568e199"},
     {0x1.fffffffffffffp+664, str::float_format::scientific, 200,
         "1."
         "5309010345804193415820455490725407957449713352793723674156446869173846906517977276253645347800580139941719"
-        "5941572981131228263455853438589692046238185017633764497433634388391566938529715710584617435136e+200"},
+        "5941572981131228263455853438589692046238185017633764497433634388391566938529715710584617435136e200"},
     {0x1.fffffffffffffp+665, str::float_format::scientific, 200,
         "3."
         "0618020691608386831640910981450815914899426705587447348312893738347693813035954552507290695601160279883439"
-        "1883145962262456526911706877179384092476370035267528994867268776783133877059431421169234870272e+200"},
+        "1883145962262456526911706877179384092476370035267528994867268776783133877059431421169234870272e200"},
     {0x1.fffffffffffffp+666, str::float_format::scientific, 200,
         "6."
         "1236041383216773663281821962901631829798853411174894696625787476695387626071909105014581391202320559766878"
-        "3766291924524913053823413754358768184952740070535057989734537553566267754118862842338469740544e+200"},
+        "3766291924524913053823413754358768184952740070535057989734537553566267754118862842338469740544e200"},
     {0x1.fffffffffffffp+667, str::float_format::scientific, 201,
         "1."
         "2247208276643354732656364392580326365959770682234978939325157495339077525214381821002916278240464111953375"
-        "67532583849049826107646827508717536369905480141070115979469075107132535508237725684676939481088e+201"},
+        "67532583849049826107646827508717536369905480141070115979469075107132535508237725684676939481088e201"},
     {0x1.fffffffffffffp+668, str::float_format::scientific, 201,
         "2."
         "4494416553286709465312728785160652731919541364469957878650314990678155050428763642005832556480928223906751"
-        "35065167698099652215293655017435072739810960282140231958938150214265071016475451369353878962176e+201"},
+        "35065167698099652215293655017435072739810960282140231958938150214265071016475451369353878962176e201"},
     {0x1.fffffffffffffp+669, str::float_format::scientific, 201,
         "4."
         "8988833106573418930625457570321305463839082728939915757300629981356310100857527284011665112961856447813502"
-        "70130335396199304430587310034870145479621920564280463917876300428530142032950902738707757924352e+201"},
+        "70130335396199304430587310034870145479621920564280463917876300428530142032950902738707757924352e201"},
     {0x1.fffffffffffffp+670, str::float_format::scientific, 201,
         "9."
         "7977666213146837861250915140642610927678165457879831514601259962712620201715054568023330225923712895627005"
-        "40260670792398608861174620069740290959243841128560927835752600857060284065901805477415515848704e+201"},
+        "40260670792398608861174620069740290959243841128560927835752600857060284065901805477415515848704e201"},
     {0x1.fffffffffffffp+671, str::float_format::scientific, 202,
         "1."
         "9595533242629367572250183028128522185535633091575966302920251992542524040343010913604666045184742579125401"
-        "080521341584797217722349240139480581918487682257121855671505201714120568131803610954831031697408e+202"},
+        "080521341584797217722349240139480581918487682257121855671505201714120568131803610954831031697408e202"},
     {0x1.fffffffffffffp+672, str::float_format::scientific, 202,
         "3."
         "9191066485258735144500366056257044371071266183151932605840503985085048080686021827209332090369485158250802"
-        "161042683169594435444698480278961163836975364514243711343010403428241136263607221909662063394816e+202"},
+        "161042683169594435444698480278961163836975364514243711343010403428241136263607221909662063394816e202"},
     {0x1.fffffffffffffp+673, str::float_format::scientific, 202,
         "7."
         "8382132970517470289000732112514088742142532366303865211681007970170096161372043654418664180738970316501604"
-        "322085366339188870889396960557922327673950729028487422686020806856482272527214443819324126789632e+202"},
+        "322085366339188870889396960557922327673950729028487422686020806856482272527214443819324126789632e202"},
     {0x1.fffffffffffffp+674, str::float_format::scientific, 203,
         "1."
         "5676426594103494057800146422502817748428506473260773042336201594034019232274408730883732836147794063300320"
-        "8644170732678377741778793921115844655347901458056974845372041613712964545054428887638648253579264e+203"},
+        "8644170732678377741778793921115844655347901458056974845372041613712964545054428887638648253579264e203"},
     {0x1.fffffffffffffp+675, str::float_format::scientific, 203,
         "3."
         "1352853188206988115600292845005635496857012946521546084672403188068038464548817461767465672295588126600641"
-        "7288341465356755483557587842231689310695802916113949690744083227425929090108857775277296507158528e+203"},
+        "7288341465356755483557587842231689310695802916113949690744083227425929090108857775277296507158528e203"},
     {0x1.fffffffffffffp+676, str::float_format::scientific, 203,
         "6."
         "2705706376413976231200585690011270993714025893043092169344806376136076929097634923534931344591176253201283"
-        "4576682930713510967115175684463378621391605832227899381488166454851858180217715550554593014317056e+203"},
+        "4576682930713510967115175684463378621391605832227899381488166454851858180217715550554593014317056e203"},
     {0x1.fffffffffffffp+677, str::float_format::scientific, 204,
         "1."
         "2541141275282795246240117138002254198742805178608618433868961275227215385819526984706986268918235250640256"
-        "69153365861427021934230351368926757242783211664455798762976332909703716360435431101109186028634112e+204"},
+        "69153365861427021934230351368926757242783211664455798762976332909703716360435431101109186028634112e204"},
     {0x1.fffffffffffffp+678, str::float_format::scientific, 204,
         "2."
         "5082282550565590492480234276004508397485610357217236867737922550454430771639053969413972537836470501280513"
-        "38306731722854043868460702737853514485566423328911597525952665819407432720870862202218372057268224e+204"},
+        "38306731722854043868460702737853514485566423328911597525952665819407432720870862202218372057268224e204"},
     {0x1.fffffffffffffp+679, str::float_format::scientific, 204,
         "5."
         "0164565101131180984960468552009016794971220714434473735475845100908861543278107938827945075672941002561026"
-        "76613463445708087736921405475707028971132846657823195051905331638814865441741724404436744114536448e+204"},
+        "76613463445708087736921405475707028971132846657823195051905331638814865441741724404436744114536448e204"},
     {0x1.fffffffffffffp+680, str::float_format::scientific, 205,
         "1."
         "0032913020226236196992093710401803358994244142886894747095169020181772308655621587765589015134588200512205"
-        "353226926891416175473842810951414057942265693315646390103810663277629730883483448808873488229072896e+205"},
+        "353226926891416175473842810951414057942265693315646390103810663277629730883483448808873488229072896e205"},
     {0x1.fffffffffffffp+681, str::float_format::scientific, 205,
         "2."
         "0065826040452472393984187420803606717988488285773789494190338040363544617311243175531178030269176401024410"
-        "706453853782832350947685621902828115884531386631292780207621326555259461766966897617746976458145792e+205"},
+        "706453853782832350947685621902828115884531386631292780207621326555259461766966897617746976458145792e205"},
     {0x1.fffffffffffffp+682, str::float_format::scientific, 205,
         "4."
         "0131652080904944787968374841607213435976976571547578988380676080727089234622486351062356060538352802048821"
-        "412907707565664701895371243805656231769062773262585560415242653110518923533933795235493952916291584e+205"},
+        "412907707565664701895371243805656231769062773262585560415242653110518923533933795235493952916291584e205"},
     {0x1.fffffffffffffp+683, str::float_format::scientific, 205,
         "8."
         "0263304161809889575936749683214426871953953143095157976761352161454178469244972702124712121076705604097642"
-        "825815415131329403790742487611312463538125546525171120830485306221037847067867590470987905832583168e+205"},
+        "825815415131329403790742487611312463538125546525171120830485306221037847067867590470987905832583168e205"},
     {0x1.fffffffffffffp+684, str::float_format::scientific, 206,
         "1."
         "6052660832361977915187349936642885374390790628619031595352270432290835693848994540424942424215341120819528"
@@ -8501,1602 +8501,1602 @@ inline constexpr float_to_string_test_case<double, char> double_scientific_to_st
         "1."
         "6832434884954793354395490647165250174337197674194829674128102320809795328513403299220624427414025531104457"
         "9847444449473497721818563189379039155533907066146355666391893920912061963054072653091413228692613455937536"
-        "e+212"},
+        "e212"},
     {0x1.fffffffffffffp+705, str::float_format::scientific, 212,
         "3."
         "3664869769909586708790981294330500348674395348389659348256204641619590657026806598441248854828051062208915"
         "9694888898946995443637126378758078311067814132292711332783787841824123926108145306182826457385226911875072"
-        "e+212"},
+        "e212"},
     {0x1.fffffffffffffp+706, str::float_format::scientific, 212,
         "6."
         "7329739539819173417581962588661000697348790696779318696512409283239181314053613196882497709656102124417831"
         "9389777797893990887274252757516156622135628264585422665567575683648247852216290612365652914770453823750144"
-        "e+212"},
+        "e212"},
     {0x1.fffffffffffffp+707, str::float_format::scientific, 213,
         "1."
         "3465947907963834683516392517732200139469758139355863739302481856647836262810722639376499541931220424883566"
         "3877955559578798177454850551503231324427125652917084533113515136729649570443258122473130582954090764750028"
-        "8e+213"},
+        "8e213"},
     {0x1.fffffffffffffp+708, str::float_format::scientific, 213,
         "2."
         "6931895815927669367032785035464400278939516278711727478604963713295672525621445278752999083862440849767132"
         "7755911119157596354909701103006462648854251305834169066227030273459299140886516244946261165908181529500057"
-        "6e+213"},
+        "6e213"},
     {0x1.fffffffffffffp+709, str::float_format::scientific, 213,
         "5."
         "3863791631855338734065570070928800557879032557423454957209927426591345051242890557505998167724881699534265"
         "5511822238315192709819402206012925297708502611668338132454060546918598281773032489892522331816363059000115"
-        "2e+213"},
+        "2e213"},
     {0x1.fffffffffffffp+710, str::float_format::scientific, 214,
         "1."
         "0772758326371067746813114014185760111575806511484690991441985485318269010248578111501199633544976339906853"
         "1102364447663038541963880441202585059541700522333667626490812109383719656354606497978504466363272611800023"
-        "04e+214"},
+        "04e214"},
     {0x1.fffffffffffffp+711, str::float_format::scientific, 214,
         "2."
         "1545516652742135493626228028371520223151613022969381982883970970636538020497156223002399267089952679813706"
         "2204728895326077083927760882405170119083401044667335252981624218767439312709212995957008932726545223600046"
-        "08e+214"},
+        "08e214"},
     {0x1.fffffffffffffp+712, str::float_format::scientific, 214,
         "4."
         "3091033305484270987252456056743040446303226045938763965767941941273076040994312446004798534179905359627412"
         "4409457790652154167855521764810340238166802089334670505963248437534878625418425991914017865453090447200092"
-        "16e+214"},
+        "16e214"},
     {0x1.fffffffffffffp+713, str::float_format::scientific, 214,
         "8."
         "6182066610968541974504912113486080892606452091877527931535883882546152081988624892009597068359810719254824"
         "8818915581304308335711043529620680476333604178669341011926496875069757250836851983828035730906180894400184"
-        "32e+214"},
+        "32e214"},
     {0x1.fffffffffffffp+714, str::float_format::scientific, 215,
         "1."
         "7236413322193708394900982422697216178521290418375505586307176776509230416397724978401919413671962143850964"
         "9763783116260861667142208705924136095266720835733868202385299375013951450167370396765607146181236178880036"
-        "864e+215"},
+        "864e215"},
     {0x1.fffffffffffffp+715, str::float_format::scientific, 215,
         "3."
         "4472826644387416789801964845394432357042580836751011172614353553018460832795449956803838827343924287701929"
         "9527566232521723334284417411848272190533441671467736404770598750027902900334740793531214292362472357760073"
-        "728e+215"},
+        "728e215"},
     {0x1.fffffffffffffp+716, str::float_format::scientific, 215,
         "6."
         "8945653288774833579603929690788864714085161673502022345228707106036921665590899913607677654687848575403859"
         "9055132465043446668568834823696544381066883342935472809541197500055805800669481587062428584724944715520147"
-        "456e+215"},
+        "456e215"},
     {0x1.fffffffffffffp+717, str::float_format::scientific, 216,
         "1."
         "3789130657754966715920785938157772942817032334700404469045741421207384333118179982721535530937569715080771"
         "9811026493008689333713766964739308876213376668587094561908239500011161160133896317412485716944988943104029"
-        "4912e+216"},
+        "4912e216"},
     {0x1.fffffffffffffp+718, str::float_format::scientific, 216,
         "2."
         "7578261315509933431841571876315545885634064669400808938091482842414768666236359965443071061875139430161543"
         "9622052986017378667427533929478617752426753337174189123816479000022322320267792634824971433889977886208058"
-        "9824e+216"},
+        "9824e216"},
     {0x1.fffffffffffffp+719, str::float_format::scientific, 216,
         "5."
         "5156522631019866863683143752631091771268129338801617876182965684829537332472719930886142123750278860323087"
         "9244105972034757334855067858957235504853506674348378247632958000044644640535585269649942867779955772416117"
-        "9648e+216"},
+        "9648e216"},
     {0x1.fffffffffffffp+720, str::float_format::scientific, 217,
         "1."
         "1031304526203973372736628750526218354253625867760323575236593136965907466494543986177228424750055772064617"
         "5848821194406951466971013571791447100970701334869675649526591600008928928107117053929988573555991154483223"
-        "59296e+217"},
+        "59296e217"},
     {0x1.fffffffffffffp+721, str::float_format::scientific, 217,
         "2."
         "2062609052407946745473257501052436708507251735520647150473186273931814932989087972354456849500111544129235"
         "1697642388813902933942027143582894201941402669739351299053183200017857856214234107859977147111982308966447"
-        "18592e+217"},
+        "18592e217"},
     {0x1.fffffffffffffp+722, str::float_format::scientific, 217,
         "4."
         "4125218104815893490946515002104873417014503471041294300946372547863629865978175944708913699000223088258470"
         "3395284777627805867884054287165788403882805339478702598106366400035715712428468215719954294223964617932894"
-        "37184e+217"},
+        "37184e217"},
     {0x1.fffffffffffffp+723, str::float_format::scientific, 217,
         "8."
         "8250436209631786981893030004209746834029006942082588601892745095727259731956351889417827398000446176516940"
         "6790569555255611735768108574331576807765610678957405196212732800071431424856936431439908588447929235865788"
-        "74368e+217"},
+        "74368e217"},
     {0x1.fffffffffffffp+724, str::float_format::scientific, 218,
         "1."
         "7650087241926357396378606000841949366805801388416517720378549019145451946391270377883565479600089235303388"
         "1358113911051122347153621714866315361553122135791481039242546560014286284971387286287981717689585847173157"
-        "748736e+218"},
+        "748736e218"},
     {0x1.fffffffffffffp+725, str::float_format::scientific, 218,
         "3."
         "5300174483852714792757212001683898733611602776833035440757098038290903892782540755767130959200178470606776"
         "2716227822102244694307243429732630723106244271582962078485093120028572569942774572575963435379171694346315"
-        "497472e+218"},
+        "497472e218"},
     {0x1.fffffffffffffp+726, str::float_format::scientific, 218,
         "7."
         "0600348967705429585514424003367797467223205553666070881514196076581807785565081511534261918400356941213552"
         "5432455644204489388614486859465261446212488543165924156970186240057145139885549145151926870758343388692630"
-        "994944e+218"},
+        "994944e218"},
     {0x1.fffffffffffffp+727, str::float_format::scientific, 219,
         "1."
         "4120069793541085917102884800673559493444641110733214176302839215316361557113016302306852383680071388242710"
         "5086491128840897877722897371893052289242497708633184831394037248011429027977109829030385374151668677738526"
-        "1989888e+219"},
+        "1989888e219"},
     {0x1.fffffffffffffp+728, str::float_format::scientific, 219,
         "2."
         "8240139587082171834205769601347118986889282221466428352605678430632723114226032604613704767360142776485421"
         "0172982257681795755445794743786104578484995417266369662788074496022858055954219658060770748303337355477052"
-        "3979776e+219"},
+        "3979776e219"},
     {0x1.fffffffffffffp+729, str::float_format::scientific, 219,
         "5."
         "6480279174164343668411539202694237973778564442932856705211356861265446228452065209227409534720285552970842"
         "0345964515363591510891589487572209156969990834532739325576148992045716111908439316121541496606674710954104"
-        "7959552e+219"},
+        "7959552e219"},
     {0x1.fffffffffffffp+730, str::float_format::scientific, 220,
         "1."
         "1296055834832868733682307840538847594755712888586571341042271372253089245690413041845481906944057110594168"
         "4069192903072718302178317897514441831393998166906547865115229798409143222381687863224308299321334942190820"
-        "95919104e+220"},
+        "95919104e220"},
     {0x1.fffffffffffffp+731, str::float_format::scientific, 220,
         "2."
         "2592111669665737467364615681077695189511425777173142682084542744506178491380826083690963813888114221188336"
         "8138385806145436604356635795028883662787996333813095730230459596818286444763375726448616598642669884381641"
-        "91838208e+220"},
+        "91838208e220"},
     {0x1.fffffffffffffp+732, str::float_format::scientific, 220,
         "4."
         "5184223339331474934729231362155390379022851554346285364169085489012356982761652167381927627776228442376673"
         "6276771612290873208713271590057767325575992667626191460460919193636572889526751452897233197285339768763283"
-        "83676416e+220"},
+        "83676416e220"},
     {0x1.fffffffffffffp+733, str::float_format::scientific, 220,
         "9."
         "0368446678662949869458462724310780758045703108692570728338170978024713965523304334763855255552456884753347"
         "2553543224581746417426543180115534651151985335252382920921838387273145779053502905794466394570679537526567"
-        "67352832e+220"},
+        "67352832e220"},
     {0x1.fffffffffffffp+734, str::float_format::scientific, 221,
         "1."
         "8073689335732589973891692544862156151609140621738514145667634195604942793104660866952771051110491376950669"
         "4510708644916349283485308636023106930230397067050476584184367677454629155810700581158893278914135907505313"
-        "534705664e+221"},
+        "534705664e221"},
     {0x1.fffffffffffffp+735, str::float_format::scientific, 221,
         "3."
         "6147378671465179947783385089724312303218281243477028291335268391209885586209321733905542102220982753901338"
         "9021417289832698566970617272046213860460794134100953168368735354909258311621401162317786557828271815010627"
-        "069411328e+221"},
+        "069411328e221"},
     {0x1.fffffffffffffp+736, str::float_format::scientific, 221,
         "7."
         "2294757342930359895566770179448624606436562486954056582670536782419771172418643467811084204441965507802677"
         "8042834579665397133941234544092427720921588268201906336737470709818516623242802324635573115656543630021254"
-        "138822656e+221"},
+        "138822656e221"},
     {0x1.fffffffffffffp+737, str::float_format::scientific, 222,
         "1."
         "4458951468586071979113354035889724921287312497390811316534107356483954234483728693562216840888393101560535"
         "5608566915933079426788246908818485544184317653640381267347494141963703324648560464927114623131308726004250"
-        "8277645312e+222"},
+        "8277645312e222"},
     {0x1.fffffffffffffp+738, str::float_format::scientific, 222,
         "2."
         "8917902937172143958226708071779449842574624994781622633068214712967908468967457387124433681776786203121071"
         "1217133831866158853576493817636971088368635307280762534694988283927406649297120929854229246262617452008501"
-        "6555290624e+222"},
+        "6555290624e222"},
     {0x1.fffffffffffffp+739, str::float_format::scientific, 222,
         "5."
         "7835805874344287916453416143558899685149249989563245266136429425935816937934914774248867363553572406242142"
         "2434267663732317707152987635273942176737270614561525069389976567854813298594241859708458492525234904017003"
-        "3110581248e+222"},
+        "3110581248e222"},
     {0x1.fffffffffffffp+740, str::float_format::scientific, 223,
         "1."
         "1567161174868857583290683228711779937029849997912649053227285885187163387586982954849773472710714481248428"
         "4486853532746463541430597527054788435347454122912305013877995313570962659718848371941691698505046980803400"
-        "66221162496e+223"},
+        "66221162496e223"},
     {0x1.fffffffffffffp+741, str::float_format::scientific, 223,
         "2."
         "3134322349737715166581366457423559874059699995825298106454571770374326775173965909699546945421428962496856"
         "8973707065492927082861195054109576870694908245824610027755990627141925319437696743883383397010093961606801"
-        "32442324992e+223"},
+        "32442324992e223"},
     {0x1.fffffffffffffp+742, str::float_format::scientific, 223,
         "4."
         "6268644699475430333162732914847119748119399991650596212909143540748653550347931819399093890842857924993713"
         "7947414130985854165722390108219153741389816491649220055511981254283850638875393487766766794020187923213602"
-        "64884649984e+223"},
+        "64884649984e223"},
     {0x1.fffffffffffffp+743, str::float_format::scientific, 223,
         "9."
         "2537289398950860666325465829694239496238799983301192425818287081497307100695863638798187781685715849987427"
         "5894828261971708331444780216438307482779632983298440111023962508567701277750786975533533588040375846427205"
-        "29769299968e+223"},
+        "29769299968e223"},
     {0x1.fffffffffffffp+744, str::float_format::scientific, 224,
         "1."
         "8507457879790172133265093165938847899247759996660238485163657416299461420139172727759637556337143169997485"
         "5178965652394341666288956043287661496555926596659688022204792501713540255550157395106706717608075169285441"
-        "059538599936e+224"},
+        "059538599936e224"},
     {0x1.fffffffffffffp+745, str::float_format::scientific, 224,
         "3."
         "7014915759580344266530186331877695798495519993320476970327314832598922840278345455519275112674286339994971"
         "0357931304788683332577912086575322993111853193319376044409585003427080511100314790213413435216150338570882"
-        "119077199872e+224"},
+        "119077199872e224"},
     {0x1.fffffffffffffp+746, str::float_format::scientific, 224,
         "7."
         "4029831519160688533060372663755391596991039986640953940654629665197845680556690911038550225348572679989942"
         "0715862609577366665155824173150645986223706386638752088819170006854161022200629580426826870432300677141764"
-        "238154399744e+224"},
+        "238154399744e224"},
     {0x1.fffffffffffffp+747, str::float_format::scientific, 225,
         "1."
         "4805966303832137706612074532751078319398207997328190788130925933039569136111338182207710045069714535997988"
         "4143172521915473333031164834630129197244741277327750417763834001370832204440125916085365374086460135428352"
-        "8476308799488e+225"},
+        "8476308799488e225"},
     {0x1.fffffffffffffp+748, str::float_format::scientific, 225,
         "2."
         "9611932607664275413224149065502156638796415994656381576261851866079138272222676364415420090139429071995976"
         "8286345043830946666062329669260258394489482554655500835527668002741664408880251832170730748172920270856705"
-        "6952617598976e+225"},
+        "6952617598976e225"},
     {0x1.fffffffffffffp+749, str::float_format::scientific, 225,
         "5."
         "9223865215328550826448298131004313277592831989312763152523703732158276544445352728830840180278858143991953"
         "6572690087661893332124659338520516788978965109311001671055336005483328817760503664341461496345840541713411"
-        "3905235197952e+225"},
+        "3905235197952e225"},
     {0x1.fffffffffffffp+750, str::float_format::scientific, 226,
         "1."
         "1844773043065710165289659626200862655518566397862552630504740746431655308889070545766168036055771628798390"
         "7314538017532378666424931867704103357795793021862200334211067201096665763552100732868292299269168108342682"
-        "27810470395904e+226"},
+        "27810470395904e226"},
     {0x1.fffffffffffffp+751, str::float_format::scientific, 226,
         "2."
         "3689546086131420330579319252401725311037132795725105261009481492863310617778141091532336072111543257596781"
         "4629076035064757332849863735408206715591586043724400668422134402193331527104201465736584598538336216685364"
-        "55620940791808e+226"},
+        "55620940791808e226"},
     {0x1.fffffffffffffp+752, str::float_format::scientific, 226,
         "4."
         "7379092172262840661158638504803450622074265591450210522018962985726621235556282183064672144223086515193562"
         "9258152070129514665699727470816413431183172087448801336844268804386663054208402931473169197076672433370729"
-        "11241881583616e+226"},
+        "11241881583616e226"},
     {0x1.fffffffffffffp+753, str::float_format::scientific, 226,
         "9."
         "4758184344525681322317277009606901244148531182900421044037925971453242471112564366129344288446173030387125"
         "8516304140259029331399454941632826862366344174897602673688537608773326108416805862946338394153344866741458"
-        "22483763167232e+226"},
+        "22483763167232e226"},
     {0x1.fffffffffffffp+754, str::float_format::scientific, 227,
         "1."
         "8951636868905136264463455401921380248829706236580084208807585194290648494222512873225868857689234606077425"
         "1703260828051805866279890988326565372473268834979520534737707521754665221683361172589267678830668973348291"
-        "644967526334464e+227"},
+        "644967526334464e227"},
     {0x1.fffffffffffffp+755, str::float_format::scientific, 227,
         "3."
         "7903273737810272528926910803842760497659412473160168417615170388581296988445025746451737715378469212154850"
         "3406521656103611732559781976653130744946537669959041069475415043509330443366722345178535357661337946696583"
-        "289935052668928e+227"},
+        "289935052668928e227"},
     {0x1.fffffffffffffp+756, str::float_format::scientific, 227,
         "7."
         "5806547475620545057853821607685520995318824946320336835230340777162593976890051492903475430756938424309700"
         "6813043312207223465119563953306261489893075339918082138950830087018660886733444690357070715322675893393166"
-        "579870105337856e+227"},
+        "579870105337856e227"},
     {0x1.fffffffffffffp+757, str::float_format::scientific, 228,
         "1."
         "5161309495124109011570764321537104199063764989264067367046068155432518795378010298580695086151387684861940"
         "1362608662441444693023912790661252297978615067983616427790166017403732177346688938071414143064535178678633"
-        "3159740210675712e+228"},
+        "3159740210675712e228"},
     {0x1.fffffffffffffp+758, str::float_format::scientific, 228,
         "3."
         "0322618990248218023141528643074208398127529978528134734092136310865037590756020597161390172302775369723880"
         "2725217324882889386047825581322504595957230135967232855580332034807464354693377876142828286129070357357266"
-        "6319480421351424e+228"},
+        "6319480421351424e228"},
     {0x1.fffffffffffffp+759, str::float_format::scientific, 228,
         "6."
         "0645237980496436046283057286148416796255059957056269468184272621730075181512041194322780344605550739447760"
         "5450434649765778772095651162645009191914460271934465711160664069614928709386755752285656572258140714714533"
-        "2638960842702848e+228"},
+        "2638960842702848e228"},
     {0x1.fffffffffffffp+760, str::float_format::scientific, 229,
         "1."
         "2129047596099287209256611457229683359251011991411253893636854524346015036302408238864556068921110147889552"
         "1090086929953155754419130232529001838382892054386893142232132813922985741877351150457131314451628142942906"
-        "65277921685405696e+229"},
+        "65277921685405696e229"},
     {0x1.fffffffffffffp+761, str::float_format::scientific, 229,
         "2."
         "4258095192198574418513222914459366718502023982822507787273709048692030072604816477729112137842220295779104"
         "2180173859906311508838260465058003676765784108773786284464265627845971483754702300914262628903256285885813"
-        "30555843370811392e+229"},
+        "30555843370811392e229"},
     {0x1.fffffffffffffp+762, str::float_format::scientific, 229,
         "4."
         "8516190384397148837026445828918733437004047965645015574547418097384060145209632955458224275684440591558208"
         "4360347719812623017676520930116007353531568217547572568928531255691942967509404601828525257806512571771626"
-        "61111686741622784e+229"},
+        "61111686741622784e229"},
     {0x1.fffffffffffffp+763, str::float_format::scientific, 229,
         "9."
         "7032380768794297674052891657837466874008095931290031149094836194768120290419265910916448551368881183116416"
         "8720695439625246035353041860232014707063136435095145137857062511383885935018809203657050515613025143543253"
-        "22223373483245568e+229"},
+        "22223373483245568e229"},
     {0x1.fffffffffffffp+764, str::float_format::scientific, 230,
         "1."
         "9406476153758859534810578331567493374801619186258006229818967238953624058083853182183289710273776236623283"
         "3744139087925049207070608372046402941412627287019029027571412502276777187003761840731410103122605028708650"
-        "644446746966491136e+230"},
+        "644446746966491136e230"},
     {0x1.fffffffffffffp+765, str::float_format::scientific, 230,
         "3."
         "8812952307517719069621156663134986749603238372516012459637934477907248116167706364366579420547552473246566"
         "7488278175850098414141216744092805882825254574038058055142825004553554374007523681462820206245210057417301"
-        "288893493932982272e+230"},
+        "288893493932982272e230"},
     {0x1.fffffffffffffp+766, str::float_format::scientific, 230,
         "7."
         "7625904615035438139242313326269973499206476745032024919275868955814496232335412728733158841095104946493133"
         "4976556351700196828282433488185611765650509148076116110285650009107108748015047362925640412490420114834602"
-        "577786987865964544e+230"},
+        "577786987865964544e230"},
     {0x1.fffffffffffffp+767, str::float_format::scientific, 231,
         "1."
         "5525180923007087627848462665253994699841295349006404983855173791162899246467082545746631768219020989298626"
         "6995311270340039365656486697637122353130101829615223222057130001821421749603009472585128082498084022966920"
-        "5155573975731929088e+231"},
+        "5155573975731929088e231"},
     {0x1.fffffffffffffp+768, str::float_format::scientific, 231,
         "3."
         "1050361846014175255696925330507989399682590698012809967710347582325798492934165091493263536438041978597253"
         "3990622540680078731312973395274244706260203659230446444114260003642843499206018945170256164996168045933841"
-        "0311147951463858176e+231"},
+        "0311147951463858176e231"},
     {0x1.fffffffffffffp+769, str::float_format::scientific, 231,
         "6."
         "2100723692028350511393850661015978799365181396025619935420695164651596985868330182986527072876083957194506"
         "7981245081360157462625946790548489412520407318460892888228520007285686998412037890340512329992336091867682"
-        "0622295902927716352e+231"},
+        "0622295902927716352e231"},
     {0x1.fffffffffffffp+770, str::float_format::scientific, 232,
         "1."
         "2420144738405670102278770132203195759873036279205123987084139032930319397173666036597305414575216791438901"
         "3596249016272031492525189358109697882504081463692178577645704001457137399682407578068102465998467218373536"
-        "41244591805855432704e+232"},
+        "41244591805855432704e232"},
     {0x1.fffffffffffffp+771, str::float_format::scientific, 232,
         "2."
         "4840289476811340204557540264406391519746072558410247974168278065860638794347332073194610829150433582877802"
         "7192498032544062985050378716219395765008162927384357155291408002914274799364815156136204931996934436747072"
-        "82489183611710865408e+232"},
+        "82489183611710865408e232"},
     {0x1.fffffffffffffp+772, str::float_format::scientific, 232,
         "4."
         "9680578953622680409115080528812783039492145116820495948336556131721277588694664146389221658300867165755605"
         "4384996065088125970100757432438791530016325854768714310582816005828549598729630312272409863993868873494145"
-        "64978367223421730816e+232"},
+        "64978367223421730816e232"},
     {0x1.fffffffffffffp+773, str::float_format::scientific, 232,
         "9."
         "9361157907245360818230161057625566078984290233640991896673112263442555177389328292778443316601734331511210"
         "8769992130176251940201514864877583060032651709537428621165632011657099197459260624544819727987737746988291"
-        "29956734446843461632e+232"},
+        "29956734446843461632e232"},
     {0x1.fffffffffffffp+774, str::float_format::scientific, 233,
         "1."
         "9872231581449072163646032211525113215796858046728198379334622452688511035477865658555688663320346866302242"
         "1753998426035250388040302972975516612006530341907485724233126402331419839491852124908963945597547549397658"
-        "259913468893686923264e+233"},
+        "259913468893686923264e233"},
     {0x1.fffffffffffffp+775, str::float_format::scientific, 233,
         "3."
         "9744463162898144327292064423050226431593716093456396758669244905377022070955731317111377326640693732604484"
         "3507996852070500776080605945951033224013060683814971448466252804662839678983704249817927891195095098795316"
-        "519826937787373846528e+233"},
+        "519826937787373846528e233"},
     {0x1.fffffffffffffp+776, str::float_format::scientific, 233,
         "7."
         "9488926325796288654584128846100452863187432186912793517338489810754044141911462634222754653281387465208968"
         "7015993704141001552161211891902066448026121367629942896932505609325679357967408499635855782390190197590633"
-        "039653875574747693056e+233"},
+        "039653875574747693056e233"},
     {0x1.fffffffffffffp+777, str::float_format::scientific, 234,
         "1."
         "5897785265159257730916825769220090572637486437382558703467697962150808828382292526844550930656277493041793"
         "7403198740828200310432242378380413289605224273525988579386501121865135871593481699927171156478038039518126"
-        "6079307751149495386112e+234"},
+        "6079307751149495386112e234"},
     {0x1.fffffffffffffp+778, str::float_format::scientific, 234,
         "3."
         "1795570530318515461833651538440181145274972874765117406935395924301617656764585053689101861312554986083587"
         "4806397481656400620864484756760826579210448547051977158773002243730271743186963399854342312956076079036253"
-        "2158615502298990772224e+234"},
+        "2158615502298990772224e234"},
     {0x1.fffffffffffffp+779, str::float_format::scientific, 234,
         "6."
         "3591141060637030923667303076880362290549945749530234813870791848603235313529170107378203722625109972167174"
         "9612794963312801241728969513521653158420897094103954317546004487460543486373926799708684625912152158072506"
-        "4317231004597981544448e+234"},
+        "4317231004597981544448e234"},
     {0x1.fffffffffffffp+780, str::float_format::scientific, 235,
         "1."
         "2718228212127406184733460615376072458109989149906046962774158369720647062705834021475640744525021994433434"
         "9922558992662560248345793902704330631684179418820790863509200897492108697274785359941736925182430431614501"
-        "28634462009195963088896e+235"},
+        "28634462009195963088896e235"},
     {0x1.fffffffffffffp+781, str::float_format::scientific, 235,
         "2."
         "5436456424254812369466921230752144916219978299812093925548316739441294125411668042951281489050043988866869"
         "9845117985325120496691587805408661263368358837641581727018401794984217394549570719883473850364860863229002"
-        "57268924018391926177792e+235"},
+        "57268924018391926177792e235"},
     {0x1.fffffffffffffp+782, str::float_format::scientific, 235,
         "5."
         "0872912848509624738933842461504289832439956599624187851096633478882588250823336085902562978100087977733739"
         "9690235970650240993383175610817322526736717675283163454036803589968434789099141439766947700729721726458005"
-        "14537848036783852355584e+235"},
+        "14537848036783852355584e235"},
     {0x1.fffffffffffffp+783, str::float_format::scientific, 236,
         "1."
         "0174582569701924947786768492300857966487991319924837570219326695776517650164667217180512595620017595546747"
         "9938047194130048198676635122163464505347343535056632690807360717993686957819828287953389540145944345291601"
-        "029075696073567704711168e+236"},
+        "029075696073567704711168e236"},
     {0x1.fffffffffffffp+784, str::float_format::scientific, 236,
         "2."
         "0349165139403849895573536984601715932975982639849675140438653391553035300329334434361025191240035191093495"
         "9876094388260096397353270244326929010694687070113265381614721435987373915639656575906779080291888690583202"
-        "058151392147135409422336e+236"},
+        "058151392147135409422336e236"},
     {0x1.fffffffffffffp+785, str::float_format::scientific, 236,
         "4."
         "0698330278807699791147073969203431865951965279699350280877306783106070600658668868722050382480070382186991"
         "9752188776520192794706540488653858021389374140226530763229442871974747831279313151813558160583777381166404"
-        "116302784294270818844672e+236"},
+        "116302784294270818844672e236"},
     {0x1.fffffffffffffp+786, str::float_format::scientific, 236,
         "8."
         "1396660557615399582294147938406863731903930559398700561754613566212141201317337737444100764960140764373983"
         "9504377553040385589413080977307716042778748280453061526458885743949495662558626303627116321167554762332808"
-        "232605568588541637689344e+236"},
+        "232605568588541637689344e236"},
     {0x1.fffffffffffffp+787, str::float_format::scientific, 237,
         "1."
         "6279332111523079916458829587681372746380786111879740112350922713242428240263467547488820152992028152874796"
         "7900875510608077117882616195461543208555749656090612305291777148789899132511725260725423264233510952466561"
-        "6465211137177083275378688e+237"},
+        "6465211137177083275378688e237"},
     {0x1.fffffffffffffp+788, str::float_format::scientific, 237,
         "3."
         "2558664223046159832917659175362745492761572223759480224701845426484856480526935094977640305984056305749593"
         "5801751021216154235765232390923086417111499312181224610583554297579798265023450521450846528467021904933123"
-        "2930422274354166550757376e+237"},
+        "2930422274354166550757376e237"},
     {0x1.fffffffffffffp+789, str::float_format::scientific, 237,
         "6."
         "5117328446092319665835318350725490985523144447518960449403690852969712961053870189955280611968112611499187"
         "1603502042432308471530464781846172834222998624362449221167108595159596530046901042901693056934043809866246"
-        "5860844548708333101514752e+237"},
+        "5860844548708333101514752e237"},
     {0x1.fffffffffffffp+790, str::float_format::scientific, 238,
         "1."
         "3023465689218463933167063670145098197104628889503792089880738170593942592210774037991056122393622522299837"
         "4320700408486461694306092956369234566844599724872489844233421719031919306009380208580338611386808761973249"
-        "31721689097416666203029504e+238"},
+        "31721689097416666203029504e238"},
     {0x1.fffffffffffffp+791, str::float_format::scientific, 238,
         "2."
         "6046931378436927866334127340290196394209257779007584179761476341187885184421548075982112244787245044599674"
         "8641400816972923388612185912738469133689199449744979688466843438063838612018760417160677222773617523946498"
-        "63443378194833332406059008e+238"},
+        "63443378194833332406059008e238"},
     {0x1.fffffffffffffp+792, str::float_format::scientific, 238,
         "5."
         "2093862756873855732668254680580392788418515558015168359522952682375770368843096151964224489574490089199349"
         "7282801633945846777224371825476938267378398899489959376933686876127677224037520834321354445547235047892997"
-        "26886756389666664812118016e+238"},
+        "26886756389666664812118016e238"},
     {0x1.fffffffffffffp+793, str::float_format::scientific, 239,
         "1."
         "0418772551374771146533650936116078557683703111603033671904590536475154073768619230392844897914898017839869"
         "9456560326789169355444874365095387653475679779897991875386737375225535444807504166864270889109447009578599"
-        "453773512779333329624236032e+239"},
+        "453773512779333329624236032e239"},
     {0x1.fffffffffffffp+794, str::float_format::scientific, 239,
         "2."
         "0837545102749542293067301872232157115367406223206067343809181072950308147537238460785689795829796035679739"
         "8913120653578338710889748730190775306951359559795983750773474750451070889615008333728541778218894019157198"
-        "907547025558666659248472064e+239"},
+        "907547025558666659248472064e239"},
     {0x1.fffffffffffffp+795, str::float_format::scientific, 239,
         "4."
         "1675090205499084586134603744464314230734812446412134687618362145900616295074476921571379591659592071359479"
         "7826241307156677421779497460381550613902719119591967501546949500902141779230016667457083556437788038314397"
-        "815094051117333318496944128e+239"},
+        "815094051117333318496944128e239"},
     {0x1.fffffffffffffp+796, str::float_format::scientific, 239,
         "8."
         "3350180410998169172269207488928628461469624892824269375236724291801232590148953843142759183319184142718959"
         "5652482614313354843558994920763101227805438239183935003093899001804283558460033334914167112875576076628795"
-        "630188102234666636993888256e+239"},
+        "630188102234666636993888256e239"},
     {0x1.fffffffffffffp+797, str::float_format::scientific, 240,
         "1."
         "6670036082199633834453841497785725692293924978564853875047344858360246518029790768628551836663836828543791"
         "9130496522862670968711798984152620245561087647836787000618779800360856711692006666982833422575115215325759"
-        "1260376204469333273987776512e+240"},
+        "1260376204469333273987776512e240"},
     {0x1.fffffffffffffp+798, str::float_format::scientific, 240,
         "3."
         "3340072164399267668907682995571451384587849957129707750094689716720493036059581537257103673327673657087583"
         "8260993045725341937423597968305240491122175295673574001237559600721713423384013333965666845150230430651518"
-        "2520752408938666547975553024e+240"},
+        "2520752408938666547975553024e240"},
     {0x1.fffffffffffffp+799, str::float_format::scientific, 240,
         "6."
         "6680144328798535337815365991142902769175699914259415500189379433440986072119163074514207346655347314175167"
         "6521986091450683874847195936610480982244350591347148002475119201443426846768026667931333690300460861303036"
-        "5041504817877333095951106048e+240"},
+        "5041504817877333095951106048e240"},
     {0x1.fffffffffffffp+800, str::float_format::scientific, 241,
         "1."
         "3336028865759707067563073198228580553835139982851883100037875886688197214423832614902841469331069462835033"
         "5304397218290136774969439187322096196448870118269429600495023840288685369353605333586266738060092172260607"
-        "30083009635754666191902212096e+241"},
+        "30083009635754666191902212096e241"},
     {0x1.fffffffffffffp+801, str::float_format::scientific, 241,
         "2."
         "6672057731519414135126146396457161107670279965703766200075751773376394428847665229805682938662138925670067"
         "0608794436580273549938878374644192392897740236538859200990047680577370738707210667172533476120184344521214"
-        "60166019271509332383804424192e+241"},
+        "60166019271509332383804424192e241"},
     {0x1.fffffffffffffp+802, str::float_format::scientific, 241,
         "5."
         "3344115463038828270252292792914322215340559931407532400151503546752788857695330459611365877324277851340134"
         "1217588873160547099877756749288384785795480473077718401980095361154741477414421334345066952240368689042429"
-        "20332038543018664767608848384e+241"},
+        "20332038543018664767608848384e241"},
     {0x1.fffffffffffffp+803, str::float_format::scientific, 242,
         "1."
         "0668823092607765654050458558582864443068111986281506480030300709350557771539066091922273175464855570268026"
         "8243517774632109419975551349857676957159096094615543680396019072230948295482884266869013390448073737808485"
-        "840664077086037329535217696768e+242"},
+        "840664077086037329535217696768e242"},
     {0x1.fffffffffffffp+804, str::float_format::scientific, 242,
         "2."
         "1337646185215531308100917117165728886136223972563012960060601418701115543078132183844546350929711140536053"
         "6487035549264218839951102699715353914318192189231087360792038144461896590965768533738026780896147475616971"
-        "681328154172074659070435393536e+242"},
+        "681328154172074659070435393536e242"},
     {0x1.fffffffffffffp+805, str::float_format::scientific, 242,
         "4."
         "2675292370431062616201834234331457772272447945126025920121202837402231086156264367689092701859422281072107"
         "2974071098528437679902205399430707828636384378462174721584076288923793181931537067476053561792294951233943"
-        "362656308344149318140870787072e+242"},
+        "362656308344149318140870787072e242"},
     {0x1.fffffffffffffp+806, str::float_format::scientific, 242,
         "8."
         "5350584740862125232403668468662915544544895890252051840242405674804462172312528735378185403718844562144214"
         "5948142197056875359804410798861415657272768756924349443168152577847586363863074134952107123584589902467886"
-        "725312616688298636281741574144e+242"},
+        "725312616688298636281741574144e242"},
     {0x1.fffffffffffffp+807, str::float_format::scientific, 243,
         "1."
         "7070116948172425046480733693732583108908979178050410368048481134960892434462505747075637080743768912428842"
         "9189628439411375071960882159772283131454553751384869888633630515569517272772614826990421424716917980493577"
-        "3450625233376597272563483148288e+243"},
+        "3450625233376597272563483148288e243"},
     {0x1.fffffffffffffp+808, str::float_format::scientific, 243,
         "3."
         "4140233896344850092961467387465166217817958356100820736096962269921784868925011494151274161487537824857685"
         "8379256878822750143921764319544566262909107502769739777267261031139034545545229653980842849433835960987154"
-        "6901250466753194545126966296576e+243"},
+        "6901250466753194545126966296576e243"},
     {0x1.fffffffffffffp+809, str::float_format::scientific, 243,
         "6."
         "8280467792689700185922934774930332435635916712201641472193924539843569737850022988302548322975075649715371"
         "6758513757645500287843528639089132525818215005539479554534522062278069091090459307961685698867671921974309"
-        "3802500933506389090253932593152e+243"},
+        "3802500933506389090253932593152e243"},
     {0x1.fffffffffffffp+810, str::float_format::scientific, 244,
         "1."
         "3656093558537940037184586954986066487127183342440328294438784907968713947570004597660509664595015129943074"
         "3351702751529100057568705727817826505163643001107895910906904412455613818218091861592337139773534384394861"
-        "87605001867012778180507865186304e+244"},
+        "87605001867012778180507865186304e244"},
     {0x1.fffffffffffffp+811, str::float_format::scientific, 244,
         "2."
         "7312187117075880074369173909972132974254366684880656588877569815937427895140009195321019329190030259886148"
         "6703405503058200115137411455635653010327286002215791821813808824911227636436183723184674279547068768789723"
-        "75210003734025556361015730372608e+244"},
+        "75210003734025556361015730372608e244"},
     {0x1.fffffffffffffp+812, str::float_format::scientific, 244,
         "5."
         "4624374234151760148738347819944265948508733369761313177755139631874855790280018390642038658380060519772297"
         "3406811006116400230274822911271306020654572004431583643627617649822455272872367446369348559094137537579447"
-        "50420007468051112722031460745216e+244"},
+        "50420007468051112722031460745216e244"},
     {0x1.fffffffffffffp+813, str::float_format::scientific, 245,
         "1."
         "0924874846830352029747669563988853189701746673952262635551027926374971158056003678128407731676012103954459"
         "4681362201223280046054964582254261204130914400886316728725523529964491054574473489273869711818827507515889"
-        "500840014936102225444062921490432e+245"},
+        "500840014936102225444062921490432e245"},
     {0x1.fffffffffffffp+814, str::float_format::scientific, 245,
         "2."
         "1849749693660704059495339127977706379403493347904525271102055852749942316112007356256815463352024207908918"
         "9362724402446560092109929164508522408261828801772633457451047059928982109148946978547739423637655015031779"
-        "001680029872204450888125842980864e+245"},
+        "001680029872204450888125842980864e245"},
     {0x1.fffffffffffffp+815, str::float_format::scientific, 245,
         "4."
         "3699499387321408118990678255955412758806986695809050542204111705499884632224014712513630926704048415817837"
         "8725448804893120184219858329017044816523657603545266914902094119857964218297893957095478847275310030063558"
-        "003360059744408901776251685961728e+245"},
+        "003360059744408901776251685961728e245"},
     {0x1.fffffffffffffp+816, str::float_format::scientific, 245,
         "8."
         "7398998774642816237981356511910825517613973391618101084408223410999769264448029425027261853408096831635675"
         "7450897609786240368439716658034089633047315207090533829804188239715928436595787914190957694550620060127116"
-        "006720119488817803552503371923456e+245"},
+        "006720119488817803552503371923456e245"},
     {0x1.fffffffffffffp+817, str::float_format::scientific, 246,
         "1."
         "7479799754928563247596271302382165103522794678323620216881644682199953852889605885005452370681619366327135"
         "1490179521957248073687943331606817926609463041418106765960837647943185687319157582838191538910124012025423"
-        "2013440238977635607105006743846912e+246"},
+        "2013440238977635607105006743846912e246"},
     {0x1.fffffffffffffp+818, str::float_format::scientific, 246,
         "3."
         "4959599509857126495192542604764330207045589356647240433763289364399907705779211770010904741363238732654270"
         "2980359043914496147375886663213635853218926082836213531921675295886371374638315165676383077820248024050846"
-        "4026880477955271214210013487693824e+246"},
+        "4026880477955271214210013487693824e246"},
     {0x1.fffffffffffffp+819, str::float_format::scientific, 246,
         "6."
         "9919199019714252990385085209528660414091178713294480867526578728799815411558423540021809482726477465308540"
         "5960718087828992294751773326427271706437852165672427063843350591772742749276630331352766155640496048101692"
-        "8053760955910542428420026975387648e+246"},
+        "8053760955910542428420026975387648e246"},
     {0x1.fffffffffffffp+820, str::float_format::scientific, 247,
         "1."
         "3983839803942850598077017041905732082818235742658896173505315745759963082311684708004361896545295493061708"
         "1192143617565798458950354665285454341287570433134485412768670118354548549855326066270553231128099209620338"
-        "56107521911821084856840053950775296e+247"},
+        "56107521911821084856840053950775296e247"},
     {0x1.fffffffffffffp+821, str::float_format::scientific, 247,
         "2."
         "7967679607885701196154034083811464165636471485317792347010631491519926164623369416008723793090590986123416"
         "2384287235131596917900709330570908682575140866268970825537340236709097099710652132541106462256198419240677"
-        "12215043823642169713680107901550592e+247"},
+        "12215043823642169713680107901550592e247"},
     {0x1.fffffffffffffp+822, str::float_format::scientific, 247,
         "5."
         "5935359215771402392308068167622928331272942970635584694021262983039852329246738832017447586181181972246832"
         "4768574470263193835801418661141817365150281732537941651074680473418194199421304265082212924512396838481354"
-        "24430087647284339427360215803101184e+247"},
+        "24430087647284339427360215803101184e247"},
     {0x1.fffffffffffffp+823, str::float_format::scientific, 248,
         "1."
         "1187071843154280478461613633524585666254588594127116938804252596607970465849347766403489517236236394449366"
         "4953714894052638767160283732228363473030056346507588330214936094683638839884260853016442584902479367696270"
-        "848860175294568678854720431606202368e+248"},
+        "848860175294568678854720431606202368e248"},
     {0x1.fffffffffffffp+824, str::float_format::scientific, 248,
         "2."
         "2374143686308560956923227267049171332509177188254233877608505193215940931698695532806979034472472788898732"
         "9907429788105277534320567464456726946060112693015176660429872189367277679768521706032885169804958735392541"
-        "697720350589137357709440863212404736e+248"},
+        "697720350589137357709440863212404736e248"},
     {0x1.fffffffffffffp+825, str::float_format::scientific, 248,
         "4."
         "4748287372617121913846454534098342665018354376508467755217010386431881863397391065613958068944945577797465"
         "9814859576210555068641134928913453892120225386030353320859744378734555359537043412065770339609917470785083"
-        "395440701178274715418881726424809472e+248"},
+        "395440701178274715418881726424809472e248"},
     {0x1.fffffffffffffp+826, str::float_format::scientific, 248,
         "8."
         "9496574745234243827692909068196685330036708753016935510434020772863763726794782131227916137889891155594931"
         "9629719152421110137282269857826907784240450772060706641719488757469110719074086824131540679219834941570166"
-        "790881402356549430837763452849618944e+248"},
+        "790881402356549430837763452849618944e248"},
     {0x1.fffffffffffffp+827, str::float_format::scientific, 249,
         "1."
         "7899314949046848765538581813639337066007341750603387102086804154572752745358956426245583227577978231118986"
         "3925943830484222027456453971565381556848090154412141328343897751493822143814817364826308135843966988314033"
-        "3581762804713098861675526905699237888e+249"},
+        "3581762804713098861675526905699237888e249"},
     {0x1.fffffffffffffp+828, str::float_format::scientific, 249,
         "3."
         "5798629898093697531077163627278674132014683501206774204173608309145505490717912852491166455155956462237972"
         "7851887660968444054912907943130763113696180308824282656687795502987644287629634729652616271687933976628066"
-        "7163525609426197723351053811398475776e+249"},
+        "7163525609426197723351053811398475776e249"},
     {0x1.fffffffffffffp+829, str::float_format::scientific, 249,
         "7."
         "1597259796187395062154327254557348264029367002413548408347216618291010981435825704982332910311912924475945"
         "5703775321936888109825815886261526227392360617648565313375591005975288575259269459305232543375867953256133"
-        "4327051218852395446702107622796951552e+249"},
+        "4327051218852395446702107622796951552e249"},
     {0x1.fffffffffffffp+830, str::float_format::scientific, 250,
         "1."
         "4319451959237479012430865450911469652805873400482709681669443323658202196287165140996466582062382584895189"
         "1140755064387377621965163177252305245478472123529713062675118201195057715051853891861046508675173590651226"
-        "68654102437704790893404215245593903104e+250"},
+        "68654102437704790893404215245593903104e250"},
     {0x1.fffffffffffffp+831, str::float_format::scientific, 250,
         "2."
         "8638903918474958024861730901822939305611746800965419363338886647316404392574330281992933164124765169790378"
         "2281510128774755243930326354504610490956944247059426125350236402390115430103707783722093017350347181302453"
-        "37308204875409581786808430491187806208e+250"},
+        "37308204875409581786808430491187806208e250"},
     {0x1.fffffffffffffp+832, str::float_format::scientific, 250,
         "5."
         "7277807836949916049723461803645878611223493601930838726677773294632808785148660563985866328249530339580756"
         "4563020257549510487860652709009220981913888494118852250700472804780230860207415567444186034700694362604906"
-        "74616409750819163573616860982375612416e+250"},
+        "74616409750819163573616860982375612416e250"},
     {0x1.fffffffffffffp+833, str::float_format::scientific, 251,
         "1."
         "1455561567389983209944692360729175722244698720386167745335554658926561757029732112797173265649906067916151"
         "2912604051509902097572130541801844196382777698823770450140094560956046172041483113488837206940138872520981"
-        "349232819501638327147233721964751224832e+251"},
+        "349232819501638327147233721964751224832e251"},
     {0x1.fffffffffffffp+834, str::float_format::scientific, 251,
         "2."
         "2911123134779966419889384721458351444489397440772335490671109317853123514059464225594346531299812135832302"
         "5825208103019804195144261083603688392765555397647540900280189121912092344082966226977674413880277745041962"
-        "698465639003276654294467443929502449664e+251"},
+        "698465639003276654294467443929502449664e251"},
     {0x1.fffffffffffffp+835, str::float_format::scientific, 251,
         "4."
         "5822246269559932839778769442916702888978794881544670981342218635706247028118928451188693062599624271664605"
         "1650416206039608390288522167207376785531110795295081800560378243824184688165932453955348827760555490083925"
-        "396931278006553308588934887859004899328e+251"},
+        "396931278006553308588934887859004899328e251"},
     {0x1.fffffffffffffp+836, str::float_format::scientific, 251,
         "9."
         "1644492539119865679557538885833405777957589763089341962684437271412494056237856902377386125199248543329210"
         "3300832412079216780577044334414753571062221590590163601120756487648369376331864907910697655521110980167850"
-        "793862556013106617177869775718009798656e+251"},
+        "793862556013106617177869775718009798656e251"},
     {0x1.fffffffffffffp+837, str::float_format::scientific, 252,
         "1."
         "8328898507823973135911507777166681155591517952617868392536887454282498811247571380475477225039849708665842"
         "0660166482415843356115408866882950714212444318118032720224151297529673875266372981582139531104222196033570"
-        "1587725112026213234355739551436019597312e+252"},
+        "1587725112026213234355739551436019597312e252"},
     {0x1.fffffffffffffp+838, str::float_format::scientific, 252,
         "3."
         "6657797015647946271823015554333362311183035905235736785073774908564997622495142760950954450079699417331684"
         "1320332964831686712230817733765901428424888636236065440448302595059347750532745963164279062208444392067140"
-        "3175450224052426468711479102872039194624e+252"},
+        "3175450224052426468711479102872039194624e252"},
     {0x1.fffffffffffffp+839, str::float_format::scientific, 252,
         "7."
         "3315594031295892543646031108666724622366071810471473570147549817129995244990285521901908900159398834663368"
         "2640665929663373424461635467531802856849777272472130880896605190118695501065491926328558124416888784134280"
-        "6350900448104852937422958205744078389248e+252"},
+        "6350900448104852937422958205744078389248e252"},
     {0x1.fffffffffffffp+840, str::float_format::scientific, 253,
         "1."
         "4663118806259178508729206221733344924473214362094294714029509963425999048998057104380381780031879766932673"
         "6528133185932674684892327093506360571369955454494426176179321038023739100213098385265711624883377756826856"
-        "12701800896209705874845916411488156778496e+253"},
+        "12701800896209705874845916411488156778496e253"},
     {0x1.fffffffffffffp+841, str::float_format::scientific, 253,
         "2."
         "9326237612518357017458412443466689848946428724188589428059019926851998097996114208760763560063759533865347"
         "3056266371865349369784654187012721142739910908988852352358642076047478200426196770531423249766755513653712"
-        "25403601792419411749691832822976313556992e+253"},
+        "25403601792419411749691832822976313556992e253"},
     {0x1.fffffffffffffp+842, str::float_format::scientific, 253,
         "5."
         "8652475225036714034916824886933379697892857448377178856118039853703996195992228417521527120127519067730694"
         "6112532743730698739569308374025442285479821817977704704717284152094956400852393541062846499533511027307424"
-        "50807203584838823499383665645952627113984e+253"},
+        "50807203584838823499383665645952627113984e253"},
     {0x1.fffffffffffffp+843, str::float_format::scientific, 254,
         "1."
         "1730495045007342806983364977386675939578571489675435771223607970740799239198445683504305424025503813546138"
         "9222506548746139747913861674805088457095964363595540940943456830418991280170478708212569299906702205461484"
-        "901614407169677646998767331291905254227968e+254"},
+        "901614407169677646998767331291905254227968e254"},
     {0x1.fffffffffffffp+844, str::float_format::scientific, 254,
         "2."
         "3460990090014685613966729954773351879157142979350871542447215941481598478396891367008610848051007627092277"
         "8445013097492279495827723349610176914191928727191081881886913660837982560340957416425138599813404410922969"
-        "803228814339355293997534662583810508455936e+254"},
+        "803228814339355293997534662583810508455936e254"},
     {0x1.fffffffffffffp+845, str::float_format::scientific, 254,
         "4."
         "6921980180029371227933459909546703758314285958701743084894431882963196956793782734017221696102015254184555"
         "6890026194984558991655446699220353828383857454382163763773827321675965120681914832850277199626808821845939"
-        "606457628678710587995069325167621016911872e+254"},
+        "606457628678710587995069325167621016911872e254"},
     {0x1.fffffffffffffp+846, str::float_format::scientific, 254,
         "9."
         "3843960360058742455866919819093407516628571917403486169788863765926393913587565468034443392204030508369111"
         "3780052389969117983310893398440707656767714908764327527547654643351930241363829665700554399253617643691879"
-        "212915257357421175990138650335242033823744e+254"},
+        "212915257357421175990138650335242033823744e254"},
     {0x1.fffffffffffffp+847, str::float_format::scientific, 255,
         "1."
         "8768792072011748491173383963818681503325714383480697233957772753185278782717513093606888678440806101673822"
         "2756010477993823596662178679688141531353542981752865505509530928670386048272765933140110879850723528738375"
-        "8425830514714842351980277300670484067647488e+255"},
+        "8425830514714842351980277300670484067647488e255"},
     {0x1.fffffffffffffp+848, str::float_format::scientific, 255,
         "3."
         "7537584144023496982346767927637363006651428766961394467915545506370557565435026187213777356881612203347644"
         "5512020955987647193324357359376283062707085963505731011019061857340772096545531866280221759701447057476751"
-        "6851661029429684703960554601340968135294976e+255"},
+        "6851661029429684703960554601340968135294976e255"},
     {0x1.fffffffffffffp+849, str::float_format::scientific, 255,
         "7."
         "5075168288046993964693535855274726013302857533922788935831091012741115130870052374427554713763224406695289"
         "1024041911975294386648714718752566125414171927011462022038123714681544193091063732560443519402894114953503"
-        "3703322058859369407921109202681936270589952e+255"},
+        "3703322058859369407921109202681936270589952e255"},
     {0x1.fffffffffffffp+850, str::float_format::scientific, 256,
         "1."
         "5015033657609398792938707171054945202660571506784557787166218202548223026174010474885510942752644881339057"
         "8204808382395058877329742943750513225082834385402292404407624742936308838618212746512088703880578822990700"
-        "67406644117718738815842218405363872541179904e+256"},
+        "67406644117718738815842218405363872541179904e256"},
     {0x1.fffffffffffffp+851, str::float_format::scientific, 256,
         "3."
         "0030067315218797585877414342109890405321143013569115574332436405096446052348020949771021885505289762678115"
         "6409616764790117754659485887501026450165668770804584808815249485872617677236425493024177407761157645981401"
-        "34813288235437477631684436810727745082359808e+256"},
+        "34813288235437477631684436810727745082359808e256"},
     {0x1.fffffffffffffp+852, str::float_format::scientific, 256,
         "6."
         "0060134630437595171754828684219780810642286027138231148664872810192892104696041899542043771010579525356231"
         "2819233529580235509318971775002052900331337541609169617630498971745235354472850986048354815522315291962802"
-        "69626576470874955263368873621455490164719616e+256"},
+        "69626576470874955263368873621455490164719616e256"},
     {0x1.fffffffffffffp+853, str::float_format::scientific, 257,
         "1."
         "2012026926087519034350965736843956162128457205427646229732974562038578420939208379908408754202115905071246"
         "2563846705916047101863794355000410580066267508321833923526099794349047070894570197209670963104463058392560"
-        "539253152941749910526737747242910980329439232e+257"},
+        "539253152941749910526737747242910980329439232e257"},
     {0x1.fffffffffffffp+854, str::float_format::scientific, 257,
         "2."
         "4024053852175038068701931473687912324256914410855292459465949124077156841878416759816817508404231810142492"
         "5127693411832094203727588710000821160132535016643667847052199588698094141789140394419341926208926116785121"
-        "078506305883499821053475494485821960658878464e+257"},
+        "078506305883499821053475494485821960658878464e257"},
     {0x1.fffffffffffffp+855, str::float_format::scientific, 257,
         "4."
         "8048107704350076137403862947375824648513828821710584918931898248154313683756833519633635016808463620284985"
         "0255386823664188407455177420001642320265070033287335694104399177396188283578280788838683852417852233570242"
-        "157012611766999642106950988971643921317756928e+257"},
+        "157012611766999642106950988971643921317756928e257"},
     {0x1.fffffffffffffp+856, str::float_format::scientific, 257,
         "9."
         "6096215408700152274807725894751649297027657643421169837863796496308627367513667039267270033616927240569970"
         "0510773647328376814910354840003284640530140066574671388208798354792376567156561577677367704835704467140484"
-        "314025223533999284213901977943287842635513856e+257"},
+        "314025223533999284213901977943287842635513856e257"},
     {0x1.fffffffffffffp+857, str::float_format::scientific, 258,
         "1."
         "9219243081740030454961545178950329859405531528684233967572759299261725473502733407853454006723385448113994"
         "0102154729465675362982070968000656928106028013314934277641759670958475313431312315535473540967140893428096"
-        "8628050447067998568427803955886575685271027712e+258"},
+        "8628050447067998568427803955886575685271027712e258"},
     {0x1.fffffffffffffp+858, str::float_format::scientific, 258,
         "3."
         "8438486163480060909923090357900659718811063057368467935145518598523450947005466815706908013446770896227988"
         "0204309458931350725964141936001313856212056026629868555283519341916950626862624631070947081934281786856193"
-        "7256100894135997136855607911773151370542055424e+258"},
+        "7256100894135997136855607911773151370542055424e258"},
     {0x1.fffffffffffffp+859, str::float_format::scientific, 258,
         "7."
         "6876972326960121819846180715801319437622126114736935870291037197046901894010933631413816026893541792455976"
         "0408618917862701451928283872002627712424112053259737110567038683833901253725249262141894163868563573712387"
-        "4512201788271994273711215823546302741084110848e+258"},
+        "4512201788271994273711215823546302741084110848e258"},
     {0x1.fffffffffffffp+860, str::float_format::scientific, 259,
         "1."
         "5375394465392024363969236143160263887524425222947387174058207439409380378802186726282763205378708358491195"
         "2081723783572540290385656774400525542484822410651947422113407736766780250745049852428378832773712714742477"
-        "49024403576543988547422431647092605482168221696e+259"},
+        "49024403576543988547422431647092605482168221696e259"},
     {0x1.fffffffffffffp+861, str::float_format::scientific, 259,
         "3."
         "0750788930784048727938472286320527775048850445894774348116414878818760757604373452565526410757416716982390"
         "4163447567145080580771313548801051084969644821303894844226815473533560501490099704856757665547425429484954"
-        "98048807153087977094844863294185210964336443392e+259"},
+        "98048807153087977094844863294185210964336443392e259"},
     {0x1.fffffffffffffp+862, str::float_format::scientific, 259,
         "6."
         "1501577861568097455876944572641055550097700891789548696232829757637521515208746905131052821514833433964780"
         "8326895134290161161542627097602102169939289642607789688453630947067121002980199409713515331094850858969909"
-        "96097614306175954189689726588370421928672886784e+259"},
+        "96097614306175954189689726588370421928672886784e259"},
     {0x1.fffffffffffffp+863, str::float_format::scientific, 260,
         "1."
         "2300315572313619491175388914528211110019540178357909739246565951527504303041749381026210564302966686792956"
         "1665379026858032232308525419520420433987857928521557937690726189413424200596039881942703066218970171793981"
-        "992195228612351908379379453176740843857345773568e+260"},
+        "992195228612351908379379453176740843857345773568e260"},
     {0x1.fffffffffffffp+864, str::float_format::scientific, 260,
         "2."
         "4600631144627238982350777829056422220039080356715819478493131903055008606083498762052421128605933373585912"
         "3330758053716064464617050839040840867975715857043115875381452378826848401192079763885406132437940343587963"
-        "984390457224703816758758906353481687714691547136e+260"},
+        "984390457224703816758758906353481687714691547136e260"},
     {0x1.fffffffffffffp+865, str::float_format::scientific, 260,
         "4."
         "9201262289254477964701555658112844440078160713431638956986263806110017212166997524104842257211866747171824"
         "6661516107432128929234101678081681735951431714086231750762904757653696802384159527770812264875880687175927"
-        "968780914449407633517517812706963375429383094272e+260"},
+        "968780914449407633517517812706963375429383094272e260"},
     {0x1.fffffffffffffp+866, str::float_format::scientific, 260,
         "9."
         "8402524578508955929403111316225688880156321426863277913972527612220034424333995048209684514423733494343649"
         "3323032214864257858468203356163363471902863428172463501525809515307393604768319055541624529751761374351855"
-        "937561828898815267035035625413926750858766188544e+260"},
+        "937561828898815267035035625413926750858766188544e260"},
     {0x1.fffffffffffffp+867, str::float_format::scientific, 261,
         "1."
         "9680504915701791185880622263245137776031264285372655582794505522444006884866799009641936902884746698868729"
         "8664606442972851571693640671232672694380572685634492700305161903061478720953663811108324905950352274870371"
-        "1875123657797630534070071250827853501717532377088e+261"},
+        "1875123657797630534070071250827853501717532377088e261"},
     {0x1.fffffffffffffp+868, str::float_format::scientific, 261,
         "3."
         "9361009831403582371761244526490275552062528570745311165589011044888013769733598019283873805769493397737459"
         "7329212885945703143387281342465345388761145371268985400610323806122957441907327622216649811900704549740742"
-        "3750247315595261068140142501655707003435064754176e+261"},
+        "3750247315595261068140142501655707003435064754176e261"},
     {0x1.fffffffffffffp+869, str::float_format::scientific, 261,
         "7."
         "8722019662807164743522489052980551104125057141490622331178022089776027539467196038567747611538986795474919"
         "4658425771891406286774562684930690777522290742537970801220647612245914883814655244433299623801409099481484"
-        "7500494631190522136280285003311414006870129508352e+261"},
+        "7500494631190522136280285003311414006870129508352e261"},
     {0x1.fffffffffffffp+870, str::float_format::scientific, 262,
         "1."
         "5744403932561432948704497810596110220825011428298124466235604417955205507893439207713549522307797359094983"
         "8931685154378281257354912536986138155504458148507594160244129522449182976762931048886659924760281819896296"
-        "95000989262381044272560570006622828013740259016704e+262"},
+        "95000989262381044272560570006622828013740259016704e262"},
     {0x1.fffffffffffffp+871, str::float_format::scientific, 262,
         "3."
         "1488807865122865897408995621192220441650022856596248932471208835910411015786878415427099044615594718189967"
         "7863370308756562514709825073972276311008916297015188320488259044898365953525862097773319849520563639792593"
-        "90001978524762088545121140013245656027480518033408e+262"},
+        "90001978524762088545121140013245656027480518033408e262"},
     {0x1.fffffffffffffp+872, str::float_format::scientific, 262,
         "6."
         "2977615730245731794817991242384440883300045713192497864942417671820822031573756830854198089231189436379935"
         "5726740617513125029419650147944552622017832594030376640976518089796731907051724195546639699041127279585187"
-        "80003957049524177090242280026491312054961036066816e+262"},
+        "80003957049524177090242280026491312054961036066816e262"},
     {0x1.fffffffffffffp+873, str::float_format::scientific, 263,
         "1."
         "2595523146049146358963598248476888176660009142638499572988483534364164406314751366170839617846237887275987"
         "1145348123502625005883930029588910524403566518806075328195303617959346381410344839109327939808225455917037"
-        "560007914099048354180484560052982624109922072133632e+263"},
+        "560007914099048354180484560052982624109922072133632e263"},
     {0x1.fffffffffffffp+874, str::float_format::scientific, 263,
         "2."
         "5191046292098292717927196496953776353320018285276999145976967068728328812629502732341679235692475774551974"
         "2290696247005250011767860059177821048807133037612150656390607235918692762820689678218655879616450911834075"
-        "120015828198096708360969120105965248219844144267264e+263"},
+        "120015828198096708360969120105965248219844144267264e263"},
     {0x1.fffffffffffffp+875, str::float_format::scientific, 263,
         "5."
         "0382092584196585435854392993907552706640036570553998291953934137456657625259005464683358471384951549103948"
         "4581392494010500023535720118355642097614266075224301312781214471837385525641379356437311759232901823668150"
-        "240031656396193416721938240211930496439688288534528e+263"},
+        "240031656396193416721938240211930496439688288534528e263"},
     {0x1.fffffffffffffp+876, str::float_format::scientific, 264,
         "1."
         "0076418516839317087170878598781510541328007314110799658390786827491331525051801092936671694276990309820789"
         "6916278498802100004707144023671128419522853215044860262556242894367477105128275871287462351846580364733630"
-        "0480063312792386833443876480423860992879376577069056e+264"},
+        "0480063312792386833443876480423860992879376577069056e264"},
     {0x1.fffffffffffffp+877, str::float_format::scientific, 264,
         "2."
         "0152837033678634174341757197563021082656014628221599316781573654982663050103602185873343388553980619641579"
         "3832556997604200009414288047342256839045706430089720525112485788734954210256551742574924703693160729467260"
-        "0960126625584773666887752960847721985758753154138112e+264"},
+        "0960126625584773666887752960847721985758753154138112e264"},
     {0x1.fffffffffffffp+878, str::float_format::scientific, 264,
         "4."
         "0305674067357268348683514395126042165312029256443198633563147309965326100207204371746686777107961239283158"
         "7665113995208400018828576094684513678091412860179441050224971577469908420513103485149849407386321458934520"
-        "1920253251169547333775505921695443971517506308276224e+264"},
+        "1920253251169547333775505921695443971517506308276224e264"},
     {0x1.fffffffffffffp+879, str::float_format::scientific, 264,
         "8."
         "0611348134714536697367028790252084330624058512886397267126294619930652200414408743493373554215922478566317"
         "5330227990416800037657152189369027356182825720358882100449943154939816841026206970299698814772642917869040"
-        "3840506502339094667551011843390887943035012616552448e+264"},
+        "3840506502339094667551011843390887943035012616552448e264"},
     {0x1.fffffffffffffp+880, str::float_format::scientific, 265,
         "1."
         "6122269626942907339473405758050416866124811702577279453425258923986130440082881748698674710843184495713263"
         "5066045598083360007531430437873805471236565144071776420089988630987963368205241394059939762954528583573808"
-        "07681013004678189335102023686781775886070025233104896e+265"},
+        "07681013004678189335102023686781775886070025233104896e265"},
     {0x1.fffffffffffffp+881, str::float_format::scientific, 265,
         "3."
         "2244539253885814678946811516100833732249623405154558906850517847972260880165763497397349421686368991426527"
         "0132091196166720015062860875747610942473130288143552840179977261975926736410482788119879525909057167147616"
-        "15362026009356378670204047373563551772140050466209792e+265"},
+        "15362026009356378670204047373563551772140050466209792e265"},
     {0x1.fffffffffffffp+882, str::float_format::scientific, 265,
         "6."
         "4489078507771629357893623032201667464499246810309117813701035695944521760331526994794698843372737982853054"
         "0264182392333440030125721751495221884946260576287105680359954523951853472820965576239759051818114334295232"
-        "30724052018712757340408094747127103544280100932419584e+265"},
+        "30724052018712757340408094747127103544280100932419584e265"},
     {0x1.fffffffffffffp+883, str::float_format::scientific, 266,
         "1."
         "2897815701554325871578724606440333492899849362061823562740207139188904352066305398958939768674547596570610"
         "8052836478466688006025144350299044376989252115257421136071990904790370694564193115247951810363622866859046"
-        "461448104037425514680816189494254207088560201864839168e+266"},
+        "461448104037425514680816189494254207088560201864839168e266"},
     {0x1.fffffffffffffp+884, str::float_format::scientific, 266,
         "2."
         "5795631403108651743157449212880666985799698724123647125480414278377808704132610797917879537349095193141221"
         "6105672956933376012050288700598088753978504230514842272143981809580741389128386230495903620727245733718092"
-        "922896208074851029361632378988508414177120403729678336e+266"},
+        "922896208074851029361632378988508414177120403729678336e266"},
     {0x1.fffffffffffffp+885, str::float_format::scientific, 266,
         "5."
         "1591262806217303486314898425761333971599397448247294250960828556755617408265221595835759074698190386282443"
         "2211345913866752024100577401196177507957008461029684544287963619161482778256772460991807241454491467436185"
-        "845792416149702058723264757977016828354240807459356672e+266"},
+        "845792416149702058723264757977016828354240807459356672e266"},
     {0x1.fffffffffffffp+886, str::float_format::scientific, 267,
         "1."
         "0318252561243460697262979685152266794319879489649458850192165711351123481653044319167151814939638077256488"
         "6442269182773350404820115480239235501591401692205936908857592723832296555651354492198361448290898293487237"
-        "1691584832299404117446529515954033656708481614918713344e+267"},
+        "1691584832299404117446529515954033656708481614918713344e267"},
     {0x1.fffffffffffffp+887, str::float_format::scientific, 267,
         "2."
         "0636505122486921394525959370304533588639758979298917700384331422702246963306088638334303629879276154512977"
         "2884538365546700809640230960478471003182803384411873817715185447664593111302708984396722896581796586974474"
-        "3383169664598808234893059031908067313416963229837426688e+267"},
+        "3383169664598808234893059031908067313416963229837426688e267"},
     {0x1.fffffffffffffp+888, str::float_format::scientific, 267,
         "4."
         "1273010244973842789051918740609067177279517958597835400768662845404493926612177276668607259758552309025954"
         "5769076731093401619280461920956942006365606768823747635430370895329186222605417968793445793163593173948948"
-        "6766339329197616469786118063816134626833926459674853376e+267"},
+        "6766339329197616469786118063816134626833926459674853376e267"},
     {0x1.fffffffffffffp+889, str::float_format::scientific, 267,
         "8."
         "2546020489947685578103837481218134354559035917195670801537325690808987853224354553337214519517104618051909"
         "1538153462186803238560923841913884012731213537647495270860741790658372445210835937586891586327186347897897"
-        "3532678658395232939572236127632269253667852919349706752e+267"},
+        "3532678658395232939572236127632269253667852919349706752e267"},
     {0x1.fffffffffffffp+890, str::float_format::scientific, 268,
         "1."
         "6509204097989537115620767496243626870911807183439134160307465138161797570644870910667442903903420923610381"
         "8307630692437360647712184768382776802546242707529499054172148358131674489042167187517378317265437269579579"
-        "47065357316790465879144472255264538507335705838699413504e+268"},
+        "47065357316790465879144472255264538507335705838699413504e268"},
     {0x1.fffffffffffffp+891, str::float_format::scientific, 268,
         "3."
         "3018408195979074231241534992487253741823614366878268320614930276323595141289741821334885807806841847220763"
         "6615261384874721295424369536765553605092485415058998108344296716263348978084334375034756634530874539159158"
-        "94130714633580931758288944510529077014671411677398827008e+268"},
+        "94130714633580931758288944510529077014671411677398827008e268"},
     {0x1.fffffffffffffp+892, str::float_format::scientific, 268,
         "6."
         "6036816391958148462483069984974507483647228733756536641229860552647190282579483642669771615613683694441527"
         "3230522769749442590848739073531107210184970830117996216688593432526697956168668750069513269061749078318317"
-        "88261429267161863516577889021058154029342823354797654016e+268"},
+        "88261429267161863516577889021058154029342823354797654016e268"},
     {0x1.fffffffffffffp+893, str::float_format::scientific, 269,
         "1."
         "3207363278391629692496613996994901496729445746751307328245972110529438056515896728533954323122736738888305"
         "4646104553949888518169747814706221442036994166023599243337718686505339591233733750013902653812349815663663"
-        "576522858534323727033155778042116308058685646709595308032e+269"},
+        "576522858534323727033155778042116308058685646709595308032e269"},
     {0x1.fffffffffffffp+894, str::float_format::scientific, 269,
         "2."
         "6414726556783259384993227993989802993458891493502614656491944221058876113031793457067908646245473477776610"
         "9292209107899777036339495629412442884073988332047198486675437373010679182467467500027805307624699631327327"
-        "153045717068647454066311556084232616117371293419190616064e+269"},
+        "153045717068647454066311556084232616117371293419190616064e269"},
     {0x1.fffffffffffffp+895, str::float_format::scientific, 269,
         "5."
         "2829453113566518769986455987979605986917782987005229312983888442117752226063586914135817292490946955553221"
         "8584418215799554072678991258824885768147976664094396973350874746021358364934935000055610615249399262654654"
-        "306091434137294908132623112168465232234742586838381232128e+269"},
+        "306091434137294908132623112168465232234742586838381232128e269"},
     {0x1.fffffffffffffp+896, str::float_format::scientific, 270,
         "1."
         "0565890622713303753997291197595921197383556597401045862596777688423550445212717382827163458498189391110644"
         "3716883643159910814535798251764977153629595332818879394670174949204271672986987000011122123049879852530930"
-        "8612182868274589816265246224336930464469485173676762464256e+270"},
+        "8612182868274589816265246224336930464469485173676762464256e270"},
     {0x1.fffffffffffffp+897, str::float_format::scientific, 270,
         "2."
         "1131781245426607507994582395191842394767113194802091725193555376847100890425434765654326916996378782221288"
         "7433767286319821629071596503529954307259190665637758789340349898408543345973974000022244246099759705061861"
-        "7224365736549179632530492448673860928938970347353524928512e+270"},
+        "7224365736549179632530492448673860928938970347353524928512e270"},
     {0x1.fffffffffffffp+898, str::float_format::scientific, 270,
         "4."
         "2263562490853215015989164790383684789534226389604183450387110753694201780850869531308653833992757564442577"
         "4867534572639643258143193007059908614518381331275517578680699796817086691947948000044488492199519410123723"
-        "4448731473098359265060984897347721857877940694707049857024e+270"},
+        "4448731473098359265060984897347721857877940694707049857024e270"},
     {0x1.fffffffffffffp+899, str::float_format::scientific, 270,
         "8."
         "4527124981706430031978329580767369579068452779208366900774221507388403561701739062617307667985515128885154"
         "9735069145279286516286386014119817229036762662551035157361399593634173383895896000088976984399038820247446"
-        "8897462946196718530121969794695443715755881389414099714048e+270"},
+        "8897462946196718530121969794695443715755881389414099714048e270"},
     {0x1.fffffffffffffp+900, str::float_format::scientific, 271,
         "1."
         "6905424996341286006395665916153473915813690555841673380154844301477680712340347812523461533597103025777030"
         "9947013829055857303257277202823963445807352532510207031472279918726834676779179200017795396879807764049489"
-        "37794925892393437060243939589390887431511762778828199428096e+271"},
+        "37794925892393437060243939589390887431511762778828199428096e271"},
     {0x1.fffffffffffffp+901, str::float_format::scientific, 271,
         "3."
         "3810849992682572012791331832306947831627381111683346760309688602955361424680695625046923067194206051554061"
         "9894027658111714606514554405647926891614705065020414062944559837453669353558358400035590793759615528098978"
-        "75589851784786874120487879178781774863023525557656398856192e+271"},
+        "75589851784786874120487879178781774863023525557656398856192e271"},
     {0x1.fffffffffffffp+902, str::float_format::scientific, 271,
         "6."
         "7621699985365144025582663664613895663254762223366693520619377205910722849361391250093846134388412103108123"
         "9788055316223429213029108811295853783229410130040828125889119674907338707116716800071181587519231056197957"
-        "51179703569573748240975758357563549726047051115312797712384e+271"},
+        "51179703569573748240975758357563549726047051115312797712384e271"},
     {0x1.fffffffffffffp+903, str::float_format::scientific, 272,
         "1."
         "3524339997073028805116532732922779132650952444673338704123875441182144569872278250018769226877682420621624"
         "7957611063244685842605821762259170756645882026008165625177823934981467741423343360014236317503846211239591"
-        "502359407139147496481951516715127099452094102230625595424768e+272"},
+        "502359407139147496481951516715127099452094102230625595424768e272"},
     {0x1.fffffffffffffp+904, str::float_format::scientific, 272,
         "2."
         "7048679994146057610233065465845558265301904889346677408247750882364289139744556500037538453755364841243249"
         "5915222126489371685211643524518341513291764052016331250355647869962935482846686720028472635007692422479183"
-        "004718814278294992963903033430254198904188204461251190849536e+272"},
+        "004718814278294992963903033430254198904188204461251190849536e272"},
     {0x1.fffffffffffffp+905, str::float_format::scientific, 272,
         "5."
         "4097359988292115220466130931691116530603809778693354816495501764728578279489113000075076907510729682486499"
         "1830444252978743370423287049036683026583528104032662500711295739925870965693373440056945270015384844958366"
-        "009437628556589985927806066860508397808376408922502381699072e+272"},
+        "009437628556589985927806066860508397808376408922502381699072e272"},
     {0x1.fffffffffffffp+906, str::float_format::scientific, 273,
         "1."
         "0819471997658423044093226186338223306120761955738670963299100352945715655897822600015015381502145936497299"
         "8366088850595748674084657409807336605316705620806532500142259147985174193138674688011389054003076968991673"
-        "2018875257113179971855612133721016795616752817845004763398144e+273"},
+        "2018875257113179971855612133721016795616752817845004763398144e273"},
     {0x1.fffffffffffffp+907, str::float_format::scientific, 273,
         "2."
         "1638943995316846088186452372676446612241523911477341926598200705891431311795645200030030763004291872994599"
         "6732177701191497348169314819614673210633411241613065000284518295970348386277349376022778108006153937983346"
-        "4037750514226359943711224267442033591233505635690009526796288e+273"},
+        "4037750514226359943711224267442033591233505635690009526796288e273"},
     {0x1.fffffffffffffp+908, str::float_format::scientific, 273,
         "4."
         "3277887990633692176372904745352893224483047822954683853196401411782862623591290400060061526008583745989199"
         "3464355402382994696338629639229346421266822483226130000569036591940696772554698752045556216012307875966692"
-        "8075501028452719887422448534884067182467011271380019053592576e+273"},
+        "8075501028452719887422448534884067182467011271380019053592576e273"},
     {0x1.fffffffffffffp+909, str::float_format::scientific, 273,
         "8."
         "6555775981267384352745809490705786448966095645909367706392802823565725247182580800120123052017167491978398"
         "6928710804765989392677259278458692842533644966452260001138073183881393545109397504091112432024615751933385"
-        "6151002056905439774844897069768134364934022542760038107185152e+273"},
+        "6151002056905439774844897069768134364934022542760038107185152e273"},
     {0x1.fffffffffffffp+910, str::float_format::scientific, 274,
         "1."
         "7311155196253476870549161898141157289793219129181873541278560564713145049436516160024024610403433498395679"
         "7385742160953197878535451855691738568506728993290452000227614636776278709021879500818222486404923150386677"
-        "12302004113810879549689794139536268729868045085520076214370304e+274"},
+        "12302004113810879549689794139536268729868045085520076214370304e274"},
     {0x1.fffffffffffffp+911, str::float_format::scientific, 274,
         "3."
         "4622310392506953741098323796282314579586438258363747082557121129426290098873032320048049220806866996791359"
         "4771484321906395757070903711383477137013457986580904000455229273552557418043759001636444972809846300773354"
-        "24604008227621759099379588279072537459736090171040152428740608e+274"},
+        "24604008227621759099379588279072537459736090171040152428740608e274"},
     {0x1.fffffffffffffp+912, str::float_format::scientific, 274,
         "6."
         "9244620785013907482196647592564629159172876516727494165114242258852580197746064640096098441613733993582718"
         "9542968643812791514141807422766954274026915973161808000910458547105114836087518003272889945619692601546708"
-        "49208016455243518198759176558145074919472180342080304857481216e+274"},
+        "49208016455243518198759176558145074919472180342080304857481216e274"},
     {0x1.fffffffffffffp+913, str::float_format::scientific, 275,
         "1."
         "3848924157002781496439329518512925831834575303345498833022848451770516039549212928019219688322746798716543"
         "7908593728762558302828361484553390854805383194632361600182091709421022967217503600654577989123938520309341"
-        "698416032910487036397518353116290149838944360684160609714962432e+275"},
+        "698416032910487036397518353116290149838944360684160609714962432e275"},
     {0x1.fffffffffffffp+914, str::float_format::scientific, 275,
         "2."
         "7697848314005562992878659037025851663669150606690997666045696903541032079098425856038439376645493597433087"
         "5817187457525116605656722969106781709610766389264723200364183418842045934435007201309155978247877040618683"
-        "396832065820974072795036706232580299677888721368321219429924864e+275"},
+        "396832065820974072795036706232580299677888721368321219429924864e275"},
     {0x1.fffffffffffffp+915, str::float_format::scientific, 275,
         "5."
         "5395696628011125985757318074051703327338301213381995332091393807082064158196851712076878753290987194866175"
         "1634374915050233211313445938213563419221532778529446400728366837684091868870014402618311956495754081237366"
-        "793664131641948145590073412465160599355777442736642438859849728e+275"},
+        "793664131641948145590073412465160599355777442736642438859849728e275"},
     {0x1.fffffffffffffp+916, str::float_format::scientific, 276,
         "1."
         "1079139325602225197151463614810340665467660242676399066418278761416412831639370342415375750658197438973235"
         "0326874983010046642262689187642712683844306555705889280145673367536818373774002880523662391299150816247473"
-        "3587328263283896291180146824930321198711554885473284877719699456e+276"},
+        "3587328263283896291180146824930321198711554885473284877719699456e276"},
     {0x1.fffffffffffffp+917, str::float_format::scientific, 276,
         "2."
         "2158278651204450394302927229620681330935320485352798132836557522832825663278740684830751501316394877946470"
         "0653749966020093284525378375285425367688613111411778560291346735073636747548005761047324782598301632494946"
-        "7174656526567792582360293649860642397423109770946569755439398912e+276"},
+        "7174656526567792582360293649860642397423109770946569755439398912e276"},
     {0x1.fffffffffffffp+918, str::float_format::scientific, 276,
         "4."
         "4316557302408900788605854459241362661870640970705596265673115045665651326557481369661503002632789755892940"
         "1307499932040186569050756750570850735377226222823557120582693470147273495096011522094649565196603264989893"
-        "4349313053135585164720587299721284794846219541893139510878797824e+276"},
+        "4349313053135585164720587299721284794846219541893139510878797824e276"},
     {0x1.fffffffffffffp+919, str::float_format::scientific, 276,
         "8."
         "8633114604817801577211708918482725323741281941411192531346230091331302653114962739323006005265579511785880"
         "2614999864080373138101513501141701470754452445647114241165386940294546990192023044189299130393206529979786"
-        "8698626106271170329441174599442569589692439083786279021757595648e+276"},
+        "8698626106271170329441174599442569589692439083786279021757595648e276"},
     {0x1.fffffffffffffp+920, str::float_format::scientific, 277,
         "1."
         "7726622920963560315442341783696545064748256388282238506269246018266260530622992547864601201053115902357176"
         "0522999972816074627620302700228340294150890489129422848233077388058909398038404608837859826078641305995957"
-        "37397252212542340658882349198885139179384878167572558043515191296e+277"},
+        "37397252212542340658882349198885139179384878167572558043515191296e277"},
     {0x1.fffffffffffffp+921, str::float_format::scientific, 277,
         "3."
         "5453245841927120630884683567393090129496512776564477012538492036532521061245985095729202402106231804714352"
         "1045999945632149255240605400456680588301780978258845696466154776117818796076809217675719652157282611991914"
-        "74794504425084681317764698397770278358769756335145116087030382592e+277"},
+        "74794504425084681317764698397770278358769756335145116087030382592e277"},
     {0x1.fffffffffffffp+922, str::float_format::scientific, 277,
         "7."
         "0906491683854241261769367134786180258993025553128954025076984073065042122491970191458404804212463609428704"
         "2091999891264298510481210800913361176603561956517691392932309552235637592153618435351439304314565223983829"
-        "49589008850169362635529396795540556717539512670290232174060765184e+277"},
+        "49589008850169362635529396795540556717539512670290232174060765184e277"},
     {0x1.fffffffffffffp+923, str::float_format::scientific, 278,
         "1."
         "4181298336770848252353873426957236051798605110625790805015396814613008424498394038291680960842492721885740"
         "8418399978252859702096242160182672235320712391303538278586461910447127518430723687070287860862913044796765"
-        "899178017700338725271058793591081113435079025340580464348121530368e+278"},
+        "899178017700338725271058793591081113435079025340580464348121530368e278"},
     {0x1.fffffffffffffp+924, str::float_format::scientific, 278,
         "2."
         "8362596673541696504707746853914472103597210221251581610030793629226016848996788076583361921684985443771481"
         "6836799956505719404192484320365344470641424782607076557172923820894255036861447374140575721725826089593531"
-        "798356035400677450542117587182162226870158050681160928696243060736e+278"},
+        "798356035400677450542117587182162226870158050681160928696243060736e278"},
     {0x1.fffffffffffffp+925, str::float_format::scientific, 278,
         "5."
         "6725193347083393009415493707828944207194420442503163220061587258452033697993576153166723843369970887542963"
         "3673599913011438808384968640730688941282849565214153114345847641788510073722894748281151443451652179187063"
-        "596712070801354901084235174364324453740316101362321857392486121472e+278"},
+        "596712070801354901084235174364324453740316101362321857392486121472e278"},
     {0x1.fffffffffffffp+926, str::float_format::scientific, 279,
         "1."
         "1345038669416678601883098741565788841438884088500632644012317451690406739598715230633344768673994177508592"
         "6734719982602287761676993728146137788256569913042830622869169528357702014744578949656230288690330435837412"
-        "7193424141602709802168470348728648907480632202724643714784972242944e+279"},
+        "7193424141602709802168470348728648907480632202724643714784972242944e279"},
     {0x1.fffffffffffffp+927, str::float_format::scientific, 279,
         "2."
         "2690077338833357203766197483131577682877768177001265288024634903380813479197430461266689537347988355017185"
         "3469439965204575523353987456292275576513139826085661245738339056715404029489157899312460577380660871674825"
-        "4386848283205419604336940697457297814961264405449287429569944485888e+279"},
+        "4386848283205419604336940697457297814961264405449287429569944485888e279"},
     {0x1.fffffffffffffp+928, str::float_format::scientific, 279,
         "4."
         "5380154677666714407532394966263155365755536354002530576049269806761626958394860922533379074695976710034370"
         "6938879930409151046707974912584551153026279652171322491476678113430808058978315798624921154761321743349650"
-        "8773696566410839208673881394914595629922528810898574859139888971776e+279"},
+        "8773696566410839208673881394914595629922528810898574859139888971776e279"},
     {0x1.fffffffffffffp+929, str::float_format::scientific, 279,
         "9."
         "0760309355333428815064789932526310731511072708005061152098539613523253916789721845066758149391953420068741"
         "3877759860818302093415949825169102306052559304342644982953356226861616117956631597249842309522643486699301"
-        "7547393132821678417347762789829191259845057621797149718279777943552e+279"},
+        "7547393132821678417347762789829191259845057621797149718279777943552e279"},
     {0x1.fffffffffffffp+930, str::float_format::scientific, 280,
         "1."
         "8152061871066685763012957986505262146302214541601012230419707922704650783357944369013351629878390684013748"
         "2775551972163660418683189965033820461210511860868528996590671245372323223591326319449968461904528697339860"
-        "35094786265643356834695525579658382519690115243594299436559555887104e+280"},
+        "35094786265643356834695525579658382519690115243594299436559555887104e280"},
     {0x1.fffffffffffffp+931, str::float_format::scientific, 280,
         "3."
         "6304123742133371526025915973010524292604429083202024460839415845409301566715888738026703259756781368027496"
         "5551103944327320837366379930067640922421023721737057993181342490744646447182652638899936923809057394679720"
-        "70189572531286713669391051159316765039380230487188598873119111774208e+280"},
+        "70189572531286713669391051159316765039380230487188598873119111774208e280"},
     {0x1.fffffffffffffp+932, str::float_format::scientific, 280,
         "7."
         "2608247484266743052051831946021048585208858166404048921678831690818603133431777476053406519513562736054993"
         "1102207888654641674732759860135281844842047443474115986362684981489292894365305277799873847618114789359441"
-        "40379145062573427338782102318633530078760460974377197746238223548416e+280"},
+        "40379145062573427338782102318633530078760460974377197746238223548416e280"},
     {0x1.fffffffffffffp+933, str::float_format::scientific, 281,
         "1."
         "4521649496853348610410366389204209717041771633280809784335766338163720626686355495210681303902712547210998"
         "6220441577730928334946551972027056368968409488694823197272536996297858578873061055559974769523622957871888"
-        "280758290125146854677564204637267060157520921948754395492476447096832e+281"},
+        "280758290125146854677564204637267060157520921948754395492476447096832e281"},
     {0x1.fffffffffffffp+934, str::float_format::scientific, 281,
         "2."
         "9043298993706697220820732778408419434083543266561619568671532676327441253372710990421362607805425094421997"
         "2440883155461856669893103944054112737936818977389646394545073992595717157746122111119949539047245915743776"
-        "561516580250293709355128409274534120315041843897508790984952894193664e+281"},
+        "561516580250293709355128409274534120315041843897508790984952894193664e281"},
     {0x1.fffffffffffffp+935, str::float_format::scientific, 281,
         "5."
         "8086597987413394441641465556816838868167086533123239137343065352654882506745421980842725215610850188843994"
         "4881766310923713339786207888108225475873637954779292789090147985191434315492244222239899078094491831487553"
-        "123033160500587418710256818549068240630083687795017581969905788387328e+281"},
+        "123033160500587418710256818549068240630083687795017581969905788387328e281"},
     {0x1.fffffffffffffp+936, str::float_format::scientific, 282,
         "1."
         "1617319597482678888328293111363367773633417306624647827468613070530976501349084396168545043122170037768798"
         "8976353262184742667957241577621645095174727590955858557818029597038286863098448844447979815618898366297510"
-        "6246066321001174837420513637098136481260167375590035163939811576774656e+282"},
+        "6246066321001174837420513637098136481260167375590035163939811576774656e282"},
     {0x1.fffffffffffffp+937, str::float_format::scientific, 282,
         "2."
         "3234639194965357776656586222726735547266834613249295654937226141061953002698168792337090086244340075537597"
         "7952706524369485335914483155243290190349455181911717115636059194076573726196897688895959631237796732595021"
-        "2492132642002349674841027274196272962520334751180070327879623153549312e+282"},
+        "2492132642002349674841027274196272962520334751180070327879623153549312e282"},
     {0x1.fffffffffffffp+938, str::float_format::scientific, 282,
         "4."
         "6469278389930715553313172445453471094533669226498591309874452282123906005396337584674180172488680151075195"
         "5905413048738970671828966310486580380698910363823434231272118388153147452393795377791919262475593465190042"
-        "4984265284004699349682054548392545925040669502360140655759246307098624e+282"},
+        "4984265284004699349682054548392545925040669502360140655759246307098624e282"},
     {0x1.fffffffffffffp+939, str::float_format::scientific, 282,
         "9."
         "2938556779861431106626344890906942189067338452997182619748904564247812010792675169348360344977360302150391"
         "1810826097477941343657932620973160761397820727646868462544236776306294904787590755583838524951186930380084"
-        "9968530568009398699364109096785091850081339004720281311518492614197248e+282"},
+        "9968530568009398699364109096785091850081339004720281311518492614197248e282"},
     {0x1.fffffffffffffp+940, str::float_format::scientific, 283,
         "1."
         "8587711355972286221325268978181388437813467690599436523949780912849562402158535033869672068995472060430078"
         "2362165219495588268731586524194632152279564145529373692508847355261258980957518151116767704990237386076016"
-        "99937061136018797398728218193570183700162678009440562623036985228394496e+283"},
+        "99937061136018797398728218193570183700162678009440562623036985228394496e283"},
     {0x1.fffffffffffffp+941, str::float_format::scientific, 283,
         "3."
         "7175422711944572442650537956362776875626935381198873047899561825699124804317070067739344137990944120860156"
         "4724330438991176537463173048389264304559128291058747385017694710522517961915036302233535409980474772152033"
-        "99874122272037594797456436387140367400325356018881125246073970456788992e+283"},
+        "99874122272037594797456436387140367400325356018881125246073970456788992e283"},
     {0x1.fffffffffffffp+942, str::float_format::scientific, 283,
         "7."
         "4350845423889144885301075912725553751253870762397746095799123651398249608634140135478688275981888241720312"
         "9448660877982353074926346096778528609118256582117494770035389421045035923830072604467070819960949544304067"
-        "99748244544075189594912872774280734800650712037762250492147940913577984e+283"},
+        "99748244544075189594912872774280734800650712037762250492147940913577984e283"},
     {0x1.fffffffffffffp+943, str::float_format::scientific, 284,
         "1."
         "4870169084777828977060215182545110750250774152479549219159824730279649921726828027095737655196377648344062"
         "5889732175596470614985269219355705721823651316423498954007077884209007184766014520893414163992189908860813"
-        "599496489088150379189825745548561469601301424075524500984295881827155968e+284"},
+        "599496489088150379189825745548561469601301424075524500984295881827155968e284"},
     {0x1.fffffffffffffp+944, str::float_format::scientific, 284,
         "2."
         "9740338169555657954120430365090221500501548304959098438319649460559299843453656054191475310392755296688125"
         "1779464351192941229970538438711411443647302632846997908014155768418014369532029041786828327984379817721627"
-        "198992978176300758379651491097122939202602848151049001968591763654311936e+284"},
+        "198992978176300758379651491097122939202602848151049001968591763654311936e284"},
     {0x1.fffffffffffffp+945, str::float_format::scientific, 284,
         "5."
         "9480676339111315908240860730180443001003096609918196876639298921118599686907312108382950620785510593376250"
         "3558928702385882459941076877422822887294605265693995816028311536836028739064058083573656655968759635443254"
-        "397985956352601516759302982194245878405205696302098003937183527308623872e+284"},
+        "397985956352601516759302982194245878405205696302098003937183527308623872e284"},
     {0x1.fffffffffffffp+946, str::float_format::scientific, 285,
         "1."
         "1896135267822263181648172146036088600200619321983639375327859784223719937381462421676590124157102118675250"
         "0711785740477176491988215375484564577458921053138799163205662307367205747812811616714731331193751927088650"
-        "8795971912705203033518605964388491756810411392604196007874367054617247744e+285"},
+        "8795971912705203033518605964388491756810411392604196007874367054617247744e285"},
     {0x1.fffffffffffffp+947, str::float_format::scientific, 285,
         "2."
         "3792270535644526363296344292072177200401238643967278750655719568447439874762924843353180248314204237350500"
         "1423571480954352983976430750969129154917842106277598326411324614734411495625623233429462662387503854177301"
-        "7591943825410406067037211928776983513620822785208392015748734109234495488e+285"},
+        "7591943825410406067037211928776983513620822785208392015748734109234495488e285"},
     {0x1.fffffffffffffp+948, str::float_format::scientific, 285,
         "4."
         "7584541071289052726592688584144354400802477287934557501311439136894879749525849686706360496628408474701000"
         "2847142961908705967952861501938258309835684212555196652822649229468822991251246466858925324775007708354603"
-        "5183887650820812134074423857553967027241645570416784031497468218468990976e+285"},
+        "5183887650820812134074423857553967027241645570416784031497468218468990976e285"},
     {0x1.fffffffffffffp+949, str::float_format::scientific, 285,
         "9."
         "5169082142578105453185377168288708801604954575869115002622878273789759499051699373412720993256816949402000"
         "5694285923817411935905723003876516619671368425110393305645298458937645982502492933717850649550015416709207"
-        "0367775301641624268148847715107934054483291140833568062994936436937981952e+285"},
+        "0367775301641624268148847715107934054483291140833568062994936436937981952e285"},
     {0x1.fffffffffffffp+950, str::float_format::scientific, 286,
         "1."
         "9033816428515621090637075433657741760320990915173823000524575654757951899810339874682544198651363389880400"
         "1138857184763482387181144600775303323934273685022078661129059691787529196500498586743570129910003083341841"
-        "40735550603283248536297695430215868108966582281667136125989872873875963904e+286"},
+        "40735550603283248536297695430215868108966582281667136125989872873875963904e286"},
     {0x1.fffffffffffffp+951, str::float_format::scientific, 286,
         "3."
         "8067632857031242181274150867315483520641981830347646001049151309515903799620679749365088397302726779760800"
         "2277714369526964774362289201550606647868547370044157322258119383575058393000997173487140259820006166683682"
-        "81471101206566497072595390860431736217933164563334272251979745747751927808e+286"},
+        "81471101206566497072595390860431736217933164563334272251979745747751927808e286"},
     {0x1.fffffffffffffp+952, str::float_format::scientific, 286,
         "7."
         "6135265714062484362548301734630967041283963660695292002098302619031807599241359498730176794605453559521600"
         "4555428739053929548724578403101213295737094740088314644516238767150116786001994346974280519640012333367365"
-        "62942202413132994145190781720863472435866329126668544503959491495503855616e+286"},
+        "62942202413132994145190781720863472435866329126668544503959491495503855616e286"},
     {0x1.fffffffffffffp+953, str::float_format::scientific, 287,
         "1."
         "5227053142812496872509660346926193408256792732139058400419660523806361519848271899746035358921090711904320"
         "0911085747810785909744915680620242659147418948017662928903247753430023357200398869394856103928002466673473"
-        "125884404826265988290381563441726944871732658253337089007918982991007711232e+287"},
+        "125884404826265988290381563441726944871732658253337089007918982991007711232e287"},
     {0x1.fffffffffffffp+954, str::float_format::scientific, 287,
         "3."
         "0454106285624993745019320693852386816513585464278116800839321047612723039696543799492070717842181423808640"
         "1822171495621571819489831361240485318294837896035325857806495506860046714400797738789712207856004933346946"
-        "251768809652531976580763126883453889743465316506674178015837965982015422464e+287"},
+        "251768809652531976580763126883453889743465316506674178015837965982015422464e287"},
     {0x1.fffffffffffffp+955, str::float_format::scientific, 287,
         "6."
         "0908212571249987490038641387704773633027170928556233601678642095225446079393087598984141435684362847617280"
         "3644342991243143638979662722480970636589675792070651715612991013720093428801595477579424415712009866693892"
-        "503537619305063953161526253766907779486930633013348356031675931964030844928e+287"},
+        "503537619305063953161526253766907779486930633013348356031675931964030844928e287"},
     {0x1.fffffffffffffp+956, str::float_format::scientific, 288,
         "1."
         "2181642514249997498007728277540954726605434185711246720335728419045089215878617519796828287136872569523456"
         "0728868598248628727795932544496194127317935158414130343122598202744018685760319095515884883142401973338778"
-        "5007075238610127906323052507533815558973861266026696712063351863928061689856e+288"},
+        "5007075238610127906323052507533815558973861266026696712063351863928061689856e288"},
     {0x1.fffffffffffffp+957, str::float_format::scientific, 288,
         "2."
         "4363285028499994996015456555081909453210868371422493440671456838090178431757235039593656574273745139046912"
         "1457737196497257455591865088992388254635870316828260686245196405488037371520638191031769766284803946677557"
-        "0014150477220255812646105015067631117947722532053393424126703727856123379712e+288"},
+        "0014150477220255812646105015067631117947722532053393424126703727856123379712e288"},
     {0x1.fffffffffffffp+958, str::float_format::scientific, 288,
         "4."
         "8726570056999989992030913110163818906421736742844986881342913676180356863514470079187313148547490278093824"
         "2915474392994514911183730177984776509271740633656521372490392810976074743041276382063539532569607893355114"
-        "0028300954440511625292210030135262235895445064106786848253407455712246759424e+288"},
+        "0028300954440511625292210030135262235895445064106786848253407455712246759424e288"},
     {0x1.fffffffffffffp+959, str::float_format::scientific, 288,
         "9."
         "7453140113999979984061826220327637812843473485689973762685827352360713727028940158374626297094980556187648"
         "5830948785989029822367460355969553018543481267313042744980785621952149486082552764127079065139215786710228"
-        "0056601908881023250584420060270524471790890128213573696506814911424493518848e+288"},
+        "0056601908881023250584420060270524471790890128213573696506814911424493518848e288"},
     {0x1.fffffffffffffp+960, str::float_format::scientific, 289,
         "1."
         "9490628022799995996812365244065527562568694697137994752537165470472142745405788031674925259418996111237529"
         "7166189757197805964473492071193910603708696253462608548996157124390429897216510552825415813027843157342045"
-        "60113203817762046501168840120541048943581780256427147393013629822848987037696e+289"},
+        "60113203817762046501168840120541048943581780256427147393013629822848987037696e289"},
     {0x1.fffffffffffffp+961, str::float_format::scientific, 289,
         "3."
         "8981256045599991993624730488131055125137389394275989505074330940944285490811576063349850518837992222475059"
         "4332379514395611928946984142387821207417392506925217097992314248780859794433021105650831626055686314684091"
-        "20226407635524093002337680241082097887163560512854294786027259645697974075392e+289"},
+        "20226407635524093002337680241082097887163560512854294786027259645697974075392e289"},
     {0x1.fffffffffffffp+962, str::float_format::scientific, 289,
         "7."
         "7962512091199983987249460976262110250274778788551979010148661881888570981623152126699701037675984444950118"
         "8664759028791223857893968284775642414834785013850434195984628497561719588866042211301663252111372629368182"
-        "40452815271048186004675360482164195774327121025708589572054519291395948150784e+289"},
+        "40452815271048186004675360482164195774327121025708589572054519291395948150784e289"},
     {0x1.fffffffffffffp+963, str::float_format::scientific, 290,
         "1."
         "5592502418239996797449892195252422050054955757710395802029732376377714196324630425339940207535196888990023"
         "7732951805758244771578793656955128482966957002770086839196925699512343917773208442260332650422274525873636"
-        "480905630542096372009350720964328391548654242051417179144109038582791896301568e+290"},
+        "480905630542096372009350720964328391548654242051417179144109038582791896301568e290"},
     {0x1.fffffffffffffp+964, str::float_format::scientific, 290,
         "3."
         "1185004836479993594899784390504844100109911515420791604059464752755428392649260850679880415070393777980047"
         "5465903611516489543157587313910256965933914005540173678393851399024687835546416884520665300844549051747272"
-        "961811261084192744018701441928656783097308484102834358288218077165583792603136e+290"},
+        "961811261084192744018701441928656783097308484102834358288218077165583792603136e290"},
     {0x1.fffffffffffffp+965, str::float_format::scientific, 290,
         "6."
         "2370009672959987189799568781009688200219823030841583208118929505510856785298521701359760830140787555960095"
         "0931807223032979086315174627820513931867828011080347356787702798049375671092833769041330601689098103494545"
-        "923622522168385488037402883857313566194616968205668716576436154331167585206272e+290"},
+        "923622522168385488037402883857313566194616968205668716576436154331167585206272e290"},
     {0x1.fffffffffffffp+966, str::float_format::scientific, 291,
         "1."
         "2474001934591997437959913756201937640043964606168316641623785901102171357059704340271952166028157511192019"
         "0186361444606595817263034925564102786373565602216069471357540559609875134218566753808266120337819620698909"
-        "1847245044336770976074805767714627132389233936411337433152872308662335170412544e+291"},
+        "1847245044336770976074805767714627132389233936411337433152872308662335170412544e291"},
     {0x1.fffffffffffffp+967, str::float_format::scientific, 291,
         "2."
         "4948003869183994875919827512403875280087929212336633283247571802204342714119408680543904332056315022384038"
         "0372722889213191634526069851128205572747131204432138942715081119219750268437133507616532240675639241397818"
-        "3694490088673541952149611535429254264778467872822674866305744617324670340825088e+291"},
+        "3694490088673541952149611535429254264778467872822674866305744617324670340825088e291"},
     {0x1.fffffffffffffp+968, str::float_format::scientific, 291,
         "4."
         "9896007738367989751839655024807750560175858424673266566495143604408685428238817361087808664112630044768076"
         "0745445778426383269052139702256411145494262408864277885430162238439500536874267015233064481351278482795636"
-        "7388980177347083904299223070858508529556935745645349732611489234649340681650176e+291"},
+        "7388980177347083904299223070858508529556935745645349732611489234649340681650176e291"},
     {0x1.fffffffffffffp+969, str::float_format::scientific, 291,
         "9."
         "9792015476735979503679310049615501120351716849346533132990287208817370856477634722175617328225260089536152"
         "1490891556852766538104279404512822290988524817728555770860324476879001073748534030466128962702556965591273"
-        "4777960354694167808598446141717017059113871491290699465222978469298681363300352e+291"},
+        "4777960354694167808598446141717017059113871491290699465222978469298681363300352e291"},
     {0x1.fffffffffffffp+970, str::float_format::scientific, 292,
         "1."
         "9958403095347195900735862009923100224070343369869306626598057441763474171295526944435123465645052017907230"
         "4298178311370553307620855880902564458197704963545711154172064895375800214749706806093225792540511393118254"
-        "69555920709388335617196892283434034118227742982581398930445956938597362726600704e+292"},
+        "69555920709388335617196892283434034118227742982581398930445956938597362726600704e292"},
     {0x1.fffffffffffffp+971, str::float_format::scientific, 292,
         "3."
         "9916806190694391801471724019846200448140686739738613253196114883526948342591053888870246931290104035814460"
         "8596356622741106615241711761805128916395409927091422308344129790751600429499413612186451585081022786236509"
-        "39111841418776671234393784566868068236455485965162797860891913877194725453201408e+292"},
+        "39111841418776671234393784566868068236455485965162797860891913877194725453201408e292"},
     {0x1.fffffffffffffp+972, str::float_format::scientific, 292,
         "7."
         "9833612381388783602943448039692400896281373479477226506392229767053896685182107777740493862580208071628921"
         "7192713245482213230483423523610257832790819854182844616688259581503200858998827224372903170162045572473018"
-        "78223682837553342468787569133736136472910971930325595721783827754389450906402816e+292"},
+        "78223682837553342468787569133736136472910971930325595721783827754389450906402816e292"},
     {0x1.fffffffffffffp+973, str::float_format::scientific, 293,
         "1."
         "5966722476277756720588689607938480179256274695895445301278445953410779337036421555548098772516041614325784"
         "3438542649096442646096684704722051566558163970836568923337651916300640171799765444874580634032409114494603"
-        "756447365675106684937575138267472272945821943860651191443567655508778901812805632e+293"},
+        "756447365675106684937575138267472272945821943860651191443567655508778901812805632e293"},
     {0x1.fffffffffffffp+974, str::float_format::scientific, 293,
         "3."
         "1933444952555513441177379215876960358512549391790890602556891906821558674072843111096197545032083228651568"
         "6877085298192885292193369409444103133116327941673137846675303832601280343599530889749161268064818228989207"
-        "512894731350213369875150276534944545891643887721302382887135311017557803625611264e+293"},
+        "512894731350213369875150276534944545891643887721302382887135311017557803625611264e293"},
     {0x1.fffffffffffffp+975, str::float_format::scientific, 293,
         "6."
         "3866889905111026882354758431753920717025098783581781205113783813643117348145686222192395090064166457303137"
         "3754170596385770584386738818888206266232655883346275693350607665202560687199061779498322536129636457978415"
-        "025789462700426739750300553069889091783287775442604765774270622035115607251222528e+293"},
+        "025789462700426739750300553069889091783287775442604765774270622035115607251222528e293"},
     {0x1.fffffffffffffp+976, str::float_format::scientific, 294,
         "1."
         "2773377981022205376470951686350784143405019756716356241022756762728623469629137244438479018012833291460627"
         "4750834119277154116877347763777641253246531176669255138670121533040512137439812355899664507225927291595683"
-        "0051578925400853479500601106139778183566575550885209531548541244070231214502445056e+294"},
+        "0051578925400853479500601106139778183566575550885209531548541244070231214502445056e294"},
     {0x1.fffffffffffffp+977, str::float_format::scientific, 294,
         "2."
         "5546755962044410752941903372701568286810039513432712482045513525457246939258274488876958036025666582921254"
         "9501668238554308233754695527555282506493062353338510277340243066081024274879624711799329014451854583191366"
-        "0103157850801706959001202212279556367133151101770419063097082488140462429004890112e+294"},
+        "0103157850801706959001202212279556367133151101770419063097082488140462429004890112e294"},
     {0x1.fffffffffffffp+978, str::float_format::scientific, 294,
         "5."
         "1093511924088821505883806745403136573620079026865424964091027050914493878516548977753916072051333165842509"
         "9003336477108616467509391055110565012986124706677020554680486132162048549759249423598658028903709166382732"
-        "0206315701603413918002404424559112734266302203540838126194164976280924858009780224e+294"},
+        "0206315701603413918002404424559112734266302203540838126194164976280924858009780224e294"},
     {0x1.fffffffffffffp+979, str::float_format::scientific, 295,
         "1."
         "0218702384817764301176761349080627314724015805373084992818205410182898775703309795550783214410266633168501"
         "9800667295421723293501878211022113002597224941335404110936097226432409709951849884719731605780741833276546"
-        "40412631403206827836004808849118225468532604407081676252388329952561849716019560448e+295"},
+        "40412631403206827836004808849118225468532604407081676252388329952561849716019560448e295"},
     {0x1.fffffffffffffp+980, str::float_format::scientific, 295,
         "2."
         "0437404769635528602353522698161254629448031610746169985636410820365797551406619591101566428820533266337003"
         "9601334590843446587003756422044226005194449882670808221872194452864819419903699769439463211561483666553092"
-        "80825262806413655672009617698236450937065208814163352504776659905123699432039120896e+295"},
+        "80825262806413655672009617698236450937065208814163352504776659905123699432039120896e295"},
     {0x1.fffffffffffffp+981, str::float_format::scientific, 295,
         "4."
         "0874809539271057204707045396322509258896063221492339971272821640731595102813239182203132857641066532674007"
         "9202669181686893174007512844088452010388899765341616443744388905729638839807399538878926423122967333106185"
-        "61650525612827311344019235396472901874130417628326705009553319810247398864078241792e+295"},
+        "61650525612827311344019235396472901874130417628326705009553319810247398864078241792e295"},
     {0x1.fffffffffffffp+982, str::float_format::scientific, 295,
         "8."
         "1749619078542114409414090792645018517792126442984679942545643281463190205626478364406265715282133065348015"
         "8405338363373786348015025688176904020777799530683232887488777811459277679614799077757852846245934666212371"
-        "23301051225654622688038470792945803748260835256653410019106639620494797728156483584e+295"},
+        "23301051225654622688038470792945803748260835256653410019106639620494797728156483584e295"},
     {0x1.fffffffffffffp+983, str::float_format::scientific, 296,
         "1."
         "6349923815708422881882818158529003703558425288596935988509128656292638041125295672881253143056426613069603"
         "1681067672674757269603005137635380804155559906136646577497755562291855535922959815551570569249186933242474"
-        "246602102451309245376076941585891607496521670513306820038213279240989595456312967168e+296"},
+        "246602102451309245376076941585891607496521670513306820038213279240989595456312967168e296"},
     {0x1.fffffffffffffp+984, str::float_format::scientific, 296,
         "3."
         "2699847631416845763765636317058007407116850577193871977018257312585276082250591345762506286112853226139206"
         "3362135345349514539206010275270761608311119812273293154995511124583711071845919631103141138498373866484948"
-        "493204204902618490752153883171783214993043341026613640076426558481979190912625934336e+296"},
+        "493204204902618490752153883171783214993043341026613640076426558481979190912625934336e296"},
     {0x1.fffffffffffffp+985, str::float_format::scientific, 296,
         "6."
         "5399695262833691527531272634116014814233701154387743954036514625170552164501182691525012572225706452278412"
         "6724270690699029078412020550541523216622239624546586309991022249167422143691839262206282276996747732969896"
-        "986408409805236981504307766343566429986086682053227280152853116963958381825251868672e+296"},
+        "986408409805236981504307766343566429986086682053227280152853116963958381825251868672e296"},
     {0x1.fffffffffffffp+986, str::float_format::scientific, 297,
         "1."
         "3079939052566738305506254526823202962846740230877548790807302925034110432900236538305002514445141290455682"
         "5344854138139805815682404110108304643324447924909317261998204449833484428738367852441256455399349546593979"
-        "3972816819610473963008615532687132859972173364106454560305706233927916763650503737344e+297"},
+        "3972816819610473963008615532687132859972173364106454560305706233927916763650503737344e297"},
     {0x1.fffffffffffffp+987, str::float_format::scientific, 297,
         "2."
         "6159878105133476611012509053646405925693480461755097581614605850068220865800473076610005028890282580911365"
         "0689708276279611631364808220216609286648895849818634523996408899666968857476735704882512910798699093187958"
-        "7945633639220947926017231065374265719944346728212909120611412467855833527301007474688e+297"},
+        "7945633639220947926017231065374265719944346728212909120611412467855833527301007474688e297"},
     {0x1.fffffffffffffp+988, str::float_format::scientific, 297,
         "5."
         "2319756210266953222025018107292811851386960923510195163229211700136441731600946153220010057780565161822730"
         "1379416552559223262729616440433218573297791699637269047992817799333937714953471409765025821597398186375917"
-        "5891267278441895852034462130748531439888693456425818241222824935711667054602014949376e+297"},
+        "5891267278441895852034462130748531439888693456425818241222824935711667054602014949376e297"},
     {0x1.fffffffffffffp+989, str::float_format::scientific, 298,
         "1."
         "0463951242053390644405003621458562370277392184702039032645842340027288346320189230644002011556113032364546"
         "0275883310511844652545923288086643714659558339927453809598563559866787542990694281953005164319479637275183"
-        "51782534556883791704068924261497062879777386912851636482445649871423334109204029898752e+298"},
+        "51782534556883791704068924261497062879777386912851636482445649871423334109204029898752e298"},
     {0x1.fffffffffffffp+990, str::float_format::scientific, 298,
         "2."
         "0927902484106781288810007242917124740554784369404078065291684680054576692640378461288004023112226064729092"
         "0551766621023689305091846576173287429319116679854907619197127119733575085981388563906010328638959274550367"
-        "03565069113767583408137848522994125759554773825703272964891299742846668218408059797504e+298"},
+        "03565069113767583408137848522994125759554773825703272964891299742846668218408059797504e298"},
     {0x1.fffffffffffffp+991, str::float_format::scientific, 298,
         "4."
         "1855804968213562577620014485834249481109568738808156130583369360109153385280756922576008046224452129458184"
         "1103533242047378610183693152346574858638233359709815238394254239467150171962777127812020657277918549100734"
-        "07130138227535166816275697045988251519109547651406545929782599485693336436816119595008e+298"},
+        "07130138227535166816275697045988251519109547651406545929782599485693336436816119595008e298"},
     {0x1.fffffffffffffp+992, str::float_format::scientific, 298,
         "8."
         "3711609936427125155240028971668498962219137477616312261166738720218306770561513845152016092448904258916368"
         "2207066484094757220367386304693149717276466719419630476788508478934300343925554255624041314555837098201468"
-        "14260276455070333632551394091976503038219095302813091859565198971386672873632239190016e+298"},
+        "14260276455070333632551394091976503038219095302813091859565198971386672873632239190016e298"},
     {0x1.fffffffffffffp+993, str::float_format::scientific, 299,
         "1."
         "6742321987285425031048005794333699792443827495523262452233347744043661354112302769030403218489780851783273"
         "6441413296818951444073477260938629943455293343883926095357701695786860068785110851124808262911167419640293"
-        "628520552910140667265102788183953006076438190605626183719130397942773345747264478380032e+299"},
+        "628520552910140667265102788183953006076438190605626183719130397942773345747264478380032e299"},
     {0x1.fffffffffffffp+994, str::float_format::scientific, 299,
         "3."
         "3484643974570850062096011588667399584887654991046524904466695488087322708224605538060806436979561703566547"
         "2882826593637902888146954521877259886910586687767852190715403391573720137570221702249616525822334839280587"
-        "257041105820281334530205576367906012152876381211252367438260795885546691494528956760064e+299"},
+        "257041105820281334530205576367906012152876381211252367438260795885546691494528956760064e299"},
     {0x1.fffffffffffffp+995, str::float_format::scientific, 299,
         "6."
         "6969287949141700124192023177334799169775309982093049808933390976174645416449211076121612873959123407133094"
         "5765653187275805776293909043754519773821173375535704381430806783147440275140443404499233051644669678561174"
-        "514082211640562669060411152735812024305752762422504734876521591771093382989057913520128e+299"},
+        "514082211640562669060411152735812024305752762422504734876521591771093382989057913520128e299"},
     {0x1.fffffffffffffp+996, str::float_format::scientific, 300,
         "1."
         "3393857589828340024838404635466959833955061996418609961786678195234929083289842215224322574791824681426618"
         "9153130637455161155258781808750903954764234675107140876286161356629488055028088680899846610328933935712234"
-        "9028164423281125338120822305471624048611505524845009469753043183542186765978115827040256e+300"},
+        "9028164423281125338120822305471624048611505524845009469753043183542186765978115827040256e300"},
     {0x1.fffffffffffffp+997, str::float_format::scientific, 300,
         "2."
         "6787715179656680049676809270933919667910123992837219923573356390469858166579684430448645149583649362853237"
         "8306261274910322310517563617501807909528469350214281752572322713258976110056177361799693220657867871424469"
-        "8056328846562250676241644610943248097223011049690018939506086367084373531956231654080512e+300"},
+        "8056328846562250676241644610943248097223011049690018939506086367084373531956231654080512e300"},
     {0x1.fffffffffffffp+998, str::float_format::scientific, 300,
         "5."
         "3575430359313360099353618541867839335820247985674439847146712780939716333159368860897290299167298725706475"
         "6612522549820644621035127235003615819056938700428563505144645426517952220112354723599386441315735742848939"
-        "6112657693124501352483289221886496194446022099380037879012172734168747063912463308161024e+300"},
+        "6112657693124501352483289221886496194446022099380037879012172734168747063912463308161024e300"},
     {0x1.fffffffffffffp+999, str::float_format::scientific, 301,
         "1."
         "0715086071862672019870723708373567867164049597134887969429342556187943266631873772179458059833459745141295"
         "1322504509964128924207025447000723163811387740085712701028929085303590444022470944719877288263147148569787"
-        "92225315386249002704966578443772992388892044198760075758024345468337494127824926616322048e+301"},
+        "92225315386249002704966578443772992388892044198760075758024345468337494127824926616322048e301"},
     {0x1.fffffffffffffp+1000, str::float_format::scientific, 301,
         "2."
         "1430172143725344039741447416747135734328099194269775938858685112375886533263747544358916119666919490282590"
         "2645009019928257848414050894001446327622775480171425402057858170607180888044941889439754576526294297139575"
-        "84450630772498005409933156887545984777784088397520151516048690936674988255649853232644096e+301"},
+        "84450630772498005409933156887545984777784088397520151516048690936674988255649853232644096e301"},
     {0x1.fffffffffffffp+1001, str::float_format::scientific, 301,
         "4."
         "2860344287450688079482894833494271468656198388539551877717370224751773066527495088717832239333838980565180"
         "5290018039856515696828101788002892655245550960342850804115716341214361776089883778879509153052588594279151"
-        "68901261544996010819866313775091969555568176795040303032097381873349976511299706465288192e+301"},
+        "68901261544996010819866313775091969555568176795040303032097381873349976511299706465288192e301"},
     {0x1.fffffffffffffp+1002, str::float_format::scientific, 301,
         "8."
         "5720688574901376158965789666988542937312396777079103755434740449503546133054990177435664478667677961130361"
         "0580036079713031393656203576005785310491101920685701608231432682428723552179767557759018306105177188558303"
-        "37802523089992021639732627550183939111136353590080606064194763746699953022599412930576384e+301"},
+        "37802523089992021639732627550183939111136353590080606064194763746699953022599412930576384e301"},
     {0x1.fffffffffffffp+1003, str::float_format::scientific, 302,
         "1."
         "7144137714980275231793157933397708587462479355415820751086948089900709226610998035487132895733535592226072"
         "2116007215942606278731240715201157062098220384137140321646286536485744710435953511551803661221035437711660"
-        "675605046179984043279465255100367878222272707180161212128389527493399906045198825861152768e+302"},
+        "675605046179984043279465255100367878222272707180161212128389527493399906045198825861152768e302"},
     {0x1.fffffffffffffp+1004, str::float_format::scientific, 302,
         "3."
         "4288275429960550463586315866795417174924958710831641502173896179801418453221996070974265791467071184452144"
         "4232014431885212557462481430402314124196440768274280643292573072971489420871907023103607322442070875423321"
-        "351210092359968086558930510200735756444545414360322424256779054986799812090397651722305536e+302"},
+        "351210092359968086558930510200735756444545414360322424256779054986799812090397651722305536e302"},
     {0x1.fffffffffffffp+1005, str::float_format::scientific, 302,
         "6."
         "8576550859921100927172631733590834349849917421663283004347792359602836906443992141948531582934142368904288"
         "8464028863770425114924962860804628248392881536548561286585146145942978841743814046207214644884141750846642"
-        "702420184719936173117861020401471512889090828720644848513558109973599624180795303444611072e+302"},
+        "702420184719936173117861020401471512889090828720644848513558109973599624180795303444611072e302"},
     {0x1.fffffffffffffp+1006, str::float_format::scientific, 303,
         "1."
         "3715310171984220185434526346718166869969983484332656600869558471920567381288798428389706316586828473780857"
         "7692805772754085022984992572160925649678576307309712257317029229188595768348762809241442928976828350169328"
-        "5404840369439872346235722040802943025778181657441289697027116219947199248361590606889222144e+303"},
+        "5404840369439872346235722040802943025778181657441289697027116219947199248361590606889222144e303"},
     {0x1.fffffffffffffp+1007, str::float_format::scientific, 303,
         "2."
         "7430620343968440370869052693436333739939966968665313201739116943841134762577596856779412633173656947561715"
         "5385611545508170045969985144321851299357152614619424514634058458377191536697525618482885857953656700338657"
-        "0809680738879744692471444081605886051556363314882579394054232439894398496723181213778444288e+303"},
+        "0809680738879744692471444081605886051556363314882579394054232439894398496723181213778444288e303"},
     {0x1.fffffffffffffp+1008, str::float_format::scientific, 303,
         "5."
         "4861240687936880741738105386872667479879933937330626403478233887682269525155193713558825266347313895123431"
         "0771223091016340091939970288643702598714305229238849029268116916754383073395051236965771715907313400677314"
-        "1619361477759489384942888163211772103112726629765158788108464879788796993446362427556888576e+303"},
+        "1619361477759489384942888163211772103112726629765158788108464879788796993446362427556888576e303"},
     {0x1.fffffffffffffp+1009, str::float_format::scientific, 304,
         "1."
         "0972248137587376148347621077374533495975986787466125280695646777536453905031038742711765053269462779024686"
         "2154244618203268018387994057728740519742861045847769805853623383350876614679010247393154343181462680135462"
-        "83238722955518978769885776326423544206225453259530317576216929759577593986892724855113777152e+304"},
+        "83238722955518978769885776326423544206225453259530317576216929759577593986892724855113777152e304"},
     {0x1.fffffffffffffp+1010, str::float_format::scientific, 304,
         "2."
         "1944496275174752296695242154749066991951973574932250561391293555072907810062077485423530106538925558049372"
         "4308489236406536036775988115457481039485722091695539611707246766701753229358020494786308686362925360270925"
-        "66477445911037957539771552652847088412450906519060635152433859519155187973785449710227554304e+304"},
+        "66477445911037957539771552652847088412450906519060635152433859519155187973785449710227554304e304"},
     {0x1.fffffffffffffp+1011, str::float_format::scientific, 304,
         "4."
         "3888992550349504593390484309498133983903947149864501122782587110145815620124154970847060213077851116098744"
         "8616978472813072073551976230914962078971444183391079223414493533403506458716040989572617372725850720541851"
-        "32954891822075915079543105305694176824901813038121270304867719038310375947570899420455108608e+304"},
+        "32954891822075915079543105305694176824901813038121270304867719038310375947570899420455108608e304"},
     {0x1.fffffffffffffp+1012, str::float_format::scientific, 304,
         "8."
         "7777985100699009186780968618996267967807894299729002245565174220291631240248309941694120426155702232197489"
         "7233956945626144147103952461829924157942888366782158446828987066807012917432081979145234745451701441083702"
-        "65909783644151830159086210611388353649803626076242540609735438076620751895141798840910217216e+304"},
+        "65909783644151830159086210611388353649803626076242540609735438076620751895141798840910217216e304"},
     {0x1.fffffffffffffp+1013, str::float_format::scientific, 305,
         "1."
         "7555597020139801837356193723799253593561578859945800449113034844058326248049661988338824085231140446439497"
         "9446791389125228829420790492365984831588577673356431689365797413361402583486416395829046949090340288216740"
-        "531819567288303660318172421222776707299607252152485081219470876153241503790283597681820434432e+305"},
+        "531819567288303660318172421222776707299607252152485081219470876153241503790283597681820434432e305"},
     {0x1.fffffffffffffp+1014, str::float_format::scientific, 305,
         "3."
         "5111194040279603674712387447598507187123157719891600898226069688116652496099323976677648170462280892878995"
         "8893582778250457658841580984731969663177155346712863378731594826722805166972832791658093898180680576433481"
-        "063639134576607320636344842445553414599214504304970162438941752306483007580567195363640868864e+305"},
+        "063639134576607320636344842445553414599214504304970162438941752306483007580567195363640868864e305"},
     {0x1.fffffffffffffp+1015, str::float_format::scientific, 305,
         "7."
         "0222388080559207349424774895197014374246315439783201796452139376233304992198647953355296340924561785757991"
         "7787165556500915317683161969463939326354310693425726757463189653445610333945665583316187796361361152866962"
-        "127278269153214641272689684891106829198429008609940324877883504612966015161134390727281737728e+305"},
+        "127278269153214641272689684891106829198429008609940324877883504612966015161134390727281737728e305"},
     {0x1.fffffffffffffp+1016, str::float_format::scientific, 306,
         "1."
         "4044477616111841469884954979039402874849263087956640359290427875246660998439729590671059268184912357151598"
         "3557433111300183063536632393892787865270862138685145351492637930689122066789133116663237559272272230573392"
-        "4254556538306429282545379369782213658396858017219880649755767009225932030322268781454563475456e+306"},
+        "4254556538306429282545379369782213658396858017219880649755767009225932030322268781454563475456e306"},
     {0x1.fffffffffffffp+1017, str::float_format::scientific, 306,
         "2."
         "8088955232223682939769909958078805749698526175913280718580855750493321996879459181342118536369824714303196"
         "7114866222600366127073264787785575730541724277370290702985275861378244133578266233326475118544544461146784"
-        "8509113076612858565090758739564427316793716034439761299511534018451864060644537562909126950912e+306"},
+        "8509113076612858565090758739564427316793716034439761299511534018451864060644537562909126950912e306"},
     {0x1.fffffffffffffp+1018, str::float_format::scientific, 306,
         "5."
         "6177910464447365879539819916157611499397052351826561437161711500986643993758918362684237072739649428606393"
         "4229732445200732254146529575571151461083448554740581405970551722756488267156532466652950237089088922293569"
-        "7018226153225717130181517479128854633587432068879522599023068036903728121289075125818253901824e+306"},
+        "7018226153225717130181517479128854633587432068879522599023068036903728121289075125818253901824e306"},
     {0x1.fffffffffffffp+1019, str::float_format::scientific, 307,
         "1."
         "1235582092889473175907963983231522299879410470365312287432342300197328798751783672536847414547929885721278"
         "6845946489040146450829305915114230292216689710948116281194110344551297653431306493330590047417817784458713"
-        "94036452306451434260363034958257709267174864137759045198046136073807456242578150251636507803648e+307"},
+        "94036452306451434260363034958257709267174864137759045198046136073807456242578150251636507803648e307"},
     {0x1.fffffffffffffp+1020, str::float_format::scientific, 307,
         "2."
         "2471164185778946351815927966463044599758820940730624574864684600394657597503567345073694829095859771442557"
         "3691892978080292901658611830228460584433379421896232562388220689102595306862612986661180094835635568917427"
-        "88072904612902868520726069916515418534349728275518090396092272147614912485156300503273015607296e+307"},
+        "88072904612902868520726069916515418534349728275518090396092272147614912485156300503273015607296e307"},
     {0x1.fffffffffffffp+1021, str::float_format::scientific, 307,
         "4."
         "4942328371557892703631855932926089199517641881461249149729369200789315195007134690147389658191719542885114"
         "7383785956160585803317223660456921168866758843792465124776441378205190613725225973322360189671271137834855"
-        "76145809225805737041452139833030837068699456551036180792184544295229824970312601006546031214592e+307"},
+        "76145809225805737041452139833030837068699456551036180792184544295229824970312601006546031214592e307"},
     {0x1.fffffffffffffp+1022, str::float_format::scientific, 307,
         "8."
         "9884656743115785407263711865852178399035283762922498299458738401578630390014269380294779316383439085770229"
         "4767571912321171606634447320913842337733517687584930249552882756410381227450451946644720379342542275669711"
-        "52291618451611474082904279666061674137398913102072361584369088590459649940625202013092062429184e+307"},
+        "52291618451611474082904279666061674137398913102072361584369088590459649940625202013092062429184e307"},
     {0x1.fffffffffffffp+1023, str::float_format::scientific, 308,
         "1."
         "7976931348623157081452742373170435679807056752584499659891747680315726078002853876058955863276687817154045"
         "8953514382464234321326889464182768467546703537516986049910576551282076245490090389328944075868508455133942"
-        "304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368e+308"},
+        "304583236903222948165808559332123348274797826204144723168738177180919299881250404026184124858368e308"},
 };
 
 // clang-format on

@@ -1,5 +1,8 @@
 #include <cstdint>
 
+#define VX_STRING_CONVERT_IND_NAN
+#define VX_STRING_CONVERT_SNAN
+
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_convert.hpp"
 #include "vertex/std/string_view.hpp"
@@ -102,6 +105,11 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
 
     constexpr C fill_char = '@';
 
+    if (value == 9.99e-10f)
+    {
+        const char x = 'a';
+    }
+
     for (size_t n = 0; n <= correct.size() + extra_chars; ++n)
     {
         VX_CHECK(n <= static_cast<size_t>(buf_end - first));
@@ -120,10 +128,25 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
         }
         else
         {
+#if PRINT_CASE
+
+            VX_IF_CONSTEXPR (std::is_same<C, char>::value)
+            {
+                std::cout << "to string result: " << str::basic_string_view(first, res.count) << std::endl;
+            }
+
+#endif
+
             VX_CHECK(res.count == correct.size());
             VX_CHECK(res.err == str::to_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
-            VX_CHECK(str::compare(first, res.count, correct.data(), correct.size()) == 0);
+            do
+            {
+                if (!(str::compare(first, res.count, correct.data(), correct.size()) == 0))
+                {
+                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 129);
+                }
+            } while ((0, 0));
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
         }
     }
@@ -740,82 +763,165 @@ void test_float_from_string(const str::float_format format)
 
 //==============================================================================
 
+template <typename F, typename C, size_t N>
+void run_float_test_cases( const float_to_string_test_case<F, char> (&cases)[N])
+{
+    for (const auto& t : cases)
+    {
+        const auto tmp = str::string_cast<C>(t.correct);
+        const str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        test_common_to_string<F, C>(t.value, fmt, tmp);
+    }
+}
+
+template <typename F>
+struct float_tester_data;
+
+template <>
+struct float_tester_data<float>
+{
+    static constexpr float lwg_2403_correct = 0x1.fffffep0f;
+
+    static inline constexpr auto& from_string_test_cases_1 = float_from_string_test_cases;
+    static inline constexpr auto& from_string_test_cases_2 = floating_point_test_cases_float;
+
+    static inline constexpr auto& to_string_test_cases_base = float_to_string_test_cases;
+
+    static inline constexpr auto& to_string_test_cases_hex = float_hex_to_string_test_cases;
+    static inline constexpr auto& to_string_test_cases_fixed = float_fixed_to_string_test_cases;
+    static inline constexpr auto& to_string_test_cases_scientific = float_scientific_to_string_test_cases;
+    static inline constexpr auto& to_string_test_cases_general = float_general_to_string_test_cases;
+
+    template <typename C>
+    static void test_to_string_fixed_cases()
+    {
+        run_float_test_cases<float, C>(to_string_test_cases_fixed);
+    }
+
+    template <typename C>
+    static void test_to_string_scientific_cases()
+    {
+        run_float_test_cases<float, C>(to_string_test_cases_scientific);
+    }
+};
+
+template <>
+struct float_tester_data<double>
+{
+    static constexpr double lwg_2403_correct = 0x1.fffffdp0;
+
+    static inline constexpr auto& from_string_test_cases_1 = double_from_string_test_cases;
+    static inline constexpr auto& from_string_test_cases_2 = floating_point_test_cases_double;
+
+    static inline constexpr auto& to_string_test_cases_base = double_to_string_test_cases;
+
+    static inline constexpr auto& to_string_test_cases_hex = double_hex_to_string_test_cases;
+
+    static inline constexpr auto& to_string_test_cases_fixed_1 = double_fixed_to_string_test_cases_1;
+    static inline constexpr auto& to_string_test_cases_fixed_2 = double_fixed_to_string_test_cases_2;
+    static inline constexpr auto& to_string_test_cases_fixed_3 = double_fixed_to_string_test_cases_3;
+    static inline constexpr auto& to_string_test_cases_fixed_4 = double_fixed_to_string_test_cases_4;
+
+    static inline constexpr auto& to_string_test_cases_scientific_1 = double_scientific_to_string_test_cases_1;
+    static inline constexpr auto& to_string_test_cases_scientific_2 = double_scientific_to_string_test_cases_2;
+    static inline constexpr auto& to_string_test_cases_scientific_3 = double_scientific_to_string_test_cases_3;
+    static inline constexpr auto& to_string_test_cases_scientific_4 = double_scientific_to_string_test_cases_4;
+
+    static inline constexpr auto& to_string_test_cases_general = double_general_to_string_test_cases;
+
+    template <typename C>
+    static void test_to_string_fixed_cases()
+    {
+        run_float_test_cases<double, C>(to_string_test_cases_fixed_1);
+        run_float_test_cases<double, C>(to_string_test_cases_fixed_2);
+        run_float_test_cases<double, C>(to_string_test_cases_fixed_3);
+        run_float_test_cases<double, C>(to_string_test_cases_fixed_4);
+    }
+
+    template <typename C>
+    static void test_to_string_scientific_cases()
+    {
+        run_float_test_cases<double, C>(to_string_test_cases_scientific_1);
+        run_float_test_cases<double, C>(to_string_test_cases_scientific_2);
+        run_float_test_cases<double, C>(to_string_test_cases_scientific_3);
+        run_float_test_cases<double, C>(to_string_test_cases_scientific_4);
+    }
+};
+
 template <typename F, typename C>
 void test_float_type()
 {
-    const str::float_format formats[] = {
-        str::float_format::general,
-        str::float_format::scientific,
-        str::float_format::fixed,
-        str::float_format::hex
-    };
-
-    for (const auto& fmt : formats)
+    VX_SECTION("general")
     {
-        test_float_from_string<F, C>(fmt);
+        const str::float_format formats[] = {
+            str::float_format::general,
+            str::float_format::scientific,
+            str::float_format::fixed,
+            str::float_format::hex
+        };
+
+        for (const auto& fmt : formats)
+        {
+            test_float_from_string<F, C>(fmt);
+        }
     }
 
+    using tester_data = float_tester_data<F>;
     const str::float_from_string_format_options<C> general_fmt{ str::float_format::general };
 
-    VX_SECTION("rounding")
+    VX_SECTION("from string rounding")
     {
-        VX_IF_CONSTEXPR (std::is_same<F, float>::value)
+        // See float_from_chars_test_cases.hpp in this directory.
+        for (const auto& t : tester_data::from_string_test_cases_1)
         {
-            // See float_from_chars_test_cases.hpp in this directory.
-            for (const auto& t : float_from_string_test_cases)
-            {
-                const auto tmp = str::string_cast<C>(t.input);
-                const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
-                test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
-            }
+            const auto tmp = str::string_cast<C>(t.input);
+            const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
+            test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
+        }
 
-            {
-                // See LWG-2403. This number (exactly 0x1.fffffd00000004 in infinite precision) behaves differently
-                // when parsed as double and converted to float, versus being parsed as float directly.
-                const C* const lwg_2403 = LIT("1.999999821186065729339276231257827021181583404541015625");
-                constexpr float correct_float = 0x1.fffffep0f;
-                test_from_string<F, C>(lwg_2403, general_fmt, 56, fse_none, correct_float);
-            }
+        {
+            // See LWG-2403. This number (exactly 0x1.fffffd00000004 in infinite precision) behaves differently
+            // when parsed as double and converted to float, versus being parsed as float directly.
+            const C* const lwg_2403 = LIT("1.999999821186065729339276231257827021181583404541015625");
+            constexpr F correct_value = tester_data::lwg_2403_correct;
+            constexpr float twice_rounded_float = 0x1.fffffcp0f;
+            test_from_string<F, C>(lwg_2403, general_fmt, 56, fse_none, correct_value);
 
-            for (const auto& p : floating_point_test_cases_float)
+            VX_IF_CONSTEXPR (std::is_same<F, double>::value)
             {
-                const auto tmp = str::string_cast<C>(p.first);
-                test_from_string<F, C>(tmp, general_fmt, tmp.size(), fse_none, bit::bit_cast<float>(p.second));
-            }
-
-            for (const auto& t : float_to_string_test_cases)
-            {
-                const auto tmp = str::string_cast<C>(t.correct);
-                const str::float_to_string_format_options<C> fmt{ t.fmt };
-                test_common_to_string<F, C>(t.value, fmt, tmp);
+                VX_STATIC_ASSERT(static_cast<float>(correct_value) == twice_rounded_float);
             }
         }
-        else
+    }
+
+    VX_SECTION("from string")
+    {
+        for (const auto& p : tester_data::from_string_test_cases_2)
         {
-            // See double_from_chars_test_cases.hpp in this directory.
-            for (const auto& t : double_from_string_test_cases)
-            {
-                const auto tmp = str::string_cast<C>(t.input);
-                const str::float_from_string_format_options<C> fmt{ t.fmt.format, static_cast<C>(t.fmt.decimal_point) };
-                test_from_string<F, C>(tmp, fmt, t.correct_count, t.correct_err, t.correct_value);
-            }
-
-            {
-                // See LWG-2403. This number (exactly 0x1.fffffd00000004 in infinite precision) behaves differently
-                // when parsed as double and converted to float, versus being parsed as float directly.
-                const char* const lwg_2403 = LIT("1.999999821186065729339276231257827021181583404541015625");
-                constexpr double correct_double = 0x1.fffffdp0;
-                constexpr float twice_rounded_float = 0x1.fffffcp0f;
-                test_from_string<F, C>(lwg_2403, general_fmt, 56, fse_none, correct_double);
-                VX_STATIC_ASSERT(static_cast<float>(correct_double) == twice_rounded_float);
-            }
-
-            for (const auto& p : floating_point_test_cases_double)
-            {
-                const auto tmp = str::string_cast<C>(p.first);
-                test_from_string<F, C>(tmp, general_fmt, tmp.size(), fse_none, bit::bit_cast<double>(p.second));
-            }
+            const auto tmp = str::string_cast<C>(p.first);
+            test_from_string<F, C>(tmp, general_fmt, tmp.size(), fse_none, bit::bit_cast<F>(p.second));
         }
+    }
+
+    VX_SECTION("to string base")
+    {
+        run_float_test_cases<F, C>(tester_data::to_string_test_cases_base);
+    }
+    VX_SECTION("to string hex")
+    {
+        run_float_test_cases<F, C>(tester_data::to_string_test_cases_hex);
+    }
+    VX_SECTION("to string fixed")
+    {
+        tester_data::template test_to_string_fixed_cases<C>();
+    }
+    VX_SECTION("to string scientific")
+    {
+        tester_data::template test_to_string_scientific_cases<C>();
+    }
+    VX_SECTION("to string general")
+    {
+        run_float_test_cases<F, C>(tester_data::to_string_test_cases_general);
     }
 }
 
@@ -823,18 +929,24 @@ template <typename F>
 void test_float()
 {
     test_float_type<F, char>();
-    //    test_float_type<F, wchar_t>();
-    //#if defined(__cpp_lib_char8_t)
-    //    test_float_type<F, char8_t>();
-    //#endif
-    //    test_float_type<F, char16_t>();
-    //    test_float_type<F, char32_t>();
+//    test_float_type<F, wchar_t>();
+//#if defined(__cpp_lib_char8_t)
+//    test_float_type<F, char8_t>();
+//#endif
+//    test_float_type<F, char16_t>();
+//    test_float_type<F, char32_t>();
 }
 
 VX_TEST_CASE(test_all_float)
 {
-    test_float<float>();
-    test_float<double>();
+    VX_MESSAGE("float");
+    {
+        test_float<float>();
+    }
+    VX_MESSAGE("double");
+    {
+        test_float<double>();
+    }
 }
 
 //==============================================================================

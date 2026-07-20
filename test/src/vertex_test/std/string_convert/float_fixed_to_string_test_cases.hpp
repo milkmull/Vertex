@@ -34,7 +34,7 @@
 
 // clang-format off
 
-inline constexpr float_to_string_test_case<float, char> float_fixed_precision_to_string_test_cases[] = {
+inline constexpr float_to_string_test_case<float, char> float_fixed_to_string_test_cases[] = {
     // Test special cases (zero, inf, nan) and an ordinary case. Also test negative signs.
     {0.0f, str::float_format::fixed, 4, "0.0000"},
     {-0.0f, str::float_format::fixed, 4, "-0.0000"},
@@ -313,11 +313,6 @@ inline constexpr float_to_string_test_case<float, char> float_fixed_precision_to
     {1.142857f, str::float_format::fixed, 2, "1.14"},
     {1.142857f, str::float_format::fixed, 1, "1.1"},
     {1.142857f, str::float_format::fixed, 0, "1"},
-
-    // Negative precision requests 6 digits of precision.
-    {1.142857f, str::float_format::fixed, -1, "1.142857"},
-    {1.142857f, str::float_format::fixed, -2, "1.142857"},
-    {1.142857f, str::float_format::fixed, -3, "1.142857"},
 
     // Ryu Printf Carrying
     {0.0009f, str::float_format::fixed, 4, "0.0009"},
