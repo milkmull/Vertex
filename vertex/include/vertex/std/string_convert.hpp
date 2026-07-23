@@ -45,6 +45,16 @@ struct from_string_result
     from_string_error err;
 };
 
+namespace _string_convert_priv {
+
+template <typename C>
+constexpr C make_case_mask(bool uppercase) noexcept
+{
+    return uppercase ? static_cast<C>(~C{ 0x20 }) : static_cast<C>(~C{ 0 });
+}
+
+} // namespace _string_convert_priv
+
 //==============================================================================
 // hex
 //==============================================================================
@@ -58,9 +68,7 @@ to_string_result to_hex_string(const void* data, const size_t size, C* buf, cons
         return { 0, to_string_error::buffer_too_small };
     }
 
-    const C case_mask = uppercase
-        ? static_cast<C>(~C{ 0x20 })
-        : static_cast<C>(~C{ 0 });
+    const C case_mask = _string_convert_priv::make_case_mask<C>(uppercase);
 
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
     for (size_t i = 0; i < size; ++i)
@@ -160,6 +168,10 @@ constexpr unsigned char char_to_digit(C c, int base = 10) noexcept
 
 namespace _string_convert_priv {
 
+#if 0
+
+// These are not currently needed, but maybe in the future for half support
+
 inline constexpr size_t digit_count_unsigned(const uint8_t v) noexcept
 {
     // clang-format off
@@ -179,6 +191,8 @@ inline constexpr size_t digit_count_unsigned(const uint16_t v) noexcept
     return 1;
     // clang-format on
 }
+
+#endif
 
 inline constexpr size_t digit_count_unsigned(const uint32_t v) noexcept
 {
@@ -218,34 +232,15 @@ inline constexpr size_t digit_count_unsigned(const uint64_t v) noexcept
     // clang-format on
 }
 
-#if !defined(VX_STRING_CONVERT_NO_POW10_TABLE)
-
 static constexpr uint32_t pow10_table[] = {
     10u, 100u, 1000u, 10000u, 100000u, 1000000u, 10000000u, 100000000u
 };
 
-#endif
-
 inline constexpr uint32_t pow10_u32(size_t n) noexcept
 {
     VX_ASSERT(n > 0);
-
-#if !defined(VX_STRING_CONVERT_NO_POW10_TABLE)
-
     VX_ASSERT(n <= 9);
     return pow10_table[n - 1];
-
-#else
-
-    uint32_t x = 10;
-    while (--n)
-    {
-        x *= 10;
-    }
-
-    return x;
-
-#endif
 }
 
 template <typename I>
@@ -312,10 +307,7 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
         return { 0, to_string_error::buffer_too_small };
     }
 
-    const C case_mask = fmt.uppercase
-        ? static_cast<C>(~C{ 0x20 })
-        : static_cast<C>(~C{ 0 });
-
+    const C case_mask = _string_convert_priv::make_case_mask<C>(fmt.uppercase);
     size_t i = needed;
 
     do
@@ -554,7 +546,7 @@ inline constexpr uint32_t pow10_bit_width(uint32_t e)
 }
 
 template <typename F>
-constexpr uint32_t subnormal_pow10(const typename vx::float_bits<F>::uint_type m_bits) noexcept
+constexpr uint32_t subnormal_pow10(const typename float_traits<F>::uint_type m_bits) noexcept
 {
     // this estimate may be 1 less than the actual power of 10
     using traits = float_traits<F>;
@@ -939,16 +931,6 @@ public:
         return mul_extract(10);
     }
 
-    constexpr bool has_last_digit() noexcept
-    {
-        return true;
-    }
-
-    constexpr limb_type extract_last_digit() noexcept
-    {
-        return extract_digit();
-    }
-
     constexpr limb_type extract_chunk() noexcept
     {
         return mul_extract(1000000000u);
@@ -1033,12 +1015,6 @@ private:
         {
             --top_limb;
         }
-    }
-
-    constexpr void div_shrink(limb_type x) noexcept
-    {
-        bits.div_extract(x, top_limb);
-        shrink();
     }
 
     constexpr limb_type div_extract_shrink(limb_type x) noexcept
@@ -1194,17 +1170,6 @@ struct chunk_buffer
         chunks[chunk_count++] = ext.extract_chunk();
     }
 
-    constexpr void extract_chunks(size_t digits) noexcept
-    {
-        while (digits >= 9)
-        {
-            chunks[chunk_count++] = ext.extract_chunk();
-            digits -= 9;
-        }
-
-        chunks[chunk_count++] = get_last_chunk(digits);
-    }
-
     constexpr auto get(size_t index) const noexcept
     {
         VX_ASSERT(index < chunk_count);
@@ -1224,11 +1189,6 @@ struct chunk_buffer
     constexpr auto has_last_digit() const noexcept
     {
         return ext.has_last_digit();
-    }
-
-    constexpr auto get_last_digit() const noexcept
-    {
-        return ext.extract_last_digit();
     }
 };
 
@@ -1421,10 +1381,9 @@ constexpr size_t write_fixed_normal(
         return 0;
     }
 
-    digit_type last_digit = 0;
     buf[0] = static_cast<C>('0');
 
-    using extractor = float_frac_digit_extractor<F>;
+    digit_type last_digit = 0;
     extractor ext(m2, shift);
 
     if (precision)
@@ -3650,7 +3609,7 @@ constexpr from_string_result parse_float_impl(const C* str, size_t str_size, F& 
             assemble_float_infinity(is_negative, value);
             return { i, from_string_error::out_of_range }; // Overflow example: "1e+9999"
         }
-    
+
         if (exponent < minimum_temporary_decimal_exponent ||
             exponent_adjustment < minimum_temporary_decimal_exponent / exponent_adjustment_multiplier)
         {
@@ -3784,9 +3743,7 @@ to_string_result to_string(I value, S& out, const integer_format_options& fmt = 
     size_t count = _string_convert_priv::digit_count(uvalue, ubase) + static_cast<size_t>(sign);
     out.resize(count, 0);
 
-    const C case_mask = fmt.uppercase
-        ? static_cast<C>(~C{ 0x20 })
-        : static_cast<C>(~C{ 0 });
+    const C case_mask = _string_convert_priv::make_case_mask<C>(fmt.uppercase);
 
     do
     {

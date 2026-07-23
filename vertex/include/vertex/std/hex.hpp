@@ -23,7 +23,7 @@ VX_NO_DISCARD constexpr C digit_c() noexcept
 
 enum : int
 {
-    invalid_value = -1
+    invalid_value = INT_MAX
 };
 
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
