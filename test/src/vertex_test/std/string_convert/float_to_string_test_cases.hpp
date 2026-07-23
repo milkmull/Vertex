@@ -42,8 +42,10 @@ inline constexpr float_to_string_test_case<float, char> float_to_string_test_cas
     {-float_inf, str::float_format::scientific, "-inf"},
     {float_nan, str::float_format::scientific, "nan"},
     {-float_nan, str::float_format::scientific, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::scientific, "nan"},
     {-float_nan_payload, str::float_format::scientific, "-nan"},
+#endif
     {2.018f, str::float_format::scientific, 3, "2.018e0"},
     {-2.018f, str::float_format::scientific, 3, "-2.018e0"},
 
@@ -54,8 +56,10 @@ inline constexpr float_to_string_test_case<float, char> float_to_string_test_cas
     {-float_inf, str::float_format::fixed, "-inf"},
     {float_nan, str::float_format::fixed, "nan"},
     {-float_nan, str::float_format::fixed, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::fixed, "nan"},
     {-float_nan_payload, str::float_format::fixed, "-nan"},
+#endif
     {2.018f, str::float_format::fixed, 3, "2.018"},
     {-2.018f, str::float_format::fixed, 3, "-2.018"},
 
@@ -66,8 +70,10 @@ inline constexpr float_to_string_test_case<float, char> float_to_string_test_cas
     {-float_inf, str::float_format::general, "-inf"},
     {float_nan, str::float_format::general, "nan"},
     {-float_nan, str::float_format::general, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::general, "nan"},
     {-float_nan_payload, str::float_format::general, "-nan"},
+#endif
     {2.018f, str::float_format::general, "2.018000"},
     {-2.018f, str::float_format::general, "-2.018000"},
 
@@ -78,8 +84,10 @@ inline constexpr float_to_string_test_case<float, char> float_to_string_test_cas
     {-float_inf, str::float_format::hex, "-inf"},
     {float_nan, str::float_format::hex, "nan"},
     {-float_nan, str::float_format::hex, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::hex, "nan"},
     {-float_nan_payload, str::float_format::hex, "-nan"},
+#endif
     {0x1.729p+0f, str::float_format::hex, 3, "1.729p0"},
     {-0x1.729p+0f, str::float_format::hex, 3, "-1.729p0"}
 };

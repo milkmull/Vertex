@@ -85,23 +85,23 @@ private:
 
 #if defined(VX_ENABLE_PROFILING)
 
-#   define VX_PROFILE_START(file) ::vx::profile::start(file)
+    #define VX_PROFILE_START(file)        ::vx::profile::start(file)
     #define VX_PROFILE_START_APPEND(file) ::vx::profile::start(file, false)
-    #define VX_PROFILE_STOP() ::vx::profile::stop()
+    #define VX_PROFILE_STOP()             ::vx::profile::stop()
 
-#   define VX_PROFILE_SCOPE(name) ::vx::profile::_priv::profile_timer timer##VX_LINE(name)
-#   define VX_PROFILE_FUNCTION()  ::vx::profile::_priv::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
+    #define VX_PROFILE_SCOPE(name) ::vx::profile::_priv::profile_timer timer##VX_LINE(name)
+    #define VX_PROFILE_FUNCTION()  ::vx::profile::_priv::profile_timer timer##VX_FUNCTION(VX_FUNCTION)
 
 #else
 
-#   define VX_PROFILE_START(file)
-#   define VX_PROFILE_START_APPEND(file)
-#   define VX_PROFILE_STOP()
+    #define VX_PROFILE_START(file)
+    #define VX_PROFILE_START_APPEND(file)
+    #define VX_PROFILE_STOP()
 
-#   define VX_PROFILE_SCOPE(name)
-#   define VX_PROFILE_FUNCTION()
+    #define VX_PROFILE_SCOPE(name)
+    #define VX_PROFILE_FUNCTION()
 
 #endif
 
-}
-}
+} // namespace profile
+} // namespace vx

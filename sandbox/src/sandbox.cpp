@@ -443,6 +443,12 @@ int main()
 {
     VX_PROFILE_START("scientific_float.csv");
 
+    constexpr auto x = '0';
+    constexpr auto y = '_';
+
+    constexpr auto x1 = x | 0x20;
+    constexpr auto y1 = y | 0x20;
+
     vx::random::gen rng;
 
     //constexpr float f = FLT_MAX;

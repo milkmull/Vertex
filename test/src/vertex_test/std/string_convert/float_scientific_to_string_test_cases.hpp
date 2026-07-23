@@ -42,8 +42,10 @@ inline constexpr float_to_string_test_case<float, char> float_scientific_to_stri
     {-float_inf, str::float_format::scientific, 4, "-inf"},
     {float_nan, str::float_format::scientific, 4, "nan"},
     {-float_nan, str::float_format::scientific, 4, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::scientific, 4, "nan"},
     {-float_nan_payload, str::float_format::scientific, 4, "-nan"},
+#endif
     {1.729f, str::float_format::scientific, 4, "1.7290e0"},
     {-1.729f, str::float_format::scientific, 4, "-1.7290e0"},
 

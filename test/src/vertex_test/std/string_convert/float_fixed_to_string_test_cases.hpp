@@ -42,8 +42,10 @@ inline constexpr float_to_string_test_case<float, char> float_fixed_to_string_te
     {-float_inf, str::float_format::fixed, 4, "-inf"},
     {float_nan, str::float_format::fixed, 4, "nan"},
     {-float_nan, str::float_format::fixed, 4, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {float_nan_payload, str::float_format::fixed, 4, "nan"},
     {-float_nan_payload, str::float_format::fixed, 4, "-nan"},
+#endif
     {1.729f, str::float_format::fixed, 4, "1.7290"},
     {-1.729f, str::float_format::fixed, 4, "-1.7290"},
 

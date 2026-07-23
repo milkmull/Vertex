@@ -112,7 +112,6 @@ struct non_trivial_type
 
 //=========================================================================
 
-
 static constexpr size_t RR = 500; // number of repetitions
 // this needs to stay small enough to not trigger std::vector alignment optimization
 static constexpr size_t NN = 100; // number of elements

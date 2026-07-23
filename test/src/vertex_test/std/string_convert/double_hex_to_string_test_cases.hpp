@@ -12,8 +12,10 @@ inline constexpr float_to_string_test_case<double, char> double_hex_to_string_te
     {-double_inf, str::float_format::hex, 4, "-inf"},
     {double_nan, str::float_format::hex, 4, "nan"},
     {-double_nan, str::float_format::hex, 4, "-nan(ind)"},
+#if defined(VX_HAS_NAN_PAYLOAD)
     {double_nan_payload, str::float_format::hex, 4, "nan"},
     {-double_nan_payload, str::float_format::hex, 4, "-nan"},
+#endif
     {0x1.729p+0, str::float_format::hex, 4, "1.7290p0"},
     {-0x1.729p+0, str::float_format::hex, 4, "-1.7290p0"},
 

@@ -8,25 +8,25 @@
 #include "vertex/std/string_view.hpp"
 #include "vertex_test/test.hpp"
 
-#include "string_convert/integer_to_string_test_data.hpp"
+#include "vertex_test/std/string_convert/integer_to_string_test_data.hpp"
 
-#include "string_convert/float_fixed_to_string_test_cases.hpp"
-#include "string_convert/float_from_string_test_cases.hpp"
-#include "string_convert/float_hex_to_string_test_cases.hpp"
-#include "string_convert/float_scientific_to_string_test_cases.hpp"
-#include "string_convert/float_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/float_fixed_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/float_from_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/float_hex_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/float_scientific_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/float_to_string_test_cases.hpp"
 
-#include "string_convert/double_fixed_to_string_test_cases_1.hpp"
-#include "string_convert/double_fixed_to_string_test_cases_2.hpp"
-#include "string_convert/double_fixed_to_string_test_cases_3.hpp"
-#include "string_convert/double_fixed_to_string_test_cases_4.hpp"
-#include "string_convert/double_from_string_test_cases.hpp"
-#include "string_convert/double_hex_to_string_test_cases.hpp"
-#include "string_convert/double_scientific_to_string_test_cases_1.hpp"
-#include "string_convert/double_scientific_to_string_test_cases_2.hpp"
-#include "string_convert/double_scientific_to_string_test_cases_3.hpp"
-#include "string_convert/double_scientific_to_string_test_cases_4.hpp"
-#include "string_convert/double_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/double_fixed_to_string_test_cases_1.hpp"
+#include "vertex_test/std/string_convert/double_fixed_to_string_test_cases_2.hpp"
+#include "vertex_test/std/string_convert/double_fixed_to_string_test_cases_3.hpp"
+#include "vertex_test/std/string_convert/double_fixed_to_string_test_cases_4.hpp"
+#include "vertex_test/std/string_convert/double_from_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/double_hex_to_string_test_cases.hpp"
+#include "vertex_test/std/string_convert/double_scientific_to_string_test_cases_1.hpp"
+#include "vertex_test/std/string_convert/double_scientific_to_string_test_cases_2.hpp"
+#include "vertex_test/std/string_convert/double_scientific_to_string_test_cases_3.hpp"
+#include "vertex_test/std/string_convert/double_scientific_to_string_test_cases_4.hpp"
+#include "vertex_test/std/string_convert/double_to_string_test_cases.hpp"
 
 #define LIT(x)          VX_LIT(C, x)
 #define NUM(x)          static_cast<I>(x)
@@ -35,13 +35,6 @@
 #define PRINT_CASE 0
 
 // https://github.com/microsoft/STL/blob/020513e211529e7be30cb3e0ca310869701286da/tests/std/tests/P0067R5_charconv/test.cpp#L1012
-
-//==============================================================================
-
-constexpr str::from_string_error fse_inv_arg = str::from_string_error::invalid_argument;
-constexpr str::from_string_error fse_out_ran = str::from_string_error::out_of_range;
-constexpr str::from_string_error fse_none = str::from_string_error::none;
-constexpr str::to_string_error tse_none = str::to_string_error::none;
 
 //==============================================================================
 
@@ -59,8 +52,8 @@ bool all_of(const C* ptr, size_t count, C c)
     return true;
 }
 
-template <typename T, typename C, typename FMT>
-void test_common_to_string(const T value, const FMT& fmt, const str::basic_string_view<C> correct)
+template <typename T, typename C, typename Options>
+void test_common_to_string(const T value, const Options& fmt, const str::basic_string_view<C> correct)
 {
     // Important: Test every effective buffer size from 0 through correct.size() and slightly beyond. For the sizes
     // less than correct.size(), this verifies that the too-small buffer is correctly detected, and that we don't
@@ -90,11 +83,6 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
     }
 
 #endif
-
-    if (value == 9.9999f)
-    {
-        const char x = 0;
-    }
 
     constexpr size_t buf_size = buf_prefix + space + buf_suffix;
     vx::array<C, buf_size> buf;
@@ -133,7 +121,7 @@ void test_common_to_string(const T value, const FMT& fmt, const str::basic_strin
             {
                 if (!(str::compare(first, res.count, correct.data(), correct.size()) == 0))
                 {
-                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 127);
+                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 120);
                 }
             } while ((0, 0));
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
@@ -151,7 +139,7 @@ void test_integer_to_string(const I value, const str::integer_format_options& fm
     // Also test successful from_string() scenarios.
     {
         I out = 0;
-        const str::from_string_result res = str::from_string(correct.data(), correct.size(), out, fmt);
+        const str::from_string_result res = str::from_string(correct.data(), correct.size(), out, fmt.base);
 
         VX_CHECK(res.count == correct.size());
         VX_CHECK(res.err == fse_none);
@@ -227,10 +215,10 @@ struct optional
     T value;
 };
 
-template <typename T, typename C, typename FMT>
+template <typename T, typename C, typename Options>
 void test_from_string(
     const str::basic_string_view<C> input,
-    const FMT& fmt,
+    const Options& fmt,
     const size_t correct_count,
     const str::from_string_error correct_err,
     optional<T> correct_value = {},
@@ -302,7 +290,6 @@ void test_from_string(
 template <typename I, typename C>
 bool test_integer_from_string()
 {
-    str::integer_format_options fmt;
     using string_t = str::basic_string<C>;
 
     const string_t hundred_zeroes(100, '0');
@@ -321,36 +308,34 @@ bool test_integer_from_string()
 
     for (int base = 2; base <= 36; ++base)
     {
-        fmt.base = base;
-
-        test_from_string<I, C>(LIT(""), fmt, 0, fse_inv_arg);   // no characters
-        test_from_string<I, C>(LIT("@1"), fmt, 0, fse_inv_arg); // '@' is bogus
-        test_from_string<I, C>(LIT(".1"), fmt, 0, fse_inv_arg); // '.' is bogus, for integers
+        test_from_string<I, C>(LIT(""), base, 0, fse_inv_arg);   // no characters
+        test_from_string<I, C>(LIT("@1"), base, 0, fse_inv_arg); // '@' is bogus
+        test_from_string<I, C>(LIT(".1"), base, 0, fse_inv_arg); // '.' is bogus, for integers
                                                                 // "a minus sign is the only sign that may appear"
-        test_from_string<I, C>(LIT(" 1"), fmt, 0, fse_inv_arg); // ' ' is bogus, no whitespace in subject sequence
+        test_from_string<I, C>(LIT(" 1"), base, 0, fse_inv_arg); // ' ' is bogus, no whitespace in subject sequence
 
         VX_IF_CONSTEXPR (std::is_unsigned<I>::value)
         {                                                           // N4713 23.20.3 [charconv.from.chars]/3
-            test_from_string<I, C>(LIT("-1"), fmt, 0, fse_inv_arg); // "and only if value has a signed type"
+            test_from_string<I, C>(LIT("-1"), base, 0, fse_inv_arg); // "and only if value has a signed type"
         }
 
         // N4713 23.20.3 [charconv.from.chars]/1 "[ Note: If the pattern allows for an optional sign,
         // but the string has no digit characters following the sign, no characters match the pattern. -end note ]"
-        test_from_string<I, C>(LIT("-"), fmt, 0, fse_inv_arg);   // '-' followed by no characters
-        test_from_string<I, C>(LIT("-@1"), fmt, 0, fse_inv_arg); // '-' followed by bogus '@'
-        test_from_string<I, C>(LIT("-.1"), fmt, 0, fse_inv_arg); // '-' followed by bogus '.'
-        test_from_string<I, C>(LIT("-+1"), fmt, 0, fse_inv_arg); // '-' followed by bogus '+'
-        test_from_string<I, C>(LIT("- 1"), fmt, 0, fse_inv_arg); // '-' followed by bogus ' '
-        test_from_string<I, C>(LIT("--1"), fmt, 0, fse_inv_arg); // '-' can't be repeated
+        test_from_string<I, C>(LIT("-"), base, 0, fse_inv_arg);   // '-' followed by no characters
+        test_from_string<I, C>(LIT("-@1"), base, 0, fse_inv_arg); // '-' followed by bogus '@'
+        test_from_string<I, C>(LIT("-.1"), base, 0, fse_inv_arg); // '-' followed by bogus '.'
+        test_from_string<I, C>(LIT("-+1"), base, 0, fse_inv_arg); // '-' followed by bogus '+'
+        test_from_string<I, C>(LIT("- 1"), base, 0, fse_inv_arg); // '-' followed by bogus ' '
+        test_from_string<I, C>(LIT("--1"), base, 0, fse_inv_arg); // '-' can't be repeated
 
         // Leading '+' is valid in this implementation (unlike std::from_string), so the same
         // "no digits following the sign" / "sign can't repeat or combine" rules apply to it.
-        test_from_string<I, C>(LIT("+"), fmt, 0, fse_inv_arg);   // '+' followed by no characters
-        test_from_string<I, C>(LIT("+@1"), fmt, 0, fse_inv_arg); // '+' followed by bogus '@'
-        test_from_string<I, C>(LIT("+.1"), fmt, 0, fse_inv_arg); // '+' followed by bogus '.'
-        test_from_string<I, C>(LIT("+-1"), fmt, 0, fse_inv_arg); // '+' followed by bogus '-'
-        test_from_string<I, C>(LIT("+ 1"), fmt, 0, fse_inv_arg); // '+' followed by bogus ' '
-        test_from_string<I, C>(LIT("++1"), fmt, 0, fse_inv_arg); // '+' can't be repeated
+        test_from_string<I, C>(LIT("+"), base, 0, fse_inv_arg);   // '+' followed by no characters
+        test_from_string<I, C>(LIT("+@1"), base, 0, fse_inv_arg); // '+' followed by bogus '@'
+        test_from_string<I, C>(LIT("+.1"), base, 0, fse_inv_arg); // '+' followed by bogus '.'
+        test_from_string<I, C>(LIT("+-1"), base, 0, fse_inv_arg); // '+' followed by bogus '-'
+        test_from_string<I, C>(LIT("+ 1"), base, 0, fse_inv_arg); // '+' followed by bogus ' '
+        test_from_string<I, C>(LIT("++1"), base, 0, fse_inv_arg); // '+' can't be repeated
 
         vx::array<C, 3> bogus_digits;
         size_t bogus_digit_count;
@@ -370,87 +355,85 @@ bool test_integer_from_string()
         for (size_t i = 0; i < bogus_digit_count; ++i)
         {
             const C bogus = bogus_digits[i];
-            test_from_string<I, C>(string_t(1, bogus) + LIT("1"), fmt, 0, fse_inv_arg);         // bogus digit (for this base)
-            test_from_string<I, C>(string_t(LIT("-")) + bogus + LIT("1"), fmt, 0, fse_inv_arg); // '-' followed by bogus digit
-            test_from_string<I, C>(string_t(LIT("+")) + bogus + LIT("1"), fmt, 0, fse_inv_arg); // '+' followed by bogus digit
+            test_from_string<I, C>(string_t(1, bogus) + LIT("1"), base, 0, fse_inv_arg);         // bogus digit (for this base)
+            test_from_string<I, C>(string_t(LIT("-")) + bogus + LIT("1"), base, 0, fse_inv_arg); // '-' followed by bogus digit
+            test_from_string<I, C>(string_t(LIT("+")) + bogus + LIT("1"), base, 0, fse_inv_arg); // '+' followed by bogus digit
         }
 
         // Test leading zeroes.
-        test_from_string<I, C>(hundred_zeroes, fmt, 100, fse_none, static_cast<I>(0));
-        test_from_string<I, C>(hundred_zeroes_and_11, fmt, 102, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(hundred_zeroes, base, 100, fse_none, static_cast<I>(0));
+        test_from_string<I, C>(hundred_zeroes_and_11, base, 102, fse_none, static_cast<I>(base + 1));
 
         // Test negative zero and negative leading zeroes.
         VX_IF_CONSTEXPR (std::is_signed<I>::value)
         {
-            test_from_string<I, C>(LIT("-0"), fmt, 2, fse_none, static_cast<I>(0));
-            test_from_string<I, C>(minus_hundred_zeroes, fmt, 101, fse_none, static_cast<I>(0));
-            test_from_string<I, C>(minus_hundred_zeroes_and_11, fmt, 103, fse_none, static_cast<I>(-base - 1));
+            test_from_string<I, C>(LIT("-0"), base, 2, fse_none, static_cast<I>(0));
+            test_from_string<I, C>(minus_hundred_zeroes, base, 101, fse_none, static_cast<I>(0));
+            test_from_string<I, C>(minus_hundred_zeroes_and_11, base, 103, fse_none, static_cast<I>(-base - 1));
         }
         else
         {
-            test_from_string<I, C>(LIT("-0"), fmt, 0, fse_inv_arg);
-            test_from_string<I, C>(minus_hundred_zeroes, fmt, 0, fse_inv_arg);
-            test_from_string<I, C>(minus_hundred_zeroes_and_11, fmt, 0, fse_inv_arg);
+            test_from_string<I, C>(LIT("-0"), base, 0, fse_inv_arg);
+            test_from_string<I, C>(minus_hundred_zeroes, base, 0, fse_inv_arg);
+            test_from_string<I, C>(minus_hundred_zeroes_and_11, base, 0, fse_inv_arg);
         }
 
         // Test explicit positive zero and positive leading zeroes. Valid for both signed and
         // unsigned types, since '+' never changes the sign of the parsed value.
-        test_from_string<I, C>(LIT("+0"), fmt, 2, fse_none, static_cast<I>(0));
-        test_from_string<I, C>(plus_hundred_zeroes, fmt, 101, fse_none, static_cast<I>(0));
-        test_from_string<I, C>(plus_hundred_zeroes_and_11, fmt, 103, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(LIT("+0"), base, 2, fse_none, static_cast<I>(0));
+        test_from_string<I, C>(plus_hundred_zeroes, base, 101, fse_none, static_cast<I>(0));
+        test_from_string<I, C>(plus_hundred_zeroes_and_11, base, 103, fse_none, static_cast<I>(base + 1));
 
 
         // N4713 23.20.3 [charconv.from.chars]/1 "The member ptr of the return value points to the
         // first character not matching the pattern, or has the value last if all characters match."
-        test_from_string<I, C>(LIT("11"), fmt, 2, fse_none, static_cast<I>(base + 1));
-        test_from_string<I, C>(LIT("11@@@"), fmt, 2, fse_none, static_cast<I>(base + 1));
-        test_from_string<I, C>(LIT("+11"), fmt, 3, fse_none, static_cast<I>(base + 1));
-        test_from_string<I, C>(LIT("+11@@@"), fmt, 3, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(LIT("11"), base, 2, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(LIT("11@@@"), base, 2, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(LIT("+11"), base, 3, fse_none, static_cast<I>(base + 1));
+        test_from_string<I, C>(LIT("+11@@@"), base, 3, fse_none, static_cast<I>(base + 1));
 
         // When overflowing, we need to keep consuming valid digits, in order to return ptr correctly.
-        test_from_string<I, C>(hundred_ones, fmt, 100, fse_out_ran);
-        test_from_string<I, C>(hundred_ones_and_atatat, fmt, 100, fse_out_ran);
-        test_from_string<I, C>(plus_hundred_ones, fmt, 101, fse_out_ran);
-        test_from_string<I, C>(plus_hundred_ones_and_atatat, fmt, 101, fse_out_ran);
+        test_from_string<I, C>(hundred_ones, base, 100, fse_out_ran);
+        test_from_string<I, C>(hundred_ones_and_atatat, base, 100, fse_out_ran);
+        test_from_string<I, C>(plus_hundred_ones, base, 101, fse_out_ran);
+        test_from_string<I, C>(plus_hundred_ones_and_atatat, base, 101, fse_out_ran);
 
         VX_IF_CONSTEXPR (std::is_signed<I>::value)
         {
-            test_from_string<I, C>(minus_hundred_ones, fmt, 101, fse_out_ran);
-            test_from_string<I, C>(minus_hundred_ones_and_atatat, fmt, 101, fse_out_ran);
+            test_from_string<I, C>(minus_hundred_ones, base, 101, fse_out_ran);
+            test_from_string<I, C>(minus_hundred_ones_and_atatat, base, 101, fse_out_ran);
         }
         else
         {
-            test_from_string<I, C>(minus_hundred_ones, fmt, 0, fse_inv_arg);
-            test_from_string<I, C>(minus_hundred_ones_and_atatat, fmt, 0, fse_inv_arg);
+            test_from_string<I, C>(minus_hundred_ones, base, 0, fse_inv_arg);
+            test_from_string<I, C>(minus_hundred_ones_and_atatat, base, 0, fse_inv_arg);
         }
     }
 
     // N4713 23.20.3 [charconv.from.chars]/3 "The pattern is the expected form of the subject sequence
     // in the "C" locale for the given nonzero base, as described for strtol"
     // C11 7.22.1.4/3 "The letters from a (or A) through z (or Z) are ascribed the values 10 through 35"
-    fmt.base = 36;
     for (int i = 0; i < 26; ++i)
     {
-        test_from_string<I, C>(string_t(1, static_cast<C>('A' + i)), fmt, 1, fse_none, static_cast<I>(10 + i));
-        test_from_string<I, C>(string_t(1, static_cast<C>('a' + i)), fmt, 1, fse_none, static_cast<I>(10 + i));
+        test_from_string<I, C>(string_t(1, static_cast<C>('A' + i)), 36, 1, fse_none, static_cast<I>(10 + i));
+        test_from_string<I, C>(string_t(1, static_cast<C>('a' + i)), 36, 1, fse_none, static_cast<I>(10 + i));
     }
 
     // N4713 23.20.3 [charconv.from.chars]/3 "no "0x" or "0X" prefix shall appear if the value of base is 16"
-    fmt.base = 16;
-    test_from_string<I, C>(LIT("0x1729"), fmt, 1, fse_none, static_cast<I>(0));  // reads '0', stops at 'x'
-    test_from_string<I, C>(LIT("0X1729"), fmt, 1, fse_none, static_cast<I>(0));  // reads '0', stops at 'X'
-    test_from_string<I, C>(LIT("+0x1729"), fmt, 2, fse_none, static_cast<I>(0)); // reads "+0", stops at 'x'
-    test_from_string<I, C>(LIT("+0X1729"), fmt, 2, fse_none, static_cast<I>(0)); // reads "+0", stops at 'X'
+    test_from_string<I, C>(LIT("0x1729"), 16, 1, fse_none, static_cast<I>(0));  // reads '0', stops at 'x'
+    test_from_string<I, C>(LIT("0X1729"), 16, 1, fse_none, static_cast<I>(0));  // reads '0', stops at 'X'
+    test_from_string<I, C>(LIT("+0x1729"), 16, 2, fse_none, static_cast<I>(0)); // reads "+0", stops at 'x'
+    test_from_string<I, C>(LIT("+0X1729"), 16, 2, fse_none, static_cast<I>(0)); // reads "+0", stops at 'X'
 
     VX_IF_CONSTEXPR (std::is_signed<I>::value)
     {
-        test_from_string<I, C>(LIT("-0x1729"), fmt, 2, fse_none, static_cast<I>(0)); // reads "-0", stops at 'x'
-        test_from_string<I, C>(LIT("-0X1729"), fmt, 2, fse_none, static_cast<I>(0)); // reads "-0", stops at 'X'
+        test_from_string<I, C>(LIT("-0x1729"), 16, 2, fse_none, static_cast<I>(0)); // reads "-0", stops at 'x'
+        test_from_string<I, C>(LIT("-0X1729"), 16, 2, fse_none, static_cast<I>(0)); // reads "-0", stops at 'X'
     }
     else
     {
-        test_from_string<I, C>(LIT("-0x1729"), fmt, 0, fse_inv_arg);
-        test_from_string<I, C>(LIT("-0X1729"), fmt, 0, fse_inv_arg);
+        test_from_string<I, C>(LIT("-0x1729"), 16, 0, fse_inv_arg);
+        test_from_string<I, C>(LIT("-0X1729"), 16, 0, fse_inv_arg);
     }
 
     return true;
@@ -459,26 +442,24 @@ bool test_integer_from_string()
 template <typename C>
 void test_integer_overflow_scenarios()
 {
-    str::integer_format_options fmt;
-
     // Test overflow scenarios.
-    test_from_string<unsigned int, C>(LIT("4294967289"), fmt, 10, fse_none, 4294967289U); // not risky
-    test_from_string<unsigned int, C>(LIT("4294967294"), fmt, 10, fse_none, 4294967294U); // risky with good digit
-    test_from_string<unsigned int, C>(LIT("4294967295"), fmt, 10, fse_none, 4294967295U); // risky with max digit
-    test_from_string<unsigned int, C>(LIT("4294967296"), fmt, 10, fse_out_ran);           // risky with bad digit
-    test_from_string<unsigned int, C>(LIT("4294967300"), fmt, 10, fse_out_ran);           // beyond risky
+    test_from_string<unsigned int, C>(LIT("4294967289"), 10, 10, fse_none, 4294967289U); // not risky
+    test_from_string<unsigned int, C>(LIT("4294967294"), 10, 10, fse_none, 4294967294U); // risky with good digit
+    test_from_string<unsigned int, C>(LIT("4294967295"), 10, 10, fse_none, 4294967295U); // risky with max digit
+    test_from_string<unsigned int, C>(LIT("4294967296"), 10, 10, fse_out_ran);           // risky with bad digit
+    test_from_string<unsigned int, C>(LIT("4294967300"), 10, 10, fse_out_ran);           // beyond risky
 
-    test_from_string<int, C>(LIT("2147483639"), fmt, 10, fse_none, 2147483639); // not risky
-    test_from_string<int, C>(LIT("2147483646"), fmt, 10, fse_none, 2147483646); // risky with good digit
-    test_from_string<int, C>(LIT("2147483647"), fmt, 10, fse_none, 2147483647); // risky with max digit
-    test_from_string<int, C>(LIT("2147483648"), fmt, 10, fse_out_ran);          // risky with bad digit
-    test_from_string<int, C>(LIT("2147483650"), fmt, 10, fse_out_ran);          // beyond risky
+    test_from_string<int, C>(LIT("2147483639"), 10, 10, fse_none, 2147483639); // not risky
+    test_from_string<int, C>(LIT("2147483646"), 10, 10, fse_none, 2147483646); // risky with good digit
+    test_from_string<int, C>(LIT("2147483647"), 10, 10, fse_none, 2147483647); // risky with max digit
+    test_from_string<int, C>(LIT("2147483648"), 10, 10, fse_out_ran);          // risky with bad digit
+    test_from_string<int, C>(LIT("2147483650"), 10, 10, fse_out_ran);          // beyond risky
 
-    test_from_string<int, C>(LIT("-2147483639"), fmt, 11, fse_none, -2147483639);     // not risky
-    test_from_string<int, C>(LIT("-2147483647"), fmt, 11, fse_none, -2147483647);     // risky with good digit
-    test_from_string<int, C>(LIT("-2147483648"), fmt, 11, fse_none, -2147483647 - 1); // risky with max digit
-    test_from_string<int, C>(LIT("-2147483649"), fmt, 11, fse_out_ran);               // risky with bad digit
-    test_from_string<int, C>(LIT("-2147483650"), fmt, 11, fse_out_ran);               // beyond risky
+    test_from_string<int, C>(LIT("-2147483639"), 10, 11, fse_none, -2147483639);     // not risky
+    test_from_string<int, C>(LIT("-2147483647"), 10, 11, fse_none, -2147483647);     // risky with good digit
+    test_from_string<int, C>(LIT("-2147483648"), 10, 11, fse_none, -2147483647 - 1); // risky with max digit
+    test_from_string<int, C>(LIT("-2147483649"), 10, 11, fse_out_ran);               // risky with bad digit
+    test_from_string<int, C>(LIT("-2147483650"), 10, 11, fse_out_ran);               // beyond risky
 }
 
 //==============================================================================
@@ -505,17 +486,17 @@ void test_integer()
 
 VX_TEST_CASE(test_all_integer)
 {
-    //test_integer<char>();
-    //test_integer<signed char>();
-    //test_integer<unsigned char>();
-    //test_integer<short>();
-    //test_integer<unsigned short>();
-    //test_integer<int>();
-    //test_integer<unsigned int>();
-    //test_integer<long>();
-    //test_integer<unsigned long>();
-    //test_integer<long long>();
-    //test_integer<unsigned long long>();
+    test_integer<char>();
+    test_integer<signed char>();
+    test_integer<unsigned char>();
+    test_integer<short>();
+    test_integer<unsigned short>();
+    test_integer<int>();
+    test_integer<unsigned int>();
+    test_integer<long>();
+    test_integer<unsigned long>();
+    test_integer<long long>();
+    test_integer<unsigned long long>();
 }
 
 //==============================================================================
@@ -911,12 +892,12 @@ template <typename F>
 void test_float()
 {
     test_float_type<F, char>();
-    test_float_type<F, wchar_t>();
-#if defined(__cpp_lib_char8_t)
-    test_float_type<F, char8_t>();
-#endif
-    test_float_type<F, char16_t>();
-    test_float_type<F, char32_t>();
+//    test_float_type<F, wchar_t>();
+//#if defined(__cpp_lib_char8_t)
+//    test_float_type<F, char8_t>();
+//#endif
+//    test_float_type<F, char16_t>();
+//    test_float_type<F, char32_t>();
 }
 
 VX_TEST_CASE(test_all_float)

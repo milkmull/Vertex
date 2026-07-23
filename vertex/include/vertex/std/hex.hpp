@@ -21,6 +21,11 @@ VX_NO_DISCARD constexpr C digit_c() noexcept
     return static_cast<C>(digits[N]);
 }
 
+enum : int
+{
+    invalid_value = -1
+};
+
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
 VX_NO_DISCARD constexpr int value(C c) noexcept
 {
@@ -35,7 +40,19 @@ VX_NO_DISCARD constexpr int value(C c) noexcept
         return c - static_cast<C>('a') + 10;
     }
 
-    return -1;
+    return invalid_value;
+}
+
+template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
+VX_NO_DISCARD constexpr int value_unchecked(C c) noexcept
+{
+    if (c <= static_cast<C>('9'))
+    {
+        return c - static_cast<C>('0');
+    }
+
+    c = static_cast<C>(c | 0x20);
+    return c - static_cast<C>('a') + 10;
 }
 
 VX_NO_DISCARD constexpr bool is_hex(char c) noexcept
