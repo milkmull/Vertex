@@ -11,7 +11,7 @@ x string view
 x static string
 x string
 
-- numeric printing
+x numeric printing
 - io
 - string format
 - packed string array
