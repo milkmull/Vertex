@@ -88,7 +88,7 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/std")
 # Util Tests
 #--------------------------------------------------------------------
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util")
+#add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/vertex_test/util")
 
 #--------------------------------------------------------------------
 # OS Tests

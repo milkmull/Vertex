@@ -22,6 +22,8 @@ x numeric printing
 - unordered_map
 - bitfield
 - type_traits
+- locale
+- locale
 
 x unique_ptr
 - shared_ptr
