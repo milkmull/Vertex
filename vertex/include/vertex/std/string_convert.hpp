@@ -45,12 +45,25 @@ struct from_string_result
     from_string_error err;
 };
 
+//==============================================================================
+
 namespace _string_convert_priv {
 
 template <typename C>
 constexpr C make_case_mask(bool uppercase) noexcept
 {
-    return uppercase ? static_cast<C>(~C{ 0x20 }) : static_cast<C>(~C{ 0 });
+    return uppercase ? ~C{ 0x20 } : ~C{ 0 };
+}
+
+template <typename C>
+constexpr C alnum_to_upper(C c) noexcept
+{
+    if (c <= static_cast<C>('9'))
+    {
+        return c;
+    }
+
+    return str::to_upper_ascii_unchecked(c);
 }
 
 } // namespace _string_convert_priv
@@ -68,16 +81,14 @@ to_string_result to_hex_string(const void* data, const size_t size, C* buf, cons
         return { 0, to_string_error::buffer_too_small };
     }
 
-    const C case_mask = _string_convert_priv::make_case_mask<C>(uppercase);
-
     const uint8_t* bytes = reinterpret_cast<const uint8_t*>(data);
     for (size_t i = 0; i < size; ++i)
     {
         const C c1 = hex::digits[(bytes[i] >> 4) & 0xF]; // High nibble
         const C c2 = hex::digits[(bytes[i] >> 0) & 0xF]; // Low nibble
 
-        *buf++ = c1 & case_mask;
-        *buf++ = c2 & case_mask;
+        *buf++ = uppercase ? _string_convert_priv::alnum_to_upper(c1) : c1;
+        *buf++ = uppercase ? _string_convert_priv::alnum_to_upper(c2) : c2;
     }
 
     return { needed, to_string_error::none };
@@ -307,13 +318,12 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
         return { 0, to_string_error::buffer_too_small };
     }
 
-    const C case_mask = _string_convert_priv::make_case_mask<C>(fmt.uppercase);
     size_t i = needed;
 
     do
     {
         const char c = _string_convert_priv::int_digits[uvalue % ubase];
-        buf[--i] = static_cast<C>(c & case_mask);
+        buf[--i] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
     } while (uvalue);
@@ -1228,24 +1238,22 @@ constexpr float_write_status write_float_start(
             return float_write_status::failed;
         }
 
-        const C ccase_mask = uppercase
-            ? static_cast<C>(~C{ 0x20 })
-            : static_cast<C>(~C{ 0 });
+        const C case_mask = make_case_mask<C>(uppercase);
 
-        const C n_val = static_cast<C>('n') & ccase_mask;
+        const C n_val = static_cast<C>('n') & case_mask;
 
         // inf
         if (fb.m_bits == 0)
         {
-            buf[n++] = static_cast<C>('i') & ccase_mask;
+            buf[n++] = static_cast<C>('i') & case_mask;
             buf[n++] = n_val;
-            buf[n++] = static_cast<C>('f') & ccase_mask;
+            buf[n++] = static_cast<C>('f') & case_mask;
         }
         // nan
         else
         {
             buf[n++] = n_val;
-            buf[n++] = static_cast<C>('a') & ccase_mask;
+            buf[n++] = static_cast<C>('a') & case_mask;
             buf[n++] = n_val;
 
 #if defined(VX_STRING_CONVERT_IND_NAN)
@@ -1259,9 +1267,9 @@ constexpr float_write_status write_float_start(
                 }
 
                 buf[n++] = static_cast<C>('(');
-                buf[n++] = static_cast<C>('i') & ccase_mask;
+                buf[n++] = static_cast<C>('i') & case_mask;
                 buf[n++] = n_val;
-                buf[n++] = static_cast<C>('d') & ccase_mask;
+                buf[n++] = static_cast<C>('d') & case_mask;
                 buf[n++] = static_cast<C>(')');
             }
 
@@ -1282,9 +1290,9 @@ constexpr float_write_status write_float_start(
                 }
 
                 buf[n++] = static_cast<C>('(');
-                buf[n++] = static_cast<C>('s') & ccase_mask;
+                buf[n++] = static_cast<C>('s') & case_mask;
                 buf[n++] = n_val;
-                buf[n++] = static_cast<C>('a') & ccase_mask;
+                buf[n++] = static_cast<C>('a') & case_mask;
                 buf[n++] = n_val;
                 buf[n++] = static_cast<C>(')');
             }
@@ -2197,11 +2205,11 @@ constexpr size_t write_float_scientific_impl(const float_bits<F>& fb, C* buf, co
 //==============================================================================
 
 template <typename C>
-constexpr C round_hex_low(C c, const C ccase_mask) noexcept
+constexpr C round_hex_low(C c, const C case_mask) noexcept
 {
     if (c == static_cast<C>('9'))
     {
-        return static_cast<C>('a') & ccase_mask;
+        return static_cast<C>('a') & case_mask;
     }
     return c + 1;
 }
@@ -2228,15 +2236,17 @@ inline constexpr bool hex_should_round_up(uint32_t last_digit, uint32_t round_di
 }
 
 template <typename C>
-constexpr void hex_carry_round(C* ptr, size_t leading_char_count, const C ccase_mask) noexcept
+constexpr void hex_carry_round(C* ptr, size_t leading_char_count, bool uppercase) noexcept
 {
+    const C case_mask = make_case_mask<C>(uppercase);
+
     // fractional hex digits (skipped entirely if leading_char_count == 1)
     for (size_t i = leading_char_count - 1; i > 1; --i)
     {
         const C c = ptr[i];
-        if (c != (static_cast<C>('f') & ccase_mask))
+        if (c != (static_cast<C>('f') & case_mask))
         {
-            ptr[i] = round_hex_low(c, ccase_mask);
+            ptr[i] = round_hex_low(c, case_mask);
             return;
         }
 
@@ -2298,10 +2308,6 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         return 0;
     }
 
-    const C ccase_mask = fmt.uppercase
-        ? static_cast<C>(~C{ 0x20 })
-        : static_cast<C>(~C{ 0 });
-
     buf[0] = static_cast<C>(hex::digits[leading_one]);
 
     const size_t avail_digits = (precision < static_cast<size_t>(hex_digits))
@@ -2318,7 +2324,7 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         {
             last_digit = static_cast<uint32_t>((frac >> topshift) & 0xF);
             const char c = hex::digits[last_digit];
-            buf[2 + i] = static_cast<C>(c) & ccase_mask;
+            buf[2 + i] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
             frac <<= 4;
         }
 
@@ -2338,13 +2344,13 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
 
         if (hex_should_round_up(last_digit, guard, sticky))
         {
-            hex_carry_round(buf, leading_char_count, ccase_mask);
+            hex_carry_round(buf, leading_char_count, fmt.uppercase);
         }
     }
 
     size_t n = leading_char_count;
-    buf[n++] = static_cast<C>('p') & ccase_mask;
-    if (exp_sign != 0)
+    buf[n++] = static_cast<C>(fmt.uppercase ? 'P' : 'p');
+    if (exp_sign != 0 || fmt.force_exp_sign)
     {
         buf[n++] = static_cast<C>(exp_sign);
     }
@@ -3743,12 +3749,10 @@ to_string_result to_string(I value, S& out, const integer_format_options& fmt = 
     size_t count = _string_convert_priv::digit_count(uvalue, ubase) + static_cast<size_t>(sign);
     out.resize(count, 0);
 
-    const C case_mask = _string_convert_priv::make_case_mask<C>(fmt.uppercase);
-
     do
     {
         const char c = _string_convert_priv::int_digits[uvalue % ubase];
-        out[--count] = static_cast<C>(c & case_mask);
+        out[--count] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
     } while (uvalue);

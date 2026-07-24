@@ -1,4 +1,5 @@
 #include <cstdint>
+#include <string>
 
 #define VX_STRING_CONVERT_IND_NAN
 #define VX_STRING_CONVERT_SNAN
@@ -117,13 +118,7 @@ void test_common_to_string(const T value, const Options& fmt, const str::basic_s
             VX_CHECK(res.count == correct.size());
             VX_CHECK(res.err == str::to_string_error::none);
             VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
-            do
-            {
-                if (!(str::compare(first, res.count, correct.data(), correct.size()) == 0))
-                {
-                    ::vx::test::fail_test("str::compare(first, res.count, correct.data(), correct.size()) == 0", __func__, 120);
-                }
-            } while ((0, 0));
+            VX_CHECK(str::compare(first, res.count, correct.data(), correct.size()) == 0);
             VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
         }
     }
@@ -311,11 +306,11 @@ bool test_integer_from_string()
         test_from_string<I, C>(LIT(""), base, 0, fse_inv_arg);   // no characters
         test_from_string<I, C>(LIT("@1"), base, 0, fse_inv_arg); // '@' is bogus
         test_from_string<I, C>(LIT(".1"), base, 0, fse_inv_arg); // '.' is bogus, for integers
-                                                                // "a minus sign is the only sign that may appear"
+                                                                 // "a minus sign is the only sign that may appear"
         test_from_string<I, C>(LIT(" 1"), base, 0, fse_inv_arg); // ' ' is bogus, no whitespace in subject sequence
 
         VX_IF_CONSTEXPR (std::is_unsigned<I>::value)
-        {                                                           // N4713 23.20.3 [charconv.from.chars]/3
+        {                                                            // N4713 23.20.3 [charconv.from.chars]/3
             test_from_string<I, C>(LIT("-1"), base, 0, fse_inv_arg); // "and only if value has a signed type"
         }
 
@@ -465,11 +460,109 @@ void test_integer_overflow_scenarios()
 //==============================================================================
 
 template <typename I, typename C>
+void test_integer_format_options()
+{
+    VX_SECTION("format options");
+    str::integer_format_options fmt;
+
+    // uppercase: letter digits (bases > 10) use A-Z instead of a-z
+    {
+        fmt.base = 16;
+        fmt.uppercase = false;
+        test_integer_to_string<I, C>(static_cast<I>(0x6F), fmt, LIT("6f"));
+
+        fmt.uppercase = true;
+        test_integer_to_string<I, C>(static_cast<I>(0x6F), fmt, LIT("6F"));
+    }
+    {
+        fmt.base = 36;
+        fmt.uppercase = false;
+        test_integer_to_string<I, C>(static_cast<I>(100), fmt, LIT("2s"));
+
+        fmt.uppercase = true;
+        test_integer_to_string<I, C>(static_cast<I>(100), fmt, LIT("2S"));
+    }
+
+    // uppercase has no effect on digits 0-9
+    {
+        fmt.base = 10;
+        fmt.uppercase = true;
+        test_integer_to_string<I, C>(static_cast<I>(42), fmt, LIT("42"));
+        fmt.uppercase = false;
+    }
+
+    // force_sign adds a leading '+' to non-negative values (including zero), and
+    // never overrides the '-' that a negative value already gets
+    {
+        fmt.base = 10;
+        fmt.force_sign = true;
+        test_integer_to_string<I, C>(static_cast<I>(0), fmt, LIT("+0"));
+        test_integer_to_string<I, C>(static_cast<I>(42), fmt, LIT("+42"));
+
+        VX_IF_CONSTEXPR (std::is_signed<I>::value)
+        {
+            test_integer_to_string<I, C>(static_cast<I>(-42), fmt, LIT("-42"));
+        }
+
+        fmt.force_sign = false;
+    }
+
+    // uppercase and force_sign combine independently of one another
+    {
+        fmt.base = 16;
+        fmt.uppercase = true;
+        fmt.force_sign = true;
+        test_integer_to_string<I, C>(static_cast<I>(0x6F), fmt, LIT("+6F"));
+
+        fmt.uppercase = false;
+        fmt.force_sign = false;
+    }
+
+    // uppercase at base 11: the smallest base where letter digits ('a'/'A') appear
+    {
+        fmt.base = 11;
+        fmt.uppercase = false;
+        test_integer_to_string<I, C>(static_cast<I>(10), fmt, LIT("a"));
+
+        fmt.uppercase = true;
+        test_integer_to_string<I, C>(static_cast<I>(10), fmt, LIT("A"));
+
+        fmt.uppercase = false;
+    }
+
+    // force_sign never adds a second sign to an already-negative value, even when
+    // combined with uppercase and a non-decimal base
+    {
+        fmt.base = 16;
+        fmt.uppercase = true;
+        fmt.force_sign = true;
+
+        VX_IF_CONSTEXPR (std::is_signed<I>::value)
+        {
+            test_integer_to_string<I, C>(static_cast<I>(-0x6F), fmt, LIT("-6F"));
+        }
+
+        fmt.uppercase = false;
+        fmt.force_sign = false;
+    }
+
+    // a default-constructed integer_format_options (base 10, no uppercase, no forced
+    // sign) round-trips a plain value exactly as-is
+    {
+        const str::integer_format_options default_fmt;
+        test_integer_to_string<I, C>(static_cast<I>(123), default_fmt, LIT("123"));
+    }
+}
+
+//==============================================================================
+
+template <typename I, typename C>
 void test_integer_type()
 {
     test_integer_to_string<I, C>();
     test_integer_from_string<I, C>();
     test_integer_overflow_scenarios<C>();
+    test_integer_format_options<I, C>();
 }
 
 template <typename I>
@@ -497,6 +590,297 @@ VX_TEST_CASE(test_all_integer)
     test_integer<unsigned long>();
     test_integer<long long>();
     test_integer<unsigned long long>();
+}
+
+//==============================================================================
+// hex
+//==============================================================================
+
+// element-wise compare, as opposed to all_of() above, which checks every element
+// against a single constant value
+bool bytes_equal(const uint8_t* a, const uint8_t* b, size_t n)
+{
+    for (size_t i = 0; i < n; ++i)
+    {
+        if (a[i] != b[i])
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// Same rationale as test_common_to_string(): walk every buffer size from 0 through
+// correct.size() (and a bit beyond) to make sure buffer_too_small is reported
+// exactly, and that we never read or write outside the given bounds.
+template <typename C>
+void test_hex_encode_buffer_sizes(const uint8_t* data, size_t data_size, const str::basic_string_view<C> correct, bool uppercase)
+{
+    constexpr size_t buf_prefix = 20;
+    constexpr size_t buf_suffix = 30;
+    constexpr size_t extra_chars = 3;
+    constexpr size_t max_hex_chars = 256; // generous bound for all of our test payloads
+    constexpr size_t buf_size = buf_prefix + max_hex_chars + buf_suffix;
+    constexpr C fill_char = '@';
+
+    VX_CHECK(correct.size() + extra_chars <= max_hex_chars);
+
+    vx::array<C, buf_size> buf;
+    C* const buf_begin = buf.data();
+    C* const buf_end = buf_begin + buf_size;
+    C* const first = buf_begin + buf_prefix;
+
+    for (size_t n = 0; n <= correct.size() + extra_chars; ++n)
+    {
+        VX_CHECK(n <= static_cast<size_t>(buf_end - first));
+        buf.fill(fill_char);
+
+        const str::to_string_result res = str::to_hex_string<C>(data, data_size, first, n, uppercase);
+        C* const last = first + n;
+
+        if (n < correct.size())
+        {
+            VX_CHECK(res.count == 0);
+            VX_CHECK(res.err == str::to_string_error::buffer_too_small);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
+            // [first, last) is unspecified
+            VX_CHECK(all_of(last, buf_suffix, fill_char));
+        }
+        else
+        {
+            VX_CHECK(res.count == correct.size());
+            VX_CHECK(res.err == str::to_string_error::none);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_char));
+            VX_CHECK(str::compare(first, res.count, correct.data(), correct.size()) == 0);
+            VX_CHECK(all_of(first + res.count, buf_suffix, fill_char));
+        }
+    }
+}
+
+// Same as test_hex_encode_buffer_sizes(), but for from_hex_string() decoding into a byte buffer.
+template <typename C>
+void test_hex_decode_buffer_sizes(const str::basic_string_view<C> hex, const uint8_t* correct, size_t correct_size)
+{
+    constexpr size_t buf_prefix = 20;
+    constexpr size_t buf_suffix = 30;
+    constexpr size_t extra_bytes = 3;
+    constexpr size_t max_bytes = 128; // generous bound for all of our test payloads
+    constexpr size_t buf_size = buf_prefix + max_bytes + buf_suffix;
+    constexpr uint8_t fill_byte = 0xCC;
+
+    VX_CHECK(correct_size + extra_bytes <= max_bytes);
+
+    vx::array<uint8_t, buf_size> buf;
+    uint8_t* const buf_begin = buf.data();
+    uint8_t* const buf_end = buf_begin + buf_size;
+    uint8_t* const first = buf_begin + buf_prefix;
+
+    for (size_t n = 0; n <= correct_size + extra_bytes; ++n)
+    {
+        VX_CHECK(n <= static_cast<size_t>(buf_end - first));
+        buf.fill(fill_byte);
+
+        const str::from_string_result res = str::from_hex_string(hex.data(), hex.size(), first, n);
+        uint8_t* const last = first + n;
+
+        if (n < correct_size)
+        {
+            VX_CHECK(res.count == 0);
+            VX_CHECK(res.err == str::from_string_error::buffer_too_small);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_byte));
+            // [first, last) is unspecified
+            VX_CHECK(all_of(last, buf_suffix, fill_byte));
+        }
+        else
+        {
+            VX_CHECK(res.count == correct_size);
+            VX_CHECK(res.err == str::from_string_error::none);
+            VX_CHECK(all_of(buf_begin, buf_prefix, fill_byte));
+            VX_CHECK(correct_size == 0 || bytes_equal(first, correct, correct_size));
+            VX_CHECK(all_of(first + res.count, buf_suffix, fill_byte));
+        }
+    }
+}
+
+// Encodes data both ways (lower/upper), checks the string-returning overload, and
+// round-trips both encodings back through from_hex_string() to recover the original bytes.
+template <typename C>
+void test_hex_case(const uint8_t* data, size_t data_size, const str::basic_string_view<C> lower, const str::basic_string_view<C> upper)
+{
+    test_hex_encode_buffer_sizes<C>(data, data_size, lower, false);
+    test_hex_encode_buffer_sizes<C>(data, data_size, upper, true);
+
+    test_hex_decode_buffer_sizes<C>(lower, data, data_size);
+    test_hex_decode_buffer_sizes<C>(upper, data, data_size);
+
+    // the string-returning overload always produces lowercase output
+    {
+        str::basic_string<C> out;
+        const str::to_string_result res = str::to_hex_string(data, data_size, out);
+
+        VX_CHECK(res.count == lower.size());
+        VX_CHECK(res.err == str::to_string_error::none);
+        VX_CHECK(out.size() == lower.size());
+        VX_CHECK(str::compare(out.data(), out.size(), lower.data(), lower.size()) == 0);
+    }
+}
+
+template <typename C>
+void test_hex_decode_errors()
+{
+    // an invalid character anywhere in a pair is rejected
+    {
+        uint8_t out[4];
+        const str::from_string_result res = str::from_hex_string(LIT("zz"), str::length(LIT("zz")), out, sizeof(out));
+        VX_CHECK(res.count == 0);
+        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+    }
+    {
+        uint8_t out[4];
+        const str::from_string_result res = str::from_hex_string(LIT("1z"), str::length(LIT("1z")), out, sizeof(out));
+        VX_CHECK(res.count == 0);
+        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+    }
+
+    // an invalid trailing half-byte is also rejected
+    {
+        uint8_t out[4];
+        const str::from_string_result res = str::from_hex_string(LIT("z"), str::length(LIT("z")), out, sizeof(out));
+        VX_CHECK(res.count == 0);
+        VX_CHECK(res.err == str::from_string_error::invalid_argument);
+    }
+
+    // odd-length input: the trailing nibble becomes its own byte, unshifted
+    {
+        uint8_t out[4] = {};
+        const str::from_string_result res = str::from_hex_string(LIT("123"), str::length(LIT("123")), out, sizeof(out));
+        VX_CHECK(res.count == 2);
+        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(out[0] == 0x12);
+        VX_CHECK(out[1] == 0x03);
+    }
+
+    // mixed-case digits decode identically to same-case digits
+    {
+        uint8_t out[4] = {};
+        const str::from_string_result res = str::from_hex_string(LIT("AbCd"), str::length(LIT("AbCd")), out, sizeof(out));
+        VX_CHECK(res.count == 2);
+        VX_CHECK(res.err == str::from_string_error::none);
+        VX_CHECK(out[0] == 0xAB);
+        VX_CHECK(out[1] == 0xCD);
+    }
+
+    // empty input needs no buffer space and succeeds trivially
+    {
+        uint8_t out[4] = {};
+        const str::from_string_result res = str::from_hex_string(LIT(""), str::length(LIT("")), out, 0);
+        VX_CHECK(res.count == 0);
+        VX_CHECK(res.err == str::from_string_error::none);
+    }
+
+    // buffer_too_small is reported even for otherwise well-formed input
+    {
+        uint8_t out[1];
+        const str::from_string_result res = str::from_hex_string(LIT("aabb"), str::length(LIT("aabb")), out, sizeof(out));
+        VX_CHECK(res.count == 0);
+        VX_CHECK(res.err == str::from_string_error::buffer_too_small);
+    }
+}
+
+template <typename C>
+void test_hex_uppercase_option()
+{
+    // uppercase defaults to false when the parameter is omitted
+    {
+        static const uint8_t data[] = { 0xAB, 0xCD, 0xEF };
+        C buf_default[6];
+        C buf_explicit[6];
+
+        const str::to_string_result res_default = str::to_hex_string<C>(data, sizeof(data), buf_default, 6);
+        const str::to_string_result res_explicit = str::to_hex_string<C>(data, sizeof(data), buf_explicit, 6, false);
+
+        VX_CHECK(res_default.count == res_explicit.count);
+        VX_CHECK(res_default.err == res_explicit.err);
+        VX_CHECK(str::compare(buf_default, res_default.count, buf_explicit, res_explicit.count) == 0);
+        VX_CHECK(str::compare(buf_default, res_default.count, LIT("abcdef"), str::length(LIT("abcdef"))) == 0);
+    }
+
+    // digits 0-9 have no letter case, so the uppercase flag should leave them untouched
+    {
+        static const uint8_t data[] = { 0x01, 0x23, 0x45, 0x67, 0x89 };
+        test_hex_case<C>(data, sizeof(data), LIT("0123456789"), LIT("0123456789"));
+    }
+
+    // a payload made entirely of letter nibbles: only the case of the letters should differ
+    {
+        static const uint8_t data[] = { 0xAB, 0xCD, 0xEF };
+        test_hex_case<C>(data, sizeof(data), LIT("abcdef"), LIT("ABCDEF"));
+    }
+
+    // a digit nibble and a letter nibble packed into the same byte
+    {
+        static const uint8_t data[] = { 0xA9, 0x1F };
+        test_hex_case<C>(data, sizeof(data), LIT("a91f"), LIT("A91F"));
+    }
+
+    // uppercase must not affect how many chars are needed, or whether buffer_too_small fires
+    {
+        static const uint8_t data[] = { 0xAB, 0xCD };
+        C buf[3];
+
+        const str::to_string_result lo = str::to_hex_string<C>(data, sizeof(data), buf, 3, false);
+        const str::to_string_result hi = str::to_hex_string<C>(data, sizeof(data), buf, 3, true);
+
+        VX_CHECK(lo.count == 0);
+        VX_CHECK(lo.err == str::to_string_error::buffer_too_small);
+        VX_CHECK(hi.count == 0);
+        VX_CHECK(hi.err == str::to_string_error::buffer_too_small);
+    }
+}
+
+template <typename C>
+void test_hex_type()
+{
+    test_hex_uppercase_option<C>();
+
+    test_hex_case<C>(nullptr, 0, LIT(""), LIT(""));
+
+    static const uint8_t single_00[] = { 0x00 };
+    test_hex_case<C>(single_00, 1, LIT("00"), LIT("00"));
+
+    static const uint8_t single_ff[] = { 0xFF };
+    test_hex_case<C>(single_ff, 1, LIT("ff"), LIT("FF"));
+
+    static const uint8_t word_deadbeef[] = { 0xDE, 0xAD, 0xBE, 0xEF };
+    test_hex_case<C>(word_deadbeef, 4, LIT("deadbeef"), LIT("DEADBEEF"));
+
+    static const uint8_t mixed[] = { 0xAB, 0xCD, 0xEF, 0x01, 0x23, 0x45, 0x67, 0x89 };
+    test_hex_case<C>(mixed, 8, LIT("abcdef0123456789"), LIT("ABCDEF0123456789"));
+
+    static const uint8_t all_nibbles[] = {
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+        0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF
+    };
+    test_hex_case<C>(all_nibbles, 16, LIT("00112233445566778899aabbccddeeff"), LIT("00112233445566778899AABBCCDDEEFF"));
+
+    test_hex_decode_errors<C>();
+}
+
+void test_hex()
+{
+    test_hex_type<char>();
+    test_hex_type<wchar_t>();
+#if defined(__cpp_lib_char8_t)
+    test_hex_type<char8_t>();
+#endif
+    test_hex_type<char16_t>();
+    test_hex_type<char32_t>();
+}
+
+VX_TEST_CASE(test_all_hex)
+{
+    test_hex();
 }
 
 //==============================================================================
@@ -734,7 +1118,7 @@ void test_float_from_string(const str::float_format format)
 //==============================================================================
 
 template <typename F, typename C, size_t N>
-void run_float_test_cases( const float_to_string_test_case<F, char> (&cases)[N])
+void run_float_test_cases(const float_to_string_test_case<F, char> (&cases)[N])
 {
     for (const auto& t : cases)
     {
@@ -786,12 +1170,12 @@ struct float_tester_data<double>
 
     static inline constexpr auto& to_string_test_cases_hex = double_hex_to_string_test_cases;
 
-    static inline constexpr auto& to_string_test_cases_fixed_1 = double_fixed_to_string_test_cases_1;
+    static inline constexpr auto& to_string_test_cases_fixed = double_fixed_to_string_test_cases_1;
     static inline constexpr auto& to_string_test_cases_fixed_2 = double_fixed_to_string_test_cases_2;
     static inline constexpr auto& to_string_test_cases_fixed_3 = double_fixed_to_string_test_cases_3;
     static inline constexpr auto& to_string_test_cases_fixed_4 = double_fixed_to_string_test_cases_4;
 
-    static inline constexpr auto& to_string_test_cases_scientific_1 = double_scientific_to_string_test_cases_1;
+    static inline constexpr auto& to_string_test_cases_scientific = double_scientific_to_string_test_cases_1;
     static inline constexpr auto& to_string_test_cases_scientific_2 = double_scientific_to_string_test_cases_2;
     static inline constexpr auto& to_string_test_cases_scientific_3 = double_scientific_to_string_test_cases_3;
     static inline constexpr auto& to_string_test_cases_scientific_4 = double_scientific_to_string_test_cases_4;
@@ -799,7 +1183,7 @@ struct float_tester_data<double>
     template <typename C>
     static void test_to_string_fixed_cases()
     {
-        run_float_test_cases<double, C>(to_string_test_cases_fixed_1);
+        run_float_test_cases<double, C>(to_string_test_cases_fixed);
         run_float_test_cases<double, C>(to_string_test_cases_fixed_2);
         run_float_test_cases<double, C>(to_string_test_cases_fixed_3);
         run_float_test_cases<double, C>(to_string_test_cases_fixed_4);
@@ -808,12 +1192,227 @@ struct float_tester_data<double>
     template <typename C>
     static void test_to_string_scientific_cases()
     {
-        run_float_test_cases<double, C>(to_string_test_cases_scientific_1);
+        run_float_test_cases<double, C>(to_string_test_cases_scientific);
         run_float_test_cases<double, C>(to_string_test_cases_scientific_2);
         run_float_test_cases<double, C>(to_string_test_cases_scientific_3);
         run_float_test_cases<double, C>(to_string_test_cases_scientific_4);
     }
 };
+
+//==============================================================================
+// format option tests (uppercase / force_sign / decimal_point / force_exp_sign / round)
+//==============================================================================
+
+// The following tests deliberately avoid hand-computing any new numeric output.
+// Instead they take the already-verified baseline strings from the test-case
+// tables (formatted with default options) and derive what the same value must
+// look like with one extra option flipped, via a plain text transform. That way
+// we're only testing "does the option apply correctly", not re-deriving the
+// underlying float-to-decimal math ourselves.
+
+template <typename C>
+void apply_uppercase_transform(str::basic_string<C>& s)
+{
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        C& c = s.data()[i];
+        if (c >= static_cast<C>('a') && c <= static_cast<C>('z'))
+        {
+            c = static_cast<C>(c - static_cast<C>('a') + static_cast<C>('A'));
+        }
+    }
+}
+
+// force_sign only ever adds a leading '+' to a value that would otherwise have no
+// sign; it never changes or removes the '-' that a negative value already has.
+template <typename C>
+str::basic_string<C> apply_force_sign_transform(const str::basic_string<C>& s)
+{
+    str::basic_string<C> out;
+
+    if (s.size() > 0 && s.data()[0] == static_cast<C>('-'))
+    {
+        out = s;
+    }
+    else
+    {
+        out.resize(s.size() + 1);
+        out.data()[0] = static_cast<C>('+');
+        for (size_t i = 0; i < s.size(); ++i)
+        {
+            out.data()[i + 1] = s.data()[i];
+        }
+    }
+
+    return out;
+}
+
+// there is at most one '.' in any formatted value, so a single substitution suffices
+template <typename C>
+str::basic_string<C> apply_decimal_point_transform(const str::basic_string<C>& s, C dp)
+{
+    str::basic_string<C> out = s;
+
+    for (size_t i = 0; i < out.size(); ++i)
+    {
+        if (out.data()[i] == static_cast<C>('.'))
+        {
+            out.data()[i] = dp;
+            break;
+        }
+    }
+
+    return out;
+}
+
+// force_exp_sign only inserts a '+' right after the exponent marker when the exponent
+// is non-negative and therefore has no sign of its own yet.
+//
+// The marker character must be passed in explicitly rather than guessed: scientific
+// format only ever uses 'e'/'E', and hex format only ever uses 'p'/'P' -- but hex
+// digits themselves include 'e' (0-9, a-f), so a hex mantissa like "1.e2p5" can
+// legitimately contain an 'e' that is NOT the exponent marker. Searching generically
+// for either letter would match that mantissa digit first and corrupt the result.
+template <typename C>
+str::basic_string<C> apply_force_exp_sign_transform(const str::basic_string<C>& s, C marker_lower, C marker_upper)
+{
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        const C c = s.data()[i];
+        const bool is_exp_marker = (c == marker_lower) || (c == marker_upper);
+
+        if (!is_exp_marker)
+        {
+            continue;
+        }
+
+        if ((i + 1) < s.size())
+        {
+            const C next = s.data()[i + 1];
+            const bool has_unsigned_digit_next = (next >= static_cast<C>('0') && next <= static_cast<C>('9'));
+
+            if (has_unsigned_digit_next)
+            {
+                str::basic_string<C> out;
+                out.resize(s.size() + 1);
+
+                for (size_t j = 0; j <= i; ++j)
+                {
+                    out.data()[j] = s.data()[j];
+                }
+                out.data()[i + 1] = static_cast<C>('+');
+                for (size_t j = i + 1; j < s.size(); ++j)
+                {
+                    out.data()[j + 1] = s.data()[j];
+                }
+
+                return out;
+            }
+        }
+
+        break; // marker already has an explicit sign, or nothing follows it
+    }
+
+    return s;
+}
+
+//==============================================================================
+
+template <typename F, typename C, size_t N>
+void run_float_test_cases_uppercase(const float_to_string_test_case<F, char> (&cases)[N])
+{
+    for (const auto& t : cases)
+    {
+        auto expected = str::string_cast<C>(t.correct);
+        apply_uppercase_transform<C>(expected);
+
+        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        fmt.uppercase = true;
+
+        test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
+    }
+}
+
+template <typename F, typename C, size_t N>
+void run_float_test_cases_force_sign(const float_to_string_test_case<F, char> (&cases)[N])
+{
+    for (const auto& t : cases)
+    {
+        const auto base = str::string_cast<C>(t.correct);
+        const auto expected = apply_force_sign_transform<C>(base);
+
+        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        fmt.force_sign = true;
+
+        test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
+    }
+}
+
+template <typename F, typename C, size_t N>
+void run_float_test_cases_decimal_point(const float_to_string_test_case<F, char> (&cases)[N], C dp)
+{
+    for (const auto& t : cases)
+    {
+        const auto base = str::string_cast<C>(t.correct);
+        const auto expected = apply_decimal_point_transform<C>(base, dp);
+
+        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        fmt.decimal_point = dp;
+
+        test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
+    }
+}
+
+template <typename F, typename C, size_t N>
+void run_float_test_cases_force_exp_sign(const float_to_string_test_case<F, char> (&cases)[N], C marker_lower, C marker_upper)
+{
+    for (const auto& t : cases)
+    {
+        const auto base = str::string_cast<C>(t.correct);
+        const auto expected = apply_force_exp_sign_transform<C>(base, marker_lower, marker_upper);
+
+        str::float_to_string_format_options<C> fmt{ t.fmt.format, t.fmt.precision };
+        fmt.force_exp_sign = true;
+
+        test_common_to_string<F, C>(t.value, fmt, str::basic_string_view<C>(expected.data(), expected.size()));
+    }
+}
+
+template <typename F, typename C>
+void test_float_format_options()
+{
+    using tester_data = float_tester_data<F>;
+
+    // uppercase and force_sign are exercised against both the general table (which
+    // contains inf/nan and, depending on magnitude, scientific-resolved output) and
+    // the hex table (which always contains letter digits and an exponent marker)
+    run_float_test_cases_uppercase<F, C>(tester_data::to_string_test_cases_base);
+    run_float_test_cases_uppercase<F, C>(tester_data::to_string_test_cases_hex);
+
+    run_float_test_cases_force_sign<F, C>(tester_data::to_string_test_cases_base);
+    run_float_test_cases_force_sign<F, C>(tester_data::to_string_test_cases_hex);
+
+    // decimal_point: swap '.' for a non-default separator
+    run_float_test_cases_decimal_point<F, C>(tester_data::to_string_test_cases_base, static_cast<C>(','));
+
+    // force_exp_sign
+    run_float_test_cases_force_exp_sign<F, C>(tester_data::to_string_test_cases_scientific, static_cast<C>('e'), static_cast<C>('E'));
+    run_float_test_cases_force_exp_sign<F, C>(tester_data::to_string_test_cases_hex, static_cast<C>('p'), static_cast<C>('P'));
+
+    // round: 0.1875 (== 3/16, exact in binary) formatted fixed with precision 2 has
+    // digits "18|75...". The first dropped digit is 7 (unambiguously > 5, no tie to
+    // worry about), so round=true must round up to "0.19" while round=false must
+    // truncate to "0.18".
+    {
+        str::float_to_string_format_options<C> fmt{ str::float_format::fixed, 2 };
+
+        fmt.round = true;
+        test_common_to_string<F, C>(static_cast<F>(0.1875), fmt, LIT("0.19"));
+
+        fmt.round = false;
+        test_common_to_string<F, C>(static_cast<F>(0.1875), fmt, LIT("0.18"));
+    }
+}
 
 template <typename F, typename C>
 void test_float_type()
@@ -886,18 +1485,22 @@ void test_float_type()
     {
         tester_data::template test_to_string_scientific_cases<C>();
     }
+    VX_SECTION("format options")
+    {
+        test_float_format_options<F, C>();
+    }
 }
 
 template <typename F>
 void test_float()
 {
     test_float_type<F, char>();
-//    test_float_type<F, wchar_t>();
-//#if defined(__cpp_lib_char8_t)
-//    test_float_type<F, char8_t>();
-//#endif
-//    test_float_type<F, char16_t>();
-//    test_float_type<F, char32_t>();
+    test_float_type<F, wchar_t>();
+#if defined(__cpp_lib_char8_t)
+    test_float_type<F, char8_t>();
+#endif
+    test_float_type<F, char16_t>();
+    test_float_type<F, char32_t>();
 }
 
 VX_TEST_CASE(test_all_float)

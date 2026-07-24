@@ -5,7 +5,7 @@
 namespace vx {
 namespace hex {
 
-inline constexpr char digits[] = "0123456789abcdef";
+inline constexpr unsigned char digits[] = "0123456789abcdef";
 
 template <typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
 VX_NO_DISCARD constexpr C digit(const size_t value) noexcept

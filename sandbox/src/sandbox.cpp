@@ -473,8 +473,8 @@ int main()
         //vx_print_integer(bits);
 
         //std_print_fixed_float(f);
-        std_print_fixed_float_2(f);
-        vx_print_fixed_float(f);
+        //std_print_fixed_float_2(f);
+        //vx_print_fixed_float(f);
 
         //
         //std_print_scientific_float(f);
@@ -502,6 +502,14 @@ int main()
     //
     //v = 0;
     //const auto r2 = vx::str::from_string(s, v, { vx::str::float_format::general });
+
+    static const uint8_t data[] = { 0x00 };
+    const size_t data_size = 1;
+
+    char buf[2];
+    const size_t buf_size = 2;
+
+    const vx::str::to_string_result res = vx::str::to_hex_string(data, data_size, buf, buf_size, true);
 
     VX_PROFILE_STOP();
     return 0;
