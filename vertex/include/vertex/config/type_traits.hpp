@@ -47,8 +47,9 @@ using first_t = typename first<T, Ts...>::type;
 // enable if
 //==============================================================================
 
-#define VX_REQUIRES(...)    typename ::std::enable_if<(__VA_ARGS__), int>::type = 0
-#define VX_FN_REQUIRES(...) template <typename _dummy = void, VX_REQUIRES(std::is_same<_dummy, _dummy>::value && (__VA_ARGS__))>
+#define VX_REQUIRES_TYPE(...)   typename ::std::enable_if<(__VA_ARGS__), void>::type
+#define VX_REQUIRES(...)        typename ::std::enable_if<(__VA_ARGS__), int>::type = 0
+#define VX_FN_REQUIRES(...)     template <typename _dummy = void, VX_REQUIRES(std::is_same<_dummy, _dummy>::value && (__VA_ARGS__))>
 
 //==============================================================================
 // conjunction disjunction

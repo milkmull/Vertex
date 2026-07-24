@@ -12,7 +12,7 @@ x static string
 x string
 
 x numeric printing
-- io
+x io
 - string format
 - packed string array
 - single link list

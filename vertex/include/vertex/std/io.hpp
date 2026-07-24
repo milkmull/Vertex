@@ -15,7 +15,7 @@ namespace vx {
 namespace _io_priv {
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
-inline void print_one(os::stream s, const C* v, size_t size)
+void print_one_base(os::stream s, const C* v, size_t size)
 {
     VX_IF_CONSTEXPR (std::is_same<C, char>::value)
     {
@@ -44,15 +44,15 @@ inline void print_one(os::stream s, const C* v, size_t size)
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
-inline void print_one(os::stream s, const C* v)
+void print_one(os::stream s, const C* v)
 {
     using traits = str::char_traits<C>;
     const size_t size = traits::length(v);
-    print_one(s, v, size);
+    print_one_base(s, v, size);
 }
 
 template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
-inline void print_one(os::stream s, C v)
+void print_one(os::stream s, C v)
 {
     VX_IF_CONSTEXPR (std::is_same<C, char>::value)
     {
@@ -71,9 +71,9 @@ inline void print_one(os::stream s, C v)
 }
 
 template <typename S, VX_REQUIRES(str::is_string_like<S>::value)>
-inline void print_one(os::stream s, const S& v)
+void print_one(os::stream s, const S& v)
 {
-    _io_priv::print_one(s, v.data(), v.size());
+    print_one_base(s, v.data(), v.size());
 }
 
 template <typename T, typename = void>
@@ -89,10 +89,10 @@ struct has_to_string<
 {};
 
 template <typename T, VX_REQUIRES(has_to_string<T>::value)>
-inline void print_one(os::stream s, const T& v)
+void print_one(os::stream s, const T& v)
 {
     const auto str = to_string(v);
-    _io_priv::print_one(s, str.data(), str.size());
+    print_one_base(s, str.data(), str.size());
 }
 
 } // namespace _io_priv
@@ -102,19 +102,27 @@ inline void print_one(os::stream s, const T& v)
 // ============================================================
 
 template <typename... Args>
-inline void print(os::stream s, const Args&... args)
+void print(os::stream s, const Args&... args)
 {
     (_io_priv::print_one(s, args), ...);
 }
 
 template <typename... Args>
-inline void print(const Args&... args)
+void print(const Args&... args)
 {
     print(os::stream::out, args...);
 }
 
 template <typename... Args>
-inline void println(os::stream s, const Args&... args)
+void print_err(const Args&... args)
+{
+    print(os::stream::err, args...);
+}
+
+// ============================================================
+
+template <typename... Args>
+void println(os::stream s, const Args&... args)
 {
     print(s, args...);
 
@@ -123,9 +131,58 @@ inline void println(os::stream s, const Args&... args)
 }
 
 template <typename... Args>
-inline void println(const Args&... args)
+void println(const Args&... args)
 {
     println(os::stream::out, args...);
+}
+
+template <typename... Args>
+void println_err(const Args&... args)
+{
+    println(os::stream::err, args...);
+}
+
+// ============================================================
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void print_raw(os::stream s, const C* data, size_t size)
+{
+    _io_priv::print_one_base(s, data, size);
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void print_raw(const C* data, size_t size)
+{
+    print_raw(os::stream::out, data, size);
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void print_raw_err(const C* data, size_t size)
+{
+    print_raw(os::stream::err, data, size);
+}
+
+// ============================================================
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void println_raw(os::stream s, const C* data, size_t size)
+{
+    _io_priv::print_one_base(s, data, size);
+
+    const char c = '\n';
+    os::write_raw(s, &c, 1);
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void println_raw(const C* data, size_t size)
+{
+    println_raw(os::stream::out, data, size);
+}
+
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+void println_raw_err(const C* data, size_t size)
+{
+    println_raw(os::stream::err, data, size);
 }
 
 } // namespace vx
