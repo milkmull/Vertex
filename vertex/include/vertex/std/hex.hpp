@@ -14,13 +14,6 @@ VX_NO_DISCARD constexpr C digit(const size_t value) noexcept
     return static_cast<C>(digits[value & 0x0F]);
 }
 
-template <size_t N, typename C = char, VX_REQUIRES(type_traits::is_char<C>::value)>
-VX_NO_DISCARD constexpr C digit_c() noexcept
-{
-    VX_STATIC_ASSERT_MSG(N < 16, "hex digit index out of range");
-    return static_cast<C>(digits[N]);
-}
-
 enum : int
 {
     invalid_value = INT_MAX
@@ -57,7 +50,7 @@ VX_NO_DISCARD constexpr int value_unchecked(C c) noexcept
 
 VX_NO_DISCARD constexpr bool is_hex(char c) noexcept
 {
-    return value(c) >= 0;
+    return value(c) != invalid_value;
 }
 
 } // namespace hex

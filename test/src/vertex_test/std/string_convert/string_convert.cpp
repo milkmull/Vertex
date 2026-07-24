@@ -128,7 +128,7 @@ void test_common_to_string(const T value, const Options& fmt, const str::basic_s
 //==============================================================================
 
 template <typename I, typename C>
-void test_integer_to_string(const I value, const str::integer_format_options& fmt, const str::basic_string_view<C> correct)
+void test_integer_to_string(const I value, const str::integer_to_string_format_options& fmt, const str::basic_string_view<C> correct)
 {
     test_common_to_string(value, fmt, correct);
 
@@ -146,7 +146,7 @@ void test_integer_to_string(const I value, const str::integer_format_options& fm
 template <typename I, typename C>
 bool test_integer_to_string()
 {
-    str::integer_format_options fmt;
+    str::integer_to_string_format_options fmt;
 
     for (int base = 2; base <= 36; ++base)
     {
@@ -464,7 +464,7 @@ template <typename I, typename C>
 void test_integer_format_options()
 {
     VX_SECTION("format options");
-    str::integer_format_options fmt;
+    str::integer_to_string_format_options fmt;
 
     // uppercase: letter digits (bases > 10) use A-Z instead of a-z
     {
@@ -547,10 +547,10 @@ void test_integer_format_options()
         fmt.force_sign = false;
     }
 
-    // a default-constructed integer_format_options (base 10, no uppercase, no forced
+    // a default-constructed integer_to_string_format_options (base 10, no uppercase, no forced
     // sign) round-trips a plain value exactly as-is
     {
-        const str::integer_format_options default_fmt;
+        const str::integer_to_string_format_options default_fmt;
         test_integer_to_string<I, C>(static_cast<I>(123), default_fmt, LIT("123"));
     }
 }

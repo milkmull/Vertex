@@ -3,11 +3,12 @@
 #include "vertex/config/assert.hpp"
 #include "vertex/config/language_config.hpp"
 #include "vertex/config/type_traits.hpp"
+#include "vertex/std/float_traits.hpp"
 #include "vertex/std/hex.hpp"
-#include "vertex/std/math/float_bits.hpp"
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_cast.hpp"
 #include "vertex/std/string_utils.hpp"
+#include "vertex/util/bit.hpp"
 
 namespace vx {
 namespace str {
@@ -300,7 +301,7 @@ inline constexpr char get_integer_digit(U x) noexcept
 // integer
 //==============================================================================
 
-struct integer_format_options
+struct integer_to_string_format_options
 {
     int base = 10;
     bool uppercase = false;
@@ -310,7 +311,7 @@ struct integer_format_options
 //==============================================================================
 
 template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_format_options& fmt = {}) noexcept
+constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_to_string_format_options& fmt = {}) noexcept
 {
     VX_ASSERT(2 <= fmt.base);
 #if defined(VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT)
@@ -631,11 +632,6 @@ struct float_bits
     uint_type m_bits;
     uint_type e_bits;
     bool sign_bit;
-
-    constexpr bool is_subnormal() const noexcept
-    {
-        return (e_bits == 0 && m_bits != 0);
-    }
 };
 
 enum class float_write_status
@@ -2302,7 +2298,7 @@ constexpr size_t write_float_hex_impl(const float_bits<F>& fb, C* buf, const siz
         }
     }
 
-    const bool subnormal = fb.is_subnormal();
+    const bool subnormal = (fb.e_bits == 0 && fb.m_bits != 0);
 
     const int exp = subnormal
         ? 1 - static_cast<int>(traits::exponent_bias)
@@ -3745,13 +3741,13 @@ constexpr from_string_result parse_float(const C* str, size_t str_size, F& value
 //==============================================================================
 
 template <typename I, typename C, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-constexpr to_string_result to_string(I value, C* buf, size_t buf_size, const integer_format_options& fmt = {}) noexcept
+constexpr to_string_result to_string(I value, C* buf, size_t buf_size, const integer_to_string_format_options& fmt = {}) noexcept
 {
     return write_integer(value, buf, buf_size, fmt);
 }
 
 template <typename I, typename S, VX_REQUIRES(std::is_integral<I>::value&& is_mutable_string_like<S>::value)>
-to_string_result to_string(I value, S& out, const integer_format_options& fmt = {}) noexcept
+to_string_result to_string(I value, S& out, const integer_to_string_format_options& fmt = {}) noexcept
 {
     using C = typename S::value_type;
 

@@ -5,7 +5,7 @@
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/string_convert.hpp"
 #include "vertex/util/random.hpp"
-#include "vertex/std/math/float_bits.hpp"
+#include "vertex/std/float_bits.hpp"
 
 #if VX_HAS_BUILTIN(__builtin_nanf)
 #define VX_HAS_NAN_PAYLOAD
