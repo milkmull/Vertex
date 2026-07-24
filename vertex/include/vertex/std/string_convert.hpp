@@ -269,7 +269,7 @@ constexpr size_t digit_count(I value, const I base) noexcept
     return n;
 }
 
-#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+#if defined(VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT)
 
 static constexpr const char base_36_digits[] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
@@ -283,7 +283,7 @@ static constexpr const char base_36_digits[] = {
 template <typename U>
 inline constexpr char get_integer_digit(U x) noexcept
 {
-#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+#if defined(VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT)
 
     return base_36_digits[x];
 
@@ -291,7 +291,7 @@ inline constexpr char get_integer_digit(U x) noexcept
 
     return hex::digits[x];
 
-#endif // VX_STRING_CONVERT_BASE_36_SUPPORT
+#endif // VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT
 }
 
 } // namespace _string_convert_priv
@@ -313,7 +313,7 @@ template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&
 constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_format_options& fmt = {}) noexcept
 {
     VX_ASSERT(2 <= fmt.base);
-#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+#if defined(VX_STRING_CONVERT_TO_STRING_BASE_36_SUPPORT)
     VX_ASSERT(fmt.base <= 36);
 #else
     VX_ASSERT(fmt.base <= 16);
