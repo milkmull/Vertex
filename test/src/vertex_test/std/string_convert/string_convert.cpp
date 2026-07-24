@@ -1,8 +1,9 @@
 #include <cstdint>
 #include <string>
 
-#define VX_STRING_CONVERT_IND_NAN
-#define VX_STRING_CONVERT_SNAN
+#define VX_STRING_CONVERT_BASE_36_SUPPORT
+#define VX_STRING_CONVERT_IND_NAN_SUPPORT
+#define VX_STRING_CONVERT_SNAN_SUPPORT
 
 #include "vertex/std/string.hpp"
 #include "vertex/std/string_convert.hpp"

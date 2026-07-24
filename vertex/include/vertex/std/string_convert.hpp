@@ -269,12 +269,30 @@ constexpr size_t digit_count(I value, const I base) noexcept
     return n;
 }
 
-static constexpr const char int_digits[] = {
+#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+
+static constexpr const char base_36_digits[] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j',
     'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',
     'u', 'v', 'w', 'x', 'y', 'z'
 };
+
+#endif
+
+template <typename U>
+inline constexpr char get_integer_digit(U x) noexcept
+{
+#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+
+    return base_36_digits[x];
+
+#else
+
+    return hex::digits[x];
+
+#endif // VX_STRING_CONVERT_BASE_36_SUPPORT
+}
 
 } // namespace _string_convert_priv
 
@@ -294,7 +312,12 @@ struct integer_format_options
 template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
 constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size, const integer_format_options& fmt = {}) noexcept
 {
-    VX_ASSERT(2 <= fmt.base && fmt.base <= 36);
+    VX_ASSERT(2 <= fmt.base);
+#if defined(VX_STRING_CONVERT_BASE_36_SUPPORT)
+    VX_ASSERT(fmt.base <= 36);
+#else
+    VX_ASSERT(fmt.base <= 16);
+#endif
 
     using U = typename std::make_unsigned<I>::type;
     U uvalue = static_cast<U>(value);
@@ -322,7 +345,7 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
 
     do
     {
-        const char c = _string_convert_priv::int_digits[uvalue % ubase];
+        const char c = _string_convert_priv::get_integer_digit(uvalue % ubase);
         buf[--i] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
@@ -1256,7 +1279,7 @@ constexpr float_write_status write_float_start(
             buf[n++] = static_cast<C>('a') & case_mask;
             buf[n++] = n_val;
 
-#if defined(VX_STRING_CONVERT_IND_NAN)
+#if defined(VX_STRING_CONVERT_IND_NAN_SUPPORT)
 
             const bool indefinite = fb.sign_bit && (fb.m_bits == traits::quiet_nan_bit_mask);
             if (indefinite)
@@ -1273,13 +1296,13 @@ constexpr float_write_status write_float_start(
                 buf[n++] = static_cast<C>(')');
             }
 
-#elif defined(VX_STRING_CONVERT_SNAN)
+#elif defined(VX_STRING_CONVERT_SNAN_SUPPORT)
 
             constexpr bool indefinite = false;
 
 #endif
 
-#if defined(VX_STRING_CONVERT_SNAN)
+#if defined(VX_STRING_CONVERT_SNAN_SUPPORT)
 
             const bool signaling = !indefinite && !(fb.m_bits & traits::quiet_nan_bit_mask);
             if (signaling)
@@ -3283,7 +3306,7 @@ constexpr from_string_result parse_nan(const C* const str, size_t str_size, F& v
 
         for (; j != str_size; ++j)
         {
-#if defined(VX_STRING_CONVERT_IND_NAN) || defined(VX_STRING_CONVERT_SNAN)
+#if defined(VX_STRING_CONVERT_IND_NAN_SUPPORT) || defined(VX_STRING_CONVERT_SNAN_SUPPORT)
 
             if (str[j] == static_cast<C>(')'))
             {
@@ -3291,7 +3314,7 @@ constexpr from_string_result parse_nan(const C* const str, size_t str_size, F& v
                 const size_t seq_len = j - seq_begin;
                 i = j + 1;
 
-    #if defined(VX_STRING_CONVERT_IND_NAN)
+    #if defined(VX_STRING_CONVERT_IND_NAN_SUPPORT)
 
                 if (seq_len == 3 && starts_with_case_insensitive(str + seq_begin, seq_len, ind, 3))
                 {
@@ -3303,7 +3326,7 @@ constexpr from_string_result parse_nan(const C* const str, size_t str_size, F& v
 
     #endif
 
-    #if defined(VX_STRING_CONVERT_SNAN)
+    #if defined(VX_STRING_CONVERT_SNAN_SUPPORT)
 
                 if (seq_len == 4 && starts_with_case_insensitive(str + seq_begin, seq_len, snan, 4))
                 {
@@ -3751,7 +3774,7 @@ to_string_result to_string(I value, S& out, const integer_format_options& fmt = 
 
     do
     {
-        const char c = _string_convert_priv::int_digits[uvalue % ubase];
+        const char c = _string_convert_priv::get_integer_digit(uvalue % ubase);
         out[--count] = static_cast<C>(fmt.uppercase ? _string_convert_priv::alnum_to_upper(c) : c);
         uvalue /= ubase;
 
