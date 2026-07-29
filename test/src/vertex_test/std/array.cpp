@@ -226,6 +226,56 @@ VX_TEST_CASE(test_aggregate_initialization)
 
 //==============================================================================
 
+VX_TEST_CASE(test_zero_length_array)
+{
+    using A = array<size_t, 0>;
+
+    // Aggregate initialization
+    array<size_t, 0> a{};
+    array<size_t, 0> b = {};
+
+    VX_CHECK(A::empty());
+    VX_CHECK(A::size() == 0);
+    VX_CHECK(A::size_bytes() == 0);
+    VX_CHECK(A::max_size() >= 0);
+
+    VX_CHECK(a.begin() == a.end());
+    VX_CHECK(a.cbegin() == a.cend());
+
+    VX_CHECK(a.rbegin() == a.rend());
+    VX_CHECK(a.crbegin() == a.crend());
+
+    VX_CHECK(a.data() == nullptr);
+
+    a.fill(123); // should be a no-op
+    a.swap(b);   // should be a no-op
+
+    VX_CHECK(a == b);
+    VX_CHECK(!(a != b));
+    VX_CHECK(!(a < b));
+    VX_CHECK(!(a > b));
+    VX_CHECK(a <= b);
+    VX_CHECK(a >= b);
+
+    size_t count = 0;
+    for (auto it = a.begin(); it != a.end(); ++it)
+    {
+        ++count;
+    }
+
+    VX_CHECK(count == 0);
+
+    count = 0;
+    for (auto it = a.rbegin(); it != a.rend(); ++it)
+    {
+        ++count;
+    }
+
+    VX_CHECK(count == 0);
+}
+
+//==============================================================================
+
 int main()
 {
     VX_RUN_TESTS();

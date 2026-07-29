@@ -16,22 +16,32 @@ public:
     // member types
     //=========================================================================
 
-    using value_type      = T;
-    using pointer         = T*;
-    using const_pointer   = const T*;
-    using reference       = T&;
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using reference = T&;
     using const_reference = const T&;
-    using size_type       = size_t;
+    using size_type = size_t;
     using difference_type = ptrdiff_t;
 
-    using iterator               = _priv::pointer_iterator<array, T>;
-    using const_iterator         = _priv::pointer_iterator<array, const T>;
-    using reverse_iterator       = _priv::reverse_pointer_iterator<iterator>;
+    using iterator = _priv::pointer_iterator<array, T>;
+    using const_iterator = _priv::pointer_iterator<array, const T>;
+    using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
     using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
 
     //=========================================================================
     // element access
     //=========================================================================
+
+    constexpr T* data() noexcept
+    {
+        return _m_array;
+    }
+
+    constexpr const T* data() const noexcept
+    {
+        return _m_array;
+    }
 
     constexpr T& front() noexcept
     {
@@ -51,16 +61,6 @@ public:
     constexpr const T& back() const noexcept
     {
         return _m_array[N - 1];
-    }
-
-    constexpr T* data() noexcept
-    {
-        return _m_array;
-    }
-
-    constexpr const T* data() const noexcept
-    {
-        return _m_array;
     }
 
     constexpr T& operator[](size_type i) noexcept
@@ -245,6 +245,213 @@ public:
     // this must be public to support aggregate initialization
     // https://en.cppreference.com/w/cpp/language/aggregate_initialization.html
     T _m_array[N];
+};
+
+//=========================================================================
+
+template <typename T>
+class array<T, 0>
+{
+public:
+
+    //=========================================================================
+    // member types
+    //=========================================================================
+
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = const T*;
+    using reference = T&;
+    using const_reference = const T&;
+    using size_type = size_t;
+    using difference_type = ptrdiff_t;
+
+    using iterator = _priv::pointer_iterator<array, T>;
+    using const_iterator = _priv::pointer_iterator<array, const T>;
+    using reverse_iterator = _priv::reverse_pointer_iterator<iterator>;
+    using const_reverse_iterator = _priv::reverse_pointer_iterator<const_iterator>;
+
+    //=========================================================================
+    // element access
+    //=========================================================================
+
+    constexpr T* data() noexcept
+    {
+        return nullptr;
+    }
+
+    constexpr const T* data() const noexcept
+    {
+        return nullptr;
+    }
+
+    constexpr T& front() noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    constexpr const T& front() const noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    constexpr T& back() noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    constexpr const T& back() const noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    constexpr T& operator[](size_type i) noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    constexpr const T& operator[](size_type i) const noexcept
+    {
+        VX_ASSERT(false);
+        return *data();
+    }
+
+    //=========================================================================
+    // iterators
+    //=========================================================================
+
+    constexpr iterator begin() noexcept
+    {
+        return iterator{};
+    }
+
+    constexpr const_iterator begin() const noexcept
+    {
+        return const_iterator{};
+    }
+
+    constexpr const_iterator cbegin() const noexcept
+    {
+        return begin();
+    }
+
+    constexpr iterator end() noexcept
+    {
+        return iterator{};
+    }
+
+    constexpr const_iterator end() const noexcept
+    {
+        return const_iterator{};
+    }
+
+    constexpr const_iterator cend() const noexcept
+    {
+        return end();
+    }
+
+    constexpr reverse_iterator rbegin() noexcept
+    {
+        return reverse_iterator(end());
+    }
+
+    constexpr const_reverse_iterator rbegin() const noexcept
+    {
+        return const_reverse_iterator(end());
+    }
+
+    constexpr const_reverse_iterator crbegin() const noexcept
+    {
+        return rbegin();
+    }
+
+    constexpr reverse_iterator rend() noexcept
+    {
+        return reverse_iterator(begin());
+    }
+
+    constexpr const_reverse_iterator rend() const noexcept
+    {
+        return const_reverse_iterator(begin());
+    }
+
+    constexpr const_reverse_iterator crend() const noexcept
+    {
+        return rend();
+    }
+
+    //=========================================================================
+    // operations
+    //=========================================================================
+
+    constexpr void fill(const T&) noexcept
+    {}
+
+    constexpr void swap(array&) noexcept
+    {}
+
+    //=========================================================================
+    // size
+    //=========================================================================
+
+    static constexpr bool empty() noexcept
+    {
+        return true;
+    }
+
+    static constexpr size_type size() noexcept
+    {
+        return 0;
+    }
+
+    static constexpr size_type size_bytes() noexcept
+    {
+        return 0;
+    }
+
+    static constexpr size_type max_size() noexcept
+    {
+        return mem::max_array_size<T>();
+    }
+
+    //=========================================================================
+    // comparison
+    //=========================================================================
+
+    constexpr friend bool operator==(const array&, const array&)
+    {
+        return true;
+    }
+
+    constexpr friend bool operator!=(const array&, const array&)
+    {
+        return false;
+    }
+
+    constexpr friend bool operator<(const array&, const array&)
+    {
+        return false;
+    }
+
+    constexpr friend bool operator>(const array&, const array&)
+    {
+        return false;
+    }
+
+    constexpr friend bool operator<=(const array&, const array&)
+    {
+        return true;
+    }
+
+    constexpr friend bool operator>=(const array&, const array&)
+    {
+        return true;
+    }
 };
 
 } // namespace vx

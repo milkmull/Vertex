@@ -721,7 +721,7 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
         // in a constant expression, just do the simple loop
         for (; 0 < count; --count)
         {
-            *ptr = value;
+            *ptr = static_cast<T>(value);
             ++ptr;
         }
         return ptr;
@@ -731,7 +731,7 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
     VX_IF_CONSTEXPR ((type_traits::is_fill_memset_safe<T*, U>::value))
     {
         // can optimize with memset
-        set(ptr, value, count * sizeof(T));
+        set(ptr, static_cast<int>(value), count * sizeof(T));
         return ptr + count;
     }
     else
@@ -747,7 +747,7 @@ constexpr T* fill_range(T* ptr, size_t count, const U& value)
 
         for (; 0 < count; --count)
         {
-            *ptr = value;
+            *ptr = static_cast<T>(value);
             ++ptr;
         }
 

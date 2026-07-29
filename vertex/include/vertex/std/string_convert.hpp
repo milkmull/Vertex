@@ -362,29 +362,34 @@ constexpr to_string_result write_integer(I value, C* buf, const size_t buf_size,
 
 //==============================================================================
 
-template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
-constexpr from_string_result parse_integer(const C* s, size_t size, I& value, const int base = 10) noexcept
+namespace _string_convert_priv {
+
+template <typename I, typename C, bool Sign = true>
+constexpr from_string_result parse_integer_impl(const C* s, size_t size, I& value, const int base) noexcept
 {
     VX_ASSERT(2 <= base && base <= 36);
 
     using U = typename std::make_unsigned<I>::type;
-    bool is_negative = false;
+    VX_MAYBE_UNUSED bool is_negative = false;
     size_t i = 0;
 
-    if (s[0] == C('+'))
+    VX_IF_CONSTEXPR (Sign)
     {
-        ++i;
-    }
-    else if (s[0] == C('-'))
-    {
-        VX_IF_CONSTEXPR (!std::is_signed<I>::value)
+        if (s[0] == C('+'))
         {
-            return { 0, from_string_error::invalid_argument };
-        }
-        else
-        {
-            is_negative = true;
             ++i;
+        }
+        else if (s[0] == C('-'))
+        {
+            VX_IF_CONSTEXPR (!std::is_signed<I>::value)
+            {
+                return { 0, from_string_error::invalid_argument };
+            }
+            else
+            {
+                is_negative = true;
+                ++i;
+            }
         }
     }
 
@@ -459,6 +464,14 @@ constexpr from_string_result parse_integer(const C* s, size_t size, I& value, co
     }
 
     return { i, from_string_error::none };
+}
+
+} // namespace _string_convert_priv
+
+template <typename I, typename C = char, VX_REQUIRES(std::is_integral<I>::value&& type_traits::is_char<C>::value)>
+constexpr from_string_result parse_integer(const C* s, size_t size, I& value, const int base = 10) noexcept
+{
+    return _string_convert_priv::parse_integer_impl<I, C>(s, size, value, base);
 }
 
 //==============================================================================

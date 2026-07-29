@@ -11,8 +11,12 @@ int main()
     auto result = vx::format::format(
         buffer,
         sizeof(buffer),
-        "Testing {:.e} boop",
-        18, 1.0f);
+        "Hello, {}! {:>10} {:.5} {:*^12}",
+        33,
+        "world",
+        "Vertex",
+        "Formatting",
+        static_cast<void*>(buffer));
 
     if (result.err != vx::format::format_error::none)
     {

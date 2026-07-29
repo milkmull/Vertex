@@ -13,6 +13,33 @@ namespace str {
 //==============================================================================
 
 /**
+ * @brief Converts a single encoded character from one encoding to another.
+ *
+ * @tparam to_char_t Destination character type.
+ * @tparam from_char_t Source character type.
+ * @param src Reference to the current input pointer. Advanced after decoding.
+ * @param end Pointer past the end of the input range.
+ * @param dst Output buffer.
+ * @param replacement Replacement character for invalid sequences.
+ * @return Pointer after the last written output character.
+ */
+template <typename to_char_t, typename from_char_t, VX_REQUIRES(type_traits::is_char<to_char_t>::value&& type_traits::is_char<from_char_t>::value)>
+to_char_t* char_cast(
+    const from_char_t*& first,
+    const from_char_t* last,
+    to_char_t* out,
+    to_char_t replacement = to_char_t('?'))
+{
+    using encoder = utf::utf_traits<to_char_t>;
+    using decoder = utf::utf_traits<from_char_t>;
+
+    utf::code_point c{};
+    first = decoder::decode(first, last, c);
+
+    return encoder::encode(c, out, replacement);
+}
+
+/**
  * @brief Converts a character range from one encoding to another.
  *
  * @tparam to_char_t Destination character type.
