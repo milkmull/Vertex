@@ -4,13 +4,13 @@
 #include "vertex/std/string_view.hpp"
 #include "vertex_test/test.hpp"
 
-#include "vertex_test/std/format/char_test_cases.hpp"
-
 #define LIT(x)          VX_LIT(C, x)
 #define NUM(x)          static_cast<I>(x)
 #define CHECK_STR(a, b) VX_CHECK(vx::str::compare(a, b) == 0)
 
 #define PRINT_CASE 0
+
+using namespace vx;
 
 // https://github.com/microsoft/STL/blob/020513e211529e7be30cb3e0ca310869701286da/tests/std/tests/P0067R5_charconv/test.cpp#L1012
 
