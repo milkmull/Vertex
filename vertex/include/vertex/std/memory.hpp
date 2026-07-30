@@ -88,6 +88,11 @@ inline constexpr void* move(void* dst, const void* src, const size_t bytes) noex
 {
     if (VX_IS_CONSTANT_EVALUATED())
     {
+        if (bytes == 0)
+        {
+            return dst;
+        }
+
         char* d = static_cast<char*>(dst);
         const char* s = static_cast<const char*>(src);
 

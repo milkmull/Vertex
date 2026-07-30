@@ -14,7 +14,7 @@ namespace vx {
 
 namespace _io_priv {
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_one_base(os::stream s, const C* v, size_t size)
 {
     VX_IF_CONSTEXPR (std::is_same<C, char>::value)
@@ -24,26 +24,20 @@ void print_one_base(os::stream s, const C* v, size_t size)
     else
     {
         using traits = utf::utf_traits<C>;
-        constexpr size_t max_width = traits::max_width();
-        constexpr size_t buf_size = 128;
-
-        char buf[max_width * buf_size];
 
         const C* ptr = v;
         const C* end = v + size;
 
         while (ptr != end)
         {
-            // Pick a chunk of input characters
-            const C* chunk_end = ptr + std::min<size_t>(buf_size, end - ptr);
-            char* out_end = str::string_cast<char>(ptr, chunk_end, buf);
-            os::write_raw(s, buf, static_cast<size_t>(out_end - buf));
-            ptr = chunk_end;
+            const char c = static_cast<char>(*ptr);
+            os::write_raw(s, &c, 1);
+            ++ptr;
         }
     }
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_one(os::stream s, const C* v)
 {
     using traits = str::char_traits<C>;
@@ -51,7 +45,7 @@ void print_one(os::stream s, const C* v)
     print_one_base(s, v, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_one(os::stream s, C v)
 {
     VX_IF_CONSTEXPR (std::is_same<C, char>::value)
@@ -60,17 +54,12 @@ void print_one(os::stream s, C v)
     }
     else
     {
-        using traits = utf::utf_traits<C>;
-        constexpr size_t max_width = traits::max_width();
-
-        char buf[max_width];
-        const auto last = str::string_cast<char>(&v, 1, buf);
-
-        os::write_raw(s, buf, last - buf);
+        const char c = static_cast<char>(v);
+        os::write_raw(s, &c, 1);
     }
 }
 
-template <typename S, VX_REQUIRES(str::is_string_like<S>::value)>
+template <typename S, VX_REQUIRES(str::is_string_like<S>::value && (sizeof(typename S::value_type) == sizeof(char)))>
 void print_one(os::stream s, const S& v)
 {
     print_one_base(s, v.data(), v.size());
@@ -144,19 +133,19 @@ void println_err(const Args&... args)
 
 // ============================================================
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_raw(os::stream s, const C* data, size_t size)
 {
     _io_priv::print_one_base(s, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_raw(const C* data, size_t size)
 {
     print_raw(os::stream::out, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void print_raw_err(const C* data, size_t size)
 {
     print_raw(os::stream::err, data, size);
@@ -164,7 +153,7 @@ void print_raw_err(const C* data, size_t size)
 
 // ============================================================
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void println_raw(os::stream s, const C* data, size_t size)
 {
     _io_priv::print_one_base(s, data, size);
@@ -173,13 +162,13 @@ void println_raw(os::stream s, const C* data, size_t size)
     os::write_raw(s, &c, 1);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void println_raw(const C* data, size_t size)
 {
     println_raw(os::stream::out, data, size);
 }
 
-template <typename C, VX_REQUIRES(type_traits::is_char<C>::value)>
+template <typename C, VX_REQUIRES(type_traits::is_char<C>::value && (sizeof(C) == sizeof(char)))>
 void println_raw_err(const C* data, size_t size)
 {
     println_raw(os::stream::err, data, size);

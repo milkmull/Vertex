@@ -31,7 +31,7 @@ struct test_entry
     const C* fmt;
     T args[N];
     const C* expected;
-    format::format_error expected_err = format::format_error::none;
+    fmt::format_error expected_err = fmt::format_error::none;
 };
 
 // convenience alias for the common single-arg case

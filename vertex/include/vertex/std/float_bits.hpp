@@ -1,7 +1,10 @@
 #pragma once
 
+#include <cmath>
+
 #include "vertex/config/language_config.hpp"
 #include "vertex/std/float_traits.hpp"
+#include "vertex/util/bit/bit.hpp"
 
 namespace vx {
 
@@ -107,5 +110,18 @@ struct float_bits
         return is_nan() && ((mantissa() & traits::quiet_nan_bit_mask) == 0);
     }
 };
+
+template <typename F, VX_REQUIRES(std::is_floating_point<F>::value)>
+constexpr bool signbit(const F value) noexcept
+{
+    if (VX_IS_CONSTANT_EVALUATED())
+    {
+        return float_bits<F>{ value }.sign();
+    }
+    else
+    {
+        return std::signbit(value);
+    }
+}
 
 } // namespace vx
